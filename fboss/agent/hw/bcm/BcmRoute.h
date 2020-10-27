@@ -16,6 +16,7 @@ extern "C" {
 
 #include <folly/IPAddress.h>
 #include <folly/dynamic.h>
+#include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/types.h"
@@ -43,16 +44,6 @@ class BcmRoute {
   void program(
       const RouteNextHopEntry& fwd,
       std::optional<cfg::AclLookupClass> classID);
-  static bool deleteLpmRoute(
-      int unit,
-      bcm_vrf_t vrf,
-      const folly::IPAddress& prefix,
-      uint8_t prefixLength);
-  static void initL3RouteFromArgs(
-      bcm_l3_route_t* rt,
-      bcm_vrf_t vrf,
-      const folly::IPAddress& prefix,
-      uint8_t prefixLength);
 
   bcm_if_t getEgressId() const {
     return egressId_;
@@ -68,10 +59,6 @@ class BcmRoute {
       bcm_if_t egressId,
       const RouteNextHopEntry& fwd,
       bool replace);
-  void programLpmRoute(
-      bcm_if_t egressId,
-      const RouteNextHopEntry& fwd,
-      std::optional<cfg::AclLookupClass> classID);
 
   /*
    * Check whether we can use the host route table. BCM platforms
@@ -90,14 +77,30 @@ class BcmRoute {
                          AdminDistance::MAX_ADMIN_DISTANCE};
   bool added_{false}; // if the route added to HW or not
   bcm_if_t egressId_{-1};
-  void initL3RouteT(bcm_l3_route_t* rt) const;
   std::shared_ptr<BcmMultiPathNextHop>
       nextHopHostReference_; // reference to nexthops
   std::shared_ptr<BcmHostIf> hostRouteEntry_; // for host routes
   std::optional<cfg::AclLookupClass> classID_{std::nullopt};
 };
 
-class BcmRouteTable {
+/**
+ * BcmHostRoute represents a L3 host entry programmed to route table.
+ */
+class BcmHostRoute : public BcmHostIf {
+ public:
+  BcmHostRoute(BcmSwitch* hw, BcmHostKey key) : BcmHostIf(hw, key) {}
+  void addToBcmHw(bool isMultipath = false, bool replace = false) override;
+  ~BcmHostRoute() override;
+
+ private:
+  // no copy or assignment
+  BcmHostRoute(BcmHostRoute const&) = delete;
+  BcmHostRoute& operator=(BcmHostRoute const&) = delete;
+};
+
+// inherit and implement program host related APIs from BcmHostTableIf,
+// so as to progrom routes for hosts if host table is not available
+class BcmRouteTable : public BcmHostTableIf {
  public:
   explicit BcmRouteTable(BcmSwitch* hw);
   ~BcmRouteTable();
@@ -119,6 +122,15 @@ class BcmRouteTable {
   template <typename RouteT>
   void deleteRoute(bcm_vrf_t vrf, const RouteT* route);
 
+  BcmHostIf* getBcmHostIf(const BcmHostKey& key) const noexcept override;
+  std::shared_ptr<BcmHostIf> refOrEmplaceHost(const BcmHostKey& key) override {
+    auto rv = hostRoutes_.refOrEmplace(key, hw_, key);
+    return rv.first;
+  }
+  void releaseHosts() override {
+    hostRoutes_.clear();
+  }
+
  private:
   struct Key {
     folly::IPAddress network;
@@ -129,7 +141,10 @@ class BcmRouteTable {
 
   BcmSwitch* hw_;
 
+  // routes programmed from addRoute()
   boost::container::flat_map<Key, std::unique_ptr<BcmRoute>> fib_;
+  // host routes programmed from programHostRoutes*()
+  FlatRefMap<BcmHostKey, BcmHostRoute> hostRoutes_;
 };
 
 } // namespace facebook::fboss

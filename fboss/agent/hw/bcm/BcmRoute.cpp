@@ -19,7 +19,6 @@ extern "C" {
 #include <folly/logging/xlog.h>
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
-#include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/hw/bcm/BcmMultiPathNextHop.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
@@ -29,17 +28,12 @@ extern "C" {
 
 #include "fboss/agent/state/RouteTypes.h"
 
-namespace facebook::fboss {
+namespace {
 
-BcmRoute::BcmRoute(
-    BcmSwitch* hw,
-    bcm_vrf_t vrf,
-    const folly::IPAddress& addr,
-    uint8_t len,
-    std::optional<cfg::AclLookupClass> classID)
-    : hw_(hw), vrf_(vrf), prefix_(addr), len_(len), classID_(classID) {}
+using facebook::fboss::bcmCheckError;
+using facebook::fboss::cfg::AclLookupClass;
 
-void BcmRoute::initL3RouteFromArgs(
+void initL3RouteFromArgs(
     bcm_l3_route_t* rt,
     bcm_vrf_t vrf,
     const folly::IPAddress& prefix,
@@ -65,12 +59,110 @@ void BcmRoute::initL3RouteFromArgs(
   }
 }
 
-void BcmRoute::initL3RouteT(bcm_l3_route_t* rt) const {
-  initL3RouteFromArgs(rt, vrf_, prefix_, len_);
+void programLpmRoute(
+    int unit,
+    bcm_vrf_t vrf,
+    const folly::IPAddress& prefix,
+    uint8_t prefixLength,
+    bcm_if_t egressId,
+    std::optional<AclLookupClass> classID,
+    std::optional<bcm_l3_route_t> cachedRoute,
+    bool isMultipath,
+    bool discard,
+    bool replace) {
+  bcm_l3_route_t rt;
+  initL3RouteFromArgs(&rt, vrf, prefix, prefixLength);
+  if (classID.has_value()) {
+    rt.l3a_lookup_class = static_cast<int>(classID.value());
+  }
+  rt.l3a_intf = egressId;
+  if (isMultipath) {
+    rt.l3a_flags |= BCM_L3_MULTIPATH;
+  } else if (discard) {
+    rt.l3a_flags |= BCM_L3_DST_DISCARD;
+  }
+  if (replace) {
+    rt.l3a_flags |= BCM_L3_REPLACE;
+  }
+
+  bool addRoute = false;
+  if (cachedRoute.has_value()) {
+    // Lambda to compare if the routes are equivalent and thus we need to
+    // do nothing
+    auto equivalent = [=](const bcm_l3_route_t& newRoute,
+                          const bcm_l3_route_t& existingRoute) {
+      // Compare flags (primarily MULTIPATH vs non MULTIPATH
+      // and egress id.
+      return existingRoute.l3a_flags == newRoute.l3a_flags &&
+          existingRoute.l3a_intf == newRoute.l3a_intf;
+    };
+    if (!equivalent(rt, cachedRoute.value())) {
+      XLOG(DBG3) << "Updating route for : " << prefix << "/"
+                 << static_cast<int>(prefixLength) << " in vrf : " << vrf;
+      // This is a change
+      rt.l3a_flags |= BCM_L3_REPLACE;
+      addRoute = true;
+    } else {
+      XLOG(DBG3) << " Route for : " << prefix << "/"
+                 << static_cast<int>(prefixLength) << " in vrf : " << vrf
+                 << " already exists";
+    }
+  } else {
+    addRoute = true;
+  }
+  if (addRoute) {
+    if (!cachedRoute.has_value()) {
+      XLOG(DBG3) << "Adding route for : " << prefix << "/"
+                 << static_cast<int>(prefixLength) << " in vrf : " << vrf;
+    }
+    auto rc = bcm_l3_route_add(unit, &rt);
+    bcmCheckError(
+        rc,
+        "failed to create a route entry for ",
+        prefix,
+        "/",
+        static_cast<int>(prefixLength),
+        " @egress ",
+        egressId);
+    XLOG(DBG3) << "created a route entry for " << prefix.str() << "/"
+               << static_cast<int>(prefixLength) << " @egress " << egressId
+               << (classID.has_value() ? static_cast<int>(classID.value()) : 0);
+  }
 }
 
+bool deleteLpmRoute(
+    int unitNumber,
+    bcm_vrf_t vrf,
+    const folly::IPAddress& prefix,
+    uint8_t prefixLength) {
+  bcm_l3_route_t rt;
+  initL3RouteFromArgs(&rt, vrf, prefix, prefixLength);
+  auto rc = bcm_l3_route_delete(unitNumber, &rt);
+  if (BCM_FAILURE(rc)) {
+    XLOG(ERR) << "Failed to delete a route entry for " << prefix << "/"
+              << static_cast<int>(prefixLength) << " Error: " << bcm_errmsg(rc);
+    return false;
+  } else {
+    XLOG(DBG3) << "deleted a route entry for " << prefix.str() << "/"
+               << static_cast<int>(prefixLength);
+  }
+  return true;
+}
+
+} // namespace
+
+namespace facebook::fboss {
+
+BcmRoute::BcmRoute(
+    BcmSwitch* hw,
+    bcm_vrf_t vrf,
+    const folly::IPAddress& addr,
+    uint8_t len,
+    std::optional<cfg::AclLookupClass> classID)
+    : hw_(hw), vrf_(vrf), prefix_(addr), len_(len), classID_(classID) {}
+
 bool BcmRoute::isHostRoute() const {
-  return prefix_.isV6() ? len_ == 128 : len_ == 32;
+  return len_ == prefix_.bitCount();
 }
 
 bool BcmRoute::canUseHostTable() const {
@@ -126,11 +218,31 @@ void BcmRoute::program(
     if (entryExistsInRouteTable) {
       // If the entry already exists in the route table, programHostRoute()
       // removes it as well.
-      DCHECK(!BcmRoute::deleteLpmRoute(hw_->getUnit(), vrf_, prefix_, len_));
+      DCHECK(!deleteLpmRoute(hw_->getUnit(), vrf_, prefix_, len_));
       warmBootCache->programmed(vrfAndIP2RouteCitr);
     }
   } else {
-    programLpmRoute(egressId, fwd, classID);
+    XLOG(DBG3) << "creating a route entry for " << prefix_ << "/"
+               << static_cast<int>(len_) << " with " << fwd;
+    const auto warmBootCache = hw_->getWarmBootCache();
+    auto routeCitr = warmBootCache->findRoute(vrf_, prefix_, len_);
+    auto cachedRoute = routeCitr != warmBootCache->vrfAndPrefix2Route_end()
+        ? std::make_optional(routeCitr->second)
+        : std::nullopt;
+    programLpmRoute(
+        hw_->getUnit(),
+        vrf_,
+        prefix_,
+        len_,
+        egressId,
+        classID,
+        cachedRoute,
+        fwd.getNextHopSet().size() > 1,
+        fwd.getAction() == RouteForwardAction::DROP,
+        added_);
+    if (routeCitr != warmBootCache->vrfAndPrefix2Route_end()) {
+      warmBootCache->programmed(routeCitr);
+    }
   }
   nextHopHostReference_ = std::move(nexthopReference);
   egressId_ = egressId;
@@ -163,97 +275,6 @@ std::shared_ptr<BcmHostIf> BcmRoute::programHostRoute(
   return prefixHost;
 }
 
-void BcmRoute::programLpmRoute(
-    bcm_if_t egressId,
-    const RouteNextHopEntry& fwd,
-    std::optional<cfg::AclLookupClass> classID) {
-  bcm_l3_route_t rt;
-  initL3RouteT(&rt);
-  if (classID.has_value()) {
-    rt.l3a_lookup_class = static_cast<int>(classID.value());
-  }
-  rt.l3a_intf = egressId;
-  if (fwd.getNextHopSet().size() > 1) { // multipath
-    rt.l3a_flags |= BCM_L3_MULTIPATH;
-  } else if (fwd.getAction() == RouteForwardAction::DROP) {
-    rt.l3a_flags |= BCM_L3_DST_DISCARD;
-  }
-
-  bool addRoute = false;
-  const auto warmBootCache = hw_->getWarmBootCache();
-  auto vrfAndPfx2RouteCitr = warmBootCache->findRoute(vrf_, prefix_, len_);
-  if (vrfAndPfx2RouteCitr != warmBootCache->vrfAndPrefix2Route_end()) {
-    // Lambda to compare if the routes are equivalent and thus we need to
-    // do nothing
-    auto equivalent = [=](const bcm_l3_route_t& newRoute,
-                          const bcm_l3_route_t& existingRoute) {
-      // Compare flags (primarily MULTIPATH vs non MULTIPATH
-      // and egress id.
-      return existingRoute.l3a_flags == newRoute.l3a_flags &&
-          existingRoute.l3a_intf == newRoute.l3a_intf;
-    };
-    if (!equivalent(rt, vrfAndPfx2RouteCitr->second)) {
-      XLOG(DBG3) << "Updating route for : " << prefix_ << "/"
-                 << static_cast<int>(len_) << " in vrf : " << vrf_;
-      // This is a change
-      rt.l3a_flags |= BCM_L3_REPLACE;
-      addRoute = true;
-    } else {
-      XLOG(DBG3) << " Route for : " << prefix_ << "/" << static_cast<int>(len_)
-                 << " in vrf : " << vrf_ << " already exists";
-    }
-  } else {
-    addRoute = true;
-  }
-  if (addRoute) {
-    if (vrfAndPfx2RouteCitr == warmBootCache->vrfAndPrefix2Route_end()) {
-      XLOG(DBG3) << "Adding route for : " << prefix_ << "/"
-                 << static_cast<int>(len_) << " in vrf : " << vrf_;
-    }
-    if (added_) {
-      rt.l3a_flags |= BCM_L3_REPLACE;
-    }
-    auto rc = bcm_l3_route_add(hw_->getUnit(), &rt);
-    bcmCheckError(
-        rc,
-        "failed to create a route entry for ",
-        prefix_,
-        "/",
-        static_cast<int>(len_),
-        " @ ",
-        fwd,
-        " @egress ",
-        egressId);
-    XLOG(DBG3) << "created a route entry for " << prefix_.str() << "/"
-               << static_cast<int>(len_) << " @egress " << egressId << " with "
-               << fwd
-               << (classID_.has_value() ? static_cast<int>(classID_.value())
-                                        : 0);
-  }
-  if (vrfAndPfx2RouteCitr != warmBootCache->vrfAndPrefix2Route_end()) {
-    warmBootCache->programmed(vrfAndPfx2RouteCitr);
-  }
-}
-
-bool BcmRoute::deleteLpmRoute(
-    int unitNumber,
-    bcm_vrf_t vrf,
-    const folly::IPAddress& prefix,
-    uint8_t prefixLength) {
-  bcm_l3_route_t rt;
-  initL3RouteFromArgs(&rt, vrf, prefix, prefixLength);
-  auto rc = bcm_l3_route_delete(unitNumber, &rt);
-  if (BCM_FAILURE(rc)) {
-    XLOG(ERR) << "Failed to delete a route entry for " << prefix << "/"
-              << static_cast<int>(prefixLength) << " Error: " << bcm_errmsg(rc);
-    return false;
-  } else {
-    XLOG(DBG3) << "deleted a route entry for " << prefix.str() << "/"
-               << static_cast<int>(prefixLength);
-  }
-  return true;
-}
-
 BcmRoute::~BcmRoute() {
   if (!added_) {
     return;
@@ -266,6 +287,46 @@ BcmRoute::~BcmRoute() {
   } else {
     deleteLpmRoute(hw_->getUnit(), vrf_, prefix_, len_);
   }
+}
+
+void BcmHostRoute::addToBcmHw(bool isMultipath, bool replace) {
+  if (key_.hasLabel()) {
+    return;
+  }
+  if (key_.addr().isV6() && key_.addr().isLinkLocal()) {
+    // For v6 link-local BcmHost, do not add it to the HW table
+    return;
+  }
+  const auto warmBootCache = hw_->getWarmBootCache();
+  auto routeCitr = warmBootCache->findRoute(
+      key_.getVrf(), key_.addr(), key_.addr().bitCount());
+  auto cachedRoute = routeCitr != warmBootCache->vrfAndPrefix2Route_end()
+      ? std::make_optional(routeCitr->second)
+      : std::nullopt;
+  programLpmRoute(
+      hw_->getUnit(),
+      key_.getVrf(),
+      key_.addr(),
+      key_.addr().bitCount(),
+      getEgressId(),
+      (cfg::AclLookupClass)getLookupClassId(),
+      cachedRoute,
+      isMultipath,
+      false,
+      replace);
+  if (routeCitr != warmBootCache->vrfAndPrefix2Route_end()) {
+    warmBootCache->programmed(routeCitr);
+  }
+  addedInHW_ = true;
+}
+
+BcmHostRoute::~BcmHostRoute() {
+  if (!addedInHW_) {
+    return;
+  }
+  deleteLpmRoute(
+      hw_->getUnit(), key_.getVrf(), key_.addr(), key_.addr().bitCount());
+  addedInHW_ = false;
 }
 
 bool BcmRouteTable::Key::operator<(const Key& k2) const {
@@ -349,6 +410,11 @@ void BcmRouteTable::deleteRoute(bcm_vrf_t vrf, const RouteT* route) {
     throw FbossError("Failed to delete a non-existing route ", route->str());
   }
   fib_.erase(iter);
+}
+
+BcmHostIf* FOLLY_NULLABLE
+BcmRouteTable::getBcmHostIf(const BcmHostKey& key) const noexcept {
+  return hostRoutes_.getMutable(key);
 }
 
 template void BcmRouteTable::addRoute(bcm_vrf_t, const RouteV4*);
