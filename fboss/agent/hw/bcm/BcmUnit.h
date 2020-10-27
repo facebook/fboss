@@ -86,6 +86,10 @@ class BcmUnit {
     return platform_->getWarmBootHelper();
   }
 
+  bool usePKTIO() {
+    return usePKTIO_;
+  }
+
  private:
   void attach(bool warmBoot);
   int createHwUnit();
@@ -112,6 +116,7 @@ class BcmUnit {
   int unit_{-1};
   std::atomic<bool> attached_{false};
   void* cookie_{nullptr};
+  bool usePKTIO_{false};
 
 #ifndef IS_OSS
   std::unique_ptr<BcmHALVector> halVector_;

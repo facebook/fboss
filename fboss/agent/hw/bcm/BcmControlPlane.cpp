@@ -130,11 +130,8 @@ ControlPlane::RxReasonToQueue BcmControlPlane::getRxReasonToQueue() const {
 void BcmControlPlane::setReasonToQueueEntry(
     int index,
     cfg::PacketRxReasonToQueue entry) {
-  // TODO(xiangzhu): We need new PKTIO implementation for reason to cpu
-  // queue mapping logic
-  if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PKTIO)) {
-    XLOG(DBG1) << "[HACK] bcm_rx_cosq_mapping_set is unavialble for PKTIO. "
-               << "Skip setting rx reason to cpu queue.";
+  if (hw_->usePKTIO()) {
+    /* PKTIO does not use bcm_rx_cosq_mapping_set to set rx reason */
     return;
   }
 

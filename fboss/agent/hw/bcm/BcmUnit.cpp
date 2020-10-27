@@ -32,6 +32,9 @@ extern "C" {
 #include <bcm/switch.h>
 #include <ibde.h>
 #include <soc/cmext.h>
+#ifdef INCLUDE_PKTIO
+#include <bcm/pktio.h>
+#endif
 
 #if (!defined(BCM_VER_MAJOR))
 #define BCM_WARM_BOOT_SUPPORT
@@ -49,6 +52,8 @@ using std::chrono::steady_clock;
 
 using facebook::fboss::BcmAPI;
 using folly::StringPiece;
+
+DEFINE_bool(use_pktio, false, "Select PKTIO as the slow_path TX/RX API");
 
 DEFINE_string(
     script_pre_bcm_attach,
@@ -210,6 +215,16 @@ void BcmUnit::deleteBcmUnitImpl() {
     steady_clock::time_point begin = steady_clock::now();
     XLOG(INFO) << " [Exit] Initiating BRCM ASIC shutdown";
 
+    if (usePKTIO_) {
+      int rv;
+#ifdef INCLUDE_PKTIO
+      rv = bcm_pktio_cleanup(unit_);
+#else
+      rv = BCM_E_CONFIG;
+#endif
+      bcmCheckError(rv, "Failed to cleanup PKTIO");
+    }
+
     // Since this is a destructor, we can't use the virtual method:
     // platform_->getAsic()->isSupported(HwAsic::Feature::HSDK).
     // Otherwise it will complain "pure virtual method called"
@@ -299,8 +314,28 @@ void BcmUnit::attach(bool warmBoot) {
     attachSDK6(warmBoot);
   }
 
+  int rv;
+  auto asic = platform_->getAsic();
+
+  if (asic->isSupported(HwAsic::Feature::PKTIO)) {
+    if (asic->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3) {
+      usePKTIO_ = FLAGS_use_pktio;
+    } else {
+      usePKTIO_ = true;
+    }
+  }
+
+  if (usePKTIO_) {
+#ifdef INCLUDE_PKTIO
+    rv = bcm_pktio_init(unit_);
+#else
+    rv = BCM_E_CONFIG;
+#endif
+    bcmCheckError(rv, "Failed to init PKTIO");
+  }
+
   attached_.store(true, std::memory_order_release);
-}
+} // namespace facebook::fboss
 
 void BcmUnit::registerCallbackVector() {
   auto* dev = bde->get_dev(deviceIndex_);

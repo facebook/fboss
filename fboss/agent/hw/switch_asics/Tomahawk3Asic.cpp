@@ -25,6 +25,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::OBJECT_KEY_CACHE:
     case HwAsic::Feature::ACL_COPY_TO_CPU:
+    case HwAsic::Feature::PKTIO:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
@@ -38,7 +39,6 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::HSDK:
     case HwAsic::Feature::L3_EGRESS_MODE_AUTO_ENABLED:
     case HwAsic::Feature::SAI_ECN_WRED:
-    case HwAsic::Feature::PKTIO:
     case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL: // CS00011272352
     case HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER:
       return false;

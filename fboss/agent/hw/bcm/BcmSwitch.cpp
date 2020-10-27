@@ -894,12 +894,6 @@ void BcmSwitch::setupToCpuEgress() {
 }
 
 void BcmSwitch::setupPacketRx() {
-  // TODO(xiangzhu): Need to implement pktio way to set up tx/rx
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::PKTIO)) {
-    XLOG(DBG1) << "PKTIO is not ready. Skip setting up packet RX";
-    return;
-  }
-
   static bcm_rx_cfg_t rxCfg = {
       (16 * 1032), // packet alloc size (12K packets plus spare)
       16, // Packets per chain
@@ -937,8 +931,10 @@ void BcmSwitch::setupPacketRx() {
   bcmCheckError(rv, "failed to register packet rx callback");
   flags_ |= RX_REGISTERED;
 
-  if (!isRxThreadRunning()) {
-    rv = bcm_rx_start(unit_, &rxCfg);
+  if (!unitObject_->usePKTIO()) {
+    if (!isRxThreadRunning()) {
+      rv = bcm_rx_start(unit_, &rxCfg);
+    }
   }
   bcmCheckError(rv, "failed to start broadcom packet rx API");
 }
@@ -3045,4 +3041,13 @@ std::string BcmSwitch::listObjects(
     bool /*cached*/) const {
   throw FbossError("Listing hw objects not supported. Use Bcm shell");
 }
+
+bool BcmSwitch::useHSDK() const {
+  return BcmAPI::isHwUsingHSDK();
+}
+
+bool BcmSwitch::usePKTIO() const {
+  return unitObject_->usePKTIO();
+}
+
 } // namespace facebook::fboss

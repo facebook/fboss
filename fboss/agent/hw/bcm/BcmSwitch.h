@@ -524,6 +524,10 @@ class BcmSwitch : public BcmSwitchIf {
 
   bool isPortEnabled(PortID port) const;
 
+  bool useHSDK() const;
+
+  bool usePKTIO() const;
+
  private:
   enum Flags : uint32_t { RX_REGISTERED = 0x01, LINKSCAN_REGISTERED = 0x02 };
   enum DeltaType { ADDED, REMOVED, CHANGED };
