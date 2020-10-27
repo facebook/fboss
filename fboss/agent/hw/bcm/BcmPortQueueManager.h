@@ -78,6 +78,16 @@ class BcmPortQueueManager : public BcmCosQueueManager {
 
   void
   programTrafficClass(bcm_gport_t queueGport, bcm_cos_queue_t cosQ, int prio);
+
+  bool isEgressDynamicSharedEnabled(
+      cfg::StreamType streamType,
+      bcm_gport_t gport,
+      bcm_cos_queue_t cosQ) const;
+
+  void programEgressDynamicSharedEnabled(
+      cfg::StreamType streamType,
+      bcm_gport_t gport,
+      bcm_cos_queue_t cosQ) const;
 };
 
 } // namespace facebook::fboss
