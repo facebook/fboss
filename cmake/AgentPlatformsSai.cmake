@@ -48,3 +48,40 @@ set_target_properties(sai_platform PROPERTIES COMPILE_FLAGS
   -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
   -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
 )
+
+function(BUILD_SAI_WEDGE_AGENT SAI_IMPL_NAME SAI_IMPL_ARG)
+
+  message(STATUS "Building Sai WedgeAgent SAI_IMPL_NAME: ${SAI_IMPL_NAME} SAI_IMPL_ARG: ${SAI_IMPL_ARG}")
+
+  add_executable(wedge_agent-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
+    fboss/agent/platforms/sai/wedge_agent.cpp
+  )
+
+  target_link_libraries(wedge_agent-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
+    -Wl,--whole-archive
+    main
+    sai_platform
+    ${SAI_IMPL_ARG}
+    -Wl,--no-whole-archive
+    ${CMAKE_THREAD_LIBS_INIT}
+  )
+
+  set_target_properties(wedge_agent-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
+      PROPERTIES COMPILE_FLAGS
+      "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
+      -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
+      -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
+    )
+
+endfunction()
+
+# If libsai_impl is provided, build wedge_agent linking with it
+find_library(SAI_IMPL sai_impl)
+message(STATUS "SAI_IMPL: ${SAI_IMPL}")
+
+if(SAI_IMPL)
+  BUILD_SAI_WEDGE_AGENT("sai_impl" ${SAI_IMPL})
+  install(
+    TARGETS
+    wedge_agent-sai_impl-${SAI_VER_SUFFIX})
+endif()

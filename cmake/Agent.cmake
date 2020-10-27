@@ -21,6 +21,29 @@ target_link_libraries(fboss_init
   Folly::folly
 )
 
+# TODO (rsunkad) re-enable this library for use with linking with libmain
+#add_library(base INTERFACE)
+
+#target_link_libraries(base
+#  core
+#  handler
+#  Folly::folly
+#)
+
+add_library(main
+  fboss/agent/Main.cpp
+  fboss/agent/oss/Main.cpp
+)
+
+target_link_libraries(main
+  core
+  handler
+# base
+  fboss_init
+  setup_thrift
+  Folly::folly
+)
+
 add_library(address_utils
   fboss/agent/AddressUtil.h
 )

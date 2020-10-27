@@ -420,6 +420,14 @@ source ./bin/setup_fboss_env
 ./bin/run_test.py bcm --filter=*Route*V6* --coldboot_only
 ```
 
+### 3.1.3 Running FBOSS Agent built with SAI
+When built with an SAI implementation, FBOSS package also includes the SAI based ```wedge_agent``` binary. The binary can be launched with the platform's configuration file.
+```
+cd /opt/fboss
+source ./bin/setup_fboss_env
+./bin/wedge_agent-sai_impl-1.6.3 --config ./share/<sai_platform>_agent.conf --skip_transceiver_programming
+```
+
 ---
 # Incorporating support for a new SAI implementation
 

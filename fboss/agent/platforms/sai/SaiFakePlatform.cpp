@@ -55,7 +55,8 @@ HwAsic* SaiFakePlatform::getAsic() const {
 SaiFakePlatform::~SaiFakePlatform() {}
 
 folly::MacAddress SaiFakePlatform::getLocalMac() const {
-  return utility::kLocalCpuMac();
+  static const folly::MacAddress kLocalMac("02:00:00:00:00:01");
+  return kLocalMac;
 }
 
 } // namespace facebook::fboss

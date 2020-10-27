@@ -75,7 +75,6 @@ set(SAI_API_SRC
 )
 
 set(SAI_API_DEPS
-  fake_sai
   address_util
   logging_util
   fboss_error

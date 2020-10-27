@@ -34,7 +34,7 @@ add_executable(api_test
 )
 
 target_link_libraries(api_test
-    #fake_sai
+    fake_sai
     sai_api
     ${GTEST}
     ${LIBGMOCK_LIBRARIES}

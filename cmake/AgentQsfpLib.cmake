@@ -19,4 +19,5 @@ target_link_libraries(qsfp_cache
     qsfp_service_client
     ctrl_cpp2
     transceiver_cpp2
+    alert_logger
 )
