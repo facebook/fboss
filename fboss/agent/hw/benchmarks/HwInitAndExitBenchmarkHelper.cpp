@@ -90,6 +90,18 @@ std::optional<uint16_t> getUplinksCount(
         cfg::PortSpeed::HUNDREDG,
         cfg::PortSpeed::HUNDREDG},
        4},
+      {{PlatformMode::WEDGE400,
+        cfg::PortSpeed::HUNDREDG,
+        cfg::PortSpeed::TWENTYFIVEG},
+       4},
+      {{PlatformMode::WEDGE400,
+        cfg::PortSpeed::HUNDREDG,
+        cfg::PortSpeed::FIFTYG},
+       4},
+      {{PlatformMode::WEDGE400,
+        cfg::PortSpeed::HUNDREDG,
+        cfg::PortSpeed::HUNDREDG},
+       4},
   };
 
   auto iter = numUplinksMap.find(
