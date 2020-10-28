@@ -1831,22 +1831,28 @@ void BcmSwitch::processAddedAndChangedNeighbor(
     const NeighborEntryT* entry) {
   auto* neighbor = neighborTable_->getNeighbor(neighborKey);
   CHECK(neighbor);
+  BcmHostTableIf* hostTable;
+  if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::HOSTTABLE)) {
+    hostTable = hostTable_.get();
+  } else {
+    hostTable = routeTable_.get();
+  }
   if (entry->isPending()) {
-    hostTable_->programHostsToCPU(neighborKey, intf->getBcmIfId());
+    hostTable->programHostsToCPU(neighborKey, intf->getBcmIfId());
     return;
   }
   auto neighborMac = entry->getMac();
   auto isTrunk = entry->getPort().isAggregatePort();
   if (isTrunk) {
     auto trunk = entry->getPort().aggPortID();
-    hostTable_->programHostsToTrunk(
+    hostTable->programHostsToTrunk(
         neighborKey,
         intf->getBcmIfId(),
         neighborMac,
         getTrunkTable()->getBcmTrunkId(trunk));
   } else {
     auto port = entry->getPort().phyPortID();
-    hostTable_->programHostsToPort(
+    hostTable->programHostsToPort(
         neighborKey,
         intf->getBcmIfId(),
         neighborMac,
@@ -1934,7 +1940,11 @@ void BcmSwitch::processRemovedNeighborEntry(
   auto neighborKey = BcmHostKey(
       vrf, IPAddress(removedEntry->getIP()), removedEntry->getIntfID());
   neighborTable_->unregisterNeighbor(neighborKey);
-  hostTable_->programHostsToCPU(neighborKey, intf->getBcmIfId());
+  if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::HOSTTABLE)) {
+    hostTable_->programHostsToCPU(neighborKey, intf->getBcmIfId());
+  } else {
+    routeTable_->programHostsToCPU(neighborKey, intf->getBcmIfId());
+  }
   std::for_each(
       writableMplsNextHopTable()->getNextHops().begin(),
       writableMplsNextHopTable()->getNextHops().end(),

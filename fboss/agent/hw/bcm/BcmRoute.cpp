@@ -345,7 +345,9 @@ bool BcmRouteTable::Key::operator<(const Key& k2) const {
 
 BcmRouteTable::BcmRouteTable(BcmSwitch* hw) : hw_(hw) {}
 
-BcmRouteTable::~BcmRouteTable() {}
+BcmRouteTable::~BcmRouteTable() {
+  releaseHosts();
+}
 
 BcmRoute* BcmRouteTable::getBcmRouteIf(
     bcm_vrf_t vrf,

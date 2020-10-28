@@ -25,9 +25,11 @@
 #include "fboss/agent/hw/bcm/BcmNextHop.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
+#include "fboss/agent/hw/bcm/BcmRoute.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Interface.h"
 
 extern "C" {
@@ -470,7 +472,12 @@ std::shared_ptr<BcmHostIf> BcmHostTable::refOrEmplaceHost(
 }
 
 BcmHostIf* BcmNeighborTable::registerNeighbor(const BcmHostKey& neighbor) {
-  auto neighborHost = hw_->writableHostTable()->refOrEmplaceHost(neighbor);
+  std::shared_ptr<BcmHostIf> neighborHost;
+  if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::HOSTTABLE)) {
+    neighborHost = hw_->writableHostTable()->refOrEmplaceHost(neighbor);
+  } else {
+    neighborHost = hw_->writableRouteTable()->refOrEmplaceHost(neighbor);
+  }
   auto* result = neighborHost.get();
   neighborHosts_.emplace(neighbor, std::move(neighborHost));
   return result;
@@ -479,7 +486,11 @@ BcmHostIf* BcmNeighborTable::registerNeighbor(const BcmHostKey& neighbor) {
 BcmHostIf* FOLLY_NULLABLE
 BcmNeighborTable::unregisterNeighbor(const BcmHostKey& neighbor) {
   neighborHosts_.erase(neighbor);
-  return hw_->getHostTable()->getBcmHostIf(neighbor);
+  if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::HOSTTABLE)) {
+    return hw_->getHostTable()->getBcmHostIf(neighbor);
+  } else {
+    return hw_->routeTable()->getBcmHostIf(neighbor);
+  }
 }
 
 BcmHostIf* BcmNeighborTable::getNeighbor(const BcmHostKey& neighbor) const {
