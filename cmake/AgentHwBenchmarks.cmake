@@ -194,6 +194,7 @@ target_link_libraries(hw_init_and_exit_benchmark_helper
   load_balancer_utils
   Folly::folly
   Folly::follybenchmark
+  function_call_time_reporter
 )
 
 add_library(hw_init_and_exit_40Gx10G

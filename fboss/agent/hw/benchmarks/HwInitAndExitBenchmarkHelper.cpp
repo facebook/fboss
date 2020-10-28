@@ -19,6 +19,7 @@
 #include "fboss/agent/platforms/common/PlatformMode.h"
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
+#include "fboss/lib/FunctionCallTimeReporter.h"
 
 #include <folly/logging/xlog.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -177,7 +178,14 @@ RouteDistributionGenerator::SwitchStates getRouteScaleSwitchStates(
 void initandExitBenchmarkHelper(
     cfg::PortSpeed uplinkSpeed,
     cfg::PortSpeed downlinkSpeed) {
-  auto ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
+  std::unique_ptr<HwSwitchEnsemble> ensemble;
+  {
+    /*
+     * Measure the hw switch init time
+     */
+    ScopedCallTimer timeIt;
+    ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
+  }
   folly::BenchmarkSuspender suspender;
   auto hwSwitch = ensemble->getHwSwitch();
   auto numUplinks = getUplinksCount(hwSwitch, uplinkSpeed, downlinkSpeed);
@@ -200,6 +208,7 @@ void initandExitBenchmarkHelper(
       downlinkSpeed,
       cfg::PortLoopbackMode::MAC);
   enableFeaturesInConfig(config, hwSwitch);
+
   /*
    * This is to measure the performance when the config is applied during
    * coldboot/warmboot. This measures the time agent took to transition
@@ -209,16 +218,21 @@ void initandExitBenchmarkHelper(
    * disable when setting up for warmboot
    */
   suspender.dismiss();
-  ensemble->applyInitialConfig(config);
+  {
+    ScopedCallTimer timeIt;
+    ensemble->applyInitialConfig(config);
+  }
   auto states = getRouteScaleSwitchStates(ensemble.get());
   for (auto& state : states) {
     ensemble->applyNewState(state);
   }
   suspender.rehire();
   if (FLAGS_setup_for_warmboot) {
+    ScopedCallTimer timeIt;
     // Static such that the object destructor runs as late as possible. In
     // particular in this case, destructor (and thus the duration calculation)
-    // will run at the time of program exit when static variable destructors run
+    // will run at the time of program exit when static variable destructors
+    // run
     static StopWatch timer;
     ensemble->gracefulExit();
     // Leak HwSwitchEnsemble for warmboot, so that
@@ -227,5 +241,4 @@ void initandExitBenchmarkHelper(
     __attribute__((unused)) auto leakedHwEnsemble = ensemble.release();
   }
 }
-
 } // namespace facebook::fboss::utility
