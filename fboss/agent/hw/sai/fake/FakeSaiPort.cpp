@@ -37,6 +37,7 @@ sai_status_t create_port_fn(
   sai_object_id_t qosTcToQueueMap{SAI_NULL_OBJECT_ID};
   bool disableTtlDecrement{false};
   sai_port_interface_type_t interface_type{SAI_PORT_INTERFACE_TYPE_NONE};
+  bool txEnable{true};
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_PORT_ATTR_ADMIN_STATE:
@@ -88,6 +89,9 @@ sai_status_t create_port_fn(
         interface_type =
             static_cast<sai_port_interface_type_t>(attr_list[i].value.s32);
         break;
+      case SAI_PORT_ATTR_PKT_TX_ENABLE:
+        txEnable = attr_list[i].value.booldata;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -122,6 +126,7 @@ sai_status_t create_port_fn(
   port.qosDscpToTcMap = qosDscpToTcMap;
   port.qosTcToQueueMap = qosTcToQueueMap;
   port.disableTtlDecrement = disableTtlDecrement;
+  port.txEnable = txEnable;
   // TODO: Use number of queues by querying SAI_SWITCH_ATTR_NUMBER_OF_QUEUES
   for (uint8_t queueId = 0; queueId < 7; queueId++) {
     auto saiQueueId = fs->queueManager.create(
@@ -215,6 +220,9 @@ sai_status_t set_port_attribute_fn(
       port.interface_type =
           static_cast<sai_port_interface_type_t>(attr->value.s32);
       break;
+    case SAI_PORT_ATTR_PKT_TX_ENABLE:
+      port.txEnable = attr->value.booldata;
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -300,6 +308,9 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_INTERFACE_TYPE:
         attr->value.s32 = port.interface_type;
+        break;
+      case SAI_PORT_ATTR_PKT_TX_ENABLE:
+        attr->value.booldata = port.txEnable;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

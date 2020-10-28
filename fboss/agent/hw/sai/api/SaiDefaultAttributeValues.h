@@ -38,6 +38,11 @@ struct SaiBoolDefaultFalse {
   }
 };
 
+struct SaiBoolDefaultTrue {
+  bool operator()() const {
+    return true;
+  }
+};
 struct SaiPortInterfaceTypeDefault {
   sai_port_interface_type_t operator()() const {
     return SAI_PORT_INTERFACE_TYPE_NONE;

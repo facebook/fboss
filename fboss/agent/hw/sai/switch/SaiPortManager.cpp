@@ -395,7 +395,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
                                          std::nullopt,
                                          std::nullopt,
                                          std::nullopt,
-                                         interfaceType};
+                                         interfaceType,
+                                         std::nullopt};
 }
 
 std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(

@@ -112,6 +112,7 @@ class PortManagerTest : public ManagerTestBase {
                                       std::nullopt,
                                       std::nullopt,
                                       std::nullopt,
+                                      std::nullopt,
                                       std::nullopt};
     return portApi.create<SaiPortTraits>(a, 0);
   }

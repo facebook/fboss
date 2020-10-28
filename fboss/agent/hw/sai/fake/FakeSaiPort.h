@@ -21,8 +21,7 @@ extern "C" {
 
 namespace facebook::fboss {
 
-class FakePort {
- public:
+struct FakePort {
   FakePort(std::vector<uint32_t> lanes, sai_uint32_t speed)
       : lanes(lanes), speed(speed) {}
   sai_object_id_t id;
@@ -43,6 +42,7 @@ class FakePort {
   sai_object_id_t qosTcToQueueMap{SAI_NULL_OBJECT_ID};
   bool disableTtlDecrement{false};
   sai_port_interface_type_t interface_type{SAI_PORT_INTERFACE_TYPE_NONE};
+  bool txEnable{true};
 };
 
 struct FakePortSerdes {

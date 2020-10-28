@@ -88,6 +88,11 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_INTERFACE_TYPE,
         sai_int32_t,
         SaiPortInterfaceTypeDefault>;
+    using PktTxEnable = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_PKT_TX_ENABLE,
+        bool,
+        SaiBoolDefaultTrue>;
   };
   using AdapterKey = PortSaiId;
   using AdapterHostKey = Attributes::HwLaneList;
@@ -106,7 +111,8 @@ struct SaiPortTraits {
       std::optional<Attributes::QosDscpToTcMap>,
       std::optional<Attributes::QosTcToQueueMap>,
       std::optional<Attributes::DisableTtlDecrement>,
-      std::optional<Attributes::InterfaceType>>;
+      std::optional<Attributes::InterfaceType>,
+      std::optional<Attributes::PktTxEnable>>;
 
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
@@ -148,6 +154,7 @@ SAI_ATTRIBUTE_NAME(Port, QosNumberOfQueues)
 SAI_ATTRIBUTE_NAME(Port, QosQueueList)
 SAI_ATTRIBUTE_NAME(Port, Type)
 SAI_ATTRIBUTE_NAME(Port, InterfaceType)
+SAI_ATTRIBUTE_NAME(Port, PktTxEnable)
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};
