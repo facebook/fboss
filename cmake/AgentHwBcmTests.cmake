@@ -16,6 +16,7 @@ add_executable(bcm_test
   fboss/agent/hw/bcm/tests/HwTestMacUtils.cpp
   fboss/agent/hw/bcm/tests/HwTestMplsUtils.cpp
   fboss/agent/hw/bcm/tests/HwTestPacketTrapEntry.cpp
+  fboss/agent/hw/bcm/tests/HwTestPortUtils.cpp
   fboss/agent/hw/bcm/tests/HwVlanUtils.cpp
   fboss/agent/hw/bcm/tests/BcmAclCoppTests.cpp
   fboss/agent/hw/bcm/tests/BcmAclUnitTests.cpp

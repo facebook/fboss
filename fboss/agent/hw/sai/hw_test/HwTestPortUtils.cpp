@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/api/PortApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
+#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
@@ -40,5 +41,15 @@ void setPortLoopbackMode(
       utility::getSaiPortInternalLoopbackMode(lbMode)};
   auto& portApi = SaiApiTable::getInstance()->portApi();
   portApi.setAttribute(portItr->first, internalLbMode);
+}
+
+void setPortTxEnable(const HwSwitch* hw, PortID port, bool enable) {
+  auto portHandle = static_cast<const SaiSwitch*>(hw)
+                        ->managerTable()
+                        ->portManager()
+                        .getPortHandle(port);
+
+  portHandle->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::PktTxEnable{enable});
 }
 } // namespace facebook::fboss::utility

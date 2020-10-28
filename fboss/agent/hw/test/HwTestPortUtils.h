@@ -27,5 +27,6 @@ TransceiverInfo getTransceiverInfo(
     PortID port,
     TransmitterTechnology tech = TransmitterTechnology::COPPER);
 
+void setPortTxEnable(const HwSwitch* hw, PortID port, bool enable);
 } // namespace utility
 } // namespace facebook::fboss
