@@ -265,6 +265,11 @@ TEST_F(PortApiTest, setGetOptionalAttributes) {
   SaiPortTraits::Attributes::DisableTtlDecrement disableTtlDec{true};
   portApi->setAttribute(portId, disableTtlDec);
   EXPECT_TRUE(portApi->getAttribute(portId, disableTtlDec));
+
+  // Pkt TX
+  SaiPortTraits::Attributes::PktTxEnable txEnable{false};
+  portApi->setAttribute(portId, txEnable);
+  EXPECT_FALSE(portApi->getAttribute(portId, txEnable));
 }
 
 // ObjectApi tests
