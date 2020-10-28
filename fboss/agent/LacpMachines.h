@@ -174,6 +174,7 @@ class MuxMachine : private folly::AsyncTimeout {
   void notMatched();
   void standby();
   void restoreState();
+  void enableCollectingDistributing() const;
 
  private:
   enum class MuxState {
@@ -191,7 +192,6 @@ class MuxMachine : private folly::AsyncTimeout {
   void attached();
   void collectingDistributing();
 
-  void enableCollectingDistributing() const;
   void disableCollectingDistributing() const;
 
   void timeoutExpired() noexcept override;

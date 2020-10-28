@@ -771,7 +771,6 @@ void MuxMachine::updateState(MuxState nextState) {
 
 void MuxMachine::restoreState(void) {
   updateState(MuxState::COLLECTING_DISTRIBUTING);
-  enableCollectingDistributing();
 }
 
 Selector::Selector(LacpController& controller, uint8_t minLinkCount)
@@ -952,7 +951,24 @@ void Selector::standby() {
 }
 
 void Selector::restoreState() {
-  select();
+  auto targetLagID = LinkAggregationGroupID::from(
+      controller_.actorInfo(), controller_.partnerInfo());
+
+  // If the Link Aggregation Group this port has SELECTED or STANDBYed is the
+  // same as that identified by targetLagID, then there's nothing to do.
+  auto maybeSelection = getSelectionIf();
+  if (maybeSelection && maybeSelection->lagID == targetLagID) {
+    XLOG(DBG4) << "Selection[" << controller_.portID()
+               << "]: skipping selection logic";
+    return;
+  }
+
+  Selector::portToSelection().insert(std::make_pair(
+      controller_.portID(), Selection(targetLagID, SelectionState::SELECTED)));
+
+  XLOG(DBG4) << "Selection[" << controller_.portID() << "]: selected "
+             << targetLagID.describe();
+  controller_.selected();
 }
 
 } // namespace facebook::fboss

@@ -88,9 +88,10 @@ void LacpController::restoreMachines(
   evb()->runInEventBaseThread([self = shared_from_this(), partnerState]() {
     self->mux_.start();
     self->selector_.start();
+    self->rx_.restoreState(partnerState);
     self->mux_.restoreState();
     self->selector_.restoreState();
-    self->rx_.restoreState(partnerState);
+    self->mux_.enableCollectingDistributing();
     self->tx_.start();
     self->ntt();
     self->periodicTx_.start();
