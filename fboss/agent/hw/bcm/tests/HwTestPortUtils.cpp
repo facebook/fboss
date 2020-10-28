@@ -32,7 +32,4 @@ void setPortLoopbackMode(
       rv, "failed to set loopback mode state for port");
 }
 
-void setPortTxEnable(const HwSwitch* /*hw*/, PortID /*port*/, bool /*enable*/) {
-  // TODO
-}
 } // namespace facebook::fboss::utility

@@ -24,7 +24,7 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
-    if (isSupported(HwAsic::Feature::L3_QOS)) {
+    if (HwTest::isSupported(HwAsic::Feature::L3_QOS)) {
       addQosMap(&cfg);
       auto streamType =
           *(getPlatform()->getAsic()->getQueueStreamTypes(false).begin());
@@ -61,9 +61,13 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
     XLOG(INFO) << " Low pri queue ( " << lowPriQueue
                << " ) watermark: " << lowPriWatermark << " High pri queue ( "
                << highPriQueue << " ) watermark: " << highPriWatermark;
-    // Change this to be GT once port TX disable is implemented on all
-    // platforms
     EXPECT_GE(highPriWatermark, lowPriWatermark);
+    EXPECT_GT(*portStats.outDiscards__ref(), 0);
+  }
+
+  bool isSupported() const {
+    return HwTest::isSupported(HwAsic::Feature::L3_QOS) &&
+        HwTest::isSupported(HwAsic::Feature::PORT_TX_DISABLE);
   }
 
  private:
@@ -190,7 +194,7 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
 };
 
 TEST_F(HwMmuTuningTest, verifyReservedBytesTuning) {
-  if (!isSupported(HwAsic::Feature::L3_QOS)) {
+  if (!isSupported()) {
 #if defined(GTEST_SKIP)
     GTEST_SKIP();
 #endif
@@ -204,7 +208,7 @@ TEST_F(HwMmuTuningTest, verifyReservedBytesTuning) {
 }
 
 TEST_F(HwMmuTuningTest, verifyScalingFactorTuning) {
-  if (!isSupported(HwAsic::Feature::L3_QOS)) {
+  if (!isSupported()) {
 #if defined(GTEST_SKIP)
     GTEST_SKIP();
 #endif
