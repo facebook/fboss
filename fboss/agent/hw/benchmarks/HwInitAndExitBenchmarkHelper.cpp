@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/benchmarks/HwInitAndExitBenchmarkHelper.h"
+#include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
@@ -185,7 +186,9 @@ RouteDistributionGenerator::SwitchStates getRouteScaleSwitchStates(
 void initandExitBenchmarkHelper(
     cfg::PortSpeed uplinkSpeed,
     cfg::PortSpeed downlinkSpeed) {
+  folly::BenchmarkSuspender suspender;
   std::unique_ptr<HwSwitchEnsemble> ensemble;
+  suspender.dismiss();
   {
     /*
      * Measure the hw switch init time
@@ -193,7 +196,7 @@ void initandExitBenchmarkHelper(
     ScopedCallTimer timeIt;
     ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
   }
-  folly::BenchmarkSuspender suspender;
+  suspender.rehire();
   auto hwSwitch = ensemble->getHwSwitch();
   auto numUplinks = getUplinksCount(hwSwitch, uplinkSpeed, downlinkSpeed);
   if (!numUplinks) {
@@ -227,13 +230,22 @@ void initandExitBenchmarkHelper(
   suspender.dismiss();
   {
     ScopedCallTimer timeIt;
-    ensemble->applyInitialConfig(config);
+    /*
+     * Do not apply the config through ensemble since it disables and enables
+     * the port and waits for the port to be UP before returning. We would like
+     * to measure the performance only for hw switch init and also the state
+     * transition from INIT TO CONFIGURED.
+     */
+    auto newState = applyThriftConfig(
+        ensemble->getProgrammedState(), &config, hwSwitch->getPlatform());
+    ensemble->applyNewState(newState);
+    ensemble->switchRunStateChanged(SwitchRunState::CONFIGURED);
   }
+  suspender.rehire();
   auto states = getRouteScaleSwitchStates(ensemble.get());
   for (auto& state : states) {
     ensemble->applyNewState(state);
   }
-  suspender.rehire();
   if (FLAGS_setup_for_warmboot) {
     ScopedCallTimer timeIt;
     // Static such that the object destructor runs as late as possible. In
