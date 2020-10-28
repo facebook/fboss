@@ -254,6 +254,13 @@ void TurboFSWRouteScaleGenerator::genIp2MplsRouteDistribution(
   std::vector<PrefixT> prefixes;
   auto state = generatedStates.back()->clone();
   EcmpSetupTargetedPorts<AddrT> ecmpHelper(state);
+  auto width = ecmpWidth();
+  size_t unlabeledPortsSize = width - 32;
+  std::vector<NextHopWeight> weights(width);
+
+  // create ucmp with 1:3 weight distribution for labelled paths
+  std::fill(weights.begin(), weights.begin() + unlabeledPortsSize, 1);
+  std::fill(weights.begin() + unlabeledPortsSize, weights.end(), 3);
 
   for (const auto& prefixLabelDistribution : labelDistributionSpec) {
     uint8_t prefixSize = prefixLabelDistribution.first;
@@ -290,7 +297,7 @@ void TurboFSWRouteScaleGenerator::genIp2MplsRouteDistribution(
         labels.emplace(labeledPort, stack);
       }
       state = ecmpHelper.setupIp2MplsECMPForwarding(
-          state, allPorts, labels, prefixes);
+          state, allPorts, labels, prefixes, weights);
       generatedStates.push_back(state);
       labelForChunk++;
       prefixes.clear();
