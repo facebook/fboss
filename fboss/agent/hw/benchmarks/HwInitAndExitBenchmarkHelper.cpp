@@ -121,17 +121,24 @@ void enableFeaturesInConfig(
    * Configures port queue for cpu port
    */
   utility::addCpuQueueConfig(config, hwAsic);
-  /*
-   * Enable Olympic QOS
-   */
   if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
+    /*
+     * Enable Olympic QOS
+     */
     utility::addOlympicQosMaps(config);
+
+    /*
+     * Enable Olympic Queue Config
+     */
+    auto streamType = *(
+        hwSwitch->getPlatform()->getAsic()->getQueueStreamTypes(false).begin());
+    utility::addOlympicQueueConfig(&config, streamType, false);
   }
   /*
-   * Enable COPP.
+   * Configure COPP, CPU traffic policy and ACLs
    */
-  config.cpuTrafficPolicy_ref()->rxReasonToQueueOrderedList_ref() =
-      getCoppRxReasonToQueues(hwAsic);
+  utility::setDefaultCpuTrafficPolicyConfig(config, hwAsic);
+
   /*
    * Enable Load balancer
    */
