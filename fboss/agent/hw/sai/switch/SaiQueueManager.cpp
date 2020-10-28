@@ -127,13 +127,18 @@ void SaiQueueManager::changeQueue(
     SaiQueueHandle* queueHandle,
     const PortQueue& newPortQueue) {
   CHECK(queueHandle);
-  queueHandle->scheduler =
+  auto newScheduler =
       managerTable_->schedulerManager().createScheduler(newPortQueue);
-  SaiQueueTraits::Attributes::SchedulerProfileId schedulerId{
-      queueHandle->scheduler->adapterKey()};
-  queueHandle->queue->setOptionalAttribute(
-      SaiQueueTraits::Attributes::SchedulerProfileId{
-          queueHandle->scheduler->adapterKey()});
+  if (newScheduler != queueHandle->scheduler) {
+    queueHandle->queue->setOptionalAttribute(
+        SaiQueueTraits::Attributes::SchedulerProfileId(
+            newScheduler ? newScheduler->adapterKey() : SAI_NULL_OBJECT_ID));
+    // Update scheduler reference after we have set the queue
+    // scheduler attribute, else if this is the last queue
+    // referring to this scheduler, we will try to delete it
+    // before we have updated the SAI reference.
+    queueHandle->scheduler = newScheduler;
+  }
   if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_ECN_WRED)) {
     queueHandle->wredProfile =
         managerTable_->wredManager().getOrCreateProfile(newPortQueue);
