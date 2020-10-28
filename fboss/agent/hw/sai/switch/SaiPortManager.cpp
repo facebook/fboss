@@ -262,6 +262,11 @@ void SaiPortManager::changeQueue(
             ? *newPortQueue->getReservedBytes()
             : asic->getDefaultReservedBytes(
                   newPortQueue->getStreamType(), false /* not cpu port*/));
+    newPortQueue->setScalingFactor(
+        newPortQueue->getScalingFactor()
+            ? *newPortQueue->getScalingFactor()
+            : asic->getDefaultScalingFactor(
+                  newPortQueue->getStreamType(), false /* not cpu port*/));
     managerTable_->queueManager().changeQueue(queueHandle, *newPortQueue);
     auto queueName = newPortQueue->getName()
         ? *newPortQueue->getName()

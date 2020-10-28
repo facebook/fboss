@@ -301,6 +301,11 @@ void SaiHostifManager::changeCpuQueue(
             ? *newPortQueue->getReservedBytes()
             : asic->getDefaultReservedBytes(
                   newPortQueue->getStreamType(), true /*cpu port*/));
+    newPortQueue->setScalingFactor(
+        newPortQueue->getScalingFactor()
+            ? *newPortQueue->getScalingFactor()
+            : asic->getDefaultScalingFactor(
+                  newPortQueue->getStreamType(), true /*cpu port*/));
     managerTable_->queueManager().changeQueue(queueHandle, *newPortQueue);
     auto queueName = newPortQueue->getName()
         ? *newPortQueue->getName()
