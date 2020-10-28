@@ -479,25 +479,27 @@ void BcmWarmBootCache::populate(std::optional<folly::dynamic> warmBootState) {
   bcm_l3_info_t l3Info;
   bcm_l3_info_t_init(&l3Info);
   bcm_l3_info(hw_->getUnit(), &l3Info);
-  // Traverse V4 hosts
-  rv = bcm_l3_host_traverse(
-      hw_->getUnit(),
-      0,
-      0,
-      l3Info.l3info_max_host,
-      hostTraversalCallback,
-      this);
-  bcmCheckError(rv, "Failed to traverse v4 hosts");
-  // Traverse V6 hosts
-  rv = bcm_l3_host_traverse(
-      hw_->getUnit(),
-      BCM_L3_IP6,
-      0,
-      // Diag shell uses this for getting # of v6 host entries
-      l3Info.l3info_max_host / 2,
-      hostTraversalCallback,
-      this);
-  bcmCheckError(rv, "Failed to traverse v6 hosts");
+  if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::HOSTTABLE)) {
+    // Traverse V4 hosts
+    rv = bcm_l3_host_traverse(
+        hw_->getUnit(),
+        0,
+        0,
+        l3Info.l3info_max_host,
+        hostTraversalCallback,
+        this);
+    bcmCheckError(rv, "Failed to traverse v4 hosts");
+    // Traverse V6 hosts
+    rv = bcm_l3_host_traverse(
+        hw_->getUnit(),
+        BCM_L3_IP6,
+        0,
+        // Diag shell uses this for getting # of v6 host entries
+        l3Info.l3info_max_host / 2,
+        hostTraversalCallback,
+        this);
+    bcmCheckError(rv, "Failed to traverse v6 hosts");
+  }
   // Traverse V4 routes
   rv = bcm_l3_route_traverse(
       hw_->getUnit(),

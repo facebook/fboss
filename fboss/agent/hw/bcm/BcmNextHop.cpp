@@ -10,8 +10,10 @@
 #include "fboss/agent/hw/bcm/BcmLabeledTunnelEgress.h"
 #include "fboss/agent/hw/bcm/BcmMultiPathNextHop.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
+#include "fboss/agent/hw/bcm/BcmRoute.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 namespace {
 template <typename KetT>
@@ -64,7 +66,11 @@ bool BcmMplsNextHop::isProgrammed() const {
 
 BcmL3NextHop::BcmL3NextHop(BcmSwitch* hw, BcmHostKey key)
     : hw_(hw), key_(std::move(key)) {
-  host_ = hw_->writableHostTable()->refOrEmplaceHost(key_);
+  if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::HOSTTABLE)) {
+    host_ = hw_->writableHostTable()->refOrEmplaceHost(key_);
+  } else {
+    host_ = hw_->writableRouteTable()->refOrEmplaceHost(key_);
+  }
 }
 
 BcmMplsNextHop::BcmMplsNextHop(BcmSwitch* hw, BcmLabeledHostKey key)

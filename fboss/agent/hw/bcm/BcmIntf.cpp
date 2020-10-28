@@ -20,6 +20,7 @@ extern "C" {
 #include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
+#include "fboss/agent/hw/bcm/BcmRoute.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -240,8 +241,14 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
   }
   std::unordered_set<std::shared_ptr<BcmHostIf>> hosts;
   for (const auto& addr : intf->getAddresses()) {
-    auto host = hw_->writableHostTable()->refOrEmplaceHost(
-        BcmHostKey(vrf, addr.first, intf->getID()));
+    std::shared_ptr<BcmHostIf> host;
+    BcmHostKey key = BcmHostKey(vrf, addr.first, intf->getID());
+    if (hw_->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::HOSTTABLE)) {
+      host = hw_->writableHostTable()->refOrEmplaceHost(key);
+    } else {
+      host = hw_->writableRouteTable()->refOrEmplaceHost(key);
+    }
     CHECK(host);
     if (!host->isProgrammed()) {
       // new host has been created

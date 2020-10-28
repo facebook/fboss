@@ -19,6 +19,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::OBJECT_KEY_CACHE:
     case HwAsic::Feature::ACL_COPY_TO_CPU:
+    case HwAsic::Feature::HOSTTABLE:
       return true;
 
     case HwAsic::Feature::TRUNCATE_MIRROR_PACKET:
