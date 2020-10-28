@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -31,46 +32,51 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
     }
     return cfg;
   }
-  void setup(std::vector<uint8_t> dscpsToSend) {
+  void setup() {
     utility::EcmpSetupAnyNPorts6 helper(getProgrammedState(), dstMac());
     auto constexpr kEcmpWidth = 1;
     applyNewState(helper.setupECMPForwarding(
         helper.resolveNextHops(getProgrammedState(), kEcmpWidth), kEcmpWidth));
-    for (const auto& nextHop : helper.getNextHops()) {
-      utility::disableTTLDecrements(
-          getHwSwitch(), helper.getRouterId(), nextHop);
-    }
-    for (auto dscp : dscpsToSend) {
-      sendUdpPkts(dscp);
-    }
-    getHwSwitchEnsemble()->waitForLineRateOnPort(masterLogicalPortIds()[0]);
-    getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[0]);
+    utility::setPortTxEnable(getHwSwitch(), masterLogicalPortIds()[0], false);
   }
-  void verify(int lowPriQueue, int highPriQueue) {
-    auto queueWaterMarks = *getHwSwitchEnsemble()
-                                ->getLatestPortStats(masterLogicalPortIds()[0])
-                                .queueWatermarkBytes__ref();
+  void verify(
+      int16_t lowPriQueue,
+      int16_t highPriQueue,
+      std::vector<uint8_t> dscpsToSend) {
+    // Send  MMU Size+ bytes. With port TX disabled, all these bytes will be
+    // buffered in MMU. The higher pri queue should then endup using more of MMU
+    // than lower pri queue.
+    sendUdpPkts(dscpsToSend);
+    auto portStats =
+        getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[0]);
+    auto queueOutDiscardPackets = *portStats.queueOutDiscardPackets__ref();
+    auto queueWaterMarks = *portStats.queueWatermarkBytes__ref();
+    XLOG(INFO) << " Port discards: " << *portStats.outDiscards__ref()
+               << " low pri queue discards: "
+               << queueOutDiscardPackets[lowPriQueue]
+               << " high pri queue discards: "
+               << queueOutDiscardPackets[highPriQueue];
     auto lowPriWatermark = queueWaterMarks[lowPriQueue];
     auto highPriWatermark = queueWaterMarks[highPriQueue];
     XLOG(INFO) << " Low pri queue ( " << lowPriQueue
                << " ) watermark: " << lowPriWatermark << " High pri queue ( "
                << highPriQueue << " ) watermark: " << highPriWatermark;
-    // Even with line rate traffic, its hard to create contention in MMU
-    // buffer, and thus we get roughly similar watermark values. To create
-    // contention, we would need to create enough bursts of traffic such that
-    // the MMU is forced to throttle back the low pri queue. So as a compromise
-    // we do the next best thing - compare that the high pri queue watermark
-    // is at least as high as the low pri one. This lets us at least verify
-    // the config application with MMU tuning and warm boot. Although to be
-    // fair, in absence of precise data plane side effects we can't truly
-    // conclude on the tuning effects.
+    // Change this to be GT once port TX disable is implemented on all
+    // platforms
     EXPECT_GE(highPriWatermark, lowPriWatermark);
   }
 
  private:
-  void sendUdpPkts(uint8_t dscpVal, int cnt = 100) {
-    for (int i = 0; i < cnt; i++) {
-      sendUdpPkt(dscpVal);
+  void sendUdpPkts(const std::vector<uint8_t>& dscpsToSend) {
+    auto mmuSizeBytes = getPlatform()->getAsic()->getMMUSizeBytes();
+    auto bytesSent = 0;
+    // Fill entire MMU and then some
+    while (bytesSent < mmuSizeBytes + 20000) {
+      for (auto dscp : dscpsToSend) {
+        auto pkt = createUdpPkt(dscp);
+        bytesSent += pkt->buf()->computeChainDataLength();
+        getHwSwitch()->sendPacketSwitchedSync(std::move(pkt));
+      }
     }
   }
   MacAddress dstMac() const {
@@ -95,11 +101,7 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
         // Hop limit
         255,
         // Payload
-        std::vector<uint8_t>(1200, 0xff));
-  }
-
-  void sendUdpPkt(uint8_t dscpVal) {
-    getHwSwitch()->sendPacketSwitchedSync(createUdpPkt(dscpVal));
+        std::vector<uint8_t>(7000, 0xff));
   }
 
   void addQosMap(cfg::SwitchConfig* cfg) const {
@@ -195,10 +197,10 @@ TEST_F(HwMmuTuningTest, verifyReservedBytesTuning) {
     return;
   }
   verifyAcrossWarmBoots(
+      [this]() { setup(); },
       [this]() {
-        setup({0, 1});
-      },
-      [this]() { verify(0, 1); });
+        verify(0, 1, {0, 1});
+      });
 }
 
 TEST_F(HwMmuTuningTest, verifyScalingFactorTuning) {
@@ -209,9 +211,9 @@ TEST_F(HwMmuTuningTest, verifyScalingFactorTuning) {
     return;
   }
   verifyAcrossWarmBoots(
+      [this]() { setup(); },
       [this]() {
-        setup({2, 3});
-      },
-      [this]() { verify(2, 3); });
+        verify(2, 3, {2, 3});
+      });
 }
 } // namespace facebook::fboss
