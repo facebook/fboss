@@ -79,7 +79,7 @@ void LacpController::startMachines() {
     self->periodicTx_.start();
     self->rx_.start();
     self->selector_.start();
-    XLOG(DBG3) << "Started LACP State Machine " << self->portID();
+    XLOG(DBG2) << "Started LACP State Machine " << self->portID();
   });
 }
 

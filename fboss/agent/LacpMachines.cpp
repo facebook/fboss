@@ -173,9 +173,13 @@ void ReceiveMachine::rx(LACPDU lacpdu) {
 
 void ReceiveMachine::portUp() {
   CHECK(controller_.evb()->inRunningEventBaseThread());
-  CHECK_EQ(state_, ReceiveState::DISABLED);
+  if (state_ != ReceiveState::DISABLED) {
+    XLOG(DBG2) << "ReceiveMachine[" << controller_.portID()
+               << "]: Ignoring UP in state " << state_;
+    return;
+  }
 
-  XLOG(DBG4) << "ReceiveMachine[" << controller_.portID() << "]: UP";
+  XLOG(DBG2) << "ReceiveMachine[" << controller_.portID() << "]: UP";
 
   expired();
 }

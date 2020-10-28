@@ -176,17 +176,27 @@ void LinkAggregationManager::aggregatePortAdded(
             aggPort->getMinimumLinkCount(),
             this));
     CHECK(inserted);
+    // Warm boot LACP restore - restore state machines if member was in
+    // fwding enabled state. Otherwise, perform normal LACP start.
     if (aggPort->getForwardingState(subport.portID) ==
         AggregatePortFields::Forwarding::ENABLED) {
       const auto pstate = aggPort->getPartnerState(subport.portID);
-      XLOG(DBG3) << "Port [" << subport.portID
+      XLOG(DBG2) << "Port [" << subport.portID
                  << "] Restoring Lacp state machine with partner state "
                  << pstate.describe();
       it->second->restoreMachines(pstate);
     } else {
-      XLOG(DBG3) << "Port [" << subport.portID
+      XLOG(DBG2) << "Port [" << subport.portID
                  << "] Starting Lacp state machines";
       it->second->startMachines();
+      // LACP state machines listen to port events and set state accordingly
+      // In warm boot case, there will not be a port up event if port was Up
+      // during init. Check port state and call portUp if needed. If there are
+      // duplicate port up calls, it will be ignored
+      if (sw_->getState()->getPort(subport.portID)->isPortUp()) {
+        XLOG(DBG2) << "Calling LACP port up for " << subport.portID;
+        it->second->portUp();
+      }
     }
   }
 }
