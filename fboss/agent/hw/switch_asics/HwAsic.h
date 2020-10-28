@@ -42,6 +42,7 @@ class HwAsic {
     SWITCH_ATTR_INGRESS_ACL,
     INGRESS_FIELD_PROCESSOR_FLEX_COUNTER,
     HOSTTABLE,
+    PORT_TX_DISABLE,
   };
 
   enum class AsicType {

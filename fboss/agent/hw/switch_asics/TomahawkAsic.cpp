@@ -25,6 +25,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::OBJECT_KEY_CACHE:
     case HwAsic::Feature::ACL_COPY_TO_CPU:
     case HwAsic::Feature::HOSTTABLE:
+    case HwAsic::Feature::PORT_TX_DISABLE:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
