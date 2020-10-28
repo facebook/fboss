@@ -251,11 +251,17 @@ void SaiPortManager::changeQueue(
   }
   auto pitr = portStats_.find(swId);
   portHandle->configuredQueues.clear();
+  const auto asic = platform_->getAsic();
   for (auto newPortQueue : newQueueConfig) {
     // Queue create or update
     SaiQueueConfig saiQueueConfig =
         std::make_pair(newPortQueue->getID(), newPortQueue->getStreamType());
     auto queueHandle = getQueueHandle(swId, saiQueueConfig);
+    newPortQueue->setReservedBytes(
+        newPortQueue->getReservedBytes()
+            ? *newPortQueue->getReservedBytes()
+            : asic->getDefaultReservedBytes(
+                  newPortQueue->getStreamType(), false /* not cpu port*/));
     managerTable_->queueManager().changeQueue(queueHandle, *newPortQueue);
     auto queueName = newPortQueue->getName()
         ? *newPortQueue->getName()
