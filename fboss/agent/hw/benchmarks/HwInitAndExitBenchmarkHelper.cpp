@@ -166,13 +166,13 @@ RouteDistributionGenerator::SwitchStates getRouteScaleSwitchStates(
   auto asicType =
       ensemble->getHwSwitch()->getPlatform()->getAsic()->getAsicType();
 
-  if (asicType == HwAsic::AsicType::ASIC_TYPE_TAJO ||
-      asicType == HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
+  if (asicType == HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
     return utility::RSWRouteScaleGenerator(ensemble->getProgrammedState())
         .getSwitchStates();
   } else if (
       asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3 ||
-      asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
+      asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4 ||
+      asicType == HwAsic::AsicType::ASIC_TYPE_TAJO) {
     return utility::HgridUuRouteScaleGenerator(ensemble->getProgrammedState())
         .getSwitchStates();
   } else if (asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK) {
