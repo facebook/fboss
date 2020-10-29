@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/ResourceLibUtil.h"
 
 #include <folly/IPAddress.h>
 
@@ -55,18 +56,19 @@ class HwAqmTest : public HwLinkStateDependentTest {
 
   void sendUdpPkt(uint8_t dscpVal, bool isEcn) {
     auto kECT1 = 0x01; // ECN capable transport ECT(1)
-    auto vlanId = utility::firstVlanID(initialConfig());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
 
     dscpVal = static_cast<uint8_t>(dscpVal << 2);
     if (isEcn) {
       dscpVal |= kECT1;
     }
 
+    auto vlanId = utility::firstVlanID(initialConfig());
+    auto intfMac = getIntfMac();
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto txPacket = utility::makeUDPTxPacket(
         getHwSwitch(),
         vlanId,
-        intfMac,
+        srcMac,
         intfMac,
         folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
         folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
@@ -87,6 +89,10 @@ class HwAqmTest : public HwLinkStateDependentTest {
       sendUdpPkt(dscpVal, isEcn);
     }
   }
+  folly::MacAddress getIntfMac() const {
+    auto vlanId = utility::firstVlanID(initialConfig());
+    return utility::getInterfaceMac(getProgrammedState(), vlanId);
+  }
 
  protected:
   void runTest(bool isEcn) {
@@ -99,7 +105,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
     auto setup = [=]() {
       auto kEcmpWidthForTest = 1;
       utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(),
-                                               getPlatform()->getLocalMac()};
+                                               getIntfMac()};
       setupECMPForwarding(ecmpHelper6, kEcmpWidthForTest);
       disableTTLDecrements(ecmpHelper6);
     };
