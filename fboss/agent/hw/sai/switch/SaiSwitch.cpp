@@ -127,6 +127,15 @@ void __gFdbEventCallback(
   __gSaiSwitch->fdbEventCallback(count, data);
 }
 
+void __gTamEventCallback(
+    sai_object_id_t /*tam_event_id*/,
+    sai_size_t /*buffer_size*/,
+    const void* /*buffer*/,
+    uint32_t /*attr_count*/,
+    const sai_attribute_t* /*attr_list*/) {
+  // TODO: implement TAM event notification
+}
+
 PortSaiId SaiSwitch::getCPUPortSaiId(SwitchSaiId switchId) {
   static std::optional<PortSaiId> kCpuPortId;
   if (!kCpuPortId) {
@@ -940,6 +949,9 @@ void SaiSwitch::unregisterCallbacksLocked(
     if (getFeaturesDesired() & FeaturesDesired::PACKET_RX_DESIRED) {
       switchApi.unregisterRxCallback(switchId_);
     }
+    if (getFeaturesDesired() & FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED) {
+      switchApi.unregisterTamEventCallback(switchId_);
+    }
   }
   switchApi.unregisterFdbEventCallback(switchId_);
 }
@@ -1147,6 +1159,10 @@ void SaiSwitch::switchRunStateChangedImplLocked(
       if (getFeaturesDesired() & FeaturesDesired::PACKET_RX_DESIRED) {
         auto& switchApi = SaiApiTable::getInstance()->switchApi();
         switchApi.registerRxCallback(switchId_, __gPacketRxCallback);
+      }
+      if (getFeaturesDesired() & FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED) {
+        auto& switchApi = SaiApiTable::getInstance()->switchApi();
+        switchApi.registerTamEventCallback(switchId_, __gTamEventCallback);
       }
     } break;
     default:

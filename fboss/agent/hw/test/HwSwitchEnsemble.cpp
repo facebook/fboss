@@ -101,6 +101,9 @@ uint32_t HwSwitchEnsemble::getHwSwitchFeatures() const {
       case PACKET_RX:
         features |= HwSwitch::PACKET_RX_DESIRED;
         break;
+      case TAM_NOTIFY:
+        features |= HwSwitch::TAM_EVENT_NOTIFY_DESIRED;
+        break;
       case STATS_COLLECTION:
         // No HwSwitch feture need to turned on.
         // Handled by HwSwitchEnsemble

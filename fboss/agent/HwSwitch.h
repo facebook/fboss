@@ -105,7 +105,8 @@ class HwSwitch {
 
   enum FeaturesDesired : uint32_t {
     PACKET_RX_DESIRED = 0x01,
-    LINKSCAN_DESIRED = 0x02
+    LINKSCAN_DESIRED = 0x02,
+    TAM_EVENT_NOTIFY_DESIRED = 0x04,
   };
 
   HwSwitch(

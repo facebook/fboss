@@ -48,6 +48,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
     PACKET_RX,
     LINKSCAN,
     STATS_COLLECTION,
+    TAM_NOTIFY,
   };
   using Features = std::set<Feature>;
 

@@ -21,6 +21,7 @@ int main(int argc, char* argv[]) {
       argc,
       argv,
       (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
-       HwSwitch::FeaturesDesired::LINKSCAN_DESIRED),
+       HwSwitch::FeaturesDesired::LINKSCAN_DESIRED |
+       HwSwitch::FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED),
       initSaiPlatform);
 }

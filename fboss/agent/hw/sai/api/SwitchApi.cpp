@@ -57,4 +57,19 @@ void SwitchApi::registerFdbEventCallback(
       " FDB event callback");
 }
 
+void SwitchApi::registerTamEventCallback(
+    SwitchSaiId id,
+    sai_tam_event_notification_fn tam_event_cb) {
+  sai_attribute_t attr;
+  attr.id = SAI_SWITCH_ATTR_TAM_EVENT_NOTIFY;
+  attr.value.ptr = (void*)tam_event_cb;
+  auto rv = _setAttribute(id, &attr);
+  saiLogError(
+      rv,
+      ApiType,
+      "Unable to ",
+      tam_event_cb ? "register" : "unregister",
+      " TAM event callback");
+}
+
 } // namespace facebook::fboss

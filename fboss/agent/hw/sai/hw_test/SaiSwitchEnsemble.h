@@ -24,7 +24,9 @@ class SaiSwitchEnsemble : public HwSwitchEnsemble {
   explicit SaiSwitchEnsemble(
       const HwSwitchEnsemble::Features& features = {
           HwSwitchEnsemble::PACKET_RX,
-          HwSwitchEnsemble::LINKSCAN});
+          HwSwitchEnsemble::LINKSCAN,
+          HwSwitchEnsemble::TAM_NOTIFY,
+      });
   SaiPlatform* getPlatform() override {
     return static_cast<SaiPlatform*>(HwSwitchEnsemble::getPlatform());
   }

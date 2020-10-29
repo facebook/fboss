@@ -297,6 +297,9 @@ class SwitchApi : public SaiApi<SwitchApi> {
   void registerFdbEventCallback(
       SwitchSaiId id,
       sai_fdb_event_notification_fn fdb_event_cb);
+  void registerTamEventCallback(
+      SwitchSaiId id,
+      sai_tam_event_notification_fn tam_event_cb);
 
   void unregisterRxCallback(SwitchSaiId switch_id) {
     registerRxCallback(switch_id, nullptr);
@@ -306,6 +309,9 @@ class SwitchApi : public SaiApi<SwitchApi> {
   }
   void unregisterFdbEventCallback(SwitchSaiId id) {
     registerFdbEventCallback(id, nullptr);
+  }
+  void unregisterTamEventCallback(SwitchSaiId id) {
+    registerTamEventCallback(id, nullptr);
   }
 
  private:

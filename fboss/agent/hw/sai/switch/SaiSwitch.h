@@ -50,7 +50,8 @@ class SaiSwitch : public HwSwitch {
       SaiPlatform* platform,
       uint32_t featuresDesired =
           (FeaturesDesired::PACKET_RX_DESIRED |
-           FeaturesDesired::LINKSCAN_DESIRED));
+           FeaturesDesired::LINKSCAN_DESIRED |
+           FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED));
 
   ~SaiSwitch() override;
 
