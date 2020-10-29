@@ -128,12 +128,13 @@ void __gFdbEventCallback(
 }
 
 void __gTamEventCallback(
-    sai_object_id_t /*tam_event_id*/,
-    sai_size_t /*buffer_size*/,
-    const void* /*buffer*/,
-    uint32_t /*attr_count*/,
-    const sai_attribute_t* /*attr_list*/) {
-  // TODO: implement TAM event notification
+    sai_object_id_t tam_event_id,
+    sai_size_t buffer_size,
+    const void* buffer,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list) {
+  __gSaiSwitch->tamEventCallback(
+      tam_event_id, buffer_size, buffer, attr_count, attr_list);
 }
 
 PortSaiId SaiSwitch::getCPUPortSaiId(SwitchSaiId switchId) {
