@@ -127,6 +127,9 @@ class BcmRouteTable : public BcmHostTableIf {
     auto rv = hostRoutes_.refOrEmplace(key, hw_, key);
     return rv.first;
   }
+  int getNumBcmHostRoute() const {
+    return hostRoutes_.size();
+  }
   void releaseHosts() override {
     hostRoutes_.clear();
   }

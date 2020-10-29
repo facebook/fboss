@@ -416,8 +416,8 @@ uint32_t BcmHostTable::getReferenceCount(const BcmHostKey& key) const noexcept {
   return hosts_.referenceCount(key);
 }
 
-BcmHost* BcmHostTable::getBcmHost(const BcmHostKey& key) const {
-  auto* host = hosts_.getMutable(key);
+BcmHostIf* BcmHostTable::getBcmHost(const BcmHostKey& key) const {
+  auto* host = getBcmHostIf(key);
   CHECK(host);
   if (!host) {
     throw FbossError("Cannot find BcmHost key=", key);

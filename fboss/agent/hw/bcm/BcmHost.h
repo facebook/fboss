@@ -245,7 +245,7 @@ class BcmHostTable : public BcmHostTableIf {
   virtual ~BcmHostTable();
 
   // throw an exception if not found
-  BcmHost* getBcmHost(const BcmHostKey& key) const;
+  BcmHostIf* getBcmHost(const BcmHostKey& key) const;
 
   // return nullptr if not found
   BcmHostIf* getBcmHostIf(const BcmHostKey& key) const noexcept override;
