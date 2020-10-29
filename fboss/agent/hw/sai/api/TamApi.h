@@ -73,8 +73,7 @@ struct SaiTamEventTraits {
     struct AttributeEventId {
       std::optional<sai_attr_id_t> operator()();
     };
-    using SwitchEventId =
-        SaiExtensionAttribute<std::vector<sai_int32_t>, AttributeEventId>;
+    using SwitchEventId = SaiExtensionAttribute<sai_uint32_t, AttributeEventId>;
   };
   using AdapterKey = TamEventSaiId;
   using AdapterHostKey = std::tuple<
