@@ -69,7 +69,8 @@ int L3RouteCountCb(
     int /*index*/,
     bcm_l3_route_t* info,
     void* user_data) {
-  int* count = static_cast<int*>(user_data);
+  int* count = static_cast<std::pair<int*, bool>*>(user_data)->first;
+  bool verifyL3Intf = static_cast<std::pair<int*, bool>*>(user_data)->second;
   *count += 1;
 
   auto ip = info->l3a_flags & BCM_L3_IP6
@@ -86,6 +87,13 @@ int L3RouteCountCb(
   bcm_l3_egress_t_init(&egr);
   auto rv = bcm_l3_egress_get(unit, intf, &egr);
   bcmCheckError(rv, "failed to get l4 egress");
+  if (!verifyL3Intf) {
+    XLOG(DBG3) << "L3RouteEntry in vrf : " << info->l3a_vrf
+               << " route for : " << ip << " mask: " << mask
+               << " egr.intf: " << std::showbase << std::hex << egr.intf
+               << std::dec << " intf: " << intf;
+    return 0;
+  }
 
   bcm_l3_intf_t intfInfo;
   bcm_l3_intf_t_init(&intfInfo);
@@ -262,16 +270,30 @@ TEST_F(BcmRouteTest, AddRoutesAndCountPrintCheckToCPU) {
     uint32_t start = 0, end = hwStatus.l3info_max_route;
     int routeCount = 0; // number of routes
 
+    int expectedRouteCount = 0;
+    bool verifyL3Intf = true;
+    if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::HOSTTABLE)) {
+      // 4 + 4 + 1 fe80::/64 link local address
+      // 4 : 2 routes (v4 & v6) per interface for 2 interfaces
+      // 4 : 4 routes added in the test
+      // 1 : 1 route for link local addresses
+      expectedRouteCount = 9 + numMinAlpmRoutes();
+    } else {
+      // In addition to above routes, add 4 + 4 host routes
+      // 4 : 2 intf host routes (v4 & v6) per interface for 2 interfaces
+      // 4 : 2 nexthop host routes (v4 & v6) per interface for 2 interfaces
+      expectedRouteCount = 9 + 8 + numMinAlpmRoutes();
+      // TH4 return invlid parameter when calling bcm_l3_intf_get() for
+      // l3 intf 8191 that is going to cpu
+      verifyL3Intf = false;
+    }
+    auto userData = std::make_pair(&routeCount, verifyL3Intf);
+    bcm_l3_route_traverse(getUnit(), 0, start, end, L3RouteCountCb, &userData);
     bcm_l3_route_traverse(
-        getUnit(), 0, start, end, L3RouteCountCb, &routeCount);
-    bcm_l3_route_traverse(
-        getUnit(), BCM_L3_IP6, start, end >> 1, L3RouteCountCb, &routeCount);
+        getUnit(), BCM_L3_IP6, start, end >> 1, L3RouteCountCb, &userData);
 
-    // 4 + 4 + 1 fe80::/64 link local address
-    // 4 : 2 routes (v4 & v6) per interface for 2 interfaces
-    // 4 : 4 routes added in the test
-    // 1 : 1 route for link local addresses
-    EXPECT_EQ(9 + numMinAlpmRoutes(), routeCount);
+    EXPECT_EQ(expectedRouteCount, routeCount);
 
     // Check next hops (CPU)
     // So far we could not verify the src/dst MAC address for a specific route
@@ -662,16 +684,26 @@ void BcmRouteTest::routeReferenceCountTest(
     auto routeCount = getHwRouteCount(getUnit(), networkIP, hwStatus);
     auto interfaceAndLinkLocalRoutes = nonHostInterfaceRoutes +
         (networkIP.isV4() ? 0 : 1); // For v6 we add fe80 link local routes
-    EXPECT_EQ(
-        interfaceAndLinkLocalRoutes + numAlpmRoutes +
-            (isHostRouteAndCanUseHostTable ? 0 : 1),
-        routeCount);
+    if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::HOSTTABLE)) {
+      EXPECT_EQ(
+          interfaceAndLinkLocalRoutes + numAlpmRoutes +
+              (isHostRouteAndCanUseHostTable ? 0 : 1),
+          routeCount);
 
-    auto hostRouteCount = getHwHostRouteCount(getUnit(), networkIP, hwStatus);
-    EXPECT_EQ(
-        nonHostInterfaceRoutes + 1 + // nexthop
-            (isHostRouteAndCanUseHostTable ? 1 : 0),
-        hostRouteCount);
+      auto hostRouteCount = getHwHostRouteCount(getUnit(), networkIP, hwStatus);
+      EXPECT_EQ(
+          nonHostInterfaceRoutes + 1 + // nexthop
+              (isHostRouteAndCanUseHostTable ? 1 : 0),
+          hostRouteCount);
+    } else {
+      // all host entries are programmed to route table,
+      // if host table is not available
+      EXPECT_EQ(
+          interfaceAndLinkLocalRoutes + numAlpmRoutes + nonHostInterfaceRoutes +
+              2, // nexthop and newly added route
+          routeCount);
+    }
 
     // A non-host route, host route if we can;t use host table for host routes
     // should be present in hardware route table
