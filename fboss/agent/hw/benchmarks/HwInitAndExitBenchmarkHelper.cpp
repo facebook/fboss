@@ -104,6 +104,12 @@ std::optional<uint16_t> getUplinksCount(
         cfg::PortSpeed::HUNDREDG,
         cfg::PortSpeed::HUNDREDG},
        4},
+      {{PlatformMode::YAMP, cfg::PortSpeed::HUNDREDG, cfg::PortSpeed::HUNDREDG},
+       4},
+      {{PlatformMode::MINIPACK,
+        cfg::PortSpeed::HUNDREDG,
+        cfg::PortSpeed::HUNDREDG},
+       4},
   };
 
   auto iter = numUplinksMap.find(
