@@ -31,6 +31,7 @@
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSchedulerManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/sai/switch/SaiTamManager.h"
 #include "fboss/agent/hw/sai/switch/SaiUnsupportedFeatureManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
@@ -76,6 +77,7 @@ void SaiManagerTable::createSaiTableManagers(
   inSegEntryManager_ = std::make_unique<SaiInSegEntryManager>(this, platform);
   lagManager_ = std::make_unique<SaiUnsupportedFeatureManager>("LAG");
   wredManager_ = std::make_unique<SaiWredManager>(this, platform);
+  tamManager_ = std::make_unique<SaiTamManager>(this, platform);
 }
 
 SaiManagerTable::~SaiManagerTable() {
@@ -122,6 +124,7 @@ SaiManagerTable::~SaiManagerTable() {
 
   bufferManager_.reset();
   wredManager_.reset();
+  tamManager_.reset();
   switchManager_.reset();
 }
 
@@ -287,5 +290,13 @@ SaiWredManager& SaiManagerTable::wredManager() {
 }
 const SaiWredManager& SaiManagerTable::wredManager() const {
   return *wredManager_;
+}
+
+SaiTamManager& SaiManagerTable::tamManager() {
+  return *tamManager_;
+}
+
+const SaiTamManager& SaiManagerTable::tamManager() const {
+  return *tamManager_;
 }
 } // namespace facebook::fboss

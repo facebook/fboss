@@ -1327,6 +1327,10 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_SCHEDULER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_SCHEDULER_GROUP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_SWITCH, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_TAM_REPORT, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_TAM_EVENT_ACTION, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_TAM_EVENT, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_TAM, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_UDF_GROUP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_VIRTUAL_ROUTER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_VLAN, 0);
