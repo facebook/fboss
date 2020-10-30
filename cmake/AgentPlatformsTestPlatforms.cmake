@@ -28,6 +28,8 @@ add_library(bcm_test_platforms
   fboss/agent/platforms/tests/utils/BcmTestTomahawk4Platform.cpp
   fboss/agent/platforms/tests/utils/BcmTestFujiPlatform.cpp
   fboss/agent/platforms/tests/utils/BcmTestFujiPort.cpp
+  fboss/agent/platforms/tests/utils/BcmTestElbertPlatform.cpp
+  fboss/agent/platforms/tests/utils/BcmTestElbertPort.cpp
   fboss/agent/platforms/tests/utils/oss/BcmTestMinipackPlatform.cpp
 )
 
@@ -44,4 +46,5 @@ target_link_libraries(bcm_test_platforms
   wedge400_platform_mapping
   yamp_platform_mapping
   fuji_platform_mapping
+  elbert_platform_mapping
 )

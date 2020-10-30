@@ -82,6 +82,10 @@ class BcmTestPlatform : public BcmPlatform {
     return true;
   }
 
+  virtual bool usesYamlConfig() const {
+    return false;
+  }
+
  protected:
   // Each platform should have their own logical ports list.
   std::vector<PortID> logicalPortIds_;

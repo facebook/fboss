@@ -66,6 +66,10 @@ class BcmTestTomahawk4Platform : public BcmTestWedgePlatform {
     return asic_.get();
   }
 
+  bool usesYamlConfig() const override {
+    return true;
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmTestTomahawk4Platform(BcmTestTomahawk4Platform const&) = delete;

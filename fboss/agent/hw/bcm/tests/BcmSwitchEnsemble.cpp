@@ -79,6 +79,7 @@ BcmSwitchEnsemble::BcmSwitchEnsemble(
     const HwSwitchEnsemble::Features& featuresDesired)
     : HwSwitchEnsemble(featuresDesired) {
   auto platform = createTestPlatform();
+  auto bcmTestPlatform = static_cast<BcmTestPlatform*>(platform.get());
   std::unique_ptr<AgentConfig> agentConfig;
   BcmConfig::ConfigMap cfg;
   std::string yamlCfg;
@@ -101,7 +102,7 @@ BcmSwitchEnsemble::BcmSwitchEnsemble(
     } else if (!FLAGS_config.empty()) {
       XLOG(INFO) << "Loading config from " << FLAGS_config;
       agentConfig = AgentConfig::fromFile(FLAGS_config);
-      if (FLAGS_mode == "fuji") {
+      if (bcmTestPlatform->usesYamlConfig()) {
         yamlCfg = can_throw(*(platform->config()->thrift)
                                  .platform_ref()
                                  ->chip_ref()
@@ -127,14 +128,13 @@ BcmSwitchEnsemble::BcmSwitchEnsemble(
     XLOG(INFO) << "Modify bcm cfg as load_qcm_fw is enabled";
     modifyCfgForQcmTests(cfg);
   }
-  if (FLAGS_mode == "fuji") {
+  if (bcmTestPlatform->usesYamlConfig()) {
     BcmAPI::initHSDK(yamlCfg);
   } else {
     BcmAPI::init(cfg);
   }
   // TODO pass agent config to platform init
   platform->init(std::move(agentConfig), getHwSwitchFeatures());
-  auto bcmTestPlatform = static_cast<BcmTestPlatform*>(platform.get());
   std::unique_ptr<HwLinkStateToggler> linkToggler;
   if (haveFeature(HwSwitchEnsemble::LINKSCAN)) {
     linkToggler = createLinkToggler(
