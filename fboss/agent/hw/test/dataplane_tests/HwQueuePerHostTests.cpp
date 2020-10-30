@@ -7,13 +7,14 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
-
-#include <folly/IPAddress.h>
+#include "fboss/agent/test/ResourceLibUtil.h"
 
 namespace facebook::fboss {
 
@@ -25,32 +26,15 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
       NdpTable>;
 
  protected:
+  void SetUp() override {
+    HwLinkStateDependentTest::SetUp();
+    helper_ = std::make_unique<utility::EcmpSetupAnyNPorts6>(
+        getProgrammedState(), RouterID(0));
+  }
   cfg::SwitchConfig initialConfig() const override {
-    auto cfg = utility::oneL3IntfConfig(
-        getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
-    if (isSupported(HwAsic::Feature::L3_QOS)) {
-      utility::addQueuePerHostQueueConfig(&cfg, masterLogicalPortIds()[0]);
-      utility::addQueuePerHostAcls(&cfg);
-    }
+    auto cfg = utility::onePortPerVlanConfig(
+        getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC);
     return cfg;
-  }
-
-  void setupECMPForwarding() {
-    utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper{getProgrammedState()};
-    auto kEcmpWidthForTest = 1;
-
-    auto newState = ecmpHelper.setupECMPForwarding(
-        ecmpHelper.resolveNextHops(getProgrammedState(), kEcmpWidthForTest),
-        kEcmpWidthForTest);
-    applyNewState(newState);
-  }
-
-  AddrT kSrcIP() {
-    if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
-      return folly::IPAddressV4("129.0.0.1");
-    } else {
-      return folly::IPAddressV6("2620:0:1cfe:face:b00c::1");
-    }
   }
 
   const std::map<AddrT, std::pair<folly::MacAddress, cfg::AclLookupClass>>&
@@ -97,19 +81,19 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
                    cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0)},
               {folly::IPAddressV6("2620:0:1cfe:face:b00c::11"),
                std::make_pair(
-                   folly::MacAddress("0:2:3:4:5:10"),
+                   folly::MacAddress("0:2:3:4:5:11"),
                    cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1)},
               {folly::IPAddressV6("2620:0:1cfe:face:b00c::12"),
                std::make_pair(
-                   folly::MacAddress("0:2:3:4:5:10"),
+                   folly::MacAddress("0:2:3:4:5:12"),
                    cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2)},
               {folly::IPAddressV6("2620:0:1cfe:face:b00c::13"),
                std::make_pair(
-                   folly::MacAddress("0:2:3:4:5:10"),
+                   folly::MacAddress("0:2:3:4:5:13"),
                    cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3)},
               {folly::IPAddressV6("2620:0:1cfe:face:b00c::14"),
                std::make_pair(
-                   folly::MacAddress("0:2:3:4:5:10"),
+                   folly::MacAddress("0:2:3:4:5:14"),
                    cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_4)},
           };
       return ipToMacAndClassID;
@@ -176,21 +160,16 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
     return updateNeighbors(inState, true /* setClassIDs */);
   }
 
-  void sendUdpPkt(AddrT dstIP) {
-    auto vlanId = utility::firstVlanID(initialConfig());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
-    getHwSwitchEnsemble()->ensureSendPacketSwitched(utility::makeUDPTxPacket(
-        getHwSwitch(), vlanId, intfMac, intfMac, kSrcIP(), dstIP, 8000, 8001));
+  void _setupHelper() {
+    applyNewState(helper_->setupECMPForwarding(
+        helper_->resolveNextHops(getProgrammedState(), 2), kEcmpWidth));
+    auto newCfg{initialConfig()};
+    utility::addQueuePerHostQueueConfig(&newCfg);
+    utility::addQueuePerHostAcls(&newCfg);
+    applyNewConfig(newCfg);
   }
 
-  void sendUdpPkts() {
-    for (const auto& ipToMacAndClassID : getIpToMacAndClassID()) {
-      auto dstIP = ipToMacAndClassID.first;
-      sendUdpPkt(dstIP);
-    }
-  }
-
-  void _verifyHelper() {
+  void _verifyHelper(bool frontPanel) {
     std::vector<int64_t> beforeQueueOutPkts;
     for (const auto& queueId : utility::kQueuePerhostQueueIds()) {
       beforeQueueOutPkts.push_back(
@@ -199,7 +178,10 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
               .at(queueId));
     }
 
-    this->sendUdpPkts();
+    for (const auto& ipToMacAndClassID : getIpToMacAndClassID()) {
+      auto dstIP = ipToMacAndClassID.first;
+      sendPacket(dstIP, frontPanel);
+    }
 
     std::vector<int64_t> afterQueueOutPkts;
     for (const auto& queueId : utility::kQueuePerhostQueueIds()) {
@@ -214,63 +196,129 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
     }
   }
 
+  void verifyHostToQueueMappingClassIDsAfterResolveHelper(bool frontPanel) {
+    if (!isSupported(HwAsic::Feature::L3_QOS)) {
+      return;
+    }
+
+    auto setup = [this]() {
+      this->_setupHelper();
+
+      /*
+       * Resolve neighbors, then apply classID
+       * Prod will typically follow this sequence as LookupClassUpdater is
+       * implemented as a state observer which would update resolved neighbors
+       * with classIDs.
+       */
+      auto state1 = this->addNeighbors(this->getProgrammedState());
+      auto state2 = this->resolveNeighbors(state1);
+      this->applyNewState(state2);
+
+      auto state3 = this->updateClassID(this->getProgrammedState());
+      this->applyNewState(state3);
+    };
+
+    auto verify = [this, frontPanel]() { this->_verifyHelper(frontPanel); };
+
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
+  void VerifyHostToQueueMappingClassIDsWithResolve(bool frontPanel) {
+    if (!isSupported(HwAsic::Feature::L3_QOS)) {
+      return;
+    }
+
+    auto setup = [this]() {
+      this->_setupHelper();
+
+      auto state1 = this->addNeighbors(this->getProgrammedState());
+      auto state2 = this->resolveNeighbors(state1);
+      auto state3 = this->updateClassID(state2);
+
+      this->applyNewState(state3);
+    };
+
+    auto verify = [this, frontPanel]() { this->_verifyHelper(frontPanel); };
+
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
+  AddrT kSrcIP() {
+    if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
+      return folly::IPAddressV4("129.0.0.1");
+    } else {
+      return folly::IPAddressV6("2620:0:1cfe:face:b00c::1");
+    }
+  }
+
  private:
+  void sendPacket(AddrT dstIP, bool frontPanel) {
+    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto txPacket = utility::makeUDPTxPacket(
+        getHwSwitch(),
+        vlanId,
+        srcMac, // src mac
+        intfMac, // dst mac
+        kSrcIP(),
+        dstIP,
+        8000, // l4 src port
+        8001 // l4 dst port
+    );
+    // port is in LB mode, so it will egress and immediately loop back.
+    // Since it is not re-written, it should hit the pipeline as if it
+    // ingressed on the port, and be properly queued.
+    if (frontPanel) {
+      auto outPort = helper_->ecmpPortDescriptorAt(kEcmpWidth).phyPortID();
+      getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
+          std::move(txPacket), outPort);
+    } else {
+      getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
+    }
+  }
+
+  static inline constexpr auto kEcmpWidth = 1;
   const VlanID kVlanID{utility::kBaseVlanId};
   const InterfaceID kIntfID{utility::kBaseVlanId};
+  std::unique_ptr<utility::EcmpSetupAnyNPorts6> helper_;
 };
 
 using TestTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
 
 TYPED_TEST_SUITE(HwQueuePerHostTest, TestTypes);
 
-TYPED_TEST(HwQueuePerHostTest, VerifyHostToQueueMappingClassIDsAfterResolve) {
-  if (!this->isSupported(HwAsic::Feature::L3_QOS)) {
-    return;
-  }
-
-  auto setup = [this] {
-    this->setupECMPForwarding();
-
-    /*
-     * Resolve neighbors, then apply classID
-     * Prod will typically follow this sequence as LookupClassUpdater is
-     * implemented as a state observer which would update resolved neighbors
-     * with classIDs.
-     */
-    auto state1 = this->addNeighbors(this->getProgrammedState());
-    auto state2 = this->resolveNeighbors(state1);
-    this->applyNewState(state2);
-
-    auto state3 = this->updateClassID(this->getProgrammedState());
-    this->applyNewState(state3);
-  };
-
-  auto verify = [=]() { this->_verifyHelper(); };
-
-  this->verifyAcrossWarmBoots(setup, verify);
+// Verify that traffic arriving on a front panel port gets right queue-per-host
+// queue.
+TYPED_TEST(
+    HwQueuePerHostTest,
+    VerifyHostToQueueMappingClassIDsAfterResolveFrontPanel) {
+  this->verifyHostToQueueMappingClassIDsAfterResolveHelper(
+      true /* front panel port */);
 }
 
-TYPED_TEST(HwQueuePerHostTest, VerifyHostToQueueMappingClassIDsWithResolve) {
-  if (!this->isSupported(HwAsic::Feature::L3_QOS)) {
-    return;
-  }
+// Verify that traffic originating on the CPU is gets right queue-per-host
+// queue.
+TYPED_TEST(
+    HwQueuePerHostTest,
+    VerifyHostToQueueMappingClassIDsAfterResolveCpu) {
+  this->verifyHostToQueueMappingClassIDsAfterResolveHelper(
+      false /* cpu port */);
+}
 
-  /*
-   * Resolve neighbors + apply classID together.
-   */
-  auto setup = [this] {
-    this->setupECMPForwarding();
+// Verify that traffic arriving on a front panel port gets right queue-per-host
+// queue.
+TYPED_TEST(
+    HwQueuePerHostTest,
+    VerifyHostToQueueMappingClassIDsWithResolveFrontPanel) {
+  this->VerifyHostToQueueMappingClassIDsWithResolve(
+      true /* front panel port */);
+}
 
-    auto state1 = this->addNeighbors(this->getProgrammedState());
-    auto state2 = this->resolveNeighbors(state1);
-    auto state3 = this->updateClassID(state2);
-
-    this->applyNewState(state3);
-  };
-
-  auto verify = [=]() { this->_verifyHelper(); };
-
-  this->verifyAcrossWarmBoots(setup, verify);
+// Verify that traffic originating on the CPU is gets right queue-per-host
+// queue.
+TYPED_TEST(HwQueuePerHostTest, VerifyHostToQueueMappingClassIDsWithResolveCpu) {
+  this->VerifyHostToQueueMappingClassIDsWithResolve(false /* cpu port */);
 }
 
 } // namespace facebook::fboss

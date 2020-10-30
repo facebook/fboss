@@ -29,7 +29,7 @@ constexpr int kQueuePerHostQueue4 = 4;
 const std::vector<int>& kQueuePerhostQueueIds();
 const std::vector<cfg::AclLookupClass>& kLookupClasses();
 
-void addQueuePerHostQueueConfig(cfg::SwitchConfig* config, PortID portID);
+void addQueuePerHostQueueConfig(cfg::SwitchConfig* config);
 void addQueuePerHostAcls(cfg::SwitchConfig* config);
 
 } // namespace facebook::fboss::utility
