@@ -1064,3 +1064,107 @@ TEST_F(LacpTest, selfInteroperabilityAfterWarmbootSlow) {
 TEST_F(LacpTest, selfInteroperabilityAfterWarmbootFast) {
   selfInteroperabilityAfterWarmbootHelper(lacpEvb(), cfg::LacpPortRate::FAST);
 }
+
+/*
+ * LAG with 2 member links between DU and UU. When one of DU port goes
+ * down, both member LACP sessions go down to min link config.
+ * The second DU port is physically UP but in detached state.
+ * A PDU is received on UP port but the port should not transition to
+ * fwding enabled state
+ */
+TEST_F(LacpTest, lacpPortFlapAfterSync) {
+  auto rate = cfg::LacpPortRate::SLOW;
+  folly::EventBase* lacpEvbase = lacpEvb();
+  LacpServiceInterceptor uuEventInterceptor(lacpEvbase);
+  LacpServiceInterceptor duEventInterceptor(lacpEvbase);
+
+  PortID uuPort1(static_cast<uint16_t>(0xA));
+  PortID duPort1(static_cast<uint16_t>(0xD));
+  PortID uuPort2(static_cast<uint16_t>(0xB));
+  PortID duPort2(static_cast<uint16_t>(0xE));
+
+  using SystemID = std::array<uint8_t, 6>;
+  auto makeParticipantInfo = [&rate](SystemID systemID, auto port, auto key) {
+    ParticipantInfo pInfo;
+    pInfo.systemPriority = 65535;
+    pInfo.systemID = systemID;
+    pInfo.key = key;
+    pInfo.portPriority = 32768;
+    pInfo.port = port;
+    pInfo.state = LacpState::ACTIVE | LacpState::AGGREGATABLE |
+        LacpState::COLLECTING | LacpState::DISTRIBUTING | LacpState::IN_SYNC;
+    if (rate == cfg::LacpPortRate::FAST) {
+      pInfo.state |= LacpState::SHORT_TIMEOUT;
+    }
+    return pInfo;
+  };
+
+  ParticipantInfo uuInfo1 =
+      makeParticipantInfo({0x02, 0x90, 0xfb, 0x5e, 0x1e, 0x85}, uuPort1, 1);
+  ParticipantInfo uuInfo2 =
+      makeParticipantInfo({0x02, 0x90, 0xfb, 0x5e, 0x1e, 0x85}, uuPort2, 1);
+  ParticipantInfo duInfo1 =
+      makeParticipantInfo({0x02, 0x90, 0xfb, 0x5e, 0x24, 0x28}, duPort1, 2);
+  ParticipantInfo duInfo2 =
+      makeParticipantInfo({0x02, 0x90, 0xfb, 0x5e, 0x24, 0x28}, duPort2, 2);
+
+  auto createAndAddController =
+      [&rate, &lacpEvbase](auto& port, auto& pInfo, auto& interceptor) {
+        auto controller = std::make_shared<LacpController>(
+            port,
+            lacpEvbase,
+            pInfo.portPriority,
+            rate,
+            cfg::LacpPortActivity::ACTIVE,
+            cfg::switch_config_constants::DEFAULT_LACP_HOLD_TIMER_MULTIPLIER(),
+            AggregatePortID(pInfo.key),
+            pInfo.systemPriority,
+            MacAddress::fromBinary(folly::ByteRange(
+                pInfo.systemID.cbegin(), pInfo.systemID.cend())),
+            2 /* minimum-link count */,
+            &interceptor);
+        interceptor.addController(controller);
+        return controller;
+      };
+
+  auto uuController1 =
+      createAndAddController(uuPort1, uuInfo1, uuEventInterceptor);
+  auto uuController2 =
+      createAndAddController(uuPort2, uuInfo2, uuEventInterceptor);
+  auto duController1 =
+      createAndAddController(duPort1, duInfo1, duEventInterceptor);
+  auto duController2 =
+      createAndAddController(duPort2, duInfo2, duEventInterceptor);
+
+  AggregatePort::PartnerState partnerState =
+      makeParticipantInfo(duInfo1.systemID, duInfo1.port, 2);
+  uuController1->restoreMachines(partnerState);
+  partnerState = makeParticipantInfo(uuInfo1.systemID, uuInfo1.port, 1);
+  duController1->restoreMachines(partnerState);
+  partnerState = makeParticipantInfo(duInfo2.systemID, duInfo2.port, 2);
+  uuController2->restoreMachines(partnerState);
+  partnerState = makeParticipantInfo(uuInfo2.systemID, uuInfo2.port, 1);
+  duController2->restoreMachines(partnerState);
+  XLOG(DBG3) << "Restored LACP state machines";
+
+  // All ports should be in forwarding state
+  ASSERT_EQ(duEventInterceptor.isForwarding(duPort1), true);
+  ASSERT_EQ(duEventInterceptor.isForwarding(duPort2), true);
+  ASSERT_EQ(uuEventInterceptor.isForwarding(uuPort1), true);
+  ASSERT_EQ(uuEventInterceptor.isForwarding(uuPort2), true);
+
+  auto uuTransmission = uuEventInterceptor.lastLacpduTransmitted(uuPort2);
+  // One UU port transitions to down
+  duController1->portDown();
+  // Both UU ports should transition to fwd disabled state due to min link
+  // configuration.
+  ASSERT_EQ(duEventInterceptor.isForwarding(duPort1), false);
+  ASSERT_EQ(duEventInterceptor.isForwarding(duPort2), false);
+
+  uuTransmission.actorInfo.state =
+      LacpState::ACTIVE | LacpState::AGGREGATABLE | LacpState::IN_SYNC;
+  // A PDU is received on UP port
+  duController2->received(uuTransmission);
+  // the port should stay down
+  ASSERT_EQ(duEventInterceptor.isForwarding(duPort2), false);
+}
