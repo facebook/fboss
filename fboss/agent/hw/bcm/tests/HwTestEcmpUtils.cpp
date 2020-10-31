@@ -22,7 +22,7 @@ std::multiset<uint64_t> getEcmpMembersInHw(
     int sizeInSw) {
   auto bcmSw = static_cast<const BcmSwitch*>(hw);
   auto ecmp = getEgressIdForRoute(bcmSw, prefix.first, prefix.second, rid);
-  auto members = utility::getEcmpGroupInHw(bcmSw->getUnit(), ecmp, sizeInSw);
+  auto members = utility::getEcmpGroupInHw(bcmSw, ecmp, sizeInSw);
   return std::multiset<uint64_t>(members.begin(), members.end());
 }
 

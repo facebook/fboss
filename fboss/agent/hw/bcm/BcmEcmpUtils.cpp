@@ -17,22 +17,37 @@
 namespace facebook::fboss::utility {
 
 std::multiset<bcm_if_t>
-getEcmpGroupInHw(int unit, bcm_if_t ecmp, int sizeInSw) {
+getEcmpGroupInHw(const BcmSwitch* hw, bcm_if_t ecmp, int sizeInSw) {
   std::multiset<bcm_if_t> ecmpGroup;
   bcm_l3_egress_ecmp_t existing;
   bcm_l3_egress_ecmp_t_init(&existing);
   existing.ecmp_intf = ecmp;
-  bcm_if_t pathsInHw[sizeInSw];
   int pathsInHwCount;
-  bcm_l3_egress_ecmp_get(unit, &existing, sizeInSw, pathsInHw, &pathsInHwCount);
-  for (size_t i = 0; i < pathsInHwCount; ++i) {
-    ecmpGroup.insert(pathsInHw[i]);
+  if (hw->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER)) {
+#ifdef BCM_L3_ECMP_MEMBER_WEIGHTED
+    // @lint-ignore HOWTOEVEN CArray
+    bcm_l3_ecmp_member_t pathsInHw[sizeInSw];
+    bcm_l3_ecmp_get(
+        hw->getUnit(), &existing, sizeInSw, pathsInHw, &pathsInHwCount);
+    for (size_t i = 0; i < pathsInHwCount; ++i) {
+      ecmpGroup.insert(pathsInHw[i].egress_if);
+    }
+#endif
+  } else {
+    // @lint-ignore HOWTOEVEN CArray
+    bcm_if_t pathsInHw[sizeInSw];
+    bcm_l3_egress_ecmp_get(
+        hw->getUnit(), &existing, sizeInSw, pathsInHw, &pathsInHwCount);
+    for (size_t i = 0; i < pathsInHwCount; ++i) {
+      ecmpGroup.insert(pathsInHw[i]);
+    }
   }
   return ecmpGroup;
 }
 
-int getEcmpSizeInHw(int unit, bcm_if_t ecmp, int sizeInSw) {
-  return getEcmpGroupInHw(unit, ecmp, sizeInSw).size();
+int getEcmpSizeInHw(const BcmSwitch* hw, bcm_if_t ecmp, int sizeInSw) {
+  return getEcmpGroupInHw(hw, ecmp, sizeInSw).size();
 }
 
 bcm_if_t getEgressIdForRoute(

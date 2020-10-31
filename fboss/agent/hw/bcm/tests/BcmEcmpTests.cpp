@@ -110,8 +110,8 @@ TEST_F(BcmEcmpTest, SearchMissingEgressInECMP) {
           BCM_E_NOT_FOUND,
           bcm_l3_egress_ecmp_delete(getUnit(), &ecmpObj, egressId.first));
     }
-    auto pathsInHwCount =
-        getEcmpSizeInHw(getUnit(), ecmpEgress->getID(), egressIdsInSw.size());
+    auto pathsInHwCount = getEcmpSizeInHw(
+        getHwSwitch(), ecmpEgress->getID(), egressIdsInSw.size());
     ASSERT_EQ(0, pathsInHwCount);
   };
   verifyAcrossWarmBoots(setup, verify);

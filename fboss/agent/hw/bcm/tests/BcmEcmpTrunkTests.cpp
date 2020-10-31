@@ -80,7 +80,7 @@ class BcmEcmpTrunkTest : public BcmLinkStateDependentTests {
       ASSERT_EQ(
           kEcmpWidth,
           getEcmpSizeInHw(
-              getUnit(),
+              getHwSwitch(),
               getEgressIdForRoute(
                   getHwSwitch(), kDefaultRoute.network, kDefaultRoute.mask),
               kEcmpWidth));
@@ -91,7 +91,7 @@ class BcmEcmpTrunkTest : public BcmLinkStateDependentTests {
       ASSERT_EQ(
           kEcmpWidth - numEcmpMembersToExclude,
           getEcmpSizeInHw(
-              getUnit(),
+              getHwSwitch(),
               getEgressIdForRoute(
                   getHwSwitch(), kDefaultRoute.network, kDefaultRoute.mask),
               kEcmpWidth));
@@ -103,7 +103,7 @@ class BcmEcmpTrunkTest : public BcmLinkStateDependentTests {
       ASSERT_EQ(
           kEcmpWidth,
           getEcmpSizeInHw(
-              getUnit(),
+              getHwSwitch(),
               getEgressIdForRoute(
                   getHwSwitch(), kDefaultRoute.network, kDefaultRoute.mask),
               kEcmpWidth));
@@ -202,7 +202,7 @@ TEST_F(
     ASSERT_EQ(
         kEcmpWidth,
         getEcmpSizeInHw(
-            getUnit(),
+            getHwSwitch(),
             getEgressIdForRoute(
                 getHwSwitch(), kDefaultRoute.network, kDefaultRoute.mask),
             kEcmpWidth));
@@ -231,7 +231,7 @@ TEST_F(
     ASSERT_EQ(
         kEcmpWidth - numEcmpMembersToExclude,
         getEcmpSizeInHw(
-            getUnit(),
+            getHwSwitch(),
             getEgressIdForRoute(
                 getHwSwitch(), kDefaultRoute.network, kDefaultRoute.mask),
             kEcmpWidth));
@@ -250,7 +250,7 @@ TEST_F(
     ASSERT_EQ(
         kEcmpWidth - numEcmpMembersToExclude,
         getEcmpSizeInHw(
-            getUnit(),
+            getHwSwitch(),
             getEgressIdForRoute(
                 getHwSwitch(), kDefaultRoute.network, kDefaultRoute.mask),
             kEcmpWidth));
@@ -272,7 +272,7 @@ TEST_F(
     ASSERT_EQ(
         kEcmpWidth,
         getEcmpSizeInHw(
-            getUnit(),
+            getHwSwitch(),
             getEgressIdForRoute(
                 getHwSwitch(), kDefaultRoute.network, kDefaultRoute.mask),
             kEcmpWidth));
@@ -312,7 +312,7 @@ TEST_F(BcmEcmpTrunkTest, TrunkL2ResolveNhopThenLinkDownThenUpThenStateUp) {
     ASSERT_EQ(
         kEcmpWidth,
         getEcmpSizeInHw(
-            getUnit(),
+            getHwSwitch(),
             getEgressIdForRoute(
                 getHwSwitch(), kDefaultRoute.network, kDefaultRoute.mask),
             kEcmpWidth));
@@ -333,7 +333,7 @@ TEST_F(BcmEcmpTrunkTest, TrunkL2ResolveNhopThenLinkDownThenUpThenStateUp) {
     ASSERT_EQ(
         kEcmpWidth - numEcmpMembersToExclude,
         getEcmpSizeInHw(
-            getUnit(),
+            getHwSwitch(),
             getEgressIdForRoute(
                 getHwSwitch(), kDefaultRoute.network, kDefaultRoute.mask),
             kEcmpWidth));
@@ -357,7 +357,7 @@ TEST_F(BcmEcmpTrunkTest, TrunkL2ResolveNhopThenLinkDownThenUpThenStateUp) {
     ASSERT_EQ(
         kEcmpWidth - numEcmpMembersToExclude,
         getEcmpSizeInHw(
-            getUnit(),
+            getHwSwitch(),
             getEgressIdForRoute(
                 getHwSwitch(), kDefaultRoute.network, kDefaultRoute.mask),
             kEcmpWidth));
@@ -379,7 +379,7 @@ TEST_F(BcmEcmpTrunkTest, TrunkL2ResolveNhopThenLinkDownThenUpThenStateUp) {
     ASSERT_EQ(
         kEcmpWidth,
         getEcmpSizeInHw(
-            getUnit(),
+            getHwSwitch(),
             getEgressIdForRoute(
                 getHwSwitch(), kDefaultRoute.network, kDefaultRoute.mask),
             kEcmpWidth));
@@ -417,7 +417,7 @@ TEST_F(
     ASSERT_EQ(
         kEcmpWidth,
         getEcmpSizeInHw(
-            getUnit(),
+            getHwSwitch(),
             getEgressIdForRoute(
                 getHwSwitch(), kDefaultRoute.network, kDefaultRoute.mask),
             kEcmpWidth));
@@ -447,7 +447,7 @@ TEST_F(
     ASSERT_EQ(
         kEcmpWidth - numEcmpMembersToExclude,
         getEcmpSizeInHw(
-            getUnit(),
+            getHwSwitch(),
             getEgressIdForRoute(
                 getHwSwitch(), kDefaultRoute.network, kDefaultRoute.mask),
             kEcmpWidth));
@@ -471,7 +471,7 @@ TEST_F(
     ASSERT_EQ(
         kEcmpWidth,
         getEcmpSizeInHw(
-            getUnit(),
+            getHwSwitch(),
             getEgressIdForRoute(
                 getHwSwitch(), kDefaultRoute.network, kDefaultRoute.mask),
             kEcmpWidth));
@@ -506,7 +506,7 @@ TEST_F(BcmEcmpTrunkTest, TrunkL2ResolveNhopThenLinkUpDownUpBeforeReinit) {
     ASSERT_EQ(
         kEcmpWidth,
         getEcmpSizeInHw(
-            getUnit(),
+            getHwSwitch(),
             getEgressIdForRoute(
                 getHwSwitch(), kDefaultRoute.network, kDefaultRoute.mask),
             kEcmpWidth));
@@ -529,7 +529,7 @@ TEST_F(BcmEcmpTrunkTest, TrunkL2ResolveNhopThenLinkUpDownUpBeforeReinit) {
     ASSERT_EQ(
         kEcmpWidth - numEcmpMembersToExclude,
         getEcmpSizeInHw(
-            getUnit(),
+            getHwSwitch(),
             getEgressIdForRoute(
                 getHwSwitch(), kDefaultRoute.network, kDefaultRoute.mask),
             kEcmpWidth));
@@ -549,7 +549,7 @@ TEST_F(BcmEcmpTrunkTest, TrunkL2ResolveNhopThenLinkUpDownUpBeforeReinit) {
     ASSERT_EQ(
         kEcmpWidth,
         getEcmpSizeInHw(
-            getUnit(),
+            getHwSwitch(),
             getEgressIdForRoute(
                 getHwSwitch(), kDefaultRoute.network, kDefaultRoute.mask),
             kEcmpWidth));

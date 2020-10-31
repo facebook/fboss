@@ -27,8 +27,9 @@ class BcmSwitch;
 
 namespace facebook::fboss::utility {
 
-int getEcmpSizeInHw(int unit, bcm_if_t ecmp, int sizeInSw);
-std::multiset<bcm_if_t> getEcmpGroupInHw(int unit, bcm_if_t ecmp, int sizeInSw);
+int getEcmpSizeInHw(const BcmSwitch* hw, bcm_if_t ecmp, int sizeInSw);
+std::multiset<bcm_if_t>
+getEcmpGroupInHw(const BcmSwitch* hw, bcm_if_t ecmp, int sizeInSw);
 
 bcm_if_t getEgressIdForRoute(
     const BcmSwitch* hw,
