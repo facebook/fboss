@@ -441,6 +441,8 @@ void BcmPortQueueManager::updateQueueStat(
   if (portStats) {
     if (statType == BcmCosQueueStatType::DROPPED_BYTES) {
       portStats->queueOutDiscardBytes__ref()[cosQ] = value;
+    } else if (statType == BcmCosQueueStatType::DROPPED_PACKETS) {
+      portStats->queueOutDiscardPackets__ref()[cosQ] = value;
     } else if (statType == BcmCosQueueStatType::OUT_BYTES) {
       portStats->queueOutBytes__ref()[cosQ] = value;
     } else if (statType == BcmCosQueueStatType::OUT_PACKETS) {

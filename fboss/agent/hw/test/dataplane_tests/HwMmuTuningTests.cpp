@@ -50,12 +50,15 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
     auto portStats =
         getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[0]);
     auto queueOutDiscardBytes = *portStats.queueOutDiscardBytes__ref();
+    auto queueOutDiscardPackets = *portStats.queueOutDiscardPackets__ref();
     auto queueWaterMarks = *portStats.queueWatermarkBytes__ref();
     XLOG(INFO) << " Port discards: " << *portStats.outDiscards__ref()
-               << " low pri queue discards: "
+               << " low pri queue discards, bytes: "
                << queueOutDiscardBytes[lowPriQueue]
-               << " high pri queue discards: "
-               << queueOutDiscardBytes[highPriQueue];
+               << " packets: " << queueOutDiscardPackets[lowPriQueue]
+               << " high pri queue discards, bytes: "
+               << queueOutDiscardBytes[highPriQueue]
+               << " packets: " << queueOutDiscardPackets[highPriQueue];
     auto lowPriWatermark = queueWaterMarks[lowPriQueue];
     auto highPriWatermark = queueWaterMarks[highPriQueue];
     XLOG(INFO) << " Low pri queue ( " << lowPriQueue
@@ -65,6 +68,8 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
     EXPECT_GT(*portStats.outDiscards__ref(), 0);
     EXPECT_GT(queueOutDiscardBytes[lowPriQueue], 0);
     EXPECT_GT(queueOutDiscardBytes[highPriQueue], 0);
+    EXPECT_GT(queueOutDiscardPackets[lowPriQueue], 0);
+    EXPECT_GT(queueOutDiscardPackets[highPriQueue], 0);
   }
 
   bool isSupported() const {
