@@ -266,7 +266,7 @@ sai_uint32_t SaiAclTableManager::swPriorityToSaiPriority(int priority) const {
    * implementation treats larger value of priority as higher priority.
    * SwitchState: smaller ACL ID means higher priority.
    * BCM API: larger priority means higher priority.
-   * BCM SAI: larger priority means higher priority (TODO: confirm).
+   * BCM SAI: larger priority means higher priority.
    * Tajo SAI: larger priority means higher priority.
    * SAI spec: does not define?
    * But larger priority means higher priority is documented here:
