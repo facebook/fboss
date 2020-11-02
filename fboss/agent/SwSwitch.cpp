@@ -413,7 +413,7 @@ void SwSwitch::publishTxPacket(TxPacket* pkt, uint16_t ethertype) {
 void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
   auto begin = steady_clock::now();
   flags_ = flags;
-  auto hwInitRet = hw_->init(this);
+  auto hwInitRet = hw_->init(this, false /*failHwCallsOnWarmboot*/);
   auto initialState = hwInitRet.switchState;
   // for now, warmboot is not keeping failed routes, so keep the same state as
   // applied and desired.

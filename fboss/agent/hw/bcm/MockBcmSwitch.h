@@ -17,7 +17,7 @@ class MockBcmSwitch : public BcmSwitchIf {
   MOCK_METHOD0(releaseUnit, std::unique_ptr<BcmUnit>());
   MOCK_METHOD0(resetTables, void());
   MOCK_CONST_METHOD0(getPlatform, BcmPlatform*());
-  MOCK_METHOD1(init, HwInitResult(Callback* callback));
+  MOCK_METHOD2(init, HwInitResult(Callback* callback, bool));
   MOCK_METHOD0(unregisterCallbacks, void());
   MOCK_CONST_METHOD1(allocatePacket, std::unique_ptr<TxPacket>(uint32_t size));
   // hackery, since GMOCK does no support forwarding

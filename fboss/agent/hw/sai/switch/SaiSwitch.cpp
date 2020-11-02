@@ -154,11 +154,13 @@ SaiSwitch::SaiSwitch(SaiPlatform* platform, uint32_t featuresDesired)
 
 SaiSwitch::~SaiSwitch() {}
 
-HwInitResult SaiSwitch::init(Callback* callback) noexcept {
+HwInitResult SaiSwitch::init(
+    Callback* callback,
+    bool failHwCallsOnWarmboot) noexcept {
   HwInitResult ret;
   {
     std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-    ret = initLocked(lock, callback);
+    ret = initLocked(lock, callback, failHwCallsOnWarmboot);
     /*
      * SwitchState does not have notion of AclTableGroup or AclTable today.
      * Thus, stateChanged() can not process aclTableGroupChanges or
@@ -790,7 +792,8 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
 
 HwInitResult SaiSwitch::initLocked(
     const std::lock_guard<std::mutex>& lock,
-    Callback* callback) noexcept {
+    Callback* callback,
+    bool /*failHwCallsOnWarmboot*/) noexcept {
   HwInitResult ret;
 
   auto wbHelper = platform_->getWarmBootHelper();

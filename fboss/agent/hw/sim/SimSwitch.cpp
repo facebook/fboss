@@ -28,7 +28,9 @@ namespace facebook::fboss {
 SimSwitch::SimSwitch(SimPlatform* platform, uint32_t numPorts)
     : platform_(platform), numPorts_(numPorts) {}
 
-HwInitResult SimSwitch::init(HwSwitch::Callback* callback) {
+HwInitResult SimSwitch::init(
+    HwSwitch::Callback* callback,
+    bool /*failHwCallsOnWarmboot*/) {
   HwInitResult ret;
   callback_ = callback;
 

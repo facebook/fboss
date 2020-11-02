@@ -132,7 +132,7 @@ class HwSwitch {
    * reload, the SwitchState should reflect the base configuration after the
    * hardware has been reinitialized.
    */
-  virtual HwInitResult init(Callback* callback) = 0;
+  virtual HwInitResult init(Callback* callback, bool failHwCallsOnWarmboot) = 0;
 
   /*
    * Tells the hw switch to unregister the callback and to stop calling

@@ -57,7 +57,9 @@ class SaiSwitch : public HwSwitch {
 
   static auto constexpr kAclTable1 = "AclTable1";
 
-  HwInitResult init(Callback* callback) noexcept override;
+  HwInitResult init(
+      Callback* callback,
+      bool failHwCallsOnWarmboot) noexcept override;
 
   void unregisterCallbacks() noexcept override;
   /*
@@ -188,7 +190,8 @@ class SaiSwitch : public HwSwitch {
    */
   HwInitResult initLocked(
       const std::lock_guard<std::mutex>& lock,
-      Callback* callback) noexcept;
+      Callback* callback,
+      bool failHwCallsOnWarmboot) noexcept;
 
   void unregisterCallbacksLocked(
       const std::lock_guard<std::mutex>& lock) noexcept;

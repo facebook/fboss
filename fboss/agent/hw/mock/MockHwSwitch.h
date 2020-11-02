@@ -29,7 +29,7 @@ class MockHwSwitch : public HwSwitch {
  public:
   explicit MockHwSwitch(MockPlatform* platform);
 
-  MOCK_METHOD1(init, HwInitResult(Callback*));
+  MOCK_METHOD2(init, HwInitResult(Callback*, bool));
   MOCK_METHOD1(
       stateChanged,
       std::shared_ptr<SwitchState>(const StateDelta& delta));

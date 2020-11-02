@@ -131,7 +131,7 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
   HwInitResult ret;
   ret.switchState = state ? state : make_shared<SwitchState>();
   ret.bootType = BootType::COLD_BOOT;
-  EXPECT_HW_CALL(sw, init(_)).WillOnce(Return(ret));
+  EXPECT_HW_CALL(sw, init(_, false)).WillOnce(Return(ret));
   initSwSwitchWithFlags(sw.get(), flags);
   waitForStateUpdates(sw.get());
   return sw;

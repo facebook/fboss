@@ -287,7 +287,8 @@ void HwSwitchEnsemble::setupEnsemble(
   platform_ = std::move(platform);
   linkToggler_ = std::move(linkToggler);
 
-  programmedState_ = getHwSwitch()->init(this).switchState;
+  programmedState_ =
+      getHwSwitch()->init(this, true /*failHwCallsOnWarmboot*/).switchState;
   // HwSwitch::init() returns an unpublished programmedState_.  SwSwitch is
   // normally responsible for publishing it.  Go ahead and call publish now.
   // This will catch errors if test cases accidentally try to modify this

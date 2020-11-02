@@ -704,7 +704,9 @@ void BcmSwitch::setMacAging(std::chrono::seconds agingInterval) {
   }
 }
 
-HwInitResult BcmSwitch::init(Callback* callback) {
+HwInitResult BcmSwitch::init(
+    Callback* callback,
+    bool /*failHwCallsOnWarmboot*/) {
   HwInitResult ret;
 
   std::lock_guard<std::mutex> g(lock_);

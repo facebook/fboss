@@ -204,7 +204,7 @@ class BcmSwitch : public BcmSwitchIf {
   /*
    * Initialize the BcmSwitch.
    */
-  HwInitResult init(Callback* callback) override;
+  HwInitResult init(Callback* callback, bool failHwCallsOnWarmboot) override;
 
   void runBcmScript(const std::string& filename) const;
 

@@ -65,7 +65,7 @@ void ManagerTestBase::setupSaiPlatform() {
       std::move(agentConfig),
       (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
        HwSwitch::FeaturesDesired::LINKSCAN_DESIRED));
-  saiPlatform->getHwSwitch()->init(nullptr);
+  saiPlatform->getHwSwitch()->init(nullptr, false);
   auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
   saiPlatform->initPorts();
   saiApiTable = SaiApiTable::getInstance();
