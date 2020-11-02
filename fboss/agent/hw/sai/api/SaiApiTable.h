@@ -160,4 +160,12 @@ class SaiApiTable {
   bool apisQueried_{false};
 };
 
+struct FailHwWritesRAII {
+  explicit FailHwWritesRAII(bool fail) {
+    SaiApiTable::getInstance()->setFailHwWrites(fail);
+  }
+  ~FailHwWritesRAII() {
+    SaiApiTable::getInstance()->setFailHwWrites(false);
+  }
+};
 } // namespace facebook::fboss
