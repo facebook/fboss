@@ -177,11 +177,22 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   handle->bridgePort = managerTable_->bridgeManager().addBridgePort(
       swPort->getID(), saiPort->adapterKey());
   loadPortQueues(handle.get());
+  const auto asic = platform_->getAsic();
   for (auto portQueue : swPort->getPortQueues()) {
     auto queueKey =
         std::make_pair(portQueue->getID(), portQueue->getStreamType());
     const auto& configuredQueue = handle->queues[queueKey];
     handle->configuredQueues.push_back(configuredQueue.get());
+    portQueue->setReservedBytes(
+        portQueue->getReservedBytes()
+            ? *portQueue->getReservedBytes()
+            : asic->getDefaultReservedBytes(
+                  portQueue->getStreamType(), false /* not cpu port*/));
+    portQueue->setScalingFactor(
+        portQueue->getScalingFactor()
+            ? *portQueue->getScalingFactor()
+            : asic->getDefaultScalingFactor(
+                  portQueue->getStreamType(), false /* not cpu port*/));
   }
   managerTable_->queueManager().ensurePortQueueConfig(
       saiPort->adapterKey(), handle->queues, swPort->getPortQueues());
