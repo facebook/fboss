@@ -105,10 +105,12 @@ std::shared_ptr<SaiBufferProfile> SaiBufferManager::getOrCreateProfile(
     const PortQueue& queue) {
   setupEgressBufferPool();
   // TODO throw error if shared bytes is set. We don't handle that in SAI
-  auto c = profileCreateAttrs(queue);
-  return bufferProfiles_
-      .refOrEmplace(c, c, c, managerTable_->switchManager().getSwitchSaiId())
-      .first;
+  auto attributes = profileCreateAttrs(queue);
+  auto& store = SaiStore::getInstance()->get<SaiBufferProfileTraits>();
+  SaiBufferProfileTraits::AdapterHostKey k = tupleProjection<
+      SaiBufferProfileTraits::CreateAttributes,
+      SaiBufferProfileTraits::AdapterHostKey>(attributes);
+  return store.setObject(k, attributes);
 }
 
 } // namespace facebook::fboss
