@@ -148,9 +148,6 @@ sai_status_t create_buffer_profile_fn(
       case SAI_BUFFER_PROFILE_ATTR_SHARED_DYNAMIC_TH:
         dynamicThreshold = attr_list[i].value.s8;
         break;
-      case SAI_BUFFER_PROFILE_ATTR_SHARED_STATIC_TH:
-        staticThreshold = attr_list[i].value.s8;
-        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -159,11 +156,7 @@ sai_status_t create_buffer_profile_fn(
     return SAI_STATUS_INVALID_PARAMETER;
   }
   *buffer_profile_id = fs->bufferProfileManager.create(
-      poolId.value(),
-      reservedBytes,
-      threshMode,
-      dynamicThreshold,
-      staticThreshold);
+      poolId.value(), reservedBytes, threshMode, dynamicThreshold);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -182,9 +175,6 @@ sai_status_t set_buffer_profile_attribute_fn(
       break;
     case SAI_BUFFER_PROFILE_ATTR_SHARED_DYNAMIC_TH:
       profile.dynamicThreshold = attr->value.s8;
-      break;
-    case SAI_BUFFER_PROFILE_ATTR_SHARED_STATIC_TH:
-      profile.staticThreshold = attr->value.s8;
       break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
@@ -219,10 +209,6 @@ sai_status_t get_buffer_profile_attribute_fn(
       case SAI_BUFFER_PROFILE_ATTR_SHARED_DYNAMIC_TH:
         attr[i].value.s8 =
             profile.dynamicThreshold ? profile.dynamicThreshold.value() : 0;
-        break;
-      case SAI_BUFFER_PROFILE_ATTR_SHARED_STATIC_TH:
-        attr[i].value.s8 =
-            profile.staticThreshold ? profile.staticThreshold.value() : 0;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

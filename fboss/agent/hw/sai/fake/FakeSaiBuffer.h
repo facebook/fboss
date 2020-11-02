@@ -38,19 +38,16 @@ class FakeBufferProfile {
       sai_object_id_t poolId,
       std::optional<sai_uint64_t> reservedBytes,
       std::optional<sai_buffer_profile_threshold_mode_t> threshMode,
-      std::optional<sai_int8_t> dynamicThreshold,
-      std::optional<sai_int8_t> staticThreshold)
+      std::optional<sai_int8_t> dynamicThreshold)
       : poolId(poolId),
         reservedBytes(reservedBytes),
         threshMode(threshMode),
-        dynamicThreshold(dynamicThreshold),
-        staticThreshold(staticThreshold) {}
+        dynamicThreshold(dynamicThreshold) {}
   sai_object_id_t id;
   sai_object_id_t poolId;
   std::optional<sai_uint64_t> reservedBytes;
   std::optional<sai_buffer_profile_threshold_mode_t> threshMode;
   std::optional<sai_int8_t> dynamicThreshold;
-  std::optional<sai_int8_t> staticThreshold;
 };
 
 using FakeBufferProfileManager =

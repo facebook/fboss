@@ -51,9 +51,8 @@ class BufferApiTest : public ::testing::Test {
         SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC};
     SaiBufferProfileTraits::Attributes::SharedDynamicThreshold dynamicThresh{
         24};
-    SaiBufferProfileTraits::Attributes::SharedStaticThreshold staticThresh{0};
     SaiBufferProfileTraits::CreateAttributes c{
-        pool, reservedBytes, mode, dynamicThresh, staticThresh};
+        pool, reservedBytes, mode, dynamicThresh};
     return bufferApi->create<SaiBufferProfileTraits>(c, 0);
   }
   void checkBufferProfile(BufferProfileSaiId id) const {
@@ -69,9 +68,6 @@ class BufferApiTest : public ::testing::Test {
     SaiBufferProfileTraits::Attributes::SharedDynamicThreshold dynamicThresh{};
     auto gotDynamic = bufferApi->getAttribute(id, dynamicThresh);
     EXPECT_EQ(fs->bufferProfileManager.get(id).dynamicThreshold, gotDynamic);
-    SaiBufferProfileTraits::Attributes::SharedStaticThreshold staticThresh{};
-    auto gotStatic = bufferApi->getAttribute(id, staticThresh);
-    EXPECT_EQ(fs->bufferProfileManager.get(id).staticThreshold, gotStatic);
   }
 
   std::shared_ptr<FakeSai> fs;
@@ -88,7 +84,7 @@ TEST_F(BufferApiTest, createBufferPool) {
 
 TEST_F(BufferApiTest, getBufferPoolAttributes) {
   auto id = createBufferPool(
-      SAI_BUFFER_POOL_TYPE_INGRESS, 42, SAI_BUFFER_POOL_THRESHOLD_MODE_STATIC);
+      SAI_BUFFER_POOL_TYPE_INGRESS, 42, SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC);
   EXPECT_EQ(
       bufferApi->getAttribute(id, SaiBufferPoolTraits::Attributes::Type{}),
       SAI_BUFFER_POOL_TYPE_INGRESS);
@@ -97,7 +93,7 @@ TEST_F(BufferApiTest, getBufferPoolAttributes) {
   EXPECT_EQ(
       bufferApi->getAttribute(
           id, SaiBufferPoolTraits::Attributes::ThresholdMode{}),
-      SAI_BUFFER_POOL_THRESHOLD_MODE_STATIC);
+      SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC);
 }
 
 TEST_F(BufferApiTest, createBufferProfile) {
@@ -111,7 +107,7 @@ TEST_F(BufferApiTest, createBufferProfile) {
 
 TEST_F(BufferApiTest, getBufferProfilelAttributes) {
   auto poolId = createBufferPool(
-      SAI_BUFFER_POOL_TYPE_INGRESS, 42, SAI_BUFFER_POOL_THRESHOLD_MODE_STATIC);
+      SAI_BUFFER_POOL_TYPE_INGRESS, 42, SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC);
   auto id = createBufferProfile(poolId);
   EXPECT_EQ(
       bufferApi->getAttribute(id, SaiBufferProfileTraits::Attributes::PoolId{}),
@@ -128,10 +124,6 @@ TEST_F(BufferApiTest, getBufferProfilelAttributes) {
       bufferApi->getAttribute(
           id, SaiBufferProfileTraits::Attributes::SharedDynamicThreshold{}),
       24);
-  EXPECT_EQ(
-      bufferApi->getAttribute(
-          id, SaiBufferProfileTraits::Attributes::SharedStaticThreshold{}),
-      0);
 }
 
 TEST_F(BufferApiTest, setBufferProfileAttributes) {
@@ -150,24 +142,18 @@ TEST_F(BufferApiTest, setBufferProfileAttributes) {
   bufferApi->setAttribute(
       profileId,
       SaiBufferProfileTraits::Attributes::ThresholdMode{
-          SAI_BUFFER_PROFILE_THRESHOLD_MODE_STATIC});
+          SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC});
   EXPECT_EQ(
       bufferApi->getAttribute(
           profileId, SaiBufferProfileTraits::Attributes::ThresholdMode{}),
-      SAI_BUFFER_PROFILE_THRESHOLD_MODE_STATIC);
+      SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC);
 
   bufferApi->setAttribute(
-      profileId, SaiBufferProfileTraits::Attributes::SharedDynamicThreshold{0});
+      profileId,
+      SaiBufferProfileTraits::Attributes::SharedDynamicThreshold{42});
   EXPECT_EQ(
       bufferApi->getAttribute(
           profileId,
           SaiBufferProfileTraits::Attributes::SharedDynamicThreshold{}),
-      0);
-  bufferApi->setAttribute(
-      profileId, SaiBufferProfileTraits::Attributes::SharedStaticThreshold{42});
-  EXPECT_EQ(
-      bufferApi->getAttribute(
-          profileId,
-          SaiBufferProfileTraits::Attributes::SharedStaticThreshold{}),
       42);
 }

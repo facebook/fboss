@@ -45,10 +45,8 @@ class BufferStoreTest : public SaiStoreTest {
         SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC};
     std::optional<SaiBufferProfileTraits::Attributes::SharedDynamicThreshold>
         dynamicThresh{24};
-    std::optional<SaiBufferProfileTraits::Attributes::SharedStaticThreshold>
-        staticThresh{0};
     return SaiBufferProfileTraits::CreateAttributes{
-        pool, reservedBytes, mode, dynamicThresh, staticThresh};
+        pool, reservedBytes, mode, dynamicThresh};
   }
   BufferProfileSaiId createBufferProfile(BufferPoolSaiId _pool) {
     auto& bufferApi = saiApiTable->bufferApi();

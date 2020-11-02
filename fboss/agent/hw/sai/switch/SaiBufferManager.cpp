@@ -98,7 +98,7 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
         scalingFactorToBufferDynThresh(queue.getScalingFactor().value());
   }
   return SaiBufferProfileTraits::CreateAttributes{
-      pool, reservedBytes, mode, dynThresh, std::nullopt};
+      pool, reservedBytes, mode, dynThresh};
 }
 
 std::shared_ptr<SaiBufferProfile> SaiBufferManager::getOrCreateProfile(

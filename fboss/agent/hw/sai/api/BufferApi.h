@@ -83,18 +83,13 @@ struct SaiBufferProfileTraits {
         EnumType,
         SAI_BUFFER_PROFILE_ATTR_SHARED_DYNAMIC_TH,
         sai_int8_t>;
-    using SharedStaticThreshold = SaiAttribute<
-        EnumType,
-        SAI_BUFFER_PROFILE_ATTR_SHARED_STATIC_TH,
-        sai_int8_t>;
   };
   using AdapterKey = BufferProfileSaiId;
   using CreateAttributes = std::tuple<
       Attributes::PoolId,
       std::optional<Attributes::ReservedBytes>,
       std::optional<Attributes::ThresholdMode>,
-      std::optional<Attributes::SharedDynamicThreshold>,
-      std::optional<Attributes::SharedStaticThreshold>>;
+      std::optional<Attributes::SharedDynamicThreshold>>;
   using AdapterHostKey = CreateAttributes;
 };
 
@@ -102,7 +97,6 @@ SAI_ATTRIBUTE_NAME(BufferProfile, PoolId);
 SAI_ATTRIBUTE_NAME(BufferProfile, ReservedBytes);
 SAI_ATTRIBUTE_NAME(BufferProfile, ThresholdMode);
 SAI_ATTRIBUTE_NAME(BufferProfile, SharedDynamicThreshold);
-SAI_ATTRIBUTE_NAME(BufferProfile, SharedStaticThreshold);
 
 class BufferApi : public SaiApi<BufferApi> {
  public:
