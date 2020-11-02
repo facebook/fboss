@@ -334,7 +334,7 @@ TEST_F(HwAclStatTest, AclStatCreateSameTwice) {
       applyThriftConfig(getProgrammedState(), &newCfg, getPlatform());
   newState->publish();
   StateDelta delta(getProgrammedState(), newState);
-  getHwSwitch()->stateChanged(delta);
+  applyNewState(newState);
   EXPECT_THROW(getHwSwitch()->stateChanged(delta), FbossError);
 }
 
@@ -350,7 +350,7 @@ TEST_F(HwAclStatTest, AclStatDeleteNonExistent) {
       applyThriftConfig(getProgrammedState(), &newCfg, getPlatform());
   newState->publish();
   StateDelta delta(getProgrammedState(), newState);
-  getHwSwitch()->stateChanged(delta);
+  applyNewState(newState);
   EXPECT_THROW(getHwSwitch()->stateChanged(delta), FbossError);
 }
 
