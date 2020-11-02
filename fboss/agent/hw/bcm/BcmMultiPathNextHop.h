@@ -60,7 +60,7 @@ class BcmMultiPathNextHopTable : public BcmMultiPathNextHopTableBase {
   using EgressIdSet = BcmEcmpEgress::EgressIdSet;
   explicit BcmMultiPathNextHopTable(BcmSwitch* hw)
       : BcmMultiPathNextHopTableBase(hw) {
-    weightedMember_ = getBcmSwitch()->getPlatform()->getAsic()->isSupported(
+    ucmpSupported_ = getBcmSwitch()->getPlatform()->getAsic()->isSupported(
         HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER);
   }
   void egressResolutionChangedHwLocked(
@@ -77,7 +77,7 @@ class BcmMultiPathNextHopTable : public BcmMultiPathNextHopTableBase {
   long getEcmpEgressCount() const;
 
  private:
-  bool weightedMember_{false};
+  bool ucmpSupported_{false};
 };
 
 } // namespace facebook::fboss

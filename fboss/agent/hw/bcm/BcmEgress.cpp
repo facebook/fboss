@@ -298,7 +298,7 @@ BcmEcmpEgress::BcmEcmpEgress(
     : BcmEgressBase(hw), egressId2Weight_(egressId2Weight) {
   if (hw_->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER)) {
-    weightedMember_ = true;
+    ucmpSupported_ = true;
   }
   program();
 }
@@ -307,7 +307,7 @@ void BcmEcmpEgress::program() {
   bcm_l3_egress_ecmp_t obj;
   bcm_l3_egress_ecmp_t_init(&obj);
   int numPaths = 0;
-  if (weightedMember_) {
+  if (ucmpSupported_) {
     // TODO(daiweix): use this line and remove the for loop
     // when native wecmp is ready
     // numPaths = egressId2Weight_.size();
@@ -354,7 +354,7 @@ void BcmEcmpEgress::program() {
                << ((obj.flags & BCM_L3_REPLACE) ? " replace" : " noreplace")
                << ((obj.flags & BCM_L3_WITH_ID) ? " with id" : " without id");
     int ret = 0;
-    if (weightedMember_) {
+    if (ucmpSupported_) {
 #ifdef BCM_L3_ECMP_MEMBER_WEIGHTED
       // @lint-ignore HOWTOEVEN CArray
       bcm_l3_ecmp_member_t ecmpMemberArray[numPaths];
@@ -413,7 +413,7 @@ BcmEcmpEgress::~BcmEcmpEgress() {
     return;
   }
   int ret;
-  if (weightedMember_) {
+  if (ucmpSupported_) {
     ret = bcm_l3_ecmp_destroy(hw_->getUnit(), id_);
   } else {
     bcm_l3_egress_ecmp_t obj;
@@ -433,10 +433,8 @@ BcmEcmpEgress::~BcmEcmpEgress() {
 }
 
 bool BcmEcmpEgress::pathUnreachableHwLocked(EgressId path) {
-  if (egressId2Weight_.find(path) == egressId2Weight_.end()) {
-    return false;
-  }
-  return removeEgressIdHwLocked(hw_->getUnit(), getID(), path, weightedMember_);
+  return removeEgressIdHwLocked(
+      hw_->getUnit(), getID(), egressId2Weight_, path, ucmpSupported_);
 }
 
 bool BcmEcmpEgress::pathReachableHwLocked(EgressId path) {
@@ -446,17 +444,23 @@ bool BcmEcmpEgress::pathReachableHwLocked(EgressId path) {
       egressId2Weight_,
       path,
       hw_->getRunState(),
-      weightedMember_);
+      ucmpSupported_);
 }
 
 bool BcmEcmpEgress::removeEgressIdHwLocked(
     int unit,
     EgressId ecmpId,
+    const EgressId2Weight& egressIdInSw,
     EgressId toRemove,
-    bool weightedMember) {
+    bool ucmpSupported) {
+  auto it = egressIdInSw.find(toRemove);
+  if (it == egressIdInSw.end() || it->second == 0) {
+    return false;
+  }
   // We don't really need the lock here so safe to call the
   // stricter non locked version.
-  return removeEgressIdHwNotLocked(unit, ecmpId, toRemove, weightedMember);
+  return removeEgressIdHwNotLocked(
+      unit, ecmpId, std::make_pair(toRemove, it->second), ucmpSupported);
 }
 
 void BcmEgress::programToTrunk(
@@ -551,19 +555,24 @@ bool operator==(const bcm_l3_egress_t& lhs, const bcm_l3_egress_t& rhs) {
 bool BcmEcmpEgress::removeEgressIdHwNotLocked(
     int unit,
     EgressId ecmpId,
-    EgressId toRemove,
-    bool weightedMember) {
-  int ret;
-  if (weightedMember) {
+    std::pair<EgressId, int> toRemove,
+    bool ucmpSupported) {
+  int ret = 0;
+  if (ucmpSupported) {
     bcm_l3_ecmp_member_t member;
     bcm_l3_ecmp_member_t_init(&member);
-    member.egress_if = toRemove;
+    member.egress_if = toRemove.first;
     ret = bcm_l3_ecmp_member_delete(unit, ecmpId, &member);
   } else {
-    bcm_l3_egress_ecmp_t obj;
-    bcm_l3_egress_ecmp_t_init(&obj);
-    obj.ecmp_intf = ecmpId;
-    ret = bcm_l3_egress_ecmp_delete(unit, &obj, toRemove);
+    for (int i = 0; i < toRemove.second; i++) {
+      bcm_l3_egress_ecmp_t obj;
+      bcm_l3_egress_ecmp_t_init(&obj);
+      obj.ecmp_intf = ecmpId;
+      ret = bcm_l3_egress_ecmp_delete(unit, &obj, toRemove.first);
+      if (ret) {
+        break;
+      }
+    }
   }
   if (ret && ret != BCM_E_NOT_FOUND) {
     // If ret == BCM_E_NOT_FOUND this means that
@@ -580,12 +589,12 @@ bool BcmEcmpEgress::removeEgressIdHwNotLocked(
 
     // This may get called from linkscan handler which would
     // swallow an exception. So fail hard in case of error
-    XLOG(FATAL) << "Error removing " << toRemove << " from: " << ecmpId << " "
-                << bcm_errmsg(ret);
+    XLOG(FATAL) << "Error removing " << toRemove.first << " from: " << ecmpId
+                << " " << bcm_errmsg(ret);
     return false;
   }
   if (ret != BCM_E_NOT_FOUND) {
-    XLOG(DBG1) << " Removed  " << toRemove << " from: " << ecmpId;
+    XLOG(DBG1) << " Removed  " << toRemove.first << " from: " << ecmpId;
   }
   return true;
 }
@@ -596,14 +605,14 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
     const EgressId2Weight& egressId2WeightInSw,
     EgressId toAdd,
     SwitchRunState runState,
-    bool weightedMember) {
+    bool ucmpSupported) {
   if (egressId2WeightInSw.find(toAdd) == egressId2WeightInSw.end()) {
     // Egress id is not part of this ecmp group. Nothing
     // to do.
     return false;
   }
   int numPaths = 0;
-  if (weightedMember) {
+  if (ucmpSupported) {
     numPaths = egressId2WeightInSw.size();
   } else {
     for (auto path : egressId2WeightInSw) {
@@ -640,7 +649,7 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
   int countInHw = 0;
   int ret;
 
-  if (weightedMember) {
+  if (ucmpSupported) {
 #ifdef BCM_L3_ECMP_MEMBER_WEIGHTED
     // @lint-ignore HOWTOEVEN CArray
     bcm_l3_ecmp_member_t pathsInHw[numPaths];
@@ -672,7 +681,7 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
     return false; // Already exists no need to update
   }
 
-  if (weightedMember) {
+  if (ucmpSupported) {
 #ifdef BCM_L3_ECMP_MEMBER_WEIGHTED
     for (int i = 0; i < countInSw - countInHw; ++i) {
       bcm_l3_ecmp_member_t member;

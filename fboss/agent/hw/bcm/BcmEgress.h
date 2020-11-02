@@ -177,22 +177,23 @@ class BcmEcmpEgress : public BcmEgressBase {
       const EgressId2Weight& egressIdInSw,
       EgressId toAdd,
       SwitchRunState runState,
-      bool weightedMember);
+      bool ucmpSupported);
   static bool removeEgressIdHwNotLocked(
       int unit,
       EgressId ecmpId,
-      EgressId toRemove,
-      bool weightedMember);
+      std::pair<EgressId, int> toRemove,
+      bool ucmpSupported);
   static bool removeEgressIdHwLocked(
       int unit,
       EgressId ecmpId,
+      const EgressId2Weight& egressIdInSw,
       EgressId toRemove,
-      bool weightedMember);
+      bool ucmpSupported);
 
  private:
   void program();
   const EgressId2Weight egressId2Weight_;
-  bool weightedMember_{false};
+  bool ucmpSupported_{false};
 };
 
 bool operator==(const bcm_l3_egress_t& lhs, const bcm_l3_egress_t& rhs);

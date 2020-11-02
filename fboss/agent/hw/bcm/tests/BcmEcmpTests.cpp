@@ -49,6 +49,7 @@ using folly::IPAddressV6;
 
 namespace {
 facebook::fboss::RoutePrefixV6 kDefaultRoute{IPAddressV6(), 0};
+folly::CIDRNetwork kDefaultRoutePrefix{folly::IPAddress("::"), 0};
 } // namespace
 namespace facebook::fboss {
 
@@ -115,5 +116,39 @@ TEST_F(BcmEcmpTest, SearchMissingEgressInECMP) {
     ASSERT_EQ(0, pathsInHwCount);
   };
   verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(BcmEcmpTest, UcmpShrink) {
+  const std::vector<NextHopWeight> weights = {3, 1, 1, 1, 1, 1, 1, 1};
+  // Program ECMP route
+  auto newState = ecmpHelper_->setupECMPForwarding(
+      ecmpHelper_->resolveNextHops(getProgrammedState(), kNumNextHops),
+      kNumNextHops,
+      {kDefaultRoute},
+      weights);
+  applyNewState(newState);
+  EXPECT_EQ(
+      kNumNextHops + 2,
+      getEcmpSizeInHw(
+          getHwSwitch(), kDefaultRoutePrefix, kRid, kNumNextHops + 2));
+  // Mimic neighbor entries going away and route getting removed.
+  flat_set<PortDescriptor> weightedPorts;
+  flat_set<PortDescriptor> unweightedPorts;
+  weightedPorts.insert(ecmpHelper_->getNextHops().at(0).portDesc);
+  for (int i = 1; i < kNumNextHops; i++) {
+    unweightedPorts.insert(ecmpHelper_->getNextHops().at(i).portDesc);
+  }
+  applyNewState(
+      ecmpHelper_->unresolveNextHops(getProgrammedState(), weightedPorts));
+  EXPECT_EQ(
+      kNumNextHops - 1,
+      getEcmpSizeInHw(
+          getHwSwitch(), kDefaultRoutePrefix, kRid, kNumNextHops + 2));
+  applyNewState(
+      ecmpHelper_->unresolveNextHops(getProgrammedState(), unweightedPorts));
+  EXPECT_EQ(
+      0,
+      getEcmpSizeInHw(
+          getHwSwitch(), kDefaultRoutePrefix, kRid, kNumNextHops + 2));
 }
 } // namespace facebook::fboss

@@ -94,7 +94,7 @@ class BcmEgressManager {
       int unit,
       const EgressIdSet& affectedEgressIds,
       bool up,
-      bool weightedMember);
+      bool ucmpSupported);
   template <typename T>
   static BcmEcmpEgress::EgressId toEgressId(T egress);
   // Callback for traversal in egressResolutionChangedHwNotLocked

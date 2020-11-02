@@ -126,11 +126,15 @@ void BcmMultiPathNextHopTable::egressResolutionChangedHwLocked(
               ecmpAndEgressIds.second,
               path,
               hw->getRunState(),
-              weightedMember_);
+              ucmpSupported_);
           break;
         case BcmEcmpEgress::Action::SHRINK:
           BcmEcmpEgress::removeEgressIdHwLocked(
-              hw->getUnit(), ecmpAndEgressIds.first, path, weightedMember_);
+              hw->getUnit(),
+              ecmpAndEgressIds.first,
+              ecmpAndEgressIds.second,
+              path,
+              ucmpSupported_);
           break;
         case BcmEcmpEgress::Action::SKIP:
           break;

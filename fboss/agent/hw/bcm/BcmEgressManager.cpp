@@ -105,13 +105,13 @@ int BcmEgressManager::removeAllEgressesFromEcmpCallback(
   // remove it from the ecmp group.
   auto egressesToRemove =
       static_cast<std::pair<EgressIdSet*, bool>*>(userData)->first;
-  auto weightedMember =
+  auto ucmpSupported =
       static_cast<std::pair<EgressIdSet*, bool>*>(userData)->second;
   for (int i = 0; i < memberCount; ++i) {
     BcmEcmpEgress::EgressId egressInHw = toEgressId<T>(memberArray[i]);
     if (egressesToRemove->find(egressInHw) != egressesToRemove->end()) {
       BcmEcmpEgress::removeEgressIdHwNotLocked(
-          unit, ecmp->ecmp_intf, egressInHw, weightedMember);
+          unit, ecmp->ecmp_intf, std::make_pair(egressInHw, 1), ucmpSupported);
     }
   }
   return 0;
@@ -121,11 +121,11 @@ void BcmEgressManager::egressResolutionChangedHwNotLocked(
     int unit,
     const EgressIdSet& affectedEgressIds,
     bool up,
-    bool weightedMember) {
+    bool ucmpSupported) {
   CHECK(!up);
   EgressIdSet tmpEgressIds(affectedEgressIds);
-  auto userData = std::make_pair(&tmpEgressIds, weightedMember);
-  if (weightedMember) {
+  auto userData = std::make_pair(&tmpEgressIds, ucmpSupported);
+  if (ucmpSupported) {
 #ifdef BCM_L3_ECMP_MEMBER_WEIGHTED
     bcm_l3_ecmp_traverse(
         unit,
