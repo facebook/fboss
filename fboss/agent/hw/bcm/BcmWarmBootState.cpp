@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/bcm/BcmLabeledTunnelEgress.h"
 #include "fboss/agent/hw/bcm/BcmMultiPathNextHop.h"
 #include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
+#include "fboss/agent/hw/bcm/BcmRoute.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
@@ -20,7 +21,7 @@ namespace facebook::fboss {
 template <>
 folly::dynamic BcmWarmBootState::toFollyDynamic(
     const BcmHostKey& key,
-    const std::shared_ptr<BcmHost>& host) const;
+    const std::shared_ptr<BcmHostIf>& host) const;
 
 template <>
 folly::dynamic BcmWarmBootState::toFollyDynamic(
@@ -51,8 +52,14 @@ folly::dynamic BcmWarmBootState::egressToFollyDynamic(
 folly::dynamic BcmWarmBootState::hostTableToFollyDynamic() const {
   folly::dynamic hostsJson = folly::dynamic::array;
   for (const auto& hostTableEntry : *hw_->getHostTable()) {
-    auto host = hostTableEntry.second.lock();
+    std::shared_ptr<BcmHostIf> host = hostTableEntry.second.lock();
     hostsJson.push_back(toFollyDynamic(hostTableEntry.first, host));
+  }
+
+  // host entries are programmed to route table if host table is
+  // not available in hardware
+  for (const auto& hostEntry : hw_->routeTable()->getHostRoutes()) {
+    hostsJson.push_back(toFollyDynamic(hostEntry->getHostKey(), hostEntry));
   }
 
   // previously, ECMP next hops were maintained as a part of BcmHostTable, even
@@ -75,7 +82,7 @@ folly::dynamic BcmWarmBootState::hostTableToFollyDynamic() const {
 template <>
 folly::dynamic BcmWarmBootState::toFollyDynamic(
     const BcmHostKey& hostKey,
-    const std::shared_ptr<BcmHost>& bcmHost) const {
+    const std::shared_ptr<BcmHostIf>& bcmHost) const {
   folly::dynamic host = folly::dynamic::object;
   host[kVrf] = hostKey.getVrf();
   host[kIp] = hostKey.addr().str();

@@ -158,6 +158,10 @@ class BcmSwitchIf : public HwSwitch {
 
   virtual BcmWarmBootCache* getWarmBootCache() const = 0;
 
+  virtual const BcmRouteTable* routeTable() const = 0;
+
+  virtual BcmRouteTable* writableRouteTable() const = 0;
+
   virtual const BcmMirrorTable* getBcmMirrorTable() const = 0;
 
   virtual BcmMirrorTable* writableBcmMirrorTable() const = 0;
@@ -388,10 +392,10 @@ class BcmSwitch : public BcmSwitchIf {
     return warmBootCache_.get();
   }
 
-  BcmRouteTable* writableRouteTable() const {
+  BcmRouteTable* writableRouteTable() const override {
     return routeTable_.get();
   }
-  const BcmRouteTable* routeTable() const {
+  const BcmRouteTable* routeTable() const override {
     return routeTable_.get();
   }
 
