@@ -55,6 +55,9 @@ class SaiApi {
   // is an entry struct, which must take an AdapterKey but don't return one.
   // The distinction is drawn with traits from Traits.h and SFINAE
 
+  void setFailHwWrites(bool fail) {
+    failHwWrites_ = fail;
+  }
   // sai_object_id_t case
   template <typename SaiObjectTraits>
   std::enable_if_t<
@@ -68,6 +71,12 @@ class SaiApi {
         "invalid traits for the api");
     typename SaiObjectTraits::AdapterKey key;
     std::vector<sai_attribute_t> saiAttributeTs = saiAttrs(createAttributes);
+    if (UNLIKELY(failHwWrites_)) {
+      XLOGF(
+          FATAL,
+          "Attempting create SAI obj with {}, while hw writes are blocked",
+          createAttributes);
+    }
     std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
     sai_status_t status;
     {
@@ -94,6 +103,12 @@ class SaiApi {
         std::is_same_v<typename SaiObjectTraits::SaiApiT, ApiT>,
         "invalid traits for the api");
     std::vector<sai_attribute_t> saiAttributeTs = saiAttrs(createAttributes);
+    if (UNLIKELY(failHwWrites_)) {
+      XLOGF(
+          FATAL,
+          "Attempting create SAI obj with {}, while hw writes are blocked",
+          createAttributes);
+    }
     std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
     sai_status_t status;
     {
@@ -112,6 +127,12 @@ class SaiApi {
   template <typename AdapterKeyT>
   void remove(const AdapterKeyT& key) {
     std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
+    if (UNLIKELY(failHwWrites_)) {
+      XLOGF(
+          FATAL,
+          "Attempting to remove SAI obj {} while hw writes are blocked",
+          key);
+    }
     sai_status_t status;
     {
       TIME_CALL;
@@ -245,6 +266,13 @@ class SaiApi {
 
   template <typename AdapterKeyT, typename AttrT>
   void setAttributeUnlocked(const AdapterKeyT& key, const AttrT& attr) {
+    if (UNLIKELY(failHwWrites_)) {
+      XLOGF(
+          FATAL,
+          "Attempting set SAI attribute of {} to {}, while hw writes are blocked",
+          key,
+          attr);
+    }
     if constexpr (IsSaiExtensionAttribute<AttrT>::value) {
       auto id = typename AttrT::AttributeId()();
       if (!id.has_value()) {
@@ -361,6 +389,12 @@ class SaiApi {
       const sai_stat_id_t* counterIds,
       size_t numCounters) const {
     if (numCounters) {
+      if (UNLIKELY(failHwWrites_)) {
+        XLOGF(
+            FATAL,
+            "Attempting clear stats {} , while hw writes are blocked",
+            saiApiTypeToString(ApiT::ApiType));
+      }
       sai_status_t status;
       {
         TIME_CALL
@@ -375,6 +409,7 @@ class SaiApi {
   const ApiT& impl() const {
     return static_cast<const ApiT&>(*this);
   }
+  bool failHwWrites_{false};
 };
 
 } // namespace facebook::fboss
