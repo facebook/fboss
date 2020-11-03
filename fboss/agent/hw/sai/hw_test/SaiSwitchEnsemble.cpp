@@ -129,4 +129,18 @@ std::map<PortID, HwPortStats> SaiSwitchEnsemble::getLatestPortStats(
 uint64_t SaiSwitchEnsemble::getSwitchId() const {
   return getHwSwitch()->getSwitchId();
 }
+
+void SaiSwitchEnsemble::runDiagCommand(
+    const std::string& input,
+    std::string& output) {
+  ClientInformation clientInfo;
+  clientInfo.username_ref() = "hw_test";
+  clientInfo.hostname_ref() = "hw_test";
+  fbstring result;
+  thriftHandler_->diagCmd(
+      result,
+      std::make_unique<fbstring>(input),
+      std::make_unique<ClientInformation>(clientInfo));
+  output = result.toStdString();
+}
 } // namespace facebook::fboss

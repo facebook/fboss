@@ -206,4 +206,10 @@ std::unique_ptr<HwLinkStateToggler> BcmSwitchEnsemble::createLinkToggler(
 uint64_t BcmSwitchEnsemble::getSwitchId() const {
   return getHwSwitch()->getUnit();
 }
+
+void BcmSwitchEnsemble::runDiagCommand(
+    const std::string& input,
+    std::string& /*output*/) {
+  getHwSwitch()->printDiagCmd(input);
+}
 } // namespace facebook::fboss
