@@ -217,12 +217,15 @@ void DiagShell::consumeInput(
   if (FLAGS_sai_log_to_scribe) {
     logToScuba(std::move(client), *input);
   }
-  if (*input == "quit" || !repl_) {
+  if (!repl_) {
     return;
   }
   std::size_t ret =
       folly::writeFull(getPtymFd(), input->c_str(), input->size() + 1);
   folly::checkUnixError(ret, "Failed to write diag shell input to PTY master");
+  if (*input == "quit") {
+    // TODO: block until repl loop is completed
+  }
 }
 
 std::string DiagShell::readOutput(int timeoutMs) {

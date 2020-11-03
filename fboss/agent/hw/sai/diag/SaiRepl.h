@@ -16,6 +16,7 @@
 #include <folly/Format.h>
 #include <folly/logging/xlog.h>
 
+#include <atomic>
 #include <thread>
 #include <vector>
 
@@ -35,6 +36,7 @@ class SaiRepl : public Repl {
   void doRun() override;
   std::unique_ptr<std::thread> shellThread_;
   const SwitchSaiId switchId_;
+  std::atomic<bool> exited_;
 };
 
 } // namespace facebook::fboss
