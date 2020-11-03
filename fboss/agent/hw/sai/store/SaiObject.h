@@ -127,7 +127,7 @@ typename std::
         const typename SaiObjectTraits::AdapterKey& adapterKey,
         const typename SaiObjectTraits::CreateAttributes& attributes) {
   typename SaiObjectTraits::AdapterHostKey ret;
-  auto apiTable = SaiApiTable::getInstance();
+  const auto& apiTable = SaiApiTable::getInstance();
   auto memberIds = apiTable->nextHopGroupApi().getAttribute(
       adapterKey, SaiNextHopGroupTraits::Attributes::NextHopMemberList{});
   for (const auto memberId : memberIds) {

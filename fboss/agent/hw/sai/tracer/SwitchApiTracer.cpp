@@ -36,11 +36,18 @@ sai_status_t wrap_remove_switch(sai_object_id_t switch_id) {
 sai_status_t wrap_set_switch_attribute(
     sai_object_id_t switch_id,
     const sai_attribute_t* attr) {
-  auto rv = SaiTracer::getInstance()->switchApi_->set_switch_attribute(
-      switch_id, attr);
-
-  SaiTracer::getInstance()->logSetAttrFn(
-      "set_switch_attribute", switch_id, attr, SAI_OBJECT_TYPE_SWITCH, rv);
+  sai_status_t rv{0};
+  if (attr->id == SAI_SWITCH_ATTR_SWITCH_SHELL_ENABLE) {
+    // this blocks forever, can't hold singleton or tracer must be leaky
+    // singleton
+    auto* tracer = SaiTracer::getInstance().get();
+    rv = tracer->switchApi_->set_switch_attribute(switch_id, attr);
+  } else {
+    rv = SaiTracer::getInstance()->switchApi_->set_switch_attribute(
+        switch_id, attr);
+    SaiTracer::getInstance()->logSetAttrFn(
+        "set_switch_attribute", switch_id, attr, SAI_OBJECT_TYPE_SWITCH, rv);
+  }
   return rv;
 }
 
