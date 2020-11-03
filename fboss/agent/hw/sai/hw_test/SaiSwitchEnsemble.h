@@ -58,6 +58,9 @@ class SaiSwitchEnsemble : public HwSwitchEnsemble {
   std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports) override;
 
+  void runDiagCommand(const std::string& /*input*/, std::string& /*output*/)
+      override {}
+
  private:
   std::shared_ptr<SaiTestHandler> thriftHandler_;
   std::unique_ptr<std::thread> setupThrift() override {

@@ -30,6 +30,9 @@ class TestHwSwitchEnsemble : HwSwitchEnsemble {
     return 0;
   }
 
+  void runDiagCommand(const std::string& /*input*/, std::string& /*output*/)
+      override {}
+
  public:
   std::unique_ptr<std::thread> setupThrift() override {
     return nullptr;

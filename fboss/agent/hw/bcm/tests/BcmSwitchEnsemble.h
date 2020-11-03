@@ -52,6 +52,9 @@ class BcmSwitchEnsemble : public HwSwitchEnsemble {
   std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports) override;
 
+  void runDiagCommand(const std::string& /*input*/, std::string& /*output*/)
+      override {}
+
  private:
   std::unique_ptr<std::thread> setupThrift() override {
     return createThriftThread(getHwSwitch());

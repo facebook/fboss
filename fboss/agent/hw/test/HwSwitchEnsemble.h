@@ -139,6 +139,10 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   void waitForLineRateOnPort(PortID port);
   void ensureThrift();
 
+  virtual void runDiagCommand(
+      const std::string& input,
+      std::string& output) = 0;
+
  protected:
   /*
    * Setup ensemble
