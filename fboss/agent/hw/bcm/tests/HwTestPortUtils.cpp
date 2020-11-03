@@ -11,6 +11,8 @@
 #include "fboss/agent/hw/test/HwTestPortUtils.h"
 
 #include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmPort.h"
+#include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmPortUtils.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
@@ -32,4 +34,12 @@ void setPortLoopbackMode(
       rv, "failed to set loopback mode state for port");
 }
 
+void setPortTxEnable(const HwSwitch* hw, PortID port, bool enable) {
+  auto bcmSwitch = static_cast<const BcmSwitch*>(hw);
+
+  auto bcmPortId = bcmSwitch->getPortTable()->getBcmPort(port)->getBcmPortId();
+  auto rv = bcm_port_control_set(
+      bcmSwitch->getUnit(), bcmPortId, bcmPortControlTxEnable, enable ? 1 : 0);
+  bcmCheckError(rv, "failed to disable TX");
+}
 } // namespace facebook::fboss::utility
