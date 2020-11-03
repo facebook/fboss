@@ -19,6 +19,8 @@
 
 namespace facebook::fboss {
 
+class SaiTestHandler;
+
 class SaiSwitchEnsemble : public HwSwitchEnsemble {
  public:
   explicit SaiSwitchEnsemble(
@@ -57,6 +59,7 @@ class SaiSwitchEnsemble : public HwSwitchEnsemble {
       const std::vector<PortID>& ports) override;
 
  private:
+  std::shared_ptr<SaiTestHandler> thriftHandler_;
   std::unique_ptr<std::thread> setupThrift() override {
     return createThriftThread(getHwSwitch());
   }

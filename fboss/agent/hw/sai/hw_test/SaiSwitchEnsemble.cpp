@@ -64,6 +64,8 @@ SaiSwitchEnsemble::SaiSwitchEnsemble(
         },
         platform->getAsic()->desiredLoopbackMode());
   }
+  thriftHandler_ = std::make_shared<SaiTestHandler>(
+      static_cast<SaiSwitch*>(platform->getHwSwitch()));
   std::unique_ptr<std::thread> thriftThread;
   if (FLAGS_setup_thrift) {
     thriftThread =
@@ -75,12 +77,11 @@ SaiSwitchEnsemble::SaiSwitchEnsemble(
 
 std::unique_ptr<std::thread> SaiSwitchEnsemble::createThriftThread(
     const SaiSwitch* hwSwitch) {
-  return std::make_unique<std::thread>([hwSwitch] {
-    auto handler = std::make_shared<SaiTestHandler>(hwSwitch);
+  return std::make_unique<std::thread>([=] {
     folly::EventBase eventBase;
     auto server = setupThriftServer(
         eventBase,
-        handler,
+        thriftHandler_,
         FLAGS_thrift_port,
         false /* isDuplex */,
         false /* setupSSL*/,
