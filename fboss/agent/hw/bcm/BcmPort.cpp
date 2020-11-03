@@ -937,18 +937,11 @@ void BcmPort::updateStats() {
 
   if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::ECN)) {
     // ECN stats not supported by TD2
-    bcm_stat_val_t snmpType = snmpBcmTxEcnErrors;
-    auto asicType = hw_->getPlatform()->getAsic()->getAsicType();
-    if (asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
-      // TODO(daiweix): remove this if block after SDK makes ecn type name the
-      // same
-      int snmpBcmTxEcnType = 289;
-      if (snmpBcmTxEcnType < snmpValCount) {
-        snmpType = (bcm_stat_val_t)snmpBcmTxEcnType;
-      }
-    }
     updateStat(
-        now, kOutEcnCounter(), snmpType, &(*curPortStats.outEcnCounter__ref()));
+        now,
+        kOutEcnCounter(),
+        snmpBcmTxEcnErrors,
+        &(*curPortStats.outEcnCounter__ref()));
   }
   updateStat(
       now,
@@ -1058,16 +1051,6 @@ void BcmPort::updateStat(
     bcm_stat_val_t type,
     int64_t* statVal) {
   auto stat = getPortCounterIf(statKey);
-  // Hack for snmpBcmTxEcnErrors type
-  // TODO(daiweix): remove this if block after SDK makes ecn type name the same
-  if (type == snmpBcmTxEcnErrors &&
-      hw_->getPlatform()->getAsic()->getAsicType() ==
-          HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
-    int snmpBcmTxEcnType = 289;
-    if (snmpBcmTxEcnType < snmpValCount) {
-      type = (bcm_stat_val_t)snmpBcmTxEcnType;
-    }
-  }
   // Use the non-sync API to just get the values accumulated in software.
   // The Broadom SDK's counter thread syncs the HW counters to software every
   // 500000us (defined in config.bcm).
