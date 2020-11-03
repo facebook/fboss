@@ -1,0 +1,13 @@
+// Copyright 2004-present Facebook. All Rights Reserved.
+
+#pragma once
+
+namespace facebook::fboss {
+class HwSwitchEnsemble;
+namespace utility {
+
+void generateParityError(HwSwitchEnsemble* enselble);
+void verifyParityError(HwSwitchEnsemble* enselble);
+
+} // namespace utility
+} // namespace facebook::fboss
