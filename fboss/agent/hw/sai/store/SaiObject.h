@@ -20,7 +20,12 @@
 
 #include <variant>
 
+class SaiStoreTest;
+
 namespace facebook::fboss {
+
+template <typename SaiObjectTraits>
+class SaiObjectStore;
 
 namespace detail {
 
@@ -187,6 +192,12 @@ typename std::
 template <typename SaiObjectTraits>
 class SaiObject {
  public:
+  template <template <class, class> class M, typename K, typename V>
+  friend class RefMap;
+  friend class SaiObjectStore<SaiObjectTraits>;
+  friend class ::SaiStoreTest;
+
+ protected:
   // Load from adapter key
   explicit SaiObject(const typename SaiObjectTraits::AdapterKey& adapterKey)
       : adapterKey_(adapterKey) {
@@ -226,6 +237,7 @@ class SaiObject {
     live_ = true;
   }
 
+ public:
   // Forbid copy construction and copy assignment
   SaiObject(const SaiObject& other) = delete;
   SaiObject& operator=(const SaiObject& other) = delete;

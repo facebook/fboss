@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/VirtualRouterApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiHashManager.h"
 #include "fboss/agent/hw/sai/switch/SaiQosMapManager.h"
 #include "fboss/agent/types.h"
@@ -33,8 +34,6 @@ class LoadBalancer;
 class SaiManagerTable;
 class SaiPlatform;
 class StateDelta;
-
-using SaiSwitchObj = SaiObject<SaiSwitchTraits>;
 
 class SaiSwitchManager {
  public:
