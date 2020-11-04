@@ -115,7 +115,7 @@ TEST_F(BufferStoreTest, loadBufferProfileFromJson) {
 
 TEST_F(BufferStoreTest, bufferPoolLoadCtor) {
   auto poolId = createBufferPool();
-  SaiObject<SaiBufferPoolTraits> obj(poolId);
+  SaiObject<SaiBufferPoolTraits> obj = createObj<SaiBufferPoolTraits>(poolId);
   EXPECT_EQ(obj.adapterKey(), poolId);
   EXPECT_EQ(GET_ATTR(BufferPool, Size, obj.attributes()), 42);
 }
@@ -123,19 +123,22 @@ TEST_F(BufferStoreTest, bufferPoolLoadCtor) {
 TEST_F(BufferStoreTest, bufferProfileLoadCtor) {
   auto poolId = createBufferPool();
   auto profileId = createBufferProfile(poolId);
-  SaiObject<SaiBufferProfileTraits> obj(profileId);
+  SaiObject<SaiBufferProfileTraits> obj =
+      createObj<SaiBufferProfileTraits>(profileId);
   EXPECT_EQ(obj.adapterKey(), profileId);
   EXPECT_EQ(GET_OPT_ATTR(BufferProfile, ReservedBytes, obj.attributes()), 42);
 }
 
 TEST_F(BufferStoreTest, bufferPoolCreateCtor) {
-  SaiObject<SaiBufferPoolTraits> obj({24}, createPoolAttrs(), 0);
+  SaiObject<SaiBufferPoolTraits> obj =
+      createObj<SaiBufferPoolTraits>(24, createPoolAttrs(), 0);
   EXPECT_EQ(GET_ATTR(BufferPool, Size, obj.attributes()), 42);
 }
 
 TEST_F(BufferStoreTest, bufferProfileCreateCtor) {
   auto c = createProfileAttrs(createBufferPool());
-  SaiObject<SaiBufferProfileTraits> obj(c, c, 0);
+  SaiObject<SaiBufferProfileTraits> obj =
+      createObj<SaiBufferProfileTraits>(c, c, 0);
   EXPECT_EQ(GET_OPT_ATTR(BufferProfile, ReservedBytes, obj.attributes()), 42);
 }
 

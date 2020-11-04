@@ -55,7 +55,7 @@ TEST_F(SaiStoreTest, neighborLoadCtor) {
   folly::MacAddress dstMac{"42:42:42:42:42:42"};
   neighborApi.create<SaiNeighborTraits>(n, createAttrs(dstMac, 42));
 
-  SaiObject<SaiNeighborTraits> obj(n);
+  auto obj = createObj<SaiNeighborTraits>(n);
   EXPECT_EQ(obj.adapterKey(), n);
   EXPECT_EQ(GET_ATTR(Neighbor, DstMac, obj.attributes()), dstMac);
   EXPECT_EQ(GET_OPT_ATTR(Neighbor, Metadata, obj.attributes()), 42);
@@ -65,7 +65,7 @@ TEST_F(SaiStoreTest, neighborCreateCtor) {
   folly::IPAddress ip4{"10.10.10.1"};
   SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
   folly::MacAddress dstMac{"42:42:42:42:42:42"};
-  SaiObject<SaiNeighborTraits> obj(n, createAttrs(dstMac, 42), 0);
+  auto obj = createObj<SaiNeighborTraits>(n, createAttrs(dstMac, 42), 0);
 
   EXPECT_EQ(obj.adapterKey(), n);
   EXPECT_EQ(GET_ATTR(Neighbor, DstMac, obj.attributes()), dstMac);
@@ -76,7 +76,7 @@ TEST_F(SaiStoreTest, setDstMac) {
   folly::IPAddress ip4{"10.10.10.1"};
   SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
   folly::MacAddress dstMac{"42:42:42:42:42:42"};
-  SaiObject<SaiNeighborTraits> obj(n, createAttrs(dstMac), 0);
+  auto obj = createObj<SaiNeighborTraits>(n, createAttrs(dstMac), 0);
 
   EXPECT_EQ(obj.adapterKey(), n);
   EXPECT_EQ(GET_ATTR(Neighbor, DstMac, obj.attributes()), dstMac);
@@ -94,7 +94,7 @@ TEST_F(SaiStoreTest, setMetadata) {
   folly::IPAddress ip4{"10.10.10.1"};
   SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
   folly::MacAddress dstMac{"42:42:42:42:42:42"};
-  SaiObject<SaiNeighborTraits> obj(n, createAttrs(dstMac), 0);
+  auto obj = createObj<SaiNeighborTraits>(n, createAttrs(dstMac), 0);
 
   EXPECT_EQ(obj.adapterKey(), n);
   EXPECT_EQ(GET_ATTR(Neighbor, DstMac, obj.attributes()), dstMac);
@@ -114,7 +114,7 @@ TEST_F(SaiStoreTest, neighborFormatTest) {
   folly::IPAddress ip4{"10.10.10.1"};
   SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
   folly::MacAddress dstMac{"42:42:42:42:42:42"};
-  SaiObject<SaiNeighborTraits> obj(n, createAttrs(dstMac, 42), 0);
+  auto obj = createObj<SaiNeighborTraits>(n, createAttrs(dstMac, 42), 0);
 
   auto expected =
       "NeighborEntry(switch:0, rif: 0, ip: 10.10.10.1): "

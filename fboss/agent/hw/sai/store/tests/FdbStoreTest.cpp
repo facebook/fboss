@@ -42,7 +42,7 @@ TEST_F(SaiStoreTest, fdbLoadCtor) {
   SaiFdbTraits::FdbEntry f(0, 10, mac);
   fdbApi.create<SaiFdbTraits>(f, {SAI_FDB_ENTRY_TYPE_STATIC, 42, 24});
 
-  SaiObject<SaiFdbTraits> obj(f);
+  auto obj = createObj<SaiFdbTraits>(f);
   EXPECT_EQ(obj.adapterKey(), f);
   EXPECT_EQ(
       std::get<SaiFdbTraits::Attributes::BridgePortId>(obj.attributes())
@@ -51,11 +51,11 @@ TEST_F(SaiStoreTest, fdbLoadCtor) {
   EXPECT_EQ(GET_ATTR(Fdb, BridgePortId, obj.attributes()), 42);
   EXPECT_EQ(GET_OPT_ATTR(Fdb, Metadata, obj.attributes()), 24);
 }
-
 TEST_F(SaiStoreTest, fdbCreateCtor) {
   folly::MacAddress mac{"42:42:42:42:42:42"};
   SaiFdbTraits::FdbEntry f(0, 10, mac);
-  SaiObject<SaiFdbTraits> obj(f, {SAI_FDB_ENTRY_TYPE_STATIC, 42, 24}, 0);
+  auto obj = createObj<SaiFdbTraits>(
+      f, SaiFdbTraits::CreateAttributes{SAI_FDB_ENTRY_TYPE_STATIC, 42, 24}, 0);
   EXPECT_EQ(GET_ATTR(Fdb, BridgePortId, obj.attributes()), 42);
   EXPECT_EQ(GET_OPT_ATTR(Fdb, Metadata, obj.attributes()), 24);
 }

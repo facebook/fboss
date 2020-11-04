@@ -140,7 +140,7 @@ TEST_P(AclTableGroupStoreParamTest, loadAclTableGroupMember) {
 
 TEST_P(AclTableGroupStoreParamTest, aclTableGroupLoadCtor) {
   auto aclTableGroupId = createAclTableGroup(GetParam());
-  SaiObject<SaiAclTableGroupTraits> obj(aclTableGroupId);
+  auto obj = createObj<SaiAclTableGroupTraits>(aclTableGroupId);
   EXPECT_EQ(obj.adapterKey(), aclTableGroupId);
 }
 
@@ -150,7 +150,7 @@ TEST_P(AclTableGroupStoreParamTest, aclTableGroupMemberLoadCtor) {
   auto aclTableGroupMemberId =
       createAclTableGroupMember(aclTableGroupId, aclTableId);
 
-  SaiObject<SaiAclTableGroupMemberTraits> obj(aclTableGroupMemberId);
+  auto obj = createObj<SaiAclTableGroupMemberTraits>(aclTableGroupMemberId);
   EXPECT_EQ(obj.adapterKey(), aclTableGroupMemberId);
 }
 
@@ -159,7 +159,7 @@ TEST_P(AclTableGroupStoreParamTest, aclTableGroupCreateCtor) {
       GetParam(), this->kBindPointTypeList(), this->kTableGroupType()};
   SaiAclTableGroupTraits::AdapterHostKey k{
       GetParam(), this->kBindPointTypeList(), this->kTableGroupType()};
-  SaiObject<SaiAclTableGroupTraits> obj(k, c, 0);
+  auto obj = createObj<SaiAclTableGroupTraits>(k, c, 0);
   EXPECT_EQ(GET_ATTR(AclTableGroup, Stage, obj.attributes()), GetParam());
 }
 
@@ -172,7 +172,7 @@ TEST_P(AclTableGroupStoreParamTest, aclTableGroupMemberCreateCtor) {
 
   SaiAclTableGroupMemberTraits::AdapterHostKey k{
       aclTableGroupId, aclTableId, this->kPriority()};
-  SaiObject<SaiAclTableGroupMemberTraits> obj(k, c, 0);
+  auto obj = createObj<SaiAclTableGroupMemberTraits>(k, c, 0);
   EXPECT_EQ(
       GET_ATTR(AclTableGroupMember, TableGroupId, obj.attributes()),
       aclTableGroupId);

@@ -55,7 +55,7 @@ TEST_F(SaiStoreTest, routeLoadCtor) {
   routeApi.create<SaiRouteTraits>(
       r, {packetActionAttribute, nextHopIdAttribute, metadata});
 
-  SaiObject<SaiRouteTraits> obj(r);
+  auto obj = createObj<SaiRouteTraits>(r);
   EXPECT_EQ(obj.adapterKey(), r);
   EXPECT_EQ(
       GET_ATTR(Route, PacketAction, obj.attributes()),
@@ -69,7 +69,7 @@ TEST_F(SaiStoreTest, routeCreateCtor) {
   folly::CIDRNetwork dest(ip4, 24);
   SaiRouteTraits::RouteEntry r(0, 0, dest);
   SaiRouteTraits::CreateAttributes c{SAI_PACKET_ACTION_FORWARD, 5, 42};
-  SaiObject<SaiRouteTraits> obj(r, c, 0);
+  auto obj = createObj<SaiRouteTraits>(r, c, 0);
   EXPECT_EQ(obj.adapterKey(), r);
   EXPECT_EQ(
       GET_ATTR(Route, PacketAction, obj.attributes()),
@@ -83,7 +83,7 @@ TEST_F(SaiStoreTest, routeSetToPunt) {
   folly::CIDRNetwork dest(ip4, 24);
   SaiRouteTraits::RouteEntry r(0, 0, dest);
   SaiRouteTraits::CreateAttributes c{SAI_PACKET_ACTION_FORWARD, 5, 42};
-  SaiObject<SaiRouteTraits> obj(r, c, 0);
+  auto obj = createObj<SaiRouteTraits>(r, c, 0);
   EXPECT_EQ(obj.adapterKey(), r);
   EXPECT_EQ(
       GET_ATTR(Route, PacketAction, obj.attributes()),
@@ -107,7 +107,7 @@ TEST_F(SaiStoreTest, formatTest) {
   folly::CIDRNetwork dest(ip4, 24);
   SaiRouteTraits::RouteEntry r(0, 0, dest);
   SaiRouteTraits::CreateAttributes c{SAI_PACKET_ACTION_FORWARD, 5, 42};
-  SaiObject<SaiRouteTraits> obj(r, c, 0);
+  auto obj = createObj<SaiRouteTraits>(r, c, 0);
   auto expected =
       "RouteEntry(switch: 0, vrf: 0, prefix: 10.10.10.1/24): (PacketAction: 1, NextHopId: 5, Metadata: 42)";
   EXPECT_EQ(expected, fmt::format("{}", obj));

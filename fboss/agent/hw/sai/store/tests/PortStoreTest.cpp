@@ -18,7 +18,7 @@
 using namespace facebook::fboss;
 
 class PortStoreTest : public SaiStoreTest {
- public:
+ protected:
   SaiPortTraits::CreateAttributes makeAttrs(
       uint32_t lane,
       uint32_t speed,
@@ -83,7 +83,7 @@ TEST_F(PortStoreTest, loadPortFromJson) {
 
 TEST_F(PortStoreTest, portLoadCtor) {
   auto portId = createPort(0);
-  SaiObject<SaiPortTraits> portObj(portId);
+  auto portObj = createObj<SaiPortTraits>(portId);
   EXPECT_EQ(portObj.adapterKey(), portId);
   EXPECT_EQ(GET_ATTR(Port, Speed, portObj.attributes()), 100000);
   EXPECT_EQ(GET_OPT_ATTR(Port, AdminState, portObj.attributes()), true);
@@ -93,7 +93,7 @@ TEST_F(PortStoreTest, portCreateCtor) {
   SaiPortTraits::CreateAttributes attrs = makeAttrs(0, 100000);
   SaiPortTraits::AdapterHostKey adapterHostKey =
       std::get<SaiPortTraits::Attributes::HwLaneList>(attrs);
-  SaiObject<SaiPortTraits> obj(adapterHostKey, attrs, 0);
+  auto obj = createObj<SaiPortTraits>(adapterHostKey, attrs, 0);
   auto apiSpeed = saiApiTable->portApi().getAttribute(
       obj.adapterKey(), SaiPortTraits::Attributes::Speed{});
   EXPECT_EQ(apiSpeed, 100000);
@@ -101,7 +101,7 @@ TEST_F(PortStoreTest, portCreateCtor) {
 
 TEST_F(PortStoreTest, portSetSpeed) {
   auto portId = createPort(0);
-  SaiObject<SaiPortTraits> portObj(portId);
+  SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);
   EXPECT_EQ(GET_ATTR(Port, Speed, portObj.attributes()), 100000);
   auto newAttrs = makeAttrs(0, 25000);
   portObj.setAttributes(newAttrs);
@@ -113,7 +113,7 @@ TEST_F(PortStoreTest, portSetSpeed) {
 
 TEST_F(PortStoreTest, portSetOnlySpeed) {
   auto portId = createPort(0);
-  SaiObject<SaiPortTraits> portObj(portId);
+  SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);
   EXPECT_EQ(GET_ATTR(Port, Speed, portObj.attributes()), 100000);
   auto apiSpeed = saiApiTable->portApi().getAttribute(
       portId, SaiPortTraits::Attributes::Speed{});
@@ -127,7 +127,7 @@ TEST_F(PortStoreTest, portSetOnlySpeed) {
 
 TEST_F(PortStoreTest, portSetAdminState) {
   auto portId = createPort(0);
-  SaiObject<SaiPortTraits> portObj(portId);
+  SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);
   EXPECT_EQ(GET_OPT_ATTR(Port, AdminState, portObj.attributes()), true);
   auto newAttrs = makeAttrs(0, 25000, false);
   portObj.setAttributes(newAttrs);
@@ -139,7 +139,7 @@ TEST_F(PortStoreTest, portSetAdminState) {
 
 TEST_F(PortStoreTest, portSetOnlyAdminState) {
   auto portId = createPort(0);
-  SaiObject<SaiPortTraits> portObj(portId);
+  SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);
   auto apiAdminState = saiApiTable->portApi().getAttribute(
       portId, SaiPortTraits::Attributes::AdminState{});
   EXPECT_EQ(apiAdminState, true);
@@ -152,7 +152,7 @@ TEST_F(PortStoreTest, portSetOnlyAdminState) {
 
 TEST_F(PortStoreTest, portUnsetAdminState) {
   auto portId = createPort(0);
-  SaiObject<SaiPortTraits> portObj(portId);
+  SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);
   EXPECT_EQ(GET_OPT_ATTR(Port, AdminState, portObj.attributes()), true);
   auto newAttrs = makeAttrs(0, 25000, std::nullopt);
   portObj.setAttributes(newAttrs);
@@ -167,7 +167,7 @@ TEST_F(PortStoreTest, portUnsetAdminState) {
 
 TEST_F(PortStoreTest, portSetPreempasis) {
   auto portId = createPort(0);
-  SaiObject<SaiPortTraits> portObj(portId);
+  SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);
   EXPECT_EQ(
       GET_OPT_ATTR(Port, Preemphasis, portObj.attributes()),
       std::vector<uint32_t>{});
@@ -185,7 +185,7 @@ TEST_F(PortStoreTest, portSetPreempasis) {
 
 TEST_F(PortStoreTest, portSetMtu) {
   auto portId = createPort(0);
-  SaiObject<SaiPortTraits> portObj(portId);
+  SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);
   EXPECT_EQ(GET_OPT_ATTR(Port, Mtu, portObj.attributes()), 1514);
   auto newAttrs = makeAttrs(0, 25000);
   constexpr sai_uint32_t kMtu{9000};
@@ -199,7 +199,7 @@ TEST_F(PortStoreTest, portSetMtu) {
 
 TEST_F(PortStoreTest, portSetQoSMaps) {
   auto portId = createPort(0);
-  SaiObject<SaiPortTraits> portObj(portId);
+  SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);
   EXPECT_EQ(GET_OPT_ATTR(Port, Mtu, portObj.attributes()), 1514);
   auto newAttrs = makeAttrs(0, 25000);
   std::get<std::optional<SaiPortTraits::Attributes::QosDscpToTcMap>>(newAttrs) =
@@ -219,7 +219,7 @@ TEST_F(PortStoreTest, portSetQoSMaps) {
 
 TEST_F(PortStoreTest, portSetDisableTtl) {
   auto portId = createPort(0);
-  SaiObject<SaiPortTraits> portObj(portId);
+  SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);
   EXPECT_FALSE(GET_OPT_ATTR(Port, DisableTtlDecrement, portObj.attributes()));
   auto newAttrs = makeAttrs(0, 25000);
   std::get<std::optional<SaiPortTraits::Attributes::DisableTtlDecrement>>(
@@ -234,7 +234,7 @@ TEST_F(PortStoreTest, portSetDisableTtl) {
  */
 TEST_F(PortStoreTest, testMove) {
   auto portId = createPort(0);
-  SaiObject<SaiPortTraits> portObj(portId);
+  auto portObj = createObj<SaiPortTraits>(portId);
   {
     SaiObject<SaiPortTraits> portObj2(std::move(portObj));
     auto apiSpeed = saiApiTable->portApi().getAttribute(

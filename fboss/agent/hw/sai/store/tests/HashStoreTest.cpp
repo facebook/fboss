@@ -88,7 +88,7 @@ TEST_F(HashStoreTest, loadNativeAndUdfHash) {
 
 TEST_F(HashStoreTest, hashLoadCtor) {
   auto hashId = createHash(kFullHash, {{}});
-  SaiObject<SaiHashTraits> hashObj(hashId);
+  auto hashObj = createObj<SaiHashTraits>(hashId);
   EXPECT_EQ(hashObj.adapterKey(), hashId);
   EXPECT_EQ(
       GET_OPT_ATTR(Hash, NativeHashFieldList, hashObj.attributes()),
@@ -102,7 +102,7 @@ TEST_F(HashStoreTest, hashCreateCtor) {
       std::optional<SaiHashTraits::Attributes::UDFGroupList>{
           SaiHashTraits::Attributes::UDFGroupList{}}};
   SaiHashTraits::AdapterHostKey adapterHostKey = attrs;
-  SaiObject<SaiHashTraits> obj(adapterHostKey, attrs, 0);
+  auto obj = createObj<SaiHashTraits>(adapterHostKey, attrs, 0);
   auto nativeHashFields = saiApiTable->hashApi().getAttribute(
       obj.adapterKey(), SaiHashTraits::Attributes::NativeHashFieldList{});
   EXPECT_EQ(nativeHashFields, kFullHash.value());
@@ -110,7 +110,7 @@ TEST_F(HashStoreTest, hashCreateCtor) {
 
 TEST_F(HashStoreTest, hashSetNatveFields) {
   auto id = createHash(kFullHash, {{}});
-  SaiObject<SaiHashTraits> hashObj(id);
+  auto hashObj = createObj<SaiHashTraits>(id);
   EXPECT_EQ(
       GET_OPT_ATTR(Hash, NativeHashFieldList, hashObj.attributes()),
       kFullHash.value());
@@ -124,7 +124,7 @@ TEST_F(HashStoreTest, hashSetNatveFields) {
 
 TEST_F(HashStoreTest, hashSetUDF) {
   auto id = createHash(kFullHash, {{}});
-  SaiObject<SaiHashTraits> hashObj(id);
+  auto hashObj = createObj<SaiHashTraits>(id);
   EXPECT_EQ(
       GET_OPT_ATTR(Hash, NativeHashFieldList, hashObj.attributes()),
       kFullHash.value());

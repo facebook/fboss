@@ -11,6 +11,7 @@
 #pragma once
 
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
+#include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 
 #include <gtest/gtest.h>
@@ -24,6 +25,10 @@ class SaiStoreTest : public ::testing::Test {
     sai_api_initialize(0, nullptr);
     saiApiTable = SaiApiTable::getInstance();
     saiApiTable->queryApis();
+  }
+  template <typename Traits, typename... Args>
+  SaiObject<Traits> createObj(Args&&... args) {
+    return SaiObject<Traits>(std::forward<Args>(args)...);
   }
   std::shared_ptr<FakeSai> fs;
   std::shared_ptr<SaiApiTable> saiApiTable;

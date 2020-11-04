@@ -46,7 +46,7 @@ TEST_F(QueueStoreTest, loadQueue) {
 
 TEST_F(QueueStoreTest, queueLoadCtor) {
   auto id = createQueue(SAI_QUEUE_TYPE_MULTICAST, 1, 4);
-  SaiObject<SaiQueueTraits> obj(id);
+  auto obj = createObj<SaiQueueTraits>(id);
   EXPECT_EQ(obj.adapterKey(), id);
   EXPECT_EQ(GET_ATTR(Queue, Type, obj.attributes()), SAI_QUEUE_TYPE_MULTICAST);
   EXPECT_EQ(GET_ATTR(Queue, Port, obj.attributes()), 1);
@@ -63,7 +63,7 @@ TEST_F(QueueStoreTest, queueCreateCtor) {
                                        std::nullopt,
                                        std::nullopt,
                                        std::nullopt};
-  SaiObject<SaiQueueTraits> obj(k, c, 0);
+  auto obj = createObj<SaiQueueTraits>(k, c, 0);
   EXPECT_EQ(GET_ATTR(Queue, Type, obj.attributes()), SAI_QUEUE_TYPE_UNICAST);
   EXPECT_EQ(GET_ATTR(Queue, Port, obj.attributes()), 2);
   EXPECT_EQ(GET_ATTR(Queue, Index, obj.attributes()), 6);

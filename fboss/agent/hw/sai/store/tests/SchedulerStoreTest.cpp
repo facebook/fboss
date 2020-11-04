@@ -56,7 +56,7 @@ TEST_F(SchedulerStoreTest, loadScheduler) {
 TEST_F(SchedulerStoreTest, schedulerLoadCtor) {
   auto id = createScheduler(
       SAI_SCHEDULING_TYPE_WRR, 10, SAI_METER_TYPE_BYTES, 20000, 65000);
-  SaiObject<SaiSchedulerTraits> obj(id);
+  auto obj = createObj<SaiSchedulerTraits>(id);
   EXPECT_EQ(obj.adapterKey(), id);
   EXPECT_EQ(
       GET_OPT_ATTR(Scheduler, SchedulingType, obj.attributes()),
@@ -71,7 +71,7 @@ TEST_F(SchedulerStoreTest, schedulerCreateCtor) {
       SAI_SCHEDULING_TYPE_DWRR, 24, SAI_METER_TYPE_BYTES, 21000, 81892};
   SaiSchedulerTraits::CreateAttributes c = SaiSchedulerTraits::CreateAttributes{
       SAI_SCHEDULING_TYPE_DWRR, 24, SAI_METER_TYPE_BYTES, 21000, 81892};
-  SaiObject<SaiSchedulerTraits> obj(k, c, 0);
+  auto obj = createObj<SaiSchedulerTraits>(k, c, 0);
   EXPECT_EQ(
       GET_OPT_ATTR(Scheduler, SchedulingType, obj.attributes()),
       SAI_SCHEDULING_TYPE_DWRR);

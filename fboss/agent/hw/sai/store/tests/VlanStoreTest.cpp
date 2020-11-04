@@ -58,21 +58,21 @@ TEST_F(VlanStoreTest, loadVlanMember) {
 
 TEST_F(VlanStoreTest, vlanLoadCtor) {
   auto vlanId = createVlan(42);
-  SaiObject<SaiVlanTraits> obj(vlanId);
+  auto obj = createObj<SaiVlanTraits>(vlanId);
   EXPECT_EQ(obj.adapterKey(), vlanId);
 }
 
 TEST_F(VlanStoreTest, vlanMemberLoadCtor) {
   auto vlanId = createVlan(42);
   auto vlanMemberId = createVlanMember(vlanId, 10);
-  SaiObject<SaiVlanMemberTraits> obj(vlanMemberId);
+  auto obj = createObj<SaiVlanMemberTraits>(vlanMemberId);
   EXPECT_EQ(obj.adapterKey(), vlanMemberId);
 }
 
 TEST_F(VlanStoreTest, vlanCreateCtor) {
   SaiVlanTraits::CreateAttributes c{42};
   SaiVlanTraits::AdapterHostKey k{42};
-  SaiObject<SaiVlanTraits> obj(k, c, 0);
+  auto obj = createObj<SaiVlanTraits>(k, c, 0);
   EXPECT_EQ(GET_ATTR(Vlan, VlanId, obj.attributes()), 42);
 }
 
@@ -80,7 +80,7 @@ TEST_F(VlanStoreTest, vlanMemberCreateCtor) {
   auto vlanId = createVlan(42);
   SaiVlanMemberTraits::CreateAttributes c{vlanId, 10};
   SaiVlanMemberTraits::AdapterHostKey k{10};
-  SaiObject<SaiVlanMemberTraits> obj(k, c, 0);
+  auto obj = createObj<SaiVlanMemberTraits>(k, c, 0);
   EXPECT_EQ(GET_ATTR(VlanMember, VlanId, obj.attributes()), vlanId);
   EXPECT_EQ(GET_ATTR(VlanMember, BridgePortId, obj.attributes()), 10);
 }

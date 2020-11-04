@@ -345,7 +345,6 @@ TEST_P(AclTableStoreParamTest, loadAclEntry) {
   EXPECT_NE(got, nullptr);
   EXPECT_EQ(got->adapterKey(), aclEntryId);
 }
-
 TEST_P(AclTableStoreParamTest, loadAclCounter) {
   auto aclTableId = createAclTable(GetParam());
   auto aclCounterId = createAclCounter(aclTableId);
@@ -364,7 +363,7 @@ TEST_P(AclTableStoreParamTest, loadAclCounter) {
 
 TEST_P(AclTableStoreParamTest, aclTableCtorLoad) {
   auto aclTableId = createAclTable(GetParam());
-  SaiObject<SaiAclTableTraits> obj(aclTableId);
+  auto obj = createObj<SaiAclTableTraits>(aclTableId);
   EXPECT_EQ(obj.adapterKey(), aclTableId);
 }
 
@@ -372,7 +371,7 @@ TEST_P(AclTableStoreParamTest, aclEntryLoadCtor) {
   auto aclTableId = createAclTable(GetParam());
   auto aclEntryId = createAclEntry(aclTableId);
 
-  SaiObject<SaiAclEntryTraits> obj(aclEntryId);
+  SaiObject<SaiAclEntryTraits> obj = createObj<SaiAclEntryTraits>(aclEntryId);
   EXPECT_EQ(obj.adapterKey(), aclEntryId);
 }
 
@@ -380,7 +379,8 @@ TEST_P(AclTableStoreParamTest, aclCounterLoadCtor) {
   auto aclTableId = createAclTable(GetParam());
   auto aclCounterId = createAclCounter(aclTableId);
 
-  SaiObject<SaiAclCounterTraits> obj(aclCounterId);
+  SaiObject<SaiAclCounterTraits> obj =
+      createObj<SaiAclCounterTraits>(aclCounterId);
   EXPECT_EQ(obj.adapterKey(), aclCounterId);
 }
 
@@ -413,7 +413,7 @@ TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
 
   SaiAclTableTraits::AdapterHostKey k{c};
 
-  SaiObject<SaiAclTableTraits> obj(k, c, 0);
+  SaiObject<SaiAclTableTraits> obj = createObj<SaiAclTableTraits>(k, c, 0);
   EXPECT_EQ(GET_ATTR(AclTable, Stage, obj.attributes()), GetParam());
 }
 
@@ -453,7 +453,7 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
                                         this->kMirrorIngress(),
                                         this->kMirrorEgress()};
 
-  SaiObject<SaiAclEntryTraits> obj(k, c, 0);
+  SaiObject<SaiAclEntryTraits> obj = createObj<SaiAclEntryTraits>(k, c, 0);
   EXPECT_EQ(GET_ATTR(AclEntry, TableId, obj.attributes()), aclTableId);
 }
 
@@ -469,7 +469,7 @@ TEST_P(AclTableStoreParamTest, AclCounterCreateCtor) {
   SaiAclCounterTraits::AdapterHostKey k{
       aclTableId, this->kEnablePacketCount(), this->kEnableByteCount()};
 
-  SaiObject<SaiAclCounterTraits> obj(k, c, 0);
+  SaiObject<SaiAclCounterTraits> obj = createObj<SaiAclCounterTraits>(k, c, 0);
   EXPECT_EQ(GET_ATTR(AclCounter, TableId, obj.attributes()), aclTableId);
 }
 

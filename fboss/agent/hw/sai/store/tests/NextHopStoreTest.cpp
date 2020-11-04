@@ -67,7 +67,7 @@ TEST_F(NextHopStoreTest, loadNextHops) {
 TEST_F(NextHopStoreTest, nextHopLoadCtor) {
   auto ip = folly::IPAddress("::");
   auto nextHopSaiId = createNextHop(ip);
-  SaiObject<SaiIpNextHopTraits> obj(nextHopSaiId);
+  auto obj = createObj<SaiIpNextHopTraits>(nextHopSaiId);
   EXPECT_EQ(obj.adapterKey(), nextHopSaiId);
   EXPECT_EQ(GET_ATTR(IpNextHop, Ip, obj.attributes()), ip);
 }
@@ -77,7 +77,7 @@ TEST_F(NextHopStoreTest, nextHopCreateCtor) {
   SaiIpNextHopTraits::CreateAttributes c{
       SAI_NEXT_HOP_TYPE_IP, 42, ip, std::nullopt};
   SaiIpNextHopTraits::AdapterHostKey k{42, ip};
-  SaiObject<SaiIpNextHopTraits> obj(k, c, 0);
+  auto obj = createObj<SaiIpNextHopTraits>(k, c, 0);
   EXPECT_EQ(GET_ATTR(IpNextHop, Ip, obj.attributes()), ip);
 }
 

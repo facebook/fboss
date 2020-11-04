@@ -98,16 +98,16 @@ TEST_F(TamStoreTest, tamCtors) {
   auto event = createEvent(action);
   auto tam = createTam(event);
 
-  SaiObject<SaiTamReportTraits> reportObj(report);
+  auto reportObj = createObj<SaiTamReportTraits>(report);
   EXPECT_EQ(
       GET_ATTR(TamReport, Type, reportObj.attributes()),
       SAI_TAM_REPORT_TYPE_VENDOR_EXTN);
 
-  SaiObject<SaiTamEventActionTraits> actionObj(action);
+  auto actionObj = createObj<SaiTamEventActionTraits>(action);
   EXPECT_EQ(
       GET_ATTR(TamEventAction, ReportType, actionObj.attributes()), report);
 
-  SaiObject<SaiTamEventTraits> eventObj(event);
+  auto eventObj = createObj<SaiTamEventTraits>(event);
   auto tamEventAhk = tamEventTraits(action);
   EXPECT_EQ(
       GET_ATTR(TamEvent, Type, eventObj.attributes()),
@@ -124,7 +124,7 @@ TEST_F(TamStoreTest, tamCtors) {
       std::get<SaiTamEventTraits::Attributes::SwitchEventType>(tamEventAhk)
           .value());
 
-  SaiObject<SaiTamTraits> tamObj(tam);
+  auto tamObj = createObj<SaiTamTraits>(tam);
   auto tamAhk = tamTraits(event);
   EXPECT_EQ(
       GET_ATTR(Tam, EventObjectList, tamObj.attributes()),

@@ -66,19 +66,19 @@ TEST_F(HostifTrapStoreTest, loadHostifTrap) {
 
 TEST_F(HostifTrapStoreTest, trapGroupLoadCtor) {
   auto id = createTrapGroup(2);
-  SaiObject<SaiHostifTrapGroupTraits> trapGroupObj(id);
+  auto trapGroupObj = createObj<SaiHostifTrapGroupTraits>(id);
   EXPECT_EQ(trapGroupObj.adapterKey(), id);
 }
 
 TEST_F(HostifTrapStoreTest, trapLoadCtor) {
   auto id = createTrap(SAI_HOSTIF_TRAP_TYPE_IP2ME);
-  SaiObject<SaiHostifTrapTraits> trapObj(id);
+  auto trapObj = createObj<SaiHostifTrapTraits>(id);
   EXPECT_EQ(trapObj.adapterKey(), id);
 }
 
 TEST_F(HostifTrapStoreTest, trapGroupCreateCtor) {
   SaiHostifTrapGroupTraits::CreateAttributes c{2, std::nullopt};
-  SaiObject<SaiHostifTrapGroupTraits> obj({2}, c, 0);
+  auto obj = createObj<SaiHostifTrapGroupTraits>(2, c, 0);
   EXPECT_EQ(GET_ATTR(HostifTrapGroup, Queue, obj.attributes()), 2);
 }
 
@@ -87,7 +87,7 @@ TEST_F(HostifTrapStoreTest, trapCreateCtor) {
                                           SAI_PACKET_ACTION_TRAP,
                                           std::nullopt,
                                           std::nullopt};
-  SaiObject<SaiHostifTrapTraits> obj({SAI_PACKET_ACTION_TRAP}, c, 0);
+  auto obj = createObj<SaiHostifTrapTraits>(SAI_PACKET_ACTION_TRAP, c, 0);
   EXPECT_EQ(
       GET_ATTR(HostifTrap, TrapType, obj.attributes()),
       SAI_HOSTIF_TRAP_TYPE_IP2ME);
@@ -101,7 +101,7 @@ TEST_F(HostifTrapStoreTest, trapSetAction) {
                                           SAI_PACKET_ACTION_TRAP,
                                           std::nullopt,
                                           std::nullopt};
-  SaiObject<SaiHostifTrapTraits> obj({SAI_PACKET_ACTION_TRAP}, c, 0);
+  auto obj = createObj<SaiHostifTrapTraits>(SAI_PACKET_ACTION_TRAP, c, 0);
   EXPECT_EQ(
       GET_ATTR(HostifTrap, TrapType, obj.attributes()),
       SAI_HOSTIF_TRAP_TYPE_IP2ME);

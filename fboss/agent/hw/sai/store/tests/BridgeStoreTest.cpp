@@ -93,7 +93,7 @@ TEST_F(SaiStoreTest, bridgePortLoadCtor) {
                                           true,
                                           SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW};
   auto bridgePortId = bridgeApi.create<SaiBridgePortTraits>(c, 0);
-  SaiObject<SaiBridgePortTraits> obj(bridgePortId);
+  auto obj = createObj<SaiBridgePortTraits>(bridgePortId);
   EXPECT_EQ(obj.adapterKey(), bridgePortId);
   EXPECT_EQ(GET_ATTR(BridgePort, PortId, obj.attributes()), 42);
 }
@@ -103,7 +103,7 @@ TEST_F(SaiStoreTest, bridgePortCreateCtor) {
                                           42,
                                           true,
                                           SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW};
-  SaiObject<SaiBridgePortTraits> obj({42}, c, 0);
+  auto obj = createObj<SaiBridgePortTraits>(42, c, 0);
   EXPECT_EQ(GET_ATTR(BridgePort, PortId, obj.attributes()), 42);
 }
 

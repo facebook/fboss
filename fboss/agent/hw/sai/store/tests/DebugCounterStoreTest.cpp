@@ -46,7 +46,7 @@ TEST_F(DebugCounterStoreTest, loadInDebugCounter) {
 
 TEST_F(DebugCounterStoreTest, debugCounterLoadCtor) {
   auto debugCounterId = createInDebugCounter();
-  SaiObject<SaiDebugCounterTraits> debugCounterObj(debugCounterId);
+  auto debugCounterObj = createObj<SaiDebugCounterTraits>(debugCounterId);
   EXPECT_EQ(debugCounterObj.adapterKey(), debugCounterId);
   EXPECT_EQ(
       GET_OPT_ATTR(DebugCounter, InDropReasons, debugCounterObj.attributes()),
@@ -58,7 +58,7 @@ TEST_F(DebugCounterStoreTest, debugCounterLoadCtor) {
 TEST_F(DebugCounterStoreTest, debugCounterCreateCtor) {
   auto attrs = inCounterCreateAtts();
   SaiDebugCounterTraits::AdapterHostKey adapterHostKey = attrs;
-  SaiObject<SaiDebugCounterTraits> obj(adapterHostKey, attrs, 0);
+  auto obj = createObj<SaiDebugCounterTraits>(adapterHostKey, attrs, 0);
   auto outDropReasons = saiApiTable->debugCounterApi().getAttribute(
       obj.adapterKey(), SaiDebugCounterTraits::Attributes::InDropReasons{});
   EXPECT_EQ(

@@ -22,7 +22,7 @@
 
 using namespace facebook::fboss;
 
-class QosMapStoreTest : public ::testing::Test {
+class QosMapStoreTest : public SaiStoreTest {
  public:
   void SetUp() override {
     fs = FakeSai::getInstance();
@@ -59,7 +59,7 @@ TEST_F(QosMapStoreTest, loadQosMaps) {
 TEST_F(QosMapStoreTest, qosMapLoadCtor) {
   auto qosMapSaiId = createQosMap(SAI_QOS_MAP_TYPE_DSCP_TO_TC);
 
-  SaiObject<SaiQosMapTraits> obj(qosMapSaiId);
+  auto obj = createObj<SaiQosMapTraits>(qosMapSaiId);
   EXPECT_EQ(obj.adapterKey(), qosMapSaiId);
   EXPECT_EQ(
       GET_ATTR(QosMap, Type, obj.attributes()), SAI_QOS_MAP_TYPE_DSCP_TO_TC);
@@ -69,7 +69,7 @@ TEST_F(QosMapStoreTest, qosMapCreateCtor) {
   std::vector<sai_qos_map_t> mapping;
   SaiQosMapTraits::AdapterHostKey k{SAI_QOS_MAP_TYPE_DSCP_TO_TC};
   SaiQosMapTraits::CreateAttributes c{SAI_QOS_MAP_TYPE_DSCP_TO_TC, mapping};
-  SaiObject<SaiQosMapTraits> obj(k, c, 0);
+  auto obj = createObj<SaiQosMapTraits>(k, c, 0);
   EXPECT_EQ(
       GET_ATTR(QosMap, Type, obj.attributes()), SAI_QOS_MAP_TYPE_DSCP_TO_TC);
 }
@@ -78,7 +78,7 @@ TEST_F(QosMapStoreTest, qosMapSetMapping) {
   std::vector<sai_qos_map_t> mapping;
   SaiQosMapTraits::AdapterHostKey k{SAI_QOS_MAP_TYPE_DSCP_TO_TC};
   SaiQosMapTraits::CreateAttributes c{SAI_QOS_MAP_TYPE_DSCP_TO_TC, mapping};
-  SaiObject<SaiQosMapTraits> obj(k, c, 0);
+  auto obj = createObj<SaiQosMapTraits>(k, c, 0);
   EXPECT_EQ(
       GET_ATTR(QosMap, Type, obj.attributes()), SAI_QOS_MAP_TYPE_DSCP_TO_TC);
   auto gotMapping = GET_ATTR(QosMap, MapToValueList, obj.attributes());

@@ -121,28 +121,28 @@ TEST_F(NextHopGroupStoreTest, loadNextHopGroup) {
 
 TEST_F(NextHopGroupStoreTest, nextHopGroupLoadCtor) {
   auto id = createNextHopGroup();
-  SaiObject<SaiNextHopGroupTraits> obj(id);
+  auto obj = createObj<SaiNextHopGroupTraits>(id);
   EXPECT_EQ(obj.adapterKey(), id);
 }
 
 TEST_F(NextHopGroupStoreTest, nextHopGroupMemberLoadCtor) {
   auto nhgId = createNextHopGroup();
   auto id = createNextHopGroupMember(nhgId, NextHopSaiId{10}, std::nullopt);
-  SaiObject<SaiNextHopGroupMemberTraits> obj(id);
+  auto obj = createObj<SaiNextHopGroupMemberTraits>(id);
   EXPECT_EQ(obj.adapterKey(), id);
 }
 
 TEST_F(NextHopGroupStoreTest, nextHopGroupCreateCtor) {
   SaiNextHopGroupTraits::AdapterHostKey k{{}};
   SaiNextHopGroupTraits::CreateAttributes c{SAI_NEXT_HOP_GROUP_TYPE_ECMP};
-  SaiObject<SaiNextHopGroupTraits> obj(k, c, 0);
+  auto obj = createObj<SaiNextHopGroupTraits>(k, c, 0);
 }
 
 TEST_F(NextHopGroupStoreTest, nextHopGroupMemberCreateCtor) {
   auto nhgId = createNextHopGroup();
   SaiNextHopGroupMemberTraits::AdapterHostKey k{nhgId, 42};
   SaiNextHopGroupMemberTraits::CreateAttributes c{nhgId, 42, 2};
-  SaiObject<SaiNextHopGroupMemberTraits> obj(k, c, 0);
+  auto obj = createObj<SaiNextHopGroupMemberTraits>(k, c, 0);
   EXPECT_EQ(GET_ATTR(NextHopGroupMember, NextHopId, obj.attributes()), 42);
   EXPECT_EQ(GET_OPT_ATTR(NextHopGroupMember, Weight, obj.attributes()), 2);
 }

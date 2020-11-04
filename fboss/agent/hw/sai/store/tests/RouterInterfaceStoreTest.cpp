@@ -50,7 +50,7 @@ TEST_F(RouterInterfaceStoreTest, routerInterfaceLoadCtor) {
   folly::MacAddress srcMac{"41:41:41:41:41:41"};
   auto routerInterfaceSaiId = createRouterInterface(41, srcMac, 9000);
 
-  SaiObject<SaiRouterInterfaceTraits> obj(routerInterfaceSaiId);
+  auto obj = createObj<SaiRouterInterfaceTraits>(routerInterfaceSaiId);
   EXPECT_EQ(obj.adapterKey(), routerInterfaceSaiId);
   EXPECT_EQ(GET_ATTR(RouterInterface, VlanId, obj.attributes()), 41);
   EXPECT_EQ(GET_OPT_ATTR(RouterInterface, SrcMac, obj.attributes()), srcMac);
@@ -63,7 +63,7 @@ TEST_F(RouterInterfaceStoreTest, routerInterfaceCreateCtor) {
   SaiRouterInterfaceTraits::CreateAttributes c{
       0, SAI_ROUTER_INTERFACE_TYPE_VLAN, 41, srcMac, 9000};
 
-  SaiObject<SaiRouterInterfaceTraits> obj(k, c, 0);
+  auto obj = createObj<SaiRouterInterfaceTraits>(k, c, 0);
   EXPECT_EQ(GET_ATTR(RouterInterface, VlanId, obj.attributes()), 41);
   EXPECT_EQ(GET_OPT_ATTR(RouterInterface, SrcMac, obj.attributes()), srcMac);
   EXPECT_EQ(GET_OPT_ATTR(RouterInterface, Mtu, obj.attributes()), 9000);
@@ -75,7 +75,7 @@ TEST_F(RouterInterfaceStoreTest, routerInterfaceSetSrcMac) {
   SaiRouterInterfaceTraits::CreateAttributes c{
       0, SAI_ROUTER_INTERFACE_TYPE_VLAN, 41, srcMac, 9000};
 
-  SaiObject<SaiRouterInterfaceTraits> obj(k, c, 0);
+  auto obj = createObj<SaiRouterInterfaceTraits>(k, c, 0);
   EXPECT_EQ(GET_ATTR(RouterInterface, VlanId, obj.attributes()), 41);
   EXPECT_EQ(GET_OPT_ATTR(RouterInterface, SrcMac, obj.attributes()), srcMac);
   EXPECT_EQ(GET_OPT_ATTR(RouterInterface, Mtu, obj.attributes()), 9000);
@@ -101,7 +101,7 @@ TEST_F(RouterInterfaceStoreTest, routerFormatTest) {
   SaiRouterInterfaceTraits::AdapterHostKey k{0, 41};
   SaiRouterInterfaceTraits::CreateAttributes c{
       0, SAI_ROUTER_INTERFACE_TYPE_VLAN, 41, srcMac, 9000};
-  SaiObject<SaiRouterInterfaceTraits> obj(k, c, 0);
+  auto obj = createObj<SaiRouterInterfaceTraits>(k, c, 0);
   auto expected =
       "RouterInterfaceSaiId(0): "
       "(VirtualRouterId: 0, Type: 1, VlanId: 41, "

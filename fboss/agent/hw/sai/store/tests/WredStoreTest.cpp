@@ -102,13 +102,13 @@ TEST_F(WredStoreTest, loadEcnProfile) {
 
 TEST_F(WredStoreTest, wredProfileLoadCtor) {
   auto wredId = createWredProfile(true, 100, 200, 0, 0, 0);
-  SaiObject<SaiWredTraits> obj(wredId);
+  auto obj = createObj<SaiWredTraits>(wredId);
   EXPECT_EQ(obj.adapterKey(), wredId);
 }
 
 TEST_F(WredStoreTest, ecnProfileLoadCtor) {
   auto ecnId = createWredProfile(false, 0, 0, 1, 100, 200);
-  SaiObject<SaiWredTraits> obj(ecnId);
+  auto obj = createObj<SaiWredTraits>(ecnId);
   EXPECT_EQ(obj.adapterKey(), ecnId);
 }
 
@@ -116,7 +116,7 @@ TEST_F(WredStoreTest, wredProfileCreateCtor) {
   SaiWredTraits::CreateAttributes c{true, 100, 200, 0, 0, 0};
   SaiWredTraits::AdapterHostKey k =
       createWredProfileAdapterHostKey(true, 100, 200, 0, 0, 0);
-  SaiObject<SaiWredTraits> obj(k, c, 0);
+  auto obj = createObj<SaiWredTraits>(k, c, 0);
   EXPECT_TRUE(GET_ATTR(Wred, GreenEnable, obj.attributes()));
   EXPECT_EQ(GET_OPT_ATTR(Wred, GreenMinThreshold, obj.attributes()), 100);
   EXPECT_EQ(GET_OPT_ATTR(Wred, GreenMaxThreshold, obj.attributes()), 200);
@@ -129,7 +129,7 @@ TEST_F(WredStoreTest, ecnProfileCreateCtor) {
   SaiWredTraits::CreateAttributes c{false, 0, 0, 1, 300, 400};
   SaiWredTraits::AdapterHostKey k =
       createWredProfileAdapterHostKey(false, 0, 0, 1, 300, 400);
-  SaiObject<SaiWredTraits> obj(k, c, 0);
+  auto obj = createObj<SaiWredTraits>(k, c, 0);
   EXPECT_FALSE(GET_ATTR(Wred, GreenEnable, obj.attributes()));
   EXPECT_EQ(GET_OPT_ATTR(Wred, GreenMinThreshold, obj.attributes()), 0);
   EXPECT_EQ(GET_OPT_ATTR(Wred, GreenMaxThreshold, obj.attributes()), 0);
