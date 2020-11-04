@@ -160,7 +160,7 @@ HwInitResult SaiSwitch::init(
   HwInitResult ret;
   {
     std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-    ret = initLocked(lock, callback, failHwCallsOnWarmboot);
+    ret = initLocked(lock, callback);
     /*
      * SwitchState does not have notion of AclTableGroup or AclTable today.
      * Thus, stateChanged() can not process aclTableGroupChanges or
@@ -189,17 +189,29 @@ HwInitResult SaiSwitch::init(
      *       corresponding Acl Table group member.
      *     - statechanged() would continue to carry AclEntry delta processing.
      */
-    managerTable_->aclTableGroupManager().addAclTableGroup(
-        SAI_ACL_STAGE_INGRESS);
-    managerTable_->aclTableManager().addAclTable(kAclTable1);
+    failHwCallsOnWarmboot = failHwCallsOnWarmboot &&
+        platform_->getAsic()->isSupported(
+            HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT);
+    {
+      FailHwWritesRAII f{
+          bootType_ == BootType::WARM_BOOT ? failHwCallsOnWarmboot : false};
+      managerTable_->aclTableGroupManager().addAclTableGroup(
+          SAI_ACL_STAGE_INGRESS);
+      managerTable_->aclTableManager().addAclTable(kAclTable1);
 
-    if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::DEBUG_COUNTER)) {
-      managerTable_->debugCounterManager().setupDebugCounters();
+      if (getPlatform()->getAsic()->isSupported(
+              HwAsic::Feature::DEBUG_COUNTER)) {
+        managerTable_->debugCounterManager().setupDebugCounters();
+      }
+      managerTable_->bufferManager().setupEgressBufferPool();
     }
-    managerTable_->bufferManager().setupEgressBufferPool();
   }
 
-  stateChanged(StateDelta(std::make_shared<SwitchState>(), ret.switchState));
+  {
+    FailHwWritesRAII f{bootType_ == BootType::WARM_BOOT ? failHwCallsOnWarmboot
+                                                        : false};
+    stateChanged(StateDelta(std::make_shared<SwitchState>(), ret.switchState));
+  }
   return ret;
 }
 
@@ -792,8 +804,7 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
 
 HwInitResult SaiSwitch::initLocked(
     const std::lock_guard<std::mutex>& lock,
-    Callback* callback,
-    bool /*failHwCallsOnWarmboot*/) noexcept {
+    Callback* callback) noexcept {
   HwInitResult ret;
 
   auto wbHelper = platform_->getWarmBootHelper();

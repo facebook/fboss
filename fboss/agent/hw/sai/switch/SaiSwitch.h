@@ -190,8 +190,7 @@ class SaiSwitch : public HwSwitch {
    */
   HwInitResult initLocked(
       const std::lock_guard<std::mutex>& lock,
-      Callback* callback,
-      bool failHwCallsOnWarmboot) noexcept;
+      Callback* callback) noexcept;
 
   void unregisterCallbacksLocked(
       const std::lock_guard<std::mutex>& lock) noexcept;
