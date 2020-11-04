@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiWredManager.h"
 
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/state/PortQueue.h"
@@ -21,10 +22,12 @@ std::shared_ptr<SaiWred> SaiWredManager::getOrCreateProfile(
   if (!queue.getAqms().size()) {
     return nullptr;
   }
-  auto c = profileCreateAttrs(queue);
-  return wredProfiles_
-      .refOrEmplace(c, c, c, managerTable_->switchManager().getSwitchSaiId())
-      .first;
+  auto attributes = profileCreateAttrs(queue);
+  auto& store = SaiStore::getInstance()->get<SaiWredTraits>();
+  SaiWredTraits::AdapterHostKey k = tupleProjection<
+      SaiWredTraits::CreateAttributes,
+      SaiWredTraits::AdapterHostKey>(attributes);
+  return store.setObject(k, attributes);
 }
 
 SaiWredTraits::CreateAttributes SaiWredManager::profileCreateAttrs(
