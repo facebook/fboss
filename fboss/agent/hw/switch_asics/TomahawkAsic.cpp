@@ -43,6 +43,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PKTIO:
     case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL: // CS00011272352
     case HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER:
+    case HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT:
       return false;
   }
   return false;

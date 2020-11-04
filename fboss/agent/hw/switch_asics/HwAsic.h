@@ -43,6 +43,7 @@ class HwAsic {
     INGRESS_FIELD_PROCESSOR_FLEX_COUNTER,
     HOSTTABLE,
     PORT_TX_DISABLE,
+    ZERO_SDK_WRITE_WARMBOOT,
   };
 
   enum class AsicType {

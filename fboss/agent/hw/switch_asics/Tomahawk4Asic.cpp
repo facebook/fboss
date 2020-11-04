@@ -59,6 +59,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL: // CS00011272352
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::PORT_TX_DISABLE:
+    case HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT:
       return false;
   }
   return false;
