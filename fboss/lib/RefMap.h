@@ -51,13 +51,9 @@ class RefMap {
 
   template <typename... Args>
   std::pair<std::shared_ptr<V>, bool> refOrEmplace(const K& k, Args&&... args) {
-    bool ins{false};
     auto vsp = ref(k);
-    return vsp ? std::make_pair(vsp, ins)
-               : refOrInsert(
-                     k,
-                     std::make_unique<V>(std::forward<Args>(args)...),
-                     true /*force insert*/);
+    return vsp ? std::make_pair(std::move(vsp), false)
+               : insertImpl(k, std::forward<Args>(args)...);
   }
 
   std::pair<std::shared_ptr<V>, bool>
@@ -74,6 +70,13 @@ class RefMap {
       ins = true;
     }
     return {vsp, ins};
+  }
+
+  std::pair<std::shared_ptr<V>, bool>
+  refOrInsert(const K& k, V&& v, bool force = false) {
+    auto vsp = force ? nullptr : ref(k);
+    return vsp ? std::make_pair(std::move(vsp), false)
+               : insertImpl(k, std::move(v));
   }
 
   std::size_t size() const {
@@ -137,6 +140,22 @@ class RefMap {
   }
 
  private:
+  template <typename... Args>
+  std::shared_ptr<V> makeShared(const K& k, Args&&... args) {
+    auto del = [& m = map_, k](V* v) {
+      m.erase(k);
+      std::default_delete<V>()(v);
+    };
+    return std::shared_ptr<V>(new V{std::forward<Args>(args)...}, del);
+  }
+
+  template <typename... Args>
+  std::pair<std::shared_ptr<V>, bool> insertImpl(const K& k, Args&&... args) {
+    auto vsp = makeShared(k, std::forward<Args>(args)...);
+    map_[k] = vsp;
+    return {vsp, true};
+  }
+
   V* getImpl(const K& k) const {
     auto vsp = ref(k);
     if (!vsp) {
