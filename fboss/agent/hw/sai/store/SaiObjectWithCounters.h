@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/Traits.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/lib/RefMap.h"
 #include "fboss/lib/TupleUtils.h"
 
 #include <variant>
@@ -20,7 +21,7 @@ namespace facebook::fboss {
 
 template <typename SaiObjectTraits>
 class SaiObjectWithCounters : public SaiObject<SaiObjectTraits> {
- private:
+ public:
   // Load from adapter key
   explicit SaiObjectWithCounters(
       const typename SaiObjectTraits::AdapterKey& adapterKey)
@@ -33,11 +34,6 @@ class SaiObjectWithCounters : public SaiObject<SaiObjectTraits> {
       sai_object_id_t switchId)
       : SaiObject<SaiObjectTraits>(adapterHostKey, attributes, switchId) {}
 
- public:
-  template <template <class, class> class M, typename K, typename V>
-  friend class RefMap;
-  friend class SaiObjectStore<SaiObjectTraits>;
-  friend class ::SaiStoreTest;
   using StatsMap = folly::F14FastMap<sai_stat_id_t, uint64_t>;
 
   template <typename T = SaiObjectTraits>

@@ -51,18 +51,25 @@ class RefMap {
 
   template <typename... Args>
   std::pair<std::shared_ptr<V>, bool> refOrEmplace(const K& k, Args&&... args) {
-    std::shared_ptr<V> vsp;
-    bool ins;
-    auto itr = map_.find(k);
-    if (itr != map_.end()) {
-      vsp = itr->second.lock();
-      ins = false;
-    } else {
+    bool ins{false};
+    auto vsp = ref(k);
+    return vsp ? std::make_pair(vsp, ins)
+               : refOrInsert(
+                     k,
+                     std::make_unique<V>(std::forward<Args>(args)...),
+                     true /*force insert*/);
+  }
+
+  std::pair<std::shared_ptr<V>, bool>
+  refOrInsert(const K& k, std::unique_ptr<V> v, bool force = false) {
+    bool ins{false};
+    auto vsp = force ? nullptr : ref(k);
+    if (!vsp) {
       auto del = [& m = map_, k](V* v) {
         m.erase(k);
         std::default_delete<V>()(v);
       };
-      vsp = std::shared_ptr<V>(new V(std::forward<Args>(args)...), del);
+      vsp = std::shared_ptr<V>(v.release(), del);
       map_[k] = vsp;
       ins = true;
     }

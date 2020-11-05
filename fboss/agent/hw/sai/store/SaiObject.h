@@ -192,12 +192,6 @@ typename std::
 template <typename SaiObjectTraits>
 class SaiObject {
  public:
-  template <template <class, class> class M, typename K, typename V>
-  friend class RefMap;
-  friend class SaiObjectStore<SaiObjectTraits>;
-  friend class ::SaiStoreTest;
-
- protected:
   // Load from adapter key
   explicit SaiObject(const typename SaiObjectTraits::AdapterKey& adapterKey)
       : adapterKey_(adapterKey) {

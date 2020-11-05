@@ -146,6 +146,10 @@ TEST(RefMap, getNonExistent) {
   EXPECT_EQ(a1.use_count(), 1);
   EXPECT_EQ(identityMap.size(), 1);
 }
+TEST(RefMap, refNonExistent) {
+  UnorderedRefMap<int, A> identityMap;
+  EXPECT_EQ(identityMap.ref(42), nullptr);
+}
 
 TEST(RefMap, getExpired) {
   UnorderedRefMap<int, A> identityMap;
