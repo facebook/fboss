@@ -12,7 +12,6 @@
 
 #include "fboss/agent/hw/sai/api/WredApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
-#include "fboss/lib/RefMap.h"
 
 #include <memory>
 
@@ -32,13 +31,11 @@ class SaiWredManager {
   std::shared_ptr<SaiWred> getOrCreateProfile(const PortQueue& queue);
 
  private:
-  // TODO
   SaiWredTraits::CreateAttributes profileCreateAttrs(
       const PortQueue& queue) const;
 
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
-  UnorderedRefMap<SaiWredTraits::AdapterHostKey, SaiWred> wredProfiles_;
 };
 
 } // namespace facebook::fboss
