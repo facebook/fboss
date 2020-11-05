@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiHashManager.h"
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
@@ -64,13 +65,8 @@ std::shared_ptr<SaiHash> SaiHashManager::getOrCreate(
   auto nativeHashFields = toNativeHashFieldList(hashFields);
   SaiHashTraits::AdapterHostKey adapterHostKey{nativeHashFields, std::nullopt};
   SaiHashTraits::CreateAttributes createAttrs{nativeHashFields, std::nullopt};
+  auto& store = SaiStore::getInstance()->get<SaiHashTraits>();
 
-  return handles_
-      .refOrEmplace(
-          adapterHostKey,
-          adapterHostKey,
-          createAttrs,
-          managerTable_->switchManager().getSwitchSaiId())
-      .first;
+  return store.setObject(adapterHostKey, createAttrs);
 }
 } // namespace facebook::fboss

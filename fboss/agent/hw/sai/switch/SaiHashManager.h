@@ -14,8 +14,6 @@
 #include "fboss/agent/hw/sai/api/HashApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 
-#include "fboss/lib/RefMap.h"
-
 namespace facebook::fboss {
 
 class SaiManagerTable;
@@ -33,7 +31,6 @@ class SaiHashManager {
  private:
   SaiHashTraits::AdapterHostKey toAdapterHostKey(
       const cfg::Fields& hashFields) const;
-  FlatRefMap<SaiHashTraits::AdapterHostKey, SaiHash> handles_;
   SaiManagerTable* managerTable_;
 };
 
