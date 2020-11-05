@@ -216,14 +216,16 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
       addInterface = true;
     }
     if (addInterface) {
+      bool updateIngress = true;
       if (vlanMac2IntfItr == warmBootCache->vlanAndMac2Intf_end()) {
         XLOG(DBG1) << "Adding interface for vlan : " << intf->getVlanID()
                    << " and mac: " << intf->getMac();
+        updateIngress = false;
       }
       auto rc = bcm_l3_intf_create(hw_->getUnit(), &ifParams);
       bcmCheckError(rc, "failed to create L3 interface ", intf->getID());
       bcmIfId_ = ifParams.l3a_intf_id;
-      programIngressIfNeeded(intf);
+      programIngressIfNeeded(intf, updateIngress);
     }
     if (vlanMac2IntfItr != warmBootCache->vlanAndMac2Intf_end()) {
       warmBootCache->programmed(vlanMac2IntfItr);
