@@ -25,8 +25,6 @@ using std::memcpy;
 using std::mutex;
 using namespace apache::thrift;
 
-DECLARE_int32(remediate_interval);
-
 namespace {
 
 constexpr int kUsecBetweenPowerModeFlap = 100000;

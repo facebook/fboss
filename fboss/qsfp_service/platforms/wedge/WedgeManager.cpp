@@ -405,7 +405,7 @@ void WedgeManager::updateTransceiverMap() {
               return !(*port.second.up_ref());
             });
       }
-      if (safeToReset) {
+      if (safeToReset && (std::time(nullptr) > pauseRemediationUntil_)) {
         XLOG(INFO) << "A present transceiver with unknown interface at "
                    << idx << " Try reset.";
         // This api accept 1 based module id however the module id in WedgeManager

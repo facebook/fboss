@@ -41,6 +41,18 @@ class TransceiverManager {
   virtual int scanTransceiverPresence(
       std::unique_ptr<std::vector<int32_t>> ids) = 0;
   virtual int numPortsPerTransceiver() = 0;
+  /*
+   * A function take a parameter representing number of seconds,
+   * adding it to the time point of now and assign it to
+   * pauseRemediationUntil_, which is a time point until when
+   * the remediation of module will be paused.
+   */
+  void setPauseRemediation(int32_t timeout) {
+    pauseRemediationUntil_ = std::time(nullptr) + timeout;
+  }
+  time_t getPauseRemediationUntil() {
+    return pauseRemediationUntil_;
+  }
 
   /* Virtual function to return the i2c transactions stats in a platform.
    * This will be overridden by derived classes which are platform specific
@@ -73,5 +85,9 @@ class TransceiverManager {
    * constructor
    */
   std::unique_ptr<TransceiverPlatformApi>  qsfpPlatApi_;
+  // A time point until when the remediation of module will be paused.
+  // Before reaching that time point, the module is paused
+  // and it will resume once the time is reached.
+  time_t pauseRemediationUntil_{0};
 };
 }} // facebook::fboss

@@ -336,7 +336,9 @@ void QsfpModule::refreshLocked() {
 
 bool QsfpModule::shouldRemediate(time_t cooldown) const {
   auto now = std::time(nullptr);
-  return now - std::max(lastWorkingTime_, lastRemediateTime_) > cooldown;
+  bool remediationEnabled = now > transceiverManager_->getPauseRemediationUntil();
+  bool remediationCooled = now - std::max(lastWorkingTime_, lastRemediateTime_) > cooldown;
+  return remediationEnabled && remediationCooled;
 }
 
 void QsfpModule::customizeTransceiver(cfg::PortSpeed speed) {

@@ -60,4 +60,9 @@ void QsfpServiceHandler::syncPorts(
   manager_->syncPorts(info, std::move(ports));
 }
 
+void QsfpServiceHandler::pauseRemediation(int32_t timeout) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  manager_->setPauseRemediation(timeout);
+}
+
 }} // facebook::fboss

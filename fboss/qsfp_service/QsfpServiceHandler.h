@@ -60,6 +60,8 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
     return manager_.get();
   }
 
+  void pauseRemediation(int32_t timeout) override;
+
  private:
   // Forbidden copy constructor and assignment operator
   QsfpServiceHandler(QsfpServiceHandler const &) = delete;

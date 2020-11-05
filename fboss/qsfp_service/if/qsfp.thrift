@@ -46,4 +46,12 @@ service QsfpService extends fb303.FacebookService {
   map<i32, transceiver.TransceiverInfo> syncPorts(1: map<i32, ctrl.PortStatus> ports)
     throws (1: fboss.FbossBaseError error)
 
+  /*
+   * Qsfp service has an internal remediation loop and may potentially perform
+   * interruptive operation to modules that carry no active(up) link. However
+   * it may cause some confusion for debugging. This function is to tell
+   * qsfp-service to pause auto remediation for the specified amount of seconds.
+   */
+  void pauseRemediation(1: i32 timeout)
+
 }
