@@ -29,13 +29,11 @@ namespace facebook::fboss {
  * hop. When no more routes refer to a next hop, it should be deleted.
  */
 
-namespace {
 template <typename K, typename V>
 using RefMapUMap = std::unordered_map<K, V>;
 
 template <typename K, typename V>
 using RefMapFlatMap = boost::container::flat_map<K, V>;
-}; // namespace
 
 template <template <class, class> class M, typename K, typename V>
 class RefMap {

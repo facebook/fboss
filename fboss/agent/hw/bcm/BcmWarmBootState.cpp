@@ -58,8 +58,9 @@ folly::dynamic BcmWarmBootState::hostTableToFollyDynamic() const {
 
   // host entries are programmed to route table if host table is
   // not available in hardware
-  for (const auto& hostEntry : hw_->routeTable()->getHostRoutes()) {
-    hostsJson.push_back(toFollyDynamic(hostEntry->getHostKey(), hostEntry));
+  for (const auto& hostRouteEntry : hw_->routeTable()->getHostRoutes()) {
+    std::shared_ptr<BcmHostIf> host = hostRouteEntry.second.lock();
+    hostsJson.push_back(toFollyDynamic(hostRouteEntry.first, host));
   }
 
   // previously, ECMP next hops were maintained as a part of BcmHostTable, even

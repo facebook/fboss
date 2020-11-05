@@ -133,12 +133,8 @@ class BcmRouteTable : public BcmHostTableIf {
   void releaseHosts() override {
     hostRoutes_.clear();
   }
-  std::vector<std::shared_ptr<BcmHostIf>> getHostRoutes() const {
-    std::vector<std::shared_ptr<BcmHostIf>> hostRoutes;
-    for (const auto& hostRoute : hostRoutes_) {
-      hostRoutes.push_back(hostRoute.second.lock());
-    }
-    return hostRoutes;
+  const FlatRefMap<BcmHostKey, BcmHostRoute>& getHostRoutes() const {
+    return hostRoutes_;
   }
 
  private:
