@@ -69,6 +69,8 @@ DEFINE_bool(write_reg, false, "Write a register, use with --offset and --data");
 DEFINE_int32(offset, -1, "The offset of register to read/write (0..255)");
 DEFINE_int32(data, 0, "The byte to write to the register, use with --offset");
 DEFINE_int32(length, 1, "The number of bytes to read from the register (1..128), use with --offset");
+DEFINE_int32(pause_remediation, 0,
+    "Number of seconds to prevent qsfp_service from doing remediation to modules");
 
 enum LoopbackMode {
   noLoopback,
@@ -78,6 +80,10 @@ enum LoopbackMode {
 
 // CMIS module Identifier (from module register 0)
 constexpr uint8_t kCMISIdentifier = 0x1e;
+
+std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> getQsfpClient(folly::EventBase& evb) {
+  return std::move(QsfpClient::createClient(&evb)).getVia(&evb);
+}
 
 bool overrideLowPower(
     TransceiverI2CApi* bus,
@@ -278,10 +284,8 @@ void doWriteReg(TransceiverI2CApi* bus, unsigned int port, int offset, uint8_t v
 }
 
 std::map<int32_t, RawDOMData> fetchDataFromQsfpService(
-    const std::vector<int32_t>& ports) {
-  folly::EventBase evb;
-  auto qsfpServiceClient = QsfpClient::createClient(&evb);
-  auto client = std::move(qsfpServiceClient).getVia(&evb);
+    const std::vector<int32_t>& ports, folly::EventBase& evb) {
+  auto client = getQsfpClient(evb);
 
   std::map<int32_t, TransceiverInfo> qsfpInfoMap;
 
@@ -845,6 +849,7 @@ int main(int argc, char* argv[]) {
   folly::init(&argc, &argv, true);
   gflags::SetCommandLineOptionWithMode(
       "minloglevel", "0", gflags::SET_FLAGS_DEFAULT);
+  folly::EventBase evb;
 
   if (FLAGS_set_100g && FLAGS_set_40g) {
     fprintf(stderr, "Cannot set both 40g and 100g\n");
@@ -857,6 +862,17 @@ int main(int argc, char* argv[]) {
   if (FLAGS_clear_low_power && FLAGS_set_low_power) {
     fprintf(stderr, "Cannot set and clear lp mode\n");
     return EX_USAGE;
+  }
+
+  if (FLAGS_pause_remediation) {
+    try {
+      auto client = getQsfpClient(evb);
+      client->sync_pauseRemediation(FLAGS_pause_remediation);
+      return EX_OK;
+    } catch (const std::exception& ex) {
+      fprintf(stderr, "error pausing remediation of qsfp_service: %s\n", ex.what());
+      return EX_SOFTWARE;
+    }
   }
 
   std::vector<unsigned int> ports;
@@ -907,7 +923,7 @@ int main(int argc, char* argv[]) {
         // starts from 0. So here we try to comply to match that behavior.
         idx.push_back(port - 1);
       }
-      auto rawDOMDataMap = fetchDataFromQsfpService(idx);
+      auto rawDOMDataMap = fetchDataFromQsfpService(idx, evb);
       for (auto& i : idx) {
         auto iter = rawDOMDataMap.find(i);
         if(iter == rawDOMDataMap.end()) {
