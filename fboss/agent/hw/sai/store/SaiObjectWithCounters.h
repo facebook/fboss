@@ -22,6 +22,8 @@ namespace facebook::fboss {
 template <typename SaiObjectTraits>
 class SaiObjectWithCounters : public SaiObject<SaiObjectTraits> {
  public:
+  friend class SaiObjectStore<SaiObjectTraits>;
+  friend class ::SaiStoreTest;
   // Load from adapter key
   explicit SaiObjectWithCounters(
       const typename SaiObjectTraits::AdapterKey& adapterKey)

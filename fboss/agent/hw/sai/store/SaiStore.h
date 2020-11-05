@@ -83,7 +83,7 @@ class SaiObjectStore {
         "Only adapter owned SAI objects can be loaded");
     ObjectType obj(adapterKey);
     auto adapterHostKey = obj.adapterHostKey();
-    auto ins = objects_.refOrEmplace(adapterHostKey, std::move(obj));
+    auto ins = refOrInsert(adapterHostKey, std::move(obj));
     return ins.first;
   }
 
@@ -116,7 +116,7 @@ class SaiObjectStore {
       ObjectType obj = getObject(k, adapterKeys2AdapterHostKey);
       auto adapterHostKey = obj.adapterHostKey();
       XLOGF(DBG5, "SaiStore reloaded {}", obj);
-      auto ins = objects_.refOrEmplace(adapterHostKey, std::move(obj));
+      auto ins = refOrInsert(adapterHostKey, std::move(obj));
       if (!ins.second) {
         XLOG(FATAL) << "[" << saiObjectTypeToString(SaiObjectTraits::ObjectType)
                     << "]"
@@ -237,10 +237,26 @@ class SaiObjectStore {
     return ObjectType(key);
   }
 
+  template <typename... Args>
+  std::unique_ptr<ObjectType> makeUnique(Args&&... args) const {
+    return std::unique_ptr<ObjectType>(
+        new ObjectType(std::forward<Args>(args)...));
+  }
+  template <typename... Args>
+  std::pair<std::shared_ptr<ObjectType>, bool> refOrInsert(
+      const typename SaiObjectTraits::AdapterHostKey& adapterHostKey,
+      Args&&... args) {
+    auto obj = objects_.ref(adapterHostKey);
+    return obj ? std::make_pair(obj, false)
+               : objects_.refOrInsert(
+                     adapterHostKey,
+                     makeUnique(std::forward<Args>(args)...),
+                     true /*force*/);
+  }
   std::pair<std::shared_ptr<ObjectType>, bool> program(
       const typename SaiObjectTraits::AdapterHostKey& adapterHostKey,
       const typename SaiObjectTraits::CreateAttributes& attributes) {
-    auto ins = objects_.refOrEmplace(
+    auto ins = refOrInsert(
         adapterHostKey, adapterHostKey, attributes, switchId_.value());
     if (!ins.second) {
       ins.first->setAttributes(attributes);

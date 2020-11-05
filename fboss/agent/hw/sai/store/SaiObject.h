@@ -191,7 +191,10 @@ typename std::
  */
 template <typename SaiObjectTraits>
 class SaiObject {
- public:
+ protected:
+  friend class SaiObjectStore<SaiObjectTraits>;
+  friend class ::SaiStoreTest;
+
   // Load from adapter key
   explicit SaiObject(const typename SaiObjectTraits::AdapterKey& adapterKey)
       : adapterKey_(adapterKey) {
