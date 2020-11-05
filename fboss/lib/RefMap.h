@@ -57,22 +57,6 @@ class RefMap {
   }
 
   std::pair<std::shared_ptr<V>, bool>
-  refOrInsert(const K& k, std::unique_ptr<V> v, bool force = false) {
-    bool ins{false};
-    auto vsp = force ? nullptr : ref(k);
-    if (!vsp) {
-      auto del = [& m = map_, k](V* v) {
-        m.erase(k);
-        std::default_delete<V>()(v);
-      };
-      vsp = std::shared_ptr<V>(v.release(), del);
-      map_[k] = vsp;
-      ins = true;
-    }
-    return {vsp, ins};
-  }
-
-  std::pair<std::shared_ptr<V>, bool>
   refOrInsert(const K& k, V&& v, bool force = false) {
     auto vsp = force ? nullptr : ref(k);
     return vsp ? std::make_pair(std::move(vsp), false)
