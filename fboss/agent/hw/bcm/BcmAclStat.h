@@ -45,6 +45,8 @@ class BcmAclStat {
 
   static void destroy(const BcmSwitchIf* hw, BcmAclStatHandle aclStatHandle);
 
+  static int getNumAclStatsInFpGroup(const BcmSwitch* hw, int gid);
+
   /**
    * Check whether the acl details of handle in h/w matches the s/w acl and
    * ranges

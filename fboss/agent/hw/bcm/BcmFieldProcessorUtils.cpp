@@ -360,14 +360,6 @@ int fpGroupNumAclEntries(int unit, bcm_field_group_t gid) {
   return size;
 }
 
-int fpGroupNumAclStatEntries(int unit, bcm_field_group_t gid) {
-  bcm_field_group_status_t status;
-  auto rv = bcm_field_group_status_get(unit, gid, &status);
-  bcmCheckError(
-      rv, "failed to get group status for gid=", folly::to<std::string>(gid));
-  return status.counter_count;
-}
-
 FPGroupDesiredQsetCmp::FPGroupDesiredQsetCmp(
     int unit,
     bcm_field_group_t groupId,

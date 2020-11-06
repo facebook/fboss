@@ -36,4 +36,11 @@ BcmIngressFieldProcessorFlexCounter::getCounterTypeList(
     uint32_t /* counterID */) {
   throw FbossError("OSS doesn't support get counter types of IFP flex counter");
 }
+
+int BcmIngressFieldProcessorFlexCounter::getNumAclStatsInFpGroup(
+    int /* unit */,
+    int /* gid */) {
+  throw FbossError(
+      "OSS doesn't support get number of IFP flex counter for specified IFP");
+}
 } // namespace facebook::fboss

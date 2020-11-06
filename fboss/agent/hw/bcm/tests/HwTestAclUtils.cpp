@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 
 #include "fboss/agent/hw/bcm/BcmAclEntry.h"
+#include "fboss/agent/hw/bcm/BcmAclStat.h"
 #include "fboss/agent/hw/bcm/BcmAclTable.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
@@ -109,7 +110,7 @@ void checkAclEntryAndStatCount(
 
   ASSERT_EQ(
       aclStatCount,
-      fpGroupNumAclStatEntries(bcmSwitch->getUnit(), defaultGroupID));
+      BcmAclStat::getNumAclStatsInFpGroup(bcmSwitch, defaultGroupID));
   ASSERT_EQ(
       counterCount, bcmSwitch->getStatUpdater()->getAclStatCounterCount());
 }

@@ -33,6 +33,8 @@ class BcmIngressFieldProcessorFlexCounter : public BcmFlexCounter {
       int unit,
       uint32_t counterID);
 
+  static int getNumAclStatsInFpGroup(int unit, int gid);
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmIngressFieldProcessorFlexCounter(

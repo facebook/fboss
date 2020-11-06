@@ -181,4 +181,18 @@ void BcmAclStat::detach(
         rv, "Failed to detach stat=", aclStatHandle, " from acl=", acl);
   }
 }
+
+int BcmAclStat::getNumAclStatsInFpGroup(const BcmSwitch* hw, int gid) {
+  if (hw->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
+    return BcmIngressFieldProcessorFlexCounter::getNumAclStatsInFpGroup(
+        hw->getUnit(), gid);
+  } else {
+    bcm_field_group_status_t status;
+    auto rv = bcm_field_group_status_get(hw->getUnit(), gid, &status);
+    bcmCheckError(
+        rv, "failed to get group status for gid=", folly::to<std::string>(gid));
+    return status.counter_count;
+  }
+}
 } // namespace facebook::fboss
