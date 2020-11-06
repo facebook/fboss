@@ -15,6 +15,7 @@
 namespace facebook::fboss {
 
 class BcmSwitch;
+class BcmSwitchIf;
 class BcmIngressFieldProcessorFlexCounter;
 
 /**
@@ -33,7 +34,16 @@ class BcmAclStat {
     return handle_;
   }
 
-  void attachToAcl(BcmAclEntryHandle acl);
+  void attach(BcmAclEntryHandle acl);
+
+  void detach(BcmAclEntryHandle acl);
+
+  static void detach(
+      const BcmSwitchIf* hw,
+      BcmAclEntryHandle acl,
+      BcmAclStatHandle aclStatHandle);
+
+  static void destroy(const BcmSwitchIf* hw, BcmAclStatHandle aclStatHandle);
 
   /**
    * Check whether the acl details of handle in h/w matches the s/w acl and

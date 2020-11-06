@@ -23,6 +23,13 @@ void BcmIngressFieldProcessorFlexCounter::attach(BcmAclEntryHandle /* acl */) {
   throw FbossError("OSS doesn't support attach IFP flex counter to acl");
 }
 
+void BcmIngressFieldProcessorFlexCounter::detach(
+    int /* unit */,
+    BcmAclEntryHandle /* acl */,
+    BcmAclStatHandle /* aclStatHandle */) {
+  throw FbossError("OSS doesn't support detach IFP flex counter from acl");
+}
+
 std::set<cfg::CounterType>
 BcmIngressFieldProcessorFlexCounter::getCounterTypeList(
     int /* unit */,

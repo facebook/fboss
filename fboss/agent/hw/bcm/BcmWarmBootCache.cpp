@@ -882,7 +882,7 @@ void BcmWarmBootCache::clear() {
     if (!aclStatStatus.claimed) {
       XLOG(DBG1) << "Detaching unclaimed acl_stat=" << aclStatStatus.stat
                  << "from acl=" << aclStatItr->first;
-      detachBcmAclStat(aclStatItr->first, aclStatStatus.stat);
+      BcmAclStat::detach(hw_, aclStatItr->first, aclStatStatus.stat);
     } else {
       statsUsed.insert(aclStatStatus.stat);
     }
@@ -893,7 +893,7 @@ void BcmWarmBootCache::clear() {
     auto statHandle = statItr.second.stat;
     if (statsUsed.find(statHandle) == statsUsed.end()) {
       XLOG(DBG1) << "Deleting unclaimed acl_stat=" << statHandle;
-      removeBcmAclStat(statHandle);
+      BcmAclStat::destroy(hw_, statHandle);
       // add the stat to the set to prevent this loop from attempting to
       // delete the same stat twice
       statsUsed.insert(statHandle);
@@ -1314,25 +1314,6 @@ void BcmWarmBootCache::populateAclStats(
 
 void BcmWarmBootCache::removeBcmAcl(BcmAclEntryHandle handle) {
   auto rv = bcm_field_entry_destroy(hw_->getUnit(), handle);
-  bcmLogFatal(rv, hw_, "failed to destroy the acl entry");
-}
-
-void BcmWarmBootCache::detachBcmAclStat(
-    BcmAclEntryHandle aclHandle,
-    BcmAclStatHandle aclStatHandle) {
-  auto rv =
-      bcm_field_entry_stat_detach(hw_->getUnit(), aclHandle, aclStatHandle);
-  bcmLogFatal(
-      rv,
-      hw_,
-      "failed to detach stat=",
-      aclStatHandle,
-      " from bcmAcl=",
-      aclHandle);
-}
-
-void BcmWarmBootCache::removeBcmAclStat(BcmAclStatHandle handle) {
-  auto rv = bcm_field_stat_destroy(hw_->getUnit(), handle);
   bcmLogFatal(rv, hw_, "failed to destroy the acl entry");
 }
 

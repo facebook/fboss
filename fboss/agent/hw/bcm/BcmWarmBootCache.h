@@ -212,11 +212,6 @@ class BcmWarmBootCache {
   void populateAclStats(const BcmAclEntryHandle acl, AclEntry2AclStat& stats);
   // remove bcm acl directly from h/w
   void removeBcmAcl(BcmAclEntryHandle handle);
-  // remove bcm acl stat directly from h/w
-  void removeBcmAclStat(BcmAclStatHandle handle);
-  void detachBcmAclStat(
-      BcmAclEntryHandle aclHandle,
-      BcmAclStatHandle aclStatHandle);
 
   void populateRtag7State();
   void populateQosMaps();

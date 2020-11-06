@@ -9,6 +9,10 @@
  */
 #include "fboss/agent/hw/bcm/BcmFlexCounter.h"
 
+#include "fboss/agent/hw/bcm/BcmError.h"
+
 namespace facebook::fboss {
-BcmFlexCounter::~BcmFlexCounter() {}
+void BcmFlexCounter::destroy(int /* unit */, uint32_t /* counterID */) {
+  throw FbossError("OSS doesn't support destroy IFP flex counter");
+}
 } // namespace facebook::fboss

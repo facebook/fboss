@@ -322,7 +322,7 @@ void BcmAclEntry::createAclStat() {
   } else {
     auto bcmAclStat =
         aclTable->incRefOrCreateBcmAclStat(counterName, counterTypes, gid_);
-    bcmAclStat->attachToAcl(handle_);
+    bcmAclStat->attach(handle_);
   }
 }
 
@@ -392,14 +392,7 @@ BcmAclEntry::~BcmAclEntry() {
   if (action && action.value().getTrafficCounter()) {
     auto counterName = *action->getTrafficCounter()->name_ref();
     auto aclStat = aclTable->getAclStat(counterName);
-    rv = bcm_field_entry_stat_detach(
-        hw_->getUnit(), handle_, aclStat->getHandle());
-    bcmCheckError(
-        rv,
-        "Failed to detach stat=",
-        aclStat->getHandle(),
-        " from acl=",
-        handle_);
+    aclStat->detach(handle_);
     aclTable->derefBcmAclStat(counterName);
   }
 

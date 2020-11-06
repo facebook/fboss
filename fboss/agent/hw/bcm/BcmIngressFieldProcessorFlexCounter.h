@@ -22,6 +22,13 @@ class BcmIngressFieldProcessorFlexCounter : public BcmFlexCounter {
 
   void attach(BcmAclEntryHandle acl);
 
+  void detach(BcmAclEntryHandle acl) {
+    detach(unit_, acl, static_cast<BcmAclStatHandle>(counterID_));
+  }
+
+  static void
+  detach(int unit, BcmAclEntryHandle acl, BcmAclStatHandle aclStatHandle);
+
   static std::set<cfg::CounterType> getCounterTypeList(
       int unit,
       uint32_t counterID);

@@ -20,7 +20,11 @@ class BcmFlexCounter {
   explicit BcmFlexCounter(int unit) : unit_(unit) {}
   BcmFlexCounter(int unit, uint32_t counterID)
       : unit_(unit), counterID_(counterID) {}
-  virtual ~BcmFlexCounter();
+  virtual ~BcmFlexCounter() {
+    destroy(unit_, counterID_);
+  }
+
+  static void destroy(int unit, uint32_t counterID);
 
   uint32_t getID() const {
     return counterID_;

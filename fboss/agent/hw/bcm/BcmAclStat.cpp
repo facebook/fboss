@@ -70,6 +70,18 @@ BcmAclStat::~BcmAclStat() {
   }
 }
 
+void BcmAclStat::destroy(
+    const BcmSwitchIf* hw,
+    BcmAclStatHandle aclStatHandle) {
+  if (hw->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
+    BcmIngressFieldProcessorFlexCounter::destroy(hw->getUnit(), aclStatHandle);
+  } else {
+    auto rv = bcm_field_stat_destroy(hw->getUnit(), aclStatHandle);
+    bcmCheckError(rv, "Failed to destroy stat=", aclStatHandle);
+  }
+}
+
 bool BcmAclStat::isStateSame(
     const BcmSwitch* hw,
     BcmAclStatHandle statHandle,
@@ -133,13 +145,40 @@ bool BcmAclStat::isStateSame(
   return counterTypes == expectedCounterTypes;
 }
 
-void BcmAclStat::attachToAcl(BcmAclEntryHandle acl) {
+void BcmAclStat::attach(BcmAclEntryHandle acl) {
   if (hw_->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
     flexCounter_->attach(acl);
   } else {
     auto rv = bcm_field_entry_stat_attach(hw_->getUnit(), acl, handle_);
     bcmCheckError(rv, "Failed to attach stat=", handle_, " to acl=", acl);
+  }
+}
+
+void BcmAclStat::detach(BcmAclEntryHandle acl) {
+  // This function will be called by BcmAclEntry::~BcmAclEntry(),
+  // so we can't use HwAsic::isSupported() because destructor is not allowed to
+  // call pure virtual method.
+  if (flexCounter_) {
+    flexCounter_->detach(acl);
+  } else {
+    auto rv = bcm_field_entry_stat_detach(hw_->getUnit(), acl, handle_);
+    bcmCheckError(rv, "Failed to detach stat=", handle_, " from acl=", acl);
+  }
+}
+
+void BcmAclStat::detach(
+    const BcmSwitchIf* hw,
+    BcmAclEntryHandle acl,
+    BcmAclStatHandle aclStatHandle) {
+  if (hw->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
+    BcmIngressFieldProcessorFlexCounter::detach(
+        hw->getUnit(), acl, aclStatHandle);
+  } else {
+    auto rv = bcm_field_entry_stat_detach(hw->getUnit(), acl, aclStatHandle);
+    bcmCheckError(
+        rv, "Failed to detach stat=", aclStatHandle, " from acl=", acl);
   }
 }
 } // namespace facebook::fboss
