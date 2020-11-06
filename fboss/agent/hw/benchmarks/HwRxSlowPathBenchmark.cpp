@@ -40,11 +40,12 @@ void runRxSlowPathBenchmark() {
   constexpr int kEcmpWidth = 1;
   auto ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
   auto hwSwitch = ensemble->getHwSwitch();
+  auto dstIp = folly::IPAddress("2620:0:1cfe:face:b00c::4");
   auto portUsed = ensemble->masterLogicalPortIds()[0];
   auto config = utility::oneL3IntfConfig(hwSwitch, portUsed);
   ensemble->applyInitialConfig(config);
   // capture packet exiting port 0 (entering due to loopback)
-  auto packetCapture = HwTestPacketTrapEntry(hwSwitch, portUsed);
+  auto packetCapture = HwTestPacketTrapEntry(hwSwitch, dstIp);
   auto dstMac = utility::getInterfaceMac(
       ensemble->getProgrammedState(), utility::firstVlanID(config));
   auto ecmpHelper =
@@ -65,7 +66,7 @@ void runRxSlowPathBenchmark() {
       kSrcMac,
       dstMac,
       folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
-      folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
+      dstIp,
       8000,
       8001);
   hwSwitch->sendPacketSwitchedSync(std::move(txPacket));

@@ -10,9 +10,13 @@ namespace {
 
 using namespace facebook::fboss;
 
-std::shared_ptr<AclEntry> getSourcePortTrapAclEntry(PortID port) {
+std::shared_ptr<AclEntry> getTrapAclEntry(
+    bool srcPort,
+    std::optional<PortID> port,
+    std::optional<folly::IPAddress> dstIp) {
   auto aclEntry = std::make_shared<AclEntry>(1, "AclEntry1");
-  aclEntry->setSrcPort(port);
+  srcPort ? aclEntry->setSrcPort(port.value())
+          : aclEntry->setDstIp(folly::CIDRNetwork(dstIp.value(), 128));
   aclEntry->setActionType(cfg::AclActionType::PERMIT);
   MatchAction matchAction;
   cfg::QueueMatchAction queueAction = cfg::QueueMatchAction();
@@ -27,7 +31,16 @@ namespace facebook::fboss {
 
 HwTestPacketTrapEntry::HwTestPacketTrapEntry(HwSwitch* hwSwitch, PortID port) {
   auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch);
-  auto aclEntry = getSourcePortTrapAclEntry(port);
+  auto aclEntry = getTrapAclEntry(true, port, std::nullopt);
+  saiSwitch->managerTable()->aclTableManager().addAclEntry(
+      aclEntry, SaiSwitch::kAclTable1);
+}
+
+HwTestPacketTrapEntry::HwTestPacketTrapEntry(
+    HwSwitch* hwSwitch,
+    folly::IPAddress& dstIp) {
+  auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch);
+  auto aclEntry = getTrapAclEntry(false, std::nullopt, dstIp);
   saiSwitch->managerTable()->aclTableManager().addAclEntry(
       aclEntry, SaiSwitch::kAclTable1);
 }
