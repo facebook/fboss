@@ -25,6 +25,19 @@ enum FecMode {
   RS544_2N = 11,
 }
 
+struct VCOFrequencyFactor {
+  1: switch_config.PortSpeed speed
+  2: FecMode fecMode
+}
+
+enum VCOFrequency {
+  UNKNOWN = 0,
+  VCO_10_3125GHZ = 1
+  VCO_20_625GHZ = 2,
+  VCO_25_78125GHZ = 3,
+  VCO_26_5625GHZ = 4,
+}
+
 // [DEPRECATED] Unfortunately this should be InterfaceType instead of
 // InterfaceMode, as interface mode means something else. Otherwise this will
 // be very confusing for xphy programming.
