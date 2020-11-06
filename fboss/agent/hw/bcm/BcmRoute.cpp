@@ -126,6 +126,7 @@ void programLpmRoute(
         egressId);
     XLOG(DBG3) << "created a route entry for " << prefix.str() << "/"
                << static_cast<int>(prefixLength) << " @egress " << egressId
+               << " class id "
                << (classID.has_value() ? static_cast<int>(classID.value()) : 0);
   }
 }
@@ -222,26 +223,33 @@ void BcmRoute::program(
       warmBootCache->programmed(vrfAndIP2RouteCitr);
     }
   } else {
-    XLOG(DBG3) << "creating a route entry for " << prefix_ << "/"
-               << static_cast<int>(len_) << " with " << fwd;
-    const auto warmBootCache = hw_->getWarmBootCache();
-    auto routeCitr = warmBootCache->findRoute(vrf_, prefix_, len_);
-    auto cachedRoute = routeCitr != warmBootCache->vrfAndPrefix2Route_end()
-        ? std::make_optional(routeCitr->second)
-        : std::nullopt;
-    programLpmRoute(
-        hw_->getUnit(),
-        vrf_,
-        prefix_,
-        len_,
-        egressId,
-        classID,
-        cachedRoute,
-        fwd.getNextHopSet().size() > 1,
-        fwd.getAction() == RouteForwardAction::DROP,
-        added_);
-    if (routeCitr != warmBootCache->vrfAndPrefix2Route_end()) {
-      warmBootCache->programmed(routeCitr);
+    if (isHostRoute() &&
+        hw_->routeTable()->getHostRoutes().get(BcmHostKey(vrf_, prefix_))) {
+      XLOG(DBG3) << "route entry for " << prefix_ << "/"
+                 << static_cast<int>(len_)
+                 << " already programmed as host route";
+    } else {
+      XLOG(DBG3) << "creating a route entry for " << prefix_ << "/"
+                 << static_cast<int>(len_) << " with " << fwd;
+      const auto warmBootCache = hw_->getWarmBootCache();
+      auto routeCitr = warmBootCache->findRoute(vrf_, prefix_, len_);
+      auto cachedRoute = routeCitr != warmBootCache->vrfAndPrefix2Route_end()
+          ? std::make_optional(routeCitr->second)
+          : std::nullopt;
+      programLpmRoute(
+          hw_->getUnit(),
+          vrf_,
+          prefix_,
+          len_,
+          egressId,
+          classID,
+          cachedRoute,
+          fwd.getNextHopSet().size() > 1,
+          fwd.getAction() == RouteForwardAction::DROP,
+          added_);
+      if (routeCitr != warmBootCache->vrfAndPrefix2Route_end()) {
+        warmBootCache->programmed(routeCitr);
+      }
     }
   }
   nextHopHostReference_ = std::move(nexthopReference);
