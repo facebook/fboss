@@ -13,7 +13,11 @@
 
 namespace facebook::fboss {
 
-// Types of alert logging
+// Prefix for fboss alert tag
+constexpr auto kFbossAlertPrefix("FBOSS_EVENT");
+constexpr auto kBgpAlertPrefix("BGP_EVENT");
+
+// Sub-types for alert logging
 constexpr auto kFbossMiscAlert("MISC");
 constexpr auto kFbossAsicAlert("ASIC");
 constexpr auto kFbossServiceAlert("SERVICE");
@@ -25,17 +29,20 @@ constexpr auto kFbossRouteAlert("ROUTE");
 constexpr auto kFbossBGPAlert("BGP");
 
 // Alert tag by type
-AlertTag::AlertTag(std::string type) : type_(std::move(type)){};
+AlertTag::AlertTag(std::string prefix, std::string sub_type)
+    : prefix_(std::move(prefix)), sub_type_(std::move(sub_type)){};
 
-MiscAlert::MiscAlert() : AlertTag(kFbossMiscAlert){};
-AsicAlert::AsicAlert() : AlertTag(kFbossAsicAlert){};
-ServiceAlert::ServiceAlert() : AlertTag(kFbossServiceAlert){};
-PlatformAlert::PlatformAlert() : AlertTag(kFbossPlatformAlert){};
-BmcAlert::BmcAlert() : AlertTag(kFbossBmcAlert){};
-KernelAlert::KernelAlert() : AlertTag(kFbossKernelAlert){};
-PortAlert::PortAlert() : AlertTag(kFbossPortAlert){};
-RouteAlert::RouteAlert() : AlertTag(kFbossRouteAlert){};
-BGPAlert::BGPAlert() : AlertTag(kFbossBGPAlert){};
+MiscAlert::MiscAlert() : AlertTag(kFbossAlertPrefix, kFbossMiscAlert){};
+AsicAlert::AsicAlert() : AlertTag(kFbossAlertPrefix, kFbossAsicAlert){};
+ServiceAlert::ServiceAlert()
+    : AlertTag(kFbossAlertPrefix, kFbossServiceAlert){};
+PlatformAlert::PlatformAlert()
+    : AlertTag(kFbossAlertPrefix, kFbossPlatformAlert){};
+BmcAlert::BmcAlert() : AlertTag(kFbossAlertPrefix, kFbossBmcAlert){};
+KernelAlert::KernelAlert() : AlertTag(kFbossAlertPrefix, kFbossKernelAlert){};
+PortAlert::PortAlert() : AlertTag(kFbossAlertPrefix, kFbossPortAlert){};
+RouteAlert::RouteAlert() : AlertTag(kFbossAlertPrefix, kFbossRouteAlert){};
+BGPAlert::BGPAlert() : AlertTag(kBgpAlertPrefix){};
 
 // Alert param types
 constexpr auto kFbossPort("port");

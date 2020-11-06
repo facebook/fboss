@@ -17,9 +17,6 @@
 
 namespace facebook::fboss {
 
-// Prefix for alert tag
-constexpr auto kFbossAlertTag("FBOSS_ALERT");
-
 /*
  * Utilities for logging of hi-signal events
  * with event-type and additional metadata params over XLOG
@@ -39,19 +36,28 @@ constexpr auto kFbossAlertTag("FBOSS_ALERT");
 
 // Alert tag with type
 struct AlertTag {
-  explicit AlertTag(std::string type);
+  explicit AlertTag(std::string prefix, std::string sub_type = "");
 
   friend std::ostream& operator<<(std::ostream& out, const AlertTag& tag) {
-    // Note: blank space at end
-    return (out << kFbossAlertTag << "(" << tag.type_ << "): ");
+    // Note: outputs a blank space at end
+    if (!tag.sub_type_.empty()) {
+      return (out << tag.prefix_ << "(" << tag.sub_type_ << "): ");
+    } else {
+      return (out << tag.prefix_ << ": ");
+    }
   }
 
   const std::string str(void) const {
-    // Note: blank space at end
-    return folly::sformat("{}({}): ", kFbossAlertTag, type_);
+    // Note: outputs a blank space at end
+    if (!sub_type_.empty()) {
+      return folly::sformat("{}({}): ", prefix_, sub_type_);
+    } else {
+      return folly::sformat("{}: ", prefix_);
+    }
   }
 
-  const std::string type_;
+  const std::string prefix_;
+  const std::string sub_type_;
 };
 
 class MiscAlert : public AlertTag {
@@ -96,12 +102,12 @@ struct AlertParam {
   explicit AlertParam(std::string type, std::string value);
 
   friend std::ostream& operator<<(std::ostream& out, const AlertParam& param) {
-    // Note: blank space at front
+    // Note: outputs a blank space at front
     return (out << " <" << param.type_ << ":" << param.value_ << ">");
   }
 
   const std::string str() const {
-    // Note: blank space at front
+    // Note: outputs a blank space at front
     return folly::sformat(" <{}:{}>", type_, value_);
   }
 
