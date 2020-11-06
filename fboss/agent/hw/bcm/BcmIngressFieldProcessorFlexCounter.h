@@ -35,6 +35,9 @@ class BcmIngressFieldProcessorFlexCounter : public BcmFlexCounter {
 
   static int getNumAclStatsInFpGroup(int unit, int gid);
 
+  static std::optional<uint32_t>
+  getFlexCounterIDFromAttachedAcl(int unit, int groupID, BcmAclEntryHandle acl);
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmIngressFieldProcessorFlexCounter(

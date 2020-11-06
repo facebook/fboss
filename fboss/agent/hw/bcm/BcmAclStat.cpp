@@ -195,4 +195,27 @@ int BcmAclStat::getNumAclStatsInFpGroup(const BcmSwitch* hw, int gid) {
     return status.counter_count;
   }
 }
+
+std::optional<BcmAclStatHandle> BcmAclStat::getAclStatHandleFromAttachedAcl(
+    const BcmSwitchIf* hw,
+    int groupID,
+    BcmAclEntryHandle acl) {
+  if (hw->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
+    if (auto flexCounterID = BcmIngressFieldProcessorFlexCounter::
+            getFlexCounterIDFromAttachedAcl(hw->getUnit(), groupID, acl)) {
+      return std::optional<BcmAclStatHandle>{*flexCounterID};
+    } else {
+      return std::nullopt;
+    }
+  } else {
+    int statHandle;
+    auto rv = bcm_field_entry_stat_get(hw->getUnit(), acl, &statHandle);
+    if (rv == BCM_E_NOT_FOUND) {
+      return std::nullopt;
+    }
+    bcmCheckError(rv, "Unable to get stat_id of field entry=", acl);
+    return std::optional<BcmAclStatHandle>{statHandle};
+  }
+}
 } // namespace facebook::fboss

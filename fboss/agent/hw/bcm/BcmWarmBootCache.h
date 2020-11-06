@@ -209,7 +209,8 @@ class BcmWarmBootCache {
       const int groupId,
       AclEntry2AclStat& stats,
       Priority2BcmAclEntryHandle& acls);
-  void populateAclStats(const BcmAclEntryHandle acl, AclEntry2AclStat& stats);
+  void
+  populateAclStats(int groupID, BcmAclEntryHandle acl, AclEntry2AclStat& stats);
   // remove bcm acl directly from h/w
   void removeBcmAcl(BcmAclEntryHandle handle);
 

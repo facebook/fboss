@@ -47,6 +47,11 @@ class BcmAclStat {
 
   static int getNumAclStatsInFpGroup(const BcmSwitch* hw, int gid);
 
+  static std::optional<BcmAclStatHandle> getAclStatHandleFromAttachedAcl(
+      const BcmSwitchIf* hw,
+      int groupID,
+      BcmAclEntryHandle acl);
+
   /**
    * Check whether the acl details of handle in h/w matches the s/w acl and
    * ranges

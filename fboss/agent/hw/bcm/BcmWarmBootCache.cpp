@@ -1284,7 +1284,7 @@ void BcmWarmBootCache::populateAcls(
       rv, "Unable to get field entry information for group=", groupId);
   for (auto bcmEntry : bcmEntries) {
     // Get acl stat associated to each acl entry
-    populateAclStats(bcmEntry, stats);
+    populateAclStats(groupId, bcmEntry, stats);
     // Get priority
     int priority = 0;
     rv = bcm_field_entry_prio_get(hw_->getUnit(), bcmEntry, &priority);
@@ -1299,16 +1299,17 @@ void BcmWarmBootCache::populateAcls(
 }
 
 void BcmWarmBootCache::populateAclStats(
-    const BcmAclEntryHandle aclHandle,
+    int groupID,
+    BcmAclEntryHandle aclHandle,
     AclEntry2AclStat& stats) {
-  AclStatStatus statStatus;
-  int statHandle;
-  auto rv = bcm_field_entry_stat_get(hw_->getUnit(), aclHandle, &statHandle);
-  if (rv == BCM_E_NOT_FOUND) {
+  auto aclStatHandle =
+      BcmAclStat::getAclStatHandleFromAttachedAcl(hw_, groupID, aclHandle);
+  if (!aclStatHandle) {
+    // This acl doesn't have any BcmAclStat attached
     return;
   }
-  bcmCheckError(rv, "Unable to get stat_id of field entry=", aclHandle);
-  statStatus.stat = statHandle;
+  AclStatStatus statStatus;
+  statStatus.stat = *aclStatHandle;
   stats.emplace(aclHandle, statStatus);
 }
 

@@ -43,4 +43,12 @@ int BcmIngressFieldProcessorFlexCounter::getNumAclStatsInFpGroup(
   throw FbossError(
       "OSS doesn't support get number of IFP flex counter for specified IFP");
 }
+
+std::optional<uint32_t>
+BcmIngressFieldProcessorFlexCounter::getFlexCounterIDFromAttachedAcl(
+    int /* unit */,
+    int /* groupID */,
+    BcmAclEntryHandle /* acl */) {
+  throw FbossError("OSS doesn't support get flex counter id for attached acl");
+}
 } // namespace facebook::fboss
