@@ -75,15 +75,14 @@ class HwPortProfileTest : public HwLinkStateDependentTest {
       bool up = true;
       for (auto portID :
            {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}) {
-        verifyPort(portID);
         bringDownPort(portID);
         utility::verifyLedStatus(getHwSwitchEnsemble(), portID, !up);
         bringUpPort(portID);
         utility::verifyLedStatus(getHwSwitchEnsemble(), portID, up);
+        verifyPort(portID);
       }
     };
-    setup();
-    verify();
+    verifyAcrossWarmBoots(setup, verify);
   }
 
   std::optional<std::map<PortID, TransceiverInfo>> port2transceiverInfoMap()

@@ -40,6 +40,12 @@ void BcmTestPort::externalState(PortLedExternalState /* unused */) {}
 
 folly::Future<TransmitterTechnology> BcmTestPort::getTransmitterTech(
     folly::EventBase* /*evb*/) const {
+  if (auto info = getPlatform()->getPort2OverrideTransceiverInfo()) {
+    auto iter = info->find(getPortID());
+    if (iter != info->end()) {
+      return *(iter->second.cable_ref()->transmitterTech_ref());
+    }
+  }
   auto entry = getPlatformPortEntry();
   if (entry && entry->mapping_ref()->name_ref()->find("fab") == 0) {
     return folly::makeFuture<TransmitterTechnology>(
