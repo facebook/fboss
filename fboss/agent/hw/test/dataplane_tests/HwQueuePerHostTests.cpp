@@ -170,12 +170,12 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
   }
 
   void _verifyHelper(bool frontPanel) {
-    std::vector<int64_t> beforeQueueOutPkts;
+    std::map<int, int64_t> beforeQueueOutPkts;
     for (const auto& queueId : utility::kQueuePerhostQueueIds()) {
-      beforeQueueOutPkts.push_back(
+      beforeQueueOutPkts[queueId] =
           this->getLatestPortStats(this->masterLogicalPortIds()[0])
               .get_queueOutPackets_()
-              .at(queueId));
+              .at(queueId);
     }
 
     for (const auto& ipToMacAndClassID : getIpToMacAndClassID()) {
@@ -183,16 +183,25 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
       sendPacket(dstIP, frontPanel);
     }
 
-    std::vector<int64_t> afterQueueOutPkts;
+    std::map<int, int64_t> afterQueueOutPkts;
     for (const auto& queueId : utility::kQueuePerhostQueueIds()) {
-      afterQueueOutPkts.push_back(
+      afterQueueOutPkts[queueId] =
           this->getLatestPortStats(this->masterLogicalPortIds()[0])
               .get_queueOutPackets_()
-              .at(queueId));
+              .at(queueId);
     }
 
-    for (auto i = 0; i < beforeQueueOutPkts.size(); i++) {
-      EXPECT_EQ(afterQueueOutPkts.at(i) - beforeQueueOutPkts.at(i), 1);
+    for (auto [qid, beforePkts] : beforeQueueOutPkts) {
+      auto pktsOnQueue = afterQueueOutPkts[qid] - beforePkts;
+      XLOG(INFO) << " Pkts on queue : " << qid << " pkts: " << pktsOnQueue;
+      if (qid == 0) {
+        // On some platforms, looped packets for unknown MACs are flooded and
+        // counted on queue *before* the split horizon check. This flooding
+        // always happens on queue 0, so expect one or more packets on q0
+        EXPECT_GE(pktsOnQueue, 1);
+      } else {
+        EXPECT_EQ(pktsOnQueue, 1);
+      }
     }
   }
 
