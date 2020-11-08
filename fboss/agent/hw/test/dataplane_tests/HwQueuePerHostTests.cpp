@@ -47,23 +47,23 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
           folly::IPAddressV4,
           std::pair<folly::MacAddress, cfg::AclLookupClass>>
           ipToMacAndClassID = {
-              {folly::IPAddressV4("129.0.0.10"),
+              {folly::IPAddressV4("1.0.0.10"),
                std::make_pair(
                    folly::MacAddress("0:2:3:4:5:10"),
                    cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0)},
-              {folly::IPAddressV4("129.0.0.11"),
+              {folly::IPAddressV4("1.0.0.11"),
                std::make_pair(
                    folly::MacAddress("0:2:3:4:5:11"),
                    cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1)},
-              {folly::IPAddressV4("129.0.0.12"),
+              {folly::IPAddressV4("1.0.0.12"),
                std::make_pair(
                    folly::MacAddress("0:2:3:4:5:12"),
                    cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2)},
-              {folly::IPAddressV4("129.0.0.13"),
+              {folly::IPAddressV4("1.0.0.13"),
                std::make_pair(
                    folly::MacAddress("0:2:3:4:5:13"),
                    cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3)},
-              {folly::IPAddressV4("129.0.0.14"),
+              {folly::IPAddressV4("1.0.0.14"),
                std::make_pair(
                    folly::MacAddress("0:2:3:4:5:14"),
                    cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_4)},
@@ -75,23 +75,23 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
           folly::IPAddressV6,
           std::pair<folly::MacAddress, cfg::AclLookupClass>>
           ipToMacAndClassID = {
-              {folly::IPAddressV6("2620:0:1cfe:face:b00c::10"),
+              {folly::IPAddressV6("1::10"),
                std::make_pair(
                    folly::MacAddress("0:2:3:4:5:10"),
                    cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0)},
-              {folly::IPAddressV6("2620:0:1cfe:face:b00c::11"),
+              {folly::IPAddressV6("1::11"),
                std::make_pair(
                    folly::MacAddress("0:2:3:4:5:11"),
                    cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1)},
-              {folly::IPAddressV6("2620:0:1cfe:face:b00c::12"),
+              {folly::IPAddressV6("1::12"),
                std::make_pair(
                    folly::MacAddress("0:2:3:4:5:12"),
                    cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2)},
-              {folly::IPAddressV6("2620:0:1cfe:face:b00c::13"),
+              {folly::IPAddressV6("1::13"),
                std::make_pair(
                    folly::MacAddress("0:2:3:4:5:13"),
                    cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3)},
-              {folly::IPAddressV6("2620:0:1cfe:face:b00c::14"),
+              {folly::IPAddressV6("1::14"),
                std::make_pair(
                    folly::MacAddress("0:2:3:4:5:14"),
                    cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_4)},
@@ -245,9 +245,9 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
 
   AddrT kSrcIP() {
     if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
-      return folly::IPAddressV4("129.0.0.1");
+      return folly::IPAddressV4("1.0.0.1");
     } else {
-      return folly::IPAddressV6("2620:0:1cfe:face:b00c::1");
+      return folly::IPAddressV6("1::1");
     }
   }
 
