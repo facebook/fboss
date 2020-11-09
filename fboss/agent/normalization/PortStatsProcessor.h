@@ -18,10 +18,13 @@
 namespace facebook::fboss::normalization {
 
 class TransformHandler;
+class StatsExporter;
 
 class PortStatsProcessor {
  public:
-  explicit PortStatsProcessor(TransformHandler* transformHandler);
+  PortStatsProcessor(
+      TransformHandler* transformHandler,
+      StatsExporter* statsExporter);
 
   void processStats(
       const folly::F14FastMap<std::string, HwPortStats>& hwStatsMap);
@@ -35,6 +38,7 @@ class PortStatsProcessor {
       TransformType type);
 
   TransformHandler* transformHandler_;
+  StatsExporter* statsExporter_;
 };
 
 } // namespace facebook::fboss::normalization

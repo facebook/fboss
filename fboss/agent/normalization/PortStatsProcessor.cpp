@@ -8,12 +8,15 @@
  *
  */
 #include "fboss/agent/normalization/PortStatsProcessor.h"
+#include "fboss/agent/normalization/StatsExporter.h"
 #include "fboss/agent/normalization/TransformHandler.h"
 
 namespace facebook::fboss::normalization {
 
-PortStatsProcessor::PortStatsProcessor(TransformHandler* transformHandler)
-    : transformHandler_(transformHandler) {}
+PortStatsProcessor::PortStatsProcessor(
+    TransformHandler* transformHandler,
+    StatsExporter* statsExporter)
+    : transformHandler_(transformHandler), statsExporter_(statsExporter) {}
 
 void PortStatsProcessor::processStats(
     const folly::F14FastMap<std::string, HwPortStats>& hwStatsMap) {
@@ -64,7 +67,9 @@ void PortStatsProcessor::process(
   }
 
   if (transformedValue) {
-    // TODO: create formatted ODS counter and publish it
+    // create formatted ODS counter and publish it
+    statsExporter_->publishPortStats(
+        portName, normalizedPropertyName, propertyTimestamp, *transformedValue);
   }
 }
 
