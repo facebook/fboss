@@ -125,4 +125,24 @@ inline folly::StringPiece constexpr kWredDroppedPackets() {
   return "wred_dropped_packets";
 }
 
+inline folly::StringPiece constexpr kObmLossyHighPriDroppedPkts() {
+  return "obm_lossy_high_pri_dropped_pkts";
+}
+
+inline folly::StringPiece constexpr kObmLossyHighPriDroppedBytes() {
+  return "obm_lossy_high_pri_dropped_bytes";
+}
+
+inline folly::StringPiece constexpr kObmLossyLowPriDroppedPkts() {
+  return "obm_lossy_low_pri_dropped_pkts";
+}
+
+inline folly::StringPiece constexpr kObmLossyLowPriDroppedBytes() {
+  return "obm_lossy_low_pri_dropped_bytes";
+}
+
+inline folly::StringPiece constexpr kObmHighWatermark() {
+  return "obm_high_watermark";
+}
+
 } // namespace facebook::fboss

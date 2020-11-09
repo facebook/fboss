@@ -44,6 +44,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL: // CS00011272352
     case HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER:
     case HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT:
+    case HwAsic::Feature::OBM_COUNTERS:
       return false;
   }
   return false;

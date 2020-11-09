@@ -27,7 +27,17 @@ const std::map<BcmCosQueueStatType, bcm_cosq_stat_t> kBcmCosqStats = {
     {BcmCosQueueStatType::DROPPED_BYTES, bcmCosqStatDroppedBytes},
     {BcmCosQueueStatType::DROPPED_PACKETS, bcmCosqStatDroppedPackets},
     {BcmCosQueueStatType::OUT_BYTES, bcmCosqStatOutBytes},
-    {BcmCosQueueStatType::OUT_PACKETS, bcmCosqStatOutPackets}};
+    {BcmCosQueueStatType::OUT_PACKETS, bcmCosqStatOutPackets},
+    {BcmCosQueueStatType::OBM_LOSSY_HIGH_PRI_DROPPED_PACKETS,
+     bcmCosqStatOBMLossyHighPriDroppedPackets},
+    {BcmCosQueueStatType::OBM_LOSSY_HIGH_PRI_DROPPED_BYTES,
+     bcmCosqStatOBMLossyHighPriDroppedBytes},
+    {BcmCosQueueStatType::OBM_LOSSY_LOW_PRI_DROPPED_PACKETS,
+     bcmCosqStatOBMLossyLowPriDroppedPackets},
+    {BcmCosQueueStatType::OBM_LOSSY_LOW_PRI_DROPPED_BYTES,
+     bcmCosqStatOBMLossyLowPriDroppedBytes},
+    {BcmCosQueueStatType::OBM_HIGH_WATERMARK, bcmCosqStatOBMHighWatermark},
+};
 
 // Default Port Queue settings
 // Common settings among different chips

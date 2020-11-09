@@ -46,6 +46,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_COPY_TO_CPU:
     case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
     case HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER:
+    case HwAsic::Feature::OBM_COUNTERS:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:

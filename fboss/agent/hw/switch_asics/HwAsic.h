@@ -44,6 +44,7 @@ class HwAsic {
     HOSTTABLE,
     PORT_TX_DISABLE,
     ZERO_SDK_WRITE_WARMBOOT,
+    OBM_COUNTERS,
   };
 
   enum class AsicType {

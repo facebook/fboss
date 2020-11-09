@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
@@ -62,7 +63,40 @@ BcmPortQueueManager::getQueueCounterTypes() const {
        BcmCosQueueCounterScope::QUEUES,
        kOutPkts()},
   };
-  return types;
+
+  if (!hw_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::OBM_COUNTERS)) {
+    return types;
+  }
+
+  std::vector<BcmCosQueueCounterType> obmTypes = {
+      {cfg::StreamType::UNICAST,
+       BcmCosQueueStatType::OBM_LOSSY_HIGH_PRI_DROPPED_PACKETS,
+       BcmCosQueueCounterScope::AGGREGATED,
+       kObmLossyHighPriDroppedPkts()},
+      {cfg::StreamType::UNICAST,
+       BcmCosQueueStatType::OBM_LOSSY_HIGH_PRI_DROPPED_BYTES,
+       BcmCosQueueCounterScope::AGGREGATED,
+       kObmLossyHighPriDroppedBytes()},
+      {cfg::StreamType::UNICAST,
+       BcmCosQueueStatType::OBM_LOSSY_LOW_PRI_DROPPED_PACKETS,
+       BcmCosQueueCounterScope::AGGREGATED,
+       kObmLossyLowPriDroppedPkts()},
+      {cfg::StreamType::UNICAST,
+       BcmCosQueueStatType::OBM_LOSSY_LOW_PRI_DROPPED_BYTES,
+       BcmCosQueueCounterScope::AGGREGATED,
+       kObmLossyLowPriDroppedBytes()},
+      {cfg::StreamType::UNICAST,
+       BcmCosQueueStatType::OBM_HIGH_WATERMARK,
+       // NOTE: MAX agg is unsupported, resorting to SUM
+       BcmCosQueueCounterScope::AGGREGATED,
+       kObmHighWatermark()},
+  };
+
+  obmTypes.insert(obmTypes.begin(), types.begin(), types.end());
+  static const std::vector<BcmCosQueueCounterType> allTypes = {obmTypes.begin(),
+                                                               obmTypes.end()};
+  return allTypes;
 }
 
 /**
