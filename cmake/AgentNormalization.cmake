@@ -5,9 +5,12 @@
 
 add_library(normalizer
   fboss/agent/normalization/Normalizer.cpp
+  fboss/agent/normalization/PortStatsProcessor.cpp
+  fboss/agent/normalization/TransformHandler.cpp
 )
 
 target_link_libraries(normalizer
   hardware_stats_cpp2
   Folly::folly
+  fboss_types
 )

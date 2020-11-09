@@ -81,6 +81,11 @@ FBOSS_STRONG_TYPE(uint32_t, PciDeviceId);
  */
 FBOSS_STRONG_TYPE(uint64_t, NodeID)
 
+/*
+ * Timestamp of a stat
+ */
+FBOSS_STRONG_TYPE(int64_t, StatTimestamp)
+
 namespace facebook::fboss {
 
 using LoadBalancerID = cfg::LoadBalancerID;
