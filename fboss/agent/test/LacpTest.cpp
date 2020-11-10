@@ -30,7 +30,11 @@
 #include "fboss/agent/LacpController.h"
 #include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/LinkAggregationManager.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/test/CounterCache.h"
+#include "fboss/agent/test/HwTestHandle.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/types.h"
 
 using namespace facebook::fboss;
@@ -68,7 +72,9 @@ class LacpTest : public ::testing::Test {
 class LacpServiceInterceptor : public LacpServicerIf {
  public:
   explicit LacpServiceInterceptor(folly::EventBase* lacpEvb)
-      : lacpEvb_(lacpEvb) {}
+      : lacpEvb_(lacpEvb), sw_(nullptr) {}
+  LacpServiceInterceptor(folly::EventBase* lacpEvb, SwSwitch* sw)
+      : lacpEvb_(lacpEvb), sw_(sw) {}
 
   // The following methods implement the LacpServicerIf interface
   bool transmit(LACPDU lacpdu, PortID portID) override {
@@ -104,8 +110,16 @@ class LacpServiceInterceptor : public LacpServicerIf {
                << "aggregate " << aggPortID;
   }
 
-  void recordLacpTimeout() override {}
-  void recordLacpMismatchPduTeardown() override {}
+  void recordLacpTimeout() override {
+    if (sw_) {
+      sw_->stats()->LacpRxTimeouts();
+    }
+  }
+  void recordLacpMismatchPduTeardown() override {
+    if (sw_) {
+      sw_->stats()->LacpMismatchPduTeardown();
+    }
+  }
   std::vector<std::shared_ptr<LacpController>> getControllersFor(
       folly::Range<std::vector<PortID>::const_iterator> ports) override {
     std::vector<std::shared_ptr<LacpController>> filteredControllers;
@@ -186,6 +200,7 @@ class LacpServiceInterceptor : public LacpServicerIf {
   folly::Synchronized<PortIDToLacpduMap> portToLastTransmission_;
 
   folly::EventBase* lacpEvb_{nullptr};
+  SwSwitch* sw_{nullptr};
 };
 
 class MockLacpServicer : public LacpServicerIf {
@@ -1172,4 +1187,104 @@ TEST_F(LacpTest, lacpPortFlapAfterSync) {
   duController2->received(uuTransmission);
   // the port should stay down
   ASSERT_EQ(duEventInterceptor.isForwarding(duPort2), false);
+}
+/*
+ * Test LACP counters for timeout and PDU teardown
+ */
+TEST_F(LacpTest, lacpDownCounters) {
+  auto rate = cfg::LacpPortRate::FAST;
+  auto lacpEvbase = lacpEvb();
+  cfg::SwitchConfig config;
+  auto handle = createTestHandle(&config);
+  auto sw = handle->getSw();
+  LacpServiceInterceptor uuEventInterceptor(lacpEvbase);
+  // Start DU (which is the unit under test) with SwSwitch.
+  // Only one swswitch can run at a time. So UU runs without it.
+  LacpServiceInterceptor duEventInterceptor(lacpEvbase, sw);
+
+  PortID uuPort1(static_cast<uint16_t>(0xA));
+  PortID duPort1(static_cast<uint16_t>(0xD));
+  PortID uuPort2(static_cast<uint16_t>(0xB));
+  PortID duPort2(static_cast<uint16_t>(0xE));
+
+  using SystemID = std::array<uint8_t, 6>;
+  auto makeParticipantInfo = [](SystemID systemID, auto port, auto key) {
+    ParticipantInfo pInfo;
+    pInfo.systemPriority = 65535;
+    pInfo.systemID = systemID;
+    pInfo.key = key;
+    pInfo.portPriority = 32768;
+    pInfo.port = port;
+    pInfo.state = LacpState::ACTIVE | LacpState::AGGREGATABLE |
+        LacpState::COLLECTING | LacpState::DISTRIBUTING | LacpState::IN_SYNC |
+        LacpState::SHORT_TIMEOUT;
+    return pInfo;
+  };
+
+  SystemID uuSystemId = {0x02, 0x90, 0xfb, 0x5e, 0x1e, 0x85};
+  ParticipantInfo uuInfo1 = makeParticipantInfo(uuSystemId, uuPort1, 1);
+  ParticipantInfo uuInfo2 = makeParticipantInfo(uuSystemId, uuPort2, 1);
+  SystemID duSystemId = {0x02, 0x90, 0xfb, 0x5e, 0x24, 0x28};
+  ParticipantInfo duInfo1 = makeParticipantInfo(duSystemId, duPort1, 2);
+  ParticipantInfo duInfo2 = makeParticipantInfo(duSystemId, duPort2, 2);
+
+  auto createAndAddController =
+      [&rate, &lacpEvbase](auto& port, auto& pInfo, auto& interceptor) {
+        auto controller = std::make_shared<LacpController>(
+            port,
+            lacpEvbase,
+            pInfo.portPriority,
+            rate,
+            cfg::LacpPortActivity::ACTIVE,
+            cfg::switch_config_constants::DEFAULT_LACP_HOLD_TIMER_MULTIPLIER(),
+            AggregatePortID(pInfo.key),
+            pInfo.systemPriority,
+            MacAddress::fromBinary(folly::ByteRange(
+                pInfo.systemID.cbegin(), pInfo.systemID.cend())),
+            2 /* minimum-link count */,
+            &interceptor);
+        interceptor.addController(controller);
+        return controller;
+      };
+
+  auto uuController1 =
+      createAndAddController(uuPort1, uuInfo1, uuEventInterceptor);
+  auto uuController2 =
+      createAndAddController(uuPort2, uuInfo2, uuEventInterceptor);
+  auto duController1 =
+      createAndAddController(duPort1, duInfo1, duEventInterceptor);
+  auto duController2 =
+      createAndAddController(duPort2, duInfo2, duEventInterceptor);
+
+  auto partnerStateUu1 = makeParticipantInfo(duInfo1.systemID, duInfo1.port, 2);
+  uuController1->restoreMachines(partnerStateUu1);
+  auto partnerStateDu1 = makeParticipantInfo(uuInfo1.systemID, uuInfo1.port, 1);
+  duController1->restoreMachines(partnerStateDu1);
+  auto partnerStateUu2 = makeParticipantInfo(duInfo2.systemID, duInfo2.port, 2);
+  uuController2->restoreMachines(partnerStateUu2);
+  auto partnerStateDu2 = makeParticipantInfo(uuInfo2.systemID, uuInfo2.port, 1);
+  duController2->restoreMachines(partnerStateDu2);
+  XLOG(DBG3) << "Restored LACP state machines";
+
+  // All ports should be in forwarding state
+  ASSERT_EQ(duEventInterceptor.isForwarding(duPort1), true);
+  ASSERT_EQ(duEventInterceptor.isForwarding(duPort2), true);
+  ASSERT_EQ(uuEventInterceptor.isForwarding(uuPort1), true);
+  ASSERT_EQ(uuEventInterceptor.isForwarding(uuPort2), true);
+
+  auto uuTransmission = uuEventInterceptor.lastLacpduTransmitted(uuPort2);
+  uuTransmission.actorInfo.state = LacpState::ACTIVE | LacpState::AGGREGATABLE;
+  // Cache the current stats
+  CounterCache counters(sw);
+  // A mismatched PDU is received on port which transitions it to down
+  duController2->received(uuTransmission);
+  auto period = PeriodicTransmissionMachine::SHORT_PERIOD * 4;
+  // wait for LACP to timeout
+  std::this_thread::sleep_for(period);
+  counters.update();
+  // one member should record mismatch pdu
+  counters.checkDelta(
+      SwitchStats::kCounterPrefix + "lacp.mismatched_pdu_teardown.sum", 1);
+  // both members should timeout
+  counters.checkDelta(SwitchStats::kCounterPrefix + "lacp.rx_timeout.sum", 2);
 }
