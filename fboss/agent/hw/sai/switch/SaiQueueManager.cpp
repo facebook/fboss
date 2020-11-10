@@ -153,6 +153,12 @@ void SaiQueueManager::changeQueue(
   auto newBufferProfile =
       managerTable_->bufferManager().getOrCreateProfile(newPortQueue);
   if (newBufferProfile != queueHandle->bufferProfile) {
+    // FIXME - remove after CS00011260851 is resolved. BRCM-SAI code doesn't
+    // seem to be removing reference to old profile if a new valid profile
+    // is associated with queue. So first change to null profile and then
+    // update
+    queueHandle->queue->setOptionalAttribute(
+        SaiQueueTraits::Attributes::BufferProfileId{SAI_NULL_OBJECT_ID});
     queueHandle->queue->setOptionalAttribute(
         SaiQueueTraits::Attributes::BufferProfileId(
             newBufferProfile ? newBufferProfile->adapterKey()
