@@ -380,6 +380,14 @@ void LinkAggregationManager::disableForwardingAndSetPartnerState(
       "AggregatePort ForwardingAndPartnerState", std::move(disableFwdStateFn));
 }
 
+void LinkAggregationManager::recordLacpTimeout() {
+  sw_->stats()->LacpRxTimeouts();
+}
+
+void LinkAggregationManager::recordLacpMismatchPduTeardown() {
+  sw_->stats()->LacpMismatchPduTeardown();
+}
+
 std::vector<std::shared_ptr<LacpController>>
 LinkAggregationManager::getControllersFor(
     folly::Range<std::vector<PortID>::const_iterator> ports) {

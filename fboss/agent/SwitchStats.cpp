@@ -184,7 +184,12 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
           kCounterPrefix + "lldp.validate_mismatch",
           SUM,
           RATE),
-      LldpNeighborsSize_(map, kCounterPrefix + "lldp.neighbors_size", SUM) {}
+      LldpNeighborsSize_(map, kCounterPrefix + "lldp.neighbors_size", SUM),
+      LacpRxTimeouts_(map, kCounterPrefix + "lacp.rx_timeout", SUM),
+      LacpMismatchPduTeardown_(
+          map,
+          kCounterPrefix + "lacp.mismatched_pdu_teardown",
+          SUM) {}
 
 PortStats* FOLLY_NULLABLE SwitchStats::port(PortID portID) {
   auto it = ports_.find(portID);

@@ -103,6 +103,9 @@ class LacpServiceInterceptor : public LacpServicerIf {
     XLOG(INFO) << "Disabling member " << portID << " in "
                << "aggregate " << aggPortID;
   }
+
+  void recordLacpTimeout() override {}
+  void recordLacpMismatchPduTeardown() override {}
   std::vector<std::shared_ptr<LacpController>> getControllersFor(
       folly::Range<std::vector<PortID>::const_iterator> ports) override {
     std::vector<std::shared_ptr<LacpController>> filteredControllers;
@@ -200,6 +203,8 @@ class MockLacpServicer : public LacpServicerIf {
     XLOG(INFO) << "Disabling member " << portID << " in "
                << "aggregate " << aggPortID;
   }
+  void recordLacpTimeout() override {}
+  void recordLacpMismatchPduTeardown() override {}
   MOCK_METHOD2(transmit, bool(LACPDU, PortID));
   MOCK_METHOD1(
       getControllersFor,

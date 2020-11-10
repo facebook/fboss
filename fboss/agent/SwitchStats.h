@@ -302,6 +302,12 @@ class SwitchStats : public boost::noncopyable {
   void LldpNeighborsSize(int value) {
     LldpNeighborsSize_.addValue(value);
   }
+  void LacpRxTimeouts() {
+    LacpRxTimeouts_.addValue(1);
+  }
+  void LacpMismatchPduTeardown() {
+    LacpMismatchPduTeardown_.addValue(1);
+  }
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -488,6 +494,11 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries LldpValidateMisMatch_;
   // Number of LLDP Neighbors.
   TLTimeseries LldpNeighborsSize_;
+
+  // Number of LACP Rx timeouts
+  TLTimeseries LacpRxTimeouts_;
+  // Number of LACP session teardown due to mismatching PDUs
+  TLTimeseries LacpMismatchPduTeardown_;
 };
 
 } // namespace facebook::fboss

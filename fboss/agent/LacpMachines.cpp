@@ -140,9 +140,11 @@ std::ostream& operator<<(std::ostream& out, MuxMachine::MuxState s) {
 ReceiveMachine::ReceiveMachine(
     LacpController& controller,
     folly::EventBase* evb,
+    LacpServicerIf* servicer,
     uint16_t holdTimerMultiplier)
     : folly::AsyncTimeout(evb),
       controller_(controller),
+      servicer_(servicer),
       slowEpochSeconds_(std::chrono::seconds(30 * holdTimerMultiplier)),
       fastEpochSeconds_(std::chrono::seconds(1 * holdTimerMultiplier)) {}
 
@@ -326,6 +328,7 @@ void ReceiveMachine::recordPDU(LACPDU& lacpdu) {
                     << "Partner not in sync. Got LACP PDU ("
                     << lacpdu.describe() << ") Previous State ("
                     << partnerInfo_.describe() << ")";
+      servicer_->recordLacpMismatchPduTeardown();
     }
     partnerInfo_ = lacpdu.actorInfo;
     partnerInfo_.state &= ~LacpState::IN_SYNC;
@@ -348,6 +351,7 @@ void ReceiveMachine::timeoutExpired() noexcept {
         XLOG(WARNING) << "ReceiveMachine[" << controller_.portID()
                       << "]: RX timer expired in CURRENT state";
         expired();
+        servicer_->recordLacpTimeout();
         break;
       case ReceiveState::EXPIRED:
         defaulted();

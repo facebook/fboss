@@ -35,6 +35,7 @@ class ReceiveMachine : private folly::AsyncTimeout {
   explicit ReceiveMachine(
       LacpController& controller,
       folly::EventBase* evb,
+      LacpServicerIf* servicer,
       uint16_t holdTimerMultiplier);
   ~ReceiveMachine() override;
 
@@ -90,6 +91,7 @@ class ReceiveMachine : private folly::AsyncTimeout {
   ParticipantInfo partnerInfo_; // operational
 
   LacpController& controller_;
+  LacpServicerIf* servicer_{nullptr};
   std::chrono::seconds slowEpochSeconds_;
   std::chrono::seconds fastEpochSeconds_;
 };

@@ -43,6 +43,8 @@ struct LacpServicerIf {
       PortID portID,
       AggregatePortID aggPortID,
       const ParticipantInfo& partnerState) = 0;
+  virtual void recordLacpTimeout() = 0;
+  virtual void recordLacpMismatchPduTeardown() = 0;
   // If Selector was a static member of LinkAggregationManager, this wouldn't be
   // necessary
   virtual std::vector<std::shared_ptr<LacpController>> getControllersFor(
@@ -87,6 +89,8 @@ class LinkAggregationManager : public AutoRegisterStateObserver,
       PortID portID,
       AggregatePortID aggPortID,
       const ParticipantInfo& partnerState) override;
+  void recordLacpTimeout() override;
+  void recordLacpMismatchPduTeardown() override;
   std::vector<std::shared_ptr<LacpController>> getControllersFor(
       folly::Range<std::vector<PortID>::const_iterator> ports) override;
 
