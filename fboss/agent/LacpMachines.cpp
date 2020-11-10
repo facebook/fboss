@@ -11,6 +11,7 @@
 #include "fboss/agent/LacpMachines.h"
 #include "fboss/agent/LacpController.h"
 #include "fboss/agent/LinkAggregationManager.h"
+#include "fboss/lib/AlertLogger.h"
 
 #include <folly/Conv.h>
 #include <folly/ExceptionString.h>
@@ -324,7 +325,8 @@ void ReceiveMachine::recordPDU(LACPDU& lacpdu) {
   } else {
     // if partner transitions out of sync, LACP will disable fwding on the port
     if (partnerInfo_.state & LacpState::IN_SYNC) {
-      XLOG(WARNING) << "ReceiveMachine[" << controller_.portID() << "]: "
+      XLOG(WARNING) << PortAlert() << "ReceiveMachine[" << controller_.portID()
+                    << "]: "
                     << "Partner not in sync. Got LACP PDU ("
                     << lacpdu.describe() << ") Previous State ("
                     << partnerInfo_.describe() << ")";
@@ -348,7 +350,8 @@ void ReceiveMachine::timeoutExpired() noexcept {
   try {
     switch (state_) {
       case ReceiveState::CURRENT:
-        XLOG(WARNING) << "ReceiveMachine[" << controller_.portID()
+        XLOG(WARNING) << PortAlert() << "ReceiveMachine["
+                      << controller_.portID()
                       << "]: RX timer expired in CURRENT state";
         expired();
         servicer_->recordLacpTimeout();
