@@ -1,5 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 #include "fboss/agent/thrift_packet_stream/PacketStreamClient.h"
+#include <folly/io/async/AsyncSocket.h>
+#include <thrift/perf/cpp2/util/Util.h>
 
 namespace facebook {
 namespace fboss {
@@ -7,29 +9,56 @@ namespace fboss {
 PacketStreamClient::PacketStreamClient(
     const std::string& clientId,
     folly::EventBase* evb)
-    : clientId_(clientId), evb_(evb) {
+    : clientId_(clientId),
+      evb_(evb),
+      clientEvbThread_(
+          std::make_unique<folly::ScopedEventBaseThread>(clientId)) {
   if (!evb_) {
     throw std::runtime_error("Must pass valid evb to ctor, but passed null");
   }
 }
 
-void PacketStreamClient::connectToServer(
-    std::unique_ptr<PacketStreamAsyncClient> client) {
+PacketStreamClient::~PacketStreamClient() {
+  try {
+    LOG(INFO) << "Destroying PacketStreamClient";
+    if (cancelSource_) {
+      cancelSource_->requestCancellation();
+    }
+    if (isConnectedToServer()) {
+      folly::coro::blockingWait(client_->co_disconnect(clientId_));
+    }
+  } catch (const std::exception& ex) {
+    LOG(WARNING) << clientId_ << " disconnect failed:" << ex.what();
+  }
+  if (evb_) {
+    evb_->terminateLoopSoon();
+  }
+  clientEvbThread_->getEventBase()->runImmediatelyOrRunInEventBaseThreadAndWait(
+      [this]() { client_.reset(); });
+}
+
+void PacketStreamClient::createClient(const std::string& ip, uint16_t port) {
+  clientEvbThread_->getEventBase()->runImmediatelyOrRunInEventBaseThreadAndWait(
+      [this, ip, port]() {
+        auto addr = folly::SocketAddress(ip, port);
+        client_ = newRocketClient<facebook::fboss::PacketStreamAsyncClient>(
+            clientEvbThread_->getEventBase(), addr, false);
+      });
+}
+
+void PacketStreamClient::connectToServer(const std::string& ip, uint16_t port) {
   if (State::INIT != state_.load()) {
     VLOG(2) << "Client is already in process of connecting to server";
     return;
   }
-  if (!client) {
-    throw std::runtime_error("connect called without proper client");
-  }
   if (!evb_) {
     throw std::runtime_error("Client resumed after cancel called");
   }
-  client_ = std::move(client);
   state_.store(State::CONNECTING);
   cancelSource_ = std::make_unique<folly::CancellationSource>();
-  evb_->runInEventBaseThread([this] {
+  evb_->runInEventBaseThread([this, ip, port] {
     try {
+      createClient(ip, port);
       if (cancelSource_->isCancellationRequested()) {
         state_.store(State::INIT);
         return;
@@ -79,23 +108,6 @@ void PacketStreamClient::cancel() {
 
 bool PacketStreamClient::isConnectedToServer() {
   return (state_.load() == State::CONNECTED);
-}
-
-PacketStreamClient::~PacketStreamClient() {
-  try {
-    LOG(INFO) << "Destroying PacketStreamClient";
-    if (cancelSource_) {
-      cancelSource_->requestCancellation();
-    }
-    if (isConnectedToServer()) {
-      folly::coro::blockingWait(client_->co_disconnect(clientId_));
-    }
-    if (evb_) {
-      evb_->terminateLoopSoon();
-    }
-  } catch (const std::exception& ex) {
-    LOG(WARNING) << clientId_ << " disconnect failed:" << ex.what();
-  }
 }
 
 void PacketStreamClient::registerPortToServer(const std::string& port) {

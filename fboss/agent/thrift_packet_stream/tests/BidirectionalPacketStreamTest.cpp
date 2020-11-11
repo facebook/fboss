@@ -5,12 +5,10 @@
 #include <folly/Random.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/EventBaseManager.h>
+#include <folly/io/async/ScopedEventBaseThread.h>
 #include <folly/portability/GMock.h>
 #include <folly/portability/GTest.h>
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
-#include "servicerouter/client/cpp2/ServiceRouter.h"
-#include "servicerouter/tests/TestServer.h"
-#include "servicerouter/tests/gen-cpp2/TestServerService.h"
 
 using namespace testing;
 using namespace facebook::fboss;
@@ -85,21 +83,6 @@ class PacketAcceptor
 class BidirectionalPacketStreamTest : public Test {
  public:
   BidirectionalPacketStreamTest() = default;
-
-  std::unique_ptr<facebook::fboss::PacketStreamAsyncClient> createClient(
-      const folly::SocketAddress& /*serverAddr*/,
-      uint16_t port) {
-    // create an SR thrift client
-    facebook::servicerouter::ServiceOptions opts;
-    opts["single_host"] = {"::1", folly::to<std::string>(port)};
-    opts["svc_select_count"] = {"1"};
-    facebook::servicerouter::ConnConfigs cfg;
-    cfg["thrift_transport"] = "rocket";
-    cfg["thrift_security"] = "disabled";
-    return std::make_unique<facebook::fboss::PacketStreamAsyncClient>(
-        facebook::servicerouter::cpp2::getClientFactory().getChannel(
-            "", nullptr, opts, cfg));
-  }
 
   void tryConnect() {
     mkaServerStream_->connectClient(fbossAgent_->getPort());
@@ -417,6 +400,8 @@ TEST_F(BidirectionalPacketStreamTest, MKAServerDisconnectReconnectTest) {
   // Now stop the fboss Server.
   fbossAgent_.reset();
   fbossAgentStream_.reset();
+  fbossClientThread_->getEventBase()->terminateLoopSoon();
+  fbossClientThread_ = std::make_unique<folly::ScopedEventBaseThread>();
 
   baton_->reset();
   EXPECT_FALSE(baton_->try_wait_for(std::chrono::milliseconds(200)));

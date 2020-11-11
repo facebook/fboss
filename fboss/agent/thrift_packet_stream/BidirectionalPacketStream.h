@@ -77,7 +77,6 @@ class BidirectionalPacketStream
 
  private:
   void registerPortsToServer();
-  std::unique_ptr<facebook::fboss::PacketStreamAsyncClient> createClient();
   folly::EventBase* evb_;
   double timeout_;
   using TransportMap =

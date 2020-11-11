@@ -4,14 +4,12 @@
 #include <folly/Random.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/EventBaseManager.h>
+#include <folly/io/async/ScopedEventBaseThread.h>
 #include <folly/portability/GMock.h>
 #include <folly/portability/GTest.h>
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 #include "fboss/agent/thrift_packet_stream/PacketStreamClient.h"
 #include "fboss/agent/thrift_packet_stream/PacketStreamService.h"
-#include "servicerouter/client/cpp2/ServiceRouter.h"
-#include "servicerouter/tests/TestServer.h"
-#include "servicerouter/tests/gen-cpp2/TestServerService.h"
 
 using namespace testing;
 using namespace facebook::fboss;
@@ -77,23 +75,10 @@ class PacketStreamTest : public Test {
  public:
   PacketStreamTest() {}
 
-  std::unique_ptr<facebook::fboss::PacketStreamAsyncClient> createClient() {
-    auto serverAddr = server_->getAddress();
-    // create an SR thrift client
-    facebook::servicerouter::ServiceOptions opts;
-    opts["single_host"] = {"::1", folly::to<std::string>(serverAddr.getPort())};
-    opts["svc_select_count"] = {"1"};
-    facebook::servicerouter::ConnConfigs cfg;
-    cfg["thrift_transport"] = "rocket";
-    cfg["thrift_security"] = "disabled";
-    return std::make_unique<facebook::fboss::PacketStreamAsyncClient>(
-        facebook::servicerouter::cpp2::getClientFactory().getChannel(
-            "", nullptr, opts, cfg));
-  }
   void tryConnect(
       std::shared_ptr<folly::Baton<>> baton,
       DerivedPacketStreamClient& streamClient) {
-    streamClient.connectToServer(createClient());
+    streamClient.connectToServer("::1", server_->getPort());
     auto retry = 15;
     EXPECT_FALSE(baton->try_wait_for(std::chrono::milliseconds(50)));
     while (!streamClient.isConnectedToServer() && retry > 0) {
@@ -230,15 +215,6 @@ TEST_F(PacketStreamTest, clearPortFromServerSendFail) {
   EXPECT_THROW(handler_->send(g_client, std::move(pkt)), std::exception);
   EXPECT_FALSE(handler_->isPortRegistered(g_client, port));
   clientReset(std::move(streamClient));
-}
-
-TEST_F(PacketStreamTest, disconnectFail) {
-  auto client = createClient();
-  std::string port(*g_ports.begin());
-  auto baton = std::make_shared<folly::Baton<>>();
-  EXPECT_THROW(
-      folly::coro::blockingWait(client->co_disconnect(g_client)),
-      TPacketException);
 }
 
 TEST_F(PacketStreamTest, PacketSendMultiPort) {
@@ -413,14 +389,14 @@ TEST_F(PacketStreamTest, ServerDisconnected) {
 TEST_F(PacketStreamTest, ServerNotStarted) {
   std::string port(*g_ports.begin());
   auto baton = std::make_shared<folly::Baton<>>();
-  auto client = createClient();
+  auto serverPort = server_->getPort();
   server_.reset();
   handler_.reset();
 
   std::unique_ptr<DerivedPacketStreamClient> streamClient =
       std::make_unique<DerivedPacketStreamClient>(
           g_client, clientThread_.getEventBase(), baton);
-  streamClient->connectToServer(std::move(client));
+  streamClient->connectToServer("::1", serverPort);
 
   auto retry = 3;
   EXPECT_FALSE(baton->try_wait_for(std::chrono::milliseconds(50)));

@@ -4,6 +4,7 @@
 
 #include <fboss/agent/if/gen-cpp2/PacketStreamAsyncClient.h>
 #include <folly/experimental/coro/BlockingWait.h>
+#include <folly/io/async/ScopedEventBaseThread.h>
 
 #include <unordered_map>
 
@@ -16,7 +17,7 @@ class PacketStreamClient {
       folly::EventBase* evb);
 
   virtual ~PacketStreamClient();
-  void connectToServer(std::unique_ptr<PacketStreamAsyncClient> client);
+  void connectToServer(const std::string& ip, uint16_t port);
   void registerPortToServer(const std::string& port);
   void clearPortFromServer(const std::string& l2port);
   bool isConnectedToServer();
@@ -35,11 +36,13 @@ class PacketStreamClient {
     CONNECTED = 2,
   };
   folly::coro::Task<void> connect();
+  void createClient(const std::string& ip, uint16_t port);
   std::string clientId_;
   std::unique_ptr<folly::CancellationSource> cancelSource_;
   std::unique_ptr<PacketStreamAsyncClient> client_;
   folly::EventBase* evb_;
   std::atomic<State> state_{State::INIT};
+  std::unique_ptr<folly::ScopedEventBaseThread> clientEvbThread_;
 };
 
 } // namespace fboss

@@ -1,8 +1,8 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/thrift_packet_stream/BidirectionalPacketStream.h"
+#include <thrift/perf/cpp2/util/Util.h>
 #include "fboss/agent/thrift_packet_stream/AsyncThriftPacketTransport.h"
-#include "servicerouter/client/cpp2/ServiceRouter.h"
 
 namespace facebook {
 namespace fboss {
@@ -15,28 +15,14 @@ BidirectionalPacketStream::~BidirectionalPacketStream() {
   }
 }
 
-std::unique_ptr<facebook::fboss::PacketStreamAsyncClient>
-BidirectionalPacketStream::createClient() {
-  // create an SR thrift client
-  facebook::servicerouter::ServiceOptions opts;
-  opts["single_host"] = {"::1", folly::to<std::string>(peerServerPort_.load())};
-  opts["svc_select_count"] = {"1"};
-  facebook::servicerouter::ConnConfigs cfg;
-  cfg["thrift_transport"] = "rocket";
-  cfg["thrift_security"] = "disabled";
-  // TODO (shankaran): Add meaningful information for debugging.
-  cfg["client_id"] = serviceName_;
-  return std::make_unique<facebook::fboss::PacketStreamAsyncClient>(
-      facebook::servicerouter::cpp2::getClientFactory().getChannel(
-          "", nullptr, opts, cfg));
-}
-
 void BidirectionalPacketStream::registerPortsToServer() {
-  if (PacketStreamClient::isConnectedToServer() && newConnection_.load()) {
+  if (PacketStreamClient::isConnectedToServer() && clientConnected_.load() &&
+      newConnection_.load()) {
     try {
       portMap_.withWLock([&](auto& lockedMap) {
         for (const auto& port : lockedMap) {
           // register the port for local server
+          LOG(INFO) << serviceName_ << ": Register Port " << port;
           PacketStreamService::registerPort(
               std::make_unique<std::string>(connectedClientId_),
               std::make_unique<std::string>(port));
@@ -57,10 +43,10 @@ void BidirectionalPacketStream::connectClient(uint16_t port) {
   if (!port) {
     throw std::runtime_error("Invalid port");
   }
-  LOG(INFO) << "Starting Connection to Server: " << port;
+  LOG(INFO) << serviceName_ << ": Starting Connection to Server: " << port;
   peerServerPort_.store(port);
   newConnection_.store(true);
-  PacketStreamClient::connectToServer(createClient());
+  PacketStreamClient::connectToServer("::1", port);
   registerPortsToServer();
 
   evb_->runInEventBaseThread([this]() { scheduleTimeout(timeout_); });
@@ -78,10 +64,10 @@ void BidirectionalPacketStream::timeoutExpired() noexcept {
     registerPortsToServer();
   } else {
     // try to reconnect.
-    LOG(INFO) << "Reconnecting to server on port: " << peerServerPort_.load();
-
+    auto port = peerServerPort_.load();
+    LOG(INFO) << serviceName_ << ": Reconnecting to server on port: " << port;
     newConnection_.store(true);
-    PacketStreamClient::connectToServer(createClient());
+    PacketStreamClient::connectToServer("::1", port);
   }
   scheduleTimeout(timeout_);
 }
@@ -91,7 +77,7 @@ std::shared_ptr<AsyncPacketTransport> BidirectionalPacketStream::listen(
   if (port.empty()) {
     return {};
   }
-  LOG(INFO) << "Start listening on Port: " << port;
+  LOG(INFO) << serviceName_ << ": Start listening on Port: " << port;
   portMap_.withWLock([&](auto& lockedMap) { lockedMap.emplace(port); });
   if (clientConnected_.load() && PacketStreamClient::isConnectedToServer()) {
     // lets try to register the port.
