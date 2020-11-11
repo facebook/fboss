@@ -116,6 +116,9 @@ SaiManagerTable::~SaiManagerTable() {
   qosMapManager_.reset();
   hostifManager_.reset();
 
+  // ACL Table Group is going away, reset ingressACL pointing to it
+  switchManager_->resetIngressAcl();
+
   // Reset ACL Table group before Acl Table, since ACL Table group members
   // refer to ACL Table and those references to ACL Table must be released
   // before attempting to reset (remove) ACL Table.

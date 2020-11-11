@@ -279,6 +279,11 @@ void SaiSwitchManager::setIngressAcl() {
       aclTableGroupHandle->adapterKey()});
 }
 
+void SaiSwitchManager::resetIngressAcl() {
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::IngressAcl{SAI_NULL_OBJECT_ID});
+}
+
 void SaiSwitchManager::gracefulExit() {
   // On graceful exit we trigger the warm boot path on
   // ASIC by destroying the switch (and thus calling the

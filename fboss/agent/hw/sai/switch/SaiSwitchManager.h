@@ -56,6 +56,7 @@ class SaiSwitchManager {
   void gracefulExit();
 
   void setIngressAcl();
+  void resetIngressAcl();
 
   void setMacAgingSeconds(sai_uint32_t agingSeconds);
   sai_uint32_t getMacAgingSeconds() const;
