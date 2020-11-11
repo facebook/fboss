@@ -14,10 +14,16 @@
 #include <mutex>
 
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmTypes.h"
 
 extern "C" {
 #include <bcm/pkt.h>
 #include <bcm/types.h>
+#ifdef INCLUDE_PKTIO
+#include <bcm/pktio.h>
+#include <bcm/pktio_defs.h>
+#endif
 }
 
 namespace facebook::fboss {
@@ -26,9 +32,9 @@ class BcmTxPacket;
 class BcmSwitch;
 
 struct BcmFreeTxBufUserData {
-  BcmFreeTxBufUserData(bcm_pkt_t* pkt, const BcmSwitch* bcmSwitch)
-      : pkt(pkt), bcmSwitch(bcmSwitch) {}
-  bcm_pkt_t* pkt;
+  BcmFreeTxBufUserData(const BcmPacketT& bcmPacket, const BcmSwitch* bcmSwitch)
+      : bcmPacket(bcmPacket), bcmSwitch(bcmSwitch) {}
+  const BcmPacketT& bcmPacket;
   const BcmSwitch* bcmSwitch;
 };
 
@@ -45,11 +51,8 @@ class BcmTxPacket : public TxPacket {
  public:
   BcmTxPacket(int unit, uint32_t size, const BcmSwitch* bcmSwitch);
 
-  bcm_pkt_t* getPkt() {
-    return pkt_;
-  }
-  const bcm_pkt_t* getPkt() const {
-    return pkt_;
+  const BcmPacketT& getPkt() {
+    return bcmPacket_;
   }
 
   typedef std::chrono::time_point<std::chrono::steady_clock> TimePoint;
@@ -62,14 +65,28 @@ class BcmTxPacket : public TxPacket {
    */
   void setDestModPort(bcm_port_t port) {
     DCHECK_EQ((port & ~0xff), 0);
-    // Need to reset TX_ETHER for packets that are
-    // predetermined to go out of a port/trunk
-    pkt_->flags &= ~BCM_TX_ETHER;
-    BCM_PBMP_PORT_SET(pkt_->tx_pbmp, port);
-    BCM_PBMP_PORT_SET(pkt_->tx_upbmp, port);
+    if (!bcmPacket_.usePktIO) {
+      bcm_pkt_t* pkt = bcmPacket_.ptrUnion.pkt;
+      // Need to reset TX_ETHER for packets that are
+      // predetermined to go out of a port/trunk
+      pkt->flags &= ~BCM_TX_ETHER;
+      BCM_PBMP_PORT_SET(pkt->tx_pbmp, port);
+      BCM_PBMP_PORT_SET(pkt->tx_upbmp, port);
+    } else {
+#ifdef INCLUDE_PKTIO
+      bcm_pktio_pkt_t* pktioPkt = bcmPacket_.ptrUnion.pktioPkt;
+      auto rv = bcm_pktio_pmd_field_set(
+          unit_,
+          pktioPkt,
+          bcmPktioPmdTypeTx,
+          BCMPKT_TXPMD_LOCAL_DEST_PORT,
+          port);
+      bcmCheckError(rv, "failed to set PKTIO PMD.");
+#endif
+    }
   }
 
-  void setCos(uint8_t cos);
+  void setCos(uint8_t cos) noexcept;
 
   /*
    * Send a BcmTxPacket asynchronously.
@@ -114,10 +131,14 @@ class BcmTxPacket : public TxPacket {
   static std::condition_variable& syncPktCV();
   static bool& syncPacketSent();
 
-  bcm_pkt_t* pkt_{nullptr};
+  BcmPacketT bcmPacket_;
 
   // time point when the packet is queued to HW
   TimePoint queued_;
+
+#ifdef INCLUDE_PKTIO
+  int unit_{-1};
+#endif
 };
 
 } // namespace facebook::fboss

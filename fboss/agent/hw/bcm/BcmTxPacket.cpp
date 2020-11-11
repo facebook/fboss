@@ -27,8 +27,19 @@ void freeTxBuf(void* /*ptr*/, void* arg) {
   // This will delete it when we return.
   unique_ptr<facebook::fboss::BcmFreeTxBufUserData> freeTxBufUserData(
       static_cast<facebook::fboss::BcmFreeTxBufUserData*>(arg));
-  bcm_pkt_t* pkt = freeTxBufUserData->pkt;
-  int rv = bcm_pkt_free(pkt->unit, pkt);
+  const BcmPacketT& bcmPacket = freeTxBufUserData->bcmPacket;
+  int rv;
+  if (!bcmPacket.usePktIO) {
+    bcm_pkt_t* pkt = bcmPacket.ptrUnion.pkt;
+    rv = bcm_pkt_free(pkt->unit, pkt);
+  } else {
+#ifdef INCLUDE_PKTIO
+    bcm_pktio_pkt_t* pktioPkt = bcmPacket.ptrUnion.pktioPkt;
+    rv = bcm_pktio_free(pktioPkt->unit, pktioPkt);
+#else
+    throw FbossError("invalid PKTIO configuration.");
+#endif
+  }
   bcmLogError(rv, "Failed to free packet");
   freeTxBufUserData->bcmSwitch->getSwitchStats()->txPktFree();
 }
@@ -38,7 +49,10 @@ inline void txCallbackImpl(int /*unit*/, bcm_pkt_t* pkt, void* cookie) {
   // This will delete it when we return.
   unique_ptr<facebook::fboss::BcmTxCallbackUserData> bcmTxCbUserData(
       static_cast<facebook::fboss::BcmTxCallbackUserData*>(cookie));
-  DCHECK_EQ(pkt, bcmTxCbUserData->txPacket->getPkt());
+  const BcmPacketT& bcmPacket = bcmTxCbUserData->txPacket->getPkt();
+  // PKTIO is synchronous.  This function is for non-PKTIO only.
+  DCHECK_EQ(false, bcmPacket.usePktIO);
+  DCHECK_EQ(pkt, bcmPacket.ptrUnion.pkt);
 
   // Now we reset the pkt buffer back to what was originally allocated
   pkt->pkt_data->data = bcmTxCbUserData->txPacket->buf()->writableBuffer();
@@ -68,48 +82,128 @@ bool& BcmTxPacket::syncPacketSent() {
 }
 
 BcmTxPacket::BcmTxPacket(int unit, uint32_t size, const BcmSwitch* bcmSwitch)
-    : queued_(std::chrono::time_point<std::chrono::steady_clock>::min()) {
-  int rv = bcm_pkt_alloc(unit, size, BCM_TX_CRC_APPEND | BCM_TX_ETHER, &pkt_);
-  if (BCM_FAILURE(rv)) {
-    bcmSwitch->getSwitchStats()->txPktAllocErrors();
-    bcmCheckError(rv, "Failed to allocate packet.");
-  } else {
-    auto freeTxBufUserData =
-        std::make_unique<BcmFreeTxBufUserData>(pkt_, bcmSwitch);
-    buf_ = IOBuf::takeOwnership(
-        pkt_->pkt_data->data,
+    : queued_(std::chrono::time_point<std::chrono::steady_clock>::min())
+#ifdef INCLUDE_PKTIO
+      ,
+      unit_(unit)
+#endif
+{
+  int rv;
+
+  bool usePktIO = bcmSwitch->usePKTIO();
+  void* bufData = nullptr;
+
+  bcmPacket_.usePktIO = usePktIO;
+  if (!usePktIO) {
+    bcmPacket_.ptrUnion.pkt = nullptr;
+    rv = bcm_pkt_alloc(
+        unit,
         size,
-        freeTxBuf,
-        reinterpret_cast<void*>(freeTxBufUserData.get()));
-    bcmSwitch->getSwitchStats()->txPktAlloc();
-    /*
-     * Release the unique pointer without destroying the free buffer user
-     * data. The unique pointer will be reconstructed when the IOBuf is
-     * freed to free the packet buffer as well as to increment the
-     * switch stats
-     */
-    freeTxBufUserData.release();
+        BCM_TX_CRC_APPEND | BCM_TX_ETHER,
+        &(bcmPacket_.ptrUnion.pkt));
+    if (BCM_FAILURE(rv)) {
+      bcmSwitch->getSwitchStats()->txPktAllocErrors();
+      bcmCheckError(rv, "Failed to allocate packet.");
+    } else {
+      bcm_pkt_t* pkt = bcmPacket_.ptrUnion.pkt;
+      CHECK_NOTNULL(pkt);
+      bufData = pkt->pkt_data->data;
+    }
+  } else {
+#ifdef INCLUDE_PKTIO
+    bcmPacket_.ptrUnion.pktioPkt = nullptr;
+    rv = bcm_pktio_alloc(
+        unit, size, BCM_PKTIO_BUF_F_TX, &(bcmPacket_.ptrUnion.pktioPkt));
+    if (BCM_FAILURE(rv)) {
+      bcmSwitch->getSwitchStats()->txPktAllocErrors();
+      bcmCheckError(rv, "Failed to allocate packet.");
+    } else {
+      bcm_pktio_pkt_t* pktioPkt = bcmPacket_.ptrUnion.pktioPkt;
+      CHECK_NOTNULL(pktioPkt);
+      /* Advance tail pointer and set packet length in packet structure */
+      rv = bcm_pktio_put(unit, pktioPkt, size, (void**)&bufData);
+      bcmCheckError(rv, "Failed in bcm_pktio_put to advance tail pointer.");
+
+      /* Get the pointer to the outgoing packet buffer */
+      rv = bcm_pktio_pkt_data_get(unit, pktioPkt, (void**)&bufData, nullptr);
+      bcmCheckError(rv, "Failed to get pkt data buffer.");
+    }
+#else
+    throw FbossError("Should not reach here for SDKs without PKTIO eanbled");
+#endif
   }
+
+  DCHECK(bufData);
+
+  auto freeTxBufUserData =
+      std::make_unique<BcmFreeTxBufUserData>(bcmPacket_, bcmSwitch);
+
+  buf_ = IOBuf::takeOwnership(
+      bufData,
+      size,
+      freeTxBuf,
+      reinterpret_cast<void*>(freeTxBufUserData.get()));
+
+  bcmSwitch->getSwitchStats()->txPktAlloc();
+
+  /*
+   * Release the unique pointer without destroying the free buffer user
+   * data. The unique pointer will be reconstructed when the IOBuf is
+   * freed to free the packet buffer as well as to increment the
+   * switch stats
+   */
+  freeTxBufUserData.release();
 }
 
 inline int BcmTxPacket::sendImpl(
     unique_ptr<BcmTxPacket> pkt,
     const BcmSwitch* bcmSwitch) noexcept {
-  bcm_pkt_t* bcmPkt = pkt->pkt_;
-  const auto buf = pkt->buf();
+  int rv;
 
-  // TODO(aeckert): Setting the pkt len manually should be replaced in future
-  // releases of bcm with BCM_PKT_TX_LEN_SET or bcm_flags_len_setup
-  DCHECK(bcmPkt->pkt_data);
-  bcmPkt->pkt_data->len = buf->length();
+  std::unique_ptr<BcmTxCallbackUserData> txCbUserData;
 
-  // Now we also set the buffer that will be sent out to point at
-  // buf->writableBuffer in case there is unused header space in the IOBuf
-  bcmPkt->pkt_data->data = buf->writableData();
-  pkt->queued_ = std::chrono::steady_clock::now();
-  auto txCbUserData =
-      std::make_unique<BcmTxCallbackUserData>(std::move(pkt), bcmSwitch);
-  auto rv = bcm_tx(bcmPkt->unit, bcmPkt, txCbUserData.get());
+  bool usePktIO = pkt->bcmPacket_.usePktIO;
+
+  if (!usePktIO) {
+    bcm_pkt_t* bcmPkt = pkt->bcmPacket_.ptrUnion.pkt;
+    const auto buf = pkt->buf();
+
+    // TODO(aeckert): Setting the pkt len manually should be replaced in future
+    // releases of bcm with BCM_PKT_TX_LEN_SET or bcm_flags_len_setup
+    DCHECK(bcmPkt->pkt_data);
+    bcmPkt->pkt_data->len = buf->length();
+
+    // Now we also set the buffer that will be sent out to point at
+    // buf->writableBuffer in case there is unused header space in the IOBuf
+    bcmPkt->pkt_data->data = buf->writableData();
+
+    pkt->queued_ = std::chrono::steady_clock::now();
+
+    txCbUserData =
+        std::make_unique<BcmTxCallbackUserData>(std::move(pkt), bcmSwitch);
+    rv = bcm_tx(bcmPkt->unit, bcmPkt, txCbUserData.get());
+
+  } else {
+#ifdef INCLUDE_PKTIO
+    bcm_pktio_pkt_t* pktioPkt = pkt->bcmPacket_.ptrUnion.pktioPkt;
+
+    rv = bcm_pktio_trim(pktioPkt->unit, pktioPkt, pkt->buf_->length());
+    if (BCM_FAILURE(rv)) {
+      bcmLogError(rv, "failed in bcm_pktio_trim to trim the buffer.");
+    } else {
+      // Differnt from bcm_tx, PKTIO is synchronous.  When TX is done, it is OK
+      // to release the buffer.  But for now, follow the same flow to free it
+      // at the time of releasing the IOBuf to avoid duplicating the stats
+      // code.
+      // TODO (xiangzhu) Will further optimizing the performance, possibly
+      // remove IOBuf.
+      pkt->queued_ = std::chrono::steady_clock::now();
+      rv = bcm_pktio_tx(pktioPkt->unit, pktioPkt);
+    }
+#else
+    rv = BCM_E_CONFIG;
+#endif
+  }
   if (BCM_SUCCESS(rv)) {
     /*
      * Release the unique pointer without destroying the TxPacket object.
@@ -143,7 +237,11 @@ void BcmTxPacket::txCallbackSync(int unit, bcm_pkt_t* pkt, void* cookie) {
 int BcmTxPacket::sendAsync(
     unique_ptr<BcmTxPacket> pkt,
     const BcmSwitch* bcmSwitch) noexcept {
-  bcm_pkt_t* bcmPkt = pkt->pkt_;
+  if (pkt->bcmPacket_.usePktIO) {
+    /* PKTIO does not support async mode yet. Use the sync call */
+    return sendSync(std::move(pkt), bcmSwitch);
+  }
+  bcm_pkt_t* bcmPkt = pkt->bcmPacket_.ptrUnion.pkt;
   DCHECK(bcmPkt->call_back == nullptr);
   bcmPkt->call_back = BcmTxPacket::txCallbackAsync;
   return sendImpl(std::move(pkt), bcmSwitch);
@@ -152,10 +250,12 @@ int BcmTxPacket::sendAsync(
 int BcmTxPacket::sendSync(
     unique_ptr<BcmTxPacket> pkt,
     const BcmSwitch* bcmSwitch) noexcept {
-  bcm_pkt_t* bcmPkt = pkt->pkt_;
-  DCHECK(bcmPkt->call_back == nullptr);
-  bcmPkt->call_back = BcmTxPacket::txCallbackSync;
-  {
+  bool usePktIO = pkt->bcmPacket_.usePktIO;
+
+  if (!usePktIO) {
+    bcm_pkt_t* bcmPkt = pkt->bcmPacket_.ptrUnion.pkt;
+    DCHECK(bcmPkt->call_back == nullptr);
+    bcmPkt->call_back = BcmTxPacket::txCallbackSync;
     std::lock_guard<std::mutex> lk{syncPktMutex()};
     syncPacketSent() = false;
   }
@@ -167,13 +267,30 @@ int BcmTxPacket::sendSync(
   // sendImpl does not update any shared data structures
   // its optimal to give up the lock anyways.
   auto rv = sendImpl(std::move(pkt), bcmSwitch);
-  std::unique_lock<std::mutex> lk{syncPktMutex()};
-  syncPktCV().wait(lk, [] { return syncPacketSent(); });
+  if (!usePktIO) {
+    std::unique_lock<std::mutex> lk{syncPktMutex()};
+    syncPktCV().wait(lk, [] { return syncPacketSent(); });
+  }
+
   return rv;
 }
 
-void BcmTxPacket::setCos(uint8_t cos) {
-  pkt_->cos = cos;
+void BcmTxPacket::setCos(uint8_t cos) noexcept {
+  if (!bcmPacket_.usePktIO) {
+    bcmPacket_.ptrUnion.pkt->cos = cos;
+  } else {
+#ifdef INCLUDE_PKTIO
+    auto rv = bcm_pktio_pmd_field_set(
+        unit_,
+        bcmPacket_.ptrUnion.pktioPkt,
+        bcmPktioPmdTypeTx,
+        BCMPKT_TXPMD_COS,
+        cos);
+    if (BCM_FAILURE(rv)) {
+      bcmLogError(rv, "failed to set COS in PKTIO PMD.");
+    }
+#endif
+  }
 }
 
 } // namespace facebook::fboss
