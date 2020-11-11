@@ -164,15 +164,6 @@ void BcmPortTable::initPortGroups() {
 
   for (auto& entry : bcmPhysicalPorts_) {
     BcmPort* bcmPort = entry.second.get();
-
-    // TODO(joseph5wu) For now, the following logic doesn't work for different
-    // lane settings for TH3. So skip portGroup setup for TH3 platform only.
-    if (!bcmPort->getPlatformPort()->shouldSetupPortGroup()) {
-      XLOG(DBG2) << "Skip setting up port group for port:"
-                 << bcmPort->getPortID();
-      continue;
-    }
-
     if (bcmPort->getPortGroup()) {
       // if port is part of a group already skip it.
       continue;

@@ -92,9 +92,6 @@ class WedgePort : public BcmPlatformPort {
   bool shouldUsePortResourceAPIs() const override {
     return false;
   }
-  bool shouldSetupPortGroup() const override {
-    return true;
-  }
 
   virtual void portChanged(std::shared_ptr<Port> port) {
     port_ = std::move(port);

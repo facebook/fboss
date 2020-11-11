@@ -27,9 +27,6 @@ class BcmTestYampPort : public BcmTestPort {
   bool shouldUsePortResourceAPIs() const override {
     return true;
   }
-  bool shouldSetupPortGroup() const override {
-    return false;
-  }
 
   folly::Future<TransmitterTechnology> getTransmitterTech(
       folly::EventBase* /*evb*/) const override {

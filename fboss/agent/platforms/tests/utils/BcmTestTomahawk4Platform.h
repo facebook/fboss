@@ -70,6 +70,10 @@ class BcmTestTomahawk4Platform : public BcmTestWedgePlatform {
     return true;
   }
 
+  bool supportsAddRemovePort() const override {
+    return true;
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmTestTomahawk4Platform(BcmTestTomahawk4Platform const&) = delete;

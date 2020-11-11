@@ -61,10 +61,6 @@ class BcmTestPort : public BcmPlatformPort {
     return false;
   }
 
-  bool shouldSetupPortGroup() const override {
-    return true;
-  }
-
   folly::Future<TransceiverInfo> getTransceiverInfo() const override;
 
   int numberOfLanes() const;

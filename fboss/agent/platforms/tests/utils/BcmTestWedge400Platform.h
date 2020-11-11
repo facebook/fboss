@@ -20,10 +20,6 @@ class BcmTestWedge400Platform : public BcmTestWedgeTomahawk3Platform {
   explicit BcmTestWedge400Platform(
       std::unique_ptr<PlatformProductInfo> productInfo);
 
-  bool supportsAddRemovePort() const override {
-    return true;
-  }
-
   std::vector<FlexPortMode> getSupportedFlexPortModes() const override {
     return {FlexPortMode::FOURX10G,
             FlexPortMode::FOURX25G,
