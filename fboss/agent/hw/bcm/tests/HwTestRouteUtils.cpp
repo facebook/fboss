@@ -12,6 +12,7 @@
 
 #include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 extern "C" {
 #include <bcm/l3.h>
@@ -41,10 +42,16 @@ bcm_l3_route_t getBcmRoute(int unit, const folly::CIDRNetwork& cidrNetwork) {
 }
 
 bool isEgressToIp(
-    int unit,
+    const BcmSwitch* bcmSwitch,
     RouterID rid,
     folly::IPAddress addr,
     bcm_if_t egress) {
+  if (!bcmSwitch->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::HOSTTABLE)) {
+    bcm_l3_route_t route = getBcmRoute(
+        bcmSwitch->getUnit(), folly::CIDRNetwork(addr, addr.bitCount()));
+    return egress == route.l3a_intf;
+  }
   bcm_l3_host_t host;
   bcm_l3_host_t_init(&host);
   if (addr.isV4()) {
@@ -57,7 +64,7 @@ bool isEgressToIp(
     host.l3a_flags |= BCM_L3_IP6;
   }
   host.l3a_vrf = rid;
-  CHECK_EQ(bcm_l3_host_find(unit, &host), 0);
+  CHECK_EQ(bcm_l3_host_find(bcmSwitch->getUnit(), &host), 0);
   return egress == host.l3a_intf;
 }
 
@@ -136,7 +143,7 @@ bool isHwRouteToNextHop(
     bcm_l3_ecmp_member_t foundMember;
     bcm_l3_ecmp_member_t_init(&foundMember);
     for (auto member : members) {
-      if (!isEgressToIp(bcmSwitch->getUnit(), rid, ip, member.egress_if)) {
+      if (!isEgressToIp(bcmSwitch, rid, ip, member.egress_if)) {
         continue;
       }
       found = true;
@@ -155,7 +162,7 @@ bool isHwRouteToNextHop(
                });
   }
   // check for next hop
-  return isEgressToIp(bcmSwitch->getUnit(), rid, ip, route.l3a_intf);
+  return isEgressToIp(bcmSwitch, rid, ip, route.l3a_intf);
 }
 
 } // namespace facebook::fboss::utility
