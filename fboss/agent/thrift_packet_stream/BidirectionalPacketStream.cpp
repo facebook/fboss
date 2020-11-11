@@ -9,8 +9,10 @@ namespace fboss {
 
 BidirectionalPacketStream::~BidirectionalPacketStream() {
   LOG(INFO) << "Closing Bidirectional stream:";
-  evb_->runImmediatelyOrRunInEventBaseThreadAndWait(
-      [this]() { cancelTimeout(); });
+  if (evb_) {
+    evb_->runImmediatelyOrRunInEventBaseThreadAndWait(
+        [this]() { cancelTimeout(); });
+  }
 }
 
 std::unique_ptr<facebook::fboss::PacketStreamAsyncClient>
@@ -67,6 +69,8 @@ void BidirectionalPacketStream::stopClient() {
   evb_->runImmediatelyOrRunInEventBaseThreadAndWait(
       [this]() { cancelTimeout(); });
   PacketStreamClient::cancel();
+  // called when destructing so we can clean up evb_
+  evb_ = nullptr;
 }
 
 void BidirectionalPacketStream::timeoutExpired() noexcept {
@@ -145,7 +149,7 @@ void BidirectionalPacketStream::close(const std::string& port) {
   LOG(INFO) << "Unregister Port:" << port;
 }
 
-void BidirectionalPacketStream::recvPacket(Packet&& packet) {
+void BidirectionalPacketStream::recvPacket(TPacket&& packet) {
   const auto& port = *packet.l2Port_ref();
   if (port.empty()) {
     LOG(ERROR) << "Packet received with port empty";
@@ -174,7 +178,7 @@ void BidirectionalPacketStream::recvPacket(Packet&& packet) {
   }
 }
 
-ssize_t BidirectionalPacketStream::send(Packet&& packet) {
+ssize_t BidirectionalPacketStream::send(TPacket&& packet) {
   if (!clientConnected_.load()) {
     LOG(ERROR) << "client not yet connected";
     return -1;

@@ -15,7 +15,7 @@ class BidirectionalPacketAcceptor {
  public:
   BidirectionalPacketAcceptor() = default;
   virtual ~BidirectionalPacketAcceptor() = default;
-  virtual void recvPacket(Packet&& packet) = 0;
+  virtual void recvPacket(TPacket&& packet) = 0;
 };
 
 class BidirectionalPacketStream
@@ -52,16 +52,20 @@ class BidirectionalPacketStream
 
   std::shared_ptr<AsyncPacketTransport> listen(const std::string& port);
   void close(const std::string& port);
-  ssize_t send(Packet&& packet);
+  ssize_t send(TPacket&& packet);
 
   void setPacketAcceptor(BidirectionalPacketAcceptor* acceptor) {
     acceptor_.store(acceptor);
   }
   void timeoutExpired() noexcept override;
 
+  bool isPortRegistered(const std::string& port) {
+    return PacketStreamService::isPortRegistered(connectedClientId_, port);
+  }
+
  protected:
   // client calls
-  virtual void recvPacket(Packet&& packet) override;
+  virtual void recvPacket(TPacket&& packet) override;
   // server calls
   virtual void clientConnected(const std::string& clientId) override;
   virtual void clientDisconnected(const std::string& clientId) override;

@@ -3,13 +3,13 @@ namespace py3 neteng.fboss
 
 include "common/fb303/if/fb303.thrift"
 
-struct Packet {
+struct TPacket {
   1: i64 timestamp
   2: string l2Port
   3: binary buf
 }
 
-enum ErrorCode {
+enum TPacketErrorCode {
   INVALID_L2PORT = 1,
   CLIENT_NOT_CONNECTED = 2,
   STREAM_NOT_FOUND = 3,
@@ -18,17 +18,17 @@ enum ErrorCode {
   INVALID_CLIENT = 6,
 }
 
-exception PacketException {
-  1: ErrorCode code,
+exception TPacketException {
+  1: TPacketErrorCode code,
   2: string msg,
 }
 
 service PacketStream extends fb303.FacebookService {
-  stream<Packet throws (1: PacketException ex)> connect(1: string clientId)
-    throws (1: PacketException ex)
+  stream<TPacket throws (1: TPacketException ex)> connect(1: string clientId)
+    throws (1: TPacketException ex)
   void registerPort(1: string clientId, 2: string l2Port)
-    throws (1: PacketException ex)
+    throws (1: TPacketException ex)
   void clearPort(1: string clientId, 2: string l2Port)
-    throws (1: PacketException ex)
-  void disconnect(1: string clientId) throws (1: PacketException ex)
+    throws (1: TPacketException ex)
+  void disconnect(1: string clientId) throws (1: TPacketException ex)
 }

@@ -26,7 +26,7 @@ class PacketStreamClient {
   // The derived client should implement this function which
   // will have the logic to do operation after receiving this
   // packet.
-  virtual void recvPacket(Packet&& packet) = 0;
+  virtual void recvPacket(TPacket&& packet) = 0;
 
  private:
   enum class State : uint16_t {

@@ -27,7 +27,7 @@ class AsyncThriftPacketTransport : public AsyncPacketTransport {
    */
   virtual ssize_t send(const std::unique_ptr<folly::IOBuf>& buf) override;
 
-  void recvPacket(Packet&& packet) {
+  void recvPacket(TPacket&& packet) {
     if (!isReading()) {
       return;
     }

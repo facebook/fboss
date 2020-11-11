@@ -14,7 +14,7 @@ class PacketStreamService : virtual public PacketStreamSvIf,
   virtual ~PacketStreamService() override;
 
   // helper functions.
-  void send(const std::string& clientId, Packet&& packet);
+  void send(const std::string& clientId, TPacket&& packet);
   bool isClientConnected(const std::string& clientId);
   bool isPortRegistered(const std::string& clientId, const std::string& port);
 
@@ -22,7 +22,7 @@ class PacketStreamService : virtual public PacketStreamSvIf,
   facebook::fb303::cpp2::fb_status getStatus() override {
     return facebook::fb303::cpp2::fb_status::ALIVE;
   }
-  apache::thrift::ServerStream<Packet> connect(
+  apache::thrift::ServerStream<TPacket> connect(
       std::unique_ptr<std::string> clientId) override;
   void registerPort(
       std::unique_ptr<std::string> clientId,
@@ -46,12 +46,12 @@ class PacketStreamService : virtual public PacketStreamSvIf,
 
  private:
   struct ClientInfo {
-    explicit ClientInfo(apache::thrift::ServerStreamPublisher<Packet> pub)
+    explicit ClientInfo(apache::thrift::ServerStreamPublisher<TPacket> pub)
         : publisher_(
-              std::make_unique<apache::thrift::ServerStreamPublisher<Packet>>(
+              std::make_unique<apache::thrift::ServerStreamPublisher<TPacket>>(
                   std::move(pub))) {}
     std::unordered_set<std::string> portList_;
-    std::unique_ptr<apache::thrift::ServerStreamPublisher<Packet>> publisher_;
+    std::unique_ptr<apache::thrift::ServerStreamPublisher<TPacket>> publisher_;
   };
   using ClientMap = std::unordered_map<std::string, ClientInfo>;
   folly::Synchronized<ClientMap> clientMap_;

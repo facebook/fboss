@@ -20,18 +20,18 @@ PacketStreamService::~PacketStreamService() {
   }
 }
 
-apache::thrift::ServerStream<Packet> PacketStreamService::connect(
+apache::thrift::ServerStream<TPacket> PacketStreamService::connect(
     std::unique_ptr<std::string> clientIdPtr) {
   try {
     if (!clientIdPtr || clientIdPtr->empty()) {
-      throw PacketException(
+      throw TPacketException(
           apache::thrift::FragileConstructor(),
-          ErrorCode::INVALID_CLIENT,
+          TPacketErrorCode::INVALID_CLIENT,
           "Invalid client");
     }
     const auto& clientId = *clientIdPtr;
     auto streamAndPublisher =
-        apache::thrift::ServerStream<Packet>::createPublisher(
+        apache::thrift::ServerStream<TPacket>::createPublisher(
             [client = clientId, this] {
               // when the client is disconnected run this section.
               LOG(INFO) << "Client disconnected: " << client;
@@ -51,30 +51,30 @@ apache::thrift::ServerStream<Packet> PacketStreamService::connect(
     LOG(INFO) << clientId << " connected successfully to PacketStreamService";
     return std::move(streamAndPublisher.first);
   } catch (const std::exception& except) {
-    throw PacketException(
+    throw TPacketException(
         apache::thrift::FragileConstructor(),
-        ErrorCode::INTERNAL_ERROR,
+        TPacketErrorCode::INTERNAL_ERROR,
         except.what());
   }
 }
 
-void PacketStreamService::send(const std::string& clientId, Packet&& packet) {
+void PacketStreamService::send(const std::string& clientId, TPacket&& packet) {
   clientMap_.withRLock([&](auto& lockedMap) {
     auto iter = lockedMap.find(clientId);
     if (iter == lockedMap.end()) {
-      LOG(ERROR) << "Client Not Connected";
-      throw PacketException(
+      LOG(ERROR) << "Client '" << clientId << "' Not Connected";
+      throw TPacketException(
           apache::thrift::FragileConstructor(),
-          ErrorCode::CLIENT_NOT_CONNECTED,
+          TPacketErrorCode::CLIENT_NOT_CONNECTED,
           "client not connected");
     }
     const auto& clientInfo = iter->second;
     auto portIter = clientInfo.portList_.find(*packet.l2Port_ref());
     if (portIter == clientInfo.portList_.end()) {
-      LOG(ERROR) << "Port Not Registered";
-      throw PacketException(
+      LOG(ERROR) << "Port '" << *packet.l2Port_ref() << "'Not Registered";
+      throw TPacketException(
           apache::thrift::FragileConstructor(),
-          ErrorCode::PORT_NOT_REGISTERED,
+          TPacketErrorCode::PORT_NOT_REGISTERED,
           "PORT not registered");
     }
     clientInfo.publisher_->next(packet);
@@ -112,16 +112,16 @@ void PacketStreamService::registerPort(
     std::unique_ptr<std::string> l2PortPtr) {
   if (!clientIdPtr || clientIdPtr->empty()) {
     LOG(ERROR) << "Invalid Client";
-    throw PacketException(
+    throw TPacketException(
         apache::thrift::FragileConstructor(),
-        ErrorCode::INVALID_CLIENT,
+        TPacketErrorCode::INVALID_CLIENT,
         "Invalid client");
   }
 
   if (!l2PortPtr || l2PortPtr->empty()) {
-    throw PacketException(
+    throw TPacketException(
         apache::thrift::FragileConstructor(),
-        ErrorCode::INVALID_L2PORT,
+        TPacketErrorCode::INVALID_L2PORT,
         "Invalid Port");
   }
   const auto& clientId = *clientIdPtr;
@@ -131,9 +131,9 @@ void PacketStreamService::registerPort(
     auto iter = lockedMap.find(clientId);
     if (iter == lockedMap.end()) {
       LOG(ERROR) << "Client " << clientId << " not found";
-      throw PacketException(
+      throw TPacketException(
           apache::thrift::FragileConstructor(),
-          ErrorCode::CLIENT_NOT_CONNECTED,
+          TPacketErrorCode::CLIENT_NOT_CONNECTED,
           "client not connected");
     }
     auto& clientInfo = iter->second;
@@ -145,16 +145,16 @@ void PacketStreamService::clearPort(
     std::unique_ptr<std::string> clientIdPtr,
     std::unique_ptr<std::string> l2PortPtr) {
   if (!clientIdPtr || clientIdPtr->empty()) {
-    throw PacketException(
+    throw TPacketException(
         apache::thrift::FragileConstructor(),
-        ErrorCode::INVALID_CLIENT,
+        TPacketErrorCode::INVALID_CLIENT,
         "Invalid client");
   }
 
   if (!l2PortPtr || l2PortPtr->empty()) {
-    throw PacketException(
+    throw TPacketException(
         apache::thrift::FragileConstructor(),
-        ErrorCode::INVALID_L2PORT,
+        TPacketErrorCode::INVALID_L2PORT,
         "Invalid Port");
   }
   const auto& clientId = *clientIdPtr;
@@ -163,17 +163,17 @@ void PacketStreamService::clearPort(
   clientMap_.withWLock([&](auto& lockedMap) {
     auto iter = lockedMap.find(clientId);
     if (iter == lockedMap.end()) {
-      throw PacketException(
+      throw TPacketException(
           apache::thrift::FragileConstructor(),
-          ErrorCode::CLIENT_NOT_CONNECTED,
+          TPacketErrorCode::CLIENT_NOT_CONNECTED,
           "client not connected");
     }
     auto& clientInfo = iter->second;
     auto portIter = clientInfo.portList_.find(l2Port);
     if (portIter == clientInfo.portList_.end()) {
-      throw PacketException(
+      throw TPacketException(
           apache::thrift::FragileConstructor(),
-          ErrorCode::PORT_NOT_REGISTERED,
+          TPacketErrorCode::PORT_NOT_REGISTERED,
           "PORT not registered");
     }
     clientInfo.portList_.erase(l2Port);
@@ -182,9 +182,9 @@ void PacketStreamService::clearPort(
 }
 void PacketStreamService::disconnect(std::unique_ptr<std::string> clientIdPtr) {
   if (!clientIdPtr || clientIdPtr->empty()) {
-    throw PacketException(
+    throw TPacketException(
         apache::thrift::FragileConstructor(),
-        ErrorCode::INVALID_CLIENT,
+        TPacketErrorCode::INVALID_CLIENT,
         "Invalid client");
   }
 
@@ -193,9 +193,9 @@ void PacketStreamService::disconnect(std::unique_ptr<std::string> clientIdPtr) {
   clientMap_.withWLock([&](auto& lockedMap) {
     auto iter = lockedMap.find(clientId);
     if (iter == lockedMap.end()) {
-      throw PacketException(
+      throw TPacketException(
           apache::thrift::FragileConstructor(),
-          ErrorCode::CLIENT_NOT_CONNECTED,
+          TPacketErrorCode::CLIENT_NOT_CONNECTED,
           "client not connected");
     }
     auto& clientInfo = iter->second;

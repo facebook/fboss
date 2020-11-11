@@ -10,7 +10,7 @@ ssize_t AsyncThriftPacketTransport::send(
   if (!buf) {
     return 0;
   }
-  Packet packet;
+  TPacket packet;
   *packet.l2Port_ref() = iface();
   *packet.buf_ref() = buf->moveToFbString().toStdString();
   if (auto serverSharedPtr = server_.lock()) {

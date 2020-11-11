@@ -28,7 +28,7 @@ class PacketRecvAcceptor : public facebook::fboss::BidirectionalPacketAcceptor {
       baton_->reset();
     }
   }
-  void recvPacket(Packet&& packet) override {
+  void recvPacket(TPacket&& packet) override {
     packets_.emplace_back(std::move(packet));
     if (++n_ == exp_) {
       baton_->post();
@@ -38,7 +38,7 @@ class PacketRecvAcceptor : public facebook::fboss::BidirectionalPacketAcceptor {
   void setExpectedPackets(size_t n) {
     exp_ = n;
   }
-  std::vector<Packet> packets_;
+  std::vector<TPacket> packets_;
   std::shared_ptr<folly::Baton<>> baton_;
   size_t exp_{0};
   size_t n_{0};
@@ -128,10 +128,10 @@ class BidirectionalPacketStreamTest : public Test {
     baton->reset();
     std::string pktString = "FromFbossToMka";
     for (auto i = 0; i < numPkts; i++) {
-      Packet packet;
+      TPacket packet;
       *packet.l2Port_ref() = port;
       *packet.buf_ref() = pktString;
-      // send packet from fboss -> mka
+      // send TPacket from fboss -> mka
       EXPECT_EQ(pktString.size(), fbossAgentStream_->send(std::move(packet)));
     }
 
@@ -587,10 +587,10 @@ TEST_F(BidirectionalPacketStreamTest, CloseSendFailed) {
   transport->setReadCallback(&acceptor);
   baton_->reset();
   std::string pktString = "FromFbossToMka";
-  Packet packet;
+  TPacket packet;
   *packet.l2Port_ref() = port;
   *packet.buf_ref() = pktString;
-  // send packet from fboss -> mka
+  // send TPacket from fboss -> mka
   EXPECT_EQ(-1, fbossAgentStream_->send(std::move(packet)));
   EXPECT_FALSE(baton_->try_wait_for(std::chrono::milliseconds(50)));
 }
@@ -610,10 +610,10 @@ TEST_F(BidirectionalPacketStreamTest, TransportCloseSendFailed) {
   transport->setReadCallback(&acceptor);
   baton_->reset();
   std::string pktString = "FromFbossToMka";
-  Packet packet;
+  TPacket packet;
   *packet.l2Port_ref() = port;
   *packet.buf_ref() = pktString;
-  // send packet from fboss -> mka
+  // send TPacket from fboss -> mka
   EXPECT_EQ(-1, fbossAgentStream_->send(std::move(packet)));
   EXPECT_FALSE(baton_->try_wait_for(std::chrono::milliseconds(50)));
 }
@@ -632,9 +632,9 @@ TEST_F(BidirectionalPacketStreamTest, SendWithOutPort) {
   transport->setReadCallback(&acceptor);
   baton_->reset();
   std::string pktString = "FromFbossToMka";
-  Packet packet;
+  TPacket packet;
   *packet.buf_ref() = pktString;
-  // send packet from fboss -> mka
+  // send TPacket from fboss -> mka
   EXPECT_EQ(-1, fbossAgentStream_->send(std::move(packet)));
   EXPECT_FALSE(baton_->try_wait_for(std::chrono::milliseconds(50)));
 }
@@ -653,9 +653,9 @@ TEST_F(BidirectionalPacketStreamTest, MKADisconnect) {
   transport->setReadCallback(&acceptor);
   baton_->reset();
   std::string pktString = "FromFbossToMka";
-  Packet packet;
+  TPacket packet;
   *packet.buf_ref() = pktString;
-  // send packet from fboss -> mka
+  // send TPacket from fboss -> mka
   EXPECT_EQ(-1, fbossAgentStream_->send(std::move(packet)));
   EXPECT_FALSE(baton_->try_wait_for(std::chrono::milliseconds(50)));
 }
