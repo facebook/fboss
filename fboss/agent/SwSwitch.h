@@ -59,6 +59,7 @@ class MacTableManager;
 class ResolvedNexthopMonitor;
 class ResolvedNexthopProbeScheduler;
 class StaticL2ForNeighborObserver;
+class MKAServiceManager;
 
 enum class SwitchFlags : int {
   DEFAULT = 0,
@@ -67,6 +68,7 @@ enum class SwitchFlags : int {
   PUBLISH_STATS = 4,
   ENABLE_LACP = 8,
   ENABLE_STANDALONE_RIB = 16,
+  ENABLE_MACSEC = 32,
 };
 
 inline SwitchFlags operator|(SwitchFlags lhs, SwitchFlags rhs) {
@@ -545,7 +547,14 @@ class SwSwitch : public HwSwitch::Callback {
   LldpManager* getLldpMgr() {
     return lldpManager_.get();
   }
-
+#if FOLLY_HAS_COROUTINES
+  /*
+   *
+   */
+  MKAServiceManager* getMKAServiceMgr() {
+    return mkaServiceManager_.get();
+  }
+#endif
   /*
    * Get the RouteUpdateLogger object
    */
@@ -892,6 +901,9 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<LookupClassRouteUpdater> lookupClassRouteUpdater_;
   std::unique_ptr<StaticL2ForNeighborObserver> staticL2ForNeighborObserver_;
   std::unique_ptr<MacTableManager> macTableManager_;
+#if FOLLY_HAS_COROUTINES
+  std::unique_ptr<MKAServiceManager> mkaServiceManager_;
+#endif
 };
 
 } // namespace facebook::fboss

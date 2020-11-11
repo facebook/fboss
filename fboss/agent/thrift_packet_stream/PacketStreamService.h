@@ -10,7 +10,7 @@ class PacketStreamService : virtual public PacketStreamSvIf,
                             public facebook::fb303::FacebookBase2 {
  public:
   explicit PacketStreamService(const std::string& serviceName)
-      : FacebookBase2(serviceName) {}
+      : facebook::fb303::FacebookBase2(serviceName.c_str()) {}
   virtual ~PacketStreamService() override;
 
   // helper functions.

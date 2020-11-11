@@ -211,6 +211,14 @@ add_fbthrift_cpp_library(
     transceiver_cpp2
 )
 add_fbthrift_cpp_library(
+  packet_stream_cpp2
+  fboss/agent/if/packet_stream.thrift
+  SERVICES
+    PacketStream
+  DEPENDS
+    fb303_cpp2
+)
+add_fbthrift_cpp_library(
   bcm_config_cpp2
   fboss/agent/hw/bcm/bcm_config.thrift
   OPTIONS
@@ -472,6 +480,7 @@ if (NOT SAI_ONLY)
       fboss/agent/LoadBalancerConfigApplier.cpp
       fboss/agent/Main.cpp
       fboss/agent/SetupThrift.cpp
+      fboss/agent/MKAServiceManager.cpp
       fboss/agent/MirrorManager.cpp
       fboss/agent/MirrorManagerImpl.cpp
       fboss/agent/LookupClassRouteUpdater.cpp
@@ -681,6 +690,7 @@ if (NOT SAI_ONLY)
       wedge100_platform_mapping
       galaxy_platform_mapping
       wedge_led_utils
+      bidirectional_packet_stream
   )
 
   set_target_properties(fboss_agent PROPERTIES COMPILE_FLAGS
@@ -716,6 +726,7 @@ if (NOT SAI_ONLY)
          fboss/agent/test/LabelForwardingUtils.cpp
          fboss/agent/test/LookupClassRouteUpdaterTests.cpp
          fboss/agent/test/LookupClassUpdaterTests.cpp
+         fboss/agent/test/MKAServiceManagerTest.cpp
          fboss/agent/test/MacTableManagerTests.cpp
          fboss/agent/test/MacTableUtilsTests.cpp
          fboss/agent/test/MockTunManager.cpp

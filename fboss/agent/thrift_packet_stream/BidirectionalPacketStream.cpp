@@ -1,7 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/thrift_packet_stream/BidirectionalPacketStream.h"
-#include <thrift/perf/cpp2/util/Util.h>
 #include "fboss/agent/thrift_packet_stream/AsyncThriftPacketTransport.h"
 
 namespace facebook {

@@ -44,6 +44,14 @@ target_link_libraries(main
   Folly::folly
 )
 
+add_library(async_packet_transport
+  fboss/agent/AsyncPacketTransport.h
+)
+
+target_link_libraries(async_packet_transport
+  Folly::folly
+)
+
 add_library(address_utils
   fboss/agent/AddressUtil.h
 )
@@ -105,6 +113,7 @@ add_library(core
   fboss/agent/LoadBalancerConfigApplier.cpp
   fboss/agent/LookupClassUpdater.cpp
   fboss/agent/LookupClassRouteUpdater.cpp
+  fboss/agent/MKAServiceManager.cpp
   fboss/agent/MacTableManager.cpp
   fboss/agent/MacTableUtils.cpp
   fboss/agent/MirrorManager.cpp
@@ -158,6 +167,7 @@ target_link_libraries(core
   alert_logger
   Folly::folly
   normalizer
+  bidirectional_packet_stream
   ${IPROUTE2}
   ${NETLINK3}
   ${NETLINKROUTE3}

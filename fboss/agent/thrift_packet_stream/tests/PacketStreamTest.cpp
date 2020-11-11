@@ -123,7 +123,7 @@ class PacketStreamTest : public Test {
   std::unique_ptr<apache::thrift::ScopedServerInterfaceThread> server_;
   folly::ScopedEventBaseThread clientThread_;
 };
-
+#if FOLLY_HAS_COROUTINES
 TEST_F(PacketStreamTest, Connect) {
   std::string port(*g_ports.begin());
   auto baton = std::make_shared<folly::Baton<>>();
@@ -449,3 +449,4 @@ TEST_F(PacketStreamTest, ServerSendClientDisconnected) {
   EXPECT_THROW(handler_->send(g_client, std::move(pkt)), TPacketException);
   clientReset(std::move(streamClient));
 }
+#endif

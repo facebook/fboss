@@ -357,6 +357,7 @@ class BidirectionalPacketStreamTest : public Test {
   std::unique_ptr<std::thread> timeThread_;
 };
 
+#if FOLLY_HAS_COROUTINES
 TEST_F(BidirectionalPacketStreamTest, InvalidTimerTest) {
   EXPECT_THROW(
       std::make_shared<BidirectionalPacketStream>(
@@ -644,3 +645,4 @@ TEST_F(BidirectionalPacketStreamTest, MKADisconnect) {
   EXPECT_EQ(-1, fbossAgentStream_->send(std::move(packet)));
   EXPECT_FALSE(baton_->try_wait_for(std::chrono::milliseconds(50)));
 }
+#endif

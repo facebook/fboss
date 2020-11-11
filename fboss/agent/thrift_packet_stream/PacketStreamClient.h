@@ -3,7 +3,9 @@
 #pragma once
 
 #include <fboss/agent/if/gen-cpp2/PacketStreamAsyncClient.h>
+#if FOLLY_HAS_COROUTINES
 #include <folly/experimental/coro/BlockingWait.h>
+#endif
 #include <folly/io/async/ScopedEventBaseThread.h>
 
 #include <unordered_map>
@@ -35,10 +37,12 @@ class PacketStreamClient {
     CONNECTING = 1,
     CONNECTED = 2,
   };
-  folly::coro::Task<void> connect();
   void createClient(const std::string& ip, uint16_t port);
-  std::string clientId_;
+#if FOLLY_HAS_COROUTINES
+  folly::coro::Task<void> connect();
   std::unique_ptr<folly::CancellationSource> cancelSource_;
+#endif
+  std::string clientId_;
   std::unique_ptr<PacketStreamAsyncClient> client_;
   folly::EventBase* evb_;
   std::atomic<State> state_{State::INIT};

@@ -78,6 +78,7 @@ DEFINE_bool(
     enable_standalone_rib,
     false,
     "Place the RIB under the control of the RoutingInformationBase object");
+DEFINE_bool(enable_macsec, false, "Enable Macsec functionality");
 
 using facebook::fboss::SwSwitch;
 using facebook::fboss::ThriftHandler;
@@ -140,6 +141,9 @@ class Initializer {
     }
     if (FLAGS_enable_standalone_rib) {
       flags |= SwitchFlags::ENABLE_STANDALONE_RIB;
+    }
+    if (FLAGS_enable_macsec) {
+      flags |= SwitchFlags::ENABLE_MACSEC;
     }
     return flags;
   }

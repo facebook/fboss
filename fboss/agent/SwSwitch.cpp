@@ -24,6 +24,9 @@
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/LookupClassRouteUpdater.h"
 #include "fboss/agent/LookupClassUpdater.h"
+#if FOLLY_HAS_COROUTINES
+#include "fboss/agent/MKAServiceManager.h"
+#endif
 #include "fboss/agent/MacTableManager.h"
 #include "fboss/agent/MirrorManager.h"
 #include "fboss/agent/NeighborUpdater.h"
@@ -237,7 +240,9 @@ void SwSwitch::stop() {
   lookupClassUpdater_.reset();
   lookupClassRouteUpdater_.reset();
   macTableManager_.reset();
-
+#if FOLLY_HAS_COROUTINES
+  mkaServiceManager_.reset();
+#endif
   // stops the background and update threads.
   stopThreads();
 }
@@ -484,6 +489,11 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
   if (flags & SwitchFlags::ENABLE_LACP) {
     lagManager_ = std::make_unique<LinkAggregationManager>(this);
   }
+#if FOLLY_HAS_COROUTINES
+  if (flags & SwitchFlags::ENABLE_MACSEC) {
+    mkaServiceManager_ = std::make_unique<MKAServiceManager>(this);
+  }
+#endif
 
   auto bgHeartbeatStatsFunc = [this](int delay, int backLog) {
     stats()->bgHeartbeatDelay(delay);
@@ -1040,6 +1050,14 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
         return;
       }
       break;
+#if FOLLY_HAS_COROUTINES
+    case MKAServiceManager::ETHERTYPE_EAPOL:
+      if (mkaServiceManager_) {
+        mkaServiceManager_->handlePacket(std::move(pkt));
+        return;
+      }
+      break;
+#endif
     case IPv4Handler::ETHERTYPE_IPV4:
       ipv4_->handlePacket(std::move(pkt), dstMac, srcMac, c);
       return;
