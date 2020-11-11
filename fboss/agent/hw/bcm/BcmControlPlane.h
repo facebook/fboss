@@ -76,6 +76,25 @@ class BcmControlPlane {
   std::optional<cfg::PacketRxReasonToQueue> getReasonToQueueEntry(
       int index) const;
 
+  static int rxCosqMappingExtendedGet(
+      int unit,
+      bcm_rx_cosq_mapping_t* rx_cosq_mapping);
+
+  static int rxCosqMappingExtendedSet(
+      int unit,
+      int index,
+      bcm_rx_reasons_t reasons,
+      bcm_rx_reasons_t reasons_mask,
+      uint8 int_prio,
+      uint8 int_prio_mask,
+      uint32 packet_type,
+      uint32 packet_type_mask,
+      bcm_cos_queue_t cosq);
+
+  static int rxCosqMappingExtendedDelete(
+      int unit,
+      bcm_rx_cosq_mapping_t* rx_cosq_mapping);
+
  private:
   // no copy or assignment
   BcmControlPlane(BcmControlPlane const&) = delete;

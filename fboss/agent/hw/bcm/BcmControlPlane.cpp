@@ -14,7 +14,6 @@
 #include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/PortQueue.h"
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
@@ -143,19 +142,34 @@ void BcmControlPlane::setReasonToQueueEntry(
 
   auto warmBootCache = hw_->getWarmBootCache();
   const auto cacheEntryItr = warmBootCache->findReasonToQueue(index);
+  int rv;
   if (cacheEntryItr == warmBootCache->index2ReasonToQueue_end() ||
       cacheEntryItr->second != entry) {
     const auto bcmReason = configRxReasonToBcmReasons(*entry.rxReason_ref());
-    const int rv = bcm_rx_cosq_mapping_set(
-        hw_->getUnit(),
-        index,
-        bcmReason,
-        bcmReason,
-        0,
-        0, // internal priority match & mask
-        0,
-        0, // packet type match & mask
-        *entry.queueId_ref());
+
+    if (!hw_->useHSDK()) {
+      rv = bcm_rx_cosq_mapping_set(
+          hw_->getUnit(),
+          index,
+          bcmReason,
+          bcmReason,
+          0,
+          0, // internal priority match & mask
+          0,
+          0, // packet type match & mask
+          *entry.queueId_ref());
+    } else {
+      rv = rxCosqMappingExtendedSet(
+          hw_->getUnit(),
+          index,
+          bcmReason,
+          bcmReason,
+          0,
+          0, // internal priority match & mask
+          0,
+          0, // packet type match & mask
+          *entry.queueId_ref());
+    }
     bcmCheckError(
         rv,
         "failed to set CPU cosq mapping for reasons ",
@@ -172,7 +186,16 @@ void BcmControlPlane::deleteReasonToQueueEntry(int index) {
   if (cacheEntryItr != warmBootCache->index2ReasonToQueue_end()) {
     warmBootCache->programmed(cacheEntryItr);
   }
-  const int rv = bcm_rx_cosq_mapping_delete(hw_->getUnit(), index);
+  int rv;
+  if (!hw_->useHSDK()) {
+    rv = bcm_rx_cosq_mapping_delete(hw_->getUnit(), index);
+  } else {
+    bcm_rx_cosq_mapping_t cosqMap;
+    bcm_rx_cosq_mapping_t_init(&cosqMap);
+
+    cosqMap.index = index;
+    rv = rxCosqMappingExtendedDelete(hw_->getUnit(), &cosqMap);
+  }
   bcmCheckError(rv, "failed to delete CPU cosq mapping for index ", index);
 }
 
@@ -182,19 +205,34 @@ BcmControlPlane::getReasonToQueueEntry(int index) const {
   uint32_t packetType, packetTypeMask;
   bcm_rx_reasons_t bcmReasons, reasonsMask;
   bcm_cos_queue_t queue;
-  const int rv = bcm_rx_cosq_mapping_get(
-      hw_->getUnit(),
-      index,
-      &bcmReasons,
-      &reasonsMask,
-      &prio,
-      &prioMask,
-      &packetType,
-      &packetTypeMask,
-      &queue);
-  if (BCM_FAILURE(rv)) {
-    return std::nullopt;
+  int rv;
+  if (!hw_->useHSDK()) {
+    rv = bcm_rx_cosq_mapping_get(
+        hw_->getUnit(),
+        index,
+        &bcmReasons,
+        &reasonsMask,
+        &prio,
+        &prioMask,
+        &packetType,
+        &packetTypeMask,
+        &queue);
+    if (BCM_FAILURE(rv)) {
+      return std::nullopt;
+    }
+  } else {
+    bcm_rx_cosq_mapping_t cosqMap;
+    bcm_rx_cosq_mapping_t_init(&cosqMap);
+    cosqMap.index = index;
+
+    rv = rxCosqMappingExtendedGet(hw_->getUnit(), &cosqMap);
+    if (BCM_FAILURE(rv)) {
+      return std::nullopt;
+    }
+    bcmReasons = cosqMap.reasons;
+    queue = cosqMap.cosq;
   }
+
   return ControlPlane::makeRxReasonToQueueEntry(
       bcmReasonsToConfigReason(bcmReasons), queue);
 }

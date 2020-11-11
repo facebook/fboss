@@ -911,6 +911,7 @@ void BcmWarmBootCache::clear() {
   }
   priority2BcmAclEntryHandle_.clear();
 
+  bool useHSDK = (dynamic_cast<const BcmSwitch*>(hw_))->useHSDK();
   for (auto reasonToQueueEntry : index2ReasonToQueue_) {
     const auto index = reasonToQueueEntry.first;
     XLOG(DBG1) << "Deleting rx reason to queue entry: index=" << index
@@ -918,7 +919,15 @@ void BcmWarmBootCache::clear() {
                << apache::thrift::util::enumNameSafe(
                       *reasonToQueueEntry.second.rxReason_ref())
                << ", queue=" << *reasonToQueueEntry.second.queueId_ref();
-    rv = bcm_rx_cosq_mapping_delete(hw_->getUnit(), index);
+    if (!useHSDK) {
+      rv = bcm_rx_cosq_mapping_delete(hw_->getUnit(), index);
+    } else {
+      bcm_rx_cosq_mapping_t cosqMap;
+      bcm_rx_cosq_mapping_t_init(&cosqMap);
+      cosqMap.index = index;
+      rv = BcmControlPlane::rxCosqMappingExtendedDelete(
+          hw_->getUnit(), &cosqMap);
+    }
     bcmCheckError(rv, "failed to delete CPU cosq mapping for index ", index);
   }
   index2ReasonToQueue_.clear();

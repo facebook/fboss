@@ -80,6 +80,7 @@ add_library(bcm
   fboss/agent/hw/bcm/RxUtils.cpp
   fboss/agent/hw/bcm/oss/BcmSwitch.cpp
   fboss/agent/hw/bcm/oss/BcmAPI.cpp
+  fboss/agent/hw/bcm/oss/BcmControlPlane.cpp
   fboss/agent/hw/bcm/oss/BcmFacebookAPI.cpp
   fboss/agent/hw/bcm/oss/BcmFlexCounter.cpp
   fboss/agent/hw/bcm/oss/BcmIngressFieldProcessorFlexCounter.cpp
