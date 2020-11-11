@@ -215,7 +215,7 @@ void SaiRouteManager::addOrUpdateRoute(
           nextHopId =
               managedRouteNextHop->getPublisherObject().lock()->adapterKey();
         }
-        routeHandle->nexthopHandle_ = managedRouteNextHop;
+        nextHopHandle = managedRouteNextHop;
       } else if (
           auto* mplsNextHop = std::get_if<std::shared_ptr<ManagedMplsNextHop>>(
               &managedNextHop)) {
@@ -229,16 +229,10 @@ void SaiRouteManager::addOrUpdateRoute(
           nextHopId =
               managedRouteNextHop->getPublisherObject().lock()->adapterKey();
         }
-        routeHandle->nexthopHandle_ = managedRouteNextHop;
+        nextHopHandle = managedRouteNextHop;
       }
       attributes =
           SaiRouteTraits::CreateAttributes{packetAction, nextHopId, metadata};
-
-      /* claim the route now */
-      auto& store = SaiStore::getInstance()->get<SaiRouteTraits>();
-      auto route = store.setObject(entry, attributes.value());
-      routeHandle->route = route;
-      return;
     }
   } else if (fwd.getAction() == TO_CPU) {
     packetAction = SAI_PACKET_ACTION_FORWARD;
