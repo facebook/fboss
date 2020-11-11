@@ -309,6 +309,28 @@ class SwitchStats : public boost::noncopyable {
     LacpMismatchPduTeardown_.addValue(1);
   }
 
+  void MkPduRecvdPkt() {
+    MkPduRecvdPkts_.addValue(1);
+  }
+  void MkPduSendPkt() {
+    MkPduSendPkts_.addValue(1);
+  }
+  void MkPduSendFailure() {
+    MkPduSendFailure_.addValue(1);
+  }
+  void MkPduPortNotRegistered() {
+    MkPduPortNotRegistered_.addValue(1);
+  }
+  void MKAServiceSendFailue() {
+    MKAServiceSendFailure_.addValue(1);
+  }
+  void MKAServiceSendSuccess() {
+    MKAServiceSendSuccess_.addValue(1);
+  }
+  void MKAServiceRecvSuccess() {
+    MKAServiceRecvSuccess_.addValue(1);
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   SwitchStats(SwitchStats const&) = delete;
@@ -499,6 +521,20 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries LacpRxTimeouts_;
   // Number of LACP session teardown due to mismatching PDUs
   TLTimeseries LacpMismatchPduTeardown_;
+  // Number of MkPdu Received.
+  TLTimeseries MkPduRecvdPkts_;
+  // Number of MkPdu Send.
+  TLTimeseries MkPduSendPkts_;
+  // Number of MkPdu Send Failure
+  TLTimeseries MkPduSendFailure_;
+  // Number of pkt recv when port is not registered.
+  TLTimeseries MkPduPortNotRegistered_;
+  // Number of Send Pkt to MkaService Failure.
+  TLTimeseries MKAServiceSendFailure_;
+  // Number of Pkts Send to MKAService.
+  TLTimeseries MKAServiceSendSuccess_;
+  // Number of pkts recvd from MkaService.
+  TLTimeseries MKAServiceRecvSuccess_;
 };
 
 } // namespace facebook::fboss

@@ -183,6 +183,29 @@ void PortStats::pktTooBig() {
   switchStats_->pktTooBig();
 }
 
+void PortStats::MkPduRecvdPkt() {
+  switchStats_->MkPduRecvdPkt();
+}
+
+void PortStats::MkPduSendPkt() {
+  switchStats_->MkPduSendPkt();
+}
+void PortStats::MkPduSendFailure() {
+  switchStats_->MkPduSendFailure();
+}
+void PortStats::MkPduPortNotRegistered() {
+  switchStats_->MkPduPortNotRegistered();
+}
+void PortStats::MKAServiceSendFailue() {
+  switchStats_->MKAServiceSendFailue();
+}
+void PortStats::MKAServiceSendSuccess() {
+  switchStats_->MKAServiceSendSuccess();
+}
+void PortStats::MKAServiceRecvSuccess() {
+  switchStats_->MKAServiceRecvSuccess();
+}
+
 std::string PortStats::getCounterKey(const std::string& key) {
   return folly::to<std::string>(portName_, kNameKeySeperator, key);
 }

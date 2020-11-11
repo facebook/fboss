@@ -12,6 +12,7 @@
 #include <folly/io/Cursor.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
+#include "fboss/agent/PortStats.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
@@ -25,6 +26,14 @@ DEFINE_double(
     "re-connect to mka_service timer in milliseconds");
 
 namespace facebook::fboss {
+
+#define CHECK_STATS(stats, fn) \
+  do {                         \
+    if (stats) {               \
+      fn;                      \
+    }                          \
+  } while (0)
+
 MKAServiceManager::MKAServiceManager(SwSwitch* sw) : swSwitch_(sw) {
   clientThread_ = std::make_unique<folly::ScopedEventBaseThread>(
       "mka_service_client_thread");
@@ -56,21 +65,28 @@ void MKAServiceManager::handlePacket(std::unique_ptr<RxPacket> packet) {
   if (!packet) {
     return;
   }
-  auto port = folly::to<std::string>(packet->getSrcPort());
-  if (!stream_->isPortRegistered(port)) {
-    VLOG(3) << "Port '" << port << "' not registered by mka service";
+  PortID port = packet->getSrcPort();
+  auto portStr = folly::to<std::string>(port);
+  PortStats* stats = swSwitch_->portStats(port);
+
+  if (!stream_->isPortRegistered(portStr)) {
+    CHECK_STATS(stats, stats->MkPduPortNotRegistered());
+    VLOG(3) << "Port '" << portStr << "' not registered by mka service";
     return;
   }
   folly::IOBuf* buf = packet->buf();
   TPacket pktToSend;
   pktToSend.buf_ref() = buf->moveToFbString().toStdString();
   pktToSend.timestamp_ref() = time(nullptr);
-  pktToSend.l2Port_ref() = std::move(port);
+  pktToSend.l2Port_ref() = std::move(portStr);
   size_t len = pktToSend.buf_ref()->size();
   if (len != stream_->send(std::move(pktToSend))) {
+    CHECK_STATS(stats, stats->MKAServiceSendFailue());
     LOG(ERROR) << "Failed to send MkPdu packet received on Port:'"
                << packet->getSrcPort() << "' to mka_service";
+    return;
   }
+  stats->MKAServiceSendSuccess();
 }
 
 void MKAServiceManager::recvPacket(TPacket&& packet) {
@@ -78,18 +94,29 @@ void MKAServiceManager::recvPacket(TPacket&& packet) {
     LOG(ERROR) << "Invalid packet received from MKA Service";
     return;
   }
+  PortID port;
+  try {
+    port = PortID(folly::to<uint16_t>(*packet.l2Port_ref()));
+  } catch (const std::exception& ex) {
+    LOG(ERROR) << "Invalid MkPdu Port:  " << ex.what();
+    return;
+  }
   auto txPkt = swSwitch_->allocatePacket(packet.buf_ref()->size());
   folly::io::RWPrivateCursor cursor(txPkt->buf());
   cursor.push(
       reinterpret_cast<const uint8_t*>(packet.buf_ref()->data()),
       packet.buf_ref()->size());
+
+  PortStats* stats = swSwitch_->portStats(port);
+  CHECK_STATS(stats, stats->MKAServiceRecvSuccess());
   try {
-    swSwitch_->sendPacketOutOfPortAsync(
-        std::move(txPkt), PortID(folly::to<uint16_t>(*packet.l2Port_ref())));
+    swSwitch_->sendPacketOutOfPortAsync(std::move(txPkt), port);
+    CHECK_STATS(stats, stats->MkPduSendPkt());
   } catch (const std::exception& ex) {
     LOG(ERROR) << "Failed to MkPdu Packet to the switch, port:"
                << *packet.l2Port_ref() << " ex: " << ex.what();
+    CHECK_STATS(stats, stats->MkPduSendFailure());
   }
-} // namespace facebook::fboss
+}
 
 } // namespace facebook::fboss

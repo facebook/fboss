@@ -1053,6 +1053,7 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
 #if FOLLY_HAS_COROUTINES
     case MKAServiceManager::ETHERTYPE_EAPOL:
       if (mkaServiceManager_) {
+        portStats(port)->MkPduRecvdPkt();
         mkaServiceManager_->handlePacket(std::move(pkt));
         return;
       }

@@ -72,6 +72,14 @@ class PortStats {
     return portName_;
   }
 
+  void MkPduRecvdPkt();
+  void MkPduSendPkt();
+  void MkPduSendFailure();
+  void MkPduPortNotRegistered();
+  void MKAServiceSendFailue();
+  void MKAServiceSendSuccess();
+  void MKAServiceRecvSuccess();
+
  private:
   // Forbidden copy constructor and assignment operator
   PortStats(PortStats const&) = delete;

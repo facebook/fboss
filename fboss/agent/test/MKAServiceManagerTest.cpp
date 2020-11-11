@@ -10,12 +10,14 @@
 #include "fboss/agent/MKAServiceManager.h"
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "gmock/gmock.h"
@@ -124,6 +126,32 @@ class MKAServiceManagerTest : public testing::Test {
     EXPECT_FALSE(baton_->try_wait_for(std::chrono::milliseconds(100)));
   }
 
+  void validateRecvPacket(MKAServiceManager* manager, PortID port) {
+    // Cache the current stats
+    CounterCache counters(sw_);
+    manager->recvPacket(createPacket(port));
+    counters.update();
+    counters.checkDelta(
+        SwitchStats::kCounterPrefix + "mka_service.recvd.sum", 1);
+    counters.checkDelta(SwitchStats::kCounterPrefix + "mkpdu.send.sum", 1);
+  }
+
+  void validateRecvFailed(CounterCache& counters) {
+    counters.update();
+    counters.checkDelta(
+        SwitchStats::kCounterPrefix + "mka_service.recvd.sum", 0);
+    counters.checkDelta(SwitchStats::kCounterPrefix + "mkpdu.send.sum", 0);
+  }
+
+  void sendPktToMka() {
+    baton_->reset();
+    auto iobuf = createEapol();
+    std::unique_ptr<MockRxPacket> rxPkt =
+        std::make_unique<MockRxPacket>(std::move(iobuf));
+    rxPkt->setSrcPort(activePort_);
+    EXPECT_NO_THROW(sw_->packetReceivedThrowExceptionOnError(std::move(rxPkt)));
+  }
+
   SwSwitch* sw_{nullptr};
   std::unique_ptr<HwTestHandle> handle_;
   PortID activePort_;
@@ -141,7 +169,7 @@ TEST_F(MKAServiceManagerTest, SendTest) {
   EXPECT_HW_CALL(sw_, sendPacketOutOfPortAsync_(_, _, _)).Times(AtLeast(1));
   MKAServiceManager* manager = sw_->getMKAServiceMgr();
   EXPECT_NE(manager, nullptr);
-  manager->recvPacket(createPacket(activePort_));
+  validateRecvPacket(manager, activePort_);
 }
 
 TEST_F(MKAServiceManagerTest, EmptyMgr) {
@@ -155,7 +183,7 @@ TEST_F(MKAServiceManagerTest, SendTestLocalMgr) {
   EXPECT_HW_CALL(sw_, sendPacketOutOfPortAsync_(_, _, _)).Times(AtLeast(1));
   EXPECT_EQ(sw_->getMKAServiceMgr(), nullptr);
   MKAServiceManager manager(sw_);
-  manager.recvPacket(createPacket(activePort_));
+  validateRecvPacket(&manager, activePort_);
 }
 
 TEST_F(MKAServiceManagerTest, SendInvalidPort) {
@@ -168,6 +196,7 @@ TEST_F(MKAServiceManagerTest, SendInvalidPort) {
 
 TEST_F(MKAServiceManagerTest, SendInvalidPacket) {
   init();
+  CounterCache counters(sw_);
   EXPECT_HW_CALL(sw_, sendPacketOutOfPortAsync_(_, _, _)).Times(0);
   MKAServiceManager* manager = sw_->getMKAServiceMgr();
   EXPECT_NE(manager, nullptr);
@@ -176,6 +205,7 @@ TEST_F(MKAServiceManagerTest, SendInvalidPacket) {
   pkt.l2Port_ref() = "test";
   pkt.buf_ref() = "test";
   manager->recvPacket(std::move(pkt));
+  validateRecvFailed(counters);
 }
 
 TEST_F(MKAServiceManagerTest, RecvPktFromMkaServer) {
@@ -190,25 +220,23 @@ TEST_F(MKAServiceManagerTest, RecvPktFromMkaServer) {
 TEST_F(MKAServiceManagerTest, SendPktToMkaServer) {
   init();
   baton_->reset();
-  EXPECT_FALSE(baton_->try_wait_for(std::chrono::milliseconds(50)));
-  baton_->reset();
-  auto iobuf = createEapol();
-  std::unique_ptr<MockRxPacket> rxPkt =
-      std::make_unique<MockRxPacket>(std::move(iobuf));
-  rxPkt->setSrcPort(activePort_);
-  EXPECT_NO_THROW(sw_->packetReceivedThrowExceptionOnError(std::move(rxPkt)));
+  EXPECT_FALSE(baton_->try_wait_for(std::chrono::milliseconds(100)));
+  CounterCache counters(sw_);
+  sendPktToMka();
   EXPECT_TRUE(baton_->try_wait_for(std::chrono::milliseconds(200)));
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "mkpdu.recvd.sum", 1);
 }
 
 TEST_F(MKAServiceManagerTest, SendPktToMkaServerUnregisteredPort) {
   init(false);
-  baton_->reset();
-  auto iobuf = createEapol();
-  std::unique_ptr<MockRxPacket> rxPkt =
-      std::make_unique<MockRxPacket>(std::move(iobuf));
-  rxPkt->setSrcPort(activePort_);
-  EXPECT_NO_THROW(sw_->packetReceivedThrowExceptionOnError(std::move(rxPkt)));
+  CounterCache counters(sw_);
+  sendPktToMka();
   EXPECT_FALSE(baton_->try_wait_for(std::chrono::milliseconds(200)));
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "mkpdu.recvd.sum", 0);
+  counters.checkDelta(
+      SwitchStats::kCounterPrefix + "mkpdu.err.port_not_regd", 0);
 }
 #endif
 } // unnamed namespace

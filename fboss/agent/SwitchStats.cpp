@@ -189,7 +189,34 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
       LacpMismatchPduTeardown_(
           map,
           kCounterPrefix + "lacp.mismatched_pdu_teardown",
-          SUM) {}
+          SUM),
+      MkPduRecvdPkts_(map, kCounterPrefix + "mkpdu.recvd", SUM, RATE),
+      MkPduSendPkts_(map, kCounterPrefix + "mkpdu.send", SUM, RATE),
+      MkPduSendFailure_(
+          map,
+          kCounterPrefix + "mkpdu.err.send_failure",
+          SUM,
+          RATE),
+      MkPduPortNotRegistered_(
+          map,
+          kCounterPrefix + "mkpdu.err.port_not_regd",
+          SUM,
+          RATE),
+      MKAServiceSendFailure_(
+          map,
+          kCounterPrefix + "mka_service.err.send_failure",
+          SUM,
+          RATE),
+      MKAServiceSendSuccess_(
+          map,
+          kCounterPrefix + "mka_service.send",
+          SUM,
+          RATE),
+      MKAServiceRecvSuccess_(
+          map,
+          kCounterPrefix + "mka_service.recvd",
+          SUM,
+          RATE) {}
 
 PortStats* FOLLY_NULLABLE SwitchStats::port(PortID portID) {
   auto it = ports_.find(portID);
