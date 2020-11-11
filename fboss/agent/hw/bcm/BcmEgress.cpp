@@ -562,7 +562,11 @@ bool BcmEcmpEgress::removeEgressIdHwNotLocked(
     bcm_l3_ecmp_member_t member;
     bcm_l3_ecmp_member_t_init(&member);
     member.egress_if = toRemove.first;
-    ret = bcm_l3_ecmp_member_delete(unit, ecmpId, &member);
+    // TODO(daiweix): remove below for loop when native wecmp
+    // support is ready
+    for (int i = 0; i < toRemove.second; i++) {
+      ret = bcm_l3_ecmp_member_delete(unit, ecmpId, &member);
+    }
   } else {
     for (int i = 0; i < toRemove.second; i++) {
       bcm_l3_egress_ecmp_t obj;

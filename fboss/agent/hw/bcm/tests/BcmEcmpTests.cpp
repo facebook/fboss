@@ -107,9 +107,17 @@ TEST_F(BcmEcmpTest, SearchMissingEgressInECMP) {
     ASSERT_EQ(kNumNextHops, egressIdsInSw.size());
     ecmpObj.ecmp_intf = ecmpEgress->getID();
     for (const auto& egressId : egressIdsInSw) {
-      ASSERT_EQ(
-          BCM_E_NOT_FOUND,
-          bcm_l3_egress_ecmp_delete(getUnit(), &ecmpObj, egressId.first));
+      int rv = 0;
+      if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
+              HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER)) {
+        bcm_l3_ecmp_member_t member;
+        bcm_l3_ecmp_member_t_init(&member);
+        member.egress_if = egressId.first;
+        rv = bcm_l3_ecmp_member_delete(getUnit(), ecmpEgress->getID(), &member);
+      } else {
+        rv = bcm_l3_egress_ecmp_delete(getUnit(), &ecmpObj, egressId.first);
+      }
+      ASSERT_EQ(BCM_E_NOT_FOUND, rv);
     }
     auto pathsInHwCount = getEcmpSizeInHw(
         getHwSwitch(), ecmpEgress->getID(), egressIdsInSw.size());
