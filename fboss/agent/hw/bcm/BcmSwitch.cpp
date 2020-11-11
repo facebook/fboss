@@ -411,10 +411,23 @@ void BcmSwitch::resetTables() {
 
 void BcmSwitch::unregisterCallbacks() {
   if (flags_ & RX_REGISTERED) {
+    int rv;
+
     bcm_rx_stop(unit_, nullptr);
-    auto rv = bcm_rx_unregister(unit_, packetRxCallback, kRxCallbackPriority);
+
+    if (!usePKTIO()) {
+      rv = bcm_rx_unregister(unit_, packetRxSdkCallback, kRxCallbackPriority);
+    } else {
+#ifdef INCLUDE_PKTIO
+      rv = bcm_pktio_rx_unregister(
+          unit_, pktioPacketRxSdkCallback, kRxCallbackPriority);
+#else
+      throw FbossError("invalid PKTIO configuration.");
+#endif
+    }
     CHECK(BCM_SUCCESS(rv)) << "failed to unregister BcmSwitch rx callback: "
                            << bcm_errmsg(rv);
+
     flags_ &= ~RX_REGISTERED;
   }
   // Note that we don't explicitly call bcm_linkscan_detach() here--
@@ -923,13 +936,31 @@ void BcmSwitch::setupPacketRx() {
   }
   // Register our packet handler callback function.
   uint32_t rxFlags = BCM_RCO_F_ALL_COS;
-  auto rv = bcm_rx_register(
-      unit_, // int unit
-      "fboss_rx", // const char *name
-      packetRxCallback, // bcm_rx_cb_f callback
-      kRxCallbackPriority, // uint8 priority
-      this, // void *cookie
-      rxFlags); // uint32 flags
+
+  int rv;
+
+  if (!usePKTIO()) {
+    rv = bcm_rx_register(
+        unit_, // int unit
+        "fboss_rx", // const char *name
+        packetRxSdkCallback, // bcm_rx_cb_f callback
+        kRxCallbackPriority, // uint8 priority
+        this, // void *cookie
+        rxFlags); // uint32 flags
+  } else {
+#ifdef INCLUDE_PKTIO
+    rv = bcm_pktio_rx_register(
+        unit_, // int unit
+        "fboss_rx", // const char *name
+        pktioPacketRxSdkCallback, // bcm_rx_pktio_cb_f callback
+        kRxCallbackPriority, // uint8 priority
+        this, // void *cookie
+        rxFlags); // uint32 flags
+#else
+    throw FbossError("invalid PKTIO configuration");
+#endif
+  }
+
   bcmCheckError(rv, "failed to register packet rx callback");
   flags_ |= RX_REGISTERED;
 
@@ -2242,33 +2273,80 @@ void BcmSwitch::linkStateChangedHwNotLocked(bcm_port_t bcmPortId, bool up) {
   callback_->linkStateChanged(portTable_->getPortId(bcmPortId), up);
 }
 
-bcm_rx_t BcmSwitch::packetRxCallback(int unit, bcm_pkt_t* pkt, void* cookie) {
+// The callback provided to bcm_rx_register()
+bcm_rx_t
+BcmSwitch::packetRxSdkCallback(int unit, bcm_pkt_t* pkt, void* cookie) {
   auto* bcmSw = static_cast<BcmSwitch*>(cookie);
   DCHECK_EQ(bcmSw->getUnit(), unit);
   DCHECK_EQ(bcmSw->getUnit(), pkt->unit);
-  return bcmSw->packetReceived(pkt);
+
+  BcmPacketT bcmPacket;
+  bcmPacket.usePktIO = false;
+  bcmPacket.ptrUnion.pkt = pkt;
+  return (bcm_rx_t)(bcmSw->packetReceived(bcmPacket));
 }
 
-bcm_rx_t BcmSwitch::packetReceived(bcm_pkt_t* pkt) noexcept {
+#ifdef INCLUDE_PKTIO
+// The callback provided to bcm_pktio_rx_register()
+bcm_pktio_rx_t BcmSwitch::pktioPacketRxSdkCallback(
+    int unit,
+    bcm_pktio_pkt_t* pkt,
+    void* cookie) {
+  auto* bcmSw = static_cast<BcmSwitch*>(cookie);
+  DCHECK_EQ(bcmSw->getUnit(), unit);
+  DCHECK_EQ(bcmSw->getUnit(), pkt->unit);
+
+  BcmPacketT bcmPacket;
+  bcmPacket.usePktIO = true;
+  bcmPacket.ptrUnion.pktioPkt = pkt;
+  return (bcm_pktio_rx_t)(bcmSw->packetReceived(bcmPacket));
+}
+#endif
+
+int BcmSwitch::packetReceived(BcmPacketT& bcmPacket) noexcept {
+  bool usePktIO = bcmPacket.usePktIO;
+  DCHECK_EQ(usePktIO, usePKTIO());
+
   // Log it if it's an sFlow sample
-  if (handleSflowPacket(pkt)) {
+  if (handleSflowPacket(bcmPacket)) {
     // It was just here because it was an sFlow packet
-    bcm_rx_free(pkt->unit, pkt);
-    return BCM_RX_HANDLED_OWNED;
+    XLOG(DBG4) << "The packet is sample-only.  Skip further procssing.";
+
+    if (!usePktIO) {
+      bcm_pkt_t* pkt = bcmPacket.ptrUnion.pkt;
+      bcm_pkt_rx_free(pkt->unit, pkt);
+      return BCM_RX_HANDLED_OWNED;
+    } else {
+#ifdef INCLUDE_PKTIO
+      return BCM_PKTIO_RX_HANDLED;
+#else
+      // TBD should not be here.
+      // exception is not allowed.  what should be proper handling here?
+      return BCM_RX_HANDLED_OWNED;
+#endif
+    }
   }
 
   // Otherwise, send it to the SwSwitch
   unique_ptr<BcmRxPacket> bcmPkt;
   try {
-    bcmPkt = createRxPacket(pkt);
+    bcmPkt = createRxPacket(bcmPacket);
   } catch (const std::exception& ex) {
     XLOG(ERR) << "failed to allocate BcmRxPacket for receive handling: "
               << folly::exceptionStr(ex);
+#ifdef INCLUDE_PKTIO
+    return usePktIO ? BCM_PKTIO_RX_NOT_HANDLED : BCM_RX_NOT_HANDLED;
+#else
     return BCM_RX_NOT_HANDLED;
+#endif
   }
 
   callback_->packetReceived(std::move(bcmPkt));
+#ifdef INCLUDE_PKTIO
+  return usePktIO ? BCM_PKTIO_RX_HANDLED : BCM_RX_HANDLED_OWNED;
+#else
   return BCM_RX_HANDLED_OWNED;
+#endif
 }
 
 bool BcmSwitch::sendPacketSwitchedAsync(unique_ptr<TxPacket> pkt) noexcept {
@@ -2654,8 +2732,8 @@ void BcmSwitch::setupCos() {
   controlPlane_->getQueueManager()->setupQueueCounters();
 }
 
-std::unique_ptr<BcmRxPacket> BcmSwitch::createRxPacket(bcm_pkt_t* pkt) {
-  return std::make_unique<FbBcmRxPacket>(pkt, this);
+std::unique_ptr<BcmRxPacket> BcmSwitch::createRxPacket(BcmPacketT bcmPacket) {
+  return std::make_unique<FbBcmRxPacket>(bcmPacket, this);
 }
 
 bool BcmSwitch::isRxThreadRunning() const {
@@ -2760,13 +2838,75 @@ bcm_gport_t BcmSwitch::getCpuGPort() const {
 
 // TODO(petr): this is here only because bcmRxReasonSampleSource and the like
 // are not yet open sourced.
-bool BcmSwitch::handleSflowPacket(bcm_pkt_t* pkt) noexcept {
-  auto bcmPkt = reinterpret_cast<const bcm_pkt_t*>(pkt);
+bool BcmSwitch::handleSflowPacket(BcmPacketT& bcmPacket) noexcept {
+  bool ingressSample = false, egressSample = false, sampleOnly;
+  uint32 src_port, dest_port, vlan, pkt_len;
+  uint8* pkt_data;
 
-  bool ingressSample =
-      _SHR_RX_REASON_GET(bcmPkt->rx_reasons, bcmRxReasonSampleSource);
-  bool egressSample =
-      _SHR_RX_REASON_GET(bcmPkt->rx_reasons, bcmRxReasonSampleDest);
+  if (!bcmPacket.usePktIO) {
+    bcm_pkt_t* pkt = bcmPacket.ptrUnion.pkt;
+
+    ingressSample =
+        _SHR_RX_REASON_GET(pkt->rx_reasons, bcmRxReasonSampleSource);
+    egressSample = _SHR_RX_REASON_GET(pkt->rx_reasons, bcmRxReasonSampleDest);
+    src_port = pkt->src_port;
+    dest_port = pkt->dest_port;
+    vlan = pkt->vlan;
+    pkt_data = pkt->pkt_data->data;
+    pkt_len = pkt->pkt_data->len;
+
+    sampleOnly =
+        ((pkt->rx_reason ^ bcmRxReasonSampleSource ^ bcmRxReasonSampleDest) ==
+         0);
+
+  } else {
+#ifdef INCLUDE_PKTIO
+    bcm_pktio_pkt_t* pkt = bcmPacket.ptrUnion.pktioPkt;
+    bcm_pktio_reasons_t reasons;
+    uint32 val;
+    auto rv = bcm_pktio_pmd_reasons_get(pkt->unit, pkt, &reasons);
+    bcmCheckError(rv, "failed get PKTIO RX reason");
+    ingressSample = BCM_PKTIO_REASON_GET(
+        reasons.rx_reasons, BCMPKT_RX_REASON_CPU_SFLOW_SRC);
+    egressSample = BCM_PKTIO_REASON_GET(
+        reasons.rx_reasons, BCMPKT_RX_REASON_CPU_SFLOW_DST);
+
+    // Getting src_port, dst_port, vlan is done here and also in RxPacket
+    // constructor, which is after slow handling. TBD -- should RxPacket be
+    // constructed before sflow handling to avoid duplication? Why is SFLOW
+    // handling not part of general RX handling but singled out as a
+    // pre-processing step before RxPacket is constructed and processed?
+
+    rv = bcm_pktio_pmd_field_get(
+        unit_, pkt, bcmPktioPmdTypeHigig2, BCM_PKTIO_HG2_SRC_PORT, &val);
+    bcmCheckError(rv, "failed to get pktio SRC_PORT_NUM");
+    src_port = val;
+
+    /* The query of (bcmPktioPmdTypeHigig2, BCM_PKTIO_HG2_DST_PORT_MGIDL)
+     * depends on MCST.
+     * When MCST=0, it is destination port ID.
+     * When MCST=1, it is LSBs of MGID.
+     * MCST can be obtained from a query of
+     * (bcmPktioPmdTypeHigig2, BCM_PKTIO_HG2_MCST)
+     */
+    rv = bcm_pktio_pmd_field_get(
+        unit_, pkt, bcmPktioPmdTypeHigig2, BCM_PKTIO_HG2_DST_PORT_MGIDL, &val);
+    bcmCheckError(rv, "failed to get pktio BCM_PKTIO_HG2_DST_PORT_MGIDL");
+    dest_port = val;
+
+    rv = bcm_pktio_pmd_field_get(
+        unit_, pkt, bcmPktioPmdTypeRx, BCMPKT_RXPMD_OUTER_VID, &val);
+    bcmCheckError(rv, "failed to get pktio OUTER_VID");
+    vlan = val;
+
+    rv = bcm_pktio_pkt_data_get(unit_, pkt, (void**)&pkt_data, &pkt_len);
+    bcmCheckError(rv, "failed to get pktio packet data");
+
+    BCM_PKTIO_REASON_CLEAR(reasons.rx_reasons, BCMPKT_RX_REASON_CPU_SFLOW_SRC);
+    BCM_PKTIO_REASON_CLEAR(reasons.rx_reasons, BCMPKT_RX_REASON_CPU_SFLOW_DST);
+    sampleOnly = BCM_PKTIO_REASON_IS_NULL(reasons.rx_reasons);
+#endif
+  }
   if (!ingressSample && !egressSample) {
     return false;
   }
@@ -2785,18 +2925,18 @@ bool BcmSwitch::handleSflowPacket(bcm_pkt_t* pkt) noexcept {
           .count();
   *info.ingressSampled_ref() = ingressSample;
   *info.egressSampled_ref() = egressSample;
-  *info.srcPort_ref() = pkt->src_port;
-  *info.dstPort_ref() = pkt->dest_port;
-  *info.vlan_ref() = pkt->vlan;
+  info.srcPort_ref() = src_port;
+  info.dstPort_ref() = dest_port;
+  info.vlan_ref() = vlan;
 
-  auto snapLen = std::min(kMaxSflowSnapLen, (unsigned int)(pkt->pkt_data->len));
+  auto snapLen = std::min(kMaxSflowSnapLen, (unsigned int)(pkt_len));
 
-  XLOG(DBG6) << "sFlow captured packet of size " << pkt->pkt_data->len;
+  XLOG(DBG6) << "sFlow captured packet of size " << pkt_len;
   XLOG(DBG6) << "Packet dump following (max 128 bytes):\n "
-             << folly::hexDump(pkt->pkt_data->data, snapLen);
+             << folly::hexDump(pkt_data, snapLen);
 
   {
-    std::string packetData(pkt->pkt_data->data, pkt->pkt_data->data + snapLen);
+    std::string packetData(pkt_data, pkt_data + snapLen);
     *info.packetData_ref() = std::move(packetData);
   }
 
@@ -2811,7 +2951,7 @@ bool BcmSwitch::handleSflowPacket(bcm_pkt_t* pkt) noexcept {
   sFlowExporterTable_->sendToAll(info);
 
   // If it is only here because of sFlow, we're done
-  if ((pkt->rx_reason ^ bcmRxReasonSampleSource ^ bcmRxReasonSampleDest) == 0) {
+  if (sampleOnly) {
     return true;
   }
 

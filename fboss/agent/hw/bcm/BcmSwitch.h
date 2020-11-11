@@ -17,6 +17,7 @@
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
+#include "fboss/agent/hw/bcm/BcmRxPacket.h"
 #include "fboss/agent/types.h"
 
 #include <boost/container/flat_map.hpp>
@@ -27,6 +28,10 @@
 extern "C" {
 #include <bcm/error.h>
 #include <bcm/l2.h>
+#ifdef INCLUDE_PKTIO
+#include <bcm/pktio.h>
+#include <bcm/pktio_defs.h>
+#endif
 #include <bcm/port.h>
 #include <bcm/rx.h>
 #include <bcm/types.h>
@@ -558,7 +563,8 @@ class BcmSwitch : public BcmSwitchIf {
 
   void setupToCpuEgress();
 
-  std::unique_ptr<BcmRxPacket> createRxPacket(bcm_pkt_t* pkt);
+  std::unique_ptr<BcmRxPacket> createRxPacket(BcmPacketT bcmPacket);
+
   void changeDefaultVlan(VlanID id);
 
   void processChangedVlan(
@@ -729,12 +735,22 @@ class BcmSwitch : public BcmSwitchIf {
    * Private callback called by the Broadcom API. Dispatches to
    * BcmSwitch::packetReceived.
    */
-  static bcm_rx_t packetRxCallback(int unit, bcm_pkt_t* pkt, void* cookie);
+  static bcm_rx_t packetRxSdkCallback(int unit, bcm_pkt_t* pkt, void* cookie);
+
+#ifdef INCLUDE_PKTIO
+  /*
+   * Private callback called by the Broadcom API. Dispatches to
+   * BcmSwitch::packetReceived.
+   */
+  static bcm_pktio_rx_t
+  pktioPacketRxSdkCallback(int unit, bcm_pktio_pkt_t* pkt, void* cookie);
+#endif
+
   /*
    * Private callback called by BcmSwitch::packetRxCallback. Dispatches to
    * callback_->packetReceived.
    */
-  bcm_rx_t packetReceived(bcm_pkt_t* pkt) noexcept;
+  int packetReceived(BcmPacketT& bcmPacket) noexcept;
 
   /*
    * Update global statistics.
@@ -798,7 +814,7 @@ class BcmSwitch : public BcmSwitchIf {
    * Returns true if it is only an sFlow sample.
    * Returns false if it is there for another reason as well.
    */
-  bool handleSflowPacket(bcm_pkt_t* pkt) noexcept;
+  bool handleSflowPacket(BcmPacketT& bcmPacket) noexcept;
 
   /**
    * Exports the sdk version we build against.

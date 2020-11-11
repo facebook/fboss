@@ -108,14 +108,32 @@ TEST_F(BcmTrunkTest, TrunkCheckIngressPktAggPort) {
   };
   auto verify = [=]() {
     EXPECT_EQ(1, getHwSwitch()->getTrunkTable()->numTrunkPorts());
+    bool usePktIO = getHwSwitch()->usePKTIO();
+    BcmPacketT bcmPacket;
     bcm_pkt_t bcmPkt;
-    BCM_PKT_ONE_BUF_SETUP(&bcmPkt, nullptr, 0);
+#ifdef INCLUDE_PKTIO
+    bcm_pktio_pkt_t pktioPkt;
+#endif
     auto bcmTrunkId = getHwSwitch()->getTrunkTable()->getBcmTrunkId(
         AggregatePortID(std::numeric_limits<AggregatePortID>::max()));
-    bcmPkt.src_trunk = bcmTrunkId;
-    bcmPkt.flags |= BCM_PKT_F_TRUNK;
-    bcmPkt.unit = 0;
-    FbBcmRxPacket fbRxPkt{reinterpret_cast<bcm_pkt_t*>(&bcmPkt), getHwSwitch()};
+    bcmPacket.usePktIO = usePktIO;
+    if (!usePktIO) {
+      bcmPacket.ptrUnion.pkt = &bcmPkt;
+      BCM_PKT_ONE_BUF_SETUP(&bcmPkt, nullptr, 0);
+      bcmPkt.src_trunk = bcmTrunkId;
+      bcmPkt.flags |= BCM_PKT_F_TRUNK;
+      bcmPkt.unit = 0;
+    } else {
+      // TBD pktio
+      // this is to fake a RX packet, sets up a trunk bit.  not sure yet
+      // how to do that for PKTIO.
+#ifdef INCLUDE_PKTIO
+      bcmPacket.ptrUnion.pktioPkt = &pktioPkt;
+      pktioPkt.unit = 0;
+
+#endif
+    }
+    FbBcmRxPacket fbRxPkt(bcmPacket, getHwSwitch());
     EXPECT_TRUE(fbRxPkt.isFromAggregatePort());
     EXPECT_EQ(
         fbRxPkt.getSrcAggregatePort(),

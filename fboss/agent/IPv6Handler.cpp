@@ -374,7 +374,7 @@ void IPv6Handler::handleNeighborSolicitation(
   cursor.skip(4); // 4 reserved bytes
   IPAddressV6 targetIP = PktUtil::readIPv6(&cursor);
   if (targetIP.isMulticast()) {
-    XLOG(DBG6) << "bad IPv6 neighbor solicitation request: target is "
+    XLOG(DBG4) << "bad IPv6 neighbor solicitation request: target is "
                   "multicast: "
                << targetIP;
     sw_->portStats(pkt)->ipv6NdpBad();
@@ -387,6 +387,7 @@ void IPv6Handler::handleNeighborSolicitation(
   if (!vlan) {
     // Hmm, we don't actually have this VLAN configured.
     // Perhaps the state has changed since we received the packet.
+    XLOG(DBG5) << "invalid vlan " << vlan << ", drop the packet";
     sw_->portStats(pkt)->pktDropped();
     return;
   }

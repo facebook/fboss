@@ -2,6 +2,7 @@
 #pragma once
 
 #include <string>
+#include "fboss/agent/hw/bcm/BcmRxPacket.h"
 
 extern "C" {
 #include <bcm/rx.h>
@@ -12,9 +13,15 @@ namespace facebook::fboss {
 class RxUtils {
  public:
   /*
-   * Generate a human-readable string describing a bcm_rx_reasons_t.
+   * Generate a human-readable string describing "reasons".
+   * "reasons" can be of type bcm_rx_reasons_t, called by
+   * BcmControlPlane::configRxReasonToBcmReasons() regardless
+   * of the PKTIO setting,
+   * or be of the type BcmRxReasonsT (an union), from RX calls,
+   * depending on the PKTIO setting.
    */
   static std::string describeReasons(bcm_rx_reasons_t reasons);
+  static std::string describeReasons(const BcmRxReasonsT& reasons);
 
   /*
    * Generate a bcm_rx_reasons_t with the specified reasons set.

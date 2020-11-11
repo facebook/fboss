@@ -10,14 +10,29 @@
 #pragma once
 
 #include "fboss/agent/RxPacket.h"
+#include "fboss/agent/hw/bcm/BcmTypes.h"
 
 #include <vector>
 
 extern "C" {
 #include <bcm/pkt.h>
+#ifdef INCLUDE_PKTIO
+#include <bcm/pktio.h>
+#include <bcm/pktio_defs.h>
+#endif
 }
 
 namespace facebook::fboss {
+
+struct BcmRxReasonsT {
+  bool usePktIO;
+  union {
+    bcm_rx_reasons_t reasons;
+#ifdef INCLUDE_PKTIO
+    bcm_pktio_reasons_t pktio_reasons;
+#endif
+  } reasonsUnion;
+};
 
 class BcmRxPacket : public RxPacket {
  public:
@@ -27,12 +42,13 @@ class BcmRxPacket : public RxPacket {
    * The rx callback should return BCM_RX_HANDLED_OWNED after successful
    * creation of the BcmRxPacket.
    */
-  explicit BcmRxPacket(const bcm_pkt_t* pkt);
+  explicit BcmRxPacket(const BcmPacketT& bcmPktPtr);
 
   ~BcmRxPacket() override;
 
- private:
+ protected:
   int unit_{-1};
+  bool usePktIO_{false};
 };
 
 // TODO (skhare) Simplify/fold into BcmRxPacket
@@ -40,7 +56,9 @@ class BcmSwitch;
 
 class FbBcmRxPacket : public BcmRxPacket {
  public:
-  explicit FbBcmRxPacket(const bcm_pkt_t* pkt, const BcmSwitch* bcmSwitch);
+  explicit FbBcmRxPacket(
+      const BcmPacketT& bcmPktPtr,
+      const BcmSwitch* bcmSwitch);
 
   std::string describeDetails() const override;
   int cosQueue() const override {
@@ -55,7 +73,7 @@ class FbBcmRxPacket : public BcmRxPacket {
 
   uint8_t _cosQueue{0};
   uint8_t _priority{0};
-  bcm_rx_reasons_t _reasons;
+  BcmRxReasonsT _reasons;
 };
 
 } // namespace facebook::fboss

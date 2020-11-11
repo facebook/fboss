@@ -367,8 +367,11 @@ void TunIntf::handlerReady(uint16_t /*events*/) noexcept {
   }
 
   XLOG(DBG4) << "Forwarded " << sent << " packets (" << bytes
-             << " bytes) from host @ fd " << fd_ << " for interface " << name_
-             << " dropped:" << dropped;
+             << " bytes) from host @ fd " << fd_ << " for interface " << name_;
+  if (dropped) {
+    XLOG(DBG3) << "Dropped " << dropped << " packets from host @ fd " << fd_
+               << " for interface " << name_;
+  }
 }
 
 bool TunIntf::sendPacketToHost(std::unique_ptr<RxPacket> pkt) {
