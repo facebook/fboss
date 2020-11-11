@@ -321,4 +321,63 @@ TYPED_TEST(HwRouteTest, UnresolvedAndResolvedMultiNextHop) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(HwRouteTest, ResolvedMultiNexthopToUnresolvedSingleNexthop) {
+  using AddrT = typename TestFixture::Type;
+  auto setup = [=]() { this->applyNewConfig(this->initialConfig()); };
+  auto verify = [=]() {
+    utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
+        this->getProgrammedState(), this->kRouterID());
+    auto state = ecmpHelper.setupECMPForwarding(
+        ecmpHelper.resolveNextHops(
+            this->getProgrammedState(),
+            {PortDescriptor(this->masterLogicalPortIds()[0]),
+             PortDescriptor(this->masterLogicalPortIds()[1])}),
+        {PortDescriptor(this->masterLogicalPortIds()[0]),
+         PortDescriptor(this->masterLogicalPortIds()[1])},
+        {this->kGetRoutePrefix0()});
+    this->applyNewState(state);
+    auto routePrefix0 = this->kGetRoutePrefix0();
+    auto cidr0 = folly::CIDRNetwork(routePrefix0.network, routePrefix0.mask);
+    EXPECT_FALSE(
+        utility::isHwRouteToCpu(this->getHwSwitch(), this->kRouterID(), cidr0));
+    EXPECT_TRUE(utility::isHwRouteMultiPath(
+        this->getHwSwitch(), this->kRouterID(), cidr0));
+    if (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      EXPECT_TRUE(utility::isHwRouteToNextHop(
+          this->getHwSwitch(),
+          this->kRouterID(),
+          cidr0,
+          folly::IPAddress("1.0.0.1")));
+      EXPECT_TRUE(utility::isHwRouteToNextHop(
+          this->getHwSwitch(),
+          this->kRouterID(),
+          cidr0,
+          folly::IPAddress("2.0.0.2")));
+    } else {
+      EXPECT_TRUE(utility::isHwRouteToNextHop(
+          this->getHwSwitch(),
+          this->kRouterID(),
+          cidr0,
+          folly::IPAddress("1::1")));
+      EXPECT_TRUE(utility::isHwRouteToNextHop(
+          this->getHwSwitch(),
+          this->kRouterID(),
+          cidr0,
+          folly::IPAddress("2::2")));
+    }
+    state = ecmpHelper.unresolveNextHops(
+        this->getProgrammedState(),
+        {PortDescriptor(this->masterLogicalPortIds()[0]),
+         PortDescriptor(this->masterLogicalPortIds()[1])});
+    this->applyNewState(state);
+    state = ecmpHelper.setupECMPForwarding(
+        ecmpHelper.resolveNextHops(
+            this->getProgrammedState(),
+            {PortDescriptor(this->masterLogicalPortIds()[0])}),
+        {PortDescriptor(this->masterLogicalPortIds()[0])},
+        {this->kGetRoutePrefix0()});
+    this->applyNewState(state);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
