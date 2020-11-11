@@ -13,6 +13,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
+#include "fboss/agent/hw/bcm/BcmEcmpUtils.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
@@ -50,6 +51,7 @@ using std::make_shared;
 using std::shared_ptr;
 using std::string;
 using namespace facebook::fboss;
+using facebook::fboss::utility::getEcmpSizeInHw;
 using facebook::fboss::utility::kBaseVlanId;
 
 namespace {
@@ -1062,18 +1064,7 @@ TEST_F(BcmRouteTest, UnresolveResolveNextHop) {
     EXPECT_NE(egressId, BcmEgressBase::INVALID);
 
     /* ecmp is resolved */
-    bcm_l3_egress_ecmp_t ecmp_info;
-    bcm_l3_egress_ecmp_t_init(&ecmp_info);
-    ecmp_info.ecmp_intf = egressId;
-    std::array<bcm_if_t, 2> ecmp_member_array;
-    int ecmp_member_count = 0;
-    bcm_l3_egress_ecmp_get(
-        getHwSwitch()->getUnit(),
-        &ecmp_info,
-        ecmp_member_array.size(),
-        ecmp_member_array.data(),
-        &ecmp_member_count);
-    EXPECT_EQ(ecmp_member_count, ecmp_member_array.size());
+    EXPECT_EQ(getEcmpSizeInHw(getHwSwitch(), egressId, 2), 2);
   };
   setup();
   verify();
