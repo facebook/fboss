@@ -40,9 +40,8 @@ struct PortData {
   std::vector<std::shared_ptr<Port>> ports;
 
   void addPort(const PortInfo& info) {
-    if (auto itProfile =
-            kPlatformMapping->getSupportedProfiles().find(info.profileID);
-        itProfile != kPlatformMapping->getSupportedProfiles().end() ||
+    if (auto itProfile = kPlatformMapping->getPortProfileConfig(info.profileID);
+        itProfile.has_value() ||
         info.profileID == PortProfileID::PROFILE_DEFAULT) {
       auto port =
           std::make_shared<Port>(info.id, "test" + std::to_string(info.id));
@@ -51,7 +50,7 @@ struct PortData {
       if (info.profileID == PortProfileID::PROFILE_DEFAULT) {
         port->setSpeed(PortSpeed::DEFAULT);
       } else {
-        port->setSpeed(*itProfile->second.speed_ref());
+        port->setSpeed(*itProfile->speed_ref());
       }
       ports.push_back(port);
     } else {
@@ -168,38 +167,36 @@ PortData getInvalidDefaultPorts() {
 } // namespace
 
 TEST(BcmUnitTests, FlexportCalculate) {
-  const auto& profiles = kPlatformMapping->getSupportedProfiles();
-  const auto& platformPorts = kPlatformMapping->getPlatformPorts();
   // 4x10
   auto data = get4x10gPorts();
   auto desired = BcmPortGroup::calculateDesiredLaneMode(
-      data.ports, profiles, platformPorts);
+      data.ports, kPlatformMapping.get());
   EXPECT_EQ(desired, BcmPortGroup::LaneMode::SINGLE);
 
   data = get2x20gPorts();
   desired = BcmPortGroup::calculateDesiredLaneMode(
-      data.ports, profiles, platformPorts);
+      data.ports, kPlatformMapping.get());
   EXPECT_EQ(desired, BcmPortGroup::LaneMode::DUAL);
 
   data = get1x40gPorts();
   desired = BcmPortGroup::calculateDesiredLaneMode(
-      data.ports, profiles, platformPorts);
+      data.ports, kPlatformMapping.get());
   EXPECT_EQ(desired, BcmPortGroup::LaneMode::QUAD);
 
   data = get1x10gPorts();
   desired = BcmPortGroup::calculateDesiredLaneMode(
-      data.ports, profiles, platformPorts);
+      data.ports, kPlatformMapping.get());
   EXPECT_EQ(desired, BcmPortGroup::LaneMode::SINGLE);
 
   data = getInvalid1x40gPorts();
   EXPECT_ANY_THROW(BcmPortGroup::calculateDesiredLaneMode(
-      data.ports, profiles, platformPorts));
+      data.ports, kPlatformMapping.get()));
 
   data = getInvalid20gPorts();
   EXPECT_ANY_THROW(BcmPortGroup::calculateDesiredLaneMode(
-      data.ports, profiles, platformPorts));
+      data.ports, kPlatformMapping.get()));
 
   data = getInvalidDefaultPorts();
   EXPECT_ANY_THROW(BcmPortGroup::calculateDesiredLaneMode(
-      data.ports, profiles, platformPorts));
+      data.ports, kPlatformMapping.get()));
 }

@@ -64,12 +64,12 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
           mapping->getPortIphyPinConfigs(PortID(port.first), profile.first);
       EXPECT_TRUE(pinCfgs.size() > 0);
 
-      auto itProfileCfg = mapping->getSupportedProfiles().find(profile.first);
-      EXPECT_TRUE(itProfileCfg != mapping->getSupportedProfiles().end());
+      auto itProfileCfg = mapping->getPortProfileConfig(profile.first);
+      EXPECT_TRUE(itProfileCfg.has_value());
 
       for (auto pinCfg : pinCfgs) {
         auto tx = pinCfg.tx_ref();
-        if (*itProfileCfg->second.iphy_ref()->modulation_ref() ==
+        if (*itProfileCfg->iphy_ref()->modulation_ref() ==
             phy::IpModulation::NRZ) {
           EXPECT_TRUE(tx.has_value());
           EXPECT_EQ(*tx->pre2_ref(), 0);
@@ -79,7 +79,7 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
           EXPECT_EQ(*tx->post2_ref(), 0);
           EXPECT_EQ(*tx->post3_ref(), 0);
         } else if (
-            *itProfileCfg->second.iphy_ref()->modulation_ref() ==
+            *itProfileCfg->iphy_ref()->modulation_ref() ==
             phy::IpModulation::PAM4) {
           if (profile.first ==
               cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_COPPER) {
@@ -604,8 +604,8 @@ TEST_F(PlatformMappingTest, VerifyWedge100DownlinkPortIphyPinConfigs) {
       if (downlinkProfiles.find(profile.first) == downlinkProfiles.end()) {
         continue;
       }
-      auto itProfileCfg = mapping->getSupportedProfiles().find(profile.first);
-      EXPECT_TRUE(itProfileCfg != mapping->getSupportedProfiles().end());
+      auto itProfileCfg = mapping->getPortProfileConfig(profile.first);
+      EXPECT_TRUE(itProfileCfg.has_value());
 
       const auto& txSettingsGroup =
           kWedge100DownlinkTxGroups[kWedge100DownlinkPortGroupMapping[transID]];

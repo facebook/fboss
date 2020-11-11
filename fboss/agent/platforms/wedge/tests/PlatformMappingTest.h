@@ -36,10 +36,8 @@ class PlatformMappingTest : public ::testing::Test {
   void verify(PlatformMapping* mapping) {
     EXPECT_EQ(expectedNumPort_, mapping->getPlatformPorts().size());
 
-    const auto& supportedProfiles = mapping->getSupportedProfiles();
-    EXPECT_EQ(expectedProfiles_.size(), supportedProfiles.size());
     for (auto profile : expectedProfiles_) {
-      EXPECT_TRUE(supportedProfiles.find(profile) != supportedProfiles.end());
+      EXPECT_TRUE(mapping->getPortProfileConfig(profile).has_value());
     }
 
     int numIphy = 0, numXphy = 0, numTcvr = 0;

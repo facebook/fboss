@@ -96,8 +96,8 @@ class PlatformMapping {
 
   const std::optional<phy::PortProfileConfig> getPortProfileConfig(
       cfg::PortProfileID PortProfileID,
-      std::optional<ExtendedSpecComplianceCode> transceiverSpecComplianceCode)
-      const;
+      std::optional<ExtendedSpecComplianceCode> transceiverSpecComplianceCode =
+          std::nullopt) const;
 
   std::vector<phy::PinConfig> getPortIphyPinConfigs(
       PortID id,

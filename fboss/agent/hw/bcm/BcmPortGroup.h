@@ -26,6 +26,7 @@ namespace facebook::fboss {
 
 class BcmSwitch;
 class SwitchState;
+class PlatformMapping;
 
 /*
  * BcmPortGroup is a class that represents a group of (four) BcmPorts
@@ -78,9 +79,7 @@ class BcmPortGroup {
 
   static BcmPortGroup::LaneMode calculateDesiredLaneMode(
       const std::vector<std::shared_ptr<Port>>& ports,
-      const std::map<cfg::PortProfileID, phy::PortProfileConfig>&
-          supportedProfiles,
-      const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts);
+      const PlatformMapping* platformMapping);
 
   LaneMode laneMode() {
     return laneMode_;

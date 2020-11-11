@@ -102,9 +102,8 @@ BcmPortGroup::LaneMode BcmPortGroup::numLanesToLaneMode(uint8_t numLanes) {
 
 BcmPortGroup::LaneMode BcmPortGroup::calculateDesiredLaneMode(
     const std::vector<std::shared_ptr<Port>>& ports,
-    const std::map<cfg::PortProfileID, phy::PortProfileConfig>&
-        supportedProfiles,
-    const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts) {
+    const PlatformMapping* platformMapping) {
+  auto platformPorts = platformMapping->getPlatformPorts();
   // As we support more and more platforms, the existing lane mode calculation
   // won't be valid any more. For example, for 100G port, we can use 2x50PAM4 or
   // 4x25NRZ mode. Therefore, we introduced the new PlatformPort design, which
@@ -123,8 +122,10 @@ BcmPortGroup::LaneMode BcmPortGroup::calculateDesiredLaneMode(
     }
 
     // First check whether the Platform supports such profileID
-    auto profileCfg = supportedProfiles.find(port->getProfileID());
-    if (profileCfg == supportedProfiles.end()) {
+    // getPortProfileConfig();
+    auto profileCfg =
+        platformMapping->getPortProfileConfig(port->getProfileID());
+    if (!profileCfg.has_value()) {
       throw FbossError(
           "Port: ",
           port->getName(),
@@ -157,7 +158,7 @@ BcmPortGroup::LaneMode BcmPortGroup::calculateDesiredLaneMode(
     }
 
     auto neededMode =
-        numLanesToLaneMode(*profileCfg->second.iphy_ref()->numLanes_ref());
+        numLanesToLaneMode(*profileCfg->iphy_ref()->numLanes_ref());
     if (neededMode > desiredMode) {
       desiredMode = neededMode;
     }
@@ -219,10 +220,7 @@ bool BcmPortGroup::validConfiguration(
     const std::shared_ptr<SwitchState>& state) const {
   try {
     const auto& ports = getSwPorts(state);
-    calculateDesiredLaneMode(
-        ports,
-        hw_->getPlatform()->getSupportedProfiles(),
-        hw_->getPlatform()->getPlatformPorts());
+    calculateDesiredLaneMode(ports, hw_->getPlatform()->getPlatformMapping());
   } catch (const std::exception& ex) {
     XLOG(DBG1) << "Received exception determining lane mode: " << ex.what();
     return false;
@@ -241,9 +239,7 @@ void BcmPortGroup::reconfigureIfNeeded(
   auto newPorts = getSwPorts(newState);
 
   LaneMode desiredLaneMode = calculateDesiredLaneMode(
-      newPorts,
-      hw_->getPlatform()->getSupportedProfiles(),
-      hw_->getPlatform()->getPlatformPorts());
+      newPorts, hw_->getPlatform()->getPlatformMapping());
   if (desiredLaneMode != laneMode_) {
     reconfigureLaneMode(oldPorts, newPorts, desiredLaneMode);
   }
