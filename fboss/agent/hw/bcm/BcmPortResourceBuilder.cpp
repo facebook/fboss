@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmPortUtils.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
@@ -179,8 +180,10 @@ std::vector<std::shared_ptr<Port>> BcmPortResourceBuilder::addPorts(
     newPortRes.port = port->getID();
 
     const auto& baseIphyLane = getBaseLane(port);
-    newPortRes.physical_port =
-        basePhysicalPort_ + (baseIphyLane - basePhysicalLane_);
+
+    newPortRes.physical_port = basePhysicalPort_ +
+        (baseIphyLane - basePhysicalLane_) /
+            hw_->getPlatform()->getAsic()->getNumLanesPerPhysicalPort();
 
     newPortRes.lanes = desiredLaneMode_;
     newPortRes.speed = static_cast<int>(*(*profileConf).speed_ref());

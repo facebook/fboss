@@ -54,6 +54,9 @@ class Wedge40Platform : public WedgePlatform {
     return asic_.get();
   }
 
+  phy::VCOFrequency getVCOFrequency(
+      phy::VCOFrequencyFactor& factor) const override;
+
  private:
   Wedge40Platform(Wedge40Platform const&) = delete;
   Wedge40Platform& operator=(Wedge40Platform const&) = delete;

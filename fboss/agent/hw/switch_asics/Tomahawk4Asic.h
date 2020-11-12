@@ -53,6 +53,8 @@ class Tomahawk4Asic : public BroadcomAsic {
     return cfg::MMUScalingFactor::TWO;
   }
 
+  int getNumLanesPerPhysicalPort() const override;
+
   int getDefaultACLGroupID() const override;
 
   int getStationID(int intfId) const override;

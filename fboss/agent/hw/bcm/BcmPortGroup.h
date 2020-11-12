@@ -77,6 +77,10 @@ class BcmPortGroup {
 
   bool validConfiguration(const std::shared_ptr<SwitchState>& state) const;
 
+  bool needsVCOChange(
+      const std::shared_ptr<SwitchState>& oldState,
+      const std::shared_ptr<SwitchState>& newState) const;
+
   static BcmPortGroup::LaneMode calculateDesiredLaneMode(
       const std::vector<std::shared_ptr<Port>>& ports,
       const PlatformMapping* platformMapping);

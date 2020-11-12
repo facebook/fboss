@@ -48,4 +48,46 @@ void BcmPlatform::dumpHwConfig() const {
     throw facebook::fboss::SysError(errno, "error writing bcm config ");
   }
 }
+
+phy::VCOFrequency BcmPlatform::getVCOFrequency(
+    phy::VCOFrequencyFactor& factor) const {
+  auto speed = *factor.speed_ref();
+  auto fecMode = *factor.fecMode_ref();
+  switch (speed) {
+    case cfg::PortSpeed::FOURHUNDREDG:
+      return phy::VCOFrequency::VCO_26_5625GHZ;
+    case cfg::PortSpeed::TWOHUNDREDG:
+      FOLLY_FALLTHROUGH;
+    case cfg::PortSpeed::HUNDREDG:
+      FOLLY_FALLTHROUGH;
+    case cfg::PortSpeed::FIFTYG:
+      FOLLY_FALLTHROUGH;
+    case cfg::PortSpeed::TWENTYFIVEG:
+      switch (fecMode) {
+        case phy::FecMode::RS544:
+          FOLLY_FALLTHROUGH;
+        case phy::FecMode::RS544_2N:
+          return phy::VCOFrequency::VCO_26_5625GHZ;
+        case phy::FecMode::NONE:
+          FOLLY_FALLTHROUGH;
+        case phy::FecMode::CL74:
+          FOLLY_FALLTHROUGH;
+        case phy::FecMode::CL91:
+          FOLLY_FALLTHROUGH;
+        case phy::FecMode::RS528:
+          return phy::VCOFrequency::VCO_25_78125GHZ;
+      }
+    case cfg::PortSpeed::FORTYG:
+      FOLLY_FALLTHROUGH;
+    case cfg::PortSpeed::TWENTYG:
+      FOLLY_FALLTHROUGH;
+    case cfg::PortSpeed::XG:
+      return phy::VCOFrequency::VCO_20_625GHZ;
+    case cfg::PortSpeed::GIGE:
+      FOLLY_FALLTHROUGH;
+    case cfg::PortSpeed::DEFAULT:
+      return phy::VCOFrequency::UNKNOWN;
+  }
+  return phy::VCOFrequency::UNKNOWN;
+}
 } // namespace facebook::fboss

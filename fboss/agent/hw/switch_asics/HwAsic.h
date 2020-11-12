@@ -79,6 +79,17 @@ class HwAsic {
   }
 
   /*
+    This function will be used in calculating lane assignment, physical port
+    assignment when adjusting ports in a port group. Most platforms have
+    physical lanes : physical port = 1:1, but due to limited port id, some
+    platforms will have different mappings. Note phyiscal port here is referring
+    to the chip's physical ports and not our front panel ports
+  */
+  virtual int getNumLanesPerPhysicalPort() const {
+    return 1;
+  }
+
+  /*
    * Default Content Aware Processor group ID for ACLs
    */
   virtual int getDefaultACLGroupID() const;

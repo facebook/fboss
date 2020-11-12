@@ -54,4 +54,9 @@ const PortQueue& Wedge40Platform::getDefaultControlPlaneQueueSettings(
       utility::BcmChip::TRIDENT2, streamType);
 }
 
+phy::VCOFrequency Wedge40Platform::getVCOFrequency(
+    phy::VCOFrequencyFactor& /* factor */) const {
+  return phy::VCOFrequency::VCO_10_3125GHZ;
+}
+
 } // namespace facebook::fboss

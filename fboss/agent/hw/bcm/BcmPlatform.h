@@ -110,6 +110,17 @@ class BcmPlatform : public Platform {
 
   virtual bool useQueueGportForCos() const = 0;
 
+  /*
+    Ports have a concept of VCO frequency that is decided when port is first
+    brought up, based on some of the port settings. Changing speed or other port
+    settings sometimes will require a VCO frequency change, in which case we may
+    not be able to use the usual way of reporgramming ports in BcmPorts.
+    This function calculates required VCO frequency given required port settings
+    which we can use to decide if we need some customized logic
+  */
+  virtual phy::VCOFrequency getVCOFrequency(
+      phy::VCOFrequencyFactor& factor) const;
+
  protected:
   /*
    * Dump map containing switch h/w config as a key, value pair

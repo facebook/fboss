@@ -24,12 +24,15 @@
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 namespace {
+using facebook::fboss::BcmPlatform;
 using facebook::fboss::BcmPortGroup;
 using facebook::fboss::FbossError;
 using facebook::fboss::LaneSpeeds;
 using facebook::fboss::Port;
 using facebook::fboss::PortID;
 using facebook::fboss::cfg::PortSpeed;
+using facebook::fboss::phy::VCOFrequency;
+using facebook::fboss::phy::VCOFrequencyFactor;
 
 void setLanesControl(int unit, bcm_port_t port, unsigned lanes) {
   int rv = bcm_port_control_set(unit, port, bcmPortControlLanes, lanes);
@@ -57,6 +60,42 @@ std::shared_ptr<Port> getSwPort(
   }
 
   throw FbossError("Can't find sw port: ", id);
+}
+
+std::set<VCOFrequency> getAllVCOFrequencies(
+    BcmPlatform* platform,
+    std::vector<std::shared_ptr<Port>> ports) {
+  std::set<VCOFrequency> vcos;
+  for (auto& port : ports) {
+    VCOFrequencyFactor factor;
+    auto config = platform->getPortProfileConfig(port->getProfileID());
+    if (!config) {
+      throw FbossError(
+          "Port: ",
+          port->getName(),
+          ", had unsupported speed profile: ",
+          apache::thrift::util::enumNameSafe(port->getProfileID()));
+    }
+    factor.speed_ref() = *config->speed_ref();
+    factor.fecMode_ref() = *config->iphy_ref()->fec_ref();
+    vcos.insert(platform->getVCOFrequency(factor));
+  }
+  return vcos;
+}
+
+std::string VCOFrequencySetToString(std::set<VCOFrequency> vcos) {
+  std::stringstream stream;
+  bool first = true;
+  stream << "{";
+  for (auto vco : vcos) {
+    if (!first) {
+      stream << ", ";
+    }
+    first = false;
+    stream << apache::thrift::util::enumNameSafe(vco);
+  }
+  stream << "}";
+  return stream.str();
 }
 
 } // namespace
@@ -98,6 +137,31 @@ BcmPortGroup::LaneMode BcmPortGroup::numLanesToLaneMode(uint8_t numLanes) {
     throw FbossError(
         "Unexpected number of lanes retrieved for bcm port ", numLanes);
   }
+}
+
+bool BcmPortGroup::needsVCOChange(
+    const std::shared_ptr<SwitchState>& oldState,
+    const std::shared_ptr<SwitchState>& newState) const {
+  if (!hw_->getPlatform()->supportsAddRemovePort()) {
+    return false;
+  }
+  auto oldSwPorts = getSwPorts(oldState);
+  auto newSwPorts = getSwPorts(newState);
+
+  std::set<phy::VCOFrequency> oldVCOs =
+      getAllVCOFrequencies(hw_->getPlatform(), oldSwPorts);
+  std::set<phy::VCOFrequency> newVCOs =
+      getAllVCOFrequencies(hw_->getPlatform(), newSwPorts);
+
+  auto needsChange = oldVCOs != newVCOs;
+  XLOGF_IF(
+      INFO,
+      needsChange,
+      "Port {} needs VCO frequency change from {} to {}",
+      controllingPort_->getPortID(),
+      VCOFrequencySetToString(oldVCOs),
+      VCOFrequencySetToString(newVCOs));
+  return needsChange;
 }
 
 BcmPortGroup::LaneMode BcmPortGroup::calculateDesiredLaneMode(
@@ -240,7 +304,9 @@ void BcmPortGroup::reconfigureIfNeeded(
 
   LaneMode desiredLaneMode = calculateDesiredLaneMode(
       newPorts, hw_->getPlatform()->getPlatformMapping());
-  if (desiredLaneMode != laneMode_) {
+  if (desiredLaneMode != laneMode_ || needsVCOChange(oldState, newState)) {
+    // reprogram port group if we have different lane configuration or we need
+    // a VCO change. Otherwise bcm port can handle it
     reconfigureLaneMode(oldPorts, newPorts, desiredLaneMode);
   }
 }
