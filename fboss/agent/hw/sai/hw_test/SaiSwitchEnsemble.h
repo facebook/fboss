@@ -12,6 +12,7 @@
 
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 
+#include "fboss/agent/hw/sai/diag/DiagShell.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
@@ -61,7 +62,6 @@ class SaiSwitchEnsemble : public HwSwitchEnsemble {
   void runDiagCommand(const std::string& input, std::string& output) override;
 
  private:
-  std::shared_ptr<SaiTestHandler> thriftHandler_;
   std::unique_ptr<std::thread> setupThrift() override {
     return createThriftThread(getHwSwitch());
   }
@@ -69,6 +69,8 @@ class SaiSwitchEnsemble : public HwSwitchEnsemble {
       HwSwitch* hwSwitch,
       cfg::PortLoopbackMode desiredLoopbackMode);
   std::unique_ptr<std::thread> createThriftThread(const SaiSwitch* hwSwitch);
+  std::unique_ptr<DiagShell> diagShell_;
+  std::unique_ptr<DiagCmdServer> diagCmdServer_;
 };
 
 } // namespace facebook::fboss

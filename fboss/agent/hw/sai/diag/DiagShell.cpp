@@ -425,6 +425,7 @@ std::string DiagCmdServer::diagCmd(
     throw FbossError("Another client connected");
   }
   std::string inputStr = input->toStdString();
+  XLOG(DBG1) << "Connected and running diagCmd: " << inputStr;
   // Flush out old output
   // These should be made in different consumeInput calls,
   // or the input gets mixed up.

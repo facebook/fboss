@@ -17,11 +17,11 @@
 #include <folly/File.h>
 #include <folly/Synchronized.h>
 #include <thrift/lib/cpp2/async/ServerStream.h>
+#include "fboss/agent/hw/sai/diag/Repl.h"
 #include "fboss/agent/hw/sai/switch/gen-cpp2/SaiCtrl.h"
 
 namespace facebook::fboss {
 
-class Repl;
 class SaiSwitch;
 
 namespace detail {

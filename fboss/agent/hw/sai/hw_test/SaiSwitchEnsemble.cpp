@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/hw_test/SaiLinkStateToggler.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 
+#include "fboss/agent/hw/sai/diag/SaiRepl.h"
 #include "fboss/agent/hw/sai/hw_test/SaiTestHandler.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
@@ -64,8 +65,6 @@ SaiSwitchEnsemble::SaiSwitchEnsemble(
         },
         platform->getAsic()->desiredLoopbackMode());
   }
-  thriftHandler_ = std::make_shared<SaiTestHandler>(
-      static_cast<SaiSwitch*>(platform->getHwSwitch()));
   std::unique_ptr<std::thread> thriftThread;
   if (FLAGS_setup_thrift) {
     thriftThread =
@@ -73,15 +72,19 @@ SaiSwitchEnsemble::SaiSwitchEnsemble(
   }
   setupEnsemble(
       std::move(platform), std::move(linkToggler), std::move(thriftThread));
+  auto hw = static_cast<SaiSwitch*>(getHwSwitch());
+  diagShell_ = std::make_unique<DiagShell>(hw);
+  diagCmdServer_ = std::make_unique<DiagCmdServer>(hw, diagShell_.get());
 }
 
 std::unique_ptr<std::thread> SaiSwitchEnsemble::createThriftThread(
     const SaiSwitch* hwSwitch) {
-  return std::make_unique<std::thread>([=] {
+  return std::make_unique<std::thread>([hwSwitch] {
     folly::EventBase eventBase;
+    auto handler = std::make_shared<SaiTestHandler>(hwSwitch);
     auto server = setupThriftServer(
         eventBase,
-        thriftHandler_,
+        handler,
         FLAGS_thrift_port,
         false /* isDuplex */,
         false /* setupSSL*/,
@@ -136,11 +139,8 @@ void SaiSwitchEnsemble::runDiagCommand(
   ClientInformation clientInfo;
   clientInfo.username_ref() = "hw_test";
   clientInfo.hostname_ref() = "hw_test";
-  fbstring result;
-  thriftHandler_->diagCmd(
-      result,
+  output = diagCmdServer_->diagCmd(
       std::make_unique<fbstring>(input),
       std::make_unique<ClientInformation>(clientInfo));
-  output = result.toStdString();
 }
 } // namespace facebook::fboss
