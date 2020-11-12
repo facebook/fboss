@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/state/LabelForwardingAction.h"
 
 extern "C" {
@@ -41,6 +42,7 @@ void verifyTunneledEgressToDrop(
     const LabelForwardingAction::LabelStack& tunnelStack);
 
 void verifyLabeledMultiPathEgress(
+    const BcmSwitch* hw,
     uint32_t unLabeled,
     uint32_t labeled,
     bcm_if_t egressId,
@@ -50,6 +52,7 @@ void verifyLabeledMultiPathEgress(
         stacks);
 
 void verifyLabeledMultiPathEgress(
+    const BcmSwitch* hw,
     uint32_t unLabeled,
     uint32_t labeled,
     bcm_if_t egressId,
@@ -62,6 +65,7 @@ void verifyEgress(
     bcm_if_t intf);
 
 void verifyMultiPathEgress(
+    const BcmSwitch* hw,
     bcm_if_t egressId,
     const std::vector<bcm_port_t>& ports,
     const std::vector<bcm_mac_t>& macs,

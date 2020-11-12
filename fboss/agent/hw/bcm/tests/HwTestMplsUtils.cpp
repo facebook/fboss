@@ -120,7 +120,11 @@ void verifyMultiPathNextHop(
   }
 
   utility::verifyLabeledMultiPathEgress(
-      numUnLabeledPorts, numLabeledPorts, egressId, bcmPort2Stacks);
+      static_cast<const BcmSwitch*>(hwSwitch),
+      numUnLabeledPorts,
+      numLabeledPorts,
+      egressId,
+      bcmPort2Stacks);
 }
 template void verifyMultiPathNextHop<folly::IPAddressV6>(
     const HwSwitch* hwSwitch,
@@ -325,7 +329,12 @@ void verifyLabeledMultiPath(
               nexthop.action.pushStack().value()));
     }
   }
-  utility::verifyLabeledMultiPathEgress(0, nexthops.size(), egress_if, stacks);
+  utility::verifyLabeledMultiPathEgress(
+      static_cast<const BcmSwitch*>(hwSwitch),
+      0,
+      nexthops.size(),
+      egress_if,
+      stacks);
 }
 template void verifyLabeledMultiPath<folly::IPAddressV6>(
     const HwSwitch* hwSwitch,

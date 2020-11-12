@@ -1,7 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/bcm/tests/BcmMplsTestUtils.h"
-
+#include "fboss/agent/hw/bcm/BcmEcmpUtils.h"
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
 
 namespace facebook::fboss::utility {
@@ -111,6 +111,7 @@ void verifyTunneledEgressToDrop(
 }
 
 void verifyLabeledMultiPathEgress(
+    const BcmSwitch* hw,
     uint32_t unLabeled,
     uint32_t labeled,
     bcm_if_t egressId,
@@ -125,19 +126,9 @@ void verifyLabeledMultiPathEgress(
   // a labeled member can have tunnel,
   // if it tunnel has then verify tunneled egress
   // if it tunnel has then verify labaled egress
-  bcm_l3_egress_ecmp_t ecmp;
-  bcm_l3_egress_ecmp_t_init(&ecmp);
-  ecmp.ecmp_intf = egressId;
-  ecmp.flags = BCM_L3_WITH_ID;
-
-  std::vector<bcm_if_t> ecmp_members;
-  ecmp_members.resize(unLabeled + labeled);
-  int ecmp_member_count = 0;
-
-  bcm_l3_egress_ecmp_get(
-      0, &ecmp, ecmp_members.size(), ecmp_members.data(), &ecmp_member_count);
-  EXPECT_EQ(ecmp_member_count, ecmp_members.size());
-
+  int members_sw = unLabeled + labeled;
+  auto ecmp_members = getEcmpGroupInHw(hw, egressId, members_sw);
+  EXPECT_EQ(ecmp_members.size(), members_sw);
   for (const auto& ecmp_member : ecmp_members) {
     bcm_l3_egress_t egr;
     bcm_l3_egress_get(0, ecmp_member, &egr);
@@ -160,23 +151,14 @@ void verifyLabeledMultiPathEgress(
 }
 
 void verifyLabeledMultiPathEgress(
+    const BcmSwitch* hw,
     uint32_t unLabeled,
     uint32_t labeled,
     bcm_if_t egressId,
     const std::map<bcm_port_t, LabelForwardingAction::LabelStack>& stacks) {
-  bcm_l3_egress_ecmp_t ecmp;
-  bcm_l3_egress_ecmp_t_init(&ecmp);
-  ecmp.ecmp_intf = egressId;
-  ecmp.flags = BCM_L3_WITH_ID;
-
-  std::vector<bcm_if_t> ecmp_members;
-  ecmp_members.resize(unLabeled + labeled);
-  int ecmp_member_count = 0;
-
-  bcm_l3_egress_ecmp_get(
-      0, &ecmp, ecmp_members.size(), ecmp_members.data(), &ecmp_member_count);
-  EXPECT_EQ(ecmp_member_count, ecmp_members.size());
-
+  int members_sw = unLabeled + labeled;
+  auto ecmp_members = getEcmpGroupInHw(hw, egressId, members_sw);
+  EXPECT_EQ(ecmp_members.size(), members_sw);
   for (const auto& ecmp_member : ecmp_members) {
     bcm_l3_egress_t egr;
     bcm_l3_egress_get(0, ecmp_member, &egr);
@@ -217,30 +199,22 @@ void verifyEgress(
 }
 
 void verifyMultiPathEgress(
+    const BcmSwitch* hw,
     bcm_if_t egressId,
     const std::vector<bcm_port_t>& ports,
     const std::vector<bcm_mac_t>& macs,
     const std::vector<bcm_if_t>& intfs) {
-  bcm_l3_egress_ecmp_t ecmp;
-  bcm_l3_egress_ecmp_t_init(&ecmp);
-  ecmp.ecmp_intf = egressId;
-  ecmp.flags = BCM_L3_WITH_ID;
-
-  std::vector<bcm_l3_ecmp_member_t> ecmp_members;
-  ecmp_members.resize(ports.size());
-  int ecmp_member_count = 0;
-  bcm_l3_ecmp_get(
-      0, &ecmp, ecmp_members.size(), ecmp_members.data(), &ecmp_member_count);
-  EXPECT_EQ(ecmp_member_count, ecmp_members.size());
+  int members_sw = ports.size();
+  auto ecmp_members = getEcmpGroupInHw(hw, egressId, members_sw);
+  EXPECT_EQ(ecmp_members.size(), members_sw);
   for (const auto& ecmp_member : ecmp_members) {
     bcm_l3_egress_t egr;
-    bcm_l3_egress_get(0, ecmp_member.egress_if, &egr);
+    bcm_l3_egress_get(0, ecmp_member, &egr);
 
     auto itr = std::find(std::begin(ports), std::end(ports), egr.port);
     ASSERT_NE(itr, ports.end());
     auto index = itr - ports.begin();
-    verifyEgress(
-        ecmp_member.egress_if, ports[index], macs[index], intfs[index]);
+    verifyEgress(ecmp_member, ports[index], macs[index], intfs[index]);
   }
 }
 
