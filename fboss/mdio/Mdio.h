@@ -73,12 +73,19 @@ class MdioController {
 
   template <typename... Args>
   explicit MdioController(int id, Args&&... args)
-      : rawIO_(IO(std::forward<Args>(args)...)),
+      : id_(id),
+        rawIO_(IO(std::forward<Args>(args)...)),
         io_(rawIO_),
         lockFile_(std::make_shared<folly::File>(
             folly::to<std::string>(kMdioLockFilePath, id),
             O_RDWR | O_CREAT,
             0666)) {}
+
+  MdioController(MdioController<IO>&& old)
+      : id_(std::move(old.id_)),
+        rawIO_(std::move(old.rawIO_)),
+        io_(std::move(old.io_)),
+        lockFile_(std::move(old.lockFile_)) {}
 
   // Delete the copy constructor. If we try to copy this object while io_ is locked
   // then the process will immediately deadlock.
@@ -114,6 +121,10 @@ class MdioController {
       phy::Cl45Data data) {
     auto locked = fully_lock();
     locked->writeCl45(physAddr, devAddr, regAddr, data);
+  }
+
+  int id() const {
+    return id_;
   }
 
   // This can be useful by clients to do multiple MDIO reads/writes
@@ -184,6 +195,7 @@ class MdioController {
   }
 
  private:
+  int id_;
   IO rawIO_;
   folly::Synchronized<IO, std::mutex> io_;
   std::shared_ptr<folly::File> lockFile_;
