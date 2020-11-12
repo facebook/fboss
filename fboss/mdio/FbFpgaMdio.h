@@ -43,6 +43,8 @@ class FbFpgaMdio : public Mdio {
 
   void reset();
 
+  void setClockDivisor(int div);
+
  private:
   void clearStatus();
   void waitUntilDone(uint32_t millis, MdioCommand command);

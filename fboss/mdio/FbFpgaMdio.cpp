@@ -49,6 +49,16 @@ void FbFpgaMdio::reset() {
   writeReg(config);
 }
 
+// Set the clock divisor. By default, it's 20, resulting in a 2.5MHz MDC clock
+// on EVT Fuji (but not MP1), we can set it to 10 for a clock speed of 5MHz
+// on DVT Fuji we will be able to set it to 4 for a clock speed of 12.5MHz
+void FbFpgaMdio::setClockDivisor(int div) {
+  auto config = readReg<MdioConfig>();
+  config.mdcFreq = div;
+  XLOG(DBG1) << "Setting mdio controller divisor to " << div;
+  writeReg(config);
+}
+
 void FbFpgaMdio::clearStatus() {
   MdioStatus status;
   status.reg = 0;
