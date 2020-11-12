@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/bcm/BcmQosMapEntry.h"
 #include "fboss/agent/hw/bcm/BcmQosPolicy.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/QosPolicy.h"
 
 extern "C" {
@@ -99,6 +100,7 @@ BcmQosMap::BcmQosMap(const BcmSwitchIf* hw, int flags, int mapHandle)
       bcmEntries.data(),
       &numEntries);
   bcmCheckError(rv, "failed to get the entries of qos map=", handle_);
+  std::unordered_set<std::pair<bcm_color_t, int>> discoveredTc2IntPri;
   for (auto i = 0; i < numEntries; i++) {
     auto& bcmEntry = bcmEntries[i];
     if (bcmEntry.color != bcmColorGreen || bcmEntry.int_pri > BCM_PRIO_MAX) {
@@ -106,6 +108,18 @@ BcmQosMap::BcmQosMap(const BcmSwitchIf* hw, int flags, int mapHandle)
        * entries since we only care about "green" entries and did not program
        * entries of other colors. */
       continue;
+    }
+    // TODO(daiweix): remove this if block after bcm_qos_map_multi_get()
+    // no longer returns ghost entries on TH4 for mpls egress qos map.
+    if (type_ == BcmQosMap::MPLS_EGRESS &&
+        hw_->getPlatform()->getAsic()->getAsicType() ==
+            HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
+      auto tc2IntPri = std::make_pair(bcmEntry.color, bcmEntry.int_pri);
+      if (discoveredTc2IntPri.find(tc2IntPri) != discoveredTc2IntPri.end()) {
+        // ghost entry
+        continue;
+      }
+      discoveredTc2IntPri.insert(tc2IntPri);
     }
     XLOG(DBG4) << "found entry [color: " << bcmEntry.color
                << ", int_pri: " << bcmEntry.int_pri
