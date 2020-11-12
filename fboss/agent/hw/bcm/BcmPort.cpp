@@ -1077,9 +1077,9 @@ void BcmPort::updateWredStats(std::chrono::seconds now, int64_t* portStatVal) {
     }
     return count;
   };
-  *portStatVal += getWredDroppedPackets(bcmCosqStatGreenDiscardDroppedPackets);
-  *portStatVal += getWredDroppedPackets(bcmCosqStatYellowDiscardDroppedPackets);
-  *portStatVal += getWredDroppedPackets(bcmCosqStatRedDiscardDroppedPackets);
+  *portStatVal = getWredDroppedPackets(bcmCosqStatGreenDiscardDroppedPackets) +
+      getWredDroppedPackets(bcmCosqStatYellowDiscardDroppedPackets) +
+      getWredDroppedPackets(bcmCosqStatRedDiscardDroppedPackets);
   auto stat = getPortCounterIf(kWredDroppedPackets());
   stat->updateValue(now, *portStatVal);
 }
