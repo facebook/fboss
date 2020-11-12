@@ -28,7 +28,7 @@ class FbFpga {
    * we need to support different HW settings, like 4DD, we can leaverage more
    * input parameters to set up FPGA.
    */
-  void initHW();
+  virtual void initHW();
 
   void
   setFrontPanelLedColor(uint8_t pim, int qsfp, FbDomFpga::LedColor ledColor);

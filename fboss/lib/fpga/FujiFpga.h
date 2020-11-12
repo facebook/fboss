@@ -20,6 +20,8 @@ class FujiFpga : public FbFpga {
   FujiFpga();
   static std::shared_ptr<FujiFpga> getInstance();
 
+  void initHW() override;
+
   // TODO: Fuji dom fpga led/mdio part is very similar to Minipack.
   // Thus, just use existing FbDomFpga here for now. However, we still
   // need to look into qsfp part and extend/refactor FbDomFpga class,

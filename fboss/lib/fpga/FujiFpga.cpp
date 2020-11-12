@@ -12,10 +12,12 @@
 #include <folly/Singleton.h>
 #include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
+#include "fboss/lib/PciAccess.h"
 
 namespace {
 // normally, PIM index should start at 2
 constexpr uint32_t kPimStartNum = 2;
+const std::string fpgaDevPath = "/sys/bus/pci/devices/0000:12:00.0";
 } // namespace
 
 namespace facebook::fboss {
@@ -38,6 +40,11 @@ FujiFpga::FujiFpga() {
             domFpgaBaseAddr,
             kFacebookFpgaPimSize));
   }
+}
+
+void FujiFpga::initHW() {
+  FbFpga::initHW();
+  PciAccess(fpgaDevPath).enableMemSpaceAccess();
 }
 
 } // namespace facebook::fboss
