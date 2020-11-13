@@ -65,7 +65,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
     auto vlanId = utility::firstVlanID(initialConfig());
     auto intfMac = getIntfMac();
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
-    auto txPacket = utility::makeUDPTxPacket(
+    auto txPacket = utility::makeTCPTxPacket(
         getHwSwitch(),
         vlanId,
         srcMac,
@@ -74,7 +74,9 @@ class HwAqmTest : public HwLinkStateDependentTest {
         folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
         8000,
         8001,
-        dscpVal);
+        dscpVal,
+        255,
+        std::vector<uint8_t>(7000, 0xff));
 
     getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
   }
