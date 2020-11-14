@@ -54,7 +54,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
     }
   }
 
-  void sendUdpPkt(uint8_t dscpVal, bool isEcn) {
+  void sendUdpPkt(uint8_t dscpVal, bool isEcn, bool ensure = false) {
     auto kECT1 = 0x01; // ECN capable transport ECT(1)
 
     dscpVal = static_cast<uint8_t>(dscpVal << 2);
@@ -78,7 +78,11 @@ class HwAqmTest : public HwLinkStateDependentTest {
         255,
         std::vector<uint8_t>(7000, 0xff));
 
-    getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
+    if (ensure) {
+      getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
+    } else {
+      getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
+    }
   }
 
   /*
@@ -109,6 +113,13 @@ class HwAqmTest : public HwLinkStateDependentTest {
       utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(),
                                                getIntfMac()};
       setupECMPForwarding(ecmpHelper6, kEcmpWidthForTest);
+      if (isEcn) {
+        // Assert that ECT capable packets are not counted by port ECN
+        // counter and on congestion encountered packets are counted.
+        sendUdpPkt(kDscp(), isEcn, true);
+        auto portStats = getLatestPortStats(masterLogicalPortIds()[0]);
+        EXPECT_EQ(*portStats.outEcnCounter__ref(), 0);
+      }
       disableTTLDecrements(ecmpHelper6);
     };
     auto verify = [=]() {
