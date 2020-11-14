@@ -43,25 +43,13 @@ void assertPortsSampleDestination(
     const HwSwitch* hw,
     const std::map<PortID, int>& port2SampleDestination);
 
-void enableOneLane(
+void enablePortsInPortGroup(
     cfg::SwitchConfig* config,
     cfg::PortSpeed enabledLaneSpeed,
     cfg::PortSpeed disabledLaneSpeed,
-    std::vector<PortID> allPortsinGroup,
-    const Platform* platform);
-
-void enableAllLanes(
-    cfg::SwitchConfig* config,
-    cfg::PortSpeed enabledLaneSpeed,
-    std::vector<PortID> allPortsinGroup,
-    const Platform* platform);
-
-void enableTwoLanes(
-    cfg::SwitchConfig* config,
-    cfg::PortSpeed enabledLaneSpeed,
-    cfg::PortSpeed disabledLaneSpeed,
-    std::vector<PortID> allPortsinGroup,
-    const Platform* platform);
+    const std::vector<PortID>& allPortsInGroup,
+    const Platform* platform,
+    const std::array<bool, 4>& enabledPortsOption);
 
 void cleanPortConfig(
     cfg::SwitchConfig* config,

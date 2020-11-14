@@ -37,20 +37,6 @@ SaiPortTraits::AdapterKey getPortAdapterKey(const HwSwitch* hw, PortID port) {
   return handle->port->adapterKey();
 }
 
-std::pair<std::string, cfg::PortProfileID> getMappingNameAndProfileID(
-    const Platform* platform,
-    PortID port,
-    cfg::PortSpeed speed) {
-  auto platformPort = platform->getPlatformPort(port);
-  if (auto entry = platformPort->getPlatformPortEntry()) {
-    return {*entry->mapping_ref()->name_ref(),
-            platformPort->getProfileIDBySpeed(speed)};
-
-  } else {
-    throw FbossError("Port:", port, " doesn't have PlatformPortEntry");
-  }
-}
-
 std::vector<sai_uint32_t> getTxSetting(
     const std::vector<phy::TxSettings>& tx,
     std::function<sai_uint32_t(phy::TxSettings)> func) {
@@ -148,110 +134,6 @@ void cleanPortConfig(
         return true;
       });
   config->ports_ref()->erase(removed, config->ports_ref()->end());
-}
-
-void enableOneLane(
-    cfg::SwitchConfig* config,
-    cfg::PortSpeed enabledLaneSpeed,
-    cfg::PortSpeed /*disabledLaneSpeed*/,
-    std::vector<PortID> allPortsinGroup,
-    const Platform* platform) {
-  // remove all except first
-  for (auto itr = allPortsinGroup.begin() + 1; itr != allPortsinGroup.end();
-       itr++) {
-    auto groupMemberPort = std::find_if(
-        config->ports_ref()->begin(),
-        config->ports_ref()->end(),
-        [itr](auto port) {
-          return static_cast<PortID>(*port.logicalID_ref()) == *itr;
-        });
-    config->ports_ref()->erase(groupMemberPort);
-    auto vlanMemberPort = std::find_if(
-        config->vlanPorts_ref()->begin(),
-        config->vlanPorts_ref()->end(),
-        [itr](auto vlanPort) {
-          return static_cast<PortID>(*vlanPort.logicalPort_ref()) == *itr;
-        });
-    config->vlanPorts_ref()->erase(vlanMemberPort);
-  }
-
-  auto firstLanePort = std::find_if(
-      config->ports_ref()->begin(),
-      config->ports_ref()->end(),
-      [&allPortsinGroup](auto port) {
-        return static_cast<PortID>(*port.logicalID_ref()) == allPortsinGroup[0];
-      });
-  *firstLanePort->speed_ref() = enabledLaneSpeed;
-  *firstLanePort->state_ref() = cfg::PortState::ENABLED;
-
-  auto [name, profileID] = getMappingNameAndProfileID(
-      platform,
-      static_cast<PortID>(*firstLanePort->logicalID_ref()),
-      enabledLaneSpeed);
-  firstLanePort->name_ref() = name;
-  *firstLanePort->profileID_ref() = profileID;
-}
-
-void enableAllLanes(
-    cfg::SwitchConfig* config,
-    cfg::PortSpeed enabledLaneSpeed,
-    std::vector<PortID> allPortsinGroup,
-    const Platform* platform) {
-  // keep all except
-  for (auto portID : allPortsinGroup) {
-    auto port = std::find_if(
-        config->ports_ref()->begin(),
-        config->ports_ref()->end(),
-        [&portID](auto portCfg) {
-          return static_cast<PortID>(*portCfg.logicalID_ref()) == portID;
-        });
-    port->speed_ref() = enabledLaneSpeed;
-    port->state_ref() = cfg::PortState::ENABLED;
-
-    auto [name, profileID] =
-        getMappingNameAndProfileID(platform, portID, enabledLaneSpeed);
-    port->name_ref() = name;
-    port->profileID_ref() = profileID;
-  }
-}
-
-void enableTwoLanes(
-    cfg::SwitchConfig* config,
-    cfg::PortSpeed enabledLaneSpeed,
-    cfg::PortSpeed /*disabledLaneSpeed*/,
-    std::vector<PortID> allPortsinGroup,
-    const Platform* platform) {
-  // keep only first and third
-  auto front = allPortsinGroup.front();
-  for (auto portID : allPortsinGroup) {
-    auto port = std::find_if(
-        config->ports_ref()->begin(),
-        config->ports_ref()->end(),
-        [&portID](auto portCfg) {
-          return static_cast<PortID>(*portCfg.logicalID_ref()) == portID;
-        });
-    if ((static_cast<PortID>(portID) % 2) != 0) {
-      config->ports_ref()->erase(port);
-    } else {
-      port->speed_ref() = enabledLaneSpeed;
-      port->state_ref() = cfg::PortState::ENABLED;
-
-      auto [name, profileID] =
-          getMappingNameAndProfileID(platform, portID, enabledLaneSpeed);
-      port->name_ref() = name;
-      port->profileID_ref() = profileID;
-    }
-  }
-
-  auto vlanPortItr = config->vlanPorts_ref()->begin();
-  while (vlanPortItr != config->vlanPorts_ref()->end()) {
-    if ((static_cast<PortID>(*vlanPortItr->logicalPort_ref()) - front) % 2 !=
-        0) {
-      vlanPortItr = config->vlanPorts_ref()->erase(vlanPortItr);
-    } else {
-      vlanPortItr++;
-    }
-  }
 }
 
 void assertQUADMode(

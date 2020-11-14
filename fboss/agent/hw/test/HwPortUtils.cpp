@@ -11,6 +11,29 @@
 #include "fboss/agent/hw/test/HwPortUtils.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/Platform.h"
+
+namespace {
+using namespace facebook::fboss;
+
+const std::array<bool, 4> kAllPortsEnabled = {true, true, true, true};
+const std::array<bool, 4> kFirstPortEnabled = {true, false, false, false};
+const std::array<bool, 4> kOddPortsEnabled = {true, false, true, false};
+
+std::pair<std::string, cfg::PortProfileID> getMappingNameAndProfileID(
+    const Platform* platform,
+    PortID port,
+    cfg::PortSpeed speed) {
+  auto platformPort = platform->getPlatformPort(port);
+  if (auto entry = platformPort->getPlatformPortEntry()) {
+    return {*entry->mapping_ref()->name_ref(),
+            platformPort->getProfileIDBySpeed(speed)};
+
+  } else {
+    throw FbossError("Port:", port, " doesn't have PlatformPortEntry");
+  }
+}
+} // namespace
 
 namespace facebook::fboss::utility {
 
@@ -20,32 +43,45 @@ void updateFlexConfig(
     std::vector<PortID> allPortsinGroup,
     const Platform* platform) {
   if (flexMode == FlexPortMode::FOURX10G) {
-    facebook::fboss::utility::enableAllLanes(
-        config, cfg::PortSpeed::XG, allPortsinGroup, platform);
+    enablePortsInPortGroup(
+        config,
+        cfg::PortSpeed::XG,
+        cfg::PortSpeed::XG,
+        allPortsinGroup,
+        platform,
+        kAllPortsEnabled);
   } else if (flexMode == FlexPortMode::FOURX25G) {
-    facebook::fboss::utility::enableAllLanes(
-        config, cfg::PortSpeed::TWENTYFIVEG, allPortsinGroup, platform);
+    enablePortsInPortGroup(
+        config,
+        cfg::PortSpeed::TWENTYFIVEG,
+        cfg::PortSpeed::TWENTYFIVEG,
+        allPortsinGroup,
+        platform,
+        kAllPortsEnabled);
   } else if (flexMode == FlexPortMode::ONEX40G) {
-    facebook::fboss::utility::enableOneLane(
+    enablePortsInPortGroup(
         config,
         cfg::PortSpeed::FORTYG,
         cfg::PortSpeed::XG,
         allPortsinGroup,
-        platform);
+        platform,
+        kFirstPortEnabled);
   } else if (flexMode == FlexPortMode::TWOX50G) {
-    facebook::fboss::utility::enableTwoLanes(
+    enablePortsInPortGroup(
         config,
         cfg::PortSpeed::FIFTYG,
         cfg::PortSpeed::TWENTYFIVEG,
         allPortsinGroup,
-        platform);
+        platform,
+        kOddPortsEnabled);
   } else if (flexMode == FlexPortMode::ONEX100G) {
-    facebook::fboss::utility::enableOneLane(
+    enablePortsInPortGroup(
         config,
         cfg::PortSpeed::HUNDREDG,
         cfg::PortSpeed::TWENTYFIVEG,
         allPortsinGroup,
-        platform);
+        platform,
+        kFirstPortEnabled);
   } else {
     throw FbossError("invalid FlexConfig Mode");
   }
@@ -175,5 +211,65 @@ TransmitterTechnology getMediaType(cfg::PortProfileID profile) {
       break;
   }
   return TransmitterTechnology::UNKNOWN;
+}
+
+void enablePortsInPortGroup(
+    cfg::SwitchConfig* config,
+    cfg::PortSpeed enabledLaneSpeed,
+    cfg::PortSpeed disabledLaneSpeed,
+    const std::vector<PortID>& allPortsInGroup,
+    const Platform* platform,
+    const std::array<bool, 4>& enabledPortsOption) {
+  // Manipulate the port configs based on enabledPortsOption
+  // If the port is enabled, then update the speed/state/profileID/name
+  // If the port is disabled:
+  // 1) If the platform supports adding or removing port, remove this port from
+  //    the config
+  // 2) Otherwise, update the speed with disabledLaneSpeed and state with
+  //    cfg::PortState::DISABLED
+  CHECK_EQ(allPortsInGroup.size(), enabledPortsOption.size());
+  for (auto portIdx = 0; portIdx < allPortsInGroup.size(); portIdx++) {
+    auto portID = allPortsInGroup.at(portIdx);
+    bool isPortEnabled = enabledPortsOption.at(portIdx);
+    auto portCfgIt = std::find_if(
+        config->ports_ref()->begin(),
+        config->ports_ref()->end(),
+        [portID](auto port) {
+          return static_cast<PortID>(*port.logicalID_ref()) == portID;
+        });
+    if (portCfgIt == config->ports_ref()->end()) {
+      if (isPortEnabled || !platform->supportsAddRemovePort()) {
+        throw FbossError("Port:", portID, " doesn't exist in the config");
+      }
+      // Skip if disabled port doesn't exist
+      continue;
+    }
+
+    // If the port is disabled and the platform support removing ports
+    if (!isPortEnabled && platform->supportsAddRemovePort()) {
+      config->ports_ref()->erase(portCfgIt);
+      auto vlanMemberPort = std::find_if(
+          config->vlanPorts_ref()->begin(),
+          config->vlanPorts_ref()->end(),
+          [portID](auto vlanPort) {
+            return static_cast<PortID>(*vlanPort.logicalPort_ref()) == portID;
+          });
+      if (vlanMemberPort != config->vlanPorts_ref()->end()) {
+        config->vlanPorts_ref()->erase(vlanMemberPort);
+      }
+      continue;
+    }
+
+    // For the remaining ports which doesn't get erased, update port config
+    portCfgIt->state_ref() =
+        isPortEnabled ? cfg::PortState::ENABLED : cfg::PortState::DISABLED;
+    portCfgIt->speed_ref() =
+        isPortEnabled ? enabledLaneSpeed : disabledLaneSpeed;
+
+    auto [name, profileID] =
+        getMappingNameAndProfileID(platform, portID, *portCfgIt->speed_ref());
+    portCfgIt->name_ref() = name;
+    portCfgIt->profileID_ref() = profileID;
+  }
 }
 } // namespace facebook::fboss::utility

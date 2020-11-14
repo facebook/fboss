@@ -34,33 +34,6 @@ int getUnit(const facebook::fboss::HwSwitch* hw) {
   CHECK(hw);
   return static_cast<const facebook::fboss::BcmSwitch*>(hw)->getUnit();
 }
-
-std::vector<facebook::fboss::cfg::Port>::iterator findCfgPort(
-    facebook::fboss::cfg::SwitchConfig* cfg,
-    facebook::fboss::PortID portID) {
-  return std::find_if(
-      cfg->ports_ref()->begin(),
-      cfg->ports_ref()->end(),
-      [&portID](auto& port) {
-        return facebook::fboss::PortID(*port.logicalID_ref()) == portID;
-      });
-}
-
-void updatePortProfileIDAndName(
-    facebook::fboss::cfg::SwitchConfig* config,
-    facebook::fboss::PortID portID,
-    const facebook::fboss::Platform* platform) {
-  auto platformPort = platform->getPlatformPort(portID);
-  if (auto entry = platformPort->getPlatformPortEntry()) {
-    auto portCfg = findCfgPort(config, portID);
-    portCfg->name_ref() = *entry->mapping_ref()->name_ref();
-    portCfg->profileID_ref() =
-        platformPort->getProfileIDBySpeed(*portCfg->speed_ref());
-  } else {
-    throw facebook::fboss::FbossError(
-        "Port:", portID, " doesn't have PlatformPortEntry");
-  }
-}
 } // namespace
 
 namespace facebook::fboss::utility {
@@ -144,77 +117,6 @@ void cleanPortConfig(
     std::vector<PortID> /* allPortsinGroup */) {
   // no need to remove portCfg not in allPortsinGroup for bcm tests
   // do nothing
-}
-
-void enableOneLane(
-    cfg::SwitchConfig* config,
-    cfg::PortSpeed enabledLaneSpeed,
-    cfg::PortSpeed disabledLaneSpeed,
-    std::vector<PortID> allPortsinGroup,
-    const Platform* platform) {
-  bool firstLane = true;
-  for (auto portID : allPortsinGroup) {
-    auto portCfg = findCfgPort(config, portID);
-    portCfg->state_ref() =
-        firstLane ? cfg::PortState::ENABLED : cfg::PortState::DISABLED;
-    portCfg->speed_ref() = firstLane ? enabledLaneSpeed : disabledLaneSpeed;
-    updatePortProfileIDAndName(config, portID, platform);
-    if (platform->supportsAddRemovePort() && !firstLane) {
-      config->ports_ref()->erase(portCfg);
-      auto vlanMemberPort = std::find_if(
-          config->vlanPorts_ref()->begin(),
-          config->vlanPorts_ref()->end(),
-          [portID](auto vlanPort) {
-            return static_cast<PortID>(*vlanPort.logicalPort_ref()) == portID;
-          });
-      if (vlanMemberPort != config->vlanPorts_ref()->end()) {
-        config->vlanPorts_ref()->erase(vlanMemberPort);
-      }
-    }
-    firstLane = false;
-  }
-}
-
-void enableAllLanes(
-    cfg::SwitchConfig* config,
-    cfg::PortSpeed enabledLaneSpeed,
-    std::vector<PortID> allPortsinGroup,
-    const Platform* platform) {
-  for (auto portID : allPortsinGroup) {
-    auto portCfg = findCfgPort(config, portID);
-    portCfg->speed_ref() = enabledLaneSpeed;
-    portCfg->state_ref() = cfg::PortState::ENABLED;
-    updatePortProfileIDAndName(config, portID, platform);
-  }
-}
-
-void enableTwoLanes(
-    cfg::SwitchConfig* config,
-    cfg::PortSpeed enabledLaneSpeed,
-    cfg::PortSpeed disabledLaneSpeed,
-    std::vector<PortID> allPortsinGroup,
-    const Platform* platform) {
-  bool oddLane;
-  for (auto portID : allPortsinGroup) {
-    auto portCfg = findCfgPort(config, portID);
-    oddLane = (portID - allPortsinGroup.front()) % 2 == 0 ? true : false;
-    portCfg->state_ref() =
-        oddLane ? cfg::PortState::ENABLED : cfg::PortState::DISABLED;
-    portCfg->speed_ref() = oddLane ? enabledLaneSpeed : disabledLaneSpeed;
-    updatePortProfileIDAndName(config, portID, platform);
-    if (platform->supportsAddRemovePort() && !oddLane) {
-      config->ports_ref()->erase(portCfg);
-      auto vlanMemberPort = std::find_if(
-          config->vlanPorts_ref()->begin(),
-          config->vlanPorts_ref()->end(),
-          [portID](auto vlanPort) {
-            return static_cast<PortID>(*vlanPort.logicalPort_ref()) == portID;
-          });
-      if (vlanMemberPort != config->vlanPorts_ref()->end()) {
-        config->vlanPorts_ref()->erase(vlanMemberPort);
-      }
-    }
-  }
 }
 
 void assertQUADMode(
