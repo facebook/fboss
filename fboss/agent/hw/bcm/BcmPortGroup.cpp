@@ -324,6 +324,9 @@ void BcmPortGroup::reconfigureLaneMode(
   // 1. For all existing ports, disable linkscan, then disable
   for (auto& bcmPort : allPorts_) {
     auto swPort = getSwPort(oldPorts, bcmPort->getPortID());
+    // CS00011459055 Broadcom recommends to disable loopback before calling
+    // flex port api
+    bcmPort->setLoopbackMode(cfg::PortLoopbackMode::NONE);
     bcmPort->disableLinkscan();
     bcmPort->disable(swPort);
   }

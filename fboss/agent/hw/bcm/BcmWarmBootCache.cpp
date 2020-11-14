@@ -915,7 +915,7 @@ void BcmWarmBootCache::clear() {
   for (auto reasonToQueueEntry : index2ReasonToQueue_) {
     const auto index = reasonToQueueEntry.first;
     XLOG(DBG1) << "Deleting rx reason to queue entry: index=" << index
-               << "reason="
+               << ", reason="
                << apache::thrift::util::enumNameSafe(
                       *reasonToQueueEntry.second.rxReason_ref())
                << ", queue=" << *reasonToQueueEntry.second.queueId_ref();

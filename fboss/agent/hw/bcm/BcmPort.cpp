@@ -427,7 +427,7 @@ void BcmPort::program(const shared_ptr<Port>& port) {
   setPause(port);
   // Update Tx Setting if needed.
   setTxSetting(port);
-  setLoopbackMode(port);
+  setLoopbackMode(port->getLoopbackMode());
 
   setupStatsIfNeeded(port);
   auto asicType = hw_->getPlatform()->getAsic()->getAsicType();
@@ -1632,20 +1632,19 @@ void BcmPort::setTxSettingViaPhyTx(
   }
 }
 
-void BcmPort::setLoopbackMode(const std::shared_ptr<Port>& swPort) {
-  int newLoopbackMode = utility::fbToBcmLoopbackMode(swPort->getLoopbackMode());
+void BcmPort::setLoopbackMode(cfg::PortLoopbackMode mode) {
+  int newLoopbackMode = utility::fbToBcmLoopbackMode(mode);
   int oldLoopbackMode;
   auto rv = bcm_port_loopback_get(unit_, port_, &oldLoopbackMode);
-  bcmCheckError(
-      rv, "failed to get loopback mode state for port", swPort->getID());
+  bcmCheckError(rv, "failed to get loopback mode state for port", port_);
   if (oldLoopbackMode != newLoopbackMode) {
     rv = bcm_port_loopback_set(unit_, port_, newLoopbackMode);
     bcmCheckError(
         rv,
         "failed to set loopback mode state to ",
-        swPort->getLoopbackMode(),
+        apache::thrift::util::enumNameSafe(mode),
         " for port",
-        swPort->getID());
+        port_);
   }
 }
 
@@ -1833,21 +1832,8 @@ void BcmPort::setPortResource(const std::shared_ptr<Port>& swPort) {
              << ", phy_lane_config=0x" << std::hex
              << desiredPortResource.phy_lane_config;
 
-  bool portState = isEnabled();
-  if (portState) {
-    disable(swPort);
-  }
-  // Remove then add the port back. This is the only way to change the speed.
-  auto portResBuilder = std::make_unique<BcmPortResourceBuilder>(
-      hw_,
-      this,
-      static_cast<BcmPortGroup::LaneMode>(desiredPortResource.lanes));
-  portResBuilder->removePorts({this});
-  portResBuilder->addPorts({swPort});
-  portResBuilder->program();
-  if (portState) {
-    enable(swPort);
-  }
+  auto rv = bcm_port_resource_speed_set(unit_, gport_, &desiredPortResource);
+  bcmCheckError(rv, "failed to set port resource on port ", swPort->getID());
 }
 
 cfg::PortProfileID BcmPort::getCurrentProfile() const {

@@ -190,6 +190,8 @@ class BcmPort {
 
   cfg::PortProfileID getCurrentProfile() const;
 
+  void setLoopbackMode(cfg::PortLoopbackMode mode);
+
  private:
   class BcmPortStats {
     // All actions or instantiations of this class need to be done in a
@@ -260,8 +262,6 @@ class BcmPort {
   void setTxSettingViaPhyTx(
       const std::shared_ptr<Port>& swPort,
       const std::vector<phy::PinConfig>& iphyPinConfigs);
-
-  void setLoopbackMode(const std::shared_ptr<Port>& swPort);
 
   bool isMmuLossy() const;
   uint8_t determinePipe() const;
