@@ -75,12 +75,13 @@ class BcmTxPacket : public TxPacket {
     } else {
 #ifdef INCLUDE_PKTIO
       bcm_pktio_pkt_t* pktioPkt = bcmPacket_.ptrUnion.pktioPkt;
-      auto rv = bcm_pktio_pmd_field_set(
-          unit_,
-          pktioPkt,
-          bcmPktioPmdTypeTx,
-          BCMPKT_TXPMD_LOCAL_DEST_PORT,
-          port);
+      bcm_pktio_txpmd_t pmd;
+      pmd.tx_port = port;
+      pmd.cos = cos_;
+      // default prio_int and flags for now
+      pmd.prio_int = 0;
+      pmd.flags = 0;
+      auto rv = bcm_pktio_pmd_set(unit_, pktioPkt, &pmd);
       bcmCheckError(rv, "failed to set PKTIO PMD.");
 #endif
     }
@@ -138,6 +139,7 @@ class BcmTxPacket : public TxPacket {
 
 #ifdef INCLUDE_PKTIO
   int unit_{-1};
+  uint8_t cos_{0};
 #endif
 };
 

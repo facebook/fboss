@@ -289,6 +289,7 @@ void BcmTxPacket::setCos(uint8_t cos) noexcept {
     if (BCM_FAILURE(rv)) {
       bcmLogError(rv, "failed to set COS in PKTIO PMD.");
     }
+    cos_ = cos;
 #endif
   }
 }

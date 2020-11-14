@@ -34,6 +34,40 @@ class HwPacketSendTest : public HwLinkStateDependentTest {
   }
 };
 
+TEST_F(HwPacketSendTest, LldpToFrontPanelOutOfPort) {
+  auto setup = [=]() {};
+  auto verify = [=]() {
+    auto portStatsBefore = getLatestPortStats(masterLogicalPortIds()[0]);
+    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto txPacket = utility::makeEthTxPacket(
+        getHwSwitch(),
+        vlanId,
+        srcMac,
+        folly::MacAddress("01:80:c2:00:00:0e"),
+        facebook::fboss::ETHERTYPE::ETHERTYPE_LLDP,
+        std::nullopt);
+    getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
+        std::move(txPacket), masterLogicalPortIds()[0], std::nullopt);
+    auto portStatsAfter = getLatestPortStats(masterLogicalPortIds()[0]);
+    XLOG(INFO) << "Lldp Packet:"
+               << " before pkts:" << *portStatsBefore.outMulticastPkts__ref()
+               << ", after pkts:" << *portStatsAfter.outMulticastPkts__ref()
+               << ", before bytes:" << *portStatsBefore.outBytes__ref()
+               << ", after bytes:" << *portStatsAfter.outBytes__ref();
+    EXPECT_NE(
+        0, *portStatsAfter.outBytes__ref() - *portStatsBefore.outBytes__ref());
+    if (getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_TAJO) {
+      EXPECT_EQ(
+          1,
+          *portStatsAfter.outMulticastPkts__ref() -
+              *portStatsBefore.outMulticastPkts__ref());
+    }
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 TEST_F(HwPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
   auto setup = [=]() {};
   auto verify = [=]() {

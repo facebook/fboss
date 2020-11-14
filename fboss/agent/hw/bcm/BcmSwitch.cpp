@@ -2391,7 +2391,12 @@ void BcmSwitch::updateStatsImpl(SwitchStats* /* switchStats */) {
   // Update global statistics.
   updateGlobalStats();
   // Update cpu or host bound packet stats
-  controlPlane_->updateQueueCounters();
+  if (getPlatform()->getAsic()->getAsicType() !=
+      HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
+    // TODO(daiweix): remove if condition after flex counter support
+    // for cpu port queue on TH4 is committed
+    controlPlane_->updateQueueCounters();
+  }
 }
 
 folly::F14FastMap<std::string, HwPortStats> BcmSwitch::getPortStats() const {
