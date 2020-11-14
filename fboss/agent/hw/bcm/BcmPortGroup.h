@@ -102,16 +102,18 @@ class BcmPortGroup {
   void setActiveLanesWithFlexPortApi(
       const std::vector<std::shared_ptr<Port>>& ports,
       LaneMode desiredLaneMode);
-  void reconfigureLaneMode(
+  void reconfigure(
       const std::vector<std::shared_ptr<Port>>& oldPorts,
       const std::vector<std::shared_ptr<Port>>& newPorts,
-      LaneMode newLaneMode);
+      LaneMode newLaneMode,
+      std::set<phy::VCOFrequency>& newVCOFrequencies);
   void setPortSpecificControls(const BcmPort& bcmPort, bool enable);
 
   BcmSwitch* hw_;
   BcmPort* controllingPort_{nullptr};
   std::vector<BcmPort*> allPorts_;
   LaneMode laneMode_;
+  std::set<phy::VCOFrequency> vcoFrequencies_;
 };
 
 } // namespace facebook::fboss
