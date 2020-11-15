@@ -236,7 +236,13 @@ class SaiApi {
     }
     AttrT attr = attrOptional.value_or(AttrT{});
     try {
-      return std::optional<typename AttrT::ValueType>{getAttribute(key, attr)};
+      auto result = getAttribute(key, attr);
+      if constexpr (IsVector<decltype(result)>::value) {
+        if (result.empty()) {
+          return std::optional<typename AttrT::ValueType>();
+        }
+      }
+      return std::optional<typename AttrT::ValueType>(result);
     } catch (const SaiApiError& e) {
       if constexpr (std::remove_reference_t<AttrT>::HasDefaultGetter) {
         /*

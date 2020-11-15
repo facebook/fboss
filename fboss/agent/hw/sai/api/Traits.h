@@ -37,6 +37,12 @@ struct WrappedSaiType {
   using value = T;
 };
 
+template <typename T>
+struct IsVector : std::false_type {};
+
+template <typename T>
+struct IsVector<std::vector<T>> : std::true_type {};
+
 template <>
 struct WrappedSaiType<folly::MacAddress> {
   using value = sai_mac_t;

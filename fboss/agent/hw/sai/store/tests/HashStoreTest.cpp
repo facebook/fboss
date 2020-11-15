@@ -33,47 +33,43 @@ const auto kHalfHash = SaiHashTraits::Attributes::NativeHashFieldList{{
 class HashStoreTest : public SaiStoreTest {
  public:
   HashSaiId createHash(
-      SaiHashTraits::Attributes::NativeHashFieldList nativeFields,
-      SaiHashTraits::Attributes::UDFGroupList udf) {
+      std::optional<SaiHashTraits::Attributes::NativeHashFieldList>
+          nativeFields,
+      std::optional<SaiHashTraits::Attributes::UDFGroupList> udf) {
     return saiApiTable->hashApi().create<SaiHashTraits>(
         SaiHashTraits::CreateAttributes{nativeFields, udf}, 0);
   }
 };
 
 TEST_F(HashStoreTest, loadFullHash) {
-  auto id = createHash(kFullHash, {{}});
+  auto id = createHash(kFullHash, std::nullopt);
 
   SaiStore s(0);
   s.reload();
   auto& store = s.get<SaiHashTraits>();
 
-  SaiHashTraits::AdapterHostKey k{
-      kFullHash,
-      std::optional<SaiHashTraits::Attributes::UDFGroupList>{
-          SaiHashTraits::Attributes::UDFGroupList{}}};
+  SaiHashTraits::AdapterHostKey k{kFullHash, std::nullopt};
   auto got = store.get(k);
   EXPECT_NE(got, nullptr);
   EXPECT_EQ(got->adapterKey(), id);
 }
 
 TEST_F(HashStoreTest, loadHalfHash) {
-  auto id = createHash(kHalfHash, {{}});
+  auto id = createHash(kHalfHash, std::nullopt);
 
   SaiStore s(0);
   s.reload();
   auto& store = s.get<SaiHashTraits>();
 
-  SaiHashTraits::AdapterHostKey k{
-      kHalfHash,
-      std::optional<SaiHashTraits::Attributes::UDFGroupList>{
-          SaiHashTraits::Attributes::UDFGroupList{}}};
+  SaiHashTraits::AdapterHostKey k{kHalfHash, std::nullopt};
   auto got = store.get(k);
   EXPECT_NE(got, nullptr);
   EXPECT_EQ(got->adapterKey(), id);
 }
 
 TEST_F(HashStoreTest, loadNativeAndUdfHash) {
-  auto id = createHash(kHalfHash, {{42}});
+  auto id =
+      createHash(kHalfHash, SaiHashTraits::Attributes::UDFGroupList{{42}});
 
   SaiStore s(0);
   s.reload();
@@ -87,20 +83,20 @@ TEST_F(HashStoreTest, loadNativeAndUdfHash) {
 }
 
 TEST_F(HashStoreTest, hashLoadCtor) {
-  auto hashId = createHash(kFullHash, {{}});
+  auto hashId = createHash(kFullHash, std::nullopt);
   auto hashObj = createObj<SaiHashTraits>(hashId);
   EXPECT_EQ(hashObj.adapterKey(), hashId);
   EXPECT_EQ(
       GET_OPT_ATTR(Hash, NativeHashFieldList, hashObj.attributes()),
       kFullHash.value());
-  EXPECT_TRUE(GET_OPT_ATTR(Hash, UDFGroupList, hashObj.attributes()).empty());
+  EXPECT_EQ(
+      std::get<std::optional<SaiHashTraits::Attributes::UDFGroupList>>(
+          hashObj.attributes()),
+      std::nullopt);
 }
 
 TEST_F(HashStoreTest, hashCreateCtor) {
-  SaiHashTraits::CreateAttributes attrs{
-      kFullHash,
-      std::optional<SaiHashTraits::Attributes::UDFGroupList>{
-          SaiHashTraits::Attributes::UDFGroupList{}}};
+  SaiHashTraits::CreateAttributes attrs{kFullHash, std::nullopt};
   SaiHashTraits::AdapterHostKey adapterHostKey = attrs;
   auto obj = createObj<SaiHashTraits>(adapterHostKey, attrs, 0);
   auto nativeHashFields = saiApiTable->hashApi().getAttribute(
@@ -109,21 +105,19 @@ TEST_F(HashStoreTest, hashCreateCtor) {
 }
 
 TEST_F(HashStoreTest, hashSetNatveFields) {
-  auto id = createHash(kFullHash, {{}});
+  auto id = createHash(kFullHash, std::nullopt);
   auto hashObj = createObj<SaiHashTraits>(id);
   EXPECT_EQ(
       GET_OPT_ATTR(Hash, NativeHashFieldList, hashObj.attributes()),
       kFullHash.value());
-  hashObj.setAttributes({kHalfHash,
-                         std::optional<SaiHashTraits::Attributes::UDFGroupList>{
-                             SaiHashTraits::Attributes::UDFGroupList{}}});
+  hashObj.setAttributes({kHalfHash, std::nullopt});
   EXPECT_EQ(
       GET_OPT_ATTR(Hash, NativeHashFieldList, hashObj.attributes()),
       kHalfHash.value());
 }
 
 TEST_F(HashStoreTest, hashSetUDF) {
-  auto id = createHash(kFullHash, {{}});
+  auto id = createHash(kFullHash, std::nullopt);
   auto hashObj = createObj<SaiHashTraits>(id);
   EXPECT_EQ(
       GET_OPT_ATTR(Hash, NativeHashFieldList, hashObj.attributes()),
@@ -135,11 +129,11 @@ TEST_F(HashStoreTest, hashSetUDF) {
 }
 
 TEST_F(HashStoreTest, serDeser) {
-  auto id = createHash(kFullHash, {{}});
+  auto id = createHash(kFullHash, std::nullopt);
   verifyAdapterKeySerDeser<SaiHashTraits>({id});
 }
 
 TEST_F(HashStoreTest, toStr) {
-  std::ignore = createHash(kFullHash, {{}});
+  std::ignore = createHash(kFullHash, std::nullopt);
   verifyToStr<SaiHashTraits>();
 }
