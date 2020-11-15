@@ -223,6 +223,23 @@ class SaiObjectStore {
     return objects_.end();
   }
 
+  size_t warmBootHandlesCount() const {
+    return warmBootHandles_.size();
+  }
+
+  bool hasUnexpectedUnclaimedWarmbootHandles() const {
+    return warmBootHandlesCount() > 0;
+  }
+
+  void printWarmBootHandles() const {
+    if (warmBootHandlesCount()) {
+      XLOGF(DBG1, "unclaimed {} entries", objectTypeName());
+    }
+    for (auto iter : warmBootHandles_) {
+      XLOGF(DBG1, "{}", *iter.second);
+    }
+  }
+
  private:
   ObjectType getObject(
       typename SaiObjectTraits::AdapterKey key,
@@ -346,7 +363,12 @@ class SaiStore {
 
   folly::dynamic adapterKeys2AdapterHostKeysFollyDynamic() const;
 
+  void setExpectUnclaimedWarmbootHandles(bool expectUnclaimedWarmbootHandles);
+
+  void checkUnexpectedUnclaimedWarmbootHandles();
+
  private:
+  bool expectUnclaimedWarmbootHandles_{true};
   sai_object_id_t switchId_{};
   std::tuple<
       SaiObjectStore<SaiAclTableGroupTraits>,
