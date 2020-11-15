@@ -645,4 +645,53 @@ TEST_F(HwCoppTest, ArpRequestAndReplyToHighPriQ) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(HwCoppTest, JumboFramesToQueues) {
+  auto setup = [=]() {
+    // COPP is part of initial config already
+  };
+
+  auto verify = [=]() {
+    std::vector<uint8_t> jumboPayload(7000, 0xff);
+    for (const auto& configIntf :
+         folly::copy(*initialConfig().interfaces_ref())) {
+      for (const auto& ipAddress : *configIntf.ipAddresses_ref()) {
+        // High pri queue
+        sendPktAndVerifyCpuQueue(
+            utility::getCoppHighPriQueueId(getAsic()),
+            folly::IPAddress::createNetwork(ipAddress, -1, false).first,
+            utility::kBgpPort,
+            utility::kNonSpecialPort2,
+            std::nullopt, /*mac*/
+            0, /* traffic class*/
+            1, /* pkts to send*/
+            1, /* expected delta*/
+            jumboPayload);
+        // Mid pri queue
+        sendPktAndVerifyCpuQueue(
+            utility::kCoppMidPriQueueId,
+            folly::IPAddress::createNetwork(ipAddress, -1, false).first,
+            utility::kNonSpecialPort1,
+            utility::kNonSpecialPort2,
+            std::nullopt, /*mac*/
+            0, /* traffic class*/
+            1, /* pkts to send*/
+            1, /* expected delta*/
+            jumboPayload);
+      }
+    }
+    sendPktAndVerifyCpuQueue(
+        utility::kCoppLowPriQueueId,
+        getInSubnetNonSwitchIP(),
+        utility::kNonSpecialPort1,
+        utility::kNonSpecialPort2,
+        std::nullopt, /*mac*/
+        0, /* traffic class*/
+        1, /* pkts to send*/
+        1, /* expected delta*/
+        jumboPayload);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
