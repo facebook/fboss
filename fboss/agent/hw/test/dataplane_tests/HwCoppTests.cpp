@@ -271,6 +271,12 @@ class HwCoppTest : public HwLinkStateDependentTest {
     EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
   }
 
+  folly::IPAddress getInSubnetNonSwitchIP() const {
+    auto configIntf = initialConfig().interfaces_ref()[0];
+    auto ipAddress = configIntf.ipAddresses_ref()[0];
+    return folly::IPAddress::createNetwork(ipAddress, -1, true).first;
+  }
+
  private:
   HwSwitchEnsemble::Features featuresDesired() const override {
     return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX};
@@ -293,9 +299,7 @@ TEST_F(HwCoppTest, VerifyCoppPpsLowPri) {
         0 /* retryTimes */,
         0 /* expectedNumPkts */);
 
-    auto configIntf = initialConfig().interfaces_ref()[0];
-    auto ipAddress = configIntf.ipAddresses_ref()[0];
-    auto dstIP = folly::IPAddress::createNetwork(ipAddress, -1, true).first;
+    auto dstIP = getInSubnetNonSwitchIP();
     uint64_t afterSecs;
     /*
      * To avoid noise, the send traffic for at least kMinDurationInSecs.
