@@ -76,6 +76,11 @@ DEFINE_string(
     "CRITICAL",
     "Turn on SAI SDK logging. Options are DEBUG|INFO|NOTICE|WARN|ERROR|CRITICAL");
 
+DEFINE_bool(
+    check_wb_handles,
+    false,
+    "Fail if any warm boot handles are left unclaimed.");
+
 namespace {
 /*
  * For the devices/SDK we use, the only events we should get (and process)
@@ -211,6 +216,9 @@ HwInitResult SaiSwitch::init(
     FailHwWritesRAII f{bootType_ == BootType::WARM_BOOT ? failHwCallsOnWarmboot
                                                         : false};
     stateChanged(StateDelta(std::make_shared<SwitchState>(), ret.switchState));
+    if (bootType_ == BootType::WARM_BOOT && FLAGS_check_wb_handles == true) {
+      SaiStore::getInstance()->checkUnexpectedUnclaimedWarmbootHandles();
+    }
   }
   return ret;
 }
@@ -850,6 +858,12 @@ HwInitResult SaiSwitch::initLocked(
   SaiApiTable::getInstance()->enableLogging(FLAGS_enable_sai_log);
   if (bootType_ != BootType::WARM_BOOT) {
     ret.switchState = getColdBootSwitchState();
+  } else {
+    if (platform_->getAsic()->getAsicType() !=
+        HwAsic::AsicType::ASIC_TYPE_TAJO) {
+      // FIXME : avoid skipping for Tajo once T79717530 resolved
+      saiStore->setExpectUnclaimedWarmbootHandles(false);
+    }
   }
   return ret;
 }
@@ -1539,5 +1553,11 @@ std::string SaiSwitch::listObjects(
   }
   std::lock_guard<std::mutex> lk(saiSwitchMutex_);
   return listObjectsLocked(objTypes, cached, lk);
+}
+
+void SaiSwitch::checkWarmBootHandles() {
+  // TODO: remove this function once sai test config is generated to pass this
+  // as true
+  FLAGS_check_wb_handles = true;
 }
 } // namespace facebook::fboss
