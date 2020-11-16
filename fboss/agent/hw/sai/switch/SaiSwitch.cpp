@@ -217,7 +217,12 @@ HwInitResult SaiSwitch::init(
                                                         : false};
     stateChanged(StateDelta(std::make_shared<SwitchState>(), ret.switchState));
     if (bootType_ == BootType::WARM_BOOT && FLAGS_check_wb_handles == true) {
-      SaiStore::getInstance()->checkUnexpectedUnclaimedWarmbootHandles();
+      SaiStore::getInstance()->printWarmbootHandles();
+      if (platform_->getAsic()->getAsicType() !=
+          HwAsic::AsicType::ASIC_TYPE_TAJO) {
+        // FIXME : avoid skipping for Tajo once T79717530 resolved
+        SaiStore::getInstance()->checkUnexpectedUnclaimedWarmbootHandles();
+      }
     }
   }
   return ret;
@@ -858,12 +863,6 @@ HwInitResult SaiSwitch::initLocked(
   SaiApiTable::getInstance()->enableLogging(FLAGS_enable_sai_log);
   if (bootType_ != BootType::WARM_BOOT) {
     ret.switchState = getColdBootSwitchState();
-  } else {
-    if (platform_->getAsic()->getAsicType() !=
-        HwAsic::AsicType::ASIC_TYPE_TAJO) {
-      // FIXME : avoid skipping for Tajo once T79717530 resolved
-      saiStore->setExpectUnclaimedWarmbootHandles(false);
-    }
   }
   return ret;
 }

@@ -378,12 +378,11 @@ class SaiStore {
 
   folly::dynamic adapterKeys2AdapterHostKeysFollyDynamic() const;
 
-  void setExpectUnclaimedWarmbootHandles(bool expectUnclaimedWarmbootHandles);
+  void checkUnexpectedUnclaimedWarmbootHandles() const;
 
-  void checkUnexpectedUnclaimedWarmbootHandles();
+  void printWarmbootHandles() const;
 
  private:
-  bool expectUnclaimedWarmbootHandles_{true};
   sai_object_id_t switchId_{};
   std::tuple<
       SaiObjectStore<SaiAclTableGroupTraits>,

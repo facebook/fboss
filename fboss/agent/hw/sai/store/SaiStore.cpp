@@ -120,24 +120,22 @@ std::string SaiStore::storeStr(sai_object_type_t objType) const {
   return output;
 }
 
-void SaiStore::setExpectUnclaimedWarmbootHandles(
-    bool expectUnclaimedWarmbootHandles) {
-  expectUnclaimedWarmbootHandles_ = expectUnclaimedWarmbootHandles;
-}
-
-void SaiStore::checkUnexpectedUnclaimedWarmbootHandles() {
+void SaiStore::checkUnexpectedUnclaimedWarmbootHandles() const {
   bool hasUnexpectedUnclaimedWarmbootHandles = false;
   tupleForEach(
       [&hasUnexpectedUnclaimedWarmbootHandles](const auto& store) {
-        store.printWarmBootHandles();
         hasUnexpectedUnclaimedWarmbootHandles |=
             store.hasUnexpectedUnclaimedWarmbootHandles();
       },
       stores_);
-  if (!expectUnclaimedWarmbootHandles_ &&
-      hasUnexpectedUnclaimedWarmbootHandles) {
+  if (hasUnexpectedUnclaimedWarmbootHandles) {
     XLOG(FATAL) << "unclaimed objects found in store";
   }
+}
+
+void SaiStore::printWarmbootHandles() const {
+  tupleForEach(
+      [](const auto& store) { store.printWarmBootHandles(); }, stores_);
 }
 
 } // namespace facebook::fboss
