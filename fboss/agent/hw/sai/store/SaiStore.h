@@ -243,7 +243,8 @@ class SaiObjectStore {
   }
 
   bool hasUnexpectedUnclaimedWarmbootHandles() const {
-    return warmBootHandlesCount() > 0;
+    return warmBootHandlesCount() > 0 &&
+        (!IsSaiObjectOwnedByAdapter<SaiObjectTraits>::value);
   }
 
   void printWarmBootHandles() const {
