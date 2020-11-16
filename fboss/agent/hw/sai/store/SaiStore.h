@@ -150,7 +150,11 @@ class SaiObjectStore {
           !IsPublisherKeyCustomType<SaiObjectTraits>::value,
           "method not available for objects with publisher attributes of custom types");
     }
-    XLOGF(DBG5, "SaiStore setting object {}", adapterHostKey, attributes);
+    XLOGF(
+        DBG5,
+        "SaiStore setting {} object {}",
+        objectTypeName(),
+        adapterHostKey);
     auto [object, programmed] = program(adapterHostKey, attributes);
     if (notify && programmed) {
       if constexpr (IsObjectPublisher<SaiObjectTraits>::value) {
@@ -169,7 +173,11 @@ class SaiObjectStore {
     static_assert(
         IsPublisherKeyCustomType<SaiObjectTraits>::value,
         "method available only for objects with publisher attributes of custom types");
-    XLOGF(DBG5, "SaiStore setting object {}", adapterHostKey, attributes);
+    XLOGF(
+        DBG5,
+        "SaiStore setting {} object {}",
+        objectTypeName(),
+        adapterHostKey);
     auto [object, programmed] = program(adapterHostKey, attributes);
     if (notify && programmed) {
       if constexpr (IsObjectPublisher<SaiObjectTraits>::value) {
