@@ -191,13 +191,29 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
               .at(queueId);
     }
 
+    /*
+     *  Consider ACL with action to egress pkts through queue 2.
+     *
+     *  CPU originated packets:
+     *     - Hits ACL (queue2Cnt = 1), egress through queue 2 of port0.
+     *     - port0 is in loopback mode, so the packet gets looped back.
+     *     - When packet is routed, its dstMAC gets overwritten. Thus, the
+     *       looped back packet is not routed, and thus does not hit the ACL.
+     *     - On some platforms, looped back packets for unknown MACs are
+     *       flooded and counted on queue *before* the split horizon check
+     *       (drop when srcPort == dstPort). This flooding always happens on
+     *       queue 0, so expect one or more packets on queue 0.
+     *
+     *  Front panel packets (injected with pipeline bypass):
+     *     - Egress out of port1 queue0 (pipeline bypass).
+     *     - port1 is in loopback mode, so the packet gets looped back.
+     *     - Rest of the workflow is same as above when CPU originated packet
+     *       gets injected for switching.
+     */
     for (auto [qid, beforePkts] : beforeQueueOutPkts) {
       auto pktsOnQueue = afterQueueOutPkts[qid] - beforePkts;
       XLOG(INFO) << " Pkts on queue : " << qid << " pkts: " << pktsOnQueue;
       if (qid == 0) {
-        // On some platforms, looped packets for unknown MACs are flooded and
-        // counted on queue *before* the split horizon check. This flooding
-        // always happens on queue 0, so expect one or more packets on q0
         EXPECT_GE(pktsOnQueue, 1);
       } else {
         EXPECT_EQ(pktsOnQueue, 1);
