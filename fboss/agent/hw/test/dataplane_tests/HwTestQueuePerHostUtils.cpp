@@ -74,13 +74,37 @@ std::string getQueuePerHostAclNameForQueue(int queueId) {
   return folly::to<std::string>("queue-per-host-queue-", queueId);
 }
 
+std::string getQueuePerHostL2AclNameForQueue(int queueId) {
+  return folly::to<std::string>("queue-per-host-queue-l2-", queueId);
+}
+
+std::string getQueuePerHostNeighborAclNameForQueue(int queueId) {
+  return folly::to<std::string>("queue-per-host-queue-neighbor-", queueId);
+}
+
+std::string getQueuePerHostRouteAclNameForQueue(int queueId) {
+  return folly::to<std::string>("queue-per-host-queue-route-", queueId);
+}
+
 void addQueuePerHostAcls(cfg::SwitchConfig* config) {
   for (auto queueId : kQueuePerhostQueueIds()) {
-    auto aclName = getQueuePerHostAclNameForQueue(queueId);
     auto classID = kQueuePerHostQueueToClass().at(queueId);
 
-    utility::addClassIDAclToCfg(config, aclName, classID);
+    auto aclName = getQueuePerHostAclNameForQueue(queueId);
+    utility::addClassIDAcl(config, aclName, classID);
     utility::addQueueMatcher(config, aclName, queueId);
+
+    auto l2AclName = getQueuePerHostL2AclNameForQueue(queueId);
+    utility::addL2ClassIDAcl(config, l2AclName, classID);
+    utility::addQueueMatcher(config, l2AclName, queueId);
+
+    auto neighborAclName = getQueuePerHostNeighborAclNameForQueue(queueId);
+    utility::addNeighborClassIDAcl(config, neighborAclName, classID);
+    utility::addQueueMatcher(config, neighborAclName, queueId);
+
+    auto routeAclName = getQueuePerHostRouteAclNameForQueue(queueId);
+    utility::addRouteClassIDAcl(config, routeAclName, classID);
+    utility::addQueueMatcher(config, routeAclName, queueId);
   }
 }
 

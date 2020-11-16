@@ -22,7 +22,7 @@ void addDscpAclToCfg(
   config->acls_ref()[numCfgAcls].dscp_ref() = dscp;
 }
 
-void addClassIDAclToCfg(
+void addClassIDAcl(
     cfg::SwitchConfig* config,
     const std::string& aclName,
     cfg::AclLookupClass lookupClass) {
@@ -37,6 +37,50 @@ void addClassIDAclToCfg(
   config->acls_ref()[numCfgAcls].lookupClass_ref() = lookupClass;
 
   config->acls_ref()[numCfgAcls].lookupClassNeighbor_ref() = lookupClass;
+}
+
+void addL2ClassIDAcl(
+    cfg::SwitchConfig* config,
+    const std::string& aclName,
+    cfg::AclLookupClass lookupClass) {
+  auto numCfgAcls = config->acls_ref()->size();
+  config->acls_ref()->resize(numCfgAcls + 1);
+  *config->acls_ref()[numCfgAcls].name_ref() = aclName;
+  config->acls_ref()[numCfgAcls].lookupClassL2_ref() = lookupClass;
+}
+
+void addNeighborClassIDAcl(
+    cfg::SwitchConfig* config,
+    const std::string& aclName,
+    cfg::AclLookupClass lookupClass) {
+  auto numCfgAcls = config->acls_ref()->size();
+  config->acls_ref()->resize(numCfgAcls + 1);
+  *config->acls_ref()[numCfgAcls].name_ref() = aclName;
+
+  /*
+   * TODO(skhare) Deprecate lookupClass in favor of lookupClassNeighbor
+   * and lookupClassRoute.
+   */
+  config->acls_ref()[numCfgAcls].lookupClass_ref() = lookupClass;
+
+  config->acls_ref()[numCfgAcls].lookupClassNeighbor_ref() = lookupClass;
+}
+
+void addRouteClassIDAcl(
+    cfg::SwitchConfig* config,
+    const std::string& aclName,
+    cfg::AclLookupClass lookupClass) {
+  auto numCfgAcls = config->acls_ref()->size();
+  config->acls_ref()->resize(numCfgAcls + 1);
+  *config->acls_ref()[numCfgAcls].name_ref() = aclName;
+
+  /*
+   * TODO(skhare) Deprecate lookupClass in favor of lookupClassNeighbor
+   * and lookupClassRoute.
+   */
+  config->acls_ref()[numCfgAcls].lookupClass_ref() = lookupClass;
+
+  config->acls_ref()[numCfgAcls].lookupClassRoute_ref() = lookupClass;
 }
 
 void addQueueMatcher(
