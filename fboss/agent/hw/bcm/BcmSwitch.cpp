@@ -1618,6 +1618,19 @@ bool BcmSwitch::isValidStateUpdate(const StateDelta& delta) const {
   isValid = isValid && isRouteUpdateValid<folly::IPAddressV4>(delta);
   isValid = isValid && isRouteUpdateValid<folly::IPAddressV6>(delta);
 
+  forEachChanged(
+      delta.getAclsDelta(),
+      [&](const shared_ptr<AclEntry>& /* oldAcl */,
+          const shared_ptr<AclEntry>& newAcl) {
+        isValid = isValid && hasValidAclMatcher(newAcl);
+        return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
+      },
+      [&](const shared_ptr<AclEntry>& addAcl) {
+        isValid = isValid && hasValidAclMatcher(addAcl);
+        return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
+      },
+      [&](const shared_ptr<AclEntry>& /* delAcl */) {});
+
   return isValid;
 }
 
@@ -3081,6 +3094,21 @@ void BcmSwitch::processRemovedAcl(const std::shared_ptr<AclEntry>& acl) {
 void BcmSwitch::processAddedAcl(const std::shared_ptr<AclEntry>& acl) {
   XLOG(DBG3) << "processAddedAcl, ACL=" << acl->getID();
   aclTable_->processAddedAcl(platform_->getAsic()->getDefaultACLGroupID(), acl);
+}
+
+bool BcmSwitch::hasValidAclMatcher(const std::shared_ptr<AclEntry>& acl) const {
+  /*
+   * Broadcom SDK provides single API to configure lookupClassNeighbor and
+   * lookupClassRoute. Thus, if both are specified for an ACL, they must have
+   * same value.
+   */
+  if ((acl->getLookupClassNeighbor() && acl->getLookupClassRoute()) &&
+      acl->getLookupClassNeighbor().value() !=
+          acl->getLookupClassRoute().value()) {
+    return false;
+  }
+
+  return true;
 }
 
 void BcmSwitch::forceLinkscanOn(bcm_pbmp_t ports) {

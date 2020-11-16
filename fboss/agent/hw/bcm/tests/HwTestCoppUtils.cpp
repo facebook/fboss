@@ -61,8 +61,17 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
         isV4 ? "dstLocalIp4-" : "dstLocalIp6-",
         isSrcPort ? "srcPort:" : "dstPrt:",
         utility::kBgpPort);
+    /*
+     * TODO(skhare) Deprecate lookupClass in favor of lookupClassNeighbor and
+     * lookupClassRoute.
+     */
     acl.lookupClass_ref() = isV4 ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
                                  : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6;
+
+    acl.lookupClassNeighbor_ref() = isV4
+        ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
+        : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6;
+
     if (isSrcPort) {
       acl.l4SrcPort_ref() = utility::kBgpPort;
     } else {
@@ -85,8 +94,17 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
         isV4 ? "dstLocalIp4" : "dstLocalIp6",
         "-network-control");
     acl.dscp_ref() = 48;
+    /*
+     * TODO(skhare) Deprecate lookupClass in favor of lookupClassNeighbor and
+     * lookupClassRoute.
+     */
     acl.lookupClass_ref() = isV4 ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
                                  : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6;
+
+    acl.lookupClassNeighbor_ref() = isV4
+        ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
+        : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6;
+
     acls.push_back(std::make_pair(
         acl, createQueueMatchAction(getCoppHighPriQueueId(hwAsic))));
   };
@@ -117,8 +135,16 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
     cfg::AclEntry acl;
     acl.name_ref() = folly::to<std::string>(
         "cpuPolicing-mid-", isV4 ? "dstLocalIp4" : "dstLocalIp6");
+    /*
+     * TODO(skhare) Deprecate lookupClass in favor of lookupClassNeighbor and
+     * lookupClassRoute.
+     */
     acl.lookupClass_ref() = isV4 ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
                                  : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6;
+
+    acl.lookupClassNeighbor_ref() = isV4
+        ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
+        : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6;
 
     acls.push_back(std::make_pair(
         acl, createQueueMatchAction(utility::kCoppMidPriQueueId)));

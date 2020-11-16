@@ -29,7 +29,14 @@ void addClassIDAclToCfg(
   auto numCfgAcls = config->acls_ref()->size();
   config->acls_ref()->resize(numCfgAcls + 1);
   *config->acls_ref()[numCfgAcls].name_ref() = aclName;
+
+  /*
+   * TODO(skhare) Deprecate lookupClass in favor of lookupClassNeighbor
+   * and lookupClassRoute.
+   */
   config->acls_ref()[numCfgAcls].lookupClass_ref() = lookupClass;
+
+  config->acls_ref()[numCfgAcls].lookupClassNeighbor_ref() = lookupClass;
 }
 
 void addQueueMatcher(

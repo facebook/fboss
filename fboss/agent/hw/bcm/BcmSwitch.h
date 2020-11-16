@@ -652,6 +652,7 @@ class BcmSwitch : public BcmSwitchIf {
       const std::shared_ptr<AclEntry>& newAcl);
   void processAddedAcl(const std::shared_ptr<AclEntry>& acl);
   void processRemovedAcl(const std::shared_ptr<AclEntry>& acl);
+  bool hasValidAclMatcher(const std::shared_ptr<AclEntry>& acl) const;
 
   void processAggregatePortChanges(const StateDelta& delta);
   void processChangedAggregatePort(

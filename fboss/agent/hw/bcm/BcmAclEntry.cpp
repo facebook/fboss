@@ -223,6 +223,10 @@ void BcmAclEntry::createAclQualifiers() {
     bcmCheckError(rv, "failed to qualify TTL");
   }
 
+  /*
+   * TODO(skhare) Deprecate lookupClass in favor of lookupClassNeighbor and
+   * lookupClassRoute.
+   */
   if (acl_->getLookupClass()) {
     auto lookupClass = acl_->getLookupClass().value();
 
@@ -235,6 +239,40 @@ void BcmAclEntry::createAclQualifiers() {
       throw FbossError(
           "Unrecognized acl lookupClass ",
           apache::thrift::util::enumNameSafe(lookupClass));
+    }
+  }
+
+  /*
+   * lookupClassNeighbor and lookupClassRoute are both represented by
+   * DstClassL3.
+   */
+  if (acl_->getLookupClassNeighbor()) {
+    auto lookupClassNeighbor = acl_->getLookupClassNeighbor().value();
+
+    if (BcmClassIDUtil::isValidLookupClass(lookupClassNeighbor)) {
+      auto classId = static_cast<int>(lookupClassNeighbor);
+      rv = bcm_field_qualify_DstClassL3(
+          hw_->getUnit(), handle_, classId, 0xFFFFFFFF);
+      bcmCheckError(rv, "failed to qualify DstClassL3:", classId);
+    } else {
+      throw FbossError(
+          "Unrecognized acl lookupClassNeighbor ",
+          apache::thrift::util::enumNameSafe(lookupClassNeighbor));
+    }
+  }
+
+  if (acl_->getLookupClassRoute()) {
+    auto lookupClassRoute = acl_->getLookupClassRoute().value();
+
+    if (BcmClassIDUtil::isValidLookupClass(lookupClassRoute)) {
+      auto classId = static_cast<int>(lookupClassRoute);
+      rv = bcm_field_qualify_DstClassL3(
+          hw_->getUnit(), handle_, classId, 0xFFFFFFFF);
+      bcmCheckError(rv, "failed to qualify DstClassL3:", classId);
+    } else {
+      throw FbossError(
+          "Unrecognized acl lookupClassRoute ",
+          apache::thrift::util::enumNameSafe(lookupClassRoute));
     }
   }
 
@@ -622,6 +660,26 @@ bool BcmAclEntry::isStateSame(
       lookupClass,
       aclMsg,
       "LookupClass");
+
+  /*
+   * lookupClassNeighbor and lookupClassRoute are both represented by
+   * DstClassL3. So, if either is set, compare it with DstClassL3.
+   */
+  std::optional<uint32> lookupClassNeighborOrRoute;
+  if (acl->getLookupClassNeighbor()) {
+    lookupClassNeighborOrRoute =
+        static_cast<int>(acl->getLookupClassNeighbor().value());
+  } else if (acl->getLookupClassRoute()) {
+    lookupClassNeighborOrRoute =
+        static_cast<int>(acl->getLookupClassRoute().value());
+  }
+  isSame &= isBcmQualFieldStateSame(
+      bcm_field_qualify_DstClassL3_get,
+      hw->getUnit(),
+      handle,
+      lookupClassNeighborOrRoute,
+      aclMsg,
+      "LookupClassNeighborOrRoute");
 
   /*
    * bcmFieldQualifyDstClassL2 is not configured for Trident2 or else we runs
