@@ -161,8 +161,6 @@ class SaiSwitch : public HwSwitch {
       const override;
   void dumpDebugState(const std::string& /*path*/) const override;
 
-  static void checkWarmBootHandles();
-
  private:
   std::string listObjectsLocked(
       const std::vector<sai_object_type_t>& objects,

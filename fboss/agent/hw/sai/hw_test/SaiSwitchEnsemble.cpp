@@ -70,7 +70,6 @@ SaiSwitchEnsemble::SaiSwitchEnsemble(
     thriftThread =
         createThriftThread(static_cast<SaiSwitch*>(platform->getHwSwitch()));
   }
-  SaiSwitch::checkWarmBootHandles();
   setupEnsemble(
       std::move(platform), std::move(linkToggler), std::move(thriftThread));
   auto hw = static_cast<SaiSwitch*>(getHwSwitch());

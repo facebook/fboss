@@ -1554,10 +1554,4 @@ std::string SaiSwitch::listObjects(
   std::lock_guard<std::mutex> lk(saiSwitchMutex_);
   return listObjectsLocked(objTypes, cached, lk);
 }
-
-void SaiSwitch::checkWarmBootHandles() {
-  // TODO: remove this function once sai test config is generated to pass this
-  // as true
-  FLAGS_check_wb_handles = true;
-}
 } // namespace facebook::fboss
