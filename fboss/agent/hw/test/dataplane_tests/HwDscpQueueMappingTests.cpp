@@ -60,7 +60,15 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
                                    .get_queueOutPackets_()
                                    .at(kQueueId());
 
-      EXPECT_EQ(1, afterQueueOutPkts - beforeQueueOutPkts);
+      /*
+       * Packet from CPU / looped back from front panel port (with pipeline
+       * bypass), hits ACL and increments counter (queue2Count = 1).
+       * On some platforms, looped back packets for unknown MACs are flooded
+       * and counted on queue *before* the split horizon check.
+       * This packet will match the DSCP based ACL and thus increment the
+       * queue2Count = 2.
+       */
+      EXPECT_GE(afterQueueOutPkts - beforeQueueOutPkts, 1);
     };
 
     verifyAcrossWarmBoots(setup, verify);
@@ -168,7 +176,17 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
 
       // The ACL overrides the decision of the QoS map
       EXPECT_EQ(0, afterQueueOutPktsQosMap - beforeQueueOutPktsQosMap);
-      EXPECT_EQ(1, afterQueueOutPktsAcl - beforeQueueOutPktsAcl);
+
+      /*
+       * Packet from CPU / looped back from front panel port (with pipeline
+       * bypass), hits ACL and increments counter (queue2Count = 1).
+       * On some platforms, looped back packets for unknown MACs are flooded
+       * and counted on queue *before* the split horizon check.
+       * This packet will match the DSCP based ACL and thus increment the
+       * queue2Count = 2.
+       */
+      EXPECT_GE(afterQueueOutPktsAcl - beforeQueueOutPktsAcl, 1);
+
       EXPECT_EQ(2, afterAclInOutPkts - beforeAclInOutPkts);
     };
 
