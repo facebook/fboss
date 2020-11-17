@@ -27,6 +27,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::PORT_TX_DISABLE:
     case HwAsic::Feature::OBM_COUNTERS:
+    case HwAsic::Feature::BUFFER_POOL:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:

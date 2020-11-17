@@ -31,6 +31,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::ACL_COPY_TO_CPU:
+    case HwAsic::Feature::BUFFER_POOL:
       return true;
 
     case HwAsic::Feature::HOT_SWAP:

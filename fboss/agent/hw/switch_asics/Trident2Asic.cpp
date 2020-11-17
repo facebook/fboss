@@ -45,6 +45,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER:
     case HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT:
     case HwAsic::Feature::OBM_COUNTERS:
+    case HwAsic::Feature::BUFFER_POOL:
       return false;
   }
   return false;
