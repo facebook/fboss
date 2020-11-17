@@ -208,7 +208,9 @@ HwInitResult SaiSwitch::init(
               HwAsic::Feature::DEBUG_COUNTER)) {
         managerTable_->debugCounterManager().setupDebugCounters();
       }
-      managerTable_->bufferManager().setupEgressBufferPool();
+      if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL)) {
+        managerTable_->bufferManager().setupEgressBufferPool();
+      }
     }
   }
 
