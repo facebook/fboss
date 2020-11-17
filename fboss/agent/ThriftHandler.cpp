@@ -955,6 +955,55 @@ void ThriftHandler::clearPortStats(unique_ptr<vector<int32_t>> ports) {
   auto log = LOG_THRIFT_CALL(DBG1, *ports);
   ensureConfigured(__func__);
   sw_->clearPortStats(ports);
+
+  auto getPortCounterKeys = [&](std::vector<std::string>& portKeys,
+                                const StringPiece prefix,
+                                const std::shared_ptr<Port> port) {
+    auto portId = port->getID();
+    auto portName = port->getName().empty()
+        ? folly::to<std::string>("port", portId)
+        : port->getName();
+    auto portNameWithPrefix = folly::to<std::string>(portName, ".", prefix);
+    portKeys.emplace_back(
+        folly::to<std::string>(portNameWithPrefix, "unicast_pkts"));
+    portKeys.emplace_back(folly::to<std::string>(portNameWithPrefix, "bytes"));
+    portKeys.emplace_back(
+        folly::to<std::string>(portNameWithPrefix, "multicast_pkts"));
+    portKeys.emplace_back(
+        folly::to<std::string>(portNameWithPrefix, "broadcast_pkts"));
+    portKeys.emplace_back(folly::to<std::string>(portNameWithPrefix, "errors"));
+    portKeys.emplace_back(
+        folly::to<std::string>(portNameWithPrefix, "discards"));
+  };
+
+  auto getQueueCounterKeys = [&](std::vector<std::string>& portKeys,
+                                 const std::shared_ptr<Port> port) {
+    auto portId = port->getID();
+    auto portName = port->getName().empty()
+        ? folly::to<std::string>("port", portId)
+        : port->getName();
+    for (int i = 0; i < port->getPortQueues().size(); ++i) {
+      auto portQueue = folly::to<std::string>(portName, ".", "queue", i, ".");
+      portKeys.emplace_back(
+          folly::to<std::string>(portQueue, "out_congestion_discards_bytes"));
+      portKeys.emplace_back(folly::to<std::string>(portQueue, "out_bytes"));
+    }
+  };
+
+  auto statsMap = facebook::fb303::fbData->getStatMap();
+  for (const auto& portId : *ports) {
+    const auto port = sw_->getState()->getPorts()->getPortIf(PortID(portId));
+    std::vector<std::string> portKeys;
+    getPortCounterKeys(portKeys, "out_", port);
+    getPortCounterKeys(portKeys, "in_", port);
+    getQueueCounterKeys(portKeys, port);
+    for (const auto& key : portKeys) {
+      // this API locks statistics for the key
+      // ensuring no race condition with update/delete
+      // in different thread
+      statsMap->clearValue(key);
+    }
+  }
 }
 
 void ThriftHandler::getPortStats(PortInfoThrift& portInfo, int32_t portId) {
