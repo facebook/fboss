@@ -90,7 +90,7 @@ class DiagShell {
   std::unique_lock<std::mutex> diagShellLock_;
 
   // Buffer to read into from pty master side
-  std::array<char, 512> producerBuffer_;
+  std::array<char, 5120> producerBuffer_;
 
  private:
   std::unique_ptr<Repl> makeRepl() const;

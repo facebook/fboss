@@ -437,30 +437,28 @@ std::string DiagCmdServer::diagCmd(
   diagShell_->consumeInput(
       std::make_unique<std::string>(getDelimiterDiagCmd(uuid_)),
       std::move(client));
-  // Currently the timeout is 4 seconds
-  // For results that take more than 4 seconds, the diagCmd call timesout
   // TODO: Look into requesting results that take a long time
-  std::string output = produceOutput(4000);
+  std::string output = produceOutput(500);
   cleanUpOutput(output, inputStr);
   diagShell_->disconnect();
   return output;
 }
 
 std::string DiagCmdServer::produceOutput(int timeoutMs) {
-  std::string output;
+  std::ostringstream os;
   int currTimeout = timeoutMs;
   while (true) {
     std::string tmpOutput = diagShell_->readOutput(currTimeout);
     if (tmpOutput.length() == 0) {
       break;
     }
-    output += tmpOutput;
+    os << tmpOutput;
     // TODO: Check platform specific termination criteria
-    if (output.rfind("Unknown command: " + uuid_) != std::string::npos) {
+    if (tmpOutput.rfind("Unknown command: " + uuid_) != std::string::npos) {
       break;
     }
   }
-  return output;
+  return os.str();
 }
 
 } // namespace facebook::fboss
