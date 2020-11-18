@@ -181,6 +181,10 @@ struct SaiSwitchTraits {
         SAI_SWITCH_ATTR_INGRESS_ACL,
         SaiObjectIdT,
         SaiObjectIdDefault>;
+    using TamObject = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_TAM_OBJECT_ID,
+        std::vector<sai_object_id_t>>;
 
     /* extension attributes */
     struct AttributeLedIdWrapper {
@@ -272,6 +276,7 @@ SAI_ATTRIBUTE_NAME(Switch, LedReset)
 SAI_ATTRIBUTE_NAME(Switch, IngressAcl)
 
 SAI_ATTRIBUTE_NAME(Switch, AclFieldList)
+SAI_ATTRIBUTE_NAME(Switch, TamObject)
 
 class SwitchApi : public SaiApi<SwitchApi> {
  public:
