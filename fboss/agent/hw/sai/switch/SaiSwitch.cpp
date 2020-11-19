@@ -218,12 +218,16 @@ HwInitResult SaiSwitch::init(
     FailHwWritesRAII f{bootType_ == BootType::WARM_BOOT ? failHwCallsOnWarmboot
                                                         : false};
     stateChanged(StateDelta(std::make_shared<SwitchState>(), ret.switchState));
-    if (bootType_ == BootType::WARM_BOOT && FLAGS_check_wb_handles == true) {
+    if (bootType_ == BootType::WARM_BOOT) {
       SaiStore::getInstance()->printWarmbootHandles();
       if (platform_->getAsic()->getAsicType() !=
           HwAsic::AsicType::ASIC_TYPE_TAJO) {
         // FIXME : avoid skipping for Tajo once T79717530 resolved
-        SaiStore::getInstance()->checkUnexpectedUnclaimedWarmbootHandles();
+        if (FLAGS_check_wb_handles == true) {
+          SaiStore::getInstance()->checkUnexpectedUnclaimedWarmbootHandles();
+        } else {
+          SaiStore::getInstance()->removeUnexpectedUnclaimedWarmbootHandles();
+        }
       }
     }
   }

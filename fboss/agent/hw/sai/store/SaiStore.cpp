@@ -138,4 +138,10 @@ void SaiStore::printWarmbootHandles() const {
       [](const auto& store) { store.printWarmBootHandles(); }, stores_);
 }
 
+void SaiStore::removeUnexpectedUnclaimedWarmbootHandles() {
+  tupleForEach(
+      [](auto& store) { store.removeUnexpectedUnclaimedWarmbootHandles(); },
+      stores_);
+}
+
 } // namespace facebook::fboss

@@ -264,6 +264,14 @@ class SaiObjectStore {
     }
   }
 
+  void removeUnexpectedUnclaimedWarmbootHandles() {
+    if (!hasUnexpectedUnclaimedWarmbootHandles()) {
+      return;
+    }
+    // remove unclaimed objects
+    warmBootHandles_.clear();
+  }
+
  private:
   ObjectType getObject(
       typename SaiObjectTraits::AdapterKey key,
@@ -388,6 +396,8 @@ class SaiStore {
   folly::dynamic adapterKeys2AdapterHostKeysFollyDynamic() const;
 
   void checkUnexpectedUnclaimedWarmbootHandles() const;
+
+  void removeUnexpectedUnclaimedWarmbootHandles();
 
   void printWarmbootHandles() const;
 
