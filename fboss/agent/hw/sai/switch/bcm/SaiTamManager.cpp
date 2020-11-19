@@ -14,12 +14,7 @@ extern "C" {
 namespace facebook::fboss {
 
 SaiTamHandle::~SaiTamHandle() {
-  try {
-    managerTable->switchManager().resetTamObject();
-  } catch (const SaiApiError& error) {
-    XLOG(WARNING) << "failed to disassociate TAM from switch : "
-                  << error.what();
-  }
+  managerTable->switchManager().resetTamObject();
 }
 
 SaiTamManager::SaiTamManager(
@@ -74,13 +69,8 @@ SaiTamManager::SaiTamManager(
   tamHandle_->event = event;
   tamHandle_->tam = tam;
   tamHandle_->managerTable = managerTable_;
-  try {
-    // associate TAM with switch
-    managerTable_->switchManager().setTamObject(
-        {tamHandle_->tam->adapterKey()});
-  } catch (const SaiApiError& error) {
-    XLOG(WARNING) << "failed to associate TAM with switch : " << error.what();
-  }
+  // associate TAM with switch
+  managerTable_->switchManager().setTamObject({tamHandle_->tam->adapterKey()});
 }
 
 } // namespace facebook::fboss

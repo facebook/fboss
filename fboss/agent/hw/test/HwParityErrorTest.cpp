@@ -88,8 +88,7 @@ TEST_F(HwParityErrorTest, verifyParityError) {
     }
     verifyParityError();
   };
-  setup();
-  verify();
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss

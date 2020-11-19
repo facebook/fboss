@@ -646,10 +646,6 @@ void SaiSwitch::gracefulExitLocked(
       std::chrono::steady_clock::now();
   XLOG(INFO) << "[Exit] Starting SAI Switch graceful exit";
 
-  // TODO: remove this once TAM object can be warm booted, removing this
-  // shouldn't be an issue since application is exiting.
-  managerTable_->tamManager().gracefulExit();
-
   SaiSwitchTraits::Attributes::SwitchRestartWarm restartWarm{true};
   SaiApiTable::getInstance()->switchApi().setAttribute(switchId_, restartWarm);
   switchState[kHwSwitch] = toFollyDynamicLocked(lock);
