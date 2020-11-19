@@ -158,7 +158,7 @@ BcmTxPacket::BcmTxPacket(int unit, uint32_t size, const BcmSwitch* bcmSwitch)
 inline int BcmTxPacket::sendImpl(
     unique_ptr<BcmTxPacket> pkt,
     const BcmSwitch* bcmSwitch) noexcept {
-  int rv;
+  int rv = 0;
 
   std::unique_ptr<BcmTxCallbackUserData> txCbUserData;
 
@@ -187,10 +187,32 @@ inline int BcmTxPacket::sendImpl(
 #ifdef INCLUDE_PKTIO
     bcm_pktio_pkt_t* pktioPkt = pkt->bcmPacket_.ptrUnion.pktioPkt;
 
-    rv = bcm_pktio_trim(pktioPkt->unit, pktioPkt, pkt->buf_->length());
-    if (BCM_FAILURE(rv)) {
-      bcmLogError(rv, "failed in bcm_pktio_trim to trim the buffer.");
-    } else {
+    if (!pkt->getSwitched()) {
+      // Not switched.  Directly send to port, bypassing the pipeline
+      // (the "OutofPort" case, not the "Switched").
+      // Following the "Streamlined TX/RX for BCM56980" doc SOBMH example
+      // to use bcm_pktio_pmd_set().
+      bcm_pktio_txpmd_t pmd;
+      pmd.tx_port = pkt->port_;
+      pmd.cos = pkt->cos_;
+      // default prio_int and flags for now
+      pmd.prio_int = 0;
+      pmd.flags = 0;
+      rv = bcm_pktio_pmd_set(pkt->unit_, pktioPkt, &pmd);
+
+      if (BCM_FAILURE(rv)) {
+        bcmLogError(rv, "failed in bcm_pktio_pmd_set.");
+      }
+    }
+
+    if (BCM_SUCCESS(rv)) {
+      rv = bcm_pktio_trim(pktioPkt->unit, pktioPkt, pkt->buf_->length());
+      if (BCM_FAILURE(rv)) {
+        bcmLogError(rv, "failed in bcm_pktio_trim to trim the buffer.");
+      }
+    }
+
+    if (BCM_SUCCESS(rv)) {
       // Differnt from bcm_tx, PKTIO is synchronous.  When TX is done, it is OK
       // to release the buffer.  But for now, follow the same flow to free it
       // at the time of releasing the IOBuf to avoid duplicating the stats
@@ -280,15 +302,6 @@ void BcmTxPacket::setCos(uint8_t cos) noexcept {
     bcmPacket_.ptrUnion.pkt->cos = cos;
   } else {
 #ifdef INCLUDE_PKTIO
-    auto rv = bcm_pktio_pmd_field_set(
-        unit_,
-        bcmPacket_.ptrUnion.pktioPkt,
-        bcmPktioPmdTypeTx,
-        BCMPKT_TXPMD_COS,
-        cos);
-    if (BCM_FAILURE(rv)) {
-      bcmLogError(rv, "failed to set COS in PKTIO PMD.");
-    }
     cos_ = cos;
 #endif
   }

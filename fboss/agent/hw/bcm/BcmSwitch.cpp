@@ -2375,6 +2375,9 @@ bool BcmSwitch::sendPacketOutOfPortAsync(
     std::optional<uint8_t> queue) noexcept {
   unique_ptr<BcmTxPacket> bcmPkt(
       boost::polymorphic_downcast<BcmTxPacket*>(pkt.release()));
+#ifdef INCLUDE_PKTIO
+  bcmPkt->setSwitched(false);
+#endif
   bcmPkt->setDestModPort(getPortTable()->getBcmPortId(portID));
   if (queue) {
     bcmPkt->setCos(*queue);
@@ -2394,6 +2397,9 @@ bool BcmSwitch::sendPacketOutOfPortSync(
     std::optional<uint8_t> cos) noexcept {
   unique_ptr<BcmTxPacket> bcmPkt(
       boost::polymorphic_downcast<BcmTxPacket*>(pkt.release()));
+#ifdef INCLUDE_PKTIO
+  bcmPkt->setSwitched(false);
+#endif
   if (cos.has_value()) {
     bcmPkt->setCos(cos.value());
   }

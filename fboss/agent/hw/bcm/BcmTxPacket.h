@@ -74,20 +74,21 @@ class BcmTxPacket : public TxPacket {
       BCM_PBMP_PORT_SET(pkt->tx_upbmp, port);
     } else {
 #ifdef INCLUDE_PKTIO
-      bcm_pktio_pkt_t* pktioPkt = bcmPacket_.ptrUnion.pktioPkt;
-      bcm_pktio_txpmd_t pmd;
-      pmd.tx_port = port;
-      pmd.cos = cos_;
-      // default prio_int and flags for now
-      pmd.prio_int = 0;
-      pmd.flags = 0;
-      auto rv = bcm_pktio_pmd_set(unit_, pktioPkt, &pmd);
-      bcmCheckError(rv, "failed to set PKTIO PMD.");
+      port_ = port;
 #endif
     }
   }
 
   void setCos(uint8_t cos) noexcept;
+
+#ifdef INCLUDE_PKTIO
+  void setSwitched(bool switched) {
+    switched_ = switched;
+  }
+  bool getSwitched(void) {
+    return switched_;
+  }
+#endif
 
   /*
    * Send a BcmTxPacket asynchronously.
@@ -139,7 +140,10 @@ class BcmTxPacket : public TxPacket {
 
 #ifdef INCLUDE_PKTIO
   int unit_{-1};
+  // If not switched, directly send to port, bypassing the pipeline
+  bool switched_{true};
   uint8_t cos_{0};
+  int port_{0};
 #endif
 };
 
