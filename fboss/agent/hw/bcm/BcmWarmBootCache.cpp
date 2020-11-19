@@ -1383,7 +1383,8 @@ void BcmWarmBootCache::populateMirroredPort(bcm_gport_t port) {
       // isn't supported
       if (destination == cfg::SampleDestination::MIRROR &&
           (direction == MirrorDirection::EGRESS ||
-           !getHw()->getPlatform()->sflowSamplingSupported())) {
+           !getHw()->getPlatform()->getAsic()->isSupported(
+               HwAsic::Feature::SFLOW_SAMPLING))) {
         continue;
       }
       bcm_gport_t mirror_dest = 0;

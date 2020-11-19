@@ -31,10 +31,6 @@ class BcmTestTomahawk4Platform : public BcmTestWedgePlatform {
   bool v6MirrorTunnelSupported() const override {
     return true;
   }
-
-  bool sflowSamplingSupported() const override {
-    return true;
-  }
   bool canUseHostTableForHostRoutes() const override {
     return false;
   }

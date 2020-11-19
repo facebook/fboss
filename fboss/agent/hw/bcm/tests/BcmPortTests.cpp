@@ -237,7 +237,7 @@ TEST_F(BcmPortTest, PortLoopbackModePHY100G) {
 
 TEST_F(BcmPortTest, SampleDestination) {
   // sample destination can't be configured if sflow sampling isn't supported
-  if (!getPlatform()->sflowSamplingSupported()) {
+  if (!getPlatform()->getAsic()->isSupported(HwAsic::Feature::SFLOW_SAMPLING)) {
     return;
   }
   auto setup = [=]() {
@@ -277,7 +277,7 @@ TEST_F(BcmPortTest, SampleDestination) {
 
 TEST_F(BcmPortTest, NoSampleDestinationSet) {
   // sample destination can't be configured if sflow sampling isn't supported
-  if (!getPlatform()->sflowSamplingSupported()) {
+  if (!getPlatform()->getAsic()->isSupported(HwAsic::Feature::SFLOW_SAMPLING)) {
     return;
   }
   auto setup = [=]() { return applyNewConfig(initialConfig()); };

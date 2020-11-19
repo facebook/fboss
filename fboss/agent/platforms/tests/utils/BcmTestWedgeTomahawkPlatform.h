@@ -32,10 +32,6 @@ class BcmTestWedgeTomahawkPlatform : public BcmTestWedgePlatform {
   bool v6MirrorTunnelSupported() const override {
     return false;
   }
-
-  bool sflowSamplingSupported() const override {
-    return true;
-  }
   const PortQueue& getDefaultPortQueueSettings(
       cfg::StreamType streamType) const override;
   const PortQueue& getDefaultControlPlaneQueueSettings(

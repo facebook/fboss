@@ -646,7 +646,8 @@ int BcmPort::sampleDestinationToBcmDestFlag(cfg::SampleDestination dest) {
 void BcmPort::configureSampleDestination(cfg::SampleDestination sampleDest) {
   sampleDest_ = sampleDest;
 
-  if (!getHW()->getPlatform()->sflowSamplingSupported()) {
+  if (!getHW()->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::SFLOW_SAMPLING)) {
     return;
   }
 

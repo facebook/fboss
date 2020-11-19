@@ -47,6 +47,7 @@ class HwAsic {
     OBM_COUNTERS,
     BUFFER_POOL,
     MIRROR_PACKET_TRUNCATION,
+    SFLOW_SAMPLING,
   };
 
   enum class AsicType {
