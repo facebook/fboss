@@ -129,11 +129,6 @@ ControlPlane::RxReasonToQueue BcmControlPlane::getRxReasonToQueue() const {
 void BcmControlPlane::setReasonToQueueEntry(
     int index,
     cfg::PacketRxReasonToQueue entry) {
-  if (hw_->usePKTIO()) {
-    /* PKTIO does not use bcm_rx_cosq_mapping_set to set rx reason */
-    return;
-  }
-
   auto maxCPUQueue = queueManager_->getNumQueues(cfg::StreamType::MULTICAST);
   auto queueID = *entry.queueId_ref();
   if (queueID < 0 || queueID > maxCPUQueue) {
