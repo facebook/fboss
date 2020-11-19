@@ -373,8 +373,8 @@ BcmSwitch::~BcmSwitch() {
 void BcmSwitch::resetTables() {
   std::unique_lock<std::mutex> lk(lock_);
   unregisterCallbacks();
-  routeTable_.reset();
   labelMap_.reset();
+  routeTable_.reset();
   l3NextHopTable_.reset();
   mplsNextHopTable_.reset();
   // Release host entries before reseting switch's host table
