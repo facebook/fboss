@@ -49,4 +49,10 @@ struct SaiPortInterfaceTypeDefault {
   }
 };
 
+struct SaiObjectIdListDefault {
+  sai_object_list_t operator()() const {
+    return sai_object_list_t{0, nullptr};
+  }
+};
+
 } // namespace facebook::fboss

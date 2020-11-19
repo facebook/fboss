@@ -116,6 +116,7 @@ SaiSwitchTraits::CreateAttributes getSwitchAttributes(
       macAgingTime,
       std::nullopt, // ingress acl
       aclFieldList,
+      std::nullopt, // tam object list
   };
 }
 
@@ -300,5 +301,15 @@ void SaiSwitchManager::setMacAgingSeconds(sai_uint32_t agingSeconds) {
 }
 sai_uint32_t SaiSwitchManager::getMacAgingSeconds() const {
   return GET_OPT_ATTR(Switch, MacAgingTime, switch_->attributes());
+}
+
+void SaiSwitchManager::setTamObject(std::vector<sai_object_id_t> tamObject) {
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::TamObject{std::move(tamObject)});
+}
+
+void SaiSwitchManager::resetTamObject() {
+  switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::TamObject{
+      std::vector<sai_object_id_t>{SAI_NULL_OBJECT_ID}});
 }
 } // namespace facebook::fboss

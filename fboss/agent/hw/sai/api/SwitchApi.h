@@ -184,7 +184,8 @@ struct SaiSwitchTraits {
     using TamObject = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_TAM_OBJECT_ID,
-        std::vector<sai_object_id_t>>;
+        std::vector<sai_object_id_t>,
+        SaiObjectIdListDefault>;
 
     /* extension attributes */
     struct AttributeLedIdWrapper {
@@ -224,7 +225,8 @@ struct SaiSwitchTraits {
       std::optional<Attributes::QosTcToQueueMap>,
       std::optional<Attributes::MacAgingTime>,
       std::optional<Attributes::IngressAcl>,
-      std::optional<Attributes::AclFieldList>>;
+      std::optional<Attributes::AclFieldList>,
+      std::optional<Attributes::TamObject>>;
 };
 
 SAI_ATTRIBUTE_NAME(Switch, InitSwitch)

@@ -58,6 +58,9 @@ class SaiSwitchManager {
   void setIngressAcl();
   void resetIngressAcl();
 
+  void setTamObject(std::vector<sai_object_id_t> tamObject);
+  void resetTamObject();
+
   void setMacAgingSeconds(sai_uint32_t agingSeconds);
   sai_uint32_t getMacAgingSeconds() const;
 
