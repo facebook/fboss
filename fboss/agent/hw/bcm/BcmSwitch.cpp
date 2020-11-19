@@ -1569,7 +1569,8 @@ bool BcmSwitch::isValidStateUpdate(const StateDelta& delta) const {
       [&](const shared_ptr<Mirror>& /* oldMirror */,
           const shared_ptr<Mirror>& newMirror) {
         if (newMirror->getTruncate() &&
-            !getPlatform()->mirrorPktTruncationSupported()) {
+            !getPlatform()->getAsic()->isSupported(
+                HwAsic::Feature::MIRROR_PACKET_TRUNCATION)) {
           XLOG(ERR)
               << "Mirror packet truncation is not supported on this platform";
           isValid = false;

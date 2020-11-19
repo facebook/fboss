@@ -10,6 +10,7 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmMirrorUtils.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Mirror.h"
 
 #include <boost/container/flat_map.hpp>
@@ -160,7 +161,8 @@ void BcmMirror::program(const std::shared_ptr<Mirror>& mirror) {
   }
   bool truncate = mirror->getTruncate();
   if (truncate) {
-    CHECK(hw_->getPlatform()->mirrorPktTruncationSupported())
+    CHECK(hw_->getPlatform()->getAsic()->isSupported(
+        HwAsic::Feature::MIRROR_PACKET_TRUNCATION))
         << "Mirrored packet truncation is not supported on this platform";
   }
 

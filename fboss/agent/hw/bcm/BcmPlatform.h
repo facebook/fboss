@@ -106,8 +106,6 @@ class BcmPlatform : public Platform {
 
   virtual bool sflowSamplingSupported() const = 0;
 
-  virtual bool mirrorPktTruncationSupported() const = 0;
-
   virtual bool useQueueGportForCos() const = 0;
 
   /*

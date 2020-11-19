@@ -2,6 +2,7 @@
 
 #include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
 #include "fboss/agent/hw/bcm/tests/BcmTestStatUtils.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestStatUtils.h"
@@ -271,7 +272,8 @@ TYPED_TEST(BcmDataPlaneMirrorTest, ErspanAclMirror) {
 
 TYPED_TEST(BcmDataPlaneMirrorTest, TrucatePortErspanMirror) {
   if (this->skipTest() ||
-      !this->getPlatform()->mirrorPktTruncationSupported()) {
+      !this->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::MIRROR_PACKET_TRUNCATION)) {
     return;
   }
   this->testPortMirrorWithLargePacket(kErspan);

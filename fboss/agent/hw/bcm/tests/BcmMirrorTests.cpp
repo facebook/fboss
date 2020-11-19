@@ -431,7 +431,8 @@ TYPED_TEST(BcmMirrorTest, DscpHasSetValue) {
 }
 
 TYPED_TEST(BcmMirrorTest, MirrorWithTruncation) {
-  if (!this->getPlatform()->mirrorPktTruncationSupported()) {
+  if (!this->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::MIRROR_PACKET_TRUNCATION)) {
     return;
   }
   auto setup = [=]() {
@@ -1937,7 +1938,8 @@ TYPED_TEST(BcmMirrorTest, SampleAllPortsMirrorUpdate) {
     cfg.mirrors_ref()->push_back(this->getSflowMirror());
     // update to truncate if supported
     *cfg.mirrors_ref()[0].truncate_ref() =
-        this->getPlatform()->mirrorPktTruncationSupported();
+        this->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::MIRROR_PACKET_TRUNCATION);
     // update destination port now
     cfg.mirrors_ref()[0]
         .destination_ref()

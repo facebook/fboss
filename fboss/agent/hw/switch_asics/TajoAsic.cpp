@@ -32,6 +32,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::ACL_COPY_TO_CPU:
     case HwAsic::Feature::BUFFER_POOL:
+    case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
       return true;
 
     case HwAsic::Feature::HOT_SWAP:

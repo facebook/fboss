@@ -28,11 +28,6 @@ class BcmTestWedge40Platform : public BcmTestWedgePlatform {
   bool sflowSamplingSupported() const override {
     return false;
   }
-
-  bool mirrorPktTruncationSupported() const override {
-    return false;
-  }
-
   std::vector<FlexPortMode> getSupportedFlexPortModes() const override {
     return {FlexPortMode::ONEX40G, FlexPortMode::FOURX10G};
   }

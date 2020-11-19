@@ -196,7 +196,8 @@ class BcmSflowMirrorTest : public BcmLinkStateDependentTests {
       return;
     }
     if (payloadSize > kDefaultPayloadSize &&
-        !getPlatform()->mirrorPktTruncationSupported()) {
+        !getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::MIRROR_PACKET_TRUNCATION)) {
       return;
     }
     auto setup = [=]() {
@@ -280,7 +281,8 @@ TEST_F(BcmSflowMirrorTest, VerifySampledPacket) {
 
 TEST_F(BcmSflowMirrorTest, VerifySampledPacketWithTruncateV4) {
   if (!getPlatform()->sflowSamplingSupported() ||
-      !getPlatform()->mirrorPktTruncationSupported()) {
+      !getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::MIRROR_PACKET_TRUNCATION)) {
     return;
   }
   auto setup = [=]() {
@@ -319,7 +321,8 @@ TEST_F(BcmSflowMirrorTest, VerifySampledPacketWithTruncateV4) {
 
 TEST_F(BcmSflowMirrorTest, VerifySampledPacketWithTruncateV6) {
   if (!getPlatform()->sflowSamplingSupported() ||
-      !getPlatform()->mirrorPktTruncationSupported() ||
+      !getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::MIRROR_PACKET_TRUNCATION) ||
       !getPlatform()->v6MirrorTunnelSupported()) {
     return;
   }

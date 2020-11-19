@@ -46,6 +46,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT:
     case HwAsic::Feature::OBM_COUNTERS:
     case HwAsic::Feature::BUFFER_POOL:
+    case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
       return false;
   }
   return false;

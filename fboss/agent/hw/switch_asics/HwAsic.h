@@ -46,6 +46,7 @@ class HwAsic {
     ZERO_SDK_WRITE_WARMBOOT,
     OBM_COUNTERS,
     BUFFER_POOL,
+    MIRROR_PACKET_TRUNCATION,
   };
 
   enum class AsicType {

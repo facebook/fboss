@@ -30,10 +30,6 @@ class FakeBcmTestPlatform : public BcmTestPlatform {
     return true;
   }
 
-  bool mirrorPktTruncationSupported() const override {
-    return true;
-  }
-
   std::vector<FlexPortMode> getSupportedFlexPortModes() const override {
     return {FlexPortMode::ONEX100G,
             FlexPortMode::TWOX50G,
