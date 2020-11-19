@@ -20,6 +20,8 @@ struct SaiTamHandle {
   std::shared_ptr<SaiTamEventAction> action;
   std::shared_ptr<SaiTamEvent> event;
   std::shared_ptr<SaiTam> tam;
+  SaiManagerTable* managerTable;
+  ~SaiTamHandle();
 };
 class SaiTamManager {
  public:

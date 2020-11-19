@@ -122,6 +122,7 @@ void setSwitchAttributes(
         attrLines.push_back(oidAttr(attr_list, i));
         break;
       case SAI_SWITCH_ATTR_PORT_LIST:
+      case SAI_SWITCH_ATTR_TAM_OBJECT_ID:
         oidListAttr(attr_list, i, listCount++, attrLines);
         break;
       case SAI_SWITCH_ATTR_SRC_MAC_ADDRESS:

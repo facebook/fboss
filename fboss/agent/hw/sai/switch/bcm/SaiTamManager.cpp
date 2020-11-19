@@ -2,13 +2,25 @@
 
 #include "fboss/agent/hw/sai/switch/SaiTamManager.h"
 
+#include "fboss/agent/hw/sai/api/SwitchApi.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
 extern "C" {
 #include <experimental/saiexperimentalswitch.h>
 #include <experimental/saitamextensions.h>
 }
 namespace facebook::fboss {
+
+SaiTamHandle::~SaiTamHandle() {
+  try {
+    managerTable->switchManager().resetTamObject();
+  } catch (const SaiApiError& error) {
+    XLOG(WARNING) << "failed to disassociate TAM from switch : "
+                  << error.what();
+  }
+}
 
 SaiTamManager::SaiTamManager(
     SaiManagerTable* managerTable,
@@ -61,6 +73,14 @@ SaiTamManager::SaiTamManager(
   tamHandle_->action = action;
   tamHandle_->event = event;
   tamHandle_->tam = tam;
+  tamHandle_->managerTable = managerTable_;
+  try {
+    // associate TAM with switch
+    managerTable_->switchManager().setTamObject(
+        {tamHandle_->tam->adapterKey()});
+  } catch (const SaiApiError& error) {
+    XLOG(WARNING) << "failed to associate TAM with switch : " << error.what();
+  }
 }
 
 } // namespace facebook::fboss

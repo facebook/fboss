@@ -3,6 +3,7 @@
 #include "fboss/agent/hw/sai/switch/SaiTamManager.h"
 
 namespace facebook::fboss {
+SaiTamHandle::~SaiTamHandle() {}
 
 SaiTamManager::SaiTamManager(
     SaiManagerTable* /*managerTable*/,
