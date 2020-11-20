@@ -649,6 +649,8 @@ const u64 CPU_PORT_LOGICALID = 0
 
 typedef string PortQueueConfigName
 
+typedef string PortPgConfigName
+
 const i32 DEFAULT_PORT_MTU = 9412
 /**
  * Configuration for a single logical port
@@ -789,6 +791,8 @@ struct Port {
    * it should be defined in the `PlatformConfig`(platform_config.thrift)
    */
   24: PortProfileID profileID = PortProfileID.PROFILE_DEFAULT
+
+  25: optional PortPfc pfc
 }
 
 enum LacpPortRate {
@@ -1176,6 +1180,12 @@ struct QcmConfig {
 struct SwitchSettings {
   1: L2LearningMode l2LearningMode = L2LearningMode.HARDWARE
   2: bool qcmEnable = false
+}
+
+struct PortPfc {
+  1: bool tx = false
+  2: bool rx = false
+  3: PortPgConfigName portPgConfigName
 }
 
 /**

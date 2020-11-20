@@ -185,8 +185,13 @@ TEST(Port, ToFromJSON) {
             13,
             14
           ],
-          "maxFrameSize" : 9000
-        }
+          "maxFrameSize" : 9000,
+          "pfc": {
+            "tx": false,
+            "rx": false,
+            "portPgConfigName": "foo"
+          }
+       }
   )";
   auto port = Port::fromJson(jsonStr);
 
@@ -257,6 +262,9 @@ TEST(Port, ToFromJSON) {
   EXPECT_EQ(
       port->getLookupClassesToDistributeTrafficOn(), expectedLookupClasses);
 
+  EXPECT_TRUE(port->getPfc().has_value());
+  EXPECT_FALSE(*port->getPfc()->rx_ref());
+  EXPECT_FALSE(*port->getPfc()->tx_ref());
   auto dyn1 = port->toFollyDynamic();
   auto dyn2 = folly::parseJson(jsonStr);
 
@@ -546,6 +554,69 @@ TEST(Port, emptyConfig) {
       nullptr, publishAndApplyConfig(state, &emptyConfig, platform.get()));
 }
 
+// validate that pause & pfc should not be enabled
+// at the same time
+TEST(Port, verifyPfcWithPauseConfig) {
+  auto platform = createMockPlatform();
+  auto state = make_shared<SwitchState>();
+  state->registerPort(PortID(1), "port1");
+
+  cfg::SwitchConfig config;
+  cfg::PortPfc pfc;
+  cfg::PortPause pause;
+
+  // enable pfc, pause
+  pfc.tx_ref() = true;
+  pause.rx_ref() = true;
+
+  config.ports_ref()->resize(1);
+  config.ports_ref()[0].logicalID_ref() = 1;
+  config.ports_ref()[0].name_ref() = "port1";
+  config.ports_ref()[0].state_ref() = cfg::PortState::DISABLED;
+  config.ports_ref()[0].pfc_ref() = pfc;
+  config.ports_ref()[0].pause_ref() = pause;
+
+  EXPECT_THROW(
+      publishAndApplyConfig(state, &config, platform.get()), FbossError);
+}
+
+TEST(Port, verifyPfcConfig) {
+  auto platform = createMockPlatform();
+  auto state = make_shared<SwitchState>();
+  state->registerPort(PortID(1), "port1");
+
+  auto port = state->getPort(PortID(1));
+  EXPECT_FALSE(port->getPfc().has_value());
+
+  cfg::SwitchConfig config;
+  cfg::PortPfc pfc;
+
+  config.ports_ref()->resize(1);
+  config.ports_ref()[0].logicalID_ref() = 1;
+  config.ports_ref()[0].name_ref() = "port1";
+  config.ports_ref()[0].state_ref() = cfg::PortState::DISABLED;
+  config.ports_ref()[0].pfc_ref() = pfc;
+  auto newState = publishAndApplyConfig(state, &config, platform.get());
+
+  port = newState->getPort(PortID(1));
+  EXPECT_TRUE(port->getPfc().has_value());
+  EXPECT_FALSE(*port->getPfc().value().tx_ref());
+  EXPECT_FALSE(*port->getPfc().value().rx_ref());
+  EXPECT_EQ(port->getPfc().value().portPgConfigName_ref(), "");
+
+  pfc.tx_ref() = true;
+  pfc.rx_ref() = true;
+  pfc.portPgConfigName_ref() = "foo";
+  config.ports_ref()[0].pfc_ref() = pfc;
+  auto newState2 = publishAndApplyConfig(newState, &config, platform.get());
+  port = newState2->getPort(PortID(1));
+
+  EXPECT_TRUE(port->getPfc().has_value());
+  EXPECT_TRUE(*port->getPfc().value().tx_ref());
+  EXPECT_TRUE(*port->getPfc().value().rx_ref());
+  EXPECT_EQ(port->getPfc().value().portPgConfigName_ref(), "foo");
+}
+
 TEST(Port, pauseConfig) {
   auto platform = createMockPlatform();
   auto state = make_shared<SwitchState>();
@@ -575,7 +646,7 @@ TEST(Port, pauseConfig) {
     *config.ports_ref()[0].logicalID_ref() = 1;
     config.ports_ref()[0].name_ref() = "port1";
     *config.ports_ref()[0].state_ref() = cfg::PortState::DISABLED;
-    *config.ports_ref()[0].pause_ref() = newPause;
+    config.ports_ref()[0].pause_ref() = newPause;
     auto newState = publishAndApplyConfig(state, &config, platform.get());
 
     if (oldPause != newPause) {

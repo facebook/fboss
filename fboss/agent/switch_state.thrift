@@ -70,4 +70,5 @@ struct PortFields {
  21: string portProfileID
  22: list<switch_config.AclLookupClass> lookupClassesToDistrubuteTrafficOn
  23: i32 maxFrameSize = switch_config.DEFAULT_PORT_MTU
+ 24: optional switch_config.PortPfc pfc
 }

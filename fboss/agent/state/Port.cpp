@@ -145,6 +145,9 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
   port.lookupClassesToDistrubuteTrafficOn =
       *portThrift.lookupClassesToDistrubuteTrafficOn_ref();
 
+  if (portThrift.pfc_ref()) {
+    port.pfc = portThrift.pfc_ref().value();
+  }
   return port;
 }
 
@@ -222,6 +225,10 @@ state::PortFields PortFields::toThrift() const {
   *port.lookupClassesToDistrubuteTrafficOn_ref() =
       lookupClassesToDistrubuteTrafficOn;
   *port.maxFrameSize_ref() = maxFrameSize;
+
+  if (pfc) {
+    port.pfc_ref() = pfc.value();
+  }
   return port;
 }
 

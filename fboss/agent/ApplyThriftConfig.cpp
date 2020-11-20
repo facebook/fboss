@@ -944,6 +944,26 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     }
   }
 
+  auto newPfc = std::optional<cfg::PortPfc>();
+  if (portConf->pfc_ref().has_value()) {
+    newPfc = portConf->pfc_ref().value();
+
+    auto pause = portConf->pause_ref().value();
+    bool pfc_rx = *newPfc->rx_ref();
+    bool pfc_tx = *newPfc->tx_ref();
+    bool pause_rx = *pause.rx_ref();
+    bool pause_tx = *pause.tx_ref();
+
+    if (pfc_rx || pfc_tx) {
+      if (pause_rx || pause_tx) {
+        throw FbossError(
+            "Port ",
+            orig->getID(),
+            " Pause and Pfc cannot be enabled on the same port");
+      }
+    }
+  }
+
   /*
    * The list of lookup classes would be different when first enabling the
    * feature and if we had to change the number of lookup classes (unlikely)
@@ -965,7 +985,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       VlanID(*portConf->ingressVlan_ref()) == orig->getIngressVlan() &&
       *portConf->speed_ref() == orig->getSpeed() &&
       *portConf->profileID_ref() == orig->getProfileID() &&
-      *portConf->pause_ref() == orig->getPause() &&
+      *portConf->pause_ref() == orig->getPause() && newPfc == orig->getPfc() &&
       *portConf->sFlowIngressRate_ref() == orig->getSflowIngressRate() &&
       *portConf->sFlowEgressRate_ref() == orig->getSflowEgressRate() &&
       newSampleDest == orig->getSampleDestination() &&
@@ -1009,6 +1029,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->setLookupClassesToDistributeTrafficOn(
       *portConf->lookupClasses_ref());
   newPort->setMaxFrameSize(*portConf->maxFrameSize_ref());
+  newPort->setPfc(newPfc);
   return newPort;
 }
 
