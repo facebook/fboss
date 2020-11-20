@@ -11,6 +11,8 @@
 
 #include "fboss/agent/hw/HwSwitchStats.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/packet/EthHdr.h"
+#include "fboss/agent/packet/PktUtil.h"
 
 extern "C" {
 #include <bcm/tx.h>
@@ -20,6 +22,10 @@ using folly::IOBuf;
 using std::unique_ptr;
 
 namespace {
+
+#ifdef INCLUDE_PKTIO
+constexpr auto kVlanTagSize = 4;
+#endif
 
 using namespace facebook::fboss;
 void freeTxBuf(void* /*ptr*/, void* arg) {
@@ -209,6 +215,28 @@ inline int BcmTxPacket::sendImpl(
       rv = bcm_pktio_trim(pktioPkt->unit, pktioPkt, pkt->buf_->length());
       if (BCM_FAILURE(rv)) {
         bcmLogError(rv, "failed in bcm_pktio_trim to trim the buffer.");
+      } else {
+        if (!pkt->getSwitched()) {
+          folly::io::Cursor cursor(pkt->buf());
+          EthHdr ethHdr{cursor};
+          if (!ethHdr.getVlanTags().empty()) {
+            cursor.reset(pkt->buf());
+            XLOG(DBG5) << "Before vlan stripping, current packet:";
+            XLOG(DBG5) << PktUtil::hexDump(cursor);
+            size_t headerLength =
+                folly::MacAddress::SIZE + folly::MacAddress::SIZE;
+            void* src = pkt->buf()->writableData();
+            void* dst = pkt->buf()->writableData() + kVlanTagSize;
+            sal_memmove(dst, src, headerLength);
+            // trim front by the size of vlan tag
+            rv = bcm_pktio_pull(
+                pktioPkt->unit, pktioPkt, kVlanTagSize, (void**)&src);
+            bcmLogError(rv, "failed in bcm_pktio_pull to strip vlan tag");
+            cursor.skip(kVlanTagSize);
+            XLOG(DBG5) << "After vlan stripping, new packet:";
+            XLOG(DBG5) << PktUtil::hexDump(cursor);
+          }
+        }
       }
     }
 

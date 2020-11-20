@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "folly/Utility.h"
 
@@ -41,13 +42,16 @@ TEST_F(HwPacketSendTest, LldpToFrontPanelOutOfPort) {
     auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto payLoadSize = 256;
     auto txPacket = utility::makeEthTxPacket(
         getHwSwitch(),
         vlanId,
         srcMac,
         folly::MacAddress("01:80:c2:00:00:0e"),
         facebook::fboss::ETHERTYPE::ETHERTYPE_LLDP,
-        std::nullopt);
+        std::vector<uint8_t>(payLoadSize, 0xff));
+    // vlan tag should be removed
+    auto pktLengthSent = EthHdr::SIZE + payLoadSize;
     getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
         std::move(txPacket), masterLogicalPortIds()[0], std::nullopt);
     auto portStatsAfter = getLatestPortStats(masterLogicalPortIds()[0]);
@@ -56,8 +60,9 @@ TEST_F(HwPacketSendTest, LldpToFrontPanelOutOfPort) {
                << ", after pkts:" << *portStatsAfter.outMulticastPkts__ref()
                << ", before bytes:" << *portStatsBefore.outBytes__ref()
                << ", after bytes:" << *portStatsAfter.outBytes__ref();
-    EXPECT_NE(
-        0, *portStatsAfter.outBytes__ref() - *portStatsBefore.outBytes__ref());
+    EXPECT_EQ(
+        pktLengthSent,
+        *portStatsAfter.outBytes__ref() - *portStatsBefore.outBytes__ref());
     if (getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_TAJO) {
       EXPECT_EQ(
           1,

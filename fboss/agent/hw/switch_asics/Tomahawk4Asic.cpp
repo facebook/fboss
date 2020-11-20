@@ -50,10 +50,10 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
     case HwAsic::Feature::SFLOW_SAMPLING:
+    case HwAsic::Feature::TX_VLAN_STRIPPING_ON_PORT:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
-    case HwAsic::Feature::TX_VLAN_STRIPPING_ON_PORT:
     case HwAsic::Feature::QOS_MAP_GLOBAL:
     case HwAsic::Feature::QCM:
     case HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED:
