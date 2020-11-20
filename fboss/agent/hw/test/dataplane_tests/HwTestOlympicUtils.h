@@ -13,6 +13,10 @@
 
 #include <string>
 
+namespace facebook::fboss {
+class HwAsic;
+}
+
 /*
  * This utility is to provide utils for hw olympic tests.
  */
@@ -38,6 +42,7 @@ constexpr int kOlympicHighestQueueId = kOlympicNCQueueId;
 void addOlympicQueueConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
+    const HwAsic* asic,
     bool addWredConfig = false);
 void addOlympicQosMaps(cfg::SwitchConfig& cfg);
 

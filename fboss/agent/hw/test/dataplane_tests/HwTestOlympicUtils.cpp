@@ -9,6 +9,8 @@
  */
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
+
 namespace facebook::fboss::utility {
 
 namespace {
@@ -35,6 +37,7 @@ cfg::ActiveQueueManagement kGetWredConfig() {
 void addOlympicQueueConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
+    const HwAsic* asic,
     bool addWredConfig) {
   std::vector<cfg::PortQueue> portQueues;
 
@@ -45,7 +48,9 @@ void addOlympicQueueConfig(
   queue0.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue0.weight_ref() = kOlympicSilverWeight;
   queue0.scalingFactor_ref() = cfg::MMUScalingFactor::ONE;
-  queue0.reservedBytes_ref() = 3328;
+  if (!asic->mmuQgroupsEnabled()) {
+    queue0.reservedBytes_ref() = 3328;
+  }
   portQueues.push_back(queue0);
 
   cfg::PortQueue queue1;
@@ -55,7 +60,9 @@ void addOlympicQueueConfig(
   queue1.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue1.weight_ref() = kOlympicGoldWeight;
   queue1.scalingFactor_ref() = cfg::MMUScalingFactor::EIGHT;
-  queue1.reservedBytes_ref() = 9984;
+  if (!asic->mmuQgroupsEnabled()) {
+    queue1.reservedBytes_ref() = 9984;
+  }
   portQueues.push_back(queue1);
 
   cfg::PortQueue queue2;
@@ -85,7 +92,9 @@ void addOlympicQueueConfig(
   queue6.name_ref() = "queue6.platinum";
   queue6.streamType_ref() = streamType;
   queue6.scheduling = cfg::QueueScheduling::STRICT_PRIORITY;
-  queue6.reservedBytes_ref() = 9984;
+  if (!asic->mmuQgroupsEnabled()) {
+    queue6.reservedBytes_ref() = 9984;
+  }
   queue6.scalingFactor_ref() = cfg::MMUScalingFactor::EIGHT;
   portQueues.push_back(queue6);
 

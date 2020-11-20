@@ -169,7 +169,9 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
     queue1.streamType_ref() = streamType;
     queue1.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
     queue1.weight_ref() = 1;
-    queue1.reservedBytes_ref() = 9984;
+    if (!getPlatform()->getAsic()->mmuQgroupsEnabled()) {
+      queue1.reservedBytes_ref() = 9984;
+    }
     portQueues.push_back(queue1);
 
     // Queue 2 and 3 tune scaling factor

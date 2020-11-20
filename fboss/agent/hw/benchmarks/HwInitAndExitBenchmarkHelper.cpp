@@ -139,7 +139,7 @@ void enableFeaturesInConfig(
      */
     auto streamType = *(
         hwSwitch->getPlatform()->getAsic()->getQueueStreamTypes(false).begin());
-    utility::addOlympicQueueConfig(&config, streamType, false);
+    utility::addOlympicQueueConfig(&config, streamType, hwAsic, false);
   }
   /*
    * Configure COPP, CPU traffic policy and ACLs

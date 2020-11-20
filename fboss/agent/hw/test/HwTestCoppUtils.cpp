@@ -89,7 +89,9 @@ void addCpuQueueConfig(cfg::SwitchConfig& config, const HwAsic* hwAsic) {
   queue0.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue0.weight_ref() = kCoppLowPriWeight;
   queue0.portQueueRate_ref() = setPortQueueRate(hwAsic, kCoppLowPriQueueId);
-  queue0.reservedBytes_ref() = kCoppLowPriReservedBytes;
+  if (!hwAsic->mmuQgroupsEnabled()) {
+    queue0.reservedBytes_ref() = kCoppLowPriReservedBytes;
+  }
   setPortQueueSharedBytes(queue0);
   cpuQueues.push_back(queue0);
 
@@ -100,7 +102,9 @@ void addCpuQueueConfig(cfg::SwitchConfig& config, const HwAsic* hwAsic) {
   queue1.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue1.weight_ref() = kCoppDefaultPriWeight;
   queue1.portQueueRate_ref() = setPortQueueRate(hwAsic, kCoppDefaultPriQueueId);
-  queue1.reservedBytes_ref() = kCoppDefaultPriReservedBytes;
+  if (!hwAsic->mmuQgroupsEnabled()) {
+    queue1.reservedBytes_ref() = kCoppDefaultPriReservedBytes;
+  }
   setPortQueueSharedBytes(queue1);
   cpuQueues.push_back(queue1);
 

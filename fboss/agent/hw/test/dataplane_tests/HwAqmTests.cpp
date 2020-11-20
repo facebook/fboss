@@ -29,7 +29,8 @@ class HwAqmTest : public HwLinkStateDependentTest {
     if (isSupported(HwAsic::Feature::L3_QOS)) {
       auto streamType =
           *(getPlatform()->getAsic()->getQueueStreamTypes(false).begin());
-      utility::addOlympicQueueConfig(&cfg, streamType, true /*add wred*/);
+      utility::addOlympicQueueConfig(
+          &cfg, streamType, getPlatform()->getAsic(), true /*add wred*/);
       utility::addOlympicQosMaps(cfg);
     }
     return cfg;
