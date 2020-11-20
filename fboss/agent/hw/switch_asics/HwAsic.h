@@ -80,6 +80,9 @@ class HwAsic {
   virtual cfg::PortLoopbackMode desiredLoopbackMode() const {
     return cfg::PortLoopbackMode::MAC;
   }
+  virtual bool mmuQgroupsEnabled() const {
+    return false;
+  }
 
   /*
     This function will be used in calculating lane assignment, physical port

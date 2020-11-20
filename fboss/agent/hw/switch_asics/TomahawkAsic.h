@@ -49,6 +49,9 @@ class TomahawkAsic : public BroadcomAsic {
       bool /*cpu*/) const override {
     return cfg::MMUScalingFactor::TWO;
   }
+  bool mmuQgroupsEnabled() const override {
+    return true;
+  }
 };
 
 } // namespace facebook::fboss
