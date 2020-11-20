@@ -114,6 +114,11 @@ find_library(IPROUTE2 netlink)
 find_path(IPROUTE2_INCLUDE_DIR NAMES libnetlink.h)
 include_directories(${IPROUTE2_INCLUDE_DIR})
 
+find_library(YAML-CPP yaml-cpp)
+find_path(YAML-CPP_INCLUDE_DIR NAMES yaml-cpp/yaml.h)
+include_directories(${YAML-CPP_INCLUDE_DIR})
+message(STATUS "Found YAML-CPP_INCLUDE_DIR: ${YAML-CPP_INCLUDE_DIR}")
+
 # Generate thrift deps and libraries
 include(FBThriftCppLibrary)
 
@@ -639,6 +644,10 @@ if (NOT SAI_ONLY)
       fboss/lib/usb/PCA9548MuxedBus.cpp
       fboss/lib/i2c/PCA9541.cpp
       fboss/lib/i2c/PCA9541.h
+      fboss/lib/firmware_storage/FbossFirmware.cpp
+      fboss/lib/firmware_storage/FbossFirmware.h
+      fboss/lib/firmware_storage/FbossFwStorage.cpp
+      fboss/lib/firmware_storage/FbossFwStorage.h
       fboss/lib/usb/TransceiverI2CApi.h
       fboss/lib/usb/UsbDevice.cpp
       fboss/lib/usb/UsbDevice.h
@@ -681,6 +690,7 @@ if (NOT SAI_ONLY)
       FBThrift::thriftcpp2
       ${USB}
       ${IPROUTE2}
+      ${YAML-CPP}
       ${NETLINK3}
       ${NETLINKROUTE3}
       ${CURL}
