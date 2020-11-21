@@ -41,6 +41,7 @@ add_library(bcm
   fboss/agent/hw/bcm/BcmPort.cpp
   fboss/agent/hw/bcm/BcmPortUtils.cpp
   fboss/agent/hw/bcm/BcmPortDescriptor.cpp
+  fboss/agent/hw/bcm/BcmPtpTcMgr.cpp
   fboss/agent/hw/bcm/BcmQcmCollector.cpp
   fboss/agent/hw/bcm/BcmQcmManager.cpp
   fboss/agent/hw/bcm/BcmPortTable.cpp

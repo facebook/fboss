@@ -53,6 +53,8 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_TX_DISABLE:
     case HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT:
     case HwAsic::Feature::OBM_COUNTERS:
+    case HwAsic::Feature::PTP_TC:
+    case HwAsic::Feature::PTP_TC_PCS:
       return false;
   }
   return false;

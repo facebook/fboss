@@ -31,6 +31,12 @@ class BcmSwitchSettings {
       bool qcmEnable,
       const std::shared_ptr<SwitchState>& swState);
 
+  void setPtpTc(bool enable, const std::shared_ptr<SwitchState>& swState);
+
+  bool getPtpTc() const {
+    return ptpTcEnable_.value_or(false);
+  }
+
  private:
   void enableL2LearningHardware();
   void enableL2LearningSoftware();
@@ -43,6 +49,7 @@ class BcmSwitchSettings {
   std::optional<cfg::L2LearningMode> l2LearningMode_{std::nullopt};
   bool l2AddrCallBackRegisterd_{false};
   std::optional<bool> qcmEnable_{std::nullopt};
+  std::optional<bool> ptpTcEnable_{std::nullopt};
 };
 
 } // namespace facebook::fboss

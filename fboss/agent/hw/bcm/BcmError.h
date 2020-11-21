@@ -69,6 +69,9 @@ void bcmLogError(int err, Args&&... msgArgs) {
   }
 }
 
+#define BCM_CHECK_ERROR(...) \
+  bcmCheckError(__VA_ARGS__, " at ", __FILE__, ":", __LINE__)
+
 template <typename... Args>
 void bcmCheckError(int err, Args&&... msgArgs) {
   if (BCM_FAILURE(err)) {

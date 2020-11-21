@@ -16,6 +16,8 @@ class MockAsic : public HwAsic {
       case Feature::PKTIO:
       case Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER:
       case Feature::OBM_COUNTERS:
+      case Feature::PTP_TC:
+      case Feature::PTP_TC_PCS:
         return false;
 
       default:

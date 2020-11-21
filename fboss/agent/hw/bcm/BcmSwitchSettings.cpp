@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
+#include "fboss/agent/hw/bcm/BcmPtpTcMgr.h"
 #include "fboss/agent/hw/bcm/BcmQcmManager.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -243,5 +244,19 @@ void BcmSwitchSettings::setQcmEnable(
   const auto bcmQcmMgrPtr = hw_->getBcmQcmMgr();
   qcmEnable ? bcmQcmMgrPtr->init(swState) : bcmQcmMgrPtr->stop();
   qcmEnable_ = qcmEnable;
+}
+
+void BcmSwitchSettings::setPtpTc(
+    bool enable,
+    const std::shared_ptr<SwitchState>& /* unused */) {
+  XLOG(DBG3) << "Set ptp tc =" << enable;
+  if (ptpTcEnable_.has_value() && ptpTcEnable_.value() == enable) {
+    return;
+  }
+
+  const auto bcmPtpTcMgrPtr = hw_->getBcmPtpTcMgr();
+  (enable) ? bcmPtpTcMgrPtr->enablePtpTc() : bcmPtpTcMgrPtr->disablePtpTc();
+
+  ptpTcEnable_ = enable;
 }
 } // namespace facebook::fboss

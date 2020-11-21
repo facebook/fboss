@@ -64,6 +64,10 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::PORT_TX_DISABLE:
     case HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT:
+    case HwAsic::Feature::PTP_TC: // TODO(rajukumarfb5368): enable after
+                                  // checking
+    case HwAsic::Feature::PTP_TC_PCS: // TODO(rajukumarfb5368): enable after
+                                      // checking
       return false;
   }
   return false;

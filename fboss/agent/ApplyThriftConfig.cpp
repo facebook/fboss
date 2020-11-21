@@ -2166,6 +2166,14 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
         *cfg_->switchSettings_ref()->qcmEnable_ref());
     switchSettingsChange = true;
   }
+
+  if (origSwitchSettings->isPtpTcEnable() !=
+      *cfg_->switchSettings_ref()->ptpTcEnable_ref()) {
+    newSwitchSettings->setPtpTcEnable(
+        *cfg_->switchSettings_ref()->ptpTcEnable_ref());
+    switchSettingsChange = true;
+  }
+
   return switchSettingsChange ? newSwitchSettings : nullptr;
 }
 

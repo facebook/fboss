@@ -15,6 +15,7 @@
 namespace {
 constexpr auto kL2LearningMode = "l2LearningMode";
 constexpr auto kQcmEnable = "qcmEnable";
+constexpr auto kPtpTcEnable = "ptpTcEnable";
 } // namespace
 
 namespace facebook::fboss {
@@ -24,6 +25,7 @@ folly::dynamic SwitchSettingsFields::toFollyDynamic() const {
 
   switchSettings[kL2LearningMode] = static_cast<int>(l2LearningMode);
   switchSettings[kQcmEnable] = static_cast<bool>(qcmEnable);
+  switchSettings[kPtpTcEnable] = static_cast<bool>(ptpTcEnable);
 
   return switchSettings;
 }
@@ -38,6 +40,9 @@ SwitchSettingsFields SwitchSettingsFields::fromFollyDynamic(
   }
   if (json.find(kQcmEnable) != json.items().end()) {
     switchSettings.qcmEnable = json[kQcmEnable].asBool();
+  }
+  if (json.find(kPtpTcEnable) != json.items().end()) {
+    switchSettings.ptpTcEnable = json[kPtpTcEnable].asBool();
   }
 
   return switchSettings;
@@ -59,7 +64,8 @@ SwitchSettings* SwitchSettings::modify(std::shared_ptr<SwitchState>* state) {
 bool SwitchSettings::operator==(const SwitchSettings& switchSettings) const {
   return (
       (getFields()->l2LearningMode == switchSettings.getL2LearningMode()) &&
-      (getFields()->qcmEnable == switchSettings.isQcmEnable()));
+      (getFields()->qcmEnable == switchSettings.isQcmEnable()) &&
+      (getFields()->ptpTcEnable == switchSettings.isPtpTcEnable()));
 }
 
 template class NodeBaseT<SwitchSettings, SwitchSettingsFields>;

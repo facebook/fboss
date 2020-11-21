@@ -48,6 +48,8 @@ class HwAsic {
     BUFFER_POOL,
     MIRROR_PACKET_TRUNCATION,
     SFLOW_SAMPLING,
+    PTP_TC,
+    PTP_TC_PCS,
   };
 
   enum class AsicType {

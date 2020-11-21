@@ -1180,6 +1180,7 @@ struct QcmConfig {
 struct SwitchSettings {
   1: L2LearningMode l2LearningMode = L2LearningMode.HARDWARE
   2: bool qcmEnable = false
+  3: bool ptpTcEnable = false
 }
 
 struct PortPfc {

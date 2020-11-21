@@ -29,6 +29,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::OBM_COUNTERS:
     case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::SFLOW_SAMPLING:
+    case HwAsic::Feature::PTP_TC:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
@@ -48,6 +49,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER:
     case HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT:
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
+    case HwAsic::Feature::PTP_TC_PCS:
       return false;
   }
   return false;

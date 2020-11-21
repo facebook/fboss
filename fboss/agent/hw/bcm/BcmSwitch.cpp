@@ -30,6 +30,7 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/BufferStatsLogger.h"
+#include "fboss/agent/hw/HwSwitchStats.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmAclEntry.h"
 #include "fboss/agent/hw/bcm/BcmAclTable.h"
@@ -54,6 +55,7 @@
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
+#include "fboss/agent/hw/bcm/BcmPtpTcMgr.h"
 #include "fboss/agent/hw/bcm/BcmQcmManager.h"
 #include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
 #include "fboss/agent/hw/bcm/BcmRoute.h"
@@ -355,7 +357,8 @@ BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
       bstStatsMgr_(new BcmBstStatsMgr(this)),
       switchSettings_(new BcmSwitchSettings(this)),
       macTable_(new BcmMacTable(this)),
-      qcmManager_(new BcmQcmManager(this)) {
+      qcmManager_(new BcmQcmManager(this)),
+      ptpTcMgr_(new BcmPtpTcMgr(this)) {
   exportSdkVersion();
 }
 
@@ -404,6 +407,7 @@ void BcmSwitch::resetTables() {
   switchSettings_.reset();
   macTable_.reset();
   qcmManager_.reset();
+  ptpTcMgr_.reset();
   // Reset warmboot cache last in case Bcm object destructors
   // access it during object deletion.
   warmBootCache_.reset();
@@ -1012,6 +1016,12 @@ void BcmSwitch::processSwitchSettingsChanged(const StateDelta& delta) {
     }
     XLOG(DBG3) << "Qcm enabled. Evaluate the monitored ports";
     qcmManager_->processPortsForQcm(delta.newState());
+  }
+
+  const auto newPtpTcEnable = newSwitchSettings->isPtpTcEnable();
+  if (oldSwitchSettings->isPtpTcEnable() != newPtpTcEnable) {
+    XLOG(DBG3) << "Set PTP TC enable: " << std::boolalpha << newPtpTcEnable;
+    switchSettings_->setPtpTc(newPtpTcEnable, delta.newState());
   }
 }
 
