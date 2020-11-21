@@ -21,6 +21,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_COPY_TO_CPU:
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::PORT_TX_DISABLE:
+    case HwAsic::Feature::PENDING_L2_ENTRY:
       return true;
 
     case HwAsic::Feature::TRUNCATE_MIRROR_PACKET:

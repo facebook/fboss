@@ -50,6 +50,7 @@ class HwAsic {
     SFLOW_SAMPLING,
     PTP_TC,
     PTP_TC_PCS,
+    PENDING_L2_ENTRY,
   };
 
   enum class AsicType {

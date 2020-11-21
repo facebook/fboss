@@ -30,6 +30,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::SFLOW_SAMPLING:
     case HwAsic::Feature::PTP_TC:
+    case HwAsic::Feature::PENDING_L2_ENTRY:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:

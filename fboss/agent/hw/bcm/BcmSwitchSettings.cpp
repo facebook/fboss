@@ -113,11 +113,11 @@ void BcmSwitchSettings::enableL2LearningCallback() {
   auto unit = hw_->getUnit();
 
   /*
-   * For TH3 below API is not supported/needed. Registering L2 learning
+   * For TH3/TH4 below API is not supported/needed. Registering L2 learning
    * callback is sufficient.
    */
-  if (hw_->getPlatform()->getAsic()->getAsicType() !=
-      HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3) {
+  if (hw_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::PENDING_L2_ENTRY)) {
     /*
      * Configure callback for L2 table update events, and configure the udpate
      * events to generate callback for.
@@ -153,11 +153,11 @@ void BcmSwitchSettings::disableL2LearningCallback() {
   auto unit = hw_->getUnit();
 
   /*
-   * For TH3, below API is not supported/needed. Registering L2 learning
+   * For TH3/TH4, below API is not supported/needed. Registering L2 learning
    * callback is sufficient.
    */
-  if (hw_->getPlatform()->getAsic()->getAsicType() !=
-      HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3) {
+  if (hw_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::PENDING_L2_ENTRY)) {
     /*
      * Unconfigure callback for L2 table update events.
      */
@@ -193,11 +193,11 @@ void BcmSwitchSettings::enablePendingEntriesOnUnknownSrcL2() {
    * (We don't pass BCM_PORT_LEARN_CPU flag, so the packets would not have
    * trapped to CPU anyway).
    *
-   * For TH3, there are no PENDING entries, and thus below API is not
+   * For TH3/TH4, there are no PENDING entries, and thus below API is not
    * supported/needed.
    */
-  if (hw_->getPlatform()->getAsic()->getAsicType() !=
-      HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3) {
+  if (hw_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::PENDING_L2_ENTRY)) {
     auto unit = hw_->getUnit();
     for (const auto& portIDAndBcmPort : *hw_->getPortTable()) {
       auto portID = portIDAndBcmPort.first;
@@ -217,11 +217,11 @@ void BcmSwitchSettings::disablePendingEntriesOnUnknownSrcL2() {
    * srcPort. Packets to this L2 entry are switched directly to the port in the
    * L2 entry (no flooded). No traps to CPU on such packets.
    *
-   * For TH3, there are no PENDING entries, and thus below API is not
+   * For TH3/TH4, there are no PENDING entries, and thus below API is not
    * supported/needed.
    */
-  if (hw_->getPlatform()->getAsic()->getAsicType() !=
-      HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3) {
+  if (hw_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::PENDING_L2_ENTRY)) {
     auto unit = hw_->getUnit();
     for (const auto& portIDAndBcmPort : *hw_->getPortTable()) {
       auto portID = portIDAndBcmPort.first;

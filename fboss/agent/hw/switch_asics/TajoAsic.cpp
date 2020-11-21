@@ -55,6 +55,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::OBM_COUNTERS:
     case HwAsic::Feature::PTP_TC:
     case HwAsic::Feature::PTP_TC_PCS:
+    case HwAsic::Feature::PENDING_L2_ENTRY:
       return false;
   }
   return false;
