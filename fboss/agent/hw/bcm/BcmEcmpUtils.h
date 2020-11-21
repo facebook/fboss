@@ -11,6 +11,7 @@
 #pragma once
 
 #include <set>
+#include <vector>
 
 extern "C" {
 #include <bcm/l3.h>
@@ -30,6 +31,8 @@ namespace facebook::fboss::utility {
 int getEcmpSizeInHw(const BcmSwitch* hw, bcm_if_t ecmp, int sizeInSw);
 std::multiset<bcm_if_t>
 getEcmpGroupInHw(const BcmSwitch* hw, bcm_if_t ecmp, int sizeInSw);
+
+std::vector<bcm_if_t> getEcmpMembersInHw(const BcmSwitch* hw);
 
 bcm_if_t getEgressIdForRoute(
     const BcmSwitch* hw,

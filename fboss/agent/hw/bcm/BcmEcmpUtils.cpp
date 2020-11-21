@@ -50,6 +50,52 @@ int getEcmpSizeInHw(const BcmSwitch* hw, bcm_if_t ecmp, int sizeInSw) {
   return getEcmpGroupInHw(hw, ecmp, sizeInSw).size();
 }
 
+template <typename T>
+bcm_if_t toIntfId(T egress) {
+  return egress;
+}
+
+#ifdef BCM_L3_ECMP_MEMBER_WEIGHTED
+template <>
+bcm_if_t toIntfId(bcm_l3_ecmp_member_t egress) {
+  return egress.egress_if;
+}
+#endif
+
+template <typename T>
+int bcm_l3_ecmp_traverse_cb(
+    int /*unit*/,
+    bcm_l3_egress_ecmp_t* /*ecmp*/,
+    int memberCount,
+    T* memberArray,
+    void* userData) {
+  if (!userData) {
+    return 0;
+  }
+  auto* outvec = reinterpret_cast<std::vector<bcm_if_t>*>(userData);
+  for (auto i = 0; i < memberCount; i++) {
+    outvec->push_back(toIntfId<T>(memberArray[i]));
+  }
+  return 0;
+}
+
+std::vector<bcm_if_t> getEcmpMembersInHw(const BcmSwitch* hw) {
+  std::vector<bcm_if_t> ecmpMembers;
+  if (hw->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER)) {
+#ifdef BCM_L3_ECMP_MEMBER_WEIGHTED
+    bcm_l3_ecmp_traverse(
+        hw->getUnit(),
+        bcm_l3_ecmp_traverse_cb<bcm_l3_ecmp_member_t>,
+        &ecmpMembers);
+#endif
+  } else {
+    bcm_l3_egress_ecmp_traverse(
+        hw->getUnit(), bcm_l3_ecmp_traverse_cb<bcm_if_t>, &ecmpMembers);
+  }
+  return ecmpMembers;
+}
+
 bcm_if_t getEgressIdForRoute(
     const BcmSwitch* hw,
     const folly::IPAddress& ip,

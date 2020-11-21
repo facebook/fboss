@@ -2,6 +2,7 @@
 
 #include "fboss/agent/hw/bcm/BcmLabeledEgress.h"
 
+#include "fboss/agent/hw/bcm/BcmEcmpUtils.h"
 #include "fboss/agent/hw/bcm/BcmEgressManager.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
@@ -87,22 +88,6 @@ class BcmLabeledEgressTest : public BcmTest {
     }
     auto* outvec = static_cast<std::vector<bcm_l3_egress_t>*>(user_data);
     outvec->push_back(*info);
-    return 0;
-  }
-
-  static int bcm_l3_egress_ecmp_traverse_cb(
-      int /*unit*/,
-      bcm_l3_egress_ecmp_t* /*ecmp*/,
-      int intf_count,
-      bcm_if_t* intf_array,
-      void* user_data) {
-    if (!user_data) {
-      return 0;
-    }
-    auto* outvec = reinterpret_cast<std::vector<bcm_if_t>*>(user_data);
-    for (auto i = 0; i < intf_count; i++) {
-      outvec->push_back(intf_array[i]);
-    }
     return 0;
   }
 
@@ -252,11 +237,7 @@ TEST_F(BcmLabeledEgressTest, LabeledEgressWithEcmp) {
     return state;
   };
   auto verify = [=]() {
-    std::vector<bcm_if_t> ecmpMembers;
-    bcm_l3_egress_ecmp_traverse(
-        getHwSwitch()->getUnit(),
-        &BcmLabeledEgressTest::bcm_l3_egress_ecmp_traverse_cb,
-        &ecmpMembers);
+    auto ecmpMembers = utility::getEcmpMembersInHw(getHwSwitch());
 
     EXPECT_EQ(ecmpMembers.size(), 4);
 
@@ -294,11 +275,7 @@ TEST_F(BcmLabeledEgressTest, labeledTunnelEgressWithEcmp) {
     return state;
   };
   auto verify = [=]() {
-    std::vector<bcm_if_t> ecmpMembers;
-    bcm_l3_egress_ecmp_traverse(
-        getHwSwitch()->getUnit(),
-        &BcmLabeledEgressTest::bcm_l3_egress_ecmp_traverse_cb,
-        &ecmpMembers);
+    auto ecmpMembers = utility::getEcmpMembersInHw(getHwSwitch());
 
     EXPECT_EQ(ecmpMembers.size(), 4);
 
@@ -340,11 +317,7 @@ TEST_F(BcmLabeledEgressTest, labeledTunnelEgressCommonTunnel) {
     return state;
   };
   auto verify = [=]() {
-    std::vector<bcm_if_t> ecmpMembers;
-    bcm_l3_egress_ecmp_traverse(
-        getHwSwitch()->getUnit(),
-        &BcmLabeledEgressTest::bcm_l3_egress_ecmp_traverse_cb,
-        &ecmpMembers);
+    auto ecmpMembers = utility::getEcmpMembersInHw(getHwSwitch());
 
     EXPECT_EQ(ecmpMembers.size(), 4);
 
@@ -383,11 +356,7 @@ TEST_F(BcmLabeledEgressTest, labeledTunnelEgressWithOneLabel) {
     return state;
   };
   auto verify = [=]() {
-    std::vector<bcm_if_t> ecmpMembers;
-    bcm_l3_egress_ecmp_traverse(
-        getHwSwitch()->getUnit(),
-        &BcmLabeledEgressTest::bcm_l3_egress_ecmp_traverse_cb,
-        &ecmpMembers);
+    auto ecmpMembers = utility::getEcmpMembersInHw(getHwSwitch());
 
     EXPECT_EQ(ecmpMembers.size(), 4);
 
@@ -423,11 +392,7 @@ TEST_F(BcmLabeledEgressTest, LabeledUnlabeledEgressWithEcmp) {
     return state;
   };
   auto verify = [=]() {
-    std::vector<bcm_if_t> ecmpMembers;
-    bcm_l3_egress_ecmp_traverse(
-        getHwSwitch()->getUnit(),
-        &BcmLabeledEgressTest::bcm_l3_egress_ecmp_traverse_cb,
-        &ecmpMembers);
+    auto ecmpMembers = utility::getEcmpMembersInHw(getHwSwitch());
 
     EXPECT_EQ(ecmpMembers.size(), 4);
 
