@@ -56,16 +56,39 @@ SaiBufferManager::SaiBufferManager(
     const SaiPlatform* platform)
     : managerTable_(managerTable), platform_(platform) {}
 
+uint64_t SaiBufferManager::getMaxEgressPoolBytes(const HwAsic* asic) {
+  switch (asic->getAsicType()) {
+    case HwAsic::AsicType::ASIC_TYPE_FAKE:
+    case HwAsic::AsicType::ASIC_TYPE_MOCK:
+    case HwAsic::AsicType::ASIC_TYPE_TAJO:
+      return asic->getMMUSizeBytes();
+
+    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK: {
+      // 0x436e 208 byte cells per XPE. TH has 4 XPE
+      auto constexpr kPerXpeCellsAvailable = 0x436e;
+      auto constexpr kCellSize = 208;
+      auto constexpr kNumXpes = 4;
+      return kPerXpeCellsAvailable * kCellSize * kNumXpes;
+    }
+    case HwAsic::AsicType::ASIC_TYPE_TRIDENT2:
+    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
+    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
+      throw FbossError(
+          "Fill in max egress pool for ASIC: ", asic->getAsicType());
+  }
+  CHECK(0) << "Should never get here";
+  return 0;
+}
+
 void SaiBufferManager::setupEgressBufferPool() {
   if (egressBufferPoolHandle_) {
     return;
   }
   egressBufferPoolHandle_ = std::make_unique<SaiBufferPoolHandle>();
   auto& store = SaiStore::getInstance()->get<SaiBufferPoolTraits>();
-  auto mmuSize = platform_->getAsic()->getMMUSizeBytes();
   SaiBufferPoolTraits::CreateAttributes c{
       SAI_BUFFER_POOL_TYPE_EGRESS,
-      mmuSize,
+      getMaxEgressPoolBytes(platform_->getAsic()),
       SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC};
   egressBufferPoolHandle_->bufferPool =
       store.setObject(SAI_BUFFER_POOL_TYPE_EGRESS, c);
