@@ -22,6 +22,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::PORT_TX_DISABLE:
     case HwAsic::Feature::PENDING_L2_ENTRY:
+    case HwAsic::Feature::BUFFER_POOL:
       return true;
 
     case HwAsic::Feature::TRUNCATE_MIRROR_PACKET:
@@ -46,7 +47,6 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER:
     case HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT:
     case HwAsic::Feature::OBM_COUNTERS:
-    case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
     case HwAsic::Feature::SFLOW_SAMPLING:
     case HwAsic::Feature::PTP_TC:
