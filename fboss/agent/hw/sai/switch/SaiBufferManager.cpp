@@ -16,6 +16,8 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
+#include "fboss/agent/hw/switch_asics/Trident2Asic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/agent/state/PortQueue.h"
 
@@ -64,13 +66,17 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const HwAsic* asic) {
       return asic->getMMUSizeBytes();
 
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK: {
-      // 0x436e 208 byte cells per XPE. TH has 4 XPE
+      // 0x436e 208 byte cells per XPE. TH has 4 XPEs
       auto constexpr kPerXpeCellsAvailable = 0x436e;
-      auto constexpr kCellSize = 208;
       auto constexpr kNumXpes = 4;
-      return kPerXpeCellsAvailable * kCellSize * kNumXpes;
+      return kPerXpeCellsAvailable * kNumXpes *
+          static_cast<const TomahawkAsic*>(asic)->getMMUCellSize();
     }
-    case HwAsic::AsicType::ASIC_TYPE_TRIDENT2:
+    case HwAsic::AsicType::ASIC_TYPE_TRIDENT2: {
+      auto constexpr kCellsAvailable = 0xbd0f;
+      return kCellsAvailable *
+          static_cast<const Trident2Asic*>(asic)->getMMUCellSize();
+    }
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
       throw FbossError(

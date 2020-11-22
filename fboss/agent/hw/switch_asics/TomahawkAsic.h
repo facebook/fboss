@@ -44,6 +44,9 @@ class TomahawkAsic : public BroadcomAsic {
       const override {
     return cpu ? 1664 : 0;
   }
+  uint32_t getMMUCellSize() const {
+    return 208;
+  }
   cfg::MMUScalingFactor getDefaultScalingFactor(
       cfg::StreamType /*streamType*/,
       bool /*cpu*/) const override {
