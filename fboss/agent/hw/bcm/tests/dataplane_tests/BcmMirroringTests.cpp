@@ -235,7 +235,8 @@ class BcmDataPlaneMirrorTest : public BcmLinkStateDependentTests {
   template <typename T = AddrT>
   bool skipTest() const {
     return std::is_same<T, folly::IPAddressV6>::value &&
-        !getPlatform()->v6MirrorTunnelSupported();
+        !getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::MIRROR_V6_TUNNEL);
   }
 
   const RouterID kRid{0};

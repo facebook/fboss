@@ -350,7 +350,8 @@ class BcmMirrorTest : public BcmTest {
   template <typename T = AddrT>
   bool skipMirrorTest() const {
     return std::is_same<T, folly::IPAddressV6>::value &&
-        !getPlatform()->v6MirrorTunnelSupported();
+        !getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::MIRROR_V6_TUNNEL);
   }
 
   template <typename T = AddrT>

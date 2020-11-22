@@ -324,7 +324,8 @@ TEST_F(BcmSflowMirrorTest, VerifySampledPacketWithTruncateV6) {
   if (!getPlatform()->getAsic()->isSupported(HwAsic::Feature::SFLOW_SAMPLING) ||
       !getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::MIRROR_PACKET_TRUNCATION) ||
-      !getPlatform()->v6MirrorTunnelSupported()) {
+      !getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::MIRROR_V6_TUNNEL)) {
     return;
   }
   auto setup = [=]() {

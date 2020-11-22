@@ -29,9 +29,6 @@ class BcmTestWedgeTomahawkPlatform : public BcmTestWedgePlatform {
   }
   ~BcmTestWedgeTomahawkPlatform() override {}
 
-  bool v6MirrorTunnelSupported() const override {
-    return false;
-  }
   const PortQueue& getDefaultPortQueueSettings(
       cfg::StreamType streamType) const override;
   const PortQueue& getDefaultControlPlaneQueueSettings(

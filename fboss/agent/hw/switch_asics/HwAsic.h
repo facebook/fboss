@@ -51,6 +51,7 @@ class HwAsic {
     PTP_TC,
     PTP_TC_PCS,
     PENDING_L2_ENTRY,
+    MIRROR_V6_TUNNEL,
   };
 
   enum class AsicType {

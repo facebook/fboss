@@ -26,9 +26,6 @@ class Wedge40Platform : public WedgePlatform {
   folly::ByteRange defaultLed0Code() override;
   folly::ByteRange defaultLed1Code() override;
 
-  bool v6MirrorTunnelSupported() const override {
-    return false;
-  }
   uint32_t getMMUBufferBytes() const override {
     return 16 * 1024 * 1024;
   }

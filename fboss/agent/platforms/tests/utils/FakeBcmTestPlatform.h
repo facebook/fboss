@@ -22,10 +22,6 @@ class FakeBcmTestPlatform : public BcmTestPlatform {
   FakeBcmTestPlatform();
   ~FakeBcmTestPlatform() override;
 
-  bool v6MirrorTunnelSupported() const override {
-    return true;
-  }
-
   std::vector<FlexPortMode> getSupportedFlexPortModes() const override {
     return {FlexPortMode::ONEX100G,
             FlexPortMode::TWOX50G,

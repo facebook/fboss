@@ -102,8 +102,6 @@ class BcmPlatform : public Platform {
 
   virtual bool isBcmShellSupported() const;
 
-  virtual bool v6MirrorTunnelSupported() const = 0;
-
   virtual bool useQueueGportForCos() const = 0;
 
   /*
