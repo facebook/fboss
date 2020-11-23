@@ -134,6 +134,7 @@ void setSwitchAttributes(
       case SAI_SWITCH_ATTR_INIT_SWITCH:
       case SAI_SWITCH_ATTR_SWITCH_SHELL_ENABLE:
       case SAI_SWITCH_ATTR_RESTART_WARM:
+      case SAI_SWITCH_ATTR_ECN_ECT_THRESHOLD_ENABLE:
         attrLines.push_back(boolAttr(attr_list, i));
         break;
       case SAI_SWITCH_ATTR_PORT_NUMBER:

@@ -186,6 +186,15 @@ struct SaiSwitchTraits {
         SAI_SWITCH_ATTR_TAM_OBJECT_ID,
         std::vector<sai_object_id_t>,
         SaiObjectIdListDefault>;
+    /*
+     * Use ECN thresholds for ECT traffic, if not set WRED thresholds
+     * would be used
+     */
+    using UseEcnThresholds = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_ECN_ECT_THRESHOLD_ENABLE,
+        bool,
+        SaiBoolDefaultFalse>;
 
     /* extension attributes */
     struct AttributeLedIdWrapper {
@@ -226,7 +235,8 @@ struct SaiSwitchTraits {
       std::optional<Attributes::MacAgingTime>,
       std::optional<Attributes::IngressAcl>,
       std::optional<Attributes::AclFieldList>,
-      std::optional<Attributes::TamObject>>;
+      std::optional<Attributes::TamObject>,
+      std::optional<Attributes::UseEcnThresholds>>;
 };
 
 SAI_ATTRIBUTE_NAME(Switch, InitSwitch)
@@ -279,6 +289,7 @@ SAI_ATTRIBUTE_NAME(Switch, IngressAcl)
 
 SAI_ATTRIBUTE_NAME(Switch, AclFieldList)
 SAI_ATTRIBUTE_NAME(Switch, TamObject)
+SAI_ATTRIBUTE_NAME(Switch, UseEcnThresholds)
 
 class SwitchApi : public SaiApi<SwitchApi> {
  public:

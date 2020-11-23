@@ -98,6 +98,11 @@ SaiSwitchTraits::CreateAttributes getSwitchAttributes(
   if (platform->getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TAJO) {
     aclFieldList = kTajoAclFieldList();
   }
+  std::optional<SaiSwitchTraits::Attributes::UseEcnThresholds> useEcnThresholds{
+      std::nullopt};
+  if (platform->getAsic()->isSupported(HwAsic::Feature::SAI_ECN_WRED)) {
+    useEcnThresholds = true;
+  }
 
   return {
       initSwitch,
@@ -117,6 +122,7 @@ SaiSwitchTraits::CreateAttributes getSwitchAttributes(
       std::nullopt, // ingress acl
       aclFieldList,
       std::nullopt, // tam object list
+      useEcnThresholds,
   };
 }
 
