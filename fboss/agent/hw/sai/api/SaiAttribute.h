@@ -179,7 +179,9 @@ DEFINE_extract(sai_ip_address_list_t, ipaddrlist);
 template <typename SrcT, typename DstT>
 typename std::enable_if<std::is_same<SrcT, DstT>::value>::type _fill(
     const SrcT& src,
-    DstT& dst) {}
+    DstT& dst) {
+  dst = src;
+}
 
 template <typename SrcT, typename DstT>
 typename std::enable_if<
