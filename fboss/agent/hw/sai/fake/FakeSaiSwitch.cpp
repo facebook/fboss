@@ -335,6 +335,9 @@ sai_status_t get_switch_attribute_fn(
       case SAI_SWITCH_ATTR_EXT_FAKE_LED:
       case SAI_SWITCH_ATTR_EXT_FAKE_LED_RESET:
         return sw.getLed(attr);
+      case SAI_SWITCH_ATTR_DEFAULT_EGRESS_BUFFER_POOL_SHARED_SIZE:
+        attr[i].value.u32 = 1'000'000;
+        break;
       case SAI_SWITCH_ATTR_AVAILABLE_IPV4_ROUTE_ENTRY:
       case SAI_SWITCH_ATTR_AVAILABLE_IPV6_ROUTE_ENTRY:
       case SAI_SWITCH_ATTR_AVAILABLE_IPV4_NEXTHOP_ENTRY:

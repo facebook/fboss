@@ -18,4 +18,10 @@ SaiSwitchTraits::Attributes::AttributeAclFieldListWrapper::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeEgressPoolAvaialableSizeIdWrapper::
+operator()() {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

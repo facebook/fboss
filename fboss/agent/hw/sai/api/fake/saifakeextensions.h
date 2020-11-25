@@ -16,6 +16,7 @@ typedef enum _sai_switch_extensions_attr_t {
   SAI_SWITCH_ATTR_EXT_FAKE_LED = SAI_SWITCH_ATTR_END,
   SAI_SWITCH_ATTR_EXT_FAKE_LED_RESET,
   SAI_SWITCH_ATTR_EXT_FAKE_ACL_FIELD_LIST,
+  SAI_SWITCH_ATTR_DEFAULT_EGRESS_BUFFER_POOL_SHARED_SIZE,
 } sai_switch_extensions_attr_t;
 
 typedef enum _sai_tam_event_extensions_attr_t {

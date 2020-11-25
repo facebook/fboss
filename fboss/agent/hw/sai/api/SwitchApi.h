@@ -215,6 +215,12 @@ struct SaiSwitchTraits {
     using AclFieldList = SaiExtensionAttribute<
         std::vector<sai_int32_t>,
         AttributeAclFieldListWrapper>;
+    struct AttributeEgressPoolAvaialableSizeIdWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using EgressPoolAvaialableSize = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeEgressPoolAvaialableSizeIdWrapper>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -290,6 +296,7 @@ SAI_ATTRIBUTE_NAME(Switch, IngressAcl)
 SAI_ATTRIBUTE_NAME(Switch, AclFieldList)
 SAI_ATTRIBUTE_NAME(Switch, TamObject)
 SAI_ATTRIBUTE_NAME(Switch, UseEcnThresholds)
+SAI_ATTRIBUTE_NAME(Switch, EgressPoolAvaialableSize)
 
 class SwitchApi : public SaiApi<SwitchApi> {
  public:

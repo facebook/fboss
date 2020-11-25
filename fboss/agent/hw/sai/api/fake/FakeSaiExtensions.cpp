@@ -51,4 +51,9 @@ SaiSwitchTraits::Attributes::AttributeAclFieldListWrapper::operator()() {
   return SAI_SWITCH_ATTR_EXT_FAKE_ACL_FIELD_LIST;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeEgressPoolAvaialableSizeIdWrapper::
+operator()() {
+  return SAI_SWITCH_ATTR_DEFAULT_EGRESS_BUFFER_POOL_SHARED_SIZE;
+}
 } // namespace facebook::fboss
