@@ -36,7 +36,16 @@ SaiWredTraits::CreateAttributes SaiWredManager::profileCreateAttrs(
   using Attributes = SaiWredTraits::Attributes;
   std::get<Attributes::GreenEnable>(attrs) = false;
   std::get<Attributes::EcnMarkMode>(attrs) = SAI_ECN_MARK_MODE_NONE;
-
+  auto& greenMin =
+      std::get<std::optional<Attributes::GreenMinThreshold>>(attrs);
+  auto& greenMax =
+      std::get<std::optional<Attributes::GreenMaxThreshold>>(attrs);
+  auto& ecnGreenMin =
+      std::get<std::optional<Attributes::EcnGreenMinThreshold>>(attrs);
+  auto& ecnGreenMax =
+      std::get<std::optional<Attributes::EcnGreenMaxThreshold>>(attrs);
+  std::tie(greenMin, greenMax, ecnGreenMin, ecnGreenMax) =
+      std::make_tuple(0, 0, 0, 0);
   for (const auto& [type, aqm] : queue.getAqms()) {
     auto thresholds = (*aqm.detection_ref()).get_linear();
     auto [minLen, maxLen] = std::make_pair(
@@ -44,15 +53,13 @@ SaiWredTraits::CreateAttributes SaiWredManager::profileCreateAttrs(
     switch (type) {
       case cfg::QueueCongestionBehavior::EARLY_DROP:
         std::get<Attributes::GreenEnable>(attrs) = true;
-        std::get<std::optional<Attributes::GreenMinThreshold>>(attrs) = minLen;
-        std::get<std::optional<Attributes::GreenMaxThreshold>>(attrs) = maxLen;
+        greenMin = minLen;
+        greenMax = maxLen;
         break;
       case cfg::QueueCongestionBehavior::ECN:
         std::get<Attributes::EcnMarkMode>(attrs) = SAI_ECN_MARK_MODE_GREEN;
-        std::get<std::optional<Attributes::EcnGreenMinThreshold>>(attrs) =
-            minLen;
-        std::get<std::optional<Attributes::EcnGreenMaxThreshold>>(attrs) =
-            maxLen;
+        ecnGreenMin = minLen;
+        ecnGreenMax = maxLen;
         break;
     }
   }
