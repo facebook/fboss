@@ -31,6 +31,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SFLOW_SAMPLING:
     case HwAsic::Feature::PTP_TC:
     case HwAsic::Feature::PENDING_L2_ENTRY:
+    case HwAsic::Feature::SAI_ECN_WRED:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
@@ -44,7 +45,6 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
     case HwAsic::Feature::HSDK:
     case HwAsic::Feature::L3_EGRESS_MODE_AUTO_ENABLED:
-    case HwAsic::Feature::SAI_ECN_WRED:
     case HwAsic::Feature::PKTIO:
     case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL: // CS00011272352
     case HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER:
