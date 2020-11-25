@@ -227,8 +227,6 @@ class SaiSwitch : public HwSwitch {
       const std::lock_guard<std::mutex>& lock,
       std::vector<FdbEventNotificationData> data);
 
-  BootType getBootTypeLocked(const std::lock_guard<std::mutex>& lock) const;
-
   const SaiManagerTable* managerTableLocked(
       const std::lock_guard<std::mutex>& lock) const;
   SaiManagerTable* managerTableLocked(const std::lock_guard<std::mutex>& lock);
@@ -349,7 +347,7 @@ class SaiSwitch : public HwSwitch {
       const FdbEventNotificationData& fdbEvent) const;
 
   std::unique_ptr<SaiManagerTable> managerTable_;
-  BootType bootType_{BootType::UNINITIALIZED};
+  std::atomic<BootType> bootType_{BootType::UNINITIALIZED};
   SaiPlatform* platform_;
   Callback* callback_{nullptr};
 

@@ -785,8 +785,7 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
 }
 
 BootType SaiSwitch::getBootType() const {
-  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  return getBootTypeLocked(lock);
+  return bootType_;
 }
 
 const SaiManagerTable* SaiSwitch::managerTable() const {
@@ -1215,11 +1214,6 @@ cfg::PortSpeed SaiSwitch::getPortMaxSpeedLocked(
     PortID port) const {
   auto* managerTable = managerTableLocked(lock);
   return managerTable->portManager().getMaxSpeed(port);
-}
-
-BootType SaiSwitch::getBootTypeLocked(
-    const std::lock_guard<std::mutex>& /* lock */) const {
-  return bootType_;
 }
 
 const SaiManagerTable* SaiSwitch::managerTableLocked(

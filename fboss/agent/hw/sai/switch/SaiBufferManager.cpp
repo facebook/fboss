@@ -12,8 +12,11 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/hw/sai/api/SaiApiTable.h"
+#include "fboss/agent/hw/sai/api/SwitchApi.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
@@ -52,6 +55,41 @@ int scalingFactorToBufferDynThresh(cfg::MMUScalingFactor scalingFactor) {
   CHECK(0) << "Should never get here";
   return -1;
 }
+
+void assertMaxBufferPoolSize(const SaiPlatform* platform) {
+  auto saiSwitch = static_cast<SaiSwitch*>(platform->getHwSwitch());
+  if (saiSwitch->getBootType() != BootType::COLD_BOOT) {
+    return;
+  }
+  auto asic = platform->getAsic();
+  if (asic->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TAJO) {
+    return;
+  }
+  const auto switchId = saiSwitch->getSwitchId();
+  auto& switchApi = SaiApiTable::getInstance()->switchApi();
+  auto availableBuffer = switchApi.getAttribute(
+      switchId, SaiSwitchTraits::Attributes::EgressPoolAvaialableSize{});
+  auto maxEgressPoolSize = SaiBufferManager::getMaxEgressPoolBytes(asic);
+  switch (asic->getAsicType()) {
+    case HwAsic::AsicType::ASIC_TYPE_TAJO:
+      XLOG(FATAL) << " Not supported";
+      break;
+    case HwAsic::AsicType::ASIC_TYPE_FAKE:
+    case HwAsic::AsicType::ASIC_TYPE_MOCK:
+      break;
+    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK:
+      // Available buffer is per XPE
+      CHECK_EQ(maxEgressPoolSize, availableBuffer * 4);
+      break;
+    case HwAsic::AsicType::ASIC_TYPE_TRIDENT2:
+      CHECK_EQ(maxEgressPoolSize, availableBuffer);
+      break;
+    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
+    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
+      XLOG(FATAL) << " TODO, Handle buffer pools for ASIC ";
+  }
+}
+
 } // namespace
 SaiBufferManager::SaiBufferManager(
     SaiManagerTable* managerTable,
@@ -90,6 +128,7 @@ void SaiBufferManager::setupEgressBufferPool() {
   if (egressBufferPoolHandle_) {
     return;
   }
+  assertMaxBufferPoolSize(platform_);
   egressBufferPoolHandle_ = std::make_unique<SaiBufferPoolHandle>();
   auto& store = SaiStore::getInstance()->get<SaiBufferPoolTraits>();
   SaiBufferPoolTraits::CreateAttributes c{
