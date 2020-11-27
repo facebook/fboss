@@ -1,6 +1,10 @@
 #pragma once
 
 extern "C" {
+#if (!defined(BCM_VER_MAJOR))
+#define BCM_WARM_BOOT_SUPPORT
+#endif
+
 #include <bcm/cosq.h>
 #include <bcm/error.h>
 #include <bcm/init.h>

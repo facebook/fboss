@@ -25,6 +25,12 @@
 
 #include "fboss/agent/SysError.h"
 
+extern "C" {
+#if (!defined(BCM_VER_MAJOR))
+#define BCM_WARM_BOOT_SUPPORT
+#endif
+}
+
 DEFINE_string(
     cint_file,
     "/var/facebook/logs/fboss/bcm_cinter.log",

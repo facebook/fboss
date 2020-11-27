@@ -159,3 +159,18 @@ target_link_libraries(bcm_link_state_toggler
 set_target_properties(bcm_mpls_utils PROPERTIES COMPILE_FLAGS
   "-DINCLUDE_L3 -DBCM_ESW_SUPPORT"
 )
+
+add_library(bcm_cinter
+  fboss/agent/hw/bcm/BcmCinter.cpp
+)
+
+target_link_libraries(bcm_cinter
+  async_logger
+  fboss_error
+  Folly::folly
+  ${OPENNSA}
+)
+
+set_target_properties(bcm_cinter PROPERTIES COMPILE_FLAGS
+  "-DINCLUDE_L3 -DBCM_ESW_SUPPORT"
+)
