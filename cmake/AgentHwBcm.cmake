@@ -174,3 +174,11 @@ target_link_libraries(bcm_cinter
 set_target_properties(bcm_cinter PROPERTIES COMPILE_FLAGS
   "-DINCLUDE_L3 -DBCM_ESW_SUPPORT"
 )
+
+add_library(sdk_wrap_settings
+  fboss/agent/hw/bcm/SdkWrapSettings.cpp
+)
+
+target_link_libraries(sdk_wrap_settings
+  Folly::folly
+)
