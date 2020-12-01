@@ -36,6 +36,8 @@ extern "C" {
 
 namespace facebook::fboss {
 
+enum class HwWriteBehavior : int { FAIL, SKIP, WRITE };
+
 template <typename ApiT>
 class SaiApi {
  public:
@@ -55,8 +57,11 @@ class SaiApi {
   // is an entry struct, which must take an AdapterKey but don't return one.
   // The distinction is drawn with traits from Traits.h and SFINAE
 
-  void setFailHwWrites(bool fail) {
-    failHwWrites_ = fail;
+  void setHwWriteBehavior(HwWriteBehavior behavior) {
+    hwWriteBehavior_ = behavior;
+  }
+  HwWriteBehavior getHwWriteBehavior() const {
+    return hwWriteBehavior_;
   }
   // sai_object_id_t case
   template <typename SaiObjectTraits>
@@ -71,7 +76,7 @@ class SaiApi {
         "invalid traits for the api");
     typename SaiObjectTraits::AdapterKey key;
     std::vector<sai_attribute_t> saiAttributeTs = saiAttrs(createAttributes);
-    if (UNLIKELY(failHwWrites_)) {
+    if (UNLIKELY(failHwWrites())) {
       XLOGF(
           FATAL,
           "Attempting create SAI obj with {}, while hw writes are blocked",
@@ -103,7 +108,7 @@ class SaiApi {
         std::is_same_v<typename SaiObjectTraits::SaiApiT, ApiT>,
         "invalid traits for the api");
     std::vector<sai_attribute_t> saiAttributeTs = saiAttrs(createAttributes);
-    if (UNLIKELY(failHwWrites_)) {
+    if (UNLIKELY(failHwWrites())) {
       XLOGF(
           FATAL,
           "Attempting create SAI obj with {}, while hw writes are blocked",
@@ -127,7 +132,7 @@ class SaiApi {
   template <typename AdapterKeyT>
   void remove(const AdapterKeyT& key) {
     std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
-    if (UNLIKELY(failHwWrites_)) {
+    if (UNLIKELY(failHwWrites())) {
       XLOGF(
           FATAL,
           "Attempting to remove SAI obj {} while hw writes are blocked",
@@ -272,7 +277,7 @@ class SaiApi {
 
   template <typename AdapterKeyT, typename AttrT>
   void setAttributeUnlocked(const AdapterKeyT& key, const AttrT& attr) {
-    if (UNLIKELY(failHwWrites_)) {
+    if (UNLIKELY(failHwWrites())) {
       XLOGF(
           FATAL,
           "Attempting set SAI attribute of {} to {}, while hw writes are blocked",
@@ -371,6 +376,9 @@ class SaiApi {
   }
 
  private:
+  bool failHwWrites() const {
+    return hwWriteBehavior_ == HwWriteBehavior::FAIL;
+  }
   template <typename SaiObjectTraits>
   std::vector<uint64_t> getStatsImpl(
       const typename SaiObjectTraits::AdapterKey& key,
@@ -398,7 +406,7 @@ class SaiApi {
       const sai_stat_id_t* counterIds,
       size_t numCounters) const {
     if (numCounters) {
-      if (UNLIKELY(failHwWrites_)) {
+      if (UNLIKELY(failHwWrites())) {
         XLOGF(
             FATAL,
             "Attempting clear stats {} , while hw writes are blocked",
@@ -418,7 +426,7 @@ class SaiApi {
   const ApiT& impl() const {
     return static_cast<const ApiT&>(*this);
   }
-  bool failHwWrites_{false};
+  HwWriteBehavior hwWriteBehavior_{HwWriteBehavior::WRITE};
 };
 
 } // namespace facebook::fboss

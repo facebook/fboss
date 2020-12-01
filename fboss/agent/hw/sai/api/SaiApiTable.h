@@ -162,18 +162,12 @@ class SaiApiTable {
   bool apisQueried_{false};
 };
 
-struct FailHwWritesRAII {
-  explicit FailHwWritesRAII(bool fail) {
-    setFail(fail);
-  }
-  ~FailHwWritesRAII() {
-    setFail(false);
-  }
+class FailHwWritesRAII {
+ public:
+  explicit FailHwWritesRAII(bool fail);
+  ~FailHwWritesRAII();
 
  private:
-  void setFail(bool fail) const {
-    const auto& apis = SaiApiTable::getInstance()->allApis();
-    tupleForEach([fail](auto& api) { api->setFailHwWrites(fail); }, apis);
-  }
+  std::map<sai_api_t, HwWriteBehavior> previousApiBehavior_;
 };
 } // namespace facebook::fboss

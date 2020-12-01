@@ -233,4 +233,31 @@ void SaiApiTable::enableLogging(const std::string& logLevelStr) const {
     saiLogError(rv, (sai_api_t)api, "Failed to set debug log for api");
   }
 }
+
+FailHwWritesRAII::FailHwWritesRAII(bool fail) {
+  if (!fail) {
+    return;
+  }
+  const auto& apis = SaiApiTable::getInstance()->allApis();
+  tupleForEach(
+      [this](auto& api) {
+        previousApiBehavior_.emplace(
+            std::make_pair(api->apiType(), api->getHwWriteBehavior()));
+        api->setHwWriteBehavior(HwWriteBehavior::FAIL);
+      },
+      apis);
+}
+
+FailHwWritesRAII::~FailHwWritesRAII() {
+  if (previousApiBehavior_.empty()) {
+    return;
+  }
+  const auto& apis = SaiApiTable::getInstance()->allApis();
+  tupleForEach(
+      [this](auto& api) {
+        api->setHwWriteBehavior(
+            previousApiBehavior_.find(api->apiType())->second);
+      },
+      apis);
+}
 } // namespace facebook::fboss
