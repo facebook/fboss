@@ -86,7 +86,7 @@ class SaiApi {
     }
     saiApiCheckError(
         status,
-        ApiT::ApiType,
+        apiType(),
         fmt::format(
             "Failed to create sai entity {}: {}", key, createAttributes));
     XLOGF(DBG5, "created SAI object: {}: {}", key, createAttributes);
@@ -118,7 +118,7 @@ class SaiApi {
     }
     saiApiCheckError(
         status,
-        ApiT::ApiType,
+        apiType(),
         fmt::format(
             "Failed to create sai entity: {}: {}", entry, createAttributes));
     XLOGF(DBG5, "created SAI object: {}: {}", entry, createAttributes);
@@ -140,7 +140,7 @@ class SaiApi {
     }
     saiApiCheckError(
         status,
-        ApiT::ApiType,
+        apiType(),
         fmt::format("Failed to remove sai object : {}", key));
     XLOGF(DBG5, "removed SAI object: {}", key);
   }
@@ -189,12 +189,12 @@ class SaiApi {
     if constexpr (!std::remove_reference_t<AttrT>::HasDefaultGetter) {
       saiApiCheckError(
           status,
-          ApiT::ApiType,
+          apiType(),
           fmt::format("Failed to get sai attribute: {}: {}", key, attr));
     } else if (status != SAI_STATUS_SUCCESS) {
       throw SaiApiError(
           status,
-          ApiT::ApiType,
+          apiType(),
           fmt::format("Failed to get sai attribute: {}: {}", key, attr));
     }
     XLOGF(DBG5, "got SAI attribute: {}: {}", key, attr);
@@ -297,7 +297,7 @@ class SaiApi {
     }
     saiApiCheckError(
         status,
-        ApiT::ApiType,
+        apiType(),
         fmt::format("Failed to set attribute {} to {}", key, attr));
     XLOGF(DBG5, "set SAI attribute of {} to {}", key, attr);
   }
@@ -366,6 +366,9 @@ class SaiApi {
         SaiObjectTraits::CounterIdsToReadAndClear.data(),
         SaiObjectTraits::CounterIdsToReadAndClear.size());
   }
+  sai_api_t apiType() const {
+    return ApiT::ApiType;
+  }
 
  private:
   template <typename SaiObjectTraits>
@@ -384,8 +387,8 @@ class SaiApi {
             key, counters.size(), counterIds, mode, counters.data());
       }
       saiApiCheckError(
-          status, ApiT::ApiType, fmt::format("Failed to get stats {}", key));
-      saiApiCheckError(status, ApiT::ApiType, "Failed to get stats");
+          status, apiType(), fmt::format("Failed to get stats {}", key));
+      saiApiCheckError(status, apiType(), "Failed to get stats");
     }
     return counters;
   }
@@ -399,14 +402,14 @@ class SaiApi {
         XLOGF(
             FATAL,
             "Attempting clear stats {} , while hw writes are blocked",
-            saiApiTypeToString(ApiT::ApiType));
+            saiApiTypeToString(apiType()));
       }
       sai_status_t status;
       {
         TIME_CALL
         status = impl()._clearStats(key, numCounters, counterIds);
       }
-      saiApiCheckError(status, ApiT::ApiType, "Failed to clear stats");
+      saiApiCheckError(status, apiType(), "Failed to clear stats");
     }
   }
   ApiT& impl() {
