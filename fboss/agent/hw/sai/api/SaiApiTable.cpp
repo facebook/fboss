@@ -234,24 +234,18 @@ void SaiApiTable::enableLogging(const std::string& logLevelStr) const {
   }
 }
 
-FailHwWritesRAII::FailHwWritesRAII(bool fail) {
-  if (!fail) {
-    return;
-  }
+HwWriteBehvaiorRAII::HwWriteBehvaiorRAII(HwWriteBehavior behavior) {
   const auto& apis = SaiApiTable::getInstance()->allApis();
   tupleForEach(
-      [this](auto& api) {
+      [this, behavior](auto& api) {
         previousApiBehavior_.emplace(
             std::make_pair(api->apiType(), api->getHwWriteBehavior()));
-        api->setHwWriteBehavior(HwWriteBehavior::FAIL);
+        api->setHwWriteBehavior(behavior);
       },
       apis);
 }
 
-FailHwWritesRAII::~FailHwWritesRAII() {
-  if (previousApiBehavior_.empty()) {
-    return;
-  }
+HwWriteBehvaiorRAII::~HwWriteBehvaiorRAII() {
   const auto& apis = SaiApiTable::getInstance()->allApis();
   tupleForEach(
       [this](auto& api) {

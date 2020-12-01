@@ -194,29 +194,30 @@ HwInitResult SaiSwitch::init(
      *       corresponding Acl Table group member.
      *     - statechanged() would continue to carry AclEntry delta processing.
      */
-    failHwCallsOnWarmboot = failHwCallsOnWarmboot &&
-        platform_->getAsic()->isSupported(
-            HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT);
-    {
-      FailHwWritesRAII f{
-          bootType_ == BootType::WARM_BOOT ? failHwCallsOnWarmboot : false};
-      managerTable_->aclTableGroupManager().addAclTableGroup(
-          SAI_ACL_STAGE_INGRESS);
-      managerTable_->aclTableManager().addAclTable(kAclTable1);
+  }
+  auto behavior{HwWriteBehavior::WRITE};
+  if (bootType_ == BootType::WARM_BOOT && failHwCallsOnWarmboot &&
+      platform_->getAsic()->isSupported(
+          HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT)) {
+    behavior = HwWriteBehavior::FAIL;
+  }
 
-      if (getPlatform()->getAsic()->isSupported(
-              HwAsic::Feature::DEBUG_COUNTER)) {
-        managerTable_->debugCounterManager().setupDebugCounters();
-      }
-      if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL)) {
-        managerTable_->bufferManager().setupEgressBufferPool();
-      }
+  {
+    HwWriteBehvaiorRAII f{behavior};
+    managerTable_->aclTableGroupManager().addAclTableGroup(
+        SAI_ACL_STAGE_INGRESS);
+    managerTable_->aclTableManager().addAclTable(kAclTable1);
+
+    if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::DEBUG_COUNTER)) {
+      managerTable_->debugCounterManager().setupDebugCounters();
+    }
+    if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL)) {
+      managerTable_->bufferManager().setupEgressBufferPool();
     }
   }
 
   {
-    FailHwWritesRAII f{bootType_ == BootType::WARM_BOOT ? failHwCallsOnWarmboot
-                                                        : false};
+    HwWriteBehvaiorRAII f{behavior};
     stateChanged(StateDelta(std::make_shared<SwitchState>(), ret.switchState));
     if (bootType_ == BootType::WARM_BOOT) {
       SaiStore::getInstance()->printWarmbootHandles();

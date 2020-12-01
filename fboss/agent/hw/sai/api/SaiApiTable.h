@@ -162,12 +162,13 @@ class SaiApiTable {
   bool apisQueried_{false};
 };
 
-class FailHwWritesRAII {
+class HwWriteBehvaiorRAII {
  public:
-  explicit FailHwWritesRAII(bool fail);
-  ~FailHwWritesRAII();
+  explicit HwWriteBehvaiorRAII(HwWriteBehavior behavior);
+  ~HwWriteBehvaiorRAII();
 
  private:
   std::map<sai_api_t, HwWriteBehavior> previousApiBehavior_;
 };
+
 } // namespace facebook::fboss
