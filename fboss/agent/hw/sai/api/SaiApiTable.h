@@ -46,7 +46,6 @@ class SaiApiTable {
   // Static function for getting the SaiApiTable folly::Singleton
   static std::shared_ptr<SaiApiTable> getInstance();
 
-  void setFailHwWrites(bool fail);
   /*
    * This constructs each individual SAI API object which queries the Adapter
    * for the api implementation and thus renders them ready for use by the
@@ -131,6 +130,9 @@ class SaiApiTable {
   }
 
   void enableLogging(const std::string& logLevelStr) const;
+  const auto& allApis() const {
+    return apis_;
+  }
 
  private:
   std::tuple<
@@ -162,10 +164,16 @@ class SaiApiTable {
 
 struct FailHwWritesRAII {
   explicit FailHwWritesRAII(bool fail) {
-    SaiApiTable::getInstance()->setFailHwWrites(fail);
+    setFail(fail);
   }
   ~FailHwWritesRAII() {
-    SaiApiTable::getInstance()->setFailHwWrites(false);
+    setFail(false);
+  }
+
+ private:
+  void setFail(bool fail) const {
+    const auto& apis = SaiApiTable::getInstance()->allApis();
+    tupleForEach([fail](auto& api) { api->setFailHwWrites(fail); }, apis);
   }
 };
 } // namespace facebook::fboss
