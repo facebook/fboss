@@ -76,7 +76,11 @@ class SaiApi {
         "invalid traits for the api");
     typename SaiObjectTraits::AdapterKey key;
     std::vector<sai_attribute_t> saiAttributeTs = saiAttrs(createAttributes);
-    if (UNLIKELY(failHwWrites())) {
+    if (UNLIKELY(failHwWrites() || skipHwWrites())) {
+      // Fail hard on both skip and fail Hw write settings. For FAIL, its
+      // obvious why we fail hard. For SKIP, we fail since the expectation here
+      // is to return a key from adapter, which we can't manufacture out of thin
+      // air
       XLOGF(
           FATAL,
           "Attempting create SAI obj with {}, while hw writes are blocked",
@@ -107,6 +111,9 @@ class SaiApi {
     static_assert(
         std::is_same_v<typename SaiObjectTraits::SaiApiT, ApiT>,
         "invalid traits for the api");
+    if (UNLIKELY(skipHwWrites())) {
+      return;
+    }
     std::vector<sai_attribute_t> saiAttributeTs = saiAttrs(createAttributes);
     if (UNLIKELY(failHwWrites())) {
       XLOGF(
@@ -131,13 +138,16 @@ class SaiApi {
 
   template <typename AdapterKeyT>
   void remove(const AdapterKeyT& key) {
-    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
+    if (UNLIKELY(skipHwWrites())) {
+      return;
+    }
     if (UNLIKELY(failHwWrites())) {
       XLOGF(
           FATAL,
           "Attempting to remove SAI obj {} while hw writes are blocked",
           key);
     }
+    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
     sai_status_t status;
     {
       TIME_CALL;
@@ -277,6 +287,9 @@ class SaiApi {
 
   template <typename AdapterKeyT, typename AttrT>
   void setAttributeUnlocked(const AdapterKeyT& key, const AttrT& attr) {
+    if (UNLIKELY(skipHwWrites())) {
+      return;
+    }
     if (UNLIKELY(failHwWrites())) {
       XLOGF(
           FATAL,
@@ -379,6 +392,9 @@ class SaiApi {
   bool failHwWrites() const {
     return hwWriteBehavior_ == HwWriteBehavior::FAIL;
   }
+  bool skipHwWrites() const {
+    return hwWriteBehavior_ == HwWriteBehavior::SKIP;
+  }
   template <typename SaiObjectTraits>
   std::vector<uint64_t> getStatsImpl(
       const typename SaiObjectTraits::AdapterKey& key,
@@ -405,6 +421,9 @@ class SaiApi {
       const typename SaiObjectTraits::AdapterKey& key,
       const sai_stat_id_t* counterIds,
       size_t numCounters) const {
+    if (UNLIKELY(skipHwWrites())) {
+      return;
+    }
     if (numCounters) {
       if (UNLIKELY(failHwWrites())) {
         XLOGF(
