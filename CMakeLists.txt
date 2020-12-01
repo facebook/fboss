@@ -323,10 +323,7 @@ if (NOT SAI_ONLY)
       fboss/agent/platforms/wedge/oss/WedgePlatform.cpp
   )
 
-  add_executable(qsfp_service
-      fboss/qsfp_service/oss/QsfpServer.cpp
-      fboss/qsfp_service/Main.cpp
-      fboss/qsfp_service/QsfpServiceHandler.cpp
+  add_library(qsfp_module STATIC
       fboss/qsfp_service/module/QsfpModule.cpp
       fboss/qsfp_service/module/oss/QsfpModule.cpp
       fboss/qsfp_service/module/sff/SffFieldInfo.cpp
@@ -334,6 +331,12 @@ if (NOT SAI_ONLY)
       fboss/qsfp_service/module/oss/SffModule.cpp
       fboss/qsfp_service/module/cmis/CmisFieldInfo.cpp
       fboss/qsfp_service/module/cmis/CmisModule.cpp
+  )
+
+  add_executable(qsfp_service
+      fboss/qsfp_service/oss/QsfpServer.cpp
+      fboss/qsfp_service/Main.cpp
+      fboss/qsfp_service/QsfpServiceHandler.cpp
       fboss/qsfp_service/platforms/wedge/WedgeManager.cpp
       fboss/qsfp_service/platforms/wedge/WedgeQsfp.cpp
       fboss/qsfp_service/platforms/wedge/Wedge100Manager.cpp
@@ -709,9 +712,14 @@ if (NOT SAI_ONLY)
     "-DINCLUDE_L3 -DBCM_ESW_SUPPORT"
   )
 
+  target_link_libraries(qsfp_module fboss_i2c_lib)
+
   target_link_libraries(switch_asics_old fboss_agent)
   target_link_libraries(wedge_agent fboss_agent)
-  target_link_libraries(qsfp_service fboss_agent)
+  target_link_libraries(qsfp_service
+      qsfp_module
+      fboss_agent
+  )
 
   add_executable(cp2112_util
       fboss/util/cp2112_util.cpp
@@ -722,7 +730,10 @@ if (NOT SAI_ONLY)
       fboss/util/wedge_qsfp_util.cpp
       fboss/util/oss/wedge_qsfp_util.cpp
   )
-  target_link_libraries(wedge_qsfp_util fboss_agent)
+  target_link_libraries(wedge_qsfp_util
+      qsfp_lib
+      qsfp_module
+  )
 
   # Don't include fboss/agent/test/ArpBenchmark.cpp
   # It depends on the Sim implementation and needs its own target

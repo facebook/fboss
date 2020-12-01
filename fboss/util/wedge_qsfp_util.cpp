@@ -5,7 +5,13 @@
 #include "fboss/lib/usb/Wedge100I2CBus.h"
 #include "fboss/lib/usb/GalaxyI2CBus.h"
 
+#include "fboss/qsfp_service/module/QsfpModule.h"
+#include "fboss/qsfp_service/module/cmis/CmisModule.h"
+#include "fboss/qsfp_service/module/sff/SffModule.h"
+#include "fboss/qsfp_service/platforms/wedge/WedgeQsfp.h"
+
 #include "fboss/qsfp_service/lib/QsfpClient.h"
+#include "fboss/qsfp_service/module/cmis/CmisFieldInfo.h"
 
 #include <folly/Conv.h>
 #include <folly/Exception.h>
@@ -25,6 +31,40 @@
 #include <thread>
 #include <vector>
 #include <utility>
+
+namespace {
+const std::map<uint8_t, std::string> kCmisAppNameMapping = {
+    {0x10, "100G_CWDM4"},
+    {0x18, "200G_FR4"},
+};
+
+const std::map<uint8_t, std::string> kCmisModuleStateMapping = {
+    {0b001, "LowPower"},
+    {0b010, "PoweringUp"},
+    {0b011, "Ready"},
+    {0b100, "PoweringDown"},
+    {0b101, "Fault"},
+};
+
+const std::map<uint8_t, std::string> kCmisLaneStateMapping = {
+    {0b001, "DEACT"},
+    {0b010, "INITL"},
+    {0b011, "DEINT"},
+    {0b100, "ACTIV"},
+    {0b101, "TX_ON"},
+    {0b110, "TXOFF"},
+    {0b111, "DPINT"},
+};
+
+std::string getStateNameString(uint8_t stateCode, const std::map<uint8_t, std::string>& nameMap) {
+  std::string stateName = "UNKNOWN";
+  if (auto iter = nameMap.find(stateCode);
+        iter != nameMap.end()) {
+    stateName = iter->second;
+  }
+  return stateName;
+}
+}
 
 using namespace facebook::fboss;
 using folly::MutableByteRange;
@@ -283,7 +323,7 @@ void doWriteReg(TransceiverI2CApi* bus, unsigned int port, int offset, uint8_t v
   printf("QSFP %d: successfully write 0x%02x to %d.\n", port, value, offset);
 }
 
-std::map<int32_t, RawDOMData> fetchDataFromQsfpService(
+std::map<int32_t, DOMDataUnion> fetchDataFromQsfpService(
     const std::vector<int32_t>& ports, folly::EventBase& evb) {
   auto client = getQsfpClient(evb);
 
@@ -298,91 +338,55 @@ std::map<int32_t, RawDOMData> fetchDataFromQsfpService(
     }
   }
 
-  std::map<int32_t, RawDOMData> rawDOMDataMap;
+  std::map<int32_t, DOMDataUnion> domDataUnionMap;
 
   if(!presentPorts.empty()) {
-    client->sync_getTransceiverRawDOMData(rawDOMDataMap, presentPorts);
+    client->sync_getTransceiverDOMDataUnion(domDataUnionMap, presentPorts);
   }
 
-  return rawDOMDataMap;
+  return domDataUnionMap;
 }
 
-RawDOMData fetchDataFromLocalI2CBus(TransceiverI2CApi* bus, unsigned int port) {
-  RawDOMData rawDOMData;
-  *rawDOMData.lower_ref() = IOBuf(IOBuf::CREATE, 128);
-  *rawDOMData.page0_ref() = IOBuf(IOBuf::CREATE, 128);
+std::map<int32_t, TransceiverInfo> fetchInfoFromQsfpService(
+    const std::vector<int32_t>& ports) {
+  folly::EventBase evb;
+  auto qsfpServiceClient = QsfpClient::createClient(&evb);
+  auto client = std::move(qsfpServiceClient).getVia(&evb);
 
-  // Read the lower 128 bytes.
-  bus->moduleRead(
-      port,
-      TransceiverI2CApi::ADDR_QSFP,
-      0,
-      128,
-      rawDOMData.lower_ref()->writableData());
+  std::map<int32_t, TransceiverInfo> qsfpInfoMap;
 
-  uint8_t flatMem = rawDOMData.lower_ref()->data()[2] & (1 << 2);
+  client->sync_getTransceiverInfo(qsfpInfoMap, ports);
 
-  // Read page 0 from the upper 128 bytes.
-  // First see if we need to select page 0.
-  if (!flatMem) {
-    uint8_t page0 = 0;
-    if (rawDOMData.lower_ref()->data()[127] != page0) {
-      bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP,
-                       127, 1, &page0);
-      usleep(20000); // Delay required by Intel Transceiver.
+  return qsfpInfoMap;
+}
+
+DOMDataUnion fetchDataFromLocalI2CBus(TransceiverI2CApi* bus, unsigned int port) {
+  // port is 1 based and WedgeQsfp is 0 based.
+  auto qsfpImpl = std::make_unique<WedgeQsfp>(port - 1, bus);
+  auto mgmtInterface = qsfpImpl->getTransceiverManagementInterface();
+  if (mgmtInterface == TransceiverManagementInterface::CMIS)
+    {
+      auto cmisModule =
+          std::make_unique<CmisModule>(
+              nullptr,
+              std::move(qsfpImpl),
+              1);
+      cmisModule->refresh();
+      return cmisModule->getDOMDataUnion();
+    } else if (mgmtInterface == TransceiverManagementInterface::SFF)
+    {
+      auto sffModule =
+          std::make_unique<SffModule>(
+              nullptr,
+              std::move(qsfpImpl),
+              1);
+      sffModule->refresh();
+      return sffModule->getDOMDataUnion();
+    } else {
+      throw std::runtime_error(folly::sformat(
+          "Unknown transceiver management interface: {}.",
+          static_cast<int>(mgmtInterface)));
     }
-  }
-  bus->moduleRead(
-      port,
-      TransceiverI2CApi::ADDR_QSFP,
-      128,
-      128,
-      rawDOMData.page0_ref()->writableData());
-
-  // Make sure page3 exist
-  if (!flatMem) {
-    rawDOMData.page3_ref() = IOBuf(IOBuf::CREATE, 128);
-    uint8_t page3 = 0x3;
-    bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &page3);
-    usleep(20000); // Delay required by Intel Transceiver.
-
-    // read page 3
-    bus->moduleRead(
-        port,
-        TransceiverI2CApi::ADDR_QSFP,
-        128,
-        128,
-        rawDOMData.page3_ref().value_unchecked().writableData());
-  }
-
-  if (getModuleType(bus, port) == TransceiverManagementInterface::CMIS) {
-
-    rawDOMData.page10_ref() = IOBuf(IOBuf::CREATE, 128);
-    rawDOMData.page11_ref() = IOBuf(IOBuf::CREATE, 128);
-
-    if (!flatMem) {
-      uint8_t page10 = 0x10;
-      bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &page10);
-      // read page 0x10
-      bus->moduleRead(
-        port,
-        TransceiverI2CApi::ADDR_QSFP,
-        128,
-        128,
-        rawDOMData.page10_ref().value_unchecked().writableData());
-
-      uint8_t page11 = 0x11;
-      bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &page11);
-      // read page 0x11
-      bus->moduleRead(
-        port,
-        TransceiverI2CApi::ADDR_QSFP,
-        128,
-        128,
-        rawDOMData.page11_ref().value_unchecked().writableData());
-    }
-  }
-  return rawDOMData;
 }
 
 void printPortSummary(TransceiverI2CApi*) {
@@ -437,7 +441,8 @@ void printChannelMonitor(unsigned int index,
                          unsigned int txBiasMSB,
                          unsigned int txBiasLSB,
                          unsigned int txPowerMSB,
-                         unsigned int txPowerLSB) {
+                         unsigned int txPowerLSB,
+                         std::optional<double> rxSNR = std::nullopt) {
   uint16_t rxValue = (buf[rxMSB] << 8) | buf[rxLSB];
   uint16_t txPowerValue = (buf[txPowerMSB] << 8) | buf[txPowerLSB];
   uint16_t txBiasValue = (buf[txBiasMSB] << 8) | buf[txBiasLSB];
@@ -451,140 +456,24 @@ void printChannelMonitor(unsigned int index,
   // TX bias ranges from 0mA to 131mA
   double txBias = (131.0 * txBiasValue) / 65535;
 
-  printf("    Channel %d:   %12fmW  %12fmW  %12fmA\n",
-         index, rxPower, txPower, txBias);
+  if (rxSNR) {
+    printf("    Channel %d:   %12fmW  %12fmW  %12fmA  %12f\n",
+           index, rxPower, txPower, txBias, rxSNR.value());
+  } else {
+    printf("    Channel %d:   %12fmW  %12fmW  %12fmA  %12s\n",
+           index, rxPower, txPower, txBias, "N/A");
+  }
 }
 
-void printCmisPortDetail(const RawDOMData& data, unsigned int port) {
-  auto dataLower = data.lower_ref()->data();
-  int i;
-  uint16_t data16;
-
-  printf("Port: %d\n", port);
-
-  // Page 0
-  std::array<std::string, 8> moduleStateStr = {
-    "RESRV", "LOPWR", "PWRUP", "READY", "PWRDN", "FAULT", "RESRV", "RESRV"
-  };
-  printf("\nModule state:            %s\n", moduleStateStr[(dataLower[3] >> 1) & 0x7].c_str());
-  printf("Firmware fault:          0x%x\n", (dataLower[8] >> 1) & 0x3);
-  printf("VCC warning:             0x%x\n", (dataLower[9] >> 6) & 0x3);
-  printf("VCC alarm:               0x%x\n", (dataLower[9] >> 4) & 0x3);
-  printf("Temperature warning:     0x%x\n", (dataLower[9] >> 2) & 0x3);
-  printf("Temperature alarm:       0x%x\n", (dataLower[9] >> 0) & 0x3);
-  printf("Low power:               0x%x\n", (dataLower[26] >> 6) & 0x1);
-  printf("Low power forced:        0x%x\n", (dataLower[26] >> 4) & 0x1);
-  printf("Num lanes Host side:     0x%x\n", (dataLower[88] >> 4) & 0xf);
-  printf("Num lanes Line side:     0x%x\n", (dataLower[88] >> 0) & 0xf);
-
-  // Page 0x10
-  if (!data.page10_ref()) {
-    return;
-  }
-  auto data10 = data.page10_ref()->data();
-  printf("\nPer Lane status: \n");
-  printf("Lanes             1        2        3        4        5        6        7        8\n");
-  printf("Datapath de-init  ");
-  for (i=0; i<8; i++) {
-    printf("%d        ", (data10[0]>>i)&1);
-  }
-  printf("\nTx disable        ");
-  for (i=0; i<8; i++) {
-    printf("%d        ", (data10[2]>>i)&1);
-  }
-  printf("\nTx squelch bmap   ");
-  for (i=0; i<8; i++) {
-    printf("%d        ", (data10[4]>>i)&1);
-  }
-  printf("\nRx Out disable    ");
-  for (i=0; i<8; i++) {
-    printf("%d        ", (data10[10]>>i)&1);
-  }
-  printf("\nRx Sqlch disable  ");
-  for (i=0; i<8; i++) {
-    printf("%d        ", (data10[11]>>i)&1);
-  }
-
-  // Page 0x11
-  if (!data.page11_ref()) {
-    return;
-  }
-  auto data11 = data.page11_ref()->data();
-  std::array<std::string, 16> hostLaneStateStr = {
-    "RESRV", "DEACT", "INITL", "DEINT", "ACTIV", "TX_ON", "TXOFF", "DPINT",
-    "RESRV", "RESRV", "RESRV", "RESRV", "RESRV", "RESRV", "RESRV", "RESRV"
-  };
-  printf("\nHost lane state   ");
-  for (i=0; i<4; i++) {
-    printf("%s    %s    ", hostLaneStateStr[data11[i] & 0xf].c_str(), hostLaneStateStr[(data11[i]>>4) & 0xf].c_str());
-  }
-  printf("\nTx fault          ");
-  for (i=0; i<8; i++) {
-    printf("%d        ", (data11[7]>>i)&1);
-  }
-  printf("\nTx LOS            ");
-  for (i=0; i<8; i++) {
-    printf("%d        ", (data11[8]>>i)&1);
-  }
-  printf("\nTx PWR alarm Hi   ");
-  for (i=0; i<8; i++) {
-    printf("%d        ", (data11[11]>>i)&1);
-  }
-  printf("\nTx PWR alarm Lo   ");
-  for (i=0; i<8; i++) {
-    printf("%d        ", (data11[12]>>i)&1);
-  }
-  printf("\nTx PWR warn Hi    ");
-  for (i=0; i<8; i++) {
-    printf("%d        ", (data11[13]>>i)&1);
-  }
-  printf("\nTx PWR warn Lo    ");
-  for (i=0; i<8; i++) {
-    printf("%d        ", (data11[14]>>i)&1);
-  }
-  printf("\nRx LOS            ");
-  for (i=0; i<8; i++) {
-    printf("%d        ", (data11[19]>>i)&1);
-  }
-  printf("\nRx LOL            ");
-  for (i=0; i<8; i++) {
-    printf("%d        ", (data11[20]>>i)&1);
-  }
-
-  printf("\nRx PWR alarm Hi   ");
-  for (i=0; i<8; i++) {
-    printf("%d        ", (data11[21]>>i)&1);
-  }
-  printf("\nRx PWR alarm Lo   ");
-  for (i=0; i<8; i++) {
-    printf("%d        ", (data11[22]>>i)&1);
-  }
-  printf("\nRx PWR warn Hi    ");
-  for (i=0; i<8; i++) {
-    printf("%d        ", (data11[23]>>i)&1);
-  }
-  printf("\nRx PWR warn Lo    ");
-  for (i=0; i<8; i++) {
-    printf("%d        ", (data11[24]>>i)&1);
-  }
-  printf("\nTX Power (mW)     ");
-  for (i=0; i<8; i++) {
-    printf("%.3f    ", (data16 = (data11[26+i*2]<<8 | data11[27+i*2]))*0.0001);
-  }
-  printf("\nRX Power (mW)     ");
-  for (i=0; i<8; i++) {
-    printf("%.3f    ", (data16 = (data11[58+i*2]<<8 | data11[59+i*2]))*0.0001);
-  }
-  printf("\n\n");
-}
-
-void printSffPortDetail(const RawDOMData& rawDOMData, unsigned int port) {
-  auto lowerBuf = rawDOMData.lower_ref()->data();
-  auto page0Buf = rawDOMData.page0_ref()->data();
+void printSffDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
+  Sff8636Data sffData = domDataUnion.get_sff8636();
+  auto lowerBuf = sffData.lower_ref()->data();
+  auto page0Buf = sffData.page0_ref()->data();
 
   printf("Port %d\n", port);
   printf("  ID: %#04x\n", lowerBuf[0]);
   printf("  Status: 0x%02x 0x%02x\n", lowerBuf[1], lowerBuf[2]);
+  printf("  Module State: 0x%02x\n", lowerBuf[3]);
 
   printf("  Interrupt Flags:\n");
   printf("    LOS: 0x%02x\n", lowerBuf[3]);
@@ -608,8 +497,8 @@ void printSffPortDetail(const RawDOMData& rawDOMData, unsigned int port) {
   uint16_t voltage = (lowerBuf[26] << 8) | lowerBuf[27];
   printf("  Supply Voltage: %f V\n", voltage / 10000.0);
 
-  printf("  Channel Data:  %12s    %12s    %12s\n",
-         "RX Power", "TX Power", "TX Bias");
+  printf("  Channel Data:  %12s    %12s    %12s    %12s\n",
+         "RX Power", "TX Power", "TX Bias", "Rx SNR");
   printChannelMonitor(1, lowerBuf, 34, 35, 42, 43, 50, 51);
   printChannelMonitor(2, lowerBuf, 36, 37, 44, 45, 52, 53);
   printChannelMonitor(3, lowerBuf, 38, 39, 46, 47, 54, 55);
@@ -706,11 +595,11 @@ void printSffPortDetail(const RawDOMData& rawDOMData, unsigned int port) {
   printf("  Date Code: %s\n", vendorDate.str().c_str());
 
   // print page3 values
-  if (!rawDOMData.page3_ref()) {
+  if (!sffData.page3_ref()) {
     return;
   }
 
-  auto page3Buf = rawDOMData.page3_ref().value_unchecked().data();
+  auto page3Buf = sffData.page3_ref().value_unchecked().data();
 
   printThresholds("Temp", &page3Buf[0], [](const uint16_t u16_temp) {
     double data;
@@ -740,15 +629,152 @@ void printSffPortDetail(const RawDOMData& rawDOMData, unsigned int port) {
   });
 }
 
-void printPortDetail(const RawDOMData& rawDOMData, unsigned int port) {
-  auto lowerBuf = rawDOMData.lower_ref()->data();
-  uint8_t modType = lowerBuf[0];
+void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
+  int i = 0; // For the index of lane
+  CmisData cmisData = domDataUnion.get_cmis();
+  auto lowerBuf = cmisData.lower_ref()->data();
+  auto page0Buf = cmisData.page0_ref()->data();
+  auto page10Buf = cmisData.page10_ref()->data();
+  auto page11Buf = cmisData.page11_ref()->data();
+  auto page14Buf = cmisData.page14_ref()->data();
 
-  if (modType == kCMISIdentifier) {
-    printf("Module type = CMIS\n");
-    printCmisPortDetail(rawDOMData, port);
+  printf("Port %d\n", port);
+  printf("  Module Interface Type: CMIS (200G or above)\n");
+
+  printf("  Module State: %s\n",
+      getStateNameString(lowerBuf[3] >> 1, kCmisModuleStateMapping).c_str());
+
+  auto ApSel = page11Buf[78] >> 4;
+  auto ApCode = lowerBuf[86 + (ApSel - 1) * 4 + 1];
+  printf("  Application Selected: %s\n",
+      getStateNameString(ApCode, kCmisAppNameMapping).c_str());
+  printf("  Low power: 0x%x\n", (lowerBuf[26] >> 6) & 0x1);
+  printf("  Low power forced: 0x%x\n", (lowerBuf[26] >> 4) & 0x1);
+
+  printf("  FW Version: %d.%d\n", lowerBuf[39], lowerBuf[40]);
+  printf("  Firmware fault: 0x%x\n", (lowerBuf[8] >> 1) & 0x3);
+  auto vendor = sfpString(page0Buf, 1, 16);
+  auto vendorPN = sfpString(page0Buf, 20, 16);
+  auto vendorRev = sfpString(page0Buf, 36, 2);
+  auto vendorSN = sfpString(page0Buf, 38, 16);
+  auto vendorDate = sfpString(page0Buf, 54, 8);
+
+  printf("  Vendor: %s\n", vendor.str().c_str());
+  printf("  Vendor PN: %s\n", vendorPN.str().c_str());
+  printf("  Vendor Rev: %s\n", vendorRev.str().c_str());
+  printf("  Vendor SN: %s\n", vendorSN.str().c_str());
+  printf("  Date Code: %s\n", vendorDate.str().c_str());
+
+  auto temp = static_cast<int8_t>
+              (lowerBuf[14]) + (lowerBuf[15] / 256.0);
+  printf("  Temperature: %f C\n", temp);
+
+  printf("  VCC: %f V\n", CmisFieldInfo::getVcc(lowerBuf[16] << 8 | lowerBuf[17]));
+
+  printf("\nPer Lane status: \n");
+  printf("Lanes             1        2        3        4        5        6        7        8\n");
+  printf("Datapath de-init  ");
+  for (i = 0; i < 8; i++) {
+    printf("%d        ", (page10Buf[0]>>i)&1);
+  }
+  printf("\nTx disable        ");
+  for (i = 0; i < 8; i++) {
+    printf("%d        ", (page10Buf[2]>>i)&1);
+  }
+  printf("\nTx squelch bmap   ");
+  for (i = 0; i < 8; i++) {
+    printf("%d        ", (page10Buf[4]>>i)&1);
+  }
+  printf("\nRx Out disable    ");
+  for (i = 0; i < 8; i++) {
+    printf("%d        ", (page10Buf[10]>>i)&1);
+  }
+  printf("\nRx Sqlch disable  ");
+  for (i = 0; i < 8; i++) {
+    printf("%d        ", (page10Buf[11]>>i)&1);
+  }
+  printf("\nHost lane state   ");
+  for (i=0; i<4; i++) {
+    printf("%-7s  %-7s  ",
+    getStateNameString(page11Buf[i] & 0xf, kCmisLaneStateMapping).c_str(),
+    getStateNameString((page11Buf[i]>>4) & 0xf, kCmisLaneStateMapping).c_str());
+  }
+  printf("\nTx fault          ");
+  for (i = 0; i < 8; i++) {
+    printf("%d        ", (page11Buf[7]>>i)&1);
+  }
+  printf("\nTx LOS            ");
+  for (i = 0; i < 8; i++) {
+    printf("%d        ", (page11Buf[8]>>i)&1);
+  }
+  printf("\nTx LOL            ");
+  for (i = 0; i < 8; i++) {
+    printf("%d        ", (page11Buf[9]>>i)&1);
+  }
+  printf("\nTx PWR alarm Hi   ");
+  for (i = 0; i < 8; i++) {
+    printf("%d        ", (page11Buf[11]>>i)&1);
+  }
+  printf("\nTx PWR alarm Lo   ");
+  for (i = 0; i < 8; i++) {
+    printf("%d        ", (page11Buf[12]>>i)&1);
+  }
+  printf("\nTx PWR warn Hi    ");
+  for (i = 0; i < 8; i++) {
+    printf("%d        ", (page11Buf[13]>>i)&1);
+  }
+  printf("\nTx PWR warn Lo    ");
+  for (i = 0; i < 8; i++) {
+    printf("%d        ", (page11Buf[14]>>i)&1);
+  }
+  printf("\nRx LOS            ");
+  for (i = 0; i < 8; i++) {
+    printf("%d        ", (page11Buf[19]>>i)&1);
+  }
+  printf("\nRx LOL            ");
+  for (i = 0; i < 8; i++) {
+    printf("%d        ", (page11Buf[20]>>i)&1);
+  }
+  printf("\nRx PWR alarm Hi   ");
+  for (i = 0; i < 8; i++) {
+    printf("%d        ", (page11Buf[21]>>i)&1);
+  }
+  printf("\nRx PWR alarm Lo   ");
+  for (i = 0; i < 8; i++) {
+    printf("%d        ", (page11Buf[22]>>i)&1);
+  }
+  printf("\nRx PWR warn Hi    ");
+  for (i = 0; i < 8; i++) {
+    printf("%d        ", (page11Buf[23]>>i)&1);
+  }
+  printf("\nRx PWR warn Lo    ");
+  for (i = 0; i < 8; i++) {
+    printf("%d        ", (page11Buf[24]>>i)&1);
+  }
+  printf("\nTX Power (mW)     ");
+  for (i = 0; i < 8; i++) {
+    printf("%.3f    ", ((page11Buf[26+i*2]<<8 | page11Buf[27+i*2]))*0.0001);
+  }
+  printf("\nRX Power (mW)     ");
+  for (i = 0; i < 8; i++) {
+    printf("%.3f    ", ((page11Buf[58+i*2]<<8 | page11Buf[59+i*2]))*0.0001);
+  }
+  printf("\nRx SNR            ");
+  for (i = 0; i < 8; i++) {
+    printf("%05.04g    ", (CmisFieldInfo::getSnr(page14Buf[113+i*2] << 8 | page14Buf[112+i*2])));
+  }
+  printf("\n\n");
+}
+
+void printPortDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
+  if (domDataUnion.__EMPTY__) {
+    fprintf(stderr, "DOMDataUnion object is empty\n");
+    return;
+  }
+  if (domDataUnion.getType() == DOMDataUnion::Type::sff8636) {
+    printSffDetail(domDataUnion, port);
   } else {
-    printSffPortDetail(rawDOMData, port);
+    printCmisDetail(domDataUnion, port);
   }
 }
 
@@ -923,10 +949,10 @@ int main(int argc, char* argv[]) {
         // starts from 0. So here we try to comply to match that behavior.
         idx.push_back(port - 1);
       }
-      auto rawDOMDataMap = fetchDataFromQsfpService(idx, evb);
+      auto domDataUnionMap = fetchDataFromQsfpService(idx, evb);
       for (auto& i : idx) {
-        auto iter = rawDOMDataMap.find(i);
-        if(iter == rawDOMDataMap.end()) {
+        auto iter = domDataUnionMap.find(i);
+        if(iter == domDataUnionMap.end()) {
           fprintf(stderr, "Port %d is not present.\n", i + 1);
         }
         else {
