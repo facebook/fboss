@@ -617,7 +617,12 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
   }
   int numPaths = 0;
   if (ucmpSupported) {
-    numPaths = egressId2WeightInSw.size();
+    // TODO(daiweix): use this line and remove the for loop
+    // when native wecmp is ready
+    // numPaths = egressId2WeightInSw.size();
+    for (auto path : egressId2WeightInSw) {
+      numPaths += path.second;
+    }
   } else {
     for (auto path : egressId2WeightInSw) {
       numPaths += path.second;
