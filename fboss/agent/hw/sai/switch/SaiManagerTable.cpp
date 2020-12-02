@@ -81,6 +81,10 @@ void SaiManagerTable::createSaiTableManagers(
 }
 
 SaiManagerTable::~SaiManagerTable() {
+  reset(false);
+}
+
+void SaiManagerTable::reset(bool skipSwitchManager) {
   // unsupported features reset first. Order does not matter for these
   lagManager_.reset();
   // Need to destroy routes and label fib entries before destroying other
@@ -128,7 +132,9 @@ SaiManagerTable::~SaiManagerTable() {
   bufferManager_.reset();
   wredManager_.reset();
   tamManager_.reset();
-  switchManager_.reset();
+  if (!skipSwitchManager) {
+    switchManager_.reset();
+  }
 }
 
 SaiAclTableGroupManager& SaiManagerTable::aclTableGroupManager() {

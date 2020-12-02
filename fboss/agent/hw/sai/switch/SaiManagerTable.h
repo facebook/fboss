@@ -128,6 +128,8 @@ class SaiManagerTable {
   SaiTamManager& tamManager();
   const SaiTamManager& tamManager() const;
 
+  void reset(bool skipSwitchManager);
+
  private:
   std::unique_ptr<SaiAclTableGroupManager> aclTableGroupManager_;
   std::unique_ptr<SaiAclTableManager> aclTableManager_;
