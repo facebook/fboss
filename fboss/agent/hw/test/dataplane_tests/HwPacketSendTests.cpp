@@ -18,6 +18,9 @@
 
 #include <folly/IPAddress.h>
 #include <folly/container/Array.h>
+#include <thread>
+
+using namespace std::chrono_literals;
 
 namespace facebook::fboss {
 
@@ -33,6 +36,43 @@ class HwPacketSendTest : public HwLinkStateDependentTest {
   HwSwitchEnsemble::Features featuresDesired() const override {
     return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX};
   }
+};
+
+class HwPacketSendReceiveTest : public HwLinkStateDependentTest {
+ protected:
+  cfg::SwitchConfig initialConfig() const override {
+    auto cfg = utility::oneL3IntfTwoPortConfig(
+        getHwSwitch(),
+        masterLogicalPortIds()[0],
+        masterLogicalPortIds().back(),
+        cfg::PortLoopbackMode::MAC);
+    utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
+    utility::addCpuQueueConfig(cfg, getAsic());
+    return cfg;
+  }
+  HwSwitchEnsemble::Features featuresDesired() const override {
+    return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX};
+  }
+  void packetReceived(RxPacket* pkt) noexcept override {
+    XLOG(DBG1) << "packet received from port " << pkt->getSrcPort();
+    srcPort_ = pkt->getSrcPort();
+    numPkts_++;
+  }
+  int getLastPktSrcPort() {
+    return srcPort_;
+  }
+  bool verifyNumPktsReceived(int expectedNumPkts) {
+    auto retries = 5;
+    do {
+      if (numPkts_ == expectedNumPkts) {
+        return true;
+      }
+      std::this_thread::sleep_for(20ms);
+    } while (retries--);
+    return false;
+  }
+  std::atomic<int> srcPort_{-1};
+  std::atomic<int> numPkts_{0};
 };
 
 TEST_F(HwPacketSendTest, LldpToFrontPanelOutOfPort) {
@@ -108,4 +148,34 @@ TEST_F(HwPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
+
+TEST_F(HwPacketSendReceiveTest, LldpPacketReceiveSrcPort) {
+  auto setup = [=]() {};
+  auto verify = [=]() {
+    if (!isSupported(HwAsic::Feature::PKTIO)) {
+      return;
+    }
+    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto payLoadSize = 256;
+    auto expectedNumPktsReceived = 1;
+    for (auto port :
+         {masterLogicalPortIds()[0], masterLogicalPortIds().back()}) {
+      auto txPacket = utility::makeEthTxPacket(
+          getHwSwitch(),
+          vlanId,
+          srcMac,
+          folly::MacAddress("01:80:c2:00:00:0e"),
+          facebook::fboss::ETHERTYPE::ETHERTYPE_LLDP,
+          std::vector<uint8_t>(payLoadSize, 0xff));
+      getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
+          std::move(txPacket), port, std::nullopt);
+      ASSERT_TRUE(verifyNumPktsReceived(expectedNumPktsReceived++));
+      EXPECT_EQ(port, getLastPktSrcPort());
+    }
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss

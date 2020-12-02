@@ -97,6 +97,13 @@ BcmRxPacket::BcmRxPacket(const BcmPacketT& bcmPacket) {
     bcmCheckError(rv, "failed to get pktio BCM_PKTIO_HG2_SRC_PORT");
     srcPort_ = PortID(val);
 
+    // lowest bit in module id is used to accommodate port logical ids greater
+    // than 255
+    rv = bcm_pktio_pmd_field_get(
+        unit_, pkt, bcmPktioPmdTypeHigig2, BCM_PKTIO_HG2_SRC_MODID, &val);
+    bcmCheckError(rv, "failed to get pktio BCM_PKTIO_HG2_SRC_MODID");
+    srcPort_ = (val << 8) | srcPort_;
+
     rv = bcm_pktio_pmd_field_get(
         unit_, pkt, bcmPktioPmdTypeRx, BCMPKT_RXPMD_OUTER_VID, &val);
     bcmCheckError(rv, "failed to get pktio OUTER_VID");

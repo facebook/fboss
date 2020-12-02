@@ -64,8 +64,8 @@ class BcmTxPacket : public TxPacket {
    * set dest port and set mod to 0
    */
   void setDestModPort(bcm_port_t port) {
-    DCHECK_EQ((port & ~0xff), 0);
     if (!bcmPacket_.usePktIO) {
+      DCHECK_EQ((port & ~0xff), 0);
       bcm_pkt_t* pkt = bcmPacket_.ptrUnion.pkt;
       // Need to reset TX_ETHER for packets that are
       // predetermined to go out of a port/trunk
