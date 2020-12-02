@@ -400,7 +400,8 @@ void BcmPortQueueManager::programAqms(
       if (isReset && !isEnabled) {
         programAqm(gport, cosQ, behavior, std::nullopt);
       } else if (!isReset && isEnabled) {
-        programAqm(gport, cosQ, behavior, enabledCurveItr->second.detection);
+        programAqm(
+            gport, cosQ, behavior, *enabledCurveItr->second.detection_ref());
       }
     }
   }

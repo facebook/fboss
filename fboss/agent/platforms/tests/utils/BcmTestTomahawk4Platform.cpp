@@ -14,18 +14,14 @@ namespace facebook::fboss {
 
 const PortQueue& BcmTestTomahawk4Platform::getDefaultPortQueueSettings(
     cfg::StreamType streamType) const {
-  // TODO(daiweix): use default settings from TH3 for now,
-  // confirm and update default port queue settings for TH4
   return utility::getDefaultPortQueueSettings(
-      utility::BcmChip::TOMAHAWK3, streamType);
+      utility::BcmChip::TOMAHAWK4, streamType);
 }
 
 const PortQueue& BcmTestTomahawk4Platform::getDefaultControlPlaneQueueSettings(
     cfg::StreamType streamType) const {
-  // TODO(daiweix): use default settings from TH3 for now,
-  // confirm and update default port queue settings for TH4
   return utility::getDefaultControlPlaneQueueSettings(
-      utility::BcmChip::TOMAHAWK3, streamType);
+      utility::BcmChip::TOMAHAWK4, streamType);
 }
 
 } // namespace facebook::fboss

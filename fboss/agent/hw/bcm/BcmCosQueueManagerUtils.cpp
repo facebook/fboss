@@ -11,6 +11,7 @@
 
 #include "fboss/agent/hw/bcm/BcmCosQueueFBConvertors.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
+#include "fboss/agent/hw/switch_asics/Tomahawk4Asic.h"
 #include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
 #include "fboss/agent/hw/switch_asics/Trident2Asic.h"
 
@@ -71,12 +72,13 @@ cfg::PortQueueRate getPortQueueRatePps(uint32_t minimum, uint32_t maximum) {
 AqmMap makeDefauleAqmMap(int32_t threshold) {
   AqmMap aqms;
   facebook::fboss::cfg::LinearQueueCongestionDetection detection;
-  detection.minimumLength = detection.maximumLength = threshold;
+  detection.minimumLength_ref() = threshold;
+  detection.maximumLength_ref() = threshold;
   for (auto behavior :
        {QueueCongestionBehavior::EARLY_DROP, QueueCongestionBehavior::ECN}) {
     facebook::fboss::cfg::ActiveQueueManagement aqm;
-    aqm.behavior = behavior;
-    aqm.detection.set_linear(detection);
+    aqm.behavior_ref() = behavior;
+    aqm.detection_ref()->linear_ref() = detection;
     aqms.emplace(behavior, aqm);
   }
   return aqms;
@@ -89,7 +91,6 @@ constexpr int kDefaultTD2PortQueueSharedBytes = 1664;
 // default Aqm thresholds
 constexpr int32_t kDefaultTHAqmThreshold = 13631280;
 const auto kDefaultTHPortQueueAqm = makeDefauleAqmMap(kDefaultTHAqmThreshold);
-}; // namespace
 // default port queue shared bytes is 8 mmu units
 constexpr int kDefaultTHPortQueueSharedBytes = 1664;
 // ======TH3======
@@ -97,6 +98,14 @@ constexpr int kDefaultTHPortQueueSharedBytes = 1664;
 constexpr int kDefaultTH3PortQueueSharedBytes = 2032;
 constexpr int32_t kDefaultTH3AqmThreshold = 13631418;
 const auto kDefaultTH3PortQueueAqm = makeDefauleAqmMap(kDefaultTH3AqmThreshold);
+// ======TH4======
+// TODO(joseph5wu) TH4 default shared bytes is 0, which needs to clarify w/ BRCM
+constexpr int kDefaultTH4PortQueueSharedBytes = 0;
+// TODO(joseph5wu) It seems like both TH3 and TH4 default aqm threshold is
+// 133168898 now. CS00011560232
+constexpr int32_t kDefaultTH4AqmThreshold = 13631418;
+const auto kDefaultTH4PortQueueAqm = makeDefauleAqmMap(kDefaultTH4AqmThreshold);
+} // namespace
 
 namespace facebook::fboss::utility {
 bcm_cosq_stat_t getBcmCosqStatType(BcmCosQueueStatType type) {
@@ -162,6 +171,25 @@ const PortQueue& getTH3DefaultUCPortQueueSettings() {
   return kPortQueue;
 }
 
+const PortQueue& getTH4DefaultUCPortQueueSettings() {
+  Tomahawk4Asic asic;
+  static const PortQueue kPortQueue{PortQueueFields{
+      .id = kDefaultPortQueueId,
+      .scheduling = kDefaultPortQueueScheduling,
+      .streamType = cfg::StreamType::UNICAST,
+      .weight = kDefaultPortQueueWeight,
+      .reservedBytes = asic.getDefaultReservedBytes(
+          cfg::StreamType::UNICAST, false /*is front panel port*/),
+      .scalingFactor = bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
+      .name = std::nullopt,
+      .sharedBytes = kDefaultTH4PortQueueSharedBytes,
+      .aqms = kDefaultTH4PortQueueAqm,
+      .portQueueRate = getPortQueueRatePps(
+          kDefaultPortQueuePacketsPerSecMin, kDefaultPortQueuePacketsPerSecMax),
+  }};
+  return kPortQueue;
+}
+
 const PortQueue& getTD2DefaultMCPortQueueSettings() {
   Trident2Asic asic;
   static const PortQueue kPortQueue{PortQueueFields{
@@ -219,6 +247,25 @@ const PortQueue& getTH3DefaultMCPortQueueSettings() {
   return kPortQueue;
 }
 
+const PortQueue& getTH4DefaultMCPortQueueSettings() {
+  Tomahawk4Asic asic;
+  static const PortQueue kPortQueue{PortQueueFields{
+      .id = kDefaultPortQueueId,
+      .scheduling = kDefaultPortQueueScheduling,
+      .streamType = cfg::StreamType::MULTICAST,
+      .weight = kDefaultPortQueueWeight,
+      .reservedBytes = asic.getDefaultReservedBytes(
+          cfg::StreamType::MULTICAST, false /*is front panel port*/),
+      .scalingFactor = bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
+      .name = std::nullopt,
+      .sharedBytes = kDefaultTH4PortQueueSharedBytes,
+      .aqms = kPortQueueNoAqm,
+      .portQueueRate = getPortQueueRatePps(
+          kDefaultPortQueuePacketsPerSecMin, kDefaultPortQueuePacketsPerSecMax),
+  }};
+  return kPortQueue;
+}
+
 const PortQueue& getDefaultPortQueueSettings(
     BcmChip chip,
     cfg::StreamType streamType) {
@@ -231,6 +278,8 @@ const PortQueue& getDefaultPortQueueSettings(
           return getTHDefaultUCPortQueueSettings();
         case BcmChip::TOMAHAWK3:
           return getTH3DefaultUCPortQueueSettings();
+        case BcmChip::TOMAHAWK4:
+          return getTH4DefaultUCPortQueueSettings();
       }
     case cfg::StreamType::MULTICAST:
       switch (chip) {
@@ -240,6 +289,8 @@ const PortQueue& getDefaultPortQueueSettings(
           return getTHDefaultMCPortQueueSettings();
         case BcmChip::TOMAHAWK3:
           return getTH3DefaultMCPortQueueSettings();
+        case BcmChip::TOMAHAWK4:
+          return getTH4DefaultMCPortQueueSettings();
       }
     case cfg::StreamType::ALL:
       break;
@@ -306,6 +357,25 @@ const PortQueue& getTH3DefaultMCCPUQueueSettings() {
   return kPortQueue;
 }
 
+const PortQueue& getTH4DefaultMCCPUQueueSettings() {
+  Tomahawk4Asic asic;
+  static const PortQueue kPortQueue{PortQueueFields{
+      .id = kDefaultPortQueueId,
+      .scheduling = kDefaultPortQueueScheduling,
+      .streamType = cfg::StreamType::MULTICAST,
+      .weight = kDefaultPortQueueWeight,
+      .reservedBytes = asic.getDefaultReservedBytes(
+          cfg::StreamType::MULTICAST, true /*cpu port*/),
+      .scalingFactor = std::nullopt,
+      .name = std::nullopt,
+      .sharedBytes = kDefaultTH4PortQueueSharedBytes,
+      .aqms = kPortQueueNoAqm,
+      .portQueueRate = getPortQueueRatePps(
+          kDefaultPortQueuePacketsPerSecMin, kDefaultPortQueuePacketsPerSecMax),
+  }};
+  return kPortQueue;
+}
+
 const PortQueue& getDefaultControlPlaneQueueSettings(
     BcmChip chip,
     cfg::StreamType streamType) {
@@ -318,6 +388,8 @@ const PortQueue& getDefaultControlPlaneQueueSettings(
           return getTHDefaultMCCPUQueueSettings();
         case BcmChip::TOMAHAWK3:
           return getTH3DefaultMCCPUQueueSettings();
+        case BcmChip::TOMAHAWK4:
+          return getTH4DefaultMCCPUQueueSettings();
       }
     case cfg::StreamType::UNICAST:
     case cfg::StreamType::ALL:

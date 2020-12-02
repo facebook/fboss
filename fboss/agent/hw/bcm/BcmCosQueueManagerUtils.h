@@ -20,6 +20,7 @@ enum class BcmChip {
   TRIDENT2,
   TOMAHAWK,
   TOMAHAWK3,
+  TOMAHAWK4,
 };
 
 bcm_cosq_stat_t getBcmCosqStatType(BcmCosQueueStatType type);
