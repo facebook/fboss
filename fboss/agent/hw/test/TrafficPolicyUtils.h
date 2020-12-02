@@ -23,25 +23,20 @@ void addDscpAclToCfg(
     const std::string& aclName,
     uint32_t dscp);
 
-void addClassIDAcl(
-    cfg::SwitchConfig* config,
-    const std::string& aclName,
-    cfg::AclLookupClass lookupClass);
-
 void addL2ClassIDAcl(
     cfg::SwitchConfig* config,
     const std::string& aclName,
-    cfg::AclLookupClass lookupClass);
+    cfg::AclLookupClass lookupClassL2);
 
 void addNeighborClassIDAcl(
     cfg::SwitchConfig* config,
     const std::string& aclName,
-    cfg::AclLookupClass lookupClass);
+    cfg::AclLookupClass lookupClassNeighbor);
 
 void addRouteClassIDAcl(
     cfg::SwitchConfig* config,
     const std::string& aclName,
-    cfg::AclLookupClass lookupClass);
+    cfg::AclLookupClass lookupClassRoute);
 
 void addQueueMatcher(
     cfg::SwitchConfig* config,

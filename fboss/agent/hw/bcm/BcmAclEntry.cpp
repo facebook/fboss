@@ -224,25 +224,6 @@ void BcmAclEntry::createAclQualifiers() {
   }
 
   /*
-   * TODO(skhare) Deprecate lookupClass in favor of lookupClassNeighbor and
-   * lookupClassRoute.
-   */
-  if (acl_->getLookupClass()) {
-    auto lookupClass = acl_->getLookupClass().value();
-
-    if (BcmClassIDUtil::isValidLookupClass(lookupClass)) {
-      auto classId = static_cast<int>(lookupClass);
-      rv = bcm_field_qualify_DstClassL3(
-          hw_->getUnit(), handle_, classId, 0xFFFFFFFF);
-      bcmCheckError(rv, "failed to qualify DstClassL3:", classId);
-    } else {
-      throw FbossError(
-          "Unrecognized acl lookupClass ",
-          apache::thrift::util::enumNameSafe(lookupClass));
-    }
-  }
-
-  /*
    * lookupClassNeighbor and lookupClassRoute are both represented by
    * DstClassL3.
    */
@@ -648,18 +629,6 @@ bool BcmAclEntry::isStateSame(
         aclMsg,
         "L4SrcPort");
   }
-
-  std::optional<uint32> lookupClass;
-  if (acl->getLookupClass()) {
-    lookupClass = static_cast<int>(acl->getLookupClass().value());
-  }
-  isSame &= isBcmQualFieldStateSame(
-      bcm_field_qualify_DstClassL3_get,
-      hw->getUnit(),
-      handle,
-      lookupClass,
-      aclMsg,
-      "LookupClass");
 
   /*
    * lookupClassNeighbor and lookupClassRoute are both represented by

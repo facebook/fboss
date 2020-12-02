@@ -44,14 +44,6 @@ void configureAllIpQualifiers(
     configureQualifier(acl->srcIp_ref(), enable, "::ffff:c0a8:1");
     configureQualifier(
         acl->dstIp_ref(), enable, "2401:db00:3020:70e2:face:0:63:0/64");
-    /*
-     * TODO(skhare) Deprecate lookupClass in favor of lookupClassNeighbor and
-     * lookupClassRoute.
-     */
-    configureQualifier(
-        acl->lookupClass_ref(),
-        enable,
-        cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6);
 
     configureQualifier(
         acl->lookupClassNeighbor_ref(),
@@ -65,14 +57,6 @@ void configureAllIpQualifiers(
   } else {
     configureQualifier(acl->srcIp_ref(), enable, "192.168.0.1");
     configureQualifier(acl->dstIp_ref(), enable, "192.168.0.0/24");
-    /*
-     * TODO(skhare) Deprecate lookupClass in favor of lookupClassNeighbor and
-     * lookupClassRoute.
-     */
-    configureQualifier(
-        acl->lookupClass_ref(),
-        enable,
-        cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4);
 
     configureQualifier(
         acl->lookupClassNeighbor_ref(),
@@ -198,16 +182,6 @@ class HwAclQualifierTest : public HwTest {
         }
         break;
       case LookupClassType::LOOKUPCLASS_NEIGHBOR:
-        /*
-         * TODO(skhare) Deprecate lookupClass in favor of lookupClassNeighbor
-         * and lookupClassRoute.
-         */
-        configureQualifier(
-            acl->lookupClass_ref(),
-            true,
-            isIpV4 ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
-                   : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6);
-
         configureQualifier(
             acl->lookupClassNeighbor_ref(),
             true,
@@ -215,16 +189,6 @@ class HwAclQualifierTest : public HwTest {
                    : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6);
         break;
       case LookupClassType::LOOKUPCLASS_ROUTE:
-        /*
-         * TODO(skhare) Deprecate lookupClass in favor of lookupClassNeighbor
-         * and lookupClassRoute.
-         */
-        configureQualifier(
-            acl->lookupClass_ref(),
-            true,
-            isIpV4 ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
-                   : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6);
-
         configureQualifier(
             acl->lookupClassRoute_ref(),
             true,

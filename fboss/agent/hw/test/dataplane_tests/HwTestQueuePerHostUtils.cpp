@@ -70,10 +70,6 @@ void addQueuePerHostQueueConfig(cfg::SwitchConfig* config) {
   }
 }
 
-std::string getQueuePerHostAclNameForQueue(int queueId) {
-  return folly::to<std::string>("queue-per-host-queue-", queueId);
-}
-
 std::string getQueuePerHostL2AclNameForQueue(int queueId) {
   return folly::to<std::string>("queue-per-host-queue-l2-", queueId);
 }
@@ -89,10 +85,6 @@ std::string getQueuePerHostRouteAclNameForQueue(int queueId) {
 void addQueuePerHostAcls(cfg::SwitchConfig* config) {
   for (auto queueId : kQueuePerhostQueueIds()) {
     auto classID = kQueuePerHostQueueToClass().at(queueId);
-
-    auto aclName = getQueuePerHostAclNameForQueue(queueId);
-    utility::addClassIDAcl(config, aclName, classID);
-    utility::addQueueMatcher(config, aclName, queueId);
 
     auto l2AclName = getQueuePerHostL2AclNameForQueue(queueId);
     utility::addL2ClassIDAcl(config, l2AclName, classID);
