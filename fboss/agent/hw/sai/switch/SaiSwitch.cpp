@@ -835,6 +835,13 @@ HwInitResult SaiSwitch::initLocked(
   std::unique_ptr<folly::dynamic> adapterKeys2AdapterHostKeysJson;
 
   sai_api_initialize(0, platform_->getServiceMethodTable());
+  SaiApiTable::getInstance()->queryApis();
+  concurrentIndices_ = std::make_unique<ConcurrentIndices>();
+  managerTable_ = std::make_unique<SaiManagerTable>(platform_, bootType_);
+  switchId_ = managerTable_->switchManager().getSwitchSaiId();
+  callback_ = callback;
+  __gSaiSwitch = this;
+  SaiApiTable::getInstance()->enableLogging(FLAGS_enable_sai_log);
   if (bootType_ == BootType::WARM_BOOT) {
     auto switchStateJson = wbHelper->getWarmBootState();
     ret.switchState = SwitchState::fromFollyDynamic(switchStateJson[kSwSwitch]);
@@ -854,24 +861,22 @@ HwInitResult SaiSwitch::initLocked(
           switchStateJson[kHwSwitch][kAdapterKey2AdapterHostKey]);
     }
   }
-  SaiApiTable::getInstance()->queryApis();
-  concurrentIndices_ = std::make_unique<ConcurrentIndices>();
-  managerTable_ = std::make_unique<SaiManagerTable>(platform_, bootType_);
-  switchId_ = managerTable_->switchManager().getSwitchSaiId();
-  // TODO(borisb): find a cleaner solution to this problem.
-  // perhaps reload fixes it?
-  auto saiStore = SaiStore::getInstance();
-  saiStore->setSwitchId(switchId_);
-  saiStore->reload(
-      adapterKeysJson.get(), adapterKeys2AdapterHostKeysJson.get());
-  managerTable_->createSaiTableManagers(platform_, concurrentIndices_.get());
-  callback_ = callback;
-  __gSaiSwitch = this;
-  SaiApiTable::getInstance()->enableLogging(FLAGS_enable_sai_log);
+  initStoreAndManagersLocked(
+      adapterKeysJson.get(), adapterKeys2AdapterHostKeysJson.get(), lock);
   if (bootType_ != BootType::WARM_BOOT) {
     ret.switchState = getColdBootSwitchState();
   }
   return ret;
+}
+
+void SaiSwitch::initStoreAndManagersLocked(
+    const folly::dynamic* adapterKeys,
+    const folly::dynamic* adapterKeys2AdapterHostKeys,
+    const std::lock_guard<std::mutex>& /*lock*/) {
+  auto saiStore = SaiStore::getInstance();
+  saiStore->setSwitchId(switchId_);
+  saiStore->reload(adapterKeys, adapterKeys2AdapterHostKeys);
+  managerTable_->createSaiTableManagers(platform_, concurrentIndices_.get());
 }
 
 void SaiSwitch::initLinkScanLocked(
