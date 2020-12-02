@@ -703,15 +703,15 @@ void ThriftConfigApplier::checkPortQueueAQMValid(
   }
   std::set<cfg::QueueCongestionBehavior> behaviors;
   for (const auto& aqm : aqms) {
-    if (aqm.detection.getType() ==
+    if (aqm.detection_ref()->getType() ==
         cfg::QueueCongestionDetection::Type::__EMPTY__) {
       throw FbossError(
           "Active Queue Management must specify a congestion detection method");
     }
-    if (behaviors.find(aqm.behavior) != behaviors.end()) {
+    if (behaviors.find(*aqm.behavior_ref()) != behaviors.end()) {
       throw FbossError("Same Active Queue Management behavior already exists");
     }
-    behaviors.insert(aqm.behavior);
+    behaviors.insert(*aqm.behavior_ref());
   }
 }
 
@@ -719,7 +719,7 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::updatePortQueue(
     const std::shared_ptr<PortQueue>& orig,
     const cfg::PortQueue* cfg,
     std::optional<TrafficClass> trafficClass) {
-  CHECK_EQ(orig->getID(), cfg->id);
+  CHECK_EQ(orig->getID(), *cfg->id_ref());
 
   if (checkSwConfPortQueueMatch(orig, cfg) &&
       trafficClass == orig->getTrafficClass()) {
@@ -735,9 +735,10 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::updatePortQueue(
 std::shared_ptr<PortQueue> ThriftConfigApplier::createPortQueue(
     const cfg::PortQueue* cfg,
     std::optional<TrafficClass> trafficClass) {
-  auto queue = std::make_shared<PortQueue>(static_cast<uint8_t>(cfg->id));
-  queue->setStreamType(cfg->streamType);
-  queue->setScheduling(cfg->scheduling);
+  auto queue =
+      std::make_shared<PortQueue>(static_cast<uint8_t>(*cfg->id_ref()));
+  queue->setStreamType(*cfg->streamType_ref());
+  queue->setScheduling(*cfg->scheduling_ref());
   if (auto weight = cfg->weight_ref()) {
     queue->setWeight(*weight);
   }
@@ -786,15 +787,15 @@ QueueConfig ThriftConfigApplier::updatePortQueues(
    */
   flat_map<int, const cfg::PortQueue*> newQueues;
   for (const auto& queue : cfgPortQueues) {
-    if (streamType == queue.streamType) {
-      newQueues.emplace(std::make_pair(queue.id, &queue));
+    if (streamType == queue.streamType_ref()) {
+      newQueues.emplace(std::make_pair(*queue.id_ref(), &queue));
     }
   }
 
   if (newQueues.empty()) {
     for (const auto& queue : *cfg_->defaultPortQueues_ref()) {
-      if (streamType == queue.streamType) {
-        newQueues.emplace(std::make_pair(queue.id, &queue));
+      if (streamType == queue.streamType_ref()) {
+        newQueues.emplace(std::make_pair(*queue.id_ref(), &queue));
       }
     }
   }
