@@ -1522,6 +1522,9 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
       if (auto egressMirror = mta.action_ref()->egressMirror_ref()) {
         matchAction.setEgressMirror(*egressMirror);
       }
+      if (auto toCpuAction = mta.action_ref()->toCpuAction_ref()) {
+        matchAction.setToCpuAction(*toCpuAction);
+      }
 
       auto acl = updateAcl(
           aclCfg,

@@ -377,4 +377,17 @@ AclEntry::AclEntry(int priority, const std::string& name)
 
 template class NodeBaseT<AclEntry, AclEntryFields>;
 
+bool AclEntry::hasValidAction() const {
+  auto action = getAclAction();
+  if (!action || !action.value().getSendToQueue()) {
+    return true;
+  }
+
+  bool sendToCpu = action.value().getSendToQueue().value().second;
+  bool hasToCpuAction = action.value().getToCpuAction().has_value();
+
+  // for CPU ACLs, ToCpuAction must be set
+  return !sendToCpu || hasToCpuAction;
+}
+
 } // namespace facebook::fboss

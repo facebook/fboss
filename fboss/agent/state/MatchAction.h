@@ -35,7 +35,8 @@ class MatchAction {
         trafficCounter_(action.trafficCounter_),
         setDscp_(action.setDscp_),
         ingressMirror_(action.ingressMirror_),
-        egressMirror_(action.egressMirror_) {}
+        egressMirror_(action.egressMirror_),
+        toCpuAction_(action.toCpuAction_) {}
 
   std::optional<SendToQueue> getSendToQueue() const {
     return sendToQueue_;
@@ -89,12 +90,20 @@ class MatchAction {
     egressMirror_ = mirror;
   }
 
+  std::optional<cfg::ToCpuAction> getToCpuAction() const {
+    return toCpuAction_;
+  }
+
+  void setToCpuAction(const cfg::ToCpuAction& toCpuAction) {
+    toCpuAction_ = toCpuAction;
+  }
+
   bool operator==(const MatchAction& action) const {
     return sendToQueue_ == action.sendToQueue_ &&
         ingressMirror_ == action.ingressMirror_ &&
         egressMirror_ == action.egressMirror_ &&
         trafficCounter_ == action.trafficCounter_ &&
-        setDscp_ == action.setDscp_;
+        setDscp_ == action.setDscp_ && toCpuAction_ == action.toCpuAction_;
   }
 
   MatchAction& operator=(const MatchAction& action) {
@@ -103,6 +112,7 @@ class MatchAction {
     setDscp_ = action.setDscp_;
     ingressMirror_ = action.ingressMirror_;
     egressMirror_ = action.egressMirror_;
+    toCpuAction_ = action.toCpuAction_;
     return *this;
   }
 
@@ -115,6 +125,7 @@ class MatchAction {
   std::optional<SetDscp> setDscp_{std::nullopt};
   std::optional<std::string> ingressMirror_{std::nullopt};
   std::optional<std::string> egressMirror_{std::nullopt};
+  std::optional<cfg::ToCpuAction> toCpuAction_{std::nullopt};
 };
 
 } // namespace facebook::fboss

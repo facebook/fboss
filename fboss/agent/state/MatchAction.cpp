@@ -21,6 +21,7 @@ constexpr auto kEgressMirror = "engressMirror";
 constexpr auto kCounter = "counter";
 constexpr auto kCounterName = "name";
 constexpr auto kCounterTypes = "types";
+constexpr auto kToCpuAction = "cpuAction";
 } // namespace
 
 namespace facebook::fboss {
@@ -51,6 +52,9 @@ folly::dynamic MatchAction::toFollyDynamic() const {
   }
   if (egressMirror_) {
     matchAction[kEgressMirror] = egressMirror_.value();
+  }
+  if (toCpuAction_) {
+    matchAction[kToCpuAction] = static_cast<int>(toCpuAction_.value());
   }
   return matchAction;
 }
@@ -96,6 +100,10 @@ MatchAction MatchAction::fromFollyDynamic(const folly::dynamic& actionJson) {
   }
   if (actionJson.find(kEgressMirror) != actionJson.items().end()) {
     matchAction.setEgressMirror(actionJson[kEgressMirror].asString());
+  }
+  if (actionJson.find(kToCpuAction) != actionJson.items().end()) {
+    matchAction.setToCpuAction(
+        static_cast<cfg::ToCpuAction>(actionJson[kToCpuAction].asInt()));
   }
   return matchAction;
 }

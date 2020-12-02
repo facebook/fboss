@@ -1527,11 +1527,11 @@ bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
       delta.getAclsDelta(),
       [&](const shared_ptr<AclEntry>& /* oldAcl */,
           const shared_ptr<AclEntry>& newAcl) {
-        isValid = isValid && newAcl->hasMatcher();
+        isValid = isValid && newAcl->hasMatcher() && newAcl->hasValidAction();
         return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
       },
       [&](const shared_ptr<AclEntry>& addAcl) {
-        isValid = isValid && addAcl->hasMatcher();
+        isValid = isValid && addAcl->hasMatcher() && addAcl->hasValidAction();
         return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
       },
       [&](const shared_ptr<AclEntry>& /* delAcl */) {});
