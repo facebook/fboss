@@ -134,11 +134,19 @@ class HwTest : public ::testing::Test,
   }
   std::shared_ptr<SwitchState> applyNewConfig(const cfg::SwitchConfig& config);
   std::shared_ptr<SwitchState> applyNewState(
-      std::shared_ptr<SwitchState> newState);
-
+      std::shared_ptr<SwitchState> newState) {
+    return applyNewStateImpl(newState, false);
+  }
+  std::shared_ptr<SwitchState> applyNewStateTransaction(
+      std::shared_ptr<SwitchState> newState) {
+    return applyNewStateImpl(newState, true);
+  }
   std::shared_ptr<SwitchState> getProgrammedState() const;
 
  private:
+  std::shared_ptr<SwitchState> applyNewStateImpl(
+      const std::shared_ptr<SwitchState>& newState,
+      bool transaction);
   void tearDownSwitchEnsemble(bool doWarmboot = false);
   void collectTestFailureInfo() const {
     hwSwitchEnsemble_->dumpHwCounters();

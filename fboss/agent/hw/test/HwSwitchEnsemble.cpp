@@ -131,8 +131,9 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::getProgrammedState() const {
   return programmedState_;
 }
 
-std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewState(
-    std::shared_ptr<SwitchState> newState) {
+std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewStateImpl(
+    const std::shared_ptr<SwitchState>& newState,
+    bool transaction) {
   if (!newState) {
     return programmedState_;
   }
@@ -141,7 +142,9 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewState(
   StateDelta delta(programmedState_, newState);
   {
     std::lock_guard<std::mutex> lk(updateStateMutex_);
-    programmedState_ = getHwSwitch()->stateChanged(delta);
+    programmedState_ = transaction
+        ? getHwSwitch()->stateChangedTransaction(delta)
+        : getHwSwitch()->stateChanged(delta);
     programmedState_->publish();
     // We are about to give up the lock, cache programmedState
     // applied by this function invocation

@@ -67,7 +67,11 @@ TEST_F(HwTest, overflowRoutes) {
     return;
   }
   getHwSwitchEnsemble()->setAllowPartialStateApplication(true);
-  applyNewState(desiredState);
+  if (getHwSwitch()->transactionsSupported()) {
+    applyNewStateTransaction(desiredState);
+  } else {
+    applyNewState(desiredState);
+  }
   EXPECT_NE(getProgrammedState(), desiredState);
 }
 

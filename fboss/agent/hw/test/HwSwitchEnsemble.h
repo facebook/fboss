@@ -58,7 +58,13 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
     allowPartialStateApplication_ = allow;
   }
   std::shared_ptr<SwitchState> applyNewState(
-      std::shared_ptr<SwitchState> newState);
+      std::shared_ptr<SwitchState> newState) {
+    return applyNewStateImpl(newState, false);
+  }
+  std::shared_ptr<SwitchState> applyNewStateTransaction(
+      std::shared_ptr<SwitchState> newState) {
+    return applyNewStateImpl(newState, true);
+  }
   void applyInitialConfig(const cfg::SwitchConfig& cfg);
 
   std::shared_ptr<SwitchState> getProgrammedState() const;
@@ -157,6 +163,9 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   }
 
  private:
+  std::shared_ptr<SwitchState> applyNewStateImpl(
+      const std::shared_ptr<SwitchState>& newState,
+      bool transaction);
   virtual std::unique_ptr<std::thread> setupThrift() = 0;
 
   bool waitForAnyPorAndQueutOutBytesIncrement(
