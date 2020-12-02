@@ -32,12 +32,17 @@ struct IFGSwap {
   5: list<byte> serdes_polarity_inverse_tx
 }
 
+struct DeviceProperty {
+  1: bool poll_msi
+}
+
 struct Device {
   1: i16 id
   2: string type
   3: i16 rev
   4: list<IFGSwap> ifg_swap_lists
   5: SerdesParams serdes_params
+  6: DeviceProperty device_property
 }
 
 
