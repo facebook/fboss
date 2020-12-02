@@ -431,6 +431,18 @@ struct SetDscpMatchAction {
   1: byte dscpValue;
 }
 
+enum ToCpuAction {
+ /**
+  * Send Copy of the packet to CPU, forward original packet as usual.
+  */
+  COPY = 0,
+
+  /**
+   * Redirect original packet to CPU.
+   */
+  TRAP = 1,
+}
+
 struct MatchAction {
   1: optional QueueMatchAction sendToQueue
   2: optional PacketCounterMatchAction packetCounter_DEPRECATED
@@ -438,6 +450,7 @@ struct MatchAction {
   4: optional string ingressMirror
   5: optional string egressMirror
   6: optional string counter
+  7: optional ToCpuAction toCpuAction
 }
 
 struct MatchToAction {
