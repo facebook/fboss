@@ -16,9 +16,15 @@ namespace facebook::fboss {
 BcmEgressQueueFlexCounter::BcmEgressQueueFlexCounter(
     BcmSwitch* hw,
     int /* numPorts */,
-    int /* numQueuesPerPort */)
+    int /* numQueuesPerPort */,
+    bool /* isForCPU */)
     : BcmFlexCounter(hw->getUnit()), hw_(hw) {
   throw FbossError("OSS doesn't support creating egress queue flex counter");
+}
+
+void BcmEgressQueueFlexCounter::attach(bcm_gport_t /* gPort */) {
+  throw FbossError(
+      "OSS doesn't support attach Egress Queue FlexCounter to port");
 }
 
 BcmEgressQueueFlexCounterManager::BcmEgressQueueFlexCounterManager(

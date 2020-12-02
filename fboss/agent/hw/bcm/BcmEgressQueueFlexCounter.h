@@ -11,7 +11,12 @@
 
 #include "fboss/agent/hw/bcm/BcmFlexCounter.h"
 
+#include <folly/Synchronized.h>
 #include <memory>
+
+extern "C" {
+#include <bcm/types.h>
+}
 
 namespace facebook::fboss {
 
@@ -19,8 +24,14 @@ class BcmSwitch;
 
 class BcmEgressQueueFlexCounter : public BcmFlexCounter {
  public:
-  BcmEgressQueueFlexCounter(BcmSwitch* hw, int numPorts, int numQueuesPerPort);
+  BcmEgressQueueFlexCounter(
+      BcmSwitch* hw,
+      int numPorts,
+      int numQueuesPerPort,
+      bool isForCPU = false);
   ~BcmEgressQueueFlexCounter() = default;
+
+  void attach(bcm_gport_t gPort);
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -29,12 +40,22 @@ class BcmEgressQueueFlexCounter : public BcmFlexCounter {
       delete;
 
   BcmSwitch* hw_;
+  int numQueuesPerPort_{0};
   int reservedNumQueuesPerPort_{0};
+  bool isForCPU_{false};
 };
 
 class BcmEgressQueueFlexCounterManager {
  public:
   explicit BcmEgressQueueFlexCounterManager(BcmSwitch* hw);
+
+  void attachToCPU() {
+    cpuQueueFlexCounter_->attach(BCM_GPORT_LOCAL_CPU);
+  }
+
+  void attachToPort(bcm_gport_t gPort) {
+    portQueueFlexCounter_->attach(gPort);
+  }
 
  private:
   // Forbidden copy constructor and assignment operator

@@ -17,10 +17,7 @@ class BcmSwitch;
 
 class BcmControlPlaneQueueManager : public BcmCosQueueManager {
  public:
-  BcmControlPlaneQueueManager(
-      BcmSwitch* hw,
-      const std::string& portName,
-      bcm_gport_t portGport);
+  explicit BcmControlPlaneQueueManager(BcmSwitch* hw);
 
   ~BcmControlPlaneQueueManager() {}
 

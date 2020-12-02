@@ -2763,13 +2763,14 @@ void BcmSwitch::l2LearningUpdateReceived(
 }
 
 void BcmSwitch::setupCos() {
-  cosManager_.reset(new BcmCosManager(this));
-  controlPlane_.reset(new BcmControlPlane(this));
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::EGRESS_QUEUE_FLEX_COUNTER)) {
     // Need to handle warmboot
     queueFlexCounterMgr_.reset(new BcmEgressQueueFlexCounterManager(this));
   }
+
+  cosManager_.reset(new BcmCosManager(this));
+  controlPlane_.reset(new BcmControlPlane(this));
 
   // set up cpu queue stats counter
   controlPlane_->getQueueManager()->setupQueueCounters();

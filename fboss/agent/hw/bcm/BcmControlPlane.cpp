@@ -29,7 +29,6 @@ using std::chrono::seconds;
 using std::chrono::system_clock;
 
 namespace {
-constexpr auto kCPUName = "cpu";
 constexpr auto kDefaultMaxRxCosqMappingSize = 128;
 } // namespace
 
@@ -98,7 +97,7 @@ cfg::PacketRxReason bcmReasonsToConfigReason(bcm_rx_reasons_t reasons) {
 BcmControlPlane::BcmControlPlane(BcmSwitch* hw)
     : hw_(hw),
       gport_(BCM_GPORT_LOCAL_CPU),
-      queueManager_(new BcmControlPlaneQueueManager(hw_, kCPUName, gport_)) {
+      queueManager_(new BcmControlPlaneQueueManager(hw_)) {
   int rv = bcm_rx_cosq_mapping_size_get(hw_->getUnit(), &maxRxReasonMappings_);
   if (rv == BCM_E_UNAVAIL) {
     // T75758668 Temporary hack before Broadcom release fix in next SDK

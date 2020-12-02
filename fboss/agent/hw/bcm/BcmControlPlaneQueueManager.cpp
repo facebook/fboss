@@ -14,6 +14,7 @@
 
 #include "fboss/agent/hw/StatsConstants.h"
 #include "fboss/agent/hw/bcm/BcmCosQueueManagerUtils.h"
+#include "fboss/agent/hw/bcm/BcmEgressQueueFlexCounter.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
@@ -21,9 +22,11 @@
 
 extern "C" {
 #include <bcm/cosq.h>
+#include <bcm/types.h>
 }
 
 namespace {
+constexpr auto kCPUName = "cpu";
 // HACK: there seems to be some bugs in some queue apis related to
 // the number of queues. Specifically, if you use the cpu gport +
 // queue id to access cpu cosq, it rejects ids above 32. Also the
@@ -34,6 +37,14 @@ constexpr auto kMaxMCQueueSize = 10;
 } // namespace
 
 namespace facebook::fboss {
+
+BcmControlPlaneQueueManager::BcmControlPlaneQueueManager(BcmSwitch* hw)
+    : BcmCosQueueManager(hw, kCPUName, BCM_GPORT_LOCAL_CPU) {
+  maxCPUQueue_ = utility::getMaxCPUQueueSize(hw->getUnit());
+  if (auto* flexCounterMgr = hw_->getBcmEgressQueueFlexCounterManager()) {
+    flexCounterMgr->attachToCPU();
+  }
+}
 
 const std::vector<BcmCosQueueCounterType>&
 BcmControlPlaneQueueManager::getQueueCounterTypes() const {
@@ -79,14 +90,6 @@ bcm_gport_t BcmControlPlaneQueueManager::getQueueGPort(
 const PortQueue& BcmControlPlaneQueueManager::getDefaultQueueSettings(
     cfg::StreamType streamType) const {
   return hw_->getPlatform()->getDefaultControlPlaneQueueSettings(streamType);
-}
-
-BcmControlPlaneQueueManager::BcmControlPlaneQueueManager(
-    BcmSwitch* hw,
-    const std::string& portName,
-    bcm_gport_t portGport)
-    : BcmCosQueueManager(hw, portName, portGport) {
-  maxCPUQueue_ = utility::getMaxCPUQueueSize(hw->getUnit());
 }
 
 int BcmControlPlaneQueueManager::getNumQueues(

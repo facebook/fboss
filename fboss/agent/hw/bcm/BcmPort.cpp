@@ -26,6 +26,7 @@
 #include "fboss/agent/hw/StatsConstants.h"
 #include "fboss/agent/hw/bcm/BcmBstStatsMgr.h"
 #include "fboss/agent/hw/bcm/BcmCosManager.h"
+#include "fboss/agent/hw/bcm/BcmEgressQueueFlexCounter.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmFacebookAPI.h"
 #include "fboss/agent/hw/bcm/BcmMirrorTable.h"
@@ -1228,6 +1229,10 @@ void BcmPort::enableStatCollection(const std::shared_ptr<Port>& port) {
       // or this API is deprecated, e.g. on TH4
       bcmCheckError(
           rv, "Unexpected error enabling counter DMA on port ", port_);
+    }
+
+    if (auto* flexCounterMgr = hw_->getBcmEgressQueueFlexCounterManager()) {
+      flexCounterMgr->attachToPort(gport_);
     }
   }
 
