@@ -163,7 +163,6 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
         getFields()->l4SrcPort == acl.getL4SrcPort() &&
         getFields()->l4DstPort == acl.getL4DstPort() &&
         getFields()->lookupClassL2 == acl.getLookupClassL2() &&
-        getFields()->lookupClass == acl.getLookupClass() &&
         getFields()->lookupClassNeighbor == acl.getLookupClassNeighbor() &&
         getFields()->lookupClassRoute == acl.getLookupClassRoute();
   }
@@ -319,13 +318,6 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
     writableFields()->lookupClassL2 = lookupClassL2;
   }
 
-  std::optional<cfg::AclLookupClass> getLookupClass() const {
-    return getFields()->lookupClass;
-  }
-  void setLookupClass(const cfg::AclLookupClass& lookupClass) {
-    writableFields()->lookupClass = lookupClass;
-  }
-
   std::optional<cfg::AclLookupClass> getLookupClassNeighbor() const {
     return getFields()->lookupClassNeighbor;
   }
@@ -346,7 +338,7 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
         getTcpFlagsBitMap() || getSrcPort() || getDstPort() || getIpFrag() ||
         getIcmpType() || getDscp() || getIpType() || getTtl() || getDstMac() ||
         getL4SrcPort() || getL4DstPort() || getLookupClassL2() ||
-        getLookupClass() || getLookupClassNeighbor() || getLookupClassRoute();
+        getLookupClassNeighbor() || getLookupClassRoute();
   }
 
  private:

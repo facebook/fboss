@@ -612,18 +612,6 @@ TEST(Acl, LookupClass) {
   *config.acls_ref()[0].name_ref() = "acl1";
   *config.acls_ref()[0].actionType_ref() = cfg::AclActionType::DENY;
 
-  // set lookupClass
-  auto lookupClass = cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6;
-  config.acls_ref()[0].lookupClass_ref() = lookupClass;
-
-  // apply lookupClass config and validate
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
-  EXPECT_NE(nullptr, stateV1);
-  auto aclV1 = stateV1->getAcl("acl1");
-  ASSERT_NE(nullptr, aclV1);
-  EXPECT_TRUE(aclV1->getLookupClass());
-  EXPECT_EQ(aclV1->getLookupClass().value(), lookupClass);
-
   // set lookupClassL2
   auto lookupClassL2 = cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4;
   config.acls_ref()[0].lookupClassL2_ref() = lookupClassL2;
@@ -662,40 +650,18 @@ TEST(Acl, LookupClass) {
 }
 
 TEST(Acl, LookupClassSerialization) {
-  // test for lookupClass serialization/de-serialization
-  auto entry = std::make_unique<AclEntry>(0, "stat0");
-  auto lookupClass = cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0;
-  entry->setLookupClass(lookupClass);
   auto action = MatchAction();
   auto counter = cfg::TrafficCounter();
   *counter.name_ref() = "stat0.c";
   action.setTrafficCounter(counter);
-  entry->setAclAction(action);
 
-  auto serialized = entry->toFollyDynamic();
-  auto entryBack = AclEntry::fromFollyDynamic(serialized);
-
-  EXPECT_TRUE(*entry == *entryBack);
-  EXPECT_TRUE(entryBack->getLookupClass());
-  EXPECT_EQ(entryBack->getLookupClass().value(), lookupClass);
-
-  // negative test for invalid lookupClass serialization
-  auto lookupClassBad = static_cast<cfg::AclLookupClass>(0);
-  entry->setLookupClass(lookupClassBad);
-  EXPECT_THROW(serialized = entry->toFollyDynamic(), FbossError);
-
-  // negative test for invalid lookupClass de-serialization
-  serialized["lookupClass"] = "DST_CLASS_L3_LOCAL_IP6_TYPO";
-  EXPECT_THROW(AclEntryFields::checkFollyDynamic(serialized), FbossError);
-
-  // TODO
   // test for lookupClassL2 serialization/de-serialization
   auto entryL2 = std::make_unique<AclEntry>(0, "stat1");
   auto lookupClassL2 = cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_7;
   entryL2->setLookupClassL2(lookupClassL2);
   entryL2->setAclAction(action);
 
-  serialized = entryL2->toFollyDynamic();
+  auto serialized = entryL2->toFollyDynamic();
   auto entryBackL2 = AclEntry::fromFollyDynamic(serialized);
 
   EXPECT_TRUE(*entryL2 == *entryBackL2);
@@ -703,7 +669,7 @@ TEST(Acl, LookupClassSerialization) {
   EXPECT_EQ(entryBackL2->getLookupClassL2().value(), lookupClassL2);
 
   // negative test for invalid lookupClassL2 serialization
-  lookupClassBad = static_cast<cfg::AclLookupClass>(100);
+  auto lookupClassBad = static_cast<cfg::AclLookupClass>(100);
   entryL2->setLookupClassL2(lookupClassBad);
   EXPECT_THROW(serialized = entryL2->toFollyDynamic(), FbossError);
 

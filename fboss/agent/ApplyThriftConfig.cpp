@@ -1704,9 +1704,6 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   if (auto ttl = config->ttl_ref()) {
     newAcl->setTtl(AclTtl(*ttl->value_ref(), *ttl->mask_ref()));
   }
-  if (auto lookupClass = config->lookupClass_ref()) {
-    newAcl->setLookupClass(*lookupClass);
-  }
   if (auto lookupClassL2 = config->lookupClassL2_ref()) {
     newAcl->setLookupClassL2(*lookupClassL2);
   }
