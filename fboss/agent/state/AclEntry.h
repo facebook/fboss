@@ -341,8 +341,6 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
         getLookupClassNeighbor() || getLookupClassRoute();
   }
 
-  bool hasValidAction() const;
-
  private:
   // Inherit the constructors required for clone()
   using NodeBaseT::NodeBaseT;
