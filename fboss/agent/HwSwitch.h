@@ -152,6 +152,9 @@ class HwSwitch {
    */
   virtual std::shared_ptr<SwitchState> stateChanged(
       const StateDelta& delta) = 0;
+
+  virtual std::shared_ptr<SwitchState> stateChangedTransaction(
+      const StateDelta& delta) = 0;
   /*
    * Check if a state update would be permissible on the HW,
    * without making any actual changes on the HW.

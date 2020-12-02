@@ -161,6 +161,9 @@ class SaiSwitch : public HwSwitch {
       const override;
   void dumpDebugState(const std::string& /*path*/) const override;
 
+  std::shared_ptr<SwitchState> stateChangedTransaction(
+      const StateDelta& delta) override;
+
  private:
   std::string listObjectsLocked(
       const std::vector<sai_object_type_t>& objects,

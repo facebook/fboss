@@ -1052,6 +1052,12 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChanged(const StateDelta& delta) {
   return appliedState;
 }
 
+std::shared_ptr<SwitchState> BcmSwitch::stateChangedTransaction(
+    const StateDelta& delta) {
+  throw FbossError("Transactions not supported on BcmSwitch");
+  return nullptr;
+}
+
 std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
     const StateDelta& delta) {
   // Reconfigure port groups in case we are changing between using a port as

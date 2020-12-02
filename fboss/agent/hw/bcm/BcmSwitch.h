@@ -348,6 +348,8 @@ class BcmSwitch : public BcmSwitchIf {
   // Lock has to be performed in the function.
   std::shared_ptr<SwitchState> stateChanged(const StateDelta& delta) override;
 
+  std::shared_ptr<SwitchState> stateChangedTransaction(
+      const StateDelta& delta) override;
   /*
    * gracefulExit performs the requisite cleanup
    * for doing a warm boot next time around if

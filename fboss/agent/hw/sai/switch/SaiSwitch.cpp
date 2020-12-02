@@ -315,6 +315,11 @@ void SaiSwitch::processLinkStateChangeDelta(const StateDelta& delta) {
       });
 }
 
+std::shared_ptr<SwitchState> SaiSwitch::stateChangedTransaction(
+    const StateDelta& /*delta*/) {
+  throw FbossError("Transactions not supported on SaiSwitch");
+}
+
 std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
   processRemovedDelta(
       delta.getPortsDelta(),
