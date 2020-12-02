@@ -53,6 +53,10 @@ class TajoAsic : public HwAsic {
     // Concept of scaling factor does not apply returning the same value TH3
     return cfg::MMUScalingFactor::TWO;
   }
+  int getMaxNumLogicalPorts() const override {
+    // 256 physical lanes + cpu
+    return 257;
+  }
 };
 
 } // namespace facebook::fboss

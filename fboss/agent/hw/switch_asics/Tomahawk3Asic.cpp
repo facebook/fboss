@@ -52,6 +52,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_TX_DISABLE:
     case HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT:
     case HwAsic::Feature::PENDING_L2_ENTRY:
+    case HwAsic::Feature::EGRESS_QUEUE_FLEX_COUNTER:
       return false;
   }
   return false;

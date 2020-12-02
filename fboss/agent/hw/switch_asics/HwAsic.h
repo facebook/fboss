@@ -52,6 +52,7 @@ class HwAsic {
     PTP_TC_PCS,
     PENDING_L2_ENTRY,
     MIRROR_V6_TUNNEL,
+    EGRESS_QUEUE_FLEX_COUNTER,
   };
 
   enum class AsicType {
@@ -109,6 +110,11 @@ class HwAsic {
    */
   virtual int getStationID(int intfID) const;
   virtual int getDefaultDropEgressID() const;
+
+  /*
+   * The maximum number of logical ports
+   */
+  virtual int getMaxNumLogicalPorts() const = 0;
 };
 
 } // namespace facebook::fboss

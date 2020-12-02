@@ -52,6 +52,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SFLOW_SAMPLING:
     case HwAsic::Feature::TX_VLAN_STRIPPING_ON_PORT:
     case HwAsic::Feature::MIRROR_V6_TUNNEL:
+    case HwAsic::Feature::EGRESS_QUEUE_FLEX_COUNTER:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:

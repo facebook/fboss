@@ -52,6 +52,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
     case HwAsic::Feature::PTP_TC_PCS:
     case HwAsic::Feature::MIRROR_V6_TUNNEL:
+    case HwAsic::Feature::EGRESS_QUEUE_FLEX_COUNTER:
       return false;
   }
   return false;

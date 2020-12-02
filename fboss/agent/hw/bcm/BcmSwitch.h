@@ -92,6 +92,7 @@ class BcmMacTable;
 class PortQueue;
 class BcmQcmManager;
 class BcmPtpTcMgr;
+class BcmEgressQueueFlexCounterManager;
 
 /*
  * Virtual interface to BcmSwitch, primarily for mocking/testing
@@ -481,6 +482,11 @@ class BcmSwitch : public BcmSwitchIf {
 
   BcmPtpTcMgr* getBcmPtpTcMgr() const {
     return ptpTcMgr_.get();
+  }
+
+  BcmEgressQueueFlexCounterManager* getBcmEgressQueueFlexCounterManager()
+      const {
+    return queueFlexCounterMgr_.get();
   }
 
   /**
@@ -964,6 +970,8 @@ class BcmSwitch : public BcmSwitchIf {
   int64_t bstStatsUpdateTime_{0};
   std::unique_ptr<BcmQcmManager> qcmManager_;
   std::unique_ptr<BcmPtpTcMgr> ptpTcMgr_;
+
+  std::unique_ptr<BcmEgressQueueFlexCounterManager> queueFlexCounterMgr_;
 
   /*
    * Lock to synchronize access to all BCM* data structures

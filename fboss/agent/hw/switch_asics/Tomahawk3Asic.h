@@ -49,6 +49,9 @@ class Tomahawk3Asic : public BroadcomAsic {
       bool /*cpu*/) const override {
     return cfg::MMUScalingFactor::TWO;
   }
+  int getMaxNumLogicalPorts() const override {
+    return 160;
+  }
 };
 
 } // namespace facebook::fboss

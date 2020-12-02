@@ -39,6 +39,7 @@
 #include "fboss/agent/hw/bcm/BcmControlPlane.h"
 #include "fboss/agent/hw/bcm/BcmCosManager.h"
 #include "fboss/agent/hw/bcm/BcmEgressManager.h"
+#include "fboss/agent/hw/bcm/BcmEgressQueueFlexCounter.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmFacebookAPI.h"
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
@@ -408,6 +409,7 @@ void BcmSwitch::resetTables() {
   macTable_.reset();
   qcmManager_.reset();
   ptpTcMgr_.reset();
+  queueFlexCounterMgr_.reset();
   // Reset warmboot cache last in case Bcm object destructors
   // access it during object deletion.
   warmBootCache_.reset();
@@ -2427,12 +2429,7 @@ void BcmSwitch::updateStatsImpl(SwitchStats* /* switchStats */) {
   // Update global statistics.
   updateGlobalStats();
   // Update cpu or host bound packet stats
-  if (getPlatform()->getAsic()->getAsicType() !=
-      HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
-    // TODO(daiweix): remove if condition after flex counter support
-    // for cpu port queue on TH4 is committed
-    controlPlane_->updateQueueCounters();
-  }
+  controlPlane_->updateQueueCounters();
 }
 
 folly::F14FastMap<std::string, HwPortStats> BcmSwitch::getPortStats() const {
@@ -2768,6 +2765,11 @@ void BcmSwitch::l2LearningUpdateReceived(
 void BcmSwitch::setupCos() {
   cosManager_.reset(new BcmCosManager(this));
   controlPlane_.reset(new BcmControlPlane(this));
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::EGRESS_QUEUE_FLEX_COUNTER)) {
+    // Need to handle warmboot
+    queueFlexCounterMgr_.reset(new BcmEgressQueueFlexCounterManager(this));
+  }
 
   // set up cpu queue stats counter
   controlPlane_->getQueueManager()->setupQueueCounters();

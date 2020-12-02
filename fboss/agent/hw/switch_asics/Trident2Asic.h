@@ -59,6 +59,9 @@ class Trident2Asic : public BroadcomAsic {
       bool /*cpu*/) const override {
     return cfg::MMUScalingFactor::TWO;
   }
+  int getMaxNumLogicalPorts() const override {
+    return 65;
+  }
 };
 
 } // namespace facebook::fboss

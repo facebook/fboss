@@ -951,12 +951,7 @@ void BcmPort::updateStats() {
       &(*curPortStats.inDstNullDiscards__ref()));
   updateFecStats(now, curPortStats);
   updateWredStats(now, &(*curPortStats.wredDroppedPackets__ref()));
-  auto asicType = hw_->getPlatform()->getAsic()->getAsicType();
-  if (asicType != HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
-    // TODO(daiweix): remove if condition after flex counter support
-    // for port egress queue on TH4 is committed
-    queueManager_->updateQueueStats(now, &curPortStats);
-  }
+  queueManager_->updateQueueStats(now, &curPortStats);
 
   std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
       {*lastPortStats.inDstNullDiscards__ref(),

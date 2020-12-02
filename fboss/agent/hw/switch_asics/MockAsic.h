@@ -18,6 +18,7 @@ class MockAsic : public HwAsic {
       case Feature::OBM_COUNTERS:
       case Feature::PTP_TC:
       case Feature::PTP_TC_PCS:
+      case Feature::EGRESS_QUEUE_FLEX_COUNTER:
         return false;
 
       default:
@@ -64,6 +65,9 @@ class MockAsic : public HwAsic {
       bool /*cpu*/) const override {
     // Mimicking TH
     return cfg::MMUScalingFactor::TWO;
+  }
+  int getMaxNumLogicalPorts() const override {
+    return 65;
   }
 };
 

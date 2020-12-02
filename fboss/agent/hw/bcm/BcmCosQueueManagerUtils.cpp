@@ -10,12 +10,18 @@
 #include "fboss/agent/hw/bcm/BcmCosQueueManagerUtils.h"
 
 #include "fboss/agent/hw/bcm/BcmCosQueueFBConvertors.h"
+#include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk4Asic.h"
 #include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
 #include "fboss/agent/hw/switch_asics/Trident2Asic.h"
 
+#include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
+
+extern "C" {
+#include <bcm/cosq.h>
+}
 
 using namespace facebook::fboss;
 
@@ -401,4 +407,15 @@ const PortQueue& getDefaultControlPlaneQueueSettings(
   ;
 }
 
+int getMaxCPUQueueSize(int unit) {
+  int maxQueueNum = 0;
+  auto rv = bcm_rx_queue_max_get(unit, &maxQueueNum);
+  bcmCheckError(rv, "failed to get max rx cos queue number");
+  // bcm_rx_queue_max_get will return the largest queue id for rx port since
+  // CPU usually has more queues than regular port, this function will basically
+  // return the leagest queue id for cpu MC queues.
+  // As Broadcom SDK use 0 as the first queue, so the max size of rx queues will
+  // be maxQueueNum + 1.
+  return maxQueueNum + 1;
+}
 } // namespace facebook::fboss::utility

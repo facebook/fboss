@@ -61,6 +61,10 @@ class Tomahawk4Asic : public BroadcomAsic {
   int getStationID(int intfId) const override;
 
   int getDefaultDropEgressID() const override;
+
+  int getMaxNumLogicalPorts() const override {
+    return 272;
+  }
 };
 
 } // namespace facebook::fboss

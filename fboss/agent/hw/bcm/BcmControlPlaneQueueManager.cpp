@@ -86,15 +86,7 @@ BcmControlPlaneQueueManager::BcmControlPlaneQueueManager(
     const std::string& portName,
     bcm_gport_t portGport)
     : BcmCosQueueManager(hw, portName, portGport) {
-  auto rv = bcm_rx_queue_max_get(hw_->getUnit(), &maxCPUQueue_);
-  if (rv == BCM_E_UNAVAIL) {
-    // T75758668 Temporary hack before Broadcom release fix in next SDK
-    XLOG(INFO) << "[HACK] bcm_rx_queue_max_get is unavailable, use "
-               << kMaxMCQueueSize;
-    maxCPUQueue_ = kMaxMCQueueSize;
-  } else {
-    bcmCheckError(rv, "failed to get max CPU cos queue number");
-  }
+  maxCPUQueue_ = utility::getMaxCPUQueueSize(hw->getUnit());
 }
 
 int BcmControlPlaneQueueManager::getNumQueues(

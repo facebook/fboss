@@ -55,6 +55,9 @@ class TomahawkAsic : public BroadcomAsic {
   bool mmuQgroupsEnabled() const override {
     return true;
   }
+  int getMaxNumLogicalPorts() const override {
+    return 134;
+  }
 };
 
 } // namespace facebook::fboss

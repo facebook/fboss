@@ -33,4 +33,5 @@ const PortQueue& getDefaultControlPlaneQueueSettings(
     BcmChip chip,
     cfg::StreamType streamType);
 
+int getMaxCPUQueueSize(int unit);
 } // namespace facebook::fboss::utility
