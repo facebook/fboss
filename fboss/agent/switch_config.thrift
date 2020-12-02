@@ -396,11 +396,11 @@ struct AclEntry {
   23: optional i32 l4DstPort
 
   /*
-   * TODO (skhare): Switch to using lookupClassNeighbor and lookupClassRoute
-   * and DEPRECATE lookupClass.
-   /
+   * We switched to using more granular lookupClassNeighbor and
+   * lookupClassRoute.
+   */
   /* dstClassL3 */
-  24: optional AclLookupClass lookupClass;
+  24: optional AclLookupClass lookupClass_DEPRECATED;
 
   /* dstClassL2 */
   25: optional AclLookupClass lookupClassL2
