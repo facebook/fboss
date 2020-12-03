@@ -30,6 +30,7 @@ class PythonRepl : public Repl {
   std::vector<folly::File> getStreams() const override;
 
  private:
+  std::string warnForTestEnvironment();
   void doRun() override;
   void runPythonInterpreter();
   std::unique_ptr<std::thread> pyThread_;

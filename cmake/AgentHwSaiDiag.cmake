@@ -25,6 +25,7 @@ set_target_properties(diag_shell PROPERTIES COMPILE_FLAGS
 
 add_library(python_repl
   fboss/agent/hw/sai/diag/PythonRepl.cpp
+  fboss/agent/hw/sai/diag/oss/PythonRepl.cpp
 )
 
 target_link_libraries(python_repl
