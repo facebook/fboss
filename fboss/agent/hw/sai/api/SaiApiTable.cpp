@@ -45,6 +45,7 @@ void SaiApiTable::queryApis() {
   std::get<std::unique_ptr<HashApi>>(apis_) = std::make_unique<HashApi>();
   std::get<std::unique_ptr<HostifApi>>(apis_) = std::make_unique<HostifApi>();
   std::get<std::unique_ptr<HashApi>>(apis_) = std::make_unique<HashApi>();
+  std::get<std::unique_ptr<MirrorApi>>(apis_) = std::make_unique<MirrorApi>();
   std::get<std::unique_ptr<MplsApi>>(apis_) = std::make_unique<MplsApi>();
   std::get<std::unique_ptr<NextHopApi>>(apis_) = std::make_unique<NextHopApi>();
   std::get<std::unique_ptr<NextHopGroupApi>>(apis_) =
@@ -116,6 +117,14 @@ HostifApi& SaiApiTable::hostifApi() {
 const HostifApi& SaiApiTable::hostifApi() const {
   return getApi<HostifApi>();
 }
+
+MirrorApi& SaiApiTable::mirrorApi() {
+  return getApi<MirrorApi>();
+}
+const MirrorApi& SaiApiTable::mirrorApi() const {
+  return getApi<MirrorApi>();
+}
+
 MplsApi& SaiApiTable::mplsApi() {
   return getApi<MplsApi>();
 }
