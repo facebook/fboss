@@ -26,6 +26,7 @@
 #include "fboss/agent/hw/sai/api/QueueApi.h"
 #include "fboss/agent/hw/sai/api/RouteApi.h"
 #include "fboss/agent/hw/sai/api/RouterInterfaceApi.h"
+#include "fboss/agent/hw/sai/api/SamplePacketApi.h"
 #include "fboss/agent/hw/sai/api/SchedulerApi.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 #include "fboss/agent/hw/sai/api/TamApi.h"
@@ -105,6 +106,9 @@ class SaiApiTable {
   RouterInterfaceApi& routerInterfaceApi();
   const RouterInterfaceApi& routerInterfaceApi() const;
 
+  SamplePacketApi& samplePacketApi();
+  const SamplePacketApi& samplePacketApi() const;
+
   SchedulerApi& schedulerApi();
   const SchedulerApi& schedulerApi() const;
 
@@ -157,6 +161,7 @@ class SaiApiTable {
       std::unique_ptr<QueueApi>,
       std::unique_ptr<RouteApi>,
       std::unique_ptr<RouterInterfaceApi>,
+      std::unique_ptr<SamplePacketApi>,
       std::unique_ptr<SchedulerApi>,
       std::unique_ptr<SwitchApi>,
       std::unique_ptr<VirtualRouterApi>,

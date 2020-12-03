@@ -64,6 +64,7 @@ set(SAI_API_SRC
   fboss/agent/hw/sai/api/SaiAttributeDataTypes.h
   fboss/agent/hw/sai/api/SaiObjectApi.h
   fboss/agent/hw/sai/api/SaiVersion.h
+  fboss/agent/hw/sai/api/SamplePacketApi.h
   fboss/agent/hw/sai/api/SchedulerApi.h
   fboss/agent/hw/sai/api/SwitchApi.h
   fboss/agent/hw/sai/api/TamApi.h

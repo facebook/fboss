@@ -194,6 +194,8 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
       return "tam-event";
     case SAI_OBJECT_TYPE_TAM:
       return "tam";
+    case SAI_OBJECT_TYPE_SAMPLEPACKET:
+      return "sample-packet";
     default:
       throw FbossError("object type invalid: ", objectType);
   }

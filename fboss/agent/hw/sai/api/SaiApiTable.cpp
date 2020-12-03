@@ -58,6 +58,8 @@ void SaiApiTable::queryApis() {
   std::get<std::unique_ptr<RouteApi>>(apis_) = std::make_unique<RouteApi>();
   std::get<std::unique_ptr<RouterInterfaceApi>>(apis_) =
       std::make_unique<RouterInterfaceApi>();
+  std::get<std::unique_ptr<SamplePacketApi>>(apis_) =
+      std::make_unique<SamplePacketApi>();
   std::get<std::unique_ptr<SchedulerApi>>(apis_) =
       std::make_unique<SchedulerApi>();
   std::get<std::unique_ptr<SwitchApi>>(apis_) = std::make_unique<SwitchApi>();
@@ -185,6 +187,13 @@ RouterInterfaceApi& SaiApiTable::routerInterfaceApi() {
 }
 const RouterInterfaceApi& SaiApiTable::routerInterfaceApi() const {
   return getApi<RouterInterfaceApi>();
+}
+
+SamplePacketApi& SaiApiTable::samplePacketApi() {
+  return getApi<SamplePacketApi>();
+}
+const SamplePacketApi& SaiApiTable::samplePacketApi() const {
+  return getApi<SamplePacketApi>();
 }
 
 SchedulerApi& SaiApiTable::schedulerApi() {
