@@ -164,9 +164,7 @@ class SaiSwitch : public HwSwitch {
   std::shared_ptr<SwitchState> stateChangedTransaction(
       const StateDelta& delta) override;
 
-  bool transactionsSupported() const override {
-    return true;
-  }
+  bool transactionsSupported() const override;
 
  private:
   std::string listObjectsLocked(

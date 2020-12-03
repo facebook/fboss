@@ -276,12 +276,16 @@ void SaiSwitch::processLinkStateChangeDelta(const StateDelta& delta) {
       });
 }
 
+bool SaiSwitch::transactionsSupported() const {
+  // FIXME : Stoo skipping for Tajo once T79717530 resolved
+  return platform_->getAsic()->getAsicType() !=
+      HwAsic::AsicType::ASIC_TYPE_TAJO;
+}
+
 std::shared_ptr<SwitchState> SaiSwitch::stateChangedTransaction(
     const StateDelta& delta) {
-  if (platform_->getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TAJO) {
-    // FIXME : avoid skipping for Tajo once T79717530 resolved
-    throw FbossError("Transactions not supported on Tajo ASIC");
-  }
+  CHECK(
+      platform_->getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_TAJO);
   try {
     return stateChanged(delta);
   } catch (const FbossError& e) {
