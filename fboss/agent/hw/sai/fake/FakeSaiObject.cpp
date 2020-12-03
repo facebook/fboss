@@ -97,6 +97,9 @@ sai_status_t sai_get_object_count(
     case SAI_OBJECT_TYPE_QUEUE:
       *count = fs->queueManager.map().size();
       break;
+    case SAI_OBJECT_TYPE_SAMPLEPACKET:
+      *count = fs->samplePacketManager.map().size();
+      break;
     case SAI_OBJECT_TYPE_SCHEDULER:
       *count = fs->scheduleManager.map().size();
       break;
@@ -315,6 +318,12 @@ sai_status_t sai_get_object_key(
     case SAI_OBJECT_TYPE_QUEUE: {
       for (const auto& q : fs->queueManager.map()) {
         object_list[i++].key.object_id = q.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_SAMPLEPACKET: {
+      for (const auto& sp : fs->samplePacketManager.map()) {
+        object_list[i++].key.object_id = sp.second.id;
       }
       break;
     }
