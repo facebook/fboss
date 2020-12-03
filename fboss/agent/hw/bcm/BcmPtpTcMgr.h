@@ -17,20 +17,26 @@ class BcmPtpTcMgr {
   void enablePtpTc();
   void disablePtpTc();
 
- private:
-  bool isPtpTcSupported();
-  bool isPtpTcPcsSupported();
+  // utility routines
+  static bool isPtpTcSupported(BcmSwitch* hw);
+  static bool isPtpTcPcsSupported(BcmSwitch* hw);
 
+  // utility routines used by tests
+  bool isPtpTcEnabled();
+
+ private:
   int getTsBitModeArg(HwAsic::AsicType asicType);
 
   void enablePortTimesyncConfig(
       bcm_port_timesync_config_t* port_timesync_config);
 
-  void enablePcsBasedTimestamping(bcm_port_t port);
-  void disablePcsBasedTimestamping(bcm_port_t port);
+  void enablePcsBasedOneStepTimestamping(bcm_port_t port);
+  void disablePcsBasedOneStepTimestamping(bcm_port_t port);
+  bool isPcsBasedOneStepTimestampingEnabled(bcm_port_t port);
 
   void enableTimeInterface();
   void disableTimeInterface();
+  bool isTimeInterfaceEnabled();
 
   BcmSwitch* hw_;
 };

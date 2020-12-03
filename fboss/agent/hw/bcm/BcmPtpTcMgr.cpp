@@ -54,7 +54,7 @@ void BcmPtpTcMgr::enablePortTimesyncConfig(
                                                    field */
 }
 
-void BcmPtpTcMgr::enablePcsBasedTimestamping(bcm_port_t port) {
+void BcmPtpTcMgr::enablePcsBasedOneStepTimestamping(bcm_port_t port) {
   const auto unit = hw_->getUnit();
 
   // TODO(rajukumarfb5368): Use bcm_port_control_phy_timesync_set() in SDK
@@ -73,7 +73,7 @@ void BcmPtpTcMgr::enablePcsBasedTimestamping(bcm_port_t port) {
       port);
 }
 
-void BcmPtpTcMgr::disablePcsBasedTimestamping(bcm_port_t port) {
+void BcmPtpTcMgr::disablePcsBasedOneStepTimestamping(bcm_port_t port) {
   const auto unit = hw_->getUnit();
 
   bcm_port_phy_timesync_config_t phy;
@@ -83,6 +83,21 @@ void BcmPtpTcMgr::disablePcsBasedTimestamping(bcm_port_t port) {
       bcm_port_phy_timesync_config_set(unit, port, &phy),
       "failed to disable TC on port ",
       port);
+}
+
+bool BcmPtpTcMgr::isPcsBasedOneStepTimestampingEnabled(bcm_port_t port) {
+  const auto unit = hw_->getUnit();
+
+  bcm_port_phy_timesync_config_t phy;
+  bcm_port_phy_timesync_config_t_init(&phy);
+
+  BCM_CHECK_ERROR(
+      bcm_port_phy_timesync_config_get(unit, port, &phy),
+      "failed to get phy timesync config on port ",
+      port);
+
+  return (phy.flags & BCM_PORT_PHY_TIMESYNC_ENABLE) &&
+      (phy.flags & BCM_PORT_PHY_TIMESYNC_ONE_STEP_ENABLE);
 }
 
 void BcmPtpTcMgr::enableTimeInterface() {
@@ -97,19 +112,28 @@ void BcmPtpTcMgr::disableTimeInterface() {
   bcm_time_interface_delete_all(hw_->getUnit());
 }
 
-bool BcmPtpTcMgr::isPtpTcSupported() {
-  return hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PTP_TC);
+bool BcmPtpTcMgr::isTimeInterfaceEnabled() {
+  bcm_time_interface_t time_interface;
+  bcm_time_interface_t_init(&time_interface);
+
+  const auto unit = hw_->getUnit();
+  bcm_time_interface_get(unit, &time_interface);
+
+  return time_interface.flags & BCM_TIME_ENABLE;
 }
 
-bool BcmPtpTcMgr::isPtpTcPcsSupported() {
-  return hw_->getPlatform()->getAsic()->isSupported(
-      HwAsic::Feature::PTP_TC_PCS);
+bool BcmPtpTcMgr::isPtpTcSupported(BcmSwitch* hw) {
+  return hw->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PTP_TC);
+}
+
+bool BcmPtpTcMgr::isPtpTcPcsSupported(BcmSwitch* hw) {
+  return hw->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PTP_TC_PCS);
 }
 
 /* separate configuration for MAC based timestamping devices - TD2/TH, and
  * PCS based timestamping devices - TH3 */
 void BcmPtpTcMgr::enablePtpTc() {
-  if (!isPtpTcSupported()) {
+  if (!isPtpTcSupported(hw_)) {
     XLOG(INFO) << "[PTP] Ignore configuration of unsupported feature";
     return;
   }
@@ -131,14 +155,15 @@ void BcmPtpTcMgr::enablePtpTc() {
   int count = 0;
   bcm_port_t port;
   BCM_PBMP_ITER(portConfig.port, port) {
-    if (isPtpTcPcsSupported()) {
-      enablePcsBasedTimestamping(port);
+    if (isPtpTcPcsSupported(hw_)) {
+      enablePcsBasedOneStepTimestamping(port);
     }
 
     // TODO(rajukumarfb5368): high level description of bcm_*() calls needed
 
     BCM_CHECK_ERROR(
-        bcm_port_timesync_config_set(unit, port, 1, &port_timesync_config),
+        bcm_port_timesync_config_set(
+            unit, port, 1 /* config_count */, &port_timesync_config),
         "Error in enabling TC correction for port ",
         port);
 
@@ -158,7 +183,7 @@ void BcmPtpTcMgr::enablePtpTc() {
 }
 
 void BcmPtpTcMgr::disablePtpTc() {
-  if (!isPtpTcSupported()) {
+  if (!isPtpTcSupported(hw_)) {
     XLOG(INFO) << "[PTP] Ignore configuration of unsupported feature";
     return;
   }
@@ -175,8 +200,8 @@ void BcmPtpTcMgr::disablePtpTc() {
   int count = 0;
   bcm_port_t port;
   BCM_PBMP_ITER(portConfig.port, port) {
-    if (isPtpTcPcsSupported()) {
-      disablePcsBasedTimestamping(port);
+    if (isPtpTcPcsSupported(hw_)) {
+      disablePcsBasedOneStepTimestamping(port);
     }
 
     BCM_CHECK_ERROR(
@@ -184,11 +209,80 @@ void BcmPtpTcMgr::disablePtpTc() {
         "Error in disabling TC correction for port ",
         port);
 
+    BCM_CHECK_ERROR(
+        bcm_switch_control_port_set(
+            unit,
+            port,
+            bcmSwitchTimesyncEgressTimestampingMode,
+            0 /* tsBitModeArg */),
+        "Error in disabling TC egress timestamping mode for port ",
+        port);
+
     count++;
   }
 
   disableTimeInterface();
   XLOG(INFO) << "[PTP] Disabled timestamping on " << count << " ports";
+}
+
+bool BcmPtpTcMgr::isPtpTcEnabled() {
+  bcm_port_config_t portConfig;
+  bcm_port_config_t_init(&portConfig);
+
+  const auto unit = hw_->getUnit();
+  BCM_CHECK_ERROR(
+      bcm_port_config_get(unit, &portConfig),
+      "failed to get port configuration");
+
+  bcm_port_t port;
+  BCM_PBMP_ITER(portConfig.port, port) {
+    if (isPtpTcPcsSupported(hw_)) {
+      if (!isPcsBasedOneStepTimestampingEnabled(port)) {
+        return false;
+      }
+    }
+
+    bcm_port_timesync_config_t port_timesync_config;
+    bcm_port_timesync_config_t_init(&port_timesync_config);
+    int array_count = -1;
+    BCM_CHECK_ERROR(
+        bcm_port_timesync_config_get(
+            unit,
+            port,
+            1 /* array_size */,
+            &port_timesync_config,
+            &array_count),
+        "failed to get port timesync configuration");
+    if (array_count != 1) {
+      return false;
+    }
+    if (!(port_timesync_config.flags & BCM_PORT_TIMESYNC_DEFAULT)) {
+      return false;
+    }
+    if (!(port_timesync_config.flags & BCM_PORT_TIMESYNC_ONE_STEP_TIMESTAMP)) {
+      return false;
+    }
+    if (!(port_timesync_config.flags &
+          BCM_PORT_TIMESYNC_TIMESTAMP_CFUPDATE_ALL)) {
+      return false;
+    }
+
+    int tsBitModeArgFound = -1;
+    BCM_CHECK_ERROR(
+        bcm_switch_control_port_get(
+            unit,
+            port,
+            bcmSwitchTimesyncEgressTimestampingMode,
+            &tsBitModeArgFound),
+        "failed to get control port configuration");
+    static const int tsBitModeArg =
+        getTsBitModeArg(hw_->getPlatform()->getAsic()->getAsicType());
+    if (tsBitModeArg != tsBitModeArgFound) {
+      return false;
+    }
+  }
+
+  return isTimeInterfaceEnabled();
 }
 
 } // namespace facebook::fboss
