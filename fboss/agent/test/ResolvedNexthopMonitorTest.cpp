@@ -591,6 +591,10 @@ TEST_F(ResolvedNexthopMonitorTest, ProbeTriggeredV6) {
   schedulePendingStateUpdates();
   auto evb = sw_->getBackgroundEvb();
   evb->runInEventBaseThreadAndWait([]() {});
+  // tickle the neighbor cache event which is responsible
+  // for adding the pending entry
+  evb = sw_->getNeighborCacheEvb();
+  evb->runInEventBaseThreadAndWait([]() {});
   schedulePendingStateUpdates();
   // pending entry must be created
   ndpTable = sw_->getState()->getVlans()->getVlan(VlanID(1))->getNdpTable();
