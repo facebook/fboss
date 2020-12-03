@@ -106,7 +106,6 @@ int BcmControlPlaneQueueManager::getNumQueues(
   throw FbossError(
       "Failed to retrieve queue size because unsupported StreamType: ",
       apache::thrift::util::enumNameSafe(streamType));
-  ;
 }
 
 std::unique_ptr<PortQueue> BcmControlPlaneQueueManager::getCurrentQueueSettings(

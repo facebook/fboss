@@ -27,6 +27,12 @@ void BcmEgressQueueFlexCounter::attach(bcm_gport_t /* gPort */) {
       "OSS doesn't support attach Egress Queue FlexCounter to port");
 }
 
+void BcmEgressQueueFlexCounter::getStats(
+    bcm_gport_t /* gPort */,
+    BcmEgressQueueFlexCounter::BcmEgressQueueTrafficCounterStats& /* stats */) {
+  throw FbossError("OSS doesn't support get Egress Queue FlexCounter stats");
+}
+
 BcmEgressQueueFlexCounterManager::BcmEgressQueueFlexCounterManager(
     BcmSwitch* /* hw */) {
   throw FbossError("OSS doesn't support egress queue flex counter manager");

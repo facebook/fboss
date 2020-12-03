@@ -33,6 +33,11 @@ class BcmEgressQueueFlexCounter : public BcmFlexCounter {
 
   void attach(bcm_gport_t gPort);
 
+  using BcmEgressQueueTrafficCounterStats = std::unordered_map<
+      cfg::StreamType,
+      std::unordered_map<int, BcmTrafficCounterStats>>;
+  void getStats(bcm_gport_t gPort, BcmEgressQueueTrafficCounterStats& stats);
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmEgressQueueFlexCounter(BcmEgressQueueFlexCounter const&) = delete;
@@ -55,6 +60,16 @@ class BcmEgressQueueFlexCounterManager {
 
   void attachToPort(bcm_gport_t gPort) {
     portQueueFlexCounter_->attach(gPort);
+  }
+
+  void getStats(
+      bcm_gport_t gPort,
+      BcmEgressQueueFlexCounter::BcmEgressQueueTrafficCounterStats& stats) {
+    if (gPort == BCM_GPORT_LOCAL_CPU) {
+      cpuQueueFlexCounter_->getStats(gPort, stats);
+    } else {
+      portQueueFlexCounter_->getStats(gPort, stats);
+    }
   }
 
  private:

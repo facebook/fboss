@@ -12,6 +12,7 @@
 #include "common/stats/MonotonicCounter.h"
 
 #include "fboss/agent/hw/bcm/BcmCosQueueCounterType.h"
+#include "fboss/agent/hw/bcm/BcmEgressQueueFlexCounter.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/state/PortQueue.h"
 
@@ -196,6 +197,9 @@ class BcmCosQueueManager {
       HwPortStats* portStats = nullptr) = 0;
 
   std::map<BcmCosQueueCounterType, QueueStatCounters> queueCounters_;
+  folly::Synchronized<
+      BcmEgressQueueFlexCounter::BcmEgressQueueTrafficCounterStats>
+      queueFlexCounterStats_;
 };
 
 } // namespace facebook::fboss

@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/bcm/BcmCosQueueFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmCosQueueManagerUtils.h"
+#include "fboss/agent/hw/bcm/BcmEgressQueueFlexCounter.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
@@ -152,6 +153,31 @@ void BcmCosQueueManager::fillOrReplaceCounter(
           queue,
           std::make_unique<facebook::stats::MonotonicCounter>(
               name, fb303::SUM, fb303::RATE));
+
+      // Prepare pre-allocate Queue FlexCounter stats so that we can avoid
+      // allocating memory frequently when the getStats() function is called.
+      if (hw_->getPlatform()->getAsic()->isSupported(
+              HwAsic::Feature::EGRESS_QUEUE_FLEX_COUNTER)) {
+        auto queueFlexCounterStatsLock = queueFlexCounterStats_.wlock();
+        if (queueFlexCounterStatsLock->find(type.streamType) ==
+            queueFlexCounterStatsLock->end()) {
+          BcmTrafficCounterStats trafficCounterStats;
+          trafficCounterStats.emplace(type.getCounterType(), 0);
+          std::unordered_map<int, BcmTrafficCounterStats> queueStatsMap;
+          queueStatsMap.emplace(queue, std::move(trafficCounterStats));
+          queueFlexCounterStatsLock->emplace(
+              type.streamType, std::move(queueStatsMap));
+        } else {
+          auto& queueStats = queueFlexCounterStatsLock->at(type.streamType);
+          if (queueStats.find(queue) == queueStats.end()) {
+            BcmTrafficCounterStats trafficCounterStats;
+            trafficCounterStats.emplace(type.getCounterType(), 0);
+            queueStats.emplace(queue, std::move(trafficCounterStats));
+          } else {
+            queueStats[queue].emplace(type.getCounterType(), 0);
+          }
+        }
+      }
     }
   }
   if (type.isScopeAggregated()) {
@@ -206,15 +232,30 @@ void BcmCosQueueManager::destroyQueueCounters() {
 void BcmCosQueueManager::updateQueueStats(
     std::chrono::seconds now,
     HwPortStats* portStats) {
+  // We only need one BcmEgressQueueFlexCounter for all the BcmPorts in
+  // the same unit, and this FlexCounter is created in BcmSwitch::setupCos()
+  // So this should be thread-safe to call here.
+  // Besides, BcmCosQueueManager's lifetime totally depends on BcmPort, so
+  // once we're thread-safe to call BcmPort::updateStats(), this function
+  // here is also safe.
+  auto* flexCounterMgr = hw_->getBcmEgressQueueFlexCounterManager();
+  auto queueFlexCounterStatsLock = queueFlexCounterStats_.wlock();
+  if (flexCounterMgr) {
+    // TODO(joseph5Wu) Will process FlexCounter stats later
+    flexCounterMgr->getStats(portGport_, *queueFlexCounterStatsLock);
+  }
+
   for (const auto& cntr : queueCounters_) {
     if (cntr.first.isScopeQueues()) {
-      for (auto& countersItr : cntr.second.queues) {
-        updateQueueStat(
-            countersItr.first,
-            cntr.first,
-            countersItr.second.get(),
-            now,
-            portStats);
+      if (!flexCounterMgr) {
+        for (auto& countersItr : cntr.second.queues) {
+          updateQueueStat(
+              countersItr.first,
+              cntr.first,
+              countersItr.second.get(),
+              now,
+              portStats);
+        }
       }
     }
     if (cntr.first.isScopeAggregated()) {

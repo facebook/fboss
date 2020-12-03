@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 namespace facebook::fboss {
@@ -52,6 +53,24 @@ struct BcmCosQueueCounterType {
   bool isScopeAggregated() const {
     return scope == BcmCosQueueCounterScope::AGGREGATED ||
         scope == BcmCosQueueCounterScope::QUEUES_AND_AGGREGATED;
+  }
+
+  cfg::CounterType getCounterType() const {
+    switch (statType) {
+      case BcmCosQueueStatType::DROPPED_PACKETS:
+      case BcmCosQueueStatType::OUT_PACKETS:
+      case BcmCosQueueStatType::OBM_LOSSY_HIGH_PRI_DROPPED_PACKETS:
+      case BcmCosQueueStatType::OBM_LOSSY_LOW_PRI_DROPPED_PACKETS:
+        return cfg::CounterType::PACKETS;
+      case BcmCosQueueStatType::DROPPED_BYTES:
+      case BcmCosQueueStatType::OUT_BYTES:
+      case BcmCosQueueStatType::OBM_LOSSY_HIGH_PRI_DROPPED_BYTES:
+      case BcmCosQueueStatType::OBM_LOSSY_LOW_PRI_DROPPED_BYTES:
+        return cfg::CounterType::BYTES;
+      case BcmCosQueueStatType::OBM_HIGH_WATERMARK:
+        throw FbossError("Invalid stat type");
+    }
+    throw FbossError("Invalid stat type");
   }
 };
 
