@@ -162,62 +162,23 @@ SaiSwitch::~SaiSwitch() {}
 HwInitResult SaiSwitch::init(
     Callback* callback,
     bool failHwCallsOnWarmboot) noexcept {
-  HwInitResult ret;
-  {
-    std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-    ret = initLocked(lock, callback);
-    /*
-     * SwitchState does not have notion of AclTableGroup or AclTable today.
-     * Thus, stateChanged() can not process aclTableGroupChanges or
-     * aclTableChanges. Thus, we create single AclTableGroup for Ingress and a
-     * single AclTable at its member during init(). Every AclEntry from
-     * SwitchState is added to this AclTable by stateChanged() while processing
-     * AclEntryChanges.
-     *
-     * During cold boot, addAclTableGroup()/addAclTable() populate
-     * AclTableGroupManager/AclTableManager local data structures + program the
-     * ASIC by calling SAI AclApi.
-     *
-     * During warm boot, SaiStore reload() reloads SAI objects for
-     * AclTableGroup/AclTable in SaiStore. Thus,
-     * addAclTableGroup()/addAclTable() only populate
-     * AclTableGroupManager/AclTableManager local data structure.
-     *
-     * In future, SwitchState would be extended to carry AclTable, at that time,
-     * the implementation would be on the following lines:
-     *     - SwitchState AclTable configuration would include Stage
-     *       e.g. ingress or egress.
-     *     - For every stage supported for AclTable, SaiSwitch::init would
-     *       pre-create an AclTableGroup.
-     *     - statechanged() would contain AclTable delta processing which would
-     *       add/remove/change AclTable and using 'stage', also update the
-     *       corresponding Acl Table group member.
-     *     - statechanged() would continue to carry AclEntry delta processing.
-     */
-  }
+  bootType_ = platform_->getWarmBootHelper()->canWarmBoot()
+      ? BootType::WARM_BOOT
+      : BootType::COLD_BOOT;
   auto behavior{HwWriteBehavior::WRITE};
   if (bootType_ == BootType::WARM_BOOT && failHwCallsOnWarmboot &&
       platform_->getAsic()->isSupported(
           HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT)) {
     behavior = HwWriteBehavior::FAIL;
   }
-
+  HwInitResult ret;
   {
-    HwWriteBehvaiorRAII f{behavior};
-    managerTable_->aclTableGroupManager().addAclTableGroup(
-        SAI_ACL_STAGE_INGRESS);
-    managerTable_->aclTableManager().addAclTable(kAclTable1);
-
-    if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::DEBUG_COUNTER)) {
-      managerTable_->debugCounterManager().setupDebugCounters();
-    }
-    if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL)) {
-      managerTable_->bufferManager().setupEgressBufferPool();
-    }
+    std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+    ret = initLocked(lock, behavior, callback);
   }
 
   {
-    HwWriteBehvaiorRAII f{behavior};
+    HwWriteBehvaiorRAII writeBehavior{behavior};
     stateChanged(StateDelta(std::make_shared<SwitchState>(), ret.switchState));
     if (bootType_ == BootType::WARM_BOOT) {
       SaiStore::getInstance()->printWarmbootHandles();
@@ -824,12 +785,9 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
 
 HwInitResult SaiSwitch::initLocked(
     const std::lock_guard<std::mutex>& lock,
+    HwWriteBehavior behavior,
     Callback* callback) noexcept {
   HwInitResult ret;
-
-  auto wbHelper = platform_->getWarmBootHelper();
-  bootType_ =
-      wbHelper->canWarmBoot() ? BootType::WARM_BOOT : BootType::COLD_BOOT;
   ret.bootType = bootType_;
   std::unique_ptr<folly::dynamic> adapterKeysJson;
   std::unique_ptr<folly::dynamic> adapterKeys2AdapterHostKeysJson;
@@ -843,7 +801,7 @@ HwInitResult SaiSwitch::initLocked(
   __gSaiSwitch = this;
   SaiApiTable::getInstance()->enableLogging(FLAGS_enable_sai_log);
   if (bootType_ == BootType::WARM_BOOT) {
-    auto switchStateJson = wbHelper->getWarmBootState();
+    auto switchStateJson = platform_->getWarmBootHelper()->getWarmBootState();
     ret.switchState = SwitchState::fromFollyDynamic(switchStateJson[kSwSwitch]);
     ret.switchState->publish();
     if (platform_->getAsic()->isSupported(HwAsic::Feature::OBJECT_KEY_CACHE)) {
@@ -862,7 +820,10 @@ HwInitResult SaiSwitch::initLocked(
     }
   }
   initStoreAndManagersLocked(
-      adapterKeysJson.get(), adapterKeys2AdapterHostKeysJson.get(), lock);
+      lock,
+      behavior,
+      adapterKeysJson.get(),
+      adapterKeys2AdapterHostKeysJson.get());
   if (bootType_ != BootType::WARM_BOOT) {
     ret.switchState = getColdBootSwitchState();
   }
@@ -870,13 +831,55 @@ HwInitResult SaiSwitch::initLocked(
 }
 
 void SaiSwitch::initStoreAndManagersLocked(
+    const std::lock_guard<std::mutex>& /*lock*/,
+    HwWriteBehavior behavior,
     const folly::dynamic* adapterKeys,
-    const folly::dynamic* adapterKeys2AdapterHostKeys,
-    const std::lock_guard<std::mutex>& /*lock*/) {
+    const folly::dynamic* adapterKeys2AdapterHostKeys) {
   auto saiStore = SaiStore::getInstance();
   saiStore->setSwitchId(switchId_);
   saiStore->reload(adapterKeys, adapterKeys2AdapterHostKeys);
   managerTable_->createSaiTableManagers(platform_, concurrentIndices_.get());
+  /*
+   * SwitchState does not have notion of AclTableGroup or AclTable today.
+   * Thus, stateChanged() can not process aclTableGroupChanges or
+   * aclTableChanges. Thus, we create single AclTableGroup for Ingress and a
+   * single AclTable at its member during init(). Every AclEntry from
+   * SwitchState is added to this AclTable by stateChanged() while processing
+   * AclEntryChanges.
+   *
+   * During cold boot, addAclTableGroup()/addAclTable() populate
+   * AclTableGroupManager/AclTableManager local data structures + program the
+   * ASIC by calling SAI AclApi.
+   *
+   * During warm boot, SaiStore reload() reloads SAI objects for
+   * AclTableGroup/AclTable in SaiStore. Thus,
+   * addAclTableGroup()/addAclTable() only populate
+   * AclTableGroupManager/AclTableManager local data structure.
+   *
+   * In future, SwitchState would be extended to carry AclTable, at that time,
+   * the implementation would be on the following lines:
+   *     - SwitchState AclTable configuration would include Stage
+   *       e.g. ingress or egress.
+   *     - For every stage supported for AclTable, SaiSwitch::init would
+   *       pre-create an AclTableGroup.
+   *     - statechanged() would contain AclTable delta processing which would
+   *       add/remove/change AclTable and using 'stage', also update the
+   *       corresponding Acl Table group member.
+   *     - statechanged() would continue to carry AclEntry delta processing.
+   */
+  {
+    HwWriteBehvaiorRAII writeBehavior{behavior};
+    managerTable_->aclTableGroupManager().addAclTableGroup(
+        SAI_ACL_STAGE_INGRESS);
+    managerTable_->aclTableManager().addAclTable(kAclTable1);
+
+    if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::DEBUG_COUNTER)) {
+      managerTable_->debugCounterManager().setupDebugCounters();
+    }
+    if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL)) {
+      managerTable_->bufferManager().setupEgressBufferPool();
+    }
+  }
 }
 
 void SaiSwitch::initLinkScanLocked(

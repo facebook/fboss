@@ -193,12 +193,14 @@ class SaiSwitch : public HwSwitch {
    */
   HwInitResult initLocked(
       const std::lock_guard<std::mutex>& lock,
+      HwWriteBehavior behavior,
       Callback* callback) noexcept;
 
   void initStoreAndManagersLocked(
+      const std::lock_guard<std::mutex>& lk,
+      HwWriteBehavior behavior,
       const folly::dynamic* adapterKeys,
-      const folly::dynamic* adapterKeys2AdapterHostKeys,
-      const std::lock_guard<std::mutex>& lk);
+      const folly::dynamic* adapterKeys2AdapterHostKeys);
 
   void unregisterCallbacksLocked(
       const std::lock_guard<std::mutex>& lock) noexcept;
