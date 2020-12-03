@@ -52,13 +52,6 @@ class BcmPortQueueManager : public BcmCosQueueManager {
       cfg::StreamType streamType,
       bcm_cos_queue_t cosQ) const override;
 
-  void updateQueueStat(
-      bcm_cos_queue_t cosQ,
-      const BcmCosQueueCounterType& type,
-      facebook::stats::MonotonicCounter* counter,
-      std::chrono::seconds now,
-      HwPortStats* portStats = nullptr) override;
-
   void getAlpha(bcm_gport_t gport, bcm_cos_queue_t cosQ, PortQueue* queue)
       const;
   void
@@ -75,6 +68,10 @@ class BcmPortQueueManager : public BcmCosQueueManager {
       bcm_cos_queue_t cosQ,
       cfg::QueueCongestionBehavior behavior,
       std::optional<cfg::QueueCongestionDetection> detection);
+
+  std::pair<bcm_gport_t, bcm_cos_queue_t> getQueueStatIDPair(
+      bcm_cos_queue_t cosQ,
+      cfg::StreamType streamType) override;
 
   void
   programTrafficClass(bcm_gport_t queueGport, bcm_cos_queue_t cosQ, int prio);

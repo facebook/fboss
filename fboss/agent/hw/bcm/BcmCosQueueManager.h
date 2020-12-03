@@ -189,12 +189,17 @@ class BcmCosQueueManager {
       std::chrono::seconds now,
       HwPortStats* portStats = nullptr);
 
-  virtual void updateQueueStat(
-      int cosQ,
-      const BcmCosQueueCounterType& type,
+  void updateQueueStat(
+      bcm_cos_queue_t cosQ,
+      BcmCosQueueStatType statType,
+      uint64_t value,
       facebook::stats::MonotonicCounter* counter,
       std::chrono::seconds now,
-      HwPortStats* portStats = nullptr) = 0;
+      HwPortStats* portStats = nullptr);
+
+  virtual std::pair<bcm_gport_t, bcm_cos_queue_t> getQueueStatIDPair(
+      bcm_cos_queue_t cosQ,
+      cfg::StreamType streamType) = 0;
 
   std::map<BcmCosQueueCounterType, QueueStatCounters> queueCounters_;
   folly::Synchronized<

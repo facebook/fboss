@@ -35,33 +35,32 @@ extern "C" {
 }
 
 namespace {
+using namespace facebook::fboss;
 // the corresponding bcm_cosq_control_t for uc and mc queues
-using facebook::fboss::BcmCosQueueControlType;
-using facebook::fboss::cfg::StreamType;
 using CosControlTypeAndDescMap =
-    std::map<StreamType, std::pair<bcm_cosq_control_t, std::string>>;
+    std::map<cfg::StreamType, std::pair<bcm_cosq_control_t, std::string>>;
 static const std::map<BcmCosQueueControlType, CosControlTypeAndDescMap>
     kCosqControlTypeAndDescMap = {
         {BcmCosQueueControlType::ALPHA,
-         {{StreamType::UNICAST,
+         {{cfg::StreamType::UNICAST,
            std::make_pair(bcmCosqControlDropLimitAlpha, "uc alpha")},
-          {StreamType::MULTICAST,
+          {cfg::StreamType::MULTICAST,
            std::make_pair(bcmCosqControlDropLimitAlpha, "mc alpa")}}},
         {BcmCosQueueControlType::RESERVED_BYTES,
-         {{StreamType::UNICAST,
+         {{cfg::StreamType::UNICAST,
            std::make_pair(
                bcmCosqControlEgressUCQueueMinLimitBytes,
                "uc reserved bytes")},
-          {StreamType::MULTICAST,
+          {cfg::StreamType::MULTICAST,
            std::make_pair(
                bcmCosqControlEgressMCQueueMinLimitBytes,
                "mc reserved bytes")}}},
         {BcmCosQueueControlType::SHARED_BYTES,
-         {{StreamType::UNICAST,
+         {{cfg::StreamType::UNICAST,
            std::make_pair(
                bcmCosqControlEgressUCQueueSharedLimitBytes,
                "uc shared bytes")},
-          {StreamType::MULTICAST,
+          {cfg::StreamType::MULTICAST,
            std::make_pair(
                bcmCosqControlEgressMCQueueSharedLimitBytes,
                "mc shared bytes")}}}};
@@ -73,15 +72,14 @@ int cosqGportTraverseCallback(
     uint32 flags,
     bcm_gport_t queueGport,
     void* userData) {
-  auto cosQueueManager =
-      static_cast<facebook::fboss::BcmCosQueueManager*>(userData);
+  auto cosQueueManager = static_cast<BcmCosQueueManager*>(userData);
   if (gport != cosQueueManager->getPortGport() &&
       !(BCM_GPORT_MODPORT_PORT_GET(gport) == 0 &&
         cosQueueManager->getPortGport() == BCM_GPORT_LOCAL_CPU)) {
     // no-op
     return 0l;
   }
-  facebook::fboss::CosQueueGports* info = cosQueueManager->getCosQueueGports();
+  CosQueueGports* info = cosQueueManager->getCosQueueGports();
   if (flags & BCM_COSQ_GPORT_SCHEDULER) {
     info->scheduler = queueGport;
   } else if (flags & BCM_COSQ_GPORT_UCAST_QUEUE_GROUP) {
@@ -97,6 +95,69 @@ int cosqGportTraverseCallback(
   }
   return 0l;
 };
+
+using BcmEgressQueueTrafficCounterStats =
+    BcmEgressQueueFlexCounter::BcmEgressQueueTrafficCounterStats;
+uint64_t getQueueStatValue(
+    int unit,
+    bcm_gport_t queueGport,
+    bcm_cos_queue_t queueID,
+    const std::string& portName,
+    int queueNum,
+    const BcmCosQueueCounterType& type,
+    const BcmEgressQueueTrafficCounterStats& flexCtrStats) {
+  // If no flex counter stat is found, use the traditional way
+  if (flexCtrStats.empty() ||
+      !BcmEgressQueueFlexCounter::isSupported(type.statType)) {
+    auto bcmStatType = utility::getBcmCosqStatType(type.statType);
+    uint64_t value;
+    auto rv = bcm_cosq_stat_get(unit, queueGport, queueID, bcmStatType, &value);
+    bcmCheckError(
+        rv,
+        "Unable to get cosq stat ",
+        bcmStatType,
+        " for ",
+        portName,
+        ", queue=",
+        queueNum);
+    return value;
+  }
+
+  // Check whether flexCtrStats has such counter
+  if (auto streamTypeStatsItr = flexCtrStats.find(type.streamType);
+      streamTypeStatsItr != flexCtrStats.end()) {
+    if (auto queueStatsItr = streamTypeStatsItr->second.find(queueNum);
+        queueStatsItr != streamTypeStatsItr->second.end()) {
+      if (auto statItr = queueStatsItr->second.find(type.getCounterType());
+          statItr != queueStatsItr->second.end()) {
+        return statItr->second;
+      } else {
+        throw facebook::fboss::FbossError(
+            "Failed to get Queue FlexCounter stat for port:",
+            portName,
+            ", queue:",
+            queueNum,
+            " because of unsupported counter type:",
+            apache::thrift::util::enumNameSafe(type.getCounterType()));
+      }
+    } else {
+      throw facebook::fboss::FbossError(
+          "Failed to get Queue FlexCounter stat for port:",
+          portName,
+          ", queue:",
+          queueNum,
+          " because the queue isn't in BcmEgressQueueTrafficCounterStats");
+    }
+  } else {
+    throw facebook::fboss::FbossError(
+        "Failed to get Queue FlexCounter stat for port:",
+        portName,
+        ", queue:",
+        queueNum,
+        " because of unsupported stream type:",
+        apache::thrift::util::enumNameSafe(type.streamType));
+  }
+}
 } // unnamed namespace
 
 namespace facebook::fboss {
@@ -157,7 +218,8 @@ void BcmCosQueueManager::fillOrReplaceCounter(
       // Prepare pre-allocate Queue FlexCounter stats so that we can avoid
       // allocating memory frequently when the getStats() function is called.
       if (hw_->getPlatform()->getAsic()->isSupported(
-              HwAsic::Feature::EGRESS_QUEUE_FLEX_COUNTER)) {
+              HwAsic::Feature::EGRESS_QUEUE_FLEX_COUNTER) &&
+          BcmEgressQueueFlexCounter::isSupported(type.statType)) {
         auto queueFlexCounterStatsLock = queueFlexCounterStats_.wlock();
         if (queueFlexCounterStatsLock->find(type.streamType) ==
             queueFlexCounterStatsLock->end()) {
@@ -241,26 +303,59 @@ void BcmCosQueueManager::updateQueueStats(
   auto* flexCounterMgr = hw_->getBcmEgressQueueFlexCounterManager();
   auto queueFlexCounterStatsLock = queueFlexCounterStats_.wlock();
   if (flexCounterMgr) {
-    // TODO(joseph5Wu) Will process FlexCounter stats later
+    // Collect all queue stats for such port at once.
     flexCounterMgr->getStats(portGport_, *queueFlexCounterStatsLock);
   }
 
   for (const auto& cntr : queueCounters_) {
     if (cntr.first.isScopeQueues()) {
-      if (!flexCounterMgr) {
-        for (auto& countersItr : cntr.second.queues) {
-          updateQueueStat(
-              countersItr.first,
-              cntr.first,
-              countersItr.second.get(),
-              now,
-              portStats);
-        }
+      for (auto& countersItr : cntr.second.queues) {
+        auto queueStatIDPair =
+            getQueueStatIDPair(countersItr.first, cntr.first.streamType);
+        auto value = getQueueStatValue(
+            hw_->getUnit(),
+            queueStatIDPair.first,
+            queueStatIDPair.second,
+            portName_,
+            countersItr.first,
+            cntr.first,
+            *queueFlexCounterStatsLock);
+        updateQueueStat(
+            countersItr.first,
+            cntr.first.statType,
+            value,
+            countersItr.second.get(),
+            now,
+            portStats);
       }
     }
     if (cntr.first.isScopeAggregated()) {
       updateQueueAggregatedStat(
           cntr.first, cntr.second.aggregated.get(), now, portStats);
+    }
+  }
+}
+
+void BcmCosQueueManager::updateQueueStat(
+    bcm_cos_queue_t cosQ,
+    BcmCosQueueStatType statType,
+    uint64_t value,
+    facebook::stats::MonotonicCounter* counter,
+    std::chrono::seconds now,
+    HwPortStats* portStats) {
+  if (counter) {
+    counter->updateValue(now, value);
+  }
+
+  if (portStats) {
+    if (statType == BcmCosQueueStatType::DROPPED_BYTES) {
+      portStats->queueOutDiscardBytes__ref()[cosQ] = value;
+    } else if (statType == BcmCosQueueStatType::DROPPED_PACKETS) {
+      portStats->queueOutDiscardPackets__ref()[cosQ] = value;
+    } else if (statType == BcmCosQueueStatType::OUT_BYTES) {
+      portStats->queueOutBytes__ref()[cosQ] = value;
+    } else if (statType == BcmCosQueueStatType::OUT_PACKETS) {
+      portStats->queueOutPackets__ref()[cosQ] = value;
     }
   }
 }

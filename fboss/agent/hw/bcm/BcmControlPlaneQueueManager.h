@@ -47,12 +47,9 @@ class BcmControlPlaneQueueManager : public BcmCosQueueManager {
   BcmControlPlaneQueueManager& operator=(BcmControlPlaneQueueManager const&) =
       delete;
 
-  void updateQueueStat(
+  std::pair<bcm_gport_t, bcm_cos_queue_t> getQueueStatIDPair(
       bcm_cos_queue_t cosQ,
-      const BcmCosQueueCounterType& type,
-      facebook::stats::MonotonicCounter* counter,
-      std::chrono::seconds now,
-      HwPortStats* portStats = nullptr) override;
+      cfg::StreamType streamType) override;
 
   int maxCPUQueue_{0};
 };

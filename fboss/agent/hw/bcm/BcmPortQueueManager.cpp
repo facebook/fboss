@@ -442,48 +442,12 @@ void BcmPortQueueManager::program(const PortQueue& queue) {
   }
 }
 
-void BcmPortQueueManager::updateQueueStat(
+std::pair<bcm_gport_t, bcm_cos_queue_t> BcmPortQueueManager::getQueueStatIDPair(
     bcm_cos_queue_t cosQ,
-    const BcmCosQueueCounterType& type,
-    facebook::stats::MonotonicCounter* counter,
-    std::chrono::seconds now,
-    HwPortStats* portStats) {
+    cfg::StreamType streamType) {
   // for regular port, we always get queue gport from CosQueueGports and use 0
   // as queue id to call bcm_cosq_stat_get
-  auto queueGPort = getQueueGPort(type.streamType, cosQ);
-  auto statType = type.statType;
-
-  uint64_t value;
-  auto rv = bcm_cosq_stat_get(
-      hw_->getUnit(),
-      queueGPort,
-      0,
-      utility::getBcmCosqStatType(statType),
-      &value);
-  bcmCheckError(
-      rv,
-      "Unable to get cosq stat ",
-      utility::getBcmCosqStatType(statType),
-      " for ",
-      portName_,
-      ", queue=",
-      cosQ);
-
-  if (counter) {
-    counter->updateValue(now, value);
-  }
-
-  if (portStats) {
-    if (statType == BcmCosQueueStatType::DROPPED_BYTES) {
-      portStats->queueOutDiscardBytes__ref()[cosQ] = value;
-    } else if (statType == BcmCosQueueStatType::DROPPED_PACKETS) {
-      portStats->queueOutDiscardPackets__ref()[cosQ] = value;
-    } else if (statType == BcmCosQueueStatType::OUT_BYTES) {
-      portStats->queueOutBytes__ref()[cosQ] = value;
-    } else if (statType == BcmCosQueueStatType::OUT_PACKETS) {
-      portStats->queueOutPackets__ref()[cosQ] = value;
-    }
-  }
+  return std::make_pair(getQueueGPort(streamType, cosQ), 0);
 }
 
 // 1:1 mapping: cos <-> internal priority

@@ -20,6 +20,7 @@ extern "C" {
 
 namespace facebook::fboss {
 
+enum class BcmCosQueueStatType;
 class BcmSwitch;
 
 class BcmEgressQueueFlexCounter : public BcmFlexCounter {
@@ -37,6 +38,8 @@ class BcmEgressQueueFlexCounter : public BcmFlexCounter {
       cfg::StreamType,
       std::unordered_map<int, BcmTrafficCounterStats>>;
   void getStats(bcm_gport_t gPort, BcmEgressQueueTrafficCounterStats& stats);
+
+  static bool isSupported(BcmCosQueueStatType type);
 
  private:
   // Forbidden copy constructor and assignment operator

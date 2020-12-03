@@ -134,44 +134,17 @@ void BcmControlPlaneQueueManager::program(const PortQueue& queue) {
   programBandwidth(portGport_, cosQ, queue);
 }
 
-void BcmControlPlaneQueueManager::updateQueueStat(
+std::pair<bcm_gport_t, bcm_cos_queue_t>
+BcmControlPlaneQueueManager::getQueueStatIDPair(
     bcm_cos_queue_t cosQ,
-    const BcmCosQueueCounterType& type,
-    facebook::stats::MonotonicCounter* counter,
-    std::chrono::seconds now,
-    HwPortStats* /*portStats*/) {
+    cfg::StreamType streamType) {
   // for cpu queue, we need to check whether platform supports cos. If not, we
   // use cpu gport + queue id to get cos stat; otherwise, we use queue gport +
   // 0 to get cos stat.
-  auto statType = type.statType;
-  bcm_gport_t gport = portGport_;
-  int specialCosQ = cosQ;
   if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
-    std::tie(gport, specialCosQ) =
-        std::make_pair(getQueueGPort(type.streamType, cosQ), 0);
+    return std::make_pair(getQueueGPort(streamType, cosQ), 0);
+  } else {
+    return std::make_pair(portGport_, cosQ);
   }
-
-  uint64_t value;
-  auto rv = bcm_cosq_stat_get(
-      hw_->getUnit(),
-      gport,
-      specialCosQ,
-      utility::getBcmCosqStatType(statType),
-      &value);
-  bcmCheckError(
-      rv,
-      "Unable to get cosq stat ",
-      utility::getBcmCosqStatType(statType),
-      " for ",
-      portName_,
-      ", cosQ=",
-      cosQ);
-
-  if (counter) {
-    counter->updateValue(now, value);
-  }
-
-  // HwPortStats only supports for regular port, no need to update portStats
 }
-
 } // namespace facebook::fboss

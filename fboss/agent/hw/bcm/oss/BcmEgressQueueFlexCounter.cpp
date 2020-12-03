@@ -33,6 +33,11 @@ void BcmEgressQueueFlexCounter::getStats(
   throw FbossError("OSS doesn't support get Egress Queue FlexCounter stats");
 }
 
+bool BcmEgressQueueFlexCounter::isSupported(BcmCosQueueStatType /* type */) {
+  // Always return false since OSS doesn't support FlexCounter
+  return false;
+}
+
 BcmEgressQueueFlexCounterManager::BcmEgressQueueFlexCounterManager(
     BcmSwitch* /* hw */) {
   throw FbossError("OSS doesn't support egress queue flex counter manager");
