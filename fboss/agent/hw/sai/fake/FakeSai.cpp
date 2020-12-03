@@ -47,6 +47,7 @@ void FakeSai::clear() {
   fs->queueManager.clear();
   fs->routeManager.clear();
   fs->routeInterfaceManager.clear();
+  fs->samplePacketManager.clear();
   fs->scheduleManager.clear();
   fs->switchManager.clear();
   fs->virtualRouteManager.clear();
@@ -181,6 +182,11 @@ sai_status_t sai_api_query(sai_api_t sai_api_id, void** api_method_table) {
     case SAI_API_ROUTER_INTERFACE:
       facebook::fboss::populate_router_interface_api(
           (sai_router_interface_api_t**)api_method_table);
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_API_SAMPLEPACKET:
+      facebook::fboss::populate_samplepacket_api(
+          (sai_samplepacket_api_t**)api_method_table);
       res = SAI_STATUS_SUCCESS;
       break;
     case SAI_API_SCHEDULER:

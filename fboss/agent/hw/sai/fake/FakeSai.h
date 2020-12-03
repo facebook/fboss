@@ -26,6 +26,7 @@
 #include "fboss/agent/hw/sai/fake/FakeSaiQueue.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiRoute.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiRouterInterface.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiSamplePacket.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiScheduler.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiSwitch.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiTam.h"
@@ -68,6 +69,7 @@ struct FakeSai {
   FakeQueueManager queueManager;
   FakeRouteManager routeManager;
   FakeRouterInterfaceManager routeInterfaceManager;
+  FakeSamplePacketManager samplePacketManager;
   FakeSchedulerManager scheduleManager;
   FakeSwitchManager switchManager;
   FakeVirtualRouterManager virtualRouteManager;
