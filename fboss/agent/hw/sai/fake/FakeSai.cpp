@@ -39,6 +39,7 @@ void FakeSai::clear() {
   fs->hostifTrapGroupManager.clear();
   fs->inSegEntryManager.clear();
   fs->neighborManager.clear();
+  fs->mirrorManager.clear();
   fs->nextHopManager.clear();
   fs->nextHopGroupManager.clearWithMembers();
   fs->portManager.clear();
@@ -134,6 +135,11 @@ sai_status_t sai_api_query(sai_api_t sai_api_id, void** api_method_table) {
     case SAI_API_HOSTIF:
       facebook::fboss::populate_hostif_api(
           (sai_hostif_api_t**)api_method_table);
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_API_MIRROR:
+      facebook::fboss::populate_mirror_api(
+          (sai_mirror_api_t**)api_method_table);
       res = SAI_STATUS_SUCCESS;
       break;
     case SAI_API_MPLS:
