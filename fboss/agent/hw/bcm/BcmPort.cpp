@@ -468,8 +468,10 @@ void BcmPort::setIngressVlan(const shared_ptr<Port>& swPort) {
         rv,
         "failed to set ingress VLAN for port ",
         swPort->getID(),
+        " from ",
+        currVlan,
         " to ",
-        swPort->getIngressVlan());
+        bcmVlan);
   }
 }
 
@@ -1255,6 +1257,10 @@ void BcmPort::disableStatCollection() {
   auto rv = bcm_port_stat_enable_set(unit_, gport_, false);
   if (rv != BCM_E_UNAVAIL) {
     bcmCheckError(rv, "Unexpected error disabling counter DMA on port ", port_);
+  }
+
+  if (auto* flexCounterMgr = hw_->getBcmEgressQueueFlexCounterManager()) {
+    flexCounterMgr->detachFromPort(gport_);
   }
 
   statCollectionEnabled_.store(false);

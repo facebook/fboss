@@ -32,9 +32,16 @@ BcmEgressQueueFlexCounter::BcmEgressQueueFlexCounter(
   throw FbossError("OSS doesn't support creating egress queue flex counter");
 }
 
+BcmEgressQueueFlexCounter::~BcmEgressQueueFlexCounter() {}
+
 void BcmEgressQueueFlexCounter::attach(bcm_gport_t /* gPort */) {
   throw FbossError(
       "OSS doesn't support attach Egress Queue FlexCounter to port");
+}
+
+void BcmEgressQueueFlexCounter::detach(bcm_gport_t /* gPort */) {
+  throw FbossError(
+      "OSS doesn't support detach Egress Queue FlexCounter from port");
 }
 
 void BcmEgressQueueFlexCounter::getStats(

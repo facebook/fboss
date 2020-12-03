@@ -38,9 +38,11 @@ class BcmEgressQueueFlexCounter : public BcmFlexCounter {
       int numQueuesPerPort,
       int reservedNumQueuesPerPort,
       bool isForCPU = false);
-  ~BcmEgressQueueFlexCounter() = default;
+  ~BcmEgressQueueFlexCounter();
 
   void attach(bcm_gport_t gPort);
+
+  void detach(bcm_gport_t gPort);
 
   using BcmEgressQueueTrafficCounterStats = std::unordered_map<
       cfg::StreamType,
@@ -71,6 +73,14 @@ class BcmEgressQueueFlexCounterManager {
 
   void attachToPort(bcm_gport_t gPort) {
     portQueueFlexCounter_->attach(gPort);
+  }
+
+  void detachFromCPU() {
+    cpuQueueFlexCounter_->detach(BCM_GPORT_LOCAL_CPU);
+  }
+
+  void detachFromPort(bcm_gport_t gPort) {
+    portQueueFlexCounter_->detach(gPort);
   }
 
   void getStats(

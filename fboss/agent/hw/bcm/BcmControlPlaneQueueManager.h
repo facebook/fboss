@@ -19,7 +19,7 @@ class BcmControlPlaneQueueManager : public BcmCosQueueManager {
  public:
   explicit BcmControlPlaneQueueManager(BcmSwitch* hw);
 
-  ~BcmControlPlaneQueueManager() {}
+  ~BcmControlPlaneQueueManager() override;
 
   int getNumQueues(cfg::StreamType streamType) const override;
 

@@ -46,6 +46,12 @@ BcmControlPlaneQueueManager::BcmControlPlaneQueueManager(BcmSwitch* hw)
   }
 }
 
+BcmControlPlaneQueueManager::~BcmControlPlaneQueueManager() {
+  if (auto* flexCounterMgr = hw_->getBcmEgressQueueFlexCounterManager()) {
+    flexCounterMgr->detachFromCPU();
+  }
+}
+
 const std::vector<BcmCosQueueCounterType>&
 BcmControlPlaneQueueManager::getQueueCounterTypes() const {
   static const std::vector<BcmCosQueueCounterType> types = {
