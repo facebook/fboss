@@ -30,6 +30,14 @@ class BcmEgressQueueFlexCounter : public BcmFlexCounter {
       int numPorts,
       int numQueuesPerPort,
       bool isForCPU = false);
+  // Create FlexCounter with the assigned counterID.
+  // This should only be called when the HW already have this counter created.
+  BcmEgressQueueFlexCounter(
+      BcmSwitch* hw,
+      uint32_t counterID,
+      int numQueuesPerPort,
+      int reservedNumQueuesPerPort,
+      bool isForCPU = false);
   ~BcmEgressQueueFlexCounter() = default;
 
   void attach(bcm_gport_t gPort);

@@ -252,6 +252,13 @@ void BcmPort::init(bool warmBoot) {
     // should be initializing the state for us.
     auto rv = bcm_port_enable_set(unit_, port_, false);
     bcmCheckError(rv, "failed to set port to known state: ", port_);
+  } else {
+    // During warmboot, we need to make sure the enabled ports have
+    // EgressQueue FlexCounter attached if needed
+    if (auto* flexCounterMgr = hw_->getBcmEgressQueueFlexCounterManager();
+        flexCounterMgr && isEnabled()) {
+      flexCounterMgr->attachToPort(gport_);
+    }
   }
   initCustomStats();
 
