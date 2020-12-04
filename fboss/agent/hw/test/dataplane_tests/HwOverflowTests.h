@@ -32,6 +32,9 @@ class HwOverflowTest : public HwLinkStateDependentTest {
   void verifyCopp() {
     // TODO
   }
+  HwSwitchEnsemble::Features featuresDesired() const override {
+    return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX};
+  }
 
  protected:
   void setupEcmp();
