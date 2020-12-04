@@ -113,6 +113,7 @@ add_library(core
   fboss/agent/LoadBalancerConfigApplier.cpp
   fboss/agent/LookupClassUpdater.cpp
   fboss/agent/LookupClassRouteUpdater.cpp
+  fboss/agent/MKAServicePorts.cpp
   fboss/agent/MKAServiceManager.cpp
   fboss/agent/MacTableManager.cpp
   fboss/agent/MacTableUtils.cpp

@@ -15,8 +15,8 @@ BidirectionalPacketStream::~BidirectionalPacketStream() {
 }
 
 void BidirectionalPacketStream::registerPortsToServer() {
-  if (PacketStreamClient::isConnectedToServer() && clientConnected_.load() &&
-      newConnection_.load()) {
+  if (newConnection_.load() && PacketStreamClient::isConnectedToServer() &&
+      clientConnected_.load()) {
     try {
       portMap_.withWLock([&](auto& lockedMap) {
         for (const auto& port : lockedMap) {

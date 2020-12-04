@@ -491,6 +491,7 @@ if (NOT SAI_ONLY)
       fboss/agent/LoadBalancerConfigApplier.cpp
       fboss/agent/Main.cpp
       fboss/agent/SetupThrift.cpp
+      fboss/agent/MKAServicePorts.cpp
       fboss/agent/MKAServiceManager.cpp
       fboss/agent/MirrorManager.cpp
       fboss/agent/MirrorManagerImpl.cpp

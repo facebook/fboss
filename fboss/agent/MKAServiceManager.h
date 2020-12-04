@@ -11,10 +11,9 @@
 
 #include <memory>
 
+#include "fboss/agent/MKAServicePorts.h"
 #include "fboss/agent/thrift_packet_stream/BidirectionalPacketStream.h"
 
-DECLARE_int32(fboss_mka_port);
-DECLARE_int32(mka_service_port);
 DECLARE_double(mka_reconnect_timer);
 
 namespace folly {
