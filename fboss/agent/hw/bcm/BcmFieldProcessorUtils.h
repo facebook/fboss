@@ -162,7 +162,11 @@ bool isBcmEnumQualFieldStateSame(
   auto rv = getBcmQualifierFn(unit, entry, &hwValue);
   // In broadcom side, when it's asked to get a non-existing qualifier for an
   // enum, it will return BCM_E_INTERNAL.
-  if (rv == BCM_E_INTERNAL && !swValue.has_value()) {
+  // CS00011566968: On TH4, bcm_field_qualify_IpFrag_get returns BCM_E_UNAVAIL
+  // on an entry which doesn't use bcmFieldQualifyIpFrag, which doesn't match
+  // what we expact. For now, we temporarily add BCM_E_UNAVAIL another option
+  // here if HW doesn't have such qualifier
+  if ((rv == BCM_E_INTERNAL || rv == BCM_E_UNAVAIL) && !swValue.has_value()) {
     return true;
   }
 
@@ -321,11 +325,6 @@ bool isBcmPortQualFieldStateSame(
   return isBcmQualFieldStateSame(
       getBcmQualifierFn, unit, entry, moduleD, portD, aclMsg, qualMsg);
 }
-
-bool aclStatExists(
-    int unit,
-    bcm_field_entry_t aclEntry,
-    BcmAclStatHandle* statHandle);
 
 bcm_field_qset_t getAclQset(HwAsic::AsicType asicType);
 

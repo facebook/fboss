@@ -326,20 +326,6 @@ bool qsetsEqual(const bcm_field_qset_t& lhs, const bcm_field_qset_t& rhs) {
   return true;
 }
 
-bool aclStatExists(
-    int unit,
-    bcm_field_entry_t aclEntry,
-    BcmAclStatHandle* statHandle) {
-  int statId;
-  auto rv = bcm_field_entry_stat_get(unit, aclEntry, &statId);
-  if (rv == BCM_E_NOT_FOUND) {
-    return false;
-  }
-  bcmCheckError(rv, "Unable to get stat for acl=", aclEntry);
-  *statHandle = statId;
-  return true;
-}
-
 bool fpGroupExists(int unit, bcm_field_group_t gid) {
   bcm_field_qset_t qset;
   BCM_FIELD_QSET_INIT(qset);

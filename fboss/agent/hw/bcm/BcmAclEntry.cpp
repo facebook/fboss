@@ -673,14 +673,14 @@ bool BcmAclEntry::isStateSame(
   }
 
   // check acl stat
-  BcmAclStatHandle statHandle;
-  auto statExists = aclStatExists(hw->getUnit(), handle, &statHandle);
-  if (statExists && acl->getAclAction() &&
+  auto aclStatHandle =
+      BcmAclStat::getAclStatHandleFromAttachedAcl(hw, gid, handle);
+  if (aclStatHandle && acl->getAclAction() &&
       acl->getAclAction()->getTrafficCounter()) {
     auto counter = acl->getAclAction()->getTrafficCounter().value();
-    isSame &= BcmAclStat::isStateSame(hw, statHandle, counter);
+    isSame &= ((BcmAclStat::isStateSame(hw, *aclStatHandle, counter)) ? 1 : 0);
   } else {
-    isSame &= !statExists;
+    isSame &= ((!aclStatHandle.has_value()) ? 1 : 0);
   }
 
   return isSame;
