@@ -172,9 +172,6 @@ void initandExitBenchmarkHelper(
   auto hwSwitch = ensemble->getHwSwitch();
   auto numUplinks = getUplinksCount(hwSwitch, uplinkSpeed, downlinkSpeed);
   if (!numUplinks) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
     return;
   }
   /*
