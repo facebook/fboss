@@ -13,6 +13,8 @@
 
 #include "fboss/agent/hw/test/HwTestProdConfigUtils.h"
 
+#include "fboss/agent/hw/test/dataplane_tests/HwEcmpDataPlaneTestUtil.h"
+
 namespace facebook::fboss {
 
 class HwOverflowTest : public HwLinkStateDependentTest {
@@ -23,22 +25,22 @@ class HwOverflowTest : public HwLinkStateDependentTest {
     utility::addProdFeaturesToConfig(cfg, getHwSwitch());
     return cfg;
   }
-  void verifyQoS() const {
+  void verifyQoS() {
     // TODO
   }
-  void verifyLoadBalacing() const {
-    // TODO
-  }
-  void verifyCopp() const {
+  void verifyLoadBalacing();
+  void verifyCopp() {
     // TODO
   }
 
  protected:
-  void verifyInvariantsPostOverflow() const {
+  void setupEcmp();
+  void verifyInvariantsPostOverflow() {
     verifyQoS();
     verifyCopp();
     verifyLoadBalacing();
   }
+  std::unique_ptr<utility::HwIpV6EcmpDataPlaneTestUtil> ecmpHelper_;
 };
 
 } // namespace facebook::fboss
