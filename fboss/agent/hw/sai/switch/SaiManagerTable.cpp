@@ -132,6 +132,10 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   bufferManager_.reset();
   wredManager_.reset();
   tamManager_.reset();
+
+  queueManager_.reset();
+  routeManager_.reset();
+  schedulerManager_.reset();
   if (!skipSwitchManager) {
     switchManager_.reset();
   }
