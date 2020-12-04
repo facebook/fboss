@@ -95,6 +95,17 @@ target_link_libraries(load_balancer_utils
   Folly::folly
 )
 
+add_library(prod_config_utils
+  fboss/agent/hw/test/HwTestProdConfigUtils.cpp
+)
+
+target_link_libraries(prod_config_utils
+  load_balancer_utils
+  switch_config_cpp2
+  hw_qos_utils
+  hw_copp_utils
+)
+
 add_library(traffic_policy_utils
   fboss/agent/hw/test/TrafficPolicyUtils.cpp
 )

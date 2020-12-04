@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
+#include "fboss/agent/hw/test/HwTestProdConfigUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/platforms/common/PlatformMode.h"
@@ -120,41 +121,6 @@ std::optional<uint16_t> getUplinksCount(
   return iter->second;
 }
 
-void enableFeaturesInConfig(
-    cfg::SwitchConfig& config,
-    const HwSwitch* hwSwitch) {
-  auto hwAsic = hwSwitch->getPlatform()->getAsic();
-  /*
-   * Configures port queue for cpu port
-   */
-  utility::addCpuQueueConfig(config, hwAsic);
-  if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
-    /*
-     * Enable Olympic QOS
-     */
-    utility::addOlympicQosMaps(config);
-
-    /*
-     * Enable Olympic Queue Config
-     */
-    auto streamType = *(
-        hwSwitch->getPlatform()->getAsic()->getQueueStreamTypes(false).begin());
-    utility::addOlympicQueueConfig(&config, streamType, hwAsic, false);
-  }
-  /*
-   * Configure COPP, CPU traffic policy and ACLs
-   */
-  utility::setDefaultCpuTrafficPolicyConfig(config, hwAsic);
-
-  /*
-   * Enable Load balancer
-   */
-  if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
-    config.loadBalancers_ref()->push_back(
-        utility::getEcmpFullHashConfig(hwSwitch->getPlatform()));
-  }
-}
-
 RouteDistributionGenerator::SwitchStates getRouteScaleSwitchStates(
     const HwSwitchEnsemble* ensemble) {
   /*
@@ -223,7 +189,7 @@ void initandExitBenchmarkHelper(
       uplinkSpeed,
       downlinkSpeed,
       cfg::PortLoopbackMode::MAC);
-  enableFeaturesInConfig(config, hwSwitch);
+  utility::addProdFeaturesToConfig(config, hwSwitch);
 
   /*
    * This is to measure the performance when the config is applied during

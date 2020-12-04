@@ -188,10 +188,8 @@ target_link_libraries(hw_init_and_exit_benchmark_helper
   config_factory
   hw_switch_ensemble
   hw_benchmark_main
-  hw_copp_utils
-  hw_qos_utils
   route_scale_gen
-  load_balancer_utils
+  prod_config_utils
   Folly::folly
   Folly::follybenchmark
   function_call_time_reporter
