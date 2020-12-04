@@ -2575,9 +2575,12 @@ bool BcmSwitch::isControlPlaneQueueNameChanged(
 void BcmSwitch::processChangedControlPlaneQueues(
     const shared_ptr<ControlPlane>& oldCPU,
     const shared_ptr<ControlPlane>& newCPU) {
+  XLOG_IF(DBG1, oldCPU->getQueues().size() != newCPU->getQueues().size())
+      << "Old cpu queue size:" << oldCPU->getQueues().size()
+      << ", but new cpu queue size:" << newCPU->getQueues().size();
   // first make sure queue settings changes applied
   for (const auto newQueue : newCPU->getQueues()) {
-    if (oldCPU->getQueues().size() > 0 &&
+    if (oldCPU->getQueues().size() > newQueue->getID() &&
         *(oldCPU->getQueues().at(newQueue->getID())) == *newQueue) {
       continue;
     }

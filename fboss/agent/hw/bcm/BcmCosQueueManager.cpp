@@ -188,7 +188,7 @@ void BcmCosQueueManager::fillOrReplaceCounter(
        */
       std::string name;
 
-      if (queueConfig.has_value() && (queueConfig.value().size() != 0) &&
+      if (queueConfig.has_value() && (queueConfig.value().size() > queue) &&
           queueConfig.value().at(queue)->getName().has_value()) {
         name = folly::to<std::string>(
             portName_,
