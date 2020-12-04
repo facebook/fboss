@@ -12,14 +12,18 @@
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTest.h"
+#include "fboss/agent/hw/test/HwTestCoppUtils.h"
+#include "fboss/agent/hw/test/HwTestProdConfigUtils.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 
 namespace facebook::fboss {
 
 TEST_F(HwTest, overflowRoutes) {
-  applyNewConfig(
-      utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds()));
+  auto cfg =
+      utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
+  utility::addProdFeaturesToConfig(cfg, getHwSwitch());
+  applyNewConfig(cfg);
   std::shared_ptr<SwitchState> desiredState;
   switch (getPlatform()->getMode()) {
     case PlatformMode::WEDGE:
