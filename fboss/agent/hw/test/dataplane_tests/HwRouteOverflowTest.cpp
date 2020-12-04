@@ -9,25 +9,25 @@
  */
 
 #include "fboss/agent/HwSwitch.h"
-#include "fboss/agent/Platform.h"
-#include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/hw/test/HwTest.h"
-#include "fboss/agent/hw/test/HwTestCoppUtils.h"
-#include "fboss/agent/hw/test/HwTestProdConfigUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwOverflowTests.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 
 namespace facebook::fboss {
 
-TEST_F(HwTest, overflowRoutes) {
-  auto cfg =
-      utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
-  utility::addProdFeaturesToConfig(cfg, getHwSwitch());
-  applyNewConfig(cfg);
+TEST_F(HwOverflowTest, overflowRoutes) {
   std::shared_ptr<SwitchState> desiredState;
   switch (getPlatform()->getMode()) {
     case PlatformMode::WEDGE:
+      /*
+       * On BRCM SAI TD2 scales better then TH in ALPM
+       * mode. Hence we need RSW + Hgrid scale to actually
+       * cause overflow
+       */
       desiredState = utility::FSWRouteScaleGenerator(getProgrammedState())
+                         .getSwitchStates()
+                         .back();
+      desiredState = utility::HgridUuRouteScaleGenerator(desiredState)
                          .getSwitchStates()
                          .back();
       break;
@@ -77,6 +77,7 @@ TEST_F(HwTest, overflowRoutes) {
     applyNewState(desiredState);
   }
   EXPECT_NE(getProgrammedState(), desiredState);
+  verifyInvariantsPostOverflow();
 }
 
 } // namespace facebook::fboss

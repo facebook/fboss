@@ -130,7 +130,6 @@ add_library(hw_switch_test
   fboss/agent/hw/test/HwTestStatUtils.cpp
   fboss/agent/hw/test/HwTestCoppUtils.cpp
   fboss/agent/hw/test/HwRouteScaleTest.cpp
-  fboss/agent/hw/test/HwRouteOverflowTest.cpp
   fboss/agent/hw/test/HwRouteTests.cpp
   fboss/agent/hw/test/HwVlanTests.cpp
   fboss/agent/hw/test/HwL2ClassIDTests.cpp
@@ -172,6 +171,7 @@ add_library(hw_switch_test
   fboss/agent/hw/test/dataplane_tests/HwQueuePerHostL2Tests.cpp
   fboss/agent/hw/test/dataplane_tests/HwQueuePerHostTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwQueuePerHostRouteTests.cpp
+  fboss/agent/hw/test/dataplane_tests/HwRouteOverflowTest.cpp
   fboss/agent/hw/test/dataplane_tests/HwSendPacketToQueueTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwSwitchStatsTxCounterTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwTest2QueueUtils.cpp
