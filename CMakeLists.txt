@@ -648,12 +648,14 @@ if (NOT SAI_ONLY)
       fboss/lib/usb/PCA9548.cpp
       fboss/lib/usb/PCA9548MultiplexedBus.cpp
       fboss/lib/usb/PCA9548MuxedBus.cpp
-      fboss/lib/i2c/PCA9541.cpp
-      fboss/lib/i2c/PCA9541.h
       fboss/lib/firmware_storage/FbossFirmware.cpp
       fboss/lib/firmware_storage/FbossFirmware.h
       fboss/lib/firmware_storage/FbossFwStorage.cpp
       fboss/lib/firmware_storage/FbossFwStorage.h
+      fboss/lib/i2c/PCA9541.cpp
+      fboss/lib/i2c/PCA9541.h
+      fboss/lib/i2c/FirmwareUpgrader.cpp
+      fboss/lib/i2c/FirmwareUpgrader.h
       fboss/lib/usb/TransceiverI2CApi.h
       fboss/lib/usb/UsbDevice.cpp
       fboss/lib/usb/UsbDevice.h
@@ -731,10 +733,17 @@ if (NOT SAI_ONLY)
   add_executable(wedge_qsfp_util
       fboss/util/wedge_qsfp_util.cpp
       fboss/util/oss/wedge_qsfp_util.cpp
+      fboss/lib/firmware_storage/FbossFirmware.cpp
+      fboss/lib/firmware_storage/FbossFirmware.h
+      fboss/lib/firmware_storage/FbossFwStorage.cpp
+      fboss/lib/firmware_storage/FbossFwStorage.h
+      fboss/lib/i2c/FirmwareUpgrader.cpp
+      fboss/lib/i2c/FirmwareUpgrader.h
   )
   target_link_libraries(wedge_qsfp_util
       qsfp_lib
       qsfp_module
+      ${YAML-CPP}
   )
 
   # Don't include fboss/agent/test/ArpBenchmark.cpp

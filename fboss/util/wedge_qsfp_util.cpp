@@ -1,5 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 #include "fboss/util/wedge_qsfp_util.h"
+#include "fboss/lib/firmware_storage/FbossFirmware.h"
+#include "fboss/lib/i2c/FirmwareUpgrader.h"
 
 #include "fboss/lib/usb/WedgeI2CBus.h"
 #include "fboss/lib/usb/Wedge100I2CBus.h"
@@ -111,6 +113,12 @@ DEFINE_int32(data, 0, "The byte to write to the register, use with --offset");
 DEFINE_int32(length, 1, "The number of bytes to read from the register (1..128), use with --offset");
 DEFINE_int32(pause_remediation, 0,
     "Number of seconds to prevent qsfp_service from doing remediation to modules");
+DEFINE_bool(update_module_firmware, false,
+            "Update firmware for module, use with --firmware_filename");
+DEFINE_string(firmware_filename, "",
+            "Module firmware filename along with path");
+DEFINE_uint32(msa_password, 0x00001011, "MSA password for module privilige operation");
+DEFINE_uint32(image_header_len, 0, "Firmware image header length");
 
 enum LoopbackMode {
   noLoopback,
@@ -120,6 +128,18 @@ enum LoopbackMode {
 
 // CMIS module Identifier (from module register 0)
 constexpr uint8_t kCMISIdentifier = 0x1e;
+
+struct ModulePartInfo_s {
+  std::array<uint8_t, 16> partNo;
+  uint32_t headerLen;
+};
+struct ModulePartInfo_s modulePartInfo[] = {
+  // Finisar 200G module info
+  {{'F','T','C','C','1','1','1','2','E','1','P','L','L','-','F','B'}, 64},
+  // Innolight 200G module info
+  {{'T','-','F','X','4','F','N','T','-','H','F','B',0x20,0x20,0x20,0x20}, 48}
+};
+constexpr uint8_t kNumModuleInfo = sizeof(modulePartInfo)/sizeof(struct ModulePartInfo_s);
 
 std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> getQsfpClient(folly::EventBase& evb) {
   return std::move(QsfpClient::createClient(&evb)).getVia(&evb);
@@ -871,6 +891,76 @@ void cmisHostInputLoopback(TransceiverI2CApi* bus, unsigned int port, LoopbackMo
   }
 }
 
+/*
+ * cliModulefirmwareUpgrade
+ *
+ * This function makes thrift call to qsfp_service to do the firmware upgrade for
+ * for the optical module. The result (pass/fail) along with message is returned
+ * back by thrift call and displayed here.
+ */
+bool cliModulefirmwareUpgrade(TransceiverI2CApi* bus, unsigned int port, std::string firmwareFilename) {
+
+  // Confirm module type is CMIS
+  auto moduleType = getModuleType(bus, port);
+  if (moduleType != TransceiverManagementInterface::CMIS) {
+    fprintf(stderr, "This command is applicable to CMIS module only\n");
+    return false;
+  }
+
+  // Get the image header length
+  uint32_t imageHdrLen = 0;
+  if (FLAGS_image_header_len > 0) {
+    imageHdrLen = FLAGS_image_header_len;
+  } else {
+    // Image header length is not provided by user. Try to get it from known
+    // module info
+    auto domData = fetchDataFromLocalI2CBus (bus, port);
+    CmisData cmisData = domData.get_cmis();
+    auto dataUpper = cmisData.page0_ref()->data();
+
+    std::array<uint8_t, 16> modPartNo;
+    for (int i=0; i<16; i++) {
+      modPartNo[i] = dataUpper[20+i];
+    }
+
+    for (int i=0; i<kNumModuleInfo; i++) {
+      if (modulePartInfo[i].partNo == modPartNo) {
+        imageHdrLen = modulePartInfo[i].headerLen;
+        break;
+      }
+    }
+    if (imageHdrLen == 0) {
+      printf("Image header length is not specified on command line and");
+      printf(" the default image header size is unknown for this module");
+      printf("Pl re-run the same command with option --image_header_len <len>");
+      return false;
+    }
+  }
+
+  // Create FbossFirmware object using firmware filename and msa password,
+  // header length as properties
+  FbossFirmware::FwAttributes firmwareAttr;
+  firmwareAttr.filename = firmwareFilename;
+  firmwareAttr.properties["msa_password"] = folly::to<std::string>(FLAGS_msa_password);
+  firmwareAttr.properties["header_length"] = folly::to<std::string>(imageHdrLen);
+  auto fbossFwObj = std::make_unique<FbossFirmware>(firmwareAttr);
+
+  auto fwUpgradeObj = std::make_unique<CmisFirmwareUpgrader>(
+    bus, port, std::move(fbossFwObj));
+
+  // Do the standalone upgrade in the same process as wedge_qsfp_util
+  bool ret = fwUpgradeObj->cmisModuleFirmwareUpgrade();
+
+  if (ret) {
+    printf("Firmware download successful, the module is running desired firmware\n");
+    printf("Pl reload the chassis to finish the last step\n");
+  } else {
+    printf("Firmware upgrade failed, you may retry the same command\n");
+  }
+
+  return ret;
+}
+
 int main(int argc, char* argv[]) {
   folly::init(&argc, &argv, true);
   gflags::SetCommandLineOptionWithMode(
@@ -932,7 +1022,8 @@ int main(int argc, char* argv[]) {
                      FLAGS_cdr_enable || FLAGS_cdr_disable ||
                      FLAGS_set_low_power || FLAGS_qsfp_hard_reset ||
                      FLAGS_electrical_loopback || FLAGS_optical_loopback ||
-                     FLAGS_clear_loopback || FLAGS_read_reg || FLAGS_write_reg);
+                     FLAGS_clear_loopback || FLAGS_read_reg ||
+                     FLAGS_write_reg || FLAGS_update_module_firmware);
 
   if (FLAGS_direct_i2c || !printInfo) {
     try {
@@ -1080,6 +1171,18 @@ int main(int argc, char* argv[]) {
         retcode = EX_SOFTWARE;
       }
     }
+
+    if (FLAGS_update_module_firmware) {
+      printf("This action may bring down the port and interrupt the traffic\n");
+      if (FLAGS_firmware_filename.empty()) {
+        fprintf(stderr,
+               "QSFP %d: Fail to upgrade firmware. Specify firmware using --firmware_filename\n",
+               portNum);
+      } else {
+          cliModulefirmwareUpgrade(bus.get(), portNum, FLAGS_firmware_filename);
+      }
+    }
+
   }
   return retcode;
 }
