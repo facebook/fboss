@@ -5,23 +5,8 @@ namespace cpp2 facebook.fboss.asic
 namespace go neteng.fboss.asic_config
 namespace php fboss_asic_config
 
-struct SerdesParam {
-  1: byte slice_id
-  2: byte ifg_id
-  3: i16 speed
-  4: string media_type
-  5: i16 TX_PRE1
-  6: i16 TX_MAIN
-  7: i16 TX_POST
-  8: i16 RX_CTLE_CODE
-  9: byte RX_DSP_MODE
-  10: byte RX_AFE_TRIM
-  11: byte RX_AC_COUPLING_BYPASS
-}
-
 struct SerdesParams {
   1: string VERSION
-  2: map<string, SerdesParam> params
 }
 
 struct IFGSwap {
@@ -41,7 +26,7 @@ struct Device {
   2: string type
   3: i16 rev
   4: list<IFGSwap> ifg_swap_lists
-  5: SerdesParams serdes_params
+  5: optional SerdesParams serdes_params_DEPRECATED
   6: DeviceProperty device_property
 }
 
