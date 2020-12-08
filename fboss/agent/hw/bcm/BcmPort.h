@@ -254,6 +254,8 @@ class BcmPort {
   void setInterfaceMode(const std::shared_ptr<Port>& swPort);
   void setFEC(const std::shared_ptr<Port>& swPort);
   void setPause(const std::shared_ptr<Port>& swPort);
+  void setPfc(const std::shared_ptr<Port>& swPort);
+  void programPfc(const int enableTxPfc, const int enableRxPfc);
 
   void setTxSetting(const std::shared_ptr<Port>& swPort);
   void setTxSettingViaPhyControl(

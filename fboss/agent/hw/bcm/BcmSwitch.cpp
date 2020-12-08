@@ -1364,9 +1364,12 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
         auto asicPrbsChanged = oldPort->getAsicPrbs() != newPort->getAsicPrbs();
         XLOG_IF(DBG1, asicPrbsChanged) << "New asicPrbs on port " << id;
 
+        auto pfcChanged = oldPort->getPfc() != newPort->getPfc();
+        XLOG_IF(DBG1, pfcChanged) << "New pfc settings on port " << id;
+
         if (speedChanged || profileIDChanged || vlanChanged || pauseChanged ||
             sFlowChanged || fecChanged || loopbackChanged || mirrorChanged ||
-            qosPolicyChanged || nameChanged || asicPrbsChanged) {
+            qosPolicyChanged || nameChanged || asicPrbsChanged || pfcChanged) {
           bcmPort->program(newPort);
         }
 

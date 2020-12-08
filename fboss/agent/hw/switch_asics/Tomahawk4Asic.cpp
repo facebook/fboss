@@ -71,6 +71,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PTP_TC_PCS: // TODO(rajukumarfb5368): enable after
                                       // checking
     case HwAsic::Feature::PENDING_L2_ENTRY:
+    case HwAsic::Feature::PFC:
       return false;
   }
   return false;

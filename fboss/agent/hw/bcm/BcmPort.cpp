@@ -433,6 +433,7 @@ void BcmPort::program(const shared_ptr<Port>& port) {
   }
 
   setPause(port);
+  setPfc(port);
   // Update Tx Setting if needed.
   setTxSetting(port);
   setLoopbackMode(port->getLoopbackMode());
@@ -1705,6 +1706,75 @@ bcm_gport_t BcmPort::asGPort(bcm_port_t port) {
 bool BcmPort::isValidLocalPort(bcm_gport_t gport) {
   return BCM_GPORT_IS_LOCAL(gport) &&
       BCM_GPORT_LOCAL_GET(gport) != static_cast<bcm_port_t>(0);
+}
+
+void BcmPort::programPfc(const int enableTxPfc, const int enableRxPfc) {
+  int rv = 0;
+  if (enableTxPfc || enableRxPfc) {
+    int currTxPause = 0;
+    int currRxPause = 0;
+    rv = bcm_port_pause_get(unit_, port_, &currTxPause, &currRxPause);
+    bcmCheckError(
+        rv,
+        "failed to retrieve rx/tx pause using bcm_port_pause_get for port ",
+        port_);
+
+    // don't expect pause to be enabled at the same time as PFC here
+    // since order of programming is pause followed by PFC
+    CHECK((currTxPause == 0) && (currRxPause == 0))
+        << "PAUSE cannot be enabled when PFC is enabled for:" << port_;
+  }
+
+  rv = bcm_port_control_set(
+      unit_, port_, bcmPortControlPFCTransmit, enableTxPfc);
+  bcmCheckError(rv, "failed to set bcmPortControlPFCTransmit for port ", port_);
+
+  rv =
+      bcm_port_control_set(unit_, port_, bcmPortControlPFCReceive, enableRxPfc);
+  bcmCheckError(rv, "failed to set bcmPortControlPFCReceive for port ", port_);
+
+  auto logHelper = [](int tx, int rx) {
+    return folly::to<std::string>(
+        tx ? "True/" : "False/", rx ? "True" : "False");
+  };
+
+  XLOG(DBG3) << "Successfully enabled pfc on port: " << port_
+             << " , TX/RX = " << logHelper(enableTxPfc, enableRxPfc);
+}
+
+void BcmPort::setPfc(const std::shared_ptr<Port>& swPort) {
+  auto pfc = swPort->getPfc();
+  int expectTxPfc = 0;
+  int expectRxPfc = 0;
+
+  if (pfc.has_value()) {
+    expectTxPfc = (*pfc->tx_ref()) ? 1 : 0;
+    expectRxPfc = (*pfc->rx_ref()) ? 1 : 0;
+  }
+
+  int currTxPfcEnabled = 0;
+  int currRxPfcEnabled = 0;
+
+  auto rv = bcm_port_control_get(
+      unit_, port_, bcmPortControlPFCTransmit, &currTxPfcEnabled);
+  bcmCheckError(rv, "failed to read pfcTx for port ", port_);
+
+  rv = bcm_port_control_get(
+      unit_, port_, bcmPortControlPFCReceive, &currRxPfcEnabled);
+  bcmCheckError(rv, "failed to read pfcRx for port ", port_);
+
+  auto logHelper = [](int tx, int rx) {
+    return folly::to<std::string>(
+        tx ? "True/" : "False/", rx ? "True" : "False");
+  };
+
+  if ((expectTxPfc == currTxPfcEnabled) && (expectRxPfc == currRxPfcEnabled)) {
+    XLOG(DBG4) << "Skip same pause setting for port " << port_
+               << ", Tx/Rx =" << logHelper(expectTxPfc, expectRxPfc);
+    return;
+  }
+  // enable/disable pfc
+  programPfc(expectTxPfc, expectRxPfc);
 }
 
 void BcmPort::setPause(const std::shared_ptr<Port>& swPort) {

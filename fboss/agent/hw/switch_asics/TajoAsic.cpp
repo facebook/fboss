@@ -58,6 +58,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PENDING_L2_ENTRY:
     case HwAsic::Feature::MIRROR_V6_TUNNEL:
     case HwAsic::Feature::EGRESS_QUEUE_FLEX_COUNTER:
+    case HwAsic::Feature::PFC:
       return false;
   }
   return false;

@@ -34,6 +34,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PTP_TC:
     case HwAsic::Feature::PTP_TC_PCS:
     case HwAsic::Feature::MIRROR_V6_TUNNEL:
+    case HwAsic::Feature::PFC:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:

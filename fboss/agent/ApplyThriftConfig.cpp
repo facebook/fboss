@@ -956,11 +956,17 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     bool pause_tx = *pause.tx_ref();
 
     if (pfc_rx || pfc_tx) {
+      if (!platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+        throw FbossError(
+            "Port ",
+            orig->getID(),
+            " has PFC enabled, but its not supported feature for this platform");
+      }
       if (pause_rx || pause_tx) {
         throw FbossError(
             "Port ",
             orig->getID(),
-            " Pause and Pfc cannot be enabled on the same port");
+            " PAUSE and PFC cannot be enabled on the same port");
       }
     }
   }
