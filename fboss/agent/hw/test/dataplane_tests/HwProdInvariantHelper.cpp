@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/agent/hw/test/dataplane_tests/HwOverflowTests.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwProdInvariantHelper.h"
 
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"

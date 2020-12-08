@@ -9,7 +9,7 @@
  */
 
 #include "fboss/agent/HwSwitch.h"
-#include "fboss/agent/hw/test/dataplane_tests/HwOverflowTests.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwProdInvariantHelper.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 
