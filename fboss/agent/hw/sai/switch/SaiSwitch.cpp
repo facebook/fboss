@@ -347,6 +347,12 @@ void SaiSwitch::rollback(
 }
 
 std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
+  return stateChangedImpl(delta, std::nullopt);
+}
+
+std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
+    const StateDelta& delta,
+    const std::optional<std::lock_guard<std::mutex>>& /*lk*/) {
   processRemovedDelta(
       delta.getPortsDelta(),
       managerTable_->portManager(),

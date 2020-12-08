@@ -167,6 +167,9 @@ class SaiSwitch : public HwSwitch {
   bool transactionsSupported() const override;
 
  private:
+  std::shared_ptr<SwitchState> stateChangedImpl(
+      const StateDelta& delta,
+      const std::optional<std::lock_guard<std::mutex>>& lk);
   void rollback(const std::shared_ptr<SwitchState>& knownGoodState) noexcept;
   std::string listObjectsLocked(
       const std::vector<sai_object_type_t>& objects,
