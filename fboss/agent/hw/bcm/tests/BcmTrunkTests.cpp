@@ -111,9 +111,6 @@ TEST_F(BcmTrunkTest, TrunkCheckIngressPktAggPort) {
     bool usePktIO = getHwSwitch()->usePKTIO();
     BcmPacketT bcmPacket;
     bcm_pkt_t bcmPkt;
-#ifdef INCLUDE_PKTIO
-    bcm_pktio_pkt_t pktioPkt;
-#endif
     auto bcmTrunkId = getHwSwitch()->getTrunkTable()->getBcmTrunkId(
         AggregatePortID(std::numeric_limits<AggregatePortID>::max()));
     bcmPacket.usePktIO = usePktIO;
@@ -123,21 +120,17 @@ TEST_F(BcmTrunkTest, TrunkCheckIngressPktAggPort) {
       bcmPkt.src_trunk = bcmTrunkId;
       bcmPkt.flags |= BCM_PKT_F_TRUNK;
       bcmPkt.unit = 0;
-    } else {
-      // TBD pktio
-      // this is to fake a RX packet, sets up a trunk bit.  not sure yet
-      // how to do that for PKTIO.
-#ifdef INCLUDE_PKTIO
-      bcmPacket.ptrUnion.pktioPkt = &pktioPkt;
-      pktioPkt.unit = 0;
-
-#endif
+      FbBcmRxPacket fbRxPkt(bcmPacket, getHwSwitch());
+      EXPECT_TRUE(fbRxPkt.isFromAggregatePort());
+      EXPECT_EQ(
+          fbRxPkt.getSrcAggregatePort(),
+          std::numeric_limits<AggregatePortID>::max());
     }
-    FbBcmRxPacket fbRxPkt(bcmPacket, getHwSwitch());
-    EXPECT_TRUE(fbRxPkt.isFromAggregatePort());
-    EXPECT_EQ(
-        fbRxPkt.getSrcAggregatePort(),
-        std::numeric_limits<AggregatePortID>::max());
+    // Note that for PKTIO these tests are not valid.
+    // In the non-PKTIO case, the SDK parse the packet and sets up the fields
+    // in the bcm_pkt_s, so they can be queried from this data structure.
+    // For PKTIO, such information is not available from the packet data
+    // structure.
   };
   verifyAcrossWarmBoots(setup, verify);
 }
