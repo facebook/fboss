@@ -25,9 +25,7 @@ class HwOverflowTest : public HwLinkStateDependentTest {
     utility::addProdFeaturesToConfig(cfg, getHwSwitch());
     return cfg;
   }
-  void verifyQoS() {
-    // TODO
-  }
+  void verifyDscpToQueueMapping();
   void verifyLoadBalacing();
   void verifyCopp();
   HwSwitchEnsemble::Features featuresDesired() const override {
@@ -37,7 +35,7 @@ class HwOverflowTest : public HwLinkStateDependentTest {
  protected:
   void setupEcmp();
   void verifyInvariantsPostOverflow() {
-    verifyQoS();
+    verifyDscpToQueueMapping();
     verifyCopp();
     verifyLoadBalacing();
   }

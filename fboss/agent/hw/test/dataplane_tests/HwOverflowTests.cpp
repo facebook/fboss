@@ -14,6 +14,8 @@
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwEcmpDataPlaneTestUtil.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 namespace {
@@ -54,5 +56,45 @@ void HwOverflowTest::verifyCopp() {
   };
   utility::sendPktAndVerifyCpuQueue(
       getHwSwitch(), utility::getCoppHighPriQueueId(getAsic()), sendPkts, 1);
+}
+
+void HwOverflowTest::verifyDscpToQueueMapping() {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
+    return;
+  }
+  auto portStatsBefore = getLatestPortStats(masterLogicalPortIds());
+  auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+  auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+  for (const auto& q2dscps : utility::kOlympicQueueToDscp()) {
+    for (auto dscp : q2dscps.second) {
+      utility::sendTcpPkts(
+          getHwSwitch(),
+          1 /*numPktsToSend*/,
+          vlanId,
+          intfMac,
+          folly::IPAddressV6("2620:0:1cfe:face:b00c::4"), // dst ip
+          8000,
+          8001,
+          masterLogicalPortIds()[kEcmpWidth],
+          dscp);
+    }
+  }
+  bool mappingVerified = false;
+  for (auto i = 0; i < kEcmpWidth; ++i) {
+    // Since we don't know which port the above IP will get hashed to,
+    // iterate over all ports in ecmp group to find one which satisfies
+    // dscp to queue mapping.
+    if (mappingVerified) {
+      break;
+    }
+    auto portId =
+        ecmpHelper_->ecmpSetupHelper()->ecmpPortDescriptorAt(i).phyPortID();
+    mappingVerified = utility::verifyQueueMappings(
+        portStatsBefore[portId],
+        utility::kOlympicQueueToDscp(),
+        getHwSwitchEnsemble(),
+        portId);
+  }
+  EXPECT_TRUE(mappingVerified);
 }
 } // namespace facebook::fboss
