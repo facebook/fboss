@@ -424,6 +424,8 @@ class SaiStore {
       SaiObjectStore<SaiNextHopGroupMemberTraits>,
       SaiObjectStore<SaiNextHopGroupTraits>,
       SaiObjectStore<SaiIpNextHopTraits>,
+      SaiObjectStore<SaiLocalMirrorTraits>,
+      SaiObjectStore<SaiEnhancedRemoteMirrorTraits>,
       SaiObjectStore<SaiMplsNextHopTraits>,
       SaiObjectStore<SaiNeighborTraits>,
       SaiObjectStore<SaiHostifTrapGroupTraits>,
