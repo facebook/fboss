@@ -432,6 +432,7 @@ class SaiStore {
       SaiObjectStore<SaiHostifTrapTraits>,
       SaiObjectStore<SaiQueueTraits>,
       SaiObjectStore<SaiSchedulerTraits>,
+      SaiObjectStore<SaiSamplePacketTraits>,
       SaiObjectStore<SaiHashTraits>,
       SaiObjectStore<SaiInSegTraits>,
       SaiObjectStore<SaiQosMapTraits>,
