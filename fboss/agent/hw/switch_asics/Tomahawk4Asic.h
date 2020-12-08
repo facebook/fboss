@@ -9,6 +9,7 @@ namespace facebook::fboss {
 
 class Tomahawk4Asic : public BroadcomAsic {
  public:
+  Tomahawk4Asic();
   bool isSupported(Feature) const override;
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_TOMAHAWK4;
@@ -65,6 +66,10 @@ class Tomahawk4Asic : public BroadcomAsic {
   int getMaxNumLogicalPorts() const override {
     return 272;
   }
+
+ private:
+  // TODO(daiweix): remove this flag when all TH4 devices use B0 chip
+  bool isA0_{false};
 };
 
 } // namespace facebook::fboss

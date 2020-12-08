@@ -47,6 +47,11 @@ class PciDevice {
   uint64_t getMemoryRegionSize(uint32_t region = 0) const;
 
   /**
+   * Get PCI device revision number
+   */
+  uint8_t getRevision() const;
+
+  /**
    * Check if the PCI device was opened correctly
    */
   bool isGood() {

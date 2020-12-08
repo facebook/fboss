@@ -44,7 +44,6 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::L3_EGRESS_MODE_AUTO_ENABLED:
     case HwAsic::Feature::PKTIO:
     case HwAsic::Feature::ACL_COPY_TO_CPU:
-    case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
     case HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER:
     case HwAsic::Feature::OBM_COUNTERS:
     case HwAsic::Feature::BUFFER_POOL:
@@ -54,7 +53,8 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MIRROR_V6_TUNNEL:
     case HwAsic::Feature::EGRESS_QUEUE_FLEX_COUNTER:
       return true;
-
+    case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
+      return !isA0_;
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
     case HwAsic::Feature::QOS_MAP_GLOBAL:
     case HwAsic::Feature::QCM:

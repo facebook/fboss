@@ -113,4 +113,11 @@ uint64_t PciDevice::getMemoryRegionSize(uint32_t region) const {
   return pciDevice_->regions[region].size;
 }
 
+uint8_t PciDevice::getRevision() const {
+  if (pciDevice_ == nullptr) {
+    throw std::runtime_error("PCI device not initialized");
+  }
+  return pciDevice_->revision;
+}
+
 } // namespace facebook::fboss
