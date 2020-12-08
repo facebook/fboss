@@ -17,7 +17,7 @@
 
 namespace facebook::fboss {
 
-class HwOverflowTest : public HwLinkStateDependentTest {
+class HwProdInvariantHelper : public HwLinkStateDependentTest {
  private:
   cfg::SwitchConfig initialConfig() const override {
     auto cfg =

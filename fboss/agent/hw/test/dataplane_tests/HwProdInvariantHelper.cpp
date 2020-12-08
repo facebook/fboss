@@ -23,21 +23,21 @@ auto constexpr kEcmpWidth = 4;
 }
 namespace facebook::fboss {
 
-void HwOverflowTest::setupEcmp() {
+void HwProdInvariantHelper::setupEcmp() {
   ecmpHelper_ = std::make_unique<utility::HwIpV6EcmpDataPlaneTestUtil>(
       getHwSwitchEnsemble(), RouterID(0));
   ecmpHelper_->setupECMPForwarding(
       kEcmpWidth, std::vector<NextHopWeight>(kEcmpWidth, 1));
 }
 
-void HwOverflowTest::verifyLoadBalacing() {
+void HwProdInvariantHelper::verifyLoadBalacing() {
   CHECK(ecmpHelper_);
   ecmpHelper_->pumpTrafficThroughPort(masterLogicalPortIds()[kEcmpWidth]);
   ecmpHelper_->isLoadBalanced(
       kEcmpWidth, std::vector<NextHopWeight>(kEcmpWidth, 1), 25);
 }
 
-void HwOverflowTest::verifyCopp() {
+void HwProdInvariantHelper::verifyCopp() {
   auto sendPkts = [this] {
     auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
@@ -58,7 +58,7 @@ void HwOverflowTest::verifyCopp() {
       getHwSwitch(), utility::getCoppHighPriQueueId(getAsic()), sendPkts, 1);
 }
 
-void HwOverflowTest::verifyDscpToQueueMapping() {
+void HwProdInvariantHelper::verifyDscpToQueueMapping() {
   if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
