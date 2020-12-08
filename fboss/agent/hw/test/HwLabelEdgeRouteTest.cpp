@@ -319,7 +319,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, OneLabel) {
           params.prefix.network,
           params.prefix.mask,
           port,
-          LabelForwardingAction::LabelStack{},
+          LabelForwardingAction::LabelStack{params.label},
           1);
     }
   };
@@ -431,7 +431,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, HalfPathsWithLabels) {
           params.prefix.network,
           params.prefix.mask,
           labeledPort,
-          LabelForwardingAction::LabelStack{},
+          itr.first->second,
           1);
     }
     this->verifyMultiPathNextHop(params.prefix, stacks);
