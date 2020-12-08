@@ -17,8 +17,28 @@
 
 namespace facebook::fboss {
 
-class HwOverflowTest : public HwProdInvariantHelper {
-  // TODO - Use HwProdInvariantHelper as a member rather than inheriting from
-  // it
+class HwOverflowTest : public HwLinkStateDependentTest {
+ protected:
+  cfg::SwitchConfig initialConfig() const override {
+    auto cfg =
+        utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
+    utility::addProdFeaturesToConfig(cfg, getHwSwitch());
+    return cfg;
+  }
+  void SetUp() override {
+    HwLinkStateDependentTest::SetUp();
+    prodInvariants_ = std::make_unique<HwProdInvariantHelper>(
+        getHwSwitchEnsemble(), initialConfig());
+    prodInvariants_->setupEcmp();
+  }
+  void verifyInvariants() {
+    prodInvariants_->verifyInvariants();
+  }
+  HwSwitchEnsemble::Features featuresDesired() const override {
+    return HwProdInvariantHelper::featuresDesired();
+  }
+
+ private:
+  std::unique_ptr<HwProdInvariantHelper> prodInvariants_;
 };
 } // namespace facebook::fboss

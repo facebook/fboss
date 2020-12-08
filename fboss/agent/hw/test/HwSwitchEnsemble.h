@@ -87,6 +87,9 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   virtual const HwSwitch* getHwSwitch() const {
     return const_cast<HwSwitchEnsemble*>(this)->getHwSwitch();
   }
+  const HwAsic* getAsic() const {
+    return getPlatform()->getAsic();
+  }
   void packetReceived(std::unique_ptr<RxPacket> pkt) noexcept override;
   void linkStateChanged(PortID port, bool up) override;
   void l2LearningUpdateReceived(

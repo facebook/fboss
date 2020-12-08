@@ -16,7 +16,6 @@
 namespace facebook::fboss {
 
 TEST_F(HwOverflowTest, overflowRoutes) {
-  setupEcmp();
   std::shared_ptr<SwitchState> desiredState;
   switch (getPlatform()->getMode()) {
     case PlatformMode::WEDGE:
@@ -78,7 +77,7 @@ TEST_F(HwOverflowTest, overflowRoutes) {
     applyNewState(desiredState);
   }
   EXPECT_NE(getProgrammedState(), desiredState);
-  verifyInvariantsPostOverflow();
+  verifyInvariants();
 }
 
 } // namespace facebook::fboss

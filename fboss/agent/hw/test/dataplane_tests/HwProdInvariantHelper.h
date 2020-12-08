@@ -17,29 +17,34 @@
 
 namespace facebook::fboss {
 
-class HwProdInvariantHelper : public HwLinkStateDependentTest {
- private:
-  cfg::SwitchConfig initialConfig() const override {
-    auto cfg =
-        utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
-    utility::addProdFeaturesToConfig(cfg, getHwSwitch());
-    return cfg;
-  }
-  void verifyDscpToQueueMapping();
-  void verifyLoadBalacing();
-  void verifyCopp();
-  HwSwitchEnsemble::Features featuresDesired() const override {
-    return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX};
-  }
+class HwProdInvariantHelper {
+ public:
+  HwProdInvariantHelper(
+      HwSwitchEnsemble* ensemble,
+      const cfg::SwitchConfig& initialCfg)
+      : ensemble_(ensemble), initialCfg_(initialCfg) {}
 
- protected:
   void setupEcmp();
-  void verifyInvariantsPostOverflow() {
+  void verifyInvariants() {
     verifyDscpToQueueMapping();
     verifyCopp();
     verifyLoadBalacing();
   }
+  static HwSwitchEnsemble::Features featuresDesired() {
+    return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX};
+  }
+
+ private:
+  cfg::SwitchConfig initialConfig() const {
+    return initialCfg_;
+  }
+  void verifyDscpToQueueMapping();
+  void verifyLoadBalacing();
+  void verifyCopp();
+
   std::unique_ptr<utility::HwIpV6EcmpDataPlaneTestUtil> ecmpHelper_;
+  HwSwitchEnsemble* ensemble_;
+  cfg::SwitchConfig initialCfg_;
 };
 
 } // namespace facebook::fboss

@@ -25,14 +25,15 @@ namespace facebook::fboss {
 
 void HwProdInvariantHelper::setupEcmp() {
   ecmpHelper_ = std::make_unique<utility::HwIpV6EcmpDataPlaneTestUtil>(
-      getHwSwitchEnsemble(), RouterID(0));
+      ensemble_, RouterID(0));
   ecmpHelper_->setupECMPForwarding(
       kEcmpWidth, std::vector<NextHopWeight>(kEcmpWidth, 1));
 }
 
 void HwProdInvariantHelper::verifyLoadBalacing() {
   CHECK(ecmpHelper_);
-  ecmpHelper_->pumpTrafficThroughPort(masterLogicalPortIds()[kEcmpWidth]);
+  ecmpHelper_->pumpTrafficThroughPort(
+      ensemble_->masterLogicalPortIds()[kEcmpWidth]);
   ecmpHelper_->isLoadBalanced(
       kEcmpWidth, std::vector<NextHopWeight>(kEcmpWidth, 1), 25);
 }
@@ -40,42 +41,48 @@ void HwProdInvariantHelper::verifyLoadBalacing() {
 void HwProdInvariantHelper::verifyCopp() {
   auto sendPkts = [this] {
     auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto intfMac =
+        utility::getInterfaceMac(ensemble_->getProgrammedState(), vlanId);
     auto dstIp = folly::IPAddress::createNetwork(
                      initialConfig().interfaces_ref()[0].ipAddresses_ref()[0])
                      .first;
     utility::sendTcpPkts(
-        getHwSwitch(),
+        ensemble_->getHwSwitch(),
         1 /*numPktsToSend*/,
         vlanId,
         intfMac,
         dstIp,
         utility::kNonSpecialPort1,
         utility::kBgpPort,
-        masterLogicalPortIds()[0]);
+        ensemble_->masterLogicalPortIds()[0]);
   };
   utility::sendPktAndVerifyCpuQueue(
-      getHwSwitch(), utility::getCoppHighPriQueueId(getAsic()), sendPkts, 1);
+      ensemble_->getHwSwitch(),
+      utility::getCoppHighPriQueueId(ensemble_->getPlatform()->getAsic()),
+      sendPkts,
+      1);
 }
 
 void HwProdInvariantHelper::verifyDscpToQueueMapping() {
-  if (!isSupported(HwAsic::Feature::L3_QOS)) {
+  if (!ensemble_->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
-  auto portStatsBefore = getLatestPortStats(masterLogicalPortIds());
+  auto portStatsBefore =
+      ensemble_->getLatestPortStats(ensemble_->masterLogicalPortIds());
   auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
-  auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+  auto intfMac =
+      utility::getInterfaceMac(ensemble_->getProgrammedState(), vlanId);
   for (const auto& q2dscps : utility::kOlympicQueueToDscp()) {
     for (auto dscp : q2dscps.second) {
       utility::sendTcpPkts(
-          getHwSwitch(),
+          ensemble_->getHwSwitch(),
           1 /*numPktsToSend*/,
           vlanId,
           intfMac,
           folly::IPAddressV6("2620:0:1cfe:face:b00c::4"), // dst ip
           8000,
           8001,
-          masterLogicalPortIds()[kEcmpWidth],
+          ensemble_->masterLogicalPortIds()[kEcmpWidth],
           dscp);
     }
   }
@@ -92,7 +99,7 @@ void HwProdInvariantHelper::verifyDscpToQueueMapping() {
     mappingVerified = utility::verifyQueueMappings(
         portStatsBefore[portId],
         utility::kOlympicQueueToDscp(),
-        getHwSwitchEnsemble(),
+        ensemble_,
         portId);
   }
   EXPECT_TRUE(mappingVerified);
