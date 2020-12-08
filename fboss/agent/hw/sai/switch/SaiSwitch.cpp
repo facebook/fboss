@@ -291,57 +291,59 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedTransaction(
   } catch (const FbossError& e) {
     XLOG(WARNING) << " Transaction failed with error : " << *e.message_ref()
                   << " attempting rollback";
-    auto curBootType = getBootType();
-    {
-      // Attempt rollback
-      // Detailed design is in the sai_switch_transactions wiki, but at a high
-      // level the steps of the rollback are 1) Clear out our internal data
-      // structures (stores, managers) in SW, while throttling writes to HW 2)
-      // Reinit managers and SaiStores. SaiStore* will now have all the HW state
-      // 3) Replay StateDelta(emptySwitchState, delta.oldState()) to get us to
-      // the pre transaction state 4) Clear out any remaining handles in
-      // SaiStore to flush state left in HW due to the failed transaction Steps
-      // 2-4 are exactly the same as what we do for warmboot and piggy back
-      // heavily on it for both code reuse and correctness
-      try {
-        {
-          std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-          auto hwSwitchJson = toFollyDynamicLocked(lock);
-          {
-            HwWriteBehvaiorRAII writeBehavior{HwWriteBehavior::SKIP};
-            managerTable_->reset(true /*skip switch manager reset*/);
-          }
-          // The work flow below is essentially a in memory warm boot,
-          // so set the bootType to warm boot for duration of roll back. We
-          // will restore it once we are done with roll back.
-          bootType_ = BootType::WARM_BOOT;
-          initStoreAndManagersLocked(
-              lock,
-              // We are being strict here in the sense of not allowing any HW
-              // writes during this reinit of managers. However this does rely
-              // on SaiStore being able to fetch exact state via get apis. If
-              // gets are missing for some APIs we may choose to relax this to
-              // WRITE as long as it does not effect forwarding. If it does
-              // affect forwarding, we must fix for both transactions as well as
-              // warmboot use case.
-              HwWriteBehavior::FAIL,
-              &hwSwitchJson[kAdapterKeys],
-              &hwSwitchJson[kAdapterKey2AdapterHostKey]);
-        }
-        // TODO: Build a version of stateChanged that takes a optional lock
-        // guard. We should hold the lock throughout rollback.
-        stateChanged(
-            StateDelta(std::make_shared<SwitchState>(), delta.oldState()));
-        SaiStore::getInstance()->printWarmbootHandles();
-        SaiStore::getInstance()->removeUnexpectedUnclaimedWarmbootHandles();
-        bootType_ = curBootType;
-      } catch (const std::exception& ex) {
-        // Rollback failed. Fail hard.
-        XLOG(FATAL) << " Roll back failed with : " << ex.what();
-      }
-    }
+    rollback(delta.oldState());
   }
   return delta.oldState();
+}
+
+void SaiSwitch::rollback(
+    const std::shared_ptr<SwitchState>& knownGoodState) noexcept {
+  auto curBootType = getBootType();
+  // Attempt rollback
+  // Detailed design is in the sai_switch_transactions wiki, but at a high
+  // level the steps of the rollback are 1) Clear out our internal data
+  // structures (stores, managers) in SW, while throttling writes to HW 2)
+  // Reinit managers and SaiStores. SaiStore* will now have all the HW state
+  // 3) Replay StateDelta(emptySwitchState, delta.oldState()) to get us to
+  // the pre transaction state 4) Clear out any remaining handles in
+  // SaiStore to flush state left in HW due to the failed transaction Steps
+  // 2-4 are exactly the same as what we do for warmboot and piggy back
+  // heavily on it for both code reuse and correctness
+  try {
+    {
+      std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+      auto hwSwitchJson = toFollyDynamicLocked(lock);
+      {
+        HwWriteBehvaiorRAII writeBehavior{HwWriteBehavior::SKIP};
+        managerTable_->reset(true /*skip switch manager reset*/);
+      }
+      // The work flow below is essentially a in memory warm boot,
+      // so set the bootType to warm boot for duration of roll back. We
+      // will restore it once we are done with roll back.
+      bootType_ = BootType::WARM_BOOT;
+      initStoreAndManagersLocked(
+          lock,
+          // We are being strict here in the sense of not allowing any HW
+          // writes during this reinit of managers. However this does rely
+          // on SaiStore being able to fetch exact state via get apis. If
+          // gets are missing for some APIs we may choose to relax this to
+          // WRITE as long as it does not effect forwarding. If it does
+          // affect forwarding, we must fix for both transactions as well as
+          // warmboot use case.
+          HwWriteBehavior::FAIL,
+          &hwSwitchJson[kAdapterKeys],
+          &hwSwitchJson[kAdapterKey2AdapterHostKey]);
+    }
+    // TODO: Build a version of stateChanged that takes a optional lock
+    // guard. We should hold the lock throughout rollback.
+    stateChanged(StateDelta(std::make_shared<SwitchState>(), knownGoodState));
+    SaiStore::getInstance()->printWarmbootHandles();
+    SaiStore::getInstance()->removeUnexpectedUnclaimedWarmbootHandles();
+    bootType_ = curBootType;
+  } catch (const std::exception& ex) {
+    // Rollback failed. Fail hard.
+    XLOG(FATAL) << " Roll back failed with : " << ex.what();
+  }
 }
 
 std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
