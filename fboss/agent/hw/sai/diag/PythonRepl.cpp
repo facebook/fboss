@@ -37,7 +37,7 @@ void PythonRepl::doRun() {
 }
 
 std::string PythonRepl::getPrompt() const {
-  return ">>> ";
+  return warnForTestEnvironment() + ">>> ";
 }
 
 std::vector<folly::File> PythonRepl::getStreams() const {

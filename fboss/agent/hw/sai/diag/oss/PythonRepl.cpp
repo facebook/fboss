@@ -4,7 +4,7 @@
 
 namespace facebook::fboss {
 
-std::string PythonRepl::warnForTestEnvironment() {
+std::string PythonRepl::warnForTestEnvironment() const {
   return "";
 }
 
