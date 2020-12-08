@@ -250,6 +250,7 @@ void SaiSwitch::processLinkStateChangeDelta(const StateDelta& delta) {
       delta.getPortsDelta(),
       [&](const std::shared_ptr<Port>& oldPort,
           const std::shared_ptr<Port>& newPort) {
+        auto lock = std::lock_guard<std::mutex>(saiSwitchMutex_);
         if (!oldPort->isEnabled() && !newPort->isEnabled()) {
           return;
         }
