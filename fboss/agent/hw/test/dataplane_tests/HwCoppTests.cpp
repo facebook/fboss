@@ -75,40 +75,6 @@ class HwCoppTest : public HwLinkStateDependentTest {
     }
   }
 
-  void sendTcpPkts(
-      int numPktsToSend,
-      const folly::IPAddress& dstIpAddress,
-      int l4SrcPort,
-      int l4DstPort,
-      const std::optional<folly::MacAddress>& dstMac = std::nullopt,
-      uint8_t trafficClass = 0,
-      std::optional<std::vector<uint8_t>> payload = std::nullopt) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
-
-    for (int i = 0; i < numPktsToSend; i++) {
-      auto txPacket = utility::makeTCPTxPacket(
-          getHwSwitch(),
-          vlanId,
-          srcMac,
-          dstMac ? *dstMac : intfMac,
-          folly::IPAddress(dstIpAddress.isV4() ? "1.1.1.2" : "1::1"),
-          dstIpAddress,
-          l4SrcPort,
-          l4DstPort,
-          dstIpAddress.isV4()
-              ? trafficClass
-              : trafficClass << 2, // v6 header takes entire TC byte with
-                                   // trailing 2 bits for ECN. V4 header OTOH
-                                   // expects only dscp value.
-          255,
-          payload);
-      getHwSwitch()->sendPacketOutOfPortSync(
-          std::move(txPacket), PortID(masterLogicalPortIds()[0]));
-    }
-  }
-
   void sendEthPkts(
       int numPktsToSend,
       facebook::fboss::ETHERTYPE etherType,
@@ -199,6 +165,29 @@ class HwCoppTest : public HwLinkStateDependentTest {
     EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
   }
 
+  void sendTcpPkts(
+      int numPktsToSend,
+      const folly::IPAddress& dstIpAddress,
+      int l4SrcPort,
+      int l4DstPort,
+      const std::optional<folly::MacAddress>& dstMac = std::nullopt,
+      uint8_t trafficClass = 0,
+      std::optional<std::vector<uint8_t>> payload = std::nullopt) {
+    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    utility::sendTcpPkts(
+        getHwSwitch(),
+        numPktsToSend,
+        vlanId,
+        dstMac ? *dstMac : intfMac,
+        dstIpAddress,
+        l4SrcPort,
+        l4DstPort,
+        masterLogicalPortIds()[0],
+        trafficClass,
+        payload);
+  }
+
   void sendPktAndVerifyCpuQueue(
       int queueId,
       const folly::IPAddress& dstIpAddress,
@@ -209,26 +198,18 @@ class HwCoppTest : public HwLinkStateDependentTest {
       const int numPktsToSend = 1,
       const int expectedPktDelta = 1,
       std::optional<std::vector<uint8_t>> payload = std::nullopt) {
-    auto beforeOutPkts = getQueueOutPacketsWithRetry(
-        queueId, 0 /* retryTimes */, 0 /* expectedNumPkts */);
-    sendTcpPkts(
-        numPktsToSend,
-        dstIpAddress,
-        l4SrcPort,
-        l4DstPort,
-        dstMac,
-        trafficClass,
-        payload);
-    auto afterOutPkts = getQueueOutPacketsWithRetry(
-        queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + 1);
-    XLOG(DBG0) << "Packet of DstIp=" << dstIpAddress.str()
-               << ", from port=" << l4SrcPort << " to port=" << l4DstPort
-               << ", dstMac="
-               << (dstMac ? (*dstMac).toString()
-                          : getPlatform()->getLocalMac().toString())
-               << ". Queue=" << queueId << ", before pkts:" << beforeOutPkts
-               << ", after pkts:" << afterOutPkts;
-    EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
+    auto sendPkts = [=]() {
+      sendTcpPkts(
+          numPktsToSend,
+          dstIpAddress,
+          l4SrcPort,
+          l4DstPort,
+          dstMac,
+          trafficClass,
+          payload);
+    };
+    utility::sendPktAndVerifyCpuQueue(
+        getHwSwitch(), queueId, sendPkts, expectedPktDelta);
   }
 
   void sendPktAndVerifyEthPacketsCpuQueue(

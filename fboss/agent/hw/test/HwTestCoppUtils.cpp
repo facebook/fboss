@@ -8,8 +8,12 @@
  *
  */
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
+
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/test/ResourceLibUtil.h"
 
 namespace {
 constexpr uint32_t kCoppLowPriReservedBytes = 1040;
@@ -202,4 +206,65 @@ void addMidPriAclForNw(
       std::make_pair(acl, createQueueMatchAction(utility::kCoppMidPriQueueId)));
 }
 
+void sendTcpPkts(
+    facebook::fboss::HwSwitch* hwSwitch,
+    int numPktsToSend,
+    VlanID vlanId,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& dstIpAddress,
+    int l4SrcPort,
+    int l4DstPort,
+    PortID outPort,
+    uint8_t trafficClass,
+    std::optional<std::vector<uint8_t>> payload) {
+  auto srcMac = utility::MacAddressGenerator().get(dstMac.u64NBO() + 1);
+  // arbit
+  const auto srcIp =
+      folly::IPAddress(dstIpAddress.isV4() ? "1.1.1.2" : "1::10");
+  for (int i = 0; i < numPktsToSend; i++) {
+    auto txPacket = utility::makeTCPTxPacket(
+        hwSwitch,
+        vlanId,
+        srcMac,
+        dstMac,
+        srcIp,
+        dstIpAddress,
+        l4SrcPort,
+        l4DstPort,
+        dstIpAddress.isV4()
+            ? trafficClass
+            : trafficClass << 2, // v6 header takes entire TC byte with
+                                 // trailing 2 bits for ECN. V4 header OTOH
+                                 // expects only dscp value.
+        255,
+        payload);
+    hwSwitch->sendPacketOutOfPortSync(std::move(txPacket), outPort);
+  }
+}
+
+uint64_t getQueueOutPacketsWithRetry(
+    HwSwitch* hwSwitch,
+    int queueId,
+    int retryTimes,
+    uint64_t expectedNumPkts) {
+  uint64_t outPkts = 0, outBytes = 0;
+  do {
+    std::tie(outPkts, outBytes) =
+        utility::getCpuQueueOutPacketsAndBytes(hwSwitch, queueId);
+    if (retryTimes == 0 || outPkts == expectedNumPkts) {
+      break;
+    }
+
+    /*
+     * Post warmboot, the packet always gets processed by the right CPU
+     * queue (as per ACL/rxreason etc.) but sometimes it is delayed.
+     * Retrying a few times to avoid test noise.
+     */
+    XLOG(DBG0) << "Retry...";
+    /* sleep override */
+    sleep(1);
+  } while (retryTimes-- > 0);
+
+  return outPkts;
+}
 } // namespace facebook::fboss::utility

@@ -11,16 +11,21 @@
 #pragma once
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
+#include <folly/logging/xlog.h>
+#include <gtest/gtest.h>
 #include <string>
 
 /*
  * This utility is to provide utils for bcm olympic tests.
  */
 
+namespace facebook::fboss {
 class HwSwitch;
-namespace facebook::fboss::utility {
+
+namespace utility {
 
 constexpr int kCPUPort = 0;
 
@@ -83,4 +88,43 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
 
 void setPortQueueSharedBytes(cfg::PortQueue& queue);
 
-} // namespace facebook::fboss::utility
+void sendTcpPkts(
+    HwSwitch* hwSwitch,
+    int numPktsToSend,
+    VlanID vlan,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& dstIpAddress,
+    int l4SrcPort,
+    int l4DstPort,
+    PortID outPort,
+    uint8_t trafficClass = 0,
+    std::optional<std::vector<uint8_t>> payload = std::nullopt);
+
+uint64_t getQueueOutPacketsWithRetry(
+    HwSwitch* hwSwitch,
+    int queueId,
+    int retryTimes,
+    uint64_t expectedNumPkts);
+
+template <typename SendFn>
+void sendPktAndVerifyCpuQueue(
+    HwSwitch* hwSwitch,
+    int queueId,
+    SendFn sendPkts,
+    const int expectedPktDelta) {
+  auto beforeOutPkts = getQueueOutPacketsWithRetry(
+      hwSwitch, queueId, 0 /* retryTimes */, 0 /* expectedNumPkts */);
+  sendPkts();
+  constexpr auto kGetQueueOutPktsRetryTimes = 5;
+  auto afterOutPkts = getQueueOutPacketsWithRetry(
+      hwSwitch,
+      queueId,
+      kGetQueueOutPktsRetryTimes,
+      beforeOutPkts + expectedPktDelta);
+  XLOG(DBG0) << "Queue=" << queueId << ", before pkts:" << beforeOutPkts
+             << ", after pkts:" << afterOutPkts;
+  EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
+}
+
+} // namespace utility
+} // namespace facebook::fboss

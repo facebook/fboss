@@ -44,6 +44,7 @@ target_link_libraries(hw_copp_utils
   hw_switch_ensemble
   packet_factory
   Folly::folly
+  resourcelibutil
   switch_config_cpp2
 )
 
