@@ -13,6 +13,13 @@ target_link_libraries(counter_utils
   hardware_stats_cpp2
 )
 
+add_library(diag_cmd_filter
+  fboss/agent/hw/DiagCmdFilter.cpp
+)
+
+target_link_libraries(diag_cmd_filter
+  Folly::folly
+)
 
 add_library(hw_switch_stats
   fboss/agent/hw/HwSwitchStats.cpp

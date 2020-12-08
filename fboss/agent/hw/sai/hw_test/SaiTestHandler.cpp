@@ -53,7 +53,8 @@ void SaiTestHandler::diagCmd(
     fbstring& result,
     std::unique_ptr<fbstring> cmd,
     std::unique_ptr<ClientInformation> client,
-    int16_t /* unused */) {
+    int16_t /* unused */,
+    bool /* unused */) {
   result = diagCmdServer_.diagCmd(std::move(cmd), std::move(client));
 }
 

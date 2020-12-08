@@ -148,6 +148,7 @@ target_link_libraries(core
   utils
   fb303::fb303
   capture
+  diag_cmd_filter
   hardware_stats_cpp2
   switch_asics
   ctrl_cpp2

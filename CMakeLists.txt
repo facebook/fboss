@@ -376,6 +376,7 @@ if (NOT SAI_ONLY)
       fboss/agent/hw/BufferStatsLogger.cpp
       fboss/agent/hw/CounterUtils.cpp
       fboss/agent/hw/HwResourceStatsPublisher.cpp
+      fboss/agent/hw/DiagCmdFilter.cpp
       fboss/agent/hw/HwSwitchWarmBootHelper.cpp
       fboss/agent/hw/HwSwitchStats.cpp
       fboss/agent/hw/bcm/BcmAclEntry.cpp
