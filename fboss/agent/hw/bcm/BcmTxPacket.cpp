@@ -7,6 +7,9 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+
+#include <linux/if_ether.h>
+
 #include "fboss/agent/hw/bcm/BcmTxPacket.h"
 
 #include "fboss/agent/hw/HwSwitchStats.h"
@@ -192,6 +195,7 @@ inline int BcmTxPacket::sendImpl(
   } else {
 #ifdef INCLUDE_PKTIO
     bcm_pktio_pkt_t* pktioPkt = pkt->bcmPacket_.ptrUnion.pktioPkt;
+    auto ioBuf = pkt->buf();
 
     if (!pkt->getSwitched()) {
       // Not switched.  Directly send to port, bypassing the pipeline
@@ -211,32 +215,49 @@ inline int BcmTxPacket::sendImpl(
       }
     }
 
+    if (BCM_SUCCESS(rv) && (!pkt->getSwitched())) {
+      folly::io::Cursor cursor(ioBuf);
+      EthHdr ethHdr{cursor};
+      if (!ethHdr.getVlanTags().empty()) {
+        cursor.reset(ioBuf);
+        XLOG(DBG5) << "Before vlan stripping, current packet:";
+        XLOG(DBG5) << PktUtil::hexDump(cursor);
+        size_t headerLength = folly::MacAddress::SIZE + folly::MacAddress::SIZE;
+        void* src = ioBuf->writableData();
+        void* dst = ioBuf->writableData() + kVlanTagSize;
+        sal_memmove(dst, src, headerLength);
+        // trim front by the size of vlan tag
+        rv = bcm_pktio_pull(
+            pktioPkt->unit, pktioPkt, kVlanTagSize, (void**)&src);
+        bcmLogError(rv, "failed in bcm_pktio_pull to strip vlan tag");
+        ioBuf->trimStart(kVlanTagSize);
+        cursor.reset(ioBuf);
+        XLOG(DBG5) << "After vlan stripping, new packet:";
+        XLOG(DBG5) << PktUtil::hexDump(cursor);
+      }
+    }
+
     if (BCM_SUCCESS(rv)) {
-      rv = bcm_pktio_trim(pktioPkt->unit, pktioPkt, pkt->buf_->length());
+      auto len = ioBuf->length();
+      if (len < ETH_ZLEN) {
+        // Pad to ensure it is at least 60B size, required by Ethernet.
+        auto padding_size = ETH_ZLEN - len;
+        XLOG(DBG4) << "Current packet size is " << len << "B, pad by "
+                   << padding_size << "B";
+        ioBuf->append(padding_size);
+        void* bufData = nullptr;
+        rv = bcm_pktio_put(
+            pktioPkt->unit, pktioPkt, padding_size, (void**)&bufData);
+        if (BCM_FAILURE(rv)) {
+          bcmLogError(rv, "failed in bcm_pktio_put to pad the buffer.");
+        }
+      }
+    }
+
+    if (BCM_SUCCESS(rv)) {
+      rv = bcm_pktio_trim(pktioPkt->unit, pktioPkt, ioBuf->length());
       if (BCM_FAILURE(rv)) {
         bcmLogError(rv, "failed in bcm_pktio_trim to trim the buffer.");
-      } else {
-        if (!pkt->getSwitched()) {
-          folly::io::Cursor cursor(pkt->buf());
-          EthHdr ethHdr{cursor};
-          if (!ethHdr.getVlanTags().empty()) {
-            cursor.reset(pkt->buf());
-            XLOG(DBG5) << "Before vlan stripping, current packet:";
-            XLOG(DBG5) << PktUtil::hexDump(cursor);
-            size_t headerLength =
-                folly::MacAddress::SIZE + folly::MacAddress::SIZE;
-            void* src = pkt->buf()->writableData();
-            void* dst = pkt->buf()->writableData() + kVlanTagSize;
-            sal_memmove(dst, src, headerLength);
-            // trim front by the size of vlan tag
-            rv = bcm_pktio_pull(
-                pktioPkt->unit, pktioPkt, kVlanTagSize, (void**)&src);
-            bcmLogError(rv, "failed in bcm_pktio_pull to strip vlan tag");
-            cursor.skip(kVlanTagSize);
-            XLOG(DBG5) << "After vlan stripping, new packet:";
-            XLOG(DBG5) << PktUtil::hexDump(cursor);
-          }
-        }
       }
     }
 
