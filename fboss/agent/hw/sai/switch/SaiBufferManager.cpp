@@ -21,6 +21,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
 #include "fboss/agent/hw/switch_asics/Trident2Asic.h"
+#include "fboss/agent/platforms/sai/SaiBcmPlatform.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/agent/state/PortQueue.h"
 
@@ -69,7 +70,7 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
   auto& switchApi = SaiApiTable::getInstance()->switchApi();
   auto availableBuffer = switchApi.getAttribute(
       switchId, SaiSwitchTraits::Attributes::EgressPoolAvaialableSize{});
-  auto maxEgressPoolSize = SaiBufferManager::getMaxEgressPoolBytes(asic);
+  auto maxEgressPoolSize = SaiBufferManager::getMaxEgressPoolBytes(platform);
   switch (asic->getAsicType()) {
     case HwAsic::AsicType::ASIC_TYPE_TAJO:
       XLOG(FATAL) << " Not supported";
@@ -96,7 +97,8 @@ SaiBufferManager::SaiBufferManager(
     const SaiPlatform* platform)
     : managerTable_(managerTable), platform_(platform) {}
 
-uint64_t SaiBufferManager::getMaxEgressPoolBytes(const HwAsic* asic) {
+uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
+  auto asic = platform->getAsic();
   switch (asic->getAsicType()) {
     case HwAsic::AsicType::ASIC_TYPE_FAKE:
     case HwAsic::AsicType::ASIC_TYPE_MOCK:
@@ -104,10 +106,17 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const HwAsic* asic) {
       return asic->getMMUSizeBytes();
 
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK: {
-      // 0x436e 208 byte cells per XPE. TH has 4 XPEs
       auto constexpr kPerXpeCellsAvailable = 0x436e;
+      auto constexpr kPerXpeCellsAvailableOptimized = 0x454A;
       auto constexpr kNumXpes = 4;
-      return kPerXpeCellsAvailable * kNumXpes *
+      auto perXpeCells = kPerXpeCellsAvailable;
+      auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
+      if (saiBcmPlatform->getHwConfigValue("buf.mqueue.guarantee.0") &&
+          saiBcmPlatform->getHwConfigValue("mmu_config_override")) {
+        // MMU optimized, more cells available
+        perXpeCells = kPerXpeCellsAvailableOptimized;
+      }
+      return perXpeCells * kNumXpes *
           static_cast<const TomahawkAsic*>(asic)->getMMUCellSize();
     }
     case HwAsic::AsicType::ASIC_TYPE_TRIDENT2: {
@@ -133,7 +142,7 @@ void SaiBufferManager::setupEgressBufferPool() {
   auto& store = SaiStore::getInstance()->get<SaiBufferPoolTraits>();
   SaiBufferPoolTraits::CreateAttributes c{
       SAI_BUFFER_POOL_TYPE_EGRESS,
-      getMaxEgressPoolBytes(platform_->getAsic()),
+      getMaxEgressPoolBytes(platform_),
       SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC};
   egressBufferPoolHandle_->bufferPool =
       store.setObject(SAI_BUFFER_POOL_TYPE_EGRESS, c);

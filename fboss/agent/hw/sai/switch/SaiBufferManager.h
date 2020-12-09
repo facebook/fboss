@@ -43,7 +43,7 @@ class SaiBufferManager {
   uint64_t getDeviceWatermarkBytes() const {
     return deviceWatermarkBytes_;
   }
-  static uint64_t getMaxEgressPoolBytes(const HwAsic* asic);
+  static uint64_t getMaxEgressPoolBytes(const SaiPlatform* platform);
 
  private:
   void publishDeviceWatermark(uint64_t peakBytes) const;
