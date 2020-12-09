@@ -27,7 +27,7 @@ SaiSchedulerTraits::CreateAttributes makeSchedulerAttributes(
   sai_scheduling_type_t type = SAI_SCHEDULING_TYPE_STRICT;
   uint8_t weight = 0;
   if (portQueue.getScheduling() == QueueScheduling::WEIGHTED_ROUND_ROBIN) {
-    type = SAI_SCHEDULING_TYPE_WRR;
+    type = SAI_SCHEDULING_TYPE_DWRR;
     weight = portQueue.getWeight();
   }
   uint64_t minBwRate = 0, maxBwRate = 0;
@@ -98,7 +98,8 @@ void SaiSchedulerManager::fillSchedulerSettings(
       GET_OPT_ATTR(Scheduler, MaxBandwidthRate, scheduler->attributes());
   portQueue->setWeight(weight);
   portQueue->setScheduling(
-      schedulingType == SAI_SCHEDULING_TYPE_WRR
+      (schedulingType == SAI_SCHEDULING_TYPE_DWRR ||
+       schedulingType == SAI_SCHEDULING_TYPE_WRR)
           ? QueueScheduling::WEIGHTED_ROUND_ROBIN
           : QueueScheduling::STRICT_PRIORITY);
   cfg::Range range;

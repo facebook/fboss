@@ -80,7 +80,7 @@ class SchedulerManagerTest : public ManagerTestBase {
     auto expectedSchedType =
         (schedType == cfg::QueueScheduling::STRICT_PRIORITY
              ? SAI_SCHEDULING_TYPE_STRICT
-             : SAI_SCHEDULING_TYPE_WRR);
+             : SAI_SCHEDULING_TYPE_DWRR);
     auto expectedMeterType =
         (queueRateType == PortQueueRate::Type::pktsPerSec
              ? SAI_METER_TYPE_PACKETS
