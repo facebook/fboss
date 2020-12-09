@@ -203,7 +203,8 @@ void SaiHostifManager::processRxReasonToQueueDelta(
         oldRxReasonToQueue.begin(),
         oldRxReasonToQueue.end(),
         [newRxReasonEntry](const auto& rxReasonEntry) {
-          return rxReasonEntry.rxReason == newRxReasonEntry.rxReason;
+          return rxReasonEntry.rxReason_ref() ==
+              newRxReasonEntry.rxReason_ref();
         });
     /*
      * Lower index must have higher priority.
@@ -218,18 +219,22 @@ void SaiHostifManager::processRxReasonToQueueDelta(
       auto oldIndex =
           std::distance(oldRxReasonToQueue.begin(), oldRxReasonEntry);
       if (oldIndex != index ||
-          oldRxReasonEntry->queueId != newRxReasonEntry.queueId) {
+          oldRxReasonEntry->queueId_ref() != newRxReasonEntry.queueId_ref()) {
         changeHostifTrap(
-            newRxReasonEntry.rxReason, newRxReasonEntry.queueId, priority);
+            *newRxReasonEntry.rxReason_ref(),
+            *newRxReasonEntry.queueId_ref(),
+            priority);
       }
     } else {
-      if (newRxReasonEntry.rxReason == cfg::PacketRxReason::UNMATCHED) {
+      if (newRxReasonEntry.rxReason_ref() == cfg::PacketRxReason::UNMATCHED) {
         // what is the trap for unmatched?
         XLOG(WARN) << "ignoring UNMATCHED packet rx reason";
         continue;
       }
       addHostifTrap(
-          newRxReasonEntry.rxReason, newRxReasonEntry.queueId, priority);
+          *newRxReasonEntry.rxReason_ref(),
+          *newRxReasonEntry.queueId_ref(),
+          priority);
     }
   }
 
@@ -239,10 +244,11 @@ void SaiHostifManager::processRxReasonToQueueDelta(
         newRxReasonToQueue.begin(),
         newRxReasonToQueue.end(),
         [&](const auto& rxReasonEntry) {
-          return rxReasonEntry.rxReason == oldRxReasonEntry.rxReason;
+          return rxReasonEntry.rxReason_ref() ==
+              oldRxReasonEntry.rxReason_ref();
         });
     if (newRxReasonEntry == newRxReasonToQueue.end()) {
-      removeHostifTrap(oldRxReasonEntry.rxReason);
+      removeHostifTrap(*oldRxReasonEntry.rxReason_ref());
     }
   }
 }
@@ -291,8 +297,16 @@ void SaiHostifManager::changeCpuQueue(
   cpuPortHandle_->configuredQueues.clear();
 
   const auto asic = platform_->getAsic();
+  auto maxCpuQueues = getMaxCpuQueues();
   for (auto newPortQueue : newQueueConfig) {
     // Queue create or update
+    if (newPortQueue->getID() > maxCpuQueues) {
+      throw FbossError(
+          "Queue ID : ",
+          newPortQueue->getID(),
+          " exceeds max supported CPU queues: ",
+          maxCpuQueues);
+    }
     SaiQueueConfig saiQueueConfig =
         std::make_pair(newPortQueue->getID(), newPortQueue->getStreamType());
     auto queueHandle = getQueueHandle(saiQueueConfig);
@@ -382,8 +396,27 @@ HwPortStats SaiHostifManager::getCpuPortStats() const {
   return hwPortStats;
 }
 
+uint32_t SaiHostifManager::getMaxCpuQueues() const {
+  auto asic = platform_->getAsic();
+  auto cpuQueueTypes = asic->getQueueStreamTypes(true /*cpu*/);
+  CHECK_EQ(cpuQueueTypes.size(), 1);
+  return asic->getDefaultNumPortQueues(*cpuQueueTypes.begin(), true /*cpu*/);
+}
+
 QueueConfig SaiHostifManager::getQueueSettings() const {
-  return managerTable_->queueManager().getQueueSettings(cpuPortHandle_->queues);
+  auto queueConfig =
+      managerTable_->queueManager().getQueueSettings(cpuPortHandle_->queues);
+  auto maxCpuQueues = getMaxCpuQueues();
+  QueueConfig filteredQueueConfig;
+  // Prepare queue config only upto max CPU queues
+  std::copy_if(
+      queueConfig.begin(),
+      queueConfig.end(),
+      std::back_inserter(filteredQueueConfig),
+      [maxCpuQueues](const auto& portQueue) {
+        return portQueue->getID() < maxCpuQueues;
+      });
+  return filteredQueueConfig;
 }
 
 SaiHostifTrapHandle* SaiHostifManager::getHostifTrapHandleImpl(

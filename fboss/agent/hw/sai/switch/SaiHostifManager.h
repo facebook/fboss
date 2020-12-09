@@ -81,6 +81,7 @@ class SaiHostifManager {
   SaiHostifTrapHandle* getHostifTrapHandle(cfg::PacketRxReason rxReason);
 
  private:
+  uint32_t getMaxCpuQueues() const;
   void setQosPolicy();
   void clearQosPolicy();
   void setCpuQosPolicy(QosMapSaiId dscpToTc, QosMapSaiId tcToQueue);
