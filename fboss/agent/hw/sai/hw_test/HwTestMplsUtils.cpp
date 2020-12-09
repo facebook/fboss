@@ -46,7 +46,7 @@ int getLabelSwappedWithForTopLabel(const HwSwitch* hwSwitch, uint32_t label) {
 }
 
 template <typename AddrT>
-NextHopSaiId getNextHopId(
+sai_object_id_t getNextHopId(
     const HwSwitch* hwSwitch,
     typename Route<AddrT>::Prefix prefix) {
   auto saiSwitch = static_cast<const facebook::fboss::SaiSwitch*>(hwSwitch);
@@ -59,12 +59,44 @@ NextHopSaiId getNextHopId(
   if (!virtualRouterHandle) {
     throw FbossError("No virtual router with id 0");
   }
-  auto r = SaiRouteTraits::RouteEntry(
+  auto routeEntry = SaiRouteTraits::RouteEntry(
       saiSwitch->getSwitchId(),
       virtualRouterHandle->virtualRouter->adapterKey(),
       follyPrefix);
-  return NextHopSaiId(SaiApiTable::getInstance()->routeApi().getAttribute(
-      r, SaiRouteTraits::Attributes::NextHopId()));
+  return SaiApiTable::getInstance()->routeApi().getAttribute(
+      routeEntry, SaiRouteTraits::Attributes::NextHopId());
+}
+
+template <typename AddrT>
+NextHopSaiId getNextHopSaiId(
+    const HwSwitch* hwSwitch,
+    typename Route<AddrT>::Prefix prefix) {
+  return static_cast<NextHopSaiId>(getNextHopId<AddrT>(hwSwitch, prefix));
+}
+
+template <typename AddrT>
+NextHopGroupSaiId getNextHopGroupSaiId(
+    const HwSwitch* hwSwitch,
+    typename Route<AddrT>::Prefix prefix) {
+  return static_cast<NextHopGroupSaiId>(getNextHopId<AddrT>(hwSwitch, prefix));
+}
+
+NextHopSaiId getNextHopSaiIdForMember(NextHopGroupMemberSaiId member) {
+  return static_cast<NextHopSaiId>(
+      SaiApiTable::getInstance()->nextHopGroupApi().getAttribute(
+          member, SaiNextHopGroupMemberTraits::Attributes::NextHopId{}));
+}
+
+std::vector<NextHopSaiId> getNextHopMembers(NextHopGroupSaiId group) {
+  auto members = SaiApiTable::getInstance()->nextHopGroupApi().getAttribute(
+      group, SaiNextHopGroupTraits::Attributes::NextHopMemberList{});
+  std::vector<NextHopSaiId> nexthops{};
+  for (auto member : members) {
+    auto nexthop =
+        getNextHopSaiIdForMember(static_cast<NextHopGroupMemberSaiId>(member));
+    nexthops.push_back(nexthop);
+  }
+  return nexthops;
 }
 
 template <typename AddrT>
@@ -74,7 +106,7 @@ void verifyLabeledNextHop(
     LabelForwardingEntry::Label label) {
   auto& nextHopApi = SaiApiTable::getInstance()->nextHopApi();
   auto labelStack = nextHopApi.getAttribute(
-      getNextHopId<AddrT>(hwSwitch, prefix),
+      getNextHopSaiId<AddrT>(hwSwitch, prefix),
       SaiMplsNextHopTraits::Attributes::LabelStack{});
   EXPECT_GT(labelStack.size(), 0);
   EXPECT_EQ(labelStack[0], label);
@@ -93,7 +125,7 @@ void verifyLabeledNextHopWithStack(
     const HwSwitch* hwSwitch,
     typename Route<AddrT>::Prefix prefix,
     const LabelForwardingAction::LabelStack& stack) {
-  auto nextHopId = getNextHopId<AddrT>(hwSwitch, prefix);
+  auto nextHopId = getNextHopSaiId<AddrT>(hwSwitch, prefix);
   auto& nextHopApi = SaiApiTable::getInstance()->nextHopApi();
   auto labelStack = nextHopApi.getAttribute(
       NextHopSaiId(nextHopId), SaiMplsNextHopTraits::Attributes::LabelStack{});
@@ -167,7 +199,7 @@ void verifyProgrammedStack(
     const LabelForwardingAction::LabelStack& stack,
     long /* unused */) {
   auto& nextHopApi = SaiApiTable::getInstance()->nextHopApi();
-  auto nextHopId = getNextHopId<AddrT>(hwSwitch, prefix);
+  auto nextHopId = getNextHopSaiId<AddrT>(hwSwitch, prefix);
   auto labelStack = nextHopApi.getAttribute(
       nextHopId, SaiMplsNextHopTraits::Attributes::LabelStack{});
 
