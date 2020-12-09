@@ -23,6 +23,7 @@ std::string SaiBcmPlatform::getHwConfig() {
   for (const auto& entry : cfg) {
     nameValStrs.emplace_back(
         folly::to<std::string>(entry.first, '=', entry.second));
+    hwConfig_.emplace(std::make_pair(entry.first, entry.second));
   }
   auto hwConfig = folly::join('\n', nameValStrs);
   return hwConfig;
@@ -38,6 +39,11 @@ std::vector<PortID> SaiBcmPlatform::getAllPortsInGroup(PortID portID) const {
     }
   }
   return allPortsinGroup;
+}
+
+const char* SaiBcmPlatform::getHwConfigValue(const std::string& key) const {
+  auto it = hwConfig_.find(key);
+  return it == hwConfig_.end() ? nullptr : it->second.c_str();
 }
 
 std::optional<sai_port_interface_type_t> SaiBcmPlatform::getInterfaceType(

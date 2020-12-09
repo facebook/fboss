@@ -34,9 +34,13 @@ class SaiBcmPlatform : public SaiHwPlatform {
   bool supportInterfaceType() const override {
     return true;
   }
+  const char* getHwConfigValue(const std::string& key) const;
 
  protected:
   void initWedgeLED(int led, folly::ByteRange range);
+
+ private:
+  std::unordered_map<std::string, std::string> hwConfig_;
 };
 
 } // namespace facebook::fboss
