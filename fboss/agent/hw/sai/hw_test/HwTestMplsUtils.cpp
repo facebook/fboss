@@ -145,14 +145,36 @@ template void verifyLabeledNextHopWithStack<folly::IPAddressV4>(
 
 template <typename AddrT>
 void verifyMultiPathNextHop(
-    const HwSwitch* /* unused */,
-    typename Route<AddrT>::Prefix /* unused */,
-    const std::
-        map<PortDescriptor, LabelForwardingAction::LabelStack>& /* unused */,
-    int /* unused */,
-    int /* unused */) {
-  throw FbossError("Unimplemented Test Case for SAI");
+    const HwSwitch* hwSwitch,
+    typename Route<AddrT>::Prefix prefix,
+    const std::map<PortDescriptor, LabelForwardingAction::LabelStack>& stacks,
+    int numUnLabeledPorts,
+    int numLabeledPorts) {
+  auto group = getNextHopGroupSaiId<AddrT>(hwSwitch, prefix);
+  auto nexthops = getNextHopMembers(group);
+  EXPECT_EQ((numUnLabeledPorts + numLabeledPorts), nexthops.size());
+
+  std::vector<LabelForwardingAction::LabelStack> nexthopStacks;
+  for (auto nexthop : nexthops) {
+    auto stack = SaiApiTable::getInstance()->nextHopApi().getAttribute(
+        nexthop, SaiMplsNextHopTraits::Attributes::LabelStack{});
+    LabelForwardingAction::LabelStack labelStack;
+    for (auto label : stack) {
+      labelStack.push_back(label);
+    }
+    nexthopStacks.push_back(std::move(labelStack));
+  }
+  EXPECT_EQ(numLabeledPorts, nexthopStacks.size());
+  for (auto entry : stacks) {
+    auto stack = entry.second;
+    nexthopStacks.erase(std::remove_if(
+        nexthopStacks.begin(),
+        nexthopStacks.end(),
+        [stack](const auto& nexthopStack) { return nexthopStack == stack; }));
+  }
+  EXPECT_EQ(nexthopStacks.size(), 0);
 }
+
 template void verifyMultiPathNextHop<folly::IPAddressV6>(
     const HwSwitch* hwSwitch,
     typename Route<folly::IPAddressV6>::Prefix prefix,
