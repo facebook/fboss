@@ -113,4 +113,22 @@ int Tomahawk4Asic::getNumLanesPerPhysicalPort() const {
   */
   return 2;
 }
+
+int Tomahawk4Asic::getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
+    const {
+  // 12 logical queues in total, same as tomahawk3
+  switch (streamType) {
+    case cfg::StreamType::UNICAST:
+      if (cpu) {
+        break;
+      }
+      return 8;
+    case cfg::StreamType::MULTICAST:
+      return cpu ? 10 : 4;
+    case cfg::StreamType::ALL:
+      break;
+  }
+  throw FbossError(
+      "Unexpected, stream: ", streamType, " cpu: ", cpu, "combination");
+}
 } // namespace facebook::fboss

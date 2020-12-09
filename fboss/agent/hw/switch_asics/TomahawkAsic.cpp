@@ -59,4 +59,21 @@ bool TomahawkAsic::isSupported(Feature feature) const {
   return false;
 }
 
+int TomahawkAsic::getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
+    const {
+  switch (streamType) {
+    case cfg::StreamType::UNICAST:
+      if (cpu) {
+        break;
+      }
+      return 8;
+    case cfg::StreamType::MULTICAST:
+      // CPU on TH has 48 queues, but we restrict ourselves to first 10
+      return 10;
+    case cfg::StreamType::ALL:
+      break;
+  }
+  throw FbossError(
+      "Unexpected, stream: ", streamType, " cpu: ", cpu, "combination");
+}
 } // namespace facebook::fboss

@@ -524,8 +524,8 @@ TEST(Port, emptyConfig) {
   // Make sure we also update the port queues to default queue so that the
   // config change won't be triggered because of empty queue cfg.
   QueueConfig queues;
-  for (int i = 0; i <
-       platform->getAsic()->getDefaultNumPortQueues(cfg::StreamType::UNICAST);
+  for (int i = 0; i < platform->getAsic()->getDefaultNumPortQueues(
+                          cfg::StreamType::UNICAST, false);
        i++) {
     auto queue = std::make_shared<PortQueue>(static_cast<uint8_t>(i));
     queue->setStreamType(cfg::StreamType::UNICAST);
@@ -624,8 +624,8 @@ TEST(Port, pauseConfig) {
   // Make sure we also update the port queues to default queue so that the
   // config change won't be triggered because of empty queue cfg
   QueueConfig queues;
-  for (int i = 0; i <
-       platform->getAsic()->getDefaultNumPortQueues(cfg::StreamType::UNICAST);
+  for (int i = 0; i < platform->getAsic()->getDefaultNumPortQueues(
+                          cfg::StreamType::UNICAST, false);
        i++) {
     auto queue = std::make_shared<PortQueue>(static_cast<uint8_t>(i));
     queue->setStreamType(cfg::StreamType::UNICAST);
@@ -852,8 +852,8 @@ TEST(PortMap, applyConfig) {
     auto port =
         std::make_shared<Port>(PortID(i), folly::format("port{}", i).str());
     QueueConfig defaultQueues;
-    for (int q = 0; q <
-         platform->getAsic()->getDefaultNumPortQueues(cfg::StreamType::UNICAST);
+    for (int q = 0; q < platform->getAsic()->getDefaultNumPortQueues(
+                            cfg::StreamType::UNICAST, false);
          q++) {
       auto defaultQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(q));
       defaultQueue->setStreamType(cfg::StreamType::UNICAST);

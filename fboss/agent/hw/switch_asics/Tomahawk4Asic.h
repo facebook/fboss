@@ -24,18 +24,8 @@ class Tomahawk4Asic : public BroadcomAsic {
       return {cfg::StreamType::UNICAST};
     }
   }
-  int getDefaultNumPortQueues(cfg::StreamType streamType) const override {
-    // 12 logical queues in total, same as tomahawk3
-    switch (streamType) {
-      case cfg::StreamType::UNICAST:
-        return 8;
-      case cfg::StreamType::MULTICAST:
-        return 4;
-      case cfg::StreamType::ALL:
-        throw FbossError("no queue exist for this stream type");
-    }
-    throw FbossError("Unknown streamType", streamType);
-  }
+  int getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
+      const override;
   uint32_t getMaxLabelStackDepth() const override {
     // one VC label and 8 tunnel labels, same as tomahawk3
     return 9;

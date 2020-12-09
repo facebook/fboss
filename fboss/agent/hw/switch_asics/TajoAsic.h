@@ -21,7 +21,8 @@ class TajoAsic : public HwAsic {
   std::set<cfg::StreamType> getQueueStreamTypes(bool /* cpu */) const override {
     return {cfg::StreamType::ALL};
   }
-  int getDefaultNumPortQueues(cfg::StreamType streamType) const override {
+  int getDefaultNumPortQueues(cfg::StreamType streamType, bool /*cpu*/)
+      const override {
     switch (streamType) {
       case cfg::StreamType::UNICAST:
       case cfg::StreamType::MULTICAST:

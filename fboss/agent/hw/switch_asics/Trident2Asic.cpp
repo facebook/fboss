@@ -59,4 +59,26 @@ bool Trident2Asic::isSupported(Feature feature) const {
   return false;
 }
 
+int Trident2Asic::getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
+    const {
+  /*
+   * Since we don't support QoS on TD2, set non cpu queues to be 0
+   */
+  switch (streamType) {
+    case cfg::StreamType::UNICAST:
+      if (cpu) {
+        break;
+      }
+      return 0;
+    case cfg::StreamType::MULTICAST:
+      /*
+       * CPU on TD2 has 44 queues, but we limit ourselves to first 10
+       */
+      return cpu ? 10 : 0;
+    case cfg::StreamType::ALL:
+      break;
+  }
+  throw FbossError(
+      "Unexpected, stream: ", streamType, " cpu: ", cpu, "combination");
+}
 } // namespace facebook::fboss

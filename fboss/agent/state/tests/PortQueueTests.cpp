@@ -42,35 +42,35 @@ cfg::PortQueueRate getPortQueueRatePps(uint32_t minimum, uint32_t maximum) {
 cfg::ActiveQueueManagement getEarlyDropAqmConfig() {
   cfg::ActiveQueueManagement earlyDropAQM;
   cfg::LinearQueueCongestionDetection earlyDropLQCD;
-  earlyDropLQCD.minimumLength = 208;
-  earlyDropLQCD.maximumLength = 416;
-  earlyDropAQM.detection.set_linear(earlyDropLQCD);
-  earlyDropAQM.behavior = cfg::QueueCongestionBehavior::EARLY_DROP;
+  earlyDropLQCD.minimumLength_ref() = 208;
+  earlyDropLQCD.maximumLength_ref() = 416;
+  earlyDropAQM.detection_ref()->set_linear(earlyDropLQCD);
+  earlyDropAQM.behavior_ref() = cfg::QueueCongestionBehavior::EARLY_DROP;
   return earlyDropAQM;
 }
 
 cfg::ActiveQueueManagement getECNAqmConfig() {
   cfg::ActiveQueueManagement ecnAQM;
   cfg::LinearQueueCongestionDetection ecnLQCD;
-  ecnLQCD.minimumLength = 624;
-  ecnLQCD.maximumLength = 624;
-  ecnAQM.detection.set_linear(ecnLQCD);
-  ecnAQM.behavior = cfg::QueueCongestionBehavior::ECN;
+  ecnLQCD.minimumLength_ref() = 624;
+  ecnLQCD.maximumLength_ref() = 624;
+  ecnAQM.detection_ref()->set_linear(ecnLQCD);
+  ecnAQM.behavior_ref() = cfg::QueueCongestionBehavior::ECN;
   return ecnAQM;
 }
 
 cfg::SwitchConfig generateTestConfig() {
   cfg::SwitchConfig config;
   config.ports_ref()->resize(1);
-  *config.ports_ref()[0].logicalID_ref() = 1;
+  config.ports_ref()[0].logicalID_ref() = 1;
   config.ports_ref()[0].name_ref() = "port1";
-  *config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+  config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
   // we just need to test the any queue and set every setting
   cfg::PortQueue queue0;
-  queue0.id = 0;
+  queue0.id_ref() = 0;
   queue0.name_ref() = "queue0";
-  queue0.streamType = cfg::StreamType::UNICAST;
-  queue0.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  queue0.streamType_ref() = cfg::StreamType::UNICAST;
+  queue0.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue0.weight_ref() = 9;
   queue0.scalingFactor_ref() = cfg::MMUScalingFactor::EIGHT;
   queue0.reservedBytes_ref() = 19968;
@@ -180,12 +180,12 @@ TEST(PortQueue, stateDelta) {
 
   cfg::SwitchConfig config;
   config.ports_ref()->resize(1);
-  *config.ports_ref()[0].logicalID_ref() = 1;
+  config.ports_ref()[0].logicalID_ref() = 1;
   config.ports_ref()[0].name_ref() = "port1";
-  *config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+  config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
   for (int i = 0; i < kStateTestNumPortQueues; i++) {
     cfg::PortQueue queue;
-    queue.id = i;
+    queue.id_ref() = i;
     queue.weight_ref() = i;
     config.portQueueConfigs_ref()["queue_config"].push_back(queue);
     config.ports_ref()[0].portQueueConfigName_ref() = "queue_config";
@@ -195,15 +195,17 @@ TEST(PortQueue, stateDelta) {
   EXPECT_NE(nullptr, stateV1);
   auto queues1 = stateV1->getPort(PortID(1))->getPortQueues();
   EXPECT_EQ(
-      platform->getAsic()->getDefaultNumPortQueues(cfg::StreamType::UNICAST),
+      platform->getAsic()->getDefaultNumPortQueues(
+          cfg::StreamType::UNICAST, false),
       queues1.size());
   // The first kStateTestNumPortQueues should have weight changed
   for (int i = 0; i < kStateTestNumPortQueues; i++) {
     EXPECT_EQ(i, queues1.at(i)->getWeight());
   }
   // The rest queue should be default
-  for (int i = kStateTestNumPortQueues; i <
-       platform->getAsic()->getDefaultNumPortQueues(cfg::StreamType::UNICAST);
+  for (int i = kStateTestNumPortQueues;
+       i < platform->getAsic()->getDefaultNumPortQueues(
+               cfg::StreamType::UNICAST, false);
        i++) {
     auto defaultQ = std::make_shared<PortQueue>(static_cast<uint8_t>(i));
     defaultQ->setStreamType(cfg::StreamType::UNICAST);
@@ -216,7 +218,8 @@ TEST(PortQueue, stateDelta) {
   EXPECT_NE(nullptr, stateV2);
   auto queues2 = stateV2->getPort(PortID(1))->getPortQueues();
   EXPECT_EQ(
-      platform->getAsic()->getDefaultNumPortQueues(cfg::StreamType::UNICAST),
+      platform->getAsic()->getDefaultNumPortQueues(
+          cfg::StreamType::UNICAST, false),
       queues2.size());
   EXPECT_EQ(5, queues2.at(0)->getWeight());
 
@@ -224,12 +227,13 @@ TEST(PortQueue, stateDelta) {
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   auto queues3 = stateV3->getPort(PortID(1))->getPortQueues();
   EXPECT_EQ(
-      platform->getAsic()->getDefaultNumPortQueues(cfg::StreamType::UNICAST),
+      platform->getAsic()->getDefaultNumPortQueues(
+          cfg::StreamType::UNICAST, false),
       queues3.size());
   EXPECT_EQ(1, queues3.at(3)->getWeight());
 
   cfg::PortQueue queueExtra;
-  queueExtra.id = 11;
+  queueExtra.id_ref() = 11;
   queueExtra.weight_ref() = 5;
   config.portQueueConfigs_ref()["queue_config"].push_back(queueExtra);
   EXPECT_THROW(
@@ -242,11 +246,11 @@ TEST(PortQueue, aqmState) {
 
   cfg::SwitchConfig config;
   config.ports_ref()->resize(1);
-  *config.ports_ref()[0].logicalID_ref() = 1;
+  config.ports_ref()[0].logicalID_ref() = 1;
   config.ports_ref()[0].name_ref() = "port1";
-  *config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+  config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
   cfg::PortQueue queue;
-  queue.id = 0;
+  queue.id_ref() = 0;
   queue.weight_ref() = 1;
   queue.aqms_ref() = {};
   queue.aqms_ref()->push_back(getEarlyDropAqmConfig());
@@ -258,7 +262,8 @@ TEST(PortQueue, aqmState) {
   auto queues1 = stateV1->getPort(PortID(1))->getPortQueues();
   // change one queue, won't affect the other queues
   EXPECT_EQ(
-      platform->getAsic()->getDefaultNumPortQueues(cfg::StreamType::UNICAST),
+      platform->getAsic()->getDefaultNumPortQueues(
+          cfg::StreamType::UNICAST, false),
       queues1.size());
   PortQueue::AQMMap aqms{
       {cfg::QueueCongestionBehavior::EARLY_DROP, getEarlyDropAqmConfig()}};
@@ -271,16 +276,16 @@ TEST(PortQueue, aqmBadState) {
 
   cfg::SwitchConfig config;
   config.ports_ref()->resize(1);
-  *config.ports_ref()[0].logicalID_ref() = 1;
+  config.ports_ref()[0].logicalID_ref() = 1;
   config.ports_ref()[0].name_ref() = "port1";
-  *config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+  config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
   cfg::PortQueue queue;
-  queue.id = 0;
+  queue.id_ref() = 0;
   queue.weight_ref() = 1;
 
   // create bad ECN AQM state w/o specifying thresholds
   cfg::ActiveQueueManagement ecnAQM;
-  ecnAQM.behavior = cfg::QueueCongestionBehavior::ECN;
+  ecnAQM.behavior_ref() = cfg::QueueCongestionBehavior::ECN;
   queue.aqms_ref() = {};
   queue.aqms_ref()->push_back(getEarlyDropAqmConfig());
   queue.aqms_ref()->push_back(ecnAQM);
@@ -365,15 +370,15 @@ TEST(PortQueue, checkValidPortQueueConfigRef) {
 
   cfg::SwitchConfig config;
   config.ports_ref()->resize(1);
-  *config.ports_ref()[0].logicalID_ref() = 1;
+  config.ports_ref()[0].logicalID_ref() = 1;
   config.ports_ref()[0].name_ref() = "port1";
-  *config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+  config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
 
   cfg::PortQueue queue0;
-  queue0.id = 0;
+  queue0.id_ref() = 0;
   queue0.name_ref() = "queue0";
-  queue0.streamType = cfg::StreamType::UNICAST;
-  queue0.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  queue0.streamType_ref() = cfg::StreamType::UNICAST;
+  queue0.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
 
   /*
    * portQueueConfigs map has entry for "queue_config", but the port is
