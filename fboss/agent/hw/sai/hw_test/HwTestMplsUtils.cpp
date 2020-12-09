@@ -190,13 +190,27 @@ template void verifyMultiPathNextHop<folly::IPAddressV4>(
 
 template <typename AddrT>
 void verifyLabeledMultiPathNextHopMemberWithStack(
-    const HwSwitch* /* unused */,
-    typename Route<AddrT>::Prefix /* unused */,
-    int /* unused */,
-    const LabelForwardingAction::LabelStack& /* unused */,
-    bool /* unused */) {
-  throw FbossError("Unimplemented Test Case for SAI");
+    const HwSwitch* hwSwitch,
+    typename Route<AddrT>::Prefix prefix,
+    int memberIndex,
+    const LabelForwardingAction::LabelStack& stack,
+    bool resolved) {
+  if (!resolved) {
+    return;
+  }
+  auto group = getNextHopGroupSaiId<AddrT>(hwSwitch, prefix);
+  auto nexthops = getNextHopMembers(group);
+  EXPECT_GT(nexthops.size(), memberIndex);
+  auto nexthop = nexthops[memberIndex];
+  auto nexthopStack = SaiApiTable::getInstance()->nextHopApi().getAttribute(
+      nexthop, SaiMplsNextHopTraits::Attributes::LabelStack{});
+  LabelForwardingAction::LabelStack labelStack;
+  for (auto label : nexthopStack) {
+    labelStack.push_back(label);
+  }
+  EXPECT_EQ(stack, labelStack);
 }
+
 template void verifyLabeledMultiPathNextHopMemberWithStack<folly::IPAddressV6>(
     const HwSwitch* hwSwitch,
     typename Route<folly::IPAddressV6>::Prefix prefix,
