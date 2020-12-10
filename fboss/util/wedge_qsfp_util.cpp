@@ -119,6 +119,7 @@ DEFINE_string(firmware_filename, "",
             "Module firmware filename along with path");
 DEFINE_uint32(msa_password, 0x00001011, "MSA password for module privilige operation");
 DEFINE_uint32(image_header_len, 0, "Firmware image header length");
+DEFINE_bool(get_module_fw_info, false, "Get the module  firmware info for list of ports, use with portA and portB");
 
 enum LoopbackMode {
   noLoopback,
@@ -961,6 +962,69 @@ bool cliModulefirmwareUpgrade(TransceiverI2CApi* bus, unsigned int port, std::st
   return ret;
 }
 
+/*
+ * get_module_fw_info
+ *
+ * This function gets the module firmware info and prints it for a range of
+ * ports. The info are : vendor name, part number and current firmware version
+ * sample output:
+ * Module     Vendor               Part Number          Fw version
+ * 52         FINISAR CORP.        FTCC1112E1PLL-FB     2.1
+ * 82         INNOLIGHT            T-FX4FNT-HFB         ca.f8
+ * 84         FINISAR CORP.        FTCC1112E1PLL-FB     7.8
+ */
+void get_module_fw_info(TransceiverI2CApi* bus, unsigned int moduleA, unsigned int moduleB) {
+
+  if (moduleA > moduleB) {
+    printf("The moduleA should be smaller than or equal to moduleB\n");
+    return;
+  }
+
+  printf("Displaying firmware info for modules %d-%d\n", moduleA, moduleB);
+  printf("Module     Vendor               Part Number          Fw version\n");
+
+  for (unsigned int module = moduleA; module <= moduleB; module++) {
+
+    std::array<uint8_t, 16> vendor;
+    std::array<uint8_t, 16> partNo;
+    std::array<uint8_t, 2> fwVer;
+
+    if(!bus->isPresent(module)) {
+        continue;
+      }
+
+    auto moduleType = getModuleType(bus, module);
+    if (moduleType != TransceiverManagementInterface::CMIS) {
+      continue;
+    }
+
+    DOMDataUnion tempDomData = fetchDataFromLocalI2CBus(bus, module);
+    CmisData cmisData = tempDomData.get_cmis();
+    auto dataLower = cmisData.lower_ref()->data();
+    auto dataUpper = cmisData.page0_ref()->data();
+
+    fwVer[0] = dataLower[39];
+    fwVer[1] = dataLower[40];
+
+    memcpy(&vendor[0], &dataUpper[1], 16);
+    memcpy(&partNo[0], &dataUpper[20], 16);
+
+    printf("%2d         ", module);
+    for (int i=0; i<16; i++) {
+      printf("%c", vendor[i]);
+    }
+
+    printf("     ");
+    for (int i=0; i<16; i++) {
+      printf("%c", partNo[i]);
+    }
+
+    printf("     ");
+    printf("%x.%x", fwVer[0], fwVer[1]);
+    printf("\n");
+  }
+}
+
 int main(int argc, char* argv[]) {
   folly::init(&argc, &argv, true);
   gflags::SetCommandLineOptionWithMode(
@@ -1023,7 +1087,8 @@ int main(int argc, char* argv[]) {
                      FLAGS_set_low_power || FLAGS_qsfp_hard_reset ||
                      FLAGS_electrical_loopback || FLAGS_optical_loopback ||
                      FLAGS_clear_loopback || FLAGS_read_reg ||
-                     FLAGS_write_reg || FLAGS_update_module_firmware);
+                     FLAGS_write_reg || FLAGS_update_module_firmware ||
+                     FLAGS_get_module_fw_info);
 
   if (FLAGS_direct_i2c || !printInfo) {
     try {
@@ -1182,7 +1247,17 @@ int main(int argc, char* argv[]) {
           cliModulefirmwareUpgrade(bus.get(), portNum, FLAGS_firmware_filename);
       }
     }
-
   }
+
+  if (FLAGS_get_module_fw_info) {
+    if (ports.size() < 1) {
+      fprintf(stderr, "Pl specify 1 module or 2 modules for the range: <ModuleA> <moduleB>\n");
+    } else if (ports.size() == 1) {
+      get_module_fw_info(bus.get(), ports[0], ports[0]);
+    } else {
+      get_module_fw_info(bus.get(), ports[0], ports[1]);
+    }
+  }
+
   return retcode;
 }
