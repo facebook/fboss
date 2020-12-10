@@ -233,3 +233,8 @@ sai_status_t sai_dbg_generate_dump(const char* dump_file_name) {
       dump_file_name);
   return SAI_STATUS_SUCCESS;
 }
+
+sai_object_type_t sai_object_type_query(sai_object_id_t /*object_id*/) {
+  // FIXME: implement this
+  return SAI_OBJECT_TYPE_NEXT_HOP;
+}

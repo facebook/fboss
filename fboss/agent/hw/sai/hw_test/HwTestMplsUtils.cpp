@@ -15,11 +15,16 @@
 #include "fboss/agent/hw/sai/switch/SaiInSegEntryManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
+#include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 
 #include <folly/gen/Base.h>
+
+extern "C" {
+#include <sai.h>
+}
 
 namespace facebook::fboss::utility {
 const auto kRouter0 = RouterID(0);
@@ -122,6 +127,15 @@ std::vector<NextHopSaiId> getNextHopMembers(NextHopGroupSaiId group) {
   return nexthops;
 }
 
+std::vector<NextHopSaiId> getNextHops(sai_object_id_t id) {
+  auto type = sai_object_type_query(id);
+  if (type == SAI_OBJECT_TYPE_NEXT_HOP) {
+    return {static_cast<NextHopSaiId>(id)};
+  }
+  EXPECT_EQ(type, SAI_OBJECT_TYPE_NEXT_HOP_GROUP);
+  return getNextHopMembers(static_cast<NextHopGroupSaiId>(id));
+}
+
 template <typename AddrT>
 void verifyLabeledNextHop(
     const HwSwitch* hwSwitch,
@@ -179,17 +193,25 @@ void verifyMultiPathNextHop(
 
   std::vector<LabelForwardingAction::LabelStack> nexthopStacks;
   for (auto nexthop : nexthops) {
+    auto type = SaiApiTable::getInstance()->nextHopApi().getAttribute(
+        nexthop, SaiMplsNextHopTraits::Attributes::Type{});
+    if (type == SAI_NEXT_HOP_TYPE_IP) {
+      continue;
+    }
     auto stack = SaiApiTable::getInstance()->nextHopApi().getAttribute(
         nexthop, SaiMplsNextHopTraits::Attributes::LabelStack{});
     LabelForwardingAction::LabelStack labelStack;
     for (auto label : stack) {
       labelStack.push_back(label);
     }
-    nexthopStacks.push_back(std::move(labelStack));
+    nexthopStacks.push_back(labelStack);
   }
   EXPECT_EQ(numLabeledPorts, nexthopStacks.size());
   for (auto entry : stacks) {
     auto stack = entry.second;
+    if (stack.empty()) {
+      continue;
+    }
     nexthopStacks.erase(std::remove_if(
         nexthopStacks.begin(),
         nexthopStacks.end(),
@@ -254,29 +276,49 @@ template <typename AddrT>
 void verifyProgrammedStack(
     const HwSwitch* hwSwitch,
     typename Route<AddrT>::Prefix prefix,
-    const InterfaceID& /* unused */,
+    const InterfaceID& intfID,
     const LabelForwardingAction::LabelStack& stack,
     long /* unused */) {
+  auto* saiSwitch = static_cast<const SaiSwitch*>(hwSwitch);
   auto& nextHopApi = SaiApiTable::getInstance()->nextHopApi();
-  auto nextHopId = getNextHopSaiId<AddrT>(hwSwitch, prefix);
-  auto labelStack = nextHopApi.getAttribute(
-      nextHopId, SaiMplsNextHopTraits::Attributes::LabelStack{});
-
-  // If stack is empty, simply check if the labelStack is programmed
-  // If the stack is empty, check if the labelstack has a label with MPLS
-  // Else, check that the stacks match
-  if (stack.empty()) {
-    EXPECT_EQ(labelStack.size(), 1);
-    EXPECT_EQ(
-        nextHopApi.getAttribute(
-            nextHopId, SaiMplsNextHopTraits::Attributes::Type()),
-        SAI_NEXT_HOP_TYPE_MPLS);
-  } else {
-    EXPECT_EQ(labelStack.size(), stack.size());
-    for (int i = 0; i < labelStack.size(); i++) {
-      EXPECT_EQ(labelStack[i], stack[i]);
+  sai_object_id_t nexthopId =
+      static_cast<sai_object_id_t>(getNextHopSaiId<AddrT>(hwSwitch, prefix));
+  auto nexthopIds = getNextHops(nexthopId);
+  auto intfHandle = saiSwitch->managerTable()
+                        ->routerInterfaceManager()
+                        .getRouterInterfaceHandle(intfID);
+  auto intfKey = intfHandle->routerInterface->adapterKey();
+  bool found = false;
+  for (auto nextHopId : nexthopIds) {
+    auto intfObjId = nextHopApi.getAttribute(
+        nextHopId, SaiMplsNextHopTraits::Attributes::RouterInterfaceId());
+    if (intfObjId != intfKey) {
+      continue;
     }
+    found = true;
+    // If stack is empty, simply check if the labelStack is programmed
+    // If the stack is empty, check if the labelstack has a label with MPLS
+    // Else, check that the stacks match
+    if (stack.empty()) {
+      EXPECT_EQ(
+          nextHopApi.getAttribute(
+              nextHopId, SaiMplsNextHopTraits::Attributes::Type()),
+          SAI_NEXT_HOP_TYPE_IP);
+    } else {
+      EXPECT_EQ(
+          nextHopApi.getAttribute(
+              nextHopId, SaiMplsNextHopTraits::Attributes::Type()),
+          SAI_NEXT_HOP_TYPE_MPLS);
+      auto labelStack = nextHopApi.getAttribute(
+          nextHopId, SaiMplsNextHopTraits::Attributes::LabelStack{});
+      EXPECT_EQ(labelStack.size(), stack.size());
+      for (int i = 0; i < labelStack.size(); i++) {
+        EXPECT_EQ(labelStack[i], stack[i]);
+      }
+    }
+    break;
   }
+  EXPECT_TRUE(found);
 }
 template void verifyProgrammedStack<folly::IPAddressV6>(
     const HwSwitch* hwSwitch,
