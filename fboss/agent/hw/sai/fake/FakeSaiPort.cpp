@@ -32,6 +32,8 @@ sai_status_t create_port_fn(
   std::optional<sai_port_media_type_t> mediaType;
   std::optional<sai_vlan_id_t> vlanId;
   std::vector<uint32_t> preemphasis;
+  std::vector<sai_object_id_t> ingressMirrorList;
+  std::vector<sai_object_id_t> egressMirrorList;
   sai_uint32_t mtu{1514};
   sai_object_id_t qosDscpToTcMap{SAI_NULL_OBJECT_ID};
   sai_object_id_t qosTcToQueueMap{SAI_NULL_OBJECT_ID};
@@ -92,6 +94,16 @@ sai_status_t create_port_fn(
       case SAI_PORT_ATTR_PKT_TX_ENABLE:
         txEnable = attr_list[i].value.booldata;
         break;
+      case SAI_PORT_ATTR_INGRESS_MIRROR_SESSION: {
+        for (int j = 0; j < attr_list[i].value.objlist.count; ++j) {
+          ingressMirrorList.push_back(attr_list[i].value.objlist.list[j]);
+        }
+      } break;
+      case SAI_PORT_ATTR_EGRESS_MIRROR_SESSION: {
+        for (int j = 0; j < attr_list[i].value.objlist.count; ++j) {
+          egressMirrorList.push_back(attr_list[i].value.objlist.list[j]);
+        }
+      } break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -121,6 +133,12 @@ sai_status_t create_port_fn(
   }
   if (preemphasis.size()) {
     port.preemphasis = preemphasis;
+  }
+  if (ingressMirrorList.size()) {
+    port.ingressMirrorList = ingressMirrorList;
+  }
+  if (egressMirrorList.size()) {
+    port.egressMirrorList = egressMirrorList;
   }
   port.mtu = mtu;
   port.qosDscpToTcMap = qosDscpToTcMap;
@@ -223,6 +241,20 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_PKT_TX_ENABLE:
       port.txEnable = attr->value.booldata;
       break;
+    case SAI_PORT_ATTR_INGRESS_MIRROR_SESSION: {
+      auto& ingressMirrorList = port.ingressMirrorList;
+      ingressMirrorList.clear();
+      for (int j = 0; j < attr->value.objlist.count; ++j) {
+        ingressMirrorList.push_back(attr->value.objlist.list[j]);
+      }
+    } break;
+    case SAI_PORT_ATTR_EGRESS_MIRROR_SESSION: {
+      auto& egressMirrorList = port.egressMirrorList;
+      egressMirrorList.clear();
+      for (int j = 0; j < attr->value.objlist.count; ++j) {
+        egressMirrorList.push_back(attr->value.objlist.list[j]);
+      }
+    } break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -311,6 +343,26 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_PKT_TX_ENABLE:
         attr->value.booldata = port.txEnable;
+        break;
+      case SAI_PORT_ATTR_INGRESS_MIRROR_SESSION:
+        if (port.ingressMirrorList.size() > attr[i].value.objlist.count) {
+          attr[i].value.objlist.count = port.ingressMirrorList.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        for (int j = 0; j < port.ingressMirrorList.size(); ++j) {
+          attr[i].value.objlist.list[j] = port.ingressMirrorList[j];
+        }
+        attr[i].value.objlist.count = port.ingressMirrorList.size();
+        break;
+      case SAI_PORT_ATTR_EGRESS_MIRROR_SESSION:
+        if (port.egressMirrorList.size() > attr[i].value.objlist.count) {
+          attr[i].value.objlist.count = port.egressMirrorList.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        for (int j = 0; j < port.egressMirrorList.size(); ++j) {
+          attr[i].value.objlist.list[j] = port.egressMirrorList[j];
+        }
+        attr[i].value.objlist.count = port.egressMirrorList.size();
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

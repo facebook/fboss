@@ -43,6 +43,8 @@ struct FakePort {
   bool disableTtlDecrement{false};
   sai_port_interface_type_t interface_type{SAI_PORT_INTERFACE_TYPE_NONE};
   bool txEnable{true};
+  std::vector<sai_object_id_t> ingressMirrorList;
+  std::vector<sai_object_id_t> egressMirrorList;
 };
 
 struct FakePortSerdes {
