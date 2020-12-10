@@ -110,8 +110,8 @@ sai_status_t create_mirror_session_fn(
         srcMac.value(),
         dstMac.value(),
         greProtocolType.value(),
-        ttl.value(),
-        truncateSize.value());
+        ttl.has_value() ? ttl.value() : (uint8_t)0,
+        truncateSize.has_value() ? truncateSize.value() : (uint16_t)0);
 #if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
   } else if (type == SAI_MIRROR_SESSION_TYPE_SFLOW) {
     if (!srcIp || !dstIp || !srcMac || !dstMac || !tos || !udpSrcPort ||
@@ -128,7 +128,7 @@ sai_status_t create_mirror_session_fn(
         dstMac.value(),
         udpSrcPort.value(),
         udpDstPort.value(),
-        ttl.value());
+        ttl.has_value() ? ttl.value() : (uint8_t)0);
 #endif
   } else {
     return SAI_STATUS_INVALID_PARAMETER;

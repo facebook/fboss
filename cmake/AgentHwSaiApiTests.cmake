@@ -14,6 +14,7 @@ add_executable(api_test
     fboss/agent/hw/sai/api/tests/FdbApiTest.cpp
     fboss/agent/hw/sai/api/tests/HashApiTest.cpp
     fboss/agent/hw/sai/api/tests/HostifApiTest.cpp
+    fboss/agent/hw/sai/api/tests/MirrorApiTest.cpp
     fboss/agent/hw/sai/api/tests/MplsApiTest.cpp
     fboss/agent/hw/sai/api/tests/NeighborApiTest.cpp
     fboss/agent/hw/sai/api/tests/NextHopApiTest.cpp

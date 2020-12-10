@@ -51,7 +51,7 @@ struct FakeMirror {
   FakeMirror(
       sai_mirror_session_type_t type,
       sai_object_id_t monitorPort,
-      uint8_t tos,
+      sai_uint16_t tos,
       const folly::IPAddress& srcIp,
       const folly::IPAddress& dstIp,
       const folly::MacAddress& srcMac,
