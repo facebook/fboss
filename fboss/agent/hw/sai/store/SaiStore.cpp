@@ -42,7 +42,7 @@ void SaiStore::reload(
   tupleForEach(
       [adapterKeysJson, adapterKeys2AdapterHostKeyJson](auto& store) {
         const folly::dynamic* adapterKeys = adapterKeysJson
-            ? &((*adapterKeysJson)[store.objectTypeName()])
+            ? adapterKeysJson->get_ptr(store.objectTypeName())
             : nullptr;
         const folly::dynamic* adapterHostKeys = adapterKeys2AdapterHostKeyJson
             ? adapterKeys2AdapterHostKeyJson->get_ptr(store.objectTypeName())
