@@ -316,33 +316,39 @@ void SaiSwitch::rollback(
   // 2-4 are exactly the same as what we do for warmboot and piggy back
   // heavily on it for both code reuse and correctness
   try {
+    std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+    auto hwSwitchJson = toFollyDynamicLocked(lock);
     {
-      std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-      auto hwSwitchJson = toFollyDynamicLocked(lock);
-      {
-        HwWriteBehvaiorRAII writeBehavior{HwWriteBehavior::SKIP};
-        managerTable_->reset(true /*skip switch manager reset*/);
-      }
-      // The work flow below is essentially a in memory warm boot,
-      // so set the bootType to warm boot for duration of roll back. We
-      // will restore it once we are done with roll back.
-      bootType_ = BootType::WARM_BOOT;
-      initStoreAndManagersLocked(
-          lock,
-          // We are being strict here in the sense of not allowing any HW
-          // writes during this reinit of managers. However this does rely
-          // on SaiStore being able to fetch exact state via get apis. If
-          // gets are missing for some APIs we may choose to relax this to
-          // WRITE as long as it does not effect forwarding. If it does
-          // affect forwarding, we must fix for both transactions as well as
-          // warmboot use case.
-          HwWriteBehavior::FAIL,
-          &hwSwitchJson[kAdapterKeys],
-          &hwSwitchJson[kAdapterKey2AdapterHostKey]);
+      HwWriteBehvaiorRAII writeBehavior{HwWriteBehavior::SKIP};
+      managerTable_->reset(true /*skip switch manager reset*/);
     }
-    // TODO: Build a version of stateChanged that takes a optional lock
-    // guard. We should hold the lock throughout rollback.
-    stateChanged(StateDelta(std::make_shared<SwitchState>(), knownGoodState));
+    // The work flow below is essentially a in memory warm boot,
+    // so set the bootType to warm boot for duration of roll back. We
+    // will restore it once we are done with roll back.
+    bootType_ = BootType::WARM_BOOT;
+    initStoreAndManagersLocked(
+        lock,
+        // We are being strict here in the sense of not allowing any HW
+        // writes during this reinit of managers. However this does rely
+        // on SaiStore being able to fetch exact state via get apis. If
+        // gets are missing for some APIs we may choose to relax this to
+        // WRITE as long as it does not effect forwarding. If it does
+        // affect forwarding, we must fix for both transactions as well as
+        // warmboot use case.
+        HwWriteBehavior::FAIL,
+        &hwSwitchJson[kAdapterKeys],
+        &hwSwitchJson[kAdapterKey2AdapterHostKey]);
+    {
+      std::unique_lock<std::mutex> adoptLock(saiSwitchMutex_, std::adopt_lock);
+      SCOPE_EXIT {
+        // Release adopted ownership so lock_guard release it at the end of
+        // this rollback block
+        adoptLock.release();
+      };
+      stateChangedImpl(
+          StateDelta(std::make_shared<SwitchState>(), knownGoodState),
+          adoptLock);
+    }
     SaiStore::getInstance()->printWarmbootHandles();
     SaiStore::getInstance()->removeUnexpectedUnclaimedWarmbootHandles();
     bootType_ = curBootType;
