@@ -20,16 +20,18 @@ void SaiRepl::doRun() {
   // this blocks forever, can't hold singleton or api table must be leaky
   // singleton
   auto apiTable = SaiApiTable::getInstance().get();
-  shellThread_ = std::make_unique<std::thread>([=]() {
-    folly::setThreadName("SaiRepl");
-    SaiSwitchTraits::Attributes::SwitchShellEnable shell{true};
-    // Need to use unlocked API since this set attribute will start
-    // a shell REPL loop, we can't get into that loop while holding
-    // a lock. We rely on adapter implementation to make setting
-    // of this attribtute thread safe.
-    apiTable->switchApi().setAttributeUnlocked(switchId_, shell);
-    exited_.store(true);
-  });
+  shellThread_ = std::make_unique<std::thread>(
+      [switchId = switchId_, exited = &exited_, apiTable]() {
+        folly::setThreadName("SaiRepl");
+        SaiSwitchTraits::Attributes::SwitchShellEnable shell{true};
+        exited->store(false);
+        // Need to use unlocked API since this set attribute will start
+        // a shell REPL loop, we can't get into that loop while holding
+        // a lock. We rely on adapter implementation to make setting
+        // of this attribtute thread safe.
+        apiTable->switchApi().setAttributeUnlocked(switchId, shell);
+        exited->store(true);
+      });
 }
 
 SaiRepl::~SaiRepl() noexcept {
@@ -38,6 +40,9 @@ SaiRepl::~SaiRepl() noexcept {
    * loop. Since the lifetime of REPL is same as that of our program, just
    * detach from this thread, when the program is being stopped
    */
+  if (!shellThread_) {
+    return;
+  }
   try {
     if (!exited_.load()) {
       shellThread_->detach();
