@@ -45,6 +45,29 @@ int getLabelSwappedWithForTopLabel(const HwSwitch* hwSwitch, uint32_t label) {
   return labelStack.back();
 }
 
+SaiInSegTraits::AdapterKey getInSegEntryAdapterKey(
+    const HwSwitch* hwSwitch,
+    uint32_t label) {
+  auto switchId = static_cast<const facebook::fboss::SaiSwitch*>(hwSwitch)
+                      ->managerTable()
+                      ->switchManager()
+                      .getSwitchSaiId();
+  return SaiInSegTraits::AdapterKey{switchId, label};
+}
+
+SaiInSegTraits::CreateAttributes getInSegEntryAttributes(
+    SaiInSegTraits::AdapterKey key) {
+  SaiInSegTraits::CreateAttributes attrs;
+  auto& mplsApi = SaiApiTable::getInstance()->mplsApi();
+  std::get<SaiInSegTraits::Attributes::PacketAction>(attrs) =
+      mplsApi.getAttribute(key, SaiInSegTraits::Attributes::PacketAction{});
+  std::get<SaiInSegTraits::Attributes::NumOfPop>(attrs) =
+      mplsApi.getAttribute(key, SaiInSegTraits::Attributes::NumOfPop{});
+  std::get<std::optional<SaiInSegTraits::Attributes::NextHopId>>(attrs) =
+      mplsApi.getAttribute(key, SaiInSegTraits::Attributes::NextHopId{});
+  return attrs;
+}
+
 template <typename AddrT>
 sai_object_id_t getNextHopId(
     const HwSwitch* hwSwitch,
@@ -270,11 +293,63 @@ template void verifyProgrammedStack<folly::IPAddressV4>(
 
 template <typename AddrT>
 void verifyLabelSwitchAction(
-    const HwSwitch* /* unused */,
-    const LabelForwardingEntry::Label /* unused */,
-    const LabelForwardingAction::LabelForwardingType /* unused */,
-    const EcmpMplsNextHop<AddrT>& /* unused */) {
-  throw FbossError("Unimplemented Test Case for SAI");
+    const HwSwitch* hwSwitch,
+    const LabelForwardingEntry::Label label,
+    const LabelForwardingAction::LabelForwardingType action,
+    const EcmpMplsNextHop<AddrT>& nexthop) {
+  if (action == LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP) {
+    throw FbossError("pop and look up is not supported");
+  }
+  auto entry = getInSegEntryAdapterKey(hwSwitch, label);
+  auto attrs = getInSegEntryAttributes(entry);
+  auto pktAction = std::get<SaiInSegTraits::Attributes::PacketAction>(attrs);
+  EXPECT_EQ(pktAction, SAI_PACKET_ACTION_FORWARD);
+  auto numpop = std::get<SaiInSegTraits::Attributes::NumOfPop>(attrs);
+  EXPECT_EQ(numpop, 1);
+  auto nhop =
+      std::get<std::optional<SaiInSegTraits::Attributes::NextHopId>>(attrs);
+  EXPECT_TRUE(nhop.has_value());
+  auto& nextHopApi = SaiApiTable::getInstance()->nextHopApi();
+  auto nexthopId = static_cast<NextHopSaiId>(nhop.value().value());
+  EXPECT_EQ(
+      nextHopApi.getAttribute(
+          nexthopId, SaiMplsNextHopTraits::Attributes::Ip()),
+      nexthop.ip);
+
+  if (action == LabelForwardingAction::LabelForwardingType::SWAP) {
+    EXPECT_EQ(
+        nextHopApi.getAttribute(
+            nexthopId, SaiMplsNextHopTraits::Attributes::Type()),
+        SAI_NEXT_HOP_TYPE_MPLS);
+    auto nexthopStack = SaiApiTable::getInstance()->nextHopApi().getAttribute(
+        nexthopId, SaiMplsNextHopTraits::Attributes::LabelStack{});
+    LabelForwardingAction::LabelStack labelStack;
+    for (auto mplsLabel : nexthopStack) {
+      labelStack.push_back(mplsLabel);
+    }
+    EXPECT_EQ(labelStack.size(), 1);
+    EXPECT_EQ(labelStack[0], nexthop.action.swapWith().value());
+  }
+  if (action == LabelForwardingAction::LabelForwardingType::PUSH) {
+    EXPECT_EQ(
+        nextHopApi.getAttribute(
+            nexthopId, SaiMplsNextHopTraits::Attributes::Type()),
+        SAI_NEXT_HOP_TYPE_MPLS);
+    auto nexthopStack = SaiApiTable::getInstance()->nextHopApi().getAttribute(
+        nexthopId, SaiMplsNextHopTraits::Attributes::LabelStack{});
+    LabelForwardingAction::LabelStack labelStack;
+    for (auto mplsLabel : nexthopStack) {
+      labelStack.push_back(mplsLabel);
+    }
+    EXPECT_GT(labelStack.size(), 0);
+    EXPECT_EQ(labelStack, nexthop.action.pushStack().value());
+  }
+  if (action == LabelForwardingAction::LabelForwardingType::PHP) {
+    EXPECT_EQ(
+        nextHopApi.getAttribute(
+            nexthopId, SaiMplsNextHopTraits::Attributes::Type()),
+        SAI_NEXT_HOP_TYPE_IP);
+  }
 }
 template void verifyLabelSwitchAction<folly::IPAddressV6>(
     const HwSwitch* hwSwitch,
