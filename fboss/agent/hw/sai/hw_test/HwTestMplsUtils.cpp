@@ -292,25 +292,11 @@ template void verifyProgrammedStack<folly::IPAddressV4>(
     long refCount);
 
 template <typename AddrT>
-void verifyLabelSwitchAction(
-    const HwSwitch* hwSwitch,
-    const LabelForwardingEntry::Label label,
+void verifyMplsNexthop(
+    NextHopSaiId nexthopId,
     const LabelForwardingAction::LabelForwardingType action,
     const EcmpMplsNextHop<AddrT>& nexthop) {
-  if (action == LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP) {
-    throw FbossError("pop and look up is not supported");
-  }
-  auto entry = getInSegEntryAdapterKey(hwSwitch, label);
-  auto attrs = getInSegEntryAttributes(entry);
-  auto pktAction = std::get<SaiInSegTraits::Attributes::PacketAction>(attrs);
-  EXPECT_EQ(pktAction, SAI_PACKET_ACTION_FORWARD);
-  auto numpop = std::get<SaiInSegTraits::Attributes::NumOfPop>(attrs);
-  EXPECT_EQ(numpop, 1);
-  auto nhop =
-      std::get<std::optional<SaiInSegTraits::Attributes::NextHopId>>(attrs);
-  EXPECT_TRUE(nhop.has_value());
   auto& nextHopApi = SaiApiTable::getInstance()->nextHopApi();
-  auto nexthopId = static_cast<NextHopSaiId>(nhop.value().value());
   EXPECT_EQ(
       nextHopApi.getAttribute(
           nexthopId, SaiMplsNextHopTraits::Attributes::Ip()),
@@ -350,6 +336,28 @@ void verifyLabelSwitchAction(
             nexthopId, SaiMplsNextHopTraits::Attributes::Type()),
         SAI_NEXT_HOP_TYPE_IP);
   }
+}
+
+template <typename AddrT>
+void verifyLabelSwitchAction(
+    const HwSwitch* hwSwitch,
+    const LabelForwardingEntry::Label label,
+    const LabelForwardingAction::LabelForwardingType action,
+    const EcmpMplsNextHop<AddrT>& nexthop) {
+  if (action == LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP) {
+    throw FbossError("pop and look up is not supported");
+  }
+  auto entry = getInSegEntryAdapterKey(hwSwitch, label);
+  auto attrs = getInSegEntryAttributes(entry);
+  auto pktAction = std::get<SaiInSegTraits::Attributes::PacketAction>(attrs);
+  EXPECT_EQ(pktAction, SAI_PACKET_ACTION_FORWARD);
+  auto numpop = std::get<SaiInSegTraits::Attributes::NumOfPop>(attrs);
+  EXPECT_EQ(numpop, 1);
+  auto nhop =
+      std::get<std::optional<SaiInSegTraits::Attributes::NextHopId>>(attrs);
+  EXPECT_TRUE(nhop.has_value());
+  auto nexthopId = static_cast<NextHopSaiId>(nhop.value().value());
+  verifyMplsNexthop(nexthopId, action, nexthop);
 }
 template void verifyLabelSwitchAction<folly::IPAddressV6>(
     const HwSwitch* hwSwitch,
