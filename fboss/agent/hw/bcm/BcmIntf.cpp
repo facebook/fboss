@@ -51,6 +51,12 @@ void BcmStation::program(MacAddress mac, int intfId) {
   memset(&params.dst_mac_mask, 0xFF, sizeof(params.dst_mac_mask));
   params.flags |= BCM_L2_STATION_IPV4 | BCM_L2_STATION_IPV6 |
       BCM_L2_STATION_ARP_RARP | BCM_L2_STATION_MPLS;
+  auto asic = hw_->getPlatform()->getAsic()->getAsicType();
+  if (asic == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
+    // TODO(daiweix): add this flag to avoid invalid station id complain on
+    // TH4 B0 chip. Required more clarification from Broadcom in CS00011595960.
+    params.flags |= BCM_L2_STATION_UNDERLAY;
+  }
   if (intfId != INVALID) {
     params.vlan = intfId;
     params.vlan_mask = 0x0;
