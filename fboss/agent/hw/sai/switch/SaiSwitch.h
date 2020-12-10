@@ -169,7 +169,7 @@ class SaiSwitch : public HwSwitch {
  private:
   std::shared_ptr<SwitchState> stateChangedImpl(
       const StateDelta& delta,
-      const std::optional<std::lock_guard<std::mutex>>& lk);
+      const std::unique_lock<std::mutex>& lk);
   void rollback(const std::shared_ptr<SwitchState>& knownGoodState) noexcept;
   std::string listObjectsLocked(
       const std::vector<sai_object_type_t>& objects,
@@ -178,7 +178,7 @@ class SaiSwitch : public HwSwitch {
   void switchRunStateChangedImpl(SwitchRunState newState) override;
 
   void updateStatsImpl(SwitchStats* switchStats) override;
-  void updateResourceUsageLocked(const std::lock_guard<std::mutex>& lock);
+  void updateResourceUsage(const std::unique_lock<std::mutex>& maybeLocked);
   /*
    * To make SaiSwitch thread-safe, we mirror the public interface with
    * private functions with the same name followed by Locked.
@@ -198,7 +198,7 @@ class SaiSwitch : public HwSwitch {
    * along with its methods.
    */
   HwInitResult initLocked(
-      const std::lock_guard<std::mutex>& lock,
+      const std::lock_guard<std::mutex>& lk,
       HwWriteBehavior behavior,
       Callback* callback) noexcept;
 
@@ -265,9 +265,12 @@ class SaiSwitch : public HwSwitch {
   template <typename ManagerT>
   void processDefaultDataPlanePolicyDelta(
       const StateDelta& delta,
-      ManagerT& mgr);
+      ManagerT& mgr,
+      const std::unique_lock<std::mutex>& lk);
 
-  void processLinkStateChangeDelta(const StateDelta& delta);
+  void processLinkStateChangeDelta(
+      const StateDelta& delta,
+      const std::unique_lock<std::mutex>& maybeLocked);
 
   template <
       typename Delta,
@@ -287,6 +290,7 @@ class SaiSwitch : public HwSwitch {
       ChangeFunc changedFunc,
       AddedFunc addedFunc,
       RemovedFunc removedFunc,
+      const std::unique_lock<std::mutex>& maybeLocked,
       Args... args);
 
   template <
@@ -296,11 +300,13 @@ class SaiSwitch : public HwSwitch {
       typename ChangeFunc = void (Manager::*)(
           const std::shared_ptr<typename Delta::Node>&,
           const std::shared_ptr<typename Delta::Node>&,
+          const std::unique_lock<std::mutex>& maybeLocked,
           Args...)>
   void processChangedDelta(
       Delta delta,
       Manager& manager,
       ChangeFunc changedFunc,
+      const std::unique_lock<std::mutex>& maybeLocked,
       Args... args);
 
   template <
@@ -313,6 +319,7 @@ class SaiSwitch : public HwSwitch {
       Delta delta,
       Manager& manager,
       AddedFunc addedFunc,
+      const std::unique_lock<std::mutex>& maybeLocked,
       Args... args);
 
   template <
@@ -325,9 +332,12 @@ class SaiSwitch : public HwSwitch {
       Delta delta,
       Manager& manager,
       RemovedFunc removedFunc,
+      const std::unique_lock<std::mutex>& maybeLocked,
       Args... args);
 
-  void processSwitchSettingsChanged(const StateDelta& delta);
+  void processSwitchSettingsChanged(
+      const StateDelta& delta,
+      const std::unique_lock<std::mutex>& maybeLocked);
 
   static PortSaiId getCPUPortSaiId(SwitchSaiId switchId);
 
