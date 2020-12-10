@@ -43,6 +43,9 @@ class Tomahawk3Asic : public BroadcomAsic {
   int getMaxNumLogicalPorts() const override {
     return 160;
   }
+  uint16_t getMirrorTruncateSize() const override {
+    return 254;
+  }
 };
 
 } // namespace facebook::fboss

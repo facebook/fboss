@@ -73,6 +73,9 @@ class FakeAsic : public HwAsic {
   int getMaxNumLogicalPorts() const override {
     return 134;
   }
+  uint16_t getMirrorTruncateSize() const override {
+    return 0;
+  }
 };
 
 } // namespace facebook::fboss

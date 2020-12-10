@@ -70,6 +70,9 @@ class MockAsic : public HwAsic {
   int getMaxNumLogicalPorts() const override {
     return 65;
   }
+  uint16_t getMirrorTruncateSize() const override {
+    return 0;
+  }
 };
 
 } // namespace facebook::fboss

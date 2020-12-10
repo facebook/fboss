@@ -58,6 +58,9 @@ class TajoAsic : public HwAsic {
     // 256 physical lanes + cpu
     return 257;
   }
+  uint16_t getMirrorTruncateSize() const override {
+    return 220;
+  }
 };
 
 } // namespace facebook::fboss
