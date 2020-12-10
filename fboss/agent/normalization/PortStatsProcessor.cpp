@@ -46,6 +46,8 @@ void PortStatsProcessor::processStats(
         *hwPortStats.outDiscards__ref(),
         TransformType::RATE);
   }
+
+  statsExporter_->flushCounters();
 }
 
 void PortStatsProcessor::process(

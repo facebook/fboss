@@ -9,20 +9,54 @@
  */
 #pragma once
 
+#include <memory>
 #include <string>
+#include <vector>
 
 namespace facebook::fboss::normalization {
 
 // abstraction for stats exporting logic
 class StatsExporter {
  public:
+  explicit StatsExporter(const std::string& deviceName)
+      : deviceName_(deviceName) {}
+
   virtual void publishPortStats(
       const std::string& portName,
       const std::string& propertyName,
       int64_t timestamp,
-      double value) = 0;
+      double value);
+
+  // flush counters downstream. Note the counters published will be
+  // buffered locally before calling this method
+  virtual void flushCounters() = 0;
+
+  struct OdsCounter {
+    std::string entity;
+    std::string key;
+    int64_t unixTime;
+    double value;
+  };
+
+  const std::vector<OdsCounter>& getCounterBuffer() const {
+    return counterBuffer_;
+  }
 
   virtual ~StatsExporter() = default;
+
+ protected:
+  std::string deviceName_;
+  // buffer counters so that we can publish to ODS in batch
+  std::vector<OdsCounter> counterBuffer_;
+};
+
+// just log ODS counters values without writing to ODS
+class GlogStatsExporter : public StatsExporter {
+ public:
+  explicit GlogStatsExporter(const std::string& deviceName)
+      : StatsExporter(deviceName) {}
+
+  void flushCounters() override;
 };
 
 } // namespace facebook::fboss::normalization

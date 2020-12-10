@@ -7,6 +7,7 @@ add_library(normalizer
   fboss/agent/normalization/Normalizer.cpp
   fboss/agent/normalization/PortStatsProcessor.cpp
   fboss/agent/normalization/TransformHandler.cpp
+  fboss/agent/normalization/StatsExporter.cpp
 )
 
 target_link_libraries(normalizer

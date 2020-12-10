@@ -78,6 +78,9 @@ folly::F14FastMap<std::string, HwPortStats> makeHwPortStatsMapT1() {
 
 class MockStatsExporter : public StatsExporter {
  public:
+  explicit MockStatsExporter(const std::string& deviceName)
+      : StatsExporter(deviceName) {}
+
   MOCK_METHOD4(
       publishPortStats,
       void(
@@ -85,19 +88,21 @@ class MockStatsExporter : public StatsExporter {
           const std::string& propertyName,
           int64_t timestamp,
           double value));
+  MOCK_METHOD0(flushCounters, void());
 };
 
 } // namespace
 
 TEST(PortStatsProcessorTest, processStats) {
   TransformHandler handler;
-  MockStatsExporter exporter;
+  MockStatsExporter exporter("dev");
 
   {
     // t0
     auto hwStatsMap = makeHwPortStatsMapT0();
     PortStatsProcessor processor(&handler, &exporter);
     EXPECT_CALL(exporter, publishPortStats(_, _, _, _)).Times(0);
+    EXPECT_CALL(exporter, flushCounters()).Times(1);
     processor.processStats(hwStatsMap);
     Mock::VerifyAndClearExpectations(&exporter);
   }
@@ -127,6 +132,7 @@ TEST(PortStatsProcessorTest, processStats) {
     EXPECT_CALL(
         exporter, publishPortStats("eth1", "total_output_discards", 1010, 3))
         .Times(1);
+    EXPECT_CALL(exporter, flushCounters()).Times(1);
     processor.processStats(hwStatsMap);
     Mock::VerifyAndClearExpectations(&exporter);
   }
