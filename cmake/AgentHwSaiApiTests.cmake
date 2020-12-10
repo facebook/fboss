@@ -24,6 +24,7 @@ add_executable(api_test
     fboss/agent/hw/sai/api/tests/QueueApiTest.cpp
     fboss/agent/hw/sai/api/tests/RouteApiTest.cpp
     fboss/agent/hw/sai/api/tests/RouterInterfaceApiTest.cpp
+    fboss/agent/hw/sai/api/tests/SamplePacketApiTest.cpp
     fboss/agent/hw/sai/api/tests/SchedulerApiTest.cpp
     fboss/agent/hw/sai/api/tests/SwitchApiTest.cpp
     fboss/agent/hw/sai/api/tests/AddressUtilTest.cpp
