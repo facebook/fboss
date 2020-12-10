@@ -372,11 +372,30 @@ template void verifyLabelSwitchAction<folly::IPAddressV4>(
 
 template <typename AddrT>
 void verifyMultiPathLabelSwitchAction(
-    const HwSwitch* /* unused */,
-    const LabelForwardingEntry::Label /* unused */,
-    const LabelForwardingAction::LabelForwardingType /* unused */,
-    const std::vector<EcmpMplsNextHop<AddrT>>& /* unused */) {
-  throw FbossError("Unimplemented Test Case for SAI");
+    const HwSwitch* hwSwitch,
+    const LabelForwardingEntry::Label label,
+    const LabelForwardingAction::LabelForwardingType action,
+    const std::vector<EcmpMplsNextHop<AddrT>>& nexthops) {
+  if (action == LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP) {
+    throw FbossError("pop and look up is not supported");
+  }
+  auto entry = getInSegEntryAdapterKey(hwSwitch, label);
+  auto attrs = getInSegEntryAttributes(entry);
+  auto pktAction = std::get<SaiInSegTraits::Attributes::PacketAction>(attrs);
+  EXPECT_EQ(pktAction, SAI_PACKET_ACTION_FORWARD);
+  auto numpop = std::get<SaiInSegTraits::Attributes::NumOfPop>(attrs);
+  EXPECT_EQ(numpop, 1);
+
+  auto nhop =
+      std::get<std::optional<SaiInSegTraits::Attributes::NextHopId>>(attrs);
+  EXPECT_TRUE(nhop.has_value());
+  auto nexthopGroupId = static_cast<NextHopGroupSaiId>(nhop.value().value());
+  auto nexthopIds = getNextHopMembers(nexthopGroupId);
+
+  EXPECT_EQ(nexthopIds.size(), nexthops.size());
+  for (auto i = 0; i < nexthops.size(); i++) {
+    verifyMplsNexthop(nexthopIds[i], action, nexthops[i]);
+  }
 }
 template void verifyMultiPathLabelSwitchAction<folly::IPAddressV6>(
     const HwSwitch* hwSwitch,
