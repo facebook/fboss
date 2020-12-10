@@ -23,6 +23,7 @@ add_executable(store_test
     fboss/agent/hw/sai/store/tests/QueueStoreTest.cpp
     fboss/agent/hw/sai/store/tests/RouteStoreTest.cpp
     fboss/agent/hw/sai/store/tests/RouterInterfaceStoreTest.cpp
+    fboss/agent/hw/sai/store/tests/SamplePacketStoreTest.cpp
     fboss/agent/hw/sai/store/tests/SchedulerStoreTest.cpp
     fboss/agent/hw/sai/store/tests/VlanStoreTest.cpp
     fboss/agent/hw/sai/store/tests/WredStoreTest.cpp
