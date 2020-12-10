@@ -34,6 +34,10 @@ sai_status_t create_port_fn(
   std::vector<uint32_t> preemphasis;
   std::vector<sai_object_id_t> ingressMirrorList;
   std::vector<sai_object_id_t> egressMirrorList;
+  sai_object_id_t ingressSamplePacket{SAI_NULL_OBJECT_ID};
+  sai_object_id_t egressSamplePacket{SAI_NULL_OBJECT_ID};
+  std::vector<sai_object_id_t> ingressSampleMirrorList;
+  std::vector<sai_object_id_t> egressSampleMirrorList;
   sai_uint32_t mtu{1514};
   sai_object_id_t qosDscpToTcMap{SAI_NULL_OBJECT_ID};
   sai_object_id_t qosTcToQueueMap{SAI_NULL_OBJECT_ID};
@@ -104,6 +108,24 @@ sai_status_t create_port_fn(
           egressMirrorList.push_back(attr_list[i].value.objlist.list[j]);
         }
       } break;
+      case SAI_PORT_ATTR_INGRESS_SAMPLEPACKET_ENABLE:
+        ingressSamplePacket = attr_list[i].value.oid;
+        break;
+      case SAI_PORT_ATTR_EGRESS_SAMPLEPACKET_ENABLE:
+        egressSamplePacket = attr_list[i].value.oid;
+        break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
+      case SAI_PORT_ATTR_INGRESS_SAMPLE_MIRROR_SESSION: {
+        for (int j = 0; j < attr_list[i].value.objlist.count; ++j) {
+          ingressMirrorList.push_back(attr_list[i].value.objlist.list[j]);
+        }
+      } break;
+      case SAI_PORT_ATTR_EGRESS_SAMPLE_MIRROR_SESSION: {
+        for (int j = 0; j < attr_list[i].value.objlist.count; ++j) {
+          egressMirrorList.push_back(attr_list[i].value.objlist.list[j]);
+        }
+      } break;
+#endif
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -140,9 +162,17 @@ sai_status_t create_port_fn(
   if (egressMirrorList.size()) {
     port.egressMirrorList = egressMirrorList;
   }
+  if (ingressSampleMirrorList.size()) {
+    port.ingressSampleMirrorList = ingressSampleMirrorList;
+  }
+  if (egressSampleMirrorList.size()) {
+    port.egressSampleMirrorList = egressSampleMirrorList;
+  }
   port.mtu = mtu;
   port.qosDscpToTcMap = qosDscpToTcMap;
   port.qosTcToQueueMap = qosTcToQueueMap;
+  port.ingressSamplePacket = ingressSamplePacket;
+  port.egressSamplePacket = egressSamplePacket;
   port.disableTtlDecrement = disableTtlDecrement;
   port.txEnable = txEnable;
   // TODO: Use number of queues by querying SAI_SWITCH_ATTR_NUMBER_OF_QUEUES
@@ -255,6 +285,28 @@ sai_status_t set_port_attribute_fn(
         egressMirrorList.push_back(attr->value.objlist.list[j]);
       }
     } break;
+    case SAI_PORT_ATTR_INGRESS_SAMPLEPACKET_ENABLE:
+      port.ingressSamplePacket = attr->value.oid;
+      break;
+    case SAI_PORT_ATTR_EGRESS_SAMPLEPACKET_ENABLE:
+      port.egressSamplePacket = attr->value.oid;
+      break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
+    case SAI_PORT_ATTR_INGRESS_SAMPLE_MIRROR_SESSION: {
+      auto& ingressSampleMirrorList = port.ingressSampleMirrorList;
+      ingressSampleMirrorList.clear();
+      for (int j = 0; j < attr->value.objlist.count; ++j) {
+        ingressSampleMirrorList.push_back(attr->value.objlist.list[j]);
+      }
+    } break;
+    case SAI_PORT_ATTR_EGRESS_SAMPLE_MIRROR_SESSION: {
+      auto& egressSampleMirrorList = port.egressSampleMirrorList;
+      egressSampleMirrorList.clear();
+      for (int j = 0; j < attr->value.objlist.count; ++j) {
+        egressSampleMirrorList.push_back(attr->value.objlist.list[j]);
+      }
+    } break;
+#endif
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -364,6 +416,34 @@ sai_status_t get_port_attribute_fn(
         }
         attr[i].value.objlist.count = port.egressMirrorList.size();
         break;
+      case SAI_PORT_ATTR_INGRESS_SAMPLEPACKET_ENABLE:
+        attr->value.oid = port.ingressSamplePacket;
+        break;
+        case SAI_PORT_ATTR_EGRESS_SAMPLEPACKET_ENABLE:
+        attr->value.oid = port.egressSamplePacket;
+        break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
+      case SAI_PORT_ATTR_INGRESS_SAMPLE_MIRROR_SESSION:
+        if (port.ingressSampleMirrorList.size() > attr[i].value.objlist.count) {
+          attr[i].value.objlist.count = port.ingressSampleMirrorList.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        for (int j = 0; j < port.ingressSampleMirrorList.size(); ++j) {
+          attr[i].value.objlist.list[j] = port.ingressSampleMirrorList[j];
+        }
+        attr[i].value.objlist.count = port.ingressSampleMirrorList.size();
+        break;
+      case SAI_PORT_ATTR_EGRESS_SAMPLE_MIRROR_SESSION:
+        if (port.egressSampleMirrorList.size() > attr[i].value.objlist.count) {
+          attr[i].value.objlist.count = port.egressSampleMirrorList.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        for (int j = 0; j < port.egressSampleMirrorList.size(); ++j) {
+          attr[i].value.objlist.list[j] = port.egressSampleMirrorList[j];
+        }
+        attr[i].value.objlist.count = port.egressSampleMirrorList.size();
+        break;
+#endif
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }

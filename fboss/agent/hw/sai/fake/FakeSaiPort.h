@@ -45,6 +45,10 @@ struct FakePort {
   bool txEnable{true};
   std::vector<sai_object_id_t> ingressMirrorList;
   std::vector<sai_object_id_t> egressMirrorList;
+  sai_object_id_t ingressSamplePacket{SAI_NULL_OBJECT_ID};
+  sai_object_id_t egressSamplePacket{SAI_NULL_OBJECT_ID};
+  std::vector<sai_object_id_t> ingressSampleMirrorList;
+  std::vector<sai_object_id_t> egressSampleMirrorList;
 };
 
 struct FakePortSerdes {
