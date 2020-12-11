@@ -259,12 +259,6 @@ class SwSwitch : public HwSwitch::Callback {
    * This should only be called in situations where it is safe to block the
    * current thread until the operation completes.
    *
-   * Note: Currently this code applies the update in the current thread.
-   * However, don't rely on this behavior.  We may change this in the future to
-   * apply all updates from a the single thread.  In this case
-   * updateStateBlocking() would schedule the update to happen in the update
-   * thread, and would simply block the calling thread until the operation
-   * completes.
    */
   void updateStateBlocking(folly::StringPiece name, StateUpdateFn fn);
 
