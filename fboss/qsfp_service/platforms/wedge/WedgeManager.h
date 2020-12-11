@@ -5,6 +5,7 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/platforms/common/PlatformMode.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/i2c/gen-cpp2/i2c_controller_stats_types.h"
 #include "fboss/lib/usb/WedgeI2CBus.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
@@ -73,6 +74,14 @@ class WedgeManager : public TransceiverManager {
   // of the specific implementation from each platform. Platforms that bring
   // transceiver out of reset by default will stay no op.
   void clearAllTransceiverReset();
+
+  /*
+   * This function takes the portId, port profile id and creates phy port
+   * config using platform mapping.
+   */
+  std::optional<phy::PhyPortConfig> getPhyPortConfigValues(
+    int32_t portId,
+    cfg::PortProfileID portProfileId);
 
  protected:
   virtual std::unique_ptr<TransceiverI2CApi> getI2CBus();

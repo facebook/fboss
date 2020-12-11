@@ -10,6 +10,7 @@
 
 #include <folly/gen/Base.h>
 #include <folly/logging/xlog.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 namespace {
 
@@ -484,6 +485,67 @@ void WedgeManager::publishI2cTransactionStats() {
         "qsfp.", *counter.controllerName__ref(), ".writeBytes");
     tcData().setCounter(statName, *counter.writeBytes__ref());
   }
+}
+
+/*
+ * getPhyPortConfigValues
+ *
+ * This function takes the portId and port profile id. Based on these it looks
+ * into the platform mapping for the given platform and extracts information
+ * to fill in the phy port config. The output of this function is phy port
+ * config structure which can be used later to send to External Phy functions
+ */
+std::optional<phy::PhyPortConfig> WedgeManager::getPhyPortConfigValues(
+    int32_t portId,
+    cfg::PortProfileID portProfileId) {
+
+  phy::PhyPortConfig phyPortConfig;
+
+  // First verify if the platform mapping exist for this platform
+  if (platformMapping_.get() == nullptr) {
+    XLOG(INFO) << "Platform mapping is not present for this platform, exiting" ;
+    return std::nullopt;
+  }
+
+  // String value of profile id for printing in log
+  std::string portProfileIdStr = apache::thrift::util::enumNameSafe(portProfileId);
+
+  // Get port profile config for the given port profile id
+  auto portProfileConfig = platformMapping_->getPortProfileConfig(portProfileId);
+  if (!portProfileConfig.has_value()) {
+    XLOG(INFO) << "For port profile id " << portProfileIdStr
+               << ", the supported profile not found in platform mapping";
+    return std::nullopt;
+  }
+
+  // Get the platform port entry for the given port id
+  auto platformPortEntry = platformMapping_->getPlatformPorts().find(portId);
+  if (platformPortEntry == platformMapping_->getPlatformPorts().end()) {
+    XLOG(INFO) << "For port " << portId
+               << ", the platform port not found in platform mapping";
+    return std::nullopt;
+  }
+
+  // From the above platform port entry, get the port config for the given port profile id
+  auto platformPortConfig = platformPortEntry->second.supportedProfiles_ref()->find(portProfileId);
+  if (platformPortConfig == platformPortEntry->second.supportedProfiles_ref()->end()) {
+    XLOG(INFO) << "For port id " << portId << " port profile id " << portProfileIdStr
+               << ", the supported profile not found in platform mapping";
+    return std::nullopt;
+  }
+
+  // Get the line polarity swap map
+  auto linePolaritySwapMap = utility::getXphyLinePolaritySwapMap(
+    *platformPortEntry->second.get_mapping().pins_ref(), platformMapping_->getChips());
+
+  // Build the PhyPortConfig using platform port config pins list, polrity swap map, port profile config
+  phyPortConfig.config = phy::ExternalPhyConfig::fromConfigeratorTypes(
+    *platformPortConfig->second.pins_ref(), linePolaritySwapMap);
+
+  phyPortConfig.profile =  phy::ExternalPhyProfileConfig::fromPortProfileConfig(*portProfileConfig);
+
+  // Return true
+  return phyPortConfig;
 }
 
 }} // facebook::fboss
