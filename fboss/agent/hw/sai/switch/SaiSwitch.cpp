@@ -653,12 +653,11 @@ bool SaiSwitch::sendPacketOutOfPortAsync(
 }
 
 void SaiSwitch::updateStatsImpl(SwitchStats* /* switchStats */) {
-  auto& portManager = managerTable_->portManager();
   auto iter = concurrentIndices_->portIds.begin();
   while (iter != concurrentIndices_->portIds.end()) {
     {
       std::lock_guard<std::mutex> locked(saiSwitchMutex_);
-      portManager.updateStats(iter->second);
+      managerTable_->portManager().updateStats(iter->second);
     }
     ++iter;
   }
