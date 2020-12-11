@@ -95,16 +95,43 @@ void ExternalPhyPort<PlatformT, PortStatsT>::portChanged(
   phyPortConfig.profile =
       phy::ExternalPhyProfileConfig::fromPortProfileConfig(*portProfileConfig);
 
-  auto xphy = platform->xphy(phyID_);
-  xphy->programOnePort(phyPortConfig);
+  // Get the Phy slot id, Mdio id, Phy id information
+  auto phyIdInfo = platform->getPhyIdInfo(phyID_);
+  // Use PhyInterfaceHandler to access Phy functions
+  platform->getPhyInterfaceHandler()->programOnePort(
+      std::get<0>(phyIdInfo),
+      std::get<1>(phyIdInfo),
+      std::get<2>(phyIdInfo),
+      newPort->getID().t,
+      profileID,
+      phyPortConfig);
 
   if (changingPrbsState) {
     XLOG(INFO) << "Trying to setPortPrbs for port " << newPort->getID();
 
     auto setupPortPrbsAndCollection =
         [&](phy::Side side, bool enable, int32_t polynominal) {
-          xphy->setPortPrbs(phyPortConfig, side, enable, polynominal);
-          auto laneSpeed = xphy->getLaneSpeed(phyPortConfig, side);
+          // Use PhyInterfaceHandler to access Phy functions
+          platform->getPhyInterfaceHandler()->setPortPrbs(
+              std::get<0>(phyIdInfo),
+              std::get<1>(phyIdInfo),
+              std::get<2>(phyIdInfo),
+              newPort->getID().t,
+              profileID,
+              phyPortConfig,
+              side,
+              enable,
+              polynominal);
+          // Use PhyInterfaceHandler to access Phy functions
+          auto laneSpeed = platform->getPhyInterfaceHandler()->getLaneSpeed(
+              std::get<0>(phyIdInfo),
+              std::get<1>(phyIdInfo),
+              std::get<2>(phyIdInfo),
+              newPort->getID().t,
+              profileID,
+              phyPortConfig,
+              side);
+
           auto lockedStats = portStats_.wlock();
           if (!lockedStats->has_value()) {
             lockedStats->emplace(newPort->getName());
