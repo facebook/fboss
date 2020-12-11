@@ -578,7 +578,7 @@ class BcmSwitch : public BcmSwitchIf {
 
   std::unique_ptr<BcmRxPacket> createRxPacket(BcmPacketT bcmPacket);
 
-  void changeDefaultVlan(VlanID id);
+  void changeDefaultVlan(VlanID oldId, VlanID newId);
 
   void processChangedVlan(
       const std::shared_ptr<Vlan>& oldVlan,

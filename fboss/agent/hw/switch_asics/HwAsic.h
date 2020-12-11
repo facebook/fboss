@@ -54,6 +54,7 @@ class HwAsic {
     MIRROR_V6_TUNNEL,
     EGRESS_QUEUE_FLEX_COUNTER,
     PFC,
+    INGRESS_L3_INTERFACE,
   };
 
   enum class AsicType {

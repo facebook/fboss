@@ -116,7 +116,7 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
           isV6,
           getHwSwitch(),
           getPlatform()->getLocalMac(),
-          VlanID(utility::kBaseVlanId),
+          VlanID(utility::kDefaultVlanId),
           frontPanelPortToLoopTraffic);
       // Don't tolerate a deviation of > 25%
       EXPECT_TRUE(utility::isLoadBalanced(

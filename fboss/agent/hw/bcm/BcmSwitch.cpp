@@ -1132,7 +1132,8 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   // never really used for us.  We instead always point the default VLAN.
   if (delta.oldState()->getDefaultVlan() !=
       delta.newState()->getDefaultVlan()) {
-    changeDefaultVlan(delta.newState()->getDefaultVlan());
+    changeDefaultVlan(
+        delta.oldState()->getDefaultVlan(), delta.newState()->getDefaultVlan());
   }
 
   // Update changed interfaces
@@ -1656,9 +1657,37 @@ bool BcmSwitch::isValidStateUpdate(const StateDelta& delta) const {
   return isValid;
 }
 
-void BcmSwitch::changeDefaultVlan(VlanID id) {
-  auto rv = bcm_vlan_default_set(unit_, id);
-  bcmCheckError(rv, "failed to set default VLAN to ", id);
+void BcmSwitch::changeDefaultVlan(VlanID oldId, VlanID newId) {
+  auto rv = bcm_vlan_default_set(unit_, newId);
+  bcmCheckError(rv, "failed to set default VLAN to ", newId);
+  if (getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::INGRESS_L3_INTERFACE)) {
+    // create or update L3 intf for default vlan,
+    // otherwise, packets with default vlan tag will
+    // be dropped due to no mathcing in ingress L3 intf
+    if (intfTable_->getBcmIntfIf(oldId)) {
+      auto oldIntf = make_shared<Interface>(
+          InterfaceID(oldId),
+          RouterID(0), /* currently VRF is always zero anyway */
+          oldId,
+          folly::sformat("Interface-{}", uint16_t(oldId)),
+          getPlatform()->getLocalMac(),
+          9000, /* mtu */
+          false, /* is virtual */
+          false /* is state_sync disabled*/);
+      intfTable_->deleteIntf(oldIntf);
+    }
+    auto newIntf = make_shared<Interface>(
+        InterfaceID(newId),
+        RouterID(0), /* currently VRF is always zero anyway */
+        newId,
+        folly::sformat("Interface-{}", uint16_t(newId)),
+        getPlatform()->getLocalMac(),
+        9000, /* mtu */
+        false, /* is virtual */
+        false /* is state_sync disabled*/);
+    intfTable_->addIntf(newIntf);
+  }
 }
 
 void BcmSwitch::processChangedVlan(

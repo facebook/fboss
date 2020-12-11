@@ -282,8 +282,8 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
 void BcmIntf::programIngressIfNeeded(
     const std::shared_ptr<Interface>& intf,
     bool replace) {
-  auto asic = hw_->getPlatform()->getAsic()->getAsicType();
-  if (asic != HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
+  if (!hw_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::INGRESS_L3_INTERFACE)) {
     return;
   }
   bcm_l3_ingress_t l3_ingress;

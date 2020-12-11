@@ -54,6 +54,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::MIRROR_V6_TUNNEL:
     case HwAsic::Feature::EGRESS_QUEUE_FLEX_COUNTER:
     case HwAsic::Feature::PFC:
+    case HwAsic::Feature::INGRESS_L3_INTERFACE:
       return false;
   }
   return false;
