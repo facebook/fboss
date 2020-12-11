@@ -20,6 +20,7 @@
 #include "fboss/agent/hw/sai/tracer/FdbApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/HashApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/HostifApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/MirrorApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/MplsApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/NeighborApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/NextHopApiTracer.h"
@@ -171,6 +172,12 @@ sai_status_t __wrap_sai_api_query(
           static_cast<sai_hostif_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrappedHostifApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "hostif_api");
+      break;
+    case SAI_API_MIRROR:
+      SaiTracer::getInstance()->mirrorApi_ =
+          static_cast<sai_mirror_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrappedMirrorApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "mirror_api");
       break;
     case SAI_API_MPLS:
       SaiTracer::getInstance()->mplsApi_ =
@@ -1030,6 +1037,9 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_INSEG_ENTRY:
       setInsegEntryAttributes(attr_list, attr_count, attrLines);
       break;
+    case SAI_OBJECT_TYPE_MIRROR_SESSION:
+      setMirrorSessionAttributes(attr_list, attr_count, attrLines);
+      break;
     case SAI_OBJECT_TYPE_NEIGHBOR_ENTRY:
       setNeighborEntryAttributes(attr_list, attr_count, attrLines);
       break;
@@ -1314,6 +1324,7 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_HOSTIF, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_HOSTIF_TRAP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_MIRROR_SESSION, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_NEIGHBOR_ENTRY, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_NEXT_HOP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_NEXT_HOP_GROUP, 0);

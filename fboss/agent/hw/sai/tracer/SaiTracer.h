@@ -148,6 +148,7 @@ class SaiTracer {
   sai_neighbor_api_t* neighborApi_;
   sai_next_hop_api_t* nextHopApi_;
   sai_next_hop_group_api_t* nextHopGroupApi_;
+  sai_mirror_api_t* mirrorApi_;
   sai_mpls_api_t* mplsApi_;
   sai_port_api_t* portApi_;
   sai_queue_api_t* queueApi_;
@@ -236,6 +237,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_HOSTIF, "hostif_"},
       {SAI_OBJECT_TYPE_HOSTIF_TRAP, "hostifTrap_"},
       {SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP, "hostifTrapGroup_"},
+      {SAI_OBJECT_TYPE_MIRROR_SESSION, "mirrorSession_"},
       {SAI_OBJECT_TYPE_NEXT_HOP, "nextHop_"},
       {SAI_OBJECT_TYPE_NEXT_HOP_GROUP, "nextHopGroup_"},
       {SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER, "nextHopGroupMember_"},
@@ -272,6 +274,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_HOSTIF, "hostif_api->"},
       {SAI_OBJECT_TYPE_HOSTIF_TRAP, "hostif_api->"},
       {SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP, "hostif_api->"},
+      {SAI_OBJECT_TYPE_MIRROR_SESSION, "mirror_api->"},
       {SAI_OBJECT_TYPE_INSEG_ENTRY, "mpls_api->"},
       {SAI_OBJECT_TYPE_NEIGHBOR_ENTRY, "neighbor_api->"},
       {SAI_OBJECT_TYPE_NEXT_HOP, "next_hop_api->"},
