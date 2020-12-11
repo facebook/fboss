@@ -167,6 +167,8 @@ class SaiSwitch : public HwSwitch {
   bool transactionsSupported() const override;
 
  private:
+  std::unique_lock<std::mutex> ensureLocked(
+      const std::unique_lock<std::mutex>& maybeLocked) const;
   std::shared_ptr<SwitchState> stateChangedImpl(
       const StateDelta& delta,
       const std::unique_lock<std::mutex>& lk);

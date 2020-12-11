@@ -228,8 +228,7 @@ void SaiSwitch::processDefaultDataPlanePolicyDelta(
   auto qosDelta = delta.getDefaultDataPlaneQosPolicyDelta();
   auto& qosMapManager = managerTable_->qosMapManager();
   if ((qosDelta.getOld() != qosDelta.getNew())) {
-    auto lock = maybeLocked ? std::unique_lock<std::mutex>()
-                            : std::unique_lock<std::mutex>(saiSwitchMutex_);
+    auto lock = ensureLocked(maybeLocked);
     if (qosDelta.getOld() && qosDelta.getNew()) {
       if (*qosDelta.getOld() != *qosDelta.getNew()) {
         mgr.clearQosPolicy();
@@ -254,8 +253,7 @@ void SaiSwitch::processLinkStateChangeDelta(
       delta.getPortsDelta(),
       [&](const std::shared_ptr<Port>& oldPort,
           const std::shared_ptr<Port>& newPort) {
-        auto lock = maybeLocked ? std::unique_lock<std::mutex>()
-                                : std::unique_lock<std::mutex>(saiSwitchMutex_);
+        auto lock = ensureLocked(maybeLocked);
         if (!oldPort->isEnabled() && !newPort->isEnabled()) {
           return;
         }
@@ -363,6 +361,14 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
   return stateChangedImpl(delta, unlocked);
 }
 
+std::unique_lock<std::mutex> SaiSwitch::ensureLocked(
+    const std::unique_lock<std::mutex>& maybeLocked) const {
+  // If already locked do nothing and return a no op unique_lock
+  // Otherwise acuire the lock for caller and pass back the ownership.
+  return maybeLocked ? std::unique_lock<std::mutex>()
+                     : std::unique_lock<std::mutex>(saiSwitchMutex_);
+}
+
 std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
     const StateDelta& delta,
     const std::unique_lock<std::mutex>& maybeLocked) {
@@ -465,8 +471,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
   {
     auto controlPlaneDelta = delta.getControlPlaneDelta();
     if (controlPlaneDelta.getOld() != controlPlaneDelta.getNew()) {
-      auto lock = maybeLocked ? std::unique_lock<std::mutex>()
-                              : std::unique_lock<std::mutex>(saiSwitchMutex_);
+      auto lock = ensureLocked(maybeLocked);
       managerTable_->hostifManager().processHostifDelta(controlPlaneDelta);
     }
   }
@@ -509,8 +514,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
 
 void SaiSwitch::updateResourceUsage(
     const std::unique_lock<std::mutex>& maybeLocked) {
-  auto lock = maybeLocked ? std::unique_lock<std::mutex>()
-                          : std::unique_lock<std::mutex>(saiSwitchMutex_);
+  auto lock = ensureLocked(maybeLocked);
   auto aclTableHandle =
       managerTable_->aclTableManager().getAclTableHandle(kAclTable1);
   auto aclTableId = aclTableHandle->aclTable->adapterKey();
@@ -615,8 +619,7 @@ void SaiSwitch::processSwitchSettingsChanged(
             "Chaging L2 learning mode after initial config "
             "application is not permitted");
       }
-      auto lock = maybeLocked ? std::unique_lock<std::mutex>()
-                              : std::unique_lock<std::mutex>(saiSwitchMutex_);
+      auto lock = ensureLocked(maybeLocked);
       XLOG(DBG3) << "Configuring L2LearningMode old: "
                  << static_cast<int>(oldSwitchSettings->getL2LearningMode())
                  << " new: "
@@ -1477,18 +1480,15 @@ void SaiSwitch::processDelta(
       delta,
       [&](const std::shared_ptr<typename Delta::Node>& removed,
           const std::shared_ptr<typename Delta::Node>& added) {
-        auto lock = maybeLocked ? std::unique_lock<std::mutex>()
-                                : std::unique_lock<std::mutex>(saiSwitchMutex_);
+        auto lock = ensureLocked(maybeLocked);
         (manager.*changedFunc)(removed, added, args...);
       },
       [&](const std::shared_ptr<typename Delta::Node>& added) {
-        auto lock = maybeLocked ? std::unique_lock<std::mutex>()
-                                : std::unique_lock<std::mutex>(saiSwitchMutex_);
+        auto lock = ensureLocked(maybeLocked);
         (manager.*addedFunc)(added, args...);
       },
       [&](const std::shared_ptr<typename Delta::Node>& removed) {
-        auto lock = maybeLocked ? std::unique_lock<std::mutex>()
-                                : std::unique_lock<std::mutex>(saiSwitchMutex_);
+        auto lock = ensureLocked(maybeLocked);
         (manager.*removedFunc)(removed, args...);
       });
 }
@@ -1508,8 +1508,7 @@ void SaiSwitch::processChangedDelta(
       delta,
       [&](const std::shared_ptr<typename Delta::Node>& added,
           const std::shared_ptr<typename Delta::Node>& removed) {
-        auto lock = maybeLocked ? std::unique_lock<std::mutex>()
-                                : std::unique_lock<std::mutex>(saiSwitchMutex_);
+        auto lock = ensureLocked(maybeLocked);
         (manager.*changedFunc)(added, removed, args...);
       });
 }
@@ -1527,8 +1526,7 @@ void SaiSwitch::processAddedDelta(
     Args... args) {
   DeltaFunctions::forEachAdded(
       delta, [&](const std::shared_ptr<typename Delta::Node>& added) {
-        auto lock = maybeLocked ? std::unique_lock<std::mutex>()
-                                : std::unique_lock<std::mutex>(saiSwitchMutex_);
+        auto lock = ensureLocked(maybeLocked);
         (manager.*addedFunc)(added, args...);
       });
 }
@@ -1546,8 +1544,7 @@ void SaiSwitch::processRemovedDelta(
     Args... args) {
   DeltaFunctions::forEachRemoved(
       delta, [&](const std::shared_ptr<typename Delta::Node>& removed) {
-        auto lock = maybeLocked ? std::unique_lock<std::mutex>()
-                                : std::unique_lock<std::mutex>(saiSwitchMutex_);
+        auto lock = ensureLocked(maybeLocked);
         (manager.*removedFunc)(removed, args...);
       });
 }
