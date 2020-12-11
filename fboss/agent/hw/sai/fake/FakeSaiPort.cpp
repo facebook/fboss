@@ -419,7 +419,7 @@ sai_status_t get_port_attribute_fn(
       case SAI_PORT_ATTR_INGRESS_SAMPLEPACKET_ENABLE:
         attr->value.oid = port.ingressSamplePacket;
         break;
-        case SAI_PORT_ATTR_EGRESS_SAMPLEPACKET_ENABLE:
+      case SAI_PORT_ATTR_EGRESS_SAMPLEPACKET_ENABLE:
         attr->value.oid = port.egressSamplePacket;
         break;
 #if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)

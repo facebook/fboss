@@ -59,6 +59,7 @@ class Tomahawk4Asic : public BroadcomAsic {
   uint16_t getMirrorTruncateSize() const override {
     return 254;
   }
+
  private:
   // TODO(daiweix): remove this flag when all TH4 devices use B0 chip
   bool isA0_{false};
