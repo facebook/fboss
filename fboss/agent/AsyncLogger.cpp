@@ -51,6 +51,15 @@ void terminateHandler() {
               << " bytes written to file " << std::endl;
   }
 
+  std::exception_ptr eptr = std::current_exception();
+  if (eptr) {
+    try {
+      std::rethrow_exception(eptr);
+    } catch (const std::exception& ex) {
+      std::cerr << "Terminated due to: " << ex.what() << "\n";
+    }
+  }
+
   abort();
 }
 
