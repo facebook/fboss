@@ -31,6 +31,7 @@
 #include "fboss/agent/hw/sai/tracer/RouteApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/RouterInterfaceApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/SaiTracer.h"
+#include "fboss/agent/hw/sai/tracer/SamplePacketApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/SchedulerApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/SwitchApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/TamApiTracer.h"
@@ -232,6 +233,12 @@ sai_status_t __wrap_sai_api_query(
           static_cast<sai_router_interface_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrappedRouterInterfaceApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "router_interface_api");
+      break;
+    case SAI_API_SAMPLEPACKET:
+      SaiTracer::getInstance()->samplepacketApi_ =
+          static_cast<sai_samplepacket_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrappedSamplePacketApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "samplepacket_api");
       break;
     case SAI_API_SCHEDULER:
       SaiTracer::getInstance()->schedulerApi_ =
@@ -1067,6 +1074,9 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_ROUTER_INTERFACE:
       setRouterInterfaceAttributes(attr_list, attr_count, attrLines);
       break;
+    case SAI_OBJECT_TYPE_SAMPLEPACKET:
+      setSamplePacketAttributes(attr_list, attr_count, attrLines);
+      break;
     case SAI_OBJECT_TYPE_SCHEDULER:
       setSchedulerAttributes(attr_list, attr_count, attrLines);
       break;
@@ -1335,6 +1345,7 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_QOS_MAP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_QUEUE, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_ROUTER_INTERFACE, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_SAMPLEPACKET, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_SCHEDULER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_SCHEDULER_GROUP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_SWITCH, 0);

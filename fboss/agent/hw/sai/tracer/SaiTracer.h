@@ -155,6 +155,7 @@ class SaiTracer {
   sai_qos_map_api_t* qosMapApi_;
   sai_route_api_t* routeApi_;
   sai_router_interface_api_t* routerInterfaceApi_;
+  sai_samplepacket_api_t* samplepacketApi_;
   sai_scheduler_api_t* schedulerApi_;
   sai_switch_api_t* switchApi_;
   sai_virtual_router_api_t* virtualRouterApi_;
@@ -247,6 +248,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_QOS_MAP, "qosMap_"},
       {SAI_OBJECT_TYPE_QUEUE, "queue_"},
       {SAI_OBJECT_TYPE_ROUTER_INTERFACE, "routerInterface_"},
+      {SAI_OBJECT_TYPE_SAMPLEPACKET, "samplepacket_"},
       {SAI_OBJECT_TYPE_SCHEDULER, "scheduler_"},
       {SAI_OBJECT_TYPE_SCHEDULER_GROUP, "schedulerGroup_"},
       {SAI_OBJECT_TYPE_SWITCH, "switch_"},
@@ -286,6 +288,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_ROUTER_INTERFACE, "router_interface_api->"},
       {SAI_OBJECT_TYPE_QOS_MAP, "qos_map_api->"},
       {SAI_OBJECT_TYPE_QUEUE, "queue_api->"},
+      {SAI_OBJECT_TYPE_SCHEDULER, "samplepacket_api->"},
       {SAI_OBJECT_TYPE_SCHEDULER, "scheduler_api->"},
       {SAI_OBJECT_TYPE_SCHEDULER_GROUP, "scheduler_group_api->"},
       {SAI_OBJECT_TYPE_SWITCH, "switch_api->"},
