@@ -31,7 +31,9 @@ class HwProdInvariantHelper {
     verifyLoadBalacing();
   }
   static HwSwitchEnsemble::Features featuresDesired() {
-    return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX};
+    return {HwSwitchEnsemble::LINKSCAN,
+            HwSwitchEnsemble::PACKET_RX,
+            HwSwitchEnsemble::STATS_COLLECTION};
   }
 
  private:
