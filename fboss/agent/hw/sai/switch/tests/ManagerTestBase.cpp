@@ -61,10 +61,14 @@ void ManagerTestBase::setupSaiPlatform() {
   auto thriftAgentConfig = getDummyConfig();
   auto agentConfig = std::make_unique<AgentConfig>(
       std::move(thriftAgentConfig), "dummyConfigStr");
-  saiPlatform->init(std::move(agentConfig), 0);
+  saiPlatform->init(
+      std::move(agentConfig),
+      (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
+       HwSwitch::FeaturesDesired::LINKSCAN_DESIRED));
   saiPlatform->getHwSwitch()->init(nullptr, false);
   auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
   saiPlatform->initPorts();
+  saiSwitch->switchRunStateChanged(SwitchRunState::INITIALIZED);
   saiApiTable = SaiApiTable::getInstance();
   saiManagerTable = saiSwitch->managerTable();
   SwitchSaiId switchId = saiManagerTable->switchManager().getSwitchSaiId();
@@ -123,6 +127,11 @@ void ManagerTestBase::setupSaiPlatform() {
 }
 
 void ManagerTestBase::TearDown() {
+  if (saiPlatform) {
+    // If we already reset the platform (pseudo warmboot case),
+    // do nothing.
+    saiPlatform->getHwSwitch()->unregisterCallbacks();
+  }
   saiPlatform.reset();
   SaiStore::getInstance()->release();
   FakeSai::clear();
