@@ -85,13 +85,11 @@ BcmEcmpEgress::EgressId BcmEgressManager::toEgressId(T egress) {
   return egress;
 }
 
-#ifdef BCM_L3_ECMP_MEMBER_WEIGHTED
 template <>
 BcmEcmpEgress::EgressId BcmEgressManager::toEgressId<bcm_l3_ecmp_member_t>(
     bcm_l3_ecmp_member_t egress) {
   return egress.egress_if;
 }
-#endif
 
 template <typename T>
 int BcmEgressManager::removeAllEgressesFromEcmpCallback(
@@ -126,12 +124,10 @@ void BcmEgressManager::egressResolutionChangedHwNotLocked(
   EgressIdSet tmpEgressIds(affectedEgressIds);
   auto userData = std::make_pair(&tmpEgressIds, ucmpSupported);
   if (ucmpSupported) {
-#ifdef BCM_L3_ECMP_MEMBER_WEIGHTED
     bcm_l3_ecmp_traverse(
         unit,
         removeAllEgressesFromEcmpCallback<bcm_l3_ecmp_member_t>,
         &userData);
-#endif
   } else {
     bcm_l3_egress_ecmp_traverse(
         unit, removeAllEgressesFromEcmpCallback<bcm_if_t>, &userData);

@@ -25,7 +25,6 @@ getEcmpGroupInHw(const BcmSwitch* hw, bcm_if_t ecmp, int sizeInSw) {
   int pathsInHwCount;
   if (hw->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER)) {
-#ifdef BCM_L3_ECMP_MEMBER_WEIGHTED
     // @lint-ignore HOWTOEVEN CArray
     bcm_l3_ecmp_member_t pathsInHw[sizeInSw];
     bcm_l3_ecmp_get(
@@ -33,7 +32,6 @@ getEcmpGroupInHw(const BcmSwitch* hw, bcm_if_t ecmp, int sizeInSw) {
     for (size_t i = 0; i < pathsInHwCount; ++i) {
       ecmpGroup.insert(pathsInHw[i].egress_if);
     }
-#endif
   } else {
     // @lint-ignore HOWTOEVEN CArray
     bcm_if_t pathsInHw[sizeInSw];
@@ -55,12 +53,10 @@ bcm_if_t toIntfId(T egress) {
   return egress;
 }
 
-#ifdef BCM_L3_ECMP_MEMBER_WEIGHTED
 template <>
 bcm_if_t toIntfId(bcm_l3_ecmp_member_t egress) {
   return egress.egress_if;
 }
-#endif
 
 template <typename T>
 int bcm_l3_ecmp_traverse_cb(
@@ -83,12 +79,10 @@ std::vector<bcm_if_t> getEcmpMembersInHw(const BcmSwitch* hw) {
   std::vector<bcm_if_t> ecmpMembers;
   if (hw->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER)) {
-#ifdef BCM_L3_ECMP_MEMBER_WEIGHTED
     bcm_l3_ecmp_traverse(
         hw->getUnit(),
         bcm_l3_ecmp_traverse_cb<bcm_l3_ecmp_member_t>,
         &ecmpMembers);
-#endif
   } else {
     bcm_l3_egress_ecmp_traverse(
         hw->getUnit(), bcm_l3_ecmp_traverse_cb<bcm_if_t>, &ecmpMembers);

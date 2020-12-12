@@ -355,7 +355,6 @@ void BcmEcmpEgress::program() {
                << ((obj.flags & BCM_L3_WITH_ID) ? " with id" : " without id");
     int ret = 0;
     if (ucmpSupported_) {
-#ifdef BCM_L3_ECMP_MEMBER_WEIGHTED
       // @lint-ignore HOWTOEVEN CArray
       bcm_l3_ecmp_member_t ecmpMemberArray[numPaths];
       auto idx = 0;
@@ -376,7 +375,6 @@ void BcmEcmpEgress::program() {
       }
       ret = bcm_l3_ecmp_create(
           hw_->getUnit(), option, &obj, idx, ecmpMemberArray);
-#endif
     } else {
       // @lint-ignore HOWTOEVEN CArray
       bcm_if_t pathsArray[numPaths];
@@ -659,7 +657,6 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
   int ret;
 
   if (ucmpSupported) {
-#ifdef BCM_L3_ECMP_MEMBER_WEIGHTED
     // @lint-ignore HOWTOEVEN CArray
     bcm_l3_ecmp_member_t pathsInHw[numPaths];
     int totalPathsInHw;
@@ -671,7 +668,6 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
         ++countInHw;
       }
     }
-#endif
   } else {
     // @lint-ignore HOWTOEVEN CArray
     bcm_if_t pathsInHw[numPaths];
@@ -691,7 +687,6 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
   }
 
   if (ucmpSupported) {
-#ifdef BCM_L3_ECMP_MEMBER_WEIGHTED
     for (int i = 0; i < countInSw - countInHw; ++i) {
       bcm_l3_ecmp_member_t member;
       bcm_l3_ecmp_member_t_init(&member);
@@ -705,7 +700,6 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
         XLOG(DBG1) << "Added " << toAdd << " to " << ecmpId;
       }
     }
-#endif
   } else {
     for (int i = 0; i < countInSw - countInHw; ++i) {
       // Egress id exists in s/w but not in HW, add it

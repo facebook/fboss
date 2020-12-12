@@ -136,7 +136,6 @@ BcmWarmBootCache::EgressId2Weight BcmWarmBootCache::toEgressId2Weight(
   return egressIds;
 }
 
-#ifdef BCM_L3_ECMP_MEMBER_WEIGHTED
 template <>
 BcmWarmBootCache::EgressId2Weight BcmWarmBootCache::toEgressId2Weight<
     bcm_l3_ecmp_member_t>(bcm_l3_ecmp_member_t* egress, int count) {
@@ -147,7 +146,6 @@ BcmWarmBootCache::EgressId2Weight BcmWarmBootCache::toEgressId2Weight<
       });
   return egressIds;
 }
-#endif
 
 void BcmWarmBootCache::programmed(AclEntry2AclStatItr itr) {
   XLOG(DBG1) << "Programmed acl stat=" << itr->second.stat;
@@ -525,12 +523,10 @@ void BcmWarmBootCache::populate(std::optional<folly::dynamic> warmBootState) {
   // Traverse ecmp egress entries
   if (hw_->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER)) {
-#ifdef BCM_L3_ECMP_MEMBER_WEIGHTED
     rv = bcm_l3_ecmp_traverse(
         hw_->getUnit(),
         ecmpEgressTraversalCallback<bcm_l3_ecmp_member_t>,
         this);
-#endif
   } else {
     rv = bcm_l3_egress_ecmp_traverse(
         hw_->getUnit(), ecmpEgressTraversalCallback<bcm_if_t>, this);
