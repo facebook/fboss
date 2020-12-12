@@ -36,16 +36,21 @@ class SaiRouteRollbackTest : public SaiRollbackTest {
   RoutePrefixV6 kV6Prefix2() {
     return RoutePrefixV6{folly::IPAddressV6("2::"), 64};
   }
-  void setupRoutes() {
-    applyNewState(
-        v4EcmpHelper_->resolveNextHops(getProgrammedState(), kEcmpWidth));
-    applyNewState(
-        v6EcmpHelper_->resolveNextHops(getProgrammedState(), kEcmpWidth));
+  void resolveNextHops(int width) {
+    applyNewState(v4EcmpHelper_->resolveNextHops(getProgrammedState(), width));
+    applyNewState(v6EcmpHelper_->resolveNextHops(getProgrammedState(), width));
+  }
+  void setupEcmpRoutes() {
+    resolveNextHops(kEcmpWidth);
     // ECMP routes
     applyNewState(v4EcmpHelper_->setupECMPForwarding(
         getProgrammedState(), kEcmpWidth, {kV4Prefix1()}));
     applyNewState(v6EcmpHelper_->setupECMPForwarding(
         getProgrammedState(), kEcmpWidth, {kV6Prefix1()}));
+  }
+
+  void setupNonEcmpRoutes() {
+    resolveNextHops(1);
     // Non ECMP routes
     applyNewState(v4EcmpHelper_->setupECMPForwarding(
         getProgrammedState(), 1, {kV4Prefix2()}));
@@ -66,8 +71,19 @@ class SaiRouteRollbackTest : public SaiRollbackTest {
 TEST_F(SaiRouteRollbackTest, rollbackAll) {
   auto verify = [this]() {
     auto noRouteState = getProgrammedState();
-    setupRoutes();
+    setupEcmpRoutes();
+    setupNonEcmpRoutes();
     rollback(noRouteState);
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
+
+TEST_F(SaiRouteRollbackTest, rollbackNonEcmp) {
+  auto verify = [this]() {
+    setupEcmpRoutes();
+    auto rollbackState = getProgrammedState();
+    setupNonEcmpRoutes();
+    rollback(rollbackState);
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
