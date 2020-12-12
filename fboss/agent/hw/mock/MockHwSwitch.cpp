@@ -52,6 +52,12 @@ MockHwSwitch::MockHwSwitch(MockPlatform* platform) : platform_(platform) {
             delete pkt;
             return true;
           }));
+  ON_CALL(*this, stateChanged(_))
+      .WillByDefault(
+          Invoke([](const StateDelta& delta) { return delta.newState(); }));
+  ON_CALL(*this, stateChangedTransaction(_))
+      .WillByDefault(
+          Invoke([](const StateDelta& delta) { return delta.newState(); }));
 }
 
 std::unique_ptr<TxPacket> MockHwSwitch::allocatePacket(uint32_t size) const {
