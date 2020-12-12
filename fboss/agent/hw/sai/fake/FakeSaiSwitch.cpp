@@ -191,6 +191,12 @@ sai_status_t set_switch_attribute_fn(
     case SAI_SWITCH_ATTR_EXT_FAKE_LED:
     case SAI_SWITCH_ATTR_EXT_FAKE_LED_RESET:
       return sw.setLed(attr);
+    case SAI_SWITCH_ATTR_PORT_STATE_CHANGE_NOTIFY:
+    case SAI_SWITCH_ATTR_FDB_EVENT_NOTIFY:
+    case SAI_SWITCH_ATTR_PACKET_EVENT_NOTIFY:
+    case SAI_SWITCH_ATTR_TAM_EVENT_NOTIFY:
+      // No callback implementation in SAI
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
