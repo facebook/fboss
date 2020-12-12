@@ -33,6 +33,7 @@ std::multiset<bcm_if_t>
 getEcmpGroupInHw(const BcmSwitch* hw, bcm_if_t ecmp, int sizeInSw);
 
 std::vector<bcm_if_t> getEcmpMembersInHw(const BcmSwitch* hw);
+std::vector<bcm_if_t> getEcmpsInHw(const BcmSwitch* hw);
 
 bcm_if_t getEgressIdForRoute(
     const BcmSwitch* hw,

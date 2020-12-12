@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/hw/bcm/BcmEcmpUtils.h"
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
@@ -62,18 +63,7 @@ class BcmEmptyEcmpTest : public BcmTest {
       }
     };
     auto verify = [=]() {
-      auto ecmpTraverseCallback = [](int /*unit*/,
-                                     bcm_l3_egress_ecmp_t* /*ecmp*/,
-                                     int /*intfCount*/,
-                                     bcm_if_t* /*intfArray*/,
-                                     void* userData) {
-        auto cnt = (static_cast<unsigned int*>(userData));
-        ++(*cnt);
-        return 0;
-      };
-      unsigned int ecmpCount{0};
-      bcm_l3_egress_ecmp_traverse(
-          getHwSwitch()->getUnit(), ecmpTraverseCallback, &ecmpCount);
+      auto ecmpCount = utility::getEcmpsInHw(getHwSwitch()).size();
       EXPECT_EQ(2, ecmpCount);
     };
     verifyAcrossWarmBoots(setup, verify);
