@@ -165,6 +165,7 @@ class SaiSwitch : public HwSwitch {
       const StateDelta& delta) override;
 
   bool transactionsSupported() const override;
+  bool l2LearningModeChangeProhibited() const;
 
  private:
   std::unique_lock<std::mutex> ensureLocked(

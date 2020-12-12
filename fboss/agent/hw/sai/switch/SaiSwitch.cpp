@@ -356,6 +356,54 @@ void SaiSwitch::rollback(
   }
 }
 
+bool SaiSwitch::l2LearningModeChangeProhibited() const {
+  // We don't allow for l2 learning mode change after initial setting. This
+  // means
+  // - For cold boot prohibit changes after first config application
+  // - For warmboot prohibit changes after we have applied the warm boot
+  // state (in init). We still need to apply the initial changes in warmboot
+  // to setup our internal data structures correctly
+  auto l2LearningChangeProhibitedAfter = bootType_ == BootType::WARM_BOOT
+      ? SwitchRunState::INITIALIZED
+      : SwitchRunState::CONFIGURED;
+  /*
+   * Changing L2 learning mode on SAI is quite complex and I am
+   *     inclined to not support it at all here (see prod plan below).
+   * Consider,
+   *
+   * - On transition from SW to HW learning, we need to clear out
+   * SwitchState MAC table and our FDB table of dynamic entries (to get
+   * back to a state where we would be had we had HW learning mode).
+   * Clearing out MAC table in SwitchState is easy enough. However we just
+   * can't prune out the FDB entries in FDB manager, since that would
+   * clear hw causing MACs to be unprogrammed. There are bunch of tricks
+   * we can adopt to work around
+   *                                  - Keep around the FDB entries but
+   * mark them dead. This now complicates what we do when new FDB entries
+   * get programmed with the same MAC (which we won;t know about since we
+   * are now in HW learning mode) or when links go down, do we reset the
+   * dead entries or not?
+   *                                                      - Blow away the
+   * FDB entries but blackhole writes to HW. For this we will have to
+   * create a SAI blackholer since to one we have for native and block HW
+   * writes. In addition we would have to block observers to FDB entry
+   * reset, since we don't want ARP,NDP entries to observe this and start
+   * shrinking ECMP groups. This is getting to be quite complex
+   *                                                                                   -
+   * On transition from HW to SW learning We need to traverse the hw FDB
+   * entries and populate our MAC table. This is doable but needs a SAI
+   * extension to either observe or iterate SAI FDB table updates in HW
+   * learning mode. On the observer side things look clearer since we
+   * would just observe what's already in HW.
+   *
+   * Considering all this, just prohibit transitions. For prod,
+   * we will just deploy withSW L2 learning  everywhere. SW l2 learning
+   * is a superset of HW l2 learning in terms of functionality, so for SAI
+   * we will just standardize on that.
+   */
+  return getSwitchRunState() >= l2LearningChangeProhibitedAfter;
+}
+
 std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
   std::unique_lock<std::mutex> unlocked;
   return stateChangedImpl(delta, unlocked);
@@ -570,55 +618,6 @@ void SaiSwitch::processSwitchSettingsChanged(
   if (oldSwitchSettings != newSwitchSettings) {
     if (oldSwitchSettings->getL2LearningMode() !=
         newSwitchSettings->getL2LearningMode()) {
-      // We don't allow for l2 learning mode change after initial setting. This
-      // means
-      // - For cold boot prohibit changes after first config application
-      // - For warmboot prohibit changes after we have applied the warm boot
-      // state (in init). We still need to apply the initial changes in warmboot
-      // to setup our internal data structures correctly
-      auto l2LearningChangeProhibitedAfter = bootType_ == BootType::WARM_BOOT
-          ? SwitchRunState::INITIALIZED
-          : SwitchRunState::CONFIGURED;
-      if (getSwitchRunState() >= l2LearningChangeProhibitedAfter) {
-        /*
-         * Changing L2 learning mode on SAI is quite complex and I am
-         *     inclined to not support it at all here (see prod plan below).
-         * Consider,
-         *
-         * - On transition from SW to HW learning, we need to clear out
-         * SwitchState MAC table and our FDB table of dynamic entries (to get
-         * back to a state where we would be had we had HW learning mode).
-         * Clearing out MAC table in SwitchState is easy enough. However we just
-         * can't prune out the FDB entries in FDB manager, since that would
-         * clear hw causing MACs to be unprogrammed. There are bunch of tricks
-         * we can adopt to work around
-         *                                  - Keep around the FDB entries but
-         * mark them dead. This now complicates what we do when new FDB entries
-         * get programmed with the same MAC (which we won;t know about since we
-         * are now in HW learning mode) or when links go down, do we reset the
-         * dead entries or not?
-         *                                                      - Blow away the
-         * FDB entries but blackhole writes to HW. For this we will have to
-         * create a SAI blackholer since to one we have for native and block HW
-         * writes. In addition we would have to block observers to FDB entry
-         * reset, since we don't want ARP,NDP entries to observe this and start
-         * shrinking ECMP groups. This is getting to be quite complex
-         *                                                                                   -
-         * On transition from HW to SW learning We need to traverse the hw FDB
-         * entries and populate our MAC table. This is doable but needs a SAI
-         * extension to either observe or iterate SAI FDB table updates in HW
-         * learning mode. On the observer side things look clearer since we
-         * would just observe what's already in HW.
-         *
-         * Considering all this, just prohibit transitions. For prod,
-         * we will just deploy withSW L2 learning  everywhere. SW l2 learning
-         * is a superset of HW l2 learning in terms of functionality, so for SAI
-         * we will just standardize on that.
-         */
-        throw FbossError(
-            "Chaging L2 learning mode after initial config "
-            "application is not permitted");
-      }
       auto lock = ensureLocked(maybeLocked);
       XLOG(DBG3) << "Configuring L2LearningMode old: "
                  << static_cast<int>(oldSwitchSettings->getL2LearningMode())
@@ -626,9 +625,6 @@ void SaiSwitch::processSwitchSettingsChanged(
                  << static_cast<int>(newSwitchSettings->getL2LearningMode());
       managerTable_->portManager().setL2LearningMode(
           newSwitchSettings->getL2LearningMode());
-    }
-    if (newSwitchSettings->isQcmEnable()) {
-      throw FbossError("QCM is not supported on SAI");
     }
   }
 }
@@ -1131,6 +1127,31 @@ bool SaiSwitch::isValidStateUpdateLocked(
   if (qosDelta.getNew()->size() > 0) {
     XLOG(ERR) << "Only default data plane qos policy is supported";
     return false;
+  }
+  const auto switchSettingsDelta = delta.getSwitchSettingsDelta();
+  const auto& oldSwitchSettings = switchSettingsDelta.getOld();
+  const auto& newSwitchSettings = switchSettingsDelta.getNew();
+
+  /*
+   * SwitchSettings are mandatory and can thus only be modified.
+   * Every field in SwitchSettings must always be set in new SwitchState.
+   */
+  if (!oldSwitchSettings || !newSwitchSettings) {
+    throw FbossError("Switch settings must be present in SwitchState");
+  }
+
+  if (oldSwitchSettings != newSwitchSettings) {
+    if (oldSwitchSettings->getL2LearningMode() !=
+        newSwitchSettings->getL2LearningMode()) {
+      if (l2LearningModeChangeProhibited()) {
+        throw FbossError(
+            "Chaging L2 learning mode after initial config "
+            "application is not permitted");
+      }
+    }
+  }
+  if (newSwitchSettings->isQcmEnable()) {
+    throw FbossError("QCM is not supported on SAI");
   }
 
   return true;
