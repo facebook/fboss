@@ -172,6 +172,7 @@ class SaiSwitch : public HwSwitch {
   std::shared_ptr<SwitchState> stateChangedImpl(
       const StateDelta& delta,
       const std::unique_lock<std::mutex>& lk);
+  friend class SaiRollbackTest;
   void rollback(const std::shared_ptr<SwitchState>& knownGoodState) noexcept;
   std::string listObjectsLocked(
       const std::vector<sai_object_type_t>& objects,

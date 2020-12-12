@@ -130,6 +130,8 @@ function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     fboss/agent/hw/sai/hw_test/HwVlanUtils.cpp
     fboss/agent/hw/sai/hw_test/SaiNextHopGroupTest.cpp
     fboss/agent/hw/sai/hw_test/SaiPortUtils.cpp
+    fboss/agent/hw/sai/hw_test/SaiRollbackTest.cpp
+    fboss/agent/hw/sai/hw_test/SaiRouteRollbackTests.cpp
   )
 
   target_link_libraries(sai_test-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
