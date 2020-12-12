@@ -166,6 +166,8 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   }
 
  private:
+  // To update programmed state after rollback
+  friend class SaiRollbackTest;
   std::shared_ptr<SwitchState> applyNewStateImpl(
       const std::shared_ptr<SwitchState>& newState,
       bool transaction);
