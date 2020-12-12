@@ -61,10 +61,7 @@ void ManagerTestBase::setupSaiPlatform() {
   auto thriftAgentConfig = getDummyConfig();
   auto agentConfig = std::make_unique<AgentConfig>(
       std::move(thriftAgentConfig), "dummyConfigStr");
-  saiPlatform->init(
-      std::move(agentConfig),
-      (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
-       HwSwitch::FeaturesDesired::LINKSCAN_DESIRED));
+  saiPlatform->init(std::move(agentConfig), 0);
   saiPlatform->getHwSwitch()->init(nullptr, false);
   auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
   saiPlatform->initPorts();

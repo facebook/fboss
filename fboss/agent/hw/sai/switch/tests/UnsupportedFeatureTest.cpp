@@ -26,3 +26,12 @@ TEST_F(ManagerTestBase, checkQcmSupport) {
   newState->resetSwitchSettings(newSwitchSettings);
   EXPECT_THROW(applyNewState(newState), FbossError);
 }
+
+TEST_F(ManagerTestBase, checkInvalidL2LearningModeTransition) {
+  saiPlatform->getHwSwitch()->switchRunStateChanged(SwitchRunState::CONFIGURED);
+  auto newState = std::make_shared<SwitchState>();
+  auto newSwitchSettings = newState->getSwitchSettings()->clone();
+  newSwitchSettings->setL2LearningMode(cfg::L2LearningMode::SOFTWARE);
+  newState->resetSwitchSettings(newSwitchSettings);
+  EXPECT_THROW(applyNewState(newState), FbossError);
+}
