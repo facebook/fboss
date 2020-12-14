@@ -694,7 +694,8 @@ class SwSwitch : public HwSwitch::Callback {
 
   void queueStateUpdateForGettingHwInSync(
       folly::StringPiece name,
-      StateUpdateFn fn);
+      StateUpdateFn fn,
+      bool isTransaction);
 
   typedef folly::IntrusiveList<StateUpdate, &StateUpdate::listHook_>
       StateUpdateList;

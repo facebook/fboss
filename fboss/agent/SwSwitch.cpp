@@ -674,8 +674,14 @@ void SwSwitch::updateState(unique_ptr<StateUpdate> update) {
 
 void SwSwitch::queueStateUpdateForGettingHwInSync(
     StringPiece name,
-    StateUpdateFn fn) {
-  auto update = make_unique<FunctionStateUpdate>(name, std::move(fn));
+    StateUpdateFn fn,
+    bool isTransaction) {
+  auto update = make_unique<FunctionStateUpdate>(
+      name,
+      std::move(fn),
+      static_cast<int>(
+          isTransaction ? StateUpdate::BehaviorFlags::TRANSACTION
+                        : StateUpdate::BehaviorFlags::NONE));
   {
     // Push the state update in front to preserver ordering.
     // This is not particularly necessary, since this state
@@ -715,9 +721,12 @@ void SwSwitch::updateStateBlocking(
     StateUpdateFn fn,
     bool isTransaction) {
   auto result = std::make_shared<BlockingUpdateResult>();
-  auto behaviorFlags = static_cast<int>(
-      isTransaction ? StateUpdate::BehaviorFlags::TRANSACTION
-                    : StateUpdate::BehaviorFlags::NONE);
+  auto behaviorFlags = static_cast<int>(StateUpdate::BehaviorFlags::NONE);
+  if (isTransaction) {
+    behaviorFlags |=
+        (static_cast<int>(StateUpdate::BehaviorFlags::TRANSACTION) |
+         static_cast<int>(StateUpdate::BehaviorFlags::NON_COALESCING));
+  }
   auto update = make_unique<BlockingStateUpdate>(
       name, std::move(fn), result, behaviorFlags);
   updateState(std::move(update));
@@ -740,28 +749,23 @@ void SwSwitch::handlePendingUpdates() {
     folly::SpinLockGuard guard(pendingUpdatesLock_);
     // When deciding how many elements to pull off the pendingUpdates_
     // list, we pull as many as we can, subject to the following conditions
-    // - We don't include any updates after an update that does not allow
-    // coalescing.
-    // - Transactional updates are executed by themselves
+    // - Non coalescing updates are executed by themselves
     auto iter = pendingUpdates_.begin();
     while (iter != pendingUpdates_.end()) {
       StateUpdate* update = &(*iter);
-      if (update->isTransaction()) {
+      if (update->isNonCoalescing()) {
         if (iter == pendingUpdates_.begin()) {
-          // First update is a transaction, splice it onto the updates list
+          // First update is non coalescing, splice it onto the updates list
           // and apply transaction by itself
           ++iter;
           break;
         } else {
-          // Splice all updates upto this transactional update, we will
-          // get the transactional update in the next round
+          // Splice all updates upto this non coalescing update, we will
+          // get the non coalescing update in the next round
           break;
         }
       }
       ++iter;
-      if (!update->allowsCoalescing()) {
-        break;
-      }
     }
     updates.splice(
         updates.begin(), pendingUpdates_, pendingUpdates_.begin(), iter);
@@ -774,8 +778,8 @@ void SwSwitch::handlePendingUpdates() {
     return;
   }
 
-  bool isTransaction = updates.begin()->isTransaction();
-  if (isTransaction) {
+  bool isNonCoalescing = updates.begin()->isNonCoalescing();
+  if (isNonCoalescing) {
     CHECK_EQ(updates.size(), 1);
   }
 
@@ -794,10 +798,16 @@ void SwSwitch::handlePendingUpdates() {
   // supplied state updates are applied (that were spliced above).
   auto newDesiredState = oldAppliedState;
   auto iter = updates.begin();
+  bool isTransaction{false};
   while (iter != updates.end()) {
     StateUpdate* update = &(*iter);
     ++iter;
 
+    // If any update is a transaction, mark the isTransaction flag to true
+    // Typically transaction is a non coalescing update and would be applied by
+    // itself however there is a use case for non coalescing transactions (see
+    // comments below).
+    isTransaction |= update->isTransaction();
     shared_ptr<SwitchState> intermediateState;
     XLOG(INFO) << "preparing state update " << update->getName();
     try {
@@ -843,7 +853,15 @@ void SwSwitch::handlePendingUpdates() {
             auto hwOutOfSyncState = newDesiredState->clone();
             hwOutOfSyncState->inheritGeneration(*newAppliedState);
             return hwOutOfSyncState;
-          });
+          },
+          // If the failed update was a transaction, queued update is
+          // a transaction as well. Otherwise when we reaattempt this
+          // update (say in another round of handlePendingUpdates), there
+          // is a good chance that updating the HW would fail. If that
+          // update is not a transaction, then we would endup sending
+          // that down to HwSwitch as a non-transaction, leading HwSwitch
+          // to throw on update failure.
+          isTransaction);
     }
   }
 
