@@ -462,7 +462,8 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
       // send a state update to h/w
       updateEventBase_.runInEventBaseThread(
           [alpmInitState, initialStateDesired, this]() {
-            applyUpdate(initialStateDesired, alpmInitState);
+            applyUpdate(
+                initialStateDesired, alpmInitState, false /*isTransaction*/);
           });
     }
   }
@@ -799,7 +800,8 @@ void SwSwitch::handlePendingUpdates() {
   // Now apply the update and notify subscribers
   if (newDesiredState != oldAppliedState) {
     // There was some change during these state updates
-    auto newAppliedState = applyUpdate(oldAppliedState, newDesiredState);
+    auto newAppliedState =
+        applyUpdate(oldAppliedState, newDesiredState, false /*isTransaction*/);
     // Stick the initial applied->desired in the beginning
     bool newOutOfSync = (newAppliedState != newDesiredState);
     fb303::fbData->setCounter("hw_out_of_sync", newOutOfSync);
@@ -853,7 +855,8 @@ void SwSwitch::setDesiredState(std::shared_ptr<SwitchState> newDesiredState) {
 
 std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
     const shared_ptr<SwitchState>& oldState,
-    const shared_ptr<SwitchState>& newState) {
+    const shared_ptr<SwitchState>& newState,
+    bool isTransaction) {
   // Check that we are starting from what has been already applied
   DCHECK_EQ(oldState, getAppliedState());
 
@@ -884,7 +887,8 @@ std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
   // undesirable.  So far I don't think this brief discrepancy should cause
   // major issues.
   try {
-    newAppliedState = hw_->stateChanged(delta);
+    newAppliedState = isTransaction ? hw_->stateChangedTransaction(delta)
+                                    : hw_->stateChanged(delta);
   } catch (const std::exception& ex) {
     // Notify the hw_ of the crash so it can execute any device specific
     // tasks before we fatal. An example would be to dump the current hw state.

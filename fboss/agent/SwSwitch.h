@@ -729,7 +729,8 @@ class SwSwitch : public HwSwitch::Callback {
   void handlePendingUpdates();
   std::shared_ptr<SwitchState> applyUpdate(
       const std::shared_ptr<SwitchState>& oldState,
-      const std::shared_ptr<SwitchState>& newState);
+      const std::shared_ptr<SwitchState>& newState,
+      bool isTransaction);
 
   void startThreads();
   void stopThreads();
