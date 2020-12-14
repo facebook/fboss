@@ -702,7 +702,10 @@ void SwSwitch::updateState(StringPiece name, StateUpdateFn fn) {
 }
 
 void SwSwitch::updateStateNoCoalescing(StringPiece name, StateUpdateFn fn) {
-  auto update = make_unique<FunctionStateUpdate>(name, std::move(fn), false);
+  auto update = make_unique<FunctionStateUpdate>(
+      name,
+      std::move(fn),
+      static_cast<int>(StateUpdate::BehaviorFlags::NON_COALESCING));
   updateState(std::move(update));
 }
 

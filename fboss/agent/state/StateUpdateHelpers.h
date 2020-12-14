@@ -32,8 +32,8 @@ class FunctionStateUpdate : public StateUpdate {
   FunctionStateUpdate(
       folly::StringPiece name,
       StateUpdateFn fn,
-      bool allowCoalesce = true)
-      : StateUpdate(name, allowCoalesce), function_(fn) {}
+      int flags = kDefaultBehaviorFlags)
+      : StateUpdate(name, flags), function_(fn) {}
 
   std::shared_ptr<SwitchState> applyUpdate(
       const std::shared_ptr<SwitchState>& origState) override {
@@ -104,8 +104,8 @@ class BlockingStateUpdate : public StateUpdate {
       folly::StringPiece name,
       StateUpdateFn fn,
       std::shared_ptr<BlockingUpdateResult> result,
-      bool allowCoalesce = true)
-      : StateUpdate(name, allowCoalesce), function_(fn), result_(result) {}
+      int flags = kDefaultBehaviorFlags)
+      : StateUpdate(name, flags), function_(fn), result_(result) {}
 
   std::shared_ptr<SwitchState> applyUpdate(
       const std::shared_ptr<SwitchState>& origState) override {

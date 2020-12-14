@@ -32,8 +32,15 @@ class SwitchState;
  */
 class StateUpdate {
  public:
-  explicit StateUpdate(folly::StringPiece name, bool allowCoalesce = true)
-      : name_(name.str()), allowCoalesce_(allowCoalesce) {}
+  enum class BehaviorFlags : int {
+    NONE = 0x0,
+    NON_COALESCING = 0x1,
+    TRANSACTION = 0x2,
+  };
+  static constexpr int kDefaultBehaviorFlags =
+      static_cast<int>(BehaviorFlags::NONE);
+  explicit StateUpdate(folly::StringPiece name, int behaviorFlags)
+      : name_(name.str()), behaviorFlags_(behaviorFlags) {}
   virtual ~StateUpdate() {}
 
   const std::string& getName() const {
@@ -41,7 +48,13 @@ class StateUpdate {
   }
 
   bool allowsCoalescing() const {
-    return allowCoalesce_;
+    return !isNonCoalescing();
+  }
+  bool isNonCoalescing() const {
+    return behaviorFlags_ & static_cast<int>(BehaviorFlags::NON_COALESCING);
+  }
+  bool isTransaction() const {
+    return behaviorFlags_ & static_cast<int>(BehaviorFlags::TRANSACTION);
   }
 
   /*
@@ -83,7 +96,7 @@ class StateUpdate {
   StateUpdate& operator=(StateUpdate const&) = delete;
 
   std::string name_;
-  bool allowCoalesce_;
+  int behaviorFlags_{static_cast<int>(BehaviorFlags::NONE)};
 
   // An intrusive list hook for maintaining the list of pending updates.
   folly::IntrusiveListHook listHook_;
