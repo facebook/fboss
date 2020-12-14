@@ -36,6 +36,8 @@ using folly::IPAddressV6;
 using folly::MacAddress;
 using std::string;
 using ::testing::_;
+using ::testing::ByRef;
+using ::testing::Eq;
 using ::testing::Return;
 
 class SwSwitchTest : public ::testing::Test {
@@ -286,4 +288,42 @@ TEST_F(SwSwitchTest, TransactionAtStart) {
   sw->updateStateBlocking(
       "Non transactional update", tranactionalStateUpdateFn, true);
   EXPECT_EQ(nonTransactionalState, sw->getState());
+}
+
+TEST_F(SwSwitchTest, FailedTransactionRequeuedAsTransaction) {
+  CounterCache counters(sw);
+  // applied and desired state in sync before we begin
+  EXPECT_TRUE(sw->appliedAndDesiredStatesMatch());
+  auto origState = sw->getState();
+  auto newState = bringAllPortsUp(sw->getState()->clone());
+  newState->publish();
+  // Have HwSwitch reject this state update. In current implementation
+  // this happens only in case of table overflow. However at the SwSwitch
+  // layer we don't care *why* the HwSwitch rejected this update, just
+  // that it did
+  EXPECT_HW_CALL(sw, stateChangedTransaction(_))
+      .WillRepeatedly(Return(origState));
+  auto stateUpdateFn = [=](const std::shared_ptr<SwitchState>& /*state*/) {
+    return newState;
+  };
+  sw->updateStateBlocking("Transaction fail", stateUpdateFn, true);
+  EXPECT_FALSE(sw->appliedAndDesiredStatesMatch());
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "hw_out_of_sync", 1);
+  EXPECT_EQ(1, counters.value(SwitchStats::kCounterPrefix + "hw_out_of_sync"));
+  auto newerState = newState->clone();
+  auto stateUpdateFn2 = [=](const std::shared_ptr<SwitchState>& /*state*/) {
+    return newerState;
+  };
+  // Next update should also come as a transaction and should send in a
+  // coalesced update
+  StateDelta expectedDelta(origState, newerState);
+  EXPECT_HW_CALL(sw, stateChangedTransaction(Eq(testing::ByRef(expectedDelta))))
+      .WillRepeatedly(Return(newerState));
+  sw->updateState("Accept update", stateUpdateFn2);
+  waitForStateUpdates(sw);
+  EXPECT_TRUE(sw->appliedAndDesiredStatesMatch());
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "hw_out_of_sync", -1);
+  EXPECT_EQ(0, counters.value(SwitchStats::kCounterPrefix + "hw_out_of_sync"));
 }
