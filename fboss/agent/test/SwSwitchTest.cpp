@@ -216,26 +216,74 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
   EXPECT_FALSE(sw->isValidStateUpdate(StateDelta(stateV0, stateV2)));
 }
 
-TEST_F(SwSwitchTest, MultipleUpdatesTransactionsComesInMiddle) {
+TEST_F(SwSwitchTest, TransactionAtEnd) {
   auto startState = sw->getState();
   startState->publish();
-  auto nonTranactionalState = startState->clone();
-  nonTranactionalState->publish();
-  auto transactionalState = nonTranactionalState->clone();
+  auto nonTransactionalState = startState->clone();
+  nonTransactionalState->publish();
+  auto transactionalState = nonTransactionalState->clone();
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(1);
   EXPECT_HW_CALL(sw, stateChangedTransaction(_)).Times(1);
-  auto nonTranactionalStateUpdateFn =
+  auto nonTransactionalStateUpdateFn =
       [=](const std::shared_ptr<SwitchState>& state) {
         EXPECT_EQ(state, startState);
-        return nonTranactionalState;
+        return nonTransactionalState;
       };
   auto tranactionalStateUpdateFn =
       [=](const std::shared_ptr<SwitchState>& state) {
-        EXPECT_EQ(state, nonTranactionalState);
+        EXPECT_EQ(state, nonTransactionalState);
         return transactionalState;
       };
-  sw->updateState("Non transactional update", nonTranactionalStateUpdateFn);
+  sw->updateState("Non transactional update", nonTransactionalStateUpdateFn);
   sw->updateStateBlocking(
       "Transactional update", tranactionalStateUpdateFn, true);
   EXPECT_EQ(transactionalState, sw->getState());
+}
+
+TEST_F(SwSwitchTest, BackToBackTransactions) {
+  auto startState = sw->getState();
+  startState->publish();
+  auto transactionalState1 = startState->clone();
+  transactionalState1->publish();
+  auto transactionalState2 = transactionalState1->clone();
+  EXPECT_HW_CALL(sw, stateChangedTransaction(_)).Times(2);
+  auto transactionalState1UpdateFn =
+      [=](const std::shared_ptr<SwitchState>& state) {
+        EXPECT_EQ(state, startState);
+        return transactionalState1;
+      };
+  auto tranactionalState2UpdateFn =
+      [=](const std::shared_ptr<SwitchState>& state) {
+        EXPECT_EQ(state, transactionalState1);
+        return transactionalState2;
+      };
+  sw->updateStateBlocking(
+      "Transactional update 1", transactionalState1UpdateFn, true);
+  sw->updateStateBlocking(
+      "Transactional update 2", tranactionalState2UpdateFn, true);
+  EXPECT_EQ(transactionalState2, sw->getState());
+}
+
+TEST_F(SwSwitchTest, TransactionAtStart) {
+  auto startState = sw->getState();
+  startState->publish();
+  auto transactionalState = startState->clone();
+  transactionalState->publish();
+  auto nonTransactionalState = transactionalState->clone();
+  EXPECT_HW_CALL(sw, stateChangedTransaction(_)).Times(1);
+  EXPECT_HW_CALL(sw, stateChanged(_)).Times(1);
+  auto transactionalStateUpdateFn =
+      [=](const std::shared_ptr<SwitchState>& state) {
+        EXPECT_EQ(state, startState);
+        return transactionalState;
+      };
+  auto tranactionalStateUpdateFn =
+      [=](const std::shared_ptr<SwitchState>& state) {
+        EXPECT_EQ(state, transactionalState);
+        return nonTransactionalState;
+      };
+  sw->updateState("Transactional update", transactionalStateUpdateFn);
+  sw->updateStateBlocking(
+      "Non transactional update", tranactionalStateUpdateFn, true);
+  EXPECT_EQ(nonTransactionalState, sw->getState());
 }
