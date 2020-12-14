@@ -52,7 +52,7 @@ static void runConversionBenchmark() {
         return newState;
       });
 
-  auto generator = Generator(sw->getAppliedState(), 1337, kEcmpWidth);
+  auto generator = Generator(sw->getState(), 1337, kEcmpWidth);
   const auto& states = generator.getSwitchStates();
   auto state = states[states.size() - 1];
 

@@ -628,6 +628,38 @@ class SwSwitch : public HwSwitch::Callback {
     return curConfig_;
   }
   AdminDistance clientIdToAdminDistance(int clientId) const;
+  void publishRxPacket(RxPacket* packet, uint16_t ethertype);
+  void publishTxPacket(TxPacket* packet, uint16_t ethertype);
+
+  /*
+   * Clear PortStats of the specified port.
+   */
+  void clearPortStats(const std::unique_ptr<std::vector<int32_t>>& ports);
+
+  std::vector<PrbsLaneStats> getPortAsicPrbsStats(int32_t portId);
+  void clearPortAsicPrbsStats(int32_t portId);
+
+  std::vector<PrbsLaneStats> getPortGearboxPrbsStats(
+      int32_t portId,
+      phy::Side side);
+  void clearPortGearboxPrbsStats(int32_t portId, phy::Side side);
+  SwitchRunState getSwitchRunState() const;
+
+  template <typename AddressT>
+  std::shared_ptr<Route<AddressT>> longestMatch(
+      std::shared_ptr<SwitchState> state,
+      const AddressT& address,
+      RouterID vrf);
+
+  ResolvedNexthopProbeScheduler* getResolvedNexthopProbeScheduler() {
+    return resolvedNexthopProbeScheduler_.get();
+  }
+
+  bool appliedAndDesiredStatesMatch() const {
+    return getAppliedState() == getDesiredState();
+  }
+
+ private:
   /*
    * Applied state corresponds to what was successfully applied
    * to h/w
@@ -660,34 +692,6 @@ class SwSwitch : public HwSwitch::Callback {
     return desiredStateDontUseDirectly_;
   }
 
-  void publishRxPacket(RxPacket* packet, uint16_t ethertype);
-  void publishTxPacket(TxPacket* packet, uint16_t ethertype);
-
-  /*
-   * Clear PortStats of the specified port.
-   */
-  void clearPortStats(const std::unique_ptr<std::vector<int32_t>>& ports);
-
-  std::vector<PrbsLaneStats> getPortAsicPrbsStats(int32_t portId);
-  void clearPortAsicPrbsStats(int32_t portId);
-
-  std::vector<PrbsLaneStats> getPortGearboxPrbsStats(
-      int32_t portId,
-      phy::Side side);
-  void clearPortGearboxPrbsStats(int32_t portId, phy::Side side);
-  SwitchRunState getSwitchRunState() const;
-
-  template <typename AddressT>
-  std::shared_ptr<Route<AddressT>> longestMatch(
-      std::shared_ptr<SwitchState> state,
-      const AddressT& address,
-      RouterID vrf);
-
-  ResolvedNexthopProbeScheduler* getResolvedNexthopProbeScheduler() {
-    return resolvedNexthopProbeScheduler_.get();
-  }
-
- private:
   void queueStateUpdateForGettingHwInSync(
       folly::StringPiece name,
       StateUpdateFn fn);

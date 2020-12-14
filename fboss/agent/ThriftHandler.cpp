@@ -199,7 +199,7 @@ void getPortInfoHelper(
   }
 
   std::shared_ptr<QosPolicy> qosPolicy;
-  auto state = sw.getAppliedState();
+  auto state = sw.getState();
   if (port->getQosPolicy().has_value()) {
     auto appliedPolicyName = port->getQosPolicy();
     qosPolicy =
@@ -1220,7 +1220,7 @@ void ThriftHandler::setPortState(int32_t portNum, bool enable) {
 void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  auto appliedState = sw_->getAppliedState();
+  auto appliedState = sw_->getState();
   for (const auto& routeTable : (*appliedState->getRouteTables())) {
     for (const auto& ipv4 : *(routeTable->getRibV4()->routes())) {
       UnicastRoute tempRoute;

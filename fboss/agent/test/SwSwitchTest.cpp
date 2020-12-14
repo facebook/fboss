@@ -98,9 +98,9 @@ TEST_F(SwSwitchTest, UpdateStatsExceptionCounter) {
 TEST_F(SwSwitchTest, HwRejectsUpdateThenAccepts) {
   CounterCache counters(sw);
   // applied and desired state in sync before we begin
-  EXPECT_EQ(sw->getAppliedState(), sw->getDesiredState());
-  auto origState = sw->getAppliedState();
-  auto newState = bringAllPortsUp(sw->getAppliedState()->clone());
+  EXPECT_TRUE(sw->appliedAndDesiredStatesMatch());
+  auto origState = sw->getState();
+  auto newState = bringAllPortsUp(sw->getState()->clone());
   // Have HwSwitch reject this state update. In current implementation
   // this happens only in case of table overflow. However at the SwSwitch
   // layer we don't care *why* the HwSwitch rejected this update, just
@@ -111,7 +111,7 @@ TEST_F(SwSwitchTest, HwRejectsUpdateThenAccepts) {
   };
   sw->updateState("Reject update", stateUpdateFn);
   waitForStateUpdates(sw);
-  EXPECT_NE(sw->getAppliedState(), sw->getDesiredState());
+  EXPECT_FALSE(sw->appliedAndDesiredStatesMatch());
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "hw_out_of_sync", 1);
   EXPECT_EQ(1, counters.value(SwitchStats::kCounterPrefix + "hw_out_of_sync"));
@@ -119,7 +119,7 @@ TEST_F(SwSwitchTest, HwRejectsUpdateThenAccepts) {
   EXPECT_HW_CALL(sw, stateChanged(_)).WillRepeatedly(Return(newState));
   sw->updateState("Accept update", stateUpdateFn);
   waitForStateUpdates(sw);
-  EXPECT_EQ(sw->getAppliedState(), sw->getDesiredState());
+  EXPECT_TRUE(sw->appliedAndDesiredStatesMatch());
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "hw_out_of_sync", -1);
   EXPECT_EQ(0, counters.value(SwitchStats::kCounterPrefix + "hw_out_of_sync"));
@@ -139,17 +139,15 @@ TEST_F(SwSwitchTest, TestStateNonCoalescing) {
       }
       return reachableCnt;
     };
-    auto arpTable =
-        sw->getAppliedState()->getVlans()->getVlan(kVlan1)->getArpTable();
-    auto ndpTable =
-        sw->getAppliedState()->getVlans()->getVlan(kVlan1)->getNdpTable();
+    auto arpTable = sw->getState()->getVlans()->getVlan(kVlan1)->getArpTable();
+    auto ndpTable = sw->getState()->getVlans()->getVlan(kVlan1)->getNdpTable();
     auto reachableCnt =
         getReachableCount(arpTable) + getReachableCount(ndpTable);
     EXPECT_EQ(expectedReachableNbrCnt, reachableCnt);
   };
   // No neighbor entries expected
   verifyReachableCnt(0);
-  auto origState = sw->getAppliedState();
+  auto origState = sw->getState();
   auto bringPortsUpUpdateFn = [](const std::shared_ptr<SwitchState>& state) {
     return bringAllPortsUp(state);
   };

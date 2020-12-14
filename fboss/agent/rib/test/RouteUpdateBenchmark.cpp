@@ -65,7 +65,7 @@ static void runOldRibTest() {
   auto testHandle = createTestHandle(&config, SwitchFlags::DEFAULT);
   auto sw = testHandle->getSw();
 
-  auto generator = Generator(sw->getAppliedState(), 1337, kEcmpWidth);
+  auto generator = Generator(sw->getState(), 1337, kEcmpWidth);
 
   // Generate the route chunks which are then cached in the generator and
   // reused when we call `getSwitchStates()`.
@@ -116,8 +116,7 @@ static void runNewRibTest() {
         return newState;
       });
 
-  auto routeChunks =
-      Generator(sw->getAppliedState(), 1337, kEcmpWidth, vrfZero).get();
+  auto routeChunks = Generator(sw->getState(), 1337, kEcmpWidth, vrfZero).get();
 
   // Resume benchmakring post-setup.
   suspender.dismiss();
