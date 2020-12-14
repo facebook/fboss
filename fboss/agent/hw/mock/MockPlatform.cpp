@@ -37,6 +37,9 @@ MockPlatform::MockPlatform(
   ON_CALL(*hw_, stateChanged(_))
       .WillByDefault(WithArg<0>(
           Invoke([=](const StateDelta& delta) { return delta.newState(); })));
+  ON_CALL(*hw_, stateChangedTransaction(_))
+      .WillByDefault(WithArg<0>(
+          Invoke([=](const StateDelta& delta) { return delta.newState(); })));
   asic_ = std::make_unique<MockAsic>();
 }
 

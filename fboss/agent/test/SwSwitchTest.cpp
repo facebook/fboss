@@ -43,6 +43,7 @@ class SwSwitchTest : public ::testing::Test {
   void SetUp() override {
     // Setup a default state object
     auto state = testStateA();
+    state->publish();
     handle = createTestHandle(state);
     sw = handle->getSw();
     sw->initialConfigApplied(std::chrono::steady_clock::now());
@@ -213,4 +214,28 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
   stateV2->publish();
 
   EXPECT_FALSE(sw->isValidStateUpdate(StateDelta(stateV0, stateV2)));
+}
+
+TEST_F(SwSwitchTest, MultipleUpdatesTransactionsComesInMiddle) {
+  auto startState = sw->getState();
+  startState->publish();
+  auto nonTranactionalState = startState->clone();
+  nonTranactionalState->publish();
+  auto transactionalState = nonTranactionalState->clone();
+  EXPECT_HW_CALL(sw, stateChanged(_)).Times(1);
+  EXPECT_HW_CALL(sw, stateChangedTransaction(_)).Times(1);
+  auto nonTranactionalStateUpdateFn =
+      [=](const std::shared_ptr<SwitchState>& state) {
+        EXPECT_EQ(state, startState);
+        return nonTranactionalState;
+      };
+  auto tranactionalStateUpdateFn =
+      [=](const std::shared_ptr<SwitchState>& state) {
+        EXPECT_EQ(state, nonTranactionalState);
+        return transactionalState;
+      };
+  sw->updateState("Non transactional update", nonTranactionalStateUpdateFn);
+  sw->updateStateBlocking(
+      "Transactional update", tranactionalStateUpdateFn, true);
+  EXPECT_EQ(transactionalState, sw->getState());
 }
