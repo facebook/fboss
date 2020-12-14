@@ -183,3 +183,38 @@ add_library(sdk_wrap_settings
 target_link_libraries(sdk_wrap_settings
   Folly::folly
 )
+
+
+add_library(sdk_tracer
+    fboss/agent/hw/bcm/SdkTracer.cpp
+)
+
+# TODO(skhare): consolidate "BCM SDK symbols" and "BCM symbols" together.
+
+file(STRINGS fboss/agent/hw/bcm/wrapped_bcm_sdk_symbols.txt bcm_sdk_symbols)
+foreach(bcm_sdk_symbol ${bcm_sdk_symbols})
+  target_link_options(sdk_tracer
+    PUBLIC
+    "LINKER:-wrap,${bcm_sdk_symbol}"
+  )
+endforeach(bcm_sdk_symbol)
+
+file(STRINGS fboss/agent/hw/bcm/wrapped_bcm_symbols.txt bcm_symbols)
+foreach(bcm_symbol ${bcm_symbols})
+  target_link_options(sdk_tracer
+    PUBLIC
+    "LINKER:-wrap,${bcm_symbol}"
+  )
+endforeach(bcm_symbol)
+
+target_link_libraries(sdk_tracer
+  bcm_cinter
+  sdk_wrap_settings
+  Folly::folly
+  function_call_time_reporter
+  ${OPENNSA}
+)
+
+set_target_properties(sdk_tracer PROPERTIES COMPILE_FLAGS
+  "-DSOC_PCI_DEBUG"
+)
