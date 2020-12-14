@@ -732,12 +732,25 @@ void SwSwitch::handlePendingUpdates() {
   {
     folly::SpinLockGuard guard(pendingUpdatesLock_);
     // When deciding how many elements to pull off the pendingUpdates_
-    // list, we pull as many as we can, while making sure we don't
-    // include any updates after an update that does not allow
+    // list, we pull as many as we can, subject to the following conditions
+    // - We don't include any updates after an update that does not allow
     // coalescing.
+    // - Transactional updates are executed by themselves
     auto iter = pendingUpdates_.begin();
     while (iter != pendingUpdates_.end()) {
       StateUpdate* update = &(*iter);
+      if (update->isTransaction()) {
+        if (iter == pendingUpdates_.begin()) {
+          // First update is a transaction, splice it onto the updates list
+          // and apply transaction by itself
+          ++iter;
+          break;
+        } else {
+          // Splice all updates upto this transactional update, we will
+          // get the transactional update in the next round
+          break;
+        }
+      }
       ++iter;
       if (!update->allowsCoalescing()) {
         break;
@@ -752,6 +765,11 @@ void SwSwitch::handlePendingUpdates() {
   // to do just return early.
   if (updates.empty()) {
     return;
+  }
+
+  bool isTransaction = updates.begin()->isTransaction();
+  if (isTransaction) {
+    CHECK_EQ(updates.size(), 1);
   }
 
   // This function should never be called with valid updates while we are
@@ -801,7 +819,7 @@ void SwSwitch::handlePendingUpdates() {
   if (newDesiredState != oldAppliedState) {
     // There was some change during these state updates
     auto newAppliedState =
-        applyUpdate(oldAppliedState, newDesiredState, false /*isTransaction*/);
+        applyUpdate(oldAppliedState, newDesiredState, isTransaction);
     // Stick the initial applied->desired in the beginning
     bool newOutOfSync = (newAppliedState != newDesiredState);
     fb303::fbData->setCounter("hw_out_of_sync", newOutOfSync);
