@@ -259,4 +259,9 @@ void BcmSwitchSettings::setPtpTc(
 
   ptpTcEnable_ = enable;
 }
+
+void BcmSwitchSettings::setL2AgeTimerSeconds(uint32_t val) {
+  XLOG(DBG3) << "Set l2AgeTimerSeconds =" << val;
+  l2AgeTimerSeconds_ = val;
+}
 } // namespace facebook::fboss

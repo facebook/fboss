@@ -2182,6 +2182,13 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
     switchSettingsChange = true;
   }
 
+  if (origSwitchSettings->getL2AgeTimerSeconds() !=
+      *cfg_->switchSettings_ref()->l2AgeTimerSeconds_ref()) {
+    newSwitchSettings->setL2AgeTimerSeconds(
+        *cfg_->switchSettings_ref()->l2AgeTimerSeconds_ref());
+    switchSettingsChange = true;
+  }
+
   return switchSettingsChange ? newSwitchSettings : nullptr;
 }
 

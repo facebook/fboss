@@ -31,6 +31,7 @@ TEST(SwitchSettingsTest, applyL2LearningConfig) {
       cfg::L2LearningMode::SOFTWARE, switchSettingsV1->getL2LearningMode());
   EXPECT_FALSE(switchSettingsV1->isQcmEnable());
   EXPECT_FALSE(switchSettingsV1->isPtpTcEnable());
+  EXPECT_EQ(300, switchSettingsV1->getL2AgeTimerSeconds());
 
   *config.switchSettings_ref()->l2LearningMode_ref() =
       cfg::L2LearningMode::HARDWARE;
@@ -45,6 +46,7 @@ TEST(SwitchSettingsTest, applyL2LearningConfig) {
       cfg::L2LearningMode::HARDWARE, switchSettingsV2->getL2LearningMode());
   EXPECT_FALSE(switchSettingsV2->isQcmEnable());
   EXPECT_FALSE(switchSettingsV2->isPtpTcEnable());
+  EXPECT_EQ(300, switchSettingsV1->getL2AgeTimerSeconds());
 }
 
 TEST(SwitchSettingsTest, applyQcmConfig) {
@@ -62,6 +64,7 @@ TEST(SwitchSettingsTest, applyQcmConfig) {
   EXPECT_EQ(
       cfg::L2LearningMode::HARDWARE, switchSettingsV1->getL2LearningMode());
   EXPECT_FALSE(switchSettingsV1->isPtpTcEnable());
+  EXPECT_EQ(300, switchSettingsV1->getL2AgeTimerSeconds());
 
   *config.switchSettings_ref()->qcmEnable_ref() = false;
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
@@ -95,6 +98,30 @@ TEST(SwitchSettingsTest, applyPtpTcEnable) {
   ASSERT_NE(nullptr, switchSettingsV2);
   EXPECT_FALSE(switchSettingsV2->isPublished());
   EXPECT_FALSE(switchSettingsV2->isPtpTcEnable());
+  EXPECT_EQ(300, switchSettingsV1->getL2AgeTimerSeconds());
+}
+
+TEST(SwitchSettingsTest, applyL2AgeTimerSeconds) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  // Check default value
+  auto l2AgeTimerSeconds = 300;
+  auto switchSettingsV0 = stateV0->getSwitchSettings();
+  ASSERT_NE(nullptr, switchSettingsV0);
+  EXPECT_FALSE(switchSettingsV0->isPublished());
+  EXPECT_EQ(l2AgeTimerSeconds, switchSettingsV0->getL2AgeTimerSeconds());
+
+  // Check if value is updated
+  l2AgeTimerSeconds *= 2;
+  cfg::SwitchConfig config;
+  config.switchSettings_ref()->l2AgeTimerSeconds_ref() = l2AgeTimerSeconds;
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+  auto switchSettingsV1 = stateV1->getSwitchSettings();
+  ASSERT_NE(nullptr, switchSettingsV1);
+  EXPECT_FALSE(switchSettingsV1->isPublished());
+  EXPECT_EQ(l2AgeTimerSeconds, switchSettingsV1->getL2AgeTimerSeconds());
 }
 
 TEST(SwitchSettingsTest, ToFromJSON) {
@@ -102,7 +129,8 @@ TEST(SwitchSettingsTest, ToFromJSON) {
         {
           "l2LearningMode": 1,
           "qcmEnable": true,
-          "ptpTcEnable": true
+          "ptpTcEnable": true,
+          "l2AgeTimerSeconds": 600
         }
   )";
 
@@ -111,6 +139,7 @@ TEST(SwitchSettingsTest, ToFromJSON) {
   EXPECT_EQ(cfg::L2LearningMode::SOFTWARE, switchSettings->getL2LearningMode());
   EXPECT_TRUE(switchSettings->isQcmEnable());
   EXPECT_TRUE(switchSettings->isPtpTcEnable());
+  EXPECT_EQ(600, switchSettings->getL2AgeTimerSeconds());
 
   auto dyn1 = switchSettings->toFollyDynamic();
   auto dyn2 = folly::parseJson(jsonStr);

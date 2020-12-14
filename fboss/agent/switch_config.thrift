@@ -1194,6 +1194,14 @@ struct SwitchSettings {
   1: L2LearningMode l2LearningMode = L2LearningMode.HARDWARE
   2: bool qcmEnable = false
   3: bool ptpTcEnable = false
+
+  /**
+   * Set L2 Aging to 5 mins by default, same as Arista -
+   * https://www.arista.com/en/um-eos/eos-section-19-3-mac-address-table
+   *
+   * Time to transition L2 from hit -> miss -> removed"
+   */
+  4: i32 l2AgeTimerSeconds = 300
 }
 
 struct PortPfc {

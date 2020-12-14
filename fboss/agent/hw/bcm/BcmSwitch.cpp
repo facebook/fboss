@@ -148,14 +148,6 @@ using namespace std::chrono;
 
 using namespace facebook::fboss::utility;
 
-/**
- * Set L2 Aging to 5 mins by default, same as Arista -
- * https://www.arista.com/en/um-eos/eos-section-19-3-mac-address-table
- */
-DEFINE_int32(
-    l2AgeTimerSeconds,
-    300,
-    "Time to transition L2 from hit -> miss -> removed");
 DEFINE_int32(linkscan_interval_us, 250000, "The Broadcom linkscan interval");
 DEFINE_bool(flexports, false, "Load the agent with flexport support enabled");
 DEFINE_int32(
@@ -899,7 +891,8 @@ HwInitResult BcmSwitch::init(
     ret.switchState = getColdBootSwitchState();
   }
 
-  setMacAging(std::chrono::seconds(FLAGS_l2AgeTimerSeconds));
+  setMacAging(std::chrono::seconds(
+      ret.switchState->getSwitchSettings()->getL2AgeTimerSeconds()));
 
   macTable_ = std::make_unique<BcmMacTable>(this);
 
@@ -1024,6 +1017,17 @@ void BcmSwitch::processSwitchSettingsChanged(const StateDelta& delta) {
   if (oldSwitchSettings->isPtpTcEnable() != newPtpTcEnable) {
     XLOG(DBG3) << "Set PTP TC enable: " << std::boolalpha << newPtpTcEnable;
     switchSettings_->setPtpTc(newPtpTcEnable, delta.newState());
+  }
+
+  const auto oldVal = oldSwitchSettings->getL2AgeTimerSeconds();
+  const auto newVal = newSwitchSettings->getL2AgeTimerSeconds();
+  if (oldVal != newVal) {
+    XLOG(DBG3) << "Configuring l2AgeTimerSeconds old: "
+               << static_cast<int>(oldVal)
+               << " new: " << static_cast<int>(newVal);
+
+    setMacAging(std::chrono::seconds(newVal));
+    switchSettings_->setL2AgeTimerSeconds(newVal);
   }
 }
 

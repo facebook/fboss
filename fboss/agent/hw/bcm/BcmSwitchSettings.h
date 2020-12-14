@@ -37,6 +37,12 @@ class BcmSwitchSettings {
     return ptpTcEnable_.value_or(false);
   }
 
+  std::optional<uint32_t> getL2AgeTimerSeconds() const {
+    return l2AgeTimerSeconds_;
+  }
+
+  void setL2AgeTimerSeconds(uint32_t val);
+
  private:
   void enableL2LearningHardware();
   void enableL2LearningSoftware();
@@ -50,6 +56,7 @@ class BcmSwitchSettings {
   bool l2AddrCallBackRegisterd_{false};
   std::optional<bool> qcmEnable_{std::nullopt};
   std::optional<bool> ptpTcEnable_{std::nullopt};
+  std::optional<uint32_t> l2AgeTimerSeconds_{std::nullopt};
 };
 
 } // namespace facebook::fboss

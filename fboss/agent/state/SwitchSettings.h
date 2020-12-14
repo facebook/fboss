@@ -26,6 +26,7 @@ struct SwitchSettingsFields {
   cfg::L2LearningMode l2LearningMode = cfg::L2LearningMode::HARDWARE;
   bool qcmEnable = false;
   bool ptpTcEnable = false;
+  uint32_t l2AgeTimerSeconds{300};
 };
 
 /*
@@ -66,6 +67,14 @@ class SwitchSettings : public NodeBaseT<SwitchSettings, SwitchSettingsFields> {
 
   void setPtpTcEnable(const bool enable) {
     writableFields()->ptpTcEnable = enable;
+  }
+
+  uint32_t getL2AgeTimerSeconds() const {
+    return getFields()->l2AgeTimerSeconds;
+  }
+
+  void setL2AgeTimerSeconds(uint32_t val) {
+    writableFields()->l2AgeTimerSeconds = val;
   }
 
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
