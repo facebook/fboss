@@ -710,9 +710,16 @@ void SwSwitch::updateStateNoCoalescing(StringPiece name, StateUpdateFn fn) {
   updateState(std::move(update));
 }
 
-void SwSwitch::updateStateBlocking(folly::StringPiece name, StateUpdateFn fn) {
+void SwSwitch::updateStateBlocking(
+    folly::StringPiece name,
+    StateUpdateFn fn,
+    bool isTransaction) {
   auto result = std::make_shared<BlockingUpdateResult>();
-  auto update = make_unique<BlockingStateUpdate>(name, std::move(fn), result);
+  auto behaviorFlags = static_cast<int>(
+      isTransaction ? StateUpdate::BehaviorFlags::TRANSACTION
+                    : StateUpdate::BehaviorFlags::NONE);
+  auto update = make_unique<BlockingStateUpdate>(
+      name, std::move(fn), result, behaviorFlags);
   updateState(std::move(update));
   result->wait();
 }
