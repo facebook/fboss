@@ -92,14 +92,17 @@ class PortDescriptorTemplate {
     folly::dynamic entry = folly::dynamic::object;
     switch (type()) {
       case PortType::PHYSICAL:
-        // encode using old format for downgrade scenarios
-        return folly::dynamic(static_cast<uint16_t>(physicalPortID_));
+        entry[kPortType] = static_cast<uint16_t>(PortType::PHYSICAL);
+        entry[kPortId] = static_cast<uint16_t>(physicalPortID_);
+        break;
       case PortType::AGGREGATE:
         entry[kPortType] = static_cast<uint16_t>(PortType::AGGREGATE);
         entry[kPortId] = static_cast<uint16_t>(aggregatePortID_);
-        return entry;
+        break;
+      default:
+        XLOG(FATAL) << "Unknown port type";
     }
-    XLOG(FATAL) << "Unknown port type";
+    return entry;
   }
   static PortDescriptorTemplate fromFollyDynamic(
       const folly::dynamic& descJSON) {
