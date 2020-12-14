@@ -929,11 +929,8 @@ std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
 
   setStateInternal(newAppliedState, newState);
 
-  // Notifies all observers of the current state update. We notify them that
-  // the state changed to "desired state", even if the whole state might not
-  // have been applied yet. If an observer wants to know the applied state,
-  // they can query the SwSwitch about it.
-  notifyStateObservers(delta);
+  // Notifies all observers of the current state update.
+  notifyStateObservers(StateDelta(oldState, newAppliedState));
 
   auto end = std::chrono::steady_clock::now();
   auto duration =

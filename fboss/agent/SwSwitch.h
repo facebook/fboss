@@ -187,18 +187,13 @@ class SwSwitch : public HwSwitch::Callback {
   /*
    * Get a pointer to the current switch state.
    *
-   * There are actually two states, applied and desired. By default, desired
-   * state is the one that clients should consider (and we return that), since
-   * sooner or later, that is what will become the actual applied state too.
-   *
-   * However, note that the state may be modified by another thread immediately
-   * after getState() returns, in which case the caller may now have an out-of-
-   * date copy of the state.
-   * See the comments in SwitchState.h for more details about the copy-on-write
-   * semantics of SwitchState.
+   * There are actually two states, applied and desired. In absence of hw
+   * update failures, these states should be the same. However when they
+   * do differ, return appliedState to the callers, since that's what
+   * we applied to HW.
    */
   std::shared_ptr<SwitchState> getState() const {
-    return getDesiredState();
+    return getAppliedState();
   }
   /**
    * Schedule an update to the switch state.
