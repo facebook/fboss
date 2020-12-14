@@ -144,6 +144,8 @@ void dynamicFibUpdate(
       vrf, v4NetworkToRoute, v6NetworkToRoute);
 
   auto sw = static_cast<facebook::fboss::SwSwitch*>(cookie);
+  // TODO - figure out transactions approach when we upgrade to RIB,
+  // RIB will also need to reflect rollback status.
   sw->updateStateBlocking("", std::move(fibUpdater));
 }
 
@@ -698,6 +700,10 @@ void ThriftHandler::syncFib(
   syncFibInVrf(client, std::move(routes), 0);
 }
 
+bool ThriftHandler::transactionsSupported() const {
+  return getSw()->getHw()->transactionsSupported();
+}
+
 void ThriftHandler::updateUnicastRoutesImpl(
     int32_t vrf,
     int16_t client,
@@ -791,7 +797,7 @@ void ThriftHandler::updateUnicastRoutesImpl(
     newState->resetRouteTables(std::move(newRt));
     return newState;
   };
-  sw_->updateStateBlocking(updType, updateFn);
+  sw_->updateStateBlocking(updType, updateFn, transactionsSupported());
 }
 
 static void populateInterfaceDetail(
@@ -1797,7 +1803,7 @@ void ThriftHandler::addMplsRoutes(
     }
     return newState;
   };
-  sw_->updateStateBlocking("addMplsRoutes", updateFn);
+  sw_->updateStateBlocking("addMplsRoutes", updateFn, transactionsSupported());
 }
 
 void ThriftHandler::addMplsRoutesImpl(
@@ -1929,7 +1935,7 @@ void ThriftHandler::syncMplsFib(
     }
     return newState;
   };
-  sw_->updateStateBlocking("syncMplsFib", updateFn);
+  sw_->updateStateBlocking("syncMplsFib", updateFn, transactionsSupported());
 }
 
 void ThriftHandler::getMplsRouteTableByClient(

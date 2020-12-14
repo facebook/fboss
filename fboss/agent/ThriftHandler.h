@@ -348,6 +348,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   }
 
  private:
+  bool transactionsSupported() const;
   struct ThreadLocalListener {
     EventBase* eventBase;
     std::unordered_map<
