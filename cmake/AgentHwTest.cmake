@@ -144,6 +144,8 @@ add_library(hw_switch_test
   fboss/agent/hw/test/FlexPortTests.cpp
 
   fboss/agent/hw/test/dataplane_tests/HwAclCounterTests.cpp
+  fboss/agent/hw/test/dataplane_tests/HwConfigSetupTest.cpp
+  fboss/agent/hw/test/dataplane_tests/HwConfigVerifyQosTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwCoppTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwDscpQueueMappingTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwEcmpDataPlaneTestUtil.cpp

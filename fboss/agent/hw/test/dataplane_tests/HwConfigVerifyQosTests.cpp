@@ -8,12 +8,12 @@
  *
  */
 #include "fboss/agent/AgentConfig.h"
-#include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmConfigSetupTests.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwConfigSetupTest.h"
 
 namespace facebook::fboss {
 
-class BcmConfigVerifyQosTest : public BcmConfigSetupTest {
+class HwConfigVerifyQosTest : public HwConfigSetupTest {
  private:
   cfg::SwitchConfig getFallbackConfig() const override {
     return utility::oneL3IntfConfig(
@@ -21,7 +21,7 @@ class BcmConfigVerifyQosTest : public BcmConfigSetupTest {
   }
 };
 
-TEST_F(BcmConfigVerifyQosTest, verifyDscpQueueMapping) {
+TEST_F(HwConfigVerifyQosTest, verifyDscpQueueMapping) {
   auto verifyPostWb = [&]() {
     // TODO: verify that DSCP Queue mapping should honor either 2Q config or
     // Olympic config.

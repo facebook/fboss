@@ -7,40 +7,43 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmConfigSetupTests.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwConfigSetupTest.h"
 
 #include "fboss/agent/AgentConfig.h"
 
 namespace facebook::fboss {
 
-DEFINE_string(agent_config, "", "Agent config to test");
+DEFINE_string(from_agent_config, "", "Agent config used for cold boot");
+DEFINE_string(to_agent_config, "", "Agent config used for warm boot");
 
-cfg::SwitchConfig BcmConfigSetupTest::getConfig() const {
-  auto agentCfg = getAgentConfigFromFile();
+cfg::SwitchConfig HwConfigSetupTest::getConfig(bool isWarmBoot) const {
+  auto agentCfg = getAgentConfigFromFile(isWarmBoot);
   return agentCfg ? setPortsToLoopback(std::move(agentCfg))
                   : getFallbackConfig();
 }
 
-cfg::SwitchConfig BcmConfigSetupTest::setPortsToLoopback(
+cfg::SwitchConfig HwConfigSetupTest::setPortsToLoopback(
     std::unique_ptr<AgentConfig> agentCfg) const {
   auto cfg = *agentCfg->thrift.sw_ref();
 
   for (auto& port : *cfg.ports_ref()) {
     if (*port.state_ref() == cfg::PortState::ENABLED) {
-      *port.loopbackMode_ref() = cfg::PortLoopbackMode::MAC;
+      port.loopbackMode_ref() = cfg::PortLoopbackMode::MAC;
     }
   }
   return cfg;
 }
 
-std::unique_ptr<AgentConfig> BcmConfigSetupTest::getAgentConfigFromFile()
-    const {
+std::unique_ptr<AgentConfig> HwConfigSetupTest::getAgentConfigFromFile(
+    bool isWarmBoot) const {
   std::unique_ptr<AgentConfig> agentCustomConfig{nullptr};
-
+  std::string configPath =
+      isWarmBoot ? FLAGS_to_agent_config : FLAGS_from_agent_config;
   try {
-    agentCustomConfig = AgentConfig::fromFile(FLAGS_agent_config);
+    agentCustomConfig = AgentConfig::fromFile(configPath);
+    XLOG(INFO) << "Loading agent config from " << configPath;
   } catch (const FbossError& ex) {
-    XLOG(DBG0) << "No pre warmboot agent config provided, using static config";
+    XLOG(INFO) << "No pre warmboot agent config provided, using static config";
   }
   return agentCustomConfig;
 }
