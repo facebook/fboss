@@ -52,11 +52,8 @@ class PortApiTest : public ::testing::Test {
   PortSerdesSaiId createPortSerdes(
       PortSaiId portSaiId,
       std::vector<sai_uint32_t> txPre1,
-      std::vector<sai_uint32_t> txPre2,
       std::vector<sai_uint32_t> txMain,
       std::vector<sai_uint32_t> txPost1,
-      std::vector<sai_uint32_t> txPost2,
-      std::vector<sai_uint32_t> txPost3,
       std::vector<sai_int32_t> rxCtlCode,
       std::vector<sai_int32_t> rxDspMode,
       std::vector<sai_int32_t> rxAfeTrim,
@@ -64,11 +61,8 @@ class PortApiTest : public ::testing::Test {
     SaiPortSerdesTraits::CreateAttributes a{portSaiId,
                                             std::nullopt,
                                             txPre1,
-                                            txPre2,
                                             txMain,
                                             txPost1,
-                                            txPost2,
-                                            txPost3,
                                             rxCtlCode,
                                             rxDspMode,
                                             rxAfeTrim,
@@ -305,20 +299,13 @@ TEST_F(PortApiTest, getSome) {
 
 TEST_F(PortApiTest, serdesApi) {
   auto id = createPort(100000, {42}, true);
-  auto serdesId =
-      createPortSerdes(id, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10});
+  auto serdesId = createPortSerdes(id, {1}, {2}, {3}, {4}, {5}, {6}, {7});
   auto txFirPre1 = portApi->getAttribute(
       serdesId, SaiPortSerdesTraits::Attributes::TxFirPre1{});
-  auto txFirPre2 = portApi->getAttribute(
-      serdesId, SaiPortSerdesTraits::Attributes::TxFirPre2{});
   auto txFirMain = portApi->getAttribute(
       serdesId, SaiPortSerdesTraits::Attributes::TxFirMain{});
   auto txFirPost1 = portApi->getAttribute(
       serdesId, SaiPortSerdesTraits::Attributes::TxFirPost1{});
-  auto txFirPost2 = portApi->getAttribute(
-      serdesId, SaiPortSerdesTraits::Attributes::TxFirPost2{});
-  auto txFirPost3 = portApi->getAttribute(
-      serdesId, SaiPortSerdesTraits::Attributes::TxFirPost3{});
   auto rxCtleCode = portApi->getAttribute(
       serdesId, SaiPortSerdesTraits::Attributes::RxCtleCode{});
   auto rxDspMode = portApi->getAttribute(
@@ -328,15 +315,12 @@ TEST_F(PortApiTest, serdesApi) {
   auto rxAcCouplingByPass = portApi->getAttribute(
       serdesId, SaiPortSerdesTraits::Attributes::RxAcCouplingByPass{});
   EXPECT_EQ(txFirPre1, std::vector<sai_uint32_t>{1});
-  EXPECT_EQ(txFirPre2, std::vector<sai_uint32_t>{2});
-  EXPECT_EQ(txFirMain, std::vector<sai_uint32_t>{3});
-  EXPECT_EQ(txFirPost1, std::vector<sai_uint32_t>{4});
-  EXPECT_EQ(txFirPost2, std::vector<sai_uint32_t>{5});
-  EXPECT_EQ(txFirPost3, std::vector<sai_uint32_t>{6});
-  EXPECT_EQ(rxCtleCode, std::vector<sai_int32_t>{7});
-  EXPECT_EQ(rxDspMode, std::vector<sai_int32_t>{8});
-  EXPECT_EQ(rxAfeTrim, std::vector<sai_int32_t>{9});
-  EXPECT_EQ(rxAcCouplingByPass, std::vector<sai_int32_t>{10});
+  EXPECT_EQ(txFirMain, std::vector<sai_uint32_t>{2});
+  EXPECT_EQ(txFirPost1, std::vector<sai_uint32_t>{3});
+  EXPECT_EQ(rxCtleCode, std::vector<sai_int32_t>{4});
+  EXPECT_EQ(rxDspMode, std::vector<sai_int32_t>{5});
+  EXPECT_EQ(rxAfeTrim, std::vector<sai_int32_t>{6});
+  EXPECT_EQ(rxAcCouplingByPass, std::vector<sai_int32_t>{7});
 }
 
 #if !defined(IS_OSS)
