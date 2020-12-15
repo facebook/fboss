@@ -169,31 +169,38 @@ struct SaiPortSerdesTraits {
     using IDriver = SaiAttribute<
         EnumType,
         SAI_PORT_SERDES_ATTR_IDRIVER,
-        std::vector<sai_uint32_t>>;
+        std::vector<sai_uint32_t>,
+        SaiU32ListDefault>;
     using TxFirPre1 = SaiAttribute<
         EnumType,
         SAI_PORT_SERDES_ATTR_TX_FIR_PRE1,
-        std::vector<sai_uint32_t>>;
+        std::vector<sai_uint32_t>,
+        SaiU32ListDefault>;
     using TxFirPre2 = SaiAttribute<
         EnumType,
         SAI_PORT_SERDES_ATTR_TX_FIR_PRE2,
-        std::vector<sai_uint32_t>>;
+        std::vector<sai_uint32_t>,
+        SaiU32ListDefault>;
     using TxFirMain = SaiAttribute<
         EnumType,
         SAI_PORT_SERDES_ATTR_TX_FIR_MAIN,
-        std::vector<sai_uint32_t>>;
+        std::vector<sai_uint32_t>,
+        SaiU32ListDefault>;
     using TxFirPost1 = SaiAttribute<
         EnumType,
         SAI_PORT_SERDES_ATTR_TX_FIR_POST1,
-        std::vector<sai_uint32_t>>;
+        std::vector<sai_uint32_t>,
+        SaiU32ListDefault>;
     using TxFirPost2 = SaiAttribute<
         EnumType,
         SAI_PORT_SERDES_ATTR_TX_FIR_POST2,
-        std::vector<sai_uint32_t>>;
+        std::vector<sai_uint32_t>,
+        SaiU32ListDefault>;
     using TxFirPost3 = SaiAttribute<
         EnumType,
         SAI_PORT_SERDES_ATTR_TX_FIR_POST3,
-        std::vector<sai_uint32_t>>;
+        std::vector<sai_uint32_t>,
+        SaiU32ListDefault>;
 
     /* extension attributes */
     struct AttributeRxCtleCodeIdWrapper {

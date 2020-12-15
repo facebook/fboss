@@ -49,10 +49,14 @@ struct SaiPortInterfaceTypeDefault {
   }
 };
 
-struct SaiObjectIdListDefault {
-  sai_object_list_t operator()() const {
-    return sai_object_list_t{0, nullptr};
+template <typename SaiListT>
+struct SaiListDefault {
+  SaiListT operator()() const {
+    return SaiListT{0, nullptr};
   }
 };
+
+using SaiObjectIdListDefault = SaiListDefault<sai_object_list_t>;
+using SaiU32ListDefault = SaiListDefault<sai_u32_list_t>;
 
 } // namespace facebook::fboss
