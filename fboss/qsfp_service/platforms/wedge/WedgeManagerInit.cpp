@@ -33,6 +33,7 @@ std::unique_ptr<TransceiverManager> createTransceiverManager() {
   } else if (mode == PlatformMode::ELBERT) {
     return createElbertTransceiverManager();
   } else if (
+      mode == PlatformMode::FUJI ||
       mode == PlatformMode::MINIPACK ||
       mode == PlatformMode::WEDGE400 ||
       mode == PlatformMode::WEDGE400C) {
