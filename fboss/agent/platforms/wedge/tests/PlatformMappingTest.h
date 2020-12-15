@@ -20,29 +20,61 @@ class PlatformMappingTest : public ::testing::Test {
  public:
   void SetUp() override {}
 
-  void setExpection(
+  void setExpectation(
+      int numPort,
+      int numIphy,
+      int numXphy,
+      int numTcvr,
+      std::vector<cfg::PlatformPortConfigFactor>& profilesFactors) {
+    expectedNumPort_ = numPort;
+    expectedNumIphy_ = numIphy;
+    expectedNumXphy_ = numXphy;
+    expectedNumTcvr_ = numTcvr;
+    expectedProfileFactors_ = std::move(profilesFactors);
+  }
+
+  void setExpectation(
       int numPort,
       int numIphy,
       int numXphy,
       int numTcvr,
       std::vector<cfg::PortProfileID>& profiles) {
-    expectedNumPort_ = numPort;
-    expectedNumIphy_ = numIphy;
-    expectedNumXphy_ = numXphy;
-    expectedNumTcvr_ = numTcvr;
-    expectedProfiles_ = std::move(profiles);
+    std::vector<cfg::PlatformPortConfigFactor> profileFactors;
+    for (auto profile : profiles) {
+      cfg::PlatformPortConfigFactor factor;
+      factor.profileID_ref() = profile;
+      profileFactors.push_back(factor);
+    }
+    setExpectation(numPort, numIphy, numXphy, numTcvr, profileFactors);
   }
 
   void verify(PlatformMapping* mapping) {
     EXPECT_EQ(expectedNumPort_, mapping->getPlatformPorts().size());
-
-    for (auto profile : expectedProfiles_) {
-      auto supportedProfile = mapping->getPortProfileConfig(profile);
-      auto platformSupportedProfile = mapping->getPortProfileConfig(
-          PlatformPortProfileConfigMatcher(profile, std::nullopt));
-      EXPECT_TRUE(supportedProfile.has_value());
-      EXPECT_TRUE(platformSupportedProfile.has_value());
-      EXPECT_EQ(supportedProfile, platformSupportedProfile);
+    for (auto factor : expectedProfileFactors_) {
+      if (auto pimIDs = factor.pimIDs_ref()) {
+        std::optional<phy::PortProfileConfig> prevProfile;
+        for (auto pimID : *pimIDs) {
+          auto platformSupportedProfile =
+              mapping->getPortProfileConfig(PlatformPortProfileConfigMatcher(
+                  factor.get_profileID(), PimID(pimID)));
+          EXPECT_TRUE(platformSupportedProfile.has_value());
+          // compare with profile from previous pim. Since they are in the
+          // same factor, the config should be the same
+          if (prevProfile.has_value()) {
+            EXPECT_EQ(platformSupportedProfile, prevProfile);
+          }
+          prevProfile = platformSupportedProfile;
+        }
+      } else {
+        auto supportedProfile =
+            mapping->getPortProfileConfig(factor.get_profileID());
+        auto platformSupportedProfile =
+            mapping->getPortProfileConfig(PlatformPortProfileConfigMatcher(
+                factor.get_profileID(), std::nullopt));
+        EXPECT_TRUE(supportedProfile.has_value());
+        EXPECT_TRUE(platformSupportedProfile.has_value());
+        EXPECT_EQ(supportedProfile, platformSupportedProfile);
+      }
     }
 
     int numIphy = 0, numXphy = 0, numTcvr = 0;
@@ -71,7 +103,7 @@ class PlatformMappingTest : public ::testing::Test {
   int expectedNumIphy_{0};
   int expectedNumXphy_{0};
   int expectedNumTcvr_{0};
-  std::vector<cfg::PortProfileID> expectedProfiles_;
+  std::vector<cfg::PlatformPortConfigFactor> expectedProfileFactors_;
 };
 } // namespace test
 } // namespace fboss

@@ -16,6 +16,7 @@
 #include "fboss/agent/platforms/common/galaxy/GalaxyLCPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge100/Wedge100PlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge40/Wedge40PlatformMapping.h"
+#include "fboss/agent/platforms/wedge/elbert/Elbert16QPimPlatformMapping.h"
 #include "fboss/agent/platforms/wedge/minipack/Minipack16QPimPlatformMapping.h"
 #include "fboss/agent/platforms/wedge/wedge400/Wedge400PlatformMapping.h"
 #include "fboss/agent/platforms/wedge/yamp/YampPlatformMapping.h"
@@ -62,7 +63,7 @@ TEST_F(PlatformMappingTest, VerifyWedge400PlatformMapping) {
 
   // Wedge400 has 16 uplinks + 4 * 32 downlink ports = 144
   // 32 TH3 Blackhawk cores + 48 transceivers
-  setExpection(144, 32, 0, 48, expectedProfiles);
+  setExpectation(144, 32, 0, 48, expectedProfiles);
 
   auto mapping = std::make_unique<Wedge400PlatformMapping>();
   verify(mapping.get());
@@ -365,7 +366,7 @@ TEST_F(PlatformMappingTest, VerifyYampPlatformMapping) {
 
   // Yamp has 128 ports
   // 32 TH3 Blackhawk cores + 128 transceivers + 64 xphy
-  setExpection(128, 32, 64, 128, expectedProfiles);
+  setExpectation(128, 32, 64, 128, expectedProfiles);
 
   auto mapping = std::make_unique<YampPlatformMapping>();
   verify(mapping.get());
@@ -379,7 +380,7 @@ TEST_F(PlatformMappingTest, VerifyMinipack16QPlatformMapping) {
 
   // Minipack16Q has 128 ports
   // 32 TH3 Blackhawk cores + 128 transceivers + 32 xphy
-  setExpection(128, 32, 32, 128, expectedProfiles);
+  setExpectation(128, 32, 32, 128, expectedProfiles);
 
   // both xphy version should pass the same standard
   for (auto xphyVersion :
@@ -448,7 +449,7 @@ TEST_F(PlatformMappingTest, VerifyWedge40PlatformMapping) {
 
   // Wedge40 has 16 * 4 = 64 logical ports
   // 16 TD2 Warp cores + 16 transceivers
-  setExpection(64, 16, 0, 16, expectedProfiles);
+  setExpectation(64, 16, 0, 16, expectedProfiles);
 
   auto mapping = std::make_unique<Wedge40PlatformMapping>();
   verify(mapping.get());
@@ -474,7 +475,7 @@ TEST_F(PlatformMappingTest, VerifyWedge100PlatformMapping) {
 
   // Wedge40 has 32 * 4 = 128 logical ports
   // 32 TH Falcon cores + 32 transceivers
-  setExpection(128, 32, 0, 32, expectedProfiles);
+  setExpectation(128, 32, 0, 32, expectedProfiles);
 
   auto mapping = std::make_unique<Wedge100PlatformMapping>();
   verify(mapping.get());
@@ -494,7 +495,7 @@ TEST_F(PlatformMappingTest, VerifyGalaxyFCPlatformMapping) {
 
   // Galaxy FC has 32 * 4 = 128 logical ports
   // 32 TH Falcon cores + 0 transceivers
-  setExpection(128, 32, 0, 0, expectedProfiles);
+  setExpectation(128, 32, 0, 0, expectedProfiles);
 
   auto mapping = std::make_unique<GalaxyFCPlatformMapping>("fc003");
   verify(mapping.get());
@@ -519,7 +520,7 @@ TEST_F(PlatformMappingTest, VerifyGalaxyLCPlatformMapping) {
 
   // Galaxy LC has 32 * 4 = 128 logical ports
   // 32 TH Falcon cores + 16 transceivers
-  setExpection(128, 32, 0, 16, expectedProfiles);
+  setExpectation(128, 32, 0, 16, expectedProfiles);
 
   auto mapping = std::make_unique<GalaxyLCPlatformMapping>("lc301");
   verify(mapping.get());
@@ -698,6 +699,21 @@ TEST_F(PlatformMappingTest, VerifyWedge100UplinkPortIphyPinConfigs) {
       }
     }
   }
+}
+
+TEST_F(PlatformMappingTest, VerifyElbert16QPlatformMapping) {
+  // supported profiles
+  std::vector<cfg::PortProfileID> expectedProfiles = {
+      cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL,
+      cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL};
+
+  // Elbert16Q has 128 ports
+  // 64 TH3 Blackhawk cores + 128 transceivers + no xphy
+  setExpectation(128, 64, 0, 128, expectedProfiles);
+
+  // both xphy version should pass the same standard
+  auto mapping = std::make_unique<Elbert16QPimPlatformMapping>();
+  verify(mapping.get());
 }
 
 TEST_F(PlatformMappingTest, VerifyPlatformSupportedProfileMerge) {
