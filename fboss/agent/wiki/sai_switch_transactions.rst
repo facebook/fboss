@@ -34,6 +34,7 @@ Consider the following 2 modes for transactions
    For SwitchState transactions, we will handle only a subset of errors, as a starting
    point, we may only consider table overflow error. 
 
+Currently on SwitchState transactions are implemented in SaiSwitch code
 
 What is needed for rolloback
 -------------------------------
