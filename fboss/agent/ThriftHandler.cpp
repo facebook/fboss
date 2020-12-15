@@ -1414,7 +1414,7 @@ void ThriftHandler::invokeNeighborListeners(
 
 void ThriftHandler::async_eb_registerForNeighborChanged(
     ThriftCallback<void> cb) {
-  auto ctx = cb->getConnectionContext()->getConnectionContext();
+  auto ctx = cb->getRequestContext()->getConnectionContext();
   auto client = ctx->getDuplexClient<NeighborListenerClientAsyncClient>();
   auto info = listeners_.get();
   CHECK(cb->getEventBase()->isInEventBaseThread());

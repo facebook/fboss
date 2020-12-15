@@ -61,7 +61,7 @@
     FOLLY_PP_FOR_EACH(_LOGTHRIFTCALL_APPEND_PARAM, ##__VA_ARGS__)         \
     return std::make_unique<::facebook::fboss::LogThriftCall>(            \
         logger, folly::LogLevel::level, func, file, line, ctx, ss.str()); \
-  }(__func__, __FILE__, __LINE__, getConnectionContext()))
+  }(__func__, __FILE__, __LINE__, getRequestContext()))
 
 #define FB_LOG_RAW_WITH_CONTEXT(...) \
   FB_LOG_RAW(__VA_ARGS__) << "[" << folly::RequestContext::get() << "] "
