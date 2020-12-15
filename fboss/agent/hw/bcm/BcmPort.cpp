@@ -439,12 +439,7 @@ void BcmPort::program(const shared_ptr<Port>& port) {
   setLoopbackMode(port->getLoopbackMode());
 
   setupStatsIfNeeded(port);
-  auto asicType = hw_->getPlatform()->getAsic()->getAsicType();
-  if (asicType != HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
-    // TODO(daiweix): remove if condition after next sdk release
-    // supports prbs setting
-    setupPrbs(port);
-  }
+  setupPrbs(port);
 
   {
     XLOG(DBG3) << "Saving port settings for " << port->getName();
@@ -749,10 +744,10 @@ void BcmPort::setupPrbs(const std::shared_ptr<Port>& swPort) {
       throw FbossError(
           "Polynominal value not supported: ", *prbsState.polynominal_ref());
     } else {
-      auto rv = bcm_port_control_set(
+      auto rv = bcm_port_phy_control_set(
           unit_,
           port_,
-          bcmPortControlPrbsPolynomial,
+          BCM_PORT_PHY_CONTROL_PRBS_POLYNOMIAL,
           asicPrbsPolynominalIter->second);
 
       bcmCheckError(
@@ -762,55 +757,39 @@ void BcmPort::setupPrbs(const std::shared_ptr<Port>& swPort) {
 
   std::string enableStr = *prbsState.enabled_ref() ? "enable" : "disable";
 
-  int currVal{0};
-  auto rv =
-      bcm_port_control_get(unit_, port_, bcmPortControlPrbsTxEnable, &currVal);
-  bcmCheckError(
-      rv,
-      folly::sformat(
-          "Failed to get bcmPortControlPrbsTxEnable for port {} : {}",
-          port_,
-          bcm_errmsg(rv)));
+  auto setPrbsIfNeeded = [&](bcm_port_phy_control_t type) {
+    std::string typeStr = (type == BCM_PORT_PHY_CONTROL_PRBS_TX_ENABLE)
+        ? "BCM_PORT_PHY_CONTROL_PRBS_TX_ENABLE"
+        : "BCM_PORT_PHY_CONTROL_PRBS_RX_ENABLE";
+    uint32 currVal{0};
+    auto rv = bcm_port_phy_control_get(unit_, port_, type, &currVal);
+    if (rv != BCM_E_NOT_FOUND) {
+      bcmCheckError(
+          rv,
+          folly::sformat(
+              "Failed to get {} for port {} : {}",
+              typeStr,
+              port_,
+              bcm_errmsg(rv)));
+    }
 
-  if (currVal != (*prbsState.enabled_ref() ? 1 : 0)) {
-    rv = bcm_port_control_set(
-        unit_,
-        port_,
-        bcmPortControlPrbsTxEnable,
-        ((*prbsState.enabled_ref()) ? 1 : 0));
+    if (rv == BCM_E_NOT_FOUND ||
+        currVal != (*prbsState.enabled_ref() ? 1 : 0)) {
+      rv = bcm_port_phy_control_set(
+          unit_, port_, type, ((*prbsState.enabled_ref()) ? 1 : 0));
 
-    bcmCheckError(
-        rv,
-        folly::sformat(
-            "Setting prbs tx {} failed for port {}", enableStr, port_));
-  } else {
-    XLOG(DBG2) << "bcmPortControlPrbsTxEnable is already " << enableStr
-               << " for port " << port_;
-  }
+      bcmCheckError(
+          rv,
+          folly::sformat(
+              "Setting {} {} failed for port {}", typeStr, enableStr, port_));
+    } else {
+      XLOG(DBG2) << typeStr << " is already " << enableStr << " for port "
+                 << port_;
+    }
+  };
 
-  rv = bcm_port_control_get(unit_, port_, bcmPortControlPrbsRxEnable, &currVal);
-  bcmCheckError(
-      rv,
-      folly::sformat(
-          "Failed to get bcmPortControlPrbsRxEnable for port {} : {}",
-          port_,
-          bcm_errmsg(rv)));
-
-  if (currVal != (*prbsState.enabled_ref() ? 1 : 0)) {
-    rv = bcm_port_control_set(
-        unit_,
-        port_,
-        bcmPortControlPrbsRxEnable,
-        ((*prbsState.enabled_ref()) ? 1 : 0));
-
-    bcmCheckError(
-        rv,
-        folly::sformat(
-            "Setting prbs rx {} failed for port {}", enableStr, port_));
-  } else {
-    XLOG(DBG2) << "bcmPortControlPrbsRxEnable is already " << enableStr
-               << " for port " << port_;
-  }
+  setPrbsIfNeeded(BCM_PORT_PHY_CONTROL_PRBS_TX_ENABLE);
+  setPrbsIfNeeded(BCM_PORT_PHY_CONTROL_PRBS_RX_ENABLE);
 }
 
 PortID BcmPort::getPortID() const {
