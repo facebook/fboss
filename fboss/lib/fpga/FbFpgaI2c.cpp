@@ -33,6 +33,20 @@ FbFpgaI2c::FbFpgaI2c(
   XLOG(DBG4, "Initialized I2C controller for rtcId={:d}", rtcId);
 }
 
+FbFpgaI2c::FbFpgaI2c(
+    std::unique_ptr<FpgaMemoryRegion> io,
+    uint32_t rtcId,
+    uint32_t pimId,
+    int version)
+    : I2cController(
+          folly::to<std::string>("i2cController.pim.", pimId, ".rtc.", rtcId)),
+      io_(std::make_unique<FbDomFpga>(move(io))),
+      rtcId_(rtcId),
+      version_(version) {
+  fpga_ = io_.get();
+  XLOG(DBG4, "Initialized I2C controller for rtcId={:d}", rtcId);
+}
+
 bool FbFpgaI2c::waitForResponse(size_t len) {
   I2cRtcStatus rtcStatus(version_);
   uint32_t retries = 20;
@@ -198,6 +212,18 @@ FbFpgaI2cController::FbFpgaI2cController(
     uint32_t pim,
     int version)
     : syncedFbI2c_(folly::in_place, fpga, rtcId, pim, version),
+      eventBase_(std::make_unique<folly::EventBase>()),
+      thread_(new std::thread([&, pim, rtcId]() {
+        initThread(folly::format("I2c_pim{:d}_rtc{:d}", pim, rtcId).str());
+        eventBase_->loopForever();
+      })) {}
+
+FbFpgaI2cController::FbFpgaI2cController(
+    std::unique_ptr<FpgaMemoryRegion> io,
+    uint32_t rtcId,
+    uint32_t pim,
+    int version)
+    : syncedFbI2c_(folly::in_place, move(io), rtcId, pim, version),
       eventBase_(std::make_unique<folly::EventBase>()),
       thread_(new std::thread([&, pim, rtcId]() {
         initThread(folly::format("I2c_pim{:d}_rtc{:d}", pim, rtcId).str());

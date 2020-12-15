@@ -29,7 +29,15 @@ class FbFpgaI2cError : public I2cError {
 
 class FbFpgaI2c : public I2cController {
  public:
+  // TODO(clin82): After refactor Wedge400I2CBus to make use of
+  // FpgaMemoryRegion, we can remove the dependency of FbDomFpga from FbFpgaI2c
   FbFpgaI2c(FbDomFpga* fpga, uint32_t rtcId, uint32_t pim, int version);
+
+  FbFpgaI2c(
+      std::unique_ptr<FpgaMemoryRegion> io,
+      uint32_t rtcId,
+      uint32_t pim,
+      int version);
 
   uint8_t readByte(uint8_t channel, uint8_t offset);
   void read(uint8_t channel, uint8_t offset, folly::MutableByteRange buf);
@@ -47,7 +55,10 @@ class FbFpgaI2c : public I2cController {
   template <typename Register>
   void writeReg(Register& value);
 
+  // TODO(clin82): After refactor Wedge400I2CBus to make use of
+  // FpgaMemoryRegion, we can remove the dependency of FbDomFpga from FbFpgaI2c
   FbDomFpga* fpga_{nullptr};
+  std::unique_ptr<FbDomFpga> io_;
 
   int rtcId_{-1};
   int version_{0};
@@ -55,8 +66,16 @@ class FbFpgaI2c : public I2cController {
 
 class FbFpgaI2cController {
  public:
+  // TODO(clin82): After refactor Wedge400I2CBus to make use of
+  // FpgaMemoryRegion, we can remove the dependency of FbDomFpga from FbFpgaI2c
   FbFpgaI2cController(
       FbDomFpga* fpga,
+      uint32_t rtcId,
+      uint32_t pim,
+      int version = 0);
+
+  FbFpgaI2cController(
+      std::unique_ptr<FpgaMemoryRegion> fpga,
       uint32_t rtcId,
       uint32_t pim,
       int version = 0);
