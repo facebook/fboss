@@ -37,7 +37,12 @@ class PlatformMappingTest : public ::testing::Test {
     EXPECT_EQ(expectedNumPort_, mapping->getPlatformPorts().size());
 
     for (auto profile : expectedProfiles_) {
-      EXPECT_TRUE(mapping->getPortProfileConfig(profile).has_value());
+      auto supportedProfile = mapping->getPortProfileConfig(profile);
+      auto platformSupportedProfile = mapping->getPortProfileConfig(
+          PlatformPortProfileConfigMatcher(profile, std::nullopt));
+      EXPECT_TRUE(supportedProfile.has_value());
+      EXPECT_TRUE(platformSupportedProfile.has_value());
+      EXPECT_EQ(supportedProfile, platformSupportedProfile);
     }
 
     int numIphy = 0, numXphy = 0, numTcvr = 0;

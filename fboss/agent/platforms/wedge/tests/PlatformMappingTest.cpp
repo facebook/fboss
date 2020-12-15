@@ -10,6 +10,7 @@
 
 #include "fboss/agent/platforms/wedge/tests/PlatformMappingTest.h"
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/PlatformMode.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyFCPlatformMapping.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyLCPlatformMapping.h"
@@ -21,9 +22,28 @@
 
 #include <gtest/gtest.h>
 
-namespace facebook {
-namespace fboss {
-namespace test {
+namespace facebook::fboss::test {
+
+cfg::PlatformPortProfileConfigEntry createPlatformPortProfileConfigEntry(
+    cfg::PortProfileID profileID,
+    std::set<int> pimIDs,
+    cfg::PortSpeed speed,
+    phy::FecMode iphyFec) {
+  cfg::PlatformPortConfigFactor factor;
+  factor.profileID_ref() = profileID;
+  factor.pimIDs_ref() = pimIDs;
+
+  phy::PortProfileConfig config;
+  phy::ProfileSideConfig iphy;
+  iphy.fec_ref() = iphyFec;
+  config.iphy_ref() = iphy;
+  config.speed_ref() = speed;
+
+  cfg::PlatformPortProfileConfigEntry configEntry;
+  configEntry.factor_ref() = factor;
+  configEntry.profile_ref() = config;
+  return configEntry;
+}
 
 TEST_F(PlatformMappingTest, VerifyWedge400PlatformMapping) {
   // supported profiles
@@ -680,6 +700,67 @@ TEST_F(PlatformMappingTest, VerifyWedge100UplinkPortIphyPinConfigs) {
   }
 }
 
-} // namespace test
-} // namespace fboss
-} // namespace facebook
+TEST_F(PlatformMappingTest, VerifyPlatformSupportedProfileMerge) {
+  auto platformMapping = PlatformMapping();
+  cfg::PlatformPortProfileConfigEntry configEntry1 =
+      createPlatformPortProfileConfigEntry(
+          cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL,
+          {1, 2},
+          cfg::PortSpeed::HUNDREDG,
+          phy::FecMode::CL74);
+  cfg::PlatformPortProfileConfigEntry configEntry2 =
+      createPlatformPortProfileConfigEntry(
+          cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL,
+          {1, 3},
+          cfg::PortSpeed::HUNDREDG,
+          phy::FecMode::CL74);
+  cfg::PlatformPortProfileConfigEntry configEntry3 =
+      createPlatformPortProfileConfigEntry(
+          cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
+          {1, 2, 3},
+          cfg::PortSpeed::HUNDREDG,
+          phy::FecMode::CL74);
+  cfg::PlatformPortProfileConfigEntry configEntry4 =
+      createPlatformPortProfileConfigEntry(
+          cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL,
+          {2},
+          cfg::PortSpeed::HUNDREDG,
+          phy::FecMode::RS528);
+
+  platformMapping.mergePlatformSupportedProfile(configEntry1);
+  platformMapping.mergePlatformSupportedProfile(configEntry2);
+  platformMapping.mergePlatformSupportedProfile(configEntry3);
+
+  // pims 1-3 with PROFILE_100G_4_NRZ_CL91_OPTICAL
+  for (auto pimNum : {1, 2, 3}) {
+    auto profile =
+        platformMapping.getPortProfileConfig(PlatformPortProfileConfigMatcher(
+            cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL,
+            PimID(pimNum)));
+    EXPECT_TRUE(profile.has_value());
+    EXPECT_EQ(profile.value(), configEntry1.profile_ref());
+  }
+
+  // pims 1-3 with PROFILE_25G_1_NRZ_NOFEC_OPTICAL
+  for (auto pimNum : {1, 2, 3}) {
+    auto profile =
+        platformMapping.getPortProfileConfig(PlatformPortProfileConfigMatcher(
+            cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
+            PimID(pimNum)));
+    EXPECT_TRUE(profile.has_value());
+    EXPECT_EQ(profile.value(), configEntry3.profile_ref());
+  }
+
+  // No match at pim 4
+  auto profileDoesNotExists =
+      platformMapping.getPortProfileConfig(PlatformPortProfileConfigMatcher(
+          cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL, PimID(4)));
+  EXPECT_FALSE(profileDoesNotExists.has_value());
+
+  // config 4 has the same profile id and overlapping pimID as config 1, but
+  // different profile config. There's no reasonable merge in this case so
+  // expect an error
+  EXPECT_THROW(
+      platformMapping.mergePlatformSupportedProfile(configEntry4), FbossError);
+}
+} // namespace facebook::fboss::test

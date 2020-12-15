@@ -10,19 +10,84 @@
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
+#include <re2/re2.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/agent/FbossError.h"
 
+namespace {
+constexpr auto kFbossPortNameRegex = "eth(\\d+)/(\\d+)/(\\d+)";
+const re2::RE2 portNameRegex(kFbossPortNameRegex);
+} // namespace
+
 namespace facebook {
 namespace fboss {
+
+bool PlatformPortProfileConfigMatcher::matchOverrideWithFactor(
+    const cfg::PlatformPortConfigOverrideFactor& factor) {
+  if (auto overridePorts = factor.ports_ref()) {
+    if (!portID_.has_value() ||
+        std::find(
+            overridePorts->begin(),
+            overridePorts->end(),
+            static_cast<int>(portID_.value())) == overridePorts->end()) {
+      return false;
+    }
+  }
+  if (auto overrideProfiles = factor.profiles_ref()) {
+    if (std::find(
+            overrideProfiles->begin(), overrideProfiles->end(), profileID_) ==
+        overrideProfiles->end()) {
+      return false;
+    }
+  }
+  if (auto overrideCableLength = factor.cableLengths_ref()) {
+    if (!cableLength_.has_value() ||
+        std::find(
+            overrideCableLength->begin(),
+            overrideCableLength->end(),
+            cableLength_.value()) == overrideCableLength->end()) {
+      return false;
+    }
+  }
+  if (auto overrideTransceiverSpecComplianceCode =
+          factor.transceiverSpecComplianceCode_ref()) {
+    if (!transceiverSpecComplianceCode_.has_value() ||
+        transceiverSpecComplianceCode_.value() !=
+            overrideTransceiverSpecComplianceCode) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool PlatformPortProfileConfigMatcher::matchProfileWithFactor(
+    const PlatformMapping* pm,
+    const cfg::PlatformPortConfigFactor& factor) {
+  if (factor.get_profileID() != profileID_) {
+    return false;
+  }
+  // if we dont have pimID, try to get it from portID
+  if (!pimID_.has_value() && portID_.has_value()) {
+    pimID_ = pm->getPimID(portID_.value());
+  }
+  if (auto pimIDs = factor.pimIDs_ref()) {
+    if (pimID_.has_value() && pimIDs->find(pimID_.value()) == pimIDs->end()) {
+      return false;
+    }
+  }
+  return true;
+}
+
 PlatformMapping::PlatformMapping(const std::string& jsonPlatformMappingStr) {
   auto mapping =
       apache::thrift::SimpleJSONSerializer::deserialize<cfg::PlatformMapping>(
           jsonPlatformMappingStr);
   platformPorts_ = std::move(*mapping.ports_ref());
   supportedProfiles_ = std::move(*mapping.supportedProfiles_ref());
+  platformSupportedProfiles_ =
+      std::move(*mapping.platformSupportedProfiles_ref());
   for (auto chip : *mapping.chips_ref()) {
     chips_[*chip.name_ref()] = chip;
   }
@@ -55,10 +120,81 @@ void PlatformMapping::merge(PlatformMapping* mapping) {
   }
   mapping->supportedProfiles_.clear();
 
+  for (auto incomingProfile : mapping->platformSupportedProfiles_) {
+    mergePlatformSupportedProfile(incomingProfile);
+  }
+  mapping->platformSupportedProfiles_.clear();
+
   for (auto chip : mapping->chips_) {
     chips_.emplace(chip.first, std::move(chip.second));
   }
   mapping->chips_.clear();
+}
+
+void PlatformMapping::mergePlatformSupportedProfile(
+    cfg::PlatformPortProfileConfigEntry incomingProfile) {
+  for (auto& currentProfile : platformSupportedProfiles_) {
+    auto currentFactor = currentProfile.factor_ref();
+    auto incomingFactor = incomingProfile.factor_ref();
+    // Merge factors if profileID and profile config are the same
+    if (incomingFactor->profileID_ref() == currentFactor->profileID_ref()) {
+      if (incomingProfile.profile_ref() == currentProfile.profile_ref()) {
+        // if our currect factor has no pim restriction (supports all pims),
+        // skip merging
+        if (!currentFactor->pimIDs_ref().has_value()) {
+          continue;
+        }
+        if (auto incomingPims = incomingFactor->pimIDs_ref()) {
+          currentFactor->pimIDs_ref()->insert(
+              incomingPims->begin(), incomingPims->end());
+        }
+        // found where to merge factors, we can return here
+        return;
+      } else if (
+          currentFactor->pimIDs_ref().has_value() &&
+          incomingFactor->pimIDs_ref().has_value()) {
+        // If profileIDs are the same but the profile configs are different,
+        // then the pimIDs better be mutually exclusive, otherwise there is no
+        // reasonable merge
+        std::vector<int> intersection;
+        std::set_intersection(
+            currentFactor->pimIDs_ref()->begin(),
+            currentFactor->pimIDs_ref()->end(),
+            incomingFactor->pimIDs_ref()->begin(),
+            incomingFactor->pimIDs_ref()->end(),
+            std::back_inserter(intersection));
+        if (intersection.size() != 0) {
+          throw FbossError(
+              "Supported profiles with different configs are not mutualy exclusive");
+        }
+      }
+    }
+  }
+  // Was not able to merge entry so create new one
+  platformSupportedProfiles_.push_back(incomingProfile);
+}
+
+int PlatformMapping::getPimID(PortID portID) const {
+  auto itPlatformPort = platformPorts_.find(portID);
+  if (itPlatformPort == platformPorts_.end()) {
+    throw FbossError("Unrecoganized port:", portID);
+  }
+  return getPimID(itPlatformPort->second);
+}
+
+int PlatformMapping::getPimID(
+    const cfg::PlatformPortEntry& platformPort) const {
+  int pimID = 0;
+  auto& portName = platformPort.get_mapping().get_name();
+  re2::RE2 portNameRe(kFbossPortNameRegex);
+  if (!re2::RE2::FullMatch(portName, portNameRe, &pimID)) {
+    throw FbossError(
+        "Invalid port name: ",
+        portName,
+        " for port id: ",
+        platformPort.get_mapping().get_id());
+  }
+  return pimID;
 }
 
 cfg::PortProfileID PlatformMapping::getPortMaxSpeedProfile(
@@ -117,9 +253,9 @@ std::vector<phy::PinConfig> PlatformMapping::getPortIphyPinConfigs(
       // The override is not about Iphy pin configs. Skip
       continue;
     }
-    auto platformPortConfigOverrideFactorMatcher =
-        PlatformPortConfigOverrideFactorMatcher(id, profileID, cableLength);
-    if (platformPortConfigOverrideFactorMatcher.matchWithFactor(
+    auto portProfileMatcher =
+        PlatformPortProfileConfigMatcher(profileID, id, cableLength);
+    if (portProfileMatcher.matchOverrideWithFactor(
             *portConfigOverride.factor_ref())) {
       auto overrideIphy = *portConfigOverride.pins_ref()->iphy_ref();
       if (!overrideIphy.empty()) {
@@ -190,6 +326,28 @@ PlatformMapping::getPortProfileConfig(
   auto itProfileConfig = supportedProfiles.find(profileID);
   if (itProfileConfig != supportedProfiles.end()) {
     return itProfileConfig->second;
+  }
+  return std::nullopt;
+}
+
+const std::optional<phy::PortProfileConfig>
+PlatformMapping::getPortProfileConfig(
+    PlatformPortProfileConfigMatcher profileMatcher) const {
+  for (const auto portConfigOverride : portConfigOverrides_) {
+    if (!portConfigOverride.portProfileConfig_ref().has_value()) {
+      // The override is not about portProfileConfig. Skip
+      continue;
+    }
+    if (profileMatcher.matchOverrideWithFactor(
+            *portConfigOverride.factor_ref())) {
+      return *portConfigOverride.portProfileConfig_ref();
+    }
+  }
+  for (auto& supportedProfile : platformSupportedProfiles_) {
+    if (profileMatcher.matchProfileWithFactor(
+            this, supportedProfile.get_factor())) {
+      return supportedProfile.get_profile();
+    }
   }
   return std::nullopt;
 }

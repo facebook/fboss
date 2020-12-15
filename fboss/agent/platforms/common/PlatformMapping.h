@@ -16,6 +16,8 @@
 namespace facebook {
 namespace fboss {
 
+// TODO(pgardideh): remove this in later diff when migrating to new
+// getPortProfileConfig
 class PlatformPortConfigOverrideFactorMatcher {
  public:
   explicit PlatformPortConfigOverrideFactorMatcher(
@@ -77,6 +79,37 @@ class PlatformPortConfigOverrideFactorMatcher {
   std::optional<ExtendedSpecComplianceCode> transceiverSpecComplianceCode_;
 };
 
+class PlatformMapping;
+class PlatformPortProfileConfigMatcher {
+ public:
+  PlatformPortProfileConfigMatcher(
+      cfg::PortProfileID profileID,
+      std::optional<PimID> pimID)
+      : profileID_(profileID), pimID_(pimID) {}
+
+  PlatformPortProfileConfigMatcher(cfg::PortProfileID profileID, PortID portID)
+      : profileID_(profileID), portID_(portID) {}
+
+  PlatformPortProfileConfigMatcher(
+      cfg::PortProfileID profileID,
+      PortID portID,
+      std::optional<double> cableLength)
+      : profileID_(profileID), portID_(portID), cableLength_(cableLength) {}
+
+  bool matchOverrideWithFactor(
+      const cfg::PlatformPortConfigOverrideFactor& factor);
+
+  bool matchProfileWithFactor(
+      const PlatformMapping* pm,
+      const cfg::PlatformPortConfigFactor& factor);
+
+  cfg::PortProfileID profileID_;
+  std::optional<PimID> pimID_;
+  std::optional<PortID> portID_;
+  std::optional<double> cableLength_;
+  std::optional<ExtendedSpecComplianceCode> transceiverSpecComplianceCode_;
+};
+
 class PlatformMapping {
  public:
   PlatformMapping() {}
@@ -99,6 +132,11 @@ class PlatformMapping {
       std::optional<ExtendedSpecComplianceCode> transceiverSpecComplianceCode =
           std::nullopt) const;
 
+  // This will replace the function above once platformSupportedProfiles_ is
+  // fully rolled out
+  const std::optional<phy::PortProfileConfig> getPortProfileConfig(
+      PlatformPortProfileConfigMatcher matcher) const;
+
   std::vector<phy::PinConfig> getPortIphyPinConfigs(
       PortID id,
       cfg::PortProfileID profileID,
@@ -107,6 +145,10 @@ class PlatformMapping {
   const std::map<std::string, phy::DataPlanePhyChip>& getChips() const {
     return chips_;
   }
+
+  int getPimID(PortID portID) const;
+
+  int getPimID(const cfg::PlatformPortEntry& platformPort) const;
 
   void setPlatformPort(int32_t portID, cfg::PlatformPortEntry port) {
     platformPorts_.emplace(portID, port);
@@ -121,6 +163,9 @@ class PlatformMapping {
       phy::PortProfileConfig profile) {
     supportedProfiles_.emplace(profileID, profile);
   }
+
+  void mergePlatformSupportedProfile(
+      cfg::PlatformPortProfileConfigEntry supportedProfile);
 
   void merge(PlatformMapping* mapping);
 
@@ -140,6 +185,7 @@ class PlatformMapping {
  protected:
   std::map<int32_t, cfg::PlatformPortEntry> platformPorts_;
   std::map<cfg::PortProfileID, phy::PortProfileConfig> supportedProfiles_;
+  std::vector<cfg::PlatformPortProfileConfigEntry> platformSupportedProfiles_;
   std::map<std::string, phy::DataPlanePhyChip> chips_;
   std::vector<cfg::PlatformPortConfigOverride> portConfigOverrides_;
 

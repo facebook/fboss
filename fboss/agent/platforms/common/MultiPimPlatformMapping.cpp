@@ -13,13 +13,8 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
-#include <re2/re2.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
-
-namespace {
-constexpr auto kFbossPortNameRegex = "eth(\\d+)/(\\d+)/1";
-}
 
 namespace facebook {
 namespace fboss {
@@ -27,16 +22,7 @@ MultiPimPlatformMapping::MultiPimPlatformMapping(
     const std::string& jsonPlatformMappingStr)
     : PlatformMapping(jsonPlatformMappingStr) {
   for (auto& port : platformPorts_) {
-    int portPimID = 0;
-    re2::RE2 portNameRe(kFbossPortNameRegex);
-    if (!re2::RE2::FullMatch(
-            *port.second.mapping_ref()->name_ref(), portNameRe, &portPimID)) {
-      throw FbossError(
-          "Invalid port name:",
-          *port.second.mapping_ref()->name_ref(),
-          " for port id:",
-          *port.second.mapping_ref()->id_ref());
-    }
+    int portPimID = getPimID(port.second);
 
     if (pims_.find(portPimID) == pims_.end()) {
       pims_[portPimID] = std::make_unique<PlatformMapping>();
@@ -59,6 +45,24 @@ MultiPimPlatformMapping::MultiPimPlatformMapping(
             "Port:",
             *port.second.mapping_ref()->name_ref(),
             " uses unsupported profile:",
+            apache::thrift::util::enumNameSafe(portProfile.first));
+      }
+
+      if (auto platformProfile =
+              getPortProfileConfig(PlatformPortProfileConfigMatcher(
+                  portProfile.first, PimID(portPimID)))) {
+        cfg::PlatformPortProfileConfigEntry configEntry;
+        cfg::PlatformPortConfigFactor factor;
+        factor.profileID_ref() = portProfile.first;
+        factor.pimIDs_ref() = {portPimID};
+        configEntry.profile_ref() = platformProfile.value();
+        configEntry.factor_ref() = factor;
+        pims_[portPimID]->mergePlatformSupportedProfile(configEntry);
+      } else {
+        throw FbossError(
+            "Port:",
+            *port.second.mapping_ref()->name_ref(),
+            " uses unsupported platform profile:",
             apache::thrift::util::enumNameSafe(portProfile.first));
       }
     }
