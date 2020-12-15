@@ -17,39 +17,43 @@
 namespace {
 constexpr uint32_t kFacebookFpgaRTCWriteBlock = 0x2000;
 constexpr uint32_t kFacebookFpgaRTCReadBlock = 0x3000;
-constexpr uint32_t kFacebookFpgaRTCIOBlockSize = 0x0200;
 } // unnamed namespace
 
 namespace facebook::fboss {
-FbFpgaI2c::FbFpgaI2c(FbDomFpga* fpga, uint32_t rtcId, uint32_t pimId)
+FbFpgaI2c::FbFpgaI2c(
+    FbDomFpga* fpga,
+    uint32_t rtcId,
+    uint32_t pimId,
+    int version)
     : I2cController(
           folly::to<std::string>("i2cController.pim.", pimId, ".rtc.", rtcId)),
       fpga_(fpga),
-      rtcId_(rtcId) {
+      rtcId_(rtcId),
+      version_(version) {
   XLOG(DBG4, "Initialized I2C controller for rtcId={:d}", rtcId);
 }
 
 bool FbFpgaI2c::waitForResponse(size_t len) {
-  I2cRtcStatus rtcStatus;
+  I2cRtcStatus rtcStatus(version_);
   uint32_t retries = 20;
 
   // Make the initial wait according to the length of read/write.
   usleep(100 * len);
 
-  rtcStatus = readReg<I2cRtcStatus>();
+  readReg(rtcStatus);
 
-  while (!rtcStatus.desc0done && --retries) {
+  while (!rtcStatus.dataUnion.desc0done && --retries) {
     usleep(1000);
-    rtcStatus = readReg<I2cRtcStatus>();
+    readReg(rtcStatus);
   }
 
-  if (rtcStatus.desc0error) {
+  if (rtcStatus.dataUnion.desc0error) {
     XLOG(DBG5) << "I2C read/write ops has error.";
-    rtcStatus.reg = 0xffffffff;
+    rtcStatus.dataUnion.reg = 0xffffffff;
     return false;
   }
 
-  return rtcStatus.desc0done;
+  return rtcStatus.dataUnion.desc0done;
 }
 
 uint8_t FbFpgaI2c::readByte(uint8_t channel, uint8_t offset) {
@@ -62,17 +66,17 @@ void FbFpgaI2c::read(
     uint8_t channel,
     uint8_t offset,
     folly::MutableByteRange buf) {
-  I2cDescriptorLower descLower;
-  I2cDescriptorUpper descUpper;
-  descLower.reg = 0;
-  descUpper.reg = 0;
+  I2cDescriptorLower descLower(version_);
+  I2cDescriptorUpper descUpper(version_);
+  descLower.dataUnion.reg = 0;
+  descUpper.dataUnion.reg = 0;
 
-  descLower.op = 1; // Read
-  descLower.len = buf.size();
+  descLower.dataUnion.op = 1; // Read
+  descLower.dataUnion.len = buf.size();
 
-  descUpper.offset = offset;
-  descUpper.channel = channel;
-  descUpper.valid = 1;
+  descUpper.dataUnion.offset = offset;
+  descUpper.dataUnion.channel = channel;
+  descUpper.dataUnion.valid = 1;
 
   writeReg(descLower);
   writeReg(descUpper);
@@ -81,9 +85,9 @@ void FbFpgaI2c::read(
   incrReadTotal();
 
   uint32_t readBlockAddr =
-      getRegAddr(kFacebookFpgaRTCReadBlock, kFacebookFpgaRTCIOBlockSize);
+      getRegAddr(kFacebookFpgaRTCReadBlock, getRTCIOBlockSize());
 
-  if (!waitForResponse(descLower.len)) {
+  if (!waitForResponse(descLower.dataUnion.len)) {
     // Increment the counter for I2C read transaction failure and
     // throw error
     incrReadFailed();
@@ -107,23 +111,23 @@ void FbFpgaI2c::writeByte(uint8_t channel, uint8_t offset, uint8_t val) {
 }
 
 void FbFpgaI2c::write(uint8_t channel, uint8_t offset, folly::ByteRange buf) {
-  I2cDescriptorLower descLower;
-  I2cDescriptorUpper descUpper;
-  descLower.reg = 0;
-  descUpper.reg = 0;
+  I2cDescriptorLower descLower(version_);
+  I2cDescriptorUpper descUpper(version_);
+  descLower.dataUnion.reg = 0;
+  descUpper.dataUnion.reg = 0;
 
-  descLower.op = 0; // Write
-  descLower.len = buf.size();
+  descLower.dataUnion.op = 0; // Write
+  descLower.dataUnion.len = buf.size();
 
-  descUpper.offset = offset;
-  descUpper.channel = channel;
-  descUpper.valid = 1;
+  descUpper.dataUnion.offset = offset;
+  descUpper.dataUnion.channel = channel;
+  descUpper.dataUnion.valid = 1;
 
   // Increment the counter for write transaction issued
   incrWriteTotal();
 
   uint32_t writeBlockAddr =
-      getRegAddr(kFacebookFpgaRTCWriteBlock, kFacebookFpgaRTCIOBlockSize);
+      getRegAddr(kFacebookFpgaRTCWriteBlock, getRTCIOBlockSize());
 
   for (int bytesWritten = 0; bytesWritten < buf.size(); bytesWritten += 4) {
     uint32_t data;
@@ -137,7 +141,7 @@ void FbFpgaI2c::write(uint8_t channel, uint8_t offset, folly::ByteRange buf) {
   writeReg(descLower);
   writeReg(descUpper);
 
-  if (!waitForResponse(descLower.len)) {
+  if (!waitForResponse(descLower.dataUnion.len)) {
     // Increment the counter for I2c write transaction failure and
     // throw error
     incrWriteFailed();
@@ -149,20 +153,17 @@ void FbFpgaI2c::write(uint8_t channel, uint8_t offset, folly::ByteRange buf) {
 }
 
 template <typename Register>
-Register FbFpgaI2c::readReg() {
-  Register ret;
-  ret.reg = fpga_->read(
-      getRegAddr(Register::baseAddr::value, Register::addrIncr::value));
-  XLOG(DBG5) << ret;
-  return ret;
+void FbFpgaI2c::readReg(Register& reg) {
+  reg.dataUnion.reg =
+      fpga_->read(getRegAddr(reg.getBaseAddr(), reg.getAddrIncr()));
+  XLOG(DBG5) << reg;
 }
 
 template <typename Register>
-void FbFpgaI2c::writeReg(Register value) {
-  XLOG(DBG5) << value;
+void FbFpgaI2c::writeReg(Register& reg) {
+  XLOG(DBG5) << reg;
   fpga_->write(
-      getRegAddr(Register::baseAddr::value, Register::addrIncr::value),
-      value.reg);
+      getRegAddr(reg.getBaseAddr(), reg.getAddrIncr()), reg.dataUnion.reg);
 }
 
 uint32_t FbFpgaI2c::getRegAddr(uint32_t regBase, uint32_t regIncr) {
@@ -182,11 +183,21 @@ uint32_t FbFpgaI2c::getRegAddr(uint32_t regBase, uint32_t regIncr) {
   return regBase + regIncr * rtcId_;
 }
 
+uint32_t FbFpgaI2c::getRTCIOBlockSize() {
+  switch (version_) {
+    case 1:
+      return 0x80;
+    default:
+      return 0x200;
+  }
+}
+
 FbFpgaI2cController::FbFpgaI2cController(
     FbDomFpga* fpga,
     uint32_t rtcId,
-    uint32_t pim)
-    : syncedFbI2c_(folly::in_place, fpga, rtcId, pim),
+    uint32_t pim,
+    int version)
+    : syncedFbI2c_(folly::in_place, fpga, rtcId, pim, version),
       eventBase_(std::make_unique<folly::EventBase>()),
       thread_(new std::thread([&, pim, rtcId]() {
         initThread(folly::format("I2c_pim{:d}_rtc{:d}", pim, rtcId).str());

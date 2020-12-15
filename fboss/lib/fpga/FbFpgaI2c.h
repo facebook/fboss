@@ -29,7 +29,7 @@ class FbFpgaI2cError : public I2cError {
 
 class FbFpgaI2c : public I2cController {
  public:
-  FbFpgaI2c(FbDomFpga* fpga, uint32_t rtcId, uint32_t pim);
+  FbFpgaI2c(FbDomFpga* fpga, uint32_t rtcId, uint32_t pim, int version);
 
   uint8_t readByte(uint8_t channel, uint8_t offset);
   void read(uint8_t channel, uint8_t offset, folly::MutableByteRange buf);
@@ -40,20 +40,26 @@ class FbFpgaI2c : public I2cController {
  private:
   bool waitForResponse(size_t len);
   uint32_t getRegAddr(uint32_t regBase, uint32_t regIncr);
+  uint32_t getRTCIOBlockSize();
 
   template <typename Register>
-  Register readReg();
+  void readReg(Register& value);
   template <typename Register>
-  void writeReg(Register value);
+  void writeReg(Register& value);
 
   FbDomFpga* fpga_{nullptr};
 
   int rtcId_{-1};
+  int version_{0};
 };
 
 class FbFpgaI2cController {
  public:
-  FbFpgaI2cController(FbDomFpga* fpga, uint32_t rtcId, uint32_t pim);
+  FbFpgaI2cController(
+      FbDomFpga* fpga,
+      uint32_t rtcId,
+      uint32_t pim,
+      int version = 0);
   ~FbFpgaI2cController();
 
   uint8_t readByte(uint8_t channel, uint8_t offset);

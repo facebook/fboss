@@ -8,10 +8,39 @@
 #include <ostream>
 
 namespace facebook::fboss {
-union I2cDescriptorUpper {
-  using baseAddr = std::integral_constant<uint32_t, 0x504>;
-  using addrIncr = std::integral_constant<uint32_t, 0x20>;
 
+enum class I2CRegisterType {
+  DESC_UPPER,
+  DESC_LOWER,
+  RTC_STATUS,
+};
+
+struct I2CRegisterAddr {
+  uint32_t baseAddr;
+  uint32_t addrIncr;
+};
+
+class I2CRegisterAddrConstants {
+ public:
+  static I2CRegisterAddr getI2CRegisterAddr(int version, I2CRegisterType type);
+};
+
+template <class DataUnion>
+struct I2cRegister {
+  virtual ~I2cRegister() {}
+  uint32_t getBaseAddr() {
+    return addr_.baseAddr;
+  }
+  uint32_t getAddrIncr() {
+    return addr_.addrIncr;
+  }
+  DataUnion dataUnion;
+
+ protected:
+  I2CRegisterAddr addr_;
+};
+
+union I2cDescriptorUpperDataUnion {
   uint32_t reg;
   struct __attribute__((packed)) {
     uint32_t offset : 8; // Register Address Byte.
@@ -23,19 +52,24 @@ union I2cDescriptorUpper {
   };
 };
 
+struct I2cDescriptorUpper : I2cRegister<I2cDescriptorUpperDataUnion> {
+  explicit I2cDescriptorUpper(int version) {
+    addr_ = I2CRegisterAddrConstants::getI2CRegisterAddr(
+        version, I2CRegisterType::DESC_UPPER);
+  }
+};
+
 inline std::ostream& operator<<(
     std::ostream& os,
     const I2cDescriptorUpper& upper) {
-  os << "I2cDescriptorUpper: offset=0x" << std::hex << upper.offset
-     << " page=0x" << upper.page << " bank=0x" << upper.bank << " channel=0x"
-     << upper.channel << " valid=0x" << upper.valid;
+  auto data = upper.dataUnion;
+  os << "I2cDescriptorUpper: offset=0x" << std::hex << data.offset << " page=0x"
+     << data.page << " bank=0x" << data.bank << " channel=0x" << data.channel
+     << " valid=0x" << data.valid;
   return os;
 }
 
-union I2cDescriptorLower {
-  using baseAddr = std::integral_constant<uint32_t, 0x500>;
-  using addrIncr = std::integral_constant<uint32_t, 0x20>;
-
+union I2cDescriptorLowerDataUnion {
   uint32_t reg;
   struct __attribute__((packed)) {
     uint32_t len : 8; // Number of bytes will be accessed.
@@ -45,18 +79,23 @@ union I2cDescriptorLower {
   };
 };
 
+struct I2cDescriptorLower : I2cRegister<I2cDescriptorLowerDataUnion> {
+  explicit I2cDescriptorLower(int version) {
+    addr_ = I2CRegisterAddrConstants::getI2CRegisterAddr(
+        version, I2CRegisterType::DESC_LOWER);
+  }
+};
+
 inline std::ostream& operator<<(
     std::ostream& os,
     const I2cDescriptorLower& lower) {
-  os << "I2cDescriptorLower: length=0x" << std::hex << lower.len
-     << " operation=0x" << lower.op;
+  auto data = lower.dataUnion;
+  os << "I2cDescriptorLower: length=0x" << std::hex << data.len
+     << " operation=0x" << data.op;
   return os;
 }
 
-union I2cRtcStatus {
-  using baseAddr = std::integral_constant<uint32_t, 0x600>;
-  using addrIncr = std::integral_constant<uint32_t, 0x4>;
-
+union I2cRtcStatusDataUnion {
   uint32_t reg;
   struct __attribute__((packed)) {
     uint32_t desc0done : 1; // new txn or Write 1 to clear.
@@ -75,13 +114,20 @@ union I2cRtcStatus {
   };
 };
 
+struct I2cRtcStatus : I2cRegister<I2cRtcStatusDataUnion> {
+  explicit I2cRtcStatus(int version) {
+    addr_ = I2CRegisterAddrConstants::getI2CRegisterAddr(
+        version, I2CRegisterType::RTC_STATUS);
+  }
+};
+
 inline std::ostream& operator<<(std::ostream& os, const I2cRtcStatus& status) {
-  os << "RtcStatus: desc0done=0x" << std::hex << status.desc0done
-     << " desc0error=0x" << status.desc0error << " desc1done=0x"
-     << status.desc1done << " desc1error=0x" << status.desc1error
-     << " desc2done=0x" << status.desc2done << " desc2error=0x"
-     << status.desc2error << " desc3done=0x" << status.desc3done
-     << " desc3error=0x" << status.desc3error;
+  auto data = status.dataUnion;
+  os << "RtcStatus: desc0done=0x" << std::hex << data.desc0done
+     << " desc0error=0x" << data.desc0error << " desc1done=0x" << data.desc1done
+     << " desc1error=0x" << data.desc1error << " desc2done=0x" << data.desc2done
+     << " desc2error=0x" << data.desc2error << " desc3done=0x" << data.desc3done
+     << " desc3error=0x" << data.desc3error;
   return os;
 }
 
