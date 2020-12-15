@@ -249,6 +249,7 @@ void setPortAttributes(
         break;
       case SAI_PORT_ATTR_QOS_DSCP_TO_TC_MAP:
       case SAI_PORT_ATTR_QOS_TC_TO_QUEUE_MAP:
+      case SAI_PORT_ATTR_PORT_SERDES_ID:
         attrLines.push_back(oidAttr(attr_list, i));
         break;
       default:

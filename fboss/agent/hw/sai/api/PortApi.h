@@ -93,6 +93,11 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_PKT_TX_ENABLE,
         bool,
         SaiBoolDefaultTrue>;
+    using SerdesId = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_PORT_SERDES_ID,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
   };
   using AdapterKey = PortSaiId;
   using AdapterHostKey = Attributes::HwLaneList;
@@ -155,6 +160,7 @@ SAI_ATTRIBUTE_NAME(Port, QosQueueList)
 SAI_ATTRIBUTE_NAME(Port, Type)
 SAI_ATTRIBUTE_NAME(Port, InterfaceType)
 SAI_ATTRIBUTE_NAME(Port, PktTxEnable)
+SAI_ATTRIBUTE_NAME(Port, SerdesId)
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};

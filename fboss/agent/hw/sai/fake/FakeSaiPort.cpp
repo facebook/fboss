@@ -443,6 +443,9 @@ sai_status_t get_port_attribute_fn(
         }
         attr[i].value.objlist.count = port.egressSampleMirrorList.size();
         break;
+      case SAI_PORT_ATTR_PORT_SERDES_ID:
+        attr[i].value.oid = SAI_NULL_OBJECT_ID;
+        break;
 #endif
       default:
         return SAI_STATUS_INVALID_PARAMETER;
