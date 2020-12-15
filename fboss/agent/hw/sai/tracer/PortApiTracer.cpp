@@ -258,4 +258,31 @@ void setPortAttributes(
   }
 }
 
+void setPortSerdesAttributes(
+    const sai_attribute_t* attr_list,
+    uint32_t attr_count,
+    std::vector<std::string>& attrLines) {
+  uint32_t listCount = 0;
+
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_PORT_SERDES_ATTR_PORT_ID:
+        attrLines.push_back(oidAttr(attr_list, i));
+        break;
+      case SAI_PORT_SERDES_ATTR_IDRIVER:
+      case SAI_PORT_SERDES_ATTR_TX_FIR_PRE1:
+      case SAI_PORT_SERDES_ATTR_TX_FIR_PRE2:
+      case SAI_PORT_SERDES_ATTR_TX_FIR_MAIN:
+      case SAI_PORT_SERDES_ATTR_TX_FIR_POST1:
+      case SAI_PORT_SERDES_ATTR_TX_FIR_POST2:
+      case SAI_PORT_SERDES_ATTR_TX_FIR_POST3:
+        u32ListAttr(attr_list, i, listCount++, attrLines);
+        break;
+      default:
+        // TODO(zecheng): Better check for newly added attributes (T69350100)
+        break;
+    }
+  }
+}
+
 } // namespace facebook::fboss
