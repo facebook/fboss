@@ -1371,7 +1371,7 @@ SaiManagerTable* SaiSwitch::managerTableLocked(
 void SaiSwitch::fdbEventCallback(
     uint32_t count,
     const sai_fdb_event_notification_data_t* data) {
-  XLOG(INFO) << "Received " << count << "learn notifications";
+  XLOG(INFO) << "Received " << count << " learn notifications";
   /*
    * FDB event notifications can be parsed in several ways
    * 1) Deep copy of sai_fdb_event_notification_data_t. This includes
