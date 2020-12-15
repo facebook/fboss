@@ -370,16 +370,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   bool adminState =
       swPort->getAdminState() == cfg::PortState::ENABLED ? true : false;
   auto profileID = swPort->getProfileID();
-  auto portProfileConfig = platform_->getPortProfileConfig(profileID);
-  if (!portProfileConfig) {
-    throw FbossError(
-        "port profile config with id ",
-        profileID,
-        " not found for port ",
-        swPort->getID());
-  }
-  auto speed = *portProfileConfig->speed_ref();
-  auto platformPort = platform_->getPort(swPort->getID());
+  auto portID = swPort->getID();
+  auto platformPort = platform_->getPort(portID);
+  auto portProfileConfig = platformPort->getPortProfileConfig(profileID);
+  auto speed = *portProfileConfig.speed_ref();
   auto hwLaneList = platformPort->getHwPortLanes(speed);
   auto globalFlowControlMode = utility::getSaiPortPauseMode(swPort->getPause());
   auto internalLoopbackMode =
@@ -394,7 +388,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   if (!enableFec) {
     fecMode = SAI_PORT_FEC_MODE_NONE;
   } else {
-    auto phyFecMode = platform_->getPhyFecMode(profileID);
+    auto phyFecMode = platform_->getPhyFecMode(
+        PlatformPortProfileConfigMatcher(profileID, portID));
     fecMode = utility::getSaiPortFecMode(phyFecMode);
   }
   uint16_t vlanId = swPort->getIngressVlan();

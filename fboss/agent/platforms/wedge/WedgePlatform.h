@@ -76,12 +76,6 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
     return qsfpCache_.get();
   }
 
-  // Whether or not we need the Transceiver spec when programming ports.
-  // currently we only use this on yamp
-  virtual bool needExtendedSpecComplianceCode() const {
-    return false;
-  }
-
   PhyInterfaceHandler* getPhyInterfaceHandler() {
     return phyInterfaceHandler_.get();
   }

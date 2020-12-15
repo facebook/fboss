@@ -14,7 +14,6 @@
 #include <folly/gen/Base.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/EventBaseManager.h>
-#include <folly/logging/xlog.h>
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
@@ -120,25 +119,6 @@ folly::Future<std::optional<Cable>> WedgePort::getCableInfo(
   return getTransceiverInfo()
       .via(evb)
       .thenValueInline(getCable)
-      .thenError<std::exception>(std::move(handleErr));
-}
-
-folly::Future<std::optional<ExtendedSpecComplianceCode>>
-WedgePort::getTransceiverExtendedSpecCompliance(folly::EventBase* evb) const {
-  auto getTxcvExtendedSpecCompliance =
-      [](TransceiverInfo info) -> std::optional<ExtendedSpecComplianceCode> {
-    return info.extendedSpecificationComplianceCode_ref().to_optional();
-  };
-  auto transID = getTransceiverID();
-  auto handleErr = [transID](const std::exception& e)
-      -> std::optional<ExtendedSpecComplianceCode> {
-    XLOG(ERR) << "Error retrieving ExtendedSpecCompliance info for transceiver "
-              << *transID << " Exception: " << folly::exceptionStr(e);
-    return std::nullopt;
-  };
-  return getTransceiverInfo()
-      .via(evb)
-      .thenValueInline(getTxcvExtendedSpecCompliance)
       .thenError<std::exception>(std::move(handleErr));
 }
 

@@ -54,8 +54,10 @@ cfg::PortProfileID getSafeProfileID(const cfg::PlatformPortEntry& portEntry) {
 
 cfg::PortSpeed getPortSpeedFromProfile(
     const Platform* platform,
-    cfg::PortProfileID profileID) {
-  auto profile = platform->getPortProfileConfig(profileID);
+    cfg::PortProfileID profileID,
+    PortID portID) {
+  auto profile = platform->getPortProfileConfig(
+      PlatformPortProfileConfigMatcher(profileID, portID));
   if (!profile.has_value()) {
     throw FbossError("No profile ", profileID, " found for platform");
   }
@@ -78,8 +80,8 @@ cfg::Port createDefaultPortConfig(const HwSwitch* hwSwitch, PortID id) {
       throw FbossError(
           *entry->mapping_ref()->name_ref(), " has DEFAULT safe profile");
     }
-    *defaultConfig.speed_ref() =
-        getPortSpeedFromProfile(platform, *defaultConfig.profileID_ref());
+    defaultConfig.speed_ref() =
+        getPortSpeedFromProfile(platform, *defaultConfig.profileID_ref(), id);
   } else {
     XLOG(DBG5) << "No platformPortEntry for port " << id
                << ", defaulting to max port speed instead of safe profile";
@@ -431,7 +433,7 @@ void updatePortProfile(
       cfgPort->profileID_ref() = profileID;
       removeSubsumedPorts(cfg, profile->second, supportsAddRemovePort);
       cfgPort->speed_ref() =
-          *platform->getPortProfileConfig(profileID)->speed_ref();
+          *platformPort->getPortProfileConfig(profileID).speed_ref();
     }
   }
 }
@@ -532,7 +534,6 @@ void configurePortProfile(
     std::vector<PortID> allPortsInGroup) {
   auto platform = hwSwitch.getPlatform();
   auto supportsAddRemovePort = platform->supportsAddRemovePort();
-  auto speed = getPortSpeedFromProfile(platform, profileID);
   for (auto portID : allPortsInGroup) {
     // We might have removed a subsumed port already in a previous
     // iteration of the loop.
@@ -558,7 +559,7 @@ void configurePortProfile(
       cfgPort->state_ref() = cfg::PortState::DISABLED;
       continue;
     }
-
+    auto speed = getPortSpeedFromProfile(platform, profileID, portID);
     cfgPort->profileID_ref() = profileID;
     cfgPort->speed_ref() = speed;
     cfgPort->state_ref() = cfg::PortState::ENABLED;

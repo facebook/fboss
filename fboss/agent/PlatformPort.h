@@ -52,6 +52,17 @@ class PlatformPort {
       cfg::PortSpeed speed) const;
 
   /*
+   * Helper functions for getting port profiles. Platform port generall should
+   * have all information needed to create profile matchers, so we just need
+   * profile id here
+   */
+  const phy::PortProfileConfig getPortProfileConfig(
+      cfg::PortProfileID PortProfileID) const;
+
+  const std::optional<phy::PortProfileConfig> getPortProfileConfigIf(
+      cfg::PortProfileID PortProfileID) const;
+
+  /*
    * preDisable() will be called by the hardware code just before disabling
    * a port.
    *
@@ -174,6 +185,9 @@ class PlatformPort {
   virtual folly::Future<TransceiverInfo> getTransceiverInfo() const = 0;
 
   std::optional<int32_t> getExternalPhyID();
+
+  folly::Future<std::optional<ExtendedSpecComplianceCode>>
+  getTransceiverExtendedSpecCompliance(folly::EventBase* evb) const;
 
  private:
   PortID id_{0};

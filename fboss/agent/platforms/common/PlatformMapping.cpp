@@ -10,6 +10,7 @@
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
+#include <folly/logging/xlog.h>
 #include <re2/re2.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
@@ -78,6 +79,17 @@ bool PlatformPortProfileConfigMatcher::matchProfileWithFactor(
     }
   }
   return true;
+}
+
+std::string PlatformPortProfileConfigMatcher::toString() const {
+  auto pimID = pimID_.has_value() ? static_cast<int>(pimID_.value()) : -1;
+  auto portID = portID_.has_value() ? static_cast<int>(portID_.value()) : -1;
+  return folly::format(
+             "profileID={}, pimID={}, portID={}",
+             apache::thrift::util::enumNameSafe(profileID_),
+             pimID,
+             portID)
+      .str();
 }
 
 PlatformMapping::PlatformMapping(const std::string& jsonPlatformMappingStr) {
@@ -297,41 +309,6 @@ std::vector<phy::PinConfig> PlatformMapping::getPortIphyPinConfigs(
 
 const std::optional<phy::PortProfileConfig>
 PlatformMapping::getPortProfileConfig(
-    cfg::PortProfileID profileID,
-    std::optional<ExtendedSpecComplianceCode> transceiverSpecComplianceCode)
-    const {
-  // For now, the PortProfileConfig override will only happen when we have
-  // a valid ExtendedSpecComplianceCode. Thus skip looping through the
-  // overrides if we don't get a valid value. If new use cases were to come
-  // up later, we can extend the logic and the matcher.
-  if (transceiverSpecComplianceCode.has_value()) {
-    for (const auto portConfigOverride : portConfigOverrides_) {
-      if (!portConfigOverride.portProfileConfig_ref().has_value()) {
-        // The override is not about portProfileConfig. Skip
-        continue;
-      }
-      auto platformPortConfigOverrideFactorMatcher =
-          PlatformPortConfigOverrideFactorMatcher(
-              profileID, transceiverSpecComplianceCode.value());
-      if (platformPortConfigOverrideFactorMatcher.matchWithFactor(
-              *portConfigOverride.factor_ref())) {
-        if (auto overridePortProfileConfig =
-                portConfigOverride.portProfileConfig_ref()) {
-          return *overridePortProfileConfig;
-        }
-      }
-    }
-  }
-  const auto& supportedProfiles = getSupportedProfiles();
-  auto itProfileConfig = supportedProfiles.find(profileID);
-  if (itProfileConfig != supportedProfiles.end()) {
-    return itProfileConfig->second;
-  }
-  return std::nullopt;
-}
-
-const std::optional<phy::PortProfileConfig>
-PlatformMapping::getPortProfileConfig(
     PlatformPortProfileConfigMatcher profileMatcher) const {
   for (const auto portConfigOverride : portConfigOverrides_) {
     if (!portConfigOverride.portProfileConfig_ref().has_value()) {
@@ -349,6 +326,10 @@ PlatformMapping::getPortProfileConfig(
       return supportedProfile.get_profile();
     }
   }
+  XLOGF(
+      INFO,
+      "Could not find profile with matcher={}",
+      profileMatcher.toString());
   return std::nullopt;
 }
 

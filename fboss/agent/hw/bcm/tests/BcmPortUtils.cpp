@@ -192,13 +192,8 @@ void verifyInterfaceMode(
     bcmCheckError(
         ret, "Failed to get current port resource settings for: ", portID);
 
-    const auto profileConf = platform->getPortProfileConfig(profileID);
-    if (!profileConf) {
-      throw FbossError(
-          "Platform doesn't support speed profile: ",
-          apache::thrift::util::enumNameSafe(profileID));
-    }
-    auto expectedPhyLaneConfig = utility::getDesiredPhyLaneConfig(*profileConf);
+    const auto profileConf = platformPort->getPortProfileConfig(profileID);
+    auto expectedPhyLaneConfig = utility::getDesiredPhyLaneConfig(profileConf);
     EXPECT_EQ(expectedPhyLaneConfig, portResource.phy_lane_config);
   }
 }

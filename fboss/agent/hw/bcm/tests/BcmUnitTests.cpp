@@ -19,6 +19,7 @@
 
 using facebook::fboss::BcmPortGroup;
 using facebook::fboss::PlatformMapping;
+using facebook::fboss::PlatformPortProfileConfigMatcher;
 using facebook::fboss::Port;
 using facebook::fboss::PortFields;
 using facebook::fboss::PortID;
@@ -40,7 +41,8 @@ struct PortData {
   std::vector<std::shared_ptr<Port>> ports;
 
   void addPort(const PortInfo& info) {
-    if (auto itProfile = kPlatformMapping->getPortProfileConfig(info.profileID);
+    if (auto itProfile = kPlatformMapping->getPortProfileConfig(
+            PlatformPortProfileConfigMatcher(info.profileID, info.id));
         itProfile.has_value() ||
         info.profileID == PortProfileID::PROFILE_DEFAULT) {
       auto port =

@@ -85,7 +85,9 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
           mapping->getPortIphyPinConfigs(PortID(port.first), profile.first);
       EXPECT_TRUE(pinCfgs.size() > 0);
 
-      auto itProfileCfg = mapping->getPortProfileConfig(profile.first);
+      auto itProfileCfg = mapping->getPortProfileConfig(
+          PlatformPortProfileConfigMatcher(PlatformPortProfileConfigMatcher(
+              profile.first, PortID(port.first))));
       EXPECT_TRUE(itProfileCfg.has_value());
 
       for (auto pinCfg : pinCfgs) {
@@ -334,24 +336,30 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
 TEST_F(PlatformMappingTest, VerifyYampPortProfileConfigOverride) {
   auto mapping = std::make_unique<YampPlatformMapping>();
   for (auto port : mapping->getPlatformPorts()) {
-    auto portProfileConfig = mapping->getPortProfileConfig(
-        cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC, std::nullopt);
+    auto portProfileConfig =
+        mapping->getPortProfileConfig(PlatformPortProfileConfigMatcher(
+            cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC, PortID(port.first)));
     EXPECT_TRUE(
         *portProfileConfig->xphyLine_ref()->fec_ref() == phy::FecMode::NONE);
 
-    portProfileConfig = mapping->getPortProfileConfig(
-        cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528, std::nullopt);
+    portProfileConfig =
+        mapping->getPortProfileConfig(PlatformPortProfileConfigMatcher(
+            cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528, PortID(port.first)));
     EXPECT_TRUE(
         *portProfileConfig->xphyLine_ref()->fec_ref() == phy::FecMode::RS528);
 
-    portProfileConfig = mapping->getPortProfileConfig(
-        cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528,
-        ExtendedSpecComplianceCode::FR1_100G);
+    portProfileConfig =
+        mapping->getPortProfileConfig(PlatformPortProfileConfigMatcher(
+            cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528,
+            PortID(port.first),
+            ExtendedSpecComplianceCode::FR1_100G));
     EXPECT_TRUE(
         *portProfileConfig->xphyLine_ref()->fec_ref() == phy::FecMode::NONE);
 
-    portProfileConfig = mapping->getPortProfileConfig(
-        cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N, std::nullopt);
+    portProfileConfig =
+        mapping->getPortProfileConfig(PlatformPortProfileConfigMatcher(
+            cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N,
+            PortID(port.first)));
     EXPECT_TRUE(
         *portProfileConfig->xphyLine_ref()->fec_ref() == phy::FecMode::RS544);
   }
@@ -625,7 +633,8 @@ TEST_F(PlatformMappingTest, VerifyWedge100DownlinkPortIphyPinConfigs) {
       if (downlinkProfiles.find(profile.first) == downlinkProfiles.end()) {
         continue;
       }
-      auto itProfileCfg = mapping->getPortProfileConfig(profile.first);
+      auto itProfileCfg = mapping->getPortProfileConfig(
+          PlatformPortProfileConfigMatcher(profile.first, PortID(port.first)));
       EXPECT_TRUE(itProfileCfg.has_value());
 
       const auto& txSettingsGroup =
@@ -748,21 +757,19 @@ TEST_F(PlatformMappingTest, VerifyPlatformSupportedProfileMerge) {
   platformMapping.mergePlatformSupportedProfile(configEntry3);
 
   // pims 1-3 with PROFILE_100G_4_NRZ_CL91_OPTICAL
-  for (auto pimNum : {1, 2, 3}) {
+  for (auto pimID : {1, 2, 3}) {
     auto profile =
         platformMapping.getPortProfileConfig(PlatformPortProfileConfigMatcher(
-            cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL,
-            PimID(pimNum)));
+            cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL, PimID(pimID)));
     EXPECT_TRUE(profile.has_value());
     EXPECT_EQ(profile.value(), configEntry1.profile_ref());
   }
 
   // pims 1-3 with PROFILE_25G_1_NRZ_NOFEC_OPTICAL
-  for (auto pimNum : {1, 2, 3}) {
+  for (auto pimID : {1, 2, 3}) {
     auto profile =
         platformMapping.getPortProfileConfig(PlatformPortProfileConfigMatcher(
-            cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
-            PimID(pimNum)));
+            cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL, PimID(pimID)));
     EXPECT_TRUE(profile.has_value());
     EXPECT_EQ(profile.value(), configEntry3.profile_ref());
   }

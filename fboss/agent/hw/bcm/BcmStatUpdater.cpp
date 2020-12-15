@@ -186,8 +186,8 @@ double BcmStatUpdater::calculateLaneRate(std::shared_ptr<Port> swPort) {
         swPort->getName());
   }
 
-  const auto portProfileConfig =
-      hw_->getPlatform()->getPortProfileConfig(profileID);
+  const auto portProfileConfig = hw_->getPlatform()->getPortProfileConfig(
+      PlatformPortProfileConfigMatcher(profileID, swPort->getID()));
   if (!portProfileConfig) {
     throw FbossError(
         "Platform doesn't support speed profile: ",
@@ -378,7 +378,8 @@ void BcmStatUpdater::refreshPrbsStats(const StateDelta& delta) {
         }
 
         const auto& portProfileConfig =
-            hw_->getPlatform()->getPortProfileConfig(profileID);
+            hw_->getPlatform()->getPortProfileConfig(
+                PlatformPortProfileConfigMatcher(profileID, newPort->getID()));
         if (!portProfileConfig.has_value()) {
           throw FbossError(
               "No port profile with id ",

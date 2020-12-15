@@ -102,6 +102,13 @@ FakeTestPlatformMapping::FakeTestPlatformMapping(
     *profile.iphy_ref()->numLanes_ref() = std::get<1>(itProfile.second);
     *profile.iphy_ref()->fec_ref() = std::get<2>(itProfile.second);
     setSupportedProfile(itProfile.first, profile);
+
+    cfg::PlatformPortProfileConfigEntry configEntry;
+    cfg::PlatformPortConfigFactor factor;
+    factor.profileID_ref() = itProfile.first;
+    configEntry.profile_ref() = profile;
+    configEntry.factor_ref() = factor;
+    mergePlatformSupportedProfile(configEntry);
   }
 
   for (int groupID = 0; groupID < controllingPortIds_.size(); groupID++) {

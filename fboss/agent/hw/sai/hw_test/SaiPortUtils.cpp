@@ -342,8 +342,8 @@ void verifyFec(
       saiSwitch->managerTable()->portManager().getPortHandle(portID);
 
   // retrive configured fec.
-  auto expectedFec =
-      utility::getSaiPortFecMode(platform->getPhyFecMode(profileID));
+  auto expectedFec = utility::getSaiPortFecMode(platform->getPhyFecMode(
+      PlatformPortProfileConfigMatcher(profileID, portID)));
 
   // retrive programmed fec.
   auto& portApi = SaiApiTable::getInstance()->portApi();

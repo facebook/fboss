@@ -10,6 +10,7 @@
 
 #include "fboss/agent/PlatformPort.h"
 
+#include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Platform.h"
@@ -79,7 +80,7 @@ std::optional<cfg::PortProfileID> PlatformPort::getProfileIDBySpeedIf(
 
   for (auto profile : *platformPortEntry->supportedProfiles_ref()) {
     auto profileID = profile.first;
-    if (auto profileCfg = platform_->getPortProfileConfig(profileID)) {
+    if (auto profileCfg = getPortProfileConfigIf(profileID)) {
       if (*profileCfg->speed_ref() == speed) {
         return profileID;
       }
@@ -92,6 +93,35 @@ std::optional<cfg::PortProfileID> PlatformPort::getProfileIDBySpeedIf(
     }
   }
   return std::nullopt;
+}
+
+const phy::PortProfileConfig PlatformPort::getPortProfileConfig(
+    cfg::PortProfileID profileID) const {
+  auto profile = getPortProfileConfigIf(profileID);
+  if (!profile.has_value()) {
+    throw FbossError(
+        "No port profile with id ",
+        apache::thrift::util::enumNameSafe(profileID),
+        " found in PlatformConfig for port ",
+        id_);
+  }
+  return profile.value();
+}
+
+const std::optional<phy::PortProfileConfig>
+PlatformPort::getPortProfileConfigIf(cfg::PortProfileID profileID) const {
+  folly::EventBase evb;
+  std::optional<ExtendedSpecComplianceCode> transceiverSpecComplianceCode =
+      platform_->needExtendedSpecComplianceCode()
+      ? getTransceiverExtendedSpecCompliance(&evb).getVia(&evb)
+      : std::nullopt;
+  if (transceiverSpecComplianceCode.has_value()) {
+    return platform_->getPortProfileConfig(PlatformPortProfileConfigMatcher(
+        profileID, id_, transceiverSpecComplianceCode.value()));
+  } else {
+    return platform_->getPortProfileConfig(
+        PlatformPortProfileConfigMatcher(profileID, id_));
+  }
 }
 
 // This should only be called by platforms that actually have
@@ -116,6 +146,26 @@ std::optional<int32_t> PlatformPort::getExternalPhyID() {
     CHECK_EQ(xphy.size(), 1);
     return *xphy.begin()->second.physicalID_ref();
   }
+}
+
+folly::Future<std::optional<ExtendedSpecComplianceCode>>
+PlatformPort::getTransceiverExtendedSpecCompliance(
+    folly::EventBase* evb) const {
+  auto getTxcvExtendedSpecCompliance =
+      [](TransceiverInfo info) -> std::optional<ExtendedSpecComplianceCode> {
+    return info.extendedSpecificationComplianceCode_ref().to_optional();
+  };
+  auto transID = getTransceiverID();
+  auto handleErr = [transID](const std::exception& e)
+      -> std::optional<ExtendedSpecComplianceCode> {
+    XLOG(ERR) << "Error retrieving ExtendedSpecCompliance info for transceiver "
+              << *transID << " Exception: " << folly::exceptionStr(e);
+    return std::nullopt;
+  };
+  return getTransceiverInfo()
+      .via(evb)
+      .thenValueInline(getTxcvExtendedSpecCompliance)
+      .thenError<std::exception>(std::move(handleErr));
 }
 
 } // namespace facebook::fboss

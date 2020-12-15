@@ -64,9 +64,12 @@ std::shared_ptr<Port> getSwPort(
 
 VCOFrequency getVCOFrequency(
     const BcmPlatform* platform,
-    facebook::fboss::cfg::PortProfileID profile) {
+    facebook::fboss::cfg::PortProfileID profile,
+    PortID portID) {
   VCOFrequencyFactor factor;
-  auto config = platform->getPortProfileConfig(profile);
+
+  auto config = platform->getPortProfileConfig(
+      facebook::fboss::PlatformPortProfileConfigMatcher(profile, portID));
   if (!config) {
     throw FbossError(
         "Unsupported speed profile: ",
@@ -120,8 +123,10 @@ BcmPortGroup::BcmPortGroup(
   // get the current HW VCO frequencies
   if (hw_->getPlatform()->supportsAddRemovePort()) {
     for (const auto* bcmPort : allPorts_) {
-      vcoFrequencies_.insert(
-          getVCOFrequency(hw_->getPlatform(), bcmPort->getCurrentProfile()));
+      vcoFrequencies_.insert(getVCOFrequency(
+          hw_->getPlatform(),
+          bcmPort->getCurrentProfile(),
+          bcmPort->getPortID()));
     }
   }
 
@@ -169,9 +174,8 @@ BcmPortGroup::LaneMode BcmPortGroup::calculateDesiredLaneMode(
     }
 
     // First check whether the Platform supports such profileID
-    // getPortProfileConfig();
-    auto profileCfg =
-        platformMapping->getPortProfileConfig(port->getProfileID());
+    auto profileCfg = platformMapping->getPortProfileConfig(
+        PlatformPortProfileConfigMatcher(port->getProfileID(), port->getID()));
     if (!profileCfg.has_value()) {
       throw FbossError(
           "Port: ",
@@ -292,8 +296,8 @@ void BcmPortGroup::reconfigureIfNeeded(
   std::set<phy::VCOFrequency> desiredVCOFrequencies;
   if (hw_->getPlatform()->supportsAddRemovePort()) {
     for (const auto& port : newPorts) {
-      desiredVCOFrequencies.insert(
-          getVCOFrequency(hw_->getPlatform(), port->getProfileID()));
+      desiredVCOFrequencies.insert(getVCOFrequency(
+          hw_->getPlatform(), port->getProfileID(), port->getID()));
     }
     needsVCOChange = (vcoFrequencies_ != desiredVCOFrequencies);
   }

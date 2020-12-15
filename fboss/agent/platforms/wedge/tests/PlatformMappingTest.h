@@ -66,14 +66,10 @@ class PlatformMappingTest : public ::testing::Test {
           prevProfile = platformSupportedProfile;
         }
       } else {
-        auto supportedProfile =
-            mapping->getPortProfileConfig(factor.get_profileID());
         auto platformSupportedProfile =
             mapping->getPortProfileConfig(PlatformPortProfileConfigMatcher(
                 factor.get_profileID(), std::nullopt));
-        EXPECT_TRUE(supportedProfile.has_value());
         EXPECT_TRUE(platformSupportedProfile.has_value());
-        EXPECT_EQ(supportedProfile, platformSupportedProfile);
       }
     }
 

@@ -1349,7 +1349,8 @@ void BcmPort::setFEC(const std::shared_ptr<Port>& swPort) {
   }
 
   auto profileID = swPort->getProfileID();
-  const auto desiredFecMode = hw_->getPlatform()->getPhyFecMode(profileID);
+  const auto desiredFecMode = hw_->getPlatform()->getPhyFecMode(
+      PlatformPortProfileConfigMatcher(profileID, swPort->getID()));
 
   bool shouldEnableFec = !platformPort_->shouldDisableFEC() &&
       desiredFecMode != phy::FecMode::NONE;
@@ -1544,14 +1545,7 @@ void BcmPort::setTxSettingViaPhyTx(
     return;
   }
 
-  auto portProfileConfig = hw_->getPlatform()->getPortProfileConfig(profileID);
-  if (!portProfileConfig.has_value()) {
-    throw FbossError(
-        "No port profile with id ",
-        apache::thrift::util::enumNameSafe(profileID),
-        " found in PlatformConfig for ",
-        swPort->getName());
-  }
+  auto portProfileConfig = getPlatformPort()->getPortProfileConfig(profileID);
 
   const auto& iphyLaneConfigs = utility::getIphyLaneConfigs(iphyPinConfigs);
   if (iphyLaneConfigs.empty()) {
@@ -1560,7 +1554,7 @@ void BcmPort::setTxSettingViaPhyTx(
     return;
   }
 
-  auto modulation = *portProfileConfig->iphy_ref()->modulation_ref();
+  auto modulation = *portProfileConfig.iphy_ref()->modulation_ref();
   auto desiredSignalling = (modulation == phy::IpModulation::PAM4)
       ? bcmPortPhySignallingModePAM4
       : bcmPortPhySignallingModeNRZ;
@@ -1864,21 +1858,16 @@ void BcmPort::setPortResource(const std::shared_ptr<Port>& swPort) {
   auto desiredPortResource = curPortResource;
 
   auto profileID = swPort->getProfileID();
-  const auto profileConf = hw_->getPlatform()->getPortProfileConfig(profileID);
-  if (!profileConf) {
-    throw FbossError(
-        "Platform doesn't support speed profile: ",
-        apache::thrift::util::enumNameSafe(profileID));
-  }
+  const auto profileConf = getPlatformPort()->getPortProfileConfig(profileID);
 
   XLOG(DBG1) << "Program port resource based on speed profile: "
              << apache::thrift::util::enumNameSafe(profileID);
-  desiredPortResource.speed = static_cast<int>((*profileConf).get_speed());
+  desiredPortResource.speed = static_cast<int>(profileConf.get_speed());
   desiredPortResource.fec_type = utility::phyFecModeToBcmPortPhyFec(
       platformPort_->shouldDisableFEC() ? phy::FecMode::NONE
-                                        : profileConf->get_iphy().get_fec());
+                                        : profileConf.get_iphy().get_fec());
   desiredPortResource.phy_lane_config =
-      utility::getDesiredPhyLaneConfig(*profileConf);
+      utility::getDesiredPhyLaneConfig(profileConf);
 
   auto isPortResourceSame = [](const bcm_port_resource_t& current,
                                const bcm_port_resource_t& desired) {
@@ -1892,7 +1881,7 @@ void BcmPort::setPortResource(const std::shared_ptr<Port>& swPort) {
   // unblock our warmboot testing before Broadcom releases the fix.
   auto asicType = hw_->getPlatform()->getAsic()->getAsicType();
   if (asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
-    switch (profileConf->get_iphy().get_modulation()) {
+    switch (profileConf.get_iphy().get_modulation()) {
       case phy::IpModulation::PAM4:
         // PAM4 + NS
         BCM_PORT_RESOURCE_PHY_LANE_CONFIG_FORCE_PAM4_SET(

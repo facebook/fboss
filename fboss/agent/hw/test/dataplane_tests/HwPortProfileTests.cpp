@@ -21,7 +21,10 @@ class HwPortProfileTest : public HwLinkStateDependentTest {
   }
 
   bool skipTest() {
-    if (!getPlatform()->getPortProfileConfig(Profile)) {
+    if (!getPlatform()->getPortProfileConfig(PlatformPortProfileConfigMatcher(
+            Profile, masterLogicalPortIds()[0])) ||
+        !getPlatform()->getPortProfileConfig(PlatformPortProfileConfigMatcher(
+            Profile, masterLogicalPortIds()[1]))) {
       return true;
     }
     auto& platformPorts = getPlatform()->getPlatformPorts();

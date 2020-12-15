@@ -84,14 +84,12 @@ class Platform {
   const std::map<int32_t, cfg::PlatformPortEntry>& getPlatformPorts() const;
 
   /*
-   * Get supported port speed profile config based on profile id and the
-   * transceiver specification compliance code.
-   * Return std::nullopt if the platform doesn't support such speed profile.
+   * Get supported port speed profile config based on
+   * PlatformPortProfileConfigMatcher
+   * Return std::nullopt if the platform doesn't match profile.
    */
   const std::optional<phy::PortProfileConfig> getPortProfileConfig(
-      cfg::PortProfileID PortProfileID,
-      std::optional<ExtendedSpecComplianceCode> transceiverSpecComplianceCode =
-          std::nullopt) const;
+      PlatformPortProfileConfigMatcher profileMatcher) const;
 
   /*
    * Get list of supported profiles from platform config. Returns empty map if
@@ -252,7 +250,7 @@ class Platform {
     return false;
   }
 
-  phy::FecMode getPhyFecMode(cfg::PortProfileID profileID) const;
+  phy::FecMode getPhyFecMode(PlatformPortProfileConfigMatcher matcher) const;
 
   const PlatformMapping* getPlatformMapping() const {
     return platformMapping_.get();
@@ -265,6 +263,12 @@ class Platform {
 
   std::optional<TransceiverInfo> getOverrideTransceiverInfo(PortID port) const;
   int getLaneCount(cfg::PortProfileID profile) const;
+
+  // Whether or not we need the Transceiver spec when programming ports.
+  // currently we only use this on yamp
+  virtual bool needExtendedSpecComplianceCode() const {
+    return false;
+  }
 
  private:
   /*

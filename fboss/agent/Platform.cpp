@@ -66,11 +66,8 @@ const std::map<int32_t, cfg::PlatformPortEntry>& Platform::getPlatformPorts()
 }
 
 const std::optional<phy::PortProfileConfig> Platform::getPortProfileConfig(
-    cfg::PortProfileID profileID,
-    std::optional<ExtendedSpecComplianceCode> transceiverSpecComplianceCode)
-    const {
-  return getPlatformMapping()->getPortProfileConfig(
-      profileID, transceiverSpecComplianceCode);
+    PlatformPortProfileConfigMatcher profileMatcher) const {
+  return getPlatformMapping()->getPortProfileConfig(profileMatcher);
 }
 
 const std::map<cfg::PortProfileID, phy::PortProfileConfig>&
@@ -126,10 +123,11 @@ PlatformMode Platform::getMode() const {
   return productInfo_->getMode();
 }
 
-phy::FecMode Platform::getPhyFecMode(cfg::PortProfileID profileID) const {
-  auto profile = getPortProfileConfig(profileID);
+phy::FecMode Platform::getPhyFecMode(
+    PlatformPortProfileConfigMatcher matcher) const {
+  auto profile = getPortProfileConfig(matcher);
   if (!profile) {
-    throw FbossError("platform does not support profile : ", profileID);
+    throw FbossError("Failed to find profile config");
   }
   return *profile->iphy_ref()->fec_ref();
 }

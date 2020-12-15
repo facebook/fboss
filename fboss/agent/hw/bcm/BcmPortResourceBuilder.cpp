@@ -165,16 +165,9 @@ std::vector<std::shared_ptr<Port>> BcmPortResourceBuilder::addPorts(
   }
 
   for (auto port : filteredPorts) {
-    auto profileConf =
-        hw_->getPlatform()->getPortProfileConfig(port->getProfileID());
     auto platformPort = hw_->getPlatform()->getPlatformPort(port->getID());
-    if (!profileConf) {
-      throw FbossError(
-          "Port: ",
-          port->getName(),
-          " demands unsupported profile: ",
-          apache::thrift::util::enumNameSafe(port->getProfileID()));
-    }
+    auto profileConf = platformPort->getPortProfileConfig(port->getProfileID());
+
     bcm_port_resource_t newPortRes;
     bcm_port_resource_t_init(&newPortRes);
     newPortRes.port = port->getID();
@@ -186,11 +179,11 @@ std::vector<std::shared_ptr<Port>> BcmPortResourceBuilder::addPorts(
             hw_->getPlatform()->getAsic()->getNumLanesPerPhysicalPort();
 
     newPortRes.lanes = desiredLaneMode_;
-    newPortRes.speed = static_cast<int>(*(*profileConf).speed_ref());
+    newPortRes.speed = static_cast<int>(*profileConf.speed_ref());
     newPortRes.fec_type = utility::phyFecModeToBcmPortPhyFec(
         platformPort->shouldDisableFEC() ? phy::FecMode::NONE
-                                         : profileConf->get_iphy().get_fec());
-    newPortRes.phy_lane_config = utility::getDesiredPhyLaneConfig(*profileConf);
+                                         : profileConf.get_iphy().get_fec());
+    newPortRes.phy_lane_config = utility::getDesiredPhyLaneConfig(profileConf);
     newPortRes.link_training = 0; /* turn off link training as default */
     portResources_.push_back(newPortRes);
   }

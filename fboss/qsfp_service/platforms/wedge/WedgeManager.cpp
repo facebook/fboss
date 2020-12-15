@@ -511,7 +511,8 @@ std::optional<phy::PhyPortConfig> WedgeManager::getPhyPortConfigValues(
   std::string portProfileIdStr = apache::thrift::util::enumNameSafe(portProfileId);
 
   // Get port profile config for the given port profile id
-  auto portProfileConfig = platformMapping_->getPortProfileConfig(portProfileId);
+  auto portProfileConfig = platformMapping_->getPortProfileConfig(
+      PlatformPortProfileConfigMatcher(portProfileId, PortID(portId)));
   if (!portProfileConfig.has_value()) {
     XLOG(INFO) << "For port profile id " << portProfileIdStr
                << ", the supported profile not found in platform mapping";

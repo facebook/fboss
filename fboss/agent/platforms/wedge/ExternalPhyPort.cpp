@@ -68,19 +68,7 @@ void ExternalPhyPort<PlatformT, PortStatsT>::portChanged(
 
   folly::EventBase evb;
   auto platform = dynamic_cast<PlatformT*>(platPort->getPlatform());
-  std::optional<ExtendedSpecComplianceCode> transceiverSpecComplianceCode =
-      platform->needExtendedSpecComplianceCode()
-      ? platPort->getTransceiverExtendedSpecCompliance(&evb).getVia(&evb)
-      : std::nullopt;
-  auto portProfileConfig =
-      platform->getPortProfileConfig(profileID, transceiverSpecComplianceCode);
-  if (!portProfileConfig.has_value()) {
-    throw FbossError(
-        "No port profile with id ",
-        apache::thrift::util::enumNameSafe(profileID),
-        " found in PlatformConfig for ",
-        newPort->getName());
-  }
+  auto portProfileConfig = platPort->getPortProfileConfig(profileID);
 
   const auto& chips = platform->getDataPlanePhyChips();
   if (chips.empty()) {
@@ -93,7 +81,7 @@ void ExternalPhyPort<PlatformT, PortStatsT>::portChanged(
       utility::getXphyLinePolaritySwapMap(
           *platformPortEntry->mapping_ref()->pins_ref(), chips));
   phyPortConfig.profile =
-      phy::ExternalPhyProfileConfig::fromPortProfileConfig(*portProfileConfig);
+      phy::ExternalPhyProfileConfig::fromPortProfileConfig(portProfileConfig);
 
   // Get the Phy slot id, Mdio id, Phy id information
   auto phyIdInfo = platform->getPhyIdInfo(phyID_);
