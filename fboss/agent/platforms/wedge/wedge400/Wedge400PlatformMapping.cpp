@@ -13,7 +13,7 @@
 namespace {
 constexpr auto kJsonPlatformMappingStr = R"(
 {
- "ports": {
+  "ports": {
     "1": {
         "mapping": {
           "id": 1,
@@ -28552,6 +28552,184 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           }
         ]
+      }
+    }
+  ],
+  "platformSupportedProfiles": [
+    {
+      "factor": {
+        "profileID": 11
+      },
+      "profile": {
+        "speed": 10000,
+        "iphy": {
+          "numLanes": 1,
+          "modulation": 1,
+          "fec": 1,
+          "medium": 1,
+          "interfaceMode": 10,
+          "interfaceType": 10
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 14
+      },
+      "profile": {
+        "speed": 25000,
+        "iphy": {
+          "numLanes": 1,
+          "modulation": 1,
+          "fec": 1,
+          "medium": 1,
+          "interfaceMode": 10,
+          "interfaceType": 10
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 17
+      },
+      "profile": {
+        "speed": 40000,
+        "iphy": {
+          "numLanes": 4,
+          "modulation": 1,
+          "fec": 1,
+          "medium": 1,
+          "interfaceMode": 12,
+          "interfaceType": 12
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 19
+      },
+      "profile": {
+        "speed": 50000,
+        "iphy": {
+          "numLanes": 2,
+          "modulation": 1,
+          "fec": 1,
+          "medium": 1,
+          "interfaceMode": 11,
+          "interfaceType": 11
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 22
+      },
+      "profile": {
+        "speed": 100000,
+        "iphy": {
+          "numLanes": 4,
+          "modulation": 1,
+          "fec": 528,
+          "medium": 1,
+          "interfaceMode": 12,
+          "interfaceType": 12
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 23
+      },
+      "profile": {
+        "speed": 100000,
+        "iphy": {
+          "numLanes": 4,
+          "modulation": 1,
+          "fec": 528,
+          "medium": 2,
+          "interfaceMode": 3,
+          "interfaceType": 3
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 24
+      },
+      "profile": {
+        "speed": 200000,
+        "iphy": {
+          "numLanes": 4,
+          "modulation": 2,
+          "fec": 11,
+          "medium": 1,
+          "interfaceMode": 12,
+          "interfaceType": 12
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 25
+      },
+      "profile": {
+        "speed": 200000,
+        "iphy": {
+          "numLanes": 4,
+          "modulation": 2,
+          "fec": 11,
+          "medium": 2,
+          "interfaceMode": 3,
+          "interfaceType": 3
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 26
+      },
+      "profile": {
+        "speed": 400000,
+        "iphy": {
+          "numLanes": 8,
+          "modulation": 2,
+          "fec": 11,
+          "medium": 2,
+          "interfaceMode": 4,
+          "interfaceType": 4
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 15
+      },
+      "profile": {
+        "speed": 25000,
+        "iphy": {
+          "numLanes": 1,
+          "modulation": 1,
+          "fec": 74,
+          "medium": 1,
+          "interfaceMode": 10,
+          "interfaceType": 10
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 21
+      },
+      "profile": {
+        "speed": 50000,
+        "iphy": {
+          "numLanes": 2,
+          "modulation": 1,
+          "fec": 528,
+          "medium": 1,
+          "interfaceMode": 11,
+          "interfaceType": 11
+        }
       }
     }
   ]

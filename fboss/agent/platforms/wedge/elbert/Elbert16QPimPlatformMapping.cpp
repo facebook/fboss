@@ -22888,6 +22888,40 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "type": 3,
       "physicalID": 127
     }
+  ],
+  "platformSupportedProfiles": [
+    {
+      "factor": {
+        "profileID": 23
+      },
+      "profile": {
+        "speed": 100000,
+        "iphy": {
+          "numLanes": 4,
+          "modulation": 1,
+          "fec": 528,
+          "medium": 3,
+          "interfaceMode": 3,
+          "interfaceType": 3
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 25
+      },
+      "profile": {
+        "speed": 200000,
+        "iphy": {
+          "numLanes": 4,
+          "modulation": 2,
+          "fec": 11,
+          "medium": 3,
+          "interfaceMode": 3,
+          "interfaceType": 3
+        }
+      }
+    }
   ]
 }
 )";

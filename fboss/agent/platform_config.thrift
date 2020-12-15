@@ -87,6 +87,46 @@ struct PlatformPortConfigOverride {
   3: optional phy.PortProfileConfig portProfileConfig
 }
 
+/*
+  Currently we use supportedProfiles as a global mapping for each platform's
+  profiles. In the future this will not be enough because for some platforms
+  (right now mixed pim platforms) a single PortProfileID can map to multiple
+  phy.PortProfileConfig. We introduce PlatformPortConfigFactor as the set of
+  all possible factors that can contribute to profile config selection and
+  introduce a list of PlatformPortProfileConfigEntry to replace
+  supportedProfiles
+  As an example, we can have a mixed pim platform with the following
+  PlatformPortProfileConfigEntrys:
+  [
+    {
+      factor: {
+        profileID: P1,
+        pimIDs: [1, 2, 3]
+      },
+      profile: conf1
+    },
+    {
+      factor: {
+        profileID: P1,
+        pimIDs: [4, 5, 6]
+      },
+      profile: conf2
+    }
+  ]
+  In the above example, a query (profileID=P1, pimID=2) will equate to conf1,
+  while a query (profileID=P1, pimID=6) will equate to conf2, thereby supporting
+  different profile configs, udner the same profileID P1, depending on pimID
+*/
+struct PlatformPortConfigFactor {
+  1: switch_config.PortProfileID profileID
+  2: optional set<i32> pimIDs
+}
+
+struct PlatformPortProfileConfigEntry {
+  1: PlatformPortConfigFactor factor
+  2: phy.PortProfileConfig profile
+}
+
 // TODO: Will deprecate the optional fields in PlatformConfig and start using
 // this new struct in agent code
 struct PlatformMapping {
@@ -95,4 +135,6 @@ struct PlatformMapping {
   3: list<phy.DataPlanePhyChip> chips
   4: optional map<PlatformAttributes, string> platformSettings
   5: optional list<PlatformPortConfigOverride> portConfigOverrides
+  // This field will eventually replace supportedProfiles
+  7: list<PlatformPortProfileConfigEntry> platformSupportedProfiles
 }

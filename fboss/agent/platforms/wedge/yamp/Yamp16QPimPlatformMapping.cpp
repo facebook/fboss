@@ -66832,6 +66832,86 @@ constexpr auto kJsonPlatformMappingStr = R"(
         }
       }
     }
+  ],
+  "platformSupportedProfiles": [
+    {
+      "factor": {
+        "profileID": 4
+      },
+      "profile": {
+        "speed": 40000,
+        "iphy": {
+          "numLanes": 2,
+          "modulation": 1,
+          "fec": 1,
+          "medium": 1,
+          "interfaceMode": 11,
+          "interfaceType": 11
+        },
+        "xphyLine": {
+          "numLanes": 4,
+          "modulation": 1,
+          "fec": 1
+        },
+        "xphySystem": {
+          "numLanes": 2,
+          "modulation": 1,
+          "fec": 1
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 8
+      },
+      "profile": {
+        "speed": 100000,
+        "iphy": {
+          "numLanes": 2,
+          "modulation": 2,
+          "fec": 544,
+          "medium": 1,
+          "interfaceMode": 11,
+          "interfaceType": 11
+        },
+        "xphyLine": {
+          "numLanes": 4,
+          "modulation": 1,
+          "fec": 528
+        },
+        "xphySystem": {
+          "numLanes": 2,
+          "modulation": 2,
+          "fec": 544
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 9
+      },
+      "profile": {
+        "speed": 200000,
+        "iphy": {
+          "numLanes": 4,
+          "modulation": 2,
+          "fec": 11,
+          "medium": 1,
+          "interfaceMode": 12,
+          "interfaceType": 12
+        },
+        "xphyLine": {
+          "numLanes": 4,
+          "modulation": 2,
+          "fec": 544
+        },
+        "xphySystem": {
+          "numLanes": 4,
+          "modulation": 2,
+          "fec": 544
+        }
+      }
+    }
   ]
 }
 )";

@@ -8468,6 +8468,104 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "type": 3,
       "physicalID": 15
     }
+  ],
+  "platformSupportedProfiles": [
+    {
+      "factor": {
+        "profileID": 11
+      },
+      "profile": {
+        "speed": 10000,
+        "iphy": {
+          "numLanes": 1,
+          "modulation": 1,
+          "fec": 1,
+          "medium": 1,
+          "interfaceMode": 10,
+          "interfaceType": 10
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 12
+      },
+      "profile": {
+        "speed": 10000,
+        "iphy": {
+          "numLanes": 1,
+          "modulation": 1,
+          "fec": 1,
+          "medium": 2,
+          "interfaceMode": 41,
+          "interfaceType": 41
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 13
+      },
+      "profile": {
+        "speed": 20000,
+        "iphy": {
+          "numLanes": 2,
+          "modulation": 1,
+          "fec": 1,
+          "medium": 1,
+          "interfaceMode": 11,
+          "interfaceType": 11
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 29
+      },
+      "profile": {
+        "speed": 20000,
+        "iphy": {
+          "numLanes": 2,
+          "modulation": 1,
+          "fec": 1,
+          "medium": 2,
+          "interfaceMode": 40,
+          "interfaceType": 40
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 17
+      },
+      "profile": {
+        "speed": 40000,
+        "iphy": {
+          "numLanes": 4,
+          "modulation": 1,
+          "fec": 1,
+          "medium": 1,
+          "interfaceMode": 12,
+          "interfaceType": 12
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 18
+      },
+      "profile": {
+        "speed": 40000,
+        "iphy": {
+          "numLanes": 4,
+          "modulation": 1,
+          "fec": 1,
+          "medium": 2,
+          "interfaceMode": 40,
+          "interfaceType": 40
+        }
+      }
+    }
   ]
 }
 )";

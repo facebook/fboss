@@ -6450,6 +6450,136 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "type": 1,
       "physicalID": 4
     }
+  ],
+  "platformSupportedProfiles": [
+    {
+      "factor": {
+        "profileID": 12
+      },
+      "profile": {
+        "speed": 10000,
+        "iphy": {
+          "numLanes": 1,
+          "modulation": 1,
+          "fec": 1,
+          "medium": 2,
+          "interfaceMode": 41,
+          "interfaceType": 41
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 14
+      },
+      "profile": {
+        "speed": 25000,
+        "iphy": {
+          "numLanes": 1,
+          "modulation": 1,
+          "fec": 1,
+          "medium": 1,
+          "interfaceMode": 10,
+          "interfaceType": 10
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 30
+      },
+      "profile": {
+        "speed": 25000,
+        "iphy": {
+          "numLanes": 1,
+          "modulation": 1,
+          "fec": 1,
+          "medium": 2,
+          "interfaceMode": 30,
+          "interfaceType": 30
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 18
+      },
+      "profile": {
+        "speed": 40000,
+        "iphy": {
+          "numLanes": 4,
+          "modulation": 1,
+          "fec": 1,
+          "medium": 2,
+          "interfaceMode": 40,
+          "interfaceType": 40
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 19
+      },
+      "profile": {
+        "speed": 50000,
+        "iphy": {
+          "numLanes": 2,
+          "modulation": 1,
+          "fec": 1,
+          "medium": 1,
+          "interfaceMode": 11,
+          "interfaceType": 11
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 31
+      },
+      "profile": {
+        "speed": 50000,
+        "iphy": {
+          "numLanes": 2,
+          "modulation": 1,
+          "fec": 1,
+          "medium": 2,
+          "interfaceMode": 30,
+          "interfaceType": 30
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 28
+      },
+      "profile": {
+        "speed": 100000,
+        "iphy": {
+          "numLanes": 4,
+          "modulation": 1,
+          "fec": 91,
+          "medium": 2,
+          "interfaceMode": 30,
+          "interfaceType": 30
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 32
+      },
+      "profile": {
+        "speed": 100000,
+        "iphy": {
+          "numLanes": 4,
+          "modulation": 1,
+          "fec": 1,
+          "medium": 1,
+          "interfaceMode": 12,
+          "interfaceType": 12
+        }
+      }
+    }
   ]
 }
 )";
