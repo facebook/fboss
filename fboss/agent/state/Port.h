@@ -13,6 +13,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/Mirror.h"
+#include "fboss/agent/state/PortPgConfig.h"
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
@@ -78,6 +79,7 @@ struct PortFields {
   // to remote Mirror destinations
   std::optional<cfg::SampleDestination> sampleDest;
   QueueConfig queues;
+  std::optional<PortPgConfigs> pgConfigs;
   cfg::PortFEC fec{cfg::PortFEC::OFF}; // TODO: should this default to ON?
   cfg::PortLoopbackMode loopbackMode{cfg::PortLoopbackMode::NONE};
   std::optional<std::string> ingressMirror;
@@ -195,6 +197,14 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
 
   void resetPortQueues(QueueConfig queues) {
     writableFields()->queues.swap(queues);
+  }
+
+  std::optional<const PortPgConfigs> getPortPgConfigs() {
+    return getFields()->pgConfigs;
+  }
+
+  void resetPgConfigs(std::optional<PortPgConfigs>& pgConfigs) {
+    writableFields()->pgConfigs.swap(pgConfigs);
   }
 
   VlanID getIngressVlan() const {

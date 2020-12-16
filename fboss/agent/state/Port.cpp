@@ -10,6 +10,7 @@
 #include "Port.h"
 
 #include <folly/Conv.h>
+#include "fboss/agent/state/PortPgConfig.h"
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -131,6 +132,15 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
         std::make_shared<PortQueue>(PortQueueFields::fromThrift(queue)));
   }
 
+  if (auto pgConfigs = portThrift.pgConfigs_ref()) {
+    PortPgConfigs tmpPgConfigs;
+    for (const auto& pgConfig : pgConfigs.value()) {
+      tmpPgConfigs.push_back(
+          std::make_shared<PortPgConfig>(PortPgFields::fromThrift(pgConfig)));
+    }
+    port.pgConfigs = tmpPgConfigs;
+  }
+
   if (portThrift.ingressMirror_ref()) {
     port.ingressMirror = portThrift.ingressMirror_ref().value();
   }
@@ -206,6 +216,14 @@ state::PortFields PortFields::toThrift() const {
   for (const auto& queue : queues) {
     // TODO: Use PortQueue::toThrift() when available
     port.queues_ref()->push_back(queue->getFields()->toThrift());
+  }
+
+  if (pgConfigs) {
+    std::vector<state::PortPgFields> tmpPgConfigs;
+    for (const auto& pgConfig : *pgConfigs) {
+      tmpPgConfigs.emplace_back(pgConfig->getFields()->toThrift());
+    }
+    port.pgConfigs_ref() = tmpPgConfigs;
   }
 
   if (ingressMirror) {

@@ -30,6 +30,7 @@
 #include "fboss/agent/state/NdpResponseTable.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
+#include "fboss/agent/state/PortPgConfig.h"
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/QcmConfig.h"
 #include "fboss/agent/state/QosPolicyMap.h"
@@ -197,6 +198,14 @@ class ThriftConfigApplier {
   std::shared_ptr<PortQueue> createPortQueue(
       const cfg::PortQueue* cfg,
       std::optional<TrafficClass> trafficClass);
+  // pg specific routines
+  bool isPgConfigUnchanged(
+      std::optional<PortPgConfigs> newPortPgCfgs,
+      const shared_ptr<Port>& orig);
+  std::shared_ptr<PortPgConfig> createPortPg(const cfg::PortPgConfig* cfg);
+  PortPgConfigs updatePortPgConfigs(
+      const std::vector<cfg::PortPgConfig>& newPortPgConfig,
+      const shared_ptr<Port>& orig);
   void checkPortQueueAQMValid(
       const std::vector<cfg::ActiveQueueManagement>& aqms);
   std::shared_ptr<AggregatePortMap> updateAggregatePorts();
@@ -773,6 +782,96 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::createPortQueue(
   return queue;
 }
 
+std::shared_ptr<PortPgConfig> ThriftConfigApplier::createPortPg(
+    const cfg::PortPgConfig* cfg) {
+  auto pgCfg =
+      std::make_shared<PortPgConfig>(static_cast<uint8_t>(*cfg->id_ref()));
+  if (const auto scalingFactor = cfg->scalingFactor_ref()) {
+    pgCfg->setScalingFactor(*scalingFactor);
+  }
+
+  if (const auto name = cfg->name_ref()) {
+    pgCfg->setName(*name);
+  }
+
+  pgCfg->setMinLimitBytes(*cfg->minLimitBytes_ref());
+
+  if (const auto headroom = cfg->headroomLimitBytes_ref()) {
+    pgCfg->setHeadroomLimitBytes(*headroom);
+  }
+  if (const auto resumeOffsetBytes = cfg->resumeOffsetBytes_ref()) {
+    pgCfg->setResumeOffsetBytes(*resumeOffsetBytes);
+  }
+  pgCfg->setBufferPoolName(*cfg->bufferPoolName_ref());
+  return pgCfg;
+}
+
+bool ThriftConfigApplier::isPgConfigUnchanged(
+    std::optional<PortPgConfigs> newPortPgCfgs,
+    const shared_ptr<Port>& orig) {
+  flat_map<int, std::shared_ptr<PortPgConfig>> newPortPgConfigMap;
+  const auto& origPortPgConfig = orig->getPortPgConfigs();
+
+  if (!origPortPgConfig && !newPortPgCfgs) {
+    // no change before or after
+    return true;
+  }
+
+  // if go from old pgConfig <-> no pg cfg and vice versa, there is a change
+  if ((origPortPgConfig && !newPortPgCfgs) ||
+      (!origPortPgConfig && newPortPgCfgs)) {
+    return false;
+  }
+
+  // both oldPgCfg and newPgCfg exists
+  if ((*newPortPgCfgs).size() != (*origPortPgConfig).size()) {
+    return false;
+  }
+
+  // come here only if we have both orig, and new port pg cfg and have same size
+  for (const auto& portPg : *newPortPgCfgs) {
+    newPortPgConfigMap.emplace(std::make_pair(portPg->getID(), portPg));
+  }
+
+  for (const auto& origPg : *origPortPgConfig) {
+    auto newPortPgConfigIter = newPortPgConfigMap.find(origPg->getID());
+    if ((newPortPgConfigIter == newPortPgConfigMap.end()) ||
+        ((*newPortPgConfigIter->second != *origPg))) {
+      // pg id in the original cfg, is no longer there is new one
+      // or the contents of the PG doesn't match
+      return false;
+    }
+  }
+  return true;
+}
+
+PortPgConfigs ThriftConfigApplier::updatePortPgConfigs(
+    const std::vector<cfg::PortPgConfig>& newPortPgConfig,
+    const shared_ptr<Port>& orig) {
+  PortPgConfigs newPortPgConfigs = {};
+  if (newPortPgConfig.empty()) {
+    // nothing to update, just return
+    return newPortPgConfigs;
+  }
+
+  if (newPortPgConfig.size() > cfg::switch_config_constants::PORT_PG_MAX()) {
+    throw FbossError(
+        "Port",
+        orig->getID(),
+        " pgConfig size ",
+        newPortPgConfig.size(),
+        " greater than max supported pgs ",
+        cfg::switch_config_constants::PORT_PG_MAX());
+  }
+
+  for (const auto& portPg : newPortPgConfig) {
+    std::shared_ptr<PortPgConfig> tmpPortPgConfig;
+    tmpPortPgConfig = createPortPg(&portPg);
+    newPortPgConfigs.push_back(tmpPortPgConfig);
+  }
+  return newPortPgConfigs;
+}
+
 QueueConfig ThriftConfigApplier::updatePortQueues(
     const QueueConfig& origPortQueues,
     const std::vector<cfg::PortQueue>& cfgPortQueues,
@@ -947,6 +1046,9 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   }
 
   auto newPfc = std::optional<cfg::PortPfc>();
+  std::optional<PortPgConfigs> portPgCfgs;
+  // lets compare the portPgConfigs
+  bool portPgConfigUnchanged = true;
   if (portConf->pfc_ref().has_value()) {
     newPfc = portConf->pfc_ref().value();
 
@@ -970,7 +1072,29 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
             " PAUSE and PFC cannot be enabled on the same port");
       }
     }
+
+    auto portPgConfigName = newPfc->portPgConfigName_ref();
+    if (auto portPgConfigs = cfg_->portPgConfigs_ref()) {
+      auto it = portPgConfigs->find(*portPgConfigName);
+      if (it == portPgConfigs->end()) {
+        throw FbossError(
+            "Port ",
+            orig->getID(),
+            " pg name",
+            *portPgConfigName,
+            "does not exist in portPgConfig map");
+      }
+      portPgCfgs = updatePortPgConfigs(it->second, orig);
+    } else if (!(*portPgConfigName).empty()) {
+      throw FbossError(
+          "Port: ",
+          orig->getID(),
+          " pg name: ",
+          *portPgConfigName,
+          " exist but not the portPgConfig map");
+    }
   }
+  portPgConfigUnchanged = isPgConfigUnchanged(portPgCfgs, orig);
 
   /*
    * The list of lookup classes would be different when first enabling the
@@ -1000,7 +1124,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       portConf->name_ref().value_or({}) == orig->getName() &&
       portConf->description_ref().value_or({}) == orig->getDescription() &&
       vlans == orig->getVlans() && *portConf->fec_ref() == orig->getFEC() &&
-      queuesUnchanged &&
+      queuesUnchanged && portPgConfigUnchanged &&
       *portConf->loopbackMode_ref() == orig->getLoopbackMode() &&
       mirrorsUnChanged && newQosPolicy == orig->getQosPolicy() &&
       *portConf->expectedLLDPValues_ref() == orig->getLLDPValidations() &&
@@ -1038,6 +1162,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       *portConf->lookupClasses_ref());
   newPort->setMaxFrameSize(*portConf->maxFrameSize_ref());
   newPort->setPfc(newPfc);
+  newPort->resetPgConfigs(portPgCfgs);
   return newPort;
 }
 

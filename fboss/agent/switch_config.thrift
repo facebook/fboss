@@ -1210,6 +1210,27 @@ struct PortPfc {
   3: PortPgConfigName portPgConfigName
 }
 
+const i16 PORT_PG_MAX = 8;
+
+// Defines PG (priority group) configuration for ports
+// This configuration defines the PG buffer settings for given port(s)
+struct PortPgConfig {
+   1: required i16 id
+   2: optional string name
+   3: optional MMUScalingFactor scalingFactor
+   // Min buffer available to each PG, port
+   4: i32 minLimitBytes
+   // Buffer available after XOFF is hit (i.e. after
+   // PFC is triggerred). Intent of this buffer is to
+   // gurantee lossless operation by absorbing in-flight
+   // packets
+   5: optional i32 headroomLimitBytes
+   // Offset from XOFF before allowing XON
+   6: optional i32 resumeOffsetBytes
+   // global buffer pool as used by this PG
+   7: string bufferPoolName
+}
+
 /**
  * The configuration for a switch.
  *
@@ -1311,4 +1332,5 @@ struct SwitchConfig {
 
   41: SwitchSettings switchSettings
   42: optional QcmConfig qcmConfig
+  43: optional map<PortPgConfigName, list<PortPgConfig>> portPgConfigs
 }

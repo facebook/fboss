@@ -593,6 +593,7 @@ if (NOT SAI_ONLY)
       fboss/agent/state/Port.cpp
       fboss/agent/state/PortMap.cpp
       fboss/agent/state/PortQueue.cpp
+      fboss/agent/state/PortPgConfig.cpp
       fboss/agent/state/QosPolicy.cpp
       fboss/agent/state/QosPolicyMap.cpp
       fboss/agent/state/Route.cpp

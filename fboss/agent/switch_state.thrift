@@ -12,6 +12,16 @@ struct VlanInfo {
  1: bool tagged;
 }
 
+struct PortPgFields {
+ 1: i16 id
+ 2: i32 minLimitBytes
+ 3: optional i32 headroomLimitBytes
+ 4: optional string name
+ 5: optional i32 resumeOffsetBytes
+ 6: string bufferPoolName
+ 7: optional string scalingFactor
+}
+
 // Port queueing configuration
 struct PortQueueFields {
  1: i16 id
@@ -71,4 +81,5 @@ struct PortFields {
  22: list<switch_config.AclLookupClass> lookupClassesToDistrubuteTrafficOn
  23: i32 maxFrameSize = switch_config.DEFAULT_PORT_MTU
  24: optional switch_config.PortPfc pfc
+ 25: optional list<PortPgFields> pgConfigs
 }

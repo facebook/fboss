@@ -608,6 +608,15 @@ TEST(Port, verifyPfcConfig) {
   pfc.rx_ref() = true;
   pfc.portPgConfigName_ref() = "foo";
   config.ports_ref()[0].pfc_ref() = pfc;
+  // pgConfigName exists, but can't be found in cfg, throw exception
+  EXPECT_THROW(
+      publishAndApplyConfig(newState, &config, platform.get()), FbossError);
+
+  // create an empty pgConfig for "foo"
+  std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
+  portPgConfigMap["foo"] = {};
+  config.portPgConfigs_ref() = portPgConfigMap;
+
   auto newState2 = publishAndApplyConfig(newState, &config, platform.get());
   port = newState2->getPort(PortID(1));
 
