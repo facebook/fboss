@@ -96,7 +96,11 @@ void setNextHopAttributes(
       case SAI_NEXT_HOP_ATTR_TYPE:
         attrLines.push_back(s32Attr(attr_list, i));
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
+      case SAI_NEXT_HOP_ATTR_DISABLE_DECREMENT_TTL:
+#else
       case SAI_NEXT_HOP_ATTR_DECREMENT_TTL:
+#endif
         attrLines.push_back(boolAttr(attr_list, i));
         break;
       default:

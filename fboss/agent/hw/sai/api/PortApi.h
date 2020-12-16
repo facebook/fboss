@@ -80,7 +80,11 @@ struct SaiPortTraits {
         SaiObjectIdDefault>;
     using DisableTtlDecrement = SaiAttribute<
         EnumType,
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
+        SAI_PORT_ATTR_DISABLE_DECREMENT_TTL,
+#else
         SAI_PORT_ATTR_DECREMENT_TTL,
+#endif
         bool,
         SaiBoolDefaultFalse>;
     using InterfaceType = SaiAttribute<

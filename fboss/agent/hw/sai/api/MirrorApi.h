@@ -121,7 +121,7 @@ struct SaiMirrorTraits<SAI_MIRROR_SESSION_TYPE_SFLOW> {
         SaiObjectIdT>;
     using TruncateSize = void;
     using Tos =
-        SaiAttriubte<EnumType, SAI_MIRROR_SESSION_ATTR_TOS, sai_uint8_t>;
+        SaiAttribute<EnumType, SAI_MIRROR_SESSION_ATTR_TOS, sai_uint8_t>;
     using ErspanEncapsulationType = void;
     using Ttl =
         SaiAttribute<EnumType, SAI_MIRROR_SESSION_ATTR_TTL, sai_uint8_t>;
