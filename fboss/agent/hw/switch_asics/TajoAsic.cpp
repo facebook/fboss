@@ -34,6 +34,8 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
     case HwAsic::Feature::SFLOW_SAMPLING:
+    case HwAsic::Feature::SAI_ECN_WRED:
+    case HwAsic::Feature::RESOURCE_USAGE_STATS:
       return true;
 
     case HwAsic::Feature::HOT_SWAP:
@@ -43,11 +45,9 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::PORT_INTERFACE_TYPE:
     case HwAsic::Feature::DEBUG_COUNTER:
-    case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::HSDK:
     case HwAsic::Feature::OBJECT_KEY_CACHE:
     case HwAsic::Feature::L3_EGRESS_MODE_AUTO_ENABLED:
-    case HwAsic::Feature::SAI_ECN_WRED:
     case HwAsic::Feature::PKTIO:
     case HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER:
     case HwAsic::Feature::PORT_TX_DISABLE:
