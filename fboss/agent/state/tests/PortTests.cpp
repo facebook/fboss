@@ -124,6 +124,86 @@ TEST(Port, applyConfig) {
   EXPECT_EQ(cfg::PortSpeed::GIGE, portV3->getSpeed());
 }
 
+TEST(Port, ToFromWithPgConfigs) {
+  std::string jsonStr = R"(
+        {
+         "pgConfigs": [
+            {
+                "id": 0,
+                "name": "first",
+                "minLimitBytes": 3328,
+                "scalingFactor": "ONE",
+                "resumeOffsetBytes": 10,
+                "bufferPoolName": "foo"
+            },
+            {
+                "id": 1,
+                "name": "second",
+                "minLimitBytes": 4000,
+                "scalingFactor": "TWO",
+                "resumeOffsetBytes": 300,
+                "bufferPoolName": "foo1"
+            },
+            {
+                "id": 2,
+                "name": "third",
+                "minLimitBytes": 4500,
+                "scalingFactor": "FOUR",
+                "resumeOffsetBytes": 400,
+                "bufferPoolName": "foo2",
+                "headroomLimitBytes": 2000
+            }
+          ],
+          "sFlowIngressRate" : 100,
+          "vlanMemberShips" : {
+            "2000" : {
+              "tagged" : true
+            }
+          },
+          "queues": [
+          ],
+          "rxPause" : false,
+          "portState" : "ENABLED",
+          "sFlowEgressRate" : 200,
+          "portDescription" : "TEST",
+          "portName" : "eth1/1/1",
+          "portId" : 100,
+          "portOperState" : true,
+          "portProfileID": "PROFILE_10G_1_NRZ_NOFEC",
+          "portMaxSpeed" : "XG",
+          "ingressVlan" : 2000,
+          "portSpeed" : "XG",
+          "portFEC" : "OFF",
+          "txPause" : false,
+          "sampleDest" : "MIRROR",
+          "portLoopbackMode" : "PHY",
+          "lookupClassesToDistrubuteTrafficOn": [
+            10,
+            11,
+            12,
+            13,
+            14
+          ],
+          "maxFrameSize" : 9000,
+          "pfc": {
+            "tx": false,
+            "rx": false,
+            "portPgConfigName": "foo"
+          }
+       }
+  )";
+  auto port = Port::fromJson(jsonStr);
+
+  auto portPgs = port->getPortPgConfigs();
+  EXPECT_TRUE(portPgs.has_value());
+
+  auto portPgsTmp = portPgs.value();
+  EXPECT_EQ(portPgsTmp.size(), 3);
+  auto dyn1 = port->toFollyDynamic();
+  auto dyn2 = folly::parseJson(jsonStr);
+  EXPECT_EQ(dyn1, dyn2);
+}
+
 TEST(Port, ToFromJSON) {
   std::string jsonStr = R"(
         {
