@@ -90,6 +90,9 @@ void HwTest::SetUp() {
     hwSwitchEnsemble_->getPlatform()->setPort2OverrideTransceiverInfo(
         map.value());
   }
+  if (auto info = overrideTransceiverInfo()) {
+    hwSwitchEnsemble_->getPlatform()->setOverrideTransceiverInfo(info.value());
+  }
   hwSwitchEnsemble_->addHwEventObserver(this);
   if (getHwSwitch()->getBootType() == BootType::WARM_BOOT) {
     // For warm boots, in wedge_agent at this point we would

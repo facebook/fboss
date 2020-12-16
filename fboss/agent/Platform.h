@@ -254,6 +254,12 @@ class Platform {
   std::optional<std::map<PortID, TransceiverInfo>>
   getPort2OverrideTransceiverInfo() const;
 
+  void setOverrideTransceiverInfo(TransceiverInfo info) {
+    overrideTransceiverInfo_ = info;
+  }
+  std::optional<TransceiverInfo> getOverrideTransceiverInfo() const {
+    return overrideTransceiverInfo_;
+  }
   std::optional<TransceiverInfo> getOverrideTransceiverInfo(PortID port) const;
   int getLaneCount(cfg::PortProfileID profile) const;
 
@@ -286,6 +292,7 @@ class Platform {
   // possible transceiver info data qsfp may returns
   std::optional<std::map<PortID, TransceiverInfo>>
       port2OverrideTransceiverInfo_;
+  std::optional<TransceiverInfo> overrideTransceiverInfo_;
 };
 
 } // namespace facebook::fboss

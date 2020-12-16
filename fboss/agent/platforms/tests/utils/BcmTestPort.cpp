@@ -46,6 +46,9 @@ folly::Future<TransmitterTechnology> BcmTestPort::getTransmitterTech(
       return *(iter->second.cable_ref()->transmitterTech_ref());
     }
   }
+  if (auto info = getPlatform()->getOverrideTransceiverInfo()) {
+    return *(info->cable_ref()->transmitterTech_ref());
+  }
   auto entry = getPlatformPortEntry();
   if (entry && entry->mapping_ref()->name_ref()->find("fab") == 0) {
     return folly::makeFuture<TransmitterTechnology>(
@@ -76,6 +79,9 @@ void BcmTestPort::prepareForGracefulExit() {}
 folly::Future<TransceiverInfo> BcmTestPort::getTransceiverInfo() const {
   if (auto transceiver =
           getPlatform()->getOverrideTransceiverInfo(getPortID())) {
+    return transceiver.value();
+  }
+  if (auto transceiver = getPlatform()->getOverrideTransceiverInfo()) {
     return transceiver.value();
   }
   throw FbossError("failed to get transceiver info for ", getPortID());

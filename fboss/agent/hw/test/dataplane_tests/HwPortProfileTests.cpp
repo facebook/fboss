@@ -88,17 +88,9 @@ class HwPortProfileTest : public HwLinkStateDependentTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
-  std::optional<std::map<PortID, TransceiverInfo>> port2transceiverInfoMap()
-      const override {
-    std::map<PortID, TransceiverInfo> result{};
+  std::optional<TransceiverInfo> overrideTransceiverInfo() const override {
     auto tech = utility::getMediaType(Profile);
-    result.emplace(
-        masterLogicalPortIds()[0],
-        utility::getTransceiverInfo(masterLogicalPortIds()[0], tech));
-    result.emplace(
-        masterLogicalPortIds()[1],
-        utility::getTransceiverInfo(masterLogicalPortIds()[1], tech));
-    return result;
+    return utility::getTransceiverInfo(masterLogicalPortIds()[0], tech);
   }
 };
 
