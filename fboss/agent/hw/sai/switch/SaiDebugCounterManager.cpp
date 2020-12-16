@@ -23,7 +23,12 @@ void SaiDebugCounterManager::setupDebugCounters() {
       SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS,
       SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
       SaiDebugCounterTraits::Attributes::InDropReasons{
-          {SAI_IN_DROP_REASON_END + 1}}};
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
+          {SAI_IN_DROP_REASON_FDB_AND_BLACKHOLE_DISCARDS}
+#else
+          {SAI_IN_DROP_REASON_END + 1}
+#endif
+      }};
 
   auto& debugCounterStore =
       SaiStore::getInstance()->get<SaiDebugCounterTraits>();
