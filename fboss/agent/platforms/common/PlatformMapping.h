@@ -69,11 +69,6 @@ class PlatformMapping {
     return platformPorts_;
   }
 
-  const std::map<cfg::PortProfileID, phy::PortProfileConfig>&
-  getSupportedProfiles() const {
-    return supportedProfiles_;
-  }
-
   const std::optional<phy::PortProfileConfig> getPortProfileConfig(
       PlatformPortProfileConfigMatcher matcher) const;
 

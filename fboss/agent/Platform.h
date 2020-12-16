@@ -92,13 +92,6 @@ class Platform {
       PlatformPortProfileConfigMatcher profileMatcher) const;
 
   /*
-   * Get list of supported profiles from platform config. Returns empty map if
-   * no platform config is found.
-   */
-  const std::map<cfg::PortProfileID, phy::PortProfileConfig>&
-  getSupportedProfiles();
-
-  /*
    * Get supported data plane phy chip based on chip name.
    * Return std::nullopt if the platform doesn't support such phy chip.
    */
