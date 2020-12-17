@@ -24,15 +24,22 @@ getEcmpGroupInHw(const BcmSwitch* hw, bcm_if_t ecmp, int sizeInSw) {
   existing.ecmp_intf = ecmp;
   int pathsInHwCount;
   if (hw->getPlatform()->getAsic()->isSupported(HwAsic::Feature::HSDK)) {
-    // @lint-ignore HOWTOEVEN CArray
+    // @lint-ignore HOWTOEVEN CLANGTIDY CArray
     bcm_l3_ecmp_member_t pathsInHw[sizeInSw];
     bcm_l3_ecmp_get(
         hw->getUnit(), &existing, sizeInSw, pathsInHw, &pathsInHwCount);
     for (size_t i = 0; i < pathsInHwCount; ++i) {
-      ecmpGroup.insert(pathsInHw[i].egress_if);
+      if (hw->getPlatform()->getAsic()->isSupported(
+              HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER)) {
+        for (size_t j = 0; j < pathsInHw[i].weight; j++) {
+          ecmpGroup.insert(pathsInHw[i].egress_if);
+        }
+      } else {
+        ecmpGroup.insert(pathsInHw[i].egress_if);
+      }
     }
   } else {
-    // @lint-ignore HOWTOEVEN CArray
+    // @lint-ignore HOWTOEVEN CLANGTIDY CArray
     bcm_if_t pathsInHw[sizeInSw];
     bcm_l3_egress_ecmp_get(
         hw->getUnit(), &existing, sizeInSw, pathsInHw, &pathsInHwCount);
@@ -48,13 +55,13 @@ int getEcmpSizeInHw(const BcmSwitch* hw, bcm_if_t ecmp, int sizeInSw) {
 }
 
 template <typename T>
-bcm_if_t toIntfId(T egress) {
-  return egress;
+std::pair<bcm_if_t, int> toIntfId(T egress) {
+  return std::make_pair(egress, 1);
 }
 
 template <>
-bcm_if_t toIntfId(bcm_l3_ecmp_member_t egress) {
-  return egress.egress_if;
+std::pair<bcm_if_t, int> toIntfId(bcm_l3_ecmp_member_t egress) {
+  return std::make_pair(egress.egress_if, egress.weight);
 }
 
 template <typename T>
@@ -75,7 +82,14 @@ int bcm_l3_ecmp_traverse_cb(
           ->second;
   if (getMemberIds) {
     for (auto i = 0; i < memberCount; i++) {
-      outvec->push_back(toIntfId<T>(memberArray[i]));
+      if (ecmp->ecmp_group_flags == BCM_L3_ECMP_MEMBER_WEIGHTED) {
+        auto egress = toIntfId<T>(memberArray[i]);
+        for (auto j = 0; j < egress.second; j++) {
+          outvec->push_back(egress.first);
+        }
+      } else {
+        outvec->push_back(toIntfId<T>(memberArray[i]).first);
+      }
     }
   } else {
     outvec->push_back(ecmp->ecmp_intf);
