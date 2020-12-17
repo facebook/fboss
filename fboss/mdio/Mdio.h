@@ -17,6 +17,7 @@
 #include <mutex>
 
 #include <folly/Synchronized.h>
+#include <folly/io/async/EventBase.h>
 
 namespace {
 constexpr auto kMdioLockFilePath = "/var/lock/mdio";
@@ -79,17 +80,34 @@ class MdioController {
         lockFile_(std::make_shared<folly::File>(
             folly::to<std::string>(kMdioLockFilePath, id),
             O_RDWR | O_CREAT,
-            0666)) {}
+            0666)),
+        eventBase_(std::make_unique<folly::EventBase>()) {
+    // start controller thread
+    auto* evb = eventBase_.get();
+    controllerThread_.reset(new std::thread([evb] { evb->loopForever(); }));
+  }
+
 
   MdioController(MdioController<IO>&& old)
       : id_(std::move(old.id_)),
         rawIO_(std::move(old.rawIO_)),
         io_(std::move(old.io_)),
-        lockFile_(std::move(old.lockFile_)) {}
+        lockFile_(std::move(old.lockFile_)),
+        controllerThread_(std::move(old.controllerThread_)),
+        eventBase_(std::move(old.eventBase_)) {}
 
   // Delete the copy constructor. If we try to copy this object while io_ is locked
   // then the process will immediately deadlock.
   explicit MdioController(MdioController &) = delete;
+
+  ~MdioController() {
+    if (eventBase_) {
+      eventBase_->terminateLoopSoon();
+    }
+    if (controllerThread_) {
+      controllerThread_->join();
+    }
+  }
 
   phy::Cl45Data readCl45Unlocked(
       phy::PhyAddress physAddr,
@@ -125,6 +143,10 @@ class MdioController {
 
   int id() const {
     return id_;
+  }
+
+  folly::EventBase* getEventBase() {
+    return eventBase_.get();
   }
 
   // This can be useful by clients to do multiple MDIO reads/writes
@@ -199,6 +221,8 @@ class MdioController {
   IO rawIO_;
   folly::Synchronized<IO, std::mutex> io_;
   std::shared_ptr<folly::File> lockFile_;
+  std::unique_ptr<std::thread> controllerThread_{nullptr};
+  std::unique_ptr<folly::EventBase> eventBase_;
 };
 
 template <typename IO>
