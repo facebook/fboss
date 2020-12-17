@@ -55,6 +55,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PENDING_L2_ENTRY:
     case HwAsic::Feature::EGRESS_QUEUE_FLEX_COUNTER:
     case HwAsic::Feature::INGRESS_L3_INTERFACE:
+    case HwAsic::Feature::NON_UNICAST_HASH:
       return false;
   }
   return false;

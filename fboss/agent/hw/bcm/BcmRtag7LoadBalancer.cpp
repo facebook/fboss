@@ -37,7 +37,8 @@ void BcmRtag7LoadBalancer::addLoadBalancer(
       break;
     case LoadBalancerID::AGGREGATE_PORT:
       moduleControl = BcmRtag7Module::kModuleBControl();
-      outputSelectionControl = BcmRtag7Module::kTrunkOutputSelectionControl();
+      outputSelectionControl = BcmRtag7Module::kTrunkOutputSelectionControl(
+          hw_->getPlatform()->getAsic());
       break;
   }
 

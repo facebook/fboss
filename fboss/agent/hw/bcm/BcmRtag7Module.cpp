@@ -11,6 +11,7 @@
 
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 #include <folly/lang/Assume.h>
 #include <folly/logging/xlog.h>
@@ -174,6 +175,31 @@ void BcmRtag7Module::programFlowBasedHashTable() {
   rv = setUnitControl(
       outputControl_.flowBasedHashTableBarrelShiftStride, stride);
   bcmCheckError(rv, "failed to program flow hash table barrel shift stride");
+
+  if (outputControl_.nonUnicastFlowBasedHashTableStartingBitIndex) {
+    rv = setUnitControl(
+        outputControl_.nonUnicastFlowBasedHashTableStartingBitIndex.value(),
+        moduleControl_.selectFirstOutput.first);
+    bcmCheckError(
+        rv, "failed to program non-unicast flow hash table starting index");
+  }
+
+  if (outputControl_.nonUnicastFlowBasedHashTableEndingBitIndex) {
+    rv = setUnitControl(
+        outputControl_.nonUnicastFlowBasedHashTableEndingBitIndex.value(),
+        moduleControl_.selectFirstOutput.second);
+    bcmCheckError(
+        rv, "failed to program non-unicast flow hash table ending index");
+  }
+
+  if (outputControl_.nonUnicastFlowBasedHashTableBarrelShiftStride) {
+    rv = setUnitControl(
+        outputControl_.nonUnicastFlowBasedHashTableBarrelShiftStride.value(),
+        stride);
+    bcmCheckError(
+        rv,
+        "failed to program non-unicast flow hash table barrel shift stride");
+  }
 }
 
 void BcmRtag7Module::programFieldSelection(const LoadBalancer& loadBalancer) {
@@ -500,22 +526,43 @@ BcmRtag7Module::kEcmpOutputSelectionControl() {
       bcmSwitchMacroFlowHashUseMSB,
       bcmSwitchMacroFlowHashMinOffset,
       bcmSwitchMacroFlowHashMaxOffset,
-      bcmSwitchMacroFlowHashStrideOffset};
+      bcmSwitchMacroFlowHashStrideOffset,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt};
 
   return ecmpOutputSelectionControl;
 }
 
 const BcmRtag7Module::OutputSelectionControl
-BcmRtag7Module::kTrunkOutputSelectionControl() {
-  static const OutputSelectionControl trunkOutputSelectionControl = {
-      LoadBalancerID::AGGREGATE_PORT,
-      bcmSwitchHashUseFlowSelTrunkUc,
-      bcmSwitchMacroFlowHashFieldConfig,
-      bcmSwitchMacroFlowHashUseMSB,
-      bcmSwitchMacroFlowTrunkHashMinOffset,
-      bcmSwitchMacroFlowTrunkHashMaxOffset,
-      bcmSwitchMacroFlowTrunkHashStrideOffset};
-  return trunkOutputSelectionControl;
+BcmRtag7Module::kTrunkOutputSelectionControl(const HwAsic* asic) {
+  if (!asic->isSupported(HwAsic::Feature::NON_UNICAST_HASH)) {
+    static const OutputSelectionControl trunkOutputSelectionControl = {
+        LoadBalancerID::AGGREGATE_PORT,
+        bcmSwitchHashUseFlowSelTrunkUc,
+        bcmSwitchMacroFlowHashFieldConfig,
+        bcmSwitchMacroFlowHashUseMSB,
+        bcmSwitchMacroFlowTrunkHashMinOffset,
+        bcmSwitchMacroFlowTrunkHashMaxOffset,
+        bcmSwitchMacroFlowTrunkHashStrideOffset,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt};
+    return trunkOutputSelectionControl;
+  } else {
+    static const OutputSelectionControl trunkOutputSelectionControl = {
+        LoadBalancerID::AGGREGATE_PORT,
+        bcmSwitchHashUseFlowSelTrunkUc,
+        bcmSwitchMacroFlowHashFieldConfig,
+        bcmSwitchMacroFlowHashUseMSB,
+        bcmSwitchMacroFlowTrunkUnicastHashMinOffset,
+        bcmSwitchMacroFlowTrunkUnicastHashMaxOffset,
+        bcmSwitchMacroFlowTrunkUnicastHashStrideOffset,
+        bcmSwitchMacroFlowTrunkNonUnicastHashMinOffset,
+        bcmSwitchMacroFlowTrunkNonUnicastHashMaxOffset,
+        bcmSwitchMacroFlowTrunkNonUnicastHashStrideOffset};
+    return trunkOutputSelectionControl;
+  }
 }
 
 int BcmRtag7Module::setUnitControl(int controlType, int arg) {
@@ -615,6 +662,22 @@ BcmRtag7Module::OutputSelectionState BcmRtag7Module::retrieveRtag7OutputState(
   state[control.flowBasedHashTableBarrelShiftStride] =
       getUnitControl(unit, control.flowBasedHashTableBarrelShiftStride);
 
+  if (control.nonUnicastFlowBasedHashTableStartingBitIndex) {
+    state[control.nonUnicastFlowBasedHashTableStartingBitIndex.value()] =
+        getUnitControl(
+            unit, control.nonUnicastFlowBasedHashTableStartingBitIndex.value());
+  }
+  if (control.nonUnicastFlowBasedHashTableEndingBitIndex) {
+    state[control.nonUnicastFlowBasedHashTableEndingBitIndex.value()] =
+        getUnitControl(
+            unit, control.nonUnicastFlowBasedHashTableEndingBitIndex.value());
+  }
+  if (control.nonUnicastFlowBasedHashTableBarrelShiftStride) {
+    state[control.nonUnicastFlowBasedHashTableBarrelShiftStride.value()] =
+        getUnitControl(
+            unit,
+            control.nonUnicastFlowBasedHashTableBarrelShiftStride.value());
+  }
   return state;
 }
 

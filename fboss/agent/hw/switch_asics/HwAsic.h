@@ -55,6 +55,7 @@ class HwAsic {
     EGRESS_QUEUE_FLEX_COUNTER,
     PFC,
     INGRESS_L3_INTERFACE,
+    NON_UNICAST_HASH,
   };
 
   enum class AsicType {

@@ -199,9 +199,30 @@ TEST_F(BcmRtag7Test, programLoadBalancerMap) {
         bcmSwitchHashField1Config1, BCM_HASH_FIELD_CONFIG_CRC16CCITT);
     // LAG output-selection settings
     utility::assertSwitchControl(bcmSwitchHashUseFlowSelTrunkUc, 1);
-    utility::assertSwitchControl(bcmSwitchMacroFlowTrunkHashMinOffset, 16);
-    utility::assertSwitchControl(bcmSwitchMacroFlowTrunkHashMaxOffset, 31);
-    utility::assertSwitchControl(bcmSwitchMacroFlowTrunkHashStrideOffset, 1);
+    if (!getHwSwitch()->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::NON_UNICAST_HASH)) {
+      utility::assertSwitchControl(bcmSwitchMacroFlowTrunkHashMinOffset, 16);
+      utility::assertSwitchControl(bcmSwitchMacroFlowTrunkHashMaxOffset, 31);
+      utility::assertSwitchControl(bcmSwitchMacroFlowTrunkHashStrideOffset, 1);
+      utility::assertSwitchControl(bcmSwitchMacroFlowTrunkHashConcatEnable, 0);
+    } else {
+      utility::assertSwitchControl(
+          bcmSwitchMacroFlowTrunkUnicastHashMinOffset, 16);
+      utility::assertSwitchControl(
+          bcmSwitchMacroFlowTrunkUnicastHashMaxOffset, 31);
+      utility::assertSwitchControl(
+          bcmSwitchMacroFlowTrunkUnicastHashStrideOffset, 1);
+      utility::assertSwitchControl(
+          bcmSwitchMacroFlowTrunkUnicastHashConcatEnable, 0);
+      utility::assertSwitchControl(
+          bcmSwitchMacroFlowTrunkNonUnicastHashMinOffset, 16);
+      utility::assertSwitchControl(
+          bcmSwitchMacroFlowTrunkNonUnicastHashMaxOffset, 31);
+      utility::assertSwitchControl(
+          bcmSwitchMacroFlowTrunkNonUnicastHashStrideOffset, 1);
+      utility::assertSwitchControl(
+          bcmSwitchMacroFlowTrunkNonUnicastHashConcatEnable, 0);
+    }
 
     // Global RTAG7 settings
     utility::assertSwitchControl(bcmSwitchHashSelectControl, 0);
@@ -209,7 +230,6 @@ TEST_F(BcmRtag7Test, programLoadBalancerMap) {
         bcmSwitchMacroFlowHashFieldConfig,
         BcmRtag7Module::getMacroFlowIDHashingAlgorithm());
     utility::assertSwitchControl(bcmSwitchMacroFlowHashUseMSB, 1);
-    utility::assertSwitchControl(bcmSwitchMacroFlowTrunkHashConcatEnable, 0);
     utility::assertSwitchControl(bcmSwitchMacroFlowEcmpHashConcatEnable, 0);
   };
 

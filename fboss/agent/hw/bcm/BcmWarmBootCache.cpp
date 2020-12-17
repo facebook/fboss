@@ -941,7 +941,9 @@ void BcmWarmBootCache::populateRtag7State() {
   ecmpOutputSelectionState_ = BcmRtag7Module::retrieveRtag7OutputState(
       unit, BcmRtag7Module::kEcmpOutputSelectionControl());
   trunkOutputSelectionState_ = BcmRtag7Module::retrieveRtag7OutputState(
-      unit, BcmRtag7Module::kTrunkOutputSelectionControl());
+      unit,
+      BcmRtag7Module::kTrunkOutputSelectionControl(
+          hw_->getPlatform()->getAsic()));
 }
 
 bool BcmWarmBootCache::unitControlMatches(

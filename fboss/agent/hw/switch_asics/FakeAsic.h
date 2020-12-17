@@ -23,6 +23,7 @@ class FakeAsic : public HwAsic {
       case Feature::PTP_TC_PCS:
       case Feature::EGRESS_QUEUE_FLEX_COUNTER:
       case Feature::INGRESS_L3_INTERFACE:
+      case Feature::NON_UNICAST_HASH:
         return false;
 
       default:

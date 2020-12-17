@@ -175,9 +175,15 @@ class BcmRtag7Module {
     int flowBasedHashTableStartingBitIndex;
     int flowBasedHashTableEndingBitIndex;
     int flowBasedHashTableBarrelShiftStride;
+
+    // for non-unicast flows hashing on trunk port
+    std::optional<int> nonUnicastFlowBasedHashTableStartingBitIndex;
+    std::optional<int> nonUnicastFlowBasedHashTableEndingBitIndex;
+    std::optional<int> nonUnicastFlowBasedHashTableBarrelShiftStride;
   };
   static const OutputSelectionControl kEcmpOutputSelectionControl();
-  static const OutputSelectionControl kTrunkOutputSelectionControl();
+  static const OutputSelectionControl kTrunkOutputSelectionControl(
+      const HwAsic* asic);
 
   using ModuleState = boost::container::flat_map<bcm_switch_control_t, int>;
   using ModuleStateRange = folly::Range<ModuleState::iterator>;
