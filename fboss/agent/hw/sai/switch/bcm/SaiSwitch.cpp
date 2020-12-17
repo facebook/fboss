@@ -4,6 +4,8 @@
 
 #include "fboss/agent/hw/sai/api/TamApi.h"
 
+#include <folly/String.h>
+
 extern "C" {
 #include <experimental/saiexperimentalswitch.h>
 #include <experimental/saitamextensions.h>
@@ -25,6 +27,26 @@ std::string eventName(uint32_t eventID) {
   }
   return folly::to<std::string>("unknown event type: ", eventID);
 }
+
+std::string correctionType(sai_switch_correction_type_t type) {
+  switch (type) {
+    case SAI_SWITCH_CORRECTION_TYPE_NO_ACTION:
+      return "SAI_SWITCH_CORRECTION_TYPE_NO_ACTION";
+    case SAI_SWITCH_CORRECTION_TYPE_FAIL_TO_CORRECT:
+      return "SAI_SWITCH_CORRECTION_TYPE_FAIL_TO_CORRECT";
+    case SAI_SWITCH_CORRECTION_TYPE_ENTRY_CLEAR:
+      return "SAI_SWITCH_CORRECTION_TYPE_ENTRY_CLEAR";
+    case SAI_SWITCH_CORRECTION_TYPE_CACHE_RESTORE:
+      return "SAI_SWITCH_CORRECTION_TYPE_CACHE_RESTORE";
+    case SAI_SWITCH_CORRECTION_TYPE_HW_CACHE_RESTORE:
+      return "SAI_SWITCH_CORRECTION_TYPE_HW_CACHE_RESTORE";
+    case SAI_SWITCH_CORRECTION_TYPE_SPECIAL:
+      return "SAI_SWITCH_CORRECTION_TYPE_SPECIAL";
+    case SAI_SWITCH_CORRECTION_TYPE_ALL:
+      return "SAI_SWITCH_CORRECTION_TYPE_ALL";
+  }
+  return "correction-type-unknown";
+}
 } // namespace
 
 namespace facebook::fboss {
@@ -32,11 +54,12 @@ namespace facebook::fboss {
 void SaiSwitch::tamEventCallback(
     sai_object_id_t /*tam_event_id*/,
     sai_size_t /*buffer_size*/,
-    const void* /*buffer*/,
+    const void* buffer,
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   SaiTamEventTraits::Attributes::SwitchEventId eventID{};
-
+  const sai_switch_ser_log_info_t* eventInfo =
+      static_cast<const sai_switch_ser_log_info_t*>(buffer);
   for (auto i = 0; i < attr_count; i++) {
     if (attr_list[i].id == eventID.id()) {
       eventID =
@@ -44,8 +67,19 @@ void SaiSwitch::tamEventCallback(
     }
   }
 
-  XLOG(WARNING) << "received switch event " << eventName(eventID.value());
-
+  std::stringstream sstream;
+  sstream << "received switch event: " << eventName(eventID.value())
+          << ", event info(";
+  bool correctible = true;
+  if (eventInfo) {
+    sstream << "correction type=" << correctionType(eventInfo->correction_type)
+            << " , flags=" << std::hex << eventInfo->correction_type;
+    correctible =
+        (eventInfo->correction_type !=
+         SAI_SWITCH_CORRECTION_TYPE_FAIL_TO_CORRECT);
+  }
+  sstream << ")";
+  XLOG(WARNING) << sstream.str();
   switch (eventID.value()) {
     case SAI_SWITCH_EVENT_TYPE_STABLE_FULL:
     case SAI_SWITCH_EVENT_TYPE_STABLE_ERROR:
@@ -54,9 +88,11 @@ void SaiSwitch::tamEventCallback(
       getSwitchStats()->asicError();
       break;
     case SAI_SWITCH_EVENT_TYPE_PARITY_ERROR:
-      // TODO: extend this when more information on fatality of event is
-      // returned.
-      getSwitchStats()->corrParityError();
+      if (correctible) {
+        getSwitchStats()->corrParityError();
+      } else {
+        getSwitchStats()->uncorrParityError();
+      }
       break;
   }
 }
