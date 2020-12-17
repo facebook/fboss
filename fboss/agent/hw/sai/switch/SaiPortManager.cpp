@@ -334,6 +334,7 @@ void SaiPortManager::changePort(
       GET_ATTR(Port, HwLaneList, newAttributes)};
   auto& portStore = SaiStore::getInstance()->get<SaiPortTraits>();
   auto saiPort = portStore.setObject(portKey, newAttributes, newPort->getID());
+  existingPort->serdes = programSerdes(saiPort, newPort);
   // if vlan changed update it, this is important for rx processing
   if (newPort->getIngressVlan() != oldPort->getIngressVlan()) {
     concurrentIndices_->vlanIds.insert_or_assign(
@@ -708,10 +709,33 @@ std::shared_ptr<SaiPortSerdes> SaiPortManager::programSerdes(
       swPort->getID(), swPort->getProfileID());
   auto rxSettings = platform_->getPlatformPortRxSettings(
       swPort->getID(), swPort->getProfileID());
+
+  auto& portKey = saiPort->adapterHostKey();
+  SaiPortSerdesTraits::AdapterHostKey serdesKey{saiPort->adapterKey()};
+  auto& store = SaiStore::getInstance()->get<SaiPortSerdesTraits>();
+  // check if serdes object already exists for given port,
+  // either already programmed or reloaded from adapter.
+  std::shared_ptr<SaiPortSerdes> serdes = store.get(serdesKey);
+
+  if (!serdes) {
+    // serdes is not yet programmed or reloaded from adapter
+    std::optional<SaiPortTraits::Attributes::SerdesId> serdesAttr{};
+    auto serdesId = SaiApiTable::getInstance()->portApi().getAttribute(
+        saiPort->adapterKey(), serdesAttr);
+    if (serdesId.has_value() && serdesId.value() != SAI_NULL_OBJECT_ID) {
+      // but default serdes exists in the adapter.
+      serdes =
+          store.reloadObject(static_cast<PortSerdesSaiId>(serdesId.value()));
+    }
+  } else {
+    // ensure warm boot handles are reclaimed removed
+    // no-op if serdes is already programmed
+    // remove warm boot handle if reloaded from adapter but not yet programmed
+    serdes = store.setObject(serdesKey, serdes->attributes());
+  }
   if (txSettings.empty() && rxSettings.empty()) {
     return nullptr;
   }
-  auto& portKey = saiPort->adapterHostKey();
   if (!txSettings.empty()) {
     CHECK_EQ(txSettings.size(), portKey.value().size())
         << "some lanes are missing for tx-settings";
@@ -720,11 +744,11 @@ std::shared_ptr<SaiPortSerdes> SaiPortManager::programSerdes(
     CHECK_EQ(rxSettings.size(), portKey.value().size())
         << "some lanes are missing for rx-settings";
   }
-  auto& store = SaiStore::getInstance()->get<SaiPortSerdesTraits>();
-  SaiPortSerdesTraits::AdapterHostKey serdesKey{saiPort->adapterKey()};
   SaiPortSerdesTraits::CreateAttributes serdesAttributes =
       serdesAttributesFromSwPort(saiPort->adapterKey(), swPort);
-  return store.setObject(serdesKey, serdesAttributes);
+  // create if serdes doesn't exist or update existing serdes
+  serdes = store.setObject(serdesKey, serdesAttributes);
+  return serdes;
 }
 
 SaiPortSerdesTraits::CreateAttributes
@@ -759,6 +783,18 @@ SaiPortManager::serdesAttributesFromSwPort(
       }
     }
   }
+  auto setTxRxAttr = [](auto& attrs, auto type, const auto& val) {
+    auto& attr = std::get<std::optional<std::decay_t<decltype(type)>>>(attrs);
+    if (!val.empty()) {
+      attr = val;
+    }
+  };
+  std::get<SaiPortSerdesTraits::Attributes::PortId>(attrs) =
+      static_cast<sai_object_id_t>(portSaiId);
+  setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPre1{}, txPre1);
+  setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPost1{}, txPost1);
+  setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirMain{}, txMain);
+  setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::IDriver{}, txIDriver);
 
   if (!rxSettings.empty()) {
     for (auto& rx : rxSettings) {
@@ -775,28 +811,16 @@ SaiPortManager::serdesAttributesFromSwPort(
         rxAcCouplingByPass.push_back(*acCouplingByPass);
       }
     }
+    setTxRxAttr(
+        attrs, SaiPortSerdesTraits::Attributes::RxCtleCode{}, rxCtleCode);
+    setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::RxDspMode{}, rxDspMode);
+    setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::RxAfeTrim{}, rxAfeTrim);
+    setTxRxAttr(
+        attrs,
+        SaiPortSerdesTraits::Attributes::RxAcCouplingByPass{},
+        rxAcCouplingByPass);
   }
 
-  auto setTxRxAttr = [](auto& attrs, auto type, const auto& val) {
-    auto& attr = std::get<std::optional<std::decay_t<decltype(type)>>>(attrs);
-    if (!val.empty()) {
-      attr = val;
-    }
-  };
-
-  std::get<SaiPortSerdesTraits::Attributes::PortId>(attrs) =
-      static_cast<sai_object_id_t>(portSaiId);
-  setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPre1{}, txPre1);
-  setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPost1{}, txPost1);
-  setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirMain{}, txMain);
-  setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::IDriver{}, txIDriver);
-  setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::RxCtleCode{}, rxCtleCode);
-  setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::RxDspMode{}, rxDspMode);
-  setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::RxAfeTrim{}, rxAfeTrim);
-  setTxRxAttr(
-      attrs,
-      SaiPortSerdesTraits::Attributes::RxAcCouplingByPass{},
-      rxAcCouplingByPass);
   return attrs;
 }
 } // namespace facebook::fboss

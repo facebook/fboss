@@ -81,6 +81,11 @@ class SaiObjectStore {
     static_assert(
         IsSaiObjectOwnedByAdapter<SaiObjectTraits>::value,
         "Only adapter owned SAI objects can be loaded");
+    return reloadObject(adapterKey);
+  }
+
+  std::shared_ptr<ObjectType> reloadObject(
+      const typename SaiObjectTraits::AdapterKey& adapterKey) {
     ObjectType obj(adapterKey);
     auto adapterHostKey = obj.adapterHostKey();
     auto ins = objects_.refOrInsert(adapterHostKey, std::move(obj));
@@ -192,6 +197,10 @@ class SaiObjectStore {
   std::shared_ptr<ObjectType> get(
       const typename SaiObjectTraits::AdapterHostKey& adapterHostKey) {
     XLOGF(DBG5, "SaiStore get object {}", adapterHostKey);
+    auto itr = warmBootHandles_.find(adapterHostKey);
+    if (itr != warmBootHandles_.end()) {
+      return itr->second;
+    }
     return objects_.ref(adapterHostKey);
   }
 

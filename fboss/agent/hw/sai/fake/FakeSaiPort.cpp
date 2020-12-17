@@ -422,6 +422,9 @@ sai_status_t get_port_attribute_fn(
       case SAI_PORT_ATTR_EGRESS_SAMPLEPACKET_ENABLE:
         attr->value.oid = port.egressSamplePacket;
         break;
+      case SAI_PORT_ATTR_PORT_SERDES_ID:
+        attr[i].value.oid = SAI_NULL_OBJECT_ID;
+        break;
 #if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
       case SAI_PORT_ATTR_INGRESS_SAMPLE_MIRROR_SESSION:
         if (port.ingressSampleMirrorList.size() > attr[i].value.objlist.count) {
@@ -442,9 +445,6 @@ sai_status_t get_port_attribute_fn(
           attr[i].value.objlist.list[j] = port.egressSampleMirrorList[j];
         }
         attr[i].value.objlist.count = port.egressSampleMirrorList.size();
-        break;
-      case SAI_PORT_ATTR_PORT_SERDES_ID:
-        attr[i].value.oid = SAI_NULL_OBJECT_ID;
         break;
 #endif
       default:
