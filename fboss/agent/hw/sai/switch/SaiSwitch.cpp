@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
 #include "fboss/agent/Constants.h"
+#include "fboss/agent/LockPolicy.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
 #include "fboss/agent/hw/HwResourceStatsPublisher.h"
@@ -220,15 +221,15 @@ void SaiSwitch::unregisterCallbacks() noexcept {
   fdbEventBottomHalfThread_->join();
 }
 
-template <typename ManagerT>
+template <typename ManagerT, typename LockPolicyT>
 void SaiSwitch::processDefaultDataPlanePolicyDelta(
     const StateDelta& delta,
     ManagerT& mgr,
-    const std::unique_lock<std::mutex>& maybeLocked) {
+    const LockPolicyT& lockPolicy) {
   auto qosDelta = delta.getDefaultDataPlaneQosPolicyDelta();
   auto& qosMapManager = managerTable_->qosMapManager();
   if ((qosDelta.getOld() != qosDelta.getNew())) {
-    auto lock = ensureLocked(maybeLocked);
+    [[maybe_unused]] const auto& lock = lockPolicy.lock();
     if (qosDelta.getOld() && qosDelta.getNew()) {
       if (*qosDelta.getOld() != *qosDelta.getNew()) {
         mgr.clearQosPolicy();
@@ -246,14 +247,15 @@ void SaiSwitch::processDefaultDataPlanePolicyDelta(
   }
 }
 
+template <typename LockPolicyT>
 void SaiSwitch::processLinkStateChangeDelta(
     const StateDelta& delta,
-    const std::unique_lock<std::mutex>& maybeLocked) {
+    const LockPolicyT& lockPolicy) {
   DeltaFunctions::forEachChanged(
       delta.getPortsDelta(),
       [&](const std::shared_ptr<Port>& oldPort,
           const std::shared_ptr<Port>& newPort) {
-        auto lock = ensureLocked(maybeLocked);
+        [[maybe_unused]] const auto& lock = lockPolicy.lock();
         if (!oldPort->isEnabled() && !newPort->isEnabled()) {
           return;
         }
@@ -314,8 +316,8 @@ void SaiSwitch::rollback(
   // 2-4 are exactly the same as what we do for warmboot and piggy back
   // heavily on it for both code reuse and correctness
   try {
-    std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-    auto hwSwitchJson = toFollyDynamicLocked(lock);
+    CoarseGrainedLockPolicy lockPolicy(saiSwitchMutex_);
+    auto hwSwitchJson = toFollyDynamicLocked(lockPolicy.lock());
     {
       HwWriteBehvaiorRAII writeBehavior{HwWriteBehavior::SKIP};
       managerTable_->reset(true /*skip switch manager reset*/);
@@ -325,7 +327,7 @@ void SaiSwitch::rollback(
     // will restore it once we are done with roll back.
     bootType_ = BootType::WARM_BOOT;
     initStoreAndManagersLocked(
-        lock,
+        lockPolicy.lock(),
         // We are being strict here in the sense of not allowing any HW
         // writes during this reinit of managers. However this does rely
         // on SaiStore being able to fetch exact state via get apis. If
@@ -336,17 +338,9 @@ void SaiSwitch::rollback(
         HwWriteBehavior::FAIL,
         &hwSwitchJson[kAdapterKeys],
         &hwSwitchJson[kAdapterKey2AdapterHostKey]);
-    {
-      std::unique_lock<std::mutex> adoptLock(saiSwitchMutex_, std::adopt_lock);
-      SCOPE_EXIT {
-        // Release adopted ownership so lock_guard release it at the end of
-        // this rollback block
-        adoptLock.release();
-      };
-      stateChangedImpl(
-          StateDelta(std::make_shared<SwitchState>(), knownGoodState),
-          adoptLock);
-    }
+    stateChangedImpl(
+        StateDelta(std::make_shared<SwitchState>(), knownGoodState),
+        lockPolicy);
     SaiStore::getInstance()->printWarmbootHandles();
     SaiStore::getInstance()->removeUnexpectedUnclaimedWarmbootHandles();
     bootType_ = curBootType;
@@ -405,93 +399,86 @@ bool SaiSwitch::l2LearningModeChangeProhibited() const {
 }
 
 std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
-  std::unique_lock<std::mutex> unlocked;
-  return stateChangedImpl(delta, unlocked);
+  FineGrainedLockPolicy lockPolicy(saiSwitchMutex_);
+  return stateChangedImpl(delta, lockPolicy);
 }
 
-std::unique_lock<std::mutex> SaiSwitch::ensureLocked(
-    const std::unique_lock<std::mutex>& maybeLocked) const {
-  // If already locked do nothing and return a no op unique_lock
-  // Otherwise acuire the lock for caller and pass back the ownership.
-  return maybeLocked ? std::unique_lock<std::mutex>()
-                     : std::unique_lock<std::mutex>(saiSwitchMutex_);
-}
-
+template <typename LockPolicyT>
 std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
     const StateDelta& delta,
-    const std::unique_lock<std::mutex>& maybeLocked) {
+    const LockPolicyT& lockPolicy) {
   processRemovedDelta(
       delta.getPortsDelta(),
       managerTable_->portManager(),
-      &SaiPortManager::removePort,
-      maybeLocked);
+      lockPolicy,
+      &SaiPortManager::removePort);
   processChangedDelta(
       delta.getPortsDelta(),
       managerTable_->portManager(),
-      &SaiPortManager::changePort,
-      maybeLocked);
+      lockPolicy,
+      &SaiPortManager::changePort);
   processAddedDelta(
       delta.getPortsDelta(),
       managerTable_->portManager(),
-      &SaiPortManager::addPort,
-      maybeLocked);
+      lockPolicy,
+      &SaiPortManager::addPort);
   processDelta(
       delta.getVlansDelta(),
       managerTable_->vlanManager(),
+      lockPolicy,
       &SaiVlanManager::changeVlan,
       &SaiVlanManager::addVlan,
-      &SaiVlanManager::removeVlan,
-      maybeLocked);
+      &SaiVlanManager::removeVlan);
 
   // LAGs
   processDelta(
       delta.getAggregatePortsDelta(),
       managerTable_->lagManager(),
+      lockPolicy,
       &SaiUnsupportedFeatureManager::processChanged,
       &SaiUnsupportedFeatureManager::processAdded,
-      &SaiUnsupportedFeatureManager::processRemoved,
-      maybeLocked);
+      &SaiUnsupportedFeatureManager::processRemoved);
 
   if (platform_->getAsic()->isSupported(HwAsic::Feature::QOS_MAP_GLOBAL)) {
     processDefaultDataPlanePolicyDelta(
-        delta, managerTable_->switchManager(), maybeLocked);
+        delta, managerTable_->switchManager(), lockPolicy);
   } else {
     processDefaultDataPlanePolicyDelta(
-        delta, managerTable_->portManager(), maybeLocked);
+        delta, managerTable_->portManager(), lockPolicy);
   }
 
   processDelta(
       delta.getIntfsDelta(),
       managerTable_->routerInterfaceManager(),
+      lockPolicy,
       &SaiRouterInterfaceManager::changeRouterInterface,
       &SaiRouterInterfaceManager::addRouterInterface,
-      &SaiRouterInterfaceManager::removeRouterInterface,
-      maybeLocked);
+      &SaiRouterInterfaceManager::removeRouterInterface);
 
   for (const auto& vlanDelta : delta.getVlansDelta()) {
     processDelta(
         vlanDelta.getArpDelta(),
         managerTable_->neighborManager(),
+        lockPolicy,
         &SaiNeighborManager::changeNeighbor<ArpEntry>,
         &SaiNeighborManager::addNeighbor<ArpEntry>,
-        &SaiNeighborManager::removeNeighbor<ArpEntry>,
-        maybeLocked);
+        &SaiNeighborManager::removeNeighbor<ArpEntry>);
 
     processDelta(
         vlanDelta.getNdpDelta(),
         managerTable_->neighborManager(),
+        lockPolicy,
         &SaiNeighborManager::changeNeighbor<NdpEntry>,
         &SaiNeighborManager::addNeighbor<NdpEntry>,
-        &SaiNeighborManager::removeNeighbor<NdpEntry>,
-        maybeLocked);
+        &SaiNeighborManager::removeNeighbor<NdpEntry>);
 
     processDelta(
         vlanDelta.getMacDelta(),
         managerTable_->fdbManager(),
+        lockPolicy,
         &SaiFdbManager::changeMac,
         &SaiFdbManager::addMac,
-        &SaiFdbManager::removeMac,
-        maybeLocked);
+        &SaiFdbManager::removeMac);
   }
 
   for (const auto& routeDelta : delta.getRouteTablesDelta()) {
@@ -500,26 +487,26 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
     processDelta(
         routeDelta.getRoutesV4Delta(),
         managerTable_->routeManager(),
+        lockPolicy,
         &SaiRouteManager::changeRoute<folly::IPAddressV4>,
         &SaiRouteManager::addRoute<folly::IPAddressV4>,
         &SaiRouteManager::removeRoute<folly::IPAddressV4>,
-        maybeLocked,
         routerID);
 
     processDelta(
         routeDelta.getRoutesV6Delta(),
         managerTable_->routeManager(),
+        lockPolicy,
         &SaiRouteManager::changeRoute<folly::IPAddressV6>,
         &SaiRouteManager::addRoute<folly::IPAddressV6>,
         &SaiRouteManager::removeRoute<folly::IPAddressV6>,
-        maybeLocked,
         routerID);
   }
 
   {
     auto controlPlaneDelta = delta.getControlPlaneDelta();
     if (controlPlaneDelta.getOld() != controlPlaneDelta.getNew()) {
-      auto lock = ensureLocked(maybeLocked);
+      [[maybe_unused]] const auto& lock = lockPolicy.lock();
       managerTable_->hostifManager().processHostifDelta(controlPlaneDelta);
     }
   }
@@ -527,42 +514,42 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
   processDelta(
       delta.getLabelForwardingInformationBaseDelta(),
       managerTable_->inSegEntryManager(),
+      lockPolicy,
       &SaiInSegEntryManager::processChangedInSegEntry,
       &SaiInSegEntryManager::processAddedInSegEntry,
-      &SaiInSegEntryManager::processRemovedInSegEntry,
-      maybeLocked);
+      &SaiInSegEntryManager::processRemovedInSegEntry);
   processDelta(
       delta.getLoadBalancersDelta(),
       managerTable_->switchManager(),
+      lockPolicy,
       &SaiSwitchManager::changeLoadBalancer,
       &SaiSwitchManager::addOrUpdateLoadBalancer,
-      &SaiSwitchManager::removeLoadBalancer,
-      maybeLocked);
+      &SaiSwitchManager::removeLoadBalancer);
 
   processDelta(
       delta.getAclsDelta(),
       managerTable_->aclTableManager(),
+      lockPolicy,
       &SaiAclTableManager::changedAclEntry,
       &SaiAclTableManager::addAclEntry,
       &SaiAclTableManager::removeAclEntry,
-      maybeLocked,
       kAclTable1);
 
-  processSwitchSettingsChanged(delta, maybeLocked);
+  processSwitchSettingsChanged(delta, lockPolicy);
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::RESOURCE_USAGE_STATS)) {
-    updateResourceUsage(maybeLocked);
+    updateResourceUsage(lockPolicy);
   }
 
   // Process link state change delta and update the LED status
-  processLinkStateChangeDelta(delta, maybeLocked);
+  processLinkStateChangeDelta(delta, lockPolicy);
 
   return delta.newState();
 }
 
-void SaiSwitch::updateResourceUsage(
-    const std::unique_lock<std::mutex>& maybeLocked) {
-  auto lock = ensureLocked(maybeLocked);
+template <typename LockPolicyT>
+void SaiSwitch::updateResourceUsage(const LockPolicyT& lockPolicy) {
+  [[maybe_unused]] const auto& lock = lockPolicy.lock();
   auto aclTableHandle =
       managerTable_->aclTableManager().getAclTableHandle(kAclTable1);
   auto aclTableId = aclTableHandle->aclTable->adapterKey();
@@ -601,9 +588,10 @@ void SaiSwitch::updateResourceUsage(
   }
 }
 
+template <typename LockPolicyT>
 void SaiSwitch::processSwitchSettingsChanged(
     const StateDelta& delta,
-    const std::unique_lock<std::mutex>& maybeLocked) {
+    const LockPolicyT& lockPolicy) {
   const auto switchSettingsDelta = delta.getSwitchSettingsDelta();
   const auto& oldSwitchSettings = switchSettingsDelta.getOld();
   const auto& newSwitchSettings = switchSettingsDelta.getNew();
@@ -618,11 +606,11 @@ void SaiSwitch::processSwitchSettingsChanged(
   if (oldSwitchSettings != newSwitchSettings) {
     if (oldSwitchSettings->getL2LearningMode() !=
         newSwitchSettings->getL2LearningMode()) {
-      auto lock = ensureLocked(maybeLocked);
       XLOG(DBG3) << "Configuring L2LearningMode old: "
                  << static_cast<int>(oldSwitchSettings->getL2LearningMode())
                  << " new: "
                  << static_cast<int>(newSwitchSettings->getL2LearningMode());
+      [[maybe_unused]] const auto& lock = lockPolicy.lock();
       managerTable_->portManager().setL2LearningMode(
           newSwitchSettings->getL2LearningMode());
     }
@@ -1485,6 +1473,7 @@ std::optional<L2Entry> SaiSwitch::getL2Entry(
 template <
     typename Delta,
     typename Manager,
+    typename LockPolicyT,
     typename... Args,
     typename ChangeFunc,
     typename AddedFunc,
@@ -1492,24 +1481,24 @@ template <
 void SaiSwitch::processDelta(
     Delta delta,
     Manager& manager,
+    const LockPolicyT& lockPolicy,
     ChangeFunc changedFunc,
     AddedFunc addedFunc,
     RemovedFunc removedFunc,
-    const std::unique_lock<std::mutex>& maybeLocked,
     Args... args) {
   DeltaFunctions::forEachChanged(
       delta,
       [&](const std::shared_ptr<typename Delta::Node>& removed,
           const std::shared_ptr<typename Delta::Node>& added) {
-        auto lock = ensureLocked(maybeLocked);
+        [[maybe_unused]] const auto& lock = lockPolicy.lock();
         (manager.*changedFunc)(removed, added, args...);
       },
       [&](const std::shared_ptr<typename Delta::Node>& added) {
-        auto lock = ensureLocked(maybeLocked);
+        [[maybe_unused]] const auto& lock = lockPolicy.lock();
         (manager.*addedFunc)(added, args...);
       },
       [&](const std::shared_ptr<typename Delta::Node>& removed) {
-        auto lock = ensureLocked(maybeLocked);
+        [[maybe_unused]] const auto& lock = lockPolicy.lock();
         (manager.*removedFunc)(removed, args...);
       });
 }
@@ -1517,19 +1506,20 @@ void SaiSwitch::processDelta(
 template <
     typename Delta,
     typename Manager,
+    typename LockPolicyT,
     typename... Args,
     typename ChangeFunc>
 void SaiSwitch::processChangedDelta(
     Delta delta,
     Manager& manager,
+    const LockPolicyT& lockPolicy,
     ChangeFunc changedFunc,
-    const std::unique_lock<std::mutex>& maybeLocked,
     Args... args) {
   DeltaFunctions::forEachChanged(
       delta,
       [&](const std::shared_ptr<typename Delta::Node>& added,
           const std::shared_ptr<typename Delta::Node>& removed) {
-        auto lock = ensureLocked(maybeLocked);
+        [[maybe_unused]] const auto& lock = lockPolicy.lock();
         (manager.*changedFunc)(added, removed, args...);
       });
 }
@@ -1537,17 +1527,18 @@ void SaiSwitch::processChangedDelta(
 template <
     typename Delta,
     typename Manager,
+    typename LockPolicyT,
     typename... Args,
     typename AddedFunc>
 void SaiSwitch::processAddedDelta(
     Delta delta,
     Manager& manager,
+    const LockPolicyT& lockPolicy,
     AddedFunc addedFunc,
-    const std::unique_lock<std::mutex>& maybeLocked,
     Args... args) {
   DeltaFunctions::forEachAdded(
       delta, [&](const std::shared_ptr<typename Delta::Node>& added) {
-        auto lock = ensureLocked(maybeLocked);
+        [[maybe_unused]] const auto& lock = lockPolicy.lock();
         (manager.*addedFunc)(added, args...);
       });
 }
@@ -1555,17 +1546,18 @@ void SaiSwitch::processAddedDelta(
 template <
     typename Delta,
     typename Manager,
+    typename LockPolicyT,
     typename... Args,
     typename RemovedFunc>
 void SaiSwitch::processRemovedDelta(
     Delta delta,
     Manager& manager,
+    const LockPolicyT& lockPolicy,
     RemovedFunc removedFunc,
-    const std::unique_lock<std::mutex>& maybeLocked,
     Args... args) {
   DeltaFunctions::forEachRemoved(
       delta, [&](const std::shared_ptr<typename Delta::Node>& removed) {
-        auto lock = ensureLocked(maybeLocked);
+        [[maybe_unused]] const auto& lock = lockPolicy.lock();
         (manager.*removedFunc)(removed, args...);
       });
 }
