@@ -54,6 +54,9 @@ class BcmSwitchEnsemble : public HwSwitchEnsemble {
 
   void runDiagCommand(const std::string& input, std::string& output) override;
 
+  void init(
+      const HwSwitchEnsemble::HwSwitchEnsembleInitInfo* /*info*/) override {}
+
  private:
   std::unique_ptr<std::thread> setupThrift() override {
     return createThriftThread(getHwSwitch());

@@ -44,6 +44,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
         L2Entry l2Entry,
         L2EntryUpdateType l2EntryUpdateType) = 0;
   };
+  struct HwSwitchEnsembleInitInfo {};
   enum Feature : uint32_t {
     PACKET_RX,
     LINKSCAN,
@@ -90,6 +91,9 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   const HwAsic* getAsic() const {
     return getPlatform()->getAsic();
   }
+  virtual void init(
+      const HwSwitchEnsemble::HwSwitchEnsembleInitInfo* /*info*/) = 0;
+
   void packetReceived(std::unique_ptr<RxPacket> pkt) noexcept override;
   void linkStateChanged(PortID port, bool up) override;
   void l2LearningUpdateReceived(
