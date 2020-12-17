@@ -5,6 +5,10 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
+namespace {
+constexpr auto kDefaultMemberWeight = 1;
+}
+
 namespace facebook::fboss {
 
 void BcmEgressManager::updatePortToEgressMapping(
@@ -75,20 +79,21 @@ void BcmEgressManager::linkStateChangedMaybeLocked(
         hw_->getUnit(),
         portAndEgressIds->getEgressIds(),
         up,
-        hw_->getPlatform()->getAsic()->isSupported(
-            HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER));
+        hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::HSDK));
   }
 }
 
 template <typename T>
-BcmEcmpEgress::EgressId BcmEgressManager::toEgressId(T egress) {
-  return egress;
+BcmEgressManager::EgressIdAndWeight BcmEgressManager::toEgressIdAndWeight(
+    T egress) {
+  return std::make_pair(egress, kDefaultMemberWeight);
 }
 
 template <>
-BcmEcmpEgress::EgressId BcmEgressManager::toEgressId<bcm_l3_ecmp_member_t>(
+BcmEgressManager::EgressIdAndWeight
+BcmEgressManager::toEgressIdAndWeight<bcm_l3_ecmp_member_t>(
     bcm_l3_ecmp_member_t egress) {
-  return egress.egress_if;
+  return std::make_pair(egress.egress_if, egress.weight);
 }
 
 template <typename T>
@@ -103,13 +108,19 @@ int BcmEgressManager::removeAllEgressesFromEcmpCallback(
   // remove it from the ecmp group.
   auto egressesToRemove =
       static_cast<std::pair<EgressIdSet*, bool>*>(userData)->first;
-  auto ucmpSupported =
-      static_cast<std::pair<EgressIdSet*, bool>*>(userData)->second;
+  auto useHsdk = static_cast<std::pair<EgressIdSet*, bool>*>(userData)->second;
+  auto ucmpSupported = ecmp->ecmp_group_flags == BCM_L3_ECMP_MEMBER_WEIGHTED;
   for (int i = 0; i < memberCount; ++i) {
-    BcmEcmpEgress::EgressId egressInHw = toEgressId<T>(memberArray[i]);
-    if (egressesToRemove->find(egressInHw) != egressesToRemove->end()) {
+    auto egressInHw = toEgressIdAndWeight<T>(memberArray[i]);
+    if (egressesToRemove->find(egressInHw.first) != egressesToRemove->end()) {
       BcmEcmpEgress::removeEgressIdHwNotLocked(
-          unit, ecmp->ecmp_intf, std::make_pair(egressInHw, 1), ucmpSupported);
+          unit,
+          ecmp->ecmp_intf,
+          ucmpSupported
+              ? egressInHw
+              : std::make_pair(egressInHw.first, kDefaultMemberWeight),
+          ucmpSupported,
+          useHsdk);
     }
   }
   return 0;
@@ -119,11 +130,11 @@ void BcmEgressManager::egressResolutionChangedHwNotLocked(
     int unit,
     const EgressIdSet& affectedEgressIds,
     bool up,
-    bool ucmpSupported) {
+    bool useHsdk) {
   CHECK(!up);
   EgressIdSet tmpEgressIds(affectedEgressIds);
-  auto userData = std::make_pair(&tmpEgressIds, ucmpSupported);
-  if (ucmpSupported) {
+  auto userData = std::make_pair(&tmpEgressIds, useHsdk);
+  if (useHsdk) {
     bcm_l3_ecmp_traverse(
         unit,
         removeAllEgressesFromEcmpCallback<bcm_l3_ecmp_member_t>,

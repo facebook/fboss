@@ -300,6 +300,9 @@ BcmEcmpEgress::BcmEcmpEgress(
           HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER)) {
     ucmpSupported_ = true;
   }
+  if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::HSDK)) {
+    useHsdk_ = true;
+  }
   program();
 }
 
@@ -308,12 +311,7 @@ void BcmEcmpEgress::program() {
   bcm_l3_egress_ecmp_t_init(&obj);
   int numPaths = 0;
   if (ucmpSupported_) {
-    // TODO(daiweix): use this line and remove the for loop
-    // when native wecmp is ready
-    // numPaths = egressId2Weight_.size();
-    for (auto path : egressId2Weight_) {
-      numPaths += path.second;
-    }
+    numPaths = egressId2Weight_.size();
   } else {
     for (auto path : egressId2Weight_) {
       numPaths += path.second;
@@ -354,29 +352,45 @@ void BcmEcmpEgress::program() {
                << ((obj.flags & BCM_L3_REPLACE) ? " replace" : " noreplace")
                << ((obj.flags & BCM_L3_WITH_ID) ? " with id" : " without id");
     int ret = 0;
-    if (ucmpSupported_) {
-      // @lint-ignore HOWTOEVEN CArray
+    if (useHsdk_) {
+      if (ucmpSupported_) {
+        // TODO(daiweix): use 512 for now before confirming the right way to set
+        // max_paths with native wecmp support in CS00011368811
+        obj.max_paths = 512;
+        obj.ecmp_group_flags = BCM_L3_ECMP_MEMBER_WEIGHTED;
+      }
+      // @lint-ignore HOWTOEVEN CLANGTIDY CArray
       bcm_l3_ecmp_member_t ecmpMemberArray[numPaths];
       auto idx = 0;
       for (const auto& path : egressId2Weight_) {
-        // TODO(daiweix): use BCM_L3_ECMP_MEMBER_WEIGHTED flag when
-        // native wecmp is ready
-        for (int i = 0; i < path.second; i++) {
+        if (ucmpSupported_) {
           if (hw_->getEgressManager()->isResolved(path.first)) {
             bcm_l3_ecmp_member_t_init(&ecmpMemberArray[idx]);
             ecmpMemberArray[idx].egress_if = path.first;
+            ecmpMemberArray[idx].weight = path.second;
             idx++;
           } else {
             XLOG(DBG1) << "Skipping unresolved egress : " << path.first
-                       << " while "
-                       << "programming ECMP group ";
+                       << " while programming ECMP group ";
+          }
+        } else {
+          for (int i = 0; i < path.second; i++) {
+            if (hw_->getEgressManager()->isResolved(path.first)) {
+              bcm_l3_ecmp_member_t_init(&ecmpMemberArray[idx]);
+              ecmpMemberArray[idx].egress_if = path.first;
+              idx++;
+            } else {
+              XLOG(DBG1) << "Skipping unresolved egress : " << path.first
+                         << " while "
+                         << "programming ECMP group ";
+            }
           }
         }
       }
       ret = bcm_l3_ecmp_create(
           hw_->getUnit(), option, &obj, idx, ecmpMemberArray);
     } else {
-      // @lint-ignore HOWTOEVEN CArray
+      // @lint-ignore HOWTOEVEN CLANGTIDY CArray
       bcm_if_t pathsArray[numPaths];
       auto index = 0;
       for (const auto& path : egressId2Weight_) {
@@ -411,7 +425,7 @@ BcmEcmpEgress::~BcmEcmpEgress() {
     return;
   }
   int ret;
-  if (ucmpSupported_) {
+  if (useHsdk_) {
     ret = bcm_l3_ecmp_destroy(hw_->getUnit(), id_);
   } else {
     bcm_l3_egress_ecmp_t obj;
@@ -432,7 +446,12 @@ BcmEcmpEgress::~BcmEcmpEgress() {
 
 bool BcmEcmpEgress::pathUnreachableHwLocked(EgressId path) {
   return removeEgressIdHwLocked(
-      hw_->getUnit(), getID(), egressId2Weight_, path, ucmpSupported_);
+      hw_->getUnit(),
+      getID(),
+      egressId2Weight_,
+      path,
+      ucmpSupported_,
+      useHsdk_);
 }
 
 bool BcmEcmpEgress::pathReachableHwLocked(EgressId path) {
@@ -442,7 +461,8 @@ bool BcmEcmpEgress::pathReachableHwLocked(EgressId path) {
       egressId2Weight_,
       path,
       hw_->getRunState(),
-      ucmpSupported_);
+      ucmpSupported_,
+      useHsdk_);
 }
 
 bool BcmEcmpEgress::removeEgressIdHwLocked(
@@ -450,7 +470,8 @@ bool BcmEcmpEgress::removeEgressIdHwLocked(
     EgressId ecmpId,
     const EgressId2Weight& egressIdInSw,
     EgressId toRemove,
-    bool ucmpSupported) {
+    bool ucmpSupported,
+    bool useHsdk) {
   auto it = egressIdInSw.find(toRemove);
   if (it == egressIdInSw.end() || it->second == 0) {
     return false;
@@ -458,7 +479,11 @@ bool BcmEcmpEgress::removeEgressIdHwLocked(
   // We don't really need the lock here so safe to call the
   // stricter non locked version.
   return removeEgressIdHwNotLocked(
-      unit, ecmpId, std::make_pair(toRemove, it->second), ucmpSupported);
+      unit,
+      ecmpId,
+      std::make_pair(toRemove, it->second),
+      ucmpSupported,
+      useHsdk);
 }
 
 void BcmEgress::programToTrunk(
@@ -554,16 +579,56 @@ bool BcmEcmpEgress::removeEgressIdHwNotLocked(
     int unit,
     EgressId ecmpId,
     std::pair<EgressId, int> toRemove,
-    bool ucmpSupported) {
+    bool ucmpSupported,
+    bool useHsdk) {
   int ret = 0;
-  if (ucmpSupported) {
+  if (useHsdk) {
     bcm_l3_ecmp_member_t member;
     bcm_l3_ecmp_member_t_init(&member);
     member.egress_if = toRemove.first;
-    // TODO(daiweix): remove below for loop when native wecmp
-    // support is ready
-    for (int i = 0; i < toRemove.second; i++) {
-      ret = bcm_l3_ecmp_member_delete(unit, ecmpId, &member);
+    if (ucmpSupported) {
+      int totalMembersInHw;
+      int memberIndex = -1;
+      bcm_l3_egress_ecmp_t existing;
+      bcm_l3_egress_ecmp_t_init(&existing);
+      existing.ecmp_intf = ecmpId;
+      ret = bcm_l3_ecmp_get(unit, &existing, 0, nullptr, &totalMembersInHw);
+      bcmCheckError(ret, "Unable to get ecmp entry ", ecmpId);
+      // @lint-ignore HOWTOEVEN CLANGTIDY CArray
+      bcm_l3_ecmp_member_t membersInHw[totalMembersInHw];
+      ret = bcm_l3_ecmp_get(
+          unit, &existing, totalMembersInHw, membersInHw, &totalMembersInHw);
+      bcmCheckError(ret, "Unable to get ecmp entry ", ecmpId);
+      for (size_t i = 0; i < totalMembersInHw; ++i) {
+        if (toRemove.first == membersInHw[i].egress_if) {
+          memberIndex = i;
+          break;
+        }
+      }
+      if (memberIndex != -1) {
+        if (membersInHw[memberIndex].weight <= toRemove.second) {
+          // delete this member
+          ret = bcm_l3_ecmp_member_delete(unit, ecmpId, &member);
+        } else {
+          // update weight of this member
+          membersInHw[memberIndex].weight -= toRemove.second;
+          ret = bcm_l3_ecmp_create(
+              unit,
+              BCM_L3_ECMP_O_CREATE_WITH_ID | BCM_L3_ECMP_O_REPLACE,
+              &existing,
+              totalMembersInHw,
+              membersInHw);
+        }
+      } else {
+        ret = BCM_E_NOT_FOUND;
+      }
+    } else {
+      for (int i = 0; i < toRemove.second; i++) {
+        ret = bcm_l3_ecmp_member_delete(unit, ecmpId, &member);
+        if (ret) {
+          break;
+        }
+      }
     }
   } else {
     for (int i = 0; i < toRemove.second; i++) {
@@ -607,7 +672,8 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
     const EgressId2Weight& egressId2WeightInSw,
     EgressId toAdd,
     SwitchRunState runState,
-    bool ucmpSupported) {
+    bool ucmpSupported,
+    bool useHsdk) {
   if (egressId2WeightInSw.find(toAdd) == egressId2WeightInSw.end()) {
     // Egress id is not part of this ecmp group. Nothing
     // to do.
@@ -615,12 +681,7 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
   }
   int numPaths = 0;
   if (ucmpSupported) {
-    // TODO(daiweix): use this line and remove the for loop
-    // when native wecmp is ready
-    // numPaths = egressId2WeightInSw.size();
-    for (auto path : egressId2WeightInSw) {
-      numPaths += path.second;
-    }
+    numPaths = egressId2WeightInSw.size();
   } else {
     for (auto path : egressId2WeightInSw) {
       numPaths += path.second;
@@ -655,21 +716,28 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
   existing.ecmp_intf = ecmpId;
   int countInHw = 0;
   int ret;
+  // @lint-ignore HOWTOEVEN CLANGTIDY CArray
+  bcm_l3_ecmp_member_t membersInHw[numPaths];
+  int totalMembersInHw = -1;
+  int memberIndex = -1;
 
-  if (ucmpSupported) {
-    // @lint-ignore HOWTOEVEN CArray
-    bcm_l3_ecmp_member_t pathsInHw[numPaths];
-    int totalPathsInHw;
-    ret =
-        bcm_l3_ecmp_get(unit, &existing, numPaths, pathsInHw, &totalPathsInHw);
+  if (useHsdk) {
+    ret = bcm_l3_ecmp_get(
+        unit, &existing, numPaths, membersInHw, &totalMembersInHw);
     bcmCheckError(ret, "Unable to get ecmp entry ", ecmpId);
-    for (size_t i = 0; i < totalPathsInHw; ++i) {
-      if (toAdd == pathsInHw[i].egress_if) {
-        ++countInHw;
+    for (size_t i = 0; i < totalMembersInHw; ++i) {
+      if (toAdd == membersInHw[i].egress_if) {
+        if (ucmpSupported) {
+          countInHw = membersInHw[i].weight;
+          memberIndex = i;
+          break;
+        } else {
+          ++countInHw;
+        }
       }
     }
   } else {
-    // @lint-ignore HOWTOEVEN CArray
+    // @lint-ignore HOWTOEVEN CLANGTIDY CArray
     bcm_if_t pathsInHw[numPaths];
     int totalPathsInHw;
     ret = bcm_l3_egress_ecmp_get(
@@ -686,18 +754,46 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
     return false; // Already exists no need to update
   }
 
-  if (ucmpSupported) {
-    for (int i = 0; i < countInSw - countInHw; ++i) {
-      bcm_l3_ecmp_member_t member;
-      bcm_l3_ecmp_member_t_init(&member);
-      member.egress_if = toAdd;
-      ret = bcm_l3_ecmp_member_add(unit, ecmpId, &member);
-      bcmCheckError(ret, "Error adding ", toAdd, " to ", ecmpId);
-      if (runState < SwitchRunState::INITIALIZED) {
-        XLOG(DBG1) << "Added " << toAdd << " to " << ecmpId
-                   << " before transitioning to INIT state";
+  if (useHsdk) {
+    if (ucmpSupported) {
+      if (memberIndex != -1) {
+        // member already exists, just update its weight
+        membersInHw[memberIndex].weight = countInSw;
+        ret = bcm_l3_ecmp_create(
+            unit,
+            BCM_L3_ECMP_O_CREATE_WITH_ID | BCM_L3_ECMP_O_REPLACE,
+            &existing,
+            totalMembersInHw,
+            membersInHw);
+        bcmCheckError(
+            ret,
+            "Error updating weight of member ",
+            toAdd,
+            " in ecmp entry ",
+            ecmpId);
       } else {
-        XLOG(DBG1) << "Added " << toAdd << " to " << ecmpId;
+        // member does not exist, add it
+        bcm_l3_ecmp_member_t member;
+        bcm_l3_ecmp_member_t_init(&member);
+        member.egress_if = toAdd;
+        member.weight = countInSw;
+        ret = bcm_l3_ecmp_member_add(unit, ecmpId, &member);
+        bcmCheckError(
+            ret, "Error adding member ", toAdd, " to ecmp entry ", ecmpId);
+      }
+    } else {
+      for (int i = 0; i < countInSw - countInHw; ++i) {
+        bcm_l3_ecmp_member_t member;
+        bcm_l3_ecmp_member_t_init(&member);
+        member.egress_if = toAdd;
+        ret = bcm_l3_ecmp_member_add(unit, ecmpId, &member);
+        bcmCheckError(ret, "Error adding ", toAdd, " to ", ecmpId);
+        if (runState < SwitchRunState::INITIALIZED) {
+          XLOG(DBG1) << "Added " << toAdd << " to " << ecmpId
+                     << " before transitioning to INIT state";
+        } else {
+          XLOG(DBG1) << "Added " << toAdd << " to " << ecmpId;
+        }
       }
     }
   } else {

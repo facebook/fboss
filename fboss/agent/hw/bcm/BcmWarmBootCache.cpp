@@ -521,8 +521,7 @@ void BcmWarmBootCache::populate(std::optional<folly::dynamic> warmBootState) {
   rv = bcm_l3_egress_traverse(hw_->getUnit(), egressTraversalCallback, this);
   bcmCheckError(rv, "Failed to traverse egress");
   // Traverse ecmp egress entries
-  if (hw_->getPlatform()->getAsic()->isSupported(
-          HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER)) {
+  if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::HSDK)) {
     rv = bcm_l3_ecmp_traverse(
         hw_->getUnit(),
         ecmpEgressTraversalCallback<bcm_l3_ecmp_member_t>,
@@ -794,8 +793,7 @@ void BcmWarmBootCache::clear() {
     XLOG(DBG1) << "Deleting ecmp egress object  " << ecmp.ecmp_intf
                << " pointing to : " << toEgressId2WeightStr(idsAndEcmp.first);
     int rv;
-    if (hw_->getPlatform()->getAsic()->isSupported(
-            HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER)) {
+    if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::HSDK)) {
       rv = bcm_l3_ecmp_destroy(hw_->getUnit(), ecmp.ecmp_intf);
     } else {
       rv = bcm_l3_egress_ecmp_destroy(hw_->getUnit(), &ecmp);

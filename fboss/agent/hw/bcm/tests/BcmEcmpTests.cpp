@@ -109,7 +109,7 @@ TEST_F(BcmEcmpTest, SearchMissingEgressInECMP) {
     for (const auto& egressId : egressIdsInSw) {
       int rv = 0;
       if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
-              HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER)) {
+              HwAsic::Feature::HSDK)) {
         bcm_l3_ecmp_member_t member;
         bcm_l3_ecmp_member_t_init(&member);
         member.egress_if = egressId.first;

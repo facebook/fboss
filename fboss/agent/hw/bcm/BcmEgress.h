@@ -177,23 +177,28 @@ class BcmEcmpEgress : public BcmEgressBase {
       const EgressId2Weight& egressIdInSw,
       EgressId toAdd,
       SwitchRunState runState,
-      bool ucmpSupported);
+      bool ucmpSupported,
+      bool useHsdk);
   static bool removeEgressIdHwNotLocked(
       int unit,
       EgressId ecmpId,
       std::pair<EgressId, int> toRemove,
-      bool ucmpSupported);
+      bool ucmpSupported,
+      bool useHsdk);
   static bool removeEgressIdHwLocked(
       int unit,
       EgressId ecmpId,
       const EgressId2Weight& egressIdInSw,
       EgressId toRemove,
-      bool ucmpSupported);
+      bool ucmpSupported,
+      bool useHsdk);
 
  private:
   void program();
   const EgressId2Weight egressId2Weight_;
   bool ucmpSupported_{false};
+  // TODO(daiweix): remove this flag when all TH4 devices use B0 chip
+  bool useHsdk_{false};
 };
 
 bool operator==(const bcm_l3_egress_t& lhs, const bcm_l3_egress_t& rhs);

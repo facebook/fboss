@@ -95,8 +95,9 @@ class BcmEgressManager {
       const EgressIdSet& affectedEgressIds,
       bool up,
       bool ucmpSupported);
+  typedef std::pair<BcmEcmpEgress::EgressId, int> EgressIdAndWeight;
   template <typename T>
-  static BcmEcmpEgress::EgressId toEgressId(T egress);
+  static EgressIdAndWeight toEgressIdAndWeight(T egress);
   // Callback for traversal in egressResolutionChangedHwNotLocked
   template <typename T>
   static int removeAllEgressesFromEcmpCallback(
