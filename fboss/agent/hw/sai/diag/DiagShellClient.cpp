@@ -90,31 +90,30 @@ void subscribeToDiagShell(folly::EventBase* evb, const IPAddress& ip) {
       STDOUT_FILENO,
       responseAndStream.response.c_str(),
       responseAndStream.response.size());
-  auto streamFuture =
-      std::move(responseAndStream.stream)
-          .subscribeExTry(
-              evb,
-              [evb](auto&& t) {
-                if (t.hasValue()) {
-                  const auto& shellOut = t.value();
-                  folly::writeFull(
-                      STDOUT_FILENO, shellOut.c_str(), shellOut.size());
-                  // Typically, neither the error, nor completed events will
-                  // occur, we expect most streams to end when the client is
-                  // terminated by the user.
-                } else if (t.hasException()) {
-                  auto msg = folly::exceptionStr(std::move(t.exception()));
-                  // N.B., can't use folly logging, because it messes with the
-                  // terminal mode such that backspace, ctrl+D, etc.. don't seem
-                  // to work anymore.
-                  LOG(ERROR) << "error in stream: " << msg;
-                  evb->terminateLoopSoon();
-                } else {
-                  LOG(INFO) << "stream completed!";
-                  evb->terminateLoopSoon();
-                }
-              })
-          .futureJoin();
+  std::move(responseAndStream.stream)
+      .subscribeExTry(
+          evb,
+          [evb](auto&& t) {
+            if (t.hasValue()) {
+              const auto& shellOut = t.value();
+              folly::writeFull(
+                  STDOUT_FILENO, shellOut.c_str(), shellOut.size());
+              // Typically, neither the error, nor completed events will
+              // occur, we expect most streams to end when the client is
+              // terminated by the user.
+            } else if (t.hasException()) {
+              auto msg = folly::exceptionStr(std::move(t.exception()));
+              // N.B., can't use folly logging, because it messes with the
+              // terminal mode such that backspace, ctrl+D, etc.. don't seem
+              // to work anymore.
+              LOG(ERROR) << "error in stream: " << msg;
+              evb->terminateLoopSoon();
+            } else {
+              LOG(INFO) << "stream completed!";
+              evb->terminateLoopSoon();
+            }
+          })
+      .detach();
   evb->loop();
 }
 
