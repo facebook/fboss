@@ -69,8 +69,9 @@ bool PlatformPortProfileConfigMatcher::matchProfileWithFactor(
   if (factor.get_profileID() != profileID_) {
     return false;
   }
-  // if we dont have pimID, try to get it from portID
-  if (!pimID_.has_value() && portID_.has_value()) {
+  // if we dont have pimID but the factor does, try to get it from portID
+  if (!pimID_.has_value() && factor.pimIDs_ref().has_value() &&
+      portID_.has_value()) {
     pimID_ = pm->getPimID(portID_.value());
   }
   if (auto pimIDs = factor.pimIDs_ref()) {
