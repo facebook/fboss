@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+#include "fboss/agent/platforms/sai/SaiPlatformPort.h"
 
 #include <algorithm>
 
@@ -51,5 +52,9 @@ void setPortTxEnable(const HwSwitch* hw, PortID port, bool enable) {
 
   portHandle->port->setOptionalAttribute(
       SaiPortTraits::Attributes::PktTxEnable{enable});
+}
+
+void enableTransceiverProgramming(bool enable) {
+  FLAGS_skip_transceiver_programming = !enable;
 }
 } // namespace facebook::fboss::utility

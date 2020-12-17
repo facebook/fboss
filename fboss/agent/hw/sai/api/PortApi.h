@@ -255,9 +255,6 @@ struct SaiPortSerdesTraits {
       std::optional<Attributes::RxAcCouplingByPass>>;
 };
 
-template <>
-struct GetObjectKeySupported<SaiPortSerdesTraits> : std::false_type {};
-
 SAI_ATTRIBUTE_NAME(PortSerdes, PortId);
 SAI_ATTRIBUTE_NAME(PortSerdes, IDriver);
 SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPre1);

@@ -1,7 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwPortUtils.h"
+#include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/state/Port.h"
 
@@ -9,9 +9,14 @@
 
 namespace facebook::fboss {
 template <cfg::PortProfileID Profile>
-class HwPortProfileTest : public HwLinkStateDependentTest {
+class HwPortProfileTest : public HwTest {
  protected:
-  cfg::SwitchConfig initialConfig() const override {
+  void SetUp() override {
+    utility::enableTransceiverProgramming(true);
+    HwTest::SetUp();
+  }
+
+  cfg::SwitchConfig initialConfig() const {
     auto lbMode = getPlatform()->getAsic()->desiredLoopbackMode();
     return utility::oneL3IntfTwoPortConfig(
         getHwSwitch(),
@@ -78,14 +83,12 @@ class HwPortProfileTest : public HwLinkStateDependentTest {
       bool up = true;
       for (auto portID :
            {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}) {
-        bringDownPort(portID);
-        utility::verifyLedStatus(getHwSwitchEnsemble(), portID, !up);
-        bringUpPort(portID);
-        utility::verifyLedStatus(getHwSwitchEnsemble(), portID, up);
         verifyPort(portID);
       }
     };
-    verifyAcrossWarmBoots(setup, verify);
+    // TODO: override transceiver info is not available across warm boots.
+    setup();
+    verify();
   }
 
   std::optional<TransceiverInfo> overrideTransceiverInfo() const override {

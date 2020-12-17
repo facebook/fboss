@@ -42,4 +42,6 @@ void setPortTxEnable(const HwSwitch* hw, PortID port, bool enable) {
       bcmSwitch->getUnit(), bcmPortId, bcmPortControlTxEnable, enable ? 1 : 0);
   bcmCheckError(rv, "failed to disable TX");
 }
+
+void enableTransceiverProgramming(bool /*enable*/) {}
 } // namespace facebook::fboss::utility

@@ -61,6 +61,7 @@ add_library(sai_port_utils
 
 target_link_libraries(sai_port_utils
   sai_switch # //fboss/agent/hw/sai/switch:sai_switch
+  sai_platform
 )
 
 set_target_properties(sai_port_utils PROPERTIES COMPILE_FLAGS

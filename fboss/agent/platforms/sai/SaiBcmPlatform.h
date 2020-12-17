@@ -29,7 +29,7 @@ class SaiBcmPlatform : public SaiHwPlatform {
       TransmitterTechnology transmitterTech,
       cfg::PortSpeed speed) const override;
   bool isSerdesApiSupported() override {
-    return false;
+    return true;
   }
   bool supportInterfaceType() const override {
     return true;

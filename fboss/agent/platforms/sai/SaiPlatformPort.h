@@ -16,6 +16,8 @@
 
 #include <optional>
 
+DECLARE_bool(skip_transceiver_programming);
+
 namespace facebook::fboss {
 
 class SaiPlatform;

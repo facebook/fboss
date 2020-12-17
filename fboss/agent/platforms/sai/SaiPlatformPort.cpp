@@ -71,6 +71,9 @@ bool SaiPlatformPort::shouldDisableFEC() const {
 }
 
 bool SaiPlatformPort::checkSupportsTransceiver() const {
+  if (getPlatform()->getOverrideTransceiverInfo(getPortID())) {
+    return true;
+  }
   return supportsTransceiver() && !FLAGS_skip_transceiver_programming &&
       transceiverID_.has_value();
 }
