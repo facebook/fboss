@@ -15,6 +15,7 @@
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/IPv4Handler.h"
 #include "fboss/agent/IPv6Handler.h"
