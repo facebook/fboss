@@ -46,36 +46,7 @@ namespace facebook::fboss {
 
 SaiSwitchEnsemble::SaiSwitchEnsemble(
     const HwSwitchEnsemble::Features& featuresDesired)
-    : HwSwitchEnsemble(featuresDesired) {
-  std::unique_ptr<AgentConfig> agentConfig;
-  if (!FLAGS_config.empty()) {
-    agentConfig = AgentConfig::fromFile(FLAGS_config);
-  } else {
-    agentConfig = AgentConfig::fromDefaultFile();
-  }
-  initFlagDefaults(*agentConfig->thrift.defaultCommandLineArgs_ref());
-  auto platform =
-      initSaiPlatform(std::move(agentConfig), getHwSwitchFeatures());
-  std::unique_ptr<HwLinkStateToggler> linkToggler;
-  if (haveFeature(HwSwitchEnsemble::LINKSCAN)) {
-    linkToggler = std::make_unique<SaiLinkStateToggler>(
-        static_cast<SaiSwitch*>(platform->getHwSwitch()),
-        [this](const std::shared_ptr<SwitchState>& toApply) {
-          applyNewState(toApply);
-        },
-        platform->getAsic()->desiredLoopbackMode());
-  }
-  std::unique_ptr<std::thread> thriftThread;
-  if (FLAGS_setup_thrift) {
-    thriftThread =
-        createThriftThread(static_cast<SaiSwitch*>(platform->getHwSwitch()));
-  }
-  setupEnsemble(
-      std::move(platform), std::move(linkToggler), std::move(thriftThread));
-  auto hw = static_cast<SaiSwitch*>(getHwSwitch());
-  diagShell_ = std::make_unique<DiagShell>(hw);
-  diagCmdServer_ = std::make_unique<DiagCmdServer>(hw, diagShell_.get());
-}
+    : HwSwitchEnsemble(featuresDesired) {}
 
 std::unique_ptr<std::thread> SaiSwitchEnsemble::createThriftThread(
     const SaiSwitch* hwSwitch) {
@@ -142,5 +113,37 @@ void SaiSwitchEnsemble::runDiagCommand(
   output = diagCmdServer_->diagCmd(
       std::make_unique<fbstring>(input),
       std::make_unique<ClientInformation>(clientInfo));
+}
+
+void SaiSwitchEnsemble::init(
+    const HwSwitchEnsemble::HwSwitchEnsembleInitInfo* /*info*/) {
+  std::unique_ptr<AgentConfig> agentConfig;
+  if (!FLAGS_config.empty()) {
+    agentConfig = AgentConfig::fromFile(FLAGS_config);
+  } else {
+    agentConfig = AgentConfig::fromDefaultFile();
+  }
+  initFlagDefaults(*agentConfig->thrift.defaultCommandLineArgs_ref());
+  auto platform =
+      initSaiPlatform(std::move(agentConfig), getHwSwitchFeatures());
+  std::unique_ptr<HwLinkStateToggler> linkToggler;
+  if (haveFeature(HwSwitchEnsemble::LINKSCAN)) {
+    linkToggler = std::make_unique<SaiLinkStateToggler>(
+        static_cast<SaiSwitch*>(platform->getHwSwitch()),
+        [this](const std::shared_ptr<SwitchState>& toApply) {
+          applyNewState(toApply);
+        },
+        platform->getAsic()->desiredLoopbackMode());
+  }
+  std::unique_ptr<std::thread> thriftThread;
+  if (FLAGS_setup_thrift) {
+    thriftThread =
+        createThriftThread(static_cast<SaiSwitch*>(platform->getHwSwitch()));
+  }
+  setupEnsemble(
+      std::move(platform), std::move(linkToggler), std::move(thriftThread));
+  auto hw = static_cast<SaiSwitch*>(getHwSwitch());
+  diagShell_ = std::make_unique<DiagShell>(hw);
+  diagCmdServer_ = std::make_unique<DiagCmdServer>(hw, diagShell_.get());
 }
 } // namespace facebook::fboss

@@ -17,8 +17,11 @@
 namespace facebook::fboss {
 
 std::unique_ptr<HwSwitchEnsemble> createHwEnsemble(
-    const HwSwitchEnsemble::Features& featuresDesired) {
-  return std::make_unique<BcmSwitchEnsemble>(featuresDesired);
+    const HwSwitchEnsemble::Features& featuresDesired,
+    HwSwitchEnsemble::HwSwitchEnsembleInitInfo* info) {
+  auto ensemble = std::make_unique<BcmSwitchEnsemble>(featuresDesired);
+  ensemble->init(info);
+  return ensemble;
 }
 
 } // namespace facebook::fboss

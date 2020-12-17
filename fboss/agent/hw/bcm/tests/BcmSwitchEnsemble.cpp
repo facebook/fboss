@@ -77,7 +77,69 @@ namespace facebook::fboss {
 
 BcmSwitchEnsemble::BcmSwitchEnsemble(
     const HwSwitchEnsemble::Features& featuresDesired)
-    : HwSwitchEnsemble(featuresDesired) {
+    : HwSwitchEnsemble(featuresDesired) {}
+
+std::vector<PortID> BcmSwitchEnsemble::logicalPortIds() const {
+  return getPlatform()->logicalPortIds();
+}
+
+std::vector<PortID> BcmSwitchEnsemble::masterLogicalPortIds() const {
+  return getPlatform()->masterLogicalPortIds();
+}
+
+std::vector<PortID> BcmSwitchEnsemble::getAllPortsInGroup(PortID portID) const {
+  return getPlatform()->getAllPortsInGroup(portID);
+}
+
+std::vector<FlexPortMode> BcmSwitchEnsemble::getSupportedFlexPortModes() const {
+  return getPlatform()->getSupportedFlexPortModes();
+}
+
+void BcmSwitchEnsemble::dumpHwCounters() const {
+  getHwSwitch()->printDiagCmd("show c");
+}
+
+std::map<PortID, HwPortStats> BcmSwitchEnsemble::getLatestPortStats(
+    const std::vector<PortID>& ports) {
+  auto rv = bcm_stat_sync(getHwSwitch()->getUnit());
+  bcmCheckError(rv, "Unable to sync stats ");
+  updateHwSwitchStats(getHwSwitch());
+  std::map<PortID, HwPortStats> mapPortStats;
+  for (const auto& port : ports) {
+    auto stats =
+        getHwSwitch()->getPortTable()->getBcmPort(port)->getPortStats();
+    mapPortStats[port] = (stats) ? *stats : HwPortStats{};
+  }
+  return mapPortStats;
+}
+
+bool BcmSwitchEnsemble::isRouteScaleEnabled() const {
+  return getHwSwitch()->isAlpmEnabled();
+}
+
+std::unique_ptr<HwLinkStateToggler> BcmSwitchEnsemble::createLinkToggler(
+    HwSwitch* hwSwitch,
+    cfg::PortLoopbackMode desiredLoopbackMode) {
+  return std::make_unique<BcmLinkStateToggler>(
+      static_cast<BcmSwitch*>(hwSwitch),
+      [this](const std::shared_ptr<SwitchState>& toApply) {
+        applyNewState(toApply);
+      },
+      desiredLoopbackMode);
+}
+
+uint64_t BcmSwitchEnsemble::getSwitchId() const {
+  return getHwSwitch()->getUnit();
+}
+
+void BcmSwitchEnsemble::runDiagCommand(
+    const std::string& input,
+    std::string& /*output*/) {
+  getHwSwitch()->printDiagCmd(input);
+}
+
+void BcmSwitchEnsemble::init(
+    const HwSwitchEnsemble::HwSwitchEnsembleInitInfo* /*info*/) {
   auto platform = createTestPlatform();
   auto bcmTestPlatform = static_cast<BcmTestPlatform*>(platform.get());
   std::unique_ptr<AgentConfig> agentConfig;
@@ -152,64 +214,5 @@ BcmSwitchEnsemble::BcmSwitchEnsemble(
   // in each updateStats call
   FLAGS_update_bststats_interval_s = 0;
   getPlatform()->initLEDs(getHwSwitch()->getUnit());
-}
-
-std::vector<PortID> BcmSwitchEnsemble::logicalPortIds() const {
-  return getPlatform()->logicalPortIds();
-}
-
-std::vector<PortID> BcmSwitchEnsemble::masterLogicalPortIds() const {
-  return getPlatform()->masterLogicalPortIds();
-}
-
-std::vector<PortID> BcmSwitchEnsemble::getAllPortsInGroup(PortID portID) const {
-  return getPlatform()->getAllPortsInGroup(portID);
-}
-
-std::vector<FlexPortMode> BcmSwitchEnsemble::getSupportedFlexPortModes() const {
-  return getPlatform()->getSupportedFlexPortModes();
-}
-
-void BcmSwitchEnsemble::dumpHwCounters() const {
-  getHwSwitch()->printDiagCmd("show c");
-}
-
-std::map<PortID, HwPortStats> BcmSwitchEnsemble::getLatestPortStats(
-    const std::vector<PortID>& ports) {
-  auto rv = bcm_stat_sync(getHwSwitch()->getUnit());
-  bcmCheckError(rv, "Unable to sync stats ");
-  updateHwSwitchStats(getHwSwitch());
-  std::map<PortID, HwPortStats> mapPortStats;
-  for (const auto& port : ports) {
-    auto stats =
-        getHwSwitch()->getPortTable()->getBcmPort(port)->getPortStats();
-    mapPortStats[port] = (stats) ? *stats : HwPortStats{};
-  }
-  return mapPortStats;
-}
-
-bool BcmSwitchEnsemble::isRouteScaleEnabled() const {
-  return getHwSwitch()->isAlpmEnabled();
-}
-
-std::unique_ptr<HwLinkStateToggler> BcmSwitchEnsemble::createLinkToggler(
-    HwSwitch* hwSwitch,
-    cfg::PortLoopbackMode desiredLoopbackMode) {
-  return std::make_unique<BcmLinkStateToggler>(
-      static_cast<BcmSwitch*>(hwSwitch),
-      [this](const std::shared_ptr<SwitchState>& toApply) {
-        applyNewState(toApply);
-      },
-      desiredLoopbackMode);
-}
-
-uint64_t BcmSwitchEnsemble::getSwitchId() const {
-  return getHwSwitch()->getUnit();
-}
-
-void BcmSwitchEnsemble::runDiagCommand(
-    const std::string& input,
-    std::string& /*output*/) {
-  getHwSwitch()->printDiagCmd(input);
 }
 } // namespace facebook::fboss
