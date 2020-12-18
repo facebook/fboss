@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <fb303/ThreadCachedServiceData.h>
 #include "fboss/agent/AsyncPacketTransport.h"
 #include "fboss/agent/thrift_packet_stream/PacketStreamClient.h"
 #include "fboss/agent/thrift_packet_stream/PacketStreamService.h"
@@ -29,19 +30,7 @@ class BidirectionalPacketStream
       folly::EventBase* ioEventBase,
       folly::EventBase* timerEventBase,
       double timeout,
-      BidirectionalPacketAcceptor* acceptor = nullptr)
-      : PacketStreamService(serviceName),
-        PacketStreamClient(serviceName, ioEventBase),
-        folly::AsyncTimeout(timerEventBase),
-        evb_(timerEventBase),
-        timeout_(timeout),
-        acceptor_(acceptor),
-        serviceName_(serviceName) {
-    if (!evb_ || timeout <= 0) {
-      throw std::runtime_error("Invalid timer settings");
-    }
-    // timer will be started when connectClient call is made.
-  }
+      BidirectionalPacketAcceptor* acceptor = nullptr);
 
   virtual ~BidirectionalPacketStream() override;
 
@@ -89,7 +78,20 @@ class BidirectionalPacketStream
   std::atomic<uint16_t> peerServerPort_{0};
   std::string serviceName_;
   std::atomic<bool> newConnection_{false};
-}; // namespace fboss
-
+  fb303::TimeseriesWrapper STATS_err_port_register;
+  fb303::TimeseriesWrapper STATS_err_invalid_connect_client_port;
+  fb303::TimeseriesWrapper STATS_err_delete_port;
+  fb303::TimeseriesWrapper STATS_err_pkt_recv_empty_port;
+  fb303::TimeseriesWrapper STATS_err_acceptor_not_registered;
+  fb303::TimeseriesWrapper STATS_err_send_pkt_failed;
+  fb303::TimeseriesWrapper STATS_err_send_client_not_connected;
+  fb303::TimeseriesWrapper STATS_pkt_recvd;
+  fb303::TimeseriesWrapper STATS_pkt_send_success;
+  fb303::TimeseriesWrapper STATS_start_reconnect_to_server;
+  fb303::TimeseriesWrapper STATS_client_connected;
+  fb303::TimeseriesWrapper STATS_client_disconnected;
+  fb303::TimeseriesWrapper STATS_port_registered;
+  fb303::TimeseriesWrapper STATS_port_removed;
+};
 } // namespace fboss
 } // namespace facebook

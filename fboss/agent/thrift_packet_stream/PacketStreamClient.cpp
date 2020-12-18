@@ -84,6 +84,7 @@ folly::coro::Task<void> PacketStreamClient::connect() {
   auto result = co_await client_->co_connect(clientId_);
   if (cancelSource_->isCancellationRequested()) {
     state_.store(State::INIT);
+    LOG(ERROR) << "Cancellation Requested;";
     co_return;
   }
   state_.store(State::CONNECTED);
@@ -127,6 +128,7 @@ bool PacketStreamClient::isConnectedToServer() {
 void PacketStreamClient::registerPortToServer(const std::string& port) {
 #if FOLLY_HAS_COROUTINES
   if (!isConnectedToServer()) {
+    LOG(ERROR) << "Client not connected;";
     throw std::runtime_error("Client not connected;");
   }
   folly::coro::blockingWait(client_->co_registerPort(clientId_, port));
@@ -138,6 +140,7 @@ void PacketStreamClient::registerPortToServer(const std::string& port) {
 void PacketStreamClient::clearPortFromServer(const std::string& l2port) {
 #if FOLLY_HAS_COROUTINES
   if (!isConnectedToServer()) {
+    LOG(ERROR) << "Client not connected;";
     throw std::runtime_error("Client not connected;");
   }
   folly::coro::blockingWait(client_->co_clearPort(clientId_, l2port));

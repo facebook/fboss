@@ -6,6 +6,86 @@
 namespace facebook {
 namespace fboss {
 
+#define BIDIRECTIONAL_INIT_STATS(serviceName)                                  \
+  STATS_err_port_register(                                                     \
+      folly::to<std::string>(serviceName, ".err.port_register"),               \
+      fb303::SUM,                                                              \
+      fb303::RATE),                                                            \
+      STATS_err_invalid_connect_client_port(                                   \
+          folly::to<std::string>(                                              \
+              serviceName, ".err.invalid_connect_client_port"),                \
+          fb303::SUM,                                                          \
+          fb303::RATE),                                                        \
+      STATS_err_delete_port(                                                   \
+          folly::to<std::string>(serviceName, ".err.delete_port"),             \
+          fb303::SUM,                                                          \
+          fb303::RATE),                                                        \
+      STATS_err_pkt_recv_empty_port(                                           \
+          folly::to<std::string>(serviceName, ".err.pkt_recv_empty_port"),     \
+          fb303::SUM,                                                          \
+          fb303::RATE),                                                        \
+      STATS_err_acceptor_not_registered(                                       \
+          folly::to<std::string>(serviceName, ".err.acceptor_not_registered"), \
+          fb303::SUM,                                                          \
+          fb303::RATE),                                                        \
+      STATS_err_send_pkt_failed(                                               \
+          folly::to<std::string>(serviceName, ".err.send_pkt_failed"),         \
+          fb303::SUM,                                                          \
+          fb303::RATE),                                                        \
+      STATS_err_send_client_not_connected(                                     \
+          folly::to<std::string>(                                              \
+              serviceName, ".err.send_client_not_connected"),                  \
+          fb303::SUM,                                                          \
+          fb303::RATE),                                                        \
+      STATS_pkt_recvd(                                                         \
+          folly::to<std::string>(serviceName, ".pkt_recvd"),                   \
+          fb303::SUM,                                                          \
+          fb303::RATE),                                                        \
+      STATS_pkt_send_success(                                                  \
+          folly::to<std::string>(serviceName, ".pkt_send_success"),            \
+          fb303::SUM,                                                          \
+          fb303::RATE),                                                        \
+      STATS_start_reconnect_to_server(                                         \
+          folly::to<std::string>(serviceName, ".start_reconnect_to_server"),   \
+          fb303::SUM,                                                          \
+          fb303::RATE),                                                        \
+      STATS_client_connected(                                                  \
+          folly::to<std::string>(serviceName, ".client_connected"),            \
+          fb303::SUM,                                                          \
+          fb303::RATE),                                                        \
+      STATS_client_disconnected(                                               \
+          folly::to<std::string>(serviceName, ".client_disconnected"),         \
+          fb303::SUM,                                                          \
+          fb303::RATE),                                                        \
+      STATS_port_registered(                                                   \
+          folly::to<std::string>(serviceName, ".port_registered"),             \
+          fb303::SUM,                                                          \
+          fb303::RATE),                                                        \
+      STATS_port_removed(                                                      \
+          folly::to<std::string>(serviceName, ".port_removed"),                \
+          fb303::SUM,                                                          \
+          fb303::RATE)
+
+BidirectionalPacketStream::BidirectionalPacketStream(
+    const std::string& serviceName,
+    folly::EventBase* ioEventBase,
+    folly::EventBase* timerEventBase,
+    double timeout,
+    BidirectionalPacketAcceptor* acceptor)
+    : PacketStreamService(serviceName),
+      PacketStreamClient(serviceName, ioEventBase),
+      folly::AsyncTimeout(timerEventBase),
+      evb_(timerEventBase),
+      timeout_(timeout),
+      acceptor_(acceptor),
+      serviceName_(serviceName),
+      BIDIRECTIONAL_INIT_STATS(serviceName) {
+  if (!evb_ || timeout <= 0) {
+    throw std::runtime_error("Invalid timer settings");
+  }
+  // timer will be started when connectClient call is made.
+}
+
 BidirectionalPacketStream::~BidirectionalPacketStream() {
   LOG(INFO) << "Closing Bidirectional stream:";
   if (evb_) {
@@ -33,6 +113,7 @@ void BidirectionalPacketStream::registerPortsToServer() {
       });
       newConnection_.store(false);
     } catch (const std::exception& ex) {
+      STATS_err_port_register.add(1);
       LOG(ERROR) << "Failed to register ports err:" << ex.what();
     }
   }
@@ -40,6 +121,7 @@ void BidirectionalPacketStream::registerPortsToServer() {
 
 void BidirectionalPacketStream::connectClient(uint16_t port) {
   if (!port) {
+    STATS_err_invalid_connect_client_port.add(1);
     throw std::runtime_error("Invalid port");
   }
   LOG(INFO) << serviceName_ << ": Starting Connection to Server: " << port;
@@ -63,6 +145,7 @@ void BidirectionalPacketStream::timeoutExpired() noexcept {
     registerPortsToServer();
   } else {
     // try to reconnect.
+    STATS_start_reconnect_to_server.add(1);
     auto port = peerServerPort_.load();
     LOG(INFO) << serviceName_ << ": Reconnecting to server on port: " << port;
     newConnection_.store(true);
@@ -92,6 +175,7 @@ std::shared_ptr<AsyncPacketTransport> BidirectionalPacketStream::listen(
 
     } catch (const std::exception& ex) {
       LOG(ERROR) << "Failed to register port: " << port << " err:" << ex.what();
+      STATS_err_port_register.add(1);
       return {};
     }
   }
@@ -129,6 +213,8 @@ void BidirectionalPacketStream::close(const std::string& port) {
       PacketStreamClient::clearPortFromServer(port);
     } catch (const std::exception& ex) {
       LOG(ERROR) << "Error deleting the port: " << ex.what();
+      STATS_err_delete_port.add(1);
+      return;
     }
   }
   LOG(INFO) << "Unregister Port:" << port;
@@ -136,8 +222,10 @@ void BidirectionalPacketStream::close(const std::string& port) {
 
 void BidirectionalPacketStream::recvPacket(TPacket&& packet) {
   const auto& port = *packet.l2Port_ref();
+  STATS_pkt_recvd.add(1);
   if (port.empty()) {
     LOG(ERROR) << "Packet received with port empty";
+    STATS_err_pkt_recv_empty_port.add(1);
     return;
   }
   bool failed = transportMap_.withRLock([&](auto& lockedMap) {
@@ -165,6 +253,7 @@ void BidirectionalPacketStream::recvPacket(TPacket&& packet) {
 
 ssize_t BidirectionalPacketStream::send(TPacket&& packet) {
   if (!clientConnected_.load()) {
+    STATS_err_send_client_not_connected.add(1);
     LOG(ERROR) << "client not yet connected";
     return -1;
   }
@@ -174,9 +263,11 @@ ssize_t BidirectionalPacketStream::send(TPacket&& packet) {
     PacketStreamService::send(connectedClientId_, std::move(packet));
   } catch (const std::exception& ex) {
     LOG(ERROR) << "send packet failed:" << ex.what();
+    STATS_err_send_pkt_failed.add(1);
     // TODO:(shankaran) - Try to reconnect when there is a failure.
     return -1;
   }
+  STATS_pkt_send_success.add(1);
   return sz;
 }
 
@@ -185,21 +276,27 @@ ssize_t BidirectionalPacketStream::send(TPacket&& packet) {
 void BidirectionalPacketStream::clientConnected(const std::string& clientId) {
   clientConnected_.store(true);
   connectedClientId_ = clientId;
+  STATS_client_connected.add(1);
 }
 void BidirectionalPacketStream::clientDisconnected(
     const std::string& /* clientId */) {
   clientConnected_.store(false);
   connectedClientId_.clear();
+  STATS_client_disconnected.add(1);
 }
 
 // server stream callbacks. We don't want to do any extra steps when
 // client registers/removes the port.
 void BidirectionalPacketStream::addPort(
     const std::string& /* clientId */,
-    const std::string& /* l2Port */) {}
+    const std::string& /* l2Port */) {
+  STATS_port_registered.add(1);
+}
 void BidirectionalPacketStream::removePort(
     const std::string& /* clientId */,
-    const std::string& /* l2Port */) {}
+    const std::string& /* l2Port */) {
+  STATS_port_removed.add(1);
+}
 
 } // namespace fboss
 } // namespace facebook

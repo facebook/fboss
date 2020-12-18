@@ -33,6 +33,7 @@ apache::thrift::ServerStream<TPacket> PacketStreamService::connect(
     std::unique_ptr<std::string> clientIdPtr) {
   try {
     if (!clientIdPtr || clientIdPtr->empty()) {
+      LOG(ERROR) << "Invalid Client";
       throw createTPacketException(
           TPacketErrorCode::INVALID_CLIENT, "Invalid client");
     }
@@ -58,6 +59,7 @@ apache::thrift::ServerStream<TPacket> PacketStreamService::connect(
     LOG(INFO) << clientId << " connected successfully to PacketStreamService";
     return std::move(streamAndPublisher.first);
   } catch (const std::exception& except) {
+    LOG(ERROR) << "connect failed with exp:" << except.what();
     throw createTPacketException(
         TPacketErrorCode::INTERNAL_ERROR, except.what());
   }
@@ -118,6 +120,7 @@ void PacketStreamService::registerPort(
   }
 
   if (!l2PortPtr || l2PortPtr->empty()) {
+    LOG(ERROR) << "Invalid port";
     throw createTPacketException(
         TPacketErrorCode::INVALID_L2PORT, "Invalid Port");
   }
@@ -154,6 +157,7 @@ void PacketStreamService::clearPort(
   clientMap_.withWLock([&](auto& lockedMap) {
     auto iter = lockedMap.find(clientId);
     if (iter == lockedMap.end()) {
+      LOG(ERROR) << "Client not connected";
       throw createTPacketException(
           TPacketErrorCode::CLIENT_NOT_CONNECTED, "client not connected");
     }
