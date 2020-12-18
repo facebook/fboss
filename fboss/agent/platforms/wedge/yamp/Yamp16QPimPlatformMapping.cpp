@@ -66831,6 +66831,36 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "fec": 544
         }
       }
+    },
+    {
+      "factor": {
+        "profiles": [
+          8
+        ],
+        "transceiverManagementInterface": 1
+      },
+      "pins": {
+        "iphy": [
+
+        ],
+        "xphyLine": [
+          {
+            "id": {
+              "chip": "XPHY_LINE_ALL",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -2,
+              "pre2": 0,
+              "main": 15,
+              "post": -7,
+              "post2": 0,
+              "post3": 0,
+              "amp": 0
+            }
+          }
+        ]
+      }
     }
   ],
   "platformSupportedProfiles": [
