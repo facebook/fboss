@@ -164,13 +164,4 @@ std::map<PortID, HwPortStats> HwTest::getLatestPortStats(
   return hwSwitchEnsemble_->getLatestPortStats(ports);
 }
 
-std::optional<std::map<PortID, TransceiverInfo>>
-HwTest::port2transceiverInfoMap() const {
-  std::map<PortID, TransceiverInfo> result{};
-  for (auto port : masterLogicalPortIds()) {
-    result.emplace(port, utility::getTransceiverInfo(port));
-  }
-  return result;
-}
-
 } // namespace facebook::fboss
