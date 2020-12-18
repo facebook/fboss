@@ -186,6 +186,7 @@ struct TransceiverInfo {
   14: optional TransceiverStats stats,
   15: optional SignalFlags signalFlag,
   16: optional ExtendedSpecComplianceCode extendedSpecificationComplianceCode,
+  17: optional TransceiverManagementInterface transceiverManagementInterface,
 }
 
 typedef binary (cpp2.type = "folly::IOBuf") IOBuf
