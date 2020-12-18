@@ -30,16 +30,23 @@ class PlatformPortProfileConfigMatcher {
   PlatformPortProfileConfigMatcher(
       cfg::PortProfileID profileID,
       PortID portID,
-      ExtendedSpecComplianceCode transceiverSpecComplianceCode)
+      TransceiverInfo transceiverInfo)
       : profileID_(profileID),
         portID_(portID),
-        transceiverSpecComplianceCode_(transceiverSpecComplianceCode) {}
+        transceiverInfo_(transceiverInfo) {}
 
   PlatformPortProfileConfigMatcher(
       cfg::PortProfileID profileID,
-      PortID portID,
-      std::optional<double> cableLength)
-      : profileID_(profileID), portID_(portID), cableLength_(cableLength) {}
+      TransceiverInfo transceiverInfo)
+      : profileID_(profileID), transceiverInfo_(transceiverInfo) {}
+
+  std::optional<PortID> getPortIDIf() {
+    return portID_;
+  }
+
+  cfg::PortProfileID getProfileID() {
+    return profileID_;
+  }
 
   bool matchOverrideWithFactor(
       const cfg::PlatformPortConfigOverrideFactor& factor);
@@ -50,11 +57,11 @@ class PlatformPortProfileConfigMatcher {
 
   std::string toString() const;
 
+ private:
   cfg::PortProfileID profileID_;
   std::optional<PimID> pimID_;
   std::optional<PortID> portID_;
-  std::optional<double> cableLength_;
-  std::optional<ExtendedSpecComplianceCode> transceiverSpecComplianceCode_;
+  std::optional<TransceiverInfo> transceiverInfo_;
 };
 
 class PlatformMapping {
@@ -72,10 +79,15 @@ class PlatformMapping {
   const std::optional<phy::PortProfileConfig> getPortProfileConfig(
       PlatformPortProfileConfigMatcher matcher) const;
 
+  std::vector<phy::PinConfig> getPortXphySidePinConfigs(
+      PlatformPortProfileConfigMatcher matcher,
+      phy::Side side) const;
+
   std::vector<phy::PinConfig> getPortIphyPinConfigs(
-      PortID id,
-      cfg::PortProfileID profileID,
-      std::optional<double> cableLength = std::nullopt) const;
+      PlatformPortProfileConfigMatcher matcher) const;
+
+  phy::PortPinConfig getPortXphyPinConfig(
+      PlatformPortProfileConfigMatcher matcher) const;
 
   const std::map<std::string, phy::DataPlanePhyChip>& getChips() const {
     return chips_;
@@ -123,6 +135,10 @@ class PlatformMapping {
   std::vector<cfg::PlatformPortProfileConfigEntry> platformSupportedProfiles_;
   std::map<std::string, phy::DataPlanePhyChip> chips_;
   std::vector<cfg::PlatformPortConfigOverride> portConfigOverrides_;
+
+  const cfg::PlatformPortConfig& getPlatformPortConfig(
+      PortID id,
+      cfg::PortProfileID profileID) const;
 
  private:
   // Forbidden copy constructor and assignment operator

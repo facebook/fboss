@@ -188,21 +188,14 @@ std::vector<phy::PinConfig> SaiPlatformPort::getIphyPinConfigs(
     return {};
   }
   folly::EventBase evb;
-  if (auto transceiverInfo = getTransceiverInfo(&evb)) {
-    if (auto cable = transceiverInfo->cable_ref()) {
-      // TODO(pgardideh): this is temporary until we fully remove any
-      // dependence on transmitter tech and only rely on the profile ID
-      auto cableLength = cable->length_ref();
-      if (cableLength.has_value() &&
-          *cable->transmitterTech_ref() == TransmitterTechnology::COPPER) {
-        auto cableMeters = std::max(1.0, std::min(3.0, cableLength.value()));
-        return getPlatform()->getPlatformMapping()->getPortIphyPinConfigs(
-            getPortID(), profileID, cableMeters);
-      }
-    }
+  auto transceiverInfo = getTransceiverInfo(&evb);
+  if (transceiverInfo) {
+    return getPlatform()->getPlatformMapping()->getPortIphyPinConfigs(
+        PlatformPortProfileConfigMatcher(
+            profileID, getPortID(), transceiverInfo.value()));
   }
   return getPlatform()->getPlatformMapping()->getPortIphyPinConfigs(
-      getPortID(), profileID);
+      PlatformPortProfileConfigMatcher(profileID, getPortID()));
 }
 
 folly::Future<TransceiverInfo> SaiPlatformPort::getFutureTransceiverInfo()

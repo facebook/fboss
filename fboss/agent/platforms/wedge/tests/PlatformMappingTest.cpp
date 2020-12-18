@@ -81,8 +81,8 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
       continue;
     }
     for (auto profile : profiles) {
-      auto pinCfgs =
-          mapping->getPortIphyPinConfigs(PortID(port.first), profile.first);
+      auto pinCfgs = mapping->getPortIphyPinConfigs(
+          PlatformPortProfileConfigMatcher(profile.first, PortID(port.first)));
       EXPECT_TRUE(pinCfgs.size() > 0);
 
       auto itProfileCfg = mapping->getPortProfileConfig(
@@ -145,8 +145,10 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
 
   for (auto uplinkTx : uplinkTxMapForProfile23) {
     // this is profile 23
-    const auto& pinCfgs = mapping->getPortIphyPinConfigs(
-        uplinkTx.first, cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL);
+    const auto& pinCfgs =
+        mapping->getPortIphyPinConfigs(PlatformPortProfileConfigMatcher(
+            cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL,
+            uplinkTx.first));
     EXPECT_EQ(pinCfgs.size(), 4);
     for (auto pinCfg : pinCfgs) {
       if (auto tx = pinCfg.tx_ref()) {
@@ -312,9 +314,10 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
 
   for (auto laneToUplinkTxSettingsToPortMap : uplinkTxMapForProfile25) {
     // this is profile 25
-    const auto& pinCfgs = mapping->getPortIphyPinConfigs(
-        laneToUplinkTxSettingsToPortMap.first,
-        cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL);
+    const auto& pinCfgs =
+        mapping->getPortIphyPinConfigs(PlatformPortProfileConfigMatcher(
+            cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL,
+            laneToUplinkTxSettingsToPortMap.first));
     EXPECT_EQ(pinCfgs.size(), 4);
     for (auto pinCfg : pinCfgs) {
       auto pinId = *pinCfg.id_ref();
@@ -335,6 +338,9 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
 
 TEST_F(PlatformMappingTest, VerifyYampPortProfileConfigOverride) {
   auto mapping = std::make_unique<YampPlatformMapping>();
+  TransceiverInfo transceiverInfo = TransceiverInfo();
+  transceiverInfo.extendedSpecificationComplianceCode_ref() =
+      ExtendedSpecComplianceCode::FR1_100G;
   for (auto port : mapping->getPlatformPorts()) {
     auto portProfileConfig =
         mapping->getPortProfileConfig(PlatformPortProfileConfigMatcher(
@@ -350,9 +356,7 @@ TEST_F(PlatformMappingTest, VerifyYampPortProfileConfigOverride) {
 
     portProfileConfig =
         mapping->getPortProfileConfig(PlatformPortProfileConfigMatcher(
-            cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528,
-            PortID(port.first),
-            ExtendedSpecComplianceCode::FR1_100G));
+            cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528, transceiverInfo));
     EXPECT_TRUE(
         *portProfileConfig->xphyLine_ref()->fec_ref() == phy::FecMode::NONE);
 
@@ -429,8 +433,10 @@ TEST_F(PlatformMappingTest, VerifyOverrideMerge) {
               overridePortList->begin(), overridePortList->end(), port.first) !=
           overridePortList->end());
 
-      auto pinCfgs = miln4_2->getPortIphyPinConfigs(
-          PortID(port.first), cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528);
+      auto pinCfgs =
+          miln4_2->getPortIphyPinConfigs(PlatformPortProfileConfigMatcher(
+              cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528,
+              PortID(port.first)));
       for (auto pinCfg : pinCfgs) {
         auto tx = pinCfg.tx_ref();
         EXPECT_TRUE(tx.has_value());
@@ -640,10 +646,14 @@ TEST_F(PlatformMappingTest, VerifyWedge100DownlinkPortIphyPinConfigs) {
       const auto& txSettingsGroup =
           kWedge100DownlinkTxGroups[kWedge100DownlinkPortGroupMapping[transID]];
       for (auto& setting : txSettingsGroup) {
-        auto cableLength = setting.first;
+        TransceiverInfo transceiverInfo = TransceiverInfo();
+        Cable cable = Cable();
+        cable.length_ref() = setting.first;
+        transceiverInfo.cable_ref() = cable;
         auto expectedTx = setting.second;
-        auto pinCfgs = mapping->getPortIphyPinConfigs(
-            PortID(port.first), profile.first, cableLength);
+        auto pinCfgs =
+            mapping->getPortIphyPinConfigs(PlatformPortProfileConfigMatcher(
+                profile.first, PortID(port.first), transceiverInfo));
         auto pinCfg = pinCfgs.at(0);
         auto tx = pinCfg.tx_ref();
 
@@ -686,8 +696,8 @@ TEST_F(PlatformMappingTest, VerifyWedge100UplinkPortIphyPinConfigs) {
     }
     const auto& profiles = *port.second.supportedProfiles_ref();
     for (auto profile : profiles) {
-      auto pinCfgs =
-          mapping->getPortIphyPinConfigs(PortID(port.first), profile.first);
+      auto pinCfgs = mapping->getPortIphyPinConfigs(
+          PlatformPortProfileConfigMatcher(profile.first, PortID(port.first)));
       for (auto pinCfg : pinCfgs) {
         auto tx = pinCfg.tx_ref();
         // Only the this profile should have tx settings

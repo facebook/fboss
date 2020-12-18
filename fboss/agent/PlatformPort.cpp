@@ -51,7 +51,8 @@ const std::optional<cfg::PlatformPortEntry> PlatformPort::getPlatformPortEntry()
 
 std::vector<phy::PinConfig> PlatformPort::getIphyPinConfigs(
     cfg::PortProfileID profileID) const {
-  return platform_->getPlatformMapping()->getPortIphyPinConfigs(id_, profileID);
+  return platform_->getPlatformMapping()->getPortIphyPinConfigs(
+      PlatformPortProfileConfigMatcher(profileID, id_));
 }
 
 cfg::PortProfileID PlatformPort::getProfileIDBySpeed(
@@ -110,20 +111,16 @@ const phy::PortProfileConfig PlatformPort::getPortProfileConfig(
 
 const std::optional<phy::PortProfileConfig>
 PlatformPort::getPortProfileConfigIf(cfg::PortProfileID profileID) const {
-  folly::EventBase evb;
-  auto transceiverInfo = getTransceiverInfo(&evb);
-  std::optional<ExtendedSpecComplianceCode> transceiverSpecComplianceCode =
-      (platform_->needExtendedSpecComplianceCode() &&
-       transceiverInfo.has_value())
-      ? transceiverInfo->extendedSpecificationComplianceCode_ref().to_optional()
-      : std::nullopt;
-  if (transceiverSpecComplianceCode.has_value()) {
-    return platform_->getPortProfileConfig(PlatformPortProfileConfigMatcher(
-        profileID, id_, transceiverSpecComplianceCode.value()));
-  } else {
-    return platform_->getPortProfileConfig(
-        PlatformPortProfileConfigMatcher(profileID, id_));
+  if (platform_->needTransceiverInfo()) {
+    folly::EventBase evb;
+    std::optional<TransceiverInfo> transceiverInfo = getTransceiverInfo(&evb);
+    if (transceiverInfo.has_value()) {
+      return platform_->getPortProfileConfig(PlatformPortProfileConfigMatcher(
+          profileID, id_, transceiverInfo.value()));
+    }
   }
+  return platform_->getPortProfileConfig(
+      PlatformPortProfileConfigMatcher(profileID, id_));
 }
 
 // This should only be called by platforms that actually have

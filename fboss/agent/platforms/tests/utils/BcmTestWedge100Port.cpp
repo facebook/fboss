@@ -26,8 +26,13 @@ std::vector<phy::PinConfig> BcmTestWedge100Port::getIphyPinConfigs(
   // For Wedge100 getPortIphyPinConfigs needs a cable length to be able to
   // match platform port config overrides. Hardcode cable length for tests so we
   // don't need qsfp service
+  TransceiverInfo transceiverInfo = TransceiverInfo();
+  Cable cable = Cable();
+  cable.length_ref() = 1.0;
+  transceiverInfo.cable_ref() = cable;
   return getPlatform()->getPlatformMapping()->getPortIphyPinConfigs(
-      getPortID(), profileID, 1.0);
+      PlatformPortProfileConfigMatcher(
+          profileID, getPortID(), transceiverInfo));
 }
 
 void BcmTestWedge100Port::linkStatusChanged(bool up, bool adminUp) {

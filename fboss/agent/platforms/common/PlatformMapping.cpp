@@ -44,19 +44,35 @@ bool PlatformPortProfileConfigMatcher::matchOverrideWithFactor(
     }
   }
   if (auto overrideCableLength = factor.cableLengths_ref()) {
-    if (!cableLength_.has_value() ||
-        std::find(
+    if (!transceiverInfo_.has_value() ||
+        !transceiverInfo_->cable_ref().has_value() ||
+        !transceiverInfo_->cable_ref()->length_ref().has_value()) {
+      return false;
+    }
+    if (std::find(
             overrideCableLength->begin(),
             overrideCableLength->end(),
-            cableLength_.value()) == overrideCableLength->end()) {
+            transceiverInfo_->cable_ref()->length_ref().value()) ==
+        overrideCableLength->end()) {
       return false;
     }
   }
   if (auto overrideTransceiverSpecComplianceCode =
           factor.transceiverSpecComplianceCode_ref()) {
-    if (!transceiverSpecComplianceCode_.has_value() ||
-        transceiverSpecComplianceCode_.value() !=
+    if (!transceiverInfo_.has_value() ||
+        !transceiverInfo_->extendedSpecificationComplianceCode_ref()
+             .has_value() ||
+        transceiverInfo_->extendedSpecificationComplianceCode_ref().value() !=
             overrideTransceiverSpecComplianceCode) {
+      return false;
+    }
+  }
+  if (auto overrideTransceiverManagementInterface =
+          factor.transceiverManagementInterface_ref()) {
+    if (!transceiverInfo_.has_value() ||
+        !transceiverInfo_->transceiverManagementInterface_ref().has_value() ||
+        transceiverInfo_->transceiverManagementInterface_ref().value() !=
+            overrideTransceiverManagementInterface) {
       return false;
     }
   }
@@ -241,35 +257,22 @@ cfg::PortSpeed PlatformMapping::getPortMaxSpeed(PortID portID) const {
 }
 
 std::vector<phy::PinConfig> PlatformMapping::getPortIphyPinConfigs(
-    PortID id,
-    cfg::PortProfileID profileID,
-    std::optional<double> cableLength) const {
-  auto itPlatformPort = platformPorts_.find(id);
-  if (itPlatformPort == platformPorts_.end()) {
-    throw FbossError("No PlatformPortEntry found for port ", id);
+    PlatformPortProfileConfigMatcher matcher) const {
+  auto portID = matcher.getPortIDIf();
+  auto profileID = matcher.getProfileID();
+  if (!portID.has_value()) {
+    throw FbossError("getPortIphyPinConfigs miss portID match factor");
   }
-
-  auto& supportedProfiles = *itPlatformPort->second.supportedProfiles_ref();
-  auto platformPortConfig = supportedProfiles.find(profileID);
-  if (platformPortConfig == supportedProfiles.end()) {
-    throw FbossError(
-        "No speed profile with id ",
-        apache::thrift::util::enumNameSafe(profileID),
-        " found in PlatformPortEntry for port ",
-        id);
-  }
-
-  const auto& iphyCfg = *platformPortConfig->second.pins_ref()->iphy_ref();
+  const auto& platformPortConfig =
+      getPlatformPortConfig(portID.value(), profileID);
+  const auto& iphyCfg = *platformPortConfig.pins_ref()->iphy_ref();
   // Check whether there's an override
   for (const auto portConfigOverride : portConfigOverrides_) {
     if (!portConfigOverride.pins_ref().has_value()) {
       // The override is not about Iphy pin configs. Skip
       continue;
     }
-    auto portProfileMatcher =
-        PlatformPortProfileConfigMatcher(profileID, id, cableLength);
-    if (portProfileMatcher.matchOverrideWithFactor(
-            *portConfigOverride.factor_ref())) {
+    if (matcher.matchOverrideWithFactor(*portConfigOverride.factor_ref())) {
       auto overrideIphy = *portConfigOverride.pins_ref()->iphy_ref();
       if (!overrideIphy.empty()) {
         // make sure the override iphy config size == iphyCfg or override
@@ -277,7 +280,7 @@ std::vector<phy::PinConfig> PlatformMapping::getPortIphyPinConfigs(
         if (overrideIphy.size() != iphyCfg.size() && overrideIphy.size() != 1) {
           throw FbossError(
               "Port ",
-              id,
+              portID.value(),
               ", profile ",
               apache::thrift::util::enumNameSafe(profileID),
               " has mismatched override iphy lane size:",
@@ -306,6 +309,88 @@ std::vector<phy::PinConfig> PlatformMapping::getPortIphyPinConfigs(
   }
   // otherwise, we just need to return iphy config directly
   return iphyCfg;
+}
+
+std::vector<phy::PinConfig> PlatformMapping::getPortXphySidePinConfigs(
+    PlatformPortProfileConfigMatcher matcher,
+    phy::Side side) const {
+  auto portID = matcher.getPortIDIf();
+  auto profileID = matcher.getProfileID();
+  if (!portID.has_value()) {
+    throw FbossError("getPortXphySidePinConfigs miss portID match factor");
+  }
+  const auto& platformPortConfig =
+      getPlatformPortConfig(portID.value(), profileID);
+  auto xphySideOptional = side == phy::Side::SYSTEM
+      ? platformPortConfig.pins_ref()->xphySys_ref()
+      : platformPortConfig.pins_ref()->xphyLine_ref();
+  if (!xphySideOptional.has_value()) {
+    return std::vector<phy::PinConfig>();
+  }
+  const auto& xphySideCfg = xphySideOptional.value();
+  // Check whether there's an override
+  for (const auto portConfigOverride : portConfigOverrides_) {
+    if (!portConfigOverride.pins_ref().has_value()) {
+      // The override is not about pin configs. Skip
+      continue;
+    }
+    auto overrideXphySideOptional = side == phy::Side::SYSTEM
+        ? portConfigOverride.pins_ref()->xphySys_ref()
+        : portConfigOverride.pins_ref()->xphyLine_ref();
+    if (!overrideXphySideOptional.has_value()) {
+      // The override is not about xphy configs. Skip
+      continue;
+    }
+    if (matcher.matchOverrideWithFactor(*portConfigOverride.factor_ref())) {
+      auto overrideXphySideCfg = overrideXphySideOptional.value();
+      if (!overrideXphySideCfg.empty()) {
+        // make sure the override xphy config size == xphySideCfg or
+        // override size == 1, in which case we use the same override for all
+        // lanes
+        if (overrideXphySideCfg.size() != xphySideCfg.size() &&
+            overrideXphySideCfg.size() != 1) {
+          throw FbossError(
+              "Port ",
+              portID.value(),
+              ", profile ",
+              apache::thrift::util::enumNameSafe(profileID),
+              " has mismatched override xphy side lane size:",
+              overrideXphySideCfg.size(),
+              ", expected size: ",
+              xphySideCfg.size());
+        }
+
+        // We need to update the override with the correct PinID for such port
+        // Both default xphySideCfg and override xphySideCfg are in order by
+        // lanes.
+        std::vector<phy::PinConfig> newOverrideXphySide;
+        for (int i = 0; i < xphySideCfg.size(); i++) {
+          phy::PinConfig pinCfg;
+          *pinCfg.id_ref() = *xphySideCfg.at(i).id_ref();
+          // Default to the first entry if we run out
+          const auto& override =
+              overrideXphySideCfg.at(i < overrideXphySideCfg.size() ? i : 0);
+          if (auto tx = override.tx_ref()) {
+            pinCfg.tx_ref() = *tx;
+          }
+          newOverrideXphySide.push_back(pinCfg);
+        }
+        return newOverrideXphySide;
+      }
+    }
+  }
+  // otherwise, we just need to return xphy side config directly
+  return xphySideCfg;
+}
+
+phy::PortPinConfig PlatformMapping::getPortXphyPinConfig(
+    PlatformPortProfileConfigMatcher matcher) const {
+  phy::PortPinConfig newPortPinConfig;
+  newPortPinConfig.xphySys_ref() =
+      getPortXphySidePinConfigs(matcher, phy::Side::SYSTEM);
+  newPortPinConfig.xphyLine_ref() =
+      getPortXphySidePinConfigs(matcher, phy::Side::LINE);
+  return newPortPinConfig;
 }
 
 const std::optional<phy::PortProfileConfig>
@@ -344,7 +429,8 @@ PlatformMapping::getPortConfigOverrides(int32_t port) const {
         overrides.push_back(portConfigOverride);
       }
     } else {
-      // If factor.ports is empty, which means such override apply for all ports
+      // If factor.ports is empty, which means such override apply for all
+      // ports
       overrides.push_back(portConfigOverride);
     }
   }
@@ -387,6 +473,26 @@ void PlatformMapping::mergePortConfigOverrides(
       }
     }
   }
+}
+
+const cfg::PlatformPortConfig& PlatformMapping::getPlatformPortConfig(
+    PortID id,
+    cfg::PortProfileID profileID) const {
+  auto itPlatformPort = platformPorts_.find(id);
+  if (itPlatformPort == platformPorts_.end()) {
+    throw FbossError("No PlatformPortEntry found for port ", id);
+  }
+
+  auto& supportedProfiles = *itPlatformPort->second.supportedProfiles_ref();
+  auto platformPortConfig = supportedProfiles.find(profileID);
+  if (platformPortConfig == supportedProfiles.end()) {
+    throw FbossError(
+        "No speed profile with id ",
+        apache::thrift::util::enumNameSafe(profileID),
+        " found in PlatformPortEntry for port ",
+        id);
+  }
+  return platformPortConfig->second;
 }
 
 } // namespace fboss

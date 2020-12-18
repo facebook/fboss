@@ -265,7 +265,7 @@ class Platform {
 
   // Whether or not we need the Transceiver spec when programming ports.
   // currently we only use this on yamp
-  virtual bool needExtendedSpecComplianceCode() const {
+  virtual bool needTransceiverInfo() const {
     return false;
   }
 

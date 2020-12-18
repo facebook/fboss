@@ -79,6 +79,7 @@ struct PlatformPortConfigOverrideFactor {
   2: optional list<switch_config.PortProfileID> profiles
   3: optional list<double> cableLengths
   4: optional transceiver.ExtendedSpecComplianceCode transceiverSpecComplianceCode
+  5: optional transceiver.TransceiverManagementInterface transceiverManagementInterface
 }
 
 struct PlatformPortConfigOverride {
