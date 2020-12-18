@@ -1658,6 +1658,16 @@ bool BcmSwitch::isValidStateUpdate(const StateDelta& delta) const {
       },
       [&](const shared_ptr<AclEntry>& /* delAcl */) {});
 
+  if (getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::INGRESS_L3_INTERFACE)) {
+    // default vlan l3 interface should not be created from port vlan config
+    forEachAdded(
+        delta.getIntfsDelta(), [&](const std::shared_ptr<Interface>& intf) {
+          isValid = isValid &&
+              intf->getVlanID() != delta.newState()->getDefaultVlan();
+        });
+  }
+
   return isValid;
 }
 

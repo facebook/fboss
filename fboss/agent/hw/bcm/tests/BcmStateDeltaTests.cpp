@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
 
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
@@ -183,6 +184,30 @@ TEST_F(BcmTest, expQosMapForPort) {
       cfg, "qp1", *cfg.ports_ref()[0].logicalID_ref());
   auto newState = applyNewConfig(cfg);
   EXPECT_FALSE(getHwSwitch()->isValidStateUpdate(StateDelta(state0, newState)));
+}
+
+TEST_F(BcmTest, validInterfaceConfig) {
+  if (!getHwSwitch()->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::INGRESS_L3_INTERFACE)) {
+    return;
+  }
+  auto cfg = utility::oneL3IntfTwoPortConfig(
+      getHwSwitch(), masterLogicalPortIds()[0], masterLogicalPortIds()[1]);
+  auto oldState = applyNewConfig(cfg);
+  // move a port to default vlan
+  auto portCfg = utility::findCfgPort(cfg, masterLogicalPortIds()[1]);
+  portCfg->ingressVlan_ref() = utility::kDefaultVlanId;
+  cfg.interfaces_ref()->resize(2);
+  cfg.interfaces_ref()[1].intfID_ref() = utility::kDefaultVlanId;
+  cfg.interfaces_ref()[1].vlanID_ref() = utility::kDefaultVlanId;
+  cfg.interfaces_ref()[1].routerID_ref() = 0;
+  cfg.interfaces_ref()[1].ipAddresses_ref()->resize(2);
+  cfg.interfaces_ref()[1].ipAddresses_ref()[0] = "2.2.2.2/24";
+  cfg.interfaces_ref()[1].ipAddresses_ref()[1] = "2::1/64";
+  auto newState = applyThriftConfig(oldState, &cfg, getPlatform());
+  StateDelta delta(oldState, newState);
+  EXPECT_FALSE(getHwSwitch()->isValidStateUpdate(delta));
+  EXPECT_THROW(getHwSwitch()->stateChanged(delta), FbossError);
 }
 
 } // namespace facebook::fboss
