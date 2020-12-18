@@ -369,6 +369,82 @@ TEST_F(PlatformMappingTest, VerifyYampPortProfileConfigOverride) {
   }
 }
 
+TEST_F(PlatformMappingTest, VerifyYampPortXphyLinePinConfigOverride) {
+  auto mapping = std::make_unique<YampPlatformMapping>();
+  TransceiverInfo transceiverInfo = TransceiverInfo();
+
+  std::vector<int> YampPort100GSffXphyLinePinConfig = {0, -4, 23, -12, 0, 0, 0};
+  std::vector<int> YampPort100GCmisXphyLinePinConfig = {0, -2, 15, -7, 0, 0, 0};
+
+  for (auto port : mapping->getPlatformPorts()) {
+    transceiverInfo.transceiverManagementInterface_ref() =
+        TransceiverManagementInterface::SFF;
+    auto portXphyLinePinConfigs = mapping->getPortXphySidePinConfigs(
+        PlatformPortProfileConfigMatcher(
+            cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528,
+            PortID(port.first),
+            transceiverInfo),
+        phy::Side::LINE);
+
+    EXPECT_EQ(portXphyLinePinConfigs.size(), 4);
+    for (auto portXphyLinePinConfig : portXphyLinePinConfigs) {
+      auto pinId = *portXphyLinePinConfig.id_ref();
+      if (auto tx = portXphyLinePinConfig.tx_ref()) {
+        EXPECT_EQ(*tx->pre2_ref(), YampPort100GSffXphyLinePinConfig[0]);
+        EXPECT_EQ(*tx->pre_ref(), YampPort100GSffXphyLinePinConfig[1]);
+        EXPECT_EQ(*tx->main_ref(), YampPort100GSffXphyLinePinConfig[2]);
+        EXPECT_EQ(*tx->post_ref(), YampPort100GSffXphyLinePinConfig[3]);
+        EXPECT_EQ(*tx->post2_ref(), YampPort100GSffXphyLinePinConfig[4]);
+        EXPECT_EQ(*tx->post3_ref(), YampPort100GSffXphyLinePinConfig[5]);
+      }
+    }
+
+    transceiverInfo.transceiverManagementInterface_ref() =
+        TransceiverManagementInterface::CMIS;
+    FLAGS_override_cmis_tx_setting = false;
+    portXphyLinePinConfigs = mapping->getPortXphySidePinConfigs(
+        PlatformPortProfileConfigMatcher(
+            cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528,
+            PortID(port.first),
+            transceiverInfo),
+        phy::Side::LINE);
+
+    EXPECT_EQ(portXphyLinePinConfigs.size(), 4);
+    for (auto portXphyLinePinConfig : portXphyLinePinConfigs) {
+      auto pinId = *portXphyLinePinConfig.id_ref();
+      if (auto tx = portXphyLinePinConfig.tx_ref()) {
+        EXPECT_EQ(*tx->pre2_ref(), YampPort100GSffXphyLinePinConfig[0]);
+        EXPECT_EQ(*tx->pre_ref(), YampPort100GSffXphyLinePinConfig[1]);
+        EXPECT_EQ(*tx->main_ref(), YampPort100GSffXphyLinePinConfig[2]);
+        EXPECT_EQ(*tx->post_ref(), YampPort100GSffXphyLinePinConfig[3]);
+        EXPECT_EQ(*tx->post2_ref(), YampPort100GSffXphyLinePinConfig[4]);
+        EXPECT_EQ(*tx->post3_ref(), YampPort100GSffXphyLinePinConfig[5]);
+      }
+    }
+
+    FLAGS_override_cmis_tx_setting = true;
+    portXphyLinePinConfigs = mapping->getPortXphySidePinConfigs(
+        PlatformPortProfileConfigMatcher(
+            cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528,
+            PortID(port.first),
+            transceiverInfo),
+        phy::Side::LINE);
+
+    EXPECT_EQ(portXphyLinePinConfigs.size(), 4);
+    for (auto portXphyLinePinConfig : portXphyLinePinConfigs) {
+      auto pinId = *portXphyLinePinConfig.id_ref();
+      if (auto tx = portXphyLinePinConfig.tx_ref()) {
+        EXPECT_EQ(*tx->pre2_ref(), YampPort100GCmisXphyLinePinConfig[0]);
+        EXPECT_EQ(*tx->pre_ref(), YampPort100GCmisXphyLinePinConfig[1]);
+        EXPECT_EQ(*tx->main_ref(), YampPort100GCmisXphyLinePinConfig[2]);
+        EXPECT_EQ(*tx->post_ref(), YampPort100GCmisXphyLinePinConfig[3]);
+        EXPECT_EQ(*tx->post2_ref(), YampPort100GCmisXphyLinePinConfig[4]);
+        EXPECT_EQ(*tx->post3_ref(), YampPort100GCmisXphyLinePinConfig[5]);
+      }
+    }
+  }
+}
+
 TEST_F(PlatformMappingTest, VerifyYampPlatformMapping) {
   // supported profiles
   std::vector<cfg::PortProfileID> expectedProfiles = {
@@ -548,8 +624,8 @@ TEST_F(PlatformMappingTest, VerifyGalaxyLCPlatformMapping) {
 }
 
 // Array of tx setting override groups for wedge100
-// Each group is a mapping of cableLength => {driveCurrent_ref().value(), pre,
-// main, post}
+// Each group is a mapping of cableLength => {driveCurrent_ref().value(),
+// pre, main, post}
 static const std::vector<std::map<double, std::array<int, 4>>>
     kWedge100DownlinkTxGroups = {
         {
@@ -671,8 +747,8 @@ TEST_F(PlatformMappingTest, VerifyWedge100DownlinkPortIphyPinConfigs) {
 }
 
 // Array of expected tx settings for wedge100 uplinks for 100G Optical
-// Index is transciever Id - 24 (i.e first element is tcvr 24, the first uplink)
-// value is {driveCurrent, pre, main, post}
+// Index is transciever Id - 24 (i.e first element is tcvr 24, the first
+// uplink) value is {driveCurrent, pre, main, post}
 static const std::vector<std::array<int, 4>> kWedge100UplinkTxSettings = {
     {0x8, 2, 72, 38},
     {0x8, 2, 66, 44},
