@@ -735,34 +735,36 @@ void BcmWarmBootCache::clear() {
   // Nothing references routes, but routes reference ecmp egress and egress
   // entries which are deleted later
   for (auto vrfPfxAndRoute : vrfPrefix2Route_) {
-    XLOG(DBG1) << "Deleting unreferenced route in vrf:"
-               << std::get<0>(vrfPfxAndRoute.first)
-               << " for prefix : " << std::get<1>(vrfPfxAndRoute.first) << "/"
-               << std::get<2>(vrfPfxAndRoute.first);
-    auto rv = bcm_l3_route_delete(hw_->getUnit(), &(vrfPfxAndRoute.second));
-    bcmLogFatal(
-        rv,
-        hw_,
-        "failed to delete unreferenced route in vrf:",
+    const std::string& routeInfo = folly::to<std::string>(
+        "unreferenced route in vrf : ",
         std::get<0>(vrfPfxAndRoute.first),
         " for prefix : ",
         std::get<1>(vrfPfxAndRoute.first),
         "/",
         std::get<2>(vrfPfxAndRoute.first));
+    XLOG(DBG1) << "Deleting an " << routeInfo;
+    auto rv = bcm_l3_route_delete(hw_->getUnit(), &(vrfPfxAndRoute.second));
+    XLOG_IF(WARNING, rv == BCM_E_NOT_FOUND)
+        << "Trying to delete a nonexistent " << routeInfo << ", ignore it.";
+    if (rv != BCM_E_NOT_FOUND) {
+      bcmLogFatal(rv, hw_, "failed to delete an", routeInfo);
+    }
   }
   vrfPrefix2Route_.clear();
+
   for (auto vrfIPAndRoute : vrfAndIP2Route_) {
-    XLOG(DBG1) << "Deleting fully qualified unreferenced route in vrf: "
-               << vrfIPAndRoute.first.first
-               << " prefix: " << vrfIPAndRoute.first.second;
-    auto rv = bcm_l3_route_delete(hw_->getUnit(), &(vrfIPAndRoute.second));
-    bcmLogFatal(
-        rv,
-        hw_,
-        "failed to delete fully qualified unreferenced route in vrf: ",
+    const std::string& routeInfo = folly::to<std::string>(
+        "fully qualified unreferenced route in vrf:",
         vrfIPAndRoute.first.first,
         " prefix: ",
         vrfIPAndRoute.first.second);
+    XLOG(DBG1) << "Deleting a" << routeInfo;
+    auto rv = bcm_l3_route_delete(hw_->getUnit(), &(vrfIPAndRoute.second));
+    XLOG_IF(WARNING, rv == BCM_E_NOT_FOUND)
+        << "Trying to delete a nonexistent " << routeInfo << ", ignore it.";
+    if (rv != BCM_E_NOT_FOUND) {
+      bcmLogFatal(rv, hw_, "failed to delete a", routeInfo);
+    }
   }
   vrfAndIP2Route_.clear();
 

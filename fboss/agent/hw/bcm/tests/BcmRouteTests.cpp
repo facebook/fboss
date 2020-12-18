@@ -137,6 +137,96 @@ int L3RouteToCPUCb(
   return 0;
 }
 
+int getHwRouteCount(
+    int unit,
+    const IPAddress& networkIP,
+    bcm_l3_info_t hwStatus) {
+  int routeCount = 0;
+  auto routeTraverseCb = [](int, int, bcm_l3_route_t*, void* user_data) {
+    int* count = static_cast<int*>(user_data);
+    *count += 1;
+
+    return 0;
+  };
+  auto rv = bcm_l3_route_traverse(
+      unit,
+      networkIP.isV4() ? 0 : BCM_L3_IP6,
+      0,
+      hwStatus.l3info_max_route,
+      routeTraverseCb,
+      &routeCount);
+  bcmCheckError(rv, "failed to l3 route traverse");
+  return routeCount;
+}
+
+int getHwHostRouteCount(
+    int unit,
+    const IPAddress& networkIP,
+    bcm_l3_info_t hwStatus) {
+  int hostRouteCount = 0;
+  auto hostTraverseCb = [](int, int, bcm_l3_host_t*, void* user_data) {
+    int* count = static_cast<int*>(user_data);
+    *count += 1;
+
+    return 0;
+  };
+  auto rv = bcm_l3_host_traverse(
+      unit,
+      networkIP.isV4() ? 0 : BCM_L3_IP6,
+      0,
+      hwStatus.l3info_max_host,
+      hostTraverseCb,
+      &hostRouteCount);
+  bcmCheckError(rv, "failed to l3 host traverse");
+  return hostRouteCount;
+}
+
+void initBcmL3RouteT(
+    bcm_l3_route_t& route,
+    const IPAddress& networkIP,
+    uint8_t netmask) {
+  bcm_l3_route_t_init(&route);
+  if (networkIP.isV4()) {
+    route.l3a_subnet = networkIP.asV4().toLongHBO();
+    route.l3a_ip_mask =
+        folly::IPAddressV4(folly::IPAddressV4::fetchMask(netmask)).toLongHBO();
+  } else { // IPv6
+    ipToBcmIp6(networkIP, &route.l3a_ip6_net);
+    memcpy(
+        &route.l3a_ip6_mask,
+        folly::IPAddressV6::fetchMask(netmask).data(),
+        sizeof(route.l3a_ip6_mask));
+    route.l3a_flags = BCM_L3_IP6;
+  }
+}
+
+int getHwRoute(int unit, const IPAddress& networkIP, uint8_t netmask) {
+  bcm_l3_route_t route;
+  initBcmL3RouteT(route, networkIP, netmask);
+  return bcm_l3_route_get(unit, &route);
+}
+
+int getHwRoute(
+    int unit,
+    const IPAddress& networkIP,
+    uint8_t netmask,
+    bcm_l3_route_t& route) {
+  initBcmL3RouteT(route, networkIP, netmask);
+  return bcm_l3_route_get(unit, &route);
+}
+
+int findHwHost(int unit, const IPAddress& networkIP, bcm_l3_host_t& host) {
+  bcm_l3_host_t_init(&host);
+  if (networkIP.isV4()) {
+    host.l3a_ip_addr = networkIP.asV4().toLongHBO();
+  } else { // IPv6
+    ipToBcmIp6(networkIP, &host.l3a_ip6_addr);
+    host.l3a_flags = BCM_L3_IP6;
+  }
+
+  return bcm_l3_host_find(unit, &host);
+}
+
 } // namespace
 
 using IncomingPacketCb =
@@ -548,107 +638,6 @@ TEST_F(BcmRouteHostReferenceTest, AddNoRoutesAndCheckDefaultHostReference) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-namespace {
-
-int getHwRouteCount(
-    int unit,
-    const IPAddress& networkIP,
-    bcm_l3_info_t hwStatus) {
-  int routeCount = 0;
-  auto routeTraverseCb = [](int, int, bcm_l3_route_t*, void* user_data) {
-    int* count = static_cast<int*>(user_data);
-    *count += 1;
-
-    return 0;
-  };
-  auto rv = bcm_l3_route_traverse(
-      unit,
-      networkIP.isV4() ? 0 : BCM_L3_IP6,
-      0,
-      hwStatus.l3info_max_route,
-      routeTraverseCb,
-      &routeCount);
-  bcmCheckError(rv, "failed to l3 route traverse");
-  return routeCount;
-}
-
-int getHwHostRouteCount(
-    int unit,
-    const IPAddress& networkIP,
-    bcm_l3_info_t hwStatus) {
-  int hostRouteCount = 0;
-  auto hostTraverseCb = [](int, int, bcm_l3_host_t*, void* user_data) {
-    int* count = static_cast<int*>(user_data);
-    *count += 1;
-
-    return 0;
-  };
-  auto rv = bcm_l3_host_traverse(
-      unit,
-      networkIP.isV4() ? 0 : BCM_L3_IP6,
-      0,
-      hwStatus.l3info_max_host,
-      hostTraverseCb,
-      &hostRouteCount);
-  bcmCheckError(rv, "failed to l3 host traverse");
-  return hostRouteCount;
-}
-
-int getHwRoute(int unit, const IPAddress& networkIP, uint8_t netmask) {
-  bcm_l3_route_t route;
-  bcm_l3_route_t_init(&route);
-  if (networkIP.isV4()) {
-    route.l3a_subnet = networkIP.asV4().toLongHBO();
-    route.l3a_ip_mask =
-        folly::IPAddressV4(folly::IPAddressV4::fetchMask(netmask)).toLongHBO();
-  } else { // IPv6
-    ipToBcmIp6(networkIP, &route.l3a_ip6_net);
-    memcpy(
-        &route.l3a_ip6_mask,
-        folly::IPAddressV6::fetchMask(netmask).data(),
-        sizeof(route.l3a_ip6_mask));
-    route.l3a_flags = BCM_L3_IP6;
-  }
-
-  return bcm_l3_route_get(unit, &route);
-}
-
-int getHwRoute(
-    int unit,
-    const IPAddress& networkIP,
-    uint8_t netmask,
-    bcm_l3_route_t& route) {
-  bcm_l3_route_t_init(&route);
-  if (networkIP.isV4()) {
-    route.l3a_subnet = networkIP.asV4().toLongHBO();
-    route.l3a_ip_mask =
-        folly::IPAddressV4(folly::IPAddressV4::fetchMask(netmask)).toLongHBO();
-  } else { // IPv6
-    ipToBcmIp6(networkIP, &route.l3a_ip6_net);
-    memcpy(
-        &route.l3a_ip6_mask,
-        folly::IPAddressV6::fetchMask(netmask).data(),
-        sizeof(route.l3a_ip6_mask));
-    route.l3a_flags = BCM_L3_IP6;
-  }
-
-  return bcm_l3_route_get(unit, &route);
-}
-
-int findHwHost(int unit, const IPAddress& networkIP, bcm_l3_host_t& host) {
-  bcm_l3_host_t_init(&host);
-  if (networkIP.isV4()) {
-    host.l3a_ip_addr = networkIP.asV4().toLongHBO();
-  } else { // IPv6
-    ipToBcmIp6(networkIP, &host.l3a_ip6_addr);
-    host.l3a_flags = BCM_L3_IP6;
-  }
-
-  return bcm_l3_host_find(unit, &host);
-}
-
-} // unnamed namespace
-
 void BcmRouteTest::routeReferenceCountTest(
     const CIDRNetwork& network,
     const IPAddress& nexthop) {
@@ -773,6 +762,61 @@ TEST_F(BcmRouteTest, AddV6NonHostRoute) {
 TEST_F(BcmRouteTest, AddV6HostRoute) {
   routeReferenceCountTest(
       CIDRNetwork(IPAddress("2001::0"), 128), IPAddress("2::10"));
+}
+
+TEST_F(BcmRouteTest, RemoveHWNonexistentNonHostRoute) {
+  std::array<std::pair<CIDRNetwork, IPAddress>, 2> nonHostRoutes = {
+      std::make_pair<CIDRNetwork, IPAddress>(
+          CIDRNetwork(IPAddress("10.1.1.0"), 24), IPAddress("1.1.1.10")),
+      std::make_pair<CIDRNetwork, IPAddress>(
+          CIDRNetwork(IPAddress("1001::0"), 48), IPAddress("1::10"))};
+
+  auto setup = [=]() {
+    applyNewConfig(initialConfig());
+    shared_ptr<RouteTableMap> routeTables =
+        getProgrammedState()->getRouteTables();
+
+    for (const auto& route : nonHostRoutes) {
+      routeTables = utility::addRoute(routeTables, route.first, route.second);
+    }
+    routeTables = publishRoutes(routeTables);
+
+    // First delete routes directly from HW
+    for (const auto& route : nonHostRoutes) {
+      bcm_l3_route_t bcmL3Route;
+      initBcmL3RouteT(bcmL3Route, route.first.first, route.first.second);
+      auto rv = bcm_l3_route_delete(getUnit(), &bcmL3Route);
+      bcmCheckError(rv, "failed to remove l3 route");
+    }
+
+    // Then call the regular remove routes logic
+    for (const auto& route : nonHostRoutes) {
+      routeTables = utility::deleteRoute(routeTables, route.first);
+    }
+    routeTables = publishRoutes(routeTables);
+  };
+
+  auto verify = [&]() {
+    // Check whether route is removed from HW
+    for (const auto& route : nonHostRoutes) {
+      bcm_l3_route_t bcmL3Route;
+      initBcmL3RouteT(bcmL3Route, route.first.first, route.first.second);
+      auto rv = bcm_l3_route_get(getUnit(), &bcmL3Route);
+      EXPECT_EQ(rv, BCM_E_NOT_FOUND);
+    }
+
+    // Check whether route is removed from SW
+    uint64_t v4Count{0}, v6Count{0};
+    getProgrammedState()->getRouteTables()->getRouteCount(&v4Count, &v6Count);
+    int v4NonHostInterfaceRoutes, v6NonHostInterfaceRoutes;
+    std::tie(v4NonHostInterfaceRoutes, v6NonHostInterfaceRoutes) =
+        computeNonHostInterfaceRoutes();
+    EXPECT_EQ(v4Count, v4NonHostInterfaceRoutes + numMinAlpmV4Routes());
+    // For v6 we add fe80 link local routes
+    EXPECT_EQ(v6Count, v6NonHostInterfaceRoutes + numMinAlpmV6Routes() + 1);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(BcmRouteTest, HostRouteStat) {

@@ -139,13 +139,16 @@ bool deleteLpmRoute(
   bcm_l3_route_t rt;
   initL3RouteFromArgs(&rt, vrf, prefix, prefixLength);
   auto rc = bcm_l3_route_delete(unitNumber, &rt);
-  if (BCM_FAILURE(rc)) {
-    XLOG(ERR) << "Failed to delete a route entry for " << prefix << "/"
-              << static_cast<int>(prefixLength) << " Error: " << bcm_errmsg(rc);
+  const std::string& routeInfo = folly::to<std::string>(
+      "route entry for ", prefix, "/", static_cast<int>(prefixLength));
+  XLOG_IF(WARNING, rc == BCM_E_NOT_FOUND)
+      << "Trying to delete a nonexistent" << routeInfo << ", ignore it.";
+  if (rc != BCM_E_NOT_FOUND && BCM_FAILURE(rc)) {
+    XLOG(ERR) << "Failed to delete " << routeInfo
+              << " Error: " << bcm_errmsg(rc);
     return false;
   } else {
-    XLOG(DBG3) << "deleted a route entry for " << prefix.str() << "/"
-               << static_cast<int>(prefixLength);
+    XLOG(DBG3) << "deleted a " << routeInfo;
   }
   return true;
 }
