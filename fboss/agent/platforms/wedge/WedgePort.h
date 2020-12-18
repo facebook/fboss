@@ -85,7 +85,6 @@ class WedgePort : public BcmPlatformPort {
 
   folly::Future<TransmitterTechnology> getTransmitterTech(
       folly::EventBase* evb) const override;
-  folly::Future<std::optional<Cable>> getCableInfo(folly::EventBase* evb) const;
 
   bool shouldUsePortResourceAPIs() const override {
     return false;
@@ -97,7 +96,7 @@ class WedgePort : public BcmPlatformPort {
 
   BcmPortGroup::LaneMode getLaneMode() const;
 
-  folly::Future<TransceiverInfo> getTransceiverInfo() const override;
+  folly::Future<TransceiverInfo> getFutureTransceiverInfo() const override;
 
  protected:
   bool isControllingPort() const;

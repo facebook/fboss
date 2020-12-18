@@ -26,11 +26,13 @@ std::vector<phy::PinConfig> Wedge100Port::getIphyPinConfigs(
     return {};
   }
   folly::EventBase evb;
-  if (auto cable = getCableInfo(&evb).getVia(&evb)) {
-    if (auto cableLength = cable->length_ref()) {
-      auto cableMeters = std::max(1.0, std::min(3.0, *cableLength));
-      return getPlatform()->getPlatformMapping()->getPortIphyPinConfigs(
-          getPortID(), profileID, cableMeters);
+  if (auto transceiverInfo = getTransceiverInfo(&evb)) {
+    if (auto cable = transceiverInfo->cable_ref()) {
+      if (auto cableLength = cable->length_ref()) {
+        auto cableMeters = std::max(1.0, std::min(3.0, *cableLength));
+        return getPlatform()->getPlatformMapping()->getPortIphyPinConfigs(
+            getPortID(), profileID, cableMeters);
+      }
     }
   }
   // if cable length was not found, try to get config without it

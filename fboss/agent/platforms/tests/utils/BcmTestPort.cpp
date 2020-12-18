@@ -76,7 +76,7 @@ void BcmTestPort::statusIndication(
 
 void BcmTestPort::prepareForGracefulExit() {}
 
-folly::Future<TransceiverInfo> BcmTestPort::getTransceiverInfo() const {
+folly::Future<TransceiverInfo> BcmTestPort::getFutureTransceiverInfo() const {
   if (auto transceiver =
           getPlatform()->getOverrideTransceiverInfo(getPortID())) {
     return transceiver.value();

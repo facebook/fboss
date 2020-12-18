@@ -175,16 +175,17 @@ add_fbthrift_cpp_library(
     switch_config_cpp2
 )
 add_fbthrift_cpp_library(
+  transceiver_cpp2
+  fboss/qsfp_service/if/transceiver.thrift
+)
+add_fbthrift_cpp_library(
   phy_cpp2
   fboss/lib/phy/phy.thrift
   OPTIONS
     json
   DEPENDS
     switch_config_cpp2
-)
-add_fbthrift_cpp_library(
-  transceiver_cpp2
-  fboss/qsfp_service/if/transceiver.thrift
+    transceiver_cpp2
 )
 add_fbthrift_cpp_library(
   optic_cpp2

@@ -149,7 +149,7 @@ SaiPlatformPort::getTransmitterTechInternal(folly::EventBase* evb) {
               << " Exception: " << folly::exceptionStr(e);
     return TransmitterTechnology::UNKNOWN;
   };
-  folly::Future<TransceiverInfo> transceiverInfo = getTransceiverInfo();
+  folly::Future<TransceiverInfo> transceiverInfo = getFutureTransceiverInfo();
   return transceiverInfo.via(evb).thenValueInline(getTech).thenError(
       std::move(handleError));
 }
@@ -187,12 +187,15 @@ std::vector<phy::PinConfig> SaiPlatformPort::getIphyPinConfigs(
   if (!checkSupportsTransceiver()) {
     return {};
   }
-  if (auto cable = getCableInfo()) {
-    if (auto cableLength = cable->length_ref()) {
+  folly::EventBase evb;
+  if (auto transceiverInfo = getTransceiverInfo(&evb)) {
+    if (auto cable = transceiverInfo->cable_ref()) {
       // TODO(pgardideh): this is temporary until we fully remove any
       // dependence on transmitter tech and only rely on the profile ID
-      if (*cable->transmitterTech_ref() == TransmitterTechnology::COPPER) {
-        auto cableMeters = std::max(1.0, std::min(3.0, *cableLength));
+      auto cableLength = cable->length_ref();
+      if (cableLength.has_value() &&
+          *cable->transmitterTech_ref() == TransmitterTechnology::COPPER) {
+        auto cableMeters = std::max(1.0, std::min(3.0, cableLength.value()));
         return getPlatform()->getPlatformMapping()->getPortIphyPinConfigs(
             getPortID(), profileID, cableMeters);
       }
@@ -202,30 +205,8 @@ std::vector<phy::PinConfig> SaiPlatformPort::getIphyPinConfigs(
       getPortID(), profileID);
 }
 
-folly::Future<std::optional<Cable>> SaiPlatformPort::getCableInfoInternal(
-    folly::EventBase* evb) const {
-  CHECK(checkSupportsTransceiver());
-  int32_t transID = static_cast<int32_t>(getTransceiverID().value());
-  auto getCable = [](TransceiverInfo info) -> std::optional<Cable> {
-    return info.cable_ref().to_optional();
-  };
-  auto handleError =
-      [transID](const folly::exception_wrapper& e) -> std::optional<Cable> {
-    XLOG(ERR) << "Error retrieving cable info for transceiver " << transID
-              << " Exception: " << folly::exceptionStr(e);
-    return std::nullopt;
-  };
-  folly::Future<TransceiverInfo> transceiverInfo = getTransceiverInfo();
-  return transceiverInfo.via(evb).thenValueInline(getCable).thenError(
-      std::move(handleError));
-}
-
-std::optional<Cable> SaiPlatformPort::getCableInfo() const {
-  folly::EventBase evb;
-  return getCableInfoInternal(&evb).getVia(&evb);
-}
-
-folly::Future<TransceiverInfo> SaiPlatformPort::getTransceiverInfo() const {
+folly::Future<TransceiverInfo> SaiPlatformPort::getFutureTransceiverInfo()
+    const {
   // use this method to query transceiver info
   // for hw test, it uses a map populated by switch ensemble to return
   // transceiver information

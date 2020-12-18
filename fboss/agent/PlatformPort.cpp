@@ -111,9 +111,11 @@ const phy::PortProfileConfig PlatformPort::getPortProfileConfig(
 const std::optional<phy::PortProfileConfig>
 PlatformPort::getPortProfileConfigIf(cfg::PortProfileID profileID) const {
   folly::EventBase evb;
+  auto transceiverInfo = getTransceiverInfo(&evb);
   std::optional<ExtendedSpecComplianceCode> transceiverSpecComplianceCode =
-      platform_->needExtendedSpecComplianceCode()
-      ? getTransceiverExtendedSpecCompliance(&evb).getVia(&evb)
+      (platform_->needExtendedSpecComplianceCode() &&
+       transceiverInfo.has_value())
+      ? transceiverInfo->extendedSpecificationComplianceCode_ref().to_optional()
       : std::nullopt;
   if (transceiverSpecComplianceCode.has_value()) {
     return platform_->getPortProfileConfig(PlatformPortProfileConfigMatcher(
@@ -148,24 +150,16 @@ std::optional<int32_t> PlatformPort::getExternalPhyID() {
   }
 }
 
-folly::Future<std::optional<ExtendedSpecComplianceCode>>
-PlatformPort::getTransceiverExtendedSpecCompliance(
+std::optional<TransceiverInfo> PlatformPort::getTransceiverInfo(
     folly::EventBase* evb) const {
-  auto getTxcvExtendedSpecCompliance =
-      [](TransceiverInfo info) -> std::optional<ExtendedSpecComplianceCode> {
-    return info.extendedSpecificationComplianceCode_ref().to_optional();
-  };
   auto transID = getTransceiverID();
-  auto handleErr = [transID](const std::exception& e)
-      -> std::optional<ExtendedSpecComplianceCode> {
-    XLOG(ERR) << "Error retrieving ExtendedSpecCompliance info for transceiver "
-              << *transID << " Exception: " << folly::exceptionStr(e);
+  try {
+    return std::optional(getFutureTransceiverInfo().getVia(evb));
+  } catch (const std::exception& e) {
+    XLOG(ERR) << "Error retrieving TransceiverInfo for transceiver " << *transID
+              << " Exception: " << folly::exceptionStr(e);
     return std::nullopt;
-  };
-  return getTransceiverInfo()
-      .via(evb)
-      .thenValueInline(getTxcvExtendedSpecCompliance)
-      .thenError<std::exception>(std::move(handleErr));
+  }
 }
 
 } // namespace facebook::fboss

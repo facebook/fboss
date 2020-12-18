@@ -45,7 +45,8 @@ std::optional<TransceiverID> SimPlatformPort::getTransceiverID() const {
   return std::nullopt;
 }
 
-folly::Future<TransceiverInfo> SimPlatformPort::getTransceiverInfo() const {
+folly::Future<TransceiverInfo> SimPlatformPort::getFutureTransceiverInfo()
+    const {
   if (auto transceiver =
           getPlatform()->getOverrideTransceiverInfo(getPortID())) {
     return transceiver.value();

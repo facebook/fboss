@@ -182,12 +182,11 @@ class PlatformPort {
    */
   virtual void externalState(PortLedExternalState) = 0;
 
-  virtual folly::Future<TransceiverInfo> getTransceiverInfo() const = 0;
+  virtual folly::Future<TransceiverInfo> getFutureTransceiverInfo() const = 0;
+  std::optional<TransceiverInfo> getTransceiverInfo(
+      folly::EventBase* evb) const;
 
   std::optional<int32_t> getExternalPhyID();
-
-  folly::Future<std::optional<ExtendedSpecComplianceCode>>
-  getTransceiverExtendedSpecCompliance(folly::EventBase* evb) const;
 
  private:
   PortID id_{0};
