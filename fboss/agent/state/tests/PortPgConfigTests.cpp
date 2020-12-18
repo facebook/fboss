@@ -10,6 +10,7 @@
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
+#include "fboss/agent/state/BufferPoolConfig.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -105,7 +106,7 @@ TEST(PortPgConfig, TestPortPgMaxLimit) {
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
 }
 
-TEST(PortPgConfig, ApplyConfig) {
+TEST(PortPgConfig, applyConfig) {
   int pgId = 0;
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
@@ -158,6 +159,11 @@ TEST(PortPgConfig, ApplyConfig) {
   // we push the change
   createPortPgConfig(
       0 /* pg start index */, kStateTestNumPortPgs /* pg end index */);
+  std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
+  cfg::BufferPoolConfig tmpPoolConfig;
+  bufferPoolCfgMap.insert(make_pair("bufferName", tmpPoolConfig));
+  config.bufferPoolConfigs_ref() = bufferPoolCfgMap;
+
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_NE(nullptr, stateV2);
 

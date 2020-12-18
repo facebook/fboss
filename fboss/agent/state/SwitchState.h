@@ -18,6 +18,8 @@
 
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AggregatePortMap.h"
+#include "fboss/agent/state/BufferPoolConfig.h"
+#include "fboss/agent/state/BufferPoolConfigMap.h"
 #include "fboss/agent/state/ControlPlane.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/InterfaceMap.h"
@@ -44,6 +46,8 @@ class SflowCollector;
 class SflowCollectorMap;
 class SwitchSettings;
 class QcmCfg;
+class BufferPoolCfg;
+class BufferPoolCfgMap;
 
 struct SwitchStateFields {
   SwitchStateFields();
@@ -89,6 +93,7 @@ struct SwitchStateFields {
   std::shared_ptr<LabelForwardingInformationBase> labelFib;
   std::shared_ptr<SwitchSettings> switchSettings;
   std::shared_ptr<QcmCfg> qcmCfg;
+  std::shared_ptr<BufferPoolCfgMap> bufferPoolCfgs;
 
   VlanID defaultVlan{0};
 
@@ -262,6 +267,10 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
     return getFields()->qcmCfg;
   }
 
+  const std::shared_ptr<BufferPoolCfgMap> getBufferPoolCfgs() const {
+    return getFields()->bufferPoolCfgs;
+  }
+
   void setArpTimeout(std::chrono::seconds timeout);
 
   std::chrono::seconds getNdpTimeout() const {
@@ -356,6 +365,7 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
       std::shared_ptr<ForwardingInformationBaseMap> fibs);
   void resetSwitchSettings(std::shared_ptr<SwitchSettings> switchSettings);
   void resetQcmCfg(std::shared_ptr<QcmCfg> qcmCfg);
+  void resetBufferPoolCfgs(std::shared_ptr<BufferPoolCfgMap> cfgs);
 
   void publish() override {
     using BaseT = NodeBaseT<SwitchState, SwitchStateFields>;
@@ -364,6 +374,9 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
     }
     if (auto qcmCfg = getQcmCfg()) {
       qcmCfg->publish();
+    }
+    if (auto bufferPoolCfg = getBufferPoolCfgs()) {
+      bufferPoolCfg->publish();
     }
     BaseT::publish();
   }

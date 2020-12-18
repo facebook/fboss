@@ -664,6 +664,8 @@ typedef string PortQueueConfigName
 
 typedef string PortPgConfigName
 
+typedef string BufferPoolConfigName
+
 const i32 DEFAULT_PORT_MTU = 9412
 /**
  * Configuration for a single logical port
@@ -1210,6 +1212,13 @@ struct PortPfc {
   3: PortPgConfigName portPgConfigName
 }
 
+// Global buffer pool shared by {port, pgs}
+struct BufferPoolConfig {
+   1: required i32 sharedBytes
+   2: required i32 headroomBytes
+}
+
+// max PG/port supported
 const i16 PORT_PG_MAX = 8;
 
 // Defines PG (priority group) configuration for ports
@@ -1333,4 +1342,5 @@ struct SwitchConfig {
   41: SwitchSettings switchSettings
   42: optional QcmConfig qcmConfig
   43: optional map<PortPgConfigName, list<PortPgConfig>> portPgConfigs
+  44: optional map<BufferPoolConfigName, BufferPoolConfig> bufferPoolConfigs
 }

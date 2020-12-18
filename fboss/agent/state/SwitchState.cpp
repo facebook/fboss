@@ -56,6 +56,7 @@ constexpr auto kLabelForwardingInformationBase = "labelFib";
 constexpr auto kSwitchSettings = "switchSettings";
 constexpr auto kDefaultDataplaneQosPolicy = "defaultDataPlaneQosPolicy";
 constexpr auto kQcmCfg = "qcmConfig";
+constexpr auto kBufferPoolCfgs = "bufferPoolConfigs";
 } // namespace
 
 // TODO: it might be worth splitting up limits for ecmp/ucmp
@@ -99,6 +100,9 @@ folly::dynamic SwitchStateFields::toFollyDynamic() const {
   switchState[kSwitchSettings] = switchSettings->toFollyDynamic();
   if (qcmCfg) {
     switchState[kQcmCfg] = qcmCfg->toFollyDynamic();
+  }
+  if (bufferPoolCfgs) {
+    switchState[kBufferPoolCfgs] = bufferPoolCfgs->toFollyDynamic();
   }
   if (defaultDataPlaneQosPolicy) {
     switchState[kDefaultDataplaneQosPolicy] =
@@ -163,6 +167,10 @@ SwitchStateFields SwitchStateFields::fromFollyDynamic(
 
   if (swJson.find(kQcmCfg) != swJson.items().end()) {
     switchState.qcmCfg = QcmCfg::fromFollyDynamic(swJson[kQcmCfg]);
+  }
+  if (swJson.find(kBufferPoolCfgs) != swJson.items().end()) {
+    switchState.bufferPoolCfgs =
+        BufferPoolCfgMap::fromFollyDynamic(swJson[kBufferPoolCfgs]);
   }
 
   // TODO verify that created state here is internally consistent t4155406
@@ -305,6 +313,10 @@ void SwitchState::resetSwitchSettings(
 
 void SwitchState::resetQcmCfg(std::shared_ptr<QcmCfg> qcmCfg) {
   writableFields()->qcmCfg = qcmCfg;
+}
+
+void SwitchState::resetBufferPoolCfgs(std::shared_ptr<BufferPoolCfgMap> cfgs) {
+  writableFields()->bufferPoolCfgs = cfgs;
 }
 
 const std::shared_ptr<LoadBalancerMap>& SwitchState::getLoadBalancers() const {
