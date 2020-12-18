@@ -121,7 +121,7 @@ bcm_cosq_stat_t getBcmCosqStatType(BcmCosQueueStatType type) {
 const PortQueue& getTD2DefaultUCPortQueueSettings() {
   // Since the default queue is constant, we can use static to cache this
   // object here.
-  Trident2Asic asic;
+  static Trident2Asic asic;
   static const PortQueue kPortQueue{PortQueueFields{
       .id = kDefaultPortQueueId,
       .scheduling = kDefaultPortQueueScheduling,
@@ -140,7 +140,7 @@ const PortQueue& getTD2DefaultUCPortQueueSettings() {
 }
 
 const PortQueue& getTHDefaultUCPortQueueSettings() {
-  TomahawkAsic asic;
+  static TomahawkAsic asic;
   static const PortQueue kPortQueue{PortQueueFields{
       .id = kDefaultPortQueueId,
       .scheduling = kDefaultPortQueueScheduling,
@@ -159,7 +159,7 @@ const PortQueue& getTHDefaultUCPortQueueSettings() {
 }
 
 const PortQueue& getTH3DefaultUCPortQueueSettings() {
-  Tomahawk3Asic asic;
+  static Tomahawk3Asic asic;
   static const PortQueue kPortQueue{PortQueueFields{
       .id = kDefaultPortQueueId,
       .scheduling = kDefaultPortQueueScheduling,
@@ -178,7 +178,7 @@ const PortQueue& getTH3DefaultUCPortQueueSettings() {
 }
 
 const PortQueue& getTH4DefaultUCPortQueueSettings() {
-  Tomahawk4Asic asic;
+  static Tomahawk4Asic asic;
   static const PortQueue kPortQueue{PortQueueFields{
       .id = kDefaultPortQueueId,
       .scheduling = kDefaultPortQueueScheduling,
@@ -197,7 +197,7 @@ const PortQueue& getTH4DefaultUCPortQueueSettings() {
 }
 
 const PortQueue& getTD2DefaultMCPortQueueSettings() {
-  Trident2Asic asic;
+  static Trident2Asic asic;
   static const PortQueue kPortQueue{PortQueueFields{
       .id = kDefaultPortQueueId,
       .scheduling = kDefaultPortQueueScheduling,
@@ -216,7 +216,7 @@ const PortQueue& getTD2DefaultMCPortQueueSettings() {
 }
 
 const PortQueue& getTHDefaultMCPortQueueSettings() {
-  TomahawkAsic asic;
+  static TomahawkAsic asic;
   static const PortQueue kPortQueue{PortQueueFields{
       .id = kDefaultPortQueueId,
       .scheduling = kDefaultPortQueueScheduling,
@@ -235,7 +235,7 @@ const PortQueue& getTHDefaultMCPortQueueSettings() {
 }
 
 const PortQueue& getTH3DefaultMCPortQueueSettings() {
-  Tomahawk3Asic asic;
+  static Tomahawk3Asic asic;
   static const PortQueue kPortQueue{PortQueueFields{
       .id = kDefaultPortQueueId,
       .scheduling = kDefaultPortQueueScheduling,
@@ -254,7 +254,7 @@ const PortQueue& getTH3DefaultMCPortQueueSettings() {
 }
 
 const PortQueue& getTH4DefaultMCPortQueueSettings() {
-  Tomahawk4Asic asic;
+  static Tomahawk4Asic asic;
   static const PortQueue kPortQueue{PortQueueFields{
       .id = kDefaultPortQueueId,
       .scheduling = kDefaultPortQueueScheduling,
@@ -307,7 +307,7 @@ const PortQueue& getDefaultPortQueueSettings(
 }
 
 const PortQueue& getTD2DefaultMCCPUQueueSettings() {
-  Trident2Asic asic;
+  static Trident2Asic asic;
   static const PortQueue kPortQueue{PortQueueFields{
       .id = kDefaultPortQueueId,
       .scheduling = kDefaultPortQueueScheduling,
@@ -326,7 +326,7 @@ const PortQueue& getTD2DefaultMCCPUQueueSettings() {
 }
 
 const PortQueue& getTHDefaultMCCPUQueueSettings() {
-  TomahawkAsic asic;
+  static TomahawkAsic asic;
   static const PortQueue kPortQueue{PortQueueFields{
       .id = kDefaultPortQueueId,
       .scheduling = kDefaultPortQueueScheduling,
@@ -345,7 +345,7 @@ const PortQueue& getTHDefaultMCCPUQueueSettings() {
 }
 
 const PortQueue& getTH3DefaultMCCPUQueueSettings() {
-  Tomahawk3Asic asic;
+  static Tomahawk3Asic asic;
   static const PortQueue kPortQueue{PortQueueFields{
       .id = kDefaultPortQueueId,
       .scheduling = kDefaultPortQueueScheduling,
@@ -364,7 +364,7 @@ const PortQueue& getTH3DefaultMCCPUQueueSettings() {
 }
 
 const PortQueue& getTH4DefaultMCCPUQueueSettings() {
-  Tomahawk4Asic asic;
+  static Tomahawk4Asic asic;
   static const PortQueue kPortQueue{PortQueueFields{
       .id = kDefaultPortQueueId,
       .scheduling = kDefaultPortQueueScheduling,
