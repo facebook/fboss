@@ -83,6 +83,14 @@ class WedgeManager : public TransceiverManager {
     int32_t portId,
     cfg::PortProfileID portProfileId);
 
+  /*
+   * This function will call PhyManager to create all the ExternalPhy objects
+   */
+  bool initExternalPhyMap() override {
+    // TODO(rajank): To  implement this function for each platform
+    return true;
+  }
+
  protected:
   virtual std::unique_ptr<TransceiverI2CApi> getI2CBus();
   void updateTransceiverMap();

@@ -73,6 +73,11 @@ class TransceiverManager {
     return qsfpPlatApi_.get();
   }
 
+  /*
+   * Virtual function to initialize all the Phy in the system
+   */
+  virtual bool initExternalPhyMap() = 0;
+
  private:
   // Forbidden copy constructor and assignment operator
   TransceiverManager(TransceiverManager const &) = delete;
