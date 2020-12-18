@@ -17,6 +17,11 @@
 
 #include "fboss/agent/FbossError.h"
 
+DEFINE_bool(
+    override_cmis_tx_setting,
+    false,
+    "Flag to turn on new GB line tx setting for cmis module running in 100G");
+
 namespace {
 constexpr auto kFbossPortNameRegex = "eth(\\d+)/(\\d+)/(\\d+)";
 const re2::RE2 portNameRegex(kFbossPortNameRegex);
@@ -69,7 +74,7 @@ bool PlatformPortProfileConfigMatcher::matchOverrideWithFactor(
   }
   if (auto overrideTransceiverManagementInterface =
           factor.transceiverManagementInterface_ref()) {
-    if (!transceiverInfo_.has_value() ||
+    if (!transceiverInfo_.has_value() || !FLAGS_override_cmis_tx_setting ||
         !transceiverInfo_->transceiverManagementInterface_ref().has_value() ||
         transceiverInfo_->transceiverManagementInterface_ref().value() !=
             overrideTransceiverManagementInterface) {
