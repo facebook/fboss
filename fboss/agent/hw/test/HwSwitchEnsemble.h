@@ -44,7 +44,11 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
         L2Entry l2Entry,
         L2EntryUpdateType l2EntryUpdateType) = 0;
   };
-  struct HwSwitchEnsembleInitInfo {};
+  struct HwSwitchEnsembleInitInfo {
+    std::optional<std::map<PortID, TransceiverInfo>>
+        port2OverrideTransceiverInfo{};
+    std::optional<TransceiverInfo> overrideTransceiverInfo{};
+  };
   enum Feature : uint32_t {
     PACKET_RX,
     LINKSCAN,

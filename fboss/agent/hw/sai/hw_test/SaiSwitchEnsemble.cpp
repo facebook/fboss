@@ -116,7 +116,7 @@ void SaiSwitchEnsemble::runDiagCommand(
 }
 
 void SaiSwitchEnsemble::init(
-    const HwSwitchEnsemble::HwSwitchEnsembleInitInfo* /*info*/) {
+    const HwSwitchEnsemble::HwSwitchEnsembleInitInfo* info) {
   std::unique_ptr<AgentConfig> agentConfig;
   if (!FLAGS_config.empty()) {
     agentConfig = AgentConfig::fromFile(FLAGS_config);
@@ -126,6 +126,16 @@ void SaiSwitchEnsemble::init(
   initFlagDefaults(*agentConfig->thrift.defaultCommandLineArgs_ref());
   auto platform =
       initSaiPlatform(std::move(agentConfig), getHwSwitchFeatures());
+  if (info) {
+    if (info->port2OverrideTransceiverInfo) {
+      platform->setPort2OverrideTransceiverInfo(
+          info->port2OverrideTransceiverInfo.value());
+    }
+    if (info->overrideTransceiverInfo) {
+      platform->setOverrideTransceiverInfo(
+          info->overrideTransceiverInfo.value());
+    }
+  }
   std::unique_ptr<HwLinkStateToggler> linkToggler;
   if (haveFeature(HwSwitchEnsemble::LINKSCAN)) {
     linkToggler = std::make_unique<SaiLinkStateToggler>(

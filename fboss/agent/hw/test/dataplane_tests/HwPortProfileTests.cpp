@@ -93,7 +93,7 @@ class HwPortProfileTest : public HwTest {
 
   std::optional<TransceiverInfo> overrideTransceiverInfo() const override {
     auto tech = utility::getMediaType(Profile);
-    return utility::getTransceiverInfo(masterLogicalPortIds()[0], tech);
+    return utility::getTransceiverInfo(PortID(1) /*unused*/, tech);
   }
 };
 

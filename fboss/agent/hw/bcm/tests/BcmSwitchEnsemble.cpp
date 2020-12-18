@@ -139,8 +139,18 @@ void BcmSwitchEnsemble::runDiagCommand(
 }
 
 void BcmSwitchEnsemble::init(
-    const HwSwitchEnsemble::HwSwitchEnsembleInitInfo* /*info*/) {
+    const HwSwitchEnsemble::HwSwitchEnsembleInitInfo* info) {
   auto platform = createTestPlatform();
+  if (info) {
+    if (info->port2OverrideTransceiverInfo) {
+      platform->setPort2OverrideTransceiverInfo(
+          info->port2OverrideTransceiverInfo.value());
+    }
+    if (info->overrideTransceiverInfo) {
+      platform->setOverrideTransceiverInfo(
+          info->overrideTransceiverInfo.value());
+    }
+  }
   auto bcmTestPlatform = static_cast<BcmTestPlatform*>(platform.get());
   std::unique_ptr<AgentConfig> agentConfig;
   BcmConfig::ConfigMap cfg;
