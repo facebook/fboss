@@ -55,6 +55,21 @@ std::vector<phy::PinConfig> PlatformPort::getIphyPinConfigs(
       PlatformPortProfileConfigMatcher(profileID, id_));
 }
 
+phy::PortPinConfig PlatformPort::getPortXphyPinConfig(
+    cfg::PortProfileID profileID) const {
+  if (platform_->needTransceiverInfo()) {
+    folly::EventBase evb;
+    auto transceiverInfo = getTransceiverInfo(&evb);
+    if (transceiverInfo) {
+      return platform_->getPlatformMapping()->getPortXphyPinConfig(
+          PlatformPortProfileConfigMatcher(
+              profileID, id_, transceiverInfo.value()));
+    }
+  }
+  return platform_->getPlatformMapping()->getPortXphyPinConfig(
+      PlatformPortProfileConfigMatcher(profileID, id_));
+}
+
 cfg::PortProfileID PlatformPort::getProfileIDBySpeed(
     cfg::PortSpeed speed) const {
   auto profile = getProfileIDBySpeedIf(speed);

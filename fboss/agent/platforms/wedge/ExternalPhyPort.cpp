@@ -55,18 +55,7 @@ void ExternalPhyPort<PlatformT, PortStatsT>::portChanged(
     throw FbossError("No PlatformPortEntry found for ", newPort->getName());
   }
 
-  auto platformPortConfig =
-      platformPortEntry.value().supportedProfiles_ref()->find(profileID);
-  if (platformPortConfig ==
-      platformPortEntry.value().supportedProfiles_ref()->end()) {
-    throw FbossError(
-        "No speed profile with id ",
-        apache::thrift::util::enumNameSafe(profileID),
-        " found in PlatformPortEntry for ",
-        newPort->getName());
-  }
-
-  folly::EventBase evb;
+  auto portPinConfig = platPort->getPortXphyPinConfig(profileID);
   auto platform = dynamic_cast<PlatformT*>(platPort->getPlatform());
   auto portProfileConfig = platPort->getPortProfileConfig(profileID);
 
@@ -77,7 +66,7 @@ void ExternalPhyPort<PlatformT, PortStatsT>::portChanged(
 
   phy::PhyPortConfig phyPortConfig;
   phyPortConfig.config = phy::ExternalPhyConfig::fromConfigeratorTypes(
-      *platformPortConfig->second.pins_ref(),
+      portPinConfig,
       utility::getXphyLinePolaritySwapMap(
           *platformPortEntry->mapping_ref()->pins_ref(), chips));
   phyPortConfig.profile =
