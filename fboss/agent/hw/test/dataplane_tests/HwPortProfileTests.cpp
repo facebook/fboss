@@ -86,9 +86,7 @@ class HwPortProfileTest : public HwTest {
         verifyPort(portID);
       }
     };
-    // TODO: override transceiver info is not available across warm boots.
-    setup();
-    verify();
+    verifyAcrossWarmBoots(setup, verify);
   }
 
   std::optional<TransceiverInfo> overrideTransceiverInfo() const override {
