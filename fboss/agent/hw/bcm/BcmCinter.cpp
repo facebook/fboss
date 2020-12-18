@@ -113,7 +113,7 @@ std::shared_ptr<BcmCinter> BcmCinter::getInstance() {
 }
 
 void BcmCinter::setupGlobals() {
-  array<string, 27> globals = {
+  array<string, 30> globals = {
       "_shr_pbmp_t pbmp",
       "_shr_rx_reasons_t reasons",
       "bcm_cosq_gport_discard_t discard",
@@ -122,6 +122,9 @@ void BcmCinter::setupGlobals() {
       "bcm_l2_station_t station",
       "bcm_l3_egress_ecmp_t ecmp",
       "bcm_l3_egress_t l3_egress",
+      "bcm_l3_egress_t l3_ingress",
+      "bcm_if_t ing_intf_id",
+      "bcm_vlan_control_vlan_t vlan_ctrl",
       "bcm_l3_host_t l3_host",
       "bcm_l3_intf_t l3_intf",
       "bcm_l3_route_t l3_route",
@@ -2333,6 +2336,74 @@ int BcmCinter::bcm_linkscan_enable_set(int unit, int us) {
 int BcmCinter::bcm_linkscan_mode_set(int unit, bcm_port_t port, int mode) {
   writeCintLines(wrapFunc(to<string>(
       "bcm_linkscan_mode_set(", makeParamStr(unit, port, mode), ")")));
+  return 0;
+}
+
+vector<string> BcmCinter::cintForL3Ingress(const bcm_l3_ingress_t* l3_ingress) {
+  vector<string> cintLines;
+  cintLines = {"bcm_l3_ingress_t_init(&l3_ingress)",
+               to<string>("l3_ingress.flags = ", l3_ingress->flags),
+               to<string>("l3_ingress.vrf = ", l3_ingress->vrf)};
+  return cintLines;
+}
+
+int BcmCinter::bcm_l3_ingress_create(
+    int unit,
+    bcm_l3_ingress_t* ing_intf,
+    bcm_if_t* intf_id) {
+  vector<string> cint =
+      cintForL3Ingress(reinterpret_cast<bcm_l3_ingress_t*>(ing_intf));
+  cint.push_back(to<string>("ing_intf_id = ", *intf_id));
+  auto funcCint = wrapFunc(to<string>(
+      "bcm_l3_ingress_create(",
+      makeParamStr(unit, "&l3_ingress", "&ing_intf_id"),
+      ")"));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(funcCint.begin()),
+      make_move_iterator(funcCint.end()));
+  writeCintLines(std::move(cint));
+  return 0;
+}
+
+int BcmCinter::bcm_l3_ingress_destroy(int unit, bcm_if_t intf_id) {
+  writeCintLines(wrapFunc(
+      to<string>("bcm_l3_ingress_destroy(", makeParamStr(unit, intf_id), ")")));
+  return 0;
+}
+
+int BcmCinter::bcm_vlan_control_vlan_set(
+    int unit,
+    bcm_vlan_t vlan,
+    bcm_vlan_control_vlan_t control) {
+  vector<string> cint = {
+      to<string>("vlan_ctrl.ingress_if = ", control.ingress_if)};
+  auto funcCint = wrapFunc(to<string>(
+      "bcm_vlan_control_vlan_set(",
+      makeParamStr(unit, vlan, "vlan_ctrl"),
+      ")"));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(funcCint.begin()),
+      make_move_iterator(funcCint.end()));
+  writeCintLines(std::move(cint));
+  return 0;
+}
+
+int BcmCinter::bcm_vlan_control_vlan_get(
+    int unit,
+    bcm_vlan_t vlan,
+    bcm_vlan_control_vlan_t* /*control*/) {
+  vector<string> cint = {"bcm_vlan_control_vlan_t_init(&vlan_ctrl)"};
+  auto funcCint = wrapFunc(to<string>(
+      "bcm_vlan_control_vlan_get(",
+      makeParamStr(unit, vlan, "&vlan_ctrl"),
+      ")"));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(funcCint.begin()),
+      make_move_iterator(funcCint.end()));
+  writeCintLines(std::move(cint));
   return 0;
 }
 

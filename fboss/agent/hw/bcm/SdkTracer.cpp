@@ -1466,6 +1466,23 @@ int __real_bcm_l2_addr_delete_by_port(
     bcm_port_t port,
     uint32 flags);
 
+int __real_bcm_l3_ingress_create(
+    int unit,
+    bcm_l3_ingress_t* ing_intf,
+    bcm_if_t* intf_id);
+
+int __real_bcm_l3_ingress_destroy(int unit, bcm_if_t intf_id);
+
+int __real_bcm_vlan_control_vlan_set(
+    int unit,
+    bcm_vlan_t vlan,
+    bcm_vlan_control_vlan_t control);
+
+int __real_bcm_vlan_control_vlan_get(
+    int unit,
+    bcm_vlan_t vlan,
+    bcm_vlan_control_vlan_t* control);
+
 int __real_sh_process_command(int unit, char* cmd);
 
 } // extern "C"
@@ -3517,6 +3534,31 @@ int __wrap_bcm_l2_addr_delete_by_port(
     bcm_port_t port,
     uint32 flags) {
   CALL_WRAPPERS_RV(bcm_l2_addr_delete_by_port(unit, mod, port, flags));
+}
+
+int __wrap_bcm_l3_ingress_create(
+    int unit,
+    bcm_l3_ingress_t* ing_intf,
+    bcm_if_t* intf_id) {
+  CALL_WRAPPERS_RV(bcm_l3_ingress_create(unit, ing_intf, intf_id));
+}
+
+int __wrap_bcm_l3_ingress_destroy(int unit, bcm_if_t intf_id) {
+  CALL_WRAPPERS_RV(bcm_l3_ingress_destroy(unit, intf_id));
+}
+
+int __wrap_bcm_vlan_control_vlan_set(
+    int unit,
+    bcm_vlan_t vlan,
+    bcm_vlan_control_vlan_t control) {
+  CALL_WRAPPERS_RV(bcm_vlan_control_vlan_set(unit, vlan, control));
+}
+
+int __wrap_bcm_vlan_control_vlan_get(
+    int unit,
+    bcm_vlan_t vlan,
+    bcm_vlan_control_vlan_t* control) {
+  CALL_WRAPPERS_RV(bcm_vlan_control_vlan_get(unit, vlan, control));
 }
 
 int __wrap_sh_process_command(int unit, char* cmd) {

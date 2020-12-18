@@ -587,6 +587,19 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       bcm_module_t mod,
       bcm_port_t port,
       uint32 flags) override;
+  int bcm_l3_ingress_create(
+      int unit,
+      bcm_l3_ingress_t* ing_intf,
+      bcm_if_t* intf_id) override;
+  int bcm_l3_ingress_destroy(int unit, bcm_if_t intf_id) override;
+  int bcm_vlan_control_vlan_set(
+      int unit,
+      bcm_vlan_t vlan,
+      bcm_vlan_control_vlan_t control) override;
+  int bcm_vlan_control_vlan_get(
+      int unit,
+      bcm_vlan_t vlan,
+      bcm_vlan_control_vlan_t* control) override;
 
   /*
    * Getters, traversal functions - Do nothing.
@@ -1593,6 +1606,8 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
 
   std::vector<std::string> cintForCosqBstProfile(
       bcm_cosq_bst_profile_t* profile);
+
+  std::vector<std::string> cintForL3Ingress(const bcm_l3_ingress_t* l3_ingress);
 
   /*
    * Synchronize access to data structures for access from multiple

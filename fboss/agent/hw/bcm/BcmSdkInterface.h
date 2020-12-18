@@ -844,6 +844,23 @@ class BcmSdkInterface {
       bcm_module_t mod,
       bcm_port_t port,
       uint32 flags) = 0;
+
+  virtual int bcm_l3_ingress_create(
+      int unit,
+      bcm_l3_ingress_t* ing_intf,
+      bcm_if_t* intf_id) = 0;
+
+  virtual int bcm_l3_ingress_destroy(int unit, bcm_if_t intf_id) = 0;
+
+  virtual int bcm_vlan_control_vlan_set(
+      int unit,
+      bcm_vlan_t vlan,
+      bcm_vlan_control_vlan_t control) = 0;
+
+  virtual int bcm_vlan_control_vlan_get(
+      int unit,
+      bcm_vlan_t vlan,
+      bcm_vlan_control_vlan_t* control) = 0;
 };
 
 } // namespace facebook::fboss
