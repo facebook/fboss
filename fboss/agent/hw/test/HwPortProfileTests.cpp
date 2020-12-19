@@ -80,7 +80,6 @@ class HwPortProfileTest : public HwTest {
       applyNewConfig(config);
     };
     auto verify = [=]() {
-      bool up = true;
       for (auto portID :
            {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}) {
         verifyPort(portID);
