@@ -107,18 +107,11 @@ class PlatformMapping {
     chips_.emplace(chipName, chip);
   }
 
-  void setSupportedProfile(
-      cfg::PortProfileID profileID,
-      phy::PortProfileConfig profile) {
-    supportedProfiles_.emplace(profileID, profile);
-  }
-
   void mergePlatformSupportedProfile(
       cfg::PlatformPortProfileConfigEntry supportedProfile);
 
   void merge(PlatformMapping* mapping);
 
-  cfg::PortProfileID getPortMaxSpeedProfile(PortID portID) const;
   cfg::PortSpeed getPortMaxSpeed(PortID portID) const;
 
   const std::vector<cfg::PlatformPortConfigOverride>& getPortConfigOverrides()
@@ -133,7 +126,6 @@ class PlatformMapping {
 
  protected:
   std::map<int32_t, cfg::PlatformPortEntry> platformPorts_;
-  std::map<cfg::PortProfileID, phy::PortProfileConfig> supportedProfiles_;
   std::vector<cfg::PlatformPortProfileConfigEntry> platformSupportedProfiles_;
   std::map<std::string, phy::DataPlanePhyChip> chips_;
   std::vector<cfg::PlatformPortConfigOverride> portConfigOverrides_;

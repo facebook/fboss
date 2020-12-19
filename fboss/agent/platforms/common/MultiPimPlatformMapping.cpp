@@ -36,18 +36,6 @@ MultiPimPlatformMapping::MultiPimPlatformMapping(
     }
 
     for (auto& portProfile : *port.second.supportedProfiles_ref()) {
-      if (auto itProfile = supportedProfiles_.find(portProfile.first);
-          itProfile != supportedProfiles_.end()) {
-        pims_[portPimID]->setSupportedProfile(
-            itProfile->first, itProfile->second);
-      } else {
-        throw FbossError(
-            "Port:",
-            *port.second.mapping_ref()->name_ref(),
-            " uses unsupported profile:",
-            apache::thrift::util::enumNameSafe(portProfile.first));
-      }
-
       if (auto platformProfile =
               getPortProfileConfig(PlatformPortProfileConfigMatcher(
                   portProfile.first, PimID(portPimID)))) {

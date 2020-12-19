@@ -101,8 +101,6 @@ FakeTestPlatformMapping::FakeTestPlatformMapping(
     *profile.speed_ref() = std::get<0>(itProfile.second);
     *profile.iphy_ref()->numLanes_ref() = std::get<1>(itProfile.second);
     *profile.iphy_ref()->fec_ref() = std::get<2>(itProfile.second);
-    setSupportedProfile(itProfile.first, profile);
-
     cfg::PlatformPortProfileConfigEntry configEntry;
     cfg::PlatformPortConfigFactor factor;
     factor.profileID_ref() = itProfile.first;

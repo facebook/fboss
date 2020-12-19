@@ -26,7 +26,6 @@ SimPlatformMapping::SimPlatformMapping(uint32_t numPorts) : PlatformMapping() {
 
   phy::PortProfileConfig profile;
   *profile.speed_ref() = cfg::PortSpeed::HUNDREDG;
-  setSupportedProfile(cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91, profile);
 
   cfg::PlatformPortProfileConfigEntry configEntry;
   cfg::PlatformPortConfigFactor factor;

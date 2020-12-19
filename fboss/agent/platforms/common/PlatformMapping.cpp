@@ -119,7 +119,6 @@ PlatformMapping::PlatformMapping(const std::string& jsonPlatformMappingStr) {
       apache::thrift::SimpleJSONSerializer::deserialize<cfg::PlatformMapping>(
           jsonPlatformMappingStr);
   platformPorts_ = std::move(*mapping.ports_ref());
-  supportedProfiles_ = std::move(*mapping.supportedProfiles_ref());
   platformSupportedProfiles_ =
       std::move(*mapping.platformSupportedProfiles_ref());
   for (auto chip : *mapping.chips_ref()) {
@@ -133,7 +132,7 @@ PlatformMapping::PlatformMapping(const std::string& jsonPlatformMappingStr) {
 cfg::PlatformMapping PlatformMapping::toThrift() const {
   cfg::PlatformMapping newMapping;
   newMapping.ports_ref() = this->platformPorts_;
-  newMapping.supportedProfiles_ref() = this->supportedProfiles_;
+  newMapping.platformSupportedProfiles_ref() = this->platformSupportedProfiles_;
   for (auto nameChipPair : this->chips_) {
     newMapping.chips_ref()->push_back(nameChipPair.second);
   }
@@ -148,11 +147,6 @@ void PlatformMapping::merge(PlatformMapping* mapping) {
         port.first, mapping->getPortConfigOverrides(port.first));
   }
   mapping->platformPorts_.clear();
-
-  for (auto profile : mapping->supportedProfiles_) {
-    supportedProfiles_.emplace(profile.first, std::move(profile.second));
-  }
-  mapping->supportedProfiles_.clear();
 
   for (auto incomingProfile : mapping->platformSupportedProfiles_) {
     mergePlatformSupportedProfile(incomingProfile);
@@ -231,34 +225,23 @@ int PlatformMapping::getPimID(
   return pimID;
 }
 
-cfg::PortProfileID PlatformMapping::getPortMaxSpeedProfile(
-    PortID portID) const {
+cfg::PortSpeed PlatformMapping::getPortMaxSpeed(PortID portID) const {
   auto itPlatformPort = platformPorts_.find(portID);
   if (itPlatformPort == platformPorts_.end()) {
     throw FbossError("Unrecoganized port:", portID);
   }
 
-  cfg::PortProfileID maxProfile{cfg::PortProfileID::PROFILE_DEFAULT};
   cfg::PortSpeed maxSpeed{cfg::PortSpeed::DEFAULT};
   for (auto profile : *itPlatformPort->second.supportedProfiles_ref()) {
-    if (auto itProfileCfg = supportedProfiles_.find(profile.first);
-        itProfileCfg != supportedProfiles_.end() &&
-        static_cast<int>(maxSpeed) <
-            static_cast<int>(*itProfileCfg->second.speed_ref())) {
-      maxSpeed = *itProfileCfg->second.speed_ref();
-      maxProfile = itProfileCfg->first;
+    if (auto profileConfig = getPortProfileConfig(
+            PlatformPortProfileConfigMatcher(profile.first, portID))) {
+      if (static_cast<int>(maxSpeed) <
+          static_cast<int>(*profileConfig->speed_ref())) {
+        maxSpeed = *profileConfig->speed_ref();
+      }
     }
   }
-  return maxProfile;
-}
-
-cfg::PortSpeed PlatformMapping::getPortMaxSpeed(PortID portID) const {
-  auto maxProfile = getPortMaxSpeedProfile(portID);
-  if (auto itProfileCfg = supportedProfiles_.find(maxProfile);
-      itProfileCfg != supportedProfiles_.end()) {
-    return *itProfileCfg->second.speed_ref();
-  }
-  return cfg::PortSpeed::DEFAULT;
+  return maxSpeed;
 }
 
 std::vector<phy::PinConfig> PlatformMapping::getPortIphyPinConfigs(
