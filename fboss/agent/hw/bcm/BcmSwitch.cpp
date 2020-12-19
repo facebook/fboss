@@ -815,11 +815,7 @@ HwInitResult BcmSwitch::init(
   rv = bcm_switch_control_set(unit_, bcmSwitchNdPktToCpu, 1);
   bcmCheckError(rv, "failed to set NDP trapping");
 
-  if (!platform_->getAsic()->isSupported(HwAsic::Feature::HSDK)) {
-    // Always disable hot swap
-    // T75758668 Temporary hack before Broadcom release fix in next SDK
-    disableHotSwap();
-  }
+  disableHotSwap();
 
   if (FLAGS_force_init_fp || !warmBoot || haveMissingOrQSetChangedFPGroups()) {
     initFieldProcessor();
