@@ -257,6 +257,10 @@ class SaiSwitch : public HwSwitch {
   void initLinkScanLocked(const std::lock_guard<std::mutex>& lock);
   void initRxLocked(const std::lock_guard<std::mutex>& lock);
 
+  bool isFeatureSetupLocked(
+      FeaturesDesired feature,
+      const std::lock_guard<std::mutex>& lock) const;
+
   folly::F14FastMap<std::string, HwPortStats> getPortStatsLocked(
       const std::lock_guard<std::mutex>& lock) const;
 

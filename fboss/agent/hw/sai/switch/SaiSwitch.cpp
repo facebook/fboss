@@ -1068,24 +1068,38 @@ void SaiSwitch::packetRxCallback(
   callback_->packetReceived(std::move(rxPacket));
 }
 
+bool SaiSwitch::isFeatureSetupLocked(
+    FeaturesDesired feature,
+    const std::lock_guard<std::mutex>& /*lock*/) const {
+  if (!(feature & getFeaturesDesired())) {
+    return false;
+  }
+  bool isConfigured = runState_ >= SwitchRunState::CONFIGURED;
+  bool isInitialized = runState_ >= SwitchRunState::INITIALIZED;
+  if (feature == FeaturesDesired::LINKSCAN_DESIRED) {
+    return isConfigured || (bootType_ == BootType::WARM_BOOT && isInitialized);
+  }
+  if (feature == FeaturesDesired::PACKET_RX_DESIRED) {
+    return isConfigured || (bootType_ == BootType::WARM_BOOT && isInitialized);
+  }
+  if (feature == FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED) {
+    return isConfigured;
+  }
+  CHECK(false) << " Unhandled feature " << feature;
+  return false;
+}
+
 void SaiSwitch::unregisterCallbacksLocked(
-    const std::lock_guard<std::mutex>& /* lock */) noexcept {
+    const std::lock_guard<std::mutex>& lock) noexcept {
   auto& switchApi = SaiApiTable::getInstance()->switchApi();
-  /*
-   * Ungregister callbacks based on the run state. fdb is registered
-   * in initialized state and linkscan and packet rx callbacks are
-   * registered in configured state.
-   */
-  if (runState_ >= SwitchRunState::CONFIGURED) {
-    if (getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED) {
-      switchApi.unregisterPortStateChangeCallback(switchId_);
-    }
-    if (getFeaturesDesired() & FeaturesDesired::PACKET_RX_DESIRED) {
-      switchApi.unregisterRxCallback(switchId_);
-    }
-    if (getFeaturesDesired() & FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED) {
-      switchApi.unregisterTamEventCallback(switchId_);
-    }
+  if (isFeatureSetupLocked(FeaturesDesired::LINKSCAN_DESIRED, lock)) {
+    switchApi.unregisterPortStateChangeCallback(switchId_);
+  }
+  if (isFeatureSetupLocked(FeaturesDesired::PACKET_RX_DESIRED, lock)) {
+    switchApi.unregisterRxCallback(switchId_);
+  }
+  if (isFeatureSetupLocked(FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED, lock)) {
+    switchApi.unregisterTamEventCallback(switchId_);
   }
   switchApi.unregisterFdbEventCallback(switchId_);
 }
