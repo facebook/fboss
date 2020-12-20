@@ -195,9 +195,7 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
 
     config->portQueueConfigs_ref()["queue_config"] = portQueues;
     for (auto& port : *config->ports_ref()) {
-      if (PortID(*port.logicalID_ref()) == masterLogicalPortIds()[0]) {
-        port.portQueueConfigName_ref() = "queue_config";
-      }
+      port.portQueueConfigName_ref() = "queue_config";
     }
   }
 };
