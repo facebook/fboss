@@ -362,7 +362,7 @@ void NeighborCacheImpl<NTable>::flushEntry(AddressType ip, bool* flushed) {
     // was actually flushed
     sw_->updateStateBlocking("flush neighbor entry", std::move(updateFn));
   } else {
-    sw_->updateState("remove neighbor entry", std::move(updateFn));
+    sw_->updateState("remove neighbor entry: " + ip.str(), std::move(updateFn));
   }
 }
 

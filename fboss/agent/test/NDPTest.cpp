@@ -631,6 +631,15 @@ TEST(NdpTest, TriggerSolicitation) {
   // Check the new stats
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
+
+  // Wait for entries to expire so we don't trigger updates
+  // while the test is exiting
+  WaitForNdpEntryExpiration neighborEntryExpire(
+      sw, IPAddressV6("2401:db00:2110:3004::1:0"), VlanID(5));
+  WaitForNdpEntryExpiration nextHop1Expire(
+      sw, IPAddressV6("2401:db00:2110:3004::1"), VlanID(5));
+  WaitForNdpEntryExpiration nextHop2Expire(
+      sw, IPAddressV6("2401:db00:2110:3004::2"), VlanID(5));
 }
 
 TEST(NdpTest, RouterAdvertisement) {
