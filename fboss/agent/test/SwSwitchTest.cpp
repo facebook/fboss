@@ -182,6 +182,9 @@ TEST_F(SwSwitchTest, TestStateNonCoalescing) {
   // purge is not skipped due to port down/up being coalesced
   waitForStateUpdates(sw);
   sw->getNeighborUpdater()->waitForPendingUpdates();
+  // Wait for static mac entries to be purged in response to
+  // neighbor getting pruned
+  waitForStateUpdates(sw);
 
   // 0 neighbor entries expected, i.e. entries must be purged
   verifyReachableCnt(0);
