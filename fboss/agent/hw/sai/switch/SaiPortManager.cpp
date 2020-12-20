@@ -584,7 +584,6 @@ std::map<PortID, HwPortStats> SaiPortManager::getPortStats() const {
       continue;
     }
     const auto& counters = handle->port->getStats();
-    std::ignore = platform_->getAsic()->isSupported(HwAsic::Feature::ECN);
     HwPortStats hwPortStats{};
     fillHwPortStats(
         counters, managerTable_->debugCounterManager(), hwPortStats);
