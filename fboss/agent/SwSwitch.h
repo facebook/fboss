@@ -260,6 +260,22 @@ class SwSwitch : public HwSwitch::Callback {
       StateUpdateFn fn,
       bool isTransaction = false);
 
+  /*
+   * A version of updateState() that reports back failures in applying state
+   * to Hw. Such updates are marked as blocking, non coalescing and
+   * transactional (if HwSwitch supports transactions). This will guarantee that
+   * if desired state update could not be applied FbossHwUpdateError exception
+   * will be thrown in the caller's thread.
+   *
+   * Note though that its upto the HwSwitch implementation to decide which state
+   * upate failures it can protect against. For things HwSwitch does not protect
+   * against it may just fail hard,
+   *
+   */
+  void updateStateWithHwFailureProtection(
+      folly::StringPiece name,
+      StateUpdateFn fn);
+
   /**
    * Apply config from the config file (specified in 'config' flag).
    *
@@ -656,6 +672,11 @@ class SwSwitch : public HwSwitch::Callback {
   }
 
  private:
+  void updateStateBlockingImpl(
+      folly::StringPiece name,
+      StateUpdateFn fn,
+      int stateUpdateBehavior);
+
   /*
    * Applied state corresponds to what was successfully applied
    * to h/w

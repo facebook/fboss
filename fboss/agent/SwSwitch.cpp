@@ -685,15 +685,35 @@ void SwSwitch::updateStateBlocking(
     folly::StringPiece name,
     StateUpdateFn fn,
     bool isTransaction) {
-  auto result = std::make_shared<BlockingUpdateResult>();
   auto behaviorFlags = static_cast<int>(StateUpdate::BehaviorFlags::NONE);
   if (isTransaction) {
     behaviorFlags |=
         (static_cast<int>(StateUpdate::BehaviorFlags::TRANSACTION) |
          static_cast<int>(StateUpdate::BehaviorFlags::NON_COALESCING));
   }
+  updateStateBlockingImpl(name, fn, behaviorFlags);
+}
+
+void SwSwitch::updateStateWithHwFailureProtection(
+    folly::StringPiece name,
+    StateUpdateFn fn) {
+  int stateUpdateBehavior =
+      static_cast<int>(StateUpdate::BehaviorFlags::NON_COALESCING);
+  if (getHw()->transactionsSupported()) {
+    stateUpdateBehavior |=
+        static_cast<int>(StateUpdate::BehaviorFlags::TRANSACTION);
+  }
+
+  updateStateBlockingImpl(name, fn, stateUpdateBehavior);
+}
+
+void SwSwitch::updateStateBlockingImpl(
+    folly::StringPiece name,
+    StateUpdateFn fn,
+    int stateUpdateBehavior) {
+  auto result = std::make_shared<BlockingUpdateResult>();
   auto update = make_unique<BlockingStateUpdate>(
-      name, std::move(fn), result, behaviorFlags);
+      name, std::move(fn), result, stateUpdateBehavior);
   updateState(std::move(update));
   result->wait();
 }
