@@ -673,37 +673,6 @@ void SwSwitch::updateState(unique_ptr<StateUpdate> update) {
   updateEventBase_.runInEventBaseThread(handlePendingUpdatesHelper, this);
 }
 
-void SwSwitch::queueStateUpdateForGettingHwInSync(
-    StringPiece name,
-    StateUpdateFn fn,
-    bool isTransaction) {
-  auto update = make_unique<FunctionStateUpdate>(
-      name,
-      std::move(fn),
-      static_cast<int>(
-          isTransaction ? StateUpdate::BehaviorFlags::TRANSACTION
-                        : StateUpdate::BehaviorFlags::NONE));
-  {
-    // Push the state update in front to preserver ordering.
-    // This is not particularly necessary, since this state
-    // update is freely coalesced with other state updates when
-    // we come to processing pending updates
-    folly::SpinLockGuard guard(pendingUpdatesLock_);
-    pendingUpdates_.push_front(*update.release());
-  }
-  // Don't inform updateEventBase about this update being queued.
-  // Rather let this update be processed with the next incoming update.
-  // This laziness avoids busy loop that ensue otherwise - since nothing
-  // in the h/w changed, our attempt to sync h/w is likely to fail again,
-  // which would result in another h/w out of sync update to be queued and
-  // so on. Instead we just wait next state update, this way we stand
-  // a chance for that update to make changes to h/w to allow this update to
-  // go through. Simplest example of this is when route addition fails due
-  // to tables being full. Space for these routes is likely to be made only
-  // when some routes get deleted (ignoring platform dependent h/w
-  // optimizations).
-}
-
 void SwSwitch::updateState(StringPiece name, StateUpdateFn fn) {
   auto update = make_unique<FunctionStateUpdate>(name, std::move(fn));
   updateState(std::move(update));
@@ -843,29 +812,6 @@ void SwSwitch::handlePendingUpdates() {
     // Stick the initial applied->desired in the beginning
     bool newOutOfSync = (newAppliedState != newDesiredState);
     fb303::fbData->setCounter("hw_out_of_sync", newOutOfSync);
-    if (newOutOfSync) {
-      // If we could not apply the whole delta successfully, put the difference
-      // as a state update at the beginning
-      queueStateUpdateForGettingHwInSync(
-          "state update for failed hardware application",
-          [newDesiredState,
-           newAppliedState](const std::shared_ptr<SwitchState>& /*oldState*/) {
-            // clone the newDesiredState and then inheritGeneration from
-            // newAppliedState otherwise the return state has a smaller gen#
-            // than the one of appliedState
-            auto hwOutOfSyncState = newDesiredState->clone();
-            hwOutOfSyncState->inheritGeneration(*newAppliedState);
-            return hwOutOfSyncState;
-          },
-          // If the failed update was a transaction, queued update is
-          // a transaction as well. Otherwise when we reaattempt this
-          // update (say in another round of handlePendingUpdates), there
-          // is a good chance that updating the HW would fail. If that
-          // update is not a transaction, then we would endup sending
-          // that down to HwSwitch as a non-transaction, leading HwSwitch
-          // to throw on update failure.
-          isTransaction);
-    }
   }
 
   // Notify all of the updates of success/failre, and delete them.

@@ -323,11 +323,10 @@ TEST_F(SwSwitchTest, FailedTransactionThrowsError) {
   auto stateUpdateFn2 = [=](const std::shared_ptr<SwitchState>& /*state*/) {
     return newerState;
   };
-  // Next update should also come as a transaction and should send in a
-  // coalesced update
+  // Next update should be a non transactional update since we will schedule
+  // it as such
   StateDelta expectedDelta(origState, newerState);
-  EXPECT_HW_CALL(sw, stateChangedTransaction(Eq(testing::ByRef(expectedDelta))))
-      .WillRepeatedly(Return(newerState));
+  EXPECT_HW_CALL(sw, stateChanged(Eq(testing::ByRef(expectedDelta))));
   sw->updateState("Accept update", stateUpdateFn2);
   waitForStateUpdates(sw);
   EXPECT_TRUE(sw->appliedAndDesiredStatesMatch());
