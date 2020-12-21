@@ -655,10 +655,6 @@ class SwSwitch : public HwSwitch::Callback {
     return resolvedNexthopProbeScheduler_.get();
   }
 
-  bool appliedAndDesiredStatesMatch() const {
-    return getAppliedState() == getDesiredState();
-  }
-
  private:
   /*
    * Applied state corresponds to what was successfully applied
@@ -669,29 +665,6 @@ class SwSwitch : public HwSwitch::Callback {
     return appliedStateDontUseDirectly_;
   }
 
-  /*
-   * Desired state corresponds to what we desire the switch
-   * state to be. This is allowed to differ from desired switch
-   * state in a few select cases, where we deem it safe to
-   * let these states diverge. Currently the use case for this
-   * is when ASIC TCAM/CAM is full, we allow these s/w(desired) and
-   * h/w (applied) of switch states diverge. When this happens
-   * we keep trying to converge to this states becoming the
-   * same, by reapplying delta b/w applied and desired states
-   * along with other state updates.
-   * This however should be a pretty rare situation, where
-   * a large number of routes have leaked and caused a TCAM/CAM
-   * overflow. Allowing these states to differ, means we dont
-   * crash (and become non functional) in this situation. Reapplying
-   * deltas means that when leak is fixed we converge to
-   * normality (desired == applied)
-   *
-   */
-  std::shared_ptr<SwitchState> getDesiredState() const {
-    folly::SpinLockGuard guard(stateLock_);
-    return desiredStateDontUseDirectly_;
-  }
-
   typedef folly::IntrusiveList<StateUpdate, &StateUpdate::listHook_>
       StateUpdateList;
 
@@ -699,19 +672,10 @@ class SwSwitch : public HwSwitch::Callback {
   SwSwitch(SwSwitch const&) = delete;
   SwSwitch& operator=(SwSwitch const&) = delete;
 
-  std::pair<std::shared_ptr<SwitchState>, std::shared_ptr<SwitchState>>
-  getStates() const {
-    folly::SpinLockGuard guard(stateLock_);
-    return std::make_pair(
-        appliedStateDontUseDirectly_, desiredStateDontUseDirectly_);
-  }
-
   /*
    * Update the current states.
    */
-  void setStateInternal(
-      std::shared_ptr<SwitchState> newAppliedState,
-      std::shared_ptr<SwitchState> newDesiredState);
+  void setStateInternal(std::shared_ptr<SwitchState> newAppliedState);
 
   void setDesiredState(std::shared_ptr<SwitchState> newDesiredState);
 
@@ -789,29 +753,21 @@ class SwSwitch : public HwSwitch::Callback {
   StateUpdateList pendingUpdates_;
 
   /*
-   * The current switch state: modelled as two states:
+   * The current switch state represented as :  appliedState,
+   * as in  what is actually applied in the hardware.
    *
-   *  1. desiredState* is what we desire the SwSwitch and HwSwitch to be in.
-   *     But because of some errors, or lag, this state might not be what is
-   *     actually applied to HwSwitch.
-   *  2. appliedState* is what is actually applied in the hardware.
-   *
-   * In steady state without any errors, these state should differ only for
-   * short amounts of time when state is being applied, but otherwise should be
-   * the same.
    *
    * BEWARE: You generally shouldn't access these states directly, even
    * internally within SwSwitch private methods.  These should only be accessed
    * while holding stateLock_.
    *
-   * You almost certainly should call getAppliedState() or getDesiredState() or
-   * setStateInternal() instead of directly accessing these.
+   * You almost certainly should call getAppliedState() setStateInternal()
+   * instead of directly accessing appliedState
    *
    * This intentionally has an awkward name so people won't forget and try to
    * directly access this pointer.
    */
   std::shared_ptr<SwitchState> appliedStateDontUseDirectly_;
-  std::shared_ptr<SwitchState> desiredStateDontUseDirectly_;
   mutable folly::SpinLock stateLock_;
 
   /*

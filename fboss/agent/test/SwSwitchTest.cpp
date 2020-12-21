@@ -101,8 +101,6 @@ TEST_F(SwSwitchTest, UpdateStatsExceptionCounter) {
 
 TEST_F(SwSwitchTest, HwRejectsUpdateThenAccepts) {
   CounterCache counters(sw);
-  // applied and desired state in sync before we begin
-  EXPECT_TRUE(sw->appliedAndDesiredStatesMatch());
   auto origState = sw->getState();
   auto newState = bringAllPortsUp(sw->getState()->clone());
   // Have HwSwitch reject this state update. In current implementation
@@ -116,13 +114,11 @@ TEST_F(SwSwitchTest, HwRejectsUpdateThenAccepts) {
   EXPECT_THROW(
       sw->updateStateBlocking("Reject update", stateUpdateFn),
       FbossHwUpdateError);
-  EXPECT_FALSE(sw->appliedAndDesiredStatesMatch());
   counters.update();
   // Have HwSwitch now accept this update
   EXPECT_HW_CALL(sw, stateChanged(_)).WillRepeatedly(Return(newState));
   sw->updateState("Accept update", stateUpdateFn);
   waitForStateUpdates(sw);
-  EXPECT_TRUE(sw->appliedAndDesiredStatesMatch());
 }
 
 TEST_F(SwSwitchTest, TestStateNonCoalescing) {
@@ -292,8 +288,6 @@ TEST_F(SwSwitchTest, TransactionAtStart) {
 
 TEST_F(SwSwitchTest, FailedTransactionThrowsError) {
   CounterCache counters(sw);
-  // applied and desired state in sync before we begin
-  EXPECT_TRUE(sw->appliedAndDesiredStatesMatch());
   auto origState = sw->getState();
   auto newState = bringAllPortsUp(sw->getState()->clone());
   newState->publish();
@@ -310,7 +304,6 @@ TEST_F(SwSwitchTest, FailedTransactionThrowsError) {
       sw->updateStateBlocking("Transaction fail", stateUpdateFn, true),
       FbossHwUpdateError);
 
-  EXPECT_FALSE(sw->appliedAndDesiredStatesMatch());
   auto newerState = newState->clone();
   auto stateUpdateFn2 = [=](const std::shared_ptr<SwitchState>& /*state*/) {
     return newerState;
@@ -321,5 +314,4 @@ TEST_F(SwSwitchTest, FailedTransactionThrowsError) {
   EXPECT_HW_CALL(sw, stateChanged(Eq(testing::ByRef(expectedDelta))));
   sw->updateState("Accept update", stateUpdateFn2);
   waitForStateUpdates(sw);
-  EXPECT_TRUE(sw->appliedAndDesiredStatesMatch());
 }

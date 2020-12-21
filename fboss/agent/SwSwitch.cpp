@@ -421,9 +421,6 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
   flags_ = flags;
   auto hwInitRet = hw_->init(this, false /*failHwCallsOnWarmboot*/);
   auto initialState = hwInitRet.switchState;
-  // for now, warmboot is not keeping failed routes, so keep the same state as
-  // applied and desired.
-  auto initialStateDesired = hwInitRet.switchState;
   bootType_ = hwInitRet.bootType;
 
   XLOG(DBG0) << "hardware initialized in " << hwInitRet.bootTime
@@ -434,8 +431,7 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
 
   // Store the initial state
   initialState->publish();
-  initialStateDesired->publish();
-  setStateInternal(initialState, initialStateDesired);
+  setStateInternal(initialState);
 
   if (flags & SwitchFlags::ENABLE_TUN) {
     if (tunMgr) {
@@ -448,23 +444,22 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
   platform_->onHwInitialized(this);
 
   // Notify the state observers of the initial state
-  updateEventBase_.runInEventBaseThread([initialStateDesired, this]() {
+  updateEventBase_.runInEventBaseThread([initialState, this]() {
     notifyStateObservers(
-        StateDelta(std::make_shared<SwitchState>(), initialStateDesired));
+        StateDelta(std::make_shared<SwitchState>(), initialState));
   });
 
   if (getFlags() & SwitchFlags::ENABLE_STANDALONE_RIB) {
     // ALPM is enabled for the stand-alone RIB in ConfigApplier
   } else {
-    auto alpmInitState = setupAlpmState(initialStateDesired);
+    auto alpmInitState = setupAlpmState(initialState);
     if (alpmInitState) {
       // If setupAlpmInitState caused a new switchState to get
       // generated, applyIt
       // send a state update to h/w
       updateEventBase_.runInEventBaseThread(
-          [alpmInitState, initialStateDesired, this]() {
-            applyUpdate(
-                initialStateDesired, alpmInitState, false /*isTransaction*/);
+          [alpmInitState, initialState, this]() {
+            applyUpdate(initialState, alpmInitState, false /*isTransaction*/);
           });
     }
   }
@@ -757,15 +752,9 @@ void SwSwitch::handlePendingUpdates() {
   // not initialized yet
   DCHECK(isInitialized());
 
-  std::shared_ptr<SwitchState> oldAppliedState;
-  std::shared_ptr<SwitchState> oldDesiredState;
   // Call all of the update functions to prepare the new SwitchState
-  std::tie(oldAppliedState, oldDesiredState) = getStates();
-  // We start with the old applied state, and apply state updates one at a
-  // time. The first state update applied is one from oldAppliedState ->
-  // oldDesiredState. This is the one we always enqueue at the front of the
-  // queue whenever applied and desired states diverge. After that, other
-  // supplied state updates are applied (that were spliced above).
+  auto oldAppliedState = getState();
+  // We start with the old state, and apply state updates one at a time.
   auto newDesiredState = oldAppliedState;
   auto iter = updates.begin();
   bool isTransaction{false};
@@ -837,25 +826,13 @@ void SwSwitch::handlePendingUpdates() {
   }
 }
 
-void SwSwitch::setStateInternal(
-    std::shared_ptr<SwitchState> newAppliedState,
-    std::shared_ptr<SwitchState> newDesiredState) {
+void SwSwitch::setStateInternal(std::shared_ptr<SwitchState> newAppliedState) {
   // This is one of the only two places that should ever directly access
   // stateDontUseDirectly_.  (getState() being the other one.)
   CHECK(bool(newAppliedState));
-  CHECK(bool(newDesiredState));
   CHECK(newAppliedState->isPublished());
-  CHECK(newDesiredState->isPublished());
   folly::SpinLockGuard guard(stateLock_);
   appliedStateDontUseDirectly_.swap(newAppliedState);
-  desiredStateDontUseDirectly_.swap(newDesiredState);
-}
-
-void SwSwitch::setDesiredState(std::shared_ptr<SwitchState> newDesiredState) {
-  CHECK(bool(newDesiredState));
-  CHECK(newDesiredState->isPublished());
-  folly::SpinLockGuard guard(stateLock_);
-  desiredStateDontUseDirectly_.swap(newDesiredState);
 }
 
 std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
@@ -907,7 +884,7 @@ std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
                 << folly::exceptionStr(ex);
   }
 
-  setStateInternal(newAppliedState, newState);
+  setStateInternal(newAppliedState);
 
   // Notifies all observers of the current state update.
   notifyStateObservers(StateDelta(oldState, newAppliedState));
