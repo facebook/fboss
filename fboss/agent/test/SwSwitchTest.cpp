@@ -112,9 +112,8 @@ TEST_F(SwSwitchTest, HwRejectsUpdateThenAccepts) {
     return newState;
   };
   EXPECT_THROW(
-      sw->updateStateBlocking("Reject update", stateUpdateFn),
+      sw->updateStateWithHwFailureProtection("Reject update", stateUpdateFn),
       FbossHwUpdateError);
-  counters.update();
   // Have HwSwitch now accept this update
   EXPECT_HW_CALL(sw, stateChanged(_)).WillRepeatedly(Return(newState));
   sw->updateState("Accept update", stateUpdateFn);

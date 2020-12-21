@@ -36,6 +36,7 @@ class StateUpdate {
     NONE = 0x0,
     NON_COALESCING = 0x1,
     TRANSACTION = 0x2,
+    HW_FAILURE_PROTECTION = 0x4,
   };
   static constexpr int kDefaultBehaviorFlags =
       static_cast<int>(BehaviorFlags::NONE);
@@ -55,6 +56,10 @@ class StateUpdate {
   }
   bool isTransaction() const {
     return behaviorFlags_ & static_cast<int>(BehaviorFlags::TRANSACTION);
+  }
+  bool hwFailureProtected() const {
+    return behaviorFlags_ &
+        static_cast<int>(BehaviorFlags::HW_FAILURE_PROTECTION);
   }
 
   /*

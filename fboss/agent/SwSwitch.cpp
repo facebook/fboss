@@ -690,7 +690,9 @@ void SwSwitch::updateStateWithHwFailureProtection(
     folly::StringPiece name,
     StateUpdateFn fn) {
   int stateUpdateBehavior =
-      static_cast<int>(StateUpdate::BehaviorFlags::NON_COALESCING);
+      static_cast<int>(StateUpdate::BehaviorFlags::NON_COALESCING) |
+      static_cast<int>(StateUpdate::BehaviorFlags::HW_FAILURE_PROTECTION);
+
   if (getHw()->transactionsSupported()) {
     stateUpdateBehavior |=
         static_cast<int>(StateUpdate::BehaviorFlags::TRANSACTION);
@@ -810,17 +812,11 @@ void SwSwitch::handlePendingUpdates() {
     // There was some change during these state updates
     newAppliedState =
         applyUpdate(oldAppliedState, newDesiredState, isTransaction);
-  }
-
-  // Notify all of the updates of success/failre, and delete them.
-  // Since the updates here were coaelesced together, we don't actually
-  // know which update caused HW update application failure. So we
-  // pass the error back to update with the desired and applied states
-  // pointers and let the update figure it out.
-  while (!updates.empty()) {
-    unique_ptr<StateUpdate> update(&updates.front());
-    updates.pop_front();
     if (newDesiredState != newAppliedState) {
+      CHECK(updates.size() == 1 && updates.begin()->hwFailureProtected())
+          << " Failed to apply update to HW and the update is not marked for "
+             "HW failure protection";
+      unique_ptr<StateUpdate> update(&updates.front());
       try {
         throw FbossHwUpdateError(
             newDesiredState,
@@ -832,9 +828,15 @@ void SwSwitch::handlePendingUpdates() {
       } catch (const std::exception& ex) {
         update->onError(ex);
       }
-    } else {
-      update->onSuccess();
+      return;
     }
+  }
+
+  // Notify all of the updates of success and delete them.
+  while (!updates.empty()) {
+    unique_ptr<StateUpdate> update(&updates.front());
+    updates.pop_front();
+    update->onSuccess();
   }
 }
 
