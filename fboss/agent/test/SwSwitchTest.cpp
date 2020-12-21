@@ -118,16 +118,11 @@ TEST_F(SwSwitchTest, HwRejectsUpdateThenAccepts) {
       FbossHwUpdateError);
   EXPECT_FALSE(sw->appliedAndDesiredStatesMatch());
   counters.update();
-  counters.checkDelta(SwitchStats::kCounterPrefix + "hw_out_of_sync", 1);
-  EXPECT_EQ(1, counters.value(SwitchStats::kCounterPrefix + "hw_out_of_sync"));
   // Have HwSwitch now accept this update
   EXPECT_HW_CALL(sw, stateChanged(_)).WillRepeatedly(Return(newState));
   sw->updateState("Accept update", stateUpdateFn);
   waitForStateUpdates(sw);
   EXPECT_TRUE(sw->appliedAndDesiredStatesMatch());
-  counters.update();
-  counters.checkDelta(SwitchStats::kCounterPrefix + "hw_out_of_sync", -1);
-  EXPECT_EQ(0, counters.value(SwitchStats::kCounterPrefix + "hw_out_of_sync"));
 }
 
 TEST_F(SwSwitchTest, TestStateNonCoalescing) {
@@ -316,9 +311,6 @@ TEST_F(SwSwitchTest, FailedTransactionThrowsError) {
       FbossHwUpdateError);
 
   EXPECT_FALSE(sw->appliedAndDesiredStatesMatch());
-  counters.update();
-  counters.checkDelta(SwitchStats::kCounterPrefix + "hw_out_of_sync", 1);
-  EXPECT_EQ(1, counters.value(SwitchStats::kCounterPrefix + "hw_out_of_sync"));
   auto newerState = newState->clone();
   auto stateUpdateFn2 = [=](const std::shared_ptr<SwitchState>& /*state*/) {
     return newerState;
@@ -330,7 +322,4 @@ TEST_F(SwSwitchTest, FailedTransactionThrowsError) {
   sw->updateState("Accept update", stateUpdateFn2);
   waitForStateUpdates(sw);
   EXPECT_TRUE(sw->appliedAndDesiredStatesMatch());
-  counters.update();
-  counters.checkDelta(SwitchStats::kCounterPrefix + "hw_out_of_sync", -1);
-  EXPECT_EQ(0, counters.value(SwitchStats::kCounterPrefix + "hw_out_of_sync"));
 }

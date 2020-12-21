@@ -809,9 +809,6 @@ void SwSwitch::handlePendingUpdates() {
     // There was some change during these state updates
     newAppliedState =
         applyUpdate(oldAppliedState, newDesiredState, isTransaction);
-    // Stick the initial applied->desired in the beginning
-    bool newOutOfSync = (newAppliedState != newDesiredState);
-    fb303::fbData->setCounter("hw_out_of_sync", newOutOfSync);
   }
 
   // Notify all of the updates of success/failre, and delete them.
