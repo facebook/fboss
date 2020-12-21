@@ -418,3 +418,18 @@ TEST(ThriftTest, syncMplsFibIsHwProtected) {
   EXPECT_THROW(
       handler.syncMplsFib(10, std::move(newRoutes)), FbossHwUpdateError);
 }
+
+TEST(ThriftTest, addMplsRoutesIsHwProtected) {
+  // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+  sw->fibSynced();
+  ThriftHandler handler(sw);
+  auto newRoutes = std::make_unique<std::vector<MplsRoute>>();
+  MplsRoute nr1 = *makeMplsRoute(101, "10.0.0.2").get();
+  newRoutes->push_back(nr1);
+  // Fail HW update by returning current state
+  EXPECT_HW_CALL(sw, stateChanged(_)).WillRepeatedly(Return(sw->getState()));
+  EXPECT_THROW(
+      handler.addMplsRoutes(10, std::move(newRoutes)), FbossHwUpdateError);
+}
