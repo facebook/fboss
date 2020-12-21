@@ -11,6 +11,7 @@
 #include <gtest/gtest.h>
 
 #include "fboss/agent/ArpHandler.h"
+#include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/Main.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PortStats.h"
@@ -112,8 +113,9 @@ TEST_F(SwSwitchTest, HwRejectsUpdateThenAccepts) {
   auto stateUpdateFn = [=](const std::shared_ptr<SwitchState>& /*state*/) {
     return newState;
   };
-  sw->updateState("Reject update", stateUpdateFn);
-  waitForStateUpdates(sw);
+  EXPECT_THROW(
+      sw->updateStateBlocking("Reject update", stateUpdateFn),
+      FbossHwUpdateError);
   EXPECT_FALSE(sw->appliedAndDesiredStatesMatch());
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "hw_out_of_sync", 1);
@@ -293,7 +295,7 @@ TEST_F(SwSwitchTest, TransactionAtStart) {
   EXPECT_EQ(nonTransactionalState, sw->getState());
 }
 
-TEST_F(SwSwitchTest, FailedTransactionRequeuedAsTransaction) {
+TEST_F(SwSwitchTest, FailedTransactionThrowsError) {
   CounterCache counters(sw);
   // applied and desired state in sync before we begin
   EXPECT_TRUE(sw->appliedAndDesiredStatesMatch());
@@ -309,7 +311,10 @@ TEST_F(SwSwitchTest, FailedTransactionRequeuedAsTransaction) {
   auto stateUpdateFn = [=](const std::shared_ptr<SwitchState>& /*state*/) {
     return newState;
   };
-  sw->updateStateBlocking("Transaction fail", stateUpdateFn, true);
+  EXPECT_THROW(
+      sw->updateStateBlocking("Transaction fail", stateUpdateFn, true),
+      FbossHwUpdateError);
+
   EXPECT_FALSE(sw->appliedAndDesiredStatesMatch());
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "hw_out_of_sync", 1);

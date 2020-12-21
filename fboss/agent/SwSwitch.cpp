@@ -832,11 +832,13 @@ void SwSwitch::handlePendingUpdates() {
       newDesiredState = intermediateState;
     }
   }
-
+  // Start newAppliedState as equal to newDesiredState unless
+  // we learn otherwise
+  auto newAppliedState = newDesiredState;
   // Now apply the update and notify subscribers
   if (newDesiredState != oldAppliedState) {
     // There was some change during these state updates
-    auto newAppliedState =
+    newAppliedState =
         applyUpdate(oldAppliedState, newDesiredState, isTransaction);
     // Stick the initial applied->desired in the beginning
     bool newOutOfSync = (newAppliedState != newDesiredState);
@@ -866,13 +868,29 @@ void SwSwitch::handlePendingUpdates() {
     }
   }
 
-  // Notify all of the updates of success, and delete them. Success is defined
-  // as SwSwitch's attempt to apply them to hw, even though they might have not
-  // actually been applied yet.
+  // Notify all of the updates of success/failre, and delete them.
+  // Since the updates here were coaelesced together, we don't actually
+  // know which update caused HW update application failure. So we
+  // pass the error back to update with the desired and applied states
+  // pointers and let the update figure it out.
   while (!updates.empty()) {
     unique_ptr<StateUpdate> update(&updates.front());
     updates.pop_front();
-    update->onSuccess();
+    if (newDesiredState != newAppliedState) {
+      try {
+        throw FbossHwUpdateError(
+            newDesiredState,
+            newAppliedState,
+            "Update : ",
+            update->getName(),
+            " application to HW failed");
+
+      } catch (const std::exception& ex) {
+        update->onError(ex);
+      }
+    } else {
+      update->onSuccess();
+    }
   }
 }
 
