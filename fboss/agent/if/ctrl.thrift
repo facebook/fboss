@@ -549,6 +549,13 @@ enum HwObjectType {
   LABEL_ENTRY = 21,
 }
 
+exception FbossFibUpdateError {
+  1: map<i32, list<IpPrefix>> vrf2failedAddUpdatePrefixes
+  2: map<i32, list<IpPrefix>> vrf2failedDeletePrefixes
+  3: list<mpls.MplsLabel> failedAddUpdateMplsLabels
+  4: list<mpls.MplsLabel> failedDeleteMplsLabels
+}
+
 service FbossCtrl extends fb303.FacebookService {
   /*
    * Retrieve up-to-date counters from the hardware, and publish all
@@ -569,32 +576,32 @@ service FbossCtrl extends fb303.FacebookService {
    * - using clientID to identify who is adding routes, BGP or static
    */
   void addUnicastRoute(1: i16 clientId, 2: UnicastRoute r)
-    throws (1: fboss.FbossBaseError error)
+    throws (1: fboss.FbossBaseError error, 2: FbossFibUpdateError fibError)
   void deleteUnicastRoute(1: i16 clientId, 2: IpPrefix r)
     throws (1: fboss.FbossBaseError error)
   void addUnicastRoutes(1: i16 clientId, 2: list<UnicastRoute> r)
-    throws (1: fboss.FbossBaseError error)
+    throws (1: fboss.FbossBaseError error, 2: FbossFibUpdateError fibError)
   void deleteUnicastRoutes(1: i16 clientId, 2: list<IpPrefix> r)
     throws (1: fboss.FbossBaseError error)
   void syncFib(1: i16 clientId, 2: list<UnicastRoute> routes)
-    throws (1: fboss.FbossBaseError error)
+    throws (1: fboss.FbossBaseError error, 2: FbossFibUpdateError fibError)
 
   void addUnicastRouteInVrf(1: i16 clientId, 2: UnicastRoute r, 3: i32 vrf)
-    throws (1: fboss.FbossBaseError error)
+    throws (1: fboss.FbossBaseError error, 2: FbossFibUpdateError fibError)
   void deleteUnicastRouteInVrf(1: i16 clientId, 2: IpPrefix r, 3: i32 vrf)
     throws (1: fboss.FbossBaseError error)
   void addUnicastRoutesInVrf(
     1: i16 clientId,
     2: list<UnicastRoute> r,
     3: i32 vrf
-  ) throws (1: fboss.FbossBaseError error)
+  ) throws (1: fboss.FbossBaseError error, 2: FbossFibUpdateError fibError)
   void deleteUnicastRoutesInVrf(
     1: i16 clientId,
     2: list<IpPrefix> r,
     3: i32 vrf
   ) throws (1: fboss.FbossBaseError error)
   void syncFibInVrf(1: i16 clientId, 2: list<UnicastRoute> routes, 3: i32 vrf)
-    throws (1: fboss.FbossBaseError error)
+    throws (1: fboss.FbossBaseError error, 2: FbossFibUpdateError fibError)
 
   /*
    * Send packets in binary or hex format to controller.
@@ -697,7 +704,7 @@ service FbossCtrl extends fb303.FacebookService {
    void addMplsRoutes(
      1: i16 clientId,
      2: list<MplsRoute> routes,
-   ) throws (1: fboss.FbossBaseError error)
+   ) throws (1: fboss.FbossBaseError error, 2: FbossFibUpdateError fibError)
 
    void deleteMplsRoutes(
      1: i16 clientId,
@@ -709,7 +716,7 @@ service FbossCtrl extends fb303.FacebookService {
    void syncMplsFib(
      1: i16 clientId,
      2: list<MplsRoute> routes,
-   ) throws (1: fboss.FbossBaseError error)
+   ) throws (1: fboss.FbossBaseError error, 2: FbossFibUpdateError fibError)
 
    /* Retrieve list of MPLS routes per client */
    list<MplsRoute> getMplsRouteTableByClient(
