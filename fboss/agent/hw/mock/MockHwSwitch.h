@@ -63,6 +63,7 @@ class MockHwSwitch : public HwSwitch {
       facebook::fboss::PortID portID,
       std::optional<uint8_t> queue = std::nullopt) noexcept override;
 
+  MOCK_CONST_METHOD0(transactionsSupported, bool());
   MOCK_METHOD1(updateStatsImpl, void(SwitchStats* switchStats));
   MOCK_CONST_METHOD0(
       getPortStats,

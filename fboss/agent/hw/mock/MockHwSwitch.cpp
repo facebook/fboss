@@ -17,6 +17,7 @@
 using std::make_unique;
 using ::testing::_;
 using ::testing::Invoke;
+using ::testing::Return;
 
 namespace facebook::fboss {
 
@@ -58,6 +59,7 @@ MockHwSwitch::MockHwSwitch(MockPlatform* platform) : platform_(platform) {
   ON_CALL(*this, stateChangedTransaction(_))
       .WillByDefault(
           Invoke([](const StateDelta& delta) { return delta.newState(); }));
+  ON_CALL(*this, transactionsSupported()).WillByDefault(Return(false));
 }
 
 std::unique_ptr<TxPacket> MockHwSwitch::allocatePacket(uint32_t size) const {
