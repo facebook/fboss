@@ -214,79 +214,91 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
   EXPECT_FALSE(sw->isValidStateUpdate(StateDelta(stateV0, stateV2)));
 }
 
-TEST_F(SwSwitchTest, TransactionAtEnd) {
+TEST_F(SwSwitchTest, HwFailureProtectedUpdateAtEnd) {
   auto startState = sw->getState();
   startState->publish();
-  auto nonTransactionalState = startState->clone();
-  nonTransactionalState->publish();
-  auto transactionalState = nonTransactionalState->clone();
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(1);
-  EXPECT_HW_CALL(sw, stateChangedTransaction(_)).Times(1);
-  auto nonTransactionalStateUpdateFn =
+  auto nonHwFailureProtectedUpdateState = startState->clone();
+  nonHwFailureProtectedUpdateState->publish();
+  auto protectedState = nonHwFailureProtectedUpdateState->clone();
+  bool transactionsSupported = sw->getHw()->transactionsSupported();
+  EXPECT_HW_CALL(sw, stateChanged(_))
+      .Times(1 + (transactionsSupported ? 0 : 1));
+  if (transactionsSupported) {
+    EXPECT_HW_CALL(sw, stateChangedTransaction(_)).Times(1);
+  }
+  auto nonHwFailureProtectedUpdateStateUpdateFn =
       [=](const std::shared_ptr<SwitchState>& state) {
         EXPECT_EQ(state, startState);
-        return nonTransactionalState;
+        return nonHwFailureProtectedUpdateState;
       };
-  auto tranactionalStateUpdateFn =
-      [=](const std::shared_ptr<SwitchState>& state) {
-        EXPECT_EQ(state, nonTransactionalState);
-        return transactionalState;
-      };
-  sw->updateState("Non transactional update", nonTransactionalStateUpdateFn);
-  sw->updateStateBlocking(
-      "Transactional update", tranactionalStateUpdateFn, true);
-  EXPECT_EQ(transactionalState, sw->getState());
+  auto protectedStateUpdateFn = [=](const std::shared_ptr<SwitchState>& state) {
+    EXPECT_EQ(state, nonHwFailureProtectedUpdateState);
+    return protectedState;
+  };
+  sw->updateState(
+      "Non protected update", nonHwFailureProtectedUpdateStateUpdateFn);
+  sw->updateStateWithHwFailureProtection(
+      "HwFailureProtectedUpdate update", protectedStateUpdateFn);
+  EXPECT_EQ(protectedState, sw->getState());
 }
 
-TEST_F(SwSwitchTest, BackToBackTransactions) {
+TEST_F(SwSwitchTest, BackToBackHwFailureProtectedUpdates) {
   auto startState = sw->getState();
   startState->publish();
-  auto transactionalState1 = startState->clone();
-  transactionalState1->publish();
-  auto transactionalState2 = transactionalState1->clone();
-  EXPECT_HW_CALL(sw, stateChangedTransaction(_)).Times(2);
-  auto transactionalState1UpdateFn =
+  auto protectedState1 = startState->clone();
+  protectedState1->publish();
+  auto protectedState2 = protectedState1->clone();
+  if (sw->getHw()->transactionsSupported()) {
+    EXPECT_HW_CALL(sw, stateChangedTransaction(_)).Times(2);
+  } else {
+    EXPECT_HW_CALL(sw, stateChanged(_)).Times(2);
+  }
+  auto protectedState1UpdateFn =
       [=](const std::shared_ptr<SwitchState>& state) {
         EXPECT_EQ(state, startState);
-        return transactionalState1;
+        return protectedState1;
       };
-  auto tranactionalState2UpdateFn =
+  auto protectedState2UpdateFn =
       [=](const std::shared_ptr<SwitchState>& state) {
-        EXPECT_EQ(state, transactionalState1);
-        return transactionalState2;
+        EXPECT_EQ(state, protectedState1);
+        return protectedState2;
       };
-  sw->updateStateBlocking(
-      "Transactional update 1", transactionalState1UpdateFn, true);
-  sw->updateStateBlocking(
-      "Transactional update 2", tranactionalState2UpdateFn, true);
-  EXPECT_EQ(transactionalState2, sw->getState());
+  sw->updateStateWithHwFailureProtection(
+      "HwFailureProtectedUpdate update 1", protectedState1UpdateFn);
+  sw->updateStateWithHwFailureProtection(
+      "HwFailureProtectedUpdate update 2", protectedState2UpdateFn);
+  EXPECT_EQ(protectedState2, sw->getState());
 }
 
-TEST_F(SwSwitchTest, TransactionAtStart) {
+TEST_F(SwSwitchTest, HwFailureProtectedUpdateAtStart) {
   auto startState = sw->getState();
   startState->publish();
-  auto transactionalState = startState->clone();
-  transactionalState->publish();
-  auto nonTransactionalState = transactionalState->clone();
-  EXPECT_HW_CALL(sw, stateChangedTransaction(_)).Times(1);
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(1);
-  auto transactionalStateUpdateFn =
+  auto protectedState = startState->clone();
+  protectedState->publish();
+  auto nonHwFailureProtectedUpdatealState = protectedState->clone();
+  bool transactionsSupported = sw->getHw()->transactionsSupported();
+  EXPECT_HW_CALL(sw, stateChanged(_))
+      .Times(1 + (transactionsSupported ? 0 : 1));
+  if (transactionsSupported) {
+    EXPECT_HW_CALL(sw, stateChangedTransaction(_)).Times(1);
+  }
+  auto protectedStateUpdateFn = [=](const std::shared_ptr<SwitchState>& state) {
+    EXPECT_EQ(state, startState);
+    return protectedState;
+  };
+  auto nonProtectedStateUpdateFn =
       [=](const std::shared_ptr<SwitchState>& state) {
-        EXPECT_EQ(state, startState);
-        return transactionalState;
+        EXPECT_EQ(state, protectedState);
+        return nonHwFailureProtectedUpdatealState;
       };
-  auto tranactionalStateUpdateFn =
-      [=](const std::shared_ptr<SwitchState>& state) {
-        EXPECT_EQ(state, transactionalState);
-        return nonTransactionalState;
-      };
-  sw->updateState("Transactional update", transactionalStateUpdateFn);
-  sw->updateStateBlocking(
-      "Non transactional update", tranactionalStateUpdateFn, true);
-  EXPECT_EQ(nonTransactionalState, sw->getState());
+  sw->updateStateWithHwFailureProtection(
+      "HwFailureProtectedUpdateal update", protectedStateUpdateFn);
+  sw->updateState("Non protected update", nonProtectedStateUpdateFn);
+  waitForStateUpdates(sw);
+  EXPECT_EQ(nonHwFailureProtectedUpdatealState, sw->getState());
 }
 
-TEST_F(SwSwitchTest, FailedTransactionThrowsError) {
+TEST_F(SwSwitchTest, FailedHwFailureProtectedUpdateThrowsError) {
   CounterCache counters(sw);
   auto origState = sw->getState();
   auto newState = bringAllPortsUp(sw->getState()->clone());
@@ -295,21 +307,26 @@ TEST_F(SwSwitchTest, FailedTransactionThrowsError) {
   // this happens only in case of table overflow. However at the SwSwitch
   // layer we don't care *why* the HwSwitch rejected this update, just
   // that it did
-  EXPECT_HW_CALL(sw, stateChangedTransaction(_))
-      .WillRepeatedly(Return(origState));
-  auto stateUpdateFn = [=](const std::shared_ptr<SwitchState>& /*state*/) {
+
+  if (sw->getHw()->transactionsSupported()) {
+    EXPECT_HW_CALL(sw, stateChangedTransaction(_))
+        .WillRepeatedly(Return(origState));
+  } else {
+    EXPECT_HW_CALL(sw, stateChanged(_)).WillRepeatedly(Return(origState));
+  }
+  auto stateUpdateFn = [=](const std::shared_ptr<SwitchState>& state) {
     return newState;
   };
   EXPECT_THROW(
-      sw->updateStateBlocking("Transaction fail", stateUpdateFn, true),
+      sw->updateStateWithHwFailureProtection(
+          "HwFailureProtectedUpdate fail", stateUpdateFn),
       FbossHwUpdateError);
 
   auto newerState = newState->clone();
-  auto stateUpdateFn2 = [=](const std::shared_ptr<SwitchState>& /*state*/) {
+  auto stateUpdateFn2 = [=](const std::shared_ptr<SwitchState>& state) {
     return newerState;
   };
-  // Next update should be a non transactional update since we will schedule
-  // it as such
+  // Next update should be a non protected update since we will schedule it such
   StateDelta expectedDelta(origState, newerState);
   EXPECT_HW_CALL(sw, stateChanged(Eq(testing::ByRef(expectedDelta))));
   sw->updateState("Accept update", stateUpdateFn2);

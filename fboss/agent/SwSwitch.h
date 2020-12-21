@@ -255,10 +255,7 @@ class SwSwitch : public HwSwitch::Callback {
    * current thread until the operation completes.
    *
    */
-  void updateStateBlocking(
-      folly::StringPiece name,
-      StateUpdateFn fn,
-      bool isTransaction = false);
+  void updateStateBlocking(folly::StringPiece name, StateUpdateFn fn);
 
   /*
    * A version of updateState() that reports back failures in applying state

@@ -681,16 +681,8 @@ void SwSwitch::updateStateNoCoalescing(StringPiece name, StateUpdateFn fn) {
   updateState(std::move(update));
 }
 
-void SwSwitch::updateStateBlocking(
-    folly::StringPiece name,
-    StateUpdateFn fn,
-    bool isTransaction) {
+void SwSwitch::updateStateBlocking(folly::StringPiece name, StateUpdateFn fn) {
   auto behaviorFlags = static_cast<int>(StateUpdate::BehaviorFlags::NONE);
-  if (isTransaction) {
-    behaviorFlags |=
-        (static_cast<int>(StateUpdate::BehaviorFlags::TRANSACTION) |
-         static_cast<int>(StateUpdate::BehaviorFlags::NON_COALESCING));
-  }
   updateStateBlockingImpl(name, fn, behaviorFlags);
 }
 
