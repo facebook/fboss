@@ -700,10 +700,6 @@ void ThriftHandler::syncFib(
   syncFibInVrf(client, std::move(routes), 0);
 }
 
-bool ThriftHandler::transactionsSupported() const {
-  return getSw()->getHw()->transactionsSupported();
-}
-
 void ThriftHandler::updateUnicastRoutesImpl(
     int32_t vrf,
     int16_t client,
@@ -797,7 +793,7 @@ void ThriftHandler::updateUnicastRoutesImpl(
     newState->resetRouteTables(std::move(newRt));
     return newState;
   };
-  sw_->updateStateBlocking(updType, updateFn, transactionsSupported());
+  sw_->updateStateWithHwFailureProtection(updType, updateFn);
 }
 
 static void populateInterfaceDetail(
@@ -1803,7 +1799,7 @@ void ThriftHandler::addMplsRoutes(
     }
     return newState;
   };
-  sw_->updateStateBlocking("addMplsRoutes", updateFn, transactionsSupported());
+  sw_->updateStateWithHwFailureProtection("addMplsRoutes", updateFn);
 }
 
 void ThriftHandler::addMplsRoutesImpl(
@@ -1935,7 +1931,7 @@ void ThriftHandler::syncMplsFib(
     }
     return newState;
   };
-  sw_->updateStateBlocking("syncMplsFib", updateFn, transactionsSupported());
+  sw_->updateStateWithHwFailureProtection("syncMplsFib", updateFn);
 }
 
 void ThriftHandler::getMplsRouteTableByClient(
