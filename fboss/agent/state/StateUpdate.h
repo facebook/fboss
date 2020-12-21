@@ -35,8 +35,7 @@ class StateUpdate {
   enum class BehaviorFlags : int {
     NONE = 0x0,
     NON_COALESCING = 0x1,
-    TRANSACTION = 0x2,
-    HW_FAILURE_PROTECTION = 0x4,
+    HW_FAILURE_PROTECTION = 0x2,
   };
   static constexpr int kDefaultBehaviorFlags =
       static_cast<int>(BehaviorFlags::NONE);
@@ -53,9 +52,6 @@ class StateUpdate {
   }
   bool isNonCoalescing() const {
     return behaviorFlags_ & static_cast<int>(BehaviorFlags::NON_COALESCING);
-  }
-  bool isTransaction() const {
-    return behaviorFlags_ & static_cast<int>(BehaviorFlags::TRANSACTION);
   }
   bool hwFailureProtected() const {
     return behaviorFlags_ &

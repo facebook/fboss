@@ -693,11 +693,6 @@ void SwSwitch::updateStateWithHwFailureProtection(
       static_cast<int>(StateUpdate::BehaviorFlags::NON_COALESCING) |
       static_cast<int>(StateUpdate::BehaviorFlags::HW_FAILURE_PROTECTION);
 
-  if (getHw()->transactionsSupported()) {
-    stateUpdateBehavior |=
-        static_cast<int>(StateUpdate::BehaviorFlags::TRANSACTION);
-  }
-
   updateStateBlockingImpl(name, fn, stateUpdateBehavior);
 }
 
@@ -757,9 +752,15 @@ void SwSwitch::handlePendingUpdates() {
     return;
   }
 
+  // Non coalescing updates should be applied individually
   bool isNonCoalescing = updates.begin()->isNonCoalescing();
   if (isNonCoalescing) {
-    CHECK_EQ(updates.size(), 1);
+    CHECK_EQ(updates.size(), 1)
+        << " Non coalescing updates should be applied individually";
+  }
+  if (updates.begin()->hwFailureProtected()) {
+    CHECK(isNonCoalescing)
+        << " Hw Failure protected updates should be non coalescing";
   }
 
   // This function should never be called with valid updates while we are
@@ -771,16 +772,10 @@ void SwSwitch::handlePendingUpdates() {
   // We start with the old state, and apply state updates one at a time.
   auto newDesiredState = oldAppliedState;
   auto iter = updates.begin();
-  bool isTransaction{false};
   while (iter != updates.end()) {
     StateUpdate* update = &(*iter);
     ++iter;
 
-    // If any update is a transaction, mark the isTransaction flag to true
-    // Typically transaction is a non coalescing update and would be applied by
-    // itself however there is a use case for non coalescing transactions (see
-    // comments below).
-    isTransaction |= update->isTransaction();
     shared_ptr<SwitchState> intermediateState;
     XLOG(INFO) << "preparing state update " << update->getName();
     try {
@@ -809,6 +804,8 @@ void SwSwitch::handlePendingUpdates() {
   auto newAppliedState = newDesiredState;
   // Now apply the update and notify subscribers
   if (newDesiredState != oldAppliedState) {
+    auto isTransaction = updates.begin()->hwFailureProtected() &&
+        getHw()->transactionsSupported();
     // There was some change during these state updates
     newAppliedState =
         applyUpdate(oldAppliedState, newDesiredState, isTransaction);
