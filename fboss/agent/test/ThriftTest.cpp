@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/ApplyThriftConfig.h"
+#include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
@@ -32,6 +33,8 @@ using folly::IPAddressV6;
 using folly::StringPiece;
 using std::shared_ptr;
 using std::unique_ptr;
+using ::testing::_;
+using ::testing::Return;
 using testing::UnorderedElementsAreArray;
 
 namespace {
@@ -356,4 +359,32 @@ TEST(ThriftTest, syncFib) {
   // + the one that gets added by default
   EXPECT_EQ(4 + 1, tables3->getRouteTable(rid)->getRibV4()->size());
   EXPECT_EQ(4 + 1, tables3->getRouteTable(rid)->getRibV6()->size());
+}
+
+TEST(ThriftTest, syncFibIsHwProtected) {
+  // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+  ThriftHandler handler(sw);
+  auto newRoutes = std::make_unique<std::vector<UnicastRoute>>();
+  UnicastRoute nr1 = *makeUnicastRoute("aaaa::/64", "42::42").get();
+  newRoutes->push_back(nr1);
+  // Fail HW update by returning current state
+  EXPECT_HW_CALL(sw, stateChanged(_)).WillRepeatedly(Return(sw->getState()));
+  EXPECT_THROW(handler.syncFib(10, std::move(newRoutes)), FbossHwUpdateError);
+}
+
+TEST(ThriftTest, addUnicastRoutesIsHwProtected) {
+  // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+  sw->fibSynced();
+  ThriftHandler handler(sw);
+  auto newRoutes = std::make_unique<std::vector<UnicastRoute>>();
+  UnicastRoute nr1 = *makeUnicastRoute("aaaa::/64", "42::42").get();
+  newRoutes->push_back(nr1);
+  // Fail HW update by returning current state
+  EXPECT_HW_CALL(sw, stateChanged(_)).WillRepeatedly(Return(sw->getState()));
+  EXPECT_THROW(
+      handler.addUnicastRoutes(10, std::move(newRoutes)), FbossHwUpdateError);
 }
