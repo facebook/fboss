@@ -388,3 +388,33 @@ TEST(ThriftTest, addUnicastRoutesIsHwProtected) {
   EXPECT_THROW(
       handler.addUnicastRoutes(10, std::move(newRoutes)), FbossHwUpdateError);
 }
+
+std::unique_ptr<MplsRoute> makeMplsRoute(
+    int32_t mplsLabel,
+    std::string nxtHop,
+    AdminDistance distance = AdminDistance::MAX_ADMIN_DISTANCE) {
+  auto nr = std::make_unique<MplsRoute>();
+  nr->topLabel_ref() = mplsLabel;
+  NextHopThrift nh;
+  MplsAction mplsAction;
+  mplsAction.action_ref() = MplsActionCode::POP_AND_LOOKUP;
+  nh.address_ref() = toBinaryAddress(IPAddress(nxtHop));
+  nh.mplsAction_ref() = mplsAction;
+  nr->nextHops_ref()->push_back(nh);
+  nr->adminDistance_ref() = distance;
+  return nr;
+}
+
+TEST(ThriftTest, syncMplsFibIsHwProtected) {
+  // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+  ThriftHandler handler(sw);
+  auto newRoutes = std::make_unique<std::vector<MplsRoute>>();
+  MplsRoute nr1 = *makeMplsRoute(101, "10.0.0.2").get();
+  newRoutes->push_back(nr1);
+  // Fail HW update by returning current state
+  EXPECT_HW_CALL(sw, stateChanged(_)).WillRepeatedly(Return(sw->getState()));
+  EXPECT_THROW(
+      handler.syncMplsFib(10, std::move(newRoutes)), FbossHwUpdateError);
+}
