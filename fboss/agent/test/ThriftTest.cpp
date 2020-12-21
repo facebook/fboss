@@ -371,7 +371,7 @@ TEST(ThriftTest, syncFibIsHwProtected) {
   newRoutes->push_back(nr1);
   // Fail HW update by returning current state
   EXPECT_HW_CALL(sw, stateChanged(_)).WillRepeatedly(Return(sw->getState()));
-  EXPECT_THROW(handler.syncFib(10, std::move(newRoutes)), FbossHwUpdateError);
+  EXPECT_THROW(handler.syncFib(10, std::move(newRoutes)), FbossFibUpdateError);
 }
 
 TEST(ThriftTest, addUnicastRoutesIsHwProtected) {
@@ -386,7 +386,7 @@ TEST(ThriftTest, addUnicastRoutesIsHwProtected) {
   // Fail HW update by returning current state
   EXPECT_HW_CALL(sw, stateChanged(_)).WillRepeatedly(Return(sw->getState()));
   EXPECT_THROW(
-      handler.addUnicastRoutes(10, std::move(newRoutes)), FbossHwUpdateError);
+      handler.addUnicastRoutes(10, std::move(newRoutes)), FbossFibUpdateError);
 }
 
 std::unique_ptr<MplsRoute> makeMplsRoute(
@@ -416,7 +416,7 @@ TEST(ThriftTest, syncMplsFibIsHwProtected) {
   // Fail HW update by returning current state
   EXPECT_HW_CALL(sw, stateChanged(_)).WillRepeatedly(Return(sw->getState()));
   EXPECT_THROW(
-      handler.syncMplsFib(10, std::move(newRoutes)), FbossHwUpdateError);
+      handler.syncMplsFib(10, std::move(newRoutes)), FbossFibUpdateError);
 }
 
 TEST(ThriftTest, addMplsRoutesIsHwProtected) {
@@ -431,5 +431,5 @@ TEST(ThriftTest, addMplsRoutesIsHwProtected) {
   // Fail HW update by returning current state
   EXPECT_HW_CALL(sw, stateChanged(_)).WillRepeatedly(Return(sw->getState()));
   EXPECT_THROW(
-      handler.addMplsRoutes(10, std::move(newRoutes)), FbossHwUpdateError);
+      handler.addMplsRoutes(10, std::move(newRoutes)), FbossFibUpdateError);
 }

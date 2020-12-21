@@ -12,6 +12,7 @@
 #include "common/logging/logging.h"
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/ArpHandler.h"
+#include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/LinkAggregationManager.h"
@@ -26,6 +27,7 @@
 #include "fboss/agent/capture/PktCaptureManager.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/if/gen-cpp2/NeighborListenerClient.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
 #include "fboss/agent/state/AclMap.h"
@@ -470,6 +472,11 @@ LinkNeighborThrift thriftLinkNeighbor(
   }
   return tn;
 }
+
+void translateToFibError(const FbossHwUpdateError& /*updError*/) {
+  FbossFibUpdateError fibError;
+  throw fibError;
+}
 } // namespace
 
 namespace facebook::fboss {
@@ -793,7 +800,11 @@ void ThriftHandler::updateUnicastRoutesImpl(
     newState->resetRouteTables(std::move(newRt));
     return newState;
   };
-  sw_->updateStateWithHwFailureProtection(updType, updateFn);
+  try {
+    sw_->updateStateWithHwFailureProtection(updType, updateFn);
+  } catch (const FbossHwUpdateError& ex) {
+    translateToFibError(ex);
+  }
 }
 
 static void populateInterfaceDetail(
@@ -1799,7 +1810,11 @@ void ThriftHandler::addMplsRoutes(
     }
     return newState;
   };
-  sw_->updateStateWithHwFailureProtection("addMplsRoutes", updateFn);
+  try {
+    sw_->updateStateWithHwFailureProtection("addMplsRoutes", updateFn);
+  } catch (const FbossHwUpdateError& ex) {
+    translateToFibError(ex);
+  }
 }
 
 void ThriftHandler::addMplsRoutesImpl(
@@ -1931,7 +1946,11 @@ void ThriftHandler::syncMplsFib(
     }
     return newState;
   };
-  sw_->updateStateWithHwFailureProtection("syncMplsFib", updateFn);
+  try {
+    sw_->updateStateWithHwFailureProtection("syncMplsFib", updateFn);
+  } catch (const FbossHwUpdateError& ex) {
+    translateToFibError(ex);
+  }
 }
 
 void ThriftHandler::getMplsRouteTableByClient(
