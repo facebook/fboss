@@ -365,13 +365,33 @@ TEST(ThriftTest, syncFibIsHwProtected) {
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
   auto handle = setupTestHandle();
   auto sw = handle->getSw();
+  sw->fibSynced();
   ThriftHandler handler(sw);
+  auto addRoutes = std::make_unique<std::vector<UnicastRoute>>();
+  UnicastRoute nr1 =
+      *makeUnicastRoute("aaaa::/64", "2401:db00:2110:3001::1").get();
+  addRoutes->push_back(nr1);
+  EXPECT_HW_CALL(sw, stateChanged(_));
+  handler.addUnicastRoutes(10, std::move(addRoutes));
   auto newRoutes = std::make_unique<std::vector<UnicastRoute>>();
-  UnicastRoute nr1 = *makeUnicastRoute("aaaa::/64", "42::42").get();
-  newRoutes->push_back(nr1);
+  UnicastRoute nr2 = *makeUnicastRoute("bbbb::/64", "42::42").get();
+  newRoutes->push_back(nr2);
   // Fail HW update by returning current state
   EXPECT_HW_CALL(sw, stateChanged(_)).WillRepeatedly(Return(sw->getState()));
-  EXPECT_THROW(handler.syncFib(10, std::move(newRoutes)), FbossFibUpdateError);
+  EXPECT_THROW(
+      {
+        try {
+          handler.syncFib(10, std::move(newRoutes));
+        } catch (const FbossFibUpdateError& fibError) {
+          EXPECT_EQ(fibError.vrf2failedAddUpdatePrefixes_ref()->size(), 1);
+          auto itr = fibError.vrf2failedAddUpdatePrefixes_ref()->find(0);
+          EXPECT_EQ(itr->second.size(), 1);
+          itr = fibError.vrf2failedDeletePrefixes_ref()->find(0);
+          EXPECT_EQ(itr->second.size(), 1);
+          throw;
+        }
+      },
+      FbossFibUpdateError);
 }
 
 TEST(ThriftTest, addUnicastRoutesIsHwProtected) {
@@ -386,7 +406,18 @@ TEST(ThriftTest, addUnicastRoutesIsHwProtected) {
   // Fail HW update by returning current state
   EXPECT_HW_CALL(sw, stateChanged(_)).WillRepeatedly(Return(sw->getState()));
   EXPECT_THROW(
-      handler.addUnicastRoutes(10, std::move(newRoutes)), FbossFibUpdateError);
+      {
+        try {
+          handler.addUnicastRoutes(10, std::move(newRoutes));
+
+        } catch (const FbossFibUpdateError& fibError) {
+          EXPECT_EQ(fibError.vrf2failedAddUpdatePrefixes_ref()->size(), 1);
+          auto itr = fibError.vrf2failedAddUpdatePrefixes_ref()->find(0);
+          EXPECT_EQ(itr->second.size(), 1);
+          throw;
+        }
+      },
+      FbossFibUpdateError);
 }
 
 std::unique_ptr<MplsRoute> makeMplsRoute(

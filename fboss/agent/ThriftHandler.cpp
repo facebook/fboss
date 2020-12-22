@@ -35,6 +35,7 @@
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/ArpTable.h"
+#include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/LabelForwardingEntry.h"
@@ -472,9 +473,41 @@ LinkNeighborThrift thriftLinkNeighbor(
   }
   return tn;
 }
+template <typename AddrT>
+IpPrefix getIpPrefix(const Route<AddrT>& route) {
+  IpPrefix pfx;
+  pfx.ip_ref() = toBinaryAddress(route.prefix().network);
+  pfx.prefixLength_ref() = route.prefix().mask;
+  return pfx;
+}
 
-void translateToFibError(const FbossHwUpdateError& /*updError*/) {
+void translateToFibError(const FbossHwUpdateError& updError) {
   FbossFibUpdateError fibError;
+  StateDelta delta(updError.appliedState, updError.desiredState);
+  auto processIpRoutesDelta = [&fibError](
+                                  const auto& routeDelta, RouterID rid) {
+    DeltaFunctions::forEachChanged(
+        routeDelta,
+        [&](const auto& /*removed*/, const auto& added) {
+          fibError.vrf2failedAddUpdatePrefixes_ref()[rid].push_back(
+              getIpPrefix(*added));
+        },
+        [&](const auto& added) {
+          fibError.vrf2failedAddUpdatePrefixes_ref()[rid].push_back(
+              getIpPrefix(*added));
+        },
+        [&](const auto& removed) {
+          fibError.vrf2failedDeletePrefixes_ref()[rid].push_back(
+              getIpPrefix(*removed));
+        });
+  };
+  for (const auto& routeDelta : delta.getRouteTablesDelta()) {
+    auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
+                                        : routeDelta.getNew()->getID();
+    processIpRoutesDelta(routeDelta.getRoutesV4Delta(), routerID);
+    processIpRoutesDelta(routeDelta.getRoutesV6Delta(), routerID);
+  }
+
   throw fibError;
 }
 } // namespace
