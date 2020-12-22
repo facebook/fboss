@@ -31,14 +31,36 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
     return cfg;
   }
 
+  std::shared_ptr<SwitchState> addNeighbor(
+      const std::shared_ptr<SwitchState>& inState) {
+    auto outState{inState->clone()};
+
+    auto neighborTable =
+        outState->getVlans()->getVlan(kVlanID)->getNdpTable()->modify(
+            kVlanID, &outState);
+
+    neighborTable->addEntry(
+        kDstIP(),
+        kMacAddress(),
+        PortDescriptor(masterLogicalPortIds()[0]),
+        kIntfID);
+
+    return outState;
+  }
+
+  void setupHelper() {
+    applyNewState(helper_->setupECMPForwarding(
+        helper_->resolveNextHops(getProgrammedState(), 2), kEcmpWidth));
+    applyNewState(addNeighbor(getProgrammedState()));
+  }
+
   void verifyDscpQueueMappingHelper(bool frontPanel) {
     if (!isSupported(HwAsic::Feature::L3_QOS)) {
       return;
     }
 
     auto setup = [this]() {
-      applyNewState(helper_->setupECMPForwarding(
-          helper_->resolveNextHops(getProgrammedState(), 2), kEcmpWidth));
+      setupHelper();
 
       auto kAclName = "acl1";
       auto newCfg{initialConfig()};
@@ -80,8 +102,7 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
     }
 
     auto setup = [this]() {
-      applyNewState(helper_->setupECMPForwarding(
-          helper_->resolveNextHops(getProgrammedState(), 2), kEcmpWidth));
+      setupHelper();
 
       auto newCfg{initialConfig()};
 
@@ -128,8 +149,7 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
     }
 
     auto setup = [this]() {
-      applyNewState(helper_->setupECMPForwarding(
-          helper_->resolveNextHops(getProgrammedState(), 2), kEcmpWidth));
+      setupHelper();
 
       auto newCfg{initialConfig()};
 
@@ -227,7 +247,11 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
   }
 
   folly::IPAddressV6 kDstIP() {
-    return folly::IPAddressV6("2620:0:1cfe:face:b00c::10");
+    return folly::IPAddressV6("1::10");
+  }
+
+  folly::MacAddress kMacAddress() {
+    return folly::MacAddress("0:2:3:4:5:10");
   }
 
   int16_t kDscp() const {
