@@ -447,7 +447,16 @@ TEST(ThriftTest, syncMplsFibIsHwProtected) {
   // Fail HW update by returning current state
   EXPECT_HW_CALL(sw, stateChanged(_)).WillRepeatedly(Return(sw->getState()));
   EXPECT_THROW(
-      handler.syncMplsFib(10, std::move(newRoutes)), FbossFibUpdateError);
+      {
+        try {
+          handler.syncMplsFib(10, std::move(newRoutes));
+        } catch (const FbossFibUpdateError& fibError) {
+          EXPECT_EQ(fibError.failedAddUpdateMplsLabels_ref()->size(), 1);
+          EXPECT_EQ(*fibError.failedAddUpdateMplsLabels_ref()->begin(), 101);
+          throw;
+        }
+      },
+      FbossFibUpdateError);
 }
 
 TEST(ThriftTest, addMplsRoutesIsHwProtected) {
@@ -462,5 +471,14 @@ TEST(ThriftTest, addMplsRoutesIsHwProtected) {
   // Fail HW update by returning current state
   EXPECT_HW_CALL(sw, stateChanged(_)).WillRepeatedly(Return(sw->getState()));
   EXPECT_THROW(
-      handler.addMplsRoutes(10, std::move(newRoutes)), FbossFibUpdateError);
+      {
+        try {
+          handler.addMplsRoutes(10, std::move(newRoutes));
+        } catch (const FbossFibUpdateError& fibError) {
+          EXPECT_EQ(fibError.failedAddUpdateMplsLabels_ref()->size(), 1);
+          EXPECT_EQ(*fibError.failedAddUpdateMplsLabels_ref()->begin(), 101);
+          throw;
+        }
+      },
+      FbossFibUpdateError);
 }

@@ -508,6 +508,17 @@ void translateToFibError(const FbossHwUpdateError& updError) {
     processIpRoutesDelta(routeDelta.getRoutesV6Delta(), routerID);
   }
 
+  DeltaFunctions::forEachChanged(
+      delta.getLabelForwardingInformationBaseDelta(),
+      [&](const auto& /*removed*/, const auto& added) {
+        fibError.failedAddUpdateMplsLabels_ref()->push_back(added->getID());
+      },
+      [&](const auto& added) {
+        fibError.failedAddUpdateMplsLabels_ref()->push_back(added->getID());
+      },
+      [&](const auto& removed) {
+        fibError.failedDeleteMplsLabels_ref()->push_back(removed->getID());
+      });
   throw fibError;
 }
 } // namespace
