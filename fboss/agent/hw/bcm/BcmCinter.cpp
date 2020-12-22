@@ -122,7 +122,7 @@ void BcmCinter::setupGlobals() {
       "bcm_l2_station_t station",
       "bcm_l3_egress_ecmp_t ecmp",
       "bcm_l3_egress_t l3_egress",
-      "bcm_l3_egress_t l3_ingress",
+      "bcm_l3_ingress_t l3_ingress",
       "bcm_if_t ing_intf_id",
       "bcm_vlan_control_vlan_t vlan_ctrl",
       "bcm_l3_host_t l3_host",
