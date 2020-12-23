@@ -42,7 +42,7 @@ BcmLabelSwitchAction::BcmLabelSwitchAction(
       hw->getQosPolicyTable()->getDefaultDataPlaneQosPolicyIf();
   if (defaultDataPlaneQosPolicy) {
     action_.flags |= BCM_MPLS_SWITCH_INT_PRI_MAP;
-    action_.qos_map_id =
+    action_.exp_map =
         defaultDataPlaneQosPolicy->getHandle(BcmQosMap::Type::MPLS_INGRESS);
   }
   auto labelForwardingType =
