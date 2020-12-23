@@ -46,10 +46,6 @@ bool BcmHwTableStatManager::refreshHwStatusStats(HwResourceStats* stats) const {
                  " stats will be stale";
     return false;
   }
-  stats->l3_host_max_ref() = std::max(0, l3HwStatus.l3info_max_host);
-  stats->l3_host_used_ref() = std::max(0, l3HwStatus.l3info_used_host);
-  stats->l3_host_free_ref() =
-      std::max(0, *stats->l3_host_max_ref() - *stats->l3_host_used_ref());
   stats->l3_nexthops_max_ref() = std::max(0, l3HwStatus.l3info_max_nexthop);
   stats->l3_nexthops_used_ref() = std::max(0, l3HwStatus.l3info_used_nexthop);
   stats->l3_nexthops_free_ref() = std::max(
@@ -58,15 +54,22 @@ bool BcmHwTableStatManager::refreshHwStatusStats(HwResourceStats* stats) const {
   // v4 and v6
   stats->l3_ipv4_nexthops_free_ref() = *stats->l3_nexthops_free_ref();
   stats->l3_ipv6_nexthops_free_ref() = *stats->l3_nexthops_free_ref();
-  stats->l3_ipv4_host_used_ref() = std::max(0, l3HwStatus.l3info_used_host_ip4);
-  stats->l3_ipv6_host_used_ref() = std::max(0, l3HwStatus.l3info_used_host_ip6);
   stats->l3_ecmp_groups_max_ref() =
       std::max(0, l3HwStatus.l3info_max_ecmp_groups);
   stats->l3_ecmp_groups_used_ref() =
       hw_->getMultiPathNextHopTable()->getEcmpEgressCount();
   stats->l3_ecmp_groups_free_ref() = std::max(
       0, *stats->l3_ecmp_groups_max_ref() - *stats->l3_ecmp_groups_used_ref());
+  if (!hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::HOSTTABLE)) {
+    return true;
+  }
   // Get v4, v6 host counts
+  stats->l3_host_max_ref() = std::max(0, l3HwStatus.l3info_max_host);
+  stats->l3_host_used_ref() = std::max(0, l3HwStatus.l3info_used_host);
+  stats->l3_host_free_ref() =
+      std::max(0, *stats->l3_host_max_ref() - *stats->l3_host_used_ref());
+  stats->l3_ipv4_host_used_ref() = std::max(0, l3HwStatus.l3info_used_host_ip4);
+  stats->l3_ipv6_host_used_ref() = std::max(0, l3HwStatus.l3info_used_host_ip6);
   int v4Max;
   auto v4Stale =
       bcm_switch_object_count_get(0, bcmSwitchObjectL3HostV4Max, &v4Max);

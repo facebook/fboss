@@ -838,6 +838,10 @@ TEST_F(BcmRouteTest, HostRouteStat) {
     auto expectedV4HostRouteIncrement =
         getPlatform()->canUseHostTableForHostRoutes() ? 2 /*host route + nhop*/
                                                       : 1 /*nhop*/;
+    if (!getHwSwitch()->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::HOSTTABLE)) {
+      expectedV4HostRouteIncrement = 0;
+    }
     EXPECT_EQ(
         *postUpdateStat.l3_host_used_ref(),
         *preUpdateStat.l3_host_used_ref() + expectedV4HostRouteIncrement);
@@ -904,9 +908,17 @@ TEST_F(BcmRouteTest, LpmRouteV6Stat128b) {
     EXPECT_EQ(
         *postUpdateStat.lpm_ipv6_mask_0_64_used_ref(),
         *preUpdateStat.lpm_ipv6_mask_0_64_used_ref());
-    EXPECT_EQ(
-        *postUpdateStat.lpm_ipv6_mask_65_127_used_ref(),
-        *preUpdateStat.lpm_ipv6_mask_65_127_used_ref() + 1);
+    if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::HOSTTABLE)) {
+      EXPECT_EQ(
+          *postUpdateStat.lpm_ipv6_mask_65_127_used_ref(),
+          *preUpdateStat.lpm_ipv6_mask_65_127_used_ref() + 1);
+    } else {
+      // one more 1::10/128 host entry is programmed to route table
+      EXPECT_EQ(
+          *postUpdateStat.lpm_ipv6_mask_65_127_used_ref(),
+          *preUpdateStat.lpm_ipv6_mask_65_127_used_ref() + 2);
+    }
   };
   setup();
   verify();
