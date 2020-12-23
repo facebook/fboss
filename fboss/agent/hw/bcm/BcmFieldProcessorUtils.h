@@ -165,12 +165,8 @@ bool isBcmEnumQualFieldStateSame(
   Param hwValue{};
   auto rv = getBcmQualifierFn(unit, entry, &hwValue);
   // In broadcom side, when it's asked to get a non-existing qualifier for an
-  // enum, it will return BCM_E_INTERNAL.
-  // CS00011566968: On TH4, bcm_field_qualify_IpFrag_get returns BCM_E_UNAVAIL
-  // on an entry which doesn't use bcmFieldQualifyIpFrag, which doesn't match
-  // what we expact. For now, we temporarily add BCM_E_UNAVAIL another option
-  // here if HW doesn't have such qualifier
-  if ((rv == BCM_E_INTERNAL || rv == BCM_E_UNAVAIL) && !swValue.has_value()) {
+  // enum, it will return BCM_E_INTERNAL or BCM_E_NOT_FOUND
+  if ((rv == BCM_E_INTERNAL || rv == BCM_E_NOT_FOUND) && !swValue.has_value()) {
     return true;
   }
 
