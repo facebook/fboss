@@ -15,9 +15,10 @@ namespace facebook::fboss {
 
 class BcmIngressFieldProcessorFlexCounter : public BcmFlexCounter {
  public:
-  BcmIngressFieldProcessorFlexCounter(int unit, int groupID);
-  BcmIngressFieldProcessorFlexCounter(int unit, uint32_t counterID)
-      : BcmFlexCounter(unit, counterID) {}
+  BcmIngressFieldProcessorFlexCounter(
+      int unit,
+      std::optional<int> groupID,
+      std::optional<BcmAclStatHandle> statHandle);
   ~BcmIngressFieldProcessorFlexCounter() = default;
 
   void attach(BcmAclEntryHandle acl);

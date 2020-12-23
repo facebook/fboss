@@ -14,7 +14,8 @@
 namespace facebook::fboss {
 BcmIngressFieldProcessorFlexCounter::BcmIngressFieldProcessorFlexCounter(
     int unit,
-    int /* groupID */)
+    std::optional<int> /* groupID */,
+    std::optional<BcmAclStatHandle> /* statHandle */)
     : BcmFlexCounter(unit) {
   throw FbossError("OSS doesn't support creating IFP flex counter");
 }
