@@ -132,6 +132,7 @@ void checkSwHwIntfMatch(int unit, std::shared_ptr<SwitchState> state) {
     auto rv = bcm_l3_info(unit, &l3HwStatus);
     bcmCheckError(rv, "failed get L3 hw info");
     bcm_l3_intf_t intf;
+    bcm_l3_intf_t_init(&intf);
     intf.l3a_vid = swIntf->getID();
     rv = bcm_l3_intf_find_vlan(unit, &intf);
     bcmCheckError(rv, "failed to find l3 intf");
@@ -170,12 +171,18 @@ TEST_F(BcmInterfaceTest, InterfaceApplyConfig) {
   };
   auto verify = [=]() {
     checkSwHwIntfMatch(getUnit(), getProgrammedState());
-    // 4 + 1 fe80::/64 link local addresses
-    ASSERT_EQ(5 + numMinAlpmRoutes(), getHwRouteCount(getUnit()));
-    // In total, 4 l3 hosts. 2 IPv4, 2 IPv6.
-    // There are 2 v6 link-local addresses, which are not installed in
-    // the host table.
-    ASSERT_EQ(4, getHwHostCount(getUnit()));
+    if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::HOSTTABLE)) {
+      // 4 + 1 fe80::/64 link local addresses
+      ASSERT_EQ(5 + numMinAlpmRoutes(), getHwRouteCount(getUnit()));
+      // In total, 4 l3 hosts. 2 IPv4, 2 IPv6.
+      // There are 2 v6 link-local addresses, which are not installed in
+      // the host table.
+      ASSERT_EQ(4, getHwHostCount(getUnit()));
+    } else {
+      // host entries are programmed to route table
+      ASSERT_EQ(9 + numMinAlpmRoutes(), getHwRouteCount(getUnit()));
+    }
   };
   verifyAcrossWarmBoots(setup, verify);
 }
