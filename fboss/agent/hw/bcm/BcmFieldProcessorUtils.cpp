@@ -11,6 +11,7 @@
 #include "BcmFieldProcessorUtils.h"
 
 #include "fboss/agent/hw/bcm/BcmMirrorUtils.h"
+#include "fboss/agent/hw/bcm/BcmSwitch.h"
 
 #include <boost/range/combine.hpp>
 #include <folly/logging/xlog.h>
@@ -346,13 +347,32 @@ int fpGroupNumAclEntries(int unit, bcm_field_group_t gid) {
   return size;
 }
 
+bool needsExtraFPQsetQualifiers(HwAsic::AsicType asicType) {
+  // Currently we know any asic is before TH4 will add extra qualifiers
+  switch (asicType) {
+    case HwAsic::AsicType::ASIC_TYPE_TRIDENT2:
+    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK:
+    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
+    case HwAsic::AsicType::ASIC_TYPE_FAKE:
+    case HwAsic::AsicType::ASIC_TYPE_MOCK:
+      return true;
+    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
+      return false;
+    case HwAsic::AsicType::ASIC_TYPE_TAJO:
+      throw FbossError("Unsupported ASIC type");
+  }
+  return true;
+}
+
 FPGroupDesiredQsetCmp::FPGroupDesiredQsetCmp(
-    int unit,
+    const BcmSwitch* hw,
     bcm_field_group_t groupId,
     const bcm_field_qset_t& desiredQset)
-    : unit_(unit),
+    : unit_(hw->getUnit()),
+      needsExtraFPQsetQualifiers_(needsExtraFPQsetQualifiers(
+          hw->getPlatform()->getAsic()->getAsicType())),
       groupId_(groupId),
-      groupQset_(getGroupQset(unit, groupId)),
+      groupQset_(getGroupQset(unit_, groupId)),
       desiredQset_(desiredQset) {}
 
 bool FPGroupDesiredQsetCmp::hasDesiredQset() {
@@ -378,9 +398,13 @@ bcm_field_qset_t FPGroupDesiredQsetCmp::getEffectiveDesiredQset() {
   // ever changes on a new SDK.
   // Bug is fixed in 6.5.12+ so we could go back to creating temp
   // group and not maintain this detail in our code.
-  bcm_field_qset_t effectiveDesiredQset = desiredQset_;
-  BCM_FIELD_QSET_ADD(effectiveDesiredQset, bcmFieldQualifyStage);
-  return effectiveDesiredQset;
+  if (needsExtraFPQsetQualifiers_) {
+    bcm_field_qset_t effectiveDesiredQset = desiredQset_;
+    BCM_FIELD_QSET_ADD(effectiveDesiredQset, bcmFieldQualifyStage);
+    return effectiveDesiredQset;
+  } else {
+    return desiredQset_;
+  }
 }
 
 } // namespace facebook::fboss::utility

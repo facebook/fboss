@@ -2912,7 +2912,7 @@ bool BcmSwitch::haveMissingOrQSetChangedFPGroups() const {
     if (!fpGroupExists(unit_, gid)) {
       XLOG(DBG1) << " FP group : " << gid << " does not exist";
       return true;
-    } else if (!FPGroupDesiredQsetCmp(unit_, gid, qset).hasDesiredQset()) {
+    } else if (!FPGroupDesiredQsetCmp(this, gid, qset).hasDesiredQset()) {
       XLOG(INFO) << " FP group : " << gid << " has a changed QSET";
       return true;
     }

@@ -36,15 +36,21 @@ TEST_F(BcmTest, QsetCmp) {
       static_cast<bcm_field_group_t>(getAsic()->getDefaultACLGroupID()));
   ASSERT_TRUE(qsetsEqual(aclEffectiveQset, aclEffectiveQset));
 
-  // Just doing a Qset cmp on qsets obtained from configured groups fails
-  ASSERT_FALSE(
-      qsetsEqual(getAclQset(getAsic()->getAsicType()), aclEffectiveQset));
+  bool needsExtraQualifiers =
+      needsExtraFPQsetQualifiers(getAsic()->getAsicType());
+  // Just doing a Qset cmp on qsets obtained from configured groups
+  // If needsExtraQualifiers == true, the config qset won't equal to HW
+  // effective qset.
+  // [Ref] FPGroupDesiredQsetCmp::getEffectiveDesiredQset()
+  ASSERT_EQ(
+      qsetsEqual(getAclQset(getAsic()->getAsicType()), aclEffectiveQset),
+      !needsExtraQualifiers);
 
   // Comparing via FPGroupDesiredQsetCmp succeeds when comparing qsets
   // of the same group
   ASSERT_TRUE(
       FPGroupDesiredQsetCmp(
-          getUnit(),
+          getHwSwitch(),
           static_cast<bcm_field_group_t>(getAsic()->getDefaultACLGroupID()),
           getAclQset(getAsic()->getAsicType()))
           .hasDesiredQset());

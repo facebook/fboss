@@ -31,6 +31,10 @@ namespace {
 constexpr auto kNoneValue = "NONE";
 } // unnamed namespace
 
+namespace facebook::fboss {
+class BcmSwitch;
+} // namespace facebook::fboss
+
 namespace facebook::fboss::utility {
 
 struct BcmAclMirrorActionParameters {
@@ -327,6 +331,11 @@ bool isBcmPortQualFieldStateSame(
 }
 
 bcm_field_qset_t getAclQset(HwAsic::AsicType asicType);
+/*
+ * Besides the expected configure qset we want to program to the hardware,
+ * some platforms will add extra qualifiers in the qset by the SDK.
+ */
+bool needsExtraFPQsetQualifiers(HwAsic::AsicType asicType);
 
 bcm_field_qset_t getGroupQset(int unit, bcm_field_group_t groupId);
 
@@ -347,7 +356,7 @@ std::vector<bcm_field_group_t> fpGroupsConfigured(int unit);
 class FPGroupDesiredQsetCmp {
  public:
   FPGroupDesiredQsetCmp(
-      int unit,
+      const BcmSwitch* hw,
       bcm_field_group_t groupId,
       const bcm_field_qset_t& desiredQset);
 
@@ -363,6 +372,7 @@ class FPGroupDesiredQsetCmp {
    */
   bcm_field_qset_t getEffectiveDesiredQset();
   int unit_{-1};
+  bool needsExtraFPQsetQualifiers_{false};
   const bcm_field_group_t groupId_;
   const bcm_field_qset_t groupQset_;
   const bcm_field_qset_t desiredQset_;
