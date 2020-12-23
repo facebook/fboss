@@ -46,7 +46,7 @@ void BcmEgressQueueFlexCounter::detach(bcm_gport_t /* gPort */) {
 
 void BcmEgressQueueFlexCounter::getStats(
     bcm_gport_t /* gPort */,
-    BcmEgressQueueFlexCounter::BcmEgressQueueTrafficCounterStats& /* stats */) {
+    BcmEgressQueueTrafficCounterStats& /* stats */) {
   throw FbossError("OSS doesn't support get Egress Queue FlexCounter stats");
 }
 

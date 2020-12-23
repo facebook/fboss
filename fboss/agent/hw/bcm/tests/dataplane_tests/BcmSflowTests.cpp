@@ -8,7 +8,6 @@
  *
  */
 #include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
-#include "fboss/agent/hw/bcm/tests/BcmTestStatUtils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
@@ -53,13 +52,9 @@ class BcmSflowTest : public BcmLinkStateDependentTests {
     }
   }
 
-  uint64_t getSampledPackets() const {
-    return std::get<0>(utility::getQueueOutPacketsAndBytes(
-        getPlatform()->useQueueGportForCos(),
-        getUnit(),
-        utility::kCPUPort,
-        utility::kCoppDefaultPriQueueId,
-        true /* multicast queue */));
+  uint64_t getSampledPackets() {
+    return std::get<0>(utility::getCpuQueueOutPacketsAndBytes(
+        getHwSwitch(), utility::kCoppDefaultPriQueueId));
   }
 
   void runTest(bool enableSflow) {

@@ -244,9 +244,10 @@ void BcmControlPlane::setupIngressQosPolicy(
   bcmCheckError(rv, "failed to set the qos map on CPU port");
 }
 
-void BcmControlPlane::updateQueueCounters() {
+void BcmControlPlane::updateQueueCounters(
+    BcmEgressQueueTrafficCounterStats* returnQueueStats) {
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
-  queueManager_->updateQueueStats(now);
+  queueManager_->updateQueueStats(now, nullptr, returnQueueStats);
 }
 
 } // namespace facebook::fboss

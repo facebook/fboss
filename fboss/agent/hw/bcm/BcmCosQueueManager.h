@@ -13,6 +13,7 @@
 
 #include "fboss/agent/hw/bcm/BcmCosQueueCounterType.h"
 #include "fboss/agent/hw/bcm/BcmEgressQueueFlexCounter.h"
+#include "fboss/agent/hw/bcm/types.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/state/PortQueue.h"
 
@@ -102,7 +103,8 @@ class BcmCosQueueManager {
   void destroyQueueCounters();
   void updateQueueStats(
       std::chrono::seconds now,
-      HwPortStats* portStats = nullptr);
+      HwPortStats* portStats = nullptr,
+      BcmEgressQueueTrafficCounterStats* returnQueueStats = nullptr);
 
   void getCosQueueGportsFromHw();
   bcm_gport_t getPortGport() const {
@@ -202,9 +204,7 @@ class BcmCosQueueManager {
       cfg::StreamType streamType) = 0;
 
   std::map<BcmCosQueueCounterType, QueueStatCounters> queueCounters_;
-  folly::Synchronized<
-      BcmEgressQueueFlexCounter::BcmEgressQueueTrafficCounterStats>
-      queueFlexCounterStats_;
+  folly::Synchronized<BcmEgressQueueTrafficCounterStats> queueFlexCounterStats_;
 };
 
 } // namespace facebook::fboss

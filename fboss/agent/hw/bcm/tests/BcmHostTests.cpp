@@ -234,7 +234,7 @@ class BcmHostTest : public BcmTest {
     bcm_vrf_t vrf = BcmSwitch::getBcmVrfId(intf->getInterface()->getRouterID());
     if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
             HwAsic::Feature::HOSTTABLE)) {
-      return getHwSwitch()->getHostTable()->getBcmHost(
+      return getHwSwitch()->getHostTable()->getBcmHostIf(
           BcmHostKey(vrf, ipAddress, intfID));
     } else {
       return getHwSwitch()->routeTable()->getBcmHostIf(

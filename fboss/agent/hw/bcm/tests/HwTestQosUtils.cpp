@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
+#include "fboss/agent/hw/bcm/BcmRoute.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
 namespace facebook::fboss::utility {
@@ -23,8 +24,12 @@ void disableTTLDecrements(
   auto bcmHw = static_cast<BcmSwitch*>(hw);
   auto vrfId = bcmHw->getBcmVrfId(routerId);
   auto bcmHostKey = BcmHostKey(vrfId, nhop);
-  const auto hostTable = bcmHw->getHostTable();
-  auto bcmHost = hostTable->getBcmHostIf(bcmHostKey);
+  BcmHostIf* bcmHost;
+  if (hw->getPlatform()->getAsic()->isSupported(HwAsic::Feature::HOSTTABLE)) {
+    bcmHost = bcmHw->getHostTable()->getBcmHostIf(bcmHostKey);
+  } else {
+    bcmHost = bcmHw->routeTable()->getBcmHostIf(bcmHostKey);
+  }
   CHECK(bcmHost) << "failed to find host for " << bcmHostKey.str();
 
   bcm_if_t id = bcmHost->getEgressId();

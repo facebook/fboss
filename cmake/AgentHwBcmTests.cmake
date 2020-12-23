@@ -51,7 +51,6 @@ add_executable(bcm_test
   fboss/agent/hw/bcm/tests/BcmStateDeltaTests.cpp
   fboss/agent/hw/bcm/tests/BcmSwitchStateReplayTest.cpp
   fboss/agent/hw/bcm/tests/BcmTestRouteUtils.cpp
-  fboss/agent/hw/bcm/tests/BcmTestStatUtils.cpp
   fboss/agent/hw/bcm/tests/BcmTrunkTests.cpp
   fboss/agent/hw/bcm/tests/BcmTrunkUtils.cpp
   fboss/agent/hw/bcm/tests/BcmUnitTests.cpp
@@ -157,22 +156,12 @@ target_link_libraries(bcm_qos_utils
   bcm
 )
 
-add_library(bcm_stat_utils
-  fboss/agent/hw/bcm/tests/BcmTestStatUtils.cpp
-)
-
-target_link_libraries(bcm_stat_utils
-  bcm
-  bcm_qos_utils
-)
-
 add_library(bcm_copp_utils
   fboss/agent/hw/bcm/tests/HwTestCoppUtils.cpp
 )
 
 target_link_libraries(bcm_copp_utils
   bcm
-  bcm_stat_utils
   hw_copp_utils
 )
 

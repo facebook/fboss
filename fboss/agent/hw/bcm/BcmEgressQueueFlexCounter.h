@@ -44,9 +44,6 @@ class BcmEgressQueueFlexCounter : public BcmFlexCounter {
 
   void detach(bcm_gport_t gPort);
 
-  using BcmEgressQueueTrafficCounterStats = std::unordered_map<
-      cfg::StreamType,
-      std::unordered_map<int, BcmTrafficCounterStats>>;
   void getStats(bcm_gport_t gPort, BcmEgressQueueTrafficCounterStats& stats);
 
   static bool isSupported(BcmCosQueueStatType type);
@@ -83,9 +80,7 @@ class BcmEgressQueueFlexCounterManager {
     portQueueFlexCounter_->detach(gPort);
   }
 
-  void getStats(
-      bcm_gport_t gPort,
-      BcmEgressQueueFlexCounter::BcmEgressQueueTrafficCounterStats& stats) {
+  void getStats(bcm_gport_t gPort, BcmEgressQueueTrafficCounterStats& stats) {
     if (gPort == BCM_GPORT_LOCAL_CPU) {
       cpuQueueFlexCounter_->getStats(gPort, stats);
     } else {

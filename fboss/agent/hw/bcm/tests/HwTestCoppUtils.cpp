@@ -9,9 +9,10 @@
  */
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 
+#include "fboss/agent/hw/bcm/BcmControlPlane.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
-#include "fboss/agent/hw/bcm/tests/BcmTestStatUtils.h"
+#include "fboss/agent/hw/bcm/types.h"
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/LacpTypes.h"
@@ -26,13 +27,14 @@ namespace facebook::fboss::utility {
 std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
     HwSwitch* hwSwitch,
     int queueId) {
-  auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch);
-  return getQueueOutPacketsAndBytes(
-      bcmSwitch->getPlatform()->useQueueGportForCos(),
-      bcmSwitch->getUnit(),
-      kCPUPort,
-      queueId,
-      true /* multicast queue*/);
+  auto* bcmSwitch = static_cast<BcmSwitch*>(hwSwitch);
+  BcmEgressQueueTrafficCounterStats stats;
+  stats[cfg::StreamType::MULTICAST][queueId][cfg::CounterType::PACKETS] = 0;
+  stats[cfg::StreamType::MULTICAST][queueId][cfg::CounterType::BYTES] = 0;
+  bcmSwitch->getControlPlane()->updateQueueCounters(&stats);
+  return std::make_pair(
+      stats[cfg::StreamType::MULTICAST][queueId][cfg::CounterType::PACKETS],
+      stats[cfg::StreamType::MULTICAST][queueId][cfg::CounterType::BYTES]);
 }
 
 std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(

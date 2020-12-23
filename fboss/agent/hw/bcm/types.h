@@ -22,5 +22,8 @@ using BcmAclEntryHandle = int;
 using BcmMirrorHandle = int;
 
 using BcmTrafficCounterStats = std::unordered_map<cfg::CounterType, uint64_t>;
+using BcmEgressQueueTrafficCounterStats = std::unordered_map<
+    cfg::StreamType,
+    std::unordered_map<int, BcmTrafficCounterStats>>;
 
 } // namespace facebook::fboss
