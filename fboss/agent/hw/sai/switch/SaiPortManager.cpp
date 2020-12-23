@@ -578,17 +578,14 @@ void SaiPortManager::updateStats(PortID portId) {
 
 std::map<PortID, HwPortStats> SaiPortManager::getPortStats() const {
   std::map<PortID, HwPortStats> portStats;
-  for (const auto& [portId, handle] : handles_) {
-    if (portStats_.find(portId) == portStats_.end()) {
+  for (const auto& handle : handles_) {
+    auto portStatItr = portStats_.find(handle.first);
+    if (portStatItr == portStats_.end()) {
       // We don't maintain port stats for disabled ports.
       continue;
     }
-    const auto& counters = handle->port->getStats();
-    HwPortStats hwPortStats{};
-    fillHwPortStats(
-        counters, managerTable_->debugCounterManager(), hwPortStats);
-    managerTable_->queueManager().getStats(handle->queues, hwPortStats);
-    portStats.emplace(portId, hwPortStats);
+    HwPortStats hwPortStats{portStatItr->second->portStats()};
+    portStats.emplace(handle.first, hwPortStats);
   }
   return portStats;
 }
