@@ -49,14 +49,22 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
 
   // Link local IPv6 + DSCP 48 to high pri queue
   addHighPriAclForNwAndNetworkControlDscp(
-      kIPv6LinkLocalMcastNetwork(), getCoppHighPriQueueId(hwAsic), acls);
+      kIPv6LinkLocalMcastNetwork(),
+      getCoppHighPriQueueId(hwAsic),
+      getCpuActionType(hwAsic),
+      acls);
   addHighPriAclForNwAndNetworkControlDscp(
-      kIPv6LinkLocalUcastNetwork(), getCoppHighPriQueueId(hwAsic), acls);
+      kIPv6LinkLocalUcastNetwork(),
+      getCoppHighPriQueueId(hwAsic),
+      getCpuActionType(hwAsic),
+      acls);
 
   // unicast and multicast link local dst ip
-  addMidPriAclForNw(kIPv6LinkLocalMcastNetwork(), acls);
+  addMidPriAclForNw(
+      kIPv6LinkLocalMcastNetwork(), getCpuActionType(hwAsic), acls);
   // All fe80::/10 to mid pri queue
-  addMidPriAclForNw(kIPv6LinkLocalUcastNetwork(), acls);
+  addMidPriAclForNw(
+      kIPv6LinkLocalUcastNetwork(), getCpuActionType(hwAsic), acls);
 
   return acls;
 }

@@ -48,7 +48,9 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
     acl.name_ref() = "cpuPolicing-high-slow-protocols-mac";
     acl.dstMac_ref() = LACPDU::kSlowProtocolsDstMac().toString();
     acls.push_back(std::make_pair(
-        acl, createQueueMatchAction(getCoppHighPriQueueId(hwAsic))));
+        acl,
+        createQueueMatchAction(
+            getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic))));
   }
 
   // dstClassL3 w/ BGP port to high pri queue
@@ -72,7 +74,9 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
     }
 
     acls.push_back(std::make_pair(
-        acl, createQueueMatchAction(getCoppHighPriQueueId(hwAsic))));
+        acl,
+        createQueueMatchAction(
+            getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic))));
   };
   addHighPriDstClassL3BgpAcl(true /*v4*/, true /*srcPort*/);
   addHighPriDstClassL3BgpAcl(true /*v4*/, false /*dstPort*/);
@@ -92,7 +96,9 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
         : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6;
 
     acls.push_back(std::make_pair(
-        acl, createQueueMatchAction(getCoppHighPriQueueId(hwAsic))));
+        acl,
+        createQueueMatchAction(
+            getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic))));
   };
   addHigPriLocalIpNetworkControlAcl(true);
   addHigPriLocalIpNetworkControlAcl(false);
@@ -107,7 +113,9 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
         acl.dstIp_ref() = dstNetworkStr;
         acl.dscp_ref() = 48;
         acls.push_back(std::make_pair(
-            acl, createQueueMatchAction(getCoppHighPriQueueId(hwAsic))));
+            acl,
+            createQueueMatchAction(
+                getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic))));
       };
   addHighPriLinkLocalV6NetworkControlAcl(kIPv6LinkLocalMcastNetwork());
   addHighPriLinkLocalV6NetworkControlAcl(kIPv6LinkLocalUcastNetwork());
@@ -126,15 +134,19 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
         : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6;
 
     acls.push_back(std::make_pair(
-        acl, createQueueMatchAction(utility::kCoppMidPriQueueId)));
+        acl,
+        createQueueMatchAction(
+            utility::kCoppMidPriQueueId, getCpuActionType(hwAsic))));
   };
   addMidPriDstClassL3Acl(true);
   addMidPriDstClassL3Acl(false);
 
   // unicast and multicast link local dst ip
-  addMidPriAclForNw(kIPv6LinkLocalMcastNetwork(), acls);
+  addMidPriAclForNw(
+      kIPv6LinkLocalMcastNetwork(), getCpuActionType(hwAsic), acls);
   // All fe80::/10 to mid pri queue
-  addMidPriAclForNw(kIPv6LinkLocalUcastNetwork(), acls);
+  addMidPriAclForNw(
+      kIPv6LinkLocalUcastNetwork(), getCpuActionType(hwAsic), acls);
 
   return acls;
 }

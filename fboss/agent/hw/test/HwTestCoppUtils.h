@@ -54,7 +54,9 @@ folly::CIDRNetwork kIPv6LinkLocalMcastNetwork();
 
 folly::CIDRNetwork kIPv6LinkLocalUcastNetwork();
 
-cfg::MatchAction createQueueMatchAction(int queueId);
+cfg::MatchAction createQueueMatchAction(
+    int queueId,
+    cfg::ToCpuAction toCpuAction);
 
 std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
     const HwAsic* hwAsic);
@@ -66,10 +68,12 @@ void addNoActionAclForNw(
 void addHighPriAclForNwAndNetworkControlDscp(
     const folly::CIDRNetwork& dstNetwork,
     int highPriQueueId,
+    cfg::ToCpuAction toCpuAction,
     std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls);
 
 void addMidPriAclForNw(
     const folly::CIDRNetwork& dstNetwork,
+    cfg::ToCpuAction toCpuAction,
     std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls);
 
 void setDefaultCpuTrafficPolicyConfig(
@@ -79,6 +83,8 @@ void setDefaultCpuTrafficPolicyConfig(
 cfg::Range getRange(uint32_t minimum, uint32_t maximum);
 
 uint16_t getCoppHighPriQueueId(const HwAsic* hwAsic);
+
+cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic);
 
 std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
     HwSwitch* hwSwitch,

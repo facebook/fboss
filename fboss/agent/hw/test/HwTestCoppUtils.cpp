@@ -53,6 +53,21 @@ uint16_t getCoppHighPriQueueId(const HwAsic* hwAsic) {
   throw FbossError("Unexpected AsicType ", hwAsic->getAsicType());
 }
 
+cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic) {
+  switch (hwAsic->getAsicType()) {
+    case HwAsic::AsicType::ASIC_TYPE_FAKE:
+    case HwAsic::AsicType::ASIC_TYPE_MOCK:
+    case HwAsic::AsicType::ASIC_TYPE_TRIDENT2:
+    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK:
+    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
+    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
+      return cfg::ToCpuAction::COPY;
+    case HwAsic::AsicType::ASIC_TYPE_TAJO:
+      return cfg::ToCpuAction::TRAP;
+  }
+  throw FbossError("Unexpected AsicType ", hwAsic->getAsicType());
+}
+
 cfg::StreamType getCpuDefaultStreamType(const HwAsic* hwAsic) {
   cfg::StreamType defaultStreamType = cfg::StreamType::MULTICAST;
   auto streamTypes = hwAsic->getQueueStreamTypes(true);
@@ -159,11 +174,25 @@ void setDefaultCpuTrafficPolicyConfig(
   config.cpuTrafficPolicy_ref() = cpuConfig;
 }
 
-cfg::MatchAction createQueueMatchAction(int queueId) {
+cfg::MatchAction createQueueMatchAction(
+    int queueId,
+    cfg::ToCpuAction toCpuAction) {
   cfg::MatchAction action;
   cfg::QueueMatchAction queueAction;
   queueAction.queueId_ref() = queueId;
   action.sendToQueue_ref() = queueAction;
+
+  switch (toCpuAction) {
+    case cfg::ToCpuAction::COPY:
+      action.toCpuAction_ref() = cfg::ToCpuAction::COPY;
+      break;
+    case cfg::ToCpuAction::TRAP:
+      action.toCpuAction_ref() = cfg::ToCpuAction::TRAP;
+      break;
+    default:
+      throw FbossError("Unsupported CounterType for ACL");
+  }
+
   return action;
 }
 
@@ -183,6 +212,7 @@ void addNoActionAclForNw(
 void addHighPriAclForNwAndNetworkControlDscp(
     const folly::CIDRNetwork& dstNetwork,
     int highPriQueueId,
+    cfg::ToCpuAction toCpuAction,
     std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls) {
   cfg::AclEntry acl;
   auto dstNetworkStr =
@@ -191,19 +221,21 @@ void addHighPriAclForNwAndNetworkControlDscp(
       "cpuPolicing-high-", dstNetworkStr, "-network-control");
   acl.dstIp_ref() = dstNetworkStr;
   acl.dscp_ref() = 48;
-  acls.push_back(std::make_pair(acl, createQueueMatchAction(highPriQueueId)));
+  acls.push_back(
+      std::make_pair(acl, createQueueMatchAction(highPriQueueId, toCpuAction)));
 }
 
 void addMidPriAclForNw(
     const folly::CIDRNetwork& dstNetwork,
+    cfg::ToCpuAction toCpuAction,
     std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls) {
   cfg::AclEntry acl;
   auto dstIp = folly::to<std::string>(dstNetwork.first, "/", dstNetwork.second);
   acl.name_ref() = folly::to<std::string>("cpuPolicing-mid-", dstIp);
   acl.dstIp_ref() = dstIp;
 
-  acls.push_back(
-      std::make_pair(acl, createQueueMatchAction(utility::kCoppMidPriQueueId)));
+  acls.push_back(std::make_pair(
+      acl, createQueueMatchAction(utility::kCoppMidPriQueueId, toCpuAction)));
 }
 
 void sendTcpPkts(

@@ -22,6 +22,7 @@ std::shared_ptr<AclEntry> getTrapAclEntry(
   cfg::QueueMatchAction queueAction = cfg::QueueMatchAction();
   queueAction.queueId_ref() = 0;
   matchAction.setSendToQueue(std::make_pair(queueAction, true));
+  matchAction.setToCpuAction(cfg::ToCpuAction::COPY);
   aclEntry->setAclAction(matchAction);
   return aclEntry;
 }
