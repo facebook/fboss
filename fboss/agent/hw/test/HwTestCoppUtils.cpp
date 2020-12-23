@@ -217,7 +217,15 @@ void sendTcpPkts(
     PortID outPort,
     uint8_t trafficClass,
     std::optional<std::vector<uint8_t>> payload) {
-  auto srcMac = utility::MacAddressGenerator().get(dstMac.u64NBO() + 1);
+  folly::MacAddress srcMac;
+
+  if (!dstMac.isUnicast()) {
+    // some arbitrary mac
+    srcMac = folly::MacAddress("00:00:01:02:03:04");
+  } else {
+    srcMac = utility::MacAddressGenerator().get(dstMac.u64NBO() + 1);
+  }
+
   // arbit
   const auto srcIp =
       folly::IPAddress(dstIpAddress.isV4() ? "1.1.1.2" : "1::10");
