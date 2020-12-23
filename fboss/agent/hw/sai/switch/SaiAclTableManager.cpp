@@ -714,15 +714,33 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
          * Tajo claims to map TC i to Queue i by default as well.
          * However, explicitly set the QoS Map and associate with the CPU port.
          */
-        if (platform_->getAsic()->isSupported(
-                HwAsic::Feature::ACL_COPY_TO_CPU)) {
+
+        auto setCopyOrTrap = [&aclActionPacketAction, &aclActionSetTC](
+                                 const MatchAction::SendToQueue& sendToQueue,
+                                 sai_uint32_t packetAction) {
           aclActionPacketAction =
-              SaiAclEntryTraits::Attributes::ActionPacketAction{
-                  SAI_PACKET_ACTION_COPY};
+              SaiAclEntryTraits::Attributes::ActionPacketAction{packetAction};
+
           auto queueId =
               static_cast<sai_uint8_t>(*sendToQueue.first.queueId_ref());
           aclActionSetTC = SaiAclEntryTraits::Attributes::ActionSetTC{
               AclEntryActionU8(queueId)};
+        };
+
+        if (action.value().getToCpuAction()) {
+          switch (action.value().getToCpuAction().value()) {
+            case cfg::ToCpuAction::COPY:
+              if (!platform_->getAsic()->isSupported(
+                      HwAsic::Feature::ACL_COPY_TO_CPU)) {
+                throw FbossError("COPY_TO_CPU is not supported on this ASIC");
+              }
+
+              setCopyOrTrap(sendToQueue, SAI_PACKET_ACTION_COPY);
+              break;
+            case cfg::ToCpuAction::TRAP:
+              setCopyOrTrap(sendToQueue, SAI_PACKET_ACTION_TRAP);
+              break;
+          }
         }
       }
     }
