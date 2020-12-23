@@ -302,7 +302,8 @@ void BcmPortGroup::reconfigureIfNeeded(
     needsVCOChange = (vcoFrequencies_ != desiredVCOFrequencies);
   }
 
-  if (desiredLaneMode != laneMode_ || needsVCOChange) {
+  if (desiredLaneMode != laneMode_ || needsVCOChange ||
+      oldPorts.size() != newPorts.size()) {
     // reprogram port group if we have different lane configuration or we need
     // a VCO change. Otherwise bcm port can handle it
     reconfigure(oldPorts, newPorts, desiredLaneMode, desiredVCOFrequencies);
