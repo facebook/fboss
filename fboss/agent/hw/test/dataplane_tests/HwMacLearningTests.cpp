@@ -248,7 +248,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     /*
      * TD2 and TH learn the entry as PENDING, TH3 learns the entry as VALIDATED
      */
-    return (getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3)
+    return (getAsic()->isSupported(HwAsic::Feature::PENDING_L2_ENTRY))
         ? L2Entry::L2EntryType::L2_ENTRY_TYPE_PENDING
         : L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED;
   }
@@ -815,6 +815,12 @@ class HwMacLearningMacMoveTest : public HwMacLearningTest {
             portDescr2,
             L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD,
             expectedL2EntryTypeOnAdd());
+      } else if (getAsic()->isSupported(HwAsic::Feature::DETAILED_L2_UPDATE)) {
+        verifyL2TableCallback(
+            l2LearningObserver_.waitForLearningUpdates().front(),
+            portDescr2,
+            L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD,
+            L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED);
       } else {
         auto l2EntryAndUpdateTypeList =
             l2LearningObserver_.waitForLearningUpdates(2);

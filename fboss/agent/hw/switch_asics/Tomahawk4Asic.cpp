@@ -53,6 +53,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MIRROR_V6_TUNNEL:
     case HwAsic::Feature::EGRESS_QUEUE_FLEX_COUNTER:
     case HwAsic::Feature::INGRESS_L3_INTERFACE:
+    case HwAsic::Feature::DETAILED_L2_UPDATE:
       return true;
     case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
     case HwAsic::Feature::NON_UNICAST_HASH:

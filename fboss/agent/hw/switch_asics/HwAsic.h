@@ -56,6 +56,7 @@ class HwAsic {
     PFC,
     INGRESS_L3_INTERFACE,
     NON_UNICAST_HASH,
+    DETAILED_L2_UPDATE,
   };
 
   enum class AsicType {

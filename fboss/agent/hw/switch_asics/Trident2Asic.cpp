@@ -56,6 +56,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PFC:
     case HwAsic::Feature::INGRESS_L3_INTERFACE:
     case HwAsic::Feature::NON_UNICAST_HASH:
+    case HwAsic::Feature::DETAILED_L2_UPDATE:
       return false;
   }
   return false;

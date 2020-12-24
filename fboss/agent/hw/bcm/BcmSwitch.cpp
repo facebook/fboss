@@ -217,17 +217,38 @@ bool bothStandAloneRibOrRouteTableRibUsed(
 }
 
 /*
- * For the devices/SDK we use, the only events we should get (and process)
- * are ADD and DELETE.
- * Learning generates ADD, aging generates DELETE, while Mac move results in
- * DELETE followed by ADD.
- * We ASSERT this explicitly via HW tests.
+ * For the devices/SDK we use on pre-TH4, the only events we should get (and
+ * process) are ADD and DELETE. Learning generates ADD, aging generates DELETE,
+ * while Mac move results in DELETE followed by ADD. We ASSERT this explicitly
+ * via HW tests.
  */
 const std::map<int, facebook::fboss::L2EntryUpdateType>
-    kL2AddrUpdateOperationsOfInterest = {
+    kL2AddrBasicUpdateOperationsOfInterest = {
         {BCM_L2_CALLBACK_DELETE,
          facebook::fboss::L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE},
         {BCM_L2_CALLBACK_ADD,
+         facebook::fboss::L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD},
+};
+
+/*
+ * For the devices/SDK we use on TH4, the only events we should get and process
+ * are AGE, LEARN and MOVE.
+ * Calling bcm_l2_addr_add() to add new entry will trigger ADD
+ * Calling bcm_l2_addr_add() to update entry (e.g. class id) will trigger
+ * DELETE followed by ADD.
+ * Calling bcm_l2_addr_delete() to remove existing entry will trigger DELETE.
+ * Learning generates LEARN, aging generates AGE, while Mac move results in
+ * DELETE followed by MOVE.
+ * Thus, we may only focus on AGE, LEARN, MOVE, and ignore ADD, DELETE.
+ * We ASSERT this explicitly via HW tests.
+ */
+const std::map<int, facebook::fboss::L2EntryUpdateType>
+    kL2AddrDetailedUpdateOperationsOfInterest = {
+        {BCM_L2_CALLBACK_AGE_EVENT,
+         facebook::fboss::L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE},
+        {BCM_L2_CALLBACK_LEARN_EVENT,
+         facebook::fboss::L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD},
+        {BCM_L2_CALLBACK_MOVE_EVENT,
          facebook::fboss::L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD},
 };
 
@@ -267,14 +288,21 @@ L2Entry createL2Entry(const bcm_l2_addr_t* l2Addr, bool isPending) {
   }
 }
 
-bool isL2OperationOfInterest(int operation) {
-  return kL2AddrUpdateOperationsOfInterest.find(operation) !=
-      kL2AddrUpdateOperationsOfInterest.end();
+bool isL2OperationOfInterest(int operation, bool detailedUpdate) {
+  if (detailedUpdate) {
+    return kL2AddrDetailedUpdateOperationsOfInterest.find(operation) !=
+        kL2AddrDetailedUpdateOperationsOfInterest.end();
+  }
+  return kL2AddrBasicUpdateOperationsOfInterest.find(operation) !=
+      kL2AddrBasicUpdateOperationsOfInterest.end();
 }
 
-L2EntryUpdateType getL2EntryUpdateType(int operation) {
-  CHECK(isL2OperationOfInterest(operation));
-  return kL2AddrUpdateOperationsOfInterest.find(operation)->second;
+L2EntryUpdateType getL2EntryUpdateType(int operation, bool detailedUpdate) {
+  CHECK(isL2OperationOfInterest(operation, detailedUpdate));
+  if (detailedUpdate) {
+    return kL2AddrDetailedUpdateOperationsOfInterest.find(operation)->second;
+  }
+  return kL2AddrBasicUpdateOperationsOfInterest.find(operation)->second;
 }
 
 /*
@@ -489,7 +517,7 @@ int BcmSwitch::addL2TableCb(
   auto* bcmSw = static_cast<BcmSwitch*>(userData);
   bcmSw->callback_->l2LearningUpdateReceived(
       createL2Entry(l2Addr, bcmSw->isL2EntryPending(l2Addr)),
-      getL2EntryUpdateType(BCM_L2_CALLBACK_ADD));
+      L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD);
 
   return 0;
 }
@@ -502,7 +530,7 @@ int BcmSwitch::addL2TableCbForPendingOnly(
   if (bcmSw->isL2EntryPending(l2Addr)) {
     bcmSw->callback_->l2LearningUpdateReceived(
         createL2Entry(l2Addr, bcmSw->isL2EntryPending(l2Addr)),
-        getL2EntryUpdateType(BCM_L2_CALLBACK_ADD));
+        L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD);
   }
 
   return 0;
@@ -515,7 +543,7 @@ int BcmSwitch::deleteL2TableCb(
   auto* bcmSw = static_cast<BcmSwitch*>(userData);
   bcmSw->callback_->l2LearningUpdateReceived(
       createL2Entry(l2Addr, bcmSw->isL2EntryPending(l2Addr)),
-      getL2EntryUpdateType(BCM_L2_CALLBACK_DELETE));
+      L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE);
 
   return 0;
 }
@@ -2800,10 +2828,12 @@ void BcmSwitch::l2LearningCallback(
 void BcmSwitch::l2LearningUpdateReceived(
     bcm_l2_addr_t* l2Addr,
     int operation) noexcept {
-  if (l2Addr && isL2OperationOfInterest(operation)) {
+  bool detailedUpdate =
+      platform_->getAsic()->isSupported(HwAsic::Feature::DETAILED_L2_UPDATE);
+  if (l2Addr && isL2OperationOfInterest(operation, detailedUpdate)) {
     callback_->l2LearningUpdateReceived(
         createL2Entry(l2Addr, isL2EntryPending(l2Addr)),
-        getL2EntryUpdateType(operation));
+        getL2EntryUpdateType(operation, detailedUpdate));
   }
 }
 
