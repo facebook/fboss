@@ -594,32 +594,35 @@ bool BcmEcmpEgress::removeEgressIdHwNotLocked(
       existing.ecmp_intf = ecmpId;
       ret = bcm_l3_ecmp_get(unit, &existing, 0, nullptr, &totalMembersInHw);
       bcmCheckError(ret, "Unable to get ecmp entry ", ecmpId);
-      // @lint-ignore HOWTOEVEN CLANGTIDY CArray
-      bcm_l3_ecmp_member_t membersInHw[totalMembersInHw];
-      ret = bcm_l3_ecmp_get(
-          unit, &existing, totalMembersInHw, membersInHw, &totalMembersInHw);
-      bcmCheckError(ret, "Unable to get ecmp entry ", ecmpId);
-      for (size_t i = 0; i < totalMembersInHw; ++i) {
-        if (toRemove.first == membersInHw[i].egress_if) {
-          memberIndex = i;
-          break;
+      if (totalMembersInHw > 0) {
+        // @lint-ignore HOWTOEVEN CLANGTIDY CArray
+        bcm_l3_ecmp_member_t membersInHw[totalMembersInHw];
+        ret = bcm_l3_ecmp_get(
+            unit, &existing, totalMembersInHw, membersInHw, &totalMembersInHw);
+        bcmCheckError(ret, "Unable to get ecmp entry ", ecmpId);
+        for (size_t i = 0; i < totalMembersInHw; ++i) {
+          if (toRemove.first == membersInHw[i].egress_if) {
+            memberIndex = i;
+            break;
+          }
+        }
+        if (memberIndex != -1) {
+          if (membersInHw[memberIndex].weight <= toRemove.second) {
+            // delete this member
+            ret = bcm_l3_ecmp_member_delete(unit, ecmpId, &member);
+          } else {
+            // update weight of this member
+            membersInHw[memberIndex].weight -= toRemove.second;
+            ret = bcm_l3_ecmp_create(
+                unit,
+                BCM_L3_ECMP_O_CREATE_WITH_ID | BCM_L3_ECMP_O_REPLACE,
+                &existing,
+                totalMembersInHw,
+                membersInHw);
+          }
         }
       }
-      if (memberIndex != -1) {
-        if (membersInHw[memberIndex].weight <= toRemove.second) {
-          // delete this member
-          ret = bcm_l3_ecmp_member_delete(unit, ecmpId, &member);
-        } else {
-          // update weight of this member
-          membersInHw[memberIndex].weight -= toRemove.second;
-          ret = bcm_l3_ecmp_create(
-              unit,
-              BCM_L3_ECMP_O_CREATE_WITH_ID | BCM_L3_ECMP_O_REPLACE,
-              &existing,
-              totalMembersInHw,
-              membersInHw);
-        }
-      } else {
+      if (memberIndex == -1) {
         ret = BCM_E_NOT_FOUND;
       }
     } else {
@@ -703,14 +706,14 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
   // (a) can be tackled by guarding against routes pointing to unresolved
   // egress entries, but not (b)
   // It might appear that there is a race b/w getting the ECMP entry from HW,
-  // checking for presence of egressId to be added and then adding that. Indeed
-  // we could get a removeEgressIdHwNotLocked event which removes the concerned
-  // egressId just after we checked that the egressId is present. This is
-  // actually safe removeEgressIdHwNotLocked is only called from the link scan
-  // handler when ports go down. On port going down, we remove the concerned
-  // egress entries, mark ARP/NDP for those entries as pending. Then on port
-  // up, ARP/NDP will resolve and we will get a second chance to add the egress
-  // ID back.
+  // checking for presence of egressId to be added and then adding that.
+  // Indeed we could get a removeEgressIdHwNotLocked event which removes the
+  // concerned egressId just after we checked that the egressId is present.
+  // This is actually safe removeEgressIdHwNotLocked is only called from the
+  // link scan handler when ports go down. On port going down, we remove the
+  // concerned egress entries, mark ARP/NDP for those entries as pending. Then
+  // on port up, ARP/NDP will resolve and we will get a second chance to add
+  // the egress ID back.
   bcm_l3_egress_ecmp_t existing;
   bcm_l3_egress_ecmp_t_init(&existing);
   existing.ecmp_intf = ecmpId;
