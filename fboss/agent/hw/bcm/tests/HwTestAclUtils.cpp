@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/bcm/BcmAclTable.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
+#include "fboss/agent/hw/bcm/BcmIngressFieldProcessorFlexCounter.h"
 #include "fboss/agent/hw/bcm/BcmStatUpdater.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -168,13 +169,6 @@ void checkAclStatSize(const HwSwitch* hwSwitch, const std::string& statName) {
    */
   auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch);
 
-  auto hwStat = bcmSwitch->getAclTable()->getAclStat(statName);
-  int numCounters;
-  auto rv = bcm_field_stat_size(
-      bcmSwitch->getUnit(), hwStat->getHandle(), &numCounters);
-  bcmCheckError(
-      rv, "Unable to get stat size for acl stat=", hwStat->getHandle());
-
   // We only programmed a packet counter, but TD2 programmed both bytes and
   // packets counters.
   int expectedNumCounters = 1;
@@ -183,6 +177,23 @@ void checkAclStatSize(const HwSwitch* hwSwitch, const std::string& statName) {
       bcmSwitch->getBootType() == BootType::WARM_BOOT) {
     expectedNumCounters = 2;
   }
+
+  auto hwStat = bcmSwitch->getAclTable()->getAclStat(statName);
+  int numCounters;
+  if (hwSwitch->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
+    numCounters = BcmIngressFieldProcessorFlexCounter::getCounterTypeList(
+                      bcmSwitch->getUnit(), hwStat->getHandle())
+                      .size();
+    // We also program both bytes and packets counter in one flex counter.
+    expectedNumCounters = 2;
+  } else {
+    auto rv = bcm_field_stat_size(
+        bcmSwitch->getUnit(), hwStat->getHandle(), &numCounters);
+    bcmCheckError(
+        rv, "Unable to get stat size for acl stat=", hwStat->getHandle());
+  }
+
   ASSERT_EQ(expectedNumCounters, numCounters);
 }
 
