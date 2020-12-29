@@ -90,7 +90,6 @@ add_library(bcm
   fboss/agent/hw/bcm/oss/BcmBstStatsMgr.cpp
   fboss/agent/hw/bcm/oss/BcmQcmCollector.cpp
   fboss/agent/hw/bcm/oss/BcmQcmManager.cpp
-  fboss/agent/hw/bcm/oss/BcmStatUpdater.cpp
   fboss/agent/hw/bcm/oss/BcmUnit.cpp
 )
 

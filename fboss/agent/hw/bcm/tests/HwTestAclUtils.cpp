@@ -26,6 +26,11 @@ extern "C" {
 #include <bcm/field.h>
 }
 
+namespace {
+static const std::vector<facebook::fboss::cfg::CounterType> kPacketCounters = {
+    facebook::fboss::cfg::CounterType::PACKETS};
+}
+
 namespace facebook::fboss::utility {
 int getAclTableNumAclEntries(const HwSwitch* hwSwitch) {
   auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch);
@@ -206,10 +211,18 @@ uint64_t getAclInOutPackets(
   auto statHandle = bcmSwitch->getAclTable()->getAclStat(statName)->getHandle();
 
   uint64_t value;
-  bcm_field_stat_t type = bcmFieldStatPackets;
-  auto rv =
-      bcm_field_stat_sync_get(bcmSwitch->getUnit(), statHandle, type, &value);
-  bcmCheckError(rv, "Failed to update stat=", statHandle);
+  if (hw->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
+    const auto& stats =
+        BcmIngressFieldProcessorFlexCounter::getAclTrafficFlexCounterStats(
+            bcmSwitch->getUnit(), statHandle, kPacketCounters);
+    value = stats.at(cfg::CounterType::PACKETS);
+  } else {
+    bcm_field_stat_t type = bcmFieldStatPackets;
+    auto rv =
+        bcm_field_stat_sync_get(bcmSwitch->getUnit(), statHandle, type, &value);
+    bcmCheckError(rv, "Failed to update stat=", statHandle);
+  }
   return value;
 }
 

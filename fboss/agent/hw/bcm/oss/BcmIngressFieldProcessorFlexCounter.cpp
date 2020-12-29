@@ -52,4 +52,12 @@ BcmIngressFieldProcessorFlexCounter::getFlexCounterIDFromAttachedAcl(
     BcmAclEntryHandle /* acl */) {
   throw FbossError("OSS doesn't support get flex counter id for attached acl");
 }
+
+BcmTrafficCounterStats
+BcmIngressFieldProcessorFlexCounter::getAclTrafficFlexCounterStats(
+    int /* unit */,
+    BcmAclStatHandle /* handle */,
+    const std::vector<cfg::CounterType>& /* counters */) {
+  throw FbossError("OSS doesn't support get stat of IFP flex counter");
+}
 } // namespace facebook::fboss

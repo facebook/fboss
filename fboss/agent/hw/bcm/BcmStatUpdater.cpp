@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmFieldProcessorFBConvertors.h"
+#include "fboss/agent/hw/bcm/BcmIngressFieldProcessorFlexCounter.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
 #include "fboss/agent/hw/HwResourceStatsPublisher.h"
@@ -407,7 +408,8 @@ BcmTrafficCounterStats BcmStatUpdater::getAclTrafficStats(
     const std::vector<cfg::CounterType>& counters) {
   if (hw_->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
-    return getAclTrafficFlexCounterStats(handle, counters);
+    return BcmIngressFieldProcessorFlexCounter::getAclTrafficFlexCounterStats(
+        hw_->getUnit(), handle, counters);
   }
   BcmTrafficCounterStats stats;
   for (auto counterType : counters) {
