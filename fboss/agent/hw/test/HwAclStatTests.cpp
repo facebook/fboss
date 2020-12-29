@@ -435,4 +435,18 @@ TEST_F(HwAclStatTest, StatNumberOfCounters) {
   verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
 }
 
+TEST_F(HwAclStatTest, EmptyAclCheck) {
+  // TODO(joseph5wu) Current this test failed on TH4 because of CS00011697882
+  auto setup = [this]() {
+    auto newCfg = initialConfig();
+    applyNewConfig(newCfg);
+  };
+  auto verify = [this]() {
+    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 0);
+    utility::checkAclEntryAndStatCount(
+        getHwSwitch(), /*ACLs*/ 0, /*stats*/ 0, /*counters*/ 0);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss

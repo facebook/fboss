@@ -212,8 +212,7 @@ bool BcmHwTableStatManager::refreshFPStats(HwResourceStats* stats) const {
       hw_->getPlatform()->getAsic()->getDefaultACLGroupID(),
       &aclStatus);
   if (ret) {
-    XLOG(ERR) << "Unable to get ACL stats, these "
-                 "will be stale";
+    XLOG(ERR) << "Unable to get ACL stats, these will be stale";
     return false;
   }
   // Entries
