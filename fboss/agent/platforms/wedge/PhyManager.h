@@ -19,9 +19,8 @@ class PhyManager {
    * objects are kept per slot, per MDIO controller, per phy address. This
    * needs to be defined by inheriting classes.
    */
-  virtual bool initExternalPhyMap() {
-    return false;
-  }
+  virtual bool initExternalPhyMap() = 0;
+
   /*
    * This function returns the ExternalPhy object for the given slot number,
    * mdio controller id and phy id.

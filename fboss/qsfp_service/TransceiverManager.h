@@ -10,6 +10,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/lib/i2c/gen-cpp2/i2c_controller_stats_types.h"
 #include "fboss/lib/usb/TransceiverPlatformApi.h"
+#include "fboss/agent/platforms/wedge/PhyManager.h"
 
 class PlatformMode;
 
@@ -77,6 +78,10 @@ class TransceiverManager {
    * Virtual function to initialize all the Phy in the system
    */
   virtual bool initExternalPhyMap() = 0;
+
+  virtual PhyManager* getPhyManager() {
+    return nullptr;
+  }
 
  private:
   // Forbidden copy constructor and assignment operator
