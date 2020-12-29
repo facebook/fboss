@@ -101,6 +101,7 @@ BcmTxPacket::BcmTxPacket(int unit, uint32_t size, const BcmSwitch* bcmSwitch)
 
   bool usePktIO = bcmSwitch->usePKTIO();
   void* bufData = nullptr;
+  uint32_t allocatedCapacity = size;
 
   bcmPacket_.usePktIO = usePktIO;
   if (!usePktIO) {
@@ -120,9 +121,18 @@ BcmTxPacket::BcmTxPacket(int unit, uint32_t size, const BcmSwitch* bcmSwitch)
     }
   } else {
 #ifdef INCLUDE_PKTIO
+    if (size < ETH_ZLEN + 4) {
+      // TODO: use VLAN_ETH_ZLEN when it is available in /linux/if_vlan.h
+      // need to take 4 bytes vlan tag into account, which might be stripped
+      // at last when doing pkt tx.
+      allocatedCapacity = ETH_ZLEN + 4;
+    }
     bcmPacket_.ptrUnion.pktioPkt = nullptr;
     rv = bcm_pktio_alloc(
-        unit, size, BCM_PKTIO_BUF_F_TX, &(bcmPacket_.ptrUnion.pktioPkt));
+        unit,
+        allocatedCapacity,
+        BCM_PKTIO_BUF_F_TX,
+        &(bcmPacket_.ptrUnion.pktioPkt));
     if (BCM_FAILURE(rv)) {
       bcmSwitch->getSwitchStats()->txPktAllocErrors();
       bcmCheckError(rv, "Failed to allocate packet.");
@@ -149,7 +159,8 @@ BcmTxPacket::BcmTxPacket(int unit, uint32_t size, const BcmSwitch* bcmSwitch)
 
   buf_ = IOBuf::takeOwnership(
       bufData,
-      size,
+      allocatedCapacity, /* capacity of buffer */
+      size, /* valid length of data in the buffer */
       freeTxBuf,
       reinterpret_cast<void*>(freeTxBufUserData.get()));
 
