@@ -20,7 +20,6 @@ class SaiWedge400CPlatform : public SaiHwPlatform {
   explicit SaiWedge400CPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo);
   ~SaiWedge400CPlatform() override;
-  std::vector<PortID> masterLogicalPortIds() const override;
   std::string getHwConfig() override;
   HwAsic* getAsic() const override;
   uint32_t numLanesPerCore() const override {

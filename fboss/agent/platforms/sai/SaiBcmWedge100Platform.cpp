@@ -26,19 +26,6 @@ SaiBcmWedge100Platform::SaiBcmWedge100Platform(
   asic_ = std::make_unique<TomahawkAsic>();
 }
 
-std::vector<PortID> SaiBcmWedge100Platform::masterLogicalPortIds() const {
-  constexpr std::array<int, 32> kMasterLogicalPortIds = {
-      118, 122, 126, 130, 1,  5,  9,  13, 17, 21, 25, 29, 34,  38,  42,  46,
-      50,  54,  58,  62,  68, 72, 76, 80, 84, 88, 92, 96, 102, 106, 110, 114};
-  std::vector<PortID> portIds;
-  portIds.reserve(kMasterLogicalPortIds.size());
-  std::for_each(
-      kMasterLogicalPortIds.begin(),
-      kMasterLogicalPortIds.end(),
-      [&portIds](auto portId) { portIds.emplace_back(PortID(portId)); });
-  return portIds;
-}
-
 HwAsic* SaiBcmWedge100Platform::getAsic() const {
   return asic_.get();
 }

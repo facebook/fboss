@@ -69,10 +69,8 @@ class SaiPlatform : public Platform, public StateObserver {
   /*
    * Get ids of all controlling ports
    */
-  virtual std::vector<PortID> masterLogicalPortIds() const {
-    // TODO make this pure virtual when we cook up a platform
-    // for fake SAI
-    return {};
+  std::vector<PortID> masterLogicalPortIds() const {
+    return masterLogicalPortIds_;
   }
 
   PortID findPortID(cfg::PortSpeed speed, std::vector<uint32_t> lanes) const;
@@ -110,6 +108,9 @@ class SaiPlatform : public Platform, public StateObserver {
   std::unordered_map<PortID, std::unique_ptr<SaiPlatformPort>> portMapping_;
   std::unique_ptr<HwSwitchWarmBootHelper> wbHelper_;
   std::unique_ptr<AutoInitQsfpCache> qsfpCache_;
+  // List of controlling ports on platform. Each of these then
+  // have subports that can be used when using flex ports
+  std::vector<PortID> masterLogicalPortIds_;
 };
 
 } // namespace facebook::fboss

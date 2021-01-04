@@ -25,30 +25,6 @@ SaiWedge400CPlatform::SaiWedge400CPlatform(
   asic_ = std::make_unique<TajoAsic>();
 }
 
-std::vector<PortID> SaiWedge400CPlatform::masterLogicalPortIds() const {
-  /*
-   * First 16 are uplink ports and remaining 32 are downlink ports.
-   * The port ID here is only a logical representation of the port and not
-   * used by SAI. 8 lanes are used by uplink ports and 4 lanes are used
-   * by the downlink ports.
-   */
-
-  constexpr auto kNumUplinkPorts{16}, kNumPorts{48};
-  auto portIds = std::vector<PortID>(kNumPorts, PortID(0));
-  auto currentPortId = 1;
-  auto increment = 8;
-  auto genNext = [&currentPortId, &increment]() {
-    currentPortId += increment;
-    auto portId = PortID(currentPortId - increment);
-    return portId;
-  };
-  std::generate_n(portIds.begin(), kNumUplinkPorts, genNext);
-  increment = 4;
-  std::generate_n(
-      portIds.begin() + kNumUplinkPorts, kNumPorts - kNumUplinkPorts, genNext);
-  return portIds;
-}
-
 std::string SaiWedge400CPlatform::getHwConfig() {
   return *config()->thrift.platform_ref()->get_chip().get_asic().config_ref();
 }

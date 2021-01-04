@@ -21,6 +21,7 @@
 #include "fboss/agent/platforms/sai/SaiFakePlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 
 #include "fboss/agent/hw/sai/switch/SaiHandler.h"
@@ -74,7 +75,14 @@ SaiPlatform::SaiPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
     std::unique_ptr<PlatformMapping> platformMapping)
     : Platform(std::move(productInfo), std::move(platformMapping)),
-      qsfpCache_(std::make_unique<AutoInitQsfpCache>()) {}
+      qsfpCache_(std::make_unique<AutoInitQsfpCache>()) {
+  const auto& portsByMasterPort =
+      utility::getSubsidiaryPortIDs(getPlatformPorts());
+  CHECK(portsByMasterPort.size() > 1);
+  for (auto itPort : portsByMasterPort) {
+    masterLogicalPortIds_.push_back(itPort.first);
+  }
+}
 
 SaiPlatform::~SaiPlatform() {}
 

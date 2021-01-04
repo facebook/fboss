@@ -27,18 +27,6 @@ SaiBcmWedge40Platform::SaiBcmWedge40Platform(
   asic_ = std::make_unique<Trident2Asic>();
 }
 
-std::vector<PortID> SaiBcmWedge40Platform::masterLogicalPortIds() const {
-  constexpr std::array<int, 16> kMasterLogicalPortIds = {
-      1, 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53, 57, 61};
-  std::vector<PortID> portIds;
-  portIds.reserve(kMasterLogicalPortIds.size());
-  std::for_each(
-      kMasterLogicalPortIds.begin(),
-      kMasterLogicalPortIds.end(),
-      [&portIds](auto portId) { portIds.emplace_back(PortID(portId)); });
-  return portIds;
-}
-
 HwAsic* SaiBcmWedge40Platform::getAsic() const {
   return asic_.get();
 }

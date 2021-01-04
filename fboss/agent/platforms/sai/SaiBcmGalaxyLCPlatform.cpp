@@ -23,19 +23,6 @@ SaiBcmGalaxyLCPlatform::SaiBcmGalaxyLCPlatform(
   asic_ = std::make_unique<TomahawkAsic>();
 }
 
-std::vector<PortID> SaiBcmGalaxyLCPlatform::masterLogicalPortIds() const {
-  constexpr std::array<int, 32> kMasterLogicalPortIds = {
-      84, 88, 92, 96, 102, 106, 110, 114, 118, 122, 126, 130, 1,  5,  9,  13,
-      68, 72, 76, 80, 50,  54,  58,  62,  34,  38,  42,  46,  17, 21, 25, 29};
-  std::vector<PortID> portIds;
-  portIds.reserve(kMasterLogicalPortIds.size());
-  std::for_each(
-      kMasterLogicalPortIds.begin(),
-      kMasterLogicalPortIds.end(),
-      [&portIds](auto portId) { portIds.emplace_back(PortID(portId)); });
-  return portIds;
-}
-
 HwAsic* SaiBcmGalaxyLCPlatform::getAsic() const {
   return asic_.get();
 }

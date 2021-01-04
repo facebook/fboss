@@ -19,7 +19,6 @@ class SaiBcmGalaxyFCPlatform : public SaiBcmGalaxyPlatform {
   explicit SaiBcmGalaxyFCPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo);
   ~SaiBcmGalaxyFCPlatform() override;
-  std::vector<PortID> masterLogicalPortIds() const override;
   HwAsic* getAsic() const override;
   std::vector<FlexPortMode> getSupportedFlexPortModes() const override {
     return {FlexPortMode::ONEX100G};

@@ -19,7 +19,6 @@ class SaiBcmWedge100Platform : public SaiBcmPlatform {
   explicit SaiBcmWedge100Platform(
       std::unique_ptr<PlatformProductInfo> productInfo);
   ~SaiBcmWedge100Platform() override;
-  std::vector<PortID> masterLogicalPortIds() const override;
   HwAsic* getAsic() const override;
   uint32_t numLanesPerCore() const override {
     return 4;
