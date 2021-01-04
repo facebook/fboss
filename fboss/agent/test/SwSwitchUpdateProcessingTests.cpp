@@ -11,7 +11,9 @@
 #include <gtest/gtest.h>
 
 #include "fboss/agent/FbossHwUpdateError.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
 
@@ -62,6 +64,7 @@ class SwSwitchUpdateProcessingTest : public ::testing::TestWithParam<bool> {
 };
 
 TEST_P(SwSwitchUpdateProcessingTest, HwRejectsUpdateThenAccepts) {
+  CounterCache counters(sw);
   auto origState = sw->getState();
   auto newState = bringAllPortsUp(sw->getState()->clone());
   // Have HwSwitch reject this state update. In current implementation
@@ -77,7 +80,12 @@ TEST_P(SwSwitchUpdateProcessingTest, HwRejectsUpdateThenAccepts) {
       FbossHwUpdateError);
   // Have HwSwitch now accept this update
   setStateChangedReturn(newState);
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "hw_update_failures", 1);
   sw->updateState("Accept update", stateUpdateFn);
+  // No increament on successful updates
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "hw_update_failures", 0);
   waitForStateUpdates(sw);
 }
 

@@ -153,6 +153,9 @@ facebook::fboss::PortStatus fillInPortStatus(
   }
   return status;
 }
+
+auto constexpr kHwUpdateFailures = "hw_update_failures";
+
 } // anonymous namespace
 
 namespace facebook::fboss {
@@ -422,6 +425,7 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
   auto hwInitRet = hw_->init(this, false /*failHwCallsOnWarmboot*/);
   auto initialState = hwInitRet.switchState;
   bootType_ = hwInitRet.bootType;
+  fb303::fbData->setCounter(kHwUpdateFailures, 0);
 
   XLOG(DBG0) << "hardware initialized in " << hwInitRet.bootTime
              << " seconds; applying initial config";
@@ -813,6 +817,8 @@ void SwSwitch::handlePendingUpdates() {
       CHECK(updates.size() == 1 && updates.begin()->hwFailureProtected())
           << " Failed to apply update to HW and the update is not marked for "
              "HW failure protection";
+
+      fb303::fbData->incrementCounter(kHwUpdateFailures);
       unique_ptr<StateUpdate> update(&updates.front());
       try {
         throw FbossHwUpdateError(
