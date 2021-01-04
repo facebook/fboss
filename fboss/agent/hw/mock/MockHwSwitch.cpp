@@ -61,6 +61,7 @@ MockHwSwitch::MockHwSwitch(MockPlatform* platform) : platform_(platform) {
           Invoke([](const StateDelta& delta) { return delta.newState(); }));
   ON_CALL(*this, transactionsSupported()).WillByDefault(Return(false));
   ON_CALL(*this, isValidStateUpdate(_)).WillByDefault(Return(true));
+  ON_CALL(*this, getAndClearNeighborHit(_, _)).WillByDefault(Return(true));
 }
 
 std::unique_ptr<TxPacket> MockHwSwitch::allocatePacket(uint32_t size) const {
