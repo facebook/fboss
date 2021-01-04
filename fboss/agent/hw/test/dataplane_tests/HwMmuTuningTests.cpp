@@ -44,11 +44,12 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
   void verify(
       int16_t lowPriQueue,
       int16_t highPriQueue,
-      std::vector<uint8_t> dscpsToSend) {
+      uint8_t lowPriDscp,
+      uint8_t highPriDscp) {
     // Send  MMU Size+ bytes. With port TX disabled, all these bytes will be
     // buffered in MMU. The higher pri queue should then endup using more of MMU
     // than lower pri queue.
-    sendUdpPkts(dscpsToSend);
+    sendUdpPkts(lowPriDscp, highPriDscp);
     auto portStats =
         getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[0]);
     auto queueOutDiscardBytes = *portStats.queueOutDiscardBytes__ref();
@@ -80,9 +81,16 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
   }
 
  private:
-  void sendUdpPkts(const std::vector<uint8_t>& dscpsToSend) {
+  void sendUdpPkts(uint8_t lowPriDscp, uint8_t highPriDscp) {
     auto mmuSizeBytes = getPlatform()->getAsic()->getMMUSizeBytes();
     auto bytesSent = 0;
+    // Send high pri DSCP packet followed by low pri DSCP packet
+    // since in cases where MMU is split evenly (viz. tuning reserved
+    // bytes on platforms that use queue groups), at the edge of MMU fill
+    // it matters which packet fills up the MMU last. In the worst case
+    // the low pri queue may endup getting 1 more packet then high pri
+    // queue and tripping up the test.
+    std::vector<uint8_t> dscpsToSend{highPriDscp, lowPriDscp};
     // Fill entire MMU and then some
     while (bytesSent < mmuSizeBytes + 20000) {
       for (auto dscp : dscpsToSend) {
@@ -210,10 +218,7 @@ TEST_F(HwMmuTuningTest, verifyReservedBytesTuning) {
     return;
   }
   verifyAcrossWarmBoots(
-      [this]() { setup(); },
-      [this]() {
-        verify(0, 1, {0, 1});
-      });
+      [this]() { setup(); }, [this]() { verify(0, 1, 0, 1); });
 }
 
 TEST_F(HwMmuTuningTest, verifyScalingFactorTuning) {
@@ -224,9 +229,6 @@ TEST_F(HwMmuTuningTest, verifyScalingFactorTuning) {
     return;
   }
   verifyAcrossWarmBoots(
-      [this]() { setup(); },
-      [this]() {
-        verify(2, 3, {2, 3});
-      });
+      [this]() { setup(); }, [this]() { verify(2, 3, 2, 3); });
 }
 } // namespace facebook::fboss
