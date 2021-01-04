@@ -34,8 +34,8 @@ constexpr auto kPerIpv6Mask65_127SlotUsage = 2;
 
 BcmHwTableStatManager::BcmHwTableStatManager(const BcmSwitch* hw)
     : hw_(hw),
-      isAlpmEnabled_(hw_->isAlpmEnabled()),
-      is128ByteIpv6Enabled_(BcmAPI::getConfigValue("ipv6_lpm_128b_enable")) {}
+      isAlpmEnabled_(BcmAPI::isAlpmEnabled()),
+      is128ByteIpv6Enabled_(BcmAPI::is128ByteIpv6Enabled()) {}
 
 bool BcmHwTableStatManager::refreshHwStatusStats(HwResourceStats* stats) const {
   // HW status info

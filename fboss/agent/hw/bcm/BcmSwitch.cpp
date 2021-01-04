@@ -188,10 +188,6 @@ enum : uint8_t {
 namespace {
 constexpr auto kHostTable = "hostTable";
 constexpr int kLogBcmErrorFreqMs = 3000;
-/*
- * Key to determine whether alpm is enabled
- */
-constexpr folly::StringPiece kAlpmSetting = "l3_alpm_enable";
 
 void rethrowIfHwNotFull(const facebook::fboss::BcmError& error) {
   if (error.getBcmError() != BCM_E_FULL) {
@@ -788,7 +784,7 @@ HwInitResult BcmSwitch::init(
   // Create bcmStatUpdater to cache the stat ids
   bcmStatUpdater_ = std::make_unique<BcmStatUpdater>(this);
 
-  XLOG(INFO) << " Is ALPM enabled: " << isAlpmEnabled();
+  XLOG(INFO) << " Is ALPM enabled: " << BcmAPI::isAlpmEnabled();
   // Additional switch configuration
   auto state = make_shared<SwitchState>();
   bcm_port_config_t pcfg;
@@ -852,7 +848,7 @@ HwInitResult BcmSwitch::init(
 
   dropDhcpPackets();
   setL3MtuFailPackets();
-  mmuState_ = queryMmuState();
+  mmuState_ = BcmAPI::getMmuState();
 
   // enable IPv4 and IPv6 on CPU port
   bcm_port_t idx;
@@ -2748,19 +2744,6 @@ void BcmSwitch::processChangedLabelForwardingEntry(
     const std::shared_ptr<LabelForwardingEntry>& newEntry) {
   writableLabelMap()->processChangedLabelSwitchAction(
       newEntry->getID(), newEntry->getLabelNextHop());
-}
-
-bool BcmSwitch::isAlpmEnabled() const {
-  return BcmAPI::getConfigValue(kAlpmSetting);
-}
-
-BcmSwitch::MmuState BcmSwitch::queryMmuState() const {
-  auto lossless = BcmAPI::getConfigValue("mmu_lossless");
-  if (!lossless) {
-    return MmuState::UNKNOWN;
-  }
-  return std::string(lossless) == "0x1" ? MmuState::MMU_LOSSLESS
-                                        : MmuState::MMU_LOSSY;
 }
 
 void BcmSwitch::l2LearningCallback(

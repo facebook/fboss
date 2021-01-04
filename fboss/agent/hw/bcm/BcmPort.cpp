@@ -1076,7 +1076,7 @@ void BcmPort::updateWredStats(std::chrono::seconds now, int64_t* portStatVal) {
 }
 
 bool BcmPort::isMmuLossy() const {
-  return hw_->getMmuState() == BcmSwitch::MmuState::MMU_LOSSY;
+  return hw_->getMmuState() == BcmMmuState::MMU_LOSSY;
 }
 
 void BcmPort::updatePktLenHist(

@@ -37,6 +37,7 @@ extern "C" {
 #else
 #include <sal/core/thread.h>
 #include <soc/defs.h>
+#include <soc/scache.h>
 #endif
 
 #include <soc/cmext.h>
@@ -102,6 +103,10 @@ const std::map<StringPiece, std::string> kBcmConfigsSafeAcrossWarmboot = {
     {"l2xmsg_mode", FLAGS_l2xmsg_mode},
 };
 
+constexpr auto kSDK6MMUStateKey = "mmu_lossless";
+constexpr auto kSDK6L3ALPMState = "l3_alpm_enable";
+constexpr auto kSDK6Is128ByteIpv6Enabled = "ipv6_lpm_128b_enable";
+constexpr auto kSDK6ConfigStableSize = "stable_size";
 } // namespace
 
 namespace facebook::fboss {
@@ -136,6 +141,58 @@ const char* FOLLY_NULLABLE BcmAPI::getConfigValue(StringPiece name) {
   }
 
   return nullptr;
+}
+
+BcmMmuState BcmAPI::getMmuState() {
+  if (BcmAPI::isHwUsingHSDK()) {
+    return BcmMmuState::UNKNOWN;
+  } else {
+    auto lossless = BcmAPI::getConfigValue(kSDK6MMUStateKey);
+    if (!lossless) {
+      return BcmMmuState::UNKNOWN;
+    }
+    return std::string(lossless) == "0x1" ? BcmMmuState::MMU_LOSSLESS
+                                          : BcmMmuState::MMU_LOSSY;
+  }
+}
+
+bool BcmAPI::is128ByteIpv6Enabled() {
+  if (BcmAPI::isHwUsingHSDK()) {
+    return true;
+  } else {
+    auto state = BcmAPI::getConfigValue(kSDK6Is128ByteIpv6Enabled);
+    if (!state) {
+      return false;
+    }
+    return std::stoul(state, nullptr, 0) == 1;
+  }
+}
+
+bool BcmAPI::isAlpmEnabled() {
+  if (BcmAPI::isHwUsingHSDK()) {
+    return true;
+  } else {
+    auto state = BcmAPI::getConfigValue(kSDK6L3ALPMState);
+    if (!state) {
+      return false;
+    }
+    // Use 2 for enabled state
+    return std::stoul(state, nullptr, 0) == 2;
+  }
+}
+
+uint64_t BcmAPI::getConfigStableSize() {
+  auto stableSize = SOC_DEFAULT_LVL2_STABLE_SIZE;
+  if (BcmAPI::isHwUsingHSDK()) {
+    // TODO(joseph) Needs to confirm w/ Broadcom whether HSDK still use this
+    // for warmboot
+  } else {
+    auto configStableSize = BcmAPI::getConfigValue(kSDK6ConfigStableSize);
+    if (configStableSize) {
+      stableSize = std::stoul(configStableSize, nullptr, 0);
+    }
+  }
+  return stableSize;
 }
 
 BcmAPI::HwConfigMap& BcmAPI::getHwConfig() {

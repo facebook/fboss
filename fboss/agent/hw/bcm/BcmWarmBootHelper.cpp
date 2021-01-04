@@ -90,10 +90,7 @@ void BcmWarmBootHelper::setupSdkWarmBoot() {
       "on unit ",
       getSwitchId());
 
-  auto configStableSize = BcmAPI::getConfigValue("stable_size");
-  auto stableSize = (configStableSize)
-      ? std::stoul(configStableSize, nullptr, 0)
-      : SOC_DEFAULT_LVL2_STABLE_SIZE;
+  auto stableSize = BcmAPI::getConfigStableSize();
   // Remove this code once the new values for stable are propagated
   // to all switches
   constexpr uint64_t kStableSizeMinimum = 0x6000000;

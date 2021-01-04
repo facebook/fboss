@@ -18,6 +18,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmRxPacket.h"
+#include "fboss/agent/hw/bcm/types.h"
 #include "fboss/agent/types.h"
 
 #include <boost/container/flat_map.hpp>
@@ -188,7 +189,6 @@ class BcmSwitchIf : public HwSwitch {
  */
 class BcmSwitch : public BcmSwitchIf {
  public:
-  enum class MmuState { UNKNOWN, MMU_LOSSLESS, MMU_LOSSY };
   using HwSwitch::FeaturesDesired;
   /*
    * Construct a new BcmSwitch.
@@ -224,7 +224,7 @@ class BcmSwitch : public BcmSwitchIf {
   BcmPlatform* getPlatform() const override {
     return platform_;
   }
-  MmuState getMmuState() const {
+  BcmMmuState getMmuState() const {
     return mmuState_;
   }
   uint64_t getMMUCellBytes() const {
@@ -494,10 +494,6 @@ class BcmSwitch : public BcmSwitchIf {
    */
   void printDiagCmd(const std::string& cmd) const;
 
-  /*
-   * Returns whether ALPM has been enabled via the sdk
-   */
-  bool isAlpmEnabled() const;
   /*
    * Clear statistics for a list of ports.
    */
@@ -878,7 +874,6 @@ class BcmSwitch : public BcmSwitchIf {
       const std::shared_ptr<Port>& newPort,
       const std::shared_ptr<SwitchState>& newState) const;
 
-  MmuState queryMmuState() const;
   void exportDeviceBufferUsage();
 
   /*
@@ -931,7 +926,7 @@ class BcmSwitch : public BcmSwitchIf {
   Callback* callback_{nullptr};
   int unit_{-1};
   uint32_t flags_{0};
-  MmuState mmuState_{MmuState::UNKNOWN};
+  BcmMmuState mmuState_{BcmMmuState::UNKNOWN};
   uint64_t mmuBufferBytes_{0};
   uint64_t mmuCellBytes_{0};
   std::unique_ptr<BcmWarmBootCache> warmBootCache_;

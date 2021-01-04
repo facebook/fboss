@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include "fboss/agent/hw/bcm/types.h"
+
 #include <map>
 #include <memory>
 #include <string>
@@ -127,7 +129,23 @@ class BcmAPI {
   static std::string getThreadName();
 
   /*
+   * Since Broadcom might have different formats for its config, we should move
+   * all bcm config related getter functions here.
+   * For example, in SDK6, we use "l3_alpm_enable" to set alpm enabling mode,
+   * but in HSDK, we use "l3_alpm_template". And the values of both cases can
+   * mean different modes.
+   */
+  static BcmMmuState getMmuState();
+
+  static bool is128ByteIpv6Enabled();
+
+  static bool isAlpmEnabled();
+
+  static uint64_t getConfigStableSize();
+
+  /*
    * Get a configuration property.
+   * NOTE: This function should be only called for SDK6 implementation
    *
    * Returns the configuration value, as specified in the map supplied
    * to BcmAPI::init().
@@ -136,6 +154,7 @@ class BcmAPI {
    * is set for the specified property.
    */
   static const char* FOLLY_NULLABLE getConfigValue(folly::StringPiece name);
+
   /*
    * SDK6 bcm config map.
    */

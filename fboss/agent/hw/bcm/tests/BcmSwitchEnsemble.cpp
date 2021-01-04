@@ -110,7 +110,7 @@ std::map<PortID, HwPortStats> BcmSwitchEnsemble::getLatestPortStats(
 }
 
 bool BcmSwitchEnsemble::isRouteScaleEnabled() const {
-  return getHwSwitch()->isAlpmEnabled();
+  return BcmAPI::isAlpmEnabled();
 }
 
 std::unique_ptr<HwLinkStateToggler> BcmSwitchEnsemble::createLinkToggler(
