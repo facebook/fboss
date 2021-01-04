@@ -7,11 +7,13 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "common/network/if/gen-cpp2/Address_types.h"
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/ThriftHandler.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteUpdater.h"
@@ -27,6 +29,7 @@ using namespace facebook::fboss;
 using apache::thrift::TEnumTraits;
 using cfg::PortSpeed;
 using facebook::network::toBinaryAddress;
+using facebook::network::thrift::BinaryAddress;
 using folly::IPAddress;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
@@ -481,4 +484,22 @@ TEST(ThriftTest, addMplsRoutesIsHwProtected) {
         }
       },
       FbossFibUpdateError);
+}
+
+TEST(ThriftTest, flushNonExistentNeighbor) {
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+  ThriftHandler handler(sw);
+  EXPECT_EQ(
+      handler.flushNeighborEntry(
+          std::make_unique<BinaryAddress>(
+              toBinaryAddress(IPAddress("100.100.100.1"))),
+          1),
+      0);
+  EXPECT_EQ(
+      handler.flushNeighborEntry(
+          std::make_unique<BinaryAddress>(
+              toBinaryAddress(IPAddress("100::100"))),
+          1),
+      0);
 }
