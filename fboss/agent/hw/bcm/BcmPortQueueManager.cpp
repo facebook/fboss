@@ -211,18 +211,22 @@ void BcmPortQueueManager::getAlpha(
     bcm_gport_t gport,
     bcm_cos_queue_t cosQ,
     PortQueue* queue) const {
-  int alpha = -1;
   // check if EgressMC(UC)SharedDynamicEnable is enabled on the HW
   // mostly its programmed as enabled by default during sdk init
   // It causes failures on SIM where default settings may be different
-  if (isEgressDynamicSharedEnabled(queue->getStreamType(), gport, cosQ)) {
-    alpha = getControlValue(
-        queue->getStreamType(), gport, cosQ, BcmCosQueueControlType::ALPHA);
-  }
-  auto scalingFactor = utility::bcmAlphaToCfgAlpha(
-      static_cast<bcm_cosq_control_drop_limit_alpha_value_e>(alpha));
+  cfg::MMUScalingFactor scalingFactor;
   const auto& defaultQueueSettings =
       getDefaultQueueSettings(queue->getStreamType());
+  if (isEgressDynamicSharedEnabled(queue->getStreamType(), gport, cosQ)) {
+    auto alpha = getControlValue(
+        queue->getStreamType(), gport, cosQ, BcmCosQueueControlType::ALPHA);
+    scalingFactor = utility::bcmAlphaToCfgAlpha(
+        static_cast<bcm_cosq_control_drop_limit_alpha_value_e>(alpha));
+  } else {
+    // pick the default valaue if not programmed
+    scalingFactor = defaultQueueSettings.getScalingFactor().value();
+  }
+
   if (scalingFactor != defaultQueueSettings.getScalingFactor().value()) {
     queue->setScalingFactor(scalingFactor);
   }
