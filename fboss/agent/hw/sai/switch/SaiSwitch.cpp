@@ -588,6 +588,33 @@ void SaiSwitch::updateResourceUsage(const LockPolicyT& lockPolicy) {
   }
 }
 
+void SaiSwitch::processSwitchSettingsChangedLocked(
+    const std::lock_guard<std::mutex>& /*lock*/,
+    const StateDelta& delta) {
+  const auto switchSettingsDelta = delta.getSwitchSettingsDelta();
+  const auto& oldSwitchSettings = switchSettingsDelta.getOld();
+  const auto& newSwitchSettings = switchSettingsDelta.getNew();
+
+  if (oldSwitchSettings->getL2LearningMode() !=
+      newSwitchSettings->getL2LearningMode()) {
+    XLOG(DBG3) << "Configuring L2LearningMode old: "
+               << static_cast<int>(oldSwitchSettings->getL2LearningMode())
+               << " new: "
+               << static_cast<int>(newSwitchSettings->getL2LearningMode());
+    managerTable_->portManager().setL2LearningMode(
+        newSwitchSettings->getL2LearningMode());
+  }
+
+  const auto oldVal = oldSwitchSettings->getL2AgeTimerSeconds();
+  const auto newVal = newSwitchSettings->getL2AgeTimerSeconds();
+  if (oldVal != newVal) {
+    XLOG(DBG3) << "Configuring l2AgeTimerSeconds old: "
+               << static_cast<int>(oldVal)
+               << " new: " << static_cast<int>(newVal);
+    managerTable_->switchManager().setMacAgingSeconds(newVal);
+  }
+}
+
 template <typename LockPolicyT>
 void SaiSwitch::processSwitchSettingsChanged(
     const StateDelta& delta,
@@ -604,16 +631,7 @@ void SaiSwitch::processSwitchSettingsChanged(
   CHECK(newSwitchSettings);
 
   if (oldSwitchSettings != newSwitchSettings) {
-    if (oldSwitchSettings->getL2LearningMode() !=
-        newSwitchSettings->getL2LearningMode()) {
-      XLOG(DBG3) << "Configuring L2LearningMode old: "
-                 << static_cast<int>(oldSwitchSettings->getL2LearningMode())
-                 << " new: "
-                 << static_cast<int>(newSwitchSettings->getL2LearningMode());
-      [[maybe_unused]] const auto& lock = lockPolicy.lock();
-      managerTable_->portManager().setL2LearningMode(
-          newSwitchSettings->getL2LearningMode());
-    }
+    processSwitchSettingsChangedLocked(lockPolicy.lock(), delta);
   }
 }
 
@@ -917,6 +935,8 @@ HwInitResult SaiSwitch::initLocked(
       adapterKeys2AdapterHostKeysJson.get());
   if (bootType_ != BootType::WARM_BOOT) {
     ret.switchState = getColdBootSwitchState();
+    managerTable_->switchManager().setMacAgingSeconds(
+        ret.switchState->getSwitchSettings()->getL2AgeTimerSeconds());
   }
   return ret;
 }

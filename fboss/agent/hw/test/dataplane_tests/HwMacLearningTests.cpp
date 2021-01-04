@@ -257,7 +257,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     auto setup = [this, portDescr]() {
       setupHelper(cfg::L2LearningMode::HARDWARE, portDescr);
       // Disable aging, so entry stays in L2 table when we verify.
-      utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
+      utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), 0);
       sendPkt();
     };
 
@@ -274,12 +274,12 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
 
     auto verify = [this, portDescr]() {
       // Disable aging, so entry stays in L2 table when we verify.
-      utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
+      utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), 0);
       sendPkt();
       EXPECT_TRUE(wasMacLearnt(portDescr));
 
       // Force MAC aging to as fast a possible but min is still 1 second
-      utility::setMacAgeTimerSeconds(getHwSwitch(), kMinAgeInSecs());
+      utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), kMinAgeInSecs());
       EXPECT_TRUE(wasMacLearnt(portDescr, false /* MAC aged */));
     };
 
@@ -291,7 +291,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
       setupHelper(cfg::L2LearningMode::HARDWARE, portDescr);
 
       // Disable aging, so entry stays in L2 table when we verify.
-      utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
+      utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), 0);
       sendPkt();
     };
 
@@ -324,7 +324,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     auto setup = [this, portDescr]() {
       setupHelper(cfg::L2LearningMode::SOFTWARE, portDescr);
       // Disable aging, so entry stays in L2 table when we verify.
-      utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
+      utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), 0);
 
       l2LearningObserver_.reset();
       sendPkt();
@@ -443,7 +443,7 @@ class HwMacSwLearningModeTest : public HwMacLearningTest {
     auto setup = [this, portDescr]() {
       setupHelper(cfg::L2LearningMode::SOFTWARE, portDescr);
       // Disable aging, so entry stays in L2 table when we verify.
-      utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
+      utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), 0);
       induceMacLearning(portDescr);
     };
 
@@ -460,14 +460,14 @@ class HwMacSwLearningModeTest : public HwMacLearningTest {
 
     auto verify = [this, portDescr]() {
       // Disable aging, so entry stays in L2 table when we verify.
-      utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
+      utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), 0);
       induceMacLearning(portDescr);
 
       EXPECT_TRUE(wasMacLearnt(portDescr));
 
       // Force MAC aging to as fast a possible but min is still 1 second
       l2LearningObserver_.reset();
-      utility::setMacAgeTimerSeconds(getHwSwitch(), kMinAgeInSecs());
+      utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), kMinAgeInSecs());
 
       // Verify if we get DELETE (aging) callback for VALIDATED entry
       verifyL2TableCallback(
@@ -522,7 +522,7 @@ class HwMacLearningStaticEntriesTest : public HwMacLearningTest {
 TEST_F(HwMacLearningStaticEntriesTest, VerifyStaticMacEntryAdd) {
   auto setup = [this] {
     setupHelper(cfg::L2LearningMode::HARDWARE, physPortDescr());
-    utility::setMacAgeTimerSeconds(getHwSwitch(), kMinAgeInSecs());
+    utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), kMinAgeInSecs());
     addOrUpdateMacEntry(MacEntryType::STATIC_ENTRY);
   };
   auto verify = [this] {
@@ -536,7 +536,7 @@ TEST_F(HwMacLearningStaticEntriesTest, VerifyStaticMacEntryAdd) {
 TEST_F(HwMacLearningStaticEntriesTest, VerifyStaticDynamicTransformations) {
   auto setup = [this] {
     setupHelper(cfg::L2LearningMode::HARDWARE, physPortDescr());
-    utility::setMacAgeTimerSeconds(getHwSwitch(), kMinAgeInSecs());
+    utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), kMinAgeInSecs());
     addOrUpdateMacEntry(MacEntryType::STATIC_ENTRY);
     addOrUpdateMacEntry(MacEntryType::DYNAMIC_ENTRY);
     std::this_thread::sleep_for(std::chrono::seconds(2 * kMinAgeInSecs()));
@@ -578,7 +578,7 @@ TEST_F(HwMacLearningTest, VerifyMacLearningScale) {
   auto setup = [this, portDescr, &macs]() {
     setupHelper(cfg::L2LearningMode::HARDWARE, portDescr);
     // Disable aging, so entry stays in L2 table when we verify.
-    utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
+    utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), 0);
     sendL2Pkts(
         *initialConfig().vlanPorts_ref()[0].vlanID_ref(),
         masterLogicalPortIds()[0],
@@ -669,7 +669,7 @@ TEST_F(HwMacSwLearningModeTest, VerifyCallbacksOnMacEntryChange) {
     bool isTH3 = getPlatform()->getAsic()->getAsicType() ==
         HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3;
     // Disable aging, so entry stays in L2 table when we verify.
-    utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
+    utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), 0);
     enum class MacOp { ASSOCIATE, DISSOASSOCIATE, DELETE };
     induceMacLearning(physPortDescr());
     auto doMacOp = [this, isTH3](MacOp op) {
@@ -691,7 +691,8 @@ TEST_F(HwMacSwLearningModeTest, VerifyCallbacksOnMacEntryChange) {
         case MacOp::DELETE:
           XLOG(INFO) << " Removing mac";
           // Force MAC aging to as fast a possible but min is still 1 second
-          utility::setMacAgeTimerSeconds(getHwSwitch(), kMinAgeInSecs());
+          utility::setMacAgeTimerSeconds(
+              getHwSwitchEnsemble(), kMinAgeInSecs());
 
           // Verify if we get DELETE (aging) callback for VALIDATED entry
           verifyL2TableCallback(
@@ -778,7 +779,7 @@ class HwMacLearningMacMoveTest : public HwMacLearningTest {
       bringDownPort(portDescr2.phyPortID());
 
       // Disable aging, so entry stays in L2 table when we verify.
-      utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
+      utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), 0);
 
       XLOG(DBG2) << "Send pkt on up port, other port is down";
       l2LearningObserver_.reset();
@@ -842,7 +843,7 @@ class HwMacLearningMacMoveTest : public HwMacLearningTest {
 
       // Force MAC aging to as fast a possible but min is still 1 second
       l2LearningObserver_.reset();
-      utility::setMacAgeTimerSeconds(getHwSwitch(), kMinAgeInSecs());
+      utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), kMinAgeInSecs());
 
       // Verify if we get DELETE (aging) callback for VALIDATED entry
       verifyL2TableCallback(

@@ -270,6 +270,10 @@ class SaiSwitch : public HwSwitch {
   uint64_t getDeviceWatermarkBytesLocked(
       const std::lock_guard<std::mutex>& lock) const;
 
+  void processSwitchSettingsChangedLocked(
+      const std::lock_guard<std::mutex>& lock,
+      const StateDelta& delta);
+
   template <typename ManagerT, typename LockPolicyT>
   void processDefaultDataPlanePolicyDelta(
       const StateDelta& delta,

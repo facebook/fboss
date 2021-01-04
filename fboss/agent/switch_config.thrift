@@ -1201,7 +1201,7 @@ struct SwitchSettings {
    * Set L2 Aging to 5 mins by default, same as Arista -
    * https://www.arista.com/en/um-eos/eos-section-19-3-mac-address-table
    *
-   * Time to transition L2 from hit -> miss -> removed"
+   * Time to transition L2 from hit -> miss -> removed
    */
   4: i32 l2AgeTimerSeconds = 300
 }

@@ -913,10 +913,9 @@ HwInitResult BcmSwitch::init(
     }
   } else {
     ret.switchState = getColdBootSwitchState();
+    setMacAging(std::chrono::seconds(
+        ret.switchState->getSwitchSettings()->getL2AgeTimerSeconds()));
   }
-
-  setMacAging(std::chrono::seconds(
-      ret.switchState->getSwitchSettings()->getL2AgeTimerSeconds()));
 
   macTable_ = std::make_unique<BcmMacTable>(this);
 

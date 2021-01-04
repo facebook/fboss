@@ -30,17 +30,6 @@ extern "C" {
 #include <sai.h>
 }
 
-// TODO(rajukumarfb5368): read from config at
-// SwitchConfig.SwitchSettings.l2AgeTimerSeconds
-// instead of using this flag
-/**
- * Set L2 Aging to 5 mins by default
- */
-DEFINE_int32(
-    l2AgeTimerSeconds,
-    300,
-    "Time to transition L2 from hit -> miss -> removed");
-
 namespace {
 using namespace facebook::fboss;
 
@@ -61,7 +50,8 @@ SaiSwitchTraits::Attributes::SrcMac getSrcMac(const SaiPlatform* platform) {
   return platform->getLocalMac();
 }
 SaiSwitchTraits::Attributes::MacAgingTime getMacAgingTime() {
-  return FLAGS_l2AgeTimerSeconds;
+  const auto kL2AgeTimerSeconds = 300;
+  return kL2AgeTimerSeconds;
 }
 
 const std::vector<sai_int32_t>& kTajoAclFieldList() {

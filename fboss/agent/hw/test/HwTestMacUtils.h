@@ -15,14 +15,13 @@
 #include <folly/MacAddress.h>
 
 namespace facebook::fboss {
-class HwSwitch;
+class HwSwitchEnsemble;
 }
 
 namespace facebook::fboss::utility {
 
-uint32_t getMacAgeTimerSeconds(const facebook::fboss::HwSwitch* hwSwitch);
 void setMacAgeTimerSeconds(
-    facebook::fboss::HwSwitch* hwSwitch,
+    facebook::fboss::HwSwitchEnsemble* hwSwitchEnsemble,
     uint32_t seconds);
 
 } // namespace facebook::fboss::utility

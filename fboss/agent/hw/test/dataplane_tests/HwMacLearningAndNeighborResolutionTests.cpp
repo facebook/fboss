@@ -112,7 +112,7 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
     bringDownPorts(physicalPortsExcluding(port));
 
     // Disable aging, so entry stays in L2 table when we verify.
-    utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
+    utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), 0);
     triggerMacLearning(port);
     programNeighbors(port, lookupClass);
   }
@@ -271,7 +271,7 @@ TYPED_TEST(
   }
   auto setup = [this]() {
     this->learnMacAndProgramNeighbors(this->portDescriptor());
-    utility::setMacAgeTimerSeconds(this->getHwSwitch(), kMinAgeInSecs);
+    utility::setMacAgeTimerSeconds(this->getHwSwitchEnsemble(), kMinAgeInSecs);
     std::this_thread::sleep_for(std::chrono::seconds(2 * kMinAgeInSecs));
   };
   auto verify = [this]() { this->verifyForwarding(); };
@@ -316,7 +316,7 @@ TYPED_TEST(HwMacLearningAndNeighborResolutionTest, flapMacAndNeighbors) {
     // Remove neighbors and macs
     this->removeNeighbors();
     // Age out Mac
-    utility::setMacAgeTimerSeconds(this->getHwSwitch(), kMinAgeInSecs);
+    utility::setMacAgeTimerSeconds(this->getHwSwitchEnsemble(), kMinAgeInSecs);
     std::this_thread::sleep_for(std::chrono::seconds(2 * kMinAgeInSecs));
   };
   auto setup = [program, prune]() {
