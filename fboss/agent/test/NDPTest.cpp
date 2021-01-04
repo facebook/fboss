@@ -1423,8 +1423,7 @@ TEST(NdpTest, NdpExpiration) {
 }
 
 TEST(NdpTest, PortFlapRecover) {
-  seconds ndpTimeout(1);
-  auto handle = setupTestHandleWithNdpTimeout(ndpTimeout);
+  auto handle = setupTestHandleWithNdpTimeout(seconds(0));
   auto sw = handle->getSw();
 
   sw->updateStateBlocking("add test route table", addMockRouteTable);

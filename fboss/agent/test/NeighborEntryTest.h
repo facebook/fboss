@@ -137,8 +137,12 @@ class WaitForNeighborEntryReachable : public WaitForSwitchState {
                       delta, ipAddress, vlan);
               const auto& oldEntry = neighborEntryDelta.getOld();
               const auto& newEntry = neighborEntryDelta.getNew();
-              return (oldEntry != nullptr) && (newEntry != nullptr) &&
-                  (oldEntry->isPending()) && (!newEntry->isPending());
+              if (!newEntry || newEntry->isPending()) {
+                // New entry must be reachable
+                return false;
+              }
+              // If there was a old entry it must be pending
+              return oldEntry ? oldEntry->isPending() : true;
             },
             "WaitForNeighborEntryReachable@" + ipAddress.str()) {}
   ~WaitForNeighborEntryReachable() {}
