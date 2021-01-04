@@ -51,6 +51,9 @@ class LldpCmd(cmds.FbossCmd):
         for neighbor in lldp_nbrs:
             if lldp_port and not neighbor.localPort == lldp_port:
                 continue
+            if not neighbor.systemName:
+                # Skipping neighbors without name populated
+                continue
             fields = self._get_fields(neighbor)
             for key, value in fields.items():
                 if len(str(value)) > max_widths[key]:
