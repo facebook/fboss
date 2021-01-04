@@ -1140,7 +1140,7 @@ TEST(ArpTest, ArpExpiration) {
 }
 
 TEST(ArpTest, PortFlapRecover) {
-  auto handle = setupTestHandle(std::chrono::seconds(1));
+  auto handle = setupTestHandle();
   auto sw = handle->getSw();
 
   // We only have special port down handling after the fib is
