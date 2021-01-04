@@ -107,6 +107,12 @@ constexpr auto kSDK6MMUStateKey = "mmu_lossless";
 constexpr auto kSDK6L3ALPMState = "l3_alpm_enable";
 constexpr auto kSDK6Is128ByteIpv6Enabled = "ipv6_lpm_128b_enable";
 constexpr auto kSDK6ConfigStableSize = "stable_size";
+
+constexpr auto kHSDKBcmDeviceKey = "bcm_device";
+constexpr auto kHSDKDevice0Key = "0";
+constexpr auto kHSDKBcmDeviceGlobalKey = "global";
+constexpr auto kHSDKL3ALPMState = "l3_alpm_template";
+constexpr auto kHSDKIs128ByteIpv6Enabled = "ipv6_lpm_128b_enable";
 } // namespace
 
 namespace facebook::fboss {
@@ -158,6 +164,11 @@ BcmMmuState BcmAPI::getMmuState() {
 
 bool BcmAPI::is128ByteIpv6Enabled() {
   if (BcmAPI::isHwUsingHSDK()) {
+    auto state =
+        BcmAPI::getYamlConfigGlobalValue<int>(kHSDKIs128ByteIpv6Enabled);
+    if (!state || *state != 1) {
+      return false;
+    }
     return true;
   } else {
     auto state = BcmAPI::getConfigValue(kSDK6Is128ByteIpv6Enabled);
@@ -170,6 +181,11 @@ bool BcmAPI::is128ByteIpv6Enabled() {
 
 bool BcmAPI::isAlpmEnabled() {
   if (BcmAPI::isHwUsingHSDK()) {
+    auto state = BcmAPI::getYamlConfigGlobalValue<int>(kHSDKL3ALPMState);
+    if (!state || *state == 0) {
+      return false;
+    }
+    // 1: combined mode, 2: parallel mode. But both are alpm enabled
     return true;
   } else {
     auto state = BcmAPI::getConfigValue(kSDK6L3ALPMState);
@@ -203,13 +219,40 @@ BcmAPI::HwConfigMap& BcmAPI::getHwConfig() {
 }
 
 void BcmAPI::initYamlConfig(const std::string& yamlConfig) {
+  // We usually keep some of the global settings in bcm_device:0:global node
+  auto yamlNodes = YAML::LoadAll(yamlConfig);
+  for (auto yamlNode : yamlNodes) {
+    // Only care about bcm_device:0:global node
+    if (auto node = yamlNode[kHSDKBcmDeviceKey]) {
+      if (auto deviceNode = node[kHSDKDevice0Key]) {
+        if (auto globalNode = deviceNode[kHSDKBcmDeviceGlobalKey]) {
+          XLOG(DBG1) << "Found bcm_device:0:global yaml node";
+          getGlobalBcmDeviceYamlNode().reset(globalNode);
+        }
+      }
+    }
+  }
   getHwYamlConfig().assign(yamlConfig);
-  // TODO(joseph5wu) Need to support kBcmConfigsSafeAcrossWarmboot?
 }
 
 std::string& BcmAPI::getHwYamlConfig() {
   static string bcmYamlConfig;
   return bcmYamlConfig;
+}
+
+YAML::Node& BcmAPI::getGlobalBcmDeviceYamlNode() {
+  static YAML::Node globalYamlNode;
+  return globalYamlNode;
+}
+
+template <typename ValueT>
+std::optional<ValueT> BcmAPI::getYamlConfigGlobalValue(
+    const std::string& name) {
+  auto valueNode = getGlobalBcmDeviceYamlNode()[name];
+  if (valueNode) {
+    return valueNode.as<ValueT>();
+  }
+  return std::nullopt;
 }
 
 std::unique_ptr<BcmUnit> BcmAPI::createUnit(

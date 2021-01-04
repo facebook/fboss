@@ -17,6 +17,7 @@
 
 #include <folly/Range.h>
 #include <folly/experimental/StringKeyedUnorderedMap.h>
+#include <yaml-cpp/yaml.h>
 
 namespace facebook::fboss {
 
@@ -164,6 +165,7 @@ class BcmAPI {
   static bool isHwInSimMode();
 
   static std::string& getHwYamlConfig();
+
   static bool isHwUsingHSDK();
 
  private:
@@ -179,6 +181,22 @@ class BcmAPI {
   static void initConfig(const std::map<std::string, std::string>& config);
 
   static void initYamlConfig(const std::string& yamlConfig);
+
+  /*
+   * Get a configuration property.
+   * NOTE: This function should be only called for HSDK implementation
+   *
+   * Returns the configuration value, as specified in the Yaml::Node supplied
+   * to BcmAPI::initYamlConfig().
+   *
+   * The returned std::optional will point to nullopt data if no value
+   * is set for the specified property.
+   */
+  template <typename ValueT>
+  static std::optional<ValueT> getYamlConfigGlobalValue(
+      const std::string& name);
+
+  static YAML::Node& getGlobalBcmDeviceYamlNode();
 
   static void initImpl();
 
