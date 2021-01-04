@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
+#include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
@@ -30,6 +31,7 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
           *(getPlatform()->getAsic()->getQueueStreamTypes(false).begin());
       addQueueConfig(&cfg, streamType);
     }
+    utility::addCpuQueueConfig(cfg, getAsic());
     return cfg;
   }
   void setup() {
