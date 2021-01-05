@@ -138,7 +138,9 @@ TEST_F(BcmQosMapTest, BcmAllQosMaps) {
       }
       if ((flag & (BCM_QOS_MAP_EGRESS | BCM_QOS_MAP_MPLS)) ==
           (BCM_QOS_MAP_EGRESS | BCM_QOS_MAP_MPLS)) {
-        EXPECT_EQ(array_count, 64);
+        // TH4 always return 48 entries not including ghost ones when
+        // qos_map_multi_get_mode is 1.
+        EXPECT_TRUE(array_count == 64 || array_count == 48);
         std::vector<bcm_qos_map_t> entries;
         entries.resize(array_count);
         bcm_qos_map_multi_get(
