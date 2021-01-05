@@ -197,6 +197,9 @@ sai_status_t set_switch_attribute_fn(
     case SAI_SWITCH_ATTR_TAM_EVENT_NOTIFY:
       // No callback implementation in SAI
       break;
+    case SAI_SWITCH_ATTR_COUNTER_REFRESH_INTERVAL:
+      sw.setCounterRefreshInterval(attr->value.u32);
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -357,6 +360,9 @@ sai_status_t get_switch_attribute_fn(
         break;
       case SAI_SWITCH_ATTR_INGRESS_ACL:
         attr[i].value.oid = sw.getIngressAcl();
+        break;
+      case SAI_SWITCH_ATTR_COUNTER_REFRESH_INTERVAL:
+        attr[i].value.u32 = sw.getCounterRefreshInterval();
         break;
 
       default:

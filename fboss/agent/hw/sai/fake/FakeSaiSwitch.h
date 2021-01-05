@@ -124,6 +124,12 @@ class FakeSwitch {
   void setIngressAcl(sai_object_id_t oid) {
     ingressAcl_ = oid;
   }
+  sai_uint32_t getCounterRefreshInterval() {
+    return counterRefreshInterval_;
+  }
+  void setCounterRefreshInterval(sai_uint32_t interval) {
+    counterRefreshInterval_ = interval;
+  }
 
   sai_object_id_t id;
 
@@ -153,6 +159,7 @@ class FakeSwitch {
     std::map<sai_uint32_t, sai_uint32_t> data{};
   };
   std::map<int, FakeSwitchLedState> ledState_{{0, {}}, {1, {}}};
+  sai_uint32_t counterRefreshInterval_{1};
 };
 
 using FakeSwitchManager = FakeManager<sai_object_id_t, FakeSwitch>;
