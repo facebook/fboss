@@ -57,6 +57,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::INGRESS_L3_INTERFACE:
     case HwAsic::Feature::NON_UNICAST_HASH:
     case HwAsic::Feature::DETAILED_L2_UPDATE:
+    case HwAsic::Feature::COUNTER_REFRESH_INTERVAL:
       return false;
   }
   return false;

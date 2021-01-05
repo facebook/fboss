@@ -75,6 +75,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
                                       // checking
     case HwAsic::Feature::PENDING_L2_ENTRY:
     case HwAsic::Feature::PFC:
+    case HwAsic::Feature::COUNTER_REFRESH_INTERVAL:
       return false;
   }
   return false;

@@ -38,7 +38,6 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::DEBUG_COUNTER:
       return true;
-
     case HwAsic::Feature::HOT_SWAP:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
     case HwAsic::Feature::QCM:
@@ -62,6 +61,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::INGRESS_L3_INTERFACE:
     case HwAsic::Feature::NON_UNICAST_HASH:
     case HwAsic::Feature::DETAILED_L2_UPDATE:
+    case HwAsic::Feature::COUNTER_REFRESH_INTERVAL:
       return false;
   }
   return false;
