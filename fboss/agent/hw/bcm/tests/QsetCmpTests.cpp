@@ -60,10 +60,19 @@ TEST_F(BcmTest, BcmAddsExtraQuals) {
   bcm_field_qset_t qset;
   BCM_FIELD_QSET_INIT(qset);
   BCM_FIELD_QSET_ADD(qset, bcmFieldQualifySrcIp6);
-  constexpr auto kTmpGrpAndPri = 9999;
-  createFPGroup(getUnit(), qset, kTmpGrpAndPri, kTmpGrpAndPri);
-  auto effectiveQset = getGroupQset(getUnit(), kTmpGrpAndPri);
-  ASSERT_TRUE(BCM_FIELD_QSET_TEST(effectiveQset, bcmFieldQualifyStage));
+  constexpr auto kTmpPriority = 9999;
+  // Pick the group ID is smaller than default acl group since it's created by
+  // default
+  const auto kTmpGroup =
+      static_cast<bcm_field_group_t>(getAsic()->getDefaultACLGroupID()) - 1;
+  createFPGroup(getUnit(), qset, kTmpGroup, kTmpPriority);
+
+  auto effectiveQset = getGroupQset(getUnit(), kTmpGroup);
+  // Check whether bcmFieldQualifyStage is added if needsExtraFPQsetQualifiers()
+  // returns true
+  ASSERT_EQ(
+      BCM_FIELD_QSET_TEST(effectiveQset, bcmFieldQualifyStage) != 0,
+      needsExtraFPQsetQualifiers(getAsic()->getAsicType()));
   ASSERT_FALSE(BCM_FIELD_QSET_TEST(qset, bcmFieldQualifyStage));
 }
 
