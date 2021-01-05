@@ -97,7 +97,9 @@ bool isQualifierPresent(
   auto ret = bcm_field_qualify_IpFrag_get(
       bcmSwitch->getUnit(), hwAcl->getHandle(), &hwValueIpFrag);
 
-  return ret != BCM_E_INTERNAL;
+  // In broadcom side, when it's asked to get a non-existing qualifier for an
+  // enum, it will return BCM_E_INTERNAL or BCM_E_NOT_FOUND
+  return !(ret == BCM_E_INTERNAL || ret == BCM_E_NOT_FOUND);
 }
 
 void checkAclEntryAndStatCount(
