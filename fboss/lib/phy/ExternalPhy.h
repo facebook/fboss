@@ -26,6 +26,8 @@ namespace facebook::fboss::phy {
  */
 
 struct ExternalPhyLaneStats {
+  bool signalDetect{false};
+  bool cdrLock{false};
   float signalToNoiseRatio{0};
   uint64_t numAdapt{0};
   uint64_t numReadapt{0};
