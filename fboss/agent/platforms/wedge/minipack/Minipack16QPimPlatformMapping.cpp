@@ -188,8 +188,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -203,8 +202,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -218,8 +216,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -233,8 +230,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -254,8 +250,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -269,8 +264,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -312,8 +306,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -327,8 +320,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -344,8 +336,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -359,8 +350,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 100,
                       "post": -27,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -374,8 +364,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -389,8 +378,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -571,8 +559,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -586,8 +573,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -601,8 +587,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -616,8 +601,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -637,8 +621,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -652,8 +635,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -695,8 +677,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -710,8 +691,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -727,8 +707,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -742,8 +721,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -757,8 +735,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -772,8 +749,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -954,8 +930,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -969,8 +944,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -984,8 +958,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -999,8 +972,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -1020,8 +992,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -1035,8 +1006,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -1078,8 +1048,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -1093,8 +1062,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -1110,8 +1078,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -1125,8 +1092,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -1140,8 +1106,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -1155,8 +1120,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -1337,8 +1301,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -1352,8 +1315,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -1367,8 +1329,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -1382,8 +1343,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -1403,8 +1363,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -1418,8 +1377,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -1461,8 +1419,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -1476,8 +1433,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -1493,8 +1449,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -1508,8 +1463,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -1523,8 +1477,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -1538,8 +1491,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 97,
                       "post": -30,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -1720,8 +1672,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -1735,8 +1686,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -1750,8 +1700,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -1765,8 +1714,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -1786,8 +1734,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -1801,8 +1748,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -1844,8 +1790,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -1859,8 +1804,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -1876,8 +1820,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -1891,8 +1834,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 100,
                       "post": -27,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -1906,8 +1848,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -1921,8 +1862,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -2103,8 +2043,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -2118,8 +2057,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -2133,8 +2071,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -2148,8 +2085,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -2169,8 +2105,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -2184,8 +2119,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -2227,8 +2161,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -2242,8 +2175,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -2259,8 +2191,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -2274,8 +2205,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -2289,8 +2219,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -2304,8 +2233,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -2486,8 +2414,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -2501,8 +2428,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -2516,8 +2442,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -2531,8 +2456,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -2552,8 +2476,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -2567,8 +2490,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -2610,8 +2532,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -2625,8 +2546,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -2642,8 +2562,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -2657,8 +2576,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -2672,8 +2590,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -2687,8 +2604,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -2869,8 +2785,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -2884,8 +2799,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -2899,8 +2813,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -2914,8 +2827,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -2935,8 +2847,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -2950,8 +2861,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -2993,8 +2903,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -3008,8 +2917,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -3025,8 +2933,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -3040,8 +2947,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -3055,8 +2961,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -3070,8 +2975,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 97,
                       "post": -30,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -3252,8 +3156,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -3267,8 +3170,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -3282,8 +3184,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -3297,8 +3198,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -3318,8 +3218,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -3333,8 +3232,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -3376,8 +3274,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -3391,8 +3288,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -3408,8 +3304,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -3423,8 +3318,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 100,
                       "post": -27,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -3438,8 +3332,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -3453,8 +3346,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -3635,8 +3527,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -3650,8 +3541,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -3665,8 +3555,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -3680,8 +3569,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -3701,8 +3589,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -3716,8 +3603,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -3759,8 +3645,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -3774,8 +3659,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -3791,8 +3675,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -3806,8 +3689,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -3821,8 +3703,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -3836,8 +3717,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -4018,8 +3898,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -4033,8 +3912,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -4048,8 +3926,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -4063,8 +3940,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -4084,8 +3960,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -4099,8 +3974,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -4142,8 +4016,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -4157,8 +4030,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -4174,8 +4046,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -4189,8 +4060,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -4204,8 +4074,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -4219,8 +4088,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -4401,8 +4269,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -4416,8 +4283,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -4431,8 +4297,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -4446,8 +4311,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -4467,8 +4331,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -4482,8 +4345,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -4525,8 +4387,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -4540,8 +4401,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -4557,8 +4417,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -4572,8 +4431,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -4587,8 +4445,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -4602,8 +4459,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 97,
                       "post": -30,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -4784,8 +4640,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -4799,8 +4654,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -4814,8 +4668,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -4829,8 +4682,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -4850,8 +4702,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -4865,8 +4716,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -4908,8 +4758,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -4923,8 +4772,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -4940,8 +4788,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -4955,8 +4802,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 100,
                       "post": -27,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -4970,8 +4816,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -4985,8 +4830,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -5167,8 +5011,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -5182,8 +5025,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -5197,8 +5039,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -5212,8 +5053,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -5233,8 +5073,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -5248,8 +5087,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -5291,8 +5129,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -5306,8 +5143,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -5323,8 +5159,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -5338,8 +5173,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -5353,8 +5187,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -5368,8 +5201,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -5550,8 +5382,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -5565,8 +5396,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -5580,8 +5410,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -5595,8 +5424,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -5616,8 +5444,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -5631,8 +5458,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -5674,8 +5500,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -5689,8 +5514,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -5706,8 +5530,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -5721,8 +5544,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -5736,8 +5558,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -5751,8 +5572,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -5933,8 +5753,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -5948,8 +5767,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -5963,8 +5781,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -5978,8 +5795,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -5999,8 +5815,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -6014,8 +5829,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -6057,8 +5871,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -6072,8 +5885,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -6089,8 +5901,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -6104,8 +5915,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -6119,8 +5929,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -6134,8 +5943,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 97,
                       "post": -30,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -6316,8 +6124,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -6331,8 +6138,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -6346,8 +6152,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -6361,8 +6166,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -6382,8 +6186,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -6397,8 +6200,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -6440,8 +6242,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -6455,8 +6256,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -6472,8 +6272,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -6487,8 +6286,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -6502,8 +6300,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -6517,8 +6314,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -6699,8 +6495,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -6714,8 +6509,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -6729,8 +6523,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -6744,8 +6537,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -6765,8 +6557,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -6780,8 +6571,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -6823,8 +6613,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -6838,8 +6627,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -6855,8 +6643,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -6870,8 +6657,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -6885,8 +6671,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -6900,8 +6685,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -7082,8 +6866,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -7097,8 +6880,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -7112,8 +6894,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -7127,8 +6908,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -7148,8 +6928,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -7163,8 +6942,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -7206,8 +6984,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -7221,8 +6998,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -7238,8 +7014,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -7253,8 +7028,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -7268,8 +7042,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -7283,8 +7056,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -7465,8 +7237,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -7480,8 +7251,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -7495,8 +7265,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -7510,8 +7279,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -7531,8 +7299,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -7546,8 +7313,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -7589,8 +7355,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -7604,8 +7369,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -7621,8 +7385,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -7636,8 +7399,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -7651,8 +7413,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -7666,8 +7427,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -7848,8 +7608,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -7863,8 +7622,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -7878,8 +7636,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -7893,8 +7650,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -7914,8 +7670,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -7929,8 +7684,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -7972,8 +7726,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -7987,8 +7740,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -8004,8 +7756,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -8019,8 +7770,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -8034,8 +7784,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -8049,8 +7798,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -8231,8 +7979,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -8246,8 +7993,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -8261,8 +8007,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -8276,8 +8021,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -8297,8 +8041,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -8312,8 +8055,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -8355,8 +8097,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -8370,8 +8111,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -8387,8 +8127,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -8402,8 +8141,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -8417,8 +8155,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -8432,8 +8169,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -8614,8 +8350,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -8629,8 +8364,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -8644,8 +8378,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -8659,8 +8392,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -8680,8 +8412,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -8695,8 +8426,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -8738,8 +8468,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -8753,8 +8482,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -8770,8 +8498,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -8785,8 +8512,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -8800,8 +8526,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -8815,8 +8540,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -8997,8 +8721,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -9012,8 +8735,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -9027,8 +8749,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -9042,8 +8763,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -9063,8 +8783,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -9078,8 +8797,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -9121,8 +8839,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -9136,8 +8853,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -9153,8 +8869,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -9168,8 +8883,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -9183,8 +8897,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -9198,8 +8911,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -9380,8 +9092,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -9395,8 +9106,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -9410,8 +9120,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -9425,8 +9134,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -9446,8 +9154,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -9461,8 +9168,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -9504,8 +9210,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -9519,8 +9224,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -9536,8 +9240,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -9551,8 +9254,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -9566,8 +9268,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -9581,8 +9282,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -9763,8 +9463,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -9778,8 +9477,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -9793,8 +9491,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -9808,8 +9505,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -9829,8 +9525,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -9844,8 +9539,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -9887,8 +9581,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -9902,8 +9595,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -9919,8 +9611,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -9934,8 +9625,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -9949,8 +9639,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -9964,8 +9653,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -10146,8 +9834,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -10161,8 +9848,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -10176,8 +9862,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -10191,8 +9876,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -10212,8 +9896,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -10227,8 +9910,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -10270,8 +9952,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -10285,8 +9966,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -10302,8 +9982,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -10317,8 +9996,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -10332,8 +10010,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -10347,8 +10024,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -10529,8 +10205,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -10544,8 +10219,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -10559,8 +10233,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -10574,8 +10247,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -10595,8 +10267,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -10610,8 +10281,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -10653,8 +10323,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -10668,8 +10337,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -10685,8 +10353,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -10700,8 +10367,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -10715,8 +10381,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -10730,8 +10395,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -10912,8 +10576,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -10927,8 +10590,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -10942,8 +10604,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -10957,8 +10618,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -10978,8 +10638,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -10993,8 +10652,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -11036,8 +10694,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -11051,8 +10708,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -11068,8 +10724,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -11083,8 +10738,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -11098,8 +10752,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -11113,8 +10766,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -11295,8 +10947,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -11310,8 +10961,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -11325,8 +10975,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -11340,8 +10989,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -11361,8 +11009,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -11376,8 +11023,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -11419,8 +11065,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -11434,8 +11079,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -11451,8 +11095,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -11466,8 +11109,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -11481,8 +11123,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -11496,8 +11137,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -11678,8 +11318,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -11693,8 +11332,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -11708,8 +11346,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -11723,8 +11360,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -11744,8 +11380,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -11759,8 +11394,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -11802,8 +11436,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -11817,8 +11450,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -11834,8 +11466,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -11849,8 +11480,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -11864,8 +11494,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -11879,8 +11508,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -12061,8 +11689,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -12076,8 +11703,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -12091,8 +11717,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -12106,8 +11731,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -12127,8 +11751,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -12142,8 +11765,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -12185,8 +11807,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -12200,8 +11821,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -12217,8 +11837,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -12232,8 +11851,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -12247,8 +11865,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -12262,8 +11879,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -12444,8 +12060,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -12459,8 +12074,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -12474,8 +12088,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -12489,8 +12102,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -12510,8 +12122,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -12525,8 +12136,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -12568,8 +12178,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -12583,8 +12192,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -12600,8 +12208,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -12615,8 +12222,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -12630,8 +12236,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -12645,8 +12250,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -12827,8 +12431,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -12842,8 +12445,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -12857,8 +12459,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -12872,8 +12473,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -12893,8 +12493,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -12908,8 +12507,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -12951,8 +12549,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -12966,8 +12563,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -12983,8 +12579,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -12998,8 +12593,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -13013,8 +12607,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -13028,8 +12621,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -13210,8 +12802,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -13225,8 +12816,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -13240,8 +12830,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -13255,8 +12844,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -13276,8 +12864,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -13291,8 +12878,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -13334,8 +12920,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -13349,8 +12934,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -13366,8 +12950,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -13381,8 +12964,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -13396,8 +12978,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -13411,8 +12992,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -13593,8 +13173,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -13608,8 +13187,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -13623,8 +13201,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -13638,8 +13215,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -13659,8 +13235,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -13674,8 +13249,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -13717,8 +13291,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -13732,8 +13305,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -13749,8 +13321,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -13764,8 +13335,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -13779,8 +13349,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -13794,8 +13363,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -13976,8 +13544,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -13991,8 +13558,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -14006,8 +13572,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -14021,8 +13586,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -14042,8 +13606,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -14057,8 +13620,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -14100,8 +13662,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -14115,8 +13676,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -14132,8 +13692,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -14147,8 +13706,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -14162,8 +13720,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -14177,8 +13734,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -14359,8 +13915,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -14374,8 +13929,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -14389,8 +13943,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -14404,8 +13957,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -14425,8 +13977,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -14440,8 +13991,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -14483,8 +14033,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -14498,8 +14047,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -14515,8 +14063,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -14530,8 +14077,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -14545,8 +14091,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -14560,8 +14105,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -14742,8 +14286,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -14757,8 +14300,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -14772,8 +14314,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -14787,8 +14328,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -14808,8 +14348,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -14823,8 +14362,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -14866,8 +14404,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -14881,8 +14418,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -14898,8 +14434,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -14913,8 +14448,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -14928,8 +14462,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -14943,8 +14476,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -15125,8 +14657,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -15140,8 +14671,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -15155,8 +14685,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -15170,8 +14699,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -15191,8 +14719,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -15206,8 +14733,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -15249,8 +14775,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -15264,8 +14789,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -15281,8 +14805,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -15296,8 +14819,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -15311,8 +14833,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -15326,8 +14847,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -15508,8 +15028,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -15523,8 +15042,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -15538,8 +15056,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -15553,8 +15070,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -15574,8 +15090,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -15589,8 +15104,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -15632,8 +15146,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -15647,8 +15160,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -15664,8 +15176,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -15679,8 +15190,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -15694,8 +15204,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -15709,8 +15218,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -15891,8 +15399,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -15906,8 +15413,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -15921,8 +15427,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -15936,8 +15441,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -15957,8 +15461,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -15972,8 +15475,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -16015,8 +15517,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -16030,8 +15531,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -16047,8 +15547,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -16062,8 +15561,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -16077,8 +15575,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -16092,8 +15589,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -16274,8 +15770,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -16289,8 +15784,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -16304,8 +15798,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -16319,8 +15812,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -16340,8 +15832,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -16355,8 +15846,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -16398,8 +15888,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -16413,8 +15902,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -16430,8 +15918,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -16445,8 +15932,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -16460,8 +15946,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -16475,8 +15960,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -16657,8 +16141,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -16672,8 +16155,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -16687,8 +16169,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -16702,8 +16183,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -16723,8 +16203,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -16738,8 +16217,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -16781,8 +16259,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -16796,8 +16273,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -16813,8 +16289,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -16828,8 +16303,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -16843,8 +16317,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -16858,8 +16331,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -17040,8 +16512,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -17055,8 +16526,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -17070,8 +16540,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -17085,8 +16554,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -17106,8 +16574,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -17121,8 +16588,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -17164,8 +16630,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -17179,8 +16644,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -17196,8 +16660,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -17211,8 +16674,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -17226,8 +16688,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -17241,8 +16702,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -17423,8 +16883,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -17438,8 +16897,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -17453,8 +16911,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -17468,8 +16925,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -17489,8 +16945,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -17504,8 +16959,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -17547,8 +17001,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -17562,8 +17015,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -17579,8 +17031,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -17594,8 +17045,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -17609,8 +17059,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -17624,8 +17073,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -17806,8 +17254,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -17821,8 +17268,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -17836,8 +17282,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -17851,8 +17296,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -17872,8 +17316,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -17887,8 +17330,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -17930,8 +17372,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -17945,8 +17386,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -17962,8 +17402,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -17977,8 +17416,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -17992,8 +17430,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -18007,8 +17444,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -18189,8 +17625,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -18204,8 +17639,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -18219,8 +17653,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -18234,8 +17667,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -18255,8 +17687,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -18270,8 +17701,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -18313,8 +17743,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -18328,8 +17757,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -18345,8 +17773,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -18360,8 +17787,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -18375,8 +17801,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -18390,8 +17815,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -18572,8 +17996,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -18587,8 +18010,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -18602,8 +18024,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -18617,8 +18038,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -18638,8 +18058,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -18653,8 +18072,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -18696,8 +18114,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -18711,8 +18128,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -18728,8 +18144,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -18743,8 +18158,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -18758,8 +18172,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -18773,8 +18186,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -18955,8 +18367,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -18970,8 +18381,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -18985,8 +18395,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -19000,8 +18409,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -19021,8 +18429,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -19036,8 +18443,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -19079,8 +18485,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -19094,8 +18499,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -19111,8 +18515,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -19126,8 +18529,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -19141,8 +18543,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -19156,8 +18557,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -19338,8 +18738,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -19353,8 +18752,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -19368,8 +18766,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -19383,8 +18780,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -19404,8 +18800,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -19419,8 +18814,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -19462,8 +18856,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -19477,8 +18870,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -19494,8 +18886,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -19509,8 +18900,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -19524,8 +18914,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -19539,8 +18928,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -19721,8 +19109,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -19736,8 +19123,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -19751,8 +19137,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -19766,8 +19151,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -19787,8 +19171,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -19802,8 +19185,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -19845,8 +19227,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -19860,8 +19241,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -19877,8 +19257,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -19892,8 +19271,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -19907,8 +19285,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -19922,8 +19299,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -20104,8 +19480,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -20119,8 +19494,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -20134,8 +19508,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -20149,8 +19522,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -20170,8 +19542,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -20185,8 +19556,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -20228,8 +19598,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -20243,8 +19612,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -20260,8 +19628,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -20275,8 +19642,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -20290,8 +19656,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -20305,8 +19670,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -20487,8 +19851,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -20502,8 +19865,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -20517,8 +19879,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -20532,8 +19893,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -20553,8 +19913,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -20568,8 +19927,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -20611,8 +19969,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -20626,8 +19983,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -20643,8 +19999,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -20658,8 +20013,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -20673,8 +20027,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -20688,8 +20041,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -20870,8 +20222,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -20885,8 +20236,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -20900,8 +20250,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -20915,8 +20264,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -20936,8 +20284,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -20951,8 +20298,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -20994,8 +20340,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -21009,8 +20354,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -21026,8 +20370,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -21041,8 +20384,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -21056,8 +20398,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -21071,8 +20412,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -21253,8 +20593,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -21268,8 +20607,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -21283,8 +20621,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -21298,8 +20635,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -21319,8 +20655,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -21334,8 +20669,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -21377,8 +20711,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -21392,8 +20725,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -21409,8 +20741,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -21424,8 +20755,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -21439,8 +20769,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -21454,8 +20783,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -21636,8 +20964,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -21651,8 +20978,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -21666,8 +20992,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -21681,8 +21006,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -21702,8 +21026,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -21717,8 +21040,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -21760,8 +21082,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -21775,8 +21096,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -21792,8 +21112,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -21807,8 +21126,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -21822,8 +21140,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -21837,8 +21154,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -22019,8 +21335,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -22034,8 +21349,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -22049,8 +21363,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -22064,8 +21377,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -22085,8 +21397,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -22100,8 +21411,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -22143,8 +21453,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -22158,8 +21467,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -22175,8 +21483,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -22190,8 +21497,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -22205,8 +21511,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -22220,8 +21525,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -22402,8 +21706,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -22417,8 +21720,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -22432,8 +21734,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -22447,8 +21748,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -22468,8 +21768,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -22483,8 +21782,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -22526,8 +21824,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -22541,8 +21838,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -22558,8 +21854,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -22573,8 +21868,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -22588,8 +21882,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -22603,8 +21896,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -22785,8 +22077,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -22800,8 +22091,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -22815,8 +22105,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -22830,8 +22119,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -22851,8 +22139,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -22866,8 +22153,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -22909,8 +22195,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -22924,8 +22209,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -22941,8 +22225,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -22956,8 +22239,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -22971,8 +22253,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -22986,8 +22267,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -23168,8 +22448,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -23183,8 +22462,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -23198,8 +22476,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -23213,8 +22490,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -23234,8 +22510,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -23249,8 +22524,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -23292,8 +22566,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -23307,8 +22580,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -23324,8 +22596,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -23339,8 +22610,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -23354,8 +22624,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -23369,8 +22638,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -23551,8 +22819,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -23566,8 +22833,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -23581,8 +22847,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -23596,8 +22861,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -23617,8 +22881,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -23632,8 +22895,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -23675,8 +22937,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -23690,8 +22951,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -23707,8 +22967,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -23722,8 +22981,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -23737,8 +22995,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -23752,8 +23009,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -23934,8 +23190,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -23949,8 +23204,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -23964,8 +23218,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -23979,8 +23232,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -24000,8 +23252,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -24015,8 +23266,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -24058,8 +23308,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -24073,8 +23322,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -24090,8 +23338,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -24105,8 +23352,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -24120,8 +23366,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -24135,8 +23380,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -24317,8 +23561,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -24332,8 +23575,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -24347,8 +23589,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -24362,8 +23603,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -24383,8 +23623,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -24398,8 +23637,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -24441,8 +23679,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -24456,8 +23693,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -24473,8 +23709,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -24488,8 +23723,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -24503,8 +23737,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -24518,8 +23751,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -24700,8 +23932,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -24715,8 +23946,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -24730,8 +23960,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -24745,8 +23974,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -24766,8 +23994,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -24781,8 +24008,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -24824,8 +24050,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -24839,8 +24064,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -24856,8 +24080,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -24871,8 +24094,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 100,
                       "post": -27,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -24886,8 +24108,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -24901,8 +24122,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -25083,8 +24303,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -25098,8 +24317,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -25113,8 +24331,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -25128,8 +24345,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -25149,8 +24365,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -25164,8 +24379,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -25207,8 +24421,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -25222,8 +24435,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -25239,8 +24451,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -25254,8 +24465,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -25269,8 +24479,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -25284,8 +24493,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -25466,8 +24674,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -25481,8 +24688,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -25496,8 +24702,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -25511,8 +24716,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -25532,8 +24736,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -25547,8 +24750,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -25590,8 +24792,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -25605,8 +24806,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -25622,8 +24822,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -25637,8 +24836,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -25652,8 +24850,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -25667,8 +24864,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -25849,8 +25045,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -25864,8 +25059,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -25879,8 +25073,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -25894,8 +25087,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -25915,8 +25107,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -25930,8 +25121,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -25973,8 +25163,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -25988,8 +25177,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -26005,8 +25193,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -26020,8 +25207,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -26035,8 +25221,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -26050,8 +25235,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 97,
                       "post": -30,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -26232,8 +25416,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -26247,8 +25430,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -26262,8 +25444,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -26277,8 +25458,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -26298,8 +25478,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -26313,8 +25492,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -26356,8 +25534,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -26371,8 +25548,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -26388,8 +25564,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -26403,8 +25578,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 100,
                       "post": -27,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -26418,8 +25592,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -26433,8 +25606,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -26615,8 +25787,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -26630,8 +25801,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -26645,8 +25815,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -26660,8 +25829,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -26681,8 +25849,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -26696,8 +25863,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -26739,8 +25905,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -26754,8 +25919,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -26771,8 +25935,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -26786,8 +25949,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -26801,8 +25963,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -26816,8 +25977,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -26998,8 +26158,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -27013,8 +26172,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -27028,8 +26186,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -27043,8 +26200,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -27064,8 +26220,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -27079,8 +26234,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -27122,8 +26276,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -27137,8 +26290,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -27154,8 +26306,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -27169,8 +26320,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -27184,8 +26334,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -27199,8 +26348,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -27381,8 +26529,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -27396,8 +26543,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -27411,8 +26557,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -27426,8 +26571,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -27447,8 +26591,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -27462,8 +26605,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -27505,8 +26647,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -27520,8 +26661,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -27537,8 +26677,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -27552,8 +26691,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -27567,8 +26705,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -27582,8 +26719,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 97,
                       "post": -30,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -27764,8 +26900,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -27779,8 +26914,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -27794,8 +26928,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -27809,8 +26942,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -27830,8 +26962,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -27845,8 +26976,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -27888,8 +27018,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -27903,8 +27032,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -27920,8 +27048,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -27935,8 +27062,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 100,
                       "post": -27,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -27950,8 +27076,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -27965,8 +27090,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -28147,8 +27271,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -28162,8 +27285,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -28177,8 +27299,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -28192,8 +27313,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -28213,8 +27333,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -28228,8 +27347,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -28271,8 +27389,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -28286,8 +27403,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -28303,8 +27419,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -28318,8 +27433,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -28333,8 +27447,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -28348,8 +27461,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -28530,8 +27642,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -28545,8 +27656,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -28560,8 +27670,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -28575,8 +27684,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -28596,8 +27704,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -28611,8 +27718,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -28654,8 +27760,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -28669,8 +27774,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -28686,8 +27790,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -28701,8 +27804,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -28716,8 +27818,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -28731,8 +27832,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -28913,8 +28013,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -28928,8 +28027,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -28943,8 +28041,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -28958,8 +28055,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -28979,8 +28075,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -28994,8 +28089,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -29037,8 +28131,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -29052,8 +28145,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -29069,8 +28161,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -29084,8 +28175,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -29099,8 +28189,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -29114,8 +28203,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 97,
                       "post": -30,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -29296,8 +28384,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -29311,8 +28398,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -29326,8 +28412,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -29341,8 +28426,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -29362,8 +28446,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -29377,8 +28460,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -29420,8 +28502,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -29435,8 +28516,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -29452,8 +28532,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -29467,8 +28546,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 100,
                       "post": -27,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -29482,8 +28560,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -29497,8 +28574,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -29679,8 +28755,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -29694,8 +28769,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -29709,8 +28783,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -29724,8 +28797,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -29745,8 +28817,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -29760,8 +28831,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -29803,8 +28873,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -29818,8 +28887,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -29835,8 +28903,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -29850,8 +28917,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -29865,8 +28931,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -29880,8 +28945,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -30062,8 +29126,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -30077,8 +29140,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -30092,8 +29154,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -30107,8 +29168,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -30128,8 +29188,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -30143,8 +29202,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -30186,8 +29244,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -30201,8 +29258,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -30218,8 +29274,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -30233,8 +29288,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -30248,8 +29302,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -30263,8 +29316,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -30445,8 +29497,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -30460,8 +29511,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -30475,8 +29525,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -30490,8 +29539,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -30511,8 +29559,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -30526,8 +29573,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -30569,8 +29615,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -30584,8 +29629,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -30601,8 +29645,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -30616,8 +29659,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -30631,8 +29673,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -30646,8 +29687,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 97,
                       "post": -30,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -30828,8 +29868,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -30843,8 +29882,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -30858,8 +29896,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -30873,8 +29910,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -30894,8 +29930,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -30909,8 +29944,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -30952,8 +29986,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -30967,8 +30000,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -30984,8 +30016,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -30999,8 +30030,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -31014,8 +30044,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -31029,8 +30058,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -31211,8 +30239,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -31226,8 +30253,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -31241,8 +30267,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -31256,8 +30281,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -31277,8 +30301,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -31292,8 +30315,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -31335,8 +30357,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -31350,8 +30371,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -31367,8 +30387,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -31382,8 +30401,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -31397,8 +30415,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -31412,8 +30429,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -31594,8 +30610,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -31609,8 +30624,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -31624,8 +30638,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -31639,8 +30652,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -31660,8 +30672,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -31675,8 +30686,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -31718,8 +30728,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -31733,8 +30742,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -31750,8 +30758,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -31765,8 +30772,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -31780,8 +30786,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -31795,8 +30800,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -31977,8 +30981,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -31992,8 +30995,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -32007,8 +31009,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -32022,8 +31023,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -32043,8 +31043,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -32058,8 +31057,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -32101,8 +31099,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -32116,8 +31113,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -32133,8 +31129,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -32148,8 +31143,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -32163,8 +31157,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -32178,8 +31171,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -32360,8 +31352,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -32375,8 +31366,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -32390,8 +31380,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -32405,8 +31394,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -32426,8 +31414,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -32441,8 +31428,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -32484,8 +31470,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -32499,8 +31484,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -32516,8 +31500,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -32531,8 +31514,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -32546,8 +31528,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -32561,8 +31542,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -32743,8 +31723,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -32758,8 +31737,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -32773,8 +31751,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -32788,8 +31765,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -32809,8 +31785,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -32824,8 +31799,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -32867,8 +31841,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -32882,8 +31855,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -32899,8 +31871,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -32914,8 +31885,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -32929,8 +31899,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -32944,8 +31913,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -33126,8 +32094,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -33141,8 +32108,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -33156,8 +32122,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -33171,8 +32136,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -33192,8 +32156,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -33207,8 +32170,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -33250,8 +32212,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -33265,8 +32226,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -33282,8 +32242,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -33297,8 +32256,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -33312,8 +32270,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -33327,8 +32284,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -33509,8 +32465,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -33524,8 +32479,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -33539,8 +32493,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -33554,8 +32507,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -33575,8 +32527,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -33590,8 +32541,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -33633,8 +32583,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -33648,8 +32597,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -33665,8 +32613,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -33680,8 +32627,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -33695,8 +32641,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -33710,8 +32655,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -33892,8 +32836,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -33907,8 +32850,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -33922,8 +32864,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -33937,8 +32878,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -33958,8 +32898,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -33973,8 +32912,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -34016,8 +32954,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -34031,8 +32968,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -34048,8 +32984,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -34063,8 +32998,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -34078,8 +33012,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -34093,8 +33026,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -34275,8 +33207,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -34290,8 +33221,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -34305,8 +33235,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -34320,8 +33249,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -34341,8 +33269,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -34356,8 +33283,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -34399,8 +33325,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -34414,8 +33339,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -34431,8 +33355,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -34446,8 +33369,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -34461,8 +33383,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -34476,8 +33397,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -34658,8 +33578,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -34673,8 +33592,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -34688,8 +33606,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -34703,8 +33620,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -34724,8 +33640,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -34739,8 +33654,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -34782,8 +33696,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -34797,8 +33710,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -34814,8 +33726,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -34829,8 +33740,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -34844,8 +33754,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -34859,8 +33768,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -35041,8 +33949,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -35056,8 +33963,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -35071,8 +33977,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -35086,8 +33991,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -35107,8 +34011,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -35122,8 +34025,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -35165,8 +34067,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -35180,8 +34081,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -35197,8 +34097,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -35212,8 +34111,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -35227,8 +34125,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -35242,8 +34139,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -35424,8 +34320,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -35439,8 +34334,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -35454,8 +34348,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -35469,8 +34362,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -35490,8 +34382,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -35505,8 +34396,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -35548,8 +34438,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -35563,8 +34452,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -35580,8 +34468,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -35595,8 +34482,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -35610,8 +34496,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -35625,8 +34510,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -35807,8 +34691,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -35822,8 +34705,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -35837,8 +34719,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -35852,8 +34733,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -35873,8 +34753,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -35888,8 +34767,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -35931,8 +34809,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -35946,8 +34823,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -35963,8 +34839,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -35978,8 +34853,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -35993,8 +34867,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -36008,8 +34881,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -36190,8 +35062,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -36205,8 +35076,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -36220,8 +35090,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -36235,8 +35104,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -36256,8 +35124,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -36271,8 +35138,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -36314,8 +35180,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -36329,8 +35194,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -36346,8 +35210,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -36361,8 +35224,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -36376,8 +35238,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -36391,8 +35252,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -36573,8 +35433,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -36588,8 +35447,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -36603,8 +35461,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -36618,8 +35475,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -36639,8 +35495,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -36654,8 +35509,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -36697,8 +35551,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -36712,8 +35565,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -36729,8 +35581,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -36744,8 +35595,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -36759,8 +35609,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -36774,8 +35623,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -36956,8 +35804,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -36971,8 +35818,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -36986,8 +35832,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -37001,8 +35846,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -37022,8 +35866,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -37037,8 +35880,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -37080,8 +35922,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -37095,8 +35936,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -37112,8 +35952,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -37127,8 +35966,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -37142,8 +35980,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -37157,8 +35994,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -37339,8 +36175,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -37354,8 +36189,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -37369,8 +36203,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -37384,8 +36217,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -37405,8 +36237,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -37420,8 +36251,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -37463,8 +36293,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -37478,8 +36307,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -37495,8 +36323,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -37510,8 +36337,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -37525,8 +36351,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -37540,8 +36365,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -37722,8 +36546,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -37737,8 +36560,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -37752,8 +36574,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -37767,8 +36588,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -37788,8 +36608,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -37803,8 +36622,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -37846,8 +36664,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -37861,8 +36678,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -37878,8 +36694,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -37893,8 +36708,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -37908,8 +36722,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -37923,8 +36736,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -38105,8 +36917,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -38120,8 +36931,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -38135,8 +36945,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -38150,8 +36959,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -38171,8 +36979,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -38186,8 +36993,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -38229,8 +37035,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -38244,8 +37049,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -38261,8 +37065,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -38276,8 +37079,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -38291,8 +37093,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -38306,8 +37107,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -38488,8 +37288,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -38503,8 +37302,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -38518,8 +37316,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -38533,8 +37330,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -38554,8 +37350,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -38569,8 +37364,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -38612,8 +37406,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -38627,8 +37420,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -38644,8 +37436,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -38659,8 +37450,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -38674,8 +37464,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -38689,8 +37478,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -38871,8 +37659,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -38886,8 +37673,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -38901,8 +37687,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -38916,8 +37701,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -38937,8 +37721,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -38952,8 +37735,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -38995,8 +37777,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -39010,8 +37791,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -39027,8 +37807,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -39042,8 +37821,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -39057,8 +37835,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -39072,8 +37849,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -39254,8 +38030,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -39269,8 +38044,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -39284,8 +38058,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -39299,8 +38072,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -39320,8 +38092,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -39335,8 +38106,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -39378,8 +38148,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -39393,8 +38162,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -39410,8 +38178,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -39425,8 +38192,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -39440,8 +38206,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -39455,8 +38220,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -39637,8 +38401,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -39652,8 +38415,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -39667,8 +38429,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -39682,8 +38443,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -39703,8 +38463,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -39718,8 +38477,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -39761,8 +38519,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -39776,8 +38533,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -39793,8 +38549,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -39808,8 +38563,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -39823,8 +38577,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -39838,8 +38591,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -40020,8 +38772,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -40035,8 +38786,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -40050,8 +38800,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -40065,8 +38814,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -40086,8 +38834,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -40101,8 +38848,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -40144,8 +38890,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -40159,8 +38904,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -40176,8 +38920,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -40191,8 +38934,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -40206,8 +38948,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -40221,8 +38962,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -40403,8 +39143,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -40418,8 +39157,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -40433,8 +39171,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -40448,8 +39185,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -40469,8 +39205,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -40484,8 +39219,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -40527,8 +39261,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -40542,8 +39275,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -40559,8 +39291,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -40574,8 +39305,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -40589,8 +39319,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -40604,8 +39333,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -40786,8 +39514,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -40801,8 +39528,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -40816,8 +39542,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -40831,8 +39556,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -40852,8 +39576,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -40867,8 +39590,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -40910,8 +39632,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -40925,8 +39646,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -40942,8 +39662,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -40957,8 +39676,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -40972,8 +39690,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -40987,8 +39704,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -41169,8 +39885,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -41184,8 +39899,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -41199,8 +39913,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -41214,8 +39927,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -41235,8 +39947,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -41250,8 +39961,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -41293,8 +40003,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -41308,8 +40017,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -41325,8 +40033,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -41340,8 +40047,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -41355,8 +40061,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -41370,8 +40075,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -41552,8 +40256,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -41567,8 +40270,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -41582,8 +40284,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -41597,8 +40298,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -41618,8 +40318,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -41633,8 +40332,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -41676,8 +40374,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -41691,8 +40388,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -41708,8 +40404,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -41723,8 +40418,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -41738,8 +40432,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -41753,8 +40446,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -41935,8 +40627,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -41950,8 +40641,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -41965,8 +40655,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -41980,8 +40669,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -42001,8 +40689,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -42016,8 +40703,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -42059,8 +40745,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -42074,8 +40759,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -42091,8 +40775,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -42106,8 +40789,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -42121,8 +40803,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -42136,8 +40817,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -42318,8 +40998,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -42333,8 +41012,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -42348,8 +41026,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -42363,8 +41040,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -42384,8 +41060,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -42399,8 +41074,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -42442,8 +41116,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -42457,8 +41130,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -42474,8 +41146,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -42489,8 +41160,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -42504,8 +41174,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -42519,8 +41188,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -42701,8 +41369,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -42716,8 +41383,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -42731,8 +41397,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -42746,8 +41411,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -42767,8 +41431,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -42782,8 +41445,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -42825,8 +41487,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -42840,8 +41501,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -42857,8 +41517,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -42872,8 +41531,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -42887,8 +41545,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -42902,8 +41559,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -43084,8 +41740,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -43099,8 +41754,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -43114,8 +41768,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -43129,8 +41782,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -43150,8 +41802,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -43165,8 +41816,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -43208,8 +41858,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -43223,8 +41872,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -43240,8 +41888,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -43255,8 +41902,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -43270,8 +41916,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -43285,8 +41930,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -43467,8 +42111,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -43482,8 +42125,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -43497,8 +42139,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -43512,8 +42153,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -43533,8 +42173,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -43548,8 +42187,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -43591,8 +42229,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -43606,8 +42243,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -43623,8 +42259,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -43638,8 +42273,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -43653,8 +42287,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -43668,8 +42301,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -43850,8 +42482,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -43865,8 +42496,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -43880,8 +42510,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -43895,8 +42524,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -43916,8 +42544,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -43931,8 +42558,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -43974,8 +42600,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -43989,8 +42614,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -44006,8 +42630,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -44021,8 +42644,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -44036,8 +42658,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -44051,8 +42672,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -44233,8 +42853,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -44248,8 +42867,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -44263,8 +42881,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -44278,8 +42895,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -44299,8 +42915,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -44314,8 +42929,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -44357,8 +42971,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -44372,8 +42985,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -44389,8 +43001,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -44404,8 +43015,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -44419,8 +43029,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -44434,8 +43043,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -44616,8 +43224,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -44631,8 +43238,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -44646,8 +43252,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -44661,8 +43266,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -44682,8 +43286,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -44697,8 +43300,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -44740,8 +43342,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -44755,8 +43356,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -44772,8 +43372,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -44787,8 +43386,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -44802,8 +43400,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -44817,8 +43414,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -44999,8 +43595,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -45014,8 +43609,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -45029,8 +43623,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -45044,8 +43637,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -45065,8 +43657,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -45080,8 +43671,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -45123,8 +43713,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -45138,8 +43727,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -45155,8 +43743,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -45170,8 +43757,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -45185,8 +43771,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -45200,8 +43785,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -45382,8 +43966,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -45397,8 +43980,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -45412,8 +43994,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -45427,8 +44008,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -45448,8 +44028,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -45463,8 +44042,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -45506,8 +44084,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -45521,8 +44098,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -45538,8 +44114,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -45553,8 +44128,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -45568,8 +44142,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -45583,8 +44156,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -45765,8 +44337,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -45780,8 +44351,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -45795,8 +44365,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -45810,8 +44379,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -45831,8 +44399,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -45846,8 +44413,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -45889,8 +44455,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -45904,8 +44469,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -45921,8 +44485,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -45936,8 +44499,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -45951,8 +44513,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -45966,8 +44527,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -46148,8 +44708,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -46163,8 +44722,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -46178,8 +44736,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -46193,8 +44750,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -46214,8 +44770,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -46229,8 +44784,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -46272,8 +44826,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -46287,8 +44840,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -46304,8 +44856,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -46319,8 +44870,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -46334,8 +44884,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -46349,8 +44898,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -46531,8 +45079,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -46546,8 +45093,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -46561,8 +45107,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -46576,8 +45121,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -46597,8 +45141,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -46612,8 +45155,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -46655,8 +45197,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -46670,8 +45211,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -46687,8 +45227,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -46702,8 +45241,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -46717,8 +45255,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -46732,8 +45269,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -46914,8 +45450,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -46929,8 +45464,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -46944,8 +45478,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -46959,8 +45492,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -46980,8 +45512,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -46995,8 +45526,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -47038,8 +45568,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -47053,8 +45582,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -47070,8 +45598,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -47085,8 +45612,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -47100,8 +45626,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -47115,8 +45640,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -47297,8 +45821,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -47312,8 +45835,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -47327,8 +45849,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -47342,8 +45863,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -47363,8 +45883,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -47378,8 +45897,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -47421,8 +45939,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -47436,8 +45953,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -47453,8 +45969,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -47468,8 +45983,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -47483,8 +45997,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -47498,8 +46011,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -47680,8 +46192,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -47695,8 +46206,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -47710,8 +46220,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -47725,8 +46234,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -47746,8 +46254,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -47761,8 +46268,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -47804,8 +46310,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -47819,8 +46324,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -47836,8 +46340,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -47851,8 +46354,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -47866,8 +46368,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -47881,8 +46382,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -48063,8 +46563,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -48078,8 +46577,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -48093,8 +46591,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -48108,8 +46605,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -48129,8 +46625,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -48144,8 +46639,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -48187,8 +46681,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -48202,8 +46695,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 144,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -48219,8 +46711,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -48234,8 +46725,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -48249,8 +46739,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -48264,8 +46753,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -48446,8 +46934,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -48461,8 +46948,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -48476,8 +46962,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -48491,8 +46976,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -48512,8 +46996,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -48527,8 +47010,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -48570,8 +47052,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -48585,8 +47066,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -48602,8 +47082,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -48617,8 +47096,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -48632,8 +47110,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -48647,8 +47124,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -48829,8 +47305,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -48844,8 +47319,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -48859,8 +47333,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -48874,8 +47347,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -48895,8 +47367,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -48910,8 +47381,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 136,
                       "post": -8,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -48953,8 +47423,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   },
                   {
@@ -48968,8 +47437,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 140,
                       "post": -4,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 1
+                      "post3": 0
                     }
                   }
                 ],
@@ -48985,8 +47453,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -49000,8 +47467,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -49015,8 +47481,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -49030,8 +47495,7 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -50295,8 +48759,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -50310,8 +48773,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -50325,8 +48787,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -50340,8 +48801,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -50401,8 +48861,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -50416,8 +48875,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -50433,8 +48891,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -50448,8 +48905,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 100,
                       "post": -27,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -50463,8 +48919,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -50478,8 +48933,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -50660,8 +49114,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -50675,8 +49128,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -50690,8 +49142,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -50705,8 +49156,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -50766,8 +49216,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -50781,8 +49230,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -50798,8 +49246,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -50813,8 +49260,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -50828,8 +49274,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -50843,8 +49288,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -51025,8 +49469,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -51040,8 +49483,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -51055,8 +49497,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -51070,8 +49511,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -51131,8 +49571,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -51146,8 +49585,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -51163,8 +49601,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -51178,8 +49615,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -51193,8 +49629,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -51208,8 +49643,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -51390,8 +49824,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -51405,8 +49838,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -51420,8 +49852,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -51435,8 +49866,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -51496,8 +49926,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -51511,8 +49940,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -51528,8 +49956,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -51543,8 +49970,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -51558,8 +49984,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -51573,8 +49998,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 97,
                       "post": -30,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -51755,8 +50179,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -51770,8 +50193,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -51785,8 +50207,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -51800,8 +50221,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -51861,8 +50281,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -51876,8 +50295,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -51893,8 +50311,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -51908,8 +50325,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 100,
                       "post": -27,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -51923,8 +50339,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -51938,8 +50353,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -52120,8 +50534,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -52135,8 +50548,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -52150,8 +50562,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -52165,8 +50576,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -52226,8 +50636,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -52241,8 +50650,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -52258,8 +50666,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -52273,8 +50680,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -52288,8 +50694,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -52303,8 +50708,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -52485,8 +50889,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -52500,8 +50903,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -52515,8 +50917,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -52530,8 +50931,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -52591,8 +50991,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -52606,8 +51005,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -52623,8 +51021,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -52638,8 +51035,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -52653,8 +51049,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -52668,8 +51063,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -52850,8 +51244,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -52865,8 +51258,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -52880,8 +51272,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -52895,8 +51286,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -52956,8 +51346,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -52971,8 +51360,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -52988,8 +51376,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -53003,8 +51390,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -53018,8 +51404,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -53033,8 +51418,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 97,
                       "post": -30,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -53215,8 +51599,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -53230,8 +51613,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -53245,8 +51627,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -53260,8 +51641,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -53321,8 +51701,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -53336,8 +51715,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -53353,8 +51731,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -53368,8 +51745,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 100,
                       "post": -27,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -53383,8 +51759,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -53398,8 +51773,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -53580,8 +51954,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -53595,8 +51968,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -53610,8 +51982,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -53625,8 +51996,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -53686,8 +52056,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -53701,8 +52070,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -53718,8 +52086,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -53733,8 +52100,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -53748,8 +52114,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -53763,8 +52128,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -53945,8 +52309,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -53960,8 +52323,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -53975,8 +52337,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -53990,8 +52351,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -54051,8 +52411,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -54066,8 +52425,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -54083,8 +52441,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -54098,8 +52455,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -54113,8 +52469,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -54128,8 +52483,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -54310,8 +52664,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -54325,8 +52678,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -54340,8 +52692,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -54355,8 +52706,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -54416,8 +52766,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -54431,8 +52780,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -54448,8 +52796,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -54463,8 +52810,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -54478,8 +52824,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -54493,8 +52838,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 97,
                       "post": -30,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -54675,8 +53019,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -54690,8 +53033,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -54705,8 +53047,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -54720,8 +53061,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -54781,8 +53121,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -54796,8 +53135,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -54813,8 +53151,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -54828,8 +53165,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 100,
                       "post": -27,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -54843,8 +53179,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -54858,8 +53193,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -55040,8 +53374,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -55055,8 +53388,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -55070,8 +53402,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -55085,8 +53416,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -55146,8 +53476,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -55161,8 +53490,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -55178,8 +53506,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -55193,8 +53520,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -55208,8 +53534,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -55223,8 +53548,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -55405,8 +53729,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -55420,8 +53743,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -55435,8 +53757,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -55450,8 +53771,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -55511,8 +53831,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -55526,8 +53845,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -55543,8 +53861,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -55558,8 +53875,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -55573,8 +53889,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -55588,8 +53903,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -55770,8 +54084,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -55785,8 +54098,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -55800,8 +54112,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -55815,8 +54126,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -55876,8 +54186,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -55891,8 +54200,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -55908,8 +54216,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -55923,8 +54230,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -55938,8 +54244,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -55953,8 +54258,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 97,
                       "post": -30,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -56135,8 +54439,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -56150,8 +54453,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -56165,8 +54467,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -56180,8 +54481,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -56241,8 +54541,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -56256,8 +54555,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -56273,8 +54571,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -56288,8 +54585,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -56303,8 +54599,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -56318,8 +54613,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -56500,8 +54794,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -56515,8 +54808,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -56530,8 +54822,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -56545,8 +54836,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -56606,8 +54896,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -56621,8 +54910,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -56638,8 +54926,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -56653,8 +54940,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -56668,8 +54954,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -56683,8 +54968,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -56865,8 +55149,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -56880,8 +55163,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -56895,8 +55177,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -56910,8 +55191,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -56971,8 +55251,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -56986,8 +55265,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -57003,8 +55281,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -57018,8 +55295,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -57033,8 +55309,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -57048,8 +55323,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -57230,8 +55504,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -57245,8 +55518,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -57260,8 +55532,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -57275,8 +55546,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -57336,8 +55606,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -57351,8 +55620,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -57368,8 +55636,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -57383,8 +55650,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -57398,8 +55664,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -57413,8 +55678,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -57595,8 +55859,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -57610,8 +55873,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -57625,8 +55887,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -57640,8 +55901,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -57701,8 +55961,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -57716,8 +55975,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -57733,8 +55991,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -57748,8 +56005,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -57763,8 +56019,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -57778,8 +56033,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -57960,8 +56214,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -57975,8 +56228,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -57990,8 +56242,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -58005,8 +56256,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -58066,8 +56316,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -58081,8 +56330,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -58098,8 +56346,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -58113,8 +56360,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -58128,8 +56374,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -58143,8 +56388,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -58325,8 +56569,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -58340,8 +56583,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -58355,8 +56597,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -58370,8 +56611,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -58431,8 +56671,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -58446,8 +56685,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -58463,8 +56701,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -58478,8 +56715,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -58493,8 +56729,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -58508,8 +56743,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -58690,8 +56924,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -58705,8 +56938,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -58720,8 +56952,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -58735,8 +56966,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -58796,8 +57026,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -58811,8 +57040,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -58828,8 +57056,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -58843,8 +57070,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -58858,8 +57084,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -58873,8 +57098,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -59055,8 +57279,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -59070,8 +57293,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -59085,8 +57307,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -59100,8 +57321,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -59161,8 +57381,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -59176,8 +57395,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -59193,8 +57411,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -59208,8 +57425,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -59223,8 +57439,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -59238,8 +57453,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -59420,8 +57634,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -59435,8 +57648,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -59450,8 +57662,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -59465,8 +57676,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -59526,8 +57736,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -59541,8 +57750,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -59558,8 +57766,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -59573,8 +57780,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -59588,8 +57794,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -59603,8 +57808,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -59785,8 +57989,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -59800,8 +58003,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -59815,8 +58017,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -59830,8 +58031,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -59891,8 +58091,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -59906,8 +58105,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -59923,8 +58121,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -59938,8 +58135,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -59953,8 +58149,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -59968,8 +58163,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -60150,8 +58344,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -60165,8 +58358,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -60180,8 +58372,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -60195,8 +58386,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -60256,8 +58446,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -60271,8 +58460,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -60288,8 +58476,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -60303,8 +58490,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -60318,8 +58504,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -60333,8 +58518,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -60515,8 +58699,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -60530,8 +58713,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -60545,8 +58727,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -60560,8 +58741,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -60621,8 +58801,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -60636,8 +58815,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -60653,8 +58831,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -60668,8 +58845,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -60683,8 +58859,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -60698,8 +58873,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -60880,8 +59054,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -60895,8 +59068,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -60910,8 +59082,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -60925,8 +59096,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -60986,8 +59156,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -61001,8 +59170,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -61018,8 +59186,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -61033,8 +59200,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -61048,8 +59214,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -61063,8 +59228,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -61245,8 +59409,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -61260,8 +59423,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -61275,8 +59437,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -61290,8 +59451,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -61351,8 +59511,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -61366,8 +59525,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -61383,8 +59541,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -61398,8 +59555,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -61413,8 +59569,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -61428,8 +59583,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -61610,8 +59764,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -61625,8 +59778,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -61640,8 +59792,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -61655,8 +59806,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -61716,8 +59866,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -61731,8 +59880,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -61748,8 +59896,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -61763,8 +59910,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -61778,8 +59924,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -61793,8 +59938,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -61975,8 +60119,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -61990,8 +60133,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -62005,8 +60147,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -62020,8 +60161,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -62081,8 +60221,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -62096,8 +60235,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -62113,8 +60251,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -62128,8 +60265,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -62143,8 +60279,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -62158,8 +60293,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -62340,8 +60474,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -62355,8 +60488,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -62370,8 +60502,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -62385,8 +60516,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -62446,8 +60576,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -62461,8 +60590,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -62478,8 +60606,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -62493,8 +60620,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -62508,8 +60634,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -62523,8 +60648,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -62705,8 +60829,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -62720,8 +60843,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -62735,8 +60857,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -62750,8 +60871,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -62811,8 +60931,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -62826,8 +60945,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -62843,8 +60961,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -62858,8 +60975,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -62873,8 +60989,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -62888,8 +61003,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -63070,8 +61184,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -63085,8 +61198,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -63100,8 +61212,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -63115,8 +61226,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -63176,8 +61286,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -63191,8 +61300,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -63208,8 +61316,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -63223,8 +61330,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -63238,8 +61344,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -63253,8 +61358,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -63435,8 +61539,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -63450,8 +61553,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -63465,8 +61567,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -63480,8 +61581,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -63541,8 +61641,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -63556,8 +61655,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -63573,8 +61671,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -63588,8 +61685,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -63603,8 +61699,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -63618,8 +61713,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -63800,8 +61894,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -63815,8 +61908,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -63830,8 +61922,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -63845,8 +61936,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -63906,8 +61996,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -63921,8 +62010,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -63938,8 +62026,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -63953,8 +62040,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -63968,8 +62054,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -63983,8 +62068,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -64165,8 +62249,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -64180,8 +62263,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -64195,8 +62277,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -64210,8 +62291,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -64271,8 +62351,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -64286,8 +62365,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -64303,8 +62381,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -64318,8 +62395,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -64333,8 +62409,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -64348,8 +62423,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -64530,8 +62604,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -64545,8 +62618,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -64560,8 +62632,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -64575,8 +62646,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -64636,8 +62706,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -64651,8 +62720,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -64668,8 +62736,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -64683,8 +62750,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -64698,8 +62764,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -64713,8 +62778,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -64895,8 +62959,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -64910,8 +62973,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -64925,8 +62987,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -64940,8 +63001,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -65001,8 +63061,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -65016,8 +63075,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -65033,8 +63091,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -65048,8 +63105,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -65063,8 +63119,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -65078,8 +63133,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -65260,8 +63314,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -65275,8 +63328,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -65290,8 +63342,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -65305,8 +63356,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -65366,8 +63416,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -65381,8 +63430,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -65398,8 +63446,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -65413,8 +63460,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -65428,8 +63474,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -65443,8 +63488,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -65625,8 +63669,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -65640,8 +63683,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -65655,8 +63697,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -65670,8 +63711,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -65731,8 +63771,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -65746,8 +63785,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -65763,8 +63801,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -65778,8 +63815,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -65793,8 +63829,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -65808,8 +63843,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -65990,8 +64024,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -66005,8 +64038,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -66020,8 +64052,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -66035,8 +64066,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -66096,8 +64126,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -66111,8 +64140,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -66128,8 +64156,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -66143,8 +64170,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -66158,8 +64184,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -66173,8 +64198,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -66355,8 +64379,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -66370,8 +64393,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -66385,8 +64407,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -66400,8 +64421,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -66461,8 +64481,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -66476,8 +64495,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -66493,8 +64511,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -66508,8 +64525,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -66523,8 +64539,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -66538,8 +64553,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -66720,8 +64734,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -66735,8 +64748,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -66750,8 +64762,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -66765,8 +64776,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -66826,8 +64836,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -66841,8 +64850,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -66858,8 +64866,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -66873,8 +64880,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -66888,8 +64894,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -66903,8 +64908,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -67085,8 +65089,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -67100,8 +65103,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -67115,8 +65117,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -67130,8 +65131,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -67191,8 +65191,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -67206,8 +65205,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -67223,8 +65221,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -67238,8 +65235,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -67253,8 +65249,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -67268,8 +65263,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -67450,8 +65444,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -67465,8 +65458,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -67480,8 +65472,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -67495,8 +65486,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -67556,8 +65546,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -67571,8 +65560,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -67588,8 +65576,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -67603,8 +65590,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -67618,8 +65604,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -67633,8 +65618,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -67815,8 +65799,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -67830,8 +65813,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -67845,8 +65827,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -67860,8 +65841,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -67921,8 +65901,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -67936,8 +65915,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -67953,8 +65931,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -67968,8 +65945,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -67983,8 +65959,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -67998,8 +65973,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -68180,8 +66154,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -68195,8 +66168,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -68210,8 +66182,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -68225,8 +66196,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -68286,8 +66256,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -68301,8 +66270,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -68318,8 +66286,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -68333,8 +66300,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -68348,8 +66314,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -68363,8 +66328,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -68545,8 +66509,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -68560,8 +66523,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -68575,8 +66537,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -68590,8 +66551,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -68651,8 +66611,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -68666,8 +66625,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -68683,8 +66641,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -68698,8 +66655,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -68713,8 +66669,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -68728,8 +66683,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -68910,8 +66864,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -68925,8 +66878,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -68940,8 +66892,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -68955,8 +66906,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -69016,8 +66966,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -69031,8 +66980,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -69048,8 +66996,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -69063,8 +67010,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -69078,8 +67024,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -69093,8 +67038,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -69275,8 +67219,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -69290,8 +67233,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -69305,8 +67247,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -69320,8 +67261,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -69381,8 +67321,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -69396,8 +67335,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -69413,8 +67351,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -69428,8 +67365,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -69443,8 +67379,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -69458,8 +67393,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -69640,8 +67574,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -69655,8 +67588,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -69670,8 +67602,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -69685,8 +67616,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -69746,8 +67676,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -69761,8 +67690,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -69778,8 +67706,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -69793,8 +67720,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -69808,8 +67734,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -69823,8 +67748,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -70005,8 +67929,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -70020,8 +67943,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -70035,8 +67957,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -70050,8 +67971,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -70111,8 +68031,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -70126,8 +68045,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -70143,8 +68061,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -70158,8 +68075,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -70173,8 +68089,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -70188,8 +68103,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -70370,8 +68284,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -70385,8 +68298,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -70400,8 +68312,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -70415,8 +68326,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -70476,8 +68386,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -70491,8 +68400,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -70508,8 +68416,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -70523,8 +68430,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -70538,8 +68444,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -70553,8 +68458,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -70735,8 +68639,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -70750,8 +68653,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -70765,8 +68667,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -70780,8 +68681,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -70841,8 +68741,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -70856,8 +68755,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -70873,8 +68771,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -70888,8 +68785,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -70903,8 +68799,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -70918,8 +68813,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -71100,8 +68994,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -71115,8 +69008,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -71130,8 +69022,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -71145,8 +69036,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -71206,8 +69096,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -71221,8 +69110,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -71238,8 +69126,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -71253,8 +69140,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -71268,8 +69154,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -71283,8 +69168,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -71465,8 +69349,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -71480,8 +69363,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -71495,8 +69377,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -71510,8 +69391,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -71571,8 +69451,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -71586,8 +69465,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -71603,8 +69481,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -71618,8 +69495,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -71633,8 +69509,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -71648,8 +69523,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -71830,8 +69704,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -71845,8 +69718,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -71860,8 +69732,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -71875,8 +69746,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -71936,8 +69806,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -71951,8 +69820,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -71968,8 +69836,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -71983,8 +69850,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -71998,8 +69864,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -72013,8 +69878,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -72195,8 +70059,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -72210,8 +70073,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -72225,8 +70087,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -72240,8 +70101,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -72301,8 +70161,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -72316,8 +70175,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -72333,8 +70191,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -72348,8 +70205,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -72363,8 +70219,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -72378,8 +70233,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -72560,8 +70414,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -72575,8 +70428,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -72590,8 +70442,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -72605,8 +70456,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -72666,8 +70516,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -72681,8 +70530,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -72698,8 +70546,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -72713,8 +70560,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -72728,8 +70574,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -72743,8 +70588,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -72925,8 +70769,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -72940,8 +70783,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -72955,8 +70797,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -72970,8 +70811,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -73031,8 +70871,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -73046,8 +70885,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -73063,8 +70901,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -73078,8 +70915,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -73093,8 +70929,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -73108,8 +70943,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -73290,8 +71124,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -73305,8 +71138,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -73320,8 +71152,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -73335,8 +71166,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -73396,8 +71226,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -73411,8 +71240,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -73428,8 +71256,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -73443,8 +71270,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -73458,8 +71284,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -73473,8 +71298,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -73655,8 +71479,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -73670,8 +71493,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -73685,8 +71507,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -73700,8 +71521,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -73761,8 +71581,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -73776,8 +71595,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -73793,8 +71611,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -73808,8 +71625,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 100,
                       "post": -27,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -73823,8 +71639,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -73838,8 +71653,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -74020,8 +71834,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -74035,8 +71848,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -74050,8 +71862,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -74065,8 +71876,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -74126,8 +71936,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -74141,8 +71950,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -74158,8 +71966,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -74173,8 +71980,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -74188,8 +71994,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -74203,8 +72008,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -74385,8 +72189,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -74400,8 +72203,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -74415,8 +72217,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -74430,8 +72231,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -74491,8 +72291,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -74506,8 +72305,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -74523,8 +72321,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -74538,8 +72335,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -74553,8 +72349,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -74568,8 +72363,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -74750,8 +72544,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -74765,8 +72558,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -74780,8 +72572,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -74795,8 +72586,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -74856,8 +72646,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -74871,8 +72660,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -74888,8 +72676,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -74903,8 +72690,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -74918,8 +72704,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -74933,8 +72718,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 97,
                       "post": -30,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -75115,8 +72899,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -75130,8 +72913,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -75145,8 +72927,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -75160,8 +72941,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -75221,8 +73001,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -75236,8 +73015,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -75253,8 +73031,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -75268,8 +73045,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 100,
                       "post": -27,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -75283,8 +73059,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -75298,8 +73073,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -75480,8 +73254,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -75495,8 +73268,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -75510,8 +73282,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -75525,8 +73296,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -75586,8 +73356,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -75601,8 +73370,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -75618,8 +73386,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -75633,8 +73400,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -75648,8 +73414,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -75663,8 +73428,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -75845,8 +73609,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -75860,8 +73623,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -75875,8 +73637,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -75890,8 +73651,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -75951,8 +73711,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -75966,8 +73725,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -75983,8 +73741,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -75998,8 +73755,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -76013,8 +73769,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -76028,8 +73783,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -76210,8 +73964,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -76225,8 +73978,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -76240,8 +73992,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -76255,8 +74006,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -76316,8 +74066,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -76331,8 +74080,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -76348,8 +74096,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -76363,8 +74110,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -76378,8 +74124,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -76393,8 +74138,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 97,
                       "post": -30,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -76575,8 +74319,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -76590,8 +74333,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -76605,8 +74347,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -76620,8 +74361,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -76681,8 +74421,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -76696,8 +74435,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -76713,8 +74451,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -76728,8 +74465,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 100,
                       "post": -27,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -76743,8 +74479,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -76758,8 +74493,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -76940,8 +74674,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -76955,8 +74688,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -76970,8 +74702,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -76985,8 +74716,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -77046,8 +74776,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -77061,8 +74790,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -77078,8 +74806,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -77093,8 +74820,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -77108,8 +74834,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -77123,8 +74848,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -77305,8 +75029,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -77320,8 +75043,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -77335,8 +75057,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -77350,8 +75071,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -77411,8 +75131,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -77426,8 +75145,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -77443,8 +75161,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -77458,8 +75175,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -77473,8 +75189,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -77488,8 +75203,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -77670,8 +75384,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -77685,8 +75398,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -77700,8 +75412,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -77715,8 +75426,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -77776,8 +75486,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -77791,8 +75500,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -77808,8 +75516,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -77823,8 +75530,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -77838,8 +75544,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -77853,8 +75558,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 97,
                       "post": -30,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -78035,8 +75739,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -78050,8 +75753,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -78065,8 +75767,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -78080,8 +75781,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -78141,8 +75841,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -78156,8 +75855,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -78173,8 +75871,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -78188,8 +75885,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 100,
                       "post": -27,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -78203,8 +75899,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -78218,8 +75913,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -78400,8 +76094,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -78415,8 +76108,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -78430,8 +76122,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -78445,8 +76136,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -78506,8 +76196,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -78521,8 +76210,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -78538,8 +76226,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -78553,8 +76240,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -78568,8 +76254,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -78583,8 +76268,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -78765,8 +76449,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -78780,8 +76463,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -78795,8 +76477,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -78810,8 +76491,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -78871,8 +76551,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -78886,8 +76565,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -78903,8 +76581,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -78918,8 +76595,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -78933,8 +76609,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -78948,8 +76623,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -79130,8 +76804,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -79145,8 +76818,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -79160,8 +76832,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -79175,8 +76846,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 74,
                       "post": -12,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -79236,8 +76906,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -79251,8 +76920,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -79268,8 +76936,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -79283,8 +76950,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 99,
                       "post": -28,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -79298,8 +76964,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -79313,8 +76978,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 97,
                       "post": -30,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -79495,8 +77159,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -79510,8 +77173,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -79525,8 +77187,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -79540,8 +77201,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -79601,8 +77261,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -79616,8 +77275,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -79633,8 +77291,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -79648,8 +77305,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -79663,8 +77319,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -79678,8 +77333,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -79860,8 +77514,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -79875,8 +77528,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -79890,8 +77542,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -79905,8 +77556,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -79966,8 +77616,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -79981,8 +77630,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -79998,8 +77646,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -80013,8 +77660,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -80028,8 +77674,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -80043,8 +77688,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -80225,8 +77869,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -80240,8 +77883,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -80255,8 +77897,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -80270,8 +77911,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -80331,8 +77971,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -80346,8 +77985,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -80363,8 +78001,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -80378,8 +78015,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -80393,8 +78029,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -80408,8 +78043,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -80590,8 +78224,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -80605,8 +78238,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -80620,8 +78252,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -80635,8 +78266,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -80696,8 +78326,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -80711,8 +78340,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -80728,8 +78356,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -80743,8 +78370,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -80758,8 +78384,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -80773,8 +78398,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -80955,8 +78579,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -80970,8 +78593,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -80985,8 +78607,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -81000,8 +78621,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -81061,8 +78681,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -81076,8 +78695,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -81093,8 +78711,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -81108,8 +78725,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -81123,8 +78739,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -81138,8 +78753,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -81320,8 +78934,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -81335,8 +78948,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -81350,8 +78962,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -81365,8 +78976,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -81426,8 +79036,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -81441,8 +79050,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -81458,8 +79066,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -81473,8 +79080,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -81488,8 +79094,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -81503,8 +79108,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -81685,8 +79289,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -81700,8 +79303,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -81715,8 +79317,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -81730,8 +79331,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -81791,8 +79391,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -81806,8 +79405,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -81823,8 +79421,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -81838,8 +79435,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -81853,8 +79449,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -81868,8 +79463,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -82050,8 +79644,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -82065,8 +79658,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -82080,8 +79672,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -82095,8 +79686,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -82156,8 +79746,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -82171,8 +79760,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -82188,8 +79776,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -82203,8 +79790,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -82218,8 +79804,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -82233,8 +79818,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -82415,8 +79999,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -82430,8 +80013,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -82445,8 +80027,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -82460,8 +80041,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -82521,8 +80101,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -82536,8 +80115,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -82553,8 +80131,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -82568,8 +80145,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -82583,8 +80159,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -82598,8 +80173,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -82780,8 +80354,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -82795,8 +80368,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -82810,8 +80382,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -82825,8 +80396,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -82886,8 +80456,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -82901,8 +80470,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -82918,8 +80486,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -82933,8 +80500,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -82948,8 +80514,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -82963,8 +80528,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -83145,8 +80709,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -83160,8 +80723,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -83175,8 +80737,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -83190,8 +80751,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -83251,8 +80811,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -83266,8 +80825,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -83283,8 +80841,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -83298,8 +80855,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -83313,8 +80869,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -83328,8 +80883,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -83510,8 +81064,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -83525,8 +81078,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -83540,8 +81092,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -83555,8 +81106,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -83616,8 +81166,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -83631,8 +81180,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -83648,8 +81196,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -83663,8 +81210,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -83678,8 +81224,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -83693,8 +81238,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -83875,8 +81419,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -83890,8 +81433,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -83905,8 +81447,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -83920,8 +81461,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -83981,8 +81521,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -83996,8 +81535,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -84013,8 +81551,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -84028,8 +81565,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -84043,8 +81579,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -84058,8 +81593,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -84240,8 +81774,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -84255,8 +81788,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -84270,8 +81802,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -84285,8 +81816,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -84346,8 +81876,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -84361,8 +81890,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -84378,8 +81906,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -84393,8 +81920,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -84408,8 +81934,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -84423,8 +81948,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -84605,8 +82129,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -84620,8 +82143,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -84635,8 +82157,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -84650,8 +82171,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -84711,8 +82231,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -84726,8 +82245,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -84743,8 +82261,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -84758,8 +82275,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -84773,8 +82289,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -84788,8 +82303,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -84970,8 +82484,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -84985,8 +82498,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -85000,8 +82512,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -85015,8 +82526,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -85076,8 +82586,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -85091,8 +82600,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -85108,8 +82616,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -85123,8 +82630,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -85138,8 +82644,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -85153,8 +82658,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -85335,8 +82839,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -85350,8 +82853,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -85365,8 +82867,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -85380,8 +82881,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -85441,8 +82941,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -85456,8 +82955,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -85473,8 +82971,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -85488,8 +82985,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -85503,8 +82999,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -85518,8 +83013,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -85700,8 +83194,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -85715,8 +83208,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -85730,8 +83222,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -85745,8 +83236,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -85806,8 +83296,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -85821,8 +83310,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -85838,8 +83326,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -85853,8 +83340,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -85868,8 +83354,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -85883,8 +83368,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -86065,8 +83549,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -86080,8 +83563,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -86095,8 +83577,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -86110,8 +83591,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -86171,8 +83651,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -86186,8 +83665,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -86203,8 +83681,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -86218,8 +83695,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -86233,8 +83709,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -86248,8 +83723,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -86430,8 +83904,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -86445,8 +83918,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -86460,8 +83932,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -86475,8 +83946,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -86536,8 +84006,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -86551,8 +84020,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -86568,8 +84036,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -86583,8 +84050,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -86598,8 +84064,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -86613,8 +84078,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -86795,8 +84259,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -86810,8 +84273,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -86825,8 +84287,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -86840,8 +84301,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -86901,8 +84361,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -86916,8 +84375,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -86933,8 +84391,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -86948,8 +84405,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -86963,8 +84419,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -86978,8 +84433,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -87160,8 +84614,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -87175,8 +84628,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -87190,8 +84642,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -87205,8 +84656,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -87266,8 +84716,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -87281,8 +84730,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -87298,8 +84746,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -87313,8 +84760,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -87328,8 +84774,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -87343,8 +84788,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -87525,8 +84969,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -87540,8 +84983,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -87555,8 +84997,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -87570,8 +85011,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -87631,8 +85071,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -87646,8 +85085,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -87663,8 +85101,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -87678,8 +85115,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -87693,8 +85129,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -87708,8 +85143,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -87890,8 +85324,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -87905,8 +85338,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -87920,8 +85352,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -87935,8 +85366,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -87996,8 +85426,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -88011,8 +85440,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -88028,8 +85456,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -88043,8 +85470,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -88058,8 +85484,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -88073,8 +85498,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -88255,8 +85679,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -88270,8 +85693,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -88285,8 +85707,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -88300,8 +85721,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -88361,8 +85781,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -88376,8 +85795,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -88393,8 +85811,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -88408,8 +85825,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -88423,8 +85839,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -88438,8 +85853,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -88620,8 +86034,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -88635,8 +86048,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -88650,8 +86062,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -88665,8 +86076,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -88726,8 +86136,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -88741,8 +86150,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -88758,8 +86166,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -88773,8 +86180,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -88788,8 +86194,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -88803,8 +86208,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -88985,8 +86389,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -89000,8 +86403,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -89015,8 +86417,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -89030,8 +86431,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -89091,8 +86491,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -89106,8 +86505,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -89123,8 +86521,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -89138,8 +86535,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -89153,8 +86549,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -89168,8 +86563,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -89350,8 +86744,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -89365,8 +86758,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -89380,8 +86772,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -89395,8 +86786,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -89456,8 +86846,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -89471,8 +86860,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -89488,8 +86876,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -89503,8 +86890,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -89518,8 +86904,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -89533,8 +86918,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -89715,8 +87099,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -89730,8 +87113,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -89745,8 +87127,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -89760,8 +87141,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -89821,8 +87201,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -89836,8 +87215,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -89853,8 +87231,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -89868,8 +87245,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -89883,8 +87259,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -89898,8 +87273,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -90080,8 +87454,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -90095,8 +87468,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -90110,8 +87482,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -90125,8 +87496,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -90186,8 +87556,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -90201,8 +87570,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -90218,8 +87586,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -90233,8 +87600,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -90248,8 +87614,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -90263,8 +87628,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -90445,8 +87809,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -90460,8 +87823,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -90475,8 +87837,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -90490,8 +87851,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -90551,8 +87911,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -90566,8 +87925,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -90583,8 +87941,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 109,
                       "post": -18,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -90598,8 +87955,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -90613,8 +87969,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -90628,8 +87983,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -90810,8 +88164,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -90825,8 +88178,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -90840,8 +88192,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -90855,8 +88206,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -90916,8 +88266,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -90931,8 +88280,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -90948,8 +88296,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -90963,8 +88310,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -90978,8 +88324,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -90993,8 +88338,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -91175,8 +88519,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -91190,8 +88533,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -91205,8 +88547,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -91220,8 +88561,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -91281,8 +88621,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -91296,8 +88635,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -91313,8 +88651,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -91328,8 +88665,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -91343,8 +88679,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -91358,8 +88693,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -91540,8 +88874,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -91555,8 +88888,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -91570,8 +88902,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -91585,8 +88916,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -91646,8 +88976,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -91661,8 +88990,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -91678,8 +89006,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -91693,8 +89020,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -91708,8 +89034,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -91723,8 +89048,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -91905,8 +89229,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -91920,8 +89243,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -91935,8 +89257,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -91950,8 +89271,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -92011,8 +89331,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -92026,8 +89345,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -92043,8 +89361,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -92058,8 +89375,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -92073,8 +89389,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -92088,8 +89403,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -92270,8 +89584,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -92285,8 +89598,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -92300,8 +89612,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -92315,8 +89626,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -92376,8 +89686,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -92391,8 +89700,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -92408,8 +89716,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -92423,8 +89730,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -92438,8 +89744,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -92453,8 +89758,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -92635,8 +89939,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -92650,8 +89953,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -92665,8 +89967,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -92680,8 +89981,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -92741,8 +90041,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -92756,8 +90055,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -92773,8 +90071,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -92788,8 +90085,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -92803,8 +90099,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -92818,8 +90113,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -93000,8 +90294,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -93015,8 +90308,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -93030,8 +90322,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -93045,8 +90336,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -93106,8 +90396,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -93121,8 +90410,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -93138,8 +90426,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -93153,8 +90440,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -93168,8 +90454,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -93183,8 +90468,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -93365,8 +90649,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -93380,8 +90663,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -93395,8 +90677,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -93410,8 +90691,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -93471,8 +90751,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -93486,8 +90765,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -93503,8 +90781,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -93518,8 +90795,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -93533,8 +90809,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -93548,8 +90823,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -93730,8 +91004,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -93745,8 +91018,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -93760,8 +91032,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -93775,8 +91046,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -93836,8 +91106,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -93851,8 +91120,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -93868,8 +91136,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -93883,8 +91150,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -93898,8 +91164,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -93913,8 +91178,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -94095,8 +91359,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -94110,8 +91373,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -94125,8 +91387,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -94140,8 +91401,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -94201,8 +91461,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -94216,8 +91475,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -94233,8 +91491,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -94248,8 +91505,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -94263,8 +91519,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -94278,8 +91533,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -94460,8 +91714,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -94475,8 +91728,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -94490,8 +91742,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -94505,8 +91756,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -94566,8 +91816,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -94581,8 +91830,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -94598,8 +91846,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -94613,8 +91860,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -94628,8 +91874,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -94643,8 +91888,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -94825,8 +92069,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -94840,8 +92083,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -94855,8 +92097,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -94870,8 +92111,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -94931,8 +92171,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -94946,8 +92185,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -94963,8 +92201,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -94978,8 +92215,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -94993,8 +92229,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -95008,8 +92243,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -95190,8 +92424,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -95205,8 +92438,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -95220,8 +92452,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -95235,8 +92466,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -95296,8 +92526,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -95311,8 +92540,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -95328,8 +92556,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -95343,8 +92570,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -95358,8 +92584,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -95373,8 +92598,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -95555,8 +92779,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -95570,8 +92793,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -95585,8 +92807,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -95600,8 +92821,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -95661,8 +92881,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -95676,8 +92895,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -95693,8 +92911,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -95708,8 +92925,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -95723,8 +92939,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -95738,8 +92953,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -95920,8 +93134,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -95935,8 +93148,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -95950,8 +93162,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -95965,8 +93176,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -96026,8 +93236,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -96041,8 +93250,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -96058,8 +93266,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 107,
                       "post": -20,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -96073,8 +93280,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 105,
                       "post": -22,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -96088,8 +93294,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -96103,8 +93308,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -96285,8 +93489,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -96300,8 +93503,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -96315,8 +93517,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -96330,8 +93531,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -96391,8 +93591,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 148,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -96406,8 +93605,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -96423,8 +93621,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 106,
                       "post": -21,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -96438,8 +93635,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -96453,8 +93649,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -96468,8 +93663,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 102,
                       "post": -25,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -96650,8 +93844,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -96665,8 +93858,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -96680,8 +93872,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -96695,8 +93886,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 72,
                       "post": -10,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -96756,8 +93946,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -96771,8 +93960,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 132,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ],
@@ -96788,8 +93976,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -96803,8 +93990,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 104,
                       "post": -23,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -96818,8 +94004,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   },
                   {
@@ -96833,8 +94018,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
                       "main": 103,
                       "post": -24,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     }
                   }
                 ]
@@ -98007,8 +95191,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
               "main": 128,
               "post": 0,
               "post2": 0,
-              "post3": 0,
-              "amp": 0
+              "post3": 0
             }
           },
           {
@@ -98022,8 +95205,7 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
               "main": 128,
               "post": 0,
               "post2": 0,
-              "post3": 0,
-              "amp": 0
+              "post3": 0
             }
           }
         ]

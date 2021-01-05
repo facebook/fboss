@@ -133,8 +133,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -170,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -154,8 +153,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -170,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -175,8 +173,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -170,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -196,8 +193,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -170,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -249,8 +245,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 825,
                       "post": -100,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -270,8 +265,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 825,
                       "post": -100,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -291,8 +285,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 825,
                       "post": -100,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -312,8 +305,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 825,
                       "post": -100,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -365,8 +357,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 825,
                       "post": -100,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -386,8 +377,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 825,
                       "post": -100,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -407,8 +397,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 825,
                       "post": -100,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -428,8 +417,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 825,
                       "post": -100,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -449,8 +437,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 825,
                       "post": -100,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -470,8 +457,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 825,
                       "post": -100,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -491,8 +477,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 825,
                       "post": -100,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -512,8 +497,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 825,
                       "post": -100,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -696,8 +680,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -170,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -717,8 +700,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -170,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -738,8 +720,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -170,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -759,8 +740,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -170,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -812,8 +792,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 825,
                       "post": -100,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -833,8 +812,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 825,
                       "post": -100,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -854,8 +832,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 825,
                       "post": -100,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -875,8 +852,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 825,
                       "post": -100,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -928,8 +904,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 825,
                       "post": -100,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -949,8 +924,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 825,
                       "post": -100,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -970,8 +944,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 825,
                       "post": -100,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -991,8 +964,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 825,
                       "post": -100,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -1012,8 +984,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 825,
                       "post": -100,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -1033,8 +1004,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 825,
                       "post": -100,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -1054,8 +1024,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 825,
                       "post": -100,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -1075,8 +1044,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 825,
                       "post": -100,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -1259,8 +1227,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 780,
                       "post": -180,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -1280,8 +1247,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 780,
                       "post": -180,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -1301,8 +1267,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 780,
                       "post": -180,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -1322,8 +1287,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 780,
                       "post": -180,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -1375,8 +1339,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 856,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -1396,8 +1359,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 856,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -1417,8 +1379,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 856,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -1438,8 +1399,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 856,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -1491,8 +1451,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 856,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -1512,8 +1471,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 856,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -1533,8 +1491,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 856,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -1554,8 +1511,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 856,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -1575,8 +1531,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 856,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -1596,8 +1551,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 856,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -1617,8 +1571,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 856,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -1638,8 +1591,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 856,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -1822,8 +1774,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 810,
                       "post": -180,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -1843,8 +1794,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 810,
                       "post": -180,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -1864,8 +1814,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 810,
                       "post": -180,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -1885,8 +1834,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 810,
                       "post": -180,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -1938,8 +1886,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -1959,8 +1906,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -1980,8 +1926,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -2001,8 +1946,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -2054,8 +1998,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -2075,8 +2018,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -2096,8 +2038,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -2117,8 +2058,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -2138,8 +2078,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -2159,8 +2098,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -2180,8 +2118,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -2201,8 +2138,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -2385,8 +2321,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 800,
                       "post": -240,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -2406,8 +2341,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 800,
                       "post": -240,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -2427,8 +2361,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 800,
                       "post": -240,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -2448,8 +2381,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 800,
                       "post": -240,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -2501,8 +2433,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -2522,8 +2453,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -2543,8 +2473,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -2564,8 +2493,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -2617,8 +2545,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -2638,8 +2565,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -2659,8 +2585,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -2680,8 +2605,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -2701,8 +2625,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -2722,8 +2645,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -2743,8 +2665,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -2764,8 +2685,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -2948,8 +2868,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 800,
                       "post": -240,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -2969,8 +2888,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 800,
                       "post": -240,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -2990,8 +2908,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 800,
                       "post": -240,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3011,8 +2928,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 800,
                       "post": -240,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3064,8 +2980,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3085,8 +3000,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3106,8 +3020,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3127,8 +3040,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3180,8 +3092,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3201,8 +3112,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3222,8 +3132,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3243,8 +3152,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3264,8 +3172,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3285,8 +3192,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3306,8 +3212,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3327,8 +3232,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3511,8 +3415,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 850,
                       "post": -130,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3532,8 +3435,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 850,
                       "post": -130,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3553,8 +3455,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 850,
                       "post": -130,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3574,8 +3475,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 850,
                       "post": -130,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3627,8 +3527,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3648,8 +3547,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3669,8 +3567,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3690,8 +3587,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3743,8 +3639,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3764,8 +3659,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3785,8 +3679,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3806,8 +3699,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3827,8 +3719,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3848,8 +3739,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3869,8 +3759,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -3890,8 +3779,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 888,
                       "post": -56,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4074,8 +3962,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 850,
                       "post": -130,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4095,8 +3982,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 850,
                       "post": -130,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4116,8 +4002,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 850,
                       "post": -130,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4137,8 +4022,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 850,
                       "post": -130,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4190,8 +4074,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4211,8 +4094,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4232,8 +4114,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4253,8 +4134,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4306,8 +4186,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4327,8 +4206,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4348,8 +4226,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4369,8 +4246,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4390,8 +4266,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4411,8 +4286,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4432,8 +4306,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4453,8 +4326,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4637,8 +4509,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 860,
                       "post": -80,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4658,8 +4529,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 860,
                       "post": -80,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4679,8 +4549,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 860,
                       "post": -80,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4700,8 +4569,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 860,
                       "post": -80,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4753,8 +4621,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4774,8 +4641,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4795,8 +4661,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4816,8 +4681,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4869,8 +4733,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4890,8 +4753,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4911,8 +4773,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4932,8 +4793,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4953,8 +4813,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4974,8 +4833,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -4995,8 +4853,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -5016,8 +4873,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -5200,8 +5056,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 860,
                       "post": -80,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -5221,8 +5076,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 860,
                       "post": -80,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -5242,8 +5096,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 860,
                       "post": -80,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -5263,8 +5116,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 860,
                       "post": -80,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -5316,8 +5168,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -5337,8 +5188,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -5358,8 +5208,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -5379,8 +5228,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -5432,8 +5280,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -5453,8 +5300,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -5474,8 +5320,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -5495,8 +5340,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -5516,8 +5360,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -5537,8 +5380,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -5558,8 +5400,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -5579,8 +5420,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 906,
                       "post": -47,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -5763,8 +5603,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 800,
                       "post": -240,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -5784,8 +5623,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 800,
                       "post": -240,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -5805,8 +5643,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 800,
                       "post": -240,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -5826,8 +5663,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 800,
                       "post": -240,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -5879,8 +5715,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -5900,8 +5735,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -5921,8 +5755,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -5942,8 +5775,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -5995,8 +5827,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -6016,8 +5847,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -6037,8 +5867,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -6058,8 +5887,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -6079,8 +5907,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -6100,8 +5927,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -6121,8 +5947,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -6142,8 +5967,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -6326,8 +6150,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 800,
                       "post": -240,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -6347,8 +6170,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 800,
                       "post": -240,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -6368,8 +6190,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 800,
                       "post": -240,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -6389,8 +6210,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 800,
                       "post": -240,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -6442,8 +6262,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -6463,8 +6282,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -6484,8 +6302,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -6505,8 +6322,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -6558,8 +6374,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -6579,8 +6394,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -6600,8 +6414,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -6621,8 +6434,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -6642,8 +6454,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -6663,8 +6474,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -6684,8 +6494,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -6705,8 +6514,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -6889,8 +6697,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 850,
                       "post": -170,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -6910,8 +6717,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 850,
                       "post": -170,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -6931,8 +6737,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 850,
                       "post": -170,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -6952,8 +6757,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 850,
                       "post": -170,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -7005,8 +6809,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -7026,8 +6829,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -7047,8 +6849,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -7068,8 +6869,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -7121,8 +6921,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -7142,8 +6941,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -7163,8 +6961,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -7184,8 +6981,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -7205,8 +7001,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -7226,8 +7021,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -7247,8 +7041,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -7268,8 +7061,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -7452,8 +7244,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 800,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -7473,8 +7264,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 800,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -7494,8 +7284,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 800,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -7515,8 +7304,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 800,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -7568,8 +7356,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -7589,8 +7376,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -7610,8 +7396,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -7631,8 +7416,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -7684,8 +7468,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -7705,8 +7488,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -7726,8 +7508,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -7747,8 +7528,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -7768,8 +7548,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -7789,8 +7568,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -7810,8 +7588,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -7831,8 +7608,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8015,8 +7791,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8036,8 +7811,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8057,8 +7831,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8078,8 +7851,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8131,8 +7903,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8152,8 +7923,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8173,8 +7943,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8194,8 +7963,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8247,8 +8015,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8268,8 +8035,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8289,8 +8055,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8310,8 +8075,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8331,8 +8095,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8352,8 +8115,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8373,8 +8135,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8394,8 +8155,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8578,8 +8338,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8599,8 +8358,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8620,8 +8378,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8641,8 +8398,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8694,8 +8450,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8715,8 +8470,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8736,8 +8490,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8757,8 +8510,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8810,8 +8562,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8831,8 +8582,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8852,8 +8602,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8873,8 +8622,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8894,8 +8642,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8915,8 +8662,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8936,8 +8682,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -8957,8 +8702,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 868,
                       "post": -68,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 4,
@@ -9057,8 +8801,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -9092,8 +8835,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -9127,8 +8869,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -9167,8 +8908,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -9188,8 +8928,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -9209,8 +8948,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -9230,8 +8968,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -9286,8 +9023,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -9307,8 +9043,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -9351,8 +9086,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -9372,8 +9106,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -9418,8 +9151,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -9439,8 +9171,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -9460,8 +9191,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -9481,8 +9211,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -9539,8 +9268,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -9560,8 +9288,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -9581,8 +9308,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -9602,8 +9328,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -9678,8 +9403,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -9713,8 +9437,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -9748,8 +9471,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -9806,8 +9528,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -9841,8 +9562,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -9876,8 +9596,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -9914,8 +9633,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -9935,8 +9653,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -9979,8 +9696,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -10000,8 +9716,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -10064,8 +9779,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -10099,8 +9813,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -10134,8 +9847,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -10192,8 +9904,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -10227,8 +9938,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -10262,8 +9972,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -10302,8 +10011,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -10323,8 +10031,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -10344,8 +10051,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -10365,8 +10071,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -10421,8 +10126,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -10442,8 +10146,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -10486,8 +10189,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -10507,8 +10209,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -10553,8 +10254,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -10574,8 +10274,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -10595,8 +10294,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -10616,8 +10314,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -10674,8 +10371,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -10695,8 +10391,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -10716,8 +10411,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -10737,8 +10431,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -10813,8 +10506,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -10848,8 +10540,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -10883,8 +10574,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -10941,8 +10631,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -10976,8 +10665,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11011,8 +10699,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11049,8 +10736,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11070,8 +10756,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11114,8 +10799,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11135,8 +10819,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11199,8 +10882,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11234,8 +10916,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11269,8 +10950,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11327,8 +11007,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11362,8 +11041,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11397,8 +11075,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11437,8 +11114,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11458,8 +11134,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11479,8 +11154,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11500,8 +11174,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11556,8 +11229,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11577,8 +11249,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11621,8 +11292,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11642,8 +11312,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11688,8 +11357,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11709,8 +11377,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11730,8 +11397,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11751,8 +11417,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11809,8 +11474,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11830,8 +11494,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11851,8 +11514,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11872,8 +11534,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11948,8 +11609,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -11983,8 +11643,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12018,8 +11677,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12076,8 +11734,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12111,8 +11768,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12146,8 +11802,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12184,8 +11839,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12205,8 +11859,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12249,8 +11902,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12270,8 +11922,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12334,8 +11985,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12369,8 +12019,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12404,8 +12053,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12462,8 +12110,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12497,8 +12144,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12532,8 +12178,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12572,8 +12217,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12593,8 +12237,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12614,8 +12257,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12635,8 +12277,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12691,8 +12332,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12712,8 +12352,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12756,8 +12395,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12777,8 +12415,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12823,8 +12460,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12844,8 +12480,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12865,8 +12500,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12886,8 +12520,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12944,8 +12577,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12965,8 +12597,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -12986,8 +12617,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -13007,8 +12637,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -13083,8 +12712,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -13118,8 +12746,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -13153,8 +12780,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -13211,8 +12837,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -13246,8 +12871,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -13281,8 +12905,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -13319,8 +12942,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -13340,8 +12962,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -13384,8 +13005,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -13405,8 +13025,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -13469,8 +13088,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -13504,8 +13122,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -13539,8 +13156,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -13597,8 +13213,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -13632,8 +13247,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -13667,8 +13281,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -13707,8 +13320,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -13728,8 +13340,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -13749,8 +13360,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -13770,8 +13380,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -13826,8 +13435,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -13847,8 +13455,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -13891,8 +13498,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -13912,8 +13518,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -13958,8 +13563,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -13979,8 +13583,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -14000,8 +13603,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -14021,8 +13623,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -14079,8 +13680,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -14100,8 +13700,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -14121,8 +13720,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -14142,8 +13740,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -14218,8 +13815,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -14253,8 +13849,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -14288,8 +13883,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -14346,8 +13940,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -14381,8 +13974,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -14416,8 +14008,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -14454,8 +14045,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -14475,8 +14065,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -14519,8 +14108,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -14540,8 +14128,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -14604,8 +14191,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -14639,8 +14225,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -14674,8 +14259,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -14732,8 +14316,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -14767,8 +14350,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -14802,8 +14384,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -14842,8 +14423,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -14863,8 +14443,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -14884,8 +14463,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -14905,8 +14483,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -14961,8 +14538,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -14982,8 +14558,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -15026,8 +14601,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -15047,8 +14621,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -15093,8 +14666,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -15114,8 +14686,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -15135,8 +14706,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -15156,8 +14726,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -15214,8 +14783,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -15235,8 +14803,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -15256,8 +14823,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -15277,8 +14843,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -15353,8 +14918,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -15388,8 +14952,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -15423,8 +14986,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -15481,8 +15043,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -15516,8 +15077,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -15551,8 +15111,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -15589,8 +15148,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -15610,8 +15168,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -15654,8 +15211,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -15675,8 +15231,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -15739,8 +15294,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -15774,8 +15328,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -15809,8 +15362,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -15867,8 +15419,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -15902,8 +15453,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -15937,8 +15487,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -15977,8 +15526,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -15998,8 +15546,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -16019,8 +15566,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -16040,8 +15586,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -16096,8 +15641,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -16117,8 +15661,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -16161,8 +15704,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -16182,8 +15724,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -16228,8 +15769,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -16249,8 +15789,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -16270,8 +15809,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -16291,8 +15829,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -16349,8 +15886,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -16370,8 +15906,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -16391,8 +15926,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -16412,8 +15946,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -16488,8 +16021,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -16523,8 +16055,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -16558,8 +16089,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -16616,8 +16146,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -16651,8 +16180,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -16686,8 +16214,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -16724,8 +16251,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -16745,8 +16271,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -16789,8 +16314,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -16810,8 +16334,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -16874,8 +16397,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -16909,8 +16431,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -16944,8 +16465,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17002,8 +16522,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17037,8 +16556,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17072,8 +16590,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17112,8 +16629,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17133,8 +16649,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17154,8 +16669,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17175,8 +16689,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17231,8 +16744,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17252,8 +16764,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17296,8 +16807,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17317,8 +16827,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17363,8 +16872,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17384,8 +16892,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17405,8 +16912,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17426,8 +16932,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17484,8 +16989,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17505,8 +17009,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17526,8 +17029,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17547,8 +17049,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17623,8 +17124,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17658,8 +17158,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17693,8 +17192,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17751,8 +17249,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17786,8 +17283,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17821,8 +17317,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17859,8 +17354,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17880,8 +17374,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17924,8 +17417,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -17945,8 +17437,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18009,8 +17500,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18044,8 +17534,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18079,8 +17568,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18137,8 +17625,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18172,8 +17659,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18207,8 +17693,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18247,8 +17732,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18268,8 +17752,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18289,8 +17772,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18310,8 +17792,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18366,8 +17847,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18387,8 +17867,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18431,8 +17910,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18452,8 +17930,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18498,8 +17975,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18519,8 +17995,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18540,8 +18015,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18561,8 +18035,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18619,8 +18092,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18640,8 +18112,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18661,8 +18132,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18682,8 +18152,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18758,8 +18227,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18793,8 +18261,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18828,8 +18295,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18886,8 +18352,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18921,8 +18386,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18956,8 +18420,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -18994,8 +18457,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -19015,8 +18477,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -19059,8 +18520,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -19080,8 +18540,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -19144,8 +18603,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -19179,8 +18637,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -19214,8 +18671,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -19272,8 +18728,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -19307,8 +18762,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -19342,8 +18796,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -19382,8 +18835,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -19403,8 +18855,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -19424,8 +18875,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -19445,8 +18895,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -19501,8 +18950,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -19522,8 +18970,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -19566,8 +19013,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -19587,8 +19033,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -19633,8 +19078,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -19654,8 +19098,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -19675,8 +19118,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -19696,8 +19138,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -19754,8 +19195,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -19775,8 +19215,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -19796,8 +19235,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -19817,8 +19255,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -19893,8 +19330,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -19928,8 +19364,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -19963,8 +19398,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -20021,8 +19455,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -20056,8 +19489,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -20091,8 +19523,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -20129,8 +19560,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -20150,8 +19580,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -20194,8 +19623,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -20215,8 +19643,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -20279,8 +19706,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -20314,8 +19740,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -20349,8 +19774,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -20407,8 +19831,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -20442,8 +19865,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -20477,8 +19899,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -20517,8 +19938,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -20538,8 +19958,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -20559,8 +19978,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -20580,8 +19998,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -20636,8 +20053,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -20657,8 +20073,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -20701,8 +20116,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -20722,8 +20136,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -20768,8 +20181,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -20789,8 +20201,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -20810,8 +20221,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -20831,8 +20241,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -20889,8 +20298,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -20910,8 +20318,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -20931,8 +20338,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -20952,8 +20358,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -21028,8 +20433,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -21063,8 +20467,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -21098,8 +20501,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -21156,8 +20558,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -21191,8 +20592,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -21226,8 +20626,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -21264,8 +20663,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -21285,8 +20683,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -21329,8 +20726,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -21350,8 +20746,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -21414,8 +20809,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -21449,8 +20843,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -21484,8 +20877,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -21542,8 +20934,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -21577,8 +20968,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -21612,8 +21002,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -21652,8 +21041,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -21673,8 +21061,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -21694,8 +21081,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -21715,8 +21101,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -21771,8 +21156,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -21792,8 +21176,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -21836,8 +21219,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -21857,8 +21239,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -21903,8 +21284,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -21924,8 +21304,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -21945,8 +21324,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -21966,8 +21344,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -22024,8 +21401,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -22045,8 +21421,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -22066,8 +21441,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -22087,8 +21461,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -22163,8 +21536,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -22198,8 +21570,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -22233,8 +21604,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -22291,8 +21661,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -22326,8 +21695,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -22361,8 +21729,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -22399,8 +21766,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -22420,8 +21786,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -22464,8 +21829,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -22485,8 +21849,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -22549,8 +21912,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -22584,8 +21946,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -22619,8 +21980,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -22677,8 +22037,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -22712,8 +22071,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -22747,8 +22105,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -22787,8 +22144,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -22808,8 +22164,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -22829,8 +22184,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -22850,8 +22204,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -22906,8 +22259,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -22927,8 +22279,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -22971,8 +22322,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -22992,8 +22342,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -23038,8 +22387,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -23059,8 +22407,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -23080,8 +22427,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -23101,8 +22447,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -23159,8 +22504,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -23180,8 +22524,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -23201,8 +22544,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -23222,8 +22564,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -23298,8 +22639,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -23333,8 +22673,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -23368,8 +22707,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -23426,8 +22764,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -23461,8 +22798,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -23496,8 +22832,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -23534,8 +22869,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -23555,8 +22889,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -23599,8 +22932,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -23620,8 +22952,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -23684,8 +23015,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -23719,8 +23049,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -23754,8 +23083,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -23812,8 +23140,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -23847,8 +23174,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -23882,8 +23208,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -23922,8 +23247,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -23943,8 +23267,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -23964,8 +23287,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -23985,8 +23307,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -24041,8 +23362,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -24062,8 +23382,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -24106,8 +23425,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -24127,8 +23445,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -24173,8 +23490,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -24194,8 +23510,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -24215,8 +23530,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -24236,8 +23550,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -24294,8 +23607,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -24315,8 +23627,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -24336,8 +23647,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -24357,8 +23667,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -24433,8 +23742,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -24468,8 +23776,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -24503,8 +23810,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -24561,8 +23867,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -24596,8 +23901,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -24631,8 +23935,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -24669,8 +23972,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -24690,8 +23992,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -24734,8 +24035,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -24755,8 +24055,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -24819,8 +24118,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -24854,8 +24152,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -24889,8 +24186,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -24947,8 +24243,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -24982,8 +24277,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25017,8 +24311,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25057,8 +24350,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25078,8 +24370,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25099,8 +24390,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25120,8 +24410,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25176,8 +24465,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25197,8 +24485,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25241,8 +24528,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25262,8 +24548,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25308,8 +24593,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25329,8 +24613,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25350,8 +24633,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25371,8 +24653,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25429,8 +24710,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25450,8 +24730,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25471,8 +24750,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25492,8 +24770,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25568,8 +24845,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25603,8 +24879,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25638,8 +24913,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25696,8 +24970,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25731,8 +25004,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25766,8 +25038,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25804,8 +25075,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25825,8 +25095,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25869,8 +25138,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25890,8 +25158,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25954,8 +25221,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -25989,8 +25255,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -26024,8 +25289,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -26082,8 +25346,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -26117,8 +25380,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -26152,8 +25414,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -26192,8 +25453,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -26213,8 +25473,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -26234,8 +25493,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -26255,8 +25513,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -26311,8 +25568,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -26332,8 +25588,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -26376,8 +25631,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -26397,8 +25651,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -26443,8 +25696,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -26464,8 +25716,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -26485,8 +25736,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -26506,8 +25756,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -26564,8 +25813,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -26585,8 +25833,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -26606,8 +25853,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -26627,8 +25873,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -26703,8 +25948,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -26738,8 +25982,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -26773,8 +26016,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -26831,8 +26073,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -26866,8 +26107,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -26901,8 +26141,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -26939,8 +26178,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -26960,8 +26198,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -27004,8 +26241,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -27025,8 +26261,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -27089,8 +26324,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -27124,8 +26358,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -27159,8 +26392,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -27217,8 +26449,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -27252,8 +26483,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -27287,8 +26517,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -27327,8 +26556,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -27348,8 +26576,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -27369,8 +26596,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -27390,8 +26616,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -27446,8 +26671,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -27467,8 +26691,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -27511,8 +26734,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -27532,8 +26754,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -27578,8 +26799,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -27599,8 +26819,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -27620,8 +26839,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -27641,8 +26859,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -27699,8 +26916,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -27720,8 +26936,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -27741,8 +26956,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -27762,8 +26976,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -27838,8 +27051,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -27873,8 +27085,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -27908,8 +27119,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -27966,8 +27176,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28001,8 +27210,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28036,8 +27244,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28074,8 +27281,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28095,8 +27301,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28139,8 +27344,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28160,8 +27364,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28224,8 +27427,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28259,8 +27461,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28294,8 +27495,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28352,8 +27552,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28387,8 +27586,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28422,8 +27620,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28462,8 +27659,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28483,8 +27679,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28504,8 +27699,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28525,8 +27719,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28581,8 +27774,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28602,8 +27794,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28646,8 +27837,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28667,8 +27857,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28713,8 +27902,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28734,8 +27922,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28755,8 +27942,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28776,8 +27962,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28834,8 +28019,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28855,8 +28039,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28876,8 +28059,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28897,8 +28079,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -28973,8 +28154,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29008,8 +28188,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29043,8 +28222,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29101,8 +28279,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29136,8 +28313,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29171,8 +28347,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29209,8 +28384,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29230,8 +28404,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29274,8 +28447,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29295,8 +28467,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29359,8 +28530,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29394,8 +28564,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29429,8 +28598,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -150,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29487,8 +28655,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29522,8 +28689,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29557,8 +28723,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29597,8 +28762,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29618,8 +28782,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29639,8 +28802,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29660,8 +28822,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29716,8 +28877,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29737,8 +28897,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29781,8 +28940,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29802,8 +28960,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29848,8 +29005,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29869,8 +29025,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29890,8 +29045,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29911,8 +29065,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29969,8 +29122,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -29990,8 +29142,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -30011,8 +29162,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -30032,8 +29182,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -30108,8 +29257,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -30143,8 +29291,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -30178,8 +29325,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -30236,8 +29382,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -30271,8 +29416,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -30306,8 +29450,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -30344,8 +29487,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -30365,8 +29507,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -30409,8 +29550,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -30430,8 +29570,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -30494,8 +29633,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -30529,8 +29667,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -30564,8 +29701,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -30622,8 +29758,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -30657,8 +29792,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -30692,8 +29826,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -30732,8 +29865,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -30753,8 +29885,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -30774,8 +29905,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -30795,8 +29925,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -30851,8 +29980,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -30872,8 +30000,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -30916,8 +30043,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -30937,8 +30063,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -30983,8 +30108,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -31004,8 +30128,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -31025,8 +30148,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -31046,8 +30168,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -31104,8 +30225,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -31125,8 +30245,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -31146,8 +30265,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -31167,8 +30285,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -31243,8 +30360,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -31278,8 +30394,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -31313,8 +30428,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -31371,8 +30485,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -31406,8 +30519,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -31441,8 +30553,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -31479,8 +30590,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -31500,8 +30610,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -31544,8 +30653,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -31565,8 +30673,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -31629,8 +30736,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -31664,8 +30770,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -31699,8 +30804,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -31757,8 +30861,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -31792,8 +30895,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -31827,8 +30929,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -31867,8 +30968,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -31888,8 +30988,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -31909,8 +31008,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -31930,8 +31028,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -31986,8 +31083,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -32007,8 +31103,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -32051,8 +31146,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -32072,8 +31166,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -32118,8 +31211,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -32139,8 +31231,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -32160,8 +31251,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -32181,8 +31271,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -32239,8 +31328,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -32260,8 +31348,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -32281,8 +31368,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -32302,8 +31388,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -32378,8 +31463,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -32413,8 +31497,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -32448,8 +31531,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -32506,8 +31588,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -32541,8 +31622,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -32576,8 +31656,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -32614,8 +31693,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -32635,8 +31713,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -32679,8 +31756,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -32700,8 +31776,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -32764,8 +31839,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -32799,8 +31873,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -32834,8 +31907,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -32892,8 +31964,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -32927,8 +31998,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -32962,8 +32032,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33002,8 +32071,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33023,8 +32091,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33044,8 +32111,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33065,8 +32131,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33121,8 +32186,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33142,8 +32206,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33186,8 +32249,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33207,8 +32269,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33253,8 +32314,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33274,8 +32334,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33295,8 +32354,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33316,8 +32374,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33374,8 +32431,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33395,8 +32451,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33416,8 +32471,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33437,8 +32491,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33513,8 +32566,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33548,8 +32600,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33583,8 +32634,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33641,8 +32691,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33676,8 +32725,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33711,8 +32759,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33749,8 +32796,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33770,8 +32816,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33814,8 +32859,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33835,8 +32879,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33899,8 +32942,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33934,8 +32976,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -33969,8 +33010,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 750,
                       "post": -200,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 29,
@@ -34027,8 +33067,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -34062,8 +33101,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -34097,8 +33135,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -34137,8 +33174,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -34158,8 +33194,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -34179,8 +33214,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -34200,8 +33234,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -34256,8 +33289,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -34277,8 +33309,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -34321,8 +33352,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -34342,8 +33372,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -34388,8 +33417,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -34409,8 +33437,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -34430,8 +33457,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -34451,8 +33477,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -34509,8 +33534,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -34530,8 +33554,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -34551,8 +33574,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -34572,8 +33594,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -34648,8 +33669,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -34683,8 +33703,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -34718,8 +33737,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -34776,8 +33794,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -34811,8 +33828,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -34846,8 +33862,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -34884,8 +33899,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -34905,8 +33919,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -34949,8 +33962,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -34970,8 +33982,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -35034,8 +34045,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -35069,8 +34079,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -35104,8 +34113,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -35162,8 +34170,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -35197,8 +34204,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -35232,8 +34238,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -35272,8 +34277,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -35293,8 +34297,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -35314,8 +34317,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -35335,8 +34337,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -35391,8 +34392,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -35412,8 +34412,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -35456,8 +34455,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -35477,8 +34475,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -35523,8 +34520,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -35544,8 +34540,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -35565,8 +34560,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -35586,8 +34580,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -35644,8 +34637,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -35665,8 +34657,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -35686,8 +34677,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -35707,8 +34697,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -35783,8 +34772,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -35818,8 +34806,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -35853,8 +34840,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -35911,8 +34897,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -35946,8 +34931,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -35981,8 +34965,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36019,8 +35002,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36040,8 +35022,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36084,8 +35065,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36105,8 +35085,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36169,8 +35148,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36204,8 +35182,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36239,8 +35216,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36297,8 +35273,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36332,8 +35307,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36367,8 +35341,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36407,8 +35380,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36428,8 +35400,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36449,8 +35420,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36470,8 +35440,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36526,8 +35495,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36547,8 +35515,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36591,8 +35558,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36612,8 +35578,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36658,8 +35623,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36679,8 +35643,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36700,8 +35663,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36721,8 +35683,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36779,8 +35740,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36800,8 +35760,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36821,8 +35780,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36842,8 +35800,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36918,8 +35875,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36953,8 +35909,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -36988,8 +35943,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37046,8 +36000,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37081,8 +36034,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37116,8 +36068,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37154,8 +36105,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37175,8 +36125,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37219,8 +36168,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37240,8 +36188,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37304,8 +36251,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37339,8 +36285,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37374,8 +36319,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37432,8 +36376,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37467,8 +36410,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37502,8 +36444,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37542,8 +36483,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37563,8 +36503,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37584,8 +36523,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37605,8 +36543,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37661,8 +36598,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37682,8 +36618,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37726,8 +36661,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37747,8 +36681,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37793,8 +36726,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37814,8 +36746,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37835,8 +36766,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37856,8 +36786,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37914,8 +36843,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37935,8 +36863,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37956,8 +36883,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -37977,8 +36903,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -38053,8 +36978,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -38088,8 +37012,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -38123,8 +37046,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -38181,8 +37103,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -38216,8 +37137,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -38251,8 +37171,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -38289,8 +37208,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -38310,8 +37228,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -38354,8 +37271,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -38375,8 +37291,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -38439,8 +37354,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -38474,8 +37388,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -38509,8 +37422,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 650,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -38567,8 +37479,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -38602,8 +37513,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -38637,8 +37547,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -38677,8 +37586,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -38698,8 +37606,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -38719,8 +37626,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -38740,8 +37646,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -38796,8 +37701,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -38817,8 +37721,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -38861,8 +37764,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -38882,8 +37784,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -38928,8 +37829,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -38949,8 +37849,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -38970,8 +37869,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -38991,8 +37889,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -39049,8 +37946,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -39070,8 +37966,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -39091,8 +37986,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -39112,8 +38006,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -39188,8 +38081,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -39223,8 +38115,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -39258,8 +38149,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -39316,8 +38206,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -39351,8 +38240,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -39386,8 +38274,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -39424,8 +38311,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -39445,8 +38331,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -39489,8 +38374,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -39510,8 +38394,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -39574,8 +38457,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -39609,8 +38491,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -39644,8 +38525,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -39702,8 +38582,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -39737,8 +38616,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -39772,8 +38650,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -39812,8 +38689,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -39833,8 +38709,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -39854,8 +38729,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -39875,8 +38749,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -39931,8 +38804,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -39952,8 +38824,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -39996,8 +38867,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -40017,8 +38887,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -40063,8 +38932,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -40084,8 +38952,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -40105,8 +38972,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -40126,8 +38992,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -40184,8 +39049,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -40205,8 +39069,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -40226,8 +39089,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -40247,8 +39109,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -40323,8 +39184,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -40358,8 +39218,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -40393,8 +39252,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -40451,8 +39309,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -40486,8 +39343,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -40521,8 +39377,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -40559,8 +39414,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -40580,8 +39434,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -40624,8 +39477,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -40645,8 +39497,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -40709,8 +39560,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -40744,8 +39594,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -40779,8 +39628,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -40837,8 +39685,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -40872,8 +39719,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -40907,8 +39753,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -40947,8 +39792,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -40968,8 +39812,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -40989,8 +39832,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -41010,8 +39852,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -41066,8 +39907,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -41087,8 +39927,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -41131,8 +39970,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -41152,8 +39990,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -41198,8 +40035,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -41219,8 +40055,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -41240,8 +40075,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -41261,8 +40095,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -41319,8 +40152,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -41340,8 +40172,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -41361,8 +40192,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -41382,8 +40212,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -41458,8 +40287,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -41493,8 +40321,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -41528,8 +40355,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -41586,8 +40412,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -41621,8 +40446,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -41656,8 +40480,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -41694,8 +40517,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -41715,8 +40537,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -41759,8 +40580,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -41780,8 +40600,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -41844,8 +40663,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -41879,8 +40697,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -41914,8 +40731,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -41972,8 +40788,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42007,8 +40822,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42042,8 +40856,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42082,8 +40895,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42103,8 +40915,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42124,8 +40935,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42145,8 +40955,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42201,8 +41010,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42222,8 +41030,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42266,8 +41073,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42287,8 +41093,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42333,8 +41138,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42354,8 +41158,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42375,8 +41178,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42396,8 +41198,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42454,8 +41255,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42475,8 +41275,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42496,8 +41295,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42517,8 +41315,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42593,8 +41390,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42628,8 +41424,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42663,8 +41458,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42721,8 +41515,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42756,8 +41549,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42791,8 +41583,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42829,8 +41620,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42850,8 +41640,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42894,8 +41683,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42915,8 +41703,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -42979,8 +41766,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43014,8 +41800,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43049,8 +41834,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43107,8 +41891,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43142,8 +41925,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43177,8 +41959,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43217,8 +41998,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43238,8 +42018,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43259,8 +42038,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43280,8 +42058,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43336,8 +42113,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43357,8 +42133,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43401,8 +42176,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43422,8 +42196,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43468,8 +42241,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43489,8 +42261,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43510,8 +42281,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43531,8 +42301,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43589,8 +42358,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43610,8 +42378,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43631,8 +42398,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43652,8 +42418,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43728,8 +42493,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43763,8 +42527,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43798,8 +42561,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43856,8 +42618,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43891,8 +42652,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43926,8 +42686,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43964,8 +42723,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -43985,8 +42743,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -44029,8 +42786,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -44050,8 +42806,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -44114,8 +42869,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -44149,8 +42903,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -44184,8 +42937,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -44242,8 +42994,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -44277,8 +43028,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -44312,8 +43062,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -44352,8 +43101,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -44373,8 +43121,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -44394,8 +43141,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -44415,8 +43161,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -44471,8 +43216,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -44492,8 +43236,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -44536,8 +43279,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -44557,8 +43299,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -44603,8 +43344,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -44624,8 +43364,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -44645,8 +43384,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -44666,8 +43404,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -44724,8 +43461,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -44745,8 +43481,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -44766,8 +43501,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -44787,8 +43521,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -44863,8 +43596,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -44898,8 +43630,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -44933,8 +43664,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -44991,8 +43721,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -45026,8 +43755,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -45061,8 +43789,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -45099,8 +43826,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -45120,8 +43846,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -45164,8 +43889,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -45185,8 +43909,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -45249,8 +43972,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -45284,8 +44006,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
@@ -45319,8 +44040,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "main": 700,
                       "post": -250,
                       "post2": 0,
-                      "post3": 0,
-                      "amp": 0
+                      "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,

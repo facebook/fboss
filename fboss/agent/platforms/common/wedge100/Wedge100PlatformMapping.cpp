@@ -22143,7 +22143,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 38,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   },
@@ -22159,7 +22158,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 38,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   },
@@ -22175,7 +22173,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 38,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   },
@@ -22191,7 +22188,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 38,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   }
@@ -23269,7 +23265,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 44,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   },
@@ -23285,7 +23280,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 44,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   },
@@ -23301,7 +23295,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 44,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   },
@@ -23317,7 +23310,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 44,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   }
@@ -24395,7 +24387,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 40,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   },
@@ -24411,7 +24402,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 40,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   },
@@ -24427,7 +24417,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 40,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   },
@@ -24443,7 +24432,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 40,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   }
@@ -25521,7 +25509,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 42,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   },
@@ -25537,7 +25524,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 42,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   },
@@ -25553,7 +25539,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 42,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   },
@@ -25569,7 +25554,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 42,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   }
@@ -26647,7 +26631,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 44,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   },
@@ -26663,7 +26646,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 44,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   },
@@ -26679,7 +26661,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 44,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   },
@@ -26695,7 +26676,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 44,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   }
@@ -27773,7 +27753,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 46,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   },
@@ -27789,7 +27768,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 46,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   },
@@ -27805,7 +27783,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 46,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   },
@@ -27821,7 +27798,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 46,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   }
@@ -28899,7 +28875,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 48,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   },
@@ -28915,7 +28890,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 48,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   },
@@ -28931,7 +28905,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 48,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   },
@@ -28947,7 +28920,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 48,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   }
@@ -30025,7 +29997,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 48,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   },
@@ -30041,7 +30012,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 48,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   },
@@ -30057,7 +30027,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 48,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   },
@@ -30073,7 +30042,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 48,
                       "post2": 0,
                       "post3": 0,
-                      "amp": 0,
                       "driveCurrent": 8
                     }
                   }
@@ -35602,7 +35570,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 48,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 10
             }
           }
@@ -35645,7 +35612,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 48,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 10
             }
           }
@@ -35688,7 +35654,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 48,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 10
             }
           }
@@ -35731,7 +35696,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 50,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 12
             }
           }
@@ -35774,7 +35738,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 50,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 12
             }
           }
@@ -35825,7 +35788,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 42,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 10
             }
           }
@@ -35876,7 +35838,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 43,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 10
             }
           }
@@ -35927,7 +35888,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 44,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 11
             }
           }
@@ -35978,7 +35938,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 44,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 12
             }
           }
@@ -36029,7 +35988,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 46,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 12
             }
           }
@@ -36084,7 +36042,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 38,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 9
             }
           }
@@ -36139,7 +36096,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 38,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 9
             }
           }
@@ -36194,7 +36150,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 39,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 9
             }
           }
@@ -36249,7 +36204,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 40,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 9
             }
           }
@@ -36304,7 +36258,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 40,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 10
             }
           }
@@ -36367,7 +36320,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 36,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 8
             }
           }
@@ -36430,7 +36382,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 36,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 9
             }
           }
@@ -36493,7 +36444,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 36,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 9
             }
           }
@@ -36556,7 +36506,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 37,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 9
             }
           }
@@ -36619,7 +36568,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 37,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 10
             }
           }
@@ -36682,7 +36630,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 30,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 8
             }
           }
@@ -36745,7 +36692,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 30,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 9
             }
           }
@@ -36808,7 +36754,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 30,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 9
             }
           }
@@ -36871,7 +36816,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 31,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 9
             }
           }
@@ -36934,7 +36878,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 32,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 10
             }
           }
@@ -36993,7 +36936,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 28,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 8
             }
           }
@@ -37052,7 +36994,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 29,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 9
             }
           }
@@ -37111,7 +37052,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 30,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 10
             }
           }
@@ -37170,7 +37110,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 31,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 10
             }
           }
@@ -37229,7 +37168,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 32,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 10
             }
           }
@@ -37280,7 +37218,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 26,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 8
             }
           }
@@ -37331,7 +37268,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 28,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 9
             }
           }
@@ -37382,7 +37318,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 28,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 9
             }
           }
@@ -37433,7 +37368,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 30,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 9
             }
           }
@@ -37484,7 +37418,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "post": 30,
               "post2": 0,
               "post3": 0,
-              "amp": 0,
               "driveCurrent": 9
             }
           }
