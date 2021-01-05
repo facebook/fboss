@@ -814,6 +814,10 @@ void SwSwitch::handlePendingUpdates() {
     newAppliedState =
         applyUpdate(oldAppliedState, newDesiredState, isTransaction);
     if (newDesiredState != newAppliedState) {
+      if (isExiting()) {
+        XLOG(INFO) << " Agent exiting before all updates could be applied";
+        return;
+      }
       CHECK(updates.size() == 1 && updates.begin()->hwFailureProtected())
           << " Failed to apply update to HW and the update is not marked for "
              "HW failure protection";
