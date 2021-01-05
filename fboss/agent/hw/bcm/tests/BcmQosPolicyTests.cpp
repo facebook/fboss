@@ -192,6 +192,7 @@ TEST_F(BcmQosPolicyTest, QosPolicyModify) {
 
 TEST_F(BcmQosPolicyTest, QosPolicyInvalidQueueId) {
   auto newCfg = initialConfig();
+  applyNewConfig(newCfg);
   addDscpQosPolicy(&newCfg, "qp1", {{BCM_COS_MIN - 1, {46}}});
   ASSERT_THROW(applyNewConfig(newCfg), FbossError);
   // Check that we are not leaking HW Qos maps
