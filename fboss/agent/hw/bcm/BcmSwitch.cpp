@@ -380,7 +380,7 @@ BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
 }
 
 BcmSwitch::~BcmSwitch() {
-  XLOG(ERR) << "Destroying BcmSwitch";
+  XLOG(INFO) << "Destroying BcmSwitch";
   resetTables();
   if (unitObject_) {
     // In agent this would be done in the signal handler
