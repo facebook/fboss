@@ -75,7 +75,7 @@ class HwPortProfileTest : public HwTest {
       for (auto port : {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}) {
         auto hwSwitch = getHwSwitch();
         utility::configurePortProfile(
-            *hwSwitch, config, Profile, getAllPortsInGroup(port));
+            *hwSwitch, config, Profile, getAllPortsInGroup(port), port);
       }
       applyNewConfig(config);
     };

@@ -166,22 +166,19 @@ void verifyInterfaceMode(
     cfg::PortProfileID profileID,
     Platform* platform) {
   auto* bcmSwitch = static_cast<BcmSwitch*>(platform->getHwSwitch());
-  auto platformPort =
-      bcmSwitch->getPortTable()->getBcmPort(portID)->getPlatformPort();
+  auto* bcmPort = bcmSwitch->getPortTable()->getBcmPort(portID);
+  auto platformPort = bcmPort->getPlatformPort();
 
-  int speed;
-  auto rv = bcm_port_speed_get(bcmSwitch->getUnit(), portID, &speed);
-  bcmCheckError(rv, "Failed to get current speed for port ", portID);
   if (!platformPort->shouldUsePortResourceAPIs()) {
+    auto speed = bcmPort->getSpeed();
     bcm_port_if_t curMode = bcm_port_if_t(0);
     auto ret = bcm_port_interface_get(bcmSwitch->getUnit(), portID, &curMode);
     bcmCheckError(
         ret, "Failed to get current interface setting for port ", portID);
     // TODO - Feed other transmitter technology, speed and build a
     // exhaustive set of speed, transmitter tech to test for
-    auto expectedMode = getSpeedToTransmitterTechAndMode()
-                            .at(cfg::PortSpeed(speed))
-                            .at(platformPort->getTransmitterTech().value());
+    auto expectedMode = getSpeedToTransmitterTechAndMode().at(speed).at(
+        platformPort->getTransmitterTech().value());
     EXPECT_EQ(expectedMode, curMode);
   } else {
     // On platforms that use port resource APIs, phy lane config determines

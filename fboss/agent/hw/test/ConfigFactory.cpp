@@ -531,9 +531,11 @@ void configurePortProfile(
     const HwSwitch& hwSwitch,
     cfg::SwitchConfig& config,
     cfg::PortProfileID profileID,
-    std::vector<PortID> allPortsInGroup) {
+    std::vector<PortID> allPortsInGroup,
+    PortID controllingPortID) {
   auto platform = hwSwitch.getPlatform();
   auto supportsAddRemovePort = platform->supportsAddRemovePort();
+  auto controllingPort = findCfgPort(config, controllingPortID);
   for (auto portID : allPortsInGroup) {
     // We might have removed a subsumed port already in a previous
     // iteration of the loop.
@@ -562,6 +564,7 @@ void configurePortProfile(
     auto speed = getPortSpeedFromProfile(platform, profileID, portID);
     cfgPort->profileID_ref() = profileID;
     cfgPort->speed_ref() = speed;
+    cfgPort->ingressVlan_ref() = *controllingPort->ingressVlan_ref();
     cfgPort->state_ref() = cfg::PortState::ENABLED;
     removeSubsumedPorts(config, profile->second, supportsAddRemovePort);
   }
