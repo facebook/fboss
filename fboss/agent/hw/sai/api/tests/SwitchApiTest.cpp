@@ -441,3 +441,12 @@ TEST_F(SwitchApiTest, egressPoolSize) {
   SaiSwitchTraits::Attributes::EgressPoolAvaialableSize sz{};
   EXPECT_EQ(switchApi->getAttribute(switchId, sz), 1'000'000);
 }
+
+TEST_F(SwitchApiTest, setCounterRefreshInterval) {
+  switchApi->setAttribute(
+      switchId, SaiSwitchTraits::Attributes::CounterRefreshInterval{20});
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::CounterRefreshInterval()),
+      20);
+}

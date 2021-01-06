@@ -32,6 +32,12 @@ struct SaiIntDefault {
   }
 };
 
+struct SaiInt1Default {
+  sai_uint32_t operator()() const {
+    return 1;
+  }
+};
+
 struct SaiBoolDefaultFalse {
   bool operator()() const {
     return false;

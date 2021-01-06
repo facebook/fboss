@@ -196,6 +196,16 @@ struct SaiSwitchTraits {
         bool,
         SaiBoolDefaultFalse>;
 
+    /*
+     * Set the default value to 1 since we read the stats only
+     * from sw cache.
+     */
+    using CounterRefreshInterval = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_COUNTER_REFRESH_INTERVAL,
+        sai_uint32_t,
+        SaiInt1Default>;
+
     /* extension attributes */
     struct AttributeLedIdWrapper {
       std::optional<sai_attr_id_t> operator()();
@@ -242,7 +252,8 @@ struct SaiSwitchTraits {
       std::optional<Attributes::IngressAcl>,
       std::optional<Attributes::AclFieldList>,
       std::optional<Attributes::TamObject>,
-      std::optional<Attributes::UseEcnThresholds>>;
+      std::optional<Attributes::UseEcnThresholds>,
+      std::optional<Attributes::CounterRefreshInterval>>;
 };
 
 SAI_ATTRIBUTE_NAME(Switch, InitSwitch)
@@ -297,6 +308,7 @@ SAI_ATTRIBUTE_NAME(Switch, AclFieldList)
 SAI_ATTRIBUTE_NAME(Switch, TamObject)
 SAI_ATTRIBUTE_NAME(Switch, UseEcnThresholds)
 SAI_ATTRIBUTE_NAME(Switch, EgressPoolAvaialableSize)
+SAI_ATTRIBUTE_NAME(Switch, CounterRefreshInterval)
 
 class SwitchApi : public SaiApi<SwitchApi> {
  public:

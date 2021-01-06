@@ -64,6 +64,8 @@ class SaiSwitchManager {
   void setMacAgingSeconds(sai_uint32_t agingSeconds);
   sai_uint32_t getMacAgingSeconds() const;
 
+  void setupCounterRefreshInterval();
+
  private:
   void programLoadBalancerParams(
       cfg::LoadBalancerID id,

@@ -990,8 +990,12 @@ void SaiSwitch::initStoreAndManagersLocked(
     if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL)) {
       managerTable_->bufferManager().setupEgressBufferPool();
     }
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::COUNTER_REFRESH_INTERVAL)) {
+      managerTable_->switchManager().setupCounterRefreshInterval();
+    }
   }
-}
+} // namespace facebook::fboss
 
 void SaiSwitch::initLinkScanLocked(
     const std::lock_guard<std::mutex>& /* lock */) {

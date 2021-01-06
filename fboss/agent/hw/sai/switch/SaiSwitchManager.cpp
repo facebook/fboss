@@ -30,6 +30,22 @@ extern "C" {
 #include <sai.h>
 }
 
+// TODO(rajukumarfb5368): read from config at
+// SwitchConfig.SwitchSettings.l2AgeTimerSeconds
+// instead of using this flag
+/**
+ * Set L2 Aging to 5 mins by default
+ */
+DEFINE_int32(
+    l2AgeTimerSeconds,
+    300,
+    "Time to transition L2 from hit -> miss -> removed");
+
+DEFINE_uint32(
+    counter_refresh_interval,
+    1,
+    "Counter refresh interval in seconds. Set it to 0 to fetch stats from HW");
+
 namespace {
 using namespace facebook::fboss;
 
@@ -116,6 +132,7 @@ SaiSwitchTraits::CreateAttributes getSwitchAttributes(
       aclFieldList,
       std::nullopt, // tam object list
       useEcnThresholds,
+      std::nullopt // counter refresh interval
   };
 }
 
@@ -310,5 +327,11 @@ void SaiSwitchManager::setTamObject(std::vector<sai_object_id_t> tamObject) {
 void SaiSwitchManager::resetTamObject() {
   switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::TamObject{
       std::vector<sai_object_id_t>{SAI_NULL_OBJECT_ID}});
+}
+
+void SaiSwitchManager::setupCounterRefreshInterval() {
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::CounterRefreshInterval{
+          FLAGS_counter_refresh_interval});
 }
 } // namespace facebook::fboss
