@@ -65,7 +65,7 @@ SaiInSegTraits::CreateAttributes getInSegEntryAttributes(
   SaiInSegTraits::CreateAttributes attrs;
   auto& mplsApi = SaiApiTable::getInstance()->mplsApi();
   std::get<SaiInSegTraits::Attributes::PacketAction>(attrs) =
-      mplsApi.getAttribute(key, SaiInSegTraits::Attributes::PacketAction{});
+      SAI_PACKET_ACTION_FORWARD;
   std::get<SaiInSegTraits::Attributes::NumOfPop>(attrs) =
       mplsApi.getAttribute(key, SaiInSegTraits::Attributes::NumOfPop{});
   std::get<std::optional<SaiInSegTraits::Attributes::NextHopId>>(attrs) =
