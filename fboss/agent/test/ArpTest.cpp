@@ -966,6 +966,16 @@ TEST(ArpTest, PendingArpCleanup) {
   std::array<IPAddressV4, 2> targetIP = {IPAddressV4("10.0.0.2"),
                                          IPAddressV4("10.0.0.3")};
 
+  // Wait for pending entries to expire
+  std::array<std::unique_ptr<WaitForArpEntryExpiration>, 2> arpExpirations;
+  std::transform(
+      targetIP.begin(),
+      targetIP.end(),
+      arpExpirations.begin(),
+      [&](const IPAddressV4& ip) {
+        return make_unique<WaitForArpEntryExpiration>(sw, ip);
+      });
+
   testSendArpRequest(sw, vlanID, senderIP, targetIP[0]);
 
   // Should see a pending entry now
@@ -981,16 +991,6 @@ TEST(ArpTest, PendingArpCleanup) {
   auto entry1 = getArpEntry(sw, targetIP[1], vlanID);
   EXPECT_NE(entry1, nullptr);
   EXPECT_EQ(entry1->isPending(), true);
-
-  // Wait for pending entries to expire
-  std::array<std::unique_ptr<WaitForArpEntryExpiration>, 2> arpExpirations;
-  std::transform(
-      targetIP.begin(),
-      targetIP.end(),
-      arpExpirations.begin(),
-      [&](const IPAddressV4& ip) {
-        return make_unique<WaitForArpEntryExpiration>(sw, ip);
-      });
 
   std::promise<bool> done;
   auto* evb = sw->getBackgroundEvb();
