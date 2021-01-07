@@ -106,7 +106,7 @@ class InSegEntryManagerTest : public ManagerTestBase {
         saiManagerTable->inSegEntryManager().getInSegEntryHandle(label);
     ASSERT_NE(inSegEntryHandle, nullptr);
     ASSERT_NE(inSegEntryHandle->inSegEntry, nullptr);
-    ASSERT_NE(inSegEntryHandle->nextHopGroupHandle, nullptr);
+    ASSERT_NE(inSegEntryHandle->nextHopGroupHandle(), nullptr);
 
     auto adapterKey = inSegEntryHandle->inSegEntry->adapterKey();
     EXPECT_EQ(adapterKey.label(), label);
@@ -118,7 +118,7 @@ class InSegEntryManagerTest : public ManagerTestBase {
         GET_ATTR(InSeg, PacketAction, attributes), SAI_PACKET_ACTION_FORWARD);
     EXPECT_EQ(GET_ATTR(InSeg, NumOfPop, attributes), 1);
     auto nexHopId =
-        inSegEntryHandle->nextHopGroupHandle->nextHopGroup->adapterKey();
+        inSegEntryHandle->nextHopGroupHandle()->nextHopGroup->adapterKey();
     EXPECT_EQ(GET_OPT_ATTR(InSeg, NextHopId, attributes), nexHopId);
 
     verifyNextHopGroup(nexHopId, nextHopBegin, nextHopEnd, type);

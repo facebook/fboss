@@ -5,6 +5,7 @@
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
+#include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
 #include "fboss/agent/FbossError.h"
@@ -13,7 +14,7 @@
 
 namespace {
 using namespace facebook::fboss;
-std::shared_ptr<SaiNextHopGroupHandle> getNextHopGroupHandle(
+SaiInSegEntryHandle::NextHopHandle getNextHopHandle(
     SaiManagerTable* managerTable,
     const std::shared_ptr<LabelForwardingEntry>& swLabelFibEntry) {
   const auto& nexthops = swLabelFibEntry->getLabelNextHop().getNextHopSet();
@@ -35,13 +36,12 @@ void SaiInSegEntryManager::processAddedInSegEntry(
     const std::shared_ptr<LabelForwardingEntry>& addedEntry) {
   SaiInSegEntryHandle handle;
 
-  auto nextHopGroupHandle = getNextHopGroupHandle(managerTable_, addedEntry);
-
+  handle.nexthopHandle = getNextHopHandle(managerTable_, addedEntry);
   SaiInSegTraits::CreateAttributes createAttributes{
       SAI_PACKET_ACTION_FORWARD, // not supporting any other action now except
                                  // forward
       1, // always pop 1 label even for swap and push another label
-      nextHopGroupHandle->nextHopGroup->adapterKey()};
+      handle.nextHopAdapterKey()};
 
   SaiInSegTraits::InSegEntry inSegEntry{
       managerTable_->switchManager().getSwitchSaiId(),
@@ -53,8 +53,6 @@ void SaiInSegEntryManager::processAddedInSegEntry(
 
   auto& store = SaiStore::getInstance()->get<SaiInSegTraits>();
   handle.inSegEntry = store.setObject(inSegEntry, createAttributes);
-  handle.nextHopGroupHandle = nextHopGroupHandle;
-
   saiInSegEntryTable_.emplace(inSegEntry, handle);
 }
 
@@ -70,15 +68,12 @@ void SaiInSegEntryManager::processChangedInSegEntry(
         "label fib entry already does not exist for ", newEntry->getID());
   }
 
-  auto nextHopGroupHandle = getNextHopGroupHandle(managerTable_, newEntry);
+  itr->second.nexthopHandle = getNextHopHandle(managerTable_, newEntry);
 
   SaiInSegTraits::CreateAttributes newAttributes{
-      SAI_PACKET_ACTION_FORWARD,
-      1,
-      nextHopGroupHandle->nextHopGroup->adapterKey()};
+      SAI_PACKET_ACTION_FORWARD, 1, itr->second.nextHopAdapterKey()};
   auto& store = SaiStore::getInstance()->get<SaiInSegTraits>();
   itr->second.inSegEntry = store.setObject(inSegEntry, newAttributes);
-  itr->second.nextHopGroupHandle = nextHopGroupHandle;
 }
 
 void SaiInSegEntryManager::processRemovedInSegEntry(
@@ -154,4 +149,18 @@ sai_object_id_t ManagedInSegNextHop<NextHopTraitsT>::adapterKey() const {
   return SAI_NULL_OBJECT_ID;
 }
 
+sai_object_id_t SaiInSegEntryHandle::nextHopAdapterKey() const {
+  return std::visit(
+      [](auto& handle) { return handle->adapterKey(); }, nexthopHandle);
+}
+
+std::shared_ptr<SaiNextHopGroupHandle> SaiInSegEntryHandle::nextHopGroupHandle()
+    const {
+  auto* nextHopGroupHandle =
+      std::get_if<std::shared_ptr<SaiNextHopGroupHandle>>(&nexthopHandle);
+  if (!nextHopGroupHandle) {
+    return nullptr;
+  }
+  return *nextHopGroupHandle;
+}
 } // namespace facebook::fboss

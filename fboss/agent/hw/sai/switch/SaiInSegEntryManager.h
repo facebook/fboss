@@ -51,8 +51,14 @@ using ManagedInSegIpNextHop = ManagedInSegNextHop<SaiIpNextHopTraits>;
 using ManagedInSegMplsNextHop = ManagedInSegNextHop<SaiMplsNextHopTraits>;
 
 struct SaiInSegEntryHandle {
-  std::shared_ptr<SaiNextHopGroupHandle> nextHopGroupHandle;
+  using NextHopHandle = std::variant<
+      std::shared_ptr<SaiNextHopGroupHandle>,
+      std::shared_ptr<ManagedInSegIpNextHop>,
+      std::shared_ptr<ManagedInSegMplsNextHop>>;
+  NextHopHandle nexthopHandle;
   std::shared_ptr<SaiInSegEntry> inSegEntry;
+  sai_object_id_t nextHopAdapterKey() const;
+  std::shared_ptr<SaiNextHopGroupHandle> nextHopGroupHandle() const;
 };
 
 class SaiInSegEntryManager {
