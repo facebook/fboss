@@ -33,6 +33,7 @@
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiInSegEntryManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiMirrorManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
@@ -543,6 +544,14 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
 
   // Process link state change delta and update the LED status
   processLinkStateChangeDelta(delta, lockPolicy);
+
+  processDelta(
+      delta.getMirrorsDelta(),
+      managerTable_->mirrorManager(),
+      lockPolicy,
+      &SaiMirrorManager::changeMirror,
+      &SaiMirrorManager::addMirror,
+      &SaiMirrorManager::removeMirror);
 
   return delta.newState();
 }
