@@ -26,6 +26,7 @@ add_library(sai_switch
   fboss/agent/hw/sai/switch/SaiRouteManager.cpp
   fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.cpp
   fboss/agent/hw/sai/switch/SaiRxPacket.cpp
+  fboss/agent/hw/sai/switch/SaiSamplePacketManager.cpp
   fboss/agent/hw/sai/switch/SaiSchedulerManager.cpp
   fboss/agent/hw/sai/switch/SaiSwitch.cpp
   fboss/agent/hw/sai/switch/SaiSwitchManager.cpp
