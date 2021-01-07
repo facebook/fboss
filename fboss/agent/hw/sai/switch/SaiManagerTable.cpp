@@ -21,6 +21,7 @@
 #include "fboss/agent/hw/sai/switch/SaiHashManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiInSegEntryManager.h"
+#include "fboss/agent/hw/sai/switch/SaiMirrorManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
@@ -59,6 +60,7 @@ void SaiManagerTable::createSaiTableManagers(
   hashManager_ = std::make_unique<SaiHashManager>(this);
   queueManager_ = std::make_unique<SaiQueueManager>(this, platform);
   hostifManager_ = std::make_unique<SaiHostifManager>(this, platform);
+  mirrorManager_ = std::make_unique<SaiMirrorManager>(this, platform);
   portManager_ =
       std::make_unique<SaiPortManager>(this, platform, concurrentIndices);
   qosMapManager_ = std::make_unique<SaiQosMapManager>(this, platform);
@@ -119,6 +121,7 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   switchManager_->resetQosMaps();
   qosMapManager_.reset();
   hostifManager_.reset();
+  mirrorManager_.reset();
 
   // ACL Table Group is going away, reset ingressACL pointing to it
   switchManager_->resetIngressAcl();
@@ -196,6 +199,14 @@ SaiHostifManager& SaiManagerTable::hostifManager() {
 
 const SaiHostifManager& SaiManagerTable::hostifManager() const {
   return *hostifManager_;
+}
+
+SaiMirrorManager& SaiManagerTable::mirrorManager() {
+  return *mirrorManager_;
+}
+
+const SaiMirrorManager& SaiManagerTable::mirrorManager() const {
+  return *mirrorManager_;
 }
 
 SaiNeighborManager& SaiManagerTable::neighborManager() {
