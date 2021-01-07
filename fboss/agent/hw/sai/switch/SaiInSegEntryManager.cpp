@@ -104,4 +104,54 @@ const SaiInSegEntryHandle* SaiInSegEntryManager::getInSegEntryHandle(
   return &(itr->second);
 }
 
+template <typename NextHopTraitsT>
+ManagedInSegNextHop<NextHopTraitsT>::ManagedInSegNextHop(
+    SaiManagerTable* managerTable,
+    const SaiPlatform* platform,
+    SaiInSegTraits::AdapterHostKey inSegKey,
+    std::shared_ptr<ManagedNextHop<NextHopTraitsT>> managedNextHop)
+    : detail::SaiObjectEventSubscriber<NextHopTraitsT>(
+          managedNextHop->adapterHostKey()),
+      managerTable_(managerTable),
+      platform_(platform),
+      inSegKey_(std::move(inSegKey)),
+      managedNextHop_(managedNextHop) {}
+
+template <typename NextHopTraitsT>
+void ManagedInSegNextHop<NextHopTraitsT>::afterCreate(
+    ManagedInSegNextHop<NextHopTraitsT>::PublisherObject nexthop) {
+  this->setPublisherObject(nexthop);
+  // set entry to next hop
+  auto entry = SaiStore::getInstance()->get<SaiInSegTraits>().get(inSegKey_);
+  if (!entry) {
+    // entry is not yet created.
+    return;
+  }
+  auto attributes = entry->attributes();
+  sai_object_id_t nextHopId = nexthop->adapterKey();
+  std::get<std::optional<SaiInSegTraits::Attributes::NextHopId>>(attributes) =
+      nextHopId;
+  entry->setAttributes(attributes);
+}
+
+template <typename NextHopTraitsT>
+void ManagedInSegNextHop<NextHopTraitsT>::beforeRemove() {
+  // set entry to NULL
+  auto entry = SaiStore::getInstance()->get<SaiInSegTraits>().get(inSegKey_);
+  auto attributes = entry->attributes();
+
+  std::get<std::optional<SaiInSegTraits::Attributes::NextHopId>>(attributes) =
+      SAI_NULL_OBJECT_ID;
+  entry->setAttributes(attributes);
+  this->setPublisherObject(nullptr);
+}
+
+template <typename NextHopTraitsT>
+sai_object_id_t ManagedInSegNextHop<NextHopTraitsT>::adapterKey() const {
+  if (auto* nexthop = managedNextHop_->getSaiObject()) {
+    return nexthop->adapterKey();
+  }
+  return SAI_NULL_OBJECT_ID;
+}
+
 } // namespace facebook::fboss

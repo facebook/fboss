@@ -22,6 +22,34 @@ struct SaiNextHopGroupHandle;
 
 using SaiInSegEntry = SaiObject<SaiInSegTraits>;
 
+template <typename T>
+class ManagedNextHop;
+
+template <typename NextHopTraitsT>
+class ManagedInSegNextHop
+    : public detail::SaiObjectEventSubscriber<NextHopTraitsT> {
+ public:
+  using PublisherObject = std::shared_ptr<const SaiObject<NextHopTraitsT>>;
+  ManagedInSegNextHop(
+      SaiManagerTable* managerTable,
+      const SaiPlatform* platform,
+      SaiInSegTraits::AdapterHostKey inSegKey,
+      std::shared_ptr<ManagedNextHop<NextHopTraitsT>> managedNextHop);
+  void afterCreate(PublisherObject nexthop) override;
+  void beforeRemove() override;
+  sai_object_id_t adapterKey() const;
+  using detail::SaiObjectEventSubscriber<NextHopTraitsT>::isReady;
+
+ private:
+  SaiManagerTable* managerTable_;
+  const SaiPlatform* platform_;
+  typename SaiInSegTraits::AdapterHostKey inSegKey_;
+  std::shared_ptr<ManagedNextHop<NextHopTraitsT>> managedNextHop_;
+};
+
+using ManagedInSegIpNextHop = ManagedInSegNextHop<SaiIpNextHopTraits>;
+using ManagedInSegMplsNextHop = ManagedInSegNextHop<SaiMplsNextHopTraits>;
+
 struct SaiInSegEntryHandle {
   std::shared_ptr<SaiNextHopGroupHandle> nextHopGroupHandle;
   std::shared_ptr<SaiInSegEntry> inSegEntry;
