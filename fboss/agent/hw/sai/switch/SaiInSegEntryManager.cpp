@@ -16,6 +16,7 @@ namespace {
 using namespace facebook::fboss;
 SaiInSegEntryHandle::NextHopHandle getNextHopHandle(
     SaiManagerTable* managerTable,
+    const SaiPlatform* platform,
     const std::shared_ptr<LabelForwardingEntry>& swLabelFibEntry) {
   const auto& nexthops = swLabelFibEntry->getLabelNextHop().getNextHopSet();
   if (nexthops.size() > 0 &&
@@ -25,9 +26,32 @@ SaiInSegEntryHandle::NextHopHandle getNextHopHandle(
     throw FbossError("pop and look up is not supported");
   }
 
-  auto nextHopGroupHandle =
-      managerTable->nextHopGroupManager().incRefOrAddNextHopGroup(nexthops);
-  return nextHopGroupHandle;
+  if (nexthops.size() == 1) {
+    SaiInSegTraits::InSegEntry inSegEntry{
+        managerTable->switchManager().getSwitchSaiId(),
+        static_cast<sai_label_id_t>(swLabelFibEntry->getID())};
+    auto managedNextHop = managerTable->nextHopManager().refOrEmplaceNextHop(
+        folly::poly_cast<ResolvedNextHop>(*nexthops.begin()));
+    if (auto* ipNextHop =
+            std::get_if<std::shared_ptr<ManagedIpNextHop>>(&managedNextHop)) {
+      auto nexthop = std::make_shared<ManagedInSegIpNextHop>(
+          managerTable, platform, inSegEntry, *ipNextHop);
+      SaiObjectEventPublisher::getInstance()
+          ->get<SaiIpNextHopTraits>()
+          .subscribe(nexthop);
+      return nexthop;
+    } else if (
+        auto* mplsNextHop =
+            std::get_if<std::shared_ptr<ManagedMplsNextHop>>(&managedNextHop)) {
+      auto nexthop = std::make_shared<ManagedInSegMplsNextHop>(
+          managerTable, platform, inSegEntry, *mplsNextHop);
+      SaiObjectEventPublisher::getInstance()
+          ->get<SaiMplsNextHopTraits>()
+          .subscribe(nexthop);
+      return nexthop;
+    }
+  }
+  return managerTable->nextHopGroupManager().incRefOrAddNextHopGroup(nexthops);
 }
 } // namespace
 namespace facebook::fboss {
@@ -36,7 +60,8 @@ void SaiInSegEntryManager::processAddedInSegEntry(
     const std::shared_ptr<LabelForwardingEntry>& addedEntry) {
   SaiInSegEntryHandle handle;
 
-  handle.nexthopHandle = getNextHopHandle(managerTable_, addedEntry);
+  handle.nexthopHandle = getNextHopHandle(managerTable_, platform_, addedEntry);
+
   SaiInSegTraits::CreateAttributes createAttributes{
       SAI_PACKET_ACTION_FORWARD, // not supporting any other action now except
                                  // forward
@@ -68,7 +93,8 @@ void SaiInSegEntryManager::processChangedInSegEntry(
         "label fib entry already does not exist for ", newEntry->getID());
   }
 
-  itr->second.nexthopHandle = getNextHopHandle(managerTable_, newEntry);
+  itr->second.nexthopHandle =
+      getNextHopHandle(managerTable_, platform_, newEntry);
 
   SaiInSegTraits::CreateAttributes newAttributes{
       SAI_PACKET_ACTION_FORWARD, 1, itr->second.nextHopAdapterKey()};
