@@ -59,6 +59,14 @@ void FbFpgaMdio::setClockDivisor(int div) {
   writeReg(config);
 }
 
+// Set mdio fast mode (reduces idle time)
+void FbFpgaMdio::setFastMode(bool enable) {
+  auto config = readReg<MdioConfig>();
+  config.fastMode = ((enable) ? 1 : 0);
+  XLOG(DBG1) << "Setting mdio controller fastMode to " << (enable ? "enabled" : "disabled");
+  writeReg(config);
+}
+
 void FbFpgaMdio::clearStatus() {
   MdioStatus status;
   status.reg = 0;
