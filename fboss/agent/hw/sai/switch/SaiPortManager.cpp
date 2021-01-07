@@ -414,6 +414,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
                                          std::nullopt,
                                          std::nullopt,
                                          interfaceType,
+                                         std::nullopt,
+                                         std::nullopt,
                                          std::nullopt};
 }
 
