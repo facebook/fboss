@@ -157,7 +157,8 @@ class SaiManagerTable {
   std::unique_ptr<SaiQosMapManager> qosMapManager_;
   std::unique_ptr<SaiRouteManager> routeManager_;
   std::unique_ptr<SaiRouterInterfaceManager> routerInterfaceManager_;
-  std::unique_ptr<SaiSamplePacketManager> samplePacketManager_;;
+  std::unique_ptr<SaiSamplePacketManager> samplePacketManager_;
+  ;
   std::unique_ptr<SaiSchedulerManager> schedulerManager_;
   std::unique_ptr<SaiSwitchManager> switchManager_;
   std::unique_ptr<SaiVirtualRouterManager> virtualRouterManager_;
