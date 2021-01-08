@@ -35,11 +35,23 @@ class HwParityErrorTest : public HwLinkStateDependentTest {
 
   void generateBcmParityError() {
     std::string out;
+    auto asic = getPlatform()->getAsic()->getAsicType();
     auto ensemble = getHwSwitchEnsemble();
     ensemble->runDiagCommand("\n", out);
-    ensemble->runDiagCommand(
-        "ser INJECT memory=L2_ENTRY index=10 pipe=pipe_x\n", out);
-    ensemble->runDiagCommand("d chg L2_ENTRY 10 1\n", out);
+    if (asic == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
+      // call ser INJECT twice to make warmboot test work, the cmd
+      // might fail if called for the 2nd time, but can succeed
+      // after that, see CS00011734966 for more details.
+      ensemble->runDiagCommand(
+          "ser INJECT PT=MMU_TOQ_OQS_STAGING_MEM_MMU_ITM0_ITM0m\n", out);
+      ensemble->runDiagCommand(
+          "ser INJECT PT=MMU_TOQ_OQS_STAGING_MEM_MMU_ITM0_ITM0m\n", out);
+      ensemble->runDiagCommand("ser LOG\n", out);
+    } else {
+      ensemble->runDiagCommand(
+          "ser INJECT memory=L2_ENTRY index=10 pipe=pipe_x\n", out);
+      ensemble->runDiagCommand("d chg L2_ENTRY 10 1\n", out);
+    }
     ensemble->runDiagCommand("quit\n", out);
     std::ignore = out;
   }
