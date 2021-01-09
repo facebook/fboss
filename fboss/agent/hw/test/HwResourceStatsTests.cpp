@@ -104,8 +104,14 @@ TEST_F(HwResourceStatsTest, l3Stats) {
     EXPECT_LT(v4RouteFreeAfter, v4RouteFreeBefore);
     EXPECT_LT(v6NextHopsFreeAfter, v6NextHopsFreeBefore);
     EXPECT_LT(v4NextHopsFreeAfter, v4NextHopsFreeBefore);
-    EXPECT_LT(v6HostFreeAfter, v6HostFreeBefore);
-    EXPECT_LT(v4HostFreeAfter, v4HostFreeBefore);
+    if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::HOSTTABLE)) {
+      EXPECT_LT(v6HostFreeAfter, v6HostFreeBefore);
+      EXPECT_LT(v4HostFreeAfter, v4HostFreeBefore);
+    } else {
+      EXPECT_EQ(v6HostFreeAfter, 0);
+      EXPECT_EQ(v4HostFreeAfter, 0);
+    }
     EXPECT_EQ(ecmpFreeAfter, ecmpFreeBefore - 2);
     // Unresolve so we can rerun verify for many (warmboot) iterations
     applyNewState(ecmp4.pruneECMPRoutes(getProgrammedState(), {kPrefix4()}));

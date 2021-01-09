@@ -61,6 +61,13 @@ bool BcmHwTableStatManager::refreshHwStatusStats(HwResourceStats* stats) const {
   stats->l3_ecmp_groups_free_ref() = std::max(
       0, *stats->l3_ecmp_groups_max_ref() - *stats->l3_ecmp_groups_used_ref());
   if (!hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::HOSTTABLE)) {
+    stats->l3_host_max_ref() = 0;
+    stats->l3_host_used_ref() = 0;
+    stats->l3_host_free_ref() = 0;
+    stats->l3_ipv4_host_used_ref() = 0;
+    stats->l3_ipv4_host_free_ref() = 0;
+    stats->l3_ipv6_host_used_ref() = 0;
+    stats->l3_ipv6_host_free_ref() = 0;
     return true;
   }
   // Get v4, v6 host counts
