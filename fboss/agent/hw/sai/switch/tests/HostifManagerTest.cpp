@@ -30,8 +30,14 @@ TEST_F(HostifManagerTest, createHostifTrap) {
       saiManagerTable->hostifManager().addHostifTrap(trapType, queueId, 1);
   auto trapTypeExpected = saiApiTable->hostifApi().getAttribute(
       trapId, SaiHostifTrapTraits::Attributes::TrapType{});
-  auto trapTypeCfg = SaiHostifManager::packetReasonToHostifTrap(trapType);
-  EXPECT_EQ(trapTypeCfg, trapTypeExpected);
+  auto trapPacketActionExpected = saiApiTable->hostifApi().getAttribute(
+      trapId, SaiHostifTrapTraits::Attributes::PacketAction{});
+  sai_hostif_trap_type_t hostifTrapId;
+  sai_packet_action_t hostifPacketAction;
+  std::tie(hostifTrapId, hostifPacketAction) =
+      SaiHostifManager::packetReasonToHostifTrap(trapType, saiPlatform.get());
+  EXPECT_EQ(hostifTrapId, trapTypeExpected);
+  EXPECT_EQ(hostifPacketAction, trapPacketActionExpected);
 }
 
 TEST_F(HostifManagerTest, sharedHostifTrapGroup) {

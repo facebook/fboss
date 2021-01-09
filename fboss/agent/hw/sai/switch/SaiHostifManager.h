@@ -58,14 +58,17 @@ class SaiHostifManager {
       cfg::PacketRxReason trapId,
       uint32_t queueId,
       uint16_t priority);
-  static sai_hostif_trap_type_t packetReasonToHostifTrap(
-      cfg::PacketRxReason reason);
+  static std::pair<sai_hostif_trap_type_t, sai_packet_action_t>
+  packetReasonToHostifTrap(
+      cfg::PacketRxReason reason,
+      const SaiPlatform* platform);
   static cfg::PacketRxReason hostifTrapToPacketReason(
       sai_hostif_trap_type_t trapType);
   static SaiHostifTrapTraits::CreateAttributes makeHostifTrapAttributes(
       cfg::PacketRxReason trapId,
       HostifTrapGroupSaiId trapGroupId,
-      uint16_t priority);
+      uint16_t priority,
+      const SaiPlatform* platform);
   void processHostifDelta(const DeltaValue<ControlPlane>& delta);
   SaiQueueHandle* getQueueHandle(const SaiQueueConfig& saiQueueConfig);
   const SaiQueueHandle* getQueueHandle(

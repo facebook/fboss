@@ -22,33 +22,69 @@
 
 using namespace std::chrono;
 
+namespace {
+
+/*
+ * TODO: This function is a temporary solution and adding this
+ * to unblock bcm canary. Once I verify it on Tajo, I will get rid of
+ * getHostifCopyToCpuPacketReason.
+ */
+sai_packet_action_t getHostifCopyToCpuPacketReason(
+    const facebook::fboss::SaiPlatform* platform) {
+  return platform->getAsic()->getAsicType() ==
+          facebook::fboss::HwAsic::AsicType::ASIC_TYPE_TAJO
+      ? SAI_PACKET_ACTION_TRAP
+      : SAI_PACKET_ACTION_COPY;
+}
+} // namespace
+
 namespace facebook::fboss {
 
-sai_hostif_trap_type_t SaiHostifManager::packetReasonToHostifTrap(
-    cfg::PacketRxReason reason) {
+std::pair<sai_hostif_trap_type_t, sai_packet_action_t>
+SaiHostifManager::packetReasonToHostifTrap(
+    cfg::PacketRxReason reason,
+    const SaiPlatform* platform) {
+  /*
+   * Traps such as ARP request, ARP response and IPv6 ND are configured with
+   * packet action COPY:
+   *  - One copy reaches the CPU if the ARP/NDP is for the switch.
+   *  - Also flooded to the vlan so that the hosts on the vlan receive it.
+   * For eg, all rsw downlinks will be in the same vlan. Pinging between hosts
+   * will generate an ARP/NdP which has to be flooded to the vlan members.
+   * IP2ME, BGP and BGPV6 are destined to the switch and hence configured as
+   * TRAP. LLDP and DHCP is link local and hence configured as TRAP.
+   */
   switch (reason) {
     case cfg::PacketRxReason::ARP:
-      return SAI_HOSTIF_TRAP_TYPE_ARP_REQUEST;
+      return std::make_pair(
+          SAI_HOSTIF_TRAP_TYPE_ARP_REQUEST,
+          getHostifCopyToCpuPacketReason(platform));
     case cfg::PacketRxReason::ARP_RESPONSE:
-      return SAI_HOSTIF_TRAP_TYPE_ARP_RESPONSE;
+      return std::make_pair(
+          SAI_HOSTIF_TRAP_TYPE_ARP_RESPONSE,
+          getHostifCopyToCpuPacketReason(platform));
     case cfg::PacketRxReason::NDP:
-      return SAI_HOSTIF_TRAP_TYPE_IPV6_NEIGHBOR_DISCOVERY;
+      return std::make_pair(
+          SAI_HOSTIF_TRAP_TYPE_IPV6_NEIGHBOR_DISCOVERY,
+          getHostifCopyToCpuPacketReason(platform));
     case cfg::PacketRxReason::CPU_IS_NHOP:
-      return SAI_HOSTIF_TRAP_TYPE_IP2ME;
+      return std::make_pair(SAI_HOSTIF_TRAP_TYPE_IP2ME, SAI_PACKET_ACTION_TRAP);
     case cfg::PacketRxReason::DHCP:
-      return SAI_HOSTIF_TRAP_TYPE_DHCP;
+      return std::make_pair(SAI_HOSTIF_TRAP_TYPE_DHCP, SAI_PACKET_ACTION_TRAP);
     case cfg::PacketRxReason::LLDP:
-      return SAI_HOSTIF_TRAP_TYPE_LLDP;
+      return std::make_pair(SAI_HOSTIF_TRAP_TYPE_LLDP, SAI_PACKET_ACTION_TRAP);
     case cfg::PacketRxReason::BGP:
-      return SAI_HOSTIF_TRAP_TYPE_BGP;
+      return std::make_pair(SAI_HOSTIF_TRAP_TYPE_BGP, SAI_PACKET_ACTION_TRAP);
     case cfg::PacketRxReason::BGPV6:
-      return SAI_HOSTIF_TRAP_TYPE_BGPV6;
+      return std::make_pair(SAI_HOSTIF_TRAP_TYPE_BGPV6, SAI_PACKET_ACTION_TRAP);
     case cfg::PacketRxReason::LACP:
-      return SAI_HOSTIF_TRAP_TYPE_LACP;
+      return std::make_pair(SAI_HOSTIF_TRAP_TYPE_LACP, SAI_PACKET_ACTION_TRAP);
     case cfg::PacketRxReason::L3_MTU_ERROR:
-      return SAI_HOSTIF_TRAP_TYPE_L3_MTU_ERROR;
+      return std::make_pair(
+          SAI_HOSTIF_TRAP_TYPE_L3_MTU_ERROR, SAI_PACKET_ACTION_TRAP);
     case cfg::PacketRxReason::TTL_1:
-      return SAI_HOSTIF_TRAP_TYPE_TTL_ERROR;
+      return std::make_pair(
+          SAI_HOSTIF_TRAP_TYPE_TTL_ERROR, SAI_PACKET_ACTION_TRAP);
     case cfg::PacketRxReason::BPDU:
     case cfg::PacketRxReason::L3_SLOW_PATH:
     case cfg::PacketRxReason::L3_DEST_MISS:
@@ -92,11 +128,15 @@ SaiHostifTrapTraits::CreateAttributes
 SaiHostifManager::makeHostifTrapAttributes(
     cfg::PacketRxReason trapId,
     HostifTrapGroupSaiId trapGroupId,
-    uint16_t priority) {
+    uint16_t priority,
+    const SaiPlatform* platform) {
+  sai_hostif_trap_type_t hostifTrapId;
+  sai_packet_action_t hostifPacketAction;
+  std::tie(hostifTrapId, hostifPacketAction) =
+      packetReasonToHostifTrap(trapId, platform);
   SaiHostifTrapTraits::Attributes::PacketAction packetAction{
-      SAI_PACKET_ACTION_TRAP};
-  SaiHostifTrapTraits::Attributes::TrapType trapType{
-      packetReasonToHostifTrap(trapId)};
+      hostifPacketAction};
+  SaiHostifTrapTraits::Attributes::TrapType trapType{hostifTrapId};
   SaiHostifTrapTraits::Attributes::TrapPriority trapPriority{priority};
   SaiHostifTrapTraits::Attributes::TrapGroup trapGroup{trapGroupId};
   return SaiHostifTrapTraits::CreateAttributes{
@@ -127,8 +167,8 @@ HostifTrapSaiId SaiHostifManager::addHostifTrap(
         apache::thrift::util::enumName(trapId));
   }
   auto hostifTrapGroup = ensureHostifTrapGroup(queueId);
-  auto attributes =
-      makeHostifTrapAttributes(trapId, hostifTrapGroup->adapterKey(), priority);
+  auto attributes = makeHostifTrapAttributes(
+      trapId, hostifTrapGroup->adapterKey(), priority, platform_);
   SaiHostifTrapTraits::AdapterHostKey k =
       GET_ATTR(HostifTrap, TrapType, attributes);
   auto& store = SaiStore::getInstance()->get<SaiHostifTrapTraits>();
@@ -160,8 +200,8 @@ void SaiHostifManager::changeHostifTrap(
         apache::thrift::util::enumName(trapId));
   }
   auto hostifTrapGroup = ensureHostifTrapGroup(queueId);
-  auto attributes =
-      makeHostifTrapAttributes(trapId, hostifTrapGroup->adapterKey(), priority);
+  auto attributes = makeHostifTrapAttributes(
+      trapId, hostifTrapGroup->adapterKey(), priority, platform_);
   SaiHostifTrapTraits::AdapterHostKey k =
       GET_ATTR(HostifTrap, TrapType, attributes);
   auto& store = SaiStore::getInstance()->get<SaiHostifTrapTraits>();
