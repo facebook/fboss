@@ -174,11 +174,6 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
     const auto& programmedState = getHwSwitchEnsemble()->getProgrammedState();
     return programmedState->getPort(masterLogicalPortIds()[0])->getSpeed();
   }
-  void clearPortStats() {
-    auto ports = std::make_unique<std::vector<int32_t>>();
-    ports->emplace_back((masterLogicalPortIds()[0]));
-    getHwSwitch()->clearPortStats(ports);
-  }
   bool verifyWRRHelper(
       int maxWeightQueueId,
       const std::map<int, uint8_t>& wrrQueueToWeight);
@@ -199,11 +194,13 @@ bool HwOlympicQosSchedulerTest::verifyWRRHelper(
   const double kVariance = 0.10; // i.e. + or -10%
   auto portId = masterLogicalPortIds()[0];
   getHwSwitchEnsemble()->waitForLineRateOnPort(portId);
-  clearPortStats();
   auto retries = 5;
   while (retries--) {
-    auto queueStats = *getLatestPortStats(portId).queueOutPackets__ref();
-    auto maxWeightQueueBytes = queueStats.find(maxWeightQueueId)->second;
+    auto queueStatsBefore = *getLatestPortStats(portId).queueOutPackets__ref();
+    sleep(1);
+    auto queueStatsAfter = *getLatestPortStats(portId).queueOutPackets__ref();
+    auto maxWeightQueueBytes = queueStatsAfter.find(maxWeightQueueId)->second -
+        queueStatsBefore.find(maxWeightQueueId)->second;
     auto maxWeightQueueWeight = wrrQueueToWeight.at(maxWeightQueueId);
     auto maxWeightQueueNormalizedBytes =
         maxWeightQueueBytes / maxWeightQueueWeight;
@@ -219,9 +216,9 @@ bool HwOlympicQosSchedulerTest::verifyWRRHelper(
                << " low normalized: " << lowMaxWeightQueueNormalizedBytes
                << " high normalized: " << highMaxWeightQueueNormalizedBytes;
     auto distributionOk = true;
-    for (const auto& queueStat : queueStats) {
+    for (const auto& queueStat : queueStatsAfter) {
       auto currQueueId = queueStat.first;
-      auto currQueueBytes = queueStat.second;
+      auto currQueueBytes = queueStat.second - queueStatsBefore[currQueueId];
       if (wrrQueueToWeight.find(currQueueId) == wrrQueueToWeight.end()) {
         if (currQueueBytes) {
           distributionOk = false;
@@ -247,7 +244,6 @@ bool HwOlympicQosSchedulerTest::verifyWRRHelper(
       return true;
     }
     XLOG(INFO) << " Retrying ...";
-    sleep(1);
   }
   return false;
 }
@@ -257,14 +253,15 @@ bool HwOlympicQosSchedulerTest::verifySPHelper(int trafficQueueId) {
   XLOG(DBG0) << "trafficQueueId: " << trafficQueueId;
   auto portId = masterLogicalPortIds()[0];
   getHwSwitchEnsemble()->waitForLineRateOnPort(portId);
-  clearPortStats();
   auto retries = 5;
   while (retries--) {
     auto distributionOk = true;
-    auto queueStats = *getLatestPortStats(portId).queueOutPackets__ref();
-    for (const auto& queueStat : queueStats) {
+    auto queueStatsBefore = *getLatestPortStats(portId).queueOutPackets__ref();
+    sleep(1);
+    auto queueStatsAfter = *getLatestPortStats(portId).queueOutPackets__ref();
+    for (const auto& queueStat : queueStatsAfter) {
       auto queueId = queueStat.first;
-      auto statVal = queueStat.second;
+      auto statVal = queueStat.second - queueStatsBefore[queueId];
       XLOG(DBG0) << "QueueId: " << queueId << " stats: " << statVal;
       distributionOk =
           (queueId != trafficQueueId ? statVal == 0 : statVal != 0);
@@ -276,7 +273,6 @@ bool HwOlympicQosSchedulerTest::verifySPHelper(int trafficQueueId) {
       return true;
     }
     XLOG(INFO) << " Retrying ...";
-    sleep(1);
   }
   return false;
 }
