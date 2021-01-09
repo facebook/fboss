@@ -55,9 +55,11 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::INGRESS_L3_INTERFACE:
     case HwAsic::Feature::DETAILED_L2_UPDATE:
       return true;
-    case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
     case HwAsic::Feature::NON_UNICAST_HASH:
       return !isA0_;
+    case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER: // enable on B0 after
+                                                        // CS00011675365 is
+                                                        // resolved
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
     case HwAsic::Feature::QOS_MAP_GLOBAL:
     case HwAsic::Feature::QCM:
