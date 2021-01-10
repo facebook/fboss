@@ -443,10 +443,11 @@ TEST(Route, resolveDropToCPUMix) {
       RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
   // then, add a route for 4 nexthops. One to each interface, one
   // to the DROP and one to the ToCPU
-  RouteNextHopSet nhops = makeNextHops({"1.1.1.10", // intf 1
-                                        "2.2.2.10", // intf 2
-                                        "11.1.1.10", // DROP
-                                        "22.1.1.10"}); // ToCPU
+  RouteNextHopSet nhops = makeNextHops(
+      {"1.1.1.10", // intf 1
+       "2.2.2.10", // intf 2
+       "11.1.1.10", // DROP
+       "22.1.1.10"}); // ToCPU
   u1.addRoute(
       rid,
       IPAddress("8.8.8.0"),
@@ -470,8 +471,9 @@ TEST(Route, resolveDropToCPUMix) {
 
   // now update the route with just DROP and ToCPU, expect ToCPU to win
   RouteUpdater u2(table2);
-  RouteNextHopSet nhops2 = makeNextHops({"11.1.1.10", // DROP
-                                         "22.1.1.10"}); // ToCPU
+  RouteNextHopSet nhops2 = makeNextHops(
+      {"11.1.1.10", // DROP
+       "22.1.1.10"}); // ToCPU
   u2.addRoute(
       rid,
       IPAddress("8.8.8.0"),
@@ -525,11 +527,13 @@ TEST(Route, addDel) {
 
   auto rid = RouterID(0);
 
-  RouteNextHopSet nexthops = makeNextHops({"1.1.1.10", // intf 1
-                                           "2::2", // intf 2
-                                           "1.1.2.10"}); // un-resolvable
-  RouteNextHopSet nexthops2 = makeNextHops({"1.1.3.10", // un-resolvable
-                                            "11:11::1"}); // un-resolvable
+  RouteNextHopSet nexthops = makeNextHops(
+      {"1.1.1.10", // intf 1
+       "2::2", // intf 2
+       "1.1.2.10"}); // un-resolvable
+  RouteNextHopSet nexthops2 = makeNextHops(
+      {"1.1.3.10", // un-resolvable
+       "11:11::1"}); // un-resolvable
 
   RouteUpdater u1(stateV1->getRouteTables());
   u1.addRoute(
@@ -1187,8 +1191,9 @@ TEST(Route, changedRoutesPostUpdate) {
   ASSERT_NE(nullptr, stateV1);
   stateV1->publish();
   auto rid = RouterID(0);
-  RouteNextHopSet nexthops = makeNextHops({"1.1.1.10", // resolved by intf 1
-                                           "2::2"}); // resolved by intf 2
+  RouteNextHopSet nexthops = makeNextHops(
+      {"1.1.1.10", // resolved by intf 1
+       "2::2"}); // resolved by intf 2
 
   auto numChangedRoutes = [=](const RTMapDelta& delta) {
     auto cnt = 0;
@@ -2386,8 +2391,8 @@ TEST(Route, unresolvedWithRouteLabels) {
         1,
         std::make_optional<LabelForwardingAction>(
             LabelForwardingAction::LabelForwardingType::PUSH,
-            LabelForwardingAction::LabelStack{kLabelStacks[i].begin(),
-                                              kLabelStacks[i].end()})));
+            LabelForwardingAction::LabelStack{
+                kLabelStacks[i].begin(), kLabelStacks[i].end()})));
   }
 
   auto state = applyInitConfig();
@@ -2428,8 +2433,8 @@ TEST(Route, withTunnelAndRouteLabels) {
         1,
         std::make_optional<LabelForwardingAction>(
             LabelForwardingAction::LabelForwardingType::PUSH,
-            LabelForwardingAction::LabelStack{kLabelStacks[i].begin(),
-                                              kLabelStacks[i].begin() + 2})));
+            LabelForwardingAction::LabelStack{
+                kLabelStacks[i].begin(), kLabelStacks[i].begin() + 2})));
   }
 
   auto state = applyInitConfig();
@@ -2453,8 +2458,8 @@ TEST(Route, withTunnelAndRouteLabels) {
         ECMP_WEIGHT,
         LabelForwardingAction(
             LabelForwardingAction::LabelForwardingType::PUSH,
-            LabelForwardingAction::LabelStack{kLabelStacks[i].begin() + 2,
-                                              kLabelStacks[i].begin() + 3})));
+            LabelForwardingAction::LabelStack{
+                kLabelStacks[i].begin() + 2, kLabelStacks[i].begin() + 3})));
   }
 
   // igp routes to bgp nexthops,
@@ -2537,8 +2542,8 @@ TEST(Route, withOnlyTunnelLabels) {
         ECMP_WEIGHT,
         LabelForwardingAction(
             LabelForwardingAction::LabelForwardingType::PUSH,
-            LabelForwardingAction::LabelStack{kLabelStacks[i].begin(),
-                                              kLabelStacks[i].end()})));
+            LabelForwardingAction::LabelStack{
+                kLabelStacks[i].begin(), kLabelStacks[i].end()})));
   }
 
   // igp routes to bgp nexthops,
@@ -2599,8 +2604,8 @@ TEST(Route, updateTunnelLabels) {
       1,
       std::make_optional<LabelForwardingAction>(
           LabelForwardingAction::LabelForwardingType::PUSH,
-          LabelForwardingAction::LabelStack{kLabelStacks[0].begin(),
-                                            kLabelStacks[0].begin() + 2})));
+          LabelForwardingAction::LabelStack{
+              kLabelStacks[0].begin(), kLabelStacks[0].begin() + 2})));
 
   auto state = applyInitConfig();
   ASSERT_NE(nullptr, state);
@@ -2621,8 +2626,8 @@ TEST(Route, updateTunnelLabels) {
       ECMP_WEIGHT,
       LabelForwardingAction(
           LabelForwardingAction::LabelForwardingType::PUSH,
-          LabelForwardingAction::LabelStack{kLabelStacks[0].begin() + 2,
-                                            kLabelStacks[0].begin() + 3})};
+          LabelForwardingAction::LabelStack{
+              kLabelStacks[0].begin() + 2, kLabelStacks[0].begin() + 3})};
   // igp routes to bgp nexthops,
   updater.addRoute(
       rid,
@@ -2641,8 +2646,8 @@ TEST(Route, updateTunnelLabels) {
       ECMP_WEIGHT,
       LabelForwardingAction(
           LabelForwardingAction::LabelForwardingType::PUSH,
-          LabelForwardingAction::LabelStack{kLabelStacks[1].begin() + 2,
-                                            kLabelStacks[1].begin() + 3})};
+          LabelForwardingAction::LabelStack{
+              kLabelStacks[1].begin() + 2, kLabelStacks[1].begin() + 3})};
 
   RouteUpdater anotherUpdater(tables);
   anotherUpdater.delRoute(rid, kBgpNextHopAddrs[0], 64, ClientID::OPENR);
@@ -2692,8 +2697,8 @@ TEST(Route, updateRouteLabels) {
       1,
       std::make_optional<LabelForwardingAction>(
           LabelForwardingAction::LabelForwardingType::PUSH,
-          LabelForwardingAction::LabelStack{kLabelStacks[0].begin(),
-                                            kLabelStacks[0].begin() + 2})));
+          LabelForwardingAction::LabelStack{
+              kLabelStacks[0].begin(), kLabelStacks[0].begin() + 2})));
 
   auto state = applyInitConfig();
   ASSERT_NE(nullptr, state);
@@ -2714,8 +2719,8 @@ TEST(Route, updateRouteLabels) {
       ECMP_WEIGHT,
       LabelForwardingAction(
           LabelForwardingAction::LabelForwardingType::PUSH,
-          LabelForwardingAction::LabelStack{kLabelStacks[0].begin() + 2,
-                                            kLabelStacks[0].begin() + 3})};
+          LabelForwardingAction::LabelStack{
+              kLabelStacks[0].begin() + 2, kLabelStacks[0].begin() + 3})};
   // igp routes to bgp nexthops,
   updater.addRoute(
       rid,
@@ -2733,8 +2738,8 @@ TEST(Route, updateRouteLabels) {
       1,
       std::make_optional<LabelForwardingAction>(
           LabelForwardingAction::LabelForwardingType::PUSH,
-          LabelForwardingAction::LabelStack{kLabelStacks[1].begin(),
-                                            kLabelStacks[1].begin() + 2})};
+          LabelForwardingAction::LabelStack{
+              kLabelStacks[1].begin(), kLabelStacks[1].begin() + 2})};
 
   RouteUpdater anotherUpdater(tables);
   anotherUpdater.delRoute(

@@ -489,4 +489,4 @@ struct formatter<facebook::fboss::SaiObjectStore<SaiObjectTraits>> {
 
 template <typename T, typename Char>
 struct is_range<facebook::fboss::SaiObjectStore<T>, Char> : std::false_type {};
-}
+} // namespace fmt

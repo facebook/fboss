@@ -57,9 +57,8 @@ class SaiSwitch : public HwSwitch {
 
   static auto constexpr kAclTable1 = "AclTable1";
 
-  HwInitResult init(
-      Callback* callback,
-      bool failHwCallsOnWarmboot) noexcept override;
+  HwInitResult init(Callback* callback, bool failHwCallsOnWarmboot) noexcept
+      override;
 
   void unregisterCallbacks() noexcept override;
   /*

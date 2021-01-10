@@ -21,9 +21,8 @@ std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRxAfeTrimIdWrapper::operator()() {
   return SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_AFE_TRIM;
 }
-std::optional<sai_attr_id_t>
-SaiPortSerdesTraits::Attributes::AttributeRxAcCouplingBypassIdWrapper::
-operator()() {
+std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
+    AttributeRxAcCouplingBypassIdWrapper::operator()() {
   return SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_AC_COUPLING_BYPASS;
 }
 
@@ -41,8 +40,8 @@ SaiTamEventTraits::Attributes::AttributeSwitchEventType::operator()() {
   return SAI_TAM_EVENT_ATTR_FAKE_SWITCH_EVENT_TYPE;
 }
 
-std::optional<sai_attr_id_t> SaiTamEventTraits::Attributes::AttributeEventId::
-operator()() {
+std::optional<sai_attr_id_t>
+SaiTamEventTraits::Attributes::AttributeEventId::operator()() {
   return SAI_TAM_EVENT_ATTR_FAKE_SWITCH_EVENT_ID;
 }
 
@@ -51,9 +50,8 @@ SaiSwitchTraits::Attributes::AttributeAclFieldListWrapper::operator()() {
   return SAI_SWITCH_ATTR_EXT_FAKE_ACL_FIELD_LIST;
 }
 
-std::optional<sai_attr_id_t>
-SaiSwitchTraits::Attributes::AttributeEgressPoolAvaialableSizeIdWrapper::
-operator()() {
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeEgressPoolAvaialableSizeIdWrapper::operator()() {
   return SAI_SWITCH_ATTR_DEFAULT_EGRESS_BUFFER_POOL_SHARED_SIZE;
 }
 } // namespace facebook::fboss

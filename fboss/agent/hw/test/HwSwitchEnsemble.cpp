@@ -378,9 +378,10 @@ void HwSwitchEnsemble::waitForLineRateOnPort(PortID port) {
 }
 
 HwSwitchEnsemble::Features HwSwitchEnsemble::getAllFeatures() {
-  return {HwSwitchEnsemble::LINKSCAN,
-          HwSwitchEnsemble::PACKET_RX,
-          HwSwitchEnsemble::STATS_COLLECTION};
+  return {
+      HwSwitchEnsemble::LINKSCAN,
+      HwSwitchEnsemble::PACKET_RX,
+      HwSwitchEnsemble::STATS_COLLECTION};
 }
 
 void HwSwitchEnsemble::ensureThrift() {

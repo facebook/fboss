@@ -259,20 +259,22 @@ class HwLabelEdgeRouteTest : public HwLinkStateDependentTest {
 };
 
 template <>
-const std::array<TestParameters<folly::IPAddressV4>, 2> HwLabelEdgeRouteTest<
-    folly::IPAddressV4>::kParams{
-    TestParameters<folly::IPAddressV4>{
-        Route<folly::IPAddressV4>::Prefix{folly::IPAddressV4("101.102.103.0"),
-                                          24},
-        folly::IPAddressV4{"11.12.13.1"},
-        &kStack0,
-        1001},
-    TestParameters<folly::IPAddressV4>{
-        Route<folly::IPAddressV4>::Prefix{folly::IPAddressV4("201.202.203.0"),
-                                          24},
-        folly::IPAddressV4{"21.22.23.1"},
-        &kStack1,
-        2001}};
+const std::array<TestParameters<folly::IPAddressV4>, 2>
+    HwLabelEdgeRouteTest<folly::IPAddressV4>::kParams{
+        TestParameters<folly::IPAddressV4>{
+            Route<folly::IPAddressV4>::Prefix{
+                folly::IPAddressV4("101.102.103.0"),
+                24},
+            folly::IPAddressV4{"11.12.13.1"},
+            &kStack0,
+            1001},
+        TestParameters<folly::IPAddressV4>{
+            Route<folly::IPAddressV4>::Prefix{
+                folly::IPAddressV4("201.202.203.0"),
+                24},
+            folly::IPAddressV4{"21.22.23.1"},
+            &kStack1,
+            2001}};
 
 template <>
 const std::array<TestParameters<folly::IPAddressV6>, 2>
@@ -954,8 +956,8 @@ TYPED_TEST(HwLabelEdgeRouteTest, TunnelRefTest) {
 
   auto setup = [=]() {
     for (auto i = 0; i < 2; i++) {
-      LabelForwardingAction::LabelStack stack{params[i].stack->begin(),
-                                              params[i].stack->begin() + 1};
+      LabelForwardingAction::LabelStack stack{
+          params[i].stack->begin(), params[i].stack->begin() + 1};
       std::copy(
           params[0].stack->begin() + 1,
           params[0].stack->begin() + maxSize - 1,

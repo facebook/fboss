@@ -101,16 +101,18 @@ TEST_F(AclTableGroupStoreTest, loadAclTableGroups) {
   s.reload();
   auto& store = s.get<SaiAclTableGroupTraits>();
 
-  SaiAclTableGroupTraits::AdapterHostKey k{SAI_ACL_STAGE_INGRESS,
-                                           this->kBindPointTypeList(),
-                                           this->kTableGroupType()};
+  SaiAclTableGroupTraits::AdapterHostKey k{
+      SAI_ACL_STAGE_INGRESS,
+      this->kBindPointTypeList(),
+      this->kTableGroupType()};
   auto got = store.get(k);
   EXPECT_NE(got, nullptr);
   EXPECT_EQ(got->adapterKey(), aclTableGroupId);
 
-  SaiAclTableGroupTraits::AdapterHostKey k2{SAI_ACL_STAGE_EGRESS,
-                                            this->kBindPointTypeList(),
-                                            this->kTableGroupType()};
+  SaiAclTableGroupTraits::AdapterHostKey k2{
+      SAI_ACL_STAGE_EGRESS,
+      this->kBindPointTypeList(),
+      this->kTableGroupType()};
   auto got2 = store.get(k2);
   EXPECT_NE(got2, nullptr);
   EXPECT_EQ(got2->adapterKey(), aclTableGroupId2);

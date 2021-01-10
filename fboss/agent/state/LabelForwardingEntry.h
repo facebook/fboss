@@ -27,8 +27,9 @@ struct LabelForwardingEntryFields {
   }
 
   MplsLabel topLabel;
-  LabelNextHopEntry nexthop{LabelNextHopEntry::Action::DROP,
-                            AdminDistance::MAX_ADMIN_DISTANCE};
+  LabelNextHopEntry nexthop{
+      LabelNextHopEntry::Action::DROP,
+      AdminDistance::MAX_ADMIN_DISTANCE};
   LabelNextHopsByClient labelNextHopsByClient;
   template <typename Fn>
   void forEachChild(Fn /* unused */) {}

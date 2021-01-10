@@ -7,11 +7,13 @@
 namespace {
 using I2CRegisterAddrMap = std::map<int, facebook::fboss::I2CRegisterAddr>;
 using facebook::fboss::I2CRegisterType;
-const I2CRegisterAddrMap descUpperAddrMap{{0, {0x504, 0x20}},
-                                          {1, {0x504, 0x8}}};
+const I2CRegisterAddrMap descUpperAddrMap{
+    {0, {0x504, 0x20}},
+    {1, {0x504, 0x8}}};
 
-const I2CRegisterAddrMap descLowerAddrMap{{0, {0x500, 0x20}},
-                                          {1, {0x500, 0x8}}};
+const I2CRegisterAddrMap descLowerAddrMap{
+    {0, {0x500, 0x20}},
+    {1, {0x500, 0x8}}};
 
 const I2CRegisterAddrMap rtcStatusAddrMap{{0, {0x600, 0x4}}, {1, {0x600, 0x4}}};
 

@@ -171,8 +171,8 @@ void ManagedVlanMember::createObject(PublisherObjects objects) {
   SaiVlanMemberTraits::Attributes::VlanId vlanIdAttribute{saiVlanId_};
   SaiVlanMemberTraits::Attributes::BridgePortId bridgePortIdAttribute{
       bridgePortSaiId};
-  SaiVlanMemberTraits::CreateAttributes memberAttributes{vlanIdAttribute,
-                                                         bridgePortIdAttribute};
+  SaiVlanMemberTraits::CreateAttributes memberAttributes{
+      vlanIdAttribute, bridgePortIdAttribute};
   SaiVlanMemberTraits::AdapterHostKey memberAdapterHostKey{
       bridgePortIdAttribute};
 

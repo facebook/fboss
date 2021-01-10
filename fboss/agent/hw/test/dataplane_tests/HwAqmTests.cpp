@@ -111,8 +111,8 @@ class HwAqmTest : public HwLinkStateDependentTest {
     }
     auto setup = [=]() {
       auto kEcmpWidthForTest = 1;
-      utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(),
-                                               getIntfMac()};
+      utility::EcmpSetupAnyNPorts6 ecmpHelper6{
+          getProgrammedState(), getIntfMac()};
       setupECMPForwarding(ecmpHelper6, kEcmpWidthForTest);
       if (isEcn) {
         // Assert that ECT capable packets are not counted by port ECN

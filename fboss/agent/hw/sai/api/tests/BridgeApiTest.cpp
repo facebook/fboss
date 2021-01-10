@@ -36,10 +36,11 @@ class BridgeApiTest : public ::testing::Test {
       const {
     SaiBridgePortTraits::Attributes::PortId bridgePortId{42};
     SaiBridgePortTraits::Attributes::AdminState bridgePortAdminState{true};
-    SaiBridgePortTraits::CreateAttributes c{bridgePortType,
-                                            bridgePortId,
-                                            bridgePortAdminState,
-                                            bridgePortFdbLearningMode};
+    SaiBridgePortTraits::CreateAttributes c{
+        bridgePortType,
+        bridgePortId,
+        bridgePortAdminState,
+        bridgePortFdbLearningMode};
     return bridgeApi->create<SaiBridgePortTraits>(c, 0);
   }
 

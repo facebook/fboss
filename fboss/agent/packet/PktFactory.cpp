@@ -242,10 +242,11 @@ EthFrame getEthFrame(
   constexpr auto isV4 = std::is_same_v<AddrT, folly::IPAddressV4>;
   constexpr auto etherType =
       isV4 ? ETHERTYPE::ETHERTYPE_IPV4 : ETHERTYPE::ETHERTYPE_IPV6;
-  EthHdr ethHdr{srcMac,
-                dstMac,
-                {EthHdr::VlanTags_t{VlanTag(vlanId, 0x8100)}},
-                static_cast<uint16_t>(etherType)};
+  EthHdr ethHdr{
+      srcMac,
+      dstMac,
+      {EthHdr::VlanTags_t{VlanTag(vlanId, 0x8100)}},
+      static_cast<uint16_t>(etherType)};
   std::conditional_t<isV4, IPv4Hdr, IPv6Hdr> ipHdr;
   ipHdr.srcAddr = srcIp;
   ipHdr.dstAddr = dstIp;
@@ -278,10 +279,11 @@ EthFrame getEthFrame(
     uint16_t sPort,
     uint16_t dPort) {
   constexpr auto isV4 = std::is_same_v<AddrT, folly::IPAddressV4>;
-  EthHdr ethHdr{srcMac,
-                dstMac,
-                {EthHdr::VlanTags_t{VlanTag(1, 0x8100)}},
-                static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_MPLS)};
+  EthHdr ethHdr{
+      srcMac,
+      dstMac,
+      {EthHdr::VlanTags_t{VlanTag(1, 0x8100)}},
+      static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_MPLS)};
 
   MPLSHdr mplsHdr{std::move(labels)};
 

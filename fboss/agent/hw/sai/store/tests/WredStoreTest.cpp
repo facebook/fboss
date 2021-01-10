@@ -52,12 +52,13 @@ class WredStoreTest : public SaiStoreTest {
         ecnGreenMinThresholdAttribute{ecnGreenMinThreshold};
     SaiWredTraits::Attributes::EcnGreenMaxThreshold
         ecnGreenMaxThresholdAttribute{ecnGreenMaxThreshold};
-    SaiWredTraits::AdapterHostKey k{greenEnableAttribute,
-                                    greenMinThresholdAttribute,
-                                    greenMaxThresholdAttribute,
-                                    ecnMarkModeAttribute,
-                                    ecnGreenMinThresholdAttribute,
-                                    ecnGreenMaxThresholdAttribute};
+    SaiWredTraits::AdapterHostKey k{
+        greenEnableAttribute,
+        greenMinThresholdAttribute,
+        greenMaxThresholdAttribute,
+        ecnMarkModeAttribute,
+        ecnGreenMinThresholdAttribute,
+        ecnGreenMaxThresholdAttribute};
     return k;
   }
 };

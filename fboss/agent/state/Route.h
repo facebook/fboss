@@ -58,8 +58,9 @@ struct RouteFields {
    * the route is directly connected
    */
   RouteNextHopsMulti nexthopsmulti;
-  RouteNextHopEntry fwd{RouteNextHopEntry::Action::DROP,
-                        AdminDistance::MAX_ADMIN_DISTANCE};
+  RouteNextHopEntry fwd{
+      RouteNextHopEntry::Action::DROP,
+      AdminDistance::MAX_ADMIN_DISTANCE};
   uint32_t flags{0};
   std::optional<cfg::AclLookupClass> classID{std::nullopt};
 };

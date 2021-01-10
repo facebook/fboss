@@ -27,11 +27,12 @@ const std::map<int, cfg::AclLookupClass>& kQueuePerHostQueueToClass() {
 }
 
 const std::vector<int>& kQueuePerhostQueueIds() {
-  static const std::vector<int> queueIds = {kQueuePerHostQueue0,
-                                            kQueuePerHostQueue1,
-                                            kQueuePerHostQueue2,
-                                            kQueuePerHostQueue3,
-                                            kQueuePerHostQueue4};
+  static const std::vector<int> queueIds = {
+      kQueuePerHostQueue0,
+      kQueuePerHostQueue1,
+      kQueuePerHostQueue2,
+      kQueuePerHostQueue3,
+      kQueuePerHostQueue4};
 
   return queueIds;
 }

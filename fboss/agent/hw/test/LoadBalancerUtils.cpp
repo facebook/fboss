@@ -39,9 +39,9 @@ cfg::Fields getHalfHashFields() {
 
 cfg::Fields getFullHashFields() {
   auto hashFields = getHalfHashFields();
-  hashFields.transportFields_ref() =
-      std::set<cfg::TransportField>({cfg::TransportField::SOURCE_PORT,
-                                     cfg::TransportField::DESTINATION_PORT});
+  hashFields.transportFields_ref() = std::set<cfg::TransportField>(
+      {cfg::TransportField::SOURCE_PORT,
+       cfg::TransportField::DESTINATION_PORT});
   return hashFields;
 }
 

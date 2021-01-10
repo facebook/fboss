@@ -963,8 +963,8 @@ TEST(ArpTest, PendingArpCleanup) {
 
   VlanID vlanID(1);
   IPAddressV4 senderIP = IPAddressV4("10.0.0.1");
-  std::array<IPAddressV4, 2> targetIP = {IPAddressV4("10.0.0.2"),
-                                         IPAddressV4("10.0.0.3")};
+  std::array<IPAddressV4, 2> targetIP = {
+      IPAddressV4("10.0.0.2"), IPAddressV4("10.0.0.3")};
 
   // Wait for pending entries to expire
   std::array<std::unique_ptr<WaitForArpEntryExpiration>, 2> arpExpirations;
@@ -1042,10 +1042,10 @@ TEST(ArpTest, ArpExpiration) {
 
   VlanID vlanID(1);
   IPAddressV4 senderIP = IPAddressV4("10.0.0.1");
-  std::array<IPAddressV4, 2> targetIP = {IPAddressV4("10.0.0.2"),
-                                         IPAddressV4("10.0.0.3")};
-  std::array<MacAddress, 2> targetMAC = {MacAddress("02:10:20:30:40:22"),
-                                         MacAddress("02:10:20:30:40:23")};
+  std::array<IPAddressV4, 2> targetIP = {
+      IPAddressV4("10.0.0.2"), IPAddressV4("10.0.0.3")};
+  std::array<MacAddress, 2> targetMAC = {
+      MacAddress("02:10:20:30:40:22"), MacAddress("02:10:20:30:40:23")};
 
   for (auto ip : targetIP) {
     testSendArpRequest(sw, vlanID, senderIP, ip);
@@ -1152,12 +1152,14 @@ TEST(ArpTest, PortFlapRecover) {
 
   VlanID vlanID(1);
   IPAddressV4 senderIP = IPAddressV4("10.0.0.1");
-  std::vector<IPAddressV4> targetIP = {IPAddressV4("10.0.0.2"),
-                                       IPAddressV4("10.0.0.3"),
-                                       IPAddressV4("10.0.0.4")};
-  std::vector<MacAddress> targetMAC = {MacAddress("02:10:20:30:40:22"),
-                                       MacAddress("02:10:20:30:40:23"),
-                                       MacAddress("02:10:20:30:40:24")};
+  std::vector<IPAddressV4> targetIP = {
+      IPAddressV4("10.0.0.2"),
+      IPAddressV4("10.0.0.3"),
+      IPAddressV4("10.0.0.4")};
+  std::vector<MacAddress> targetMAC = {
+      MacAddress("02:10:20:30:40:22"),
+      MacAddress("02:10:20:30:40:23"),
+      MacAddress("02:10:20:30:40:24")};
   std::vector<unsigned int> targetPort = {1, 1, 2};
 
   // Cache the current stats
@@ -1360,8 +1362,8 @@ TEST(ArpTest, receivedPacketWithRouteToDestination) {
   auto sw = handle->getSw();
   VlanID vlanID(1);
   IPAddressV4 senderIP = IPAddressV4("10.0.0.1");
-  std::array<IPAddressV4, 2> nextHops = {IPAddressV4("10.0.0.22"),
-                                         IPAddressV4("10.0.0.23")};
+  std::array<IPAddressV4, 2> nextHops = {
+      IPAddressV4("10.0.0.22"), IPAddressV4("10.0.0.23")};
 
   // Cache the current stats
   CounterCache counters(sw);

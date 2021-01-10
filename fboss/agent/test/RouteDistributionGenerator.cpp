@@ -77,9 +77,9 @@ void RouteDistributionGenerator::genRouteDistribution(
         // Start a new one
         generatedRouteChunks_->emplace_back(RouteChunk{});
       }
-      generatedRouteChunks_->back().emplace_back(
-          Route{getNewPrefix(prefixGenerator, startingState_, routerId_),
-                getNhops<AddrT>()});
+      generatedRouteChunks_->back().emplace_back(Route{
+          getNewPrefix(prefixGenerator, startingState_, routerId_),
+          getNhops<AddrT>()});
     }
   }
 }

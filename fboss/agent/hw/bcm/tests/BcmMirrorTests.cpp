@@ -37,10 +37,7 @@ struct TestParams {
 
 template <>
 TestParams<IPAddressV4>::TestParams()
-    : ipAddrs{IPAddressV4("1.1.1.1"),
-              IPAddressV4("1.1.1.10"),
-              IPAddressV4("2.2.2.2"),
-              IPAddressV4("2.2.2.10")},
+    : ipAddrs{IPAddressV4("1.1.1.1"), IPAddressV4("1.1.1.10"), IPAddressV4("2.2.2.2"), IPAddressV4("2.2.2.10")},
       macAddrs{
           MacAddress("1:1:1:1:1:1"),
           MacAddress("1:1:1:1:1:10"),
@@ -50,10 +47,7 @@ TestParams<IPAddressV4>::TestParams()
 
 template <>
 TestParams<IPAddressV6>::TestParams()
-    : ipAddrs{IPAddressV6("1::1"),
-              IPAddressV6("1:1::1:10"),
-              IPAddressV6("2::1"),
-              IPAddressV6("2:2::2:10")},
+    : ipAddrs{IPAddressV6("1::1"), IPAddressV6("1:1::1:10"), IPAddressV6("2::1"), IPAddressV6("2:2::2:10")},
       macAddrs{
           MacAddress("1:1:1:1:1:1"),
           MacAddress("1:1:1:1:1:10"),

@@ -21,11 +21,12 @@ class BcmTestWedge400Platform : public BcmTestWedgeTomahawk3Platform {
       std::unique_ptr<PlatformProductInfo> productInfo);
 
   std::vector<FlexPortMode> getSupportedFlexPortModes() const override {
-    return {FlexPortMode::FOURX10G,
-            FlexPortMode::FOURX25G,
-            FlexPortMode::ONEX40G,
-            FlexPortMode::TWOX50G,
-            FlexPortMode::ONEX100G};
+    return {
+        FlexPortMode::FOURX10G,
+        FlexPortMode::FOURX25G,
+        FlexPortMode::ONEX40G,
+        FlexPortMode::TWOX50G,
+        FlexPortMode::ONEX100G};
   }
 
  private:

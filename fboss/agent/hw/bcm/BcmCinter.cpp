@@ -300,26 +300,28 @@ vector<string> BcmCinter::cintForL3Route(const bcm_l3_route_t& l3_route) {
     string cintV6, v6Var, cintMask, v6Mask;
     tie(cintV6, v6Var) = cintForIp6(l3_route.l3a_ip6_net);
     tie(cintMask, v6Mask) = cintForIp6(l3_route.l3a_ip6_mask);
-    cintLines = {cintV6,
-                 cintMask,
-                 "bcm_l3_route_t_init(&l3_route)",
-                 to<string>("l3_route.l3a_vrf = ", l3_route.l3a_vrf),
-                 to<string>(
-                     "l3_route.l3a_intf = ",
-                     getCintVar(l3IntfIdVars, l3_route.l3a_intf)),
-                 to<string>("l3_route.l3a_ip6_net = ", v6Var),
-                 to<string>("l3_route.l3a_ip6_mask = ", v6Mask),
-                 to<string>("l3_route.l3a_flags = ", l3_route.l3a_flags)};
+    cintLines = {
+        cintV6,
+        cintMask,
+        "bcm_l3_route_t_init(&l3_route)",
+        to<string>("l3_route.l3a_vrf = ", l3_route.l3a_vrf),
+        to<string>(
+            "l3_route.l3a_intf = ",
+            getCintVar(l3IntfIdVars, l3_route.l3a_intf)),
+        to<string>("l3_route.l3a_ip6_net = ", v6Var),
+        to<string>("l3_route.l3a_ip6_mask = ", v6Mask),
+        to<string>("l3_route.l3a_flags = ", l3_route.l3a_flags)};
 
   } else {
-    cintLines = {"bcm_l3_route_t_init(&l3_route)",
-                 to<string>("l3_route.l3a_vrf = ", l3_route.l3a_vrf),
-                 to<string>(
-                     "l3_route.l3a_intf = ",
-                     getCintVar(l3IntfIdVars, l3_route.l3a_intf)),
-                 to<string>("l3_route.l3a_subnet = ", l3_route.l3a_subnet),
-                 to<string>("l3_route.l3a_ip_mask = ", l3_route.l3a_ip_mask),
-                 to<string>("l3_route.l3a_flags = ", l3_route.l3a_flags)};
+    cintLines = {
+        "bcm_l3_route_t_init(&l3_route)",
+        to<string>("l3_route.l3a_vrf = ", l3_route.l3a_vrf),
+        to<string>(
+            "l3_route.l3a_intf = ",
+            getCintVar(l3IntfIdVars, l3_route.l3a_intf)),
+        to<string>("l3_route.l3a_subnet = ", l3_route.l3a_subnet),
+        to<string>("l3_route.l3a_ip_mask = ", l3_route.l3a_ip_mask),
+        to<string>("l3_route.l3a_flags = ", l3_route.l3a_flags)};
   }
   return cintLines;
 }
@@ -328,13 +330,14 @@ vector<string> BcmCinter::cintForL3Intf(const bcm_l3_intf_t& l3_intf) {
   vector<string> cintLines;
   string cintMac, macVar;
   tie(cintMac, macVar) = cintForMac(l3_intf.l3a_mac_addr);
-  cintLines = {cintMac,
-               "bcm_l3_intf_t_init(&l3_intf)",
-               to<string>("l3_intf.l3a_vrf = ", l3_intf.l3a_vrf),
-               to<string>("l3_intf.l3a_vid = ", l3_intf.l3a_vid),
-               to<string>("l3_intf.l3a_mtu = ", l3_intf.l3a_mtu),
-               to<string>("l3_intf.l3a_mac_addr = ", macVar),
-               to<string>("l3_intf.l3a_flags = ", l3_intf.l3a_flags)};
+  cintLines = {
+      cintMac,
+      "bcm_l3_intf_t_init(&l3_intf)",
+      to<string>("l3_intf.l3a_vrf = ", l3_intf.l3a_vrf),
+      to<string>("l3_intf.l3a_vid = ", l3_intf.l3a_vid),
+      to<string>("l3_intf.l3a_mtu = ", l3_intf.l3a_mtu),
+      to<string>("l3_intf.l3a_mac_addr = ", macVar),
+      to<string>("l3_intf.l3a_flags = ", l3_intf.l3a_flags)};
   if (l3_intf.l3a_flags & BCM_L3_WITH_ID) {
     cintLines.push_back(
         to<string>("l3_intf.l3a_intf_id = ", l3_intf.l3a_intf_id));
@@ -2192,8 +2195,9 @@ int BcmCinter::bcm_l2_station_delete(int unit, int station_id) {
 
 vector<string> BcmCinter::cintForCosqBstProfile(
     bcm_cosq_bst_profile_t* profile) {
-  return {"bcm_cosq_bst_profile_t_init(&cosq_bst_profile)",
-          to<string>("cosq_bst_profile.byte = ", profile->byte)};
+  return {
+      "bcm_cosq_bst_profile_t_init(&cosq_bst_profile)",
+      to<string>("cosq_bst_profile.byte = ", profile->byte)};
 }
 
 int BcmCinter::bcm_cosq_bst_profile_set(
@@ -2341,9 +2345,10 @@ int BcmCinter::bcm_linkscan_mode_set(int unit, bcm_port_t port, int mode) {
 
 vector<string> BcmCinter::cintForL3Ingress(const bcm_l3_ingress_t* l3_ingress) {
   vector<string> cintLines;
-  cintLines = {"bcm_l3_ingress_t_init(&l3_ingress)",
-               to<string>("l3_ingress.flags = ", l3_ingress->flags),
-               to<string>("l3_ingress.vrf = ", l3_ingress->vrf)};
+  cintLines = {
+      "bcm_l3_ingress_t_init(&l3_ingress)",
+      to<string>("l3_ingress.flags = ", l3_ingress->flags),
+      to<string>("l3_ingress.vrf = ", l3_ingress->vrf)};
   return cintLines;
 }
 

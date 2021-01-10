@@ -202,8 +202,8 @@ class RouteUpdateLoggerTest : public ::testing::Test {
     auto entry = std::make_shared<LabelForwardingEntry>(
         label,
         client,
-        LabelNextHopEntry{RouteForwardAction::DROP,
-                          AdminDistance::MAX_ADMIN_DISTANCE});
+        LabelNextHopEntry{
+            RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE});
     auto labelFib =
         newState->getLabelForwardingInformationBase()->modify(&newState);
     labelFib->addNode(entry);

@@ -185,8 +185,8 @@ uint64_t BcmQcmManager::getIfpStatCounter(
 // TODO: This routine goes away once we use common ACL infra to create
 // acls
 void BcmQcmManager::createAndAttachStats(const int ifpEntry) {
-  std::vector<bcm_field_stat_t> statTypes{bcmFieldStatPackets,
-                                          bcmFieldStatRedPackets};
+  std::vector<bcm_field_stat_t> statTypes{
+      bcmFieldStatPackets, bcmFieldStatRedPackets};
   int stat_id = 0;
   auto rv = bcm_field_stat_create(
       hw_->getUnit(),

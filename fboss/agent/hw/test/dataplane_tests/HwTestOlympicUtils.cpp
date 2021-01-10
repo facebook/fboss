@@ -145,36 +145,39 @@ const std::map<int, uint8_t>& kOlympicWRRQueueToWeight() {
 }
 
 const std::vector<int>& kOlympicWRRQueueIds() {
-  static const std::vector<int> wrrQueueIds = {kOlympicSilverQueueId,
-                                               kOlympicGoldQueueId,
-                                               kOlympicEcn1QueueId,
-                                               kOlympicBronzeQueueId};
+  static const std::vector<int> wrrQueueIds = {
+      kOlympicSilverQueueId,
+      kOlympicGoldQueueId,
+      kOlympicEcn1QueueId,
+      kOlympicBronzeQueueId};
 
   return wrrQueueIds;
 }
 
 const std::vector<int>& kOlympicSPQueueIds() {
-  static const std::vector<int> spQueueIds = {kOlympicICPQueueId,
-                                              kOlympicNCQueueId};
+  static const std::vector<int> spQueueIds = {
+      kOlympicICPQueueId, kOlympicNCQueueId};
 
   return spQueueIds;
 }
 
 const std::vector<int>& kOlympicWRRAndICPQueueIds() {
-  static const std::vector<int> wrrAndICPQueueIds = {kOlympicSilverQueueId,
-                                                     kOlympicGoldQueueId,
-                                                     kOlympicEcn1QueueId,
-                                                     kOlympicBronzeQueueId,
-                                                     kOlympicICPQueueId};
+  static const std::vector<int> wrrAndICPQueueIds = {
+      kOlympicSilverQueueId,
+      kOlympicGoldQueueId,
+      kOlympicEcn1QueueId,
+      kOlympicBronzeQueueId,
+      kOlympicICPQueueId};
   return wrrAndICPQueueIds;
 }
 
 const std::vector<int>& kOlympicWRRAndNCQueueIds() {
-  static const std::vector<int> wrrAndNCQueueIds = {kOlympicSilverQueueId,
-                                                    kOlympicGoldQueueId,
-                                                    kOlympicEcn1QueueId,
-                                                    kOlympicBronzeQueueId,
-                                                    kOlympicNCQueueId};
+  static const std::vector<int> wrrAndNCQueueIds = {
+      kOlympicSilverQueueId,
+      kOlympicGoldQueueId,
+      kOlympicEcn1QueueId,
+      kOlympicBronzeQueueId,
+      kOlympicNCQueueId};
   return wrrAndNCQueueIds;
 }
 

@@ -1370,8 +1370,8 @@ void BcmWarmBootCache::populateMirroredPorts() {
 }
 
 void BcmWarmBootCache::populateMirroredPort(bcm_gport_t port) {
-  std::vector<MirrorDirection> directions{MirrorDirection::INGRESS,
-                                          MirrorDirection::EGRESS};
+  std::vector<MirrorDirection> directions{
+      MirrorDirection::INGRESS, MirrorDirection::EGRESS};
   std::vector<cfg::SampleDestination> destinations{
       cfg::SampleDestination::CPU, cfg::SampleDestination::MIRROR};
 
@@ -1401,8 +1401,8 @@ void BcmWarmBootCache::populateMirroredPort(bcm_gport_t port) {
 }
 
 void BcmWarmBootCache::populateMirroredAcl(BcmAclEntryHandle entry) {
-  std::vector<MirrorDirection> directions{MirrorDirection::INGRESS,
-                                          MirrorDirection::EGRESS};
+  std::vector<MirrorDirection> directions{
+      MirrorDirection::INGRESS, MirrorDirection::EGRESS};
 
   for (auto direction : directions) {
     uint32_t param0 = 0;

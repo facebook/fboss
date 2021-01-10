@@ -54,8 +54,8 @@ class BcmMultiAqmProfileTest : public BcmLinkStateDependentTests {
 
   void _setup() {
     auto kEcmpWidthForTest = 1;
-    utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(),
-                                             getPlatform()->getLocalMac()};
+    utility::EcmpSetupAnyNPorts6 ecmpHelper6{
+        getProgrammedState(), getPlatform()->getLocalMac()};
     setupECMPForwarding(ecmpHelper6, kEcmpWidthForTest);
     disableTTLDecrements(ecmpHelper6);
   }

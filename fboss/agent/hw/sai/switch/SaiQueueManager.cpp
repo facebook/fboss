@@ -64,13 +64,14 @@ SaiQueueTraits::CreateAttributes makeQueueAttributes(
   } else {
     type = SAI_QUEUE_TYPE_ALL;
   }
-  return SaiQueueTraits::CreateAttributes{type,
-                                          portSaiId,
-                                          portQueue.getID(),
-                                          portSaiId,
-                                          std::nullopt,
-                                          std::nullopt,
-                                          std::nullopt};
+  return SaiQueueTraits::CreateAttributes{
+      type,
+      portSaiId,
+      portQueue.getID(),
+      portSaiId,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt};
 }
 
 SaiQueueConfig makeSaiQueueConfig(

@@ -59,8 +59,8 @@ void verifyTunneledEgress(
   EXPECT_EQ(egr.mpls_label, tunnelStack[0]);
   verifyTunnel(
       egr.intf,
-      LabelForwardingAction::LabelStack{tunnelStack.begin() + 1,
-                                        tunnelStack.end()});
+      LabelForwardingAction::LabelStack{
+          tunnelStack.begin() + 1, tunnelStack.end()});
 }
 
 void verifyTunneledEgressToCPU(
@@ -106,8 +106,8 @@ void verifyTunneledEgressToDrop(
   EXPECT_EQ(egr.mpls_label, tunnelStack[0]);
   verifyTunnel(
       egr.intf,
-      LabelForwardingAction::LabelStack{tunnelStack.begin() + 1,
-                                        tunnelStack.end()});
+      LabelForwardingAction::LabelStack{
+          tunnelStack.begin() + 1, tunnelStack.end()});
 }
 
 void verifyLabeledMultiPathEgress(

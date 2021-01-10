@@ -400,23 +400,24 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
           platformPort->getTransmitterTech(), speed)) {
     interfaceType = saiInterfaceType.value();
   }
-  return SaiPortTraits::CreateAttributes{hwLaneList,
-                                         static_cast<uint32_t>(speed),
-                                         adminState,
-                                         fecMode,
-                                         internalLoopbackMode,
-                                         mediaType,
-                                         globalFlowControlMode,
-                                         vlanId,
-                                         std::nullopt,
-                                         swPort->getMaxFrameSize(),
-                                         std::nullopt,
-                                         std::nullopt,
-                                         std::nullopt,
-                                         interfaceType,
-                                         std::nullopt,
-                                         std::nullopt,
-                                         std::nullopt};
+  return SaiPortTraits::CreateAttributes{
+      hwLaneList,
+      static_cast<uint32_t>(speed),
+      adminState,
+      fecMode,
+      internalLoopbackMode,
+      mediaType,
+      globalFlowControlMode,
+      vlanId,
+      std::nullopt,
+      swPort->getMaxFrameSize(),
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      interfaceType,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt};
 }
 
 std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(

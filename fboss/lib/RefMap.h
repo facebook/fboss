@@ -124,7 +124,7 @@ class RefMap {
  private:
   template <typename... Args>
   std::shared_ptr<V> makeShared(const K& k, Args&&... args) {
-    auto del = [& m = map_, k](V* v) {
+    auto del = [&m = map_, k](V* v) {
       m.erase(k);
       std::default_delete<V>()(v);
     };

@@ -83,10 +83,11 @@ TEST_F(HostifTrapStoreTest, trapGroupCreateCtor) {
 }
 
 TEST_F(HostifTrapStoreTest, trapCreateCtor) {
-  SaiHostifTrapTraits::CreateAttributes c{SAI_HOSTIF_TRAP_TYPE_IP2ME,
-                                          SAI_PACKET_ACTION_TRAP,
-                                          std::nullopt,
-                                          std::nullopt};
+  SaiHostifTrapTraits::CreateAttributes c{
+      SAI_HOSTIF_TRAP_TYPE_IP2ME,
+      SAI_PACKET_ACTION_TRAP,
+      std::nullopt,
+      std::nullopt};
   auto obj = createObj<SaiHostifTrapTraits>(SAI_PACKET_ACTION_TRAP, c, 0);
   EXPECT_EQ(
       GET_ATTR(HostifTrap, TrapType, obj.attributes()),
@@ -97,10 +98,11 @@ TEST_F(HostifTrapStoreTest, trapCreateCtor) {
 }
 
 TEST_F(HostifTrapStoreTest, trapSetAction) {
-  SaiHostifTrapTraits::CreateAttributes c{SAI_HOSTIF_TRAP_TYPE_IP2ME,
-                                          SAI_PACKET_ACTION_TRAP,
-                                          std::nullopt,
-                                          std::nullopt};
+  SaiHostifTrapTraits::CreateAttributes c{
+      SAI_HOSTIF_TRAP_TYPE_IP2ME,
+      SAI_PACKET_ACTION_TRAP,
+      std::nullopt,
+      std::nullopt};
   auto obj = createObj<SaiHostifTrapTraits>(SAI_PACKET_ACTION_TRAP, c, 0);
   EXPECT_EQ(
       GET_ATTR(HostifTrap, TrapType, obj.attributes()),
@@ -108,10 +110,11 @@ TEST_F(HostifTrapStoreTest, trapSetAction) {
   EXPECT_EQ(
       GET_ATTR(HostifTrap, PacketAction, obj.attributes()),
       SAI_PACKET_ACTION_TRAP);
-  SaiHostifTrapTraits::CreateAttributes newAttrs{SAI_HOSTIF_TRAP_TYPE_IP2ME,
-                                                 SAI_PACKET_ACTION_DROP,
-                                                 std::nullopt,
-                                                 std::nullopt};
+  SaiHostifTrapTraits::CreateAttributes newAttrs{
+      SAI_HOSTIF_TRAP_TYPE_IP2ME,
+      SAI_PACKET_ACTION_DROP,
+      std::nullopt,
+      std::nullopt};
   obj.setAttributes(newAttrs);
   EXPECT_EQ(
       GET_ATTR(HostifTrap, PacketAction, obj.attributes()),

@@ -79,10 +79,11 @@ sai_status_t sai_create_inseg_entry(
 namespace facebook::fboss {
 
 sai_mpls_api_t* FakeInSegEntryManager::kApi() {
-  static sai_mpls_api_t kMplsApi{&sai_create_inseg_entry,
-                                 &sai_remove_inseg_entry,
-                                 &sai_set_inseg_entry_attribute,
-                                 &sai_get_inseg_entry_attribute};
+  static sai_mpls_api_t kMplsApi{
+      &sai_create_inseg_entry,
+      &sai_remove_inseg_entry,
+      &sai_set_inseg_entry_attribute,
+      &sai_get_inseg_entry_attribute};
   return &kMplsApi;
 }
 

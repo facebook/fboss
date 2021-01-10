@@ -212,8 +212,8 @@ void SaiFdbManager::changeMac(
     } else {
       XLOGF(INFO, "Change fdb entry {}, {}", oldEntry->str(), newEntry->str());
       auto newIntfId = getInterfaceId(newEntry);
-      auto key = PublisherKey<SaiFdbTraits>::custom_type{newIntfId,
-                                                         newEntry->getMac()};
+      auto key = PublisherKey<SaiFdbTraits>::custom_type{
+          newIntfId, newEntry->getMac()};
       try {
         managedFdbEntries_.find(key)->second->update(newEntry);
       } catch (const SaiApiError& e) {

@@ -23,11 +23,12 @@ class FakeBcmTestPlatform : public BcmTestPlatform {
   ~FakeBcmTestPlatform() override;
 
   std::vector<FlexPortMode> getSupportedFlexPortModes() const override {
-    return {FlexPortMode::ONEX100G,
-            FlexPortMode::TWOX50G,
-            FlexPortMode::ONEX40G,
-            FlexPortMode::FOURX25G,
-            FlexPortMode::FOURX10G};
+    return {
+        FlexPortMode::ONEX100G,
+        FlexPortMode::TWOX50G,
+        FlexPortMode::ONEX40G,
+        FlexPortMode::FOURX25G,
+        FlexPortMode::FOURX10G};
   }
 
   std::string getVolatileStateDir() const override;

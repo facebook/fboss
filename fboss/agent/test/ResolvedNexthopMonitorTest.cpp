@@ -23,11 +23,13 @@ using folly::IPAddressV4;
 using folly::IPAddressV6;
 
 const auto kPrefixV4 = RoutePrefixV4{IPAddressV4("10.0.10.0"), 24};
-const std::array<IPAddressV4, 2> kNexthopsV4{IPAddressV4("10.0.10.1"),
-                                             IPAddressV4("10.0.10.2")};
+const std::array<IPAddressV4, 2> kNexthopsV4{
+    IPAddressV4("10.0.10.1"),
+    IPAddressV4("10.0.10.2")};
 const auto kPrefixV6 = RoutePrefixV6{IPAddressV6("10:100::"), 64};
-const std::array<IPAddressV6, 2> kNexthopsV6{IPAddressV6("10:100::1"),
-                                             IPAddressV6("10:100::2")};
+const std::array<IPAddressV6, 2> kNexthopsV6{
+    IPAddressV6("10:100::1"),
+    IPAddressV6("10:100::2")};
 } // namespace
 
 namespace facebook::fboss {
@@ -118,8 +120,9 @@ class ResolvedNexthopMonitorTest : public ::testing::Test {
 TEST_F(ResolvedNexthopMonitorTest, AddUnresolvedRoutes) {
   updateState(
       "unresolved route added", [=](const std::shared_ptr<SwitchState>& state) {
-        RouteNextHopSet nhops{UnresolvedNextHop(kNexthopsV4[0], 1),
-                              UnresolvedNextHop(kNexthopsV4[1], 1)};
+        RouteNextHopSet nhops{
+            UnresolvedNextHop(kNexthopsV4[0], 1),
+            UnresolvedNextHop(kNexthopsV4[1], 1)};
         return addRoute(state, kPrefixV4, nhops);
       });
 
@@ -131,8 +134,9 @@ TEST_F(ResolvedNexthopMonitorTest, AddUnresolvedRoutes) {
 TEST_F(ResolvedNexthopMonitorTest, RemoveUnresolvedRoutes) {
   updateState(
       "unresolved route added", [=](const std::shared_ptr<SwitchState>& state) {
-        RouteNextHopSet nhops{UnresolvedNextHop(kNexthopsV4[0], 1),
-                              UnresolvedNextHop(kNexthopsV4[1], 1)};
+        RouteNextHopSet nhops{
+            UnresolvedNextHop(kNexthopsV4[0], 1),
+            UnresolvedNextHop(kNexthopsV4[1], 1)};
         return addRoute(state, kPrefixV4, nhops);
       });
 
@@ -182,8 +186,9 @@ TEST_F(ResolvedNexthopMonitorTest, RemoveResolvedRoutes) {
 TEST_F(ResolvedNexthopMonitorTest, ChangeUnresolvedRoutes) {
   updateState(
       "unresolved route added", [=](const std::shared_ptr<SwitchState>& state) {
-        RouteNextHopSet nhops{UnresolvedNextHop(kNexthopsV4[0], 1),
-                              UnresolvedNextHop(kNexthopsV4[1], 1)};
+        RouteNextHopSet nhops{
+            UnresolvedNextHop(kNexthopsV4[0], 1),
+            UnresolvedNextHop(kNexthopsV4[1], 1)};
         return addRoute(state, kPrefixV4, nhops);
       });
 

@@ -162,10 +162,11 @@ std::shared_ptr<SwitchState> applyInitConfig() {
 } // unnamed namespace
 
 TEST(PortQueue, serialization) {
-  std::vector<PortQueue*> queues = {generatePortQueue(),
-                                    generateProdPortQueue(),
-                                    generateProdCPUPortQueue(),
-                                    generateDefaultPortQueue()};
+  std::vector<PortQueue*> queues = {
+      generatePortQueue(),
+      generateProdPortQueue(),
+      generateProdCPUPortQueue(),
+      generateDefaultPortQueue()};
 
   for (const auto* pqObject : queues) {
     auto serialized = pqObject->toFollyDynamic();

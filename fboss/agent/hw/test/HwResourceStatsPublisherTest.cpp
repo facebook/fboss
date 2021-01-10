@@ -137,12 +137,13 @@ TEST(HwResourceStatsPublisher, MirrorStats) {
   EXPECT_EQ(fbData->getCounter(kMirrorsSpan), 1);
   EXPECT_EQ(fbData->getCounter(kMirrorsErspan), 2);
   EXPECT_EQ(fbData->getCounter(kMirrorsSflow), 3);
-  checkMissing({kMirrorsMax,
-                kMirrorsUsed,
-                kMirrorsFree,
-                kMirrorsSpan,
-                kMirrorsErspan,
-                kMirrorsSflow});
+  checkMissing(
+      {kMirrorsMax,
+       kMirrorsUsed,
+       kMirrorsFree,
+       kMirrorsSpan,
+       kMirrorsErspan,
+       kMirrorsSflow});
 }
 
 TEST(HwResourceStatsPublisher, NextHopStats) {
@@ -172,10 +173,11 @@ TEST(HwResourceStatsPublisher, EcmpGroupStats) {
   EXPECT_EQ(fbData->getCounter(kL3EcmpGroupsUsed), 1);
   EXPECT_EQ(fbData->getCounter(kL3EcmpGroupsFree), 9);
   EXPECT_EQ(fbData->getCounter(kL3EcmpGroupMembersFree), 42);
-  checkMissing({kL3EcmpGroupsMax,
-                kL3EcmpGroupsUsed,
-                kL3EcmpGroupsFree,
-                kL3EcmpGroupMembersFree});
+  checkMissing(
+      {kL3EcmpGroupsMax,
+       kL3EcmpGroupsUsed,
+       kL3EcmpGroupsFree,
+       kL3EcmpGroupMembersFree});
 }
 
 TEST(HwResourceStatsPublisher, HostStats) {
@@ -235,13 +237,14 @@ TEST(HwResourceStatsPublisher, Ipv6RouteStats) {
   EXPECT_EQ(fbData->getCounter(kLpmIpv6Mask_65_127_Used), 2);
   EXPECT_EQ(fbData->getCounter(kLpmIpv6Mask_65_127_Free), 3);
   EXPECT_EQ(fbData->getCounter(kLpmIpv6Free), 12);
-  checkMissing({kLpmIpv6Mask_0_64_Max,
-                kLpmIpv6Mask_0_64_Used,
-                kLpmIpv6Mask_0_64_Free,
-                kLpmIpv6Mask_65_127_Max,
-                kLpmIpv6Mask_65_127_Used,
-                kLpmIpv6Mask_65_127_Free,
-                kLpmIpv6Free});
+  checkMissing(
+      {kLpmIpv6Mask_0_64_Max,
+       kLpmIpv6Mask_0_64_Used,
+       kLpmIpv6Mask_0_64_Free,
+       kLpmIpv6Mask_65_127_Max,
+       kLpmIpv6Mask_65_127_Used,
+       kLpmIpv6Mask_65_127_Free,
+       kLpmIpv6Free});
 }
 
 TEST(HwResourceStatsPublisher, LpmSlotStats) {

@@ -113,8 +113,8 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
       return RoutePrefix<AddrT>{folly::IPAddressV4{"10.1.4.0"}, 24};
     } else {
-      return RoutePrefix<AddrT>{folly::IPAddressV6{"2803:6080:d038:3066::"},
-                                64};
+      return RoutePrefix<AddrT>{
+          folly::IPAddressV6{"2803:6080:d038:3066::"}, 64};
     }
   }
 
@@ -122,8 +122,8 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
       return RoutePrefix<AddrT>{folly::IPAddressV4{"11.1.4.0"}, 24};
     } else {
-      return RoutePrefix<AddrT>{folly::IPAddressV6{"2803:6080:d038:3067::"},
-                                64};
+      return RoutePrefix<AddrT>{
+          folly::IPAddressV6{"2803:6080:d038:3067::"}, 64};
     }
   }
 

@@ -261,10 +261,11 @@ void removeSubsumedPorts(
 }
 
 bool isRswPlatform(PlatformMode mode) {
-  std::set rswPlatforms = {PlatformMode::WEDGE,
-                           PlatformMode::WEDGE100,
-                           PlatformMode::WEDGE400,
-                           PlatformMode::WEDGE400C};
+  std::set rswPlatforms = {
+      PlatformMode::WEDGE,
+      PlatformMode::WEDGE100,
+      PlatformMode::WEDGE400,
+      PlatformMode::WEDGE400C};
   return rswPlatforms.find(mode) == rswPlatforms.end();
 }
 

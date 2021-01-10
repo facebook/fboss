@@ -161,10 +161,10 @@ IOBuf PktUtil::parseHexData(StringPiece hex) {
 
 void PktUtil::appendHexData(StringPiece hex, Appender* appender) {
   auto unhex = [](char c) -> int {
-    return c >= '0' && c <= '9'
-        ? c - '0'
-        : c >= 'A' && c <= 'F' ? c - 'A' + 10
-                               : c >= 'a' && c <= 'f' ? c - 'a' + 10 : -1;
+    return c >= '0' && c <= '9' ? c - '0'
+        : c >= 'A' && c <= 'F'  ? c - 'A' + 10
+        : c >= 'a' && c <= 'f'  ? c - 'a' + 10
+                                : -1;
   };
 
   int prev = -1;

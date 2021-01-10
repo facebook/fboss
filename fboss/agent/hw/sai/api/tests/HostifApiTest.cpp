@@ -59,8 +59,8 @@ TEST_F(HostifApiTest, sendPacket) {
   SaiTxPacketTraits::Attributes::EgressQueueIndex egressQueueIndex(7);
   SaiTxPacketTraits::TxAttributes a{txType, egressPort, egressQueueIndex};
   folly::StringPiece testPacket = "TESTPACKET";
-  SaiHostifApiPacket txPacket{(void*)(testPacket.toString().c_str()),
-                              testPacket.toString().length()};
+  SaiHostifApiPacket txPacket{
+      (void*)(testPacket.toString().c_str()), testPacket.toString().length()};
   hostifApi->send(a, 0, txPacket);
 }
 

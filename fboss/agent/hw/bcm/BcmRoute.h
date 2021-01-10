@@ -73,8 +73,9 @@ class BcmRoute {
   bcm_vrf_t vrf_;
   folly::IPAddress prefix_;
   uint8_t len_;
-  RouteNextHopEntry fwd_{RouteNextHopEntry::Action::DROP,
-                         AdminDistance::MAX_ADMIN_DISTANCE};
+  RouteNextHopEntry fwd_{
+      RouteNextHopEntry::Action::DROP,
+      AdminDistance::MAX_ADMIN_DISTANCE};
   bool added_{false}; // if the route added to HW or not
   bcm_if_t egressId_{-1};
   std::shared_ptr<BcmMultiPathNextHop>

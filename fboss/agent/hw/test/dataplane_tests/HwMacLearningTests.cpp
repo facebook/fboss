@@ -654,8 +654,8 @@ TEST_F(HwMacSwLearningModeTest, VerifyNbrMacInL2Table) {
     return;
   }
   auto setup = [this] {
-    utility::EcmpSetupTargetedPorts6 ecmpHelper6{getProgrammedState(),
-                                                 kSourceMac()};
+    utility::EcmpSetupTargetedPorts6 ecmpHelper6{
+        getProgrammedState(), kSourceMac()};
     applyNewState(
         ecmpHelper6.resolveNextHops(getProgrammedState(), {physPortDescr()}));
   };

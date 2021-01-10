@@ -78,8 +78,8 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
     }
 
     // TODO(samank): optimize to linear time intersection algorithm
-    facebook::fboss::RoutePrefix<AddressT> fibPrefix{ribRoute.prefix().network,
-                                                     ribRoute.prefix().mask};
+    facebook::fboss::RoutePrefix<AddressT> fibPrefix{
+        ribRoute.prefix().network, ribRoute.prefix().mask};
     std::shared_ptr<facebook::fboss::Route<AddressT>> fibRoute =
         fib->getNodeIf(fibPrefix);
     if (fibRoute) {

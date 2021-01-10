@@ -47,10 +47,11 @@ TEST_F(SaiStoreTest, loadBridgeFromJson) {
 
 TEST_F(SaiStoreTest, loadBridgePort) {
   auto& bridgeApi = saiApiTable->bridgeApi();
-  SaiBridgePortTraits::CreateAttributes c{SAI_BRIDGE_PORT_TYPE_PORT,
-                                          42,
-                                          true,
-                                          SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW};
+  SaiBridgePortTraits::CreateAttributes c{
+      SAI_BRIDGE_PORT_TYPE_PORT,
+      42,
+      true,
+      SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW};
   auto bridgePortId = bridgeApi.create<SaiBridgePortTraits>(c, 0);
 
   SaiStore s(0);
@@ -63,10 +64,11 @@ TEST_F(SaiStoreTest, loadBridgePort) {
 
 TEST_F(SaiStoreTest, loadBridgePortFromJson) {
   auto& bridgeApi = saiApiTable->bridgeApi();
-  SaiBridgePortTraits::CreateAttributes c{SAI_BRIDGE_PORT_TYPE_PORT,
-                                          42,
-                                          true,
-                                          SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW};
+  SaiBridgePortTraits::CreateAttributes c{
+      SAI_BRIDGE_PORT_TYPE_PORT,
+      42,
+      true,
+      SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW};
   auto bridgePortId = bridgeApi.create<SaiBridgePortTraits>(c, 0);
 
   SaiStore s(0);
@@ -88,10 +90,11 @@ TEST_F(SaiStoreTest, loadBridgePortFromJson) {
 
 TEST_F(SaiStoreTest, bridgePortLoadCtor) {
   auto& bridgeApi = saiApiTable->bridgeApi();
-  SaiBridgePortTraits::CreateAttributes c{SAI_BRIDGE_PORT_TYPE_PORT,
-                                          42,
-                                          true,
-                                          SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW};
+  SaiBridgePortTraits::CreateAttributes c{
+      SAI_BRIDGE_PORT_TYPE_PORT,
+      42,
+      true,
+      SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW};
   auto bridgePortId = bridgeApi.create<SaiBridgePortTraits>(c, 0);
   auto obj = createObj<SaiBridgePortTraits>(bridgePortId);
   EXPECT_EQ(obj.adapterKey(), bridgePortId);
@@ -99,10 +102,11 @@ TEST_F(SaiStoreTest, bridgePortLoadCtor) {
 }
 
 TEST_F(SaiStoreTest, bridgePortCreateCtor) {
-  SaiBridgePortTraits::CreateAttributes c{SAI_BRIDGE_PORT_TYPE_PORT,
-                                          42,
-                                          true,
-                                          SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW};
+  SaiBridgePortTraits::CreateAttributes c{
+      SAI_BRIDGE_PORT_TYPE_PORT,
+      42,
+      true,
+      SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW};
   auto obj = createObj<SaiBridgePortTraits>(42, c, 0);
   EXPECT_EQ(GET_ATTR(BridgePort, PortId, obj.attributes()), 42);
 }
@@ -121,20 +125,22 @@ TEST_F(SaiStoreTest, toStrBridge) {
 
 TEST_F(SaiStoreTest, serDeserBridgePort) {
   auto& bridgeApi = saiApiTable->bridgeApi();
-  SaiBridgePortTraits::CreateAttributes c{SAI_BRIDGE_PORT_TYPE_PORT,
-                                          42,
-                                          true,
-                                          SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW};
+  SaiBridgePortTraits::CreateAttributes c{
+      SAI_BRIDGE_PORT_TYPE_PORT,
+      42,
+      true,
+      SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW};
   auto bridgePortId = bridgeApi.create<SaiBridgePortTraits>(c, 0);
   verifyAdapterKeySerDeser<SaiBridgePortTraits>({bridgePortId});
 }
 
 TEST_F(SaiStoreTest, toStrBridgePort) {
   auto& bridgeApi = saiApiTable->bridgeApi();
-  SaiBridgePortTraits::CreateAttributes c{SAI_BRIDGE_PORT_TYPE_PORT,
-                                          42,
-                                          true,
-                                          SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW};
+  SaiBridgePortTraits::CreateAttributes c{
+      SAI_BRIDGE_PORT_TYPE_PORT,
+      42,
+      true,
+      SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW};
   std::ignore = bridgeApi.create<SaiBridgePortTraits>(c, 0);
   verifyToStr<SaiBridgePortTraits>();
 }

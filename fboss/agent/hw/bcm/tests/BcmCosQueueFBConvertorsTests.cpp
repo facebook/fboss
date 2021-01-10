@@ -58,8 +58,8 @@ TEST(CosQueueBcmConvertors, cfgAlphaToFromBcm) {
 }
 
 TEST(CosQueueBcmConvertors, cfgAqmToFromBcm) {
-  std::array<cfg::ActiveQueueManagement, 2> aqms = {getEarlyDropAqmConfig(),
-                                                    getECNAqmConfig()};
+  std::array<cfg::ActiveQueueManagement, 2> aqms = {
+      getEarlyDropAqmConfig(), getECNAqmConfig()};
 
   facebook::fboss::cfg::LinearQueueCongestionDetection detection;
   detection.minimumLength = detection.maximumLength = 100000;

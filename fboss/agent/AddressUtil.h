@@ -35,7 +35,8 @@ thrift::Address toAddressImpl(const T& addr) {
 
 inline thrift::Address toAddress(const folly::IPAddress& ip) {
   return ip.isV4() ? toAddressImpl(ip.asV4())
-                   : ip.isV6() ? toAddressImpl(ip.asV6()) : thrift::Address();
+      : ip.isV6()  ? toAddressImpl(ip.asV6())
+                   : thrift::Address();
 }
 
 template <class IPAddressVx>
@@ -48,8 +49,8 @@ thrift::BinaryAddress toBinaryAddressImpl(const IPAddressVx& addr) {
 
 inline thrift::BinaryAddress toBinaryAddress(const folly::IPAddress& addr) {
   return addr.isV4() ? toBinaryAddressImpl(addr.asV4())
-                     : addr.isV6() ? toBinaryAddressImpl(addr.asV6())
-                                   : thrift::BinaryAddress();
+      : addr.isV6()  ? toBinaryAddressImpl(addr.asV6())
+                     : thrift::BinaryAddress();
 }
 
 template <typename T>

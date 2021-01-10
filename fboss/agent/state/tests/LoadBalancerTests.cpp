@@ -34,17 +34,18 @@ namespace {
 cfg::Fields halfFlow() {
   cfg::Fields fields;
 
-  std::set<cfg::IPv4Field> v4Fields = {cfg::IPv4Field::SOURCE_ADDRESS,
-                                       cfg::IPv4Field::DESTINATION_ADDRESS};
+  std::set<cfg::IPv4Field> v4Fields = {
+      cfg::IPv4Field::SOURCE_ADDRESS, cfg::IPv4Field::DESTINATION_ADDRESS};
   fields.ipv4Fields_ref() = std::move(v4Fields);
 
-  std::set<cfg::IPv6Field> v6Fields = {cfg::IPv6Field::SOURCE_ADDRESS,
-                                       cfg::IPv6Field::DESTINATION_ADDRESS};
+  std::set<cfg::IPv6Field> v6Fields = {
+      cfg::IPv6Field::SOURCE_ADDRESS, cfg::IPv6Field::DESTINATION_ADDRESS};
   fields.ipv6Fields_ref() = std::move(v6Fields);
 
-  std::set<cfg::MPLSField> mplsFields = {LoadBalancer::MPLSField::TOP_LABEL,
-                                         LoadBalancer::MPLSField::SECOND_LABEL,
-                                         LoadBalancer::MPLSField::THIRD_LABEL};
+  std::set<cfg::MPLSField> mplsFields = {
+      LoadBalancer::MPLSField::TOP_LABEL,
+      LoadBalancer::MPLSField::SECOND_LABEL,
+      LoadBalancer::MPLSField::THIRD_LABEL};
   fields.mplsFields_ref() = std::move(mplsFields);
   return fields;
 }
@@ -80,8 +81,8 @@ cfg::LoadBalancer defaultLagHash() {
 }
 
 std::vector<cfg::LoadBalancer> defaultLoadBalancers() {
-  std::vector<cfg::LoadBalancer> loadBalancers = {defaultEcmpHash(),
-                                                  defaultLagHash()};
+  std::vector<cfg::LoadBalancer> loadBalancers = {
+      defaultEcmpHash(), defaultLagHash()};
   return loadBalancers;
 }
 
@@ -149,9 +150,10 @@ TEST(LoadBalancer, defaultConfiguration) {
       {LoadBalancer::TransportField::SOURCE_PORT,
        LoadBalancer::TransportField::DESTINATION_PORT});
 
-  LoadBalancer::MPLSFields mplsFields{LoadBalancer::MPLSField::TOP_LABEL,
-                                      LoadBalancer::MPLSField::SECOND_LABEL,
-                                      LoadBalancer::MPLSField::THIRD_LABEL};
+  LoadBalancer::MPLSFields mplsFields{
+      LoadBalancer::MPLSField::TOP_LABEL,
+      LoadBalancer::MPLSField::SECOND_LABEL,
+      LoadBalancer::MPLSField::THIRD_LABEL};
 
   auto platform = createMockPlatform();
   auto initialState = std::make_shared<SwitchState>();
@@ -200,9 +202,10 @@ TEST(LoadBalancer, deserializationInverseOfSerlization) {
   LoadBalancer::TransportFields origTransportSrcAndDst(
       {LoadBalancer::TransportField::SOURCE_PORT,
        LoadBalancer::TransportField::DESTINATION_PORT});
-  LoadBalancer::MPLSFields mplsFields{LoadBalancer::MPLSField::TOP_LABEL,
-                                      LoadBalancer::MPLSField::SECOND_LABEL,
-                                      LoadBalancer::MPLSField::THIRD_LABEL};
+  LoadBalancer::MPLSFields mplsFields{
+      LoadBalancer::MPLSField::TOP_LABEL,
+      LoadBalancer::MPLSField::SECOND_LABEL,
+      LoadBalancer::MPLSField::THIRD_LABEL};
 
   LoadBalancer loadBalancer(
       origLoadBalancerID,
@@ -292,9 +295,10 @@ TEST(LoadBalancerMap, idempotence) {
       {LoadBalancer::TransportField::SOURCE_PORT,
        LoadBalancer::TransportField::DESTINATION_PORT});
 
-  LoadBalancer::MPLSFields mplsFields{LoadBalancer::MPLSField::TOP_LABEL,
-                                      LoadBalancer::MPLSField::SECOND_LABEL,
-                                      LoadBalancer::MPLSField::THIRD_LABEL};
+  LoadBalancer::MPLSFields mplsFields{
+      LoadBalancer::MPLSField::TOP_LABEL,
+      LoadBalancer::MPLSField::SECOND_LABEL,
+      LoadBalancer::MPLSField::THIRD_LABEL};
 
   auto platform = createMockPlatform();
   auto baseState = std::make_shared<SwitchState>();
@@ -452,9 +456,10 @@ TEST(LoadBalancerMap, deserializationInverseOfSerlization) {
   LoadBalancer::TransportFields aggPortOrigTransportSrcAndDst(
       {LoadBalancer::TransportField::SOURCE_PORT,
        LoadBalancer::TransportField::DESTINATION_PORT});
-  LoadBalancer::MPLSFields aggMplsFields{LoadBalancer::MPLSField::TOP_LABEL,
-                                         LoadBalancer::MPLSField::SECOND_LABEL,
-                                         LoadBalancer::MPLSField::THIRD_LABEL};
+  LoadBalancer::MPLSFields aggMplsFields{
+      LoadBalancer::MPLSField::TOP_LABEL,
+      LoadBalancer::MPLSField::SECOND_LABEL,
+      LoadBalancer::MPLSField::THIRD_LABEL};
 
   auto ecmpOrigLoadBalancerID = LoadBalancerID::ECMP;
   auto ecmpOrigHash = cfg::HashingAlgorithm::CRC16_CCITT;
@@ -466,9 +471,10 @@ TEST(LoadBalancerMap, deserializationInverseOfSerlization) {
   LoadBalancer::TransportFields ecmpOrigTransportSrcAndDst(
       {LoadBalancer::TransportField::SOURCE_PORT,
        LoadBalancer::TransportField::DESTINATION_PORT});
-  LoadBalancer::MPLSFields ecmpMplsFields{LoadBalancer::MPLSField::TOP_LABEL,
-                                          LoadBalancer::MPLSField::SECOND_LABEL,
-                                          LoadBalancer::MPLSField::THIRD_LABEL};
+  LoadBalancer::MPLSFields ecmpMplsFields{
+      LoadBalancer::MPLSField::TOP_LABEL,
+      LoadBalancer::MPLSField::SECOND_LABEL,
+      LoadBalancer::MPLSField::THIRD_LABEL};
 
   LoadBalancerMap loadBalancerMap;
   loadBalancerMap.addLoadBalancer(std::make_shared<LoadBalancer>(

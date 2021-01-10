@@ -70,100 +70,107 @@ struct PortData {
 };
 
 PortData get4x10gPorts() {
-  return {{PortID(1),
-           PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
-           PortState::ENABLED},
-          {PortID(2),
-           PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
-           PortState::ENABLED},
-          {PortID(3),
-           PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
-           PortState::ENABLED},
-          {PortID(4),
-           PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
-           PortState::ENABLED}};
+  return {
+      {PortID(1),
+       PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
+       PortState::ENABLED},
+      {PortID(2),
+       PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
+       PortState::ENABLED},
+      {PortID(3),
+       PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
+       PortState::ENABLED},
+      {PortID(4),
+       PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
+       PortState::ENABLED}};
 }
 
 PortData get2x20gPorts() {
-  return {{PortID(1),
-           PortProfileID::PROFILE_20G_2_NRZ_NOFEC_COPPER,
-           PortState::ENABLED},
-          {PortID(2),
-           PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
-           PortState::DISABLED},
-          {PortID(3),
-           PortProfileID::PROFILE_20G_2_NRZ_NOFEC_COPPER,
-           PortState::ENABLED},
-          {PortID(4),
-           PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
-           PortState::DISABLED}};
+  return {
+      {PortID(1),
+       PortProfileID::PROFILE_20G_2_NRZ_NOFEC_COPPER,
+       PortState::ENABLED},
+      {PortID(2),
+       PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
+       PortState::DISABLED},
+      {PortID(3),
+       PortProfileID::PROFILE_20G_2_NRZ_NOFEC_COPPER,
+       PortState::ENABLED},
+      {PortID(4),
+       PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
+       PortState::DISABLED}};
 }
 
 PortData get1x40gPorts() {
-  return {{PortID(1),
-           PortProfileID::PROFILE_40G_4_NRZ_NOFEC_COPPER,
-           PortState::ENABLED},
-          {PortID(2),
-           PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
-           PortState::DISABLED},
-          {PortID(3),
-           PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
-           PortState::DISABLED},
-          {PortID(4),
-           PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
-           PortState::DISABLED}};
+  return {
+      {PortID(1),
+       PortProfileID::PROFILE_40G_4_NRZ_NOFEC_COPPER,
+       PortState::ENABLED},
+      {PortID(2),
+       PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
+       PortState::DISABLED},
+      {PortID(3),
+       PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
+       PortState::DISABLED},
+      {PortID(4),
+       PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
+       PortState::DISABLED}};
 }
 
 PortData get1x10gPorts() {
-  return {{PortID(1),
-           PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
-           PortState::ENABLED},
-          {PortID(2),
-           PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
-           PortState::DISABLED},
-          {PortID(3),
-           PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
-           PortState::DISABLED},
-          {PortID(4),
-           PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
-           PortState::DISABLED}};
+  return {
+      {PortID(1),
+       PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
+       PortState::ENABLED},
+      {PortID(2),
+       PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
+       PortState::DISABLED},
+      {PortID(3),
+       PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
+       PortState::DISABLED},
+      {PortID(4),
+       PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
+       PortState::DISABLED}};
 }
 
 PortData getInvalid1x40gPorts() {
-  return {{PortID(1),
-           PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
-           PortState::DISABLED},
-          {PortID(2),
-           PortProfileID::PROFILE_40G_4_NRZ_NOFEC_COPPER,
-           PortState::ENABLED},
-          {PortID(3),
-           PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
-           PortState::DISABLED},
-          {PortID(4),
-           PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
-           PortState::DISABLED}};
+  return {
+      {PortID(1),
+       PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
+       PortState::DISABLED},
+      {PortID(2),
+       PortProfileID::PROFILE_40G_4_NRZ_NOFEC_COPPER,
+       PortState::ENABLED},
+      {PortID(3),
+       PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
+       PortState::DISABLED},
+      {PortID(4),
+       PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
+       PortState::DISABLED}};
 }
 
 PortData getInvalid20gPorts() {
-  return {{PortID(1),
-           PortProfileID::PROFILE_20G_2_NRZ_NOFEC_COPPER,
-           PortState::ENABLED},
-          {PortID(2),
-           PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
-           PortState::ENABLED},
-          {PortID(3),
-           PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
-           PortState::ENABLED},
-          {PortID(4),
-           PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
-           PortState::DISABLED}};
+  return {
+      {PortID(1),
+       PortProfileID::PROFILE_20G_2_NRZ_NOFEC_COPPER,
+       PortState::ENABLED},
+      {PortID(2),
+       PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
+       PortState::ENABLED},
+      {PortID(3),
+       PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
+       PortState::ENABLED},
+      {PortID(4),
+       PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
+       PortState::DISABLED}};
 }
 
 PortData getInvalidDefaultPorts() {
-  return {{PortID(1), PortProfileID::PROFILE_DEFAULT, PortState::ENABLED},
-          {PortID(2), PortProfileID::PROFILE_DEFAULT, PortState::ENABLED},
-          {PortID(3), PortProfileID::PROFILE_DEFAULT, PortState::ENABLED},
-          {PortID(4), PortProfileID::PROFILE_DEFAULT, PortState::ENABLED}};
+  return {
+      {PortID(1), PortProfileID::PROFILE_DEFAULT, PortState::ENABLED},
+      {PortID(2), PortProfileID::PROFILE_DEFAULT, PortState::ENABLED},
+      {PortID(3), PortProfileID::PROFILE_DEFAULT, PortState::ENABLED},
+      {PortID(4), PortProfileID::PROFILE_DEFAULT, PortState::ENABLED}};
 }
 
 } // namespace

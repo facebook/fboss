@@ -16,9 +16,8 @@ std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRxAfeTrimIdWrapper::operator()() {
   return std::nullopt;
 }
-std::optional<sai_attr_id_t>
-SaiPortSerdesTraits::Attributes::AttributeRxAcCouplingBypassIdWrapper::
-operator()() {
+std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
+    AttributeRxAcCouplingBypassIdWrapper::operator()() {
   return std::nullopt;
 }
 } // namespace facebook::fboss

@@ -23,22 +23,24 @@ namespace facebook::fboss {
 
 class HwEcmpTest : public HwLinkStateDependentTest {
  protected:
-  std::vector<NextHopWeight> swSwitchWeights_ = {ECMP_WEIGHT,
-                                                 ECMP_WEIGHT,
-                                                 ECMP_WEIGHT,
-                                                 ECMP_WEIGHT,
-                                                 ECMP_WEIGHT,
-                                                 ECMP_WEIGHT,
-                                                 ECMP_WEIGHT,
-                                                 ECMP_WEIGHT};
-  std::vector<NextHopWeight> hwSwitchWeights_ = {UCMP_DEFAULT_WEIGHT,
-                                                 UCMP_DEFAULT_WEIGHT,
-                                                 UCMP_DEFAULT_WEIGHT,
-                                                 UCMP_DEFAULT_WEIGHT,
-                                                 UCMP_DEFAULT_WEIGHT,
-                                                 UCMP_DEFAULT_WEIGHT,
-                                                 UCMP_DEFAULT_WEIGHT,
-                                                 UCMP_DEFAULT_WEIGHT};
+  std::vector<NextHopWeight> swSwitchWeights_ = {
+      ECMP_WEIGHT,
+      ECMP_WEIGHT,
+      ECMP_WEIGHT,
+      ECMP_WEIGHT,
+      ECMP_WEIGHT,
+      ECMP_WEIGHT,
+      ECMP_WEIGHT,
+      ECMP_WEIGHT};
+  std::vector<NextHopWeight> hwSwitchWeights_ = {
+      UCMP_DEFAULT_WEIGHT,
+      UCMP_DEFAULT_WEIGHT,
+      UCMP_DEFAULT_WEIGHT,
+      UCMP_DEFAULT_WEIGHT,
+      UCMP_DEFAULT_WEIGHT,
+      UCMP_DEFAULT_WEIGHT,
+      UCMP_DEFAULT_WEIGHT,
+      UCMP_DEFAULT_WEIGHT};
   const RouterID kRid{0};
   static constexpr auto kNumNextHops{8};
   std::unique_ptr<utility::EcmpSetupAnyNPorts<folly::IPAddressV6>> ecmpHelper_;

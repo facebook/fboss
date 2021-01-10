@@ -560,8 +560,8 @@ TEST_F(BcmRouteHostReferenceTest, DeleteRoutesAndCheckHostReference) {
   };
 
   auto verify = [=]() {
-    std::vector<IPAddress> nexthops = {IPAddress("1.1.1.101"),
-                                       IPAddress("1::1")};
+    std::vector<IPAddress> nexthops = {
+        IPAddress("1.1.1.101"), IPAddress("1::1")};
     /* as route to one network for each next hop will be removed, verify
      * reference count for each next hop is 1*/
     for (auto nexthop : nexthops) {
@@ -1018,16 +1018,16 @@ TEST_F(BcmRouteTest, EgressUpdateOnHostRouteUpdateOneHopToManyHops) {
                          ->getRouteTable(RouterID(0))
                          ->getRibV4()
                          ->routes()
-                         ->getRouteIf(RoutePrefixV4{hostRouteV4.first.asV4(),
-                                                    hostRouteV4.second});
+                         ->getRouteIf(RoutePrefixV4{
+                             hostRouteV4.first.asV4(), hostRouteV4.second});
 
     auto v6SwRoute = getProgrammedState()
                          ->getRouteTables()
                          ->getRouteTable(RouterID(0))
                          ->getRibV6()
                          ->routes()
-                         ->getRouteIf(RoutePrefixV6{hostRouteV6.first.asV6(),
-                                                    hostRouteV6.second});
+                         ->getRouteIf(RoutePrefixV6{
+                             hostRouteV6.first.asV6(), hostRouteV6.second});
 
     ASSERT_NE(v4SwRoute, nullptr);
     ASSERT_NE(v6SwRoute, nullptr);

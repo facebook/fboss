@@ -4,14 +4,15 @@
 
 namespace facebook::fboss::utility {
 std::vector<facebook::fboss::MplsLabelStack> kHwTestLabelStacks() {
-  return {{101, 102, 103},
-          {201, 202, 203},
-          {301, 302, 303},
-          {401, 402, 403},
-          {501, 502, 503},
-          {601, 602, 603},
-          {701, 702, 703},
-          {801, 802, 803}};
+  return {
+      {101, 102, 103},
+      {201, 202, 203},
+      {301, 302, 303},
+      {401, 402, 403},
+      {501, 502, 503},
+      {601, 602, 603},
+      {701, 702, 703},
+      {801, 802, 803}};
 }
 
 std::vector<uint64_t> kHwTestEcmpWeights() {

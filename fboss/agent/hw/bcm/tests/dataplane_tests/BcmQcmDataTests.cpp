@@ -93,8 +93,8 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
       *qcmCfg.collectorSrcIp_ref() = kCollectorSrcIpv4;
     }
     // only configured ports from beginning, need the cos queues
-    const auto& portList = {masterLogicalPortIds()[0],
-                            masterLogicalPortIds()[1]};
+    const auto& portList = {
+        masterLogicalPortIds()[0], masterLogicalPortIds()[1]};
     for (const auto& port : portList) {
       for (const auto& queueId : utility::kOlympicWRRQueueIds()) {
         qcmCfg.port2QosQueueIds_ref()[port].push_back(queueId);

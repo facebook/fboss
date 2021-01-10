@@ -313,10 +313,11 @@ TEST(Route, resolveDropToCPUMix) {
       RouteNextHopEntry(RouteForwardAction::TO_CPU, kDistance));
   // then, add a route for 4 nexthops. One to each interface, one
   // to the DROP and one to the ToCPU
-  RouteNextHopSet nhops = makeNextHops({"1.1.1.10", // interface 1
-                                        "2.2.2.10", // interface 2
-                                        "11.1.1.10", // drop
-                                        "22.1.1.10"}); // to cpu
+  RouteNextHopSet nhops = makeNextHops(
+      {"1.1.1.10", // interface 1
+       "2.2.2.10", // interface 2
+       "11.1.1.10", // drop
+       "22.1.1.10"}); // to cpu
   u1.addRoute(
       IPAddress("8.8.8.0"), 24, kClientA, RouteNextHopEntry(nhops, kDistance));
   u1.updateDone();
@@ -334,8 +335,9 @@ TEST(Route, resolveDropToCPUMix) {
 
   // now update the route with just DROP and ToCPU, expect ToCPU to win
   RouteUpdater u2(&v4Routes, &v6Routes);
-  RouteNextHopSet nhops2 = makeNextHops({"11.1.1.10", // drop
-                                         "22.1.1.10"}); // trap to cpu
+  RouteNextHopSet nhops2 = makeNextHops(
+      {"11.1.1.10", // drop
+       "22.1.1.10"}); // trap to cpu
   u2.addRoute(
       IPAddress("8.8.8.0"), 24, kClientA, RouteNextHopEntry(nhops2, kDistance));
   u2.updateDone();
@@ -376,11 +378,13 @@ TEST(Route, addDel) {
 
   configRoutes(&v4Routes, &v6Routes);
 
-  RouteNextHopSet nexthops = makeNextHops({"1.1.1.10", // interface 1
-                                           "2::2", // interface 2
-                                           "1.1.2.10"}); // un-resolvable
-  RouteNextHopSet nexthops2 = makeNextHops({"1.1.3.10", // un-resolvable
-                                            "11:11::1"}); // un-resolvable
+  RouteNextHopSet nexthops = makeNextHops(
+      {"1.1.1.10", // interface 1
+       "2::2", // interface 2
+       "1.1.2.10"}); // un-resolvable
+  RouteNextHopSet nexthops2 = makeNextHops(
+      {"1.1.3.10", // un-resolvable
+       "11:11::1"}); // un-resolvable
 
   RouteUpdater u1(&v4Routes, &v6Routes);
   u1.addRoute(

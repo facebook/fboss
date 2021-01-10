@@ -23,8 +23,9 @@ using boost::container::flat_set;
 using folly::IPAddressV6;
 namespace {
 
-facebook::fboss::RoutePrefix<IPAddressV6> kDefaultRoute{folly::IPAddressV6(),
-                                                        0};
+facebook::fboss::RoutePrefix<IPAddressV6> kDefaultRoute{
+    folly::IPAddressV6(),
+    0};
 }
 
 namespace facebook::fboss {
@@ -39,8 +40,9 @@ using utility::getEgressIdForRoute;
 class BcmEcmpTrunkTest : public BcmLinkStateDependentTests {
  protected:
   std::vector<int32_t> getTrunkMemberPorts() const {
-    return {(masterLogicalPortIds()[kEcmpWidth - 1]),
-            (masterLogicalPortIds()[kEcmpWidth])};
+    return {
+        (masterLogicalPortIds()[kEcmpWidth - 1]),
+        (masterLogicalPortIds()[kEcmpWidth])};
   }
 
   flat_set<PortDescriptor> getEcmpPorts() const {

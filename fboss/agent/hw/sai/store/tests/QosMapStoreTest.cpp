@@ -87,8 +87,8 @@ TEST_F(QosMapStoreTest, qosMapSetMapping) {
   mapping.resize(1);
   mapping[0].key.dscp = 2;
   mapping[0].value.tc = 4;
-  SaiQosMapTraits::CreateAttributes newAttrs{SAI_QOS_MAP_TYPE_DSCP_TO_TC,
-                                             mapping};
+  SaiQosMapTraits::CreateAttributes newAttrs{
+      SAI_QOS_MAP_TYPE_DSCP_TO_TC, mapping};
   obj.setAttributes(newAttrs);
 
   EXPECT_EQ(

@@ -134,7 +134,8 @@ class HwTest : public ::testing::Test,
 
   template <typename SETUP_FN, typename VERIFY_FN>
   void verifyAcrossWarmBoots(SETUP_FN setup, VERIFY_FN verify) {
-    verifyAcrossWarmBoots(setup, verify, []() {}, []() {});
+    verifyAcrossWarmBoots(
+        setup, verify, []() {}, []() {});
   }
   std::shared_ptr<SwitchState> applyNewConfig(const cfg::SwitchConfig& config);
   std::shared_ptr<SwitchState> applyNewState(

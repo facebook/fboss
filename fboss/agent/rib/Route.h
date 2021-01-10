@@ -164,8 +164,9 @@ class Route {
     flags &= ~(RESOLVED | PROCESSING | CONNECTED | UNRESOLVABLE);
   }
   uint32_t flags{0};
-  RouteNextHopEntry fwd{RouteNextHopEntry::Action::DROP,
-                        AdminDistance::MAX_ADMIN_DISTANCE};
+  RouteNextHopEntry fwd{
+      RouteNextHopEntry::Action::DROP,
+      AdminDistance::MAX_ADMIN_DISTANCE};
 
   Prefix prefix_;
   /*

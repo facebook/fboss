@@ -45,21 +45,23 @@ SaiNextHop SaiNextHopManager::refOrEmplace(const ResolvedNextHop& swNextHop) {
               &nexthopKey)) {
     return SaiStore::getInstance()->get<SaiIpNextHopTraits>().setObject(
         *ipNextHopKey,
-        SaiIpNextHopTraits::CreateAttributes{SAI_NEXT_HOP_TYPE_IP,
-                                             std::get<0>(*ipNextHopKey),
-                                             std::get<1>(*ipNextHopKey),
-                                             std::nullopt});
+        SaiIpNextHopTraits::CreateAttributes{
+            SAI_NEXT_HOP_TYPE_IP,
+            std::get<0>(*ipNextHopKey),
+            std::get<1>(*ipNextHopKey),
+            std::nullopt});
   } else if (
       auto mplsNextHopKey =
           std::get_if<typename SaiMplsNextHopTraits::AdapterHostKey>(
               &nexthopKey)) {
     return SaiStore::getInstance()->get<SaiMplsNextHopTraits>().setObject(
         *mplsNextHopKey,
-        SaiMplsNextHopTraits::CreateAttributes{SAI_NEXT_HOP_TYPE_MPLS,
-                                               std::get<0>(*mplsNextHopKey),
-                                               std::get<1>(*mplsNextHopKey),
-                                               std::get<2>(*mplsNextHopKey),
-                                               std::nullopt});
+        SaiMplsNextHopTraits::CreateAttributes{
+            SAI_NEXT_HOP_TYPE_MPLS,
+            std::get<0>(*mplsNextHopKey),
+            std::get<1>(*mplsNextHopKey),
+            std::get<2>(*mplsNextHopKey),
+            std::nullopt});
   }
 
   throw FbossError("next hop key not found for a given next hop");

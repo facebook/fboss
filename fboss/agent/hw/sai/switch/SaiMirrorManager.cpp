@@ -22,8 +22,8 @@ namespace facebook::fboss {
 
 SaiMirrorHandle::SaiMirror SaiMirrorManager::addMirrorSpan(
     PortSaiId monitorPort) {
-  SaiLocalMirrorTraits::AdapterHostKey k{SAI_MIRROR_SESSION_TYPE_LOCAL,
-                                         monitorPort};
+  SaiLocalMirrorTraits::AdapterHostKey k{
+      SAI_MIRROR_SESSION_TYPE_LOCAL, monitorPort};
   SaiLocalMirrorTraits::CreateAttributes attributes = k;
   auto& store = SaiStore::getInstance()->get<SaiLocalMirrorTraits>();
   return store.setObject(k, attributes);

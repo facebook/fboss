@@ -31,23 +31,24 @@ class PortApiTest : public ::testing::Test {
       uint32_t speed,
       const std::vector<uint32_t>& lanes,
       bool adminState) const {
-    SaiPortTraits::CreateAttributes a{lanes,
-                                      speed,
-                                      adminState,
-                                      std::nullopt,
-                                      std::nullopt,
-                                      std::nullopt,
-                                      std::nullopt,
-                                      std::nullopt,
-                                      std::nullopt,
-                                      std::nullopt,
-                                      std::nullopt,
-                                      std::nullopt,
-                                      std::nullopt,
-                                      std::nullopt,
-                                      std::nullopt,
-                                      std::nullopt,
-                                      std::nullopt};
+    SaiPortTraits::CreateAttributes a{
+        lanes,
+        speed,
+        adminState,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt};
     return portApi->create<SaiPortTraits>(a, 0);
   }
 
@@ -60,15 +61,16 @@ class PortApiTest : public ::testing::Test {
       std::vector<sai_int32_t> rxDspMode,
       std::vector<sai_int32_t> rxAfeTrim,
       std::vector<sai_int32_t> rxAcCouplingByPass) const {
-    SaiPortSerdesTraits::CreateAttributes a{portSaiId,
-                                            std::nullopt,
-                                            txPre1,
-                                            txMain,
-                                            txPost1,
-                                            rxCtlCode,
-                                            rxDspMode,
-                                            rxAfeTrim,
-                                            rxAcCouplingByPass};
+    SaiPortSerdesTraits::CreateAttributes a{
+        portSaiId,
+        std::nullopt,
+        txPre1,
+        txMain,
+        txPost1,
+        rxCtlCode,
+        rxDspMode,
+        rxAfeTrim,
+        rxAcCouplingByPass};
     return portApi->create<SaiPortSerdesTraits>(a, 0 /*switch id*/);
   }
 

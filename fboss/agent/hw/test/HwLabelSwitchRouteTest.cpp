@@ -55,10 +55,11 @@ class HwLabelSwitchRouteTest : public HwLinkStateDependentTest {
     setupECMPHelper(kTopLabel, action);
     LabelNextHopSet nhops;
     auto testNhop = getNextHop(0);
-    LabelNextHop nexthop{testNhop.ip,
-                         InterfaceID(utility::kBaseVlanId),
-                         ECMP_WEIGHT,
-                         testNhop.action};
+    LabelNextHop nexthop{
+        testNhop.ip,
+        InterfaceID(utility::kBaseVlanId),
+        ECMP_WEIGHT,
+        testNhop.action};
     nhops.insert(nexthop);
     applyNewState(helper_->resolveNextHop(getProgrammedState(), testNhop));
     auto newState = getProgrammedState()->clone();
@@ -78,10 +79,11 @@ class HwLabelSwitchRouteTest : public HwLinkStateDependentTest {
     for (auto i = 0; i < kWidth; i++) {
       auto testNhop = getNextHop(i);
       applyNewState(helper_->resolveNextHop(getProgrammedState(), testNhop));
-      nhops.insert(LabelNextHop{testNhop.ip,
-                                InterfaceID(utility::kBaseVlanId + i),
-                                NextHopWeight(1), // TODO - support ECMP_WEIGHT
-                                testNhop.action});
+      nhops.insert(LabelNextHop{
+          testNhop.ip,
+          InterfaceID(utility::kBaseVlanId + i),
+          NextHopWeight(1), // TODO - support ECMP_WEIGHT
+          testNhop.action});
     }
     auto newState = getProgrammedState()->clone();
     newState->getLabelForwardingInformationBase()->programLabel(

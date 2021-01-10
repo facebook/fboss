@@ -1511,10 +1511,11 @@ std::optional<L2Entry> SaiSwitch::getL2Entry(
     return std::nullopt;
   }
 
-  return L2Entry{fromSaiMacAddress(fdbEvent.fdbEntry.mac_address),
-                 vlanItr->second,
-                 PortDescriptor(portItr->second),
-                 entryType};
+  return L2Entry{
+      fromSaiMacAddress(fdbEvent.fdbEntry.mac_address),
+      vlanItr->second,
+      PortDescriptor(portItr->second),
+      entryType};
 }
 
 template <

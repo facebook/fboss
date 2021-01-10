@@ -67,8 +67,8 @@ class ManagedSaiNextHopGroupMember
 
     auto nexthopId = std::get<NextHopWeakPtr>(added).lock()->adapterKey();
 
-    SaiNextHopGroupMemberTraits::AdapterHostKey adapterHostKey{nexthopGroupId_,
-                                                               nexthopId};
+    SaiNextHopGroupMemberTraits::AdapterHostKey adapterHostKey{
+        nexthopGroupId_, nexthopId};
     SaiNextHopGroupMemberTraits::CreateAttributes createAttributes{
         nexthopGroupId_, nexthopId, weight_};
 

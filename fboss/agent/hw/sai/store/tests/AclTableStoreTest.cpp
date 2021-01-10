@@ -422,36 +422,37 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
 
   SaiAclEntryTraits::AdapterHostKey k{aclTableId, this->kPriority()};
 
-  SaiAclEntryTraits::CreateAttributes c{aclTableId,
-                                        this->kPriority(),
-                                        this->kSrcIpV6(),
-                                        this->kDstIpV6(),
-                                        this->kSrcIpV4(),
-                                        this->kDstIpV4(),
-                                        this->kSrcPort(),
-                                        this->kOutPort(),
-                                        this->kL4SrcPort(),
-                                        this->kL4DstPort(),
-                                        this->kIpProtocol(),
-                                        this->kTcpFlags(),
-                                        this->kIpFrag(),
-                                        this->kIcmpV4Type(),
-                                        this->kIcmpV4Code(),
-                                        this->kIcmpV6Type(),
-                                        this->kIcmpV6Code(),
-                                        this->kDscp(),
-                                        this->kDstMac(),
-                                        this->kIpType(),
-                                        this->kTtl(),
-                                        this->kFdbDstUserMeta(),
-                                        this->kRouteDstUserMeta(),
-                                        this->kNeighborDstUserMeta(),
-                                        this->kPacketAction(),
-                                        this->kCounter(),
-                                        this->kSetTC(),
-                                        this->kSetDSCP(),
-                                        this->kMirrorIngress(),
-                                        this->kMirrorEgress()};
+  SaiAclEntryTraits::CreateAttributes c{
+      aclTableId,
+      this->kPriority(),
+      this->kSrcIpV6(),
+      this->kDstIpV6(),
+      this->kSrcIpV4(),
+      this->kDstIpV4(),
+      this->kSrcPort(),
+      this->kOutPort(),
+      this->kL4SrcPort(),
+      this->kL4DstPort(),
+      this->kIpProtocol(),
+      this->kTcpFlags(),
+      this->kIpFrag(),
+      this->kIcmpV4Type(),
+      this->kIcmpV4Code(),
+      this->kIcmpV6Type(),
+      this->kIcmpV6Code(),
+      this->kDscp(),
+      this->kDstMac(),
+      this->kIpType(),
+      this->kTtl(),
+      this->kFdbDstUserMeta(),
+      this->kRouteDstUserMeta(),
+      this->kNeighborDstUserMeta(),
+      this->kPacketAction(),
+      this->kCounter(),
+      this->kSetTC(),
+      this->kSetDSCP(),
+      this->kMirrorIngress(),
+      this->kMirrorEgress()};
 
   SaiObject<SaiAclEntryTraits> obj = createObj<SaiAclEntryTraits>(k, c, 0);
   EXPECT_EQ(GET_ATTR(AclEntry, TableId, obj.attributes()), aclTableId);
@@ -460,11 +461,12 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
 TEST_P(AclTableStoreParamTest, AclCounterCreateCtor) {
   auto aclTableId = createAclTable(GetParam());
 
-  SaiAclCounterTraits::CreateAttributes c{aclTableId,
-                                          this->kEnablePacketCount(),
-                                          this->kEnableByteCount(),
-                                          this->kCounterPackets(),
-                                          this->kCounterBytes()};
+  SaiAclCounterTraits::CreateAttributes c{
+      aclTableId,
+      this->kEnablePacketCount(),
+      this->kEnableByteCount(),
+      this->kCounterPackets(),
+      this->kCounterBytes()};
 
   SaiAclCounterTraits::AdapterHostKey k{
       aclTableId, this->kEnablePacketCount(), this->kEnableByteCount()};

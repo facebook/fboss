@@ -47,15 +47,17 @@ class BcmEmptyEcmpTest : public BcmTest {
     auto cfg = initialConfig();
     applyNewConfig(cfg);
     auto setup = [=]() {
-      for (auto v6Pfx : {RoutePrefixV6{IPAddressV6(), 0},
-                         RoutePrefixV6{IPAddressV6("1::1"), 128}}) {
+      for (auto v6Pfx :
+           {RoutePrefixV6{IPAddressV6(), 0},
+            RoutePrefixV6{IPAddressV6("1::1"), 128}}) {
         setupECMPForwarding(
             utility::EcmpSetupAnyNPorts6(getProgrammedState(), kRid),
             ecmpWidth,
             v6Pfx);
       }
-      for (auto v4Pfx : {RoutePrefixV4{IPAddressV4(), 0},
-                         RoutePrefixV4{IPAddressV4("1.1.1.1"), 32}}) {
+      for (auto v4Pfx :
+           {RoutePrefixV4{IPAddressV4(), 0},
+            RoutePrefixV4{IPAddressV4("1.1.1.1"), 32}}) {
         setupECMPForwarding(
             utility::EcmpSetupAnyNPorts4(getProgrammedState(), kRid),
             ecmpWidth,

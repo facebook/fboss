@@ -20,10 +20,11 @@ using namespace facebook::fboss;
 class DebugCounterStoreTest : public SaiStoreTest {
  public:
   SaiDebugCounterTraits::CreateAttributes inCounterCreateAtts() const {
-    return {SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS,
-            SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
-            SaiDebugCounterTraits::Attributes::InDropReasons{
-                {SAI_IN_DROP_REASON_BLACKHOLE_ROUTE}}};
+    return {
+        SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS,
+        SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
+        SaiDebugCounterTraits::Attributes::InDropReasons{
+            {SAI_IN_DROP_REASON_BLACKHOLE_ROUTE}}};
   }
   DebugCounterSaiId createInDebugCounter() {
     return saiApiTable->debugCounterApi().create<SaiDebugCounterTraits>(

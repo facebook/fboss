@@ -43,8 +43,8 @@ class MirrorStoreTest : public SaiStoreTest {
   folly::MacAddress dstMac{dstMacStr};
 
   MirrorSaiId createLocalMirror(int portId) {
-    SaiLocalMirrorTraits::CreateAttributes c{SAI_MIRROR_SESSION_TYPE_LOCAL,
-                                             portId};
+    SaiLocalMirrorTraits::CreateAttributes c{
+        SAI_MIRROR_SESSION_TYPE_LOCAL, portId};
     return saiApiTable->mirrorApi().create<SaiLocalMirrorTraits>(c, 0);
   }
 

@@ -18,9 +18,10 @@ TEST(MPLSHdrTest, parameterized_data_constructor_label) {
 }
 
 TEST(MPLSHdrTest, parameterized_data_constructor_stack) {
-  std::vector<MPLSHdr::Label> stack{MPLSHdr::Label{101, 4, 0, 79},
-                                    MPLSHdr::Label{102, 4, 0, 79},
-                                    MPLSHdr::Label{103, 4, 1, 79}};
+  std::vector<MPLSHdr::Label> stack{
+      MPLSHdr::Label{101, 4, 0, 79},
+      MPLSHdr::Label{102, 4, 0, 79},
+      MPLSHdr::Label{103, 4, 1, 79}};
   MPLSHdr hdr{stack};
   const auto& hdrStack = hdr.stack();
   EXPECT_EQ(hdr.size(), 3 * MPLSHdr::Label::kSizeBytes);
@@ -30,9 +31,10 @@ TEST(MPLSHdrTest, parameterized_data_constructor_stack) {
 }
 
 TEST(MPLSHdrTest, copy_constructor) {
-  std::vector<MPLSHdr::Label> stack{MPLSHdr::Label{101, 4, 0, 79},
-                                    MPLSHdr::Label{102, 4, 0, 79},
-                                    MPLSHdr::Label{103, 4, 1, 79}};
+  std::vector<MPLSHdr::Label> stack{
+      MPLSHdr::Label{101, 4, 0, 79},
+      MPLSHdr::Label{102, 4, 0, 79},
+      MPLSHdr::Label{103, 4, 1, 79}};
   MPLSHdr hdr0{stack};
   MPLSHdr hdr1{hdr0};
   const auto& hdr0Stack = hdr0.stack();

@@ -193,11 +193,12 @@ TEST(SwitchStatePruningTests, AddNeighborEntry) {
   SwitchConfig config;
   shared_ptr<SwitchState> state0 = make_shared<SwitchState>();
   // state0 = empty state
-  std::map<PortID, VlanID> port2VlanMap = {{PortID(1), VlanID(21)},
-                                           {PortID(2), VlanID(21)},
-                                           {PortID(3), VlanID(21)},
-                                           {PortID(4), VlanID(22)},
-                                           {PortID(5), VlanID(22)}};
+  std::map<PortID, VlanID> port2VlanMap = {
+      {PortID(1), VlanID(21)},
+      {PortID(2), VlanID(21)},
+      {PortID(3), VlanID(21)},
+      {PortID(4), VlanID(22)},
+      {PortID(5), VlanID(22)}};
   std::map<VlanID, MacAddress> vlan2OutgoingMac = {
       {VlanID(21), MacAddress("fa:ce:b0:0c:21:00")},
       {VlanID(22), MacAddress("fa:ce:b0:0c:22:00")}};
@@ -291,11 +292,12 @@ TEST(SwitchStatePruningTests, ChangeNeighborEntry) {
   SwitchConfig config;
   shared_ptr<SwitchState> state0 = make_shared<SwitchState>();
   // state0 -> empty state
-  std::map<PortID, VlanID> port2VlanMap = {{PortID(1), VlanID(21)},
-                                           {PortID(2), VlanID(21)},
-                                           {PortID(3), VlanID(21)},
-                                           {PortID(4), VlanID(22)},
-                                           {PortID(5), VlanID(22)}};
+  std::map<PortID, VlanID> port2VlanMap = {
+      {PortID(1), VlanID(21)},
+      {PortID(2), VlanID(21)},
+      {PortID(3), VlanID(21)},
+      {PortID(4), VlanID(22)},
+      {PortID(5), VlanID(22)}};
   std::map<VlanID, MacAddress> vlan2OutgoingMac = {
       {VlanID(21), MacAddress("fa:ce:b0:0c:21:00")},
       {VlanID(22), MacAddress("fa:ce:b0:0c:22:00")}};
@@ -400,11 +402,12 @@ TEST(SwitchStatePruningTests, ModifyState) {
   // The empty state
   shared_ptr<SwitchState> state0 = make_shared<SwitchState>();
 
-  std::map<PortID, VlanID> port2VlanMap = {{PortID(1), VlanID(21)},
-                                           {PortID(2), VlanID(21)},
-                                           {PortID(3), VlanID(21)},
-                                           {PortID(4), VlanID(22)},
-                                           {PortID(5), VlanID(22)}};
+  std::map<PortID, VlanID> port2VlanMap = {
+      {PortID(1), VlanID(21)},
+      {PortID(2), VlanID(21)},
+      {PortID(3), VlanID(21)},
+      {PortID(4), VlanID(22)},
+      {PortID(5), VlanID(22)}};
   std::map<VlanID, MacAddress> vlan2OutgoingMac = {
       {VlanID(21), MacAddress("fa:ce:b0:0c:21:00")},
       {VlanID(22), MacAddress("fa:ce:b0:0c:22:00")}};
@@ -447,11 +450,12 @@ TEST(SwitchStatePruningTests, ModifyEmptyArpTable) {
   // state0 = the empty state
   shared_ptr<SwitchState> state0 = make_shared<SwitchState>();
 
-  std::map<PortID, VlanID> port2VlanMap = {{PortID(1), VlanID(21)},
-                                           {PortID(2), VlanID(21)},
-                                           {PortID(3), VlanID(21)},
-                                           {PortID(4), VlanID(22)},
-                                           {PortID(5), VlanID(22)}};
+  std::map<PortID, VlanID> port2VlanMap = {
+      {PortID(1), VlanID(21)},
+      {PortID(2), VlanID(21)},
+      {PortID(3), VlanID(21)},
+      {PortID(4), VlanID(22)},
+      {PortID(5), VlanID(22)}};
   std::map<VlanID, MacAddress> vlan2OutgoingMac = {
       {VlanID(21), MacAddress("fa:ce:b0:0c:21:00")},
       {VlanID(22), MacAddress("fa:ce:b0:0c:22:00")}};
@@ -499,11 +503,12 @@ TEST(SwitchStatePruningTests, ModifyArpTableMultipleTimes) {
   shared_ptr<SwitchState> state0 = make_shared<SwitchState>();
 
   // Add some ports and corresponding Vlans
-  std::map<PortID, VlanID> port2VlanMap = {{PortID(1), VlanID(21)},
-                                           {PortID(2), VlanID(21)},
-                                           {PortID(3), VlanID(21)},
-                                           {PortID(4), VlanID(22)},
-                                           {PortID(5), VlanID(22)}};
+  std::map<PortID, VlanID> port2VlanMap = {
+      {PortID(1), VlanID(21)},
+      {PortID(2), VlanID(21)},
+      {PortID(3), VlanID(21)},
+      {PortID(4), VlanID(22)},
+      {PortID(5), VlanID(22)}};
   std::map<VlanID, MacAddress> vlan2OutgoingMac = {
       {VlanID(21), MacAddress("fa:ce:b0:0c:21:00")},
       {VlanID(22), MacAddress("fa:ce:b0:0c:22:00")}};

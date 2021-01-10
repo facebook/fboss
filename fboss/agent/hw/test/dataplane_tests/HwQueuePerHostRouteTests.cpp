@@ -49,8 +49,8 @@ class HwQueuePerHostRouteTest : public HwLinkStateDependentTest {
 
   RoutePrefix<AddrT> kGetRoutePrefix() const {
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
-      return RoutePrefix<folly::IPAddressV4>{folly::IPAddressV4{"10.10.1.0"},
-                                             24};
+      return RoutePrefix<folly::IPAddressV4>{
+          folly::IPAddressV4{"10.10.1.0"}, 24};
     } else {
       return RoutePrefix<folly::IPAddressV6>{
           folly::IPAddressV6{"2803:6080:d038:3063::"}, 64};

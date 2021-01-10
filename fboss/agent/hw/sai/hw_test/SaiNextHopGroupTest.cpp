@@ -48,9 +48,10 @@ class SaiNextHopGroupTest : public SaiLinkStateDependentTests {
     const auto* vrHandle =
         managerTable->virtualRouterManager().getVirtualRouterHandle(
             RouterID(0));
-    return SaiRouteTraits::RouteEntry{getSaiSwitch()->getSwitchId(),
-                                      vrHandle->virtualRouter->adapterKey(),
-                                      folly::CIDRNetwork("::", 0)};
+    return SaiRouteTraits::RouteEntry{
+        getSaiSwitch()->getSwitchId(),
+        vrHandle->virtualRouter->adapterKey(),
+        folly::CIDRNetwork("::", 0)};
   }
 
   int nextHopGroupActiveSubscriberCount() const {

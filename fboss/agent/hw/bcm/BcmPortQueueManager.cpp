@@ -94,8 +94,8 @@ BcmPortQueueManager::getQueueCounterTypes() const {
   };
 
   obmTypes.insert(obmTypes.begin(), types.begin(), types.end());
-  static const std::vector<BcmCosQueueCounterType> allTypes = {obmTypes.begin(),
-                                                               obmTypes.end()};
+  static const std::vector<BcmCosQueueCounterType> allTypes = {
+      obmTypes.begin(), obmTypes.end()};
   return allTypes;
 }
 
