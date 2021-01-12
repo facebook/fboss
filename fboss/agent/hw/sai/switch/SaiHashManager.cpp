@@ -12,6 +12,8 @@
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 namespace {
 using namespace facebook::fboss;
@@ -68,5 +70,16 @@ std::shared_ptr<SaiHash> SaiHashManager::getOrCreate(
   auto& store = SaiStore::getInstance()->get<SaiHashTraits>();
 
   return store.setObject(adapterHostKey, createAttrs);
+}
+
+SaiHashManager::SaiHashManager(
+    SaiManagerTable* managerTable,
+    SaiPlatform* platform)
+    : managerTable_(managerTable), platform_(platform) {
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
+    auto& store = SaiStore::getInstance()->get<SaiHashTraits>();
+    store.setObjectOwnedByAdapter(true);
+  }
 }
 } // namespace facebook::fboss
