@@ -255,6 +255,14 @@ class SaiObjectStore {
     return objects_.end();
   }
 
+  void setObjectOwnedByAdapter(bool objectOwnedByAdapter) {
+    objectOwnedByAdapter_ = objectOwnedByAdapter;
+  }
+
+  bool isObjectOwnedByAdapter() const {
+    return objectOwnedByAdapter_;
+  }
+
   size_t warmBootHandlesCount() const {
     return warmBootHandles_.size();
   }
@@ -337,6 +345,7 @@ class SaiObjectStore {
   }
 
   std::optional<sai_object_id_t> switchId_;
+  bool objectOwnedByAdapter_{false};
   UnorderedRefMap<typename SaiObjectTraits::AdapterHostKey, ObjectType>
       objects_;
   std::unordered_map<
