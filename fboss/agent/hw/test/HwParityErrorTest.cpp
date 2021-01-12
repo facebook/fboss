@@ -39,13 +39,7 @@ class HwParityErrorTest : public HwLinkStateDependentTest {
     auto ensemble = getHwSwitchEnsemble();
     ensemble->runDiagCommand("\n", out);
     if (asic == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
-      // call ser INJECT twice to make warmboot test work, the cmd
-      // might fail if called for the 2nd time, but can succeed
-      // after that, see CS00011734966 for more details.
-      ensemble->runDiagCommand(
-          "ser INJECT PT=MMU_TOQ_OQS_STAGING_MEM_MMU_ITM0_ITM0m\n", out);
-      ensemble->runDiagCommand(
-          "ser INJECT PT=MMU_TOQ_OQS_STAGING_MEM_MMU_ITM0_ITM0m\n", out);
+      ensemble->runDiagCommand("ser inject pt=L2_ENTRY_SINGLEm\n", out);
       ensemble->runDiagCommand("ser LOG\n", out);
     } else {
       ensemble->runDiagCommand(
