@@ -987,7 +987,6 @@ TEST(ArpTest, PendingArpCleanup) {
   testSendArpRequest(sw, vlanID, senderIP, targetIP[1]);
 
   // Should see another pending entry now
-  waitForStateUpdates(sw);
   auto entry1 = getArpEntry(sw, targetIP[1], vlanID);
   EXPECT_NE(entry1, nullptr);
   EXPECT_EQ(entry1->isPending(), true);
