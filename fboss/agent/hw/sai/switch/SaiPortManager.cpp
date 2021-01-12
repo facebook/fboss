@@ -129,7 +129,15 @@ SaiPortManager::SaiPortManager(
     ConcurrentIndices* concurrentIndices)
     : managerTable_(managerTable),
       platform_(platform),
-      concurrentIndices_(concurrentIndices) {}
+      concurrentIndices_(concurrentIndices) {
+  /*
+   * FDB entries will be initially owned by SDK since learn mode is HW
+   * by default. Once the config is applied, object owned by adapter
+   * will be reset based on the learn mode.
+   */
+  auto& store = SaiStore::getInstance()->get<SaiFdbTraits>();
+  store.setObjectOwnedByAdapter(true);
+}
 
 SaiPortManager::~SaiPortManager() {}
 
@@ -696,6 +704,9 @@ void SaiPortManager::setL2LearningMode(cfg::L2LearningMode l2LearningMode) {
         SaiBridgePortTraits::Attributes::FdbLearningMode{fdbLearningMode});
   }
   l2LearningMode_ = l2LearningMode;
+  auto& store = SaiStore::getInstance()->get<SaiFdbTraits>();
+  store.setObjectOwnedByAdapter(
+      l2LearningMode_ == cfg::L2LearningMode::HARDWARE);
 }
 
 std::shared_ptr<SaiPortSerdes> SaiPortManager::programSerdes(
