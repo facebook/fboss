@@ -113,7 +113,8 @@ void PlatformProductInfo::initMode() {
       mode_ = PlatformMode::MINIPACK;
     } else if (modelName.find("DCS-7368") == 0 || modelName.find("YAMP") == 0) {
       mode_ = PlatformMode::YAMP;
-    } else if (modelName.find("elbert") == 0 || modelName.find("ELBERT") == 0) {
+    } else if (
+        modelName.find("DCS-7388") == 0 || modelName.find("ELBERT") == 0) {
       mode_ = PlatformMode::ELBERT;
     } else if (modelName.find("fake_wedge40") == 0) {
       mode_ = PlatformMode::FAKE_WEDGE40;
