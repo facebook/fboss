@@ -681,6 +681,7 @@ DOMDataUnion CmisModule::getDOMDataUnion() {
       cmisData.page14_ref() = IOBuf::wrapBufferAsValue(page14_, MAX_QSFP_PAGE_SIZE);
     }
   }
+  cmisData.timeCollected_ref() = lastRefreshTime_;
   DOMDataUnion data;
   data.set_cmis(cmisData);
   return data;

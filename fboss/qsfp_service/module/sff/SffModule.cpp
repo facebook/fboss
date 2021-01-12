@@ -647,6 +647,7 @@ DOMDataUnion SffModule::getDOMDataUnion() {
       sffData.page3_ref() = IOBuf::wrapBufferAsValue(page3_, MAX_QSFP_PAGE_SIZE);
     }
   }
+  sffData.timeCollected_ref() = lastRefreshTime_;
   DOMDataUnion data;
   data.set_sff8636(sffData);
   return data;

@@ -455,6 +455,13 @@ void printThresholds(
   }
 }
 
+std::string getLocalTime(std::time_t t) {
+  struct tm localtime_result;
+  localtime_r(&t, &localtime_result);
+  std::array<char, 26> buf;
+  return asctime_r(&localtime_result,buf.data());
+}
+
 void printChannelMonitor(unsigned int index,
                          const uint8_t* buf,
                          unsigned int rxMSB,
@@ -648,6 +655,12 @@ void printSffDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
     data = u16_txbias * 2.0 / 1000;
     return data;
   });
+
+  if (auto timeCollected = sffData.timeCollected_ref()) {
+    printf(
+      "  Time collected: %s\n",
+      getLocalTime(*timeCollected).c_str());
+  }
 }
 
 void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
@@ -783,6 +796,11 @@ void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
   printf("\nRx SNR            ");
   for (i = 0; i < 8; i++) {
     printf("%05.04g    ", (CmisFieldInfo::getSnr(page14Buf[113+i*2] << 8 | page14Buf[112+i*2])));
+  }
+  if (auto timeCollected = cmisData.timeCollected_ref()) {
+    printf(
+      "\nTime collected: %s",
+      getLocalTime(*timeCollected).c_str());
   }
   printf("\n\n");
 }

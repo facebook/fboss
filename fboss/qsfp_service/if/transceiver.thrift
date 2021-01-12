@@ -225,6 +225,7 @@ struct Sff8636Data {
   1: IOBuf lower,
   2: IOBuf page0,
   3: optional IOBuf page3,
+  4: optional i64 timeCollected,
 }
 
 struct CmisData {
@@ -239,4 +240,5 @@ struct CmisData {
   7: optional IOBuf page11,
   8: optional IOBuf page13,
   9: optional IOBuf page14,
+  10: optional i64 timeCollected,
 }
