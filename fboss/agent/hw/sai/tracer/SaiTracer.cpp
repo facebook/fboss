@@ -971,6 +971,9 @@ string SaiTracer::getVariable(sai_object_id_t object_id) {
   if (!FLAGS_enable_replayer) {
     return "";
   }
+  if (object_id == SAI_NULL_OBJECT_ID) {
+    return "SAI_NULL_OBJECT_ID";
+  }
 
   return variables_.withRLock([&](auto& vars) {
     return folly::get_default(vars, object_id, to<string>(object_id));
