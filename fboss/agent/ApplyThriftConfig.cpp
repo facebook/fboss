@@ -196,10 +196,12 @@ class ThriftConfigApplier {
   std::shared_ptr<PortQueue> updatePortQueue(
       const std::shared_ptr<PortQueue>& orig,
       const cfg::PortQueue* cfg,
-      std::optional<TrafficClass> trafficClass);
+      std::optional<TrafficClass> trafficClass,
+      std::optional<std::set<PfcPriority>> pfcPriority);
   std::shared_ptr<PortQueue> createPortQueue(
       const cfg::PortQueue* cfg,
-      std::optional<TrafficClass> trafficClass);
+      std::optional<TrafficClass> trafficClass,
+      std::optional<std::set<PfcPriority>> pfcPriority);
   // pg specific routines
   bool isPgConfigUnchanged(
       std::optional<PortPgConfigs> newPortPgCfgs,
@@ -747,23 +749,26 @@ void ThriftConfigApplier::checkPortQueueAQMValid(
 std::shared_ptr<PortQueue> ThriftConfigApplier::updatePortQueue(
     const std::shared_ptr<PortQueue>& orig,
     const cfg::PortQueue* cfg,
-    std::optional<TrafficClass> trafficClass) {
+    std::optional<TrafficClass> trafficClass,
+    std::optional<std::set<PfcPriority>> pfcPriorities) {
   CHECK_EQ(orig->getID(), *cfg->id_ref());
 
   if (checkSwConfPortQueueMatch(orig, cfg) &&
-      trafficClass == orig->getTrafficClass()) {
+      trafficClass == orig->getTrafficClass() &&
+      pfcPriorities == orig->getPfcPrioritySet()) {
     return orig;
   }
 
   // We should always use the PortQueue settings from config, so that if some
   // of the attributes is removed from config, we can make sure that attribute
   // can set back to default
-  return createPortQueue(cfg, trafficClass);
+  return createPortQueue(cfg, trafficClass, pfcPriorities);
 }
 
 std::shared_ptr<PortQueue> ThriftConfigApplier::createPortQueue(
     const cfg::PortQueue* cfg,
-    std::optional<TrafficClass> trafficClass) {
+    std::optional<TrafficClass> trafficClass,
+    std::optional<std::set<PfcPriority>> pfcPriorities) {
   auto queue =
       std::make_shared<PortQueue>(static_cast<uint8_t>(*cfg->id_ref()));
   queue->setStreamType(*cfg->streamType_ref());
@@ -798,6 +803,9 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::createPortQueue(
   }
   if (trafficClass) {
     queue->setTrafficClasses(trafficClass.value());
+  }
+  if (pfcPriorities) {
+    queue->setPfcPrioritySet(pfcPriorities.value());
   }
   return queue;
 }
@@ -874,14 +882,16 @@ PortPgConfigs ThriftConfigApplier::updatePortPgConfigs(
     return newPortPgConfigs;
   }
 
-  if (newPortPgConfig.size() > cfg::switch_config_constants::PORT_PG_MAX()) {
+  // pg value can be [0, PORT_PG_VALUE_MAX]
+  if (newPortPgConfig.size() >
+      cfg::switch_config_constants::PORT_PG_VALUE_MAX() + 1) {
     throw FbossError(
         "Port",
         orig->getID(),
         " pgConfig size ",
         newPortPgConfig.size(),
         " greater than max supported pgs ",
-        cfg::switch_config_constants::PORT_PG_MAX());
+        cfg::switch_config_constants::PORT_PG_VALUE_MAX() + 1);
   }
 
   for (const auto& portPg : newPortPgConfig) {
@@ -929,6 +939,7 @@ QueueConfig ThriftConfigApplier::updatePortQueues(
     std::shared_ptr<PortQueue> newPortQueue;
     if (newQueueIter != newQueues.end()) {
       std::optional<TrafficClass> trafficClass;
+      std::optional<std::set<PfcPriority>> pfcPriorities;
       if (qosMap) {
         // Get traffic class for such queue if exists
         for (auto entry : *qosMap->trafficClassToQueueId_ref()) {
@@ -937,14 +948,33 @@ QueueConfig ThriftConfigApplier::updatePortQueues(
             break;
           }
         }
+
+        if (const auto& pfcPri2QueueIdMap =
+                qosMap->pfcPriorityToQueueId_ref()) {
+          std::set<PfcPriority> tmpPfcPriSet;
+          for (const auto& pfcPri2QueueId : *pfcPri2QueueIdMap) {
+            if (pfcPri2QueueId.second == queueId) {
+              auto pfcPriority = static_cast<PfcPriority>(pfcPri2QueueId.first);
+              tmpPfcPriSet.insert(pfcPriority);
+            }
+          }
+          if (tmpPfcPriSet.size()) {
+            // dont populate port queue priority if empty
+            pfcPriorities = tmpPfcPriSet;
+          }
+        }
       }
       auto origQueueIter = std::find_if(
           origPortQueues.begin(),
           origPortQueues.end(),
           [&](const auto& origQueue) { return queueId == origQueue->getID(); });
       newPortQueue = (origQueueIter != origPortQueues.end())
-          ? updatePortQueue(*origQueueIter, newQueueIter->second, trafficClass)
-          : createPortQueue(newQueueIter->second, trafficClass);
+          ? updatePortQueue(
+                *origQueueIter,
+                newQueueIter->second,
+                trafficClass,
+                pfcPriorities)
+          : createPortQueue(newQueueIter->second, trafficClass, pfcPriorities);
       newQueues.erase(newQueueIter);
     } else {
       newPortQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(queueId));
@@ -1618,15 +1648,36 @@ shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
     DscpMap dscpMap(*qosMap->dscpMaps_ref());
     ExpMap expMap(*qosMap->expMaps_ref());
     QosPolicy::TrafficClassToQueueId trafficClassToQueueId;
+    std::optional<QosPolicy::PfcPriorityToQueueId> pfcPriorityToQueueId;
+
     for (auto cfgTrafficClassToQueueId : *qosMap->trafficClassToQueueId_ref()) {
       trafficClassToQueueId.emplace(
           cfgTrafficClassToQueueId.first, cfgTrafficClassToQueueId.second);
     }
-    return make_shared<QosPolicy>(
+
+    if (const auto& pfcPriorityMap = qosMap->pfcPriorityToQueueId_ref()) {
+      QosPolicy::PfcPriorityToQueueId tmpMap;
+      for (const auto& pfcPriorityEntry : *pfcPriorityMap) {
+        if (pfcPriorityEntry.first >
+            cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX()) {
+          throw FbossError(
+              "Invalid pfc priority value. Valid range is 0 to: ",
+              cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX());
+        }
+        tmpMap.emplace(pfcPriorityEntry.first, pfcPriorityEntry.second);
+      }
+      pfcPriorityToQueueId = tmpMap;
+    }
+    auto qosPolicyNew = make_shared<QosPolicy>(
         *qosPolicy.name_ref(),
         dscpMap.empty() ? ingressDscpMap : dscpMap,
         expMap,
         trafficClassToQueueId);
+    if (pfcPriorityToQueueId) {
+      qosPolicyNew->setPfcPriorityToQueueIdMap(
+          std::move(pfcPriorityToQueueId.value()));
+    }
+    return qosPolicyNew;
   }
   return make_shared<QosPolicy>(
       *qosPolicy.name_ref(),

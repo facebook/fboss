@@ -48,6 +48,7 @@ struct PortQueueFields {
   std::optional<int> bandwidthBurstMinKbits;
   std::optional<int> bandwidthBurstMaxKbits;
   std::optional<TrafficClass> trafficClass;
+  std::optional<std::set<PfcPriority>> pfcPriorities;
 };
 
 /*
@@ -77,7 +78,8 @@ class PortQueue
         queue.getBandwidthBurstMinKbits() &&
         getFields()->bandwidthBurstMaxKbits ==
         queue.getBandwidthBurstMaxKbits() &&
-        getFields()->trafficClass == queue.getTrafficClass();
+        getFields()->trafficClass == queue.getTrafficClass() &&
+        getFields()->pfcPriorities == queue.getPfcPrioritySet();
   }
   bool operator!=(const PortQueue& queue) const {
     return !(*this == queue);
@@ -188,6 +190,14 @@ class PortQueue
 
   void setTrafficClasses(TrafficClass trafficClass) {
     writableFields()->trafficClass = trafficClass;
+  }
+
+  std::optional<std::set<PfcPriority>> getPfcPrioritySet() const {
+    return getFields()->pfcPriorities;
+  }
+
+  void setPfcPrioritySet(std::set<PfcPriority> pfcPrioritySet) {
+    writableFields()->pfcPriorities = pfcPrioritySet;
   }
 
  private:

@@ -108,6 +108,14 @@ state::PortQueueFields PortQueueFields::toThrift() const {
     queue.trafficClass_ref() = static_cast<int16_t>(trafficClass.value());
   }
 
+  if (pfcPriorities) {
+    std::vector<int16_t> pfcPris;
+    for (const auto& pfcPriority : pfcPriorities.value()) {
+      pfcPris.push_back(static_cast<int16_t>(pfcPriority));
+    }
+    queue.pfcPriorities_ref() = pfcPris;
+  }
+
   return queue;
 }
 
@@ -173,6 +181,14 @@ PortQueueFields PortQueueFields::fromThrift(
   if (queueThrift.trafficClass_ref()) {
     queue.trafficClass.emplace(
         static_cast<TrafficClass>(queueThrift.trafficClass_ref().value()));
+  }
+
+  if (queueThrift.pfcPriorities_ref()) {
+    std::set<PfcPriority> pfcPris;
+    for (const auto& pri : queueThrift.pfcPriorities_ref().value()) {
+      pfcPris.insert(static_cast<PfcPriority>(pri));
+    }
+    queue.pfcPriorities = pfcPris;
   }
 
   return queue;

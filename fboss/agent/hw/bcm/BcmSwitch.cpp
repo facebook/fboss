@@ -3298,6 +3298,16 @@ bool BcmSwitch::isValidPortQueueUpdate(
       return false;
     }
     tcToQueue.emplace(trafficClass, portQueue->getID());
+
+    // validate pfc priority if it exists on the queue
+    if (const auto pfcPrioritySet = portQueue->getPfcPrioritySet()) {
+      // anything more than 7 is illegal (3 bits)
+      for (const auto& pfcPri : *pfcPrioritySet) {
+        if (pfcPri > cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX()) {
+          return false;
+        }
+      }
+    }
   }
   return true;
 }

@@ -22,6 +22,8 @@ constexpr auto kTrafficClass = "trafficClass";
 constexpr auto kDscpMap = "dscpMap";
 constexpr auto kExpMap = "expMap";
 constexpr auto kTrafficClassToQueueId = "trafficClassToQueueId";
+constexpr auto kPfcPriorityToQueueId = "pfcPriorityToQueueId";
+constexpr auto kPfcPriority = "pfcPriority";
 constexpr auto kFrom = "from";
 constexpr auto kTo = "to";
 } // namespace
@@ -42,6 +44,15 @@ folly::dynamic QosPolicyFields::toFollyDynamic() const {
     jsonEntry[kQueueId] = entry.second;
     qosPolicy[kTrafficClassToQueueId].push_back(jsonEntry);
   }
+  if (pfcPriorityToQueueId) {
+    qosPolicy[kPfcPriorityToQueueId] = folly::dynamic::array;
+    for (auto pfcPri : pfcPriorityToQueueId.value()) {
+      folly::dynamic jsonEntry = folly::dynamic::object;
+      jsonEntry[kPfcPriority] = static_cast<uint16_t>(pfcPri.first);
+      jsonEntry[kQueueId] = pfcPri.second;
+      qosPolicy[kPfcPriorityToQueueId].push_back(jsonEntry);
+    }
+  }
   return qosPolicy;
 }
 
@@ -51,6 +62,7 @@ QosPolicyFields QosPolicyFields::fromFollyDynamic(const folly::dynamic& json) {
   TrafficClassToQosAttributeMap<DSCP> dscpMap;
   TrafficClassToQosAttributeMap<EXP> expMap;
   TrafficClassToQueueId trafficClassToQueueId;
+  PfcPriorityToQueueId pfcPriorityToQueueId;
 
   if (json.find(kDscpMap) != json.items().end()) {
     dscpMap =
@@ -68,8 +80,20 @@ QosPolicyFields QosPolicyFields::fromFollyDynamic(const folly::dynamic& json) {
           entry[kQueueId].asInt());
     }
   }
-  return QosPolicyFields(
+
+  auto qosPolicyFields = QosPolicyFields(
       name, ingressDscpMap, ExpMap(expMap), trafficClassToQueueId);
+
+  if (json.find(kPfcPriorityToQueueId) != json.items().end()) {
+    for (const auto& pfcPriQueueIdEntry : json[kPfcPriorityToQueueId]) {
+      pfcPriorityToQueueId.emplace(
+          static_cast<PfcPriority>(pfcPriQueueIdEntry[kPfcPriority].asInt()),
+          pfcPriQueueIdEntry[kQueueId].asInt());
+    }
+    qosPolicyFields.pfcPriorityToQueueId = pfcPriorityToQueueId;
+  }
+
+  return qosPolicyFields;
 }
 
 DscpMap::DscpMap(std::vector<cfg::DscpQosMap> cfg)

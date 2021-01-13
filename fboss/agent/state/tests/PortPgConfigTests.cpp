@@ -85,8 +85,9 @@ TEST(PortPgConfig, TestPortPgMaxLimit) {
   std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
   std::vector<cfg::PortPgConfig> portPgConfigs;
 
-  // pg_id exceeded more than PG_MAX
-  for (pgId = 0; pgId < cfg::switch_config_constants::PORT_PG_MAX() + 1;
+  // pg_id should be [0, PORT_PG_VALUE_MAX]
+  // Lets exceed more than PG_MAX
+  for (pgId = 0; pgId <= cfg::switch_config_constants::PORT_PG_VALUE_MAX() + 1;
        pgId++) {
     cfg::PortPgConfig pgConfig;
     pgConfig.id_ref() = pgId;
@@ -184,15 +185,16 @@ TEST(PortPgConfig, applyConfig) {
   {
     // validate that for the same PG content, but different PG size between old
     // and new we push the change we are changing pg size from
-    // kStateTestNumPortPgs -> PORT_PG_MAX()
-    createPortPgConfig(0, cfg::switch_config_constants::PORT_PG_MAX());
+    // kStateTestNumPortPgs -> PORT_PG_VALUE_MAX()
+    createPortPgConfig(0, cfg::switch_config_constants::PORT_PG_VALUE_MAX());
     auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
     EXPECT_NE(nullptr, stateV3);
 
     auto pgCfgsNew = stateV3->getPort(PortID(1))->getPortPgConfigs();
     EXPECT_TRUE(pgCfgsNew);
     pgCfgValue = pgCfgsNew.value();
-    EXPECT_EQ(cfg::switch_config_constants::PORT_PG_MAX(), pgCfgValue.size());
+    EXPECT_EQ(
+        cfg::switch_config_constants::PORT_PG_VALUE_MAX(), pgCfgValue.size());
   }
 
   {

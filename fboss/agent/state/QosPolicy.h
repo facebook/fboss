@@ -118,6 +118,8 @@ class ExpMap : public TrafficClassToQosAttributeMap<EXP> {
 struct QosPolicyFields {
   using TrafficClassToQueueId =
       boost::container::flat_map<TrafficClass, uint16_t>;
+  using PfcPriorityToQueueId =
+      boost::container::flat_map<PfcPriority, uint16_t>;
   QosPolicyFields(
       const std::string& name,
       DscpMap dscpMap,
@@ -138,11 +140,13 @@ struct QosPolicyFields {
   DscpMap dscpMap;
   ExpMap expMap;
   TrafficClassToQueueId trafficClassToQueueId;
+  std::optional<PfcPriorityToQueueId> pfcPriorityToQueueId;
 };
 
 class QosPolicy : public NodeBaseT<QosPolicy, QosPolicyFields> {
  public:
   using TrafficClassToQueueId = QosPolicyFields::TrafficClassToQueueId;
+  using PfcPriorityToQueueId = QosPolicyFields::PfcPriorityToQueueId;
   QosPolicy(
       const std::string& name,
       DscpMap dscpMap,
@@ -169,7 +173,9 @@ class QosPolicy : public NodeBaseT<QosPolicy, QosPolicyFields> {
         getFields()->dscpMap == qosPolicy.getDscpMap() &&
         getFields()->expMap == qosPolicy.getExpMap() &&
         getFields()->trafficClassToQueueId ==
-        qosPolicy.getTrafficClassToQueueId();
+        qosPolicy.getTrafficClassToQueueId() &&
+        getFields()->pfcPriorityToQueueId ==
+        qosPolicy.getPfcPriorityToQueueId();
   }
 
   bool operator!=(const QosPolicy& qosPolicy) const {
@@ -200,12 +206,20 @@ class QosPolicy : public NodeBaseT<QosPolicy, QosPolicyFields> {
     return getFields()->trafficClassToQueueId;
   }
 
+  const std::optional<PfcPriorityToQueueId>& getPfcPriorityToQueueId() const {
+    return getFields()->pfcPriorityToQueueId;
+  }
+
   void setExpMap(ExpMap expMap) {
     writableFields()->expMap = std::move(expMap);
   }
 
   void setTrafficClassToQueueIdMap(TrafficClassToQueueId tc2Q) {
     writableFields()->trafficClassToQueueId = std::move(tc2Q);
+  }
+
+  void setPfcPriorityToQueueIdMap(PfcPriorityToQueueId pfcPri2QueueId) {
+    writableFields()->pfcPriorityToQueueId = std::move(pfcPri2QueueId);
   }
 
  private:

@@ -585,6 +585,9 @@ struct QosMap {
   1: list<DscpQosMap> dscpMaps
   2: list<ExpQosMap> expMaps
   3: map<i16, i16> trafficClassToQueueId
+  // for rx PFC, map the incoming PFC pkts
+  // priority to the corresponding queueId
+  4: optional map<i16, i16> pfcPriorityToQueueId
 }
 
 struct QosRule {
@@ -1219,7 +1222,8 @@ struct BufferPoolConfig {
 }
 
 // max PG/port supported
-const i16 PORT_PG_MAX = 8;
+const i16 PORT_PG_VALUE_MAX = 7
+const i16 PFC_PRIORITY_VALUE_MAX = 7
 
 // Defines PG (priority group) configuration for ports
 // This configuration defines the PG buffer settings for given port(s)
