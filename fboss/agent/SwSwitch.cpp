@@ -814,28 +814,33 @@ void SwSwitch::handlePendingUpdates() {
     newAppliedState =
         applyUpdate(oldAppliedState, newDesiredState, isTransaction);
     if (newDesiredState != newAppliedState) {
-      if (isExiting()) {
-        XLOG(INFO) << " Agent exiting before all updates could be applied";
+      if (updates.size() == 1 && updates.begin()->hwFailureProtected()) {
+        fb303::fbData->incrementCounter(kHwUpdateFailures);
+        unique_ptr<StateUpdate> update(&updates.front());
+        try {
+          throw FbossHwUpdateError(
+              newDesiredState,
+              newAppliedState,
+              "Update : ",
+              update->getName(),
+              " application to HW failed");
+
+        } catch (const std::exception& ex) {
+          update->onError(ex);
+        }
         return;
+      } else if (!isExiting()) {
+        XLOG(FATAL)
+            << " Failed to apply update to HW and the update is not marked for "
+               "HW failure protection";
+      } else {
+        // We failed to non protected updates since SwSwitch started its
+        // exit sequence alongside these updates being scheduled. So ideally
+        // we should signal a error to these updates. However since these are
+        // non protected updates, if we signal error, these updates will FATAL.
+        // TODO: Modify such updates to handle errors due to SwSwitch exit
+        // overlap.
       }
-      CHECK(updates.size() == 1 && updates.begin()->hwFailureProtected())
-          << " Failed to apply update to HW and the update is not marked for "
-             "HW failure protection";
-
-      fb303::fbData->incrementCounter(kHwUpdateFailures);
-      unique_ptr<StateUpdate> update(&updates.front());
-      try {
-        throw FbossHwUpdateError(
-            newDesiredState,
-            newAppliedState,
-            "Update : ",
-            update->getName(),
-            " application to HW failed");
-
-      } catch (const std::exception& ex) {
-        update->onError(ex);
-      }
-      return;
     }
   }
 
@@ -872,6 +877,7 @@ std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
 
   // If we are already exiting, abort the update
   if (isExiting()) {
+    XLOG(INFO) << " Agent exiting before all updates could be applied";
     return oldState;
   }
 
