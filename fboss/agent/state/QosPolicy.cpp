@@ -26,6 +26,8 @@ constexpr auto kPfcPriorityToQueueId = "pfcPriorityToQueueId";
 constexpr auto kPfcPriority = "pfcPriority";
 constexpr auto kFrom = "from";
 constexpr auto kTo = "to";
+constexpr auto kTrafficClassToPgId = "trafficClassToPgId";
+constexpr auto kPgId = "pgId";
 } // namespace
 
 namespace facebook::fboss {
@@ -46,11 +48,20 @@ folly::dynamic QosPolicyFields::toFollyDynamic() const {
   }
   if (pfcPriorityToQueueId) {
     qosPolicy[kPfcPriorityToQueueId] = folly::dynamic::array;
-    for (auto pfcPri : pfcPriorityToQueueId.value()) {
+    for (const auto& pfcPri : pfcPriorityToQueueId.value()) {
       folly::dynamic jsonEntry = folly::dynamic::object;
       jsonEntry[kPfcPriority] = static_cast<uint16_t>(pfcPri.first);
       jsonEntry[kQueueId] = pfcPri.second;
       qosPolicy[kPfcPriorityToQueueId].push_back(jsonEntry);
+    }
+  }
+  if (trafficClassToPgId) {
+    qosPolicy[kTrafficClassToPgId] = folly::dynamic::array;
+    for (const auto& tc2PgId : trafficClassToPgId.value()) {
+      folly::dynamic jsonEntry = folly::dynamic::object;
+      jsonEntry[kTrafficClass] = static_cast<uint16_t>(tc2PgId.first);
+      jsonEntry[kPgId] = tc2PgId.second;
+      qosPolicy[kTrafficClassToPgId].push_back(jsonEntry);
     }
   }
   return qosPolicy;
@@ -63,6 +74,7 @@ QosPolicyFields QosPolicyFields::fromFollyDynamic(const folly::dynamic& json) {
   TrafficClassToQosAttributeMap<EXP> expMap;
   TrafficClassToQueueId trafficClassToQueueId;
   PfcPriorityToQueueId pfcPriorityToQueueId;
+  TrafficClassToPgId trafficClassToPgId;
 
   if (json.find(kDscpMap) != json.items().end()) {
     dscpMap =
@@ -91,6 +103,15 @@ QosPolicyFields QosPolicyFields::fromFollyDynamic(const folly::dynamic& json) {
           pfcPriQueueIdEntry[kQueueId].asInt());
     }
     qosPolicyFields.pfcPriorityToQueueId = pfcPriorityToQueueId;
+  }
+
+  if (json.find(kTrafficClassToPgId) != json.items().end()) {
+    for (const auto& tc2PgId : json[kTrafficClassToPgId]) {
+      trafficClassToPgId.emplace(
+          static_cast<TrafficClass>(tc2PgId[kTrafficClass].asInt()),
+          tc2PgId[kPgId].asInt());
+    }
+    qosPolicyFields.trafficClassToPgId = trafficClassToPgId;
   }
 
   return qosPolicyFields;

@@ -1668,15 +1668,32 @@ shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
       }
       pfcPriorityToQueueId = tmpMap;
     }
+
     auto qosPolicyNew = make_shared<QosPolicy>(
         *qosPolicy.name_ref(),
         dscpMap.empty() ? ingressDscpMap : dscpMap,
         expMap,
         trafficClassToQueueId);
+
     if (pfcPriorityToQueueId) {
       qosPolicyNew->setPfcPriorityToQueueIdMap(
           std::move(pfcPriorityToQueueId.value()));
     }
+
+    if (const auto& tc2PgIdMap = qosMap->trafficClassToPgId_ref()) {
+      QosPolicy::TrafficClassToPgId tc2PgIdTmp;
+      for (auto tc2PgIdEntry : *tc2PgIdMap) {
+        if (tc2PgIdEntry.second >
+            cfg::switch_config_constants::PORT_PG_VALUE_MAX()) {
+          throw FbossError(
+              "Invalid pg id. Valid range is 0 to: ",
+              cfg::switch_config_constants::PORT_PG_VALUE_MAX());
+        }
+        tc2PgIdTmp.emplace(tc2PgIdEntry.first, tc2PgIdEntry.second);
+      }
+      qosPolicyNew->setTrafficClassToPgIdMap(std::move(tc2PgIdTmp));
+    }
+
     return qosPolicyNew;
   }
   return make_shared<QosPolicy>(

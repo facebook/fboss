@@ -588,6 +588,9 @@ struct QosMap {
   // for rx PFC, map the incoming PFC pkts
   // priority to the corresponding queueId
   4: optional map<i16, i16> pfcPriorityToQueueId
+  // used for pfc. Incoming traffic class is mapped
+  // to given PG
+  5: optional map<i16, i16> trafficClassToPgId
 }
 
 struct QosRule {

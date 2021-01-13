@@ -120,6 +120,7 @@ struct QosPolicyFields {
       boost::container::flat_map<TrafficClass, uint16_t>;
   using PfcPriorityToQueueId =
       boost::container::flat_map<PfcPriority, uint16_t>;
+  using TrafficClassToPgId = boost::container::flat_map<TrafficClass, uint16_t>;
   QosPolicyFields(
       const std::string& name,
       DscpMap dscpMap,
@@ -141,12 +142,15 @@ struct QosPolicyFields {
   ExpMap expMap;
   TrafficClassToQueueId trafficClassToQueueId;
   std::optional<PfcPriorityToQueueId> pfcPriorityToQueueId;
+  std::optional<TrafficClassToPgId> trafficClassToPgId;
 };
 
 class QosPolicy : public NodeBaseT<QosPolicy, QosPolicyFields> {
  public:
   using TrafficClassToQueueId = QosPolicyFields::TrafficClassToQueueId;
   using PfcPriorityToQueueId = QosPolicyFields::PfcPriorityToQueueId;
+  using TrafficClassToPgId = QosPolicyFields::TrafficClassToPgId;
+
   QosPolicy(
       const std::string& name,
       DscpMap dscpMap,
@@ -175,7 +179,8 @@ class QosPolicy : public NodeBaseT<QosPolicy, QosPolicyFields> {
         getFields()->trafficClassToQueueId ==
         qosPolicy.getTrafficClassToQueueId() &&
         getFields()->pfcPriorityToQueueId ==
-        qosPolicy.getPfcPriorityToQueueId();
+        qosPolicy.getPfcPriorityToQueueId() &&
+        qosPolicy.getTrafficClassToPgId() == getFields()->trafficClassToPgId;
   }
 
   bool operator!=(const QosPolicy& qosPolicy) const {
@@ -210,6 +215,10 @@ class QosPolicy : public NodeBaseT<QosPolicy, QosPolicyFields> {
     return getFields()->pfcPriorityToQueueId;
   }
 
+  const std::optional<TrafficClassToPgId>& getTrafficClassToPgId() const {
+    return getFields()->trafficClassToPgId;
+  }
+
   void setExpMap(ExpMap expMap) {
     writableFields()->expMap = std::move(expMap);
   }
@@ -220,6 +229,10 @@ class QosPolicy : public NodeBaseT<QosPolicy, QosPolicyFields> {
 
   void setPfcPriorityToQueueIdMap(PfcPriorityToQueueId pfcPri2QueueId) {
     writableFields()->pfcPriorityToQueueId = std::move(pfcPri2QueueId);
+  }
+
+  void setTrafficClassToPgIdMap(TrafficClassToPgId trafficClass2PgId) {
+    writableFields()->trafficClassToPgId = std::move(trafficClass2PgId);
   }
 
  private:
