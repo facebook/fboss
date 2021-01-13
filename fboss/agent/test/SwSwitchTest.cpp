@@ -199,3 +199,22 @@ TEST_F(SwSwitchTest, gracefulExit) {
   sw->updateStateBlocking("Bring Ports Up", bringPortsUpUpdateFn);
   sw->gracefulExit();
 }
+
+TEST_F(SwSwitchTest, overlappingUpdatesWithExit) {
+  auto bringPortsUpUpdateFn = [](const std::shared_ptr<SwitchState>& state) {
+    return bringAllPortsUp(state);
+  };
+  sw->updateStateBlocking("Bring Ports Up", bringPortsUpUpdateFn);
+  std::atomic<bool> done{false};
+  std::thread nonCoaelescingUpdates([this, &done] {
+    const PortID kPort1{1};
+    while (!done) {
+      // Now flap the port. This should schedule non coalescing updates.
+      sw->linkStateChanged(kPort1, false);
+      sw->linkStateChanged(kPort1, true);
+    }
+  });
+  sw->gracefulExit();
+  done = true;
+  nonCoaelescingUpdates.join();
+}
