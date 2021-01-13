@@ -591,6 +591,10 @@ struct QosMap {
   // used for pfc. Incoming traffic class is mapped
   // to given PG
   5: optional map<i16, i16> trafficClassToPgId
+  //  Maps PFC priority
+  // to PG id. Used mainly for TX of PFC where
+  // PG is mapped to outgoing PFC priority
+  6: optional map<i16, i16> pfcPriorityToPgId
 }
 
 struct QosRule {

@@ -121,6 +121,8 @@ struct QosPolicyFields {
   using PfcPriorityToQueueId =
       boost::container::flat_map<PfcPriority, uint16_t>;
   using TrafficClassToPgId = boost::container::flat_map<TrafficClass, uint16_t>;
+  using PfcPriorityToPgId = boost::container::flat_map<PfcPriority, uint16_t>;
+
   QosPolicyFields(
       const std::string& name,
       DscpMap dscpMap,
@@ -143,6 +145,7 @@ struct QosPolicyFields {
   TrafficClassToQueueId trafficClassToQueueId;
   std::optional<PfcPriorityToQueueId> pfcPriorityToQueueId;
   std::optional<TrafficClassToPgId> trafficClassToPgId;
+  std::optional<PfcPriorityToPgId> pfcPriorityToPgId;
 };
 
 class QosPolicy : public NodeBaseT<QosPolicy, QosPolicyFields> {
@@ -150,6 +153,7 @@ class QosPolicy : public NodeBaseT<QosPolicy, QosPolicyFields> {
   using TrafficClassToQueueId = QosPolicyFields::TrafficClassToQueueId;
   using PfcPriorityToQueueId = QosPolicyFields::PfcPriorityToQueueId;
   using TrafficClassToPgId = QosPolicyFields::TrafficClassToPgId;
+  using PfcPriorityToPgId = QosPolicyFields::PfcPriorityToPgId;
 
   QosPolicy(
       const std::string& name,
@@ -180,7 +184,8 @@ class QosPolicy : public NodeBaseT<QosPolicy, QosPolicyFields> {
         qosPolicy.getTrafficClassToQueueId() &&
         getFields()->pfcPriorityToQueueId ==
         qosPolicy.getPfcPriorityToQueueId() &&
-        qosPolicy.getTrafficClassToPgId() == getFields()->trafficClassToPgId;
+        qosPolicy.getTrafficClassToPgId() == getFields()->trafficClassToPgId &&
+        qosPolicy.getPfcPriorityToPgId() == getFields()->pfcPriorityToPgId;
   }
 
   bool operator!=(const QosPolicy& qosPolicy) const {
@@ -219,6 +224,10 @@ class QosPolicy : public NodeBaseT<QosPolicy, QosPolicyFields> {
     return getFields()->trafficClassToPgId;
   }
 
+  const std::optional<PfcPriorityToPgId>& getPfcPriorityToPgId() const {
+    return getFields()->pfcPriorityToPgId;
+  }
+
   void setExpMap(ExpMap expMap) {
     writableFields()->expMap = std::move(expMap);
   }
@@ -233,6 +242,10 @@ class QosPolicy : public NodeBaseT<QosPolicy, QosPolicyFields> {
 
   void setTrafficClassToPgIdMap(TrafficClassToPgId trafficClass2PgId) {
     writableFields()->trafficClassToPgId = std::move(trafficClass2PgId);
+  }
+
+  void setPfcPriorityToPgIdMap(PfcPriorityToPgId pfcPriority2PgId) {
+    writableFields()->pfcPriorityToPgId = std::move(pfcPriority2PgId);
   }
 
  private:

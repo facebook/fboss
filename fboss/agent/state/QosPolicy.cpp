@@ -28,6 +28,7 @@ constexpr auto kFrom = "from";
 constexpr auto kTo = "to";
 constexpr auto kTrafficClassToPgId = "trafficClassToPgId";
 constexpr auto kPgId = "pgId";
+constexpr auto kPfcPriorityToPgId = "pfcPriorityToPgId";
 } // namespace
 
 namespace facebook::fboss {
@@ -64,6 +65,15 @@ folly::dynamic QosPolicyFields::toFollyDynamic() const {
       qosPolicy[kTrafficClassToPgId].push_back(jsonEntry);
     }
   }
+  if (pfcPriorityToPgId) {
+    qosPolicy[kPfcPriorityToPgId] = folly::dynamic::array;
+    for (const auto& pfcPri2PgId : pfcPriorityToPgId.value()) {
+      folly::dynamic jsonEntry = folly::dynamic::object;
+      jsonEntry[kPfcPriority] = static_cast<uint16_t>(pfcPri2PgId.first);
+      jsonEntry[kPgId] = pfcPri2PgId.second;
+      qosPolicy[kPfcPriorityToPgId].push_back(jsonEntry);
+    }
+  }
   return qosPolicy;
 }
 
@@ -75,6 +85,7 @@ QosPolicyFields QosPolicyFields::fromFollyDynamic(const folly::dynamic& json) {
   TrafficClassToQueueId trafficClassToQueueId;
   PfcPriorityToQueueId pfcPriorityToQueueId;
   TrafficClassToPgId trafficClassToPgId;
+  PfcPriorityToPgId pfcPriorityToPgId;
 
   if (json.find(kDscpMap) != json.items().end()) {
     dscpMap =
@@ -114,6 +125,14 @@ QosPolicyFields QosPolicyFields::fromFollyDynamic(const folly::dynamic& json) {
     qosPolicyFields.trafficClassToPgId = trafficClassToPgId;
   }
 
+  if (json.find(kPfcPriorityToPgId) != json.items().end()) {
+    for (const auto& pfcPri2PgId : json[kPfcPriorityToPgId]) {
+      pfcPriorityToPgId.emplace(
+          static_cast<PfcPriority>(pfcPri2PgId[kPfcPriority].asInt()),
+          pfcPri2PgId[kPgId].asInt());
+    }
+    qosPolicyFields.pfcPriorityToPgId = pfcPriorityToPgId;
+  }
   return qosPolicyFields;
 }
 
