@@ -185,8 +185,12 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
 }
 
 SwSwitch::~SwSwitch() {
-  stop();
-  restart_time::stop();
+  if (getSwitchRunState() < SwitchRunState::EXITING) {
+    // If we didn't already stop (say via gracefulExit call), begin
+    // exit
+    stop();
+    restart_time::stop();
+  }
 }
 
 void SwSwitch::stop() {

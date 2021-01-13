@@ -191,3 +191,11 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
 
   EXPECT_FALSE(sw->isValidStateUpdate(StateDelta(stateV0, stateV2)));
 }
+
+TEST_F(SwSwitchTest, gracefulExit) {
+  auto bringPortsUpUpdateFn = [](const std::shared_ptr<SwitchState>& state) {
+    return bringAllPortsUp(state);
+  };
+  sw->updateStateBlocking("Bring Ports Up", bringPortsUpUpdateFn);
+  sw->gracefulExit();
+}
