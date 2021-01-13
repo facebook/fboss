@@ -73,6 +73,21 @@ void checkQosPolicy(
     swStateQueueMapEntries.emplace(entry.first, entry.second);
   }
   EXPECT_EQ(cfgQueueMapEntries, swStateQueueMapEntries);
+
+  std::set<std::pair<uint16_t, uint16_t>> cfgStatePfcPriority2Queue;
+  std::set<std::pair<uint16_t, uint16_t>> swStatePfcPriority2Queue;
+
+  if (qosMap.pfcPriorityToQueueId_ref()) {
+    for (auto entry : *qosMap.pfcPriorityToQueueId_ref()) {
+      cfgStatePfcPriority2Queue.emplace(entry.first, entry.second);
+    }
+  }
+  if (swQosPolicy->getPfcPriorityToQueueId()) {
+    for (auto entry : *swQosPolicy->getPfcPriorityToQueueId()) {
+      swStatePfcPriority2Queue.emplace(entry.first, entry.second);
+    }
+  }
+  EXPECT_EQ(cfgStatePfcPriority2Queue, swStatePfcPriority2Queue);
 }
 
 void checkQosSwState(
@@ -132,6 +147,7 @@ cfg::QosMap cfgQosMap() {
   cfg::QosMap qosMap;
   qosMap.dscpMaps_ref()->resize(8);
   qosMap.expMaps_ref()->resize(8);
+  std::map<int16_t, int16_t> pfc2Queue;
   for (auto i = 0; i < 8; i++) {
     auto& dscpMap = qosMap.dscpMaps_ref()[i];
     auto& expMap = qosMap.expMaps_ref()[i];
@@ -144,7 +160,9 @@ cfg::QosMap cfgQosMap() {
     dscpMap.fromTrafficClassToDscp_ref() = *dscpMap.internalTrafficClass_ref();
     expMap.fromTrafficClassToExp_ref() = *expMap.internalTrafficClass_ref();
     qosMap.trafficClassToQueueId_ref()->emplace(i, i);
+    pfc2Queue.emplace(i, i);
   }
+  qosMap.pfcPriorityToQueueId_ref() = pfc2Queue;
   return qosMap;
 }
 
@@ -211,6 +229,7 @@ TEST(QosPolicy, SerializePolicies) {
 
 TEST(QosPolicy, SerializePoliciesWithMap) {
   cfg::SwitchConfig config;
+  std::map<int16_t, int16_t> pfc2Queue;
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
 
@@ -237,7 +256,9 @@ TEST(QosPolicy, SerializePoliciesWithMap) {
 
   for (auto i = 0; i < 8; i++) {
     qosMap.trafficClassToQueueId_ref()->emplace(i, i);
+    pfc2Queue.emplace(i, i);
   }
+  qosMap.pfcPriorityToQueueId_ref() = pfc2Queue;
   p1.qosMap_ref() = qosMap;
   p2.qosMap_ref() = qosMap;
 
@@ -605,4 +626,53 @@ TEST(QosPolicy, InvalidPortQosPolicy) {
   config2.cpuTrafficPolicy_ref() = cpuTrafficPolicy;
   EXPECT_THROW(
       publishAndApplyConfig(stateV2, &config2, platform.get()), FbossError);
+}
+
+TEST(QosPolicy, InvalidPfcPriority) {
+  cfg::QosMap qosMap;
+  cfg::SwitchConfig config;
+  auto platform = createMockPlatform();
+  auto state = make_shared<SwitchState>();
+
+  std::map<int16_t, int16_t> pfc2Queue;
+  pfc2Queue.emplace(8, 0); // pfc pri 8 is illegal value
+
+  qosMap.pfcPriorityToQueueId_ref() = pfc2Queue;
+  config.qosPolicies_ref()->resize(1);
+  auto& policy = config.qosPolicies_ref()[0];
+  policy.name_ref() = "qosPolicy";
+  policy.qosMap_ref() = qosMap;
+  EXPECT_THROW(
+      publishAndApplyConfig(state, &config, platform.get()), FbossError);
+}
+
+TEST(QosPolicy, ValidatePfcPriorityDelta) {
+  cfg::QosMap qosMap;
+  cfg::SwitchConfig config;
+  auto platform = createMockPlatform();
+  auto state = make_shared<SwitchState>();
+
+  std::map<int16_t, int16_t> pfc2Queue = {{0, 0}, {1, 1}};
+  qosMap.pfcPriorityToQueueId_ref() = pfc2Queue;
+  config.qosPolicies_ref()->resize(1);
+  auto& policy = config.qosPolicies_ref()[0];
+  policy.name_ref() = "qosPolicy";
+  policy.qosMap_ref() = qosMap;
+
+  auto state1 = publishAndApplyConfig(state, &config, platform.get());
+  EXPECT_NE(nullptr, state1);
+
+  pfc2Queue.emplace(3, 3);
+  qosMap.pfcPriorityToQueueId_ref() = pfc2Queue;
+  policy.qosMap_ref() = qosMap;
+
+  auto state2 = publishAndApplyConfig(state1, &config, platform.get());
+  EXPECT_NE(nullptr, state2);
+
+  qosMap.pfcPriorityToQueueId_ref().reset();
+  policy.qosMap_ref() = qosMap;
+
+  auto state3 = publishAndApplyConfig(state2, &config, platform.get());
+  EXPECT_NE(nullptr, state3);
+  checkQosSwState(config, state3);
 }
