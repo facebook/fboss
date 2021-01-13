@@ -112,7 +112,6 @@ struct TxSettings {
   4: i16 post = 0
   5: i16 post2 = 0
   6: i16 post3 = 0
-  7: optional i16 amp
   8: optional i16 driveCurrent
 }
 
