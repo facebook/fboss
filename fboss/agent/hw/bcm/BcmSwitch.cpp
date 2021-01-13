@@ -45,6 +45,7 @@
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmHostKey.h"
+#include "fboss/agent/hw/bcm/BcmIngressFieldProcessorFlexCounter.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/hw/bcm/BcmLabelMap.h"
 #include "fboss/agent/hw/bcm/BcmLabelSwitchingUtils.h"
@@ -2876,6 +2877,20 @@ void BcmSwitch::setL3MtuFailPackets() {
 }
 
 void BcmSwitch::initFieldProcessor() const {
+  // We need to make sure we remove all the FlexCounter attached to acl entries
+  // in all the field process group before we call the bcm_field_init().
+  // Otherwise we'll lose the mapping b/w BcmIngressFieldProcessorFlexCounter
+  // and BcmAclEntry and won't be able to remove
+  // attached BcmIngressFieldProcessorFlexCounter even the BcmAclEntry is
+  // removed.
+  if (getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
+    for (auto grpId : {platform_->getAsic()->getDefaultACLGroupID()}) {
+      BcmIngressFieldProcessorFlexCounter::removeAllCountersInFpGroup(
+          unit_, grpId);
+    }
+  }
+
   auto rv = bcm_field_init(unit_);
   bcmCheckError(rv, "failed to set up ContentAware processing");
 }

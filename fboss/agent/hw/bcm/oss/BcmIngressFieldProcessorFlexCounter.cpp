@@ -45,6 +45,13 @@ int BcmIngressFieldProcessorFlexCounter::getNumAclStatsInFpGroup(
       "OSS doesn't support get number of IFP flex counter for specified IFP");
 }
 
+void BcmIngressFieldProcessorFlexCounter::removeAllCountersInFpGroup(
+    int /* unit */,
+    int /* gid */) {
+  throw FbossError(
+      "OSS doesn't support remove all flex counters for specified IFP");
+}
+
 std::optional<uint32_t>
 BcmIngressFieldProcessorFlexCounter::getFlexCounterIDFromAttachedAcl(
     int /* unit */,
