@@ -28,7 +28,6 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PKTIO:
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::OBM_COUNTERS:
-    case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
     case HwAsic::Feature::SFLOW_SAMPLING:
     case HwAsic::Feature::PTP_TC:
@@ -58,6 +57,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::NON_UNICAST_HASH:
     case HwAsic::Feature::DETAILED_L2_UPDATE:
     case HwAsic::Feature::COUNTER_REFRESH_INTERVAL:
+    case HwAsic::Feature::BUFFER_POOL:
       return false;
   }
   return false;
