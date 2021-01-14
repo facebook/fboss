@@ -30,17 +30,6 @@ extern "C" {
 #include <sai.h>
 }
 
-// TODO(rajukumarfb5368): read from config at
-// SwitchConfig.SwitchSettings.l2AgeTimerSeconds
-// instead of using this flag
-/**
- * Set L2 Aging to 5 mins by default
- */
-DEFINE_int32(
-    l2AgeTimerSeconds,
-    300,
-    "Time to transition L2 from hit -> miss -> removed");
-
 DEFINE_uint32(
     counter_refresh_interval,
     1,
