@@ -17,6 +17,7 @@
 #include "fboss/agent/platforms/sai/SaiBcmGalaxyPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge100PlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiBcmWedge400PlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge40PlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiFakePlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
@@ -176,6 +177,8 @@ void SaiPlatform::initPorts() {
         platformMode == PlatformMode::GALAXY_LC ||
         platformMode == PlatformMode::GALAXY_FC) {
       saiPort = std::make_unique<SaiBcmGalaxyPlatformPort>(portId, this);
+    } else if (platformMode == PlatformMode::WEDGE400) {
+      saiPort = std::make_unique<SaiBcmWedge400PlatformPort>(portId, this);
     } else {
       saiPort = std::make_unique<SaiFakePlatformPort>(portId, this);
     }
