@@ -37,6 +37,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_ECN_WRED:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::DEBUG_COUNTER:
+    case HwAsic::Feature::PENDING_L2_ENTRY:
       return true;
     case HwAsic::Feature::HOT_SWAP:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
@@ -54,7 +55,6 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::OBM_COUNTERS:
     case HwAsic::Feature::PTP_TC:
     case HwAsic::Feature::PTP_TC_PCS:
-    case HwAsic::Feature::PENDING_L2_ENTRY:
     case HwAsic::Feature::MIRROR_V6_TUNNEL:
     case HwAsic::Feature::EGRESS_QUEUE_FLEX_COUNTER:
     case HwAsic::Feature::PFC:
