@@ -214,7 +214,24 @@ TEST_F(SwSwitchTest, overlappingUpdatesWithExit) {
       sw->linkStateChanged(kPort1, true);
     }
   });
+  std::thread blockingUpdates([this, &done] {
+    while (!done) {
+      auto updateOperStateFn =
+          [this](const std::shared_ptr<SwitchState>& state) {
+            const PortID kPort2{2};
+            std::shared_ptr<SwitchState> newState(state);
+            auto* port = newState->getPorts()->getPortIf(kPort2).get();
+            port = port->modify(&newState);
+            // Transition up<->down
+            port->setOperState(!port->isUp());
+            return newState;
+          };
+      sw->updateStateBlocking("Flap port 2", updateOperStateFn);
+    }
+  });
+
   sw->gracefulExit();
   done = true;
   nonCoaelescingUpdates.join();
+  blockingUpdates.join();
 }

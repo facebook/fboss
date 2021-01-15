@@ -664,7 +664,12 @@ void SwSwitch::notifyStateObservers(const StateDelta& delta) {
   }
 }
 
-void SwSwitch::updateState(unique_ptr<StateUpdate> update) {
+bool SwSwitch::updateState(unique_ptr<StateUpdate> update) {
+  if (isExiting()) {
+    XLOG(INFO) << " Skipped queuing update: " << update->getName()
+               << " since exit already started";
+    return false;
+  }
   {
     folly::SpinLockGuard guard(pendingUpdatesLock_);
     pendingUpdates_.push_back(*update.release());
@@ -674,11 +679,12 @@ void SwSwitch::updateState(unique_ptr<StateUpdate> update) {
   // We call runInEventBaseThread() with a static function pointer since this
   // is more efficient than having to allocate a new bound function object.
   updateEventBase_.runInEventBaseThread(handlePendingUpdatesHelper, this);
+  return true;
 }
 
-void SwSwitch::updateState(StringPiece name, StateUpdateFn fn) {
+bool SwSwitch::updateState(StringPiece name, StateUpdateFn fn) {
   auto update = make_unique<FunctionStateUpdate>(name, std::move(fn));
-  updateState(std::move(update));
+  return updateState(std::move(update));
 }
 
 void SwSwitch::updateStateNoCoalescing(StringPiece name, StateUpdateFn fn) {
@@ -708,15 +714,12 @@ void SwSwitch::updateStateBlockingImpl(
     folly::StringPiece name,
     StateUpdateFn fn,
     int stateUpdateBehavior) {
-  if (isExiting()) {
-    XLOG(INFO) << " Skipping update: " << name << " since exit already started";
-    return;
-  }
   auto result = std::make_shared<BlockingUpdateResult>();
   auto update = make_unique<BlockingStateUpdate>(
       name, std::move(fn), result, stateUpdateBehavior);
-  updateState(std::move(update));
-  result->wait();
+  if (updateState(std::move(update))) {
+    result->wait();
+  }
 }
 
 void SwSwitch::handlePendingUpdatesHelper(SwSwitch* sw) {

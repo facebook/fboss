@@ -200,11 +200,12 @@ class SwSwitch : public HwSwitch::Callback {
    *
    *  @param  update
    *          The update to be enqueued
-   *
+   *  @return bool whether the update was queued or not
    * This schedules the specified StateUpdate to be invoked in the update
    * thread in order to update the SwitchState.
+   *
    */
-  void updateState(std::unique_ptr<StateUpdate> update);
+  bool updateState(std::unique_ptr<StateUpdate> update);
 
   /**
    * Schedule an update to the switch state.
@@ -212,7 +213,7 @@ class SwSwitch : public HwSwitch::Callback {
    * @param name  A name to identify the source of this update.  This is
    *              primarily used for logging and debugging purposes.
    * @param fn    The function that will prepare the new SwitchState.
-   *
+   * @return bool whether the update was queued or not
    * The StateUpdateFn takes a single argument -- the current SwitchState
    * object to modify.  It should return a new SwitchState object, or null if
    * it decides that no update needs to be performed.
@@ -231,7 +232,7 @@ class SwSwitch : public HwSwitch::Callback {
    * subscribers.  Therefore the StateUpdateFn may be called with an
    * unpublished SwitchState in some cases.
    */
-  void updateState(folly::StringPiece name, StateUpdateFn fn);
+  bool updateState(folly::StringPiece name, StateUpdateFn fn);
 
   /**
    * Schedule an update to the switch state.
@@ -450,7 +451,7 @@ class SwSwitch : public HwSwitch::Callback {
    * to write the L3 contents starting from writableTail().
    *
    * @param l3Len L3 packet size
-   * @return The unique pointer to a Tx packet
+   * @return the unique pointer to a tx packet
    */
   std::unique_ptr<TxPacket> allocateL3TxPacket(uint32_t l3Len);
 
