@@ -85,16 +85,18 @@ class WaitForNeighborEntryCreation : public WaitForSwitchState {
   WaitForNeighborEntryCreation(
       SwSwitch* sw,
       IPTYPE ipAddress,
-      VlanID vlan = VlanID(1))
+      VlanID vlan = VlanID(1),
+      bool pending = true)
       : WaitForSwitchState(
             sw,
-            [ipAddress, vlan](const StateDelta& delta) {
+            [ipAddress, vlan, pending](const StateDelta& delta) {
               const auto& neighborEntryDelta =
                   NeighborEntryTestUtil<IPTYPE>::getNeighborEntryDelta(
                       delta, ipAddress, vlan);
               const auto& oldEntry = neighborEntryDelta.getOld();
               const auto& newEntry = neighborEntryDelta.getNew();
-              return (oldEntry == nullptr) && (newEntry != nullptr);
+              return (oldEntry == nullptr) && (newEntry != nullptr) &&
+                  newEntry->isPending() == pending;
             },
             "WaitForNeighborEntryCreation@" + ipAddress.str()) {}
   ~WaitForNeighborEntryCreation() {}

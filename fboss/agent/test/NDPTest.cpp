@@ -799,7 +799,7 @@ TEST(NdpTest, receiveNeighborAdvertisementUnsolicited) {
   // Send two unsolicited neighbor advertisements, state should update at
   // least once
   WaitForNdpEntryCreation neighbor1Create(
-      sw, IPAddressV6("2401:db00:2110:3004::b"), VlanID(5));
+      sw, IPAddressV6("2401:db00:2110:3004::b"), VlanID(5), false);
 
   sendNeighborAdvertisement(
       handle.get(), "2401:db00:2110:3004::b", "02:05:73:f9:46:fb", 1, 5, false);
@@ -829,9 +829,9 @@ TEST(NdpTest, FlushEntry) {
   // Send two unsolicited neighbor advertisements, state should update at
   // least once
   WaitForNdpEntryCreation neighbor1Create(
-      sw, IPAddressV6("2401:db00:2110:3004::b"), VlanID(5));
+      sw, IPAddressV6("2401:db00:2110:3004::b"), VlanID(5), false);
   WaitForNdpEntryCreation neighbor2Create(
-      sw, IPAddressV6("2401:db00:2110:3004::c"), VlanID(5));
+      sw, IPAddressV6("2401:db00:2110:3004::c"), VlanID(5), false);
 
   sendNeighborAdvertisement(
       handle.get(), "2401:db00:2110:3004::b", "02:05:73:f9:46:fb", 1, 5);

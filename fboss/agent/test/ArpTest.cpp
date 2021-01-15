@@ -978,18 +978,8 @@ TEST(ArpTest, PendingArpCleanup) {
 
   testSendArpRequest(sw, vlanID, senderIP, targetIP[0]);
 
-  // Should see a pending entry now
-  auto entry0 = getArpEntry(sw, targetIP[0], vlanID);
-  EXPECT_NE(entry0, nullptr);
-  EXPECT_EQ(entry0->isPending(), true);
-
   // Send an Arp request for a different neighbor
   testSendArpRequest(sw, vlanID, senderIP, targetIP[1]);
-
-  // Should see another pending entry now
-  auto entry1 = getArpEntry(sw, targetIP[1], vlanID);
-  EXPECT_NE(entry1, nullptr);
-  EXPECT_EQ(entry1->isPending(), true);
 
   std::promise<bool> done;
   auto* evb = sw->getBackgroundEvb();
