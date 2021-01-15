@@ -123,7 +123,11 @@ void programLpmRoute(
         "/",
         static_cast<int>(prefixLength),
         " @egress ",
-        egressId);
+        egressId,
+        " already added: ",
+        replace,
+        " in cache: ",
+        cachedRoute.has_value());
     XLOG(DBG3) << "created a route entry for " << prefix.str() << "/"
                << static_cast<int>(prefixLength) << " @egress " << egressId
                << " class id "
