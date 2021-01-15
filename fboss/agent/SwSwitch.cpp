@@ -708,6 +708,10 @@ void SwSwitch::updateStateBlockingImpl(
     folly::StringPiece name,
     StateUpdateFn fn,
     int stateUpdateBehavior) {
+  if (isExiting()) {
+    XLOG(INFO) << " Skipping update: " << name << " since exit already started";
+    return;
+  }
   auto result = std::make_shared<BlockingUpdateResult>();
   auto update = make_unique<BlockingStateUpdate>(
       name, std::move(fn), result, stateUpdateBehavior);
