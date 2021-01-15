@@ -1214,6 +1214,17 @@ void SwSwitch::stopThreads() {
   if (neighborCacheThread_) {
     neighborCacheThread_->join();
   }
+  // Drain any pending updates by calling handlePendingUpdates. Since
+  // we already set state to EXITING, handlePendingUpdates will simply
+  // signal the updates and not apply them to HW.
+  bool updatesDrained = false;
+  do {
+    handlePendingUpdates();
+    {
+      folly::SpinLockGuard guard(pendingUpdatesLock_);
+      updatesDrained = pendingUpdates_.empty();
+    }
+  } while (!updatesDrained);
 
   platform_->stop();
 }
