@@ -73,8 +73,23 @@ set(SAI_API_SRC
   fboss/agent/hw/sai/api/VirtualRouterApi.h
   fboss/agent/hw/sai/api/VlanApi.h
   fboss/agent/hw/sai/api/WredApi.h
-  fboss/agent/hw/sai/api/fake/FakeSaiExtensions.cpp
 )
+
+if (SAI_TAJO_IMPL)
+  list(APPEND SAI_API_SRC
+    fboss/agent/hw/sai/api/tajo/PortApi.cpp
+    fboss/agent/hw/sai/api/oss/TamApi.cpp
+    fboss/agent/hw/sai/api/tajo/SwitchApi.cpp
+  )
+
+  find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)
+  include_directories(${SAI_IMPL_DIR})
+  message(STATUS "Found SAI_INCLUDE_DIR: ${SAI_INCLUDE_DIR}")
+else()
+  list(APPEND SAI_API_SRC
+    fboss/agent/hw/sai/api/fake/FakeSaiExtensions.cpp
+  )
+endif()
 
 set(SAI_API_DEPS
   address_util

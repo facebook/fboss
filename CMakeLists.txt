@@ -20,6 +20,12 @@ if (SAI_ONLY)
   message(STATUS "Building SAI binaries only")
 endif()
 
+option(SAI_TAJO_IMPL "Build SAI api with tajo extensions" OFF)
+if ($ENV{SAI_TAJO_IMPL})
+  message(STATUS "ENV SAI_TAJO_IMPL is set")
+  set (SAI_TAJO_IMPL ON)
+endif()
+
 set(CMAKE_MODULE_PATH
   "${CMAKE_CURRENT_SOURCE_DIR}/build/fbcode_builder/CMake"
   ${CMAKE_MODULE_PATH})
