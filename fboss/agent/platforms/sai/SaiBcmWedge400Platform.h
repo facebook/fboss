@@ -21,7 +21,7 @@ class SaiBcmWedge400Platform : public SaiBcmPlatform {
   ~SaiBcmWedge400Platform() override;
   HwAsic* getAsic() const override;
   uint32_t numLanesPerCore() const override {
-    return 4;
+    return 8;
   }
   void initLEDs() override;
 
