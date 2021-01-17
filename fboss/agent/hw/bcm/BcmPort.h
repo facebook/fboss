@@ -37,6 +37,7 @@ class BcmPortGroup;
 class SwitchState;
 enum class MirrorDirection;
 enum class MirrorAction;
+class BcmPortIngressBufferManager;
 
 /**
  * BcmPort is the class to abstract the physical port in BcmSwitch.
@@ -172,6 +173,10 @@ class BcmPort {
     return queueManager_.get();
   }
 
+  BcmPortIngressBufferManager* getIngressBufferManager() const {
+    return ingressBufferManager_.get();
+  }
+
   std::optional<std::string> getIngressPortMirror() const {
     return ingressMirror_;
   }
@@ -191,6 +196,11 @@ class BcmPort {
   cfg::PortProfileID getCurrentProfile() const;
 
   void setLoopbackMode(cfg::PortLoopbackMode mode);
+
+  PortPgConfigs getCurrentProgrammedPgSettings();
+  PortPgConfigs getCurrentPgSettings();
+
+  const PortPgConfig& getDefaultPgSettings();
 
  private:
   class BcmPortStats {
@@ -291,6 +301,7 @@ class BcmPort {
 
   std::map<std::string, stats::MonotonicCounter> portCounters_;
   std::unique_ptr<BcmCosQueueManager> queueManager_;
+  std::unique_ptr<BcmPortIngressBufferManager> ingressBufferManager_;
 
   fb303::ExportedStatMapImpl::LockableStat outQueueLen_;
   fb303::ExportedHistogramMapImpl::LockableHistogram inPktLengths_;

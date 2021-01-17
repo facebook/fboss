@@ -33,6 +33,7 @@
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
+#include "fboss/agent/hw/bcm/BcmPortIngressBufferManager.h"
 #include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
 #include "fboss/agent/hw/bcm/BcmPortResourceBuilder.h"
 #include "fboss/agent/hw/bcm/BcmPortUtils.h"
@@ -231,6 +232,8 @@ BcmPort::BcmPort(BcmSwitch* hw, bcm_port_t port, BcmPlatformPort* platformPort)
 
   queueManager_ =
       std::make_unique<BcmPortQueueManager>(hw_, getPortName(), gport_);
+  ingressBufferManager_ =
+      std::make_unique<BcmPortIngressBufferManager>(hw_, getPortName(), gport_);
 
   pipe_ = determinePipe();
 
@@ -433,7 +436,12 @@ void BcmPort::program(const shared_ptr<Port>& port) {
   }
 
   setPause(port);
-  setPfc(port);
+
+  if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+    setPfc(port);
+    ingressBufferManager_->programIngressBuffers(port);
+  }
+
   // Update Tx Setting if needed.
   setTxSetting(port);
   setLoopbackMode(port->getLoopbackMode());
@@ -1917,4 +1925,17 @@ cfg::PortProfileID BcmPort::getCurrentProfile() const {
   }
   return (*programmedSettings_.rlock())->getProfileID();
 }
+
+PortPgConfigs BcmPort::getCurrentProgrammedPgSettings() {
+  return ingressBufferManager_->getCurrentProgrammedPgSettingsHw();
+}
+
+PortPgConfigs BcmPort::getCurrentPgSettings() {
+  return ingressBufferManager_->getCurrentPgSettingsHw();
+}
+
+const PortPgConfig& BcmPort::getDefaultPgSettings() {
+  return ingressBufferManager_->getDefaultPgSettings();
+}
+
 } // namespace facebook::fboss

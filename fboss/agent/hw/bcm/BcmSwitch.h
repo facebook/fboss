@@ -912,6 +912,15 @@ class BcmSwitch : public BcmSwitchIf {
   void processChangedRxReasonToQueueEntries(
       const std::shared_ptr<ControlPlane>& oldCPU,
       const std::shared_ptr<ControlPlane>& newCPU);
+
+  /*
+   * Returns True if the PG pointed to by port has changed.
+   * False otherwise
+   */
+  bool processChangedPgCfg(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
+
   /*
    * Disable hotswap setting
    */

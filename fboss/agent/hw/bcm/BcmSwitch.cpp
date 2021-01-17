@@ -1296,6 +1296,42 @@ void BcmSwitch::processEnabledPorts(const StateDelta& delta) {
   });
 }
 
+bool BcmSwitch::processChangedPgCfg(
+    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort) {
+  const auto& oldPortPgCfgs = oldPort->getPortPgConfigs();
+  const auto& newPortPgCfgs = newPort->getPortPgConfigs();
+  std::map<int, std::shared_ptr<PortPgConfig>> newPortPgConfigMap;
+
+  if (!oldPortPgCfgs && !newPortPgCfgs) {
+    // no change before or after
+    return false;
+  }
+
+  if ((oldPortPgCfgs && !newPortPgCfgs) || (!oldPortPgCfgs && newPortPgCfgs)) {
+    // if go from old pgConfig <-> no pg cfg and vice versa, there is a change
+    return true;
+  }
+
+  if ((*oldPortPgCfgs).size() != (*newPortPgCfgs).size()) {
+    return true;
+  }
+
+  for (const auto& portPg : *newPortPgCfgs) {
+    newPortPgConfigMap.emplace(std::make_pair(portPg->getID(), portPg));
+  }
+
+  for (const auto& oldPortPg : *oldPortPgCfgs) {
+    auto iter = newPortPgConfigMap.find(oldPortPg->getID());
+    if ((iter == newPortPgConfigMap.end()) || (*iter->second != *oldPortPg)) {
+      return true;
+    }
+  }
+
+  // no change
+  return false;
+}
+
 void BcmSwitch::processChangedPortQueues(
     const shared_ptr<Port>& oldPort,
     const shared_ptr<Port>& newPort) {
@@ -1389,12 +1425,18 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
         auto asicPrbsChanged = oldPort->getAsicPrbs() != newPort->getAsicPrbs();
         XLOG_IF(DBG1, asicPrbsChanged) << "New asicPrbs on port " << id;
 
+        // if pfc config for port points to new PG profile, pfcChanged will find
+        // it
         auto pfcChanged = oldPort->getPfc() != newPort->getPfc();
         XLOG_IF(DBG1, pfcChanged) << "New pfc settings on port " << id;
 
+        auto pgCfgChanged = processChangedPgCfg(oldPort, newPort);
+        XLOG_IF(DBG1, pgCfgChanged) << "New pg config settings on port " << id;
+
         if (speedChanged || profileIDChanged || vlanChanged || pauseChanged ||
             sFlowChanged || fecChanged || loopbackChanged || mirrorChanged ||
-            qosPolicyChanged || nameChanged || asicPrbsChanged || pfcChanged) {
+            qosPolicyChanged || nameChanged || asicPrbsChanged || pfcChanged ||
+            pgCfgChanged) {
           bcmPort->program(newPort);
         }
 

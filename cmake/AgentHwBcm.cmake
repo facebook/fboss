@@ -39,6 +39,7 @@ add_library(bcm
   fboss/agent/hw/bcm/BcmMultiPathNextHop.cpp
   fboss/agent/hw/bcm/BcmNextHop.cpp
   fboss/agent/hw/bcm/BcmPort.cpp
+  fboss/agent/hw/bcm/BcmPortIngressBufferManager.cpp
   fboss/agent/hw/bcm/BcmPortUtils.cpp
   fboss/agent/hw/bcm/BcmPortDescriptor.cpp
   fboss/agent/hw/bcm/BcmPtpTcMgr.cpp

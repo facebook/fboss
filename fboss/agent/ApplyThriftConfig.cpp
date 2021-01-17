@@ -899,6 +899,16 @@ PortPgConfigs ThriftConfigApplier::updatePortPgConfigs(
     tmpPortPgConfig = createPortPg(&portPg);
     newPortPgConfigs.push_back(tmpPortPgConfig);
   }
+
+  // sort these Pgs in order PG0 -> PG7
+  std::sort(
+      newPortPgConfigs.begin(),
+      newPortPgConfigs.end(),
+      [](const std::shared_ptr<PortPgConfig>& pg1,
+         const std::shared_ptr<PortPgConfig>& pg2) {
+        return pg1->getID() < pg2->getID();
+      });
+
   return newPortPgConfigs;
 }
 

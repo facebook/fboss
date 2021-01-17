@@ -421,6 +421,7 @@ if (NOT SAI_ONLY)
       fboss/agent/hw/bcm/BcmPlatform.cpp
       fboss/agent/hw/bcm/BcmPlatformPort.cpp
       fboss/agent/hw/bcm/BcmPort.cpp
+      fboss/agent/hw/bcm/BcmPortIngressBufferManager.cpp
       fboss/agent/hw/bcm/BcmPortUtils.cpp
       fboss/agent/hw/bcm/BcmPortGroup.cpp
       fboss/agent/hw/bcm/BcmPortQueueManager.cpp
