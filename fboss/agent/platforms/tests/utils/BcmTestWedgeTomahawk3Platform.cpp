@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/platforms/tests/utils/BcmTestWedgeTomahawk3Platform.h"
 #include "fboss/agent/hw/bcm/BcmCosQueueManagerUtils.h"
+#include "fboss/agent/hw/bcm/BcmPortIngressBufferManager.h"
 
 namespace facebook::fboss {
 
@@ -23,6 +24,12 @@ BcmTestWedgeTomahawk3Platform::getDefaultControlPlaneQueueSettings(
     cfg::StreamType streamType) const {
   return utility::getDefaultControlPlaneQueueSettings(
       utility::BcmChip::TOMAHAWK3, streamType);
+}
+
+const PortPgConfig& BcmTestWedgeTomahawk3Platform::getDefaultPortPgSettings()
+    const {
+  return BcmPortIngressBufferManager::getDefaultChipPgSettings(
+      utility::BcmChip::TOMAHAWK3);
 }
 
 } // namespace facebook::fboss

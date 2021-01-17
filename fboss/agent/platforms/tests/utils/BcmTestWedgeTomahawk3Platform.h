@@ -39,6 +39,7 @@ class BcmTestWedgeTomahawk3Platform : public BcmTestWedgePlatform {
       cfg::StreamType streamType) const override;
   const PortQueue& getDefaultControlPlaneQueueSettings(
       cfg::StreamType streamType) const override;
+  const PortPgConfig& getDefaultPortPgSettings() const override;
 
   uint32_t getMMUBufferBytes() const override {
     // All TH3 platforms have 64MB MMU buffer

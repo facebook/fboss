@@ -40,6 +40,7 @@ add_executable(bcm_test
   fboss/agent/hw/bcm/tests/BcmMirrorTests.cpp
   fboss/agent/hw/bcm/tests/BcmMplsTestUtils.cpp
   fboss/agent/hw/bcm/tests/BcmPortQueueManagerTests.cpp
+  fboss/agent/hw/bcm/tests/BcmPortIngressBufferManagerTests.cpp
   fboss/agent/hw/bcm/tests/BcmPortTests.cpp
   fboss/agent/hw/bcm/tests/BcmPortStressTests.cpp
   fboss/agent/hw/bcm/tests/BcmQosPolicyTests.cpp

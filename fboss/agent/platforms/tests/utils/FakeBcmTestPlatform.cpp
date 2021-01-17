@@ -10,6 +10,7 @@
 #include "fboss/agent/platforms/tests/utils/FakeBcmTestPlatform.h"
 
 #include "fboss/agent/hw/bcm/BcmCosQueueManagerUtils.h"
+#include "fboss/agent/hw/bcm/BcmPortIngressBufferManager.h"
 #include "fboss/agent/hw/switch_asics/FakeAsic.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/common/fake_test/FakeTestPlatformMapping.h"
@@ -62,6 +63,11 @@ const PortQueue& FakeBcmTestPlatform::getDefaultControlPlaneQueueSettings(
     cfg::StreamType streamType) const {
   return utility::getDefaultControlPlaneQueueSettings(
       utility::BcmChip::TOMAHAWK, streamType);
+}
+
+const PortPgConfig& FakeBcmTestPlatform::getDefaultPortPgSettings() const {
+  return BcmPortIngressBufferManager::getDefaultChipPgSettings(
+      utility::BcmChip::TOMAHAWK3);
 }
 
 } // namespace facebook::fboss
