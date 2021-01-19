@@ -27,6 +27,7 @@ SaiVirtualRouterManager::SaiVirtualRouterManager(
     const SaiPlatform* platform)
     : managerTable_(managerTable), platform_(platform) {
   auto& store = SaiStore::getInstance()->get<SaiVirtualRouterTraits>();
+  store.setObjectOwnedByAdapter(true);
   auto virtualRouterHandle = std::make_unique<SaiVirtualRouterHandle>();
   SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
   VirtualRouterSaiId defaultVrfId{

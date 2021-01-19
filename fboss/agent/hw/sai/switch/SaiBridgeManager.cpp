@@ -50,6 +50,9 @@ std::shared_ptr<SaiBridgePort> SaiBridgeManager::addBridgePort(
 SaiBridgeManager::SaiBridgeManager(
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : managerTable_(managerTable), platform_(platform) {}
+    : managerTable_(managerTable), platform_(platform) {
+  auto& store = SaiStore::getInstance()->get<SaiBridgeTraits>();
+  store.setObjectOwnedByAdapter(true);
+}
 
 } // namespace facebook::fboss
