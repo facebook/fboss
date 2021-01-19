@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
@@ -133,4 +134,19 @@ TEST_F(FdbManagerTest, doubleRemoveFdbEntry) {
   addMacEntry();
   removeMacEntry();
   EXPECT_THROW(removeMacEntry(), FbossError);
+}
+
+TEST_F(FdbManagerTest, checkFdbEntryOwnership) {
+  auto checkFdbEntryOwnerShip =
+      [this](cfg::L2LearningMode learningMode, bool ownedByAdapter) {
+        auto newState = programmedState->clone();
+        auto newSwitchSettings = newState->getSwitchSettings()->clone();
+        newSwitchSettings->setL2LearningMode(learningMode);
+        newState->resetSwitchSettings(newSwitchSettings);
+        applyNewState(newState);
+        auto& store = SaiStore::getInstance()->get<SaiFdbTraits>();
+        EXPECT_EQ(store.isObjectOwnedByAdapter(), ownedByAdapter);
+      };
+  checkFdbEntryOwnerShip(cfg::L2LearningMode::HARDWARE, true);
+  checkFdbEntryOwnerShip(cfg::L2LearningMode::SOFTWARE, false);
 }
