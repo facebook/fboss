@@ -9,7 +9,7 @@
  */
 
 #include "fboss/agent/SysError.h"
-#include "fboss/agent/hw/bcm/tests/BcmTest.h"
+#include "fboss/agent/hw/test/HwTest.h"
 
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/state/Port.h"
@@ -28,7 +28,7 @@ using std::string;
 
 namespace facebook::fboss {
 
-class BcmSwitchStateReplayTest : public BcmTest {
+class HwSwitchStateReplayTest : public HwTest {
   std::shared_ptr<SwitchState> getWarmBootState() const {
     if (FLAGS_replay_switch_state_file.size()) {
       std::string warmBootJson;
@@ -73,7 +73,7 @@ class BcmSwitchStateReplayTest : public BcmTest {
  private:
 };
 
-TEST_F(BcmSwitchStateReplayTest, test) {
+TEST_F(HwSwitchStateReplayTest, test) {
   runTest();
 }
 
