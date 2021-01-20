@@ -18,19 +18,8 @@ class HwParityErrorTest : public HwLinkStateDependentTest {
   }
 
   bool skipTest() {
-    auto asic = getPlatform()->getAsic()->getAsicType();
-    switch (asic) {
-      case HwAsic::AsicType::ASIC_TYPE_FAKE:
-      case HwAsic::AsicType::ASIC_TYPE_MOCK:
-      case HwAsic::AsicType::ASIC_TYPE_TAJO:
-        break;
-      case HwAsic::AsicType::ASIC_TYPE_TRIDENT2:
-      case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK:
-      case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
-      case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
-        return false;
-    }
-    return true;
+    return !getPlatform()->getAsic()->isSupported(
+        HwAsic::Feature::TELEMETRY_AND_MONITORING);
   }
 
   void generateBcmParityError() {

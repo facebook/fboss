@@ -6,6 +6,8 @@
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 extern "C" {
 #include <experimental/sai_attr_ext.h>
@@ -21,6 +23,10 @@ SaiTamManager::SaiTamManager(
     : managerTable_(managerTable),
       platform_(platform),
       tamHandle_(std::make_unique<SaiTamHandle>()) {
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::TELEMETRY_AND_MONITORING)) {
+    return;
+  }
   // create report
   auto& reportStore = SaiStore::getInstance()->get<SaiTamReportTraits>();
   auto reportTraits =

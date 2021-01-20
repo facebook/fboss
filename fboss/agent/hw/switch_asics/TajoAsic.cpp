@@ -62,6 +62,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::NON_UNICAST_HASH:
     case HwAsic::Feature::DETAILED_L2_UPDATE:
     case HwAsic::Feature::COUNTER_REFRESH_INTERVAL:
+    case HwAsic::Feature::TELEMETRY_AND_MONITORING:
       return false;
   }
   return false;

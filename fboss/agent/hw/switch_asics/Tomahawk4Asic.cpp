@@ -54,6 +54,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::EGRESS_QUEUE_FLEX_COUNTER:
     case HwAsic::Feature::INGRESS_L3_INTERFACE:
     case HwAsic::Feature::DETAILED_L2_UPDATE:
+    case HwAsic::Feature::TELEMETRY_AND_MONITORING:
       return true;
     case HwAsic::Feature::NON_UNICAST_HASH:
       return !isA0_;

@@ -32,6 +32,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PTP_TC:
     case HwAsic::Feature::PENDING_L2_ENTRY:
     case HwAsic::Feature::SAI_ECN_WRED:
+    case HwAsic::Feature::TELEMETRY_AND_MONITORING:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:

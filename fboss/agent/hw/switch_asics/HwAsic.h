@@ -58,6 +58,7 @@ class HwAsic {
     NON_UNICAST_HASH,
     DETAILED_L2_UPDATE,
     COUNTER_REFRESH_INTERVAL,
+    TELEMETRY_AND_MONITORING,
   };
 
   enum class AsicType {
