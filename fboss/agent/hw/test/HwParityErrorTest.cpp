@@ -50,13 +50,26 @@ class HwParityErrorTest : public HwLinkStateDependentTest {
     std::ignore = out;
   }
 
+  void generateTajoParityError() {
+    std::string out;
+    auto ensemble = getHwSwitchEnsemble();
+    ensemble->runDiagCommand("\n", out);
+    ensemble->runDiagCommand("from cli import sai_cli\n", out);
+    ensemble->runDiagCommand("saidev = sai_cli.sai_device()\n", out);
+    ensemble->runDiagCommand("saidev.inject_ecc_error()\n", out);
+    ensemble->runDiagCommand("quit\n", out);
+    std::ignore = out;
+  }
+
   void generateParityError() {
     auto asic = getPlatform()->getAsic()->getAsicType();
     switch (asic) {
       case HwAsic::AsicType::ASIC_TYPE_FAKE:
       case HwAsic::AsicType::ASIC_TYPE_MOCK:
-      case HwAsic::AsicType::ASIC_TYPE_TAJO:
         XLOG(FATAL) << "Unsupported HwAsic";
+        break;
+      case HwAsic::AsicType::ASIC_TYPE_TAJO:
+        generateTajoParityError();
         break;
       case HwAsic::AsicType::ASIC_TYPE_TRIDENT2:
       case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK:
