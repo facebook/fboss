@@ -1259,9 +1259,10 @@ void ThriftHandler::setPortState(int32_t portNum, bool enable) {
     return;
   }
 
-  auto updateFn = [=](const shared_ptr<SwitchState>& state) {
+  auto updateFn = [portId, newPortState](const shared_ptr<SwitchState>& state) {
+    const auto oldPort = state->getPorts()->getPortIf(portId);
     shared_ptr<SwitchState> newState{state};
-    auto newPort = port->modify(&newState);
+    auto newPort = oldPort->modify(&newState);
     newPort->setAdminState(newPortState);
     return newState;
   };

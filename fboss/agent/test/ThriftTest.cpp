@@ -15,6 +15,7 @@
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
+#include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -502,4 +503,26 @@ TEST(ThriftTest, flushNonExistentNeighbor) {
               toBinaryAddress(IPAddress("100::100"))),
           1),
       0);
+}
+
+TEST(ThriftTest, setPortState) {
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+  const PortID port1{1};
+  ThriftHandler handler(sw);
+  handler.setPortState(port1, true);
+  sw->linkStateChanged(port1, true);
+  waitForStateUpdates(sw);
+
+  auto port = sw->getState()->getPorts()->getPortIf(port1);
+  EXPECT_TRUE(port->isUp());
+  EXPECT_TRUE(port->isEnabled());
+
+  sw->linkStateChanged(port1, false);
+  handler.setPortState(port1, false);
+  waitForStateUpdates(sw);
+
+  port = sw->getState()->getPorts()->getPortIf(port1);
+  EXPECT_FALSE(port->isUp());
+  EXPECT_FALSE(port->isEnabled());
 }
