@@ -103,6 +103,28 @@ void SaiMirrorManager::changeMirror(
   addMirror(newMirror);
 }
 
+SaiMirrorHandle* FOLLY_NULLABLE
+SaiMirrorManager::getMirrorHandleImpl(const std::string& mirrorId) const {
+  auto itr = mirrorHandles_.find(mirrorId);
+  if (itr == mirrorHandles_.end()) {
+    return nullptr;
+  }
+  if (!itr->second.get()) {
+    XLOG(FATAL) << "Invalid null SaiMirrorHandle for " << mirrorId;
+  }
+  return itr->second.get();
+}
+
+const SaiMirrorHandle* FOLLY_NULLABLE
+SaiMirrorManager::getMirrorHandle(const std::string& mirrorId) const {
+  return getMirrorHandleImpl(mirrorId);
+}
+
+SaiMirrorHandle* FOLLY_NULLABLE
+SaiMirrorManager::getMirrorHandle(const std::string& mirrorId) {
+  return getMirrorHandleImpl(mirrorId);
+}
+
 SaiMirrorManager::SaiMirrorManager(
     SaiManagerTable* managerTable,
     const SaiPlatform* /*platform*/)

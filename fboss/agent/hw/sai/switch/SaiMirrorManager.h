@@ -41,8 +41,13 @@ class SaiMirrorManager {
   void changeMirror(
       const std::shared_ptr<Mirror>& oldMirror,
       const std::shared_ptr<Mirror>& newMirror);
+  const SaiMirrorHandle* FOLLY_NULLABLE
+  getMirrorHandle(const std::string& mirrorId) const;
+  SaiMirrorHandle* FOLLY_NULLABLE getMirrorHandle(const std::string& mirrorId);
 
  private:
+  SaiMirrorHandle* FOLLY_NULLABLE
+  getMirrorHandleImpl(const std::string& mirrorId) const;
   SaiManagerTable* managerTable_;
   folly::F14FastMap<std::string, std::unique_ptr<SaiMirrorHandle>>
       mirrorHandles_;
