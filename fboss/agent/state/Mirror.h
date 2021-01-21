@@ -17,6 +17,9 @@ namespace facebook::fboss {
 
 using boost::container::flat_set;
 
+enum class MirrorDirection { INGRESS = 1, EGRESS = 2 };
+enum class MirrorAction { START = 1, STOP = 2 };
+
 struct TunnelUdpPorts {
   uint32_t udpSrcPort;
   uint32_t udpDstPort;

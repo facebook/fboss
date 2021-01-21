@@ -3,6 +3,7 @@
 #pragma once
 
 #include "fboss/agent/hw/bcm/types.h"
+#include "fboss/agent/state/Mirror.h"
 
 namespace facebook::fboss {
 
@@ -11,9 +12,6 @@ class AclEntry;
 class Mirror;
 class BcmPort;
 class MirrorTunnel;
-
-enum class MirrorAction { START = 1, STOP = 2 };
-enum class MirrorDirection { INGRESS = 1, EGRESS = 2 };
 
 class BcmMirrorDestination {
  public:
