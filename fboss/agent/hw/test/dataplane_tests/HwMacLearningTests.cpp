@@ -37,6 +37,7 @@
 #include <set>
 #include <vector>
 
+using facebook::fboss::HwAsic;
 using facebook::fboss::L2EntryThrift;
 using folly::IPAddress;
 using folly::IPAddressV4;
@@ -48,6 +49,7 @@ namespace {
 // Maximum theortical is 8k for TH ..but practically we hit numbers below it
 // Putting the value ot 7K should give enough buffer
 int constexpr L2_LEARN_MAX_MAC_COUNT = 7000;
+
 std::set<folly::MacAddress>
 getMacsForPort(const facebook::fboss::HwSwitch* hw, int port, bool isTrunk) {
   std::set<folly::MacAddress> macs;
@@ -100,7 +102,9 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
       int vlanId,
       std::optional<PortID> outPort,
       const std::vector<folly::MacAddress>& srcMacs,
-      const std::vector<folly::MacAddress>& dstMacs) {
+      const std::vector<folly::MacAddress>& dstMacs,
+      int chunkSize = 1,
+      int sleepUsecsBetweenChunks = 0) {
     auto originalStats =
         getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds());
     auto allSent = [&originalStats](const auto& newStats) {
@@ -115,6 +119,8 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
           expectedPkts);
       return newPkts == expectedPkts;
     };
+    int numSentPackets = 0;
+    int totalPackets = srcMacs.size() * dstMacs.size();
     for (auto srcMac : srcMacs) {
       for (auto dstMac : dstMacs) {
         auto txPacket = utility::makeEthTxPacket(
@@ -128,6 +134,18 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
               std::move(txPacket), outPort.value());
         } else {
           getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
+        }
+
+        ++numSentPackets;
+        // Some platform uses software learning which takes a little bit longer
+        // for SDK learn the L2 addresses from hardware.
+        // Add an explicit sleep time to avoid flooding the cache and dropping
+        // the mac addresses.
+        if (sleepUsecsBetweenChunks > 0 && chunkSize > 0 &&
+            (numSentPackets % chunkSize == 0 ||
+             numSentPackets == totalPackets)) {
+          /* sleep override */
+          usleep(sleepUsecsBetweenChunks);
         }
       }
     }
@@ -559,12 +577,40 @@ TEST_F(HwMacLearningStaticEntriesTest, VerifyStaticDynamicTransformations) {
 // (L2_LEARN_MAX_MAC_COUNT) and ensure HW can learn them.
 TEST_F(HwMacLearningTest, VerifyMacLearningScale) {
   if (getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3) {
-    // this test is not valid for TH3 as chip supports SW based learning only
-    // which is much slower to learn for a scaled test. Also SW introduces
-    // variability in results .
+    // This test is not valid for TH3 even though we increased the sleep time
+    // but when the scale of the mac addresses increase to 6K, the SDK can't
+    // guarantee to learn all the mac addresses.
+    // We filed a CSP(CS00011808403) to keep track of this issue.
     XLOG(INFO) << "Skip the test for TH3 platform";
     return;
   }
+
+  // Some platforms only support SDK Software Learning, which is usually slower
+  // than Hardware Learning to let SDK learn MAC Address from hardware.
+  // For these platforms, they will use cache mechanism to let hardware put
+  // new MAC addresses into a cache, and then SDK will either read the cache
+  // periodically or once the cache is full.
+  // Therefore, instead of adding sleep time for sending each L2 packet, we
+  // send a chunck of packets consecutively without sleep, which will shorten
+  // the whole sleep time for this test.
+  // However, we also need to make sure we don't flood the cache with a big
+  // chunck size, which will drop those MAC addresses which can't be put in the
+  // cache because cache is full.
+  // TH3 cache size is 16 so we use 16 as trunk size to maximize the speed.
+  // NOTE: There's an on-going investigation why TH3 needs significant longer
+  // sleep time than TH4. (T83358080)
+  static const std::unordered_map<HwAsic::AsicType, std::pair<int, int>>
+      kAsicToMacChunkSizeAndSleepUsecs = {
+          {HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3, {16, 500000}},
+          {HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4, {32, 10000}},
+      };
+  int chunkSize = 1;
+  int sleepUsecsBetweenChunks = 0;
+  if (auto p = kAsicToMacChunkSizeAndSleepUsecs.find(getAsic()->getAsicType());
+      p != kAsicToMacChunkSizeAndSleepUsecs.end()) {
+    std::tie(chunkSize, sleepUsecsBetweenChunks) = p->second;
+  }
+
   std::vector<folly::MacAddress> macs;
   auto generator = utility::MacAddressGenerator();
   // start with fixed address and increment deterministically
@@ -575,7 +621,7 @@ TEST_F(HwMacLearningTest, VerifyMacLearningScale) {
   }
 
   auto portDescr = physPortDescr();
-  auto setup = [this, portDescr, &macs]() {
+  auto setup = [this, portDescr, chunkSize, sleepUsecsBetweenChunks, &macs]() {
     setupHelper(cfg::L2LearningMode::HARDWARE, portDescr);
     // Disable aging, so entry stays in L2 table when we verify.
     utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), 0);
@@ -583,7 +629,9 @@ TEST_F(HwMacLearningTest, VerifyMacLearningScale) {
         *initialConfig().vlanPorts_ref()[0].vlanID_ref(),
         masterLogicalPortIds()[0],
         macs,
-        {folly::MacAddress::BROADCAST});
+        {folly::MacAddress::BROADCAST},
+        chunkSize,
+        sleepUsecsBetweenChunks);
   };
 
   auto verify = [this, portDescr, &macs]() {
