@@ -31,6 +31,10 @@ struct SaiMirrorHandle {
       std::shared_ptr<SaiMirror2Port>,
       std::shared_ptr<SaiMirror2GreTunnel>>;
   SaiMirror mirror;
+  MirrorSaiId adapterKey() {
+    return std::visit(
+        [](auto& handle) { return handle->adapterKey(); }, mirror);
+  }
 };
 
 class SaiMirrorManager {
