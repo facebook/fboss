@@ -22,22 +22,6 @@
 
 using namespace std::chrono;
 
-namespace {
-
-/*
- * TODO: This function is a temporary solution and adding this
- * to unblock bcm canary. Once I verify it on Tajo, I will get rid of
- * getHostifCopyToCpuPacketReason.
- */
-sai_packet_action_t getHostifCopyToCpuPacketReason(
-    const facebook::fboss::SaiPlatform* platform) {
-  return platform->getAsic()->getAsicType() ==
-          facebook::fboss::HwAsic::AsicType::ASIC_TYPE_TAJO
-      ? SAI_PACKET_ACTION_TRAP
-      : SAI_PACKET_ACTION_COPY;
-}
-} // namespace
-
 namespace facebook::fboss {
 
 std::pair<sai_hostif_trap_type_t, sai_packet_action_t>
@@ -57,16 +41,13 @@ SaiHostifManager::packetReasonToHostifTrap(
   switch (reason) {
     case cfg::PacketRxReason::ARP:
       return std::make_pair(
-          SAI_HOSTIF_TRAP_TYPE_ARP_REQUEST,
-          getHostifCopyToCpuPacketReason(platform));
+          SAI_HOSTIF_TRAP_TYPE_ARP_REQUEST, SAI_PACKET_ACTION_COPY);
     case cfg::PacketRxReason::ARP_RESPONSE:
       return std::make_pair(
-          SAI_HOSTIF_TRAP_TYPE_ARP_RESPONSE,
-          getHostifCopyToCpuPacketReason(platform));
+          SAI_HOSTIF_TRAP_TYPE_ARP_RESPONSE, SAI_PACKET_ACTION_COPY);
     case cfg::PacketRxReason::NDP:
       return std::make_pair(
-          SAI_HOSTIF_TRAP_TYPE_IPV6_NEIGHBOR_DISCOVERY,
-          getHostifCopyToCpuPacketReason(platform));
+          SAI_HOSTIF_TRAP_TYPE_IPV6_NEIGHBOR_DISCOVERY, SAI_PACKET_ACTION_COPY);
     case cfg::PacketRxReason::CPU_IS_NHOP:
       return std::make_pair(SAI_HOSTIF_TRAP_TYPE_IP2ME, SAI_PACKET_ACTION_TRAP);
     case cfg::PacketRxReason::DHCP:
