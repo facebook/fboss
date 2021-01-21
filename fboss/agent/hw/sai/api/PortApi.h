@@ -110,6 +110,28 @@ struct SaiPortTraits {
         EnumType,
         SAI_PORT_ATTR_EGRESS_MIRROR_SESSION,
         std::vector<sai_object_id_t>>;
+    using IngressSamplePacketEnable = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_INGRESS_SAMPLEPACKET_ENABLE,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
+    using EgressSamplePacketEnable = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_EGRESS_SAMPLEPACKET_ENABLE,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
+    using IngressSampleMirrorSession = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_INGRESS_SAMPLE_MIRROR_SESSION,
+        std::vector<sai_object_id_t>,
+        SaiObjectIdListDefault>;
+    using EgressSampleMirrorSession = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_EGRESS_SAMPLE_MIRROR_SESSION,
+        std::vector<sai_object_id_t>,
+        SaiObjectIdListDefault>;
+#endif
   };
   using AdapterKey = PortSaiId;
   using AdapterHostKey = Attributes::HwLaneList;
@@ -131,7 +153,15 @@ struct SaiPortTraits {
       std::optional<Attributes::InterfaceType>,
       std::optional<Attributes::PktTxEnable>,
       std::optional<Attributes::IngressMirrorSession>,
-      std::optional<Attributes::EgressMirrorSession>>;
+      std::optional<Attributes::EgressMirrorSession>,
+      std::optional<Attributes::IngressSamplePacketEnable>,
+      std::optional<Attributes::EgressSamplePacketEnable>
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
+      ,
+      std::optional<Attributes::IngressSampleMirrorSession>,
+      std::optional<Attributes::EgressSampleMirrorSession>
+#endif
+      >;
 
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
@@ -177,6 +207,12 @@ SAI_ATTRIBUTE_NAME(Port, PktTxEnable)
 SAI_ATTRIBUTE_NAME(Port, SerdesId)
 SAI_ATTRIBUTE_NAME(Port, IngressMirrorSession)
 SAI_ATTRIBUTE_NAME(Port, EgressMirrorSession)
+SAI_ATTRIBUTE_NAME(Port, IngressSamplePacketEnable)
+SAI_ATTRIBUTE_NAME(Port, EgressSamplePacketEnable)
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
+SAI_ATTRIBUTE_NAME(Port, IngressSampleMirrorSession)
+SAI_ATTRIBUTE_NAME(Port, EgressSampleMirrorSession)
+#endif
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};

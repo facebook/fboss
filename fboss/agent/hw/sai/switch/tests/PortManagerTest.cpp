@@ -99,24 +99,20 @@ class PortManagerTest : public ManagerTestBase {
     SaiPortTraits::Attributes::AdminState adminState{true};
     SaiPortTraits::Attributes::HwLaneList lanes(ls);
     SaiPortTraits::Attributes::Speed speed{static_cast<int>(portSpeed)};
-    SaiPortTraits::CreateAttributes a{
-        lanes,
-        speed,
-        adminState,
-        std::nullopt,
-        std::nullopt,
-        std::nullopt,
-        std::nullopt,
-        std::nullopt,
-        std::nullopt,
-        std::nullopt,
-        std::nullopt,
-        std::nullopt,
-        std::nullopt,
-        std::nullopt,
-        std::nullopt,
-        std::nullopt,
-        std::nullopt};
+    SaiPortTraits::CreateAttributes a {
+      lanes, speed, adminState, std::nullopt, std::nullopt, std::nullopt,
+          std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+          std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+          std::nullopt, // Ingress Mirror Session
+          std::nullopt, // Egress Mirror Session
+          std::nullopt, // Ingress Sample Packet
+          std::nullopt // Egress Sample Packet
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
+          ,
+          std::nullopt, // Ingress mirror sample session
+          std::nullopt // Egress mirror sample session
+#endif
+    };
     return portApi.create<SaiPortTraits>(a, 0);
   }
 

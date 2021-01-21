@@ -408,24 +408,21 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
           platformPort->getTransmitterTech(), speed)) {
     interfaceType = saiInterfaceType.value();
   }
-  return SaiPortTraits::CreateAttributes{
-      hwLaneList,
-      static_cast<uint32_t>(speed),
-      adminState,
-      fecMode,
-      internalLoopbackMode,
-      mediaType,
-      globalFlowControlMode,
-      vlanId,
-      std::nullopt,
-      swPort->getMaxFrameSize(),
-      std::nullopt,
-      std::nullopt,
-      std::nullopt,
-      interfaceType,
-      std::nullopt,
-      std::nullopt,
-      std::nullopt};
+  return SaiPortTraits::CreateAttributes {
+    hwLaneList, static_cast<uint32_t>(speed), adminState, fecMode,
+        internalLoopbackMode, mediaType, globalFlowControlMode, vlanId,
+        std::nullopt, swPort->getMaxFrameSize(), std::nullopt, std::nullopt,
+        std::nullopt, interfaceType, std::nullopt,
+        std::nullopt, // Ingress Mirror Session
+        std::nullopt, // Egress Mirror Session
+        std::nullopt, // Ingress Sample Packet
+        std::nullopt // Egress Sample Packet
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
+        ,
+        std::nullopt, // Ingress mirror sample session
+        std::nullopt // Egress mirror sample session
+#endif
+  };
 }
 
 std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
