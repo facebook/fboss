@@ -97,144 +97,112 @@ FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 
 namespace facebook::fboss {
 
-class Initializer {
- public:
-  Initializer(SwSwitch* sw, Platform* platform)
-      : sw_(sw), platform_(platform) {}
+void Initializer::start() {
+  std::thread t(&Initializer::initThread, this);
+  t.detach();
+}
 
-  void start() {
-    std::thread t(&Initializer::initThread, this);
-    t.detach();
+void Initializer::stopFunctionScheduler() {
+  std::unique_lock<std::mutex> lk(initLock_);
+  initCondition_.wait(lk, [&] { return sw_->isFullyInitialized(); });
+  if (fs_) {
+    fs_->shutdown();
   }
+}
 
-  void stopFunctionScheduler() {
-    std::unique_lock<mutex> lk(initLock_);
-    initCondition_.wait(lk, [&] { return sw_->isFullyInitialized(); });
-    if (fs_) {
-      fs_->shutdown();
-    }
+void Initializer::initThread() {
+  try {
+    initImpl();
+  } catch (const std::exception& ex) {
+    XLOG(FATAL) << "switch initialization failed: " << folly::exceptionStr(ex);
   }
+}
 
- private:
-  void initThread() {
-    try {
-      initImpl();
-    } catch (const std::exception& ex) {
-      XLOG(FATAL) << "switch initialization failed: "
-                  << folly::exceptionStr(ex);
-    }
+SwitchFlags Initializer::setupFlags() {
+  SwitchFlags flags = SwitchFlags::DEFAULT;
+  if (FLAGS_enable_lacp) {
+    flags |= SwitchFlags::ENABLE_LACP;
   }
-
-  SwitchFlags setupFlags() {
-    SwitchFlags flags = SwitchFlags::DEFAULT;
-    if (FLAGS_enable_lacp) {
-      flags |= SwitchFlags::ENABLE_LACP;
-    }
-    if (FLAGS_tun_intf) {
-      flags |= SwitchFlags::ENABLE_TUN;
-    }
-    if (FLAGS_enable_lldp) {
-      flags |= SwitchFlags::ENABLE_LLDP;
-    }
-    if (FLAGS_publish_boot_type) {
-      flags |= SwitchFlags::PUBLISH_STATS;
-    }
-    if (FLAGS_enable_standalone_rib) {
-      flags |= SwitchFlags::ENABLE_STANDALONE_RIB;
-    }
-    if (FLAGS_enable_macsec) {
-      flags |= SwitchFlags::ENABLE_MACSEC;
-    }
-    return flags;
+  if (FLAGS_tun_intf) {
+    flags |= SwitchFlags::ENABLE_TUN;
   }
-
-  void initImpl() {
-    auto startTime = steady_clock::now();
-    std::lock_guard<mutex> g(initLock_);
-    // Determining the local MAC address can also take a few seconds the first
-    // time it is called, so perform this operation asynchronously, in parallel
-    // with the switch initialization.
-    auto ret =
-        std::async(std::launch::async, &Platform::getLocalMac, platform_);
-
-    // Initialize the switch.  This operation can take close to a minute
-    // on some of our current platforms.
-    sw_->init(nullptr, setupFlags());
-
-    // Wait for the local MAC address to be available.
-    ret.wait();
-    auto localMac = ret.get();
-    XLOG(INFO) << "local MAC is " << localMac;
-
-    sw_->applyConfig("apply initial config");
-    // Enable route update logging for all routes so that when we are told
-    // the first set of routes after a warm boot, we can log any changes
-    // from what was programmed before the warm boot.
-    // e.g. any routes that were removed while the agent was restarting
-    if (sw_->getBootType() == BootType::WARM_BOOT) {
-      sw_->logRouteUpdates("::", 0, "fboss-agent-warmboot");
-      sw_->logRouteUpdates("0.0.0.0", 0, "fboss-agent-warmboot");
-    }
-    sw_->initialConfigApplied(startTime);
-
-    // Start the UpdateSwitchStatsThread
-    fs_ = new FunctionScheduler();
-    fs_->setThreadName("UpdateStatsThread");
-    std::function<void()> callback(std::bind(updateStats, sw_));
-    auto timeInterval = std::chrono::seconds(1);
-    fs_->addFunction(callback, timeInterval, "updateStats");
-    fs_->start();
-    XLOG(INFO) << "Started background thread: UpdateStatsThread";
-    initCondition_.notify_all();
+  if (FLAGS_enable_lldp) {
+    flags |= SwitchFlags::ENABLE_LLDP;
   }
-
-  SwSwitch* sw_;
-  Platform* platform_;
-  FunctionScheduler* fs_;
-  mutex initLock_;
-  condition_variable initCondition_;
-};
-
-/*
- */
-class SignalHandler : public AsyncSignalHandler {
-  typedef std::function<void()> StopServices;
-
- public:
-  SignalHandler(EventBase* eventBase, SwSwitch* sw, StopServices stopServices)
-      : AsyncSignalHandler(eventBase), sw_(sw), stopServices_(stopServices) {
-    registerSignalHandler(SIGINT);
-    registerSignalHandler(SIGTERM);
+  if (FLAGS_publish_boot_type) {
+    flags |= SwitchFlags::PUBLISH_STATS;
   }
-  void signalReceived(int /*signum*/) noexcept override {
-    restart_time::mark(RestartEvent::SIGNAL_RECEIVED);
-
-    XLOG(INFO) << "[Exit] Signal received ";
-    steady_clock::time_point begin = steady_clock::now();
-    stopServices_();
-    steady_clock::time_point servicesStopped = steady_clock::now();
-    XLOG(INFO)
-        << "[Exit] Services stop time "
-        << duration_cast<duration<float>>(servicesStopped - begin).count();
-    sw_->gracefulExit();
-    steady_clock::time_point switchGracefulExit = steady_clock::now();
-    XLOG(INFO)
-        << "[Exit] Switch Graceful Exit time "
-        << duration_cast<duration<float>>(switchGracefulExit - servicesStopped)
-               .count()
-        << std::endl
-        << "[Exit] Total graceful Exit time "
-        << duration_cast<duration<float>>(switchGracefulExit - begin).count();
-
-    restart_time::mark(RestartEvent::SHUTDOWN);
-
-    exit(0);
+  if (FLAGS_enable_standalone_rib) {
+    flags |= SwitchFlags::ENABLE_STANDALONE_RIB;
   }
+  if (FLAGS_enable_macsec) {
+    flags |= SwitchFlags::ENABLE_MACSEC;
+  }
+  return flags;
+}
 
- private:
-  SwSwitch* sw_;
-  StopServices stopServices_;
-};
+void Initializer::initImpl() {
+  auto startTime = steady_clock::now();
+  std::lock_guard<mutex> g(initLock_);
+  // Determining the local MAC address can also take a few seconds the first
+  // time it is called, so perform this operation asynchronously, in parallel
+  // with the switch initialization.
+  auto ret = std::async(std::launch::async, &Platform::getLocalMac, platform_);
+
+  // Initialize the switch.  This operation can take close to a minute
+  // on some of our current platforms.
+  sw_->init(nullptr, setupFlags());
+
+  // Wait for the local MAC address to be available.
+  ret.wait();
+  auto localMac = ret.get();
+  XLOG(INFO) << "local MAC is " << localMac;
+
+  sw_->applyConfig("apply initial config");
+  // Enable route update logging for all routes so that when we are told
+  // the first set of routes after a warm boot, we can log any changes
+  // from what was programmed before the warm boot.
+  // e.g. any routes that were removed while the agent was restarting
+  if (sw_->getBootType() == BootType::WARM_BOOT) {
+    sw_->logRouteUpdates("::", 0, "fboss-agent-warmboot");
+    sw_->logRouteUpdates("0.0.0.0", 0, "fboss-agent-warmboot");
+  }
+  sw_->initialConfigApplied(startTime);
+
+  // Start the UpdateSwitchStatsThread
+  fs_ = new FunctionScheduler();
+  fs_->setThreadName("UpdateStatsThread");
+  std::function<void()> callback(std::bind(updateStats, sw_));
+  auto timeInterval = std::chrono::seconds(1);
+  fs_->addFunction(callback, timeInterval, "updateStats");
+  fs_->start();
+  XLOG(INFO) << "Started background thread: UpdateStatsThread";
+  initCondition_.notify_all();
+}
+
+void SignalHandler::signalReceived(int /*signum*/) noexcept {
+  restart_time::mark(RestartEvent::SIGNAL_RECEIVED);
+
+  XLOG(INFO) << "[Exit] Signal received ";
+  steady_clock::time_point begin = steady_clock::now();
+  stopServices_();
+  steady_clock::time_point servicesStopped = steady_clock::now();
+  XLOG(INFO) << "[Exit] Services stop time "
+             << duration_cast<duration<float>>(servicesStopped - begin).count();
+  sw_->gracefulExit();
+  steady_clock::time_point switchGracefulExit = steady_clock::now();
+  XLOG(INFO)
+      << "[Exit] Switch Graceful Exit time "
+      << duration_cast<duration<float>>(switchGracefulExit - servicesStopped)
+             .count()
+      << std::endl
+      << "[Exit] Total graceful Exit time "
+      << duration_cast<duration<float>>(switchGracefulExit - begin).count();
+
+  restart_time::mark(RestartEvent::SHUTDOWN);
+
+  exit(0);
+}
 
 std::unique_ptr<AgentConfig> parseConfig(int argc, char** argv) {
   // one pass over flags, but don't clear argc/argv. We only do this
@@ -280,7 +248,8 @@ int fbossMain(
     XLOG(INFO) << "Could not open /dev/null ";
   }
 
-  // Now that we have parsed the command line flags, create the Platform object
+  // Now that we have parsed the command line flags, create the Platform
+  // object
   unique_ptr<Platform> platform =
       initPlatform(std::move(config), hwFeaturesDesired);
 
@@ -307,9 +276,9 @@ int fbossMain(
   // Create an Initializer to initialize the switch in a background thread.
   Initializer init(&sw, platformPtr);
 
-  // At this point, we are guaranteed no other agent process will initialize the
-  // ASIC because such a process would have crashed attempting to bind to the
-  // Thrift port 5909
+  // At this point, we are guaranteed no other agent process will initialize
+  // the ASIC because such a process would have crashed attempting to bind to
+  // the Thrift port 5909
   init.start();
 
   /*

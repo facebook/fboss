@@ -10,6 +10,21 @@
 #pragma once
 #include <memory>
 
+#include <folly/experimental/FunctionScheduler.h>
+#include <folly/io/async/AsyncSignalHandler.h>
+#include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/TunManager.h"
+
+#include <gflags/gflags.h>
+#include <chrono>
+#include <condition_variable>
+#include <csignal>
+#include <cstdio>
+#include <functional>
+#include <future>
+#include <mutex>
+#include <string>
+
 namespace apache {
 namespace thrift {
 class ThriftServer;
@@ -20,6 +35,44 @@ namespace facebook::fboss {
 
 class AgentConfig;
 class Platform;
+
+class Initializer {
+ public:
+  Initializer(SwSwitch* sw, Platform* platform)
+      : sw_(sw), platform_(platform) {}
+  void start();
+  void stopFunctionScheduler();
+
+ private:
+  void initThread();
+  SwitchFlags setupFlags();
+  void initImpl();
+  SwSwitch* sw_;
+  Platform* platform_;
+  folly::FunctionScheduler* fs_;
+  std::mutex initLock_;
+  std::condition_variable initCondition_;
+};
+
+class SignalHandler : public folly::AsyncSignalHandler {
+  typedef std::function<void()> StopServices;
+
+ public:
+  SignalHandler(
+      folly::EventBase* eventBase,
+      SwSwitch* sw,
+      StopServices stopServices)
+      : AsyncSignalHandler(eventBase), sw_(sw), stopServices_(stopServices) {
+    registerSignalHandler(SIGINT);
+    registerSignalHandler(SIGTERM);
+  }
+
+  void signalReceived(int /*signum*/) noexcept override;
+
+ private:
+  SwSwitch* sw_;
+  StopServices stopServices_;
+};
 
 typedef std::unique_ptr<Platform> (
     *PlatformInitFn)(std::unique_ptr<AgentConfig>, uint32_t featuresDesired);
