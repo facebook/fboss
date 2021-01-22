@@ -19,7 +19,6 @@
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
-#include <thrift/lib/cpp2/server/ThriftServer.h>
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/FbossInit.h"
@@ -221,7 +220,7 @@ void initFlagDefaults(const std::map<std::string, std::string>& defaults) {
   }
 }
 
-int fbossMain(
+void AgentInitializer::createSwitch(
     int argc,
     char** argv,
     uint32_t hwFeaturesDesired,
@@ -254,32 +253,31 @@ int fbossMain(
       initPlatform(std::move(config), hwFeaturesDesired);
 
   // Create the SwSwitch and thrift handler
-  SwSwitch sw(std::move(platform));
-  auto platformPtr = sw.getPlatform();
-  auto handler =
-      std::shared_ptr<ThriftHandler>(platformPtr->createHandler(&sw));
+  sw_ = new SwSwitch(std::move(platform));
+  platform_ = sw_->getPlatform();
+  initializer_ = new Initializer(sw_, platform_);
+}
 
+int AgentInitializer::initAgent() {
+  auto handler = std::shared_ptr<ThriftHandler>(platform_->createHandler(sw_));
   handler->setIdleTimeout(FLAGS_thrift_idle_timeout);
-  EventBase eventBase;
+  eventBase_ = new EventBase();
 
   // Start the thrift server
-  auto server = setupThriftServer(
-      eventBase,
+  server_ = setupThriftServer(
+      *eventBase_,
       handler,
       FLAGS_port,
       true /*isDuplex*/,
       true /*setupSSL*/,
       true /*isStreaming*/);
 
-  handler->setSSLPolicy(server->getSSLPolicy());
-
-  // Create an Initializer to initialize the switch in a background thread.
-  Initializer init(&sw, platformPtr);
+  handler->setSSLPolicy(server_->getSSLPolicy());
 
   // At this point, we are guaranteed no other agent process will initialize
   // the ASIC because such a process would have crashed attempting to bind to
   // the Thrift port 5909
-  init.start();
+  initializer_->start();
 
   /*
    * Updating stats could be expensive as each update must acquire lock. To
@@ -291,23 +289,32 @@ int fbossMain(
 
   auto stopServices = [&]() {
     // stop accepting new connections
-    server->stopListening();
+    server_->stopListening();
     XLOG(INFO) << "Stopped thrift server listening";
-    init.stopFunctionScheduler();
+    initializer_->stopFunctionScheduler();
     XLOG(INFO) << "Stopped stats FunctionScheduler";
     fbossFinalize();
   };
-  SignalHandler signalHandler(&eventBase, &sw, stopServices);
+  SignalHandler signalHandler(eventBase_, sw_, stopServices);
 
   SCOPE_EXIT {
-    server->cleanUp();
+    server_->cleanUp();
   };
   XLOG(INFO) << "serving on localhost on port " << FLAGS_port;
 
   // Run the EventBase main loop
-  eventBase.loopForever();
-
+  eventBase_->loopForever();
   return 0;
+}
+
+int fbossMain(
+    int argc,
+    char** argv,
+    uint32_t hwFeaturesDesired,
+    PlatformInitFn initPlatform) {
+  AgentInitializer initializer;
+  initializer.createSwitch(argc, argv, hwFeaturesDesired, initPlatform);
+  return initializer.initAgent();
 }
 
 } // namespace facebook::fboss

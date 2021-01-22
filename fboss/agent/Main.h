@@ -12,6 +12,7 @@
 
 #include <folly/experimental/FunctionScheduler.h>
 #include <folly/io/async/AsyncSignalHandler.h>
+#include <thrift/lib/cpp2/server/ThriftServer.h>
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TunManager.h"
 
@@ -76,6 +77,35 @@ class SignalHandler : public folly::AsyncSignalHandler {
 
 typedef std::unique_ptr<Platform> (
     *PlatformInitFn)(std::unique_ptr<AgentConfig>, uint32_t featuresDesired);
+
+class AgentInitializer {
+ protected:
+  SwSwitch* sw() const {
+    return sw_;
+  }
+  Platform* platform() const {
+    return platform_;
+  }
+  Initializer* initializer() const {
+    return initializer_;
+  }
+
+ public:
+  AgentInitializer() {}
+  void createSwitch(
+      int argc,
+      char** argv,
+      uint32_t hwFeaturesDesired,
+      PlatformInitFn initPlatform);
+  int initAgent();
+
+ private:
+  SwSwitch* sw_;
+  Platform* platform_;
+  Initializer* initializer_;
+  std::unique_ptr<apache::thrift::ThriftServer> server_;
+  folly::EventBase* eventBase_;
+};
 
 int fbossMain(
     int argc,
