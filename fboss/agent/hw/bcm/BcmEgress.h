@@ -178,12 +178,14 @@ class BcmEcmpEgress : public BcmEgressBase {
       EgressId toAdd,
       SwitchRunState runState,
       bool ucmpSupported,
+      bool wideEcmpSupported,
       bool useHsdk);
   static bool removeEgressIdHwNotLocked(
       int unit,
       EgressId ecmpId,
       std::pair<EgressId, int> toRemove,
       bool ucmpSupported,
+      bool wideEcmpSupported,
       bool useHsdk);
   static bool removeEgressIdHwLocked(
       int unit,
@@ -191,14 +193,36 @@ class BcmEcmpEgress : public BcmEgressBase {
       const EgressId2Weight& egressIdInSw,
       EgressId toRemove,
       bool ucmpSupported,
+      bool wideEcmpSupported,
       bool useHsdk);
+  static void programWideEcmp(
+      int unit,
+      bcm_if_t& id,
+      const EgressId2Weight& egressId2Weight,
+      const std::set<EgressId>& activeMembers);
+  static void normalizeUcmpToMaxPath(
+      const EgressId2Weight& egressId2Weight,
+      const std::set<EgressId>& activeMembers,
+      const uint32_t normalizedPathCount,
+      EgressId2Weight& normalizedEgressId2Weight);
+  static bool rebalanceWideEcmpEntry(
+      int unit,
+      EgressId ecmpId,
+      std::pair<EgressId, int> toRemove);
+  void createWideEcmpEntry(int numPaths);
+  static std::string egressId2WeightToString(
+      const EgressId2Weight& egressId2Weight);
 
  private:
   void program();
+  static bool isWideEcmpEnabled(bool wideEcmpSupported);
   const EgressId2Weight egressId2Weight_;
   bool ucmpSupported_{false};
   // TODO(daiweix): remove this flag when all TH4 devices use B0 chip
   bool useHsdk_{false};
+  bool wideEcmpSupported_{false};
+  static constexpr int kMaxNonWeightedEcmpPaths{128};
+  static constexpr int kMaxWeightedEcmpPaths{512};
 };
 
 bool operator==(const bcm_l3_egress_t& lhs, const bcm_l3_egress_t& rhs);

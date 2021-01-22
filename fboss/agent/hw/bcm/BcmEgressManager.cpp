@@ -79,6 +79,7 @@ void BcmEgressManager::linkStateChangedMaybeLocked(
         hw_->getUnit(),
         portAndEgressIds->getEgressIds(),
         up,
+        hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::WIDE_ECMP),
         hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::HSDK));
   }
 }
@@ -106,9 +107,10 @@ int BcmEgressManager::removeAllEgressesFromEcmpCallback(
   // loop over the egresses present in the ecmp group. For each that is
   // in the passed in list of egresses to remove (userData),
   // remove it from the ecmp group.
-  auto egressesToRemove =
-      static_cast<std::pair<EgressIdSet*, bool>*>(userData)->first;
-  auto useHsdk = static_cast<std::pair<EgressIdSet*, bool>*>(userData)->second;
+  auto tuple = *static_cast<std::tuple<EgressIdSet*, bool, bool>*>(userData);
+  auto egressesToRemove = std::get<0>(tuple);
+  auto useHsdk = std::get<1>(tuple);
+  auto wideEcmpSupported = std::get<2>(tuple);
   auto ucmpSupported = ecmp->ecmp_group_flags == BCM_L3_ECMP_MEMBER_WEIGHTED;
   for (int i = 0; i < memberCount; ++i) {
     auto egressInHw = toEgressIdAndWeight<T>(memberArray[i]);
@@ -120,6 +122,7 @@ int BcmEgressManager::removeAllEgressesFromEcmpCallback(
               ? egressInHw
               : std::make_pair(egressInHw.first, kDefaultMemberWeight),
           ucmpSupported,
+          wideEcmpSupported,
           useHsdk);
     }
   }
@@ -130,10 +133,11 @@ void BcmEgressManager::egressResolutionChangedHwNotLocked(
     int unit,
     const EgressIdSet& affectedEgressIds,
     bool up,
+    bool wideEcmpSupported,
     bool useHsdk) {
   CHECK(!up);
   EgressIdSet tmpEgressIds(affectedEgressIds);
-  auto userData = std::make_pair(&tmpEgressIds, useHsdk);
+  auto userData = std::make_tuple(&tmpEgressIds, useHsdk, wideEcmpSupported);
   if (useHsdk) {
     bcm_l3_ecmp_traverse(
         unit,

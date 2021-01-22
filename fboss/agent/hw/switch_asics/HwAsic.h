@@ -59,6 +59,7 @@ class HwAsic {
     DETAILED_L2_UPDATE,
     COUNTER_REFRESH_INTERVAL,
     TELEMETRY_AND_MONITORING,
+    WIDE_ECMP,
   };
 
   enum class AsicType {
@@ -123,6 +124,7 @@ class HwAsic {
    * The maximum number of logical ports
    */
   virtual int getMaxNumLogicalPorts() const = 0;
+  virtual uint32_t getMaxWideEcmpSize() const = 0;
 };
 
 } // namespace facebook::fboss

@@ -23,6 +23,7 @@ class FakeAsic : public HwAsic {
       case Feature::PTP_TC_PCS:
       case Feature::EGRESS_QUEUE_FLEX_COUNTER:
       case Feature::NON_UNICAST_HASH:
+      case Feature::WIDE_ECMP:
         return false;
 
       default:
@@ -76,6 +77,9 @@ class FakeAsic : public HwAsic {
   }
   uint16_t getMirrorTruncateSize() const override {
     return 0;
+  }
+  uint32_t getMaxWideEcmpSize() const override {
+    return 128;
   }
 };
 

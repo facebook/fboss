@@ -46,6 +46,9 @@ class Tomahawk3Asic : public BroadcomAsic {
   uint16_t getMirrorTruncateSize() const override {
     return 254;
   }
+  uint32_t getMaxWideEcmpSize() const override {
+    return 512;
+  }
 };
 
 } // namespace facebook::fboss

@@ -57,6 +57,9 @@ class Trident2Asic : public BroadcomAsic {
   uint16_t getMirrorTruncateSize() const override {
     return 0;
   }
+  uint32_t getMaxWideEcmpSize() const override {
+    return 128;
+  }
 };
 
 } // namespace facebook::fboss

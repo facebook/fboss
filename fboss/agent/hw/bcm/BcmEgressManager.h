@@ -6,6 +6,7 @@
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmTrunk.h"
 #include "fboss/agent/hw/bcm/PortAndEgressIdsMap.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/types.h"
 
 #include <boost/container/flat_map.hpp>
@@ -18,6 +19,8 @@ extern "C" {
 #include <bcm/types.h>
 }
 
+DECLARE_uint32(ecmp_width);
+
 namespace facebook::fboss {
 
 class BcmEgressManager {
@@ -25,6 +28,16 @@ class BcmEgressManager {
   using EgressIdSet = BcmEcmpEgress::EgressIdSet;
 
   explicit BcmEgressManager(const BcmSwitchIf* hw) : hw_(hw) {
+    auto platform = hw_->getPlatform();
+    if (platform &&
+        platform->getAsic()->isSupported(HwAsic::Feature::WIDE_ECMP) &&
+        FLAGS_ecmp_width > platform->getAsic()->getMaxWideEcmpSize()) {
+      throw FbossError(
+          "Invalid ecmp_width setting, current size ",
+          FLAGS_ecmp_width,
+          " max supported ",
+          platform->getAsic()->getMaxWideEcmpSize());
+    }
     auto port2EgressIds = std::make_shared<PortAndEgressIdsMap>();
     port2EgressIds->publish();
     setPort2EgressIdsInternal(port2EgressIds);
@@ -94,7 +107,8 @@ class BcmEgressManager {
       int unit,
       const EgressIdSet& affectedEgressIds,
       bool up,
-      bool ucmpSupported);
+      bool wideEcmpSupported,
+      bool useHsdk);
   typedef std::pair<BcmEcmpEgress::EgressId, int> EgressIdAndWeight;
   template <typename T>
   static EgressIdAndWeight toEgressIdAndWeight(T egress);

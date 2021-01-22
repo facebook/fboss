@@ -61,6 +61,9 @@ class TajoAsic : public HwAsic {
   uint16_t getMirrorTruncateSize() const override {
     return 220;
   }
+  uint32_t getMaxWideEcmpSize() const override {
+    return 128;
+  }
 };
 
 } // namespace facebook::fboss

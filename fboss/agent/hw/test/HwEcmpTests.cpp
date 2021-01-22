@@ -139,6 +139,13 @@ void HwEcmpTest::runSimpleUcmpTest(
   verifyAcrossWarmBoots(setup, verify);
 }
 
+class HwWideEcmpTest : public HwEcmpTest {
+  void SetUp() override {
+    FLAGS_ecmp_width = 512;
+    HwEcmpTest::SetUp();
+  }
+};
+
 TEST_F(HwEcmpTest, L2ResolveOneNhopThenLinkDownThenUp) {
   auto setup = [=]() {
     programRouteWithUnresolvedNhops();
@@ -166,9 +173,9 @@ TEST_F(HwEcmpTest, L2ResolveOneNhopThenLinkDownThenUp) {
     EXPECT_EQ(0, getEcmpSizeInHw());
 
     // Bring port back down so we can warmboot more than once. This is
-    // necessary because verify() and verifyPostWarmboot() assume that the port
-    // is down and the nexthop unresolved, which won't be true if we warmboot
-    // after bringing the port up in setupPostWarmboot().
+    // necessary because verify() and verifyPostWarmboot() assume that the
+    // port is down and the nexthop unresolved, which won't be true if we
+    // warmboot after bringing the port up in setupPostWarmboot().
     bringDownPort(nhop.portDesc.phyPortID());
   };
 
@@ -269,6 +276,40 @@ TEST_F(HwEcmpTest, UcmpOverflowZeroNotEnoughToRoundUp) {
         << "Do not support ecmp_width other than 64 or 128, please extend the test";
   }
   runSimpleUcmpTest(swWs, hwWs);
+}
+
+// Wide UCMP underflow test for when total UCMP weight of the group is less
+// than FLAGS_ecmp_width
+TEST_F(HwWideEcmpTest, WideUcmpUnderflow) {
+  const int numSpineNhops = 5;
+  const int numMeshNhops = 3;
+  std::vector<uint64_t> nhops(numSpineNhops + numMeshNhops);
+  std::vector<uint64_t> normalizedNhops(numSpineNhops + numMeshNhops);
+
+  // skip unsupported platforms
+  if (!getHwSwitch()->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::WIDE_ECMP)) {
+    return;
+  }
+
+  auto fillNhops = [](auto& nhops, auto& countAndWeights) {
+    auto idx = 0;
+    for (const auto& nhopAndWeight : countAndWeights) {
+      std::fill(
+          nhops.begin() + idx,
+          nhops.begin() + idx + nhopAndWeight.first,
+          nhopAndWeight.second);
+      idx += nhopAndWeight.first;
+    }
+  };
+  // 5 spine nhops of weight 31 and 3 mesh nhops of weight 1
+  const std::vector<std::pair<int, int>> nhopsAndWeightsOriginal = {
+      {5, 31}, {3, 1}};
+  fillNhops(nhops, nhopsAndWeightsOriginal);
+  const std::vector<std::pair<int, int>> nhopsAndWeightsNormalized = {
+      {3, 100}, {2, 101}, {1, 4}, {2, 3}};
+  fillNhops(normalizedNhops, nhopsAndWeightsNormalized);
+  runSimpleUcmpTest(nhops, normalizedNhops);
 }
 
 TEST_F(HwEcmpTest, ResolvePendingResolveNexthop) {

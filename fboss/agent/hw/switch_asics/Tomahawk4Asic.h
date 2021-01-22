@@ -60,6 +60,10 @@ class Tomahawk4Asic : public BroadcomAsic {
     return 254;
   }
 
+  uint32_t getMaxWideEcmpSize() const override {
+    return 128;
+  }
+
  private:
   // TODO(daiweix): remove this flag when all TH4 devices use B0 chip
   bool isA0_{false};

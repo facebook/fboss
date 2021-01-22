@@ -127,6 +127,7 @@ void BcmMultiPathNextHopTable::egressResolutionChangedHwLocked(
               path,
               hw->getRunState(),
               ucmpSupported_,
+              wideEcmpSupported_,
               useHsdk_);
           break;
         case BcmEcmpEgress::Action::SHRINK:
@@ -136,6 +137,7 @@ void BcmMultiPathNextHopTable::egressResolutionChangedHwLocked(
               ecmpAndEgressIds.second,
               path,
               ucmpSupported_,
+              wideEcmpSupported_,
               useHsdk_);
           break;
         case BcmEcmpEgress::Action::SKIP:

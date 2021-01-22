@@ -19,6 +19,7 @@ class MockAsic : public HwAsic {
       case Feature::PTP_TC:
       case Feature::PTP_TC_PCS:
       case Feature::EGRESS_QUEUE_FLEX_COUNTER:
+      case Feature::WIDE_ECMP:
         return false;
 
       default:
@@ -72,6 +73,9 @@ class MockAsic : public HwAsic {
   }
   uint16_t getMirrorTruncateSize() const override {
     return 0;
+  }
+  uint32_t getMaxWideEcmpSize() const override {
+    return 128;
   }
 };
 

@@ -59,6 +59,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::NON_UNICAST_HASH:
     case HwAsic::Feature::DETAILED_L2_UPDATE:
     case HwAsic::Feature::COUNTER_REFRESH_INTERVAL:
+    case HwAsic::Feature::WIDE_ECMP:
       return false;
   }
   return false;
