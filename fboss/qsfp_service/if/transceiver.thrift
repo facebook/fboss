@@ -242,3 +242,29 @@ struct CmisData {
   9: optional IOBuf page14,
   10: optional i64 timeCollected,
 }
+
+struct TransceiverIOParameters {
+  1: i32 offset,  // should range from 0 - 255
+  2: optional i32 page, // can be used to access bytes 128-255 from a different page than page0
+  3: optional i32 length, // Number of bytes to read. Not applicable for a write
+}
+
+struct ReadRequest {
+  1: list<i32> ids,
+  2: TransceiverIOParameters parameter,
+}
+
+struct ReadResponse {
+  1: bool valid,
+  2: IOBuf data,
+}
+
+struct WriteRequest {
+  1: list<i32> ids,
+  2: TransceiverIOParameters parameter,
+  3: byte data, // The data to write for a write request
+}
+
+struct WriteResponse {
+  1: bool success,
+}

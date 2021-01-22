@@ -78,6 +78,19 @@ class Transceiver {
   virtual void transceiverPortsChanged(
     const std::map<uint32_t, PortStatus>& ports) = 0;
 
+  /*
+   * Perform raw register read on a specific transceiver
+   */
+  virtual std::unique_ptr<IOBuf> readTransceiver(
+      TransceiverIOParameters param) = 0;
+
+  /*
+   * Perform raw register write on a specific transceiver
+   */
+  virtual bool writeTransceiver(
+      TransceiverIOParameters param,
+      uint8_t data) = 0;
+
  private:
   // no copy or assignment
   Transceiver(Transceiver const &) = delete;

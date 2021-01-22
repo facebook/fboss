@@ -199,6 +199,62 @@ void WedgeManager::getTransceiversDOMDataUnion(
   }
 }
 
+void WedgeManager::readTransceiverRegister(
+    std::map<int32_t, ReadResponse>& responses,
+    std::unique_ptr<ReadRequest> request) {
+  auto ids = *(request->ids_ref());
+  XLOG(INFO) << "Received request for reading transceiver registers for ids: "
+             << (ids.size() > 0 ? folly::join(",", ids) : "None");
+  auto lockedTransceivers = transceivers_.rlock();
+  for (const auto& i : ids) {
+    ReadResponse resp;
+    // Mark the response as invalid initially. It will be marked valid when the
+    // read goes through successfully.
+    resp.valid_ref() = false;
+    if (isValidTransceiver(i)) {
+      if (auto it = lockedTransceivers->find(TransceiverID(i));
+          it != lockedTransceivers->end()) {
+        try {
+          auto param = *(request->parameter_ref());
+          resp.data_ref() = *(it->second->readTransceiver(param));
+          resp.valid_ref() = resp.data_ref()->length() > 0;
+        } catch (const std::exception& ex) {
+          XLOG(ERR) << "Transceiver " << i
+                    << ": Error reading from transceiver " << ex.what();
+        }
+      }
+    }
+    responses[i] = resp;
+  }
+}
+
+void WedgeManager::writeTransceiverRegister(
+    std::map<int32_t, WriteResponse>& responses,
+    std::unique_ptr<WriteRequest> request) {
+  auto ids = *(request->ids_ref());
+  XLOG(INFO) << "Received request for writing transceiver register for ids: "
+             << (ids.size() > 0 ? folly::join(",", ids) : "None");
+  auto lockedTransceivers = transceivers_.rlock();
+  for (const auto& i : ids) {
+    WriteResponse resp;
+    resp.success_ref() = false;
+    if (isValidTransceiver(i)) {
+      if (auto it = lockedTransceivers->find(TransceiverID(i));
+          it != lockedTransceivers->end()) {
+        try {
+          auto param = *(request->parameter_ref());
+          resp.success_ref() =
+              it->second->writeTransceiver(param, *(request->data_ref()));
+        } catch (const std::exception& ex) {
+          XLOG(ERR) << "Transceiver " << i << ": Error writing to transceiver "
+                    << ex.what();
+        }
+      }
+    }
+    responses[i] = resp;
+  }
+}
+
 void WedgeManager::customizeTransceiver(int32_t idx, cfg::PortSpeed speed) {
   if (!isValidTransceiver(idx)) {
     return;

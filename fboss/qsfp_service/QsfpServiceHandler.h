@@ -62,6 +62,14 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
 
   void pauseRemediation(int32_t timeout) override;
 
+  void readTransceiverRegister(
+      std::map<int32_t, ReadResponse>& response,
+      std::unique_ptr<ReadRequest> request) override;
+
+  void writeTransceiverRegister(
+      std::map<int32_t, WriteResponse>& response,
+      std::unique_ptr<WriteRequest> request) override;
+
  private:
   // Forbidden copy constructor and assignment operator
   QsfpServiceHandler(QsfpServiceHandler const &) = delete;

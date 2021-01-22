@@ -92,6 +92,15 @@ class MockSffModule : public SffModule {
     return SffModule::getRateSelectSettingValue(state);
   }
 
+  std::unique_ptr<IOBuf> readTransceiver(
+      TransceiverIOParameters param) override {
+    return SffModule::readTransceiver(param);
+  }
+
+  bool writeTransceiver(TransceiverIOParameters param, uint8_t data) override {
+    return SffModule::writeTransceiver(param, data);
+  }
+
  private:
   FeatureState cdrTx_ = FeatureState::UNSUPPORTED;
   FeatureState cdrRx_ = FeatureState::UNSUPPORTED;

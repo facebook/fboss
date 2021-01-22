@@ -442,4 +442,54 @@ TEST_F(QsfpModuleTest, skipCustomizingCopperPorts) {
   qsfp_->refresh();
 }
 
+TEST_F(QsfpModuleTest, readTransceiver) {
+  // Skip the length field and confirm that the length of data in response is 1.
+  // Page is also skipped so there should not be a write to byte 127.
+  EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(0);
+  EXPECT_CALL(*transImpl_, readTransceiver(_, _, _, _)).Times(1);
+  TransceiverIOParameters param;
+  param.offset_ref() = 0;
+  auto buf = qsfp_->readTransceiver(param);
+  EXPECT_EQ(buf->length(), 1);
+
+  // Test for a specific length
+  EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(0);
+  EXPECT_CALL(*transImpl_, readTransceiver(_, _, _, _)).Times(1);
+  param.length_ref() = 10;
+  buf = qsfp_->readTransceiver(param);
+  EXPECT_EQ(buf->length(), *param.length_ref());
+
+  // Set the page
+  EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(1);
+  EXPECT_CALL(*transImpl_, readTransceiver(_, _, _, _)).Times(1);
+  param.page_ref() = 3;
+  buf = qsfp_->readTransceiver(param);
+  EXPECT_EQ(buf->length(), *param.length_ref());
+
+  // Test on a transceiver that fails detection
+  EXPECT_CALL(*transImpl_, detectTransceiver()).WillRepeatedly(Return(false));
+  EXPECT_CALL(*transImpl_, readTransceiver(_, _, _, _)).Times(0);
+  qsfp_->detectPresence();
+  buf = qsfp_->readTransceiver(param);
+  EXPECT_EQ(buf->length(), 0);
+}
+
+TEST_F(QsfpModuleTest, writeTransceiver) {
+  // Expect a call to writeTransceiver and the result to be successful
+  EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(1);
+  TransceiverIOParameters param;
+  param.offset_ref() = 0x23;
+  EXPECT_EQ(qsfp_->writeTransceiver(param, 0xab), true);
+
+  // Set the page
+  EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(2);
+  param.page_ref() = 3;
+  EXPECT_EQ(qsfp_->writeTransceiver(param, 0xde), true);
+
+  // Test on a transceiver that fails detection, the result should be false
+  EXPECT_CALL(*transImpl_, detectTransceiver()).WillRepeatedly(Return(false));
+  EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(0);
+  qsfp_->detectPresence();
+  EXPECT_EQ(qsfp_->writeTransceiver(param, 0xac), false);
+}
 }} // namespace facebook::fboss

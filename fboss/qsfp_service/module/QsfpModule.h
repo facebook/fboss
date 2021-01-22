@@ -94,6 +94,17 @@ class QsfpModule : public Transceiver {
     const std::map<uint32_t, PortStatus>& ports) override;
 
   /*
+   * Perform a raw register read on the transceiver
+   */
+  std::unique_ptr<IOBuf> readTransceiver(
+      TransceiverIOParameters param) override;
+
+  /*
+   * Perform a raw register write on the transceiver
+   */
+  bool writeTransceiver(TransceiverIOParameters param, uint8_t data) override;
+
+  /*
    * The size of the pages used by QSFP.  See below for an explanation of
    * how they are laid out.  This needs to be publicly accessible for
    * testing.
@@ -338,6 +349,18 @@ class QsfpModule : public Transceiver {
   std::map<uint32_t, PortStatus> ports_;
   unsigned int portsPerTransceiver_{0};
   unsigned int moduleResetCounter_{0};
-};
 
+ private:
+  /*
+   * Perform a raw register read on the transceiver
+   * This must be called with a lock held on qsfpModuleMutex_
+   */
+  std::unique_ptr<IOBuf> readTransceiverLocked(TransceiverIOParameters param);
+
+  /*
+   * Perform a raw register write on the transceiver
+   * This must be called with a lock held on qsfpModuleMutex_
+   */
+  bool writeTransceiverLocked(TransceiverIOParameters param, uint8_t data);
+};
 }} //namespace facebook::fboss

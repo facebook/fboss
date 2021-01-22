@@ -34,6 +34,12 @@ class WedgeManager : public TransceiverManager {
   void getTransceiversDOMDataUnion(
     std::map<int32_t, DOMDataUnion>& info,
     std::unique_ptr<std::vector<int32_t>> ids) override;
+  void readTransceiverRegister(
+      std::map<int32_t, ReadResponse>& response,
+      std::unique_ptr<ReadRequest> request) override;
+  void writeTransceiverRegister(
+      std::map<int32_t, WriteResponse>& response,
+      std::unique_ptr<WriteRequest> request) override;
   void customizeTransceiver(int32_t idx, cfg::PortSpeed speed) override;
   void syncPorts(TransceiverMap& info, std::unique_ptr<PortMap> ports) override;
 

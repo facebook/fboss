@@ -380,4 +380,77 @@ std::optional<TransceiverStats> QsfpModule::getTransceiverStats() {
   return transceiverStats.value();
 }
 
+std::unique_ptr<IOBuf> QsfpModule::readTransceiver(
+    TransceiverIOParameters param) {
+  lock_guard<std::mutex> g(qsfpModuleMutex_);
+  return readTransceiverLocked(param);
+}
+
+std::unique_ptr<IOBuf> QsfpModule::readTransceiverLocked(
+    TransceiverIOParameters param) {
+  /*
+   * This must be called with a lock held on qsfpModuleMutex_
+   */
+  auto length = param.length_ref().has_value() ? *(param.length_ref()) : 1;
+  auto iobuf = folly::IOBuf::createCombined(length);
+  if (!present_) {
+    return iobuf;
+  }
+  try {
+    auto offset = *(param.offset_ref());
+    if (param.page_ref().has_value()) {
+      uint8_t page = *(param.page_ref());
+      // When the page is specified, first update byte 127 with the speciied
+      // pageId
+      qsfpImpl_->writeTransceiver(
+          TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+    }
+    qsfpImpl_->readTransceiver(
+        TransceiverI2CApi::ADDR_QSFP, offset, length, iobuf->writableData());
+    // Mark the valid data in the buffer
+    iobuf->append(length);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Error reading data for transceiver:"
+              << folly::to<std::string>(qsfpImpl_->getName()) << ": "
+              << ex.what();
+    throw;
+  }
+  return iobuf;
+}
+
+bool QsfpModule::writeTransceiver(
+  TransceiverIOParameters param,
+  uint8_t data) {
+  lock_guard<std::mutex> g(qsfpModuleMutex_);
+  return writeTransceiverLocked(param, data);
+}
+
+bool QsfpModule::writeTransceiverLocked(
+    TransceiverIOParameters param,
+    uint8_t data) {
+  /*
+   * This must be called with a lock held on qsfpModuleMutex_
+   */
+  if (!present_) {
+    return false;
+  }
+  try {
+    auto offset = *(param.offset_ref());
+    if (param.page_ref().has_value()) {
+      uint8_t page = *(param.page_ref());
+      // When the page is specified, first update byte 127 with the speciied
+      // pageId
+      qsfpImpl_->writeTransceiver(
+          TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+    }
+    qsfpImpl_->writeTransceiver(
+        TransceiverI2CApi::ADDR_QSFP, offset, sizeof(data), &data);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Error writing data to transceiver:"
+              << folly::to<std::string>(qsfpImpl_->getName()) << ": "
+              << ex.what();
+    throw;
+  }
+  return true;
+}
 }} //namespace facebook::fboss

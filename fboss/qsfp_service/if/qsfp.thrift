@@ -54,4 +54,17 @@ service QsfpService extends fb303.FacebookService {
    */
   void pauseRemediation(1: i32 timeout)
 
+  /*
+  * Perform a raw register read for the specified transceivers
+  */
+  map<i32, transceiver.ReadResponse> readTransceiverRegister(
+    1: transceiver.ReadRequest request
+    ) throws (1: fboss.FbossBaseError error)
+
+  /*
+  * Perform a raw register write for the specified transceivers
+  */
+  map<i32, transceiver.WriteResponse> writeTransceiverRegister(
+    1: transceiver.WriteRequest request
+  ) throws (1: fboss.FbossBaseError error)
 }

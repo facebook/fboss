@@ -68,4 +68,43 @@ void QsfpServiceHandler::pauseRemediation(int32_t timeout) {
   manager_->setPauseRemediation(timeout);
 }
 
+void QsfpServiceHandler::readTransceiverRegister(
+    std::map<int32_t, ReadResponse>& response,
+    std::unique_ptr<ReadRequest> request) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  auto param = *(request->parameter_ref());
+  auto offset = *(param.offset_ref());
+  if (offset < 0 || offset > 255) {
+    throw FbossError("Offset cannot be < 0 or > 255");
+  }
+  auto page_ref = param.page_ref();
+  if (page_ref.has_value() && *page_ref < 0) {
+    throw FbossError("Page cannot be < 0");
+  }
+  auto length_ref = param.length_ref();
+  if (length_ref.has_value()) {
+    if (*length_ref < 0 || *length_ref > 255) {
+      throw FbossError("Length cannot be < 0 or > 255");
+    } else if (*length_ref + offset > 256) {
+      throw FbossError("Offset + Length cannot be > 256");
+    }
+  }
+  manager_->readTransceiverRegister(response, std::move(request));
+}
+
+void QsfpServiceHandler::writeTransceiverRegister(
+    std::map<int32_t, WriteResponse>& response,
+    std::unique_ptr<WriteRequest> request) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  auto param = *(request->parameter_ref());
+  auto offset = *(param.offset_ref());
+  if (offset < 0 || offset > 255) {
+    throw FbossError("Offset cannot be < 0 or > 255");
+  }
+  auto page_ref = param.page_ref();
+  if (page_ref.has_value() && *page_ref < 0) {
+    throw FbossError("Page cannot be < 0");
+  }
+  manager_->writeTransceiverRegister(response, std::move(request));
+}
 }} // facebook::fboss
