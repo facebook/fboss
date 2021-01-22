@@ -20,6 +20,8 @@
 using namespace facebook::fboss;
 using namespace facebook::fboss::utility;
 
+DEFINE_bool(nodeZ, false, "Setup test config as node Z");
+
 namespace {
 
 // TODO(ccpowers): remove this once we've made platformPortEntry a required
@@ -274,7 +276,8 @@ bool isRswPlatform(PlatformMode mode) {
 namespace facebook::fboss::utility {
 
 folly::MacAddress kLocalCpuMac() {
-  static const folly::MacAddress kLocalMac("02:00:00:00:00:01");
+  static const folly::MacAddress kLocalMac(
+      FLAGS_nodeZ ? "02:00:00:00:00:02" : "02:00:00:00:00:01");
   return kLocalMac;
 }
 
@@ -328,8 +331,10 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
   config.interfaces_ref()[0].mtu_ref() = 9000;
   if (interfaceHasSubnet) {
     config.interfaces_ref()[0].ipAddresses_ref()->resize(2);
-    config.interfaces_ref()[0].ipAddresses_ref()[0] = "1.1.1.1/24";
-    config.interfaces_ref()[0].ipAddresses_ref()[1] = "1::/64";
+    config.interfaces_ref()[0].ipAddresses_ref()[0] =
+        FLAGS_nodeZ ? "1.1.1.2/24" : "1.1.1.1/24";
+    config.interfaces_ref()[0].ipAddresses_ref()[1] =
+        FLAGS_nodeZ ? "1::1/64" : "1::/64";
   }
   return config;
 }
