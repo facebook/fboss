@@ -109,6 +109,11 @@ void Initializer::stopFunctionScheduler() {
   }
 }
 
+void Initializer::waitForInitDone() {
+  std::unique_lock<std::mutex> lk(initLock_);
+  initCondition_.wait(lk, [&] { return sw_->isFullyInitialized(); });
+}
+
 void Initializer::initThread() {
   try {
     initImpl();
@@ -305,6 +310,15 @@ int AgentInitializer::initAgent() {
   // Run the EventBase main loop
   eventBase_->loopForever();
   return 0;
+}
+
+void AgentInitializer::stopAgent() {
+  server_->stopListening();
+  XLOG(INFO) << "Stopped thrift server listening";
+  initializer_->stopFunctionScheduler();
+  XLOG(INFO) << "Stopped stats FunctionScheduler";
+  fbossFinalize();
+  sw_->gracefulExit();
 }
 
 int fbossMain(

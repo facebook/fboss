@@ -43,6 +43,7 @@ class Initializer {
       : sw_(sw), platform_(platform) {}
   void start();
   void stopFunctionScheduler();
+  void waitForInitDone();
 
  private:
   void initThread();
@@ -98,6 +99,7 @@ class AgentInitializer {
       uint32_t hwFeaturesDesired,
       PlatformInitFn initPlatform);
   int initAgent();
+  void stopAgent();
 
  private:
   SwSwitch* sw_;
