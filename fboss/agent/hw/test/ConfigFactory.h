@@ -44,7 +44,8 @@ folly::MacAddress kLocalCpuMac();
 cfg::SwitchConfig oneL3IntfConfig(
     const HwSwitch* hwSwitch,
     PortID port,
-    cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE);
+    cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE,
+    int baseVlanId = kBaseVlanId);
 cfg::SwitchConfig oneL3IntfNoIPAddrConfig(
     const HwSwitch* hwSwitch,
     PortID port,
@@ -58,7 +59,8 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& ports,
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE,
-    bool interfaceHasSubnet = true);
+    bool interfaceHasSubnet = true,
+    int baseVlanId = kBaseVlanId);
 cfg::SwitchConfig onePortPerVlanConfig(
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& ports,

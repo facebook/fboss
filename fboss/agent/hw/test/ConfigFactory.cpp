@@ -281,9 +281,10 @@ folly::MacAddress kLocalCpuMac() {
 cfg::SwitchConfig oneL3IntfConfig(
     const HwSwitch* hwSwitch,
     PortID port,
-    cfg::PortLoopbackMode lbMode) {
+    cfg::PortLoopbackMode lbMode,
+    int baseVlanId) {
   std::vector<PortID> ports{port};
-  return oneL3IntfNPortConfig(hwSwitch, ports, lbMode);
+  return oneL3IntfNPortConfig(hwSwitch, ports, lbMode, true, baseVlanId);
 }
 
 cfg::SwitchConfig oneL3IntfNoIPAddrConfig(
@@ -308,19 +309,20 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& ports,
     cfg::PortLoopbackMode lbMode,
-    bool interfaceHasSubnet) {
+    bool interfaceHasSubnet,
+    int baseVlanId) {
   std::map<PortID, VlanID> port2vlan;
-  std::vector<VlanID> vlans{VlanID(kBaseVlanId)};
+  std::vector<VlanID> vlans{VlanID(baseVlanId)};
   std::vector<PortID> vlanPorts;
   for (auto port : ports) {
-    port2vlan[port] = VlanID(kBaseVlanId);
+    port2vlan[port] = VlanID(baseVlanId);
     vlanPorts.push_back(port);
   }
   auto config = genPortVlanCfg(hwSwitch, vlanPorts, port2vlan, vlans, lbMode);
 
   config.interfaces_ref()->resize(1);
-  *config.interfaces_ref()[0].intfID_ref() = kBaseVlanId;
-  *config.interfaces_ref()[0].vlanID_ref() = kBaseVlanId;
+  config.interfaces_ref()[0].intfID_ref() = baseVlanId;
+  config.interfaces_ref()[0].vlanID_ref() = baseVlanId;
   *config.interfaces_ref()[0].routerID_ref() = 0;
   config.interfaces_ref()[0].mac_ref() = getLocalCpuMacStr();
   config.interfaces_ref()[0].mtu_ref() = 9000;
