@@ -112,6 +112,8 @@ TEST(PortPgConfig, applyConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
 
+  constexpr folly::StringPiece kBufferPoolName = "bufferPool";
+  std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
   cfg::SwitchConfig config;
   config.ports_ref()->resize(1);
   config.ports_ref()[0].logicalID_ref() = 1;
@@ -140,7 +142,9 @@ TEST(PortPgConfig, applyConfig) {
   auto pgCfgValue = pgCfgs.value();
   EXPECT_EQ(kStateTestNumPortPgs, pgCfgValue.size());
 
-  auto createPortPgConfig = [&](const int pgIdStart, const int pgIdEnd) {
+  auto createPortPgConfig = [&](const int pgIdStart,
+                                const int pgIdEnd,
+                                const std::string& bufferName) {
     portPgConfigs.clear();
     for (pgId = pgIdStart; pgId < pgIdEnd; pgId++) {
       cfg::PortPgConfig pgConfig;
@@ -149,20 +153,43 @@ TEST(PortPgConfig, applyConfig) {
       pgConfig.scalingFactor_ref() = cfg::MMUScalingFactor::EIGHT;
       pgConfig.minLimitBytes_ref() = 1000;
       pgConfig.resumeOffsetBytes_ref() = 100;
-      pgConfig.bufferPoolName_ref() = "bufferName";
+      pgConfig.bufferPoolName_ref() = bufferName;
       portPgConfigs.emplace_back(pgConfig);
     }
     portPgConfigMap["foo"] = portPgConfigs;
     config.portPgConfigs_ref() = portPgConfigMap;
   };
 
+  auto createBufferPoolCfg = [&](const int sharedBytes,
+                                 const int headroomBytes) {
+    cfg::BufferPoolConfig tmpPoolConfig1;
+    tmpPoolConfig1.headroomBytes_ref() = headroomBytes;
+    tmpPoolConfig1.sharedBytes_ref() = sharedBytes;
+    bufferPoolCfgMap.clear();
+    bufferPoolCfgMap.insert(make_pair(kBufferPoolName.str(), tmpPoolConfig1));
+    config.bufferPoolConfigs_ref() = bufferPoolCfgMap;
+  };
+
+  auto validateBufferPoolCfg = [&](const int sharedBytes,
+                                   const int headroomBytes,
+                                   const auto& pgCfgsNew) {
+    EXPECT_TRUE(pgCfgsNew);
+    for (const auto& pgCfg : *pgCfgsNew) {
+      auto bufferPoolCfgPtr = pgCfg->getBufferPoolConfig();
+      EXPECT_EQ((*bufferPoolCfgPtr)->getID(), kBufferPoolName.str());
+      EXPECT_EQ((*bufferPoolCfgPtr)->getSharedBytes(), sharedBytes);
+      EXPECT_EQ((*bufferPoolCfgPtr)->getHeadroomBytes(), headroomBytes);
+    }
+  };
+
   // validate that for same number of PGs, if contents differ
   // we push the change
   createPortPgConfig(
-      0 /* pg start index */, kStateTestNumPortPgs /* pg end index */);
-  std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
+      0 /* pg start index */,
+      kStateTestNumPortPgs /* pg end index */,
+      kBufferPoolName.str());
   cfg::BufferPoolConfig tmpPoolConfig;
-  bufferPoolCfgMap.insert(make_pair("bufferName", tmpPoolConfig));
+  bufferPoolCfgMap.insert(make_pair(kBufferPoolName.str(), tmpPoolConfig));
   config.bufferPoolConfigs_ref() = bufferPoolCfgMap;
 
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
@@ -179,14 +206,17 @@ TEST(PortPgConfig, applyConfig) {
     EXPECT_EQ(
         pgCfgValue[pgId]->getScalingFactor(), cfg::MMUScalingFactor::EIGHT);
     EXPECT_EQ(pgCfgValue[pgId]->getMinLimitBytes(), 1000);
-    EXPECT_EQ(pgCfgValue[pgId]->getBufferPoolName(), "bufferName");
+    EXPECT_EQ(pgCfgValue[pgId]->getBufferPoolName(), kBufferPoolName.str());
   }
 
   {
     // validate that for the same PG content, but different PG size between old
     // and new we push the change we are changing pg size from
     // kStateTestNumPortPgs -> PORT_PG_VALUE_MAX()
-    createPortPgConfig(0, cfg::switch_config_constants::PORT_PG_VALUE_MAX());
+    createPortPgConfig(
+        0,
+        cfg::switch_config_constants::PORT_PG_VALUE_MAX(),
+        kBufferPoolName.str());
     auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
     EXPECT_NE(nullptr, stateV3);
 
@@ -202,7 +232,7 @@ TEST(PortPgConfig, applyConfig) {
     // between old and new we push the change
     // we are changing the pg id from
     // {0, kStateTestNumPortPgs} -> {1, kStateTestNumPortPgs+1}
-    createPortPgConfig(1, kStateTestNumPortPgs + 1);
+    createPortPgConfig(1, kStateTestNumPortPgs + 1, kBufferPoolName.str());
     auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
     EXPECT_NE(nullptr, stateV3);
 
@@ -214,6 +244,46 @@ TEST(PortPgConfig, applyConfig) {
     // no cfg change, ensure that PG logic can detect no change
     auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
     EXPECT_EQ(nullptr, stateV4);
+  }
+
+  {
+    constexpr int kBufferHdrmBytes = 2000;
+    constexpr int kBufferSharedBytes = 3000;
+    constexpr int kDelta = 1;
+    // validate that new bufferPol cfg results in new updates
+    // appropriately reflected in the PortPg config
+    createPortPgConfig(0, 1, kBufferPoolName.str());
+    createBufferPoolCfg(kBufferSharedBytes, kBufferHdrmBytes);
+    auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
+    EXPECT_NE(nullptr, stateV3);
+
+    const auto& pgCfgsNew = stateV3->getPort(PortID(1))->getPortPgConfigs();
+    validateBufferPoolCfg(kBufferSharedBytes, kBufferHdrmBytes, pgCfgsNew);
+
+    // modify contents of the buffer pool
+    // ensure they get reflected
+    createBufferPoolCfg(kBufferSharedBytes + kDelta, kBufferHdrmBytes + kDelta);
+    auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
+    EXPECT_NE(nullptr, stateV4);
+    const auto& pgCfgsNew1 = stateV4->getPort(PortID(1))->getPortPgConfigs();
+    validateBufferPoolCfg(
+        kBufferSharedBytes + kDelta, kBufferHdrmBytes + kDelta, pgCfgsNew1);
+
+    // no change expected here
+    createBufferPoolCfg(kBufferSharedBytes + kDelta, kBufferHdrmBytes + kDelta);
+    auto stateV5 = publishAndApplyConfig(stateV4, &config, platform.get());
+    EXPECT_EQ(nullptr, stateV5);
+
+    // reset the bufferPool, ensure thats cleaned up from the PgConfig
+    bufferPoolCfgMap.clear();
+    createPortPgConfig(0, 1, "");
+    config.bufferPoolConfigs_ref() = bufferPoolCfgMap;
+    stateV5 = publishAndApplyConfig(stateV4, &config, platform.get());
+    EXPECT_NE(nullptr, stateV5);
+    const auto& pgCfgsNew2 = stateV5->getPort(PortID(1))->getPortPgConfigs();
+    for (const auto& pgCfg : *pgCfgsNew2) {
+      EXPECT_FALSE(pgCfg->getBufferPoolConfig());
+    }
   }
 
   // undo the changes in the port pfc struct, now all is cleaned

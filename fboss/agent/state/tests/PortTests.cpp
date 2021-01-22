@@ -134,7 +134,7 @@ TEST(Port, ToFromWithPgConfigs) {
                 "minLimitBytes": 3328,
                 "scalingFactor": "ONE",
                 "resumeOffsetBytes": 10,
-                "bufferPoolName": "foo"
+                "bufferPoolName": ""
             },
             {
                 "id": 1,
@@ -142,7 +142,7 @@ TEST(Port, ToFromWithPgConfigs) {
                 "minLimitBytes": 4000,
                 "scalingFactor": "TWO",
                 "resumeOffsetBytes": 300,
-                "bufferPoolName": "foo1"
+                "bufferPoolName": ""
             },
             {
                 "id": 2,
@@ -150,8 +150,13 @@ TEST(Port, ToFromWithPgConfigs) {
                 "minLimitBytes": 4500,
                 "scalingFactor": "FOUR",
                 "resumeOffsetBytes": 400,
-                "bufferPoolName": "foo2",
-                "headroomLimitBytes": 2000
+                "headroomLimitBytes": 2000,
+                "bufferPoolName": "foo1",
+                "bufferPoolConfig": {
+                  "id": "foo1",
+                  "headroomBytes": 2000,
+                  "sharedBytes": 4000
+                }
             }
           ],
           "sFlowIngressRate" : 100,

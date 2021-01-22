@@ -191,37 +191,3 @@ TEST(BufferPoolConfigTest, applyConfig) {
   bufferPools = stateEnd->getBufferPoolCfgs();
   EXPECT_EQ(nullptr, bufferPools);
 }
-
-TEST(BufferPoolConfigTest, ToFromJsonBufferPool) {
-  int headroomBytes = 1000;
-  int sharedBytes = 2000;
-  BufferPoolCfg bufferPoolCfg("buffer1", sharedBytes, headroomBytes);
-
-  auto serializedBufferPool = bufferPoolCfg.toFollyDynamic();
-  auto desierializeBufferPool =
-      BufferPoolCfg::fromFollyDynamic(serializedBufferPool);
-
-  EXPECT_EQ("buffer1", desierializeBufferPool->getID());
-  EXPECT_EQ(2000, desierializeBufferPool->getSharedBytes());
-  EXPECT_EQ(1000, desierializeBufferPool->getHeadroomBytes());
-}
-
-TEST(BufferPoolConfigTest, ToFromJsonStrBufferPool) {
-  std::string jsonStr = R"(
-    {
-      "id": "buffer1",
-      "headroomBytes": 1000,
-      "sharedBytes": 2000
-    }
-  )";
-
-  auto bufCfg = BufferPoolCfg::fromFollyDynamic(folly::parseJson(jsonStr));
-  EXPECT_EQ(1000, bufCfg->getHeadroomBytes());
-  EXPECT_EQ(2000, bufCfg->getSharedBytes());
-  EXPECT_EQ("buffer1", bufCfg->getID());
-
-  auto var1 = bufCfg->toFollyDynamic();
-  auto var2 = folly::parseJson(jsonStr);
-
-  EXPECT_EQ(var1, var2);
-}

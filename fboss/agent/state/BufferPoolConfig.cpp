@@ -18,28 +18,24 @@ constexpr auto kBufferPoolCfgName = "id";
 
 namespace facebook::fboss {
 
-folly::dynamic BufferPoolCfgFields::toFollyDynamic() const {
-  folly::dynamic bufferPool = folly::dynamic::object;
+state::BufferPoolFields BufferPoolCfgFields::toThrift() const {
+  state::BufferPoolFields bufferPool;
 
-  bufferPool[kSharedBytes] = static_cast<int>(sharedBytes);
-  bufferPool[kHeadroomBytes] = static_cast<int>(headroomBytes);
-  bufferPool[kBufferPoolCfgName] = id;
+  bufferPool.id_ref() = id;
+  bufferPool.sharedBytes_ref() = static_cast<int>(sharedBytes);
+  bufferPool.headroomBytes_ref() = static_cast<int>(headroomBytes);
   return bufferPool;
 }
 
-BufferPoolCfgFields BufferPoolCfgFields::fromFollyDynamic(
-    const folly::dynamic& bufferPoolConfigJson) {
-  auto id = bufferPoolConfigJson[kBufferPoolCfgName].asString();
-  int sharedBytes = bufferPoolConfigJson[kSharedBytes].asInt();
-  int headroomBytes = bufferPoolConfigJson[kHeadroomBytes].asInt();
-  return BufferPoolCfgFields(id, sharedBytes, headroomBytes);
-}
+BufferPoolCfgFields BufferPoolCfgFields::fromThrift(
+    state::BufferPoolFields const& bufferPoolConfig) {
+  BufferPoolCfgFields bufferPool;
+  bufferPool.id = static_cast<std::string>(*bufferPoolConfig.id_ref());
 
-BufferPoolCfg::BufferPoolCfg(
-    const std::string& id,
-    const int sharedBytes,
-    const int headroomBytes)
-    : NodeBaseT(id, sharedBytes, headroomBytes) {}
+  bufferPool.sharedBytes = *bufferPoolConfig.sharedBytes_ref();
+  bufferPool.headroomBytes = *bufferPoolConfig.headroomBytes_ref();
+  return bufferPool;
+}
 
 template class NodeBaseT<BufferPoolCfg, BufferPoolCfgFields>;
 

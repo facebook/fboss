@@ -12,6 +12,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/state/BufferPoolConfig.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
@@ -22,6 +23,8 @@
 #include <vector>
 
 namespace facebook::fboss {
+
+using BufferPoolCfgPtr = std::shared_ptr<BufferPoolCfg>;
 
 struct PortPgFields {
   template <typename Fn>
@@ -37,6 +40,7 @@ struct PortPgFields {
   std::optional<int> headroomLimitBytes{std::nullopt};
   std::optional<int> resumeOffsetBytes{std::nullopt};
   std::string bufferPoolName;
+  std::optional<BufferPoolCfgPtr> bufferPoolConfigPtr;
 };
 
 /*
@@ -114,6 +118,14 @@ class PortPgConfig
 
   void setBufferPoolName(const std::string& name) {
     writableFields()->bufferPoolName = name;
+  }
+
+  std::optional<BufferPoolCfgPtr> getBufferPoolConfig() const {
+    return getFields()->bufferPoolConfigPtr;
+  }
+
+  void setBufferPoolConfig(BufferPoolCfgPtr bufferPoolConfigPtr) {
+    writableFields()->bufferPoolConfigPtr = bufferPoolConfigPtr;
   }
 
  private:

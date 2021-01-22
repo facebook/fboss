@@ -12,27 +12,21 @@
 #include <string>
 #include <utility>
 
-#include <folly/SocketAddress.h>
-
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
 
 struct BufferPoolCfgFields {
-  BufferPoolCfgFields(
-      const std::string& id,
-      const int sharedBytes,
-      const int headroomBytes)
-      : id(id), sharedBytes(sharedBytes), headroomBytes(headroomBytes) {}
-
   template <typename Fn>
   void forEachChild(Fn) {}
 
-  folly::dynamic toFollyDynamic() const;
-  static BufferPoolCfgFields fromFollyDynamic(const folly::dynamic& json);
+  state::BufferPoolFields toThrift() const;
+  static BufferPoolCfgFields fromThrift(state::BufferPoolFields const&);
 
-  const std::string id;
+  std::string id;
   int sharedBytes;
   int headroomBytes;
 };
@@ -40,35 +34,21 @@ struct BufferPoolCfgFields {
 /*
  * BufferPoolCfg stores the buffer pool related properites as need by {port, PG}
  */
-class BufferPoolCfg : public NodeBaseT<BufferPoolCfg, BufferPoolCfgFields> {
+class BufferPoolCfg : public ThriftyBaseT<
+                          state::BufferPoolFields,
+                          BufferPoolCfg,
+                          BufferPoolCfgFields> {
  public:
-  BufferPoolCfg(
-      const std::string& id,
-      const int sharedBytes,
-      const int headroomBytes);
-
-  static std::shared_ptr<BufferPoolCfg> fromFollyDynamic(
-      const folly::dynamic& json) {
-    const auto& fields = BufferPoolCfgFields::fromFollyDynamic(json);
-    return std::make_shared<BufferPoolCfg>(fields);
+  explicit BufferPoolCfg(const std::string& id) {
+    writableFields()->id = id;
   }
-
-  static std::shared_ptr<BufferPoolCfg> fromJson(
-      const folly::fbstring& jsonStr) {
-    return fromFollyDynamic(folly::parseJson(jsonStr));
-  }
-
-  folly::dynamic toFollyDynamic() const override {
-    return getFields()->toFollyDynamic();
-  }
-
   bool operator==(const BufferPoolCfg& cfg) const {
     return getFields()->sharedBytes == cfg.getSharedBytes() &&
         getFields()->headroomBytes == cfg.getHeadroomBytes();
   }
 
   bool operator!=(const BufferPoolCfg& cfg) const {
-    return !operator==(cfg);
+    return !(*this == cfg);
   }
 
   int getSharedBytes() const {
@@ -83,10 +63,22 @@ class BufferPoolCfg : public NodeBaseT<BufferPoolCfg, BufferPoolCfgFields> {
     return getFields()->id;
   }
 
+  void setHeadroomBytes(int headroomBytes) {
+    writableFields()->headroomBytes = headroomBytes;
+  }
+
+  void setSharedBytes(int sharedBytes) {
+    writableFields()->sharedBytes = sharedBytes;
+  }
+
  private:
   // Inherit the constructors required for clone()
-  using NodeBaseT::NodeBaseT;
+  using ThriftyBaseT<
+      state::BufferPoolFields,
+      BufferPoolCfg,
+      BufferPoolCfgFields>::ThriftyBaseT;
   friend class CloneAllocator;
 };
 
+using BufferPoolConfigs = std::vector<std::shared_ptr<BufferPoolCfg>>;
 } // namespace facebook::fboss

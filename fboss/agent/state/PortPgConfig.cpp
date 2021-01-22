@@ -11,6 +11,7 @@
 #include <folly/Conv.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <sstream>
+#include "fboss/agent/state/BufferPoolConfig.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 
 using apache::thrift::TEnumTraits;
@@ -39,6 +40,11 @@ state::PortPgFields PortPgFields::toThrift() const {
   }
   if (name) {
     portPg.name_ref() = name.value();
+  }
+  if (bufferPoolConfigPtr) {
+    state::BufferPoolFields bufferPoolFields;
+    portPg.bufferPoolConfig_ref() =
+        (*bufferPoolConfigPtr)->getFields()->toThrift();
   }
   return portPg;
 }
@@ -69,6 +75,10 @@ PortPgFields PortPgFields::fromThrift(state::PortPgFields const& portPgThrift) {
     portPg.name = portPgThrift.name_ref().value();
   }
   portPg.bufferPoolName = portPgThrift.bufferPoolName_ref().value();
+  if (auto bufferPoolConfig = portPgThrift.bufferPoolConfig_ref()) {
+    portPg.bufferPoolConfigPtr = std::make_shared<BufferPoolCfg>(
+        BufferPoolCfgFields::fromThrift(*bufferPoolConfig));
+  }
   return portPg;
 }
 

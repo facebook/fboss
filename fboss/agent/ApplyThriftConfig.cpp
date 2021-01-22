@@ -206,7 +206,7 @@ class ThriftConfigApplier {
   bool isPgConfigUnchanged(
       std::optional<PortPgConfigs> newPortPgCfgs,
       const shared_ptr<Port>& orig);
-  void validatePgBufferPoolName(
+  void validateUpdatePgBufferPoolName(
       const PortPgConfigs& portPgCfgs,
       const shared_ptr<Port>& port,
       const std::string& portPgName);
@@ -276,7 +276,7 @@ class ThriftConfigApplier {
   shared_ptr<SwitchSettings> updateSwitchSettings();
   // bufferPool specific configs
   shared_ptr<BufferPoolCfgMap> updateBufferPoolConfigs(bool* changed);
-  shared_ptr<BufferPoolCfg> createBufferPoolConfig(
+  std::shared_ptr<BufferPoolCfg> createBufferPoolConfig(
       const std::string& id,
       const cfg::BufferPoolConfig& config);
   shared_ptr<QcmCfg> updateQcmCfg(bool* changed);
@@ -869,6 +869,22 @@ bool ThriftConfigApplier::isPgConfigUnchanged(
       // or the contents of the PG doesn't match
       return false;
     }
+    // since buffer pool is part of port pg as well, compare to
+    // see if it changed as well
+    const auto& newBufferPoolCfgPtr =
+        newPortPgConfigIter->second->getBufferPoolConfig();
+    const auto& oldBufferPoolCfgPtr = origPg->getBufferPoolConfig();
+    // old buffer cfg exists and new one doesn't or vice versa
+    if ((newBufferPoolCfgPtr && !oldBufferPoolCfgPtr) ||
+        (!newBufferPoolCfgPtr && oldBufferPoolCfgPtr)) {
+      return false;
+    }
+    // contents changed in the buffer pool
+    if (newBufferPoolCfgPtr && oldBufferPoolCfgPtr) {
+      if (*oldBufferPoolCfgPtr != *newBufferPoolCfgPtr) {
+        return false;
+      }
+    }
   }
   return true;
 }
@@ -1010,7 +1026,7 @@ QueueConfig ThriftConfigApplier::updatePortQueues(
   return newPortQueues;
 }
 
-void ThriftConfigApplier::validatePgBufferPoolName(
+void ThriftConfigApplier::validateUpdatePgBufferPoolName(
     const PortPgConfigs& portPgCfgs,
     const shared_ptr<Port>& port,
     const std::string& portPgName) {
@@ -1042,6 +1058,7 @@ void ThriftConfigApplier::validatePgBufferPoolName(
             bufferPoolName,
             " doesn't exist in the bufferPool map.");
       }
+      portPg->setBufferPoolConfig(bufferPoolCfg);
     }
   }
 }
@@ -1183,7 +1200,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       portPgCfgs = updatePortPgConfigs(it->second, orig);
       // validate that the given pg profile points to valid
       // buffer pool
-      validatePgBufferPoolName(portPgCfgs.value(), orig, *portPgConfigName);
+      validateUpdatePgBufferPoolName(
+          portPgCfgs.value(), orig, *portPgConfigName);
     } else if (!(*portPgConfigName).empty()) {
       throw FbossError(
           "Port: ",
@@ -1194,7 +1212,6 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     }
   }
   portPgConfigUnchanged = isPgConfigUnchanged(portPgCfgs, orig);
-
   /*
    * The list of lookup classes would be different when first enabling the
    * feature and if we had to change the number of lookup classes (unlikely)
@@ -2451,7 +2468,7 @@ shared_ptr<BufferPoolCfgMap> ThriftConfigApplier::updateBufferPoolConfigs(
   // and with with same size
   // check if there is any upate on it when compared
   // with last one
-  for (const auto& bufferPoolConfig : *newCfgedBufferPools) {
+  for (auto& bufferPoolConfig : *newCfgedBufferPools) {
     auto newBufferPoolConfig =
         createBufferPoolConfig(bufferPoolConfig.first, bufferPoolConfig.second);
     if (origBufferPoolConfigs) {
@@ -2477,13 +2494,13 @@ shared_ptr<BufferPoolCfgMap> ThriftConfigApplier::updateBufferPoolConfigs(
   return nullptr;
 }
 
-shared_ptr<BufferPoolCfg> ThriftConfigApplier::createBufferPoolConfig(
+std::shared_ptr<BufferPoolCfg> ThriftConfigApplier::createBufferPoolConfig(
     const std::string& id,
     const cfg::BufferPoolConfig& bufferPoolConfig) {
-  return make_shared<BufferPoolCfg>(
-      id,
-      *bufferPoolConfig.sharedBytes_ref(),
-      *bufferPoolConfig.headroomBytes_ref());
+  auto bufferPoolCfg = std::make_shared<BufferPoolCfg>(id);
+  bufferPoolCfg->setSharedBytes(*bufferPoolConfig.sharedBytes_ref());
+  bufferPoolCfg->setHeadroomBytes(*bufferPoolConfig.headroomBytes_ref());
+  return bufferPoolCfg;
 }
 
 shared_ptr<QcmCfg> ThriftConfigApplier::updateQcmCfg(bool* changed) {

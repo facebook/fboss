@@ -12,6 +12,12 @@ struct VlanInfo {
  1: bool tagged;
 }
 
+struct BufferPoolFields {
+  1: string id
+  2: i32 headroomBytes
+  3: i32 sharedBytes
+}
+
 struct PortPgFields {
  1: i16 id
  2: i32 minLimitBytes
@@ -20,6 +26,7 @@ struct PortPgFields {
  5: optional i32 resumeOffsetBytes
  6: string bufferPoolName
  7: optional string scalingFactor
+ 8: optional BufferPoolFields bufferPoolConfig
 }
 
 // Port queueing configuration
