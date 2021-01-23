@@ -1079,4 +1079,237 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorOnMirrorUpdate) {
   });
 }
 
+TYPED_TEST(MirrorManagerTest, ConfigHasEgressPort) {
+  const auto params = MirrorManagerTestParams<TypeParam>::getParams();
+
+  this->updateState(
+      "add sflowMirror", [=](const std::shared_ptr<SwitchState>& state) {
+        auto updatedState = this->addSflowMirror(
+            state, kMirrorName, params.mirrorDestination, 10101, 20202);
+        return updatedState;
+      });
+
+  this->verifyStateUpdate([=]() {
+    auto state = this->sw_->getState();
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
+    EXPECT_NE(mirror, nullptr);
+    EXPECT_FALSE(mirror->configHasEgressPort());
+  });
+
+  this->updateState(
+      "resolve sflowMirror", [=](const std::shared_ptr<SwitchState>& state) {
+        auto updatedState = this->addNeighbor(
+            state,
+            params.interfaces[0],
+            params.neighborIPs[0],
+            params.neighborMACs[0],
+            params.neighborPorts[0]);
+        RouteNextHopSet nextHops = {params.nextHop(0)};
+        updatedState =
+            this->addRoute(updatedState, params.longerPrefix, nextHops);
+        return updatedState;
+      });
+
+  this->verifyStateUpdate([=]() {
+    auto state = this->sw_->getState();
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
+    EXPECT_NE(mirror, nullptr);
+    EXPECT_FALSE(mirror->configHasEgressPort());
+    EXPECT_TRUE(mirror->isResolved());
+  });
+
+  this->updateState(
+      "remove neighbor and route",
+      [=](const std::shared_ptr<SwitchState>& state) {
+        auto updatedState = this->delNeighbor(
+            state, params.interfaces[0], params.neighborIPs[0]);
+        updatedState = this->delRoute(updatedState, params.longerPrefix);
+        return updatedState;
+      });
+
+  this->verifyStateUpdate([=]() {
+    auto state = this->sw_->getState();
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
+    EXPECT_NE(mirror, nullptr);
+    EXPECT_FALSE(mirror->configHasEgressPort());
+    EXPECT_FALSE(mirror->isResolved());
+  });
+}
+
+TYPED_TEST(MirrorManagerTest, NeighborUpdates) {
+  const auto params = MirrorManagerTestParams<TypeParam>::getParams();
+
+  this->updateState(
+      "GreMirrorWithOutPort-0", [=](const std::shared_ptr<SwitchState>& state) {
+        auto updatedState = this->addSflowMirror(
+            state, kMirrorName, params.mirrorDestination, 10101, 20202);
+        return updatedState;
+      });
+
+  this->verifyStateUpdate([=]() {
+    auto state = this->sw_->getState();
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
+    EXPECT_NE(mirror, nullptr);
+    EXPECT_FALSE(mirror->isResolved());
+  });
+
+  this->updateState(
+      "resolve sflowMirror-0", [=](const std::shared_ptr<SwitchState>& state) {
+        auto updatedState = this->addNeighbor(
+            state,
+            params.interfaces[0],
+            params.neighborIPs[0],
+            params.neighborMACs[0],
+            params.neighborPorts[0]);
+        updatedState = this->addNeighbor(
+            updatedState,
+            params.interfaces[1],
+            params.neighborIPs[1],
+            params.neighborMACs[1],
+            params.neighborPorts[1]);
+        RouteNextHopSet nextHops = {params.nextHop(0), params.nextHop(1)};
+        updatedState =
+            this->addRoute(updatedState, params.longerPrefix, nextHops);
+        return updatedState;
+      });
+
+  this->verifyStateUpdate([=]() {
+    auto state = this->sw_->getState();
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
+    EXPECT_NE(mirror, nullptr);
+    EXPECT_TRUE(mirror->isResolved());
+    ASSERT_TRUE(mirror->getEgressPort().has_value());
+    auto egressPort = mirror->getEgressPort().value();
+    EXPECT_EQ(egressPort, params.neighborPorts[0]);
+  });
+
+  this->updateState(
+      "remove nbr 0", [=](const std::shared_ptr<SwitchState>& state) {
+        auto updatedState = this->delNeighbor(
+            state, params.interfaces[0], params.neighborIPs[0]);
+        return updatedState;
+      });
+
+  this->verifyStateUpdate([=]() {
+    auto state = this->sw_->getState();
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
+    EXPECT_NE(mirror, nullptr);
+    EXPECT_TRUE(mirror->isResolved());
+    ASSERT_TRUE(mirror->getEgressPort().has_value());
+    auto egressPort = mirror->getEgressPort().value();
+    EXPECT_EQ(egressPort, params.neighborPorts[1]);
+  });
+
+  this->updateState(
+      "remove nbr 1,add nbr 0", [=](const std::shared_ptr<SwitchState>& state) {
+        auto updatedState = this->delNeighbor(
+            state, params.interfaces[1], params.neighborIPs[1]);
+        updatedState = this->addNeighbor(
+            updatedState,
+            params.interfaces[0],
+            params.neighborIPs[0],
+            params.neighborMACs[0],
+            params.neighborPorts[0]);
+        return updatedState;
+      });
+
+  this->verifyStateUpdate([=]() {
+    auto state = this->sw_->getState();
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
+    EXPECT_NE(mirror, nullptr);
+    EXPECT_TRUE(mirror->isResolved());
+    ASSERT_TRUE(mirror->getEgressPort().has_value());
+    auto egressPort = mirror->getEgressPort().value();
+    EXPECT_EQ(egressPort, params.neighborPorts[0]);
+  });
+}
+
+TYPED_TEST(MirrorManagerTest, UpdateRoute) {
+  const auto params = MirrorManagerTestParams<TypeParam>::getParams();
+
+  this->updateState(
+      "add mirror", [=](const std::shared_ptr<SwitchState>& state) {
+        auto updatedState = this->addSflowMirror(
+            state, kMirrorName, params.mirrorDestination, 10101, 20202);
+        return updatedState;
+      });
+
+  this->verifyStateUpdate([=]() {
+    auto state = this->sw_->getState();
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
+    EXPECT_NE(mirror, nullptr);
+    EXPECT_FALSE(mirror->isResolved());
+  });
+
+  this->updateState(
+      "resolve mirror", [=](const std::shared_ptr<SwitchState>& state) {
+        auto updatedState = this->addNeighbor(
+            state,
+            params.interfaces[0],
+            params.neighborIPs[0],
+            params.neighborMACs[0],
+            params.neighborPorts[0]);
+        updatedState = this->addNeighbor(
+            updatedState,
+            params.interfaces[1],
+            params.neighborIPs[1],
+            params.neighborMACs[1],
+            params.neighborPorts[1]);
+        RouteNextHopSet nextHops = {params.nextHop(0), params.nextHop(1)};
+        updatedState =
+            this->addRoute(updatedState, params.longerPrefix, nextHops);
+        return updatedState;
+      });
+
+  this->verifyStateUpdate([=]() {
+    auto state = this->sw_->getState();
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
+    EXPECT_NE(mirror, nullptr);
+    EXPECT_TRUE(mirror->isResolved());
+    EXPECT_FALSE(mirror->configHasEgressPort());
+    ASSERT_TRUE(mirror->getEgressPort().has_value());
+    auto egressPort = mirror->getEgressPort().value();
+    EXPECT_EQ(egressPort, params.neighborPorts[0]);
+  });
+
+  this->updateState(
+      "update route-0", [=](const std::shared_ptr<SwitchState>& state) {
+        auto updatedState = this->delRoute(state, params.longerPrefix);
+        RouteNextHopSet nextHops = {params.nextHop(1)};
+        updatedState =
+            this->addRoute(updatedState, params.longerPrefix, nextHops);
+        return updatedState;
+      });
+
+  this->verifyStateUpdate([=]() {
+    auto state = this->sw_->getState();
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
+    EXPECT_NE(mirror, nullptr);
+    EXPECT_FALSE(mirror->configHasEgressPort());
+    EXPECT_TRUE(mirror->isResolved());
+    ASSERT_TRUE(mirror->getEgressPort().has_value());
+    auto egressPort = mirror->getEgressPort().value();
+    EXPECT_EQ(egressPort, params.neighborPorts[1]);
+  });
+
+  this->updateState(
+      "update route-1", [=](const std::shared_ptr<SwitchState>& state) {
+        auto updatedState = this->delRoute(state, params.longerPrefix);
+        RouteNextHopSet nextHops = {params.nextHop(0)};
+        updatedState =
+            this->addRoute(updatedState, params.longerPrefix, nextHops);
+        return updatedState;
+      });
+
+  this->verifyStateUpdate([=]() {
+    auto state = this->sw_->getState();
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
+    EXPECT_NE(mirror, nullptr);
+    EXPECT_FALSE(mirror->configHasEgressPort());
+    EXPECT_TRUE(mirror->isResolved());
+    ASSERT_TRUE(mirror->getEgressPort().has_value());
+    auto egressPort = mirror->getEgressPort().value();
+    EXPECT_EQ(egressPort, params.neighborPorts[0]);
+  });
+}
 } // namespace facebook::fboss

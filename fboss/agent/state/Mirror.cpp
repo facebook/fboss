@@ -225,8 +225,8 @@ std::shared_ptr<Mirror> Mirror::fromFollyDynamic(const folly::dynamic& json) {
 
 bool Mirror::operator==(const Mirror& rhs) const {
   return getID() == rhs.getID() &&
-      (configHasEgressPort() == rhs.configHasEgressPort() ||
-       getEgressPort() == rhs.getEgressPort()) &&
+      configHasEgressPort() == rhs.configHasEgressPort() &&
+      getEgressPort() == rhs.getEgressPort() &&
       getDestinationIp() == rhs.getDestinationIp() &&
       getSrcIp() == rhs.getSrcIp() &&
       getTunnelUdpPorts() == rhs.getTunnelUdpPorts() &&

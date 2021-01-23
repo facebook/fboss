@@ -30,7 +30,7 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
 
   auto newMirror = std::make_shared<Mirror>(
       mirror->getID(),
-      mirror->getEgressPort(),
+      mirror->configHasEgressPort() ? mirror->getEgressPort() : std::nullopt,
       mirror->getDestinationIp(),
       mirror->getSrcIp(),
       mirror->getTunnelUdpPorts(),
