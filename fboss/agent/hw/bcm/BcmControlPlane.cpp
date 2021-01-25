@@ -28,10 +28,6 @@ using std::chrono::duration_cast;
 using std::chrono::seconds;
 using std::chrono::system_clock;
 
-namespace {
-constexpr auto kDefaultMaxRxCosqMappingSize = 128;
-} // namespace
-
 namespace facebook::fboss {
 
 bcm_rx_reasons_t configRxReasonToBcmReasons(cfg::PacketRxReason reason) {
@@ -99,14 +95,7 @@ BcmControlPlane::BcmControlPlane(BcmSwitch* hw)
       gport_(BCM_GPORT_LOCAL_CPU),
       queueManager_(new BcmControlPlaneQueueManager(hw_)) {
   int rv = bcm_rx_cosq_mapping_size_get(hw_->getUnit(), &maxRxReasonMappings_);
-  if (rv == BCM_E_UNAVAIL) {
-    // T75758668 Temporary hack before Broadcom release fix in next SDK
-    XLOG(INFO) << "[HACK] bcm_rx_cosq_mapping_size_get is unavailable, use "
-               << kDefaultMaxRxCosqMappingSize;
-    maxRxReasonMappings_ = kDefaultMaxRxCosqMappingSize;
-  } else {
-    bcmCheckError(rv, "failed to get max CPU cos queue mappings");
-  }
+  bcmCheckError(rv, "failed to get max CPU cos queue mappings");
 }
 
 void BcmControlPlane::setupQueue(const PortQueue& queue) {
