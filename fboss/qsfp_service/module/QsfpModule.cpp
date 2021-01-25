@@ -33,6 +33,10 @@ DEFINE_int32(
     remediate_interval,
     300,
     "seconds between running more destructive remediations on down ports");
+DEFINE_int32(
+    initial_remediate_interval,
+    120,
+    "seconds to wait before running first destructive remediations on down ports after bootup");
 
 using std::memcpy;
 using std::mutex;
@@ -77,7 +81,11 @@ QsfpModule::QsfpModule(
 
   // set last up time to be current time since we don't know if the
   // port was up before we just restarted.
-  lastWorkingTime_ = std::time(nullptr);
+  // Setting up the last working time as current time minus 3 mins so
+  // that the first remediation takes pace 2 minutes from now and the
+  // subsequent remediation takes places every 5 minutes if needed.
+  lastWorkingTime_ = std::time(nullptr) - (
+    FLAGS_remediate_interval - FLAGS_initial_remediate_interval);
 }
 
 QsfpModule::~QsfpModule() {}
