@@ -47,7 +47,9 @@ class RouteUpdateWrapper {
  private:
   rib::RoutingInformationBase* rib_;
   std::unique_ptr<RouteUpdater> routeUpdater_;
-  std::unordered_map<RouterID, std::vector<UnicastRoute>> ribRoutesToAdd_;
-  std::unordered_map<RouterID, std::vector<IpPrefix>> ribRoutesToDelete_;
+  std::unordered_map<std::pair<RouterID, ClientID>, std::vector<UnicastRoute>>
+      ribRoutesToAdd_;
+  std::unordered_map<std::pair<RouterID, ClientID>, std::vector<IpPrefix>>
+      ribRoutesToDelete_;
 };
 } // namespace facebook::fboss
