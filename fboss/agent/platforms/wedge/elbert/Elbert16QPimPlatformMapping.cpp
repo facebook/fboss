@@ -29748,6 +29748,199 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "physicalID": 127
     }
   ],
+  "portConfigOverrides": [
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 0,
+              "main": 132,
+              "post": -12,
+              "post2": 0,
+              "post3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 0,
+              "main": 132,
+              "post": -12,
+              "post2": 0,
+              "post3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 0,
+              "main": 132,
+              "post": -12,
+              "post2": 0,
+              "post3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 0,
+              "main": 132,
+              "post": -12,
+              "post2": 0,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 0,
+              "main": 132,
+              "post": -12,
+              "post2": 0,
+              "post3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 0,
+              "main": 132,
+              "post": -12,
+              "post2": 0,
+              "post3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 0,
+              "main": 132,
+              "post": -12,
+              "post2": 0,
+              "post3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 0,
+              "main": 132,
+              "post": -12,
+              "post2": 0,
+              "post3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 0,
+              "main": 132,
+              "post": -12,
+              "post2": 0,
+              "post3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 0,
+              "main": 132,
+              "post": -12,
+              "post2": 0,
+              "post3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 0,
+              "main": 132,
+              "post": -12,
+              "post2": 0,
+              "post3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 0,
+              "main": 132,
+              "post": -12,
+              "post2": 0,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    }
+  ],
   "platformSupportedProfiles": [
     {
       "factor": {
