@@ -193,10 +193,12 @@ class BcmAPI {
    * is set for the specified property.
    */
   template <typename ValueT>
-  static std::optional<ValueT> getYamlConfigGlobalValue(
+  static std::optional<ValueT> getYamlConfigValue(
+      const YAML::Node& node,
       const std::string& name);
 
   static YAML::Node& getGlobalBcmDeviceYamlNode();
+  static YAML::Node& getTMThresholdYamlNode();
 
   static void initImpl();
 

@@ -113,6 +113,9 @@ constexpr auto kHSDKDevice0Key = "0";
 constexpr auto kHSDKBcmDeviceGlobalKey = "global";
 constexpr auto kHSDKL3ALPMState = "l3_alpm_template";
 constexpr auto kHSDKIs128ByteIpv6Enabled = "ipv6_lpm_128b_enable";
+constexpr auto kHSDKDeviceKey = "device";
+constexpr auto kHSDKTMTHDConfigKey = "TM_THD_CONFIG";
+constexpr auto kHSDKThresholsModeKey = "THRESHOLD_MODE";
 } // namespace
 
 namespace facebook::fboss {
@@ -151,6 +154,16 @@ const char* FOLLY_NULLABLE BcmAPI::getConfigValue(StringPiece name) {
 
 BcmMmuState BcmAPI::getMmuState() {
   if (BcmAPI::isHwUsingHSDK()) {
+    auto mode = getYamlConfigValue<std::string>(
+        getTMThresholdYamlNode(), kHSDKThresholsModeKey);
+    if (mode) {
+      XLOG(INFO) << "MMU state is " << *mode;
+      if (*mode == "LOSSY") {
+        return BcmMmuState::MMU_LOSSY;
+      } else if (*mode == "LOSSLESS") {
+        return BcmMmuState::MMU_LOSSLESS;
+      }
+    }
     return BcmMmuState::UNKNOWN;
   } else {
     auto lossless = BcmAPI::getConfigValue(kSDK6MMUStateKey);
@@ -164,8 +177,8 @@ BcmMmuState BcmAPI::getMmuState() {
 
 bool BcmAPI::is128ByteIpv6Enabled() {
   if (BcmAPI::isHwUsingHSDK()) {
-    auto state =
-        BcmAPI::getYamlConfigGlobalValue<int>(kHSDKIs128ByteIpv6Enabled);
+    auto state = BcmAPI::getYamlConfigValue<int>(
+        getGlobalBcmDeviceYamlNode(), kHSDKIs128ByteIpv6Enabled);
     if (!state || *state != 1) {
       return false;
     }
@@ -181,7 +194,8 @@ bool BcmAPI::is128ByteIpv6Enabled() {
 
 bool BcmAPI::isAlpmEnabled() {
   if (BcmAPI::isHwUsingHSDK()) {
-    auto state = BcmAPI::getYamlConfigGlobalValue<int>(kHSDKL3ALPMState);
+    auto state = BcmAPI::getYamlConfigValue<int>(
+        getGlobalBcmDeviceYamlNode(), kHSDKL3ALPMState);
     if (!state || *state == 0) {
       return false;
     }
@@ -230,6 +244,13 @@ void BcmAPI::initYamlConfig(const std::string& yamlConfig) {
           getGlobalBcmDeviceYamlNode().reset(globalNode);
         }
       }
+    } else if (auto node = yamlNode[kHSDKDeviceKey]) {
+      if (auto deviceNode = node[kHSDKDevice0Key]) {
+        if (auto thresholdNode = deviceNode[kHSDKTMTHDConfigKey]) {
+          XLOG(DBG1) << "Found device:0:TM_THD_CONFIG yaml node";
+          getTMThresholdYamlNode().reset(thresholdNode);
+        }
+      }
     }
   }
   getHwYamlConfig().assign(yamlConfig);
@@ -245,10 +266,16 @@ YAML::Node& BcmAPI::getGlobalBcmDeviceYamlNode() {
   return globalYamlNode;
 }
 
+YAML::Node& BcmAPI::getTMThresholdYamlNode() {
+  static YAML::Node thresholdNode;
+  return thresholdNode;
+}
+
 template <typename ValueT>
-std::optional<ValueT> BcmAPI::getYamlConfigGlobalValue(
+std::optional<ValueT> BcmAPI::getYamlConfigValue(
+    const YAML::Node& node,
     const std::string& name) {
-  auto valueNode = getGlobalBcmDeviceYamlNode()[name];
+  auto valueNode = node[name];
   if (valueNode) {
     return valueNode.as<ValueT>();
   }
