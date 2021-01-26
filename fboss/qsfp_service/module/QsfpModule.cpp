@@ -7,15 +7,15 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "QsfpModule.h"
+#include "fboss/qsfp_service/module/QsfpModule.h"
 
 #include <boost/assign.hpp>
-#include <string>
 #include <iomanip>
+#include <string>
 #include "fboss/agent/FbossError.h"
-#include "fboss/qsfp_service/module/TransceiverImpl.h"
-#include "fboss/qsfp_service/StatsPublisher.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
+#include "fboss/qsfp_service/StatsPublisher.h"
+#include "fboss/qsfp_service/module/TransceiverImpl.h"
 
 #include <folly/io/IOBuf.h>
 #include <folly/io/async/EventBase.h>
@@ -38,12 +38,13 @@ DEFINE_int32(
     120,
     "seconds to wait before running first destructive remediations on down ports after bootup");
 
+using folly::IOBuf;
+using std::lock_guard;
 using std::memcpy;
 using std::mutex;
-using std::lock_guard;
-using folly::IOBuf;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 TransceiverID QsfpModule::getID() const {
   return TransceiverID(qsfpImpl_->getNum());
@@ -56,16 +57,15 @@ TransceiverID QsfpModule::getID() const {
  * 0 or 4.
  */
 
-FlagLevels QsfpModule::getQsfpFlags(const uint8_t *data,
-                                    int offset) {
+FlagLevels QsfpModule::getQsfpFlags(const uint8_t* data, int offset) {
   FlagLevels flags;
 
   CHECK_GE(offset, 0);
   CHECK_LE(offset, 4);
-  *flags.warn_ref()->low_ref() = (*data & (1 << offset));
-  *flags.warn_ref()->high_ref() = (*data & (1 << ++offset));
-  *flags.alarm_ref()->low_ref() = (*data & (1 << ++offset));
-  *flags.alarm_ref()->high_ref() = (*data & (1 << ++offset));
+  flags.warn_ref()->low_ref() = (*data & (1 << offset));
+  flags.warn_ref()->high_ref() = (*data & (1 << ++offset));
+  flags.alarm_ref()->low_ref() = (*data & (1 << ++offset));
+  flags.alarm_ref()->high_ref() = (*data & (1 << ++offset));
 
   return flags;
 }
@@ -84,15 +84,18 @@ QsfpModule::QsfpModule(
   // Setting up the last working time as current time minus 3 mins so
   // that the first remediation takes pace 2 minutes from now and the
   // subsequent remediation takes places every 5 minutes if needed.
-  lastWorkingTime_ = std::time(nullptr) - (
-    FLAGS_remediate_interval - FLAGS_initial_remediate_interval);
+  lastWorkingTime_ = std::time(nullptr) -
+      (FLAGS_remediate_interval - FLAGS_initial_remediate_interval);
 }
 
 QsfpModule::~QsfpModule() {}
 
-void QsfpModule::getQsfpValue(int dataAddress, int offset, int length,
-                              uint8_t* data) const {
-  const uint8_t *ptr = getQsfpValuePtr(dataAddress, offset, length);
+void QsfpModule::getQsfpValue(
+    int dataAddress,
+    int offset,
+    int length,
+    uint8_t* data) const {
+  const uint8_t* ptr = getQsfpValuePtr(dataAddress, offset, length);
 
   memcpy(data, ptr, length);
 }
@@ -143,9 +146,9 @@ bool QsfpModule::detectPresenceLocked() {
 
 TransceiverInfo QsfpModule::parseDataLocked() {
   TransceiverInfo info;
-  *info.present_ref() = present_;
-  *info.transceiver_ref() = type();
-  *info.port_ref() = qsfpImpl_->getNum();
+  info.present_ref() = present_;
+  info.transceiver_ref() = type();
+  info.port_ref() = qsfpImpl_->getNum();
   if (!present_) {
     return info;
   }
@@ -160,7 +163,7 @@ TransceiverInfo QsfpModule::parseDataLocked() {
 
   for (int i = 0; i < CHANNEL_COUNT; i++) {
     Channel chan;
-    *chan.channel_ref() = i;
+    chan.channel_ref() = i;
     info.channels_ref()->push_back(chan);
   }
   if (!getSensorsPerChanInfo(*info.channels_ref())) {
@@ -171,7 +174,7 @@ TransceiverInfo QsfpModule::parseDataLocked() {
   }
   info.signalFlag_ref() = getSignalFlagInfo();
   info.extendedSpecificationComplianceCode_ref() =
-     getExtendedSpecificationComplianceCode();
+      getExtendedSpecificationComplianceCode();
   info.transceiverManagementInterface_ref() = managementInterface();
 
   return info;
@@ -186,8 +189,12 @@ bool QsfpModule::safeToCustomize() const {
     return false;
   } else if (ports_.size() > portsPerTransceiver_) {
     throw FbossError(
-      ports_.size(), " ports found in transceiver ", getID(),
-      " (max=", portsPerTransceiver_, ")");
+        ports_.size(),
+        " ports found in transceiver ",
+        getID(),
+        " (max=",
+        portsPerTransceiver_,
+        ")");
   }
 
   bool anyEnabled{false};
@@ -242,7 +249,7 @@ cfg::PortSpeed QsfpModule::getPortSpeed() const {
       speed = newSpeed;
     } else {
       throw FbossError(
-        "Multiple speeds found for member ports of transceiver ", getID());
+          "Multiple speeds found for member ports of transceiver ", getID());
     }
   }
   return speed;
@@ -345,8 +352,10 @@ void QsfpModule::refreshLocked() {
 
 bool QsfpModule::shouldRemediate(time_t cooldown) const {
   auto now = std::time(nullptr);
-  bool remediationEnabled = now > transceiverManager_->getPauseRemediationUntil();
-  bool remediationCooled = now - std::max(lastWorkingTime_, lastRemediateTime_) > cooldown;
+  bool remediationEnabled =
+      now > transceiverManager_->getPauseRemediationUntil();
+  bool remediationCooled =
+      now - std::max(lastWorkingTime_, lastRemediateTime_) > cooldown;
   return remediationEnabled && remediationCooled;
 }
 
@@ -426,9 +435,7 @@ std::unique_ptr<IOBuf> QsfpModule::readTransceiverLocked(
   return iobuf;
 }
 
-bool QsfpModule::writeTransceiver(
-  TransceiverIOParameters param,
-  uint8_t data) {
+bool QsfpModule::writeTransceiver(TransceiverIOParameters param, uint8_t data) {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   return writeTransceiverLocked(param, data);
 }
@@ -461,4 +468,5 @@ bool QsfpModule::writeTransceiverLocked(
   }
   return true;
 }
-}} //namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

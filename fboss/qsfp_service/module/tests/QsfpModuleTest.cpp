@@ -22,10 +22,11 @@
 #include "fboss/qsfp_service/module/sff/SffFieldInfo.h"
 #include "fboss/qsfp_service/module/sff/SffModule.h"
 
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 using namespace ::testing;
 
 class QsfpModuleTest : public ::testing::Test {
@@ -44,11 +45,10 @@ class QsfpModuleTest : public ::testing::Test {
     // So we can check what happens during testing
     transImpl_ = transceiverImpl.get();
     qsfp_ = std::make_unique<MockSffModule>(
-        wedgeManager_.get(),
-        std::move(transceiverImpl), portsPerTransceiver);
+        wedgeManager_.get(), std::move(transceiverImpl), portsPerTransceiver);
 
     gflags::SetCommandLineOptionWithMode(
-      "tx_enable_interval", "0", gflags::SET_FLAGS_DEFAULT);
+        "tx_enable_interval", "0", gflags::SET_FLAGS_DEFAULT);
 
     // We're explicitly setting the value of the dirty bit, so fudge this
     EXPECT_CALL(*qsfp_, cacheIsValid()).WillRepeatedly(Return(true));
@@ -57,12 +57,17 @@ class QsfpModuleTest : public ::testing::Test {
   }
 
   PortStatus portStatus(bool enabled, bool up, int32_t speed = 25000) {
-  // usese dummy tcvr mapping for now
+    // usese dummy tcvr mapping for now
     TransceiverIdxThrift tcvr(
-      apache::thrift::FragileConstructor::FRAGILE, qsfp_->getID(), 0, {});
+        apache::thrift::FragileConstructor::FRAGILE, qsfp_->getID(), 0, {});
     return PortStatus(
-      apache::thrift::FragileConstructor::FRAGILE,
-      enabled, up, false, tcvr, speed, "");
+        apache::thrift::FragileConstructor::FRAGILE,
+        enabled,
+        up,
+        false,
+        tcvr,
+        speed,
+        "");
   }
 
   std::unique_ptr<MockSffModule> qsfp_;
@@ -87,11 +92,13 @@ TEST_F(QsfpModuleTest, setRateSelect) {
     qsfp_->customizeTransceiver(cfg::PortSpeed::HUNDREDG);
 
     // Using V1
-    qsfp_->setRateSelect(RateSelectState::EXTENDED_RATE_SELECT_V1,
+    qsfp_->setRateSelect(
+        RateSelectState::EXTENDED_RATE_SELECT_V1,
         RateSelectSetting::FROM_6_6GB_AND_ABOVE);
     qsfp_->customizeTransceiver(cfg::PortSpeed::FORTYG);
 
-    qsfp_->setRateSelect(RateSelectState::EXTENDED_RATE_SELECT_V2,
+    qsfp_->setRateSelect(
+        RateSelectState::EXTENDED_RATE_SELECT_V2,
         RateSelectSetting::LESS_THAN_12GB);
     // 40G + LESS_THAN_12GB -> no change
     qsfp_->customizeTransceiver(cfg::PortSpeed::FORTYG);
@@ -99,7 +106,8 @@ TEST_F(QsfpModuleTest, setRateSelect) {
     EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(2);
     qsfp_->customizeTransceiver(cfg::PortSpeed::HUNDREDG);
 
-    qsfp_->setRateSelect(RateSelectState::EXTENDED_RATE_SELECT_V2,
+    qsfp_->setRateSelect(
+        RateSelectState::EXTENDED_RATE_SELECT_V2,
         RateSelectSetting::FROM_24GB_to_26GB);
     // 40G + FROM_24GB_to_26GB -> needs change
     EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(2);
@@ -118,8 +126,8 @@ TEST_F(QsfpModuleTest, retrieveRateSelectSetting) {
       RateSelectState::APPLICATION_RATE_SELECT);
   EXPECT_EQ(data, RateSelectSetting::UNSUPPORTED);
 
-  EXPECT_CALL(*qsfp_, getSettingsValue(_, _)).WillRepeatedly(
-      Return(0b01010101));
+  EXPECT_CALL(*qsfp_, getSettingsValue(_, _))
+      .WillRepeatedly(Return(0b01010101));
   data = qsfp_->getRateSelectSettingValue(
       RateSelectState::EXTENDED_RATE_SELECT_V1);
   EXPECT_EQ(data, RateSelectSetting::FROM_2_2GB_TO_6_6GB);
@@ -151,7 +159,7 @@ TEST_F(QsfpModuleTest, setCdr) {
     qsfp_->customizeTransceiver(cfg::PortSpeed::FORTYG);
     // Disabled + 100G
     EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(1);
-    qsfp_->customizeTransceiver(cfg::PortSpeed::HUNDREDG);  // CHECK
+    qsfp_->customizeTransceiver(cfg::PortSpeed::HUNDREDG); // CHECK
 
     qsfp_->setCdrState(FeatureState::ENABLED, FeatureState::ENABLED);
     // Enabled + 40G
@@ -174,50 +182,48 @@ TEST_F(QsfpModuleTest, setCdr) {
 
 TEST_F(QsfpModuleTest, portsChangedAllDown25G) {
   // should customize w/ 25G
-  EXPECT_CALL(
-    *qsfp_, setCdrIfSupported(cfg::PortSpeed::TWENTYFIVEG, _, _)).Times(1);
+  EXPECT_CALL(*qsfp_, setCdrIfSupported(cfg::PortSpeed::TWENTYFIVEG, _, _))
+      .Times(1);
 
   qsfp_->transceiverPortsChanged({
       {1, portStatus(true, false)},
       {2, portStatus(true, false)},
       {3, portStatus(true, false)},
       {4, portStatus(true, false)},
-    });
+  });
 }
 
 TEST_F(QsfpModuleTest, portsChangedSpeedMismatch) {
   // Speeds don't match across ports, should throw
-  EXPECT_ANY_THROW(
-    qsfp_->transceiverPortsChanged({
+  EXPECT_ANY_THROW(qsfp_->transceiverPortsChanged({
       {1, portStatus(true, false, 50000)},
       {2, portStatus(true, false)},
       {3, portStatus(true, false)},
       {4, portStatus(true, false)},
-    }));
+  }));
 }
 
 TEST_F(QsfpModuleTest, portsChangedSpeedMismatchButDisabled) {
   // should customize w/ 25G. Mismatched port is disabled
-  EXPECT_CALL(
-    *qsfp_, setCdrIfSupported(cfg::PortSpeed::TWENTYFIVEG, _, _)).Times(1);
+  EXPECT_CALL(*qsfp_, setCdrIfSupported(cfg::PortSpeed::TWENTYFIVEG, _, _))
+      .Times(1);
   qsfp_->transceiverPortsChanged({
       {1, portStatus(false, false, 50000)},
       {2, portStatus(true, false)},
       {3, portStatus(true, false)},
       {4, portStatus(true, false)},
-    });
+  });
 }
 
 TEST_F(QsfpModuleTest, portsChanged50G) {
   // should customize w/ 50G
-  EXPECT_CALL(
-    *qsfp_, setCdrIfSupported(cfg::PortSpeed::FIFTYG, _, _)).Times(1);
+  EXPECT_CALL(*qsfp_, setCdrIfSupported(cfg::PortSpeed::FIFTYG, _, _)).Times(1);
   qsfp_->transceiverPortsChanged({
       {1, portStatus(true, false, 50000)},
       {2, portStatus(false, false)},
       {3, portStatus(true, false, 50000)},
       {4, portStatus(false, false)},
-    });
+  });
 }
 
 TEST_F(QsfpModuleTest, portsChangedAllUp) {
@@ -227,7 +233,7 @@ TEST_F(QsfpModuleTest, portsChangedAllUp) {
       {2, portStatus(true, true)},
       {3, portStatus(true, true)},
       {4, portStatus(true, true)},
-    });
+  });
 }
 
 TEST_F(QsfpModuleTest, portsChangedOneUp) {
@@ -237,7 +243,7 @@ TEST_F(QsfpModuleTest, portsChangedOneUp) {
       {2, portStatus(true, false)},
       {3, portStatus(true, false)},
       {4, portStatus(true, false)},
-    });
+  });
 }
 
 TEST_F(QsfpModuleTest, portsChangedAllDown) {
@@ -247,7 +253,7 @@ TEST_F(QsfpModuleTest, portsChangedAllDown) {
       {2, portStatus(true, false)},
       {3, portStatus(true, false)},
       {4, portStatus(true, false)},
-    });
+  });
 }
 
 TEST_F(QsfpModuleTest, portsChangedMissingPort) {
@@ -256,18 +262,17 @@ TEST_F(QsfpModuleTest, portsChangedMissingPort) {
       {1, portStatus(true, false)},
       {2, portStatus(true, false)},
       {3, portStatus(true, false)},
-    });
+  });
 }
 
 TEST_F(QsfpModuleTest, portsChangedExtraPort) {
-  EXPECT_ANY_THROW(
-    qsfp_->transceiverPortsChanged({
+  EXPECT_ANY_THROW(qsfp_->transceiverPortsChanged({
       {1, portStatus(true, false)},
       {2, portStatus(true, false)},
       {3, portStatus(true, false)},
       {4, portStatus(true, false)},
       {5, portStatus(true, false)},
-    }));
+  }));
 }
 
 TEST_F(QsfpModuleTest, portsChangedOnePortPerModule) {
@@ -286,13 +291,12 @@ TEST_F(QsfpModuleTest, portsChangedMissingPortOnePortPerModule) {
 
 TEST_F(QsfpModuleTest, portsChangedExtraPortOnePortPerModule) {
   setupQsfp(1);
-  EXPECT_ANY_THROW(
-    qsfp_->transceiverPortsChanged({
+  EXPECT_ANY_THROW(qsfp_->transceiverPortsChanged({
       {1, portStatus(true, false)},
       {2, portStatus(true, false)},
       {3, portStatus(true, false)},
       {4, portStatus(true, false)},
-    }));
+  }));
 }
 
 TEST_F(QsfpModuleTest, portsChangedNonsensicalDisabledButUp) {
@@ -303,7 +307,7 @@ TEST_F(QsfpModuleTest, portsChangedNonsensicalDisabledButUp) {
       {2, portStatus(false, true)},
       {3, portStatus(false, true)},
       {4, portStatus(false, true)},
-    });
+  });
 }
 
 TEST_F(QsfpModuleTest, portsChangedNonsensicalDisabledButUpOneEnabled) {
@@ -315,7 +319,7 @@ TEST_F(QsfpModuleTest, portsChangedNonsensicalDisabledButUpOneEnabled) {
       {2, portStatus(false, true)},
       {3, portStatus(false, true)},
       {4, portStatus(true, false)},
-    });
+  });
 }
 
 TEST_F(QsfpModuleTest, portsChangedNotDirtySafeToCustomize) {
@@ -328,7 +332,7 @@ TEST_F(QsfpModuleTest, portsChangedNotDirtySafeToCustomize) {
       {2, portStatus(true, false)},
       {3, portStatus(true, false)},
       {4, portStatus(true, false)},
-    });
+  });
 
   // However, we should call customize when we next refresh (though
   // not on subsequent refresh calls)
@@ -347,10 +351,10 @@ TEST_F(QsfpModuleTest, portsChangedNotDirtySafeToCustomizeStale) {
       {2, portStatus(true, false)},
       {3, portStatus(true, false)},
       {4, portStatus(true, false)},
-    });
+  });
 
   gflags::SetCommandLineOptionWithMode(
-    "customize_interval", "0", gflags::SET_FLAGS_DEFAULT);
+      "customize_interval", "0", gflags::SET_FLAGS_DEFAULT);
 
   // However, we should call customize when we next refresh
   EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(2);
@@ -371,7 +375,7 @@ TEST_F(QsfpModuleTest, portsChangedNotDirtyNotSafeToCustomize) {
       {2, portStatus(true, false)},
       {3, portStatus(true, false)},
       {4, portStatus(true, false)},
-    });
+  });
 
   // one up port should prevent customization on future refresh calls
   EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
@@ -417,7 +421,7 @@ TEST_F(QsfpModuleTest, skipCustomizingMissingPorts) {
       {2, portStatus(true, false)},
       {3, portStatus(true, false)},
       {4, portStatus(true, false)},
-    });
+  });
 
   // We should also not actually customize on subsequent refresh calls
   qsfp_->refresh();
@@ -426,8 +430,8 @@ TEST_F(QsfpModuleTest, skipCustomizingMissingPorts) {
 
 TEST_F(QsfpModuleTest, skipCustomizingCopperPorts) {
   // Should get detected as copper and skip all customization
-  EXPECT_CALL(*qsfp_, getQsfpTransmitterTechnology()).WillRepeatedly(
-    Return(TransmitterTechnology::COPPER));
+  EXPECT_CALL(*qsfp_, getQsfpTransmitterTechnology())
+      .WillRepeatedly(Return(TransmitterTechnology::COPPER));
 
   EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
   qsfp_->transceiverPortsChanged({
@@ -435,7 +439,7 @@ TEST_F(QsfpModuleTest, skipCustomizingCopperPorts) {
       {2, portStatus(true, false)},
       {3, portStatus(true, false)},
       {4, portStatus(true, false)},
-    });
+  });
 
   // We should also not actually customize on subsequent refresh calls
   qsfp_->refresh();
@@ -492,4 +496,5 @@ TEST_F(QsfpModuleTest, writeTransceiver) {
   qsfp_->detectPresence();
   EXPECT_EQ(qsfp_->writeTransceiver(param, 0xac), false);
 }
-}} // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

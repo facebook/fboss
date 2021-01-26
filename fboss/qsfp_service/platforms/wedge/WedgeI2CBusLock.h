@@ -11,10 +11,11 @@
 
 #include "fboss/lib/usb/BaseWedgeI2CBus.h"
 
-#include <mutex>
 #include <folly/Range.h>
+#include <mutex>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /*
  * A small wrapper around CP2112 which is aware of the topology of wedge's QSFP
@@ -25,10 +26,18 @@ class WedgeI2CBusLock : public TransceiverI2CApi {
   explicit WedgeI2CBusLock(std::unique_ptr<BaseWedgeI2CBus> wedgeI2CBus);
   void open() override;
   void close() override;
-  void moduleRead(unsigned int module, uint8_t i2cAddress,
-                  int offset, int len, uint8_t* buf) override;
-  void moduleWrite(unsigned int module, uint8_t i2cAddress,
-                  int offset, int len, const uint8_t* buf) override;
+  void moduleRead(
+      unsigned int module,
+      uint8_t i2cAddress,
+      int offset,
+      int len,
+      uint8_t* buf) override;
+  void moduleWrite(
+      unsigned int module,
+      uint8_t i2cAddress,
+      int offset,
+      int len,
+      const uint8_t* buf) override;
   void read(uint8_t i2cAddress, int offset, int len, uint8_t* buf);
   void write(uint8_t i2cAddress, int offset, int len, const uint8_t* buf);
 
@@ -48,8 +57,8 @@ class WedgeI2CBusLock : public TransceiverI2CApi {
 
  private:
   // Forbidden copy constructor and assignment operator
-  WedgeI2CBusLock(WedgeI2CBusLock const &) = delete;
-  WedgeI2CBusLock& operator=(WedgeI2CBusLock const &) = delete;
+  WedgeI2CBusLock(WedgeI2CBusLock const&) = delete;
+  WedgeI2CBusLock& operator=(WedgeI2CBusLock const&) = delete;
 
   void openLocked();
   void closeLocked();
@@ -68,15 +77,13 @@ class WedgeI2CBusLock : public TransceiverI2CApi {
        read/writes.
     */
    public:
-    explicit BusGuard(WedgeI2CBusLock* busLock) :
-        busLock_(busLock),
-        lock_(busLock->busMutex_)
-      {
-        if (!busLock_->opened_) {
-          busLock_->openLocked();
-          performedOpen_ = true;
-        }
+    explicit BusGuard(WedgeI2CBusLock* busLock)
+        : busLock_(busLock), lock_(busLock->busMutex_) {
+      if (!busLock_->opened_) {
+        busLock_->openLocked();
+        performedOpen_ = true;
       }
+    }
 
     ~BusGuard() {
       if (performedOpen_) {
@@ -91,4 +98,5 @@ class WedgeI2CBusLock : public TransceiverI2CApi {
   };
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

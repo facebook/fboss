@@ -29,7 +29,10 @@ using namespace apache::thrift;
 // TODO: Since this is an extended experiment, we resue the aoi_override flag
 // to mark the ones that will apply the settings overwrite. Will rename when
 // override become official across DC.
-DEFINE_bool(aoi_override, false, "To override channel control settings on optic modules");
+DEFINE_bool(
+    aoi_override,
+    false,
+    "To override channel control settings on optic modules");
 
 namespace {
 
@@ -185,11 +188,11 @@ int SffModule::getQsfpDACGauge() const {
 
 GlobalSensors SffModule::getSensorInfo() {
   GlobalSensors info = GlobalSensors();
-  *info.temp_ref()->value_ref() =
+  info.temp_ref()->value_ref() =
       getQsfpSensor(SffField::TEMPERATURE, SffFieldInfo::getTemp);
   info.temp_ref()->flags_ref() =
       getQsfpSensorFlags(SffField::TEMPERATURE_ALARMS);
-  *info.vcc_ref()->value_ref() =
+  info.vcc_ref()->value_ref() =
       getQsfpSensor(SffField::VCC, SffFieldInfo::getVcc);
   info.vcc_ref()->flags_ref() = getQsfpSensorFlags(SffField::VCC_ALARMS);
   return info;
@@ -208,7 +211,7 @@ Vendor SffModule::getVendorInfo() {
 
 Cable SffModule::getCableInfo() {
   Cable cable = Cable();
-  *cable.transmitterTech_ref() = getQsfpTransmitterTechnology();
+  cable.transmitterTech_ref() = getQsfpTransmitterTechnology();
 
   cable.singleMode_ref() = getQsfpCableLength(SffField::LENGTH_SM_KM);
   if (cable.singleMode_ref().value_or({}) == 0) {
@@ -272,10 +275,10 @@ ThresholdLevels SffModule::getThresholdValues(
   const uint8_t* data = getQsfpValuePtr(dataAddress, offset, length);
 
   CHECK_GE(length, 8);
-  *thresh.alarm_ref()->high_ref() = conversion(data[0] << 8 | data[1]);
-  *thresh.alarm_ref()->low_ref() = conversion(data[2] << 8 | data[3]);
-  *thresh.warn_ref()->high_ref() = conversion(data[4] << 8 | data[5]);
-  *thresh.warn_ref()->low_ref() = conversion(data[6] << 8 | data[7]);
+  thresh.alarm_ref()->high_ref() = conversion(data[0] << 8 | data[1]);
+  thresh.alarm_ref()->low_ref() = conversion(data[2] << 8 | data[3]);
+  thresh.warn_ref()->high_ref() = conversion(data[4] << 8 | data[5]);
+  thresh.warn_ref()->low_ref() = conversion(data[6] << 8 | data[7]);
 
   return thresh;
 }
@@ -309,18 +312,18 @@ uint8_t SffModule::getSettingsValue(SffField field, uint8_t mask) {
 
 TransceiverSettings SffModule::getTransceiverSettingsInfo() {
   TransceiverSettings settings = TransceiverSettings();
-  *settings.cdrTx_ref() = SffFieldInfo::getFeatureState(
+  settings.cdrTx_ref() = SffFieldInfo::getFeatureState(
       getSettingsValue(SffField::EXTENDED_IDENTIFIER, EXT_ID_CDR_TX_MASK),
       getSettingsValue(SffField::CDR_CONTROL, TX_MASK));
-  *settings.cdrRx_ref() = SffFieldInfo::getFeatureState(
+  settings.cdrRx_ref() = SffFieldInfo::getFeatureState(
       getSettingsValue(SffField::EXTENDED_IDENTIFIER, EXT_ID_CDR_RX_MASK),
       getSettingsValue(SffField::CDR_CONTROL, RX_MASK));
-  *settings.powerMeasurement_ref() =
+  settings.powerMeasurement_ref() =
       SffFieldInfo::getFeatureState(getSettingsValue(
           SffField::DIAGNOSTIC_MONITORING_TYPE, POWER_MEASUREMENT_MASK));
-  *settings.powerControl_ref() = getPowerControlValue();
-  *settings.rateSelect_ref() = getRateSelectValue();
-  *settings.rateSelectSetting_ref() =
+  settings.powerControl_ref() = getPowerControlValue();
+  settings.rateSelect_ref() = getRateSelectValue();
+  settings.rateSelectSetting_ref() =
       getRateSelectSettingValue(*settings.rateSelect_ref());
   return settings;
 }
@@ -422,7 +425,7 @@ bool SffModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   std::array<uint8_t, 4> bitOffset{{4, 0, 4, 0}};
   std::array<uint8_t, 4> byteOffset{{0, 0, 1, 1}};
 
-  assert (channels.size() == CHANNEL_COUNT);
+  assert(channels.size() == CHANNEL_COUNT);
 
   getQsfpFieldAddress(
       SffField::CHANNEL_RX_PWR_ALARMS, dataAddress, offset, length);
@@ -456,7 +459,7 @@ bool SffModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
 
   for (auto& channel : channels) {
     uint16_t value = data[0] << 8 | data[1];
-    *channel.sensors_ref()->rxPwr_ref()->value_ref() =
+    channel.sensors_ref()->rxPwr_ref()->value_ref() =
         SffFieldInfo::getPwr(value);
     data += 2;
     length--;
@@ -467,7 +470,7 @@ bool SffModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   data = getQsfpValuePtr(dataAddress, offset, length);
   for (auto& channel : channels) {
     uint16_t value = data[0] << 8 | data[1];
-    *channel.sensors_ref()->txBias_ref()->value_ref() =
+    channel.sensors_ref()->txBias_ref()->value_ref() =
         SffFieldInfo::getTxBias(value);
     data += 2;
     length--;
@@ -479,7 +482,7 @@ bool SffModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
 
   for (auto& channel : channels) {
     uint16_t value = data[0] << 8 | data[1];
-    *channel.sensors_ref()->txPwr_ref()->value_ref() =
+    channel.sensors_ref()->txPwr_ref()->value_ref() =
         SffFieldInfo::getPwr(value);
     data += 2;
     length--;
@@ -556,18 +559,17 @@ TransmitterTechnology SffModule::getQsfpTransmitterTechnology() const {
 SignalFlags SffModule::getSignalFlagInfo() {
   SignalFlags signalFlags = SignalFlags();
 
-  *signalFlags.txLos_ref() = getSettingsValue(SffField::LOS, TX_MASK);
+  signalFlags.txLos_ref() = getSettingsValue(SffField::LOS, TX_MASK);
   *signalFlags.txLos_ref() >>= 4;
-  *signalFlags.rxLos_ref() = getSettingsValue(SffField::LOS, RX_MASK);
-  *signalFlags.txLol_ref() = getSettingsValue(SffField::LOL, TX_MASK);
+  signalFlags.rxLos_ref() = getSettingsValue(SffField::LOS, RX_MASK);
+  signalFlags.txLol_ref() = getSettingsValue(SffField::LOL, TX_MASK);
   *signalFlags.txLol_ref() >>= 4;
-  *signalFlags.rxLol_ref() = getSettingsValue(SffField::LOL, RX_MASK);
+  signalFlags.rxLol_ref() = getSettingsValue(SffField::LOL, RX_MASK);
 
   return signalFlags;
 }
 
-ExtendedSpecComplianceCode
-SffModule::getExtendedSpecificationComplianceCode() {
+ExtendedSpecComplianceCode SffModule::getExtendedSpecificationComplianceCode() {
   return (ExtendedSpecComplianceCode)getSettingsValue(
       SffField::EXTENDED_SPECIFICATION_COMPLIANCE);
 }
@@ -644,7 +646,8 @@ DOMDataUnion SffModule::getDOMDataUnion() {
         IOBuf::wrapBufferAsValue(lowerPage_, MAX_QSFP_PAGE_SIZE);
     *sffData.page0_ref() = IOBuf::wrapBufferAsValue(page0_, MAX_QSFP_PAGE_SIZE);
     if (!flatMem_) {
-      sffData.page3_ref() = IOBuf::wrapBufferAsValue(page3_, MAX_QSFP_PAGE_SIZE);
+      sffData.page3_ref() =
+          IOBuf::wrapBufferAsValue(page3_, MAX_QSFP_PAGE_SIZE);
     }
   }
   sffData.timeCollected_ref() = lastRefreshTime_;
@@ -873,9 +876,9 @@ void SffModule::setPowerOverrideIfSupported(PowerControlState currentState) {
 
   auto portStr = folly::to<std::string>(qsfpImpl_->getName());
   XLOG(DBG1) << "Port " << portStr << ": Power control "
-             << apache::thrift::util::enumNameSafe(currentState)
-             << " Ext ID " << std::hex << (int)*extId << " Ethernet compliance "
-             << std::hex << (int)*ether << " Desired power control "
+             << apache::thrift::util::enumNameSafe(currentState) << " Ext ID "
+             << std::hex << (int)*extId << " Ethernet compliance " << std::hex
+             << (int)*ether << " Desired power control "
              << apache::thrift::util::enumNameSafe(desiredSetting);
 
   if (currentState == desiredSetting) {
@@ -898,8 +901,8 @@ void SffModule::setPowerOverrideIfSupported(PowerControlState currentState) {
       TransceiverI2CApi::ADDR_QSFP, offset, sizeof(power), &power);
 
   XLOG(INFO) << "Port " << portStr << ": QSFP set to power setting "
-             << apache::thrift::util::enumNameSafe(desiredSetting)
-             << " (" << int(power) << ")";
+             << apache::thrift::util::enumNameSafe(desiredSetting) << " ("
+             << int(power) << ")";
 }
 
 /*
@@ -975,41 +978,32 @@ void SffModule::overwriteChannelControlSettings() {
     return;
   }
 
-      uint8_t page = 3;
-      qsfpImpl_->writeTransceiver(
-        TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
-      int offset;
-      int length;
-      int dataAddress;
+  uint8_t page = 3;
+  qsfpImpl_->writeTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+  int offset;
+  int length;
+  int dataAddress;
 
-      std::array<uint8_t, 2> buf = {{0}};
-      getQsfpFieldAddress(SffField::TX_EQUALIZATION,
-                          dataAddress,
-                          offset,
-                          length);
-      CHECK_EQ(length, 2);
-      qsfpImpl_->writeTransceiver(
-          TransceiverI2CApi::ADDR_QSFP, offset, length, buf.data());
+  std::array<uint8_t, 2> buf = {{0}};
+  getQsfpFieldAddress(SffField::TX_EQUALIZATION, dataAddress, offset, length);
+  CHECK_EQ(length, 2);
+  qsfpImpl_->writeTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, offset, length, buf.data());
 
-      getQsfpFieldAddress(SffField::RX_EMPHASIS,
-                          dataAddress,
-                          offset,
-                          length);
-      CHECK_EQ(length, 2);
-      qsfpImpl_->writeTransceiver(
-          TransceiverI2CApi::ADDR_QSFP, offset, length, buf.data());
+  getQsfpFieldAddress(SffField::RX_EMPHASIS, dataAddress, offset, length);
+  CHECK_EQ(length, 2);
+  qsfpImpl_->writeTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, offset, length, buf.data());
 
-      buf.fill(0x22);
-      getQsfpFieldAddress(SffField::RX_AMPLITUDE,
-                          dataAddress,
-                          offset,
-                          length);
-      CHECK_EQ(length, 2);
-      qsfpImpl_->writeTransceiver(
-          TransceiverI2CApi::ADDR_QSFP, offset, length, buf.data());
+  buf.fill(0x22);
+  getQsfpFieldAddress(SffField::RX_AMPLITUDE, dataAddress, offset, length);
+  CHECK_EQ(length, 2);
+  qsfpImpl_->writeTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, offset, length, buf.data());
 
-      // Bump up the ODS counter.
-      StatsPublisher::bumpAOIOverride();
+  // Bump up the ODS counter.
+  StatsPublisher::bumpAOIOverride();
 }
 
 void SffModule::customizeTransceiverLocked(cfg::PortSpeed speed) {

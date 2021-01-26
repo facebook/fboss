@@ -5,10 +5,11 @@
 #include "common/fb303/cpp/FacebookBase2.h"
 
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
-#include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
+#include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
                            public facebook::fb303::FacebookBase2 {
@@ -22,30 +23,31 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
   /*
    * Returns all qsfp information for the transceiver
    */
-  void getTransceiverInfo(std::map<int32_t, TransceiverInfo>& info,
+  void getTransceiverInfo(
+      std::map<int32_t, TransceiverInfo>& info,
       std::unique_ptr<std::vector<int32_t>> ids) override;
 
   /*
    * Returns raw DOM page data for each passed in transceiver.
    */
   void getTransceiverRawDOMData(
-    std::map<int32_t, RawDOMData>& info,
-    std::unique_ptr<std::vector<int32_t>> ids) override;
+      std::map<int32_t, RawDOMData>& info,
+      std::unique_ptr<std::vector<int32_t>> ids) override;
 
   /*
-   * Returns a union of the two raw DOM data format for each passed in transceiver.
+   * Returns a union of the two raw DOM data format for each passed in
+   * transceiver.
    */
   void getTransceiverDOMDataUnion(
-    std::map<int32_t, DOMDataUnion>& info,
-    std::unique_ptr<std::vector<int32_t>> ids) override;
-
+      std::map<int32_t, DOMDataUnion>& info,
+      std::unique_ptr<std::vector<int32_t>> ids) override;
 
   /*
    * Store port status information and return relevant transceiver map.
    */
   void syncPorts(
-    std::map<int32_t, TransceiverInfo>& info,
-    std::unique_ptr<std::map<int32_t, PortStatus>> ports) override;
+      std::map<int32_t, TransceiverInfo>& info,
+      std::unique_ptr<std::map<int32_t, PortStatus>> ports) override;
 
   /*
    * Customise the transceiver based on the speed at which it has
@@ -72,9 +74,10 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
 
  private:
   // Forbidden copy constructor and assignment operator
-  QsfpServiceHandler(QsfpServiceHandler const &) = delete;
-  QsfpServiceHandler& operator=(QsfpServiceHandler const &) = delete;
+  QsfpServiceHandler(QsfpServiceHandler const&) = delete;
+  QsfpServiceHandler& operator=(QsfpServiceHandler const&) = delete;
 
   std::unique_ptr<TransceiverManager> manager_{nullptr};
 };
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

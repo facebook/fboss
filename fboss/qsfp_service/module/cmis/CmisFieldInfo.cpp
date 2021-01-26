@@ -7,7 +7,7 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#include "CmisFieldInfo.h"
+#include "fboss/qsfp_service/module/cmis/CmisFieldInfo.h"
 #include "fboss/agent/FbossError.h"
 
 /*

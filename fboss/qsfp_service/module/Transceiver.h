@@ -16,13 +16,14 @@
 
 #include <folly/futures/Future.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /* Virtual class to handle the different transceivers our equipment is likely
  * to support.  This supports, for now, QSFP and SFP.
  */
 
-class TransceiverID;
+struct TransceiverID;
 
 class Transceiver {
  public:
@@ -76,7 +77,7 @@ class Transceiver {
    * Register that a logical port that is part of this transceiver has changed.
    */
   virtual void transceiverPortsChanged(
-    const std::map<uint32_t, PortStatus>& ports) = 0;
+      const std::map<uint32_t, PortStatus>& ports) = 0;
 
   /*
    * Perform raw register read on a specific transceiver
@@ -93,8 +94,9 @@ class Transceiver {
 
  private:
   // no copy or assignment
-  Transceiver(Transceiver const &) = delete;
-  Transceiver& operator=(Transceiver const &) = delete;
+  Transceiver(Transceiver const&) = delete;
+  Transceiver& operator=(Transceiver const&) = delete;
 };
 
-}} //namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

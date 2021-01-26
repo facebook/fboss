@@ -7,7 +7,7 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#include "SffFieldInfo.h"
+#include "fboss/qsfp_service/module/sff/SffFieldInfo.h"
 #include "fboss/agent/FbossError.h"
 
 /*
@@ -16,7 +16,8 @@
  * modules.
  */
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 double SffFieldInfo::getTemp(const uint16_t temp) {
   double data;
@@ -45,16 +46,18 @@ double SffFieldInfo::getPwr(const uint16_t temp) {
   return data;
 }
 
-FeatureState SffFieldInfo::getFeatureState(const uint8_t support,
-                                           const uint8_t enabled) {
+FeatureState SffFieldInfo::getFeatureState(
+    const uint8_t support,
+    const uint8_t enabled) {
   if (!support) {
     return FeatureState::UNSUPPORTED;
   }
   return enabled ? FeatureState::ENABLED : FeatureState::DISABLED;
 }
 
-SffFieldInfo SffFieldInfo::getSffFieldAddress(const SffFieldMap& map,
-                                              const SffField field) {
+SffFieldInfo SffFieldInfo::getSffFieldAddress(
+    const SffFieldMap& map,
+    const SffField field) {
   auto info = map.find(field);
   if (info == map.end()) {
     throw FbossError("Invalid SFF Field ID");
@@ -62,5 +65,5 @@ SffFieldInfo SffFieldInfo::getSffFieldAddress(const SffFieldMap& map,
   return info->second;
 }
 
-
-}} //namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

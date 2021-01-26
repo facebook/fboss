@@ -14,9 +14,6 @@
 #include <optional>
 
 #include <boost/container/flat_map.hpp>
-#include <folly/futures/SharedPromise.h>
-#include <folly/futures/Future.h>
-#include <folly/io/async/AsyncTimeout.h>
 #include <folly/Synchronized.h>
 #include <folly/Unit.h>
 #include <folly/futures/Future.h>
@@ -24,15 +21,16 @@
 #include <folly/io/async/AsyncTimeout.h>
 #include <folly/io/async/EventBase.h>
 
-#include "fboss/agent/types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 /*
  * This class is a helper for clients that want to exchange port state w/ qsfp
  * service. It is built around a single thrift call defined in qsfp.thrift:
  *
- *     map<i32, transceiver.TransceiverInfo> syncPorts(1: map<i32, ctrl.PortStatus> ports)
+ *     map<i32, transceiver.TransceiverInfo> syncPorts(1: map<i32,
+ * ctrl.PortStatus> ports)
  *
  * Using this we can exchange port state from one class (presumably
  * the agent) and then receive transceiver information we may care about.
@@ -115,8 +113,8 @@ class QsfpCache : private folly::AsyncTimeout {
 
  private:
   // Forbidden copy constructor and assignment operator
-  QsfpCache(QsfpCache const &) = delete;
-  QsfpCache& operator=(QsfpCache const &) = delete;
+  QsfpCache(QsfpCache const&) = delete;
+  QsfpCache& operator=(QsfpCache const&) = delete;
 
   void timeoutExpired() noexcept override;
 
@@ -144,10 +142,10 @@ class QsfpCache : private folly::AsyncTimeout {
     uint32_t generation{0};
   };
 
-  folly::Synchronized<
-    std::unordered_map<TransceiverID, TransceiverInfo>> tcvrs_;
-  folly::Synchronized<
-    boost::container::flat_map<PortID, PortCacheValue>> ports_;
+  folly::Synchronized<std::unordered_map<TransceiverID, TransceiverInfo>>
+      tcvrs_;
+  folly::Synchronized<boost::container::flat_map<PortID, PortCacheValue>>
+      ports_;
 
   std::optional<folly::SharedPromise<folly::Unit>> activeReq_;
 

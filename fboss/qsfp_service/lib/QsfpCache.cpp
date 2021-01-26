@@ -16,7 +16,8 @@
 #include <folly/logging/xlog.h>
 #include <chrono>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 namespace {
 constexpr std::chrono::seconds kLivenessCheckInterval(30);
@@ -38,7 +39,6 @@ void QsfpCache::init(folly::EventBase* evb, const PortMapThrift& ports) {
 
   attachEventBase(evb);
   scheduleTimeout(kLivenessCheckInterval);
-
 }
 
 void QsfpCache::init(folly::EventBase* evb) {
@@ -125,12 +125,13 @@ folly::Future<folly::Unit> QsfpCache::confirmAlive() {
       // on qsfp_service side
       XLOG(DBG1) << "qsfp_service restarted. aliveSince: " << remoteAliveSince_
                  << " -> " << aliveSince;
-      std::tie(remoteAliveSince_,  remoteGen_) = std::make_tuple(aliveSince, 0);
+      std::tie(remoteAliveSince_, remoteGen_) = std::make_tuple(aliveSince, 0);
     }
   };
 
-  return QsfpClient::createClient(evb_).thenValue(
-     getAliveSince).thenValue(storeIt);
+  return QsfpClient::createClient(evb_)
+      .thenValue(getAliveSince)
+      .thenValue(storeIt);
 }
 
 folly::Future<folly::Unit> QsfpCache::doSync(PortMapThrift&& toSync) {
@@ -168,7 +169,8 @@ folly::Future<folly::Unit> QsfpCache::doSync(PortMapThrift&& toSync) {
       .thenError(
           folly::tag_t<std::exception>{},
           [this](const std::exception& e) {
-            XLOG(ERR) << PlatformAlert() << "Exception talking to qsfp_service: " << e.what();
+            XLOG(ERR) << PlatformAlert()
+                      << "Exception talking to qsfp_service: " << e.what();
             this->maybeSync();
           })
       .ensure([this]() {
@@ -205,7 +207,7 @@ TransceiverInfo QsfpCache::get(TransceiverID tcvrId) {
     return fromCache.value();
   }
   throw std::runtime_error(
-    folly::to<std::string>("Transceiver ", tcvrId, " not in cache"));
+      folly::to<std::string>("Transceiver ", tcvrId, " not in cache"));
 }
 
 folly::Future<TransceiverInfo> QsfpCache::futureGet(TransceiverID tcvrId) {

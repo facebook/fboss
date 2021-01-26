@@ -13,14 +13,15 @@
 #include <memory>
 #include <vector>
 
-#include <thrift/lib/cpp2/async/HeaderClientChannel.h>
+#include <folly/SocketAddress.h>
 #include <folly/futures/Future.h>
 #include <folly/io/async/EventBase.h>
-#include <folly/SocketAddress.h>
+#include <thrift/lib/cpp2/async/HeaderClientChannel.h>
 
 #include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 // Create a custom client that doesn't use service router
 // Service router has hard dependencies on smcc and configerator-proxy
@@ -30,13 +31,14 @@ namespace facebook { namespace fboss {
 // TODO(ninasc): t13719924
 class QsfpClient {
  public:
-   QsfpClient(){}
-  ~QsfpClient(){}
+  QsfpClient() {}
+  ~QsfpClient() {}
 
-  static folly::Future<std::unique_ptr<QsfpServiceAsyncClient>>
-  createClient(folly::EventBase* eb);
+  static folly::Future<std::unique_ptr<QsfpServiceAsyncClient>> createClient(
+      folly::EventBase* eb);
 
   static apache::thrift::RpcOptions getRpcOptions();
 };
 
-}} // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

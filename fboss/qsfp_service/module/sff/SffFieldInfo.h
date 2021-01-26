@@ -16,7 +16,8 @@
  * modules.
  */
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 enum class SffField {
   // Shared QSFP and SFP fields:
@@ -25,12 +26,12 @@ enum class SffField {
   LOS, // Loss of Signal
   LOL, // Loss of Lock
   TEMPERATURE_ALARMS,
-  VCC_ALARMS,  // Voltage
+  VCC_ALARMS, // Voltage
   CHANNEL_RX_PWR_ALARMS,
   CHANNEL_TX_BIAS_ALARMS,
   CHANNEL_TX_PWR_ALARMS,
   TEMPERATURE,
-  VCC,  // Voltage
+  VCC, // Voltage
   CHANNEL_RX_PWR,
   CHANNEL_TX_BIAS,
   CHANNEL_TX_PWR,
@@ -42,8 +43,8 @@ enum class SffField {
   ETHERNET_COMPLIANCE,
   EXTENDED_IDENTIFIER,
   PAGE_SELECT_BYTE,
-  LENGTH_SM_KM,  // Single mode, in km
-  LENGTH_SM,  // Single mode in 100m (not in QSFP)
+  LENGTH_SM_KM, // Single mode, in km
+  LENGTH_SM, // Single mode in 100m (not in QSFP)
   LENGTH_OM3,
   LENGTH_OM2,
   LENGTH_OM1,
@@ -116,20 +117,20 @@ enum class PowerControl : uint8_t {
   // We always want the first bit set to 1 so it's set in sw
   POWER_SET_BY_HW = 0b0,
   // Use low power mode
-  POWER_LPMODE =            0b11,
+  POWER_LPMODE = 0b11,
   // Disable low power mode
   // High power mode, class 1 to 4(<3.5W)
-  POWER_OVERRIDE =          0b01,
+  POWER_OVERRIDE = 0b01,
   // Disable low power mode
   // Super high power mode, class 5 to 7(>3.5W)
-  HIGH_POWER_OVERRIDE =     0b101,
+  HIGH_POWER_OVERRIDE = 0b101,
   // Only interested in first 3 bits
-  POWER_CONTROL_MASK =      0b111,
+  POWER_CONTROL_MASK = 0b111,
 };
 
 // This should be called ExtendedIdentifier
 enum ExternalIdentifer : uint8_t {
-  EXT_ID_POWER_SHIFT= 6,
+  EXT_ID_POWER_SHIFT = 6,
   EXT_ID_POWER_MASK = 0xc0,
   EXT_ID_HI_POWER_MASK = 0x03,
   EXT_ID_CDR_RX_MASK = 0x04,
@@ -138,12 +139,12 @@ enum ExternalIdentifer : uint8_t {
 
 enum EthernetCompliance : uint8_t {
   ACTIVE_CABLE = 1 << 0,
-  LR4_40GBASE =  1 << 1,
-  SR4_40GBASE =  1 << 2,
-  CR4_40GBASE =  1 << 3,
-  SR_10GBASE =   1 << 4,
-  LR_10GBASE =   1 << 5,
-  LRM_40GBASE =  1 << 6,
+  LR4_40GBASE = 1 << 1,
+  SR4_40GBASE = 1 << 2,
+  CR4_40GBASE = 1 << 3,
+  SR_10GBASE = 1 << 4,
+  LR_10GBASE = 1 << 5,
+  LRM_40GBASE = 1 << 6,
 };
 
 enum DiagnosticMonitoringType {
@@ -193,12 +194,14 @@ class SffFieldInfo {
    * the dataAddress, offset and the length as per the SFP DOM
    * Document mentioned above.
    */
-  static SffFieldInfo getSffFieldAddress(const SffFieldMap& map,
-                                         SffField field);
+  static SffFieldInfo getSffFieldAddress(
+      const SffFieldMap& map,
+      SffField field);
 };
 
 // Store multipliers for various conversion functions:
 
 typedef std::map<SffField, std::uint32_t> SffFieldMultiplier;
 
-}} //namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

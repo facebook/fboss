@@ -4,14 +4,17 @@
 
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 class Wedge40Manager : public WedgeManager {
  public:
   Wedge40Manager();
   ~Wedge40Manager() override {}
+
  private:
   // Forbidden copy constructor and assignment operator
-  Wedge40Manager(Wedge40Manager const &) = delete;
-  Wedge40Manager& operator=(Wedge40Manager const &) = delete;
+  Wedge40Manager(Wedge40Manager const&) = delete;
+  Wedge40Manager& operator=(Wedge40Manager const&) = delete;
 };
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

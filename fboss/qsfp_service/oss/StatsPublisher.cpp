@@ -9,25 +9,22 @@
  */
 
 #include "fboss/qsfp_service/StatsPublisher.h"
-namespace facebook { namespace fboss {
-void StatsPublisher::init() {
-}
+namespace facebook {
+namespace fboss {
+void StatsPublisher::init() {}
 
 void StatsPublisher::publishStats(folly::EventBase*, int32_t) {}
-//static
-void StatsPublisher::bumpPciLockHeld(){
-}
 // static
-void StatsPublisher::bumpReadFailure() {
-}
+void StatsPublisher::bumpPciLockHeld() {}
 // static
-void StatsPublisher::bumpWriteFailure() {
-}
-//static
-void StatsPublisher::missingPorts(TransceiverID /* unused */) {
-}
+void StatsPublisher::bumpReadFailure() {}
+// static
+void StatsPublisher::bumpWriteFailure() {}
+// static
+void StatsPublisher::missingPorts(TransceiverID /* unused */) {}
 // static
 void StatsPublisher::bumpModuleErrors() {}
 // static
 void StatsPublisher::bumpAOIOverride() {}
-}}
+} // namespace fboss
+} // namespace facebook

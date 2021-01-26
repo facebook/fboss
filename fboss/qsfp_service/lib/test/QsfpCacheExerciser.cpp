@@ -6,13 +6,13 @@
 #include "fboss/agent/types.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 
+#include <folly/Random.h>
 #include <folly/experimental/FunctionScheduler.h>
 #include <folly/init/Init.h>
 #include <folly/io/async/EventBase.h>
-#include <folly/Random.h>
 
-#include <folly/logging/xlog.h>
 #include <folly/io/async/AsyncSocket.h>
+#include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/async/HeaderClientChannel.h>
 
 DECLARE_string(qsfp_service_host);
@@ -20,7 +20,8 @@ DEFINE_bool(dump_qsfp_cache, false, "dump contents of cache as we go");
 DEFINE_uint32(port_change_interval, 3, "How often (in secs) to change ports");
 DEFINE_uint32(start_delay, 5, "start delay before generating syncPorts calls");
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 namespace {
 // TODO(aeckert): library with various fboss cpp thrift clients would
@@ -35,8 +36,9 @@ std::unique_ptr<FbossCtrlAsyncClient> fbossAgentClient() {
   return std::make_unique<FbossCtrlAsyncClient>(std::move(chan));
 }
 
-} // anonymous
-}} // facebook::fboss
+} // namespace
+} // namespace fboss
+} // namespace facebook
 
 int main(int argc, char** argv) {
   folly::init(&argc, &argv);
@@ -95,11 +97,10 @@ int main(int argc, char** argv) {
 
   folly::FunctionScheduler scheduler;
   scheduler.addFunction(
-    poke,
-    std::chrono::seconds(FLAGS_port_change_interval),
-    "syncRandom",
-    std::chrono::seconds(FLAGS_start_delay)
-  );
+      poke,
+      std::chrono::seconds(FLAGS_port_change_interval),
+      "syncRandom",
+      std::chrono::seconds(FLAGS_start_delay));
   scheduler.start();
 
   evb.loopForever();

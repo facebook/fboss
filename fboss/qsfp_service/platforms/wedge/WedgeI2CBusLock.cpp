@@ -15,7 +15,8 @@
 using folly::MutableByteRange;
 using std::lock_guard;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 WedgeI2CBusLock::WedgeI2CBusLock(std::unique_ptr<BaseWedgeI2CBus> wedgeI2CBus)
     : wedgeI2CBus_(std::move(wedgeI2CBus)) {}
@@ -46,26 +47,36 @@ void WedgeI2CBusLock::verifyBus(bool autoReset) {
   wedgeI2CBus_->verifyBus(autoReset);
 }
 
-void WedgeI2CBusLock::moduleRead(unsigned int module, uint8_t address,
-                             int offset, int len, uint8_t *buf) {
+void WedgeI2CBusLock::moduleRead(
+    unsigned int module,
+    uint8_t address,
+    int offset,
+    int len,
+    uint8_t* buf) {
   BusGuard g(this);
   wedgeI2CBus_->moduleRead(module, address, offset, len, buf);
 }
 
-void WedgeI2CBusLock::moduleWrite(unsigned int module, uint8_t address,
-                              int offset, int len, const uint8_t *buf) {
+void WedgeI2CBusLock::moduleWrite(
+    unsigned int module,
+    uint8_t address,
+    int offset,
+    int len,
+    const uint8_t* buf) {
   BusGuard g(this);
   wedgeI2CBus_->moduleWrite(module, address, offset, len, buf);
 }
 
-void WedgeI2CBusLock::read(uint8_t address, int offset,
-                           int len, uint8_t *buf) {
+void WedgeI2CBusLock::read(uint8_t address, int offset, int len, uint8_t* buf) {
   BusGuard g(this);
   wedgeI2CBus_->read(address, offset, len, buf);
 }
 
-void WedgeI2CBusLock::write(uint8_t address, int offset,
-                            int len, const uint8_t *buf) {
+void WedgeI2CBusLock::write(
+    uint8_t address,
+    int offset,
+    int len,
+    const uint8_t* buf) {
   BusGuard g(this);
   wedgeI2CBus_->write(address, offset, len, buf);
 }
@@ -99,4 +110,5 @@ WedgeI2CBusLock::getI2cControllerStats() {
 folly::EventBase* WedgeI2CBusLock::getEventBase(unsigned int module) {
   return wedgeI2CBus_->getEventBase(module);
 }
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

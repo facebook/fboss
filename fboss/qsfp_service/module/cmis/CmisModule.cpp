@@ -1,6 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "CmisModule.h"
+#include "fboss/qsfp_service/module/cmis/CmisModule.h"
 
 #include <boost/assign.hpp>
 #include <cmath>
@@ -9,9 +9,9 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 #include "fboss/qsfp_service/StatsPublisher.h"
+#include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
 #include "fboss/qsfp_service/module/cmis/CmisFieldInfo.h"
-#include "fboss/qsfp_service/TransceiverManager.h"
 
 #include <folly/io/IOBuf.h>
 #include <folly/io/async/EventBase.h>
@@ -30,7 +30,7 @@ namespace {
 constexpr int kUsecBetweenPowerModeFlap = 100000;
 constexpr int kResetCounterLimit = 5;
 
-}
+} // namespace
 
 namespace facebook {
 namespace fboss {
@@ -253,11 +253,11 @@ double CmisModule::getQsfpOMLength(CmisField field) const {
 
 GlobalSensors CmisModule::getSensorInfo() {
   GlobalSensors info = GlobalSensors();
-  *info.temp_ref()->value_ref() =
+  info.temp_ref()->value_ref() =
       getQsfpSensor(CmisField::TEMPERATURE, CmisFieldInfo::getTemp);
   info.temp_ref()->flags_ref() =
       getQsfpSensorFlags(CmisField::MODULE_ALARMS, 0);
-  *info.vcc_ref()->value_ref() =
+  info.vcc_ref()->value_ref() =
       getQsfpSensor(CmisField::VCC, CmisFieldInfo::getVcc);
   info.vcc_ref()->flags_ref() = getQsfpSensorFlags(CmisField::MODULE_ALARMS, 4);
   return info;
@@ -276,7 +276,7 @@ Vendor CmisModule::getVendorInfo() {
 
 Cable CmisModule::getCableInfo() {
   Cable cable = Cable();
-  *cable.transmitterTech_ref() = getQsfpTransmitterTechnology();
+  cable.transmitterTech_ref() = getQsfpTransmitterTechnology();
 
   if (auto length = getQsfpSMFLength(); length != 0) {
     cable.singleMode_ref() = length;
@@ -319,10 +319,10 @@ ThresholdLevels CmisModule::getThresholdValues(
   const uint8_t* data = getQsfpValuePtr(dataAddress, offset, length);
 
   CHECK_GE(length, 8);
-  *thresh.alarm_ref()->high_ref() = conversion(data[0] << 8 | data[1]);
-  *thresh.alarm_ref()->low_ref() = conversion(data[2] << 8 | data[3]);
-  *thresh.warn_ref()->high_ref() = conversion(data[4] << 8 | data[5]);
-  *thresh.warn_ref()->low_ref() = conversion(data[6] << 8 | data[7]);
+  thresh.alarm_ref()->high_ref() = conversion(data[0] << 8 | data[1]);
+  thresh.alarm_ref()->low_ref() = conversion(data[2] << 8 | data[3]);
+  thresh.warn_ref()->high_ref() = conversion(data[4] << 8 | data[5]);
+  thresh.warn_ref()->low_ref() = conversion(data[6] << 8 | data[7]);
 
   return thresh;
 }
@@ -358,21 +358,21 @@ uint8_t CmisModule::getSettingsValue(CmisField field, uint8_t mask) {
 
 TransceiverSettings CmisModule::getTransceiverSettingsInfo() {
   TransceiverSettings settings = TransceiverSettings();
-  *settings.cdrTx_ref() = CmisFieldInfo::getFeatureState(
+  settings.cdrTx_ref() = CmisFieldInfo::getFeatureState(
       getSettingsValue(CmisField::TX_SIG_INT_CONT_AD, CDR_IMPL_MASK),
       getSettingsValue(CmisField::TX_CDR_CONTROL));
-  *settings.cdrRx_ref() = CmisFieldInfo::getFeatureState(
+  settings.cdrRx_ref() = CmisFieldInfo::getFeatureState(
       getSettingsValue(CmisField::RX_SIG_INT_CONT_AD, CDR_IMPL_MASK),
       getSettingsValue(CmisField::RX_CDR_CONTROL));
 
-  *settings.powerMeasurement_ref() =
+  settings.powerMeasurement_ref() =
       flatMem_ ? FeatureState::UNSUPPORTED : FeatureState::ENABLED;
 
-  *settings.powerControl_ref() = getPowerControlValue();
-  *settings.rateSelect_ref() = flatMem_
+  settings.powerControl_ref() = getPowerControlValue();
+  settings.rateSelect_ref() = flatMem_
       ? RateSelectState::UNSUPPORTED
       : RateSelectState::APPLICATION_RATE_SELECT;
-  *settings.rateSelectSetting_ref() = RateSelectSetting::UNSUPPORTED;
+  settings.rateSelectSetting_ref() = RateSelectSetting::UNSUPPORTED;
 
   getApplicationCapabilities();
 
@@ -395,7 +395,8 @@ void CmisModule::getApplicationCapabilities() {
       break;
     }
 
-    XLOG(DBG3) << "Adding module capability: " << data[1] << " at position " << (i + 1);
+    XLOG(DBG3) << "Adding module capability: " << data[1] << " at position "
+               << (i + 1);
 
     moduleCapabilities_[data[1]] = (i + 1);
   }
@@ -426,10 +427,10 @@ FlagLevels CmisModule::getChannelFlags(CmisField field, int channel) {
   getQsfpFieldAddress(field, dataAddress, offset, length);
   const uint8_t* data = getQsfpValuePtr(dataAddress, offset, length);
 
-  *flags.warn_ref()->low_ref() = (data[3] & (1 << channel));
-  *flags.warn_ref()->high_ref() = (data[2] & (1 << channel));
-  *flags.alarm_ref()->low_ref() = (data[1] & (1 << channel));
-  *flags.alarm_ref()->high_ref() = (data[0] & (1 << channel));
+  flags.warn_ref()->low_ref() = (data[3] & (1 << channel));
+  flags.warn_ref()->high_ref() = (data[2] & (1 << channel));
+  flags.alarm_ref()->low_ref() = (data[1] & (1 << channel));
+  flags.alarm_ref()->high_ref() = (data[0] & (1 << channel));
 
   return flags;
 }
@@ -464,7 +465,7 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
 
   for (auto& channel : channels) {
     uint16_t value = data[0] << 8 | data[1];
-    *channel.sensors_ref()->rxPwr_ref()->value_ref() =
+    channel.sensors_ref()->rxPwr_ref()->value_ref() =
         CmisFieldInfo::getPwr(value);
     data += 2;
     length--;
@@ -475,7 +476,7 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   data = getQsfpValuePtr(dataAddress, offset, length);
   for (auto& channel : channels) {
     uint16_t value = data[0] << 8 | data[1];
-    *channel.sensors_ref()->txBias_ref()->value_ref() =
+    channel.sensors_ref()->txBias_ref()->value_ref() =
         CmisFieldInfo::getTxBias(value);
     data += 2;
     length--;
@@ -487,21 +488,23 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
 
   for (auto& channel : channels) {
     uint16_t value = data[0] << 8 | data[1];
-    *channel.sensors_ref()->txPwr_ref()->value_ref() =
+    channel.sensors_ref()->txPwr_ref()->value_ref() =
         CmisFieldInfo::getPwr(value);
     data += 2;
     length--;
   }
   CHECK_GE(length, 0);
 
-  getQsfpFieldAddress(CmisField::MEDIA_BER_HOST_SNR, dataAddress, offset, length);
+  getQsfpFieldAddress(
+      CmisField::MEDIA_BER_HOST_SNR, dataAddress, offset, length);
   data = getQsfpValuePtr(dataAddress, offset, length);
 
   for (auto& channel : channels) {
     // SNR value are LSB.
     uint16_t value = data[1] << 8 | data[0];
     channel.sensors_ref()->txSnr_ref() = Sensor();
-    channel.sensors_ref()->txSnr_ref()->value_ref() = CmisFieldInfo::getSnr(value);
+    channel.sensors_ref()->txSnr_ref()->value_ref() =
+        CmisFieldInfo::getSnr(value);
     data += 2;
     length--;
   }
@@ -514,7 +517,8 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
     // SNR value are LSB.
     uint16_t value = data[1] << 8 | data[0];
     channel.sensors_ref()->rxSnr_ref() = Sensor();
-    channel.sensors_ref()->rxSnr_ref()->value_ref() = CmisFieldInfo::getSnr(value);
+    channel.sensors_ref()->rxSnr_ref()->value_ref() =
+        CmisFieldInfo::getSnr(value);
     data += 2;
     length--;
   }
@@ -622,11 +626,11 @@ CmisModule::getQsfpValuePtr(int dataAddress, int offset, int length) const {
     }
 
     if (flatMem_) {
-      throw FbossError("Accessing data address 0x%d on flatMem module.",
-                       dataAddress);
+      throw FbossError(
+          "Accessing data address 0x%d on flatMem module.", dataAddress);
     }
 
-    switch(dataAddress) {
+    switch (dataAddress) {
       case CmisPages::PAGE01:
         CHECK_LE(offset + length, sizeof(page01_));
         return (page01_ + offset);
@@ -673,12 +677,18 @@ DOMDataUnion CmisModule::getDOMDataUnion() {
     *cmisData.page0_ref() =
         IOBuf::wrapBufferAsValue(page0_, MAX_QSFP_PAGE_SIZE);
     if (!flatMem_) {
-      cmisData.page01_ref() = IOBuf::wrapBufferAsValue(page01_, MAX_QSFP_PAGE_SIZE);
-      cmisData.page02_ref() = IOBuf::wrapBufferAsValue(page02_, MAX_QSFP_PAGE_SIZE);
-      cmisData.page10_ref() = IOBuf::wrapBufferAsValue(page10_, MAX_QSFP_PAGE_SIZE);
-      cmisData.page11_ref() = IOBuf::wrapBufferAsValue(page11_, MAX_QSFP_PAGE_SIZE);
-      cmisData.page13_ref() = IOBuf::wrapBufferAsValue(page13_, MAX_QSFP_PAGE_SIZE);
-      cmisData.page14_ref() = IOBuf::wrapBufferAsValue(page14_, MAX_QSFP_PAGE_SIZE);
+      cmisData.page01_ref() =
+          IOBuf::wrapBufferAsValue(page01_, MAX_QSFP_PAGE_SIZE);
+      cmisData.page02_ref() =
+          IOBuf::wrapBufferAsValue(page02_, MAX_QSFP_PAGE_SIZE);
+      cmisData.page10_ref() =
+          IOBuf::wrapBufferAsValue(page10_, MAX_QSFP_PAGE_SIZE);
+      cmisData.page11_ref() =
+          IOBuf::wrapBufferAsValue(page11_, MAX_QSFP_PAGE_SIZE);
+      cmisData.page13_ref() =
+          IOBuf::wrapBufferAsValue(page13_, MAX_QSFP_PAGE_SIZE);
+      cmisData.page14_ref() =
+          IOBuf::wrapBufferAsValue(page14_, MAX_QSFP_PAGE_SIZE);
     }
   }
   cmisData.timeCollected_ref() = lastRefreshTime_;
@@ -857,7 +867,8 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
 
   // Flip to page 0x10 to get prepared.
   uint8_t page = 0x10;
-  qsfpImpl_->writeTransceiver(TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+  qsfpImpl_->writeTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
 
   getQsfpFieldAddress(CmisField::APP_SEL_LANE_1, dataAddress, offset, length);
 

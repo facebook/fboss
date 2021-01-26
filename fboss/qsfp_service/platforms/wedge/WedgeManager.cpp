@@ -1,10 +1,10 @@
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 
+#include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/qsfp_service/module/QsfpModule.h"
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
 #include "fboss/qsfp_service/module/sff/SffModule.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeQsfp.h"
-#include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <fb303/ThreadCachedServiceData.h>
 
@@ -18,7 +18,8 @@ constexpr int kSecAfterModuleOutOfReset = 2;
 
 }
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 WedgeManager::WedgeManager(
     std::unique_ptr<TransceiverPlatformApi> api,
@@ -26,8 +27,7 @@ WedgeManager::WedgeManager(
     PlatformMode mode)
     : TransceiverManager(std::move(api)),
       platformMapping_(std::move(platformMapping)),
-      platformMode_(mode)
-   {
+      platformMode_(mode) {
   /* Constructor for WedgeManager class:
    * Get the TransceiverPlatformApi object from the creator of this object,
    * this object will be used for controlling the QSFP devices on board.
@@ -68,8 +68,8 @@ void WedgeManager::loadConfig() {
       } else {
         portGroupIt->second.insert(port);
       }
-      XLOG(INFO) << "Added port " << portId
-                 << " to transceiver " << transceiverId.value();
+      XLOG(INFO) << "Added port " << portId << " to transceiver "
+                 << transceiverId.value();
     }
   } catch (const std::exception& ex) {
     XLOG(ERR) << "Fail to load config: " << ex.what()
@@ -91,7 +91,8 @@ void WedgeManager::initTransceiverMap() {
 
   // Initialize port status map for transceivers.
   for (int idx = 0; idx < getNumQsfpModules(); idx++) {
-    ports_.wlock()->emplace(TransceiverID(idx), std::map<uint32_t, PortStatus>());
+    ports_.wlock()->emplace(
+        TransceiverID(idx), std::map<uint32_t, PortStatus>());
   }
 
   // Also try to load the config file here so that we have transceiver to port
@@ -101,13 +102,13 @@ void WedgeManager::initTransceiverMap() {
   refreshTransceivers();
 }
 
-void WedgeManager::getTransceiversInfo(std::map<int32_t, TransceiverInfo>& info,
+void WedgeManager::getTransceiversInfo(
+    std::map<int32_t, TransceiverInfo>& info,
     std::unique_ptr<std::vector<int32_t>> ids) {
   XLOG(INFO) << "Received request for getTransceiverInfo, with ids: "
              << (ids->size() > 0 ? folly::join(",", *ids) : "None");
   if (ids->empty()) {
-    folly::gen::range(0, getNumQsfpModules()) |
-      folly::gen::appendTo(*ids);
+    folly::gen::range(0, getNumQsfpModules()) | folly::gen::appendTo(*ids);
   }
 
   auto lockedTransceivers = transceivers_.rlock();
@@ -119,7 +120,7 @@ void WedgeManager::getTransceiversInfo(std::map<int32_t, TransceiverInfo>& info,
     }
     TransceiverInfo trans;
     if (auto it = lockedTransceivers->find(TransceiverID(i));
-         it != lockedTransceivers->end()) {
+        it != lockedTransceivers->end()) {
       try {
         trans = it->second->getTransceiverInfo();
       } catch (const std::exception& ex) {
@@ -128,7 +129,8 @@ void WedgeManager::getTransceiversInfo(std::map<int32_t, TransceiverInfo>& info,
       }
     } else {
       try {
-        trans.present_ref() = WedgeQsfp(i, wedgeI2cBus_.get()).detectTransceiver();
+        trans.present_ref() =
+            WedgeQsfp(i, wedgeI2cBus_.get()).detectTransceiver();
       } catch (const std::exception& ex) {
         trans.present_ref() = false;
       }
@@ -145,8 +147,7 @@ void WedgeManager::getTransceiversRawDOMData(
   XLOG(INFO) << "Received request for getTransceiversRawDOMData, with ids: "
              << (ids->size() > 0 ? folly::join(",", *ids) : "None");
   if (ids->empty()) {
-    folly::gen::range(0, getNumQsfpModules()) |
-      folly::gen::appendTo(*ids);
+    folly::gen::range(0, getNumQsfpModules()) | folly::gen::appendTo(*ids);
   }
   auto lockedTransceivers = transceivers_.rlock();
   for (const auto& i : *ids) {
@@ -175,8 +176,7 @@ void WedgeManager::getTransceiversDOMDataUnion(
   XLOG(INFO) << "Received request for getTransceiversDOMDataUnion, with ids: "
              << (ids->size() > 0 ? folly::join(",", *ids) : "None");
   if (ids->empty()) {
-    folly::gen::range(0, getNumQsfpModules()) |
-      folly::gen::appendTo(*ids);
+    folly::gen::range(0, getNumQsfpModules()) | folly::gen::appendTo(*ids);
   }
   auto lockedTransceivers = transceivers_.rlock();
   for (const auto& i : *ids) {
@@ -265,8 +265,8 @@ void WedgeManager::customizeTransceiver(int32_t idx, cfg::PortSpeed speed) {
     try {
       it->second->customizeTransceiver(speed);
     } catch (const std::exception& ex) {
-        XLOG(ERR) << "Transceiver " << idx
-                  << ": Error calling customizeTransceiver(): " << ex.what();
+      XLOG(ERR) << "Transceiver " << idx
+                << ": Error calling customizeTransceiver(): " << ex.what();
     }
   }
 }
@@ -336,7 +336,8 @@ void WedgeManager::refreshTransceivers() {
   auto lockedTransceivers = transceivers_.rlock();
 
   for (const auto& transceiver : *lockedTransceivers) {
-    XLOG(DBG3) << "Fired to refresh transceiver " << transceiver.second->getID();
+    XLOG(DBG3) << "Fired to refresh transceiver "
+               << transceiver.second->getID();
     futs.push_back(transceiver.second->futureRefresh());
   }
 
@@ -386,7 +387,8 @@ void WedgeManager::updateTransceiverMap() {
   std::vector<std::unique_ptr<WedgeQsfp>> qsfpImpls;
   for (int idx = 0; idx < getNumQsfpModules(); idx++) {
     qsfpImpls.push_back(std::make_unique<WedgeQsfp>(idx, wedgeI2cBus_.get()));
-    futInterfaces.push_back(qsfpImpls[idx]->futureGetTransceiverManagementInterface());
+    futInterfaces.push_back(
+        qsfpImpls[idx]->futureGetTransceiverManagementInterface());
   }
   folly::collectAllUnsafe(futInterfaces.begin(), futInterfaces.end()).wait();
   for (int idx = 0; idx < getNumQsfpModules(); idx++) {
@@ -411,31 +413,25 @@ void WedgeManager::updateTransceiverMap() {
     // Either we don't have a transceiver here before or we had a new one since
     // the management interface changed, we want to create a new module here.
     int portsPerTransceiver =
-        (portGroupMap_.size() == 0
-        ? numPortsPerTransceiver()
-        : portGroupMap_[idx].size());
-    if (futInterfaces[idx].value() == TransceiverManagementInterface::CMIS)
-    {
+        (portGroupMap_.size() == 0 ? numPortsPerTransceiver()
+                                   : portGroupMap_[idx].size());
+    if (futInterfaces[idx].value() == TransceiverManagementInterface::CMIS) {
       XLOG(INFO) << "making CMIS QSFP for " << idx;
       lockedTransceivers->emplace(
           TransceiverID(idx),
           std::make_unique<CmisModule>(
-              this,
-              std::move(qsfpImpls[idx]),
-              portsPerTransceiver));
-    } else if (futInterfaces[idx].value() == TransceiverManagementInterface::SFF)
-    {
+              this, std::move(qsfpImpls[idx]), portsPerTransceiver));
+    } else if (
+        futInterfaces[idx].value() == TransceiverManagementInterface::SFF) {
       XLOG(INFO) << "making Sff QSFP for " << idx;
       lockedTransceivers->emplace(
           TransceiverID(idx),
           std::make_unique<SffModule>(
-              this,
-              std::move(qsfpImpls[idx]),
-              portsPerTransceiver));
+              this, std::move(qsfpImpls[idx]), portsPerTransceiver));
     } else {
       XLOG(DBG3) << "Unknown Transceiver interface: "
-                 << static_cast<int>(futInterfaces[idx].value())
-                 << " at idx " << idx;
+                 << static_cast<int>(futInterfaces[idx].value()) << " at idx "
+                 << idx;
 
       try {
         if (!qsfpImpls[idx]->detectTransceiver()) {
@@ -443,8 +439,8 @@ void WedgeManager::updateTransceiverMap() {
           continue;
         }
       } catch (const std::exception& ex) {
-        XLOG(ERR) << "failed to detect transceiver at idx "
-                  << idx << ": " << ex.what();
+        XLOG(ERR) << "failed to detect transceiver at idx " << idx << ": "
+                  << ex.what();
         continue;
       }
       // There are times when a module cannot be read however it's present.
@@ -455,27 +451,28 @@ void WedgeManager::updateTransceiverMap() {
         // Check if we have expected ports info synced over and if all of
         // the port is down. If any of them is not true then we will not
         // perform the reset.
-        safeToReset = (iter->second.size() == portsPerTransceiver) &&
-            std::all_of(iter->second.begin(),
-                        iter->second.end(),
-                        [](const auto& port) {
-              return !(*port.second.up_ref());
-            });
+        safeToReset =
+            (iter->second.size() == portsPerTransceiver) &&
+            std::all_of(
+                iter->second.begin(), iter->second.end(), [](const auto& port) {
+                  return !(*port.second.up_ref());
+                });
       }
       if (safeToReset && (std::time(nullptr) > pauseRemediationUntil_)) {
-        XLOG(INFO) << "A present transceiver with unknown interface at "
-                   << idx << " Try reset.";
-        // This api accept 1 based module id however the module id in WedgeManager
-        // is 0 based.
+        XLOG(INFO) << "A present transceiver with unknown interface at " << idx
+                   << " Try reset.";
+        // This api accept 1 based module id however the module id in
+        // WedgeManager is 0 based.
         try {
           qsfpPlatApi_->triggerQsfpHardReset(idx + 1);
         } catch (const std::exception& ex) {
-          XLOG(ERR) << "failed to triggerQsfpHardReset at idx "
-                    << idx << ": " << ex.what();
+          XLOG(ERR) << "failed to triggerQsfpHardReset at idx " << idx << ": "
+                    << ex.what();
           continue;
         }
       } else {
-        XLOG(ERR) << "Unknown interface of transceiver with ports up at " << idx;
+        XLOG(ERR) << "Unknown interface of transceiver with ports up at "
+                  << idx;
       }
       continue;
     }
@@ -490,7 +487,7 @@ void WedgeManager::updateTransceiverMap() {
         iter != lockedPorts->end() && !iter->second.empty()) {
       try {
         lockedTransceivers->at(TransceiverID(idx))
-                          ->transceiverPortsChanged(iter->second);
+            ->transceiverPortsChanged(iter->second);
       } catch (const std::exception& ex) {
         XLOG(ERR) << "Transceiver " << idx
                   << ": Error calling transceiverPortsChanged: " << ex.what();
@@ -554,17 +551,17 @@ void WedgeManager::publishI2cTransactionStats() {
 std::optional<phy::PhyPortConfig> WedgeManager::getPhyPortConfigValues(
     int32_t portId,
     cfg::PortProfileID portProfileId) {
-
   phy::PhyPortConfig phyPortConfig;
 
   // First verify if the platform mapping exist for this platform
   if (platformMapping_.get() == nullptr) {
-    XLOG(INFO) << "Platform mapping is not present for this platform, exiting" ;
+    XLOG(INFO) << "Platform mapping is not present for this platform, exiting";
     return std::nullopt;
   }
 
   // String value of profile id for printing in log
-  std::string portProfileIdStr = apache::thrift::util::enumNameSafe(portProfileId);
+  std::string portProfileIdStr =
+      apache::thrift::util::enumNameSafe(portProfileId);
 
   // Get port profile config for the given port profile id
   auto portProfileConfig = platformMapping_->getPortProfileConfig(
@@ -583,26 +580,34 @@ std::optional<phy::PhyPortConfig> WedgeManager::getPhyPortConfigValues(
     return std::nullopt;
   }
 
-  // From the above platform port entry, get the port config for the given port profile id
-  auto platformPortConfig = platformPortEntry->second.supportedProfiles_ref()->find(portProfileId);
-  if (platformPortConfig == platformPortEntry->second.supportedProfiles_ref()->end()) {
-    XLOG(INFO) << "For port id " << portId << " port profile id " << portProfileIdStr
+  // From the above platform port entry, get the port config for the given port
+  // profile id
+  auto platformPortConfig =
+      platformPortEntry->second.supportedProfiles_ref()->find(portProfileId);
+  if (platformPortConfig ==
+      platformPortEntry->second.supportedProfiles_ref()->end()) {
+    XLOG(INFO) << "For port id " << portId << " port profile id "
+               << portProfileIdStr
                << ", the supported profile not found in platform mapping";
     return std::nullopt;
   }
 
   // Get the line polarity swap map
   auto linePolaritySwapMap = utility::getXphyLinePolaritySwapMap(
-    *platformPortEntry->second.get_mapping().pins_ref(), platformMapping_->getChips());
+      *platformPortEntry->second.get_mapping().pins_ref(),
+      platformMapping_->getChips());
 
-  // Build the PhyPortConfig using platform port config pins list, polrity swap map, port profile config
+  // Build the PhyPortConfig using platform port config pins list, polrity swap
+  // map, port profile config
   phyPortConfig.config = phy::ExternalPhyConfig::fromConfigeratorTypes(
-    *platformPortConfig->second.pins_ref(), linePolaritySwapMap);
+      *platformPortConfig->second.pins_ref(), linePolaritySwapMap);
 
-  phyPortConfig.profile =  phy::ExternalPhyProfileConfig::fromPortProfileConfig(*portProfileConfig);
+  phyPortConfig.profile =
+      phy::ExternalPhyProfileConfig::fromPortProfileConfig(*portProfileConfig);
 
   // Return true
   return phyPortConfig;
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

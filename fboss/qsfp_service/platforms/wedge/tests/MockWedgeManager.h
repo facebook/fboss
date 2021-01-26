@@ -13,16 +13,15 @@ class MockWedgeManager : public WedgeManager {
   MockWedgeManager() : WedgeManager(nullptr, nullptr, PlatformMode::WEDGE) {}
   void makeTransceiverMap() {
     for (int idx = 0; idx < getNumQsfpModules(); idx++) {
-      std::unique_ptr<MockSffModule> qsfp =
-          std::make_unique<MockSffModule>(
-              this, nullptr, numPortsPerTransceiver());
+      std::unique_ptr<MockSffModule> qsfp = std::make_unique<MockSffModule>(
+          this, nullptr, numPortsPerTransceiver());
       mockTransceivers_.emplace(TransceiverID(idx), qsfp.get());
       transceivers_.wlock()->emplace(TransceiverID(idx), move(qsfp));
     }
   }
 
   PlatformMode getPlatformMode() override {
-      return PlatformMode::WEDGE;
+    return PlatformMode::WEDGE;
   }
 
   std::map<TransceiverID, MockSffModule*> mockTransceivers_;

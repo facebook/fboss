@@ -14,10 +14,11 @@
 #include <chrono>
 #include <cstdint>
 #include <mutex>
-#include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
+#include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class WedgeQsfpStats {
   using time_point = std::chrono::steady_clock::time_point;
@@ -29,12 +30,12 @@ class WedgeQsfpStats {
 
   void updateReadDownTime() {
     std::lock_guard<std::mutex> g(statsMutex_);
-    *stats_.readDownTime_ref() = downTimeLocked(lastSuccessfulRead_);
+    stats_.readDownTime_ref() = downTimeLocked(lastSuccessfulRead_);
   }
 
   void updateWriteDownTime() {
     std::lock_guard<std::mutex> g(statsMutex_);
-    *stats_.writeDownTime_ref() = downTimeLocked(lastSuccessfulWrite_);
+    stats_.writeDownTime_ref() = downTimeLocked(lastSuccessfulWrite_);
   }
 
   void recordReadSuccess() {
@@ -74,12 +75,15 @@ class WedgeQsfp : public TransceiverImpl {
   ~WedgeQsfp() override;
 
   /* This function is used to read the SFP EEprom */
-  int readTransceiver(int dataAddress, int offset,
-                      int len, uint8_t* fieldValue) override;
+  int readTransceiver(int dataAddress, int offset, int len, uint8_t* fieldValue)
+      override;
 
   /* write to the eeprom (usually to change the page setting) */
-  int writeTransceiver(int dataAddress, int offset,
-                       int len, uint8_t* fieldValue) override;
+  int writeTransceiver(
+      int dataAddress,
+      int offset,
+      int len,
+      uint8_t* fieldValue) override;
 
   /* This function detects if a SFP is present on the particular port */
   bool detectTransceiver() override;
@@ -98,7 +102,7 @@ class WedgeQsfp : public TransceiverImpl {
 
   TransceiverManagementInterface getTransceiverManagementInterface();
   folly::Future<TransceiverManagementInterface>
-    futureGetTransceiverManagementInterface();
+  futureGetTransceiverManagementInterface();
 
  private:
   int module_;
@@ -107,4 +111,5 @@ class WedgeQsfp : public TransceiverImpl {
   WedgeQsfpStats wedgeQsfpstats_;
 };
 
-}} // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

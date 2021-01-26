@@ -30,9 +30,9 @@ class CmisModule : public QsfpModule {
   /*
    * Return the spec this transceiver follows.
    */
-   TransceiverManagementInterface managementInterface() const override {
-     return TransceiverManagementInterface::CMIS;
-   }
+  TransceiverManagementInterface managementInterface() const override {
+    return TransceiverManagementInterface::CMIS;
+  }
 
   /*
    * Get the QSFP EEPROM Field
@@ -87,7 +87,8 @@ class CmisModule : public QsfpModule {
    * data after checking the length fits. The thread needs to have the lock
    * before calling this function.
    */
-  const uint8_t* getQsfpValuePtr(int dataAddress, int offset, int length) const override;
+  const uint8_t* getQsfpValuePtr(int dataAddress, int offset, int length)
+      const override;
   /*
    * Perform transceiver customization
    * This must be called with a lock held on qsfpModuleMutex_
@@ -107,7 +108,8 @@ class CmisModule : public QsfpModule {
    * Wedge forces Low Power mode via a pin;  we have to reset this
    * to force High Power mode on LR4s.
    */
-  virtual void setPowerOverrideIfSupported(PowerControlState currentState) override;
+  virtual void setPowerOverrideIfSupported(
+      PowerControlState currentState) override;
   /*
    * Set appropriate application code for PortSpeed, if supported
    */

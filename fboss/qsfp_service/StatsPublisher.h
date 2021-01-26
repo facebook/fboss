@@ -13,11 +13,12 @@
 #include <folly/io/async/EventBase.h>
 #include "fboss/qsfp_service/TransceiverManager.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 class StatsPublisher {
  public:
   explicit StatsPublisher(TransceiverManager* transceiverManager)
-    : transceiverManager_(transceiverManager) {};
+      : transceiverManager_(transceiverManager) {}
   void init();
   void publishStats(folly::EventBase* evb, int32_t stats_publish_interval);
   static void bumpPciLockHeld();
@@ -30,4 +31,5 @@ class StatsPublisher {
  private:
   TransceiverManager* transceiverManager_{nullptr};
 };
-}}
+} // namespace fboss
+} // namespace facebook

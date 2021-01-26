@@ -18,10 +18,11 @@
 #include "fboss/qsfp_service/module/sff/SffFieldInfo.h"
 #include "fboss/qsfp_service/module/sff/SffModule.h"
 
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class MockSffModule : public SffModule {
  public:
@@ -29,7 +30,10 @@ class MockSffModule : public SffModule {
       TransceiverManager* transceiverManager,
       std::unique_ptr<TransceiverImpl> qsfpImpl,
       unsigned int portsPerTransceiver)
-      : SffModule(transceiverManager, std::move(qsfpImpl), portsPerTransceiver) {
+      : SffModule(
+            transceiverManager,
+            std::move(qsfpImpl),
+            portsPerTransceiver) {
     ON_CALL(*this, updateQsfpData(testing::_))
         .WillByDefault(testing::Assign(&dirty_, false));
   }
@@ -39,20 +43,26 @@ class MockSffModule : public SffModule {
   MOCK_METHOD2(getSettingsValue, uint8_t(SffField, uint8_t));
   MOCK_METHOD0(getTransceiverInfo, TransceiverInfo());
 
-  MOCK_METHOD3(setCdrIfSupported, void(cfg::PortSpeed, FeatureState,
-        FeatureState));
-  MOCK_METHOD3(setRateSelectIfSupported, void(cfg::PortSpeed,
-        RateSelectState, RateSelectSetting));
+  MOCK_METHOD3(
+      setCdrIfSupported,
+      void(cfg::PortSpeed, FeatureState, FeatureState));
+  MOCK_METHOD3(
+      setRateSelectIfSupported,
+      void(cfg::PortSpeed, RateSelectState, RateSelectSetting));
 
   MOCK_CONST_METHOD0(getQsfpTransmitterTechnology, TransmitterTechnology());
 
   // Provide way to call parent
-  void actualSetCdrIfSupported(cfg::PortSpeed speed, FeatureState tx,
+  void actualSetCdrIfSupported(
+      cfg::PortSpeed speed,
+      FeatureState tx,
       FeatureState rx) {
     SffModule::setCdrIfSupported(speed, tx, rx);
   }
-  void actualSetRateSelectIfSupported(cfg::PortSpeed speed,
-      RateSelectState currentState, RateSelectSetting currentSetting) {
+  void actualSetRateSelectIfSupported(
+      cfg::PortSpeed speed,
+      RateSelectState currentState,
+      RateSelectSetting currentSetting) {
     SffModule::setRateSelectIfSupported(speed, currentState, currentSetting);
   }
   void actualUpdateQsfpData(bool full) {
@@ -63,7 +73,6 @@ class MockSffModule : public SffModule {
     flatMem_ = false;
   }
 
-
   void customizeTransceiver(cfg::PortSpeed speed) override {
     dirty_ = false;
     present_ = true;
@@ -72,10 +81,10 @@ class MockSffModule : public SffModule {
 
   TransceiverSettings getTransceiverSettingsInfo() override {
     TransceiverSettings settings = TransceiverSettings();
-    *settings.cdrTx_ref() = cdrTx_;
-    *settings.cdrRx_ref() = cdrRx_;
-    *settings.rateSelect_ref() = state_;
-    *settings.rateSelectSetting_ref() = setting_;
+    settings.cdrTx_ref() = cdrTx_;
+    settings.cdrRx_ref() = cdrRx_;
+    settings.rateSelect_ref() = state_;
+    settings.rateSelectSetting_ref() = setting_;
     return settings;
   }
 
@@ -107,4 +116,5 @@ class MockSffModule : public SffModule {
   RateSelectState state_ = RateSelectState::UNSUPPORTED;
   RateSelectSetting setting_ = RateSelectSetting::UNSUPPORTED;
 };
-}}
+} // namespace fboss
+} // namespace facebook

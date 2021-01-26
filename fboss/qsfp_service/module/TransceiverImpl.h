@@ -9,15 +9,16 @@
  */
 #pragma once
 
-#include <optional>
 #include <folly/String.h>
 #include <folly/io/async/EventBase.h>
 #include <cstdint>
+#include <optional>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /*
  * This is class is the SFP implementation class
@@ -30,10 +31,16 @@ class TransceiverImpl {
   /*
    * Get the raw data from the Transceiver via I2C
    */
-  virtual int readTransceiver(int dataAddress, int offset,
-                              int len, uint8_t* fieldValue) = 0;
-  virtual int writeTransceiver(int dataAddress, int offset,
-                              int len, uint8_t* fieldValue) = 0;
+  virtual int readTransceiver(
+      int dataAddress,
+      int offset,
+      int len,
+      uint8_t* fieldValue) = 0;
+  virtual int writeTransceiver(
+      int dataAddress,
+      int offset,
+      int len,
+      uint8_t* fieldValue) = 0;
 
   /*
    * This function will check if the transceiver is present or not
@@ -44,12 +51,12 @@ class TransceiverImpl {
    * In an implementation where newly inserted transceivers needs to be cleared
    * out of reset. This is the function to do it.
    */
-  virtual void ensureOutOfReset(){};
+  virtual void ensureOutOfReset() {}
 
   /* This function does a hard reset of the QSFP and this will be
    * called when port flap is seen on the port remains down
    */
-  virtual void triggerQsfpHardReset(){};
+  virtual void triggerQsfpHardReset() {}
 
   /*
    * Returns the name of the port
@@ -75,10 +82,11 @@ class TransceiverImpl {
 
  private:
   // Forbidden copy contructor and assignment operator
-  TransceiverImpl(TransceiverImpl const &) = delete;
-  TransceiverImpl& operator=(TransceiverImpl const &) = delete;
+  TransceiverImpl(TransceiverImpl const&) = delete;
+  TransceiverImpl& operator=(TransceiverImpl const&) = delete;
 
   enum : unsigned int { kMaxChannels = 4 };
 };
 
-}} // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

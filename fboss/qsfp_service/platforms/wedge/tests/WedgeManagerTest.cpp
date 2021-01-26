@@ -16,8 +16,8 @@
 
 #include <folly/Memory.h>
 
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 using namespace facebook::fboss;
 using namespace ::testing;
@@ -38,8 +38,8 @@ TEST_F(WedgeManagerTest, getTransceiverInfo) {
     EXPECT_CALL(*trans.second, getTransceiverInfo()).Times(1);
   }
   std::map<int32_t, TransceiverInfo> transInfo;
-  wedgeManager_->getTransceiversInfo(transInfo,
-      std::make_unique<std::vector<int32_t>>());
+  wedgeManager_->getTransceiversInfo(
+      transInfo, std::make_unique<std::vector<int32_t>>());
 
   // Otherwise, just return the ids requested
   std::vector<int32_t> data = {1, 3, 7};
@@ -47,8 +47,8 @@ TEST_F(WedgeManagerTest, getTransceiverInfo) {
     MockSffModule* qsfp = wedgeManager_->mockTransceivers_[TransceiverID(i)];
     EXPECT_CALL(*qsfp, getTransceiverInfo()).Times(1);
   }
-  wedgeManager_->getTransceiversInfo(transInfo,
-      std::make_unique<std::vector<int32_t>>(data));
+  wedgeManager_->getTransceiversInfo(
+      transInfo, std::make_unique<std::vector<int32_t>>(data));
 }
 
 TEST_F(WedgeManagerTest, readTransceiver) {
@@ -82,4 +82,4 @@ TEST_F(WedgeManagerTest, writeTransceiver) {
     EXPECT_NE(response.find(i), response.end());
   }
 }
-}
+} // namespace

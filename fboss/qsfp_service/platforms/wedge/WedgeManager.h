@@ -8,10 +8,11 @@
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/i2c/gen-cpp2/i2c_controller_stats_types.h"
 #include "fboss/lib/usb/WedgeI2CBus.h"
-#include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
+#include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 class WedgeManager : public TransceiverManager {
  public:
   using TransceiverMap = std::map<int32_t, TransceiverInfo>;
@@ -26,14 +27,15 @@ class WedgeManager : public TransceiverManager {
   ~WedgeManager() override {}
 
   void initTransceiverMap() override;
-  void getTransceiversInfo(TransceiverMap& info,
-    std::unique_ptr<std::vector<int32_t>> ids) override;
+  void getTransceiversInfo(
+      TransceiverMap& info,
+      std::unique_ptr<std::vector<int32_t>> ids) override;
   void getTransceiversRawDOMData(
-    std::map<int32_t, RawDOMData>& info,
-    std::unique_ptr<std::vector<int32_t>> ids) override;
+      std::map<int32_t, RawDOMData>& info,
+      std::unique_ptr<std::vector<int32_t>> ids) override;
   void getTransceiversDOMDataUnion(
-    std::map<int32_t, DOMDataUnion>& info,
-    std::unique_ptr<std::vector<int32_t>> ids) override;
+      std::map<int32_t, DOMDataUnion>& info,
+      std::unique_ptr<std::vector<int32_t>> ids) override;
   void readTransceiverRegister(
       std::map<int32_t, ReadResponse>& response,
       std::unique_ptr<ReadRequest> request) override;
@@ -86,8 +88,8 @@ class WedgeManager : public TransceiverManager {
    * config using platform mapping.
    */
   std::optional<phy::PhyPortConfig> getPhyPortConfigValues(
-    int32_t portId,
-    cfg::PortProfileID portProfileId);
+      int32_t portId,
+      cfg::PortProfileID portProfileId);
 
   /*
    * This function will call PhyManager to create all the ExternalPhy objects
@@ -116,7 +118,8 @@ class WedgeManager : public TransceiverManager {
  private:
   void loadConfig() override;
   // Forbidden copy constructor and assignment operator
-  WedgeManager(WedgeManager const &) = delete;
-  WedgeManager& operator=(WedgeManager const &) = delete;
+  WedgeManager(WedgeManager const&) = delete;
+  WedgeManager& operator=(WedgeManager const&) = delete;
 };
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

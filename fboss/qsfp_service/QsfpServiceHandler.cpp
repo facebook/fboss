@@ -4,13 +4,12 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 QsfpServiceHandler::QsfpServiceHandler(
-  std::unique_ptr<TransceiverManager> manager) :
-    FacebookBase2("QsfpService"),
-    manager_(std::move(manager)) {
-}
+    std::unique_ptr<TransceiverManager> manager)
+    : FacebookBase2("QsfpService"), manager_(std::move(manager)) {}
 
 void QsfpServiceHandler::init() {
   // Initialize the I2c bus
@@ -28,13 +27,15 @@ TransceiverType QsfpServiceHandler::getType(int32_t /* unused */) {
   return TransceiverType::QSFP;
 }
 
-void QsfpServiceHandler::getTransceiverInfo(std::map<int32_t,
-    TransceiverInfo>& info, std::unique_ptr<std::vector<int32_t>> ids) {
+void QsfpServiceHandler::getTransceiverInfo(
+    std::map<int32_t, TransceiverInfo>& info,
+    std::unique_ptr<std::vector<int32_t>> ids) {
   auto log = LOG_THRIFT_CALL(INFO);
   manager_->getTransceiversInfo(info, std::move(ids));
 }
 
-void QsfpServiceHandler::customizeTransceiver(int32_t idx,
+void QsfpServiceHandler::customizeTransceiver(
+    int32_t idx,
     cfg::PortSpeed speed) {
   auto log = LOG_THRIFT_CALL(INFO);
   XLOG(INFO) << "customizeTransceiver request for " << idx << " to speed "
@@ -107,4 +108,5 @@ void QsfpServiceHandler::writeTransceiverRegister(
   }
   manager_->writeTransceiverRegister(response, std::move(request));
 }
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

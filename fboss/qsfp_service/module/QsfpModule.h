@@ -10,15 +10,16 @@
 #pragma once
 #include <cstdint>
 #include <mutex>
-#include "fboss/qsfp_service/module/Transceiver.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
+#include "fboss/qsfp_service/module/Transceiver.h"
 
-#include <optional>
 #include <folly/Synchronized.h>
 #include <folly/futures/Future.h>
+#include <optional>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class TransceiverImpl;
 class TransceiverManager;
@@ -28,14 +29,14 @@ class TransceiverManager;
  * related issue.
  */
 class QsfpModuleError : public std::exception {
-public:
+ public:
   explicit QsfpModuleError(const std::string& what) : what_(what) {}
 
   const char* what() const noexcept override {
     return what_.c_str();
   }
 
-private:
+ private:
   std::string what_;
 };
 
@@ -91,7 +92,7 @@ class QsfpModule : public Transceiver {
   TransceiverInfo getTransceiverInfo() override;
 
   void transceiverPortsChanged(
-    const std::map<uint32_t, PortStatus>& ports) override;
+      const std::map<uint32_t, PortStatus>& ports) override;
 
   /*
    * Perform a raw register read on the transceiver
@@ -120,8 +121,8 @@ class QsfpModule : public Transceiver {
 
  protected:
   // no copy or assignment
-  QsfpModule(QsfpModule const &) = delete;
-  QsfpModule& operator=(QsfpModule const &) = delete;
+  QsfpModule(QsfpModule const&) = delete;
+  QsfpModule& operator=(QsfpModule const&) = delete;
 
   enum : unsigned int {
     EEPROM_DEFAULT = 255,
@@ -186,8 +187,8 @@ class QsfpModule : public Transceiver {
    * from the static cached data. The thread needs to have the lock
    * before calling this function.
    */
-  void getQsfpValue(int dataAddress,
-                    int offset, int length, uint8_t* data) const;
+  void getQsfpValue(int dataAddress, int offset, int length, uint8_t* data)
+      const;
   /*
    * Based on identifier, sets whether the upper memory of the module is flat or
    * paged.
@@ -268,8 +269,8 @@ class QsfpModule : public Transceiver {
    * This is the field of Byte 192 on page00 and following table 4-4
    * of SFF-8024.
    */
-  virtual
-      ExtendedSpecComplianceCode getExtendedSpecificationComplianceCode() = 0;
+  virtual ExtendedSpecComplianceCode
+  getExtendedSpecificationComplianceCode() = 0;
   /*
    * This function returns true if both the sfp is present and the
    * cache data is not stale. This should be checked before any
@@ -300,14 +301,14 @@ class QsfpModule : public Transceiver {
    * down for a long time. These are actions that are potentially more
    * disruptive, but have worked in the past to recover a transceiver.
    */
-  virtual void remediateFlakyTransceiver(){}
+  virtual void remediateFlakyTransceiver() {}
 
   // make sure that tx_disable bits are clear
-  virtual void ensureTxEnabled(){}
+  virtual void ensureTxEnabled() {}
 
   // set to low power and then back to original setting. This has
   // effect of restarting the transceiver state machine
-  virtual void resetLowPowerMode(){}
+  virtual void resetLowPowerMode() {}
 
   /*
    * Determine if it is safe to customize the ports based on the
@@ -363,4 +364,5 @@ class QsfpModule : public Transceiver {
    */
   bool writeTransceiverLocked(TransceiverIOParameters param, uint8_t data);
 };
-}} //namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

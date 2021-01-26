@@ -8,7 +8,7 @@
  *
  */
 
-#include "WedgeQsfp.h"
+#include "fboss/qsfp_service/platforms/wedge/WedgeQsfp.h"
 #include <folly/Conv.h>
 #include <folly/Memory.h>
 #include <folly/ScopeGuard.h>
@@ -18,23 +18,23 @@
 
 using namespace facebook::fboss;
 using folly::MutableByteRange;
-using std::make_unique;
 using folly::StringPiece;
+using std::make_unique;
 using std::unique_ptr;
 
 namespace {
 constexpr uint8_t kCMISIdentifier = 0x1e;
 }
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 WedgeQsfp::WedgeQsfp(int module, TransceiverI2CApi* wedgeI2CBus)
     : module_(module), threadSafeI2CBus_(wedgeI2CBus) {
   moduleName_ = folly::to<std::string>(module);
 }
 
-WedgeQsfp::~WedgeQsfp() {
-}
+WedgeQsfp::~WedgeQsfp() {}
 
 // Note that the module_ starts at 0, but the I2C bus module
 // assumes that QSFP module numbers extend from 1 to 16.
@@ -47,8 +47,11 @@ void WedgeQsfp::ensureOutOfReset() {
   threadSafeI2CBus_->ensureOutOfReset(module_ + 1);
 }
 
-int WedgeQsfp::readTransceiver(int dataAddress, int offset,
-                               int len, uint8_t* fieldValue) {
+int WedgeQsfp::readTransceiver(
+    int dataAddress,
+    int offset,
+    int len,
+    uint8_t* fieldValue) {
   try {
     SCOPE_EXIT {
       wedgeQsfpstats_.updateReadDownTime();
@@ -59,8 +62,8 @@ int WedgeQsfp::readTransceiver(int dataAddress, int offset,
     SCOPE_SUCCESS {
       wedgeQsfpstats_.recordReadSuccess();
     };
-    threadSafeI2CBus_->moduleRead(module_ + 1, dataAddress, offset, len,
-                                  fieldValue);
+    threadSafeI2CBus_->moduleRead(
+        module_ + 1, dataAddress, offset, len, fieldValue);
   } catch (const std::exception& ex) {
     XLOG(ERR) << "Read from transceiver " << module_ << " at offset " << offset
               << " with length " << len << " failed: " << ex.what();
@@ -128,7 +131,7 @@ TransceiverManagementInterface WedgeQsfp::getTransceiverManagementInterface() {
 }
 
 folly::Future<TransceiverManagementInterface>
-    WedgeQsfp::futureGetTransceiverManagementInterface() {
+WedgeQsfp::futureGetTransceiverManagementInterface() {
   auto i2cEvb = getI2cEventBase();
   TransceiverManagementInterface managementInterface;
   if (!i2cEvb) {
@@ -154,4 +157,5 @@ folly::Future<TransceiverManagementInterface>
     return mgmtInterface;
   });
 }
-}}
+} // namespace fboss
+} // namespace facebook

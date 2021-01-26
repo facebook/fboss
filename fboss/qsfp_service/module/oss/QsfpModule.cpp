@@ -9,10 +9,12 @@
  */
 #include "fboss/qsfp_service/module/QsfpModule.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 bool QsfpModule::validateQsfpString(const std::string& /*value*/) const {
   return true;
 }
 
-}} //namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook
