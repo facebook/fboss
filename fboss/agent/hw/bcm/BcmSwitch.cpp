@@ -690,7 +690,9 @@ void BcmSwitch::setupLinkscan() {
     initThread("fbossLinkScanBH");
     linkScanBottomHalfEventBase_.loopForever();
   });
-  auto rv = bcm_linkscan_register(unit_, linkscanCallback);
+  auto rv = bcm_switch_control_set(unit_, bcmSwitchLinkDownInfoSkip, 1);
+  bcmCheckError(rv, "failed to skip port info get for link down ports");
+  rv = bcm_linkscan_register(unit_, linkscanCallback);
   bcmCheckError(rv, "failed to register for linkscan events");
   flags_ |= LINKSCAN_REGISTERED;
   rv = bcm_linkscan_enable_set(unit_, FLAGS_linkscan_interval_us);
