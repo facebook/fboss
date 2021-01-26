@@ -120,18 +120,6 @@ std::vector<network::thrift::BinaryAddress> fromFwdNextHops(
   return nhs;
 }
 
-std::vector<NextHopThrift> thriftNextHopsFromAddresses(
-    const std::vector<network::thrift::BinaryAddress>& addrs) {
-  std::vector<NextHopThrift> nhs;
-  nhs.reserve(addrs.size());
-  for (const auto& addr : addrs) {
-    NextHopThrift nh;
-    *nh.address_ref() = addr;
-    *nh.weight_ref() = 0;
-    nhs.emplace_back(std::move(nh));
-  }
-  return nhs;
-}
 } // namespace util
 
 } // namespace facebook::fboss
@@ -808,7 +796,7 @@ void ThriftHandler::updateUnicastRoutesImpl(
       auto adminDistance = route.adminDistance_ref().value_or(clientIdToAdmin);
       std::vector<NextHopThrift> nhts;
       if (route.nextHops_ref()->empty() && !route.nextHopAddrs_ref()->empty()) {
-        nhts = util::thriftNextHopsFromAddresses(*route.nextHopAddrs_ref());
+        nhts = thriftNextHopsFromAddresses(*route.nextHopAddrs_ref());
       } else {
         nhts = *route.nextHops_ref();
       }

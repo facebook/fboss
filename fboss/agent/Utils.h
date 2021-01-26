@@ -124,4 +124,7 @@ std::string switchRunStateStr(SwitchRunState runState);
 
 folly::MacAddress getLocalMacAddress();
 
+std::vector<NextHopThrift> thriftNextHopsFromAddresses(
+    const std::vector<network::thrift::BinaryAddress>& addrs);
+
 } // namespace facebook::fboss

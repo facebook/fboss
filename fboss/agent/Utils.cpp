@@ -147,4 +147,16 @@ folly::MacAddress getLocalMacAddress() {
   return folly::MacAddress::fromHBO(eth0Mac.u64HBO() | 0x0000020000000000);
 }
 
+std::vector<NextHopThrift> thriftNextHopsFromAddresses(
+    const std::vector<network::thrift::BinaryAddress>& addrs) {
+  std::vector<NextHopThrift> nhs;
+  nhs.reserve(addrs.size());
+  for (const auto& addr : addrs) {
+    NextHopThrift nh;
+    nh.address_ref() = addr;
+    nh.weight_ref() = 0;
+    nhs.emplace_back(std::move(nh));
+  }
+  return nhs;
+}
 } // namespace facebook::fboss
