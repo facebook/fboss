@@ -43,11 +43,6 @@ namespace facebook::fboss::rib {
  * Map form clientId -> RouteNextHopEntry
  */
 class RouteNextHopsMulti {
- protected:
-  ClientID findLowestAdminDistance();
-  boost::container::flat_map<ClientID, RouteNextHopEntry> map_;
-  ClientID lowestAdminDistanceClientId_;
-
  public:
   folly::dynamic toFollyDynamic() const;
   static RouteNextHopsMulti fromFollyDynamic(const folly::dynamic& json);
@@ -79,6 +74,11 @@ class RouteNextHopsMulti {
   std::pair<ClientID, const RouteNextHopEntry*> getBestEntry() const;
 
   bool isSame(ClientID clientId, const RouteNextHopEntry& nhe) const;
+
+ private:
+  ClientID findLowestAdminDistance();
+  boost::container::flat_map<ClientID, RouteNextHopEntry> map_;
+  ClientID lowestAdminDistanceClientId_;
 };
 
 } // namespace facebook::fboss::rib
