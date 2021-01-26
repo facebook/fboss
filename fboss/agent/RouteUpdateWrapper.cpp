@@ -10,4 +10,32 @@
 
 #include "fboss/agent/RouteUpdateWrapper.h"
 
-namespace facebook::fboss {}
+namespace facebook::fboss {
+
+void RouteUpdateWrapper::addRoute(
+    RouterID vrf,
+    const folly::IPAddress& network,
+    uint8_t mask,
+    ClientID clientId,
+    RouteNextHopEntry nhop) {
+  if (rib_) {
+    // TODO
+
+  } else {
+    routeUpdater_->addRoute(vrf, network, mask, clientId, nhop);
+  }
+}
+
+void RouteUpdateWrapper::delRoute(
+    RouterID vrf,
+    const folly::IPAddress& network,
+    uint8_t mask,
+    ClientID clientId) {
+  if (rib_) {
+    // TODO
+
+  } else {
+    routeUpdater_->delRoute(vrf, network, mask, clientId);
+  }
+}
+} // namespace facebook::fboss
