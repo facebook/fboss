@@ -174,6 +174,7 @@ class Route {
    * the route is directly connected
    */
   RouteNextHopsMulti nexthopsmulti;
+  std::optional<cfg::AclLookupClass> classID{std::nullopt};
 };
 
 typedef Route<folly::IPAddressV4> RouteV4;
