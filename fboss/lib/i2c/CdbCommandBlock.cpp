@@ -33,7 +33,7 @@ constexpr uint8_t kModulePasswordEntryReg = 122;
 constexpr uint8_t kPageSelectReg = 127;
 constexpr uint8_t kCdbCommandMsbReg = 128;
 constexpr uint8_t kCdbCommandLsbReg = 129;
-constexpr uint8_t kCdbRlplLengthReg = 132;
+constexpr uint8_t kCdbRlplLengthReg = 134;
 
 /*
  * cmisRunCdbCommand
@@ -334,6 +334,40 @@ void CdbCommandBlock::createCdbCmdGetFwFeatureInfo() {
 }
 
 /*
+ * createCdbCmdGeneric
+ *
+ * Creates CDB firmware download start command block. This command puts the
+ * image header in command block lpl memory, overall image length. The function
+ * returns the current image offset after reading the header
+ */
+void CdbCommandBlock::createCdbCmdGeneric(
+    uint16_t commandCode,
+    std::vector<uint8_t>& lplData) {
+  resetCdbBlock();
+  cdbFields_.cdbCommandCode = htons(commandCode);
+  cdbFields_.cdbEplLength = 0;
+
+  cdbFields_.cdbLplLength = lplData.size();
+
+  int memIndex = 0;
+  for (auto& lplByte : lplData) {
+    cdbFields_.cdbLplMemory.cdbLplFlatMemory[memIndex++] = lplByte;
+  }
+
+  cdbFields_.cdbChecksum = onesComplementSum(cdbFields_.cdbLplLength + 8);
+}
+
+/*
+ * getResponseData
+ *
+ * Get the CDB response data from module and return to caller.
+ */
+uint8_t CdbCommandBlock::getResponseData(uint8_t** pResponse) {
+  *pResponse = cdbFields_.cdbLplMemory.cdbLplFlatMemory;
+  return cdbFields_.cdbRlplLength;
+}
+
+/*
  * onesComplementSum
  *
  * This function provides one's complemenet sum for a range of bytes. This is
@@ -341,7 +375,7 @@ void CdbCommandBlock::createCdbCmdGetFwFeatureInfo() {
  * complement sum
  */
 uint8_t CdbCommandBlock::onesComplementSum(int len) {
-  uint8_t* buf = (uint8_t*)this;
+  uint8_t* buf = (uint8_t*)&cdbFields_;
   uint16_t sum = 0;
   uint8_t result;
   int i;

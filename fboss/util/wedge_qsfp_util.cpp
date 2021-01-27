@@ -133,6 +133,9 @@ DEFINE_string(firmware_filename, "",
 DEFINE_uint32(msa_password, 0x00001011, "MSA password for module privilige operation");
 DEFINE_uint32(image_header_len, 0, "Firmware image header length");
 DEFINE_bool(get_module_fw_info, false, "Get the module  firmware info for list of ports, use with portA and portB");
+DEFINE_bool(cdb_command, false, "Read from CDB block, use with --command_code");
+DEFINE_int32(command_code, -1, "CDB command code (16 bit)");
+DEFINE_string(cdb_payload, "", "CDB command LPL payload (list of bytes)");
 
 enum LoopbackMode {
   noLoopback,
@@ -1107,6 +1110,69 @@ void get_module_fw_info(TransceiverI2CApi* bus, unsigned int moduleA, unsigned i
   }
 }
 
+/*
+ * doCdbCommand()
+ * Read from the module CDB block. The syntax are:
+ *
+ * [1] wedge_qsfp_util <module-id> --cdb_command --command_code <command-code>
+ *     Here the command code is 16 bit command
+ *
+ * [2] wedge_qsfp_util <module-id> --cdb_command --command_code <command-code> --cdb_payload <cdb-payload>
+ *     Here the cdb-payload is a string containing payload bytes, ie: "100 200"
+ */
+
+void doCdbCommand(TransceiverI2CApi* bus,  unsigned int  module) {
+  if (FLAGS_command_code == -1) {
+    printf("A valid command code is requied\n");
+    return;
+  }
+
+  uint16_t commandCode = FLAGS_command_code & 0xffff;
+
+  std::vector<uint8_t> lplMem;
+
+  if (!FLAGS_cdb_payload.empty()) {
+    // Convert the string of integers to stringstream and then push back all
+    // uint8_t from it to lplMem
+    std::stringstream payloadStream(FLAGS_cdb_payload);
+    int payloadByte;
+    while (payloadStream >> payloadByte) {
+      lplMem.push_back(payloadByte & 0xff);
+    }
+  }
+
+  // Create CDB block, set page to 0x9f for CDB command and set the default
+  // password to unlock CDB functions
+  CdbCommandBlock cdbBlock;
+  cdbBlock.createCdbCmdGeneric(commandCode, lplMem);
+
+  uint8_t page9f = 0x9f;
+  bus->moduleWrite(module, TransceiverI2CApi::ADDR_QSFP, 127, 1, &page9f);
+
+  std::array<uint8_t, 4> msaPw;
+  for (int i = 0; i < 4; i++) {
+    msaPw[i] = (FLAGS_msa_password  >> (3 - i) * 8) & 0xFF;
+  }
+  bus->moduleWrite(module, TransceiverI2CApi::ADDR_QSFP, 122, 4, msaPw.data());
+
+  // Run the CDB command and get the output
+  bool rc = cdbBlock.cmisRunCdbCommand(bus, module);
+  printf("CDB command %s\n", rc ? "Successful" : "Failed");
+
+  uint8_t *pResp;
+  uint8_t respLen = cdbBlock.getResponseData(&pResp);
+  printf("Response data length %d", respLen);
+  for (int i = 0; i < respLen; i++) {
+    if (i % 16 == 0) {
+      printf("\n%.2x: ", 136 + i);
+    } else if (i % 8 == 0) {
+      printf(" ");
+    }
+    printf("%.2x ", pResp[i]);
+  }
+  printf("\n");
+}
+
 int main(int argc, char* argv[]) {
   folly::init(&argc, &argv, true);
   gflags::SetCommandLineOptionWithMode(
@@ -1170,7 +1236,7 @@ int main(int argc, char* argv[]) {
                      FLAGS_electrical_loopback || FLAGS_optical_loopback ||
                      FLAGS_clear_loopback || FLAGS_read_reg ||
                      FLAGS_write_reg || FLAGS_update_module_firmware ||
-                     FLAGS_get_module_fw_info || FLAGS_app_sel);
+                     FLAGS_get_module_fw_info || FLAGS_app_sel || FLAGS_cdb_command);
 
   if (FLAGS_direct_i2c || !printInfo) {
     try {
@@ -1330,6 +1396,14 @@ int main(int argc, char* argv[]) {
                portNum);
       } else {
           cliModulefirmwareUpgrade(bus.get(), portNum, FLAGS_firmware_filename);
+      }
+    }
+
+    if (FLAGS_cdb_command) {
+      if (getModuleType(bus.get(), portNum) != TransceiverManagementInterface::CMIS) {
+        printf("This command is applicable to CMIS module only\n");
+      } else {
+        doCdbCommand(bus.get(), portNum);
       }
     }
   }

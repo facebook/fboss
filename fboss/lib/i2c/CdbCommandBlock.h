@@ -46,9 +46,14 @@ class CdbCommandBlock {
   void createCdbCmdModuleQuery();
   // Create firmware feature info query command
   void createCdbCmdGetFwFeatureInfo();
+  // Create generic command structure
+  void createCdbCmdGeneric(uint16_t commandCode, std::vector<uint8_t>& lplData);
 
   // Public function to run the CDB command on the module
   bool cmisRunCdbCommand(TransceiverI2CApi* bus, unsigned int modId);
+
+  // Provide response data to caller
+  uint8_t getResponseData(uint8_t** pResponse);
 
  private:
   // Data block
