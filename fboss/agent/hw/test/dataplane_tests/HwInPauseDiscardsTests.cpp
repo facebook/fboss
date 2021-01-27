@@ -67,12 +67,30 @@ class HwInPauseDiscardsCounterTest : public HwLinkStateDependentTest {
       pumpTraffic();
       auto portStatsAfter = getLatestPortStats(masterLogicalPortIds()[0]);
 
+      /*
+       * Certain asics count the pause packets when pause is disabled while
+       * some asics don't. Adjust the packet count based on the asic type.
+       * ---------------------------------------------------------------------
+       * |   Asic     |   Pause      |     In discards Raw   |  In pause     |
+       * ---------------------------------------------------------------------
+       * |    BCM     |   Enabled    |         1             |      1        |
+       * |    BCM     |   Disabled   |         1             |      1        |
+       * |    Tajo    |   Enabled    |         1             |      1        |
+       * |    Tajo    |   Disabled   |         0             |      0        |
+       * ---------------------------------------------------------------------
+       */
+      auto expectedPktCount = !enableRxPause &&
+              getHwSwitch()->getPlatform()->getAsic()->getAsicType() ==
+                  HwAsic::AsicType::ASIC_TYPE_TAJO
+          ? 0
+          : 1;
       EXPECT_EQ(
-          1,
+          expectedPktCount,
           *portStatsAfter.inDiscardsRaw__ref() -
               *portStatsBefore.inDiscardsRaw__ref());
       EXPECT_EQ(
-          1, *portStatsAfter.inPause__ref() - *portStatsBefore.inPause__ref());
+          expectedPktCount,
+          *portStatsAfter.inPause__ref() - *portStatsBefore.inPause__ref());
       EXPECT_EQ(
           0,
           *portStatsAfter.inDiscards__ref() -
