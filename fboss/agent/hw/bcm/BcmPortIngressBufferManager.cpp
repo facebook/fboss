@@ -242,12 +242,23 @@ void BcmPortIngressBufferManager::programIngressBuffers(
     // unprogram the existing pgs
     // case 2
     resetPgsToDefault();
+    // NOTE:
+    // all ports map to 2 separate ingress pools (1 per ITM)
+    // now if we reset to default for some port, it effectively happens
+    // for all other ports in that ITM as well. Ideally ref count
+    // all ports on ITM basis (complex) go to default when ref_count = 0
+    // and hence invoke this call.
+    // But practically speaking, we shouldn't have this case ...as ALL ports
+    // should either point to the given buffer pool or ALL should point to
+    // default
+    resetIngressPoolsToDefault();
     return;
   }
 
   // simply reprogram based on new config
   // case 3, 4
   reprogramPgs(port);
+  reprogramIngressPools(port);
 }
 
 const PortPgConfig& getTH3DefaultPgSettings() {

@@ -44,6 +44,7 @@ class FakeBcmTestPlatform : public BcmTestPlatform {
   const PortQueue& getDefaultControlPlaneQueueSettings(
       cfg::StreamType streamType) const override;
   const PortPgConfig& getDefaultPortPgSettings() const override;
+  const BufferPoolCfg& getDefaultPortIngressPoolSettings() const override;
 
   uint32_t getMMUBufferBytes() const override {
     return 16 * 1024 * 1024;

@@ -70,4 +70,10 @@ const PortPgConfig& FakeBcmTestPlatform::getDefaultPortPgSettings() const {
       utility::BcmChip::TOMAHAWK3);
 }
 
+const BufferPoolCfg& FakeBcmTestPlatform::getDefaultPortIngressPoolSettings()
+    const {
+  return BcmPortIngressBufferManager::getDefaultChipIngressPoolSettings(
+      utility::BcmChip::TOMAHAWK3);
+}
+
 } // namespace facebook::fboss

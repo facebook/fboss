@@ -22,9 +22,13 @@ using namespace facebook::fboss;
 
 namespace {
 
-constexpr int kResumeOffsetCells = 5;
-constexpr int kMinLimitCells = 6;
-constexpr int kHeadroomLimitCells = 2;
+// arbitrary values
+constexpr int kPgResumeOffsetCells = 5;
+constexpr int kPgMinLimitCells = 6;
+constexpr int kPgHeadroomLimitCells = 2;
+constexpr int kPoolHeadroomLimitCells = 10;
+constexpr int kPoolSharedCells = 12;
+constexpr std::string_view kBufferPoolName = "fooBuffer";
 
 // util to construct per PG params
 // pass in number of queues and use queueId, deltaValue to differ
@@ -38,16 +42,28 @@ std::vector<cfg::PortPgConfig> getPortPgConfig(
   for (const auto queueId : queues) {
     cfg::PortPgConfig pgConfig;
     pgConfig.id_ref() = queueId;
+    // use queueId value to assign different values for each param/queue
     pgConfig.headroomLimitBytes_ref() =
-        (kHeadroomLimitCells + queueId + deltaValue) * mmuCellByes;
+        (kPgHeadroomLimitCells + queueId + deltaValue) * mmuCellByes;
     pgConfig.minLimitBytes_ref() =
-        (kMinLimitCells + queueId + deltaValue) * mmuCellByes;
+        (kPgMinLimitCells + queueId + deltaValue) * mmuCellByes;
     pgConfig.resumeOffsetBytes_ref() =
-        (kResumeOffsetCells + queueId + deltaValue) * mmuCellByes;
+        (kPgResumeOffsetCells + queueId + deltaValue) * mmuCellByes;
     pgConfig.scalingFactor_ref() = cfg::MMUScalingFactor::EIGHT;
+    pgConfig.bufferPoolName_ref() = kBufferPoolName;
     portPgConfigs.emplace_back(pgConfig);
   }
   return portPgConfigs;
+}
+
+cfg::BufferPoolConfig getBufferPoolConfig(int mmuCellByes, int deltaValue = 0) {
+  // same as one in pg
+  // std::string bufferName = "fooBuffer";
+  cfg::BufferPoolConfig tmpCfg;
+  tmpCfg.headroomBytes_ref() =
+      (kPoolHeadroomLimitCells + deltaValue) * mmuCellByes;
+  tmpCfg.sharedBytes_ref() = (kPoolSharedCells + deltaValue) * mmuCellByes;
+  return tmpCfg;
 }
 
 } // unnamed namespace
@@ -74,6 +90,13 @@ class BcmPortIngressBufferManagerTest : public BcmTest {
     portPgConfigMap["foo"] =
         getPortPgConfig(getPlatform()->getMMUCellBytes(), {0, 1});
     cfg.portPgConfigs_ref() = portPgConfigMap;
+
+    // setup bufferPool
+    std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
+    bufferPoolCfgMap.insert(make_pair(
+        static_cast<std::string>(kBufferPoolName),
+        getBufferPoolConfig(getPlatform()->getMMUCellBytes())));
+    cfg.bufferPoolConfigs_ref() = std::move(bufferPoolCfgMap);
     applyNewConfig(cfg);
     cfg_ = cfg;
   }
@@ -87,6 +110,9 @@ class BcmPortIngressBufferManagerTest : public BcmTest {
     auto portPgsInHw = bcmPort->getCurrentPgSettings();
     const auto& pgConfig = bcmPort->getDefaultPgSettings();
     const auto& pgList = bcmPort->getIngressBufferManager()->getPgIdListInHw();
+
+    const auto& defaultBufferPoolCfg = bcmPort->getDefaultIngressPoolSettings();
+    auto bufferPoolCfgInHwPtr = bcmPort->getCurrentIngressPoolSettings();
 
     EXPECT_EQ(pgList.size(), 0);
     EXPECT_EQ(
@@ -103,6 +129,13 @@ class BcmPortIngressBufferManagerTest : public BcmTest {
     EXPECT_EQ(
         pgConfig.getHeadroomLimitBytes(),
         portPgsInHw[0]->getHeadroomLimitBytes());
+
+    EXPECT_EQ(
+        defaultBufferPoolCfg.getHeadroomBytes(),
+        (*bufferPoolCfgInHwPtr).getHeadroomBytes());
+    EXPECT_EQ(
+        defaultBufferPoolCfg.getSharedBytes(),
+        (*bufferPoolCfgInHwPtr).getSharedBytes());
   }
 
   // routine to validate if the SW and HW match for the PG cfg
@@ -113,6 +146,8 @@ class BcmPortIngressBufferManagerTest : public BcmTest {
         PortID(masterLogicalPortIds()[0]));
 
     portPgsHw = bcmPort->getCurrentProgrammedPgSettings();
+    const auto bufferPoolHwPtr = bcmPort->getCurrentIngressPoolSettings();
+
     auto swPort =
         getProgrammedState()->getPort(PortID(masterLogicalPortIds()[0]));
     auto swPgConfig = swPort->getPortPgConfigs();
@@ -131,6 +166,13 @@ class BcmPortIngressBufferManagerTest : public BcmTest {
       EXPECT_EQ(
           pgConfig->getHeadroomLimitBytes(),
           portPgsHw[i]->getHeadroomLimitBytes());
+      const auto bufferPoolPtr = pgConfig->getBufferPoolConfig();
+      EXPECT_EQ(
+          (*bufferPoolPtr)->getSharedBytes(),
+          (*bufferPoolHwPtr).getSharedBytes());
+      EXPECT_EQ(
+          (*bufferPoolPtr)->getHeadroomBytes(),
+          (*bufferPoolHwPtr).getHeadroomBytes());
       i++;
     }
   }
@@ -140,7 +182,7 @@ class BcmPortIngressBufferManagerTest : public BcmTest {
 // Create PG config, associate with PFC config
 // validate that SDK programming is as per the cfg
 // Read back from HW (using SDK calls) and validate
-TEST_F(BcmPortIngressBufferManagerTest, validatePGConfig) {
+TEST_F(BcmPortIngressBufferManagerTest, validateConfig) {
   if (!isSupported(HwAsic::Feature::PFC)) {
     XLOG(WARNING) << "Platform doesn't support PFC";
     return;
@@ -155,7 +197,7 @@ TEST_F(BcmPortIngressBufferManagerTest, validatePGConfig) {
 
 // Create PG config, associate with PFC config and reset it
 // Ensure that its getting reset to the defaults in HW as expected
-TEST_F(BcmPortIngressBufferManagerTest, validatePGConfigReset) {
+TEST_F(BcmPortIngressBufferManagerTest, validateConfigReset) {
   if (!isSupported(HwAsic::Feature::PFC)) {
     XLOG(WARNING) << "Platform doesn't support PFC";
     return;
@@ -171,6 +213,31 @@ TEST_F(BcmPortIngressBufferManagerTest, validatePGConfigReset) {
   };
 
   auto verify = [&]() { checkSwDefaultHwPgCfgMatch(); };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// Create PG, Ingress pool config, associate with PFC config
+// Modify the ingress pool params onlyand ensure that its getting re-programmed
+TEST_F(BcmPortIngressBufferManagerTest, validateIngressPoolParamChange) {
+  if (!isSupported(HwAsic::Feature::PFC)) {
+    XLOG(WARNING) << "Platform doesn't support PFC";
+    return;
+  }
+
+  auto setup = [=]() {
+    setupHelper();
+    // setup bufferPool
+    std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
+    bufferPoolCfgMap.insert(make_pair(
+        static_cast<std::string>(kBufferPoolName),
+        getBufferPoolConfig(getPlatform()->getMMUCellBytes(), 1)));
+    cfg_.bufferPoolConfigs_ref() = bufferPoolCfgMap;
+    // update one PG, and see ifs reflected in the HW
+    applyNewConfig(cfg_);
+  };
+
+  auto verify = [&]() { checkSwHwPgCfgMatch(); };
 
   verifyAcrossWarmBoots(setup, verify);
 }

@@ -32,4 +32,9 @@ const PortPgConfig& BcmTestWedgeTomahawk3Platform::getDefaultPortPgSettings()
       utility::BcmChip::TOMAHAWK3);
 }
 
+const BufferPoolCfg&
+BcmTestWedgeTomahawk3Platform::getDefaultPortIngressPoolSettings() const {
+  return BcmPortIngressBufferManager::getDefaultChipIngressPoolSettings(
+      utility::BcmChip::TOMAHAWK3);
+}
 } // namespace facebook::fboss
