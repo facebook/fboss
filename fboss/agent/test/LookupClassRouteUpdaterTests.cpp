@@ -12,6 +12,7 @@
 
 #include "fboss/agent/LookupClassRouteUpdater.h"
 #include "fboss/agent/NeighborUpdater.h"
+#include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/state/Vlan.h"
@@ -181,31 +182,18 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
   }
 
   void addRoute(RoutePrefix<AddrT> routePrefix, std::vector<AddrT> nextHops) {
-    this->updateState(
-        "Add new route", [=](const std::shared_ptr<SwitchState>& state) {
-          auto newState = state->clone();
-          auto routeTables = state->getRouteTables();
-
-          RouteNextHopSet nexthops;
-          for (const auto& nextHop : nextHops) {
-            nexthops.emplace(UnresolvedNextHop(nextHop, UCMP_DEFAULT_WEIGHT));
-          }
-
-          RouteUpdater updater(routeTables);
-          updater.addRoute(
-              this->kRid(),
-              routePrefix.network,
-              routePrefix.mask,
-              this->kClientID(),
-              RouteNextHopEntry(nexthops, AdminDistance::MAX_ADMIN_DISTANCE));
-
-          auto newRouteTables = updater.updateDone();
-          newRouteTables->publish();
-          newState->resetRouteTables(newRouteTables);
-
-          return newState;
-        });
-
+    SwSwitchRouteUpdateWrapper routeUpdater(sw_);
+    RouteNextHopSet nexthops;
+    for (const auto& nextHop : nextHops) {
+      nexthops.emplace(UnresolvedNextHop(nextHop, UCMP_DEFAULT_WEIGHT));
+    }
+    routeUpdater.addRoute(
+        this->kRid(),
+        routePrefix.network,
+        routePrefix.mask,
+        this->kClientID(),
+        RouteNextHopEntry(nexthops, AdminDistance::MAX_ADMIN_DISTANCE));
+    routeUpdater.program();
     waitForStateUpdates(this->sw_);
     this->sw_->getNeighborUpdater()->waitForPendingUpdates();
     waitForBackgroundThread(this->sw_);

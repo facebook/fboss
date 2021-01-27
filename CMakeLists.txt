@@ -626,9 +626,11 @@ if (NOT SAI_ONLY)
       fboss/agent/state/SwitchSettings.cpp
       fboss/agent/state/QcmConfig.cpp
       fboss/agent/types.cpp
+      fboss/agent/RouteUpdateWrapper.cpp
       fboss/agent/RestartTimeTracker.cpp
       fboss/agent/SwitchStats.cpp
       fboss/agent/SwSwitch.cpp
+      fboss/agent/SwSwitchRouteUpdateWrapper.cpp
       fboss/agent/ThriftHandler.cpp
       fboss/agent/ThreadHeartbeat.cpp
       fboss/agent/TunIntf.cpp
@@ -785,6 +787,7 @@ if (NOT SAI_ONLY)
          fboss/agent/test/RouteDistributionGeneratorTest.cpp
          fboss/agent/test/RouteUpdateLoggerTest.cpp
          fboss/agent/test/RouteUpdateLoggingTrackerTest.cpp
+         fboss/agent/test/RouteUpdateLoggerTest.cpp
          fboss/agent/test/ResourceLibUtilTest.cpp
          fboss/agent/test/RouteDistributionGeneratorTest.cpp
          fboss/agent/test/RouteScaleGeneratorsTest.cpp
