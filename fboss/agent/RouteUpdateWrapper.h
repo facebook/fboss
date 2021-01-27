@@ -44,7 +44,7 @@ class RouteUpdateWrapper {
       ClientID clientId);
   virtual void program() = 0;
 
- private:
+ protected:
   rib::RoutingInformationBase* rib_;
   std::unique_ptr<RouteUpdater> routeUpdater_;
   std::unordered_map<std::pair<RouterID, ClientID>, std::vector<UnicastRoute>>

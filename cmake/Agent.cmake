@@ -135,6 +135,7 @@ add_library(core
   fboss/agent/StaticL2ForNeighborUpdater.cpp
   fboss/agent/StaticL2ForNeighborSwSwitchUpdater.cpp
   fboss/agent/SwSwitch.cpp
+  fboss/agent/SwSwitchRouteUpdateWrapper.cpp
   fboss/agent/ThreadHeartbeat.cpp
   fboss/agent/TunIntf.cpp
   fboss/agent/TunManager.cpp
