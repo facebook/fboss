@@ -17,6 +17,7 @@ extern "C" {
 #include <string>
 #include <vector>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/state/BufferPoolConfig.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortPgConfig.h"
 #include "fboss/agent/state/PortQueue.h"
@@ -38,31 +39,29 @@ class BcmPortIngressBufferManager {
   ~BcmPortIngressBufferManager() {}
 
   void programIngressBuffers(const std::shared_ptr<Port>& port);
-  PortPgConfigs getCurrentProgrammedPgSettingsHw();
-  PortPgConfigs getCurrentPgSettingsHw();
+  PortPgConfigs getCurrentProgrammedPgSettingsHw() const;
+  PortPgConfigs getCurrentPgSettingsHw() const;
+  BufferPoolCfgPtr getCurrentIngressPoolSettings() const;
   static const PortPgConfig& getDefaultChipPgSettings(utility::BcmChip chip);
-  const PortPgConfig& getDefaultPgSettings();
+  static const BufferPoolCfg& getDefaultChipIngressPoolSettings(
+      utility::BcmChip chip);
+  const PortPgConfig& getDefaultPgSettings() const;
+  const BufferPoolCfg& getDefaultIngressPoolSettings() const;
 
   // used for test utils
-  PgIdSet getPgIdListInHw();
+  PgIdSet getPgIdListInHw() const;
   void setPgIdListInHw(PgIdSet& newPgIdList);
 
  private:
   /* read APIs to the BCM SDK */
-  void getIngressAlpha(
-      bcm_cos_queue_t cosq,
-      std::shared_ptr<PortPgConfig> pgConfig);
-  void getPgMinLimitBytes(
-      bcm_cos_queue_t cosQ,
-      std::shared_ptr<PortPgConfig> pgConfig);
-  void getPgResumeOffsetBytes(
-      bcm_cos_queue_t cosQ,
-      std::shared_ptr<PortPgConfig> pgConfig);
-  void getPgHeadroomLimitBytes(
-      bcm_cos_queue_t cosQ,
-      std::shared_ptr<PortPgConfig> pgConfig);
+  std::optional<cfg::MMUScalingFactor> getIngressAlpha(
+      bcm_cos_queue_t cosq) const;
+  int getPgMinLimitBytes(bcm_cos_queue_t cosQ) const;
+  int getPgResumeOffsetBytes(bcm_cos_queue_t cosQ) const;
+  int getPgHeadroomLimitBytes(bcm_cos_queue_t cosQ) const;
   void programPg(const PortPgConfig* pgConfig, const int cosq);
   void resetPgToDefault(int pgId);
+  void resetIngressPoolsToDefault();
   void resetPgsToDefault();
   void reprogramPgs(const std::shared_ptr<Port> port);
   void writeCosqTypeToHw(
@@ -74,15 +73,18 @@ class BcmPortIngressBufferManager {
       const int cosq,
       const bcm_cosq_control_t type,
       int* value,
-      const std::string& typeStr);
-  void getPgParamsHw(const int pgId, const std::shared_ptr<PortPgConfig>& pg);
-
+      const std::string& typeStr) const;
+  void getPgParamsHw(const int pgId, const std::shared_ptr<PortPgConfig>& pg)
+      const;
+  void reprogramIngressPools(const std::shared_ptr<Port> port);
+  int getIngressPoolHeadroomBytes(bcm_cos_queue_t cosQ) const;
+  int getIngressSharedBytes(bcm_cos_queue_t cosQ) const;
   BcmSwitch* hw_;
   std::string portName_;
   bcm_gport_t gport_;
   int unit_{-1};
   PgIdSet pgIdListInHw_;
-  std::mutex pgIdListLock_;
+  mutable std::mutex pgIdListLock_;
 };
 
 } // namespace facebook::fboss

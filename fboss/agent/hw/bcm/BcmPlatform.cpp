@@ -53,6 +53,11 @@ const PortPgConfig& BcmPlatform::getDefaultPortPgSettings() const {
   throw FbossError("Unsupported platform for retrieving PG settings ");
 }
 
+const BufferPoolCfg& BcmPlatform::getDefaultPortIngressPoolSettings() const {
+  throw FbossError(
+      "Unsupported platform for retrieving Ingress Pool settings ");
+}
+
 phy::VCOFrequency BcmPlatform::getVCOFrequency(
     phy::VCOFrequencyFactor& factor) const {
   auto speed = *factor.speed_ref();

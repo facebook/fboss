@@ -22,13 +22,19 @@ extern "C" {
 }
 
 namespace {
-// defaults in mmu_lossless=1 mode
+// defaults in mmu_lossless=0x2 mode
+// determined by dumping registers from HW
 constexpr bcm_cosq_control_drop_limit_alpha_value_t kDefaultPgAlpha =
     bcmCosqControlDropLimitAlpha_8;
 constexpr int kDefaultPortPgId = 0;
 constexpr int kDefaultMinLimitBytes = 0;
 constexpr int kDefaultHeadroomLimitBytes = 0;
 constexpr int kdefaultResumeOffsetBytes = 0;
+constexpr int kDefaultSharedBytesTh3 = 111490 * 254;
+constexpr int kDefaultHeadroomBytesTh3 = 18528 * 254;
+// arbit
+const std::string kDefaultBufferPoolName = "default";
+constexpr int kDefaultPgId = 0;
 } // unnamed namespace
 
 namespace facebook::fboss {
@@ -51,7 +57,7 @@ void BcmPortIngressBufferManager::writeCosqTypeToHw(
       typeStr,
       " for port ",
       portName_,
-      " cosq ",
+      " pgId ",
       cosq,
       " value ",
       value);
@@ -61,7 +67,7 @@ void BcmPortIngressBufferManager::readCosqTypeFromHw(
     const int cosq,
     const bcm_cosq_control_t type,
     int* value,
-    const std::string& typeStr) {
+    const std::string& typeStr) const {
   *value = 0;
   auto rv = bcm_cosq_control_get(unit_, gport_, cosq, type, value);
   bcmCheckError(
@@ -125,6 +131,31 @@ void BcmPortIngressBufferManager::resetPgToDefault(int pgId) {
   programPg(&portPg, pgId);
 }
 
+void BcmPortIngressBufferManager::resetIngressPoolsToDefault() {
+  XLOG(DBG2) << "Reset ingress service pools to default for port " << portName_;
+  const auto& bufferPoolCfg = getDefaultIngressPoolSettings();
+
+  // we use one common buffer pool across all ports/PGs in our implementation
+  // SDK API forces us to use port, PG
+  // To prevent multiple sdk calls for all PGs just reset for kDefaultPgId only,
+  // as all PGs refer to the same buffer pool only
+  writeCosqTypeToHw(
+      kDefaultPgId,
+      bcmCosqControlIngressPoolLimitBytes,
+      bufferPoolCfg.getSharedBytes(),
+      "bcmCosqControlIngressPoolLimitBytes");
+  writeCosqTypeToHw(
+      kDefaultPgId,
+      bcmCosqControlIngressHeadroomPoolLimitBytes,
+      bufferPoolCfg.getHeadroomBytes(),
+      "bcmCosqControlIngressHeadroomPoolLimitBytes");
+  writeCosqTypeToHw(
+      kDefaultPgId,
+      bcmCosqControlEgressPoolSharedLimitBytes,
+      bufferPoolCfg.getSharedBytes(),
+      "bcmCosqControlEgressPoolSharedLimitBytes");
+}
+
 void BcmPortIngressBufferManager::resetPgsToDefault() {
   XLOG(DBG2) << "Reset all programmed PGs to default for port " << portName_;
   auto pgIdList = getPgIdListInHw();
@@ -167,6 +198,31 @@ void BcmPortIngressBufferManager::reprogramPgs(
   XLOG(DBG2) << "New PG list programmed for port " << portName_;
 }
 
+void BcmPortIngressBufferManager::reprogramIngressPools(
+    const std::shared_ptr<Port> port) {
+  const auto& portPgCfgs = port->getPortPgConfigs();
+  for (const auto& portPgCfg : *portPgCfgs) {
+    if (auto bufferPoolPtr = portPgCfg->getBufferPoolConfig()) {
+      writeCosqTypeToHw(
+          portPgCfg->getID() /* pgid */,
+          bcmCosqControlIngressPoolLimitBytes,
+          (*bufferPoolPtr)->getSharedBytes(),
+          "bcmCosqControlIngressPoolLimitBytes");
+      writeCosqTypeToHw(
+          portPgCfg->getID() /* pgid */,
+          bcmCosqControlIngressHeadroomPoolLimitBytes,
+          (*bufferPoolPtr)->getHeadroomBytes(),
+          "bcmCosqControlIngressHeadroomPoolLimitBytes");
+      // program the egress one equivalently
+      writeCosqTypeToHw(
+          portPgCfg->getID() /* pgid */,
+          bcmCosqControlEgressPoolSharedLimitBytes,
+          (*bufferPoolPtr)->getSharedBytes(),
+          "bcmCosqControlEgressPoolSharedLimitBytes");
+    }
+  }
+}
+
 //  there are 4 possible cases
 //  case 1: No prev cfg, no new cfg
 //  case 2: Prev cfg, no new cfg
@@ -207,6 +263,16 @@ const PortPgConfig& getTH3DefaultPgSettings() {
   return portPgConfig;
 }
 
+const BufferPoolCfg& getTH3DefaultIngressPoolSettings() {
+  static const BufferPoolCfg bufferPoolCfg{BufferPoolCfgFields{
+      .id = kDefaultBufferPoolName,
+      .sharedBytes = kDefaultSharedBytesTh3,
+      .headroomBytes = kDefaultHeadroomBytesTh3,
+  }};
+  return bufferPoolCfg;
+}
+
+// static
 const PortPgConfig& BcmPortIngressBufferManager::getDefaultChipPgSettings(
     utility::BcmChip chip) {
   switch (chip) {
@@ -218,20 +284,52 @@ const PortPgConfig& BcmPortIngressBufferManager::getDefaultChipPgSettings(
   }
 }
 
-const PortPgConfig& BcmPortIngressBufferManager::getDefaultPgSettings() {
+// static
+const BufferPoolCfg&
+BcmPortIngressBufferManager::getDefaultChipIngressPoolSettings(
+    utility::BcmChip chip) {
+  switch (chip) {
+    case utility::BcmChip::TOMAHAWK3:
+      return getTH3DefaultIngressPoolSettings();
+    default:
+      // currently ony supported for TH3
+      throw FbossError(
+          "Unsupported platform for Ingress Pool settings: ", chip);
+  }
+}
+
+const PortPgConfig& BcmPortIngressBufferManager::getDefaultPgSettings() const {
   return hw_->getPlatform()->getDefaultPortPgSettings();
+}
+
+const BufferPoolCfg&
+BcmPortIngressBufferManager::getDefaultIngressPoolSettings() const {
+  return hw_->getPlatform()->getDefaultPortIngressPoolSettings();
 }
 
 void BcmPortIngressBufferManager::getPgParamsHw(
     const int pgId,
-    const std::shared_ptr<PortPgConfig>& pg) {
-  getIngressAlpha(pgId, pg);
-  getPgMinLimitBytes(pgId, pg);
-  getPgResumeOffsetBytes(pgId, pg);
-  getPgHeadroomLimitBytes(pgId, pg);
+    const std::shared_ptr<PortPgConfig>& pg) const {
+  if (const auto alpha = getIngressAlpha(pgId)) {
+    pg->setScalingFactor(alpha.value());
+  }
+  pg->setMinLimitBytes(getPgMinLimitBytes(pgId));
+  pg->setResumeOffsetBytes(getPgResumeOffsetBytes(pgId));
+  pg->setHeadroomLimitBytes(getPgHeadroomLimitBytes(pgId));
 }
 
-PortPgConfigs BcmPortIngressBufferManager::getCurrentPgSettingsHw() {
+BufferPoolCfgPtr BcmPortIngressBufferManager::getCurrentIngressPoolSettings()
+    const {
+  const std::string bufferName = "currentIngressPool";
+  auto cfg = std::make_shared<BufferPoolCfg>(bufferName);
+  // pick the settings for pgid = 0, since its global pool
+  // all others will have the same values
+  cfg->setHeadroomBytes(getIngressPoolHeadroomBytes(kDefaultPgId));
+  cfg->setSharedBytes(getIngressSharedBytes(kDefaultPgId));
+  return cfg;
+}
+
+PortPgConfigs BcmPortIngressBufferManager::getCurrentPgSettingsHw() const {
   PortPgConfigs pgs = {};
   // walk all pgs in HW and derive the programmed values
   for (auto pgId = 0; pgId <= cfg::switch_config_constants::PORT_PG_VALUE_MAX();
@@ -243,7 +341,8 @@ PortPgConfigs BcmPortIngressBufferManager::getCurrentPgSettingsHw() {
   return pgs;
 }
 
-PortPgConfigs BcmPortIngressBufferManager::getCurrentProgrammedPgSettingsHw() {
+PortPgConfigs BcmPortIngressBufferManager::getCurrentProgrammedPgSettingsHw()
+    const {
   PortPgConfigs pgs = {};
 
   // walk all programmed list of the pgIds in the order {0 -> 7}
@@ -258,21 +357,41 @@ PortPgConfigs BcmPortIngressBufferManager::getCurrentProgrammedPgSettingsHw() {
   return pgs;
 }
 
-void BcmPortIngressBufferManager::getPgHeadroomLimitBytes(
-    bcm_cos_queue_t cosQ,
-    std::shared_ptr<PortPgConfig> pgConfig) {
+int BcmPortIngressBufferManager::getIngressPoolHeadroomBytes(
+    bcm_cos_queue_t cosQ) const {
+  int headroomBytes = 0;
+  readCosqTypeFromHw(
+      cosQ,
+      bcmCosqControlIngressHeadroomPoolLimitBytes,
+      &headroomBytes,
+      "bcmCosqControlIngressHeadroomPoolLimitBytes");
+  return headroomBytes;
+}
+
+int BcmPortIngressBufferManager::getIngressSharedBytes(
+    bcm_cos_queue_t cosQ) const {
+  int sharedBytes = 0;
+  readCosqTypeFromHw(
+      cosQ,
+      bcmCosqControlIngressPoolLimitBytes,
+      &sharedBytes,
+      "bcmCosqControlIngressPoolLimitBytes");
+  return sharedBytes;
+}
+
+int BcmPortIngressBufferManager::getPgHeadroomLimitBytes(
+    bcm_cos_queue_t cosQ) const {
   int headroomBytes = 0;
   readCosqTypeFromHw(
       cosQ,
       bcmCosqControlIngressPortPGHeadroomLimitBytes,
       &headroomBytes,
       "bcmCosqControlIngressPortPGHeadroomLimitBytes");
-  pgConfig->setHeadroomLimitBytes(headroomBytes);
+  return headroomBytes;
 }
 
-void BcmPortIngressBufferManager::getIngressAlpha(
-    bcm_cos_queue_t cosQ,
-    std::shared_ptr<PortPgConfig> pgConfig) {
+std::optional<cfg::MMUScalingFactor>
+BcmPortIngressBufferManager::getIngressAlpha(bcm_cos_queue_t cosQ) const {
   int sharedDynamicEnable = 0;
   readCosqTypeFromHw(
       cosQ,
@@ -288,35 +407,34 @@ void BcmPortIngressBufferManager::getIngressAlpha(
         "bcmCosqControlDropLimitAlpha");
     auto scalingFactor = utility::bcmAlphaToCfgAlpha(
         static_cast<bcm_cosq_control_drop_limit_alpha_value_e>(bcmAlpha));
-    pgConfig->setScalingFactor(scalingFactor);
+    return scalingFactor;
   }
+  return std::nullopt;
 }
 
-void BcmPortIngressBufferManager::getPgMinLimitBytes(
-    bcm_cos_queue_t cosQ,
-    std::shared_ptr<PortPgConfig> pgConfig) {
+int BcmPortIngressBufferManager::getPgMinLimitBytes(
+    bcm_cos_queue_t cosQ) const {
   int minBytes = 0;
   readCosqTypeFromHw(
       cosQ,
       bcmCosqControlIngressPortPGMinLimitBytes,
       &minBytes,
       "bcmCosqControlIngressPortPGMinLimitBytes");
-  pgConfig->setMinLimitBytes(minBytes);
+  return minBytes;
 }
 
-void BcmPortIngressBufferManager::getPgResumeOffsetBytes(
-    bcm_cos_queue_t cosQ,
-    std::shared_ptr<PortPgConfig> pgConfig) {
+int BcmPortIngressBufferManager::getPgResumeOffsetBytes(
+    bcm_cos_queue_t cosQ) const {
   int resumeBytes = 0;
   readCosqTypeFromHw(
       cosQ,
       bcmCosqControlIngressPortPGResetOffsetBytes,
       &resumeBytes,
       "bcmCosqControlIngressPortPGResetOffsetBytes");
-  pgConfig->setResumeOffsetBytes(resumeBytes);
+  return resumeBytes;
 }
 
-PgIdSet BcmPortIngressBufferManager::getPgIdListInHw() {
+PgIdSet BcmPortIngressBufferManager::getPgIdListInHw() const {
   std::lock_guard<std::mutex> g(pgIdListLock_);
   return std::set<int>(pgIdListInHw_.begin(), pgIdListInHw_.end());
 }

@@ -1926,16 +1926,24 @@ cfg::PortProfileID BcmPort::getCurrentProfile() const {
   return (*programmedSettings_.rlock())->getProfileID();
 }
 
-PortPgConfigs BcmPort::getCurrentProgrammedPgSettings() {
+PortPgConfigs BcmPort::getCurrentProgrammedPgSettings() const {
   return ingressBufferManager_->getCurrentProgrammedPgSettingsHw();
 }
 
-PortPgConfigs BcmPort::getCurrentPgSettings() {
+PortPgConfigs BcmPort::getCurrentPgSettings() const {
   return ingressBufferManager_->getCurrentPgSettingsHw();
 }
 
-const PortPgConfig& BcmPort::getDefaultPgSettings() {
+const PortPgConfig& BcmPort::getDefaultPgSettings() const {
   return ingressBufferManager_->getDefaultPgSettings();
+}
+
+BufferPoolCfgPtr BcmPort::getCurrentIngressPoolSettings() const {
+  return ingressBufferManager_->getCurrentIngressPoolSettings();
+}
+
+const BufferPoolCfg& BcmPort::getDefaultIngressPoolSettings() const {
+  return ingressBufferManager_->getDefaultIngressPoolSettings();
 }
 
 } // namespace facebook::fboss

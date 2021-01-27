@@ -30,6 +30,7 @@ class BcmPlatformPort;
 class BcmWarmBootHelper;
 class PortQueue;
 class PortPgConfig;
+class BufferPoolCfg;
 
 /*
  * BcmPlatform specifies additional APIs that must be provided by platforms
@@ -106,6 +107,7 @@ class BcmPlatform : public Platform {
   virtual bool useQueueGportForCos() const = 0;
 
   virtual const PortPgConfig& getDefaultPortPgSettings() const;
+  virtual const BufferPoolCfg& getDefaultPortIngressPoolSettings() const;
 
   /*
     Ports have a concept of VCO frequency that is decided when port is first

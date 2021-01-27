@@ -1298,6 +1298,23 @@ void BcmSwitch::processEnabledPorts(const StateDelta& delta) {
   });
 }
 
+bool BcmSwitch::processChangedIngressPoolCfg(
+    std::optional<BufferPoolCfgPtr> oldBufferPoolCfgPtr,
+    std::optional<BufferPoolCfgPtr> newBufferPoolCfgPtr) {
+  // bufferPool <-> noBufferPool
+  if ((oldBufferPoolCfgPtr && !newBufferPoolCfgPtr) ||
+      (!oldBufferPoolCfgPtr && newBufferPoolCfgPtr)) {
+    return true;
+  }
+  // bufferPool exists old and new, but doesn't match
+  if (oldBufferPoolCfgPtr && newBufferPoolCfgPtr) {
+    if (*oldBufferPoolCfgPtr != *newBufferPoolCfgPtr) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool BcmSwitch::processChangedPgCfg(
     const std::shared_ptr<Port>& oldPort,
     const std::shared_ptr<Port>& newPort) {
@@ -1326,6 +1343,16 @@ bool BcmSwitch::processChangedPgCfg(
   for (const auto& oldPortPg : *oldPortPgCfgs) {
     auto iter = newPortPgConfigMap.find(oldPortPg->getID());
     if ((iter == newPortPgConfigMap.end()) || (*iter->second != *oldPortPg)) {
+      return true;
+    }
+
+    // also validate buffer pools associated with the given pg if any
+    const auto& oldBufferPoolCfgPtr = oldPortPg->getBufferPoolConfig();
+    const auto& newBufferPoolCfgPtr = iter->second->getBufferPoolConfig();
+    if (processChangedIngressPoolCfg(
+            oldBufferPoolCfgPtr, newBufferPoolCfgPtr)) {
+      XLOG(DBG1) << "New ingress buffer pool changes on port: "
+                 << newPort->getID();
       return true;
     }
   }

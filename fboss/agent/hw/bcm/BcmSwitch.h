@@ -928,6 +928,10 @@ class BcmSwitch : public BcmSwitchIf {
 
   bool isL2EntryPending(const bcm_l2_addr_t* l2Addr);
 
+  bool processChangedIngressPoolCfg(
+      std::optional<std::shared_ptr<BufferPoolCfg>> oldBufferPoolCfgPtr,
+      std::optional<std::shared_ptr<BufferPoolCfg>> newBufferPoolCfgPtr);
+
   /*
    * Member variables
    */
