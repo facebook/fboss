@@ -11,11 +11,9 @@
 #pragma once
 
 #include <folly/IPAddress.h>
-#include "fboss/agent/state/RouteTableMap.h"
-#include "fboss/agent/state/RouteUpdater.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/types.h"
-
-#include "fboss/agent/rib/RoutingInformationBase.h"
 
 namespace facebook::fboss {
 
@@ -24,11 +22,12 @@ namespace facebook::fboss {
  * stand alone RIB and legacy setups
  */
 class RouteUpdateWrapper {
- public:
-  explicit RouteUpdateWrapper(rib::RoutingInformationBase* rib) : rib_(rib) {}
-  explicit RouteUpdateWrapper(const std::shared_ptr<RouteTableMap>& routeTables)
-      : routeUpdater_(std::make_unique<RouteUpdater>(routeTables)) {}
+  struct AddDelRoutes {
+    std::vector<UnicastRoute> toAdd;
+    std::vector<IpPrefix> toDel;
+  };
 
+ public:
   virtual ~RouteUpdateWrapper() = default;
   void addRoute(
       RouterID id,
@@ -45,11 +44,7 @@ class RouteUpdateWrapper {
   virtual void program() = 0;
 
  protected:
-  rib::RoutingInformationBase* rib_;
-  std::unique_ptr<RouteUpdater> routeUpdater_;
-  std::unordered_map<std::pair<RouterID, ClientID>, std::vector<UnicastRoute>>
-      ribRoutesToAdd_;
-  std::unordered_map<std::pair<RouterID, ClientID>, std::vector<IpPrefix>>
-      ribRoutesToDelete_;
+  std::unordered_map<std::pair<RouterID, ClientID>, AddDelRoutes>
+      ribRoutesToAddDel_;
 };
 } // namespace facebook::fboss

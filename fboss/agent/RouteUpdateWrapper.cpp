@@ -11,7 +11,6 @@
 #include "fboss/agent/RouteUpdateWrapper.h"
 
 #include "fboss/agent/AddressUtil.h"
-#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
 namespace facebook::fboss {
 
@@ -21,17 +20,12 @@ void RouteUpdateWrapper::addRoute(
     uint8_t mask,
     ClientID clientId,
     RouteNextHopEntry nhop) {
-  if (rib_) {
-    // TODO
-    UnicastRoute tempRoute;
-    tempRoute.dest_ref()->ip_ref() = network::toBinaryAddress(network);
-    tempRoute.dest_ref()->prefixLength_ref() = mask;
-    tempRoute.nextHops_ref() = util::fromRouteNextHopSet(nhop.getNextHopSet());
-    ribRoutesToAdd_[std::make_pair(vrf, clientId)].emplace_back(
-        std::move(tempRoute));
-  } else {
-    routeUpdater_->addRoute(vrf, network, mask, clientId, nhop);
-  }
+  UnicastRoute tempRoute;
+  tempRoute.dest_ref()->ip_ref() = network::toBinaryAddress(network);
+  tempRoute.dest_ref()->prefixLength_ref() = mask;
+  tempRoute.nextHops_ref() = util::fromRouteNextHopSet(nhop.getNextHopSet());
+  ribRoutesToAddDel_[std::make_pair(vrf, clientId)].toAdd.emplace_back(
+      std::move(tempRoute));
 }
 
 void RouteUpdateWrapper::delRoute(
@@ -39,14 +33,10 @@ void RouteUpdateWrapper::delRoute(
     const folly::IPAddress& network,
     uint8_t mask,
     ClientID clientId) {
-  if (rib_) {
-    IpPrefix pfx;
-    pfx.ip_ref() = network::toBinaryAddress(network);
-    pfx.prefixLength_ref() = mask;
-    ribRoutesToDelete_[std::make_pair(vrf, clientId)].emplace_back(
-        std::move(pfx));
-  } else {
-    routeUpdater_->delRoute(vrf, network, mask, clientId);
-  }
+  IpPrefix pfx;
+  pfx.ip_ref() = network::toBinaryAddress(network);
+  pfx.prefixLength_ref() = mask;
+  ribRoutesToAddDel_[std::make_pair(vrf, clientId)].toDel.emplace_back(
+      std::move(pfx));
 }
 } // namespace facebook::fboss

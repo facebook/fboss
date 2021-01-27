@@ -17,18 +17,12 @@ namespace facebook::fboss {
 
 class SwSwitchRouteUpdateWrapper : public RouteUpdateWrapper {
  public:
-  explicit SwSwitchRouteUpdateWrapper(SwSwitch* sw)
-      : RouteUpdateWrapper(sw->getRib()), sw_(sw) {
-    CHECK(sw_->getRib());
-  }
-  explicit SwSwitchRouteUpdateWrapper(
-      SwSwitch* sw,
-      const std::shared_ptr<RouteTableMap>& routeTables)
-      : RouteUpdateWrapper(routeTables), sw_(sw) {}
-
+  explicit SwSwitchRouteUpdateWrapper(SwSwitch* sw) : sw_(sw) {}
   void program() override;
 
  private:
+  void programLegacyRib();
+  void programStandAloneRib();
   SwSwitch* sw_;
 };
 } // namespace facebook::fboss
