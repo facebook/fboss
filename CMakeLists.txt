@@ -671,6 +671,8 @@ if (NOT SAI_ONLY)
       fboss/lib/i2c/PCA9541.h
       fboss/lib/i2c/FirmwareUpgrader.cpp
       fboss/lib/i2c/FirmwareUpgrader.h
+      fboss/lib/i2c/CdbCommandBlock.cpp
+      fboss/lib/i2c/CdbCommandBlock.h
       fboss/lib/usb/TransceiverI2CApi.h
       fboss/lib/usb/UsbDevice.cpp
       fboss/lib/usb/UsbDevice.h
@@ -752,6 +754,8 @@ if (NOT SAI_ONLY)
       fboss/lib/firmware_storage/FbossFirmware.h
       fboss/lib/firmware_storage/FbossFwStorage.cpp
       fboss/lib/firmware_storage/FbossFwStorage.h
+      fboss/lib/i2c/CdbCommandBlock.h
+      fboss/lib/i2c/CdbCommandBlock.cpp
       fboss/lib/i2c/FirmwareUpgrader.cpp
       fboss/lib/i2c/FirmwareUpgrader.h
   )
