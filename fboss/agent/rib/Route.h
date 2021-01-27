@@ -42,7 +42,7 @@ class Route {
     if (!entry.isValid(false)) {
       throw FbossError("Invalid label forwarding action for IP route");
     }
-    nexthopsmulti.update(clientId, entry);
+    nextHopsMulti_.update(clientId, entry);
   }
 
   static Route<AddrT> fromFollyDynamic(const folly::dynamic& json);
@@ -87,13 +87,13 @@ class Route {
   }
   const RouteNextHopEntry* FOLLY_NULLABLE
   getEntryForClient(ClientID clientId) const {
-    return nexthopsmulti.getEntryForClient(clientId);
+    return nextHopsMulti_.getEntryForClient(clientId);
   }
   std::pair<ClientID, const RouteNextHopEntry*> getBestEntry() const {
-    return nexthopsmulti.getBestEntry();
+    return nextHopsMulti_.getBestEntry();
   }
   bool hasNoEntry() const {
-    return nexthopsmulti.isEmpty();
+    return nextHopsMulti_.isEmpty();
   }
 
   bool has(ClientID clientId, const RouteNextHopEntry& entry) const;
@@ -173,8 +173,8 @@ class Route {
    * All next hops of the routes. This set could be empty if and only if
    * the route is directly connected
    */
-  RouteNextHopsMulti nexthopsmulti;
-  std::optional<cfg::AclLookupClass> classID{std::nullopt};
+  RouteNextHopsMulti nextHopsMulti_;
+  std::optional<cfg::AclLookupClass> classID_{std::nullopt};
 };
 
 typedef Route<folly::IPAddressV4> RouteV4;

@@ -22,14 +22,14 @@ template <typename AddrT>
 bool Route<AddrT>::operator==(const Route& rf) const {
   return (
       flags == rf.flags && prefix() == rf.prefix() &&
-      nexthopsmulti == rf.nexthopsmulti && fwd == rf.fwd);
+      nextHopsMulti_ == rf.nextHopsMulti_ && fwd == rf.fwd);
 }
 
 template <typename AddrT>
 folly::dynamic Route<AddrT>::toFollyDynamic() const {
   folly::dynamic routeFields = folly::dynamic::object;
   routeFields[kPrefix] = prefix_.toFollyDynamic();
-  routeFields[kNextHopsMulti] = nexthopsmulti.toFollyDynamic();
+  routeFields[kNextHopsMulti] = nextHopsMulti_.toFollyDynamic();
   routeFields[kFwdInfo] = fwd.toFollyDynamic();
   routeFields[kFlags] = flags;
   return routeFields;
@@ -38,7 +38,7 @@ folly::dynamic Route<AddrT>::toFollyDynamic() const {
 template <typename AddrT>
 Route<AddrT> Route<AddrT>::fromFollyDynamic(const folly::dynamic& routeJson) {
   Route route(Prefix::fromFollyDynamic(routeJson[kPrefix]));
-  route.nexthopsmulti =
+  route.nextHopsMulti_ =
       RouteNextHopsMulti::fromFollyDynamic(routeJson[kNextHopsMulti]);
   route.fwd = RouteNextHopEntry::fromFollyDynamic(routeJson[kFwdInfo]);
   route.flags = routeJson[kFlags].asInt();
@@ -64,7 +64,7 @@ RouteDetails Route<AddrT>::toRouteDetails() const {
   }
 
   // Add the multi-nexthops
-  rd.nextHopMulti = nexthopsmulti.toThrift();
+  rd.nextHopMulti_ref() = nextHopsMulti_.toThrift();
 
   rd.isConnected = isConnected();
 
@@ -75,7 +75,7 @@ template <typename AddrT>
 std::string Route<AddrT>::str() const {
   std::string ret;
   ret = folly::to<std::string>(prefix(), '@');
-  ret.append(nexthopsmulti.str());
+  ret.append(nextHopsMulti_.str());
   ret.append(" State:");
   if (isConnected()) {
     ret.append("C");
@@ -97,13 +97,13 @@ std::string Route<AddrT>::str() const {
 template <typename AddrT>
 void Route<AddrT>::update(ClientID clientId, RouteNextHopEntry entry) {
   fwd.reset();
-  nexthopsmulti.update(clientId, std::move(entry));
+  nextHopsMulti_.update(clientId, std::move(entry));
 }
 
 template <typename AddrT>
 bool Route<AddrT>::has(ClientID clientId, const RouteNextHopEntry& entry)
     const {
-  auto found = nexthopsmulti.getEntryForClient(clientId);
+  auto found = nextHopsMulti_.getEntryForClient(clientId);
   return found and (*found) == entry;
 }
 
@@ -114,7 +114,7 @@ bool Route<AddrT>::isSame(const Route<AddrT>* rt) const {
 
 template <typename AddrT>
 void Route<AddrT>::delEntryForClient(ClientID clientId) {
-  nexthopsmulti.delEntryForClient(clientId);
+  nextHopsMulti_.delEntryForClient(clientId);
 }
 
 template <typename AddrT>
