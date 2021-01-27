@@ -11,15 +11,18 @@
 
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestElbertPort.h"
-#include "fboss/agent/platforms/wedge/elbert/ElbertPlatformMapping.h"
+#include "fboss/agent/platforms/wedge/elbert/Elbert16QPimPlatformMapping.h"
 
 namespace facebook::fboss {
 
+// This TestPlatform mainly used for bcm_test so that we don't really care
+// about how the linecard types are or even whether there's any linecard in the
+// chassis. So it's safe to just use Elbert16QPimPlatformMapping
 BcmTestElbertPlatform::BcmTestElbertPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo)
     : BcmTestTomahawk4Platform(
           std::move(productInfo),
-          std::make_unique<ElbertPlatformMapping>()) {}
+          std::make_unique<Elbert16QPimPlatformMapping>()) {}
 
 std::unique_ptr<BcmTestPort> BcmTestElbertPlatform::createTestPort(PortID id) {
   return std::make_unique<BcmTestElbertPort>(id, this);

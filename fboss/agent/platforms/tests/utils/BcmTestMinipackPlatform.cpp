@@ -11,15 +11,18 @@
 
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestMinipackPort.h"
-#include "fboss/agent/platforms/wedge/minipack/MinipackPlatformMapping.h"
+#include "fboss/agent/platforms/wedge/minipack/Minipack16QPimPlatformMapping.h"
 
 namespace facebook::fboss {
 
+// This TestPlatform mainly used for bcm_test so that we don't really care
+// about how the linecard types are or even whether there's any linecard in the
+// chassis. So it's safe to just use Minipack16QPimPlatformMapping.
 BcmTestMinipackPlatform::BcmTestMinipackPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo)
     : BcmTestWedgeTomahawk3Platform(
           std::move(productInfo),
-          std::make_unique<MinipackPlatformMapping>(
+          std::make_unique<Minipack16QPimPlatformMapping>(
               ExternalPhyVersion::MILN5_2)) {}
 
 std::unique_ptr<BcmTestPort> BcmTestMinipackPlatform::createTestPort(
