@@ -69,6 +69,8 @@ std::string getStateNameString(uint8_t stateCode, const std::map<uint8_t, std::s
 
 constexpr uint8_t kSffLowPowerMode = 0x03;
 constexpr uint8_t kSffHighPowerMode = 0x05;
+constexpr uint8_t kCMISOffsetAppSelLane1 = 145;
+constexpr uint8_t kCMISOffsetStageCtrlSet0 = 143;
 // 0x01 overrides low power mode
 // 0x04 is an LR4-specific bit that is otherwise reserved
 
@@ -100,8 +102,10 @@ DEFINE_bool(set_low_power, false,
             "Force the QSFP to limit power usage; Only useful for testing");
 DEFINE_bool(tx_disable, false, "Set the TX disable bits");
 DEFINE_bool(tx_enable, false, "Clear the TX disable bits");
-DEFINE_bool(set_40g, false, "Rate select 40G");
-DEFINE_bool(set_100g, false, "Rate select 100G");
+DEFINE_bool(set_40g, false, "Rate select 40G, for CWDM4 modules.");
+DEFINE_bool(set_100g, false, "Rate select 100G, for CWDM4 modules.");
+DEFINE_int32(app_sel, 0,
+            "Select application, for CMIS modules. In 200G modules 1 is for 200G and 2 is for 100G");
 DEFINE_bool(cdr_enable, false, "Set the CDR bits if transceiver supports it");
 DEFINE_bool(cdr_disable, false,
     "Clear the CDR bits if transceiver supports it");
@@ -173,6 +177,16 @@ TransceiverManagementInterface getModuleType(
   } else {
     return TransceiverManagementInterface::SFF;
   }
+}
+
+bool flipModuleUpperPage(TransceiverI2CApi* bus, unsigned int port, uint8_t page) {
+  try {
+    bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+  } catch (const I2cError& ex) {
+    fprintf(stderr, "QSFP %d: Fail to flip module upper page\n", port);
+    return false;
+  }
+  return true;
 }
 
 bool overrideLowPower(
@@ -273,6 +287,39 @@ bool rateSelect(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
   } catch (const I2cError& ex) {
     // This generally means the QSFP module is not present.
     fprintf(stderr, "QSFP %d: not present or unwritable\n", port);
+    return false;
+  }
+  return true;
+}
+
+bool appSel(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
+  // This function is for CMIS module to change application.
+  // Application code is the upper four bit of the field.
+  uint8_t applicationCode = value << 4;
+  try {
+    // Flip to page 0x10 to get prepared.
+    uint8_t page = 0x10;
+    flipModuleUpperPage(bus, port, page);
+
+    for (int channel = 0; channel < 4; channel++) {
+      bus->moduleWrite(
+          port,
+          TransceiverI2CApi::ADDR_QSFP,
+          kCMISOffsetAppSelLane1 + channel,
+          sizeof(applicationCode),
+          &applicationCode);
+    }
+
+    uint8_t applySet0 = 0x0f;
+    bus->moduleWrite(
+        port,
+        TransceiverI2CApi::ADDR_QSFP,
+        kCMISOffsetStageCtrlSet0,
+        sizeof(applySet0),
+        &applySet0);
+  } catch (const I2cError& ex) {
+    // This generally means the QSFP module is not present.
+    fprintf(stderr, "QSFP %d: fail to change application\n", port);
     return false;
   }
   return true;
@@ -1123,7 +1170,7 @@ int main(int argc, char* argv[]) {
                      FLAGS_electrical_loopback || FLAGS_optical_loopback ||
                      FLAGS_clear_loopback || FLAGS_read_reg ||
                      FLAGS_write_reg || FLAGS_update_module_firmware ||
-                     FLAGS_get_module_fw_info);
+                     FLAGS_get_module_fw_info || FLAGS_app_sel);
 
   if (FLAGS_direct_i2c || !printInfo) {
     try {
@@ -1187,6 +1234,9 @@ int main(int argc, char* argv[]) {
     }
     if (FLAGS_set_100g && rateSelect(bus.get(), portNum, 0xaa)) {
       printf("QSFP %d: set to optimize for 25G channels\n", portNum);
+    }
+    if (FLAGS_app_sel && appSel(bus.get(), portNum, FLAGS_app_sel)) {
+      printf("QSFP %d: set to application %d\n", portNum, FLAGS_app_sel);
     }
 
     if (FLAGS_cdr_enable && setCdr(bus.get(), portNum, 0xff)) {
