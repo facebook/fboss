@@ -66,6 +66,15 @@ std::string getStateNameString(uint8_t stateCode, const std::map<uint8_t, std::s
   }
   return stateName;
 }
+
+constexpr uint8_t kSffLowPowerMode = 0x03;
+constexpr uint8_t kSffHighPowerMode = 0x05;
+// 0x01 overrides low power mode
+// 0x04 is an LR4-specific bit that is otherwise reserved
+
+// CMIS module Identifier (from module register 0)
+constexpr uint8_t kCMISIdentifier = 0x1e;
+constexpr uint8_t kCmisPowerModeMask = (1 << 4);
 }
 
 using namespace facebook::fboss;
@@ -127,9 +136,6 @@ enum LoopbackMode {
   opticalLoopback
 };
 
-// CMIS module Identifier (from module register 0)
-constexpr uint8_t kCMISIdentifier = 0x1e;
-
 struct ModulePartInfo_s {
   std::array<uint8_t, 16> partNo;
   uint32_t headerLen;
@@ -146,15 +152,48 @@ std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> getQsfpClient(folly::Ev
   return std::move(QsfpClient::createClient(&evb)).getVia(&evb);
 }
 
+/*
+ * This function returns the module type whether it is CMIS or SFF type
+ * by reading the register 0 from module
+ */
+TransceiverManagementInterface getModuleType(
+  TransceiverI2CApi* bus, unsigned int port) {
+  uint8_t moduleId;
+
+  // Get the module id to differentiate between CMIS (0x1e) and SFF
+  try {
+    bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 0, 1, &moduleId);
+  } catch (const I2cError& ex) {
+    fprintf(stderr, "QSFP %d: not present or read error\n", port);
+    return TransceiverManagementInterface::NONE;
+  }
+
+  if (moduleId == kCMISIdentifier) {
+    return TransceiverManagementInterface::CMIS;
+  } else {
+    return TransceiverManagementInterface::SFF;
+  }
+}
+
 bool overrideLowPower(
     TransceiverI2CApi* bus,
     unsigned int port,
-    uint8_t value) {
-  // 0x01 overrides low power mode
-  // 0x04 is an LR4-specific bit that is otherwise reserved
-  uint8_t buf[1] = {value};
+    bool lowPower) {
+  std::array<uint8_t, 1> buf;
   try {
-    bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 93, 1, buf);
+    // First figure out whether this module follows CMIS or Sff8636.
+    auto managementInterface = getModuleType(bus, port);
+    if (managementInterface == TransceiverManagementInterface::CMIS) {
+      bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 26, 1, buf.data());
+      lowPower ? buf[0] |= kCmisPowerModeMask : buf[0] &= ~kCmisPowerModeMask;
+      bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 26, 1, buf.data());
+    } else if (managementInterface == TransceiverManagementInterface::SFF) {
+      buf[0] = {lowPower ? kSffLowPowerMode : kSffHighPowerMode};
+      bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 93, 1, buf.data());
+    } else {
+      fprintf(stderr, "QSFP %d: Unrecognizable management interface\n", port);
+      return false;
+    }
   } catch (const I2cError& ex) {
     // This generally means the QSFP module is not present.
     fprintf(stderr, "QSFP %d: not present or unwritable\n", port);
@@ -237,28 +276,6 @@ bool rateSelect(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
     return false;
   }
   return true;
-}
-
-/*
- * This function returns the module type whether it is CMIS or SFF type
- * by reading the register 0 from module
- */
-TransceiverManagementInterface getModuleType(
-  TransceiverI2CApi* bus, unsigned int port) {
-  uint8_t moduleId;
-
-  // Get the module id to differentiate between CMIS (0x1e) and SFF
-  try {
-    bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 0, 1, &moduleId);
-  } catch (const I2cError& ex) {
-    fprintf(stderr, "QSFP %d: not present or read error\n", port);
-  }
-
-  if (moduleId == kCMISIdentifier) {
-    return TransceiverManagementInterface::CMIS;
-  } else {
-    return TransceiverManagementInterface::SFF;
-  }
 }
 
 /*
@@ -1152,10 +1169,10 @@ int main(int argc, char* argv[]) {
 
   int retcode = EX_OK;
   for (unsigned int portNum : ports) {
-    if (FLAGS_clear_low_power && overrideLowPower(bus.get(), portNum, 0x5)) {
+    if (FLAGS_clear_low_power && overrideLowPower(bus.get(), portNum, false)) {
       printf("QSFP %d: cleared low power flags\n", portNum);
     }
-    if (FLAGS_set_low_power && overrideLowPower(bus.get(), portNum, 0x3)) {
+    if (FLAGS_set_low_power && overrideLowPower(bus.get(), portNum, true)) {
       printf("QSFP %d: set low power flags\n", portNum);
     }
     if (FLAGS_tx_disable && setTxDisable(bus.get(), portNum, true)) {

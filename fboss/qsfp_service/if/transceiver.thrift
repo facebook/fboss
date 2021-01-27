@@ -109,6 +109,7 @@ enum TransceiverType {
 enum TransceiverManagementInterface {
   SFF = 0,
   CMIS = 1,
+  NONE = 2,
 }
 
 enum FeatureState {
