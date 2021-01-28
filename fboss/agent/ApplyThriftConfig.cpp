@@ -402,6 +402,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     auto newDefaultQosPolicy = updateDataplaneDefaultQosPolicy();
     if (new_->getDefaultDataPlaneQosPolicy() != newDefaultQosPolicy) {
       new_->setDefaultDataPlaneQosPolicy(newDefaultQosPolicy);
+      changed = true;
     }
   }
 
