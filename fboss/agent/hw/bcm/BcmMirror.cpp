@@ -330,7 +330,7 @@ void BcmMirror::applyAclMirrorAction(
 
       break;
   }
-  auto rv = bcm_field_entry_reinstall(hw_->getUnit(), aclEntryHandle);
+  auto rv = bcm_field_entry_install(hw_->getUnit(), aclEntryHandle);
   bcmCheckError(rv, "failed to reload acl ", aclEntryHandle);
 }
 

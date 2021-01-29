@@ -2967,10 +2967,11 @@ void BcmSwitch::initFieldProcessor() const {
 }
 
 void BcmSwitch::initMirrorModule() const {
-  // TODO T74698149 HSDK might need a new implementation for mirroring.
-  // For now, we just disable it for HSDK until we have a new solution.
   if (platform_->getAsic()->isSupported(HwAsic::Feature::HSDK)) {
-    XLOG(WARNING) << "Disable Mirroring feature for HSDK";
+    // Do not need the calls below on HSDK: T74698149. bcm_mirror_init is
+    // optional but harmless to call to make sure we are cleaning any state
+    auto rv = bcm_mirror_init(unit_);
+    bcmCheckError(rv, "failed to set up Mirroring");
     return;
   }
 
