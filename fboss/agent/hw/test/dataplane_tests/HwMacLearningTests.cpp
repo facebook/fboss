@@ -47,8 +47,12 @@ namespace {
 // Even when running the same test repeatedly could result in different
 // learning counts based on hash insertion  order.
 // Maximum theortical is 8k for TH ..but practically we hit numbers below it
-// Putting the value ot 7K should give enough buffer
-int constexpr L2_LEARN_MAX_MAC_COUNT = 7000;
+// Putting the value ot 5K should give enough buffer
+// TODO(joseph5wu) Due to T83358080, we found out TH3 takes way longer to learn
+// MAC compared to other platforms and if the scale is too big, the tests will
+// be very flaky. For now, change 7K to 5K while waiting for Broadcom to help
+// us debug this issue.
+int constexpr L2_LEARN_MAX_MAC_COUNT = 5000;
 
 std::set<folly::MacAddress>
 getMacsForPort(const facebook::fboss::HwSwitch* hw, int port, bool isTrunk) {
@@ -107,10 +111,11 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
       int sleepUsecsBetweenChunks = 0) {
     auto originalStats =
         getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds());
-    auto allSent = [&originalStats](const auto& newStats) {
+    int totalPackets = srcMacs.size() * dstMacs.size();
+    auto allSent = [&originalStats, totalPackets](const auto& newStats) {
       auto originalPkts = getPortInPkts(originalStats);
       auto newPkts = getPortInPkts(newStats);
-      auto expectedPkts = originalPkts + L2_LEARN_MAX_MAC_COUNT;
+      auto expectedPkts = originalPkts + totalPackets;
       XLOGF(
           INFO,
           "Checking packets sent. Old: {}, New: {}, Expected: {}",
@@ -120,7 +125,6 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
       return newPkts == expectedPkts;
     };
     int numSentPackets = 0;
-    int totalPackets = srcMacs.size() * dstMacs.size();
     for (auto srcMac : srcMacs) {
       for (auto dstMac : dstMacs) {
         auto txPacket = utility::makeEthTxPacket(
@@ -576,15 +580,6 @@ TEST_F(HwMacLearningStaticEntriesTest, VerifyStaticDynamicTransformations) {
 // Intent of this test is to attempt to learn large number of macs
 // (L2_LEARN_MAX_MAC_COUNT) and ensure HW can learn them.
 TEST_F(HwMacLearningTest, VerifyMacLearningScale) {
-  if (getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3) {
-    // This test is not valid for TH3 even though we increased the sleep time
-    // but when the scale of the mac addresses increase to 6K, the SDK can't
-    // guarantee to learn all the mac addresses.
-    // We filed a CSP(CS00011808403) to keep track of this issue.
-    XLOG(INFO) << "Skip the test for TH3 platform";
-    return;
-  }
-
   // Some platforms only support SDK Software Learning, which is usually slower
   // than Hardware Learning to let SDK learn MAC Address from hardware.
   // For these platforms, they will use cache mechanism to let hardware put
@@ -635,6 +630,14 @@ TEST_F(HwMacLearningTest, VerifyMacLearningScale) {
   };
 
   auto verify = [this, portDescr, &macs]() {
+    // Because the last verify() will send out some packets with kSourceMac()
+    // to verify whether macs are learnt, the SDK/HW might learn kSourceMac(),
+    // but this is not what we care and we only care whether the HW has learnt
+    // all addresses in `macs`
+    const auto& learntMacs =
+        getMacsForPort(getHwSwitch(), masterLogicalPortIds()[0], false);
+    EXPECT_TRUE(learntMacs.size() >= macs.size());
+
     bringUpPort(masterLogicalPortIds()[1]);
     auto origPortStats =
         getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[1]);
