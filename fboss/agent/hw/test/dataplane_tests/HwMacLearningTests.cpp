@@ -890,6 +890,12 @@ class HwMacLearningBatchEntriesTest : public HwMacLearningTest {
     getHwSwitchEnsemble()->waitPortStatsCondition(allSent);
   }
 
+  folly::MacAddress generateNextMac(folly::MacAddress curMac) {
+    auto generator = utility::MacAddressGenerator();
+    generator.startOver(curMac.u64HBO());
+    return generator.getNext();
+  }
+
   void verifyAllMacsLearnt(const std::vector<folly::MacAddress>& macs) {
     // Because the last verify() will send out some packets with kSourceMac()
     // to verify whether macs are learnt, the SDK/HW might learn kSourceMac(),
@@ -1076,12 +1082,93 @@ TEST_F(HwMacLearningBatchEntriesTest, VerifyMacLearningAgingReleaseResource) {
             getMacsForPort(getHwSwitch(), masterLogicalPortIds()[0], false);
         EXPECT_EQ(afterAgingMacs.size(), 0);
       } else {
-        XLOGF(INFO, "Successfully aged all MACs in HW for #{} time", i);
+        XLOGF(INFO, "Successfully aged all MACs in HW for #{} times", i + 1);
       }
     }
   };
 
   auto verify = [this, &macs]() { verifyAllMacsLearnt(macs); };
+
+  // MACs learned should be preserved across warm boot
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// Intent of this test is to attempt to verify if we have repeated MACs learnt,
+// the SDK will still be able to learn new MACs if the L2 table is not full.
+// We recently noticed a bug on TH3 that the SDK internal counter counter is
+// updated even if the existing table entry was just updated;
+// which caused the SDK not able to learn any new MAC even the L2 table wasn't
+// full.
+TEST_F(HwMacLearningBatchEntriesTest, VerifyMacLearningUpdateExistingL2Entry) {
+  int chunkSize = 1;
+  int sleepUsecsBetweenChunks = 0;
+  std::tie(chunkSize, sleepUsecsBetweenChunks) = getMacChunkSizeAndSleepUsecs();
+
+  // To make it more similar to the real production environment, we try to
+  // send 1k MAC addresses for 11 times, and then send a new packet with new mac
+  // address.
+  // This will tell us whether updating them same 1K MAC for multiples times
+  // will make counter incorrectly and eventually stop us adding a new MAC even
+  // though the table is not full yet.
+  constexpr int kMultiAgingTestMacsSize = 1000;
+  std::vector<folly::MacAddress> macs = generateMacs(kMultiAgingTestMacsSize);
+  // Add an extra mac
+  auto extraMac = generateNextMac(macs.back());
+
+  auto portDescr = physPortDescr();
+  auto setup = [this,
+                portDescr,
+                chunkSize,
+                sleepUsecsBetweenChunks,
+                &macs,
+                &extraMac]() {
+    setupHelper(cfg::L2LearningMode::HARDWARE, portDescr);
+
+    constexpr int kRepeatTimes = 11;
+    // First we disable aging, so entry stays in L2 table when we verify.
+    utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), 0);
+    // Changing the source ports to trigger L2 entry change
+    for (int i = 0; i < kRepeatTimes; ++i) {
+      // Changing the same MAC to use different source port, so that trigger
+      // SDK to update the existing MAC entry.
+      auto upPortID = masterLogicalPortIds()[i % 2];
+      auto downPortID = masterLogicalPortIds()[(i + 1) % 2];
+      bringUpPort(upPortID);
+      bringDownPort(downPortID);
+
+      sendL2Pkts(
+          *initialConfig().vlanPorts_ref()[0].vlanID_ref(),
+          upPortID,
+          macs,
+          {folly::MacAddress::BROADCAST},
+          chunkSize,
+          sleepUsecsBetweenChunks);
+
+      // Confirm that the SDK has learn all the macs
+      const auto& upPortLearntMacs =
+          getMacsForPort(getHwSwitch(), upPortID, false);
+      EXPECT_EQ(upPortLearntMacs.size(), macs.size());
+      const auto& downPortLearntMacs =
+          getMacsForPort(getHwSwitch(), downPortID, false);
+      EXPECT_EQ(downPortLearntMacs.size(), 0);
+      XLOGF(INFO, "Successfully updated all MACs in HW for #{} times", i + 1);
+    }
+
+    // Add an extra mac
+    sendL2Pkts(
+        *initialConfig().vlanPorts_ref()[0].vlanID_ref(),
+        masterLogicalPortIds()[0],
+        {extraMac},
+        {folly::MacAddress::BROADCAST},
+        chunkSize,
+        sleepUsecsBetweenChunks);
+  };
+
+  auto verify = [this, &macs, &extraMac]() {
+    // Verify all orignal 1K macs and the extra one have been learnt
+    macs.push_back(extraMac);
+    verifyAllMacsLearnt(macs);
+  };
 
   // MACs learned should be preserved across warm boot
   verifyAcrossWarmBoots(setup, verify);
