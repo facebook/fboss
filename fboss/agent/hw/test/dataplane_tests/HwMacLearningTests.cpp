@@ -114,7 +114,10 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
         std::move(txPacket), PortID(masterLogicalPortIds()[0]));
   }
 
-  bool wasMacLearnt(PortDescriptor portDescr, bool shouldExist = true) {
+  bool wasMacLearnt(
+      PortDescriptor portDescr,
+      folly::MacAddress mac,
+      bool shouldExist = true) {
     /***
      * shouldExist - if set to true (default), retry until mac is found.
      *             - if set to false, retry until mac is no longer learned
@@ -137,7 +140,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     while (retries--) {
       if ((l2LearningMode == cfg::L2LearningMode::SOFTWARE &&
            wasMacLearntInSwitchState(shouldExist) &&
-           isInL2Table(shouldExist, portDescr)) ||
+           isInL2Table(portDescr, mac, shouldExist)) ||
           (l2LearningMode == cfg::L2LearningMode::HARDWARE &&
            wasMacLearntInHw(shouldExist))) {
         return true;
@@ -229,7 +232,9 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
       sendPkt();
     };
 
-    auto verify = [this, portDescr]() { EXPECT_TRUE(wasMacLearnt(portDescr)); };
+    auto verify = [this, portDescr]() {
+      EXPECT_TRUE(wasMacLearnt(portDescr, kSourceMac()));
+    };
 
     // MACs learned should be preserved across warm boot
     verifyAcrossWarmBoots(setup, verify);
@@ -244,11 +249,11 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
       // Disable aging, so entry stays in L2 table when we verify.
       utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), 0);
       sendPkt();
-      EXPECT_TRUE(wasMacLearnt(portDescr));
+      EXPECT_TRUE(wasMacLearnt(portDescr, kSourceMac()));
 
-      // Force MAC aging to as fast a possible but min is still 1 second
+      // Force MAC aging to as fast as possible but min is still 1 second
       utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), kMinAgeInSecs());
-      EXPECT_TRUE(wasMacLearnt(portDescr, false /* MAC aged */));
+      EXPECT_TRUE(wasMacLearnt(portDescr, kSourceMac(), false /* MAC aged */));
     };
 
     verifyAcrossWarmBoots(setup, verify);
@@ -263,7 +268,9 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
       sendPkt();
     };
 
-    auto verify = [this, portDescr]() { EXPECT_TRUE(wasMacLearnt(portDescr)); };
+    auto verify = [this, portDescr]() {
+      EXPECT_TRUE(wasMacLearnt(portDescr, kSourceMac()));
+    };
 
     auto setupPostWarmboot = [this, portDescr]() {
       l2LearningObserver_.reset();
@@ -282,7 +289,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
             L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED,
             gotMac);
       }
-      EXPECT_TRUE(wasMacLearnt(portDescr));
+      EXPECT_TRUE(wasMacLearnt(portDescr, kSourceMac()));
     };
 
     verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
@@ -304,7 +311,9 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
           expectedL2EntryTypeOnAdd());
     };
 
-    auto verify = [this, portDescr]() { EXPECT_TRUE(wasMacLearnt(portDescr)); };
+    auto verify = [this, portDescr]() {
+      EXPECT_TRUE(wasMacLearnt(portDescr, kSourceMac()));
+    };
 
     auto setupPostWarmboot = [this, portDescr]() {
       setupHelper(cfg::L2LearningMode::HARDWARE, portDescr);
@@ -332,7 +341,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
        *
        * Thus, here we ASSERT that the MAC is removed.
        */
-      EXPECT_TRUE(wasMacLearnt(portDescr, false /* MAC aged */));
+      EXPECT_TRUE(wasMacLearnt(portDescr, kSourceMac(), false /* MAC aged */));
     };
 
     verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
@@ -375,11 +384,14 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     auto* macTable = vlan->getMacTable().get();
     return (shouldExist == (macTable->getNodeIf(kSourceMac()) != nullptr));
   }
-  bool isInL2Table(bool shouldExist, const PortDescriptor& portDescr) const {
+  bool isInL2Table(
+      const PortDescriptor& portDescr,
+      folly::MacAddress mac,
+      bool shouldExist) const {
     auto isTrunk = portDescr.isAggregatePort();
     int portId = isTrunk ? portDescr.aggPortID() : portDescr.phyPortID();
     auto macs = getMacsForPort(getHwSwitch(), portId, isTrunk);
-    return (shouldExist == (macs.find(kSourceMac()) != macs.end()));
+    return (shouldExist == (macs.find(mac) != macs.end()));
   }
 };
 
@@ -415,7 +427,9 @@ class HwMacSwLearningModeTest : public HwMacLearningTest {
       induceMacLearning(portDescr);
     };
 
-    auto verify = [this, portDescr]() { EXPECT_TRUE(wasMacLearnt(portDescr)); };
+    auto verify = [this, portDescr]() {
+      EXPECT_TRUE(wasMacLearnt(portDescr, kSourceMac()));
+    };
 
     // MACs learned should be preserved across warm boot
     verifyAcrossWarmBoots(setup, verify);
@@ -431,9 +445,9 @@ class HwMacSwLearningModeTest : public HwMacLearningTest {
       utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), 0);
       induceMacLearning(portDescr);
 
-      EXPECT_TRUE(wasMacLearnt(portDescr));
+      EXPECT_TRUE(wasMacLearnt(portDescr, kSourceMac()));
 
-      // Force MAC aging to as fast a possible but min is still 1 second
+      // Force MAC aging to as fast as possible but min is still 1 second
       l2LearningObserver_.reset();
       utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), kMinAgeInSecs());
 
@@ -443,7 +457,7 @@ class HwMacSwLearningModeTest : public HwMacLearningTest {
           portDescr,
           L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE,
           L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED);
-      EXPECT_TRUE(wasMacLearnt(portDescr, false /* MAC aged */));
+      EXPECT_TRUE(wasMacLearnt(portDescr, kSourceMac(), false /* MAC aged */));
     };
 
     verifyAcrossWarmBoots(setup, verify);
@@ -496,7 +510,7 @@ TEST_F(HwMacLearningStaticEntriesTest, VerifyStaticMacEntryAdd) {
   auto verify = [this] {
     std::this_thread::sleep_for(std::chrono::seconds(2 * kMinAgeInSecs()));
     // Static entries shouldn't age
-    EXPECT_TRUE(wasMacLearnt(physPortDescr()));
+    EXPECT_TRUE(wasMacLearnt(physPortDescr(), kSourceMac()));
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -509,7 +523,8 @@ TEST_F(HwMacLearningStaticEntriesTest, VerifyStaticDynamicTransformations) {
     addOrUpdateMacEntry(MacEntryType::DYNAMIC_ENTRY);
     std::this_thread::sleep_for(std::chrono::seconds(2 * kMinAgeInSecs()));
     // Dynamic entries should get aged out
-    EXPECT_TRUE(wasMacLearnt(physPortDescr(), false /*aged in hw*/));
+    EXPECT_TRUE(
+        wasMacLearnt(physPortDescr(), kSourceMac(), false /*aged in hw*/));
     // Transform back to STATIC entry (we still have entry in switch state).
     // Its important to test that we can update or add a static entry regardless
     // of the HW state. Since for dynamic entries, they might get aged out in
@@ -519,7 +534,7 @@ TEST_F(HwMacLearningStaticEntriesTest, VerifyStaticDynamicTransformations) {
   auto verify = [this] {
     std::this_thread::sleep_for(std::chrono::seconds(2 * kMinAgeInSecs()));
     // Static entries shouldn't age
-    EXPECT_TRUE(wasMacLearnt(physPortDescr()));
+    EXPECT_TRUE(wasMacLearnt(physPortDescr(), kSourceMac()));
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -574,7 +589,7 @@ TEST_F(HwMacSwLearningModeTest, VerifyNbrMacInL2Table) {
     applyNewState(
         ecmpHelper6.resolveNextHops(getProgrammedState(), {physPortDescr()}));
   };
-  auto verify = [this] { wasMacLearnt(physPortDescr()); };
+  auto verify = [this] { wasMacLearnt(physPortDescr(), kSourceMac()); };
   verifyAcrossWarmBoots(setup, verify);
 }
 
@@ -605,7 +620,7 @@ TEST_F(HwMacSwLearningModeTest, VerifyCallbacksOnMacEntryChange) {
           break;
         case MacOp::DELETE:
           XLOG(INFO) << " Removing mac";
-          // Force MAC aging to as fast a possible but min is still 1 second
+          // Force MAC aging to as fast as possible but min is still 1 second
           utility::setMacAgeTimerSeconds(
               getHwSwitchEnsemble(), kMinAgeInSecs());
 
@@ -634,15 +649,15 @@ TEST_F(HwMacSwLearningModeTest, VerifyCallbacksOnMacEntryChange) {
       EXPECT_EQ(updates.size(), numExpectedUpdates);
       switch (op) {
         case MacOp::ASSOCIATE:
-          EXPECT_TRUE(wasMacLearnt(physPortDescr()));
+          EXPECT_TRUE(wasMacLearnt(physPortDescr(), kSourceMac()));
           assertClassID(kClassID());
           break;
         case MacOp::DISSOASSOCIATE:
-          EXPECT_TRUE(wasMacLearnt(physPortDescr()));
+          EXPECT_TRUE(wasMacLearnt(physPortDescr(), kSourceMac()));
           assertClassID(std::nullopt);
           break;
         case MacOp::DELETE:
-          EXPECT_TRUE(wasMacLearnt(physPortDescr(), false));
+          EXPECT_TRUE(wasMacLearnt(physPortDescr(), kSourceMac(), false));
           break;
       }
     };
@@ -709,7 +724,7 @@ class HwMacLearningMacMoveTest : public HwMacLearningTest {
           portDescr,
           L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD,
           expectedL2EntryTypeOnAdd());
-      EXPECT_TRUE(wasMacLearnt(portDescr));
+      EXPECT_TRUE(wasMacLearnt(portDescr, kSourceMac()));
 
       // Bring up port down, and down port up
       bringDownPort(portDescr.phyPortID());
@@ -752,11 +767,11 @@ class HwMacLearningMacMoveTest : public HwMacLearningTest {
             L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED);
       }
 
-      EXPECT_TRUE(wasMacLearnt(portDescr2));
+      EXPECT_TRUE(wasMacLearnt(portDescr2, kSourceMac()));
 
       // Aging out MAC prepares for subsequent run of verify()
 
-      // Force MAC aging to as fast a possible but min is still 1 second
+      // Force MAC aging to as fast as possible but min is still 1 second
       l2LearningObserver_.reset();
       utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), kMinAgeInSecs());
 
@@ -766,7 +781,7 @@ class HwMacLearningMacMoveTest : public HwMacLearningTest {
           portDescr2,
           L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE,
           L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED);
-      EXPECT_TRUE(wasMacLearnt(portDescr2, false /* MAC aged */));
+      EXPECT_TRUE(wasMacLearnt(portDescr2, kSourceMac(), false /* MAC aged */));
     };
 
     // MAC Move should work as expected post warmboot as well.
@@ -960,7 +975,7 @@ TEST_F(HwMacLearningBatchEntriesTest, VerifyMacAgingScale) {
         getMacsForPort(getHwSwitch(), masterLogicalPortIds()[0], false);
     EXPECT_EQ(learntMacs.size(), macs.size());
 
-    // Force MAC aging to as fast a possible but min is still 1 second
+    // Force MAC aging to as fast as possible but min is still 1 second
     utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), kMinAgeInSecs());
   };
 
@@ -992,5 +1007,84 @@ TEST_F(HwMacLearningBatchEntriesTest, VerifyMacAgingScale) {
 
   // MACs learned should be preserved across warm boot
   verifyAcrossWarmBoots(setup, verify);
-};
+}
+
+// Intent of this test is to attempt to SDK will still be able to learn new
+// MACs if the L2 table is not full.
+// We recently noticed a bug on TH3 that the SDK internal counter wasn't
+// correctly updated, which caused the SDK not able to learn any new MAC even
+// the L2 table wasn't full.
+TEST_F(HwMacLearningBatchEntriesTest, VerifyMacLearningAgingReleaseResource) {
+  int chunkSize = 1;
+  int sleepUsecsBetweenChunks = 0;
+  std::tie(chunkSize, sleepUsecsBetweenChunks) = getMacChunkSizeAndSleepUsecs();
+
+  // To make it more similar to the real production environment, we try to
+  // send 1k MAC addresses at a time, and then let them age out, and then
+  // repeat the whole process again for 9 times, and at the final time, we don't
+  // age them so that we can verify whether these 1K MACs learned.
+  // Basically let the SDK learn MAC addresses for 10K times.
+  constexpr int kMultiAgingTestMacsSize = 1000;
+  std::vector<folly::MacAddress> macs = generateMacs(kMultiAgingTestMacsSize);
+
+  auto portDescr = physPortDescr();
+  auto setup = [this, portDescr, chunkSize, sleepUsecsBetweenChunks, &macs]() {
+    setupHelper(cfg::L2LearningMode::HARDWARE, portDescr);
+
+    constexpr int kForceAgingTimes = 10;
+    for (int i = 0; i < kForceAgingTimes; ++i) {
+      // First we disable aging, so entry stays in L2 table when we verify.
+      utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), 0);
+      sendL2Pkts(
+          *initialConfig().vlanPorts_ref()[0].vlanID_ref(),
+          masterLogicalPortIds()[0],
+          macs,
+          {folly::MacAddress::BROADCAST},
+          chunkSize,
+          sleepUsecsBetweenChunks);
+
+      // Confirm that the SDK has learn all the macs
+      const auto& learntMacs =
+          getMacsForPort(getHwSwitch(), masterLogicalPortIds()[0], false);
+      EXPECT_EQ(learntMacs.size(), macs.size());
+
+      // Now force the SDK age them out if it is not the last time.
+      if (i == kForceAgingTimes - 1) {
+        break;
+      }
+
+      // Force MAC aging to as fast as possible but min is still 1 second
+      utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), kMinAgeInSecs());
+      // We can't always guarante that even setting 1s to age, the SDK will
+      // age all the MACs out that fast. Add some retry mechanism to make the
+      // test more robust
+      int waitForAging = 5;
+      while (waitForAging) {
+        /* sleep override */
+        sleep(2 * kMinAgeInSecs());
+        const auto& afterAgingMacs =
+            getMacsForPort(getHwSwitch(), masterLogicalPortIds()[0], false);
+        if (afterAgingMacs.size() == 0) {
+          break;
+        }
+        --waitForAging;
+      }
+      if (waitForAging == 0) {
+        // After 10 seconds, let's check whether there're still some MAC
+        // remained in HW
+        const auto& afterAgingMacs =
+            getMacsForPort(getHwSwitch(), masterLogicalPortIds()[0], false);
+        EXPECT_EQ(afterAgingMacs.size(), 0);
+      } else {
+        XLOGF(INFO, "Successfully aged all MACs in HW for #{} time", i);
+      }
+    }
+  };
+
+  auto verify = [this, &macs]() { verifyAllMacsLearnt(macs); };
+
+  // MACs learned should be preserved across warm boot
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
