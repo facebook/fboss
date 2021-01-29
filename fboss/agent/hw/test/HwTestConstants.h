@@ -12,6 +12,8 @@ std::vector<uint64_t> kHwTestEcmpWeights();
 
 std::vector<uint64_t> kHwTestUcmpWeights();
 
+std::vector<uint64_t> kHwTestWideUcmpWeights();
+
 uint32_t constexpr kHwTestMplsLabel = 1001;
 
 } // namespace facebook::fboss::utility

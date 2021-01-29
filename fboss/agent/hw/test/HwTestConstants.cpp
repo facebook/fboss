@@ -19,8 +19,14 @@ std::vector<uint64_t> kHwTestEcmpWeights() {
   return {};
 }
 
+// Total normalized weight 36. Normal ecmp used in hw
 std::vector<uint64_t> kHwTestUcmpWeights() {
   return {10, 20, 30, 40, 50, 60, 70, 80};
+}
+
+// Total weight 361 leads to wide ecmp in HW
+std::vector<uint64_t> kHwTestWideUcmpWeights() {
+  return {11, 20, 30, 40, 50, 60, 70, 80};
 }
 
 } // namespace facebook::fboss::utility
