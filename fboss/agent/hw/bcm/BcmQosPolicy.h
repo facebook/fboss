@@ -13,6 +13,12 @@
 #include "fboss/agent/hw/bcm/BcmQosMap.h"
 #include "fboss/agent/hw/bcm/types.h"
 
+extern "C" {
+#include <bcm/cosq.h>
+#include <bcm/qos.h>
+#include <bcm/types.h>
+}
+
 namespace facebook::fboss {
 
 class BcmSwitch;
@@ -21,7 +27,6 @@ class QosPolicy;
 class BcmQosPolicy {
  public:
   BcmQosPolicy(BcmSwitch* hw, const std::shared_ptr<QosPolicy>& qosPolicy);
-
   void update(
       const std::shared_ptr<QosPolicy>& oldQosPolicy,
       const std::shared_ptr<QosPolicy>& newQosPolicy);
@@ -31,6 +36,7 @@ class BcmQosPolicy {
   const BcmQosMap* getIngressDscpQosMap() const;
   const BcmQosMap* getIngressExpQosMap() const;
   const BcmQosMap* getEgressExpQosMap() const;
+  void remove();
 
  private:
   void updateIngressDscpQosMap(
@@ -42,10 +48,20 @@ class BcmQosPolicy {
   void updateEgressExpQosMap(
       const std::shared_ptr<QosPolicy>& oldQosPolicy,
       const std::shared_ptr<QosPolicy>& newQosPolicy);
+  void updateTrafficClassToPgMap(
+      const std::shared_ptr<QosPolicy>& oldQosPolicy,
+      const std::shared_ptr<QosPolicy>& newQosPolicy);
 
   void programIngressDscpQosMap(const std::shared_ptr<QosPolicy>& qosPolicy);
   void programIngressExpQosMap(const std::shared_ptr<QosPolicy>& qosPolicy);
   void programEgressExpQosMap(const std::shared_ptr<QosPolicy>& qosPolicy);
+
+  void programTrafficClassToPgMap(const std::shared_ptr<QosPolicy>& qosPolicy);
+  void programPriorityGroupMapping(
+      const bcm_cosq_priority_group_mapping_profile_type_t profileType,
+      std::vector<int>& trafficClassToPgId,
+      const std::string& profileTypeStr);
+  void programTrafficClassToPg(std::vector<int>& trafficClassPg);
 
   BcmSwitch* hw_;
   std::unique_ptr<BcmQosMap> ingressDscpQosMap_;

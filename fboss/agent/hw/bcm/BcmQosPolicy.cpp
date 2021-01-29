@@ -9,11 +9,23 @@
  */
 #include "fboss/agent/hw/bcm/BcmQosPolicy.h"
 
+#include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
 #include "fboss/agent/hw/bcm/BcmQosMap.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/QosPolicy.h"
+
+namespace {
+constexpr int kDefaultProfileId = 0;
+// array with index representing the traffic class and array value is priority
+// group (PG) defaults from HW required for mapping incoming traffic to PG on
+// ingress for PFC purposes
+std::vector<int>
+    kDefaultTrafficClassToPg{7, 1, 2, 3, 4, 5, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+} // unnamed namespace
 
 namespace facebook::fboss {
 
@@ -60,6 +72,10 @@ void BcmQosPolicy::update(
   updateIngressExpQosMap(oldQosPolicy, newQosPolicy);
 }
 
+void BcmQosPolicy::remove() {
+  programTrafficClassToPg(kDefaultTrafficClassToPg);
+}
+
 void BcmQosPolicy::updateIngressDscpQosMap(
     const std::shared_ptr<QosPolicy>& oldQosPolicy,
     const std::shared_ptr<QosPolicy>& newQosPolicy) {
@@ -96,6 +112,43 @@ void BcmQosPolicy::updateIngressDscpQosMap(
         qosRule.attr());
   }
 }
+
+void BcmQosPolicy::programTrafficClassToPg(std::vector<int>& trafficClassPg) {
+  if (!hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+    return;
+  }
+  // program unicast mapping
+  programPriorityGroupMapping(
+      bcmCosqInputPriPriorityGroupUcMapping,
+      trafficClassPg,
+      "bcmCosqInputPriPriorityGroupUcMapping");
+
+  // program mcast mapping
+  programPriorityGroupMapping(
+      bcmCosqInputPriPriorityGroupMcMapping,
+      trafficClassPg,
+      "bcmCosqInputPriPriorityGroupMcMapping");
+}
+
+// as usual 4 cases exist
+// case 1: !old cfg, !new cfg
+// case 2: !old cfg, new cfg
+// case 3: old cfg, !new cfg
+// case 4: old cfg!= new cfg
+void BcmQosPolicy::updateTrafficClassToPgMap(
+    const std::shared_ptr<QosPolicy>& oldQosPolicy,
+    const std::shared_ptr<QosPolicy>& newQosPolicy) {
+  if (!newQosPolicy->getTrafficClassToPgId() &&
+      !oldQosPolicy->getTrafficClassToPgId()) {
+    // case 1
+    // nothing to do with traffic class <-> pg id mapping
+    return;
+  }
+  // all other cases handled here
+  programTrafficClassToPgMap(newQosPolicy);
+  return;
+}
+
 void BcmQosPolicy::updateIngressExpQosMap(
     const std::shared_ptr<QosPolicy>& oldQosPolicy,
     const std::shared_ptr<QosPolicy>& newQosPolicy) {
@@ -273,6 +326,43 @@ const BcmQosMap* BcmQosPolicy::getIngressExpQosMap() const {
 
 const BcmQosMap* BcmQosPolicy::getEgressExpQosMap() const {
   return egressExpQosMap_.get();
+}
+
+void BcmQosPolicy::programPriorityGroupMapping(
+    const bcm_cosq_priority_group_mapping_profile_type_t profileType,
+    std::vector<int>& trafficClassToPgId,
+    const std::string& profileTypeStr) {
+  auto rv = bcm_cosq_priority_group_mapping_profile_set(
+      hw_->getUnit(),
+      kDefaultProfileId,
+      profileType,
+      trafficClassToPgId.size(),
+      trafficClassToPgId.data());
+  bcmCheckError(
+      rv,
+      "failed to program ",
+      profileTypeStr,
+      " size: ",
+      trafficClassToPgId.size());
+}
+
+void BcmQosPolicy::programTrafficClassToPgMap(
+    const std::shared_ptr<QosPolicy>& qosPolicy) {
+  // init the array with HW defaults
+  std::vector<int> trafficClassToPg = kDefaultTrafficClassToPg;
+  if (auto trafficClassToPgMap = qosPolicy->getTrafficClassToPgId()) {
+    // override with what user configures
+    for (const auto& entry : *trafficClassToPgMap) {
+      CHECK_LE((int)entry.first, BCM_PRIO_MAX)
+          << "Policy: " << qosPolicy->getName() << " has invalid priority "
+          << (int)entry.first;
+      CHECK_LE(entry.second, cfg::switch_config_constants::PORT_PG_VALUE_MAX())
+          << " Policy: " << qosPolicy->getName() << " has invalid PG ID "
+          << entry.second;
+      trafficClassToPg[entry.first] = entry.second;
+    }
+  }
+  programTrafficClassToPg(trafficClassToPg);
 }
 
 } // namespace facebook::fboss
