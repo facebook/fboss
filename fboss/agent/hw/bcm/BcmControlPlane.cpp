@@ -179,7 +179,11 @@ void BcmControlPlane::deleteReasonToQueueEntry(int index) {
     cosqMap.index = index;
     rv = rxCosqMappingExtendedDelete(hw_->getUnit(), &cosqMap);
   }
-  bcmCheckError(rv, "failed to delete CPU cosq mapping for index ", index);
+  if (rv != BCM_E_NOT_FOUND) {
+    bcmCheckError(rv, "failed to delete CPU cosq mapping for index ", index);
+  } else {
+    XLOG(WARNING) << "delete non-existent CPU cosq mapping at index " << index;
+  }
 }
 
 std::optional<cfg::PacketRxReasonToQueue>
