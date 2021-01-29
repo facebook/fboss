@@ -6,6 +6,12 @@
 #include <utility>
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 
+namespace {
+// CMIS firmware related register offsets
+constexpr uint8_t kModulePasswordEntryReg = 122;
+constexpr uint8_t kPageSelectReg = 127;
+}; // namespace
+
 namespace facebook::fboss {
 
 /*
@@ -51,9 +57,13 @@ class CdbCommandBlock {
 
   // Public function to run the CDB command on the module
   bool cmisRunCdbCommand(TransceiverI2CApi* bus, unsigned int modId);
-
   // Provide response data to caller
   uint8_t getResponseData(uint8_t** pResponse);
+
+  // Utility functions for caller of this class
+  void selectCdbPage(TransceiverI2CApi* bus, unsigned int modId);
+  void
+  setMsaPassword(TransceiverI2CApi* bus, unsigned int modId, uint32_t msaPw);
 
  private:
   // Data block

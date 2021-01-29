@@ -10,7 +10,7 @@
 DEFINE_string(platform, "", "Platform on which we are running."
              " One of (galaxy, wedge100, wedge)");
 
-using namespace facebook::fboss;
+namespace facebook::fboss {
 
 std::pair<std::unique_ptr<TransceiverI2CApi>, int>  getTransceiverAPI() {
   if (FLAGS_platform.size()) {
@@ -45,3 +45,5 @@ std::pair<std::unique_ptr<TransceiverPlatformApi>, int>
   */
   return std::make_pair(nullptr, EX_USAGE);
 }
+
+} // namespace facebook::fboss

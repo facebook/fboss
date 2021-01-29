@@ -388,4 +388,39 @@ uint8_t CdbCommandBlock::onesComplementSum(int len) {
   return result;
 }
 
+/*
+ * selectCdbPage
+ *
+ * Selects the CDB page (0x9f) for the module
+ */
+void CdbCommandBlock::selectCdbPage(
+    TransceiverI2CApi* bus,
+    unsigned int modId) {
+  uint8_t page = 0x9f;
+  bus->moduleWrite(
+      modId, TransceiverI2CApi::ADDR_QSFP, kPageSelectReg, 1, &page);
+}
+
+/*
+ * setMsaPassword
+ *
+ * Sets the MSA password for the module. The caller needs to send 4 byte
+ * password in big-endian format
+ */
+void CdbCommandBlock::setMsaPassword(
+    TransceiverI2CApi* bus,
+    unsigned int modId,
+    uint32_t msaPw) {
+  std::array<uint8_t, 4> msaPwArray;
+  for (int i = 0; i < 4; i++) {
+    msaPwArray[i] = (msaPw >> (3 - i) * 8) & 0xFF;
+  }
+  bus->moduleWrite(
+      modId,
+      TransceiverI2CApi::ADDR_QSFP,
+      kModulePasswordEntryReg,
+      4,
+      msaPwArray.data());
+}
+
 } // namespace facebook::fboss

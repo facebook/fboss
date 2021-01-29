@@ -749,6 +749,7 @@ if (NOT SAI_ONLY)
 
   add_executable(wedge_qsfp_util
       fboss/util/wedge_qsfp_util.cpp
+      fboss/util/qsfp_util_main.cpp
       fboss/util/oss/wedge_qsfp_util.cpp
       fboss/lib/firmware_storage/FbossFirmware.cpp
       fboss/lib/firmware_storage/FbossFirmware.h

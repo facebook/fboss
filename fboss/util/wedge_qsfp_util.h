@@ -1,12 +1,126 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 #pragma once
 
+#include "fboss/lib/firmware_storage/FbossFirmware.h"
+#include "fboss/lib/i2c/FirmwareUpgrader.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 #include "fboss/lib/usb/TransceiverPlatformApi.h"
 #include "fboss/lib/usb/TransceiverPlatformI2cApi.h"
+#include "fboss/qsfp_service/lib/QsfpClient.h"
 
 #include <memory>
 #include <utility>
+
+DECLARE_bool(clear_low_power);
+DECLARE_bool(set_low_power);
+DECLARE_bool(tx_disable);
+DECLARE_bool(tx_enable);
+DECLARE_bool(set_40g);
+DECLARE_bool(set_100g);
+DECLARE_int32(app_sel);
+DECLARE_bool(cdr_enable);
+DECLARE_bool(cdr_disable);
+DECLARE_int32(open_timeout);
+DECLARE_bool(direct_i2c);
+DECLARE_bool(qsfp_hard_reset);
+DECLARE_bool(electrical_loopback);
+DECLARE_bool(optical_loopback);
+DECLARE_bool(clear_loopback);
+DECLARE_bool(read_reg);
+DECLARE_bool(write_reg);
+DECLARE_int32(offset);
+DECLARE_int32(data);
+DECLARE_int32(length);
+DECLARE_int32(pause_remediation);
+DECLARE_bool(update_module_firmware);
+DECLARE_string(firmware_filename);
+DECLARE_uint32(msa_password);
+DECLARE_uint32(image_header_len);
+DECLARE_bool(get_module_fw_info);
+DECLARE_bool(cdb_command);
+DECLARE_int32(command_code);
+DECLARE_string(cdb_payload);
+
+enum LoopbackMode {
+  noLoopback,
+  electricalLoopback,
+  opticalLoopback
+};
+
+namespace facebook::fboss {
+
+std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> getQsfpClient(folly::EventBase& evb);
+
+bool overrideLowPower(
+    TransceiverI2CApi* bus,
+    unsigned int port,
+    bool lowPower);
+
+bool setCdr(TransceiverI2CApi* bus, unsigned int port, uint8_t value);
+
+bool rateSelect(TransceiverI2CApi* bus, unsigned int port, uint8_t value);
+
+bool appSel(TransceiverI2CApi* bus, unsigned int port, uint8_t value);
+
+TransceiverManagementInterface getModuleType(
+  TransceiverI2CApi* bus, unsigned int port);
+
+bool setTxDisable(TransceiverI2CApi* bus, unsigned int port, bool disable);
+
+void doReadReg(TransceiverI2CApi* bus, unsigned int port, int offset, int length);
+
+void doWriteReg(TransceiverI2CApi* bus, unsigned int port, int offset, uint8_t value);
+
+std::map<int32_t, DOMDataUnion> fetchDataFromQsfpService(
+    const std::vector<int32_t>& ports, folly::EventBase& evb);
+
+std::map<int32_t, TransceiverInfo> fetchInfoFromQsfpService(
+    const std::vector<int32_t>& ports);
+
+DOMDataUnion fetchDataFromLocalI2CBus(TransceiverI2CApi* bus, unsigned int port);
+
+void printPortSummary(TransceiverI2CApi*);
+
+folly::StringPiece sfpString(const uint8_t* buf, size_t offset, size_t len);
+
+void printThresholds(
+    const std::string& name,
+    const uint8_t* data,
+    std::function<double(uint16_t)> conversionCb);
+
+std::string getLocalTime(std::time_t t);
+
+void printChannelMonitor(unsigned int index,
+                         const uint8_t* buf,
+                         unsigned int rxMSB,
+                         unsigned int rxLSB,
+                         unsigned int txBiasMSB,
+                         unsigned int txBiasLSB,
+                         unsigned int txPowerMSB,
+                         unsigned int txPowerLSB,
+                         std::optional<double> rxSNR);
+
+void printSffDetail(const DOMDataUnion& domDataUnion, unsigned int port);
+
+void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port);
+
+void printPortDetail(const DOMDataUnion& domDataUnion, unsigned int port);
+
+void tryOpenBus(TransceiverI2CApi* bus);
+
+bool doQsfpHardReset(
+  TransceiverI2CApi *bus,
+  unsigned int port);
+
+bool doMiniphotonLoopback(TransceiverI2CApi* bus, unsigned int port, LoopbackMode mode);
+
+void cmisHostInputLoopback(TransceiverI2CApi* bus, unsigned int port, LoopbackMode mode);
+
+bool cliModulefirmwareUpgrade(TransceiverI2CApi* bus, unsigned int port, std::string firmwareFilename);
+
+void get_module_fw_info(TransceiverI2CApi* bus, unsigned int moduleA, unsigned int moduleB);
+
+void doCdbCommand(TransceiverI2CApi* bus,  unsigned int  module);
 
 std::pair<std::unique_ptr<facebook::fboss::TransceiverI2CApi>, int>
 getTransceiverAPI();
@@ -23,3 +137,5 @@ std::pair<std::unique_ptr<facebook::fboss::TransceiverPlatformApi>, int>
   getTransceiverPlatformAPI(facebook::fboss::TransceiverI2CApi *i2cBus);
 
 bool isTrident2();
+
+} // namespace facebook::fboss
