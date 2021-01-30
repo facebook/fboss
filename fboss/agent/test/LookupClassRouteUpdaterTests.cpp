@@ -27,11 +27,13 @@ using folly::IPAddressV6;
 
 namespace facebook::fboss {
 
-template <typename AddrT>
+template <typename AddrTAndRib>
 class LookupClassRouteUpdaterTest : public ::testing::Test {
  public:
   using Func = std::function<void()>;
   using StateUpdateFn = SwSwitch::StateUpdateFn;
+  using AddrT = typename AddrTAndRib::AddrT;
+  static constexpr auto hasStandAloneRib = AddrTAndRib::hasStandAloneRib;
 
   void SetUp() override {
     handle_ = createTestHandle(testStateAWithLookupClasses());
@@ -262,9 +264,20 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
   SwSwitch* sw_;
 };
 
-using TestTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
+template <typename AddrType, bool StandAloneRib>
+struct LookupClassRouteUpdaterTypeT {
+  using AddrT = AddrType;
+  static constexpr auto hasStandAloneRib = StandAloneRib;
+};
 
-TYPED_TEST_CASE(LookupClassRouteUpdaterTest, TestTypes);
+using V4NoRib = LookupClassRouteUpdaterTypeT<folly::IPAddressV4, false>;
+using V4Rib = LookupClassRouteUpdaterTypeT<folly::IPAddressV4, true>;
+using V6NoRib = LookupClassRouteUpdaterTypeT<folly::IPAddressV6, false>;
+using V6Rib = LookupClassRouteUpdaterTypeT<folly::IPAddressV6, true>;
+using TypeTypesLookupClassRouteUpdater =
+    ::testing::Types<V4NoRib, V4Rib, V6NoRib, V6Rib>;
+
+TYPED_TEST_CASE(LookupClassRouteUpdaterTest, TypeTypesLookupClassRouteUpdater);
 
 // Test cases verifying Route changes
 
@@ -481,25 +494,47 @@ TYPED_TEST(LookupClassRouteUpdaterTest, PortLookupClassesChange) {
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3);
 }
 
-template <typename AddrType, bool RouteFix>
-struct WarmbootTestT {
-  using AddrT = AddrType;
+template <typename AddrType, bool StandAloneRib, bool RouteFix>
+struct LookupClassRouteUpdaterWarmbootTypeT
+    : public LookupClassRouteUpdaterTypeT<AddrType, StandAloneRib> {
+  using Base = LookupClassRouteUpdaterTypeT<AddrType, StandAloneRib>;
   static constexpr auto hasRouteFix = RouteFix;
 };
 
-using NoRouteFixV4 = WarmbootTestT<folly::IPAddressV4, false>;
-using RouteFixV4 = WarmbootTestT<folly::IPAddressV4, true>;
-using NoRouteFixV6 = WarmbootTestT<folly::IPAddressV6, false>;
-using RouteFixV6 = WarmbootTestT<folly::IPAddressV6, true>;
+using NoRouteFixV4NoRib =
+    LookupClassRouteUpdaterWarmbootTypeT<folly::IPAddressV4, false, false>;
+using NoRouteFixV4Rib =
+    LookupClassRouteUpdaterWarmbootTypeT<folly::IPAddressV4, true, false>;
+using RouteFixV4NoRib =
+    LookupClassRouteUpdaterWarmbootTypeT<folly::IPAddressV4, false, true>;
+using RouteFixV4Rib =
+    LookupClassRouteUpdaterWarmbootTypeT<folly::IPAddressV4, true, true>;
+using NoRouteFixV6NoRib =
+    LookupClassRouteUpdaterWarmbootTypeT<folly::IPAddressV6, false, false>;
+using NoRouteFixV6Rib =
+    LookupClassRouteUpdaterWarmbootTypeT<folly::IPAddressV6, true, false>;
+using RouteFixV6NoRib =
+    LookupClassRouteUpdaterWarmbootTypeT<folly::IPAddressV6, false, true>;
+using RouteFixV6Rib =
+    LookupClassRouteUpdaterWarmbootTypeT<folly::IPAddressV6, true, true>;
 
-using TestTypesWarmboot =
-    ::testing::Types<NoRouteFixV4, RouteFixV4, NoRouteFixV6, RouteFixV6>;
+using TestTypesWarmboot = ::testing::Types<
+    NoRouteFixV4NoRib,
+    NoRouteFixV4Rib,
+    RouteFixV4NoRib,
+    RouteFixV4Rib,
+    NoRouteFixV6NoRib,
+    NoRouteFixV6Rib,
+    RouteFixV6NoRib,
+    RouteFixV6Rib>;
 
-template <typename WarmbootTestT>
+template <typename LookupClassRouteUpdaterWarmbootTypeT>
 class LookupClassRouteUpdaterWarmbootTest
-    : public LookupClassRouteUpdaterTest<typename WarmbootTestT::AddrT> {
-  using AddrT = typename WarmbootTestT::AddrT;
-  static constexpr auto hasRouteFix = WarmbootTestT::hasRouteFix;
+    : public LookupClassRouteUpdaterTest<
+          typename LookupClassRouteUpdaterWarmbootTypeT::Base> {
+  using AddrT = typename LookupClassRouteUpdaterWarmbootTypeT::AddrT;
+  static constexpr auto hasRouteFix =
+      LookupClassRouteUpdaterWarmbootTypeT::hasRouteFix;
 
  public:
   void SetUp() override {
