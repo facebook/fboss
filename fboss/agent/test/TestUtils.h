@@ -188,6 +188,11 @@ std::shared_ptr<SwitchState> bringAllPortsDown(
  * 1-20, will yield the same SwitchState as that returned by testStateA().
  */
 cfg::SwitchConfig testConfigA();
+/*
+ * Same as testConfgA but with AclLookupClass associated with every port.
+ * (MH-NIC case queue-per-host configuration).
+ */
+cfg::SwitchConfig testConfigAWithLookupClasses();
 
 /*
  * Create a SwitchState for testing.

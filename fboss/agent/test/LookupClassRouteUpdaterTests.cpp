@@ -36,7 +36,8 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
   static constexpr auto hasStandAloneRib = AddrTAndRib::hasStandAloneRib;
 
   void SetUp() override {
-    handle_ = createTestHandle(testStateAWithLookupClasses());
+    auto config = testConfigAWithLookupClasses();
+    handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();
   }
 
