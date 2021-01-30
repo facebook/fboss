@@ -15,6 +15,12 @@
 
 namespace facebook::fboss {
 
+void swSwitchFibUpdate(
+    facebook::fboss::RouterID vrf,
+    const facebook::fboss::rib::IPv4NetworkToRouteMap& v4NetworkToRoute,
+    const facebook::fboss::rib::IPv6NetworkToRouteMap& v6NetworkToRoute,
+    void* cookie);
+
 class SwSwitchRouteUpdateWrapper : public RouteUpdateWrapper {
  public:
   explicit SwSwitchRouteUpdateWrapper(SwSwitch* sw) : sw_(sw) {}
