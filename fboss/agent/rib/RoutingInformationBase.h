@@ -64,6 +64,22 @@ class RoutingInformationBase {
       FibUpdateFunction fibUpdateCallback,
       void* cookie);
 
+  void setClassID(
+      RouterID rid,
+      const std::vector<folly::CIDRNetwork>& prefixes,
+      FibUpdateFunction fibUpdateCallback,
+      cfg::AclLookupClass classId,
+      void* cookie) {
+    setClassIDImpl(rid, prefixes, fibUpdateCallback, classId, cookie);
+  }
+
+  void removeClassID(
+      RouterID rid,
+      const std::vector<folly::CIDRNetwork>& prefixes,
+      FibUpdateFunction fibUpdateCallback,
+      void* cookie) {
+    setClassIDImpl(rid, prefixes, fibUpdateCallback, std::nullopt, cookie);
+  }
   /*
    * VrfAndNetworkToInterfaceRoute is conceptually a mapping from the pair
    * (RouterID, folly::CIDRNetwork) to the pair (Interface(1),
@@ -101,6 +117,12 @@ class RoutingInformationBase {
   }
 
  private:
+  void setClassIDImpl(
+      RouterID rid,
+      const std::vector<folly::CIDRNetwork>& prefixes,
+      FibUpdateFunction fibUpdateCallback,
+      std::optional<cfg::AclLookupClass> classId,
+      void* cookie);
   struct RouteTable {
     IPv4NetworkToRouteMap v4NetworkToRoute;
     IPv6NetworkToRouteMap v6NetworkToRoute;

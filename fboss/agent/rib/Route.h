@@ -119,6 +119,9 @@ class Route {
   std::optional<cfg::AclLookupClass> getClassID() const {
     return classID_;
   }
+  void setClassID(std::optional<cfg::AclLookupClass> classID) {
+    classID_ = classID;
+  }
 
   bool operator==(const Route& rf) const;
 

@@ -172,6 +172,36 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
   return stats;
 }
 
+void RoutingInformationBase::setClassIDImpl(
+    RouterID rid,
+    const std::vector<folly::CIDRNetwork>& prefixes,
+    FibUpdateFunction fibUpdateCallback,
+    std::optional<cfg::AclLookupClass> classId,
+    void* cookie) {
+  auto lockedRouteTables = synchronizedRouteTables_.wlock();
+
+  auto it = lockedRouteTables->find(rid);
+  if (it == lockedRouteTables->end()) {
+    throw FbossError("VRF ", rid, " not configured");
+  }
+  auto updateRoute = [&classId](auto& rib, auto ip, uint8_t mask) {
+    auto ritr = rib.exactMatch(ip, mask);
+    if (ritr == rib.end()) {
+      return;
+    }
+    ritr->value().setClassID(classId);
+  };
+  auto& v4Rib = it->second.v4NetworkToRoute;
+  auto& v6Rib = it->second.v6NetworkToRoute;
+  for (auto& prefix : prefixes) {
+    if (prefix.first.isV4()) {
+      updateRoute(v4Rib, prefix.first.asV4(), prefix.second);
+    } else {
+      updateRoute(v6Rib, prefix.first.asV6(), prefix.second);
+    }
+  }
+}
+
 folly::dynamic RoutingInformationBase::toFollyDynamic() const {
   folly::dynamic rib = folly::dynamic::object;
 
