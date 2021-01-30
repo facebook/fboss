@@ -172,7 +172,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
   return stats;
 }
 
-void RoutingInformationBase::setClassIDImpl(
+void RoutingInformationBase::setClassID(
     RouterID rid,
     const std::vector<folly::CIDRNetwork>& prefixes,
     FibUpdateFunction fibUpdateCallback,
