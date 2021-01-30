@@ -83,8 +83,9 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
     std::shared_ptr<facebook::fboss::Route<AddressT>> fibRoute =
         fib->getNodeIf(fibPrefix);
     if (fibRoute) {
-      if (toFibNextHop(ribRoute.getForwardInfo()) ==
-          fibRoute->getForwardInfo()) {
+      if (fibRoute->getClassID() == ribRoute.getClassID() &&
+          toFibNextHop(ribRoute.getForwardInfo()) ==
+              fibRoute->getForwardInfo()) {
         // Reuse prior FIB route
       } else {
         fibRoute = toFibRoute(ribRoute);

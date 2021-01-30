@@ -116,6 +116,10 @@ class Route {
   void addEntryForClient();
   void delEntryForClient(ClientID clientId);
 
+  std::optional<cfg::AclLookupClass> getClassID() const {
+    return classID_;
+  }
+
   bool operator==(const Route& rf) const;
 
  private:
