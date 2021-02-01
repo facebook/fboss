@@ -88,7 +88,7 @@ sai_status_t create_port_fn(
       case SAI_PORT_ATTR_QOS_TC_TO_QUEUE_MAP:
         qosTcToQueueMap = attr_list[i].value.oid;
         break;
-      case SAI_PORT_ATTR_DECREMENT_TTL:
+      case SAI_PORT_ATTR_DISABLE_DECREMENT_TTL:
         disableTtlDecrement = attr_list[i].value.booldata;
         break;
       case SAI_PORT_ATTR_INTERFACE_TYPE:
@@ -261,7 +261,7 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_QOS_TC_TO_QUEUE_MAP:
       port.qosTcToQueueMap = attr->value.oid;
       break;
-    case SAI_PORT_ATTR_DECREMENT_TTL:
+    case SAI_PORT_ATTR_DISABLE_DECREMENT_TTL:
       port.disableTtlDecrement = attr->value.booldata;
       break;
     case SAI_PORT_ATTR_INTERFACE_TYPE:
@@ -387,7 +387,7 @@ sai_status_t get_port_attribute_fn(
       case SAI_PORT_ATTR_QOS_TC_TO_QUEUE_MAP:
         attr->value.oid = port.qosTcToQueueMap;
         break;
-      case SAI_PORT_ATTR_DECREMENT_TTL:
+      case SAI_PORT_ATTR_DISABLE_DECREMENT_TTL:
         attr->value.booldata = port.disableTtlDecrement;
         break;
       case SAI_PORT_ATTR_INTERFACE_TYPE:

@@ -49,7 +49,7 @@ sai_status_t create_next_hop_fn(
           labelStack[j] = attr_list[i].value.u32list.list[j];
         }
         break;
-      case SAI_NEXT_HOP_ATTR_DECREMENT_TTL:
+      case SAI_NEXT_HOP_ATTR_DISABLE_DECREMENT_TTL:
         disableTtlDecrement = attr_list[i].value.booldata;
         break;
       default:
@@ -114,7 +114,7 @@ sai_status_t get_next_hop_attribute_fn(
           attr[i].value.u32list.list[j] = nextHop.labelStack[j];
         }
         break;
-      case SAI_NEXT_HOP_ATTR_DECREMENT_TTL:
+      case SAI_NEXT_HOP_ATTR_DISABLE_DECREMENT_TTL:
         attr[i].value.booldata = nextHop.disableTtlDecrement;
         break;
       default:
