@@ -65,52 +65,52 @@ void SwSwitchRouteUpdateWrapper::programStandAloneRib() {
 
 void SwSwitchRouteUpdateWrapper::programLegacyRib() {
   for (auto [ridClientId, addDelRoutes] : ribRoutesToAddDel_) {
-      if (ridClientId.first != RouterID(0)) {
-        throw FbossError("Multi-VRF only supported with Stand-Alone RIB");
-      }
-      auto adminDistance =
-          sw_->clientIdToAdminDistance(static_cast<int>(ridClientId.second));
-      auto& toAdd = addDelRoutes.toAdd;
-      auto& toDel = addDelRoutes.toDel;
-      RouterID routerId = ridClientId.first;
-      ClientID clientId = ridClientId.second;
-      auto updateFn = [&](const std::shared_ptr<SwitchState>& state) {
-        RouteUpdater updater(state->getRouteTables());
-        for (auto& route : toAdd) {
-          std::vector<NextHopThrift> nhts;
-          folly::IPAddress network =
-              network::toIPAddress(*route.dest_ref()->ip_ref());
-          uint8_t mask =
-              static_cast<uint8_t>(*route.dest_ref()->prefixLength_ref());
-          if (route.nextHops_ref()->empty() &&
-              !route.nextHopAddrs_ref()->empty()) {
-            nhts = thriftNextHopsFromAddresses(*route.nextHopAddrs_ref());
-          } else {
-            nhts = *route.nextHops_ref();
-          }
-          RouteNextHopSet nexthops = util::toRouteNextHopSet(nhts);
-          if (nexthops.size()) {
-            updater.addRoute(
-                routerId,
-                network,
-                mask,
-                clientId,
-                RouteNextHopEntry(std::move(nexthops), adminDistance));
-          } else {
-            XLOG(DBG3) << "Blackhole route:" << network << "/"
-                       << static_cast<int>(mask);
-            updater.addRoute(
-                routerId,
-                network,
-                mask,
-                clientId,
-                RouteNextHopEntry(RouteForwardAction::DROP, adminDistance));
-          }
-          if (network.isV4()) {
-            sw_->stats()->addRouteV4();
-          } else {
-            sw_->stats()->addRouteV6();
-          }
+    if (ridClientId.first != RouterID(0)) {
+      throw FbossError("Multi-VRF only supported with Stand-Alone RIB");
+    }
+    auto adminDistance =
+        sw_->clientIdToAdminDistance(static_cast<int>(ridClientId.second));
+    auto& toAdd = addDelRoutes.toAdd;
+    auto& toDel = addDelRoutes.toDel;
+    RouterID routerId = ridClientId.first;
+    ClientID clientId = ridClientId.second;
+    auto updateFn = [&](const std::shared_ptr<SwitchState>& state) {
+      RouteUpdater updater(state->getRouteTables());
+      for (auto& route : toAdd) {
+        std::vector<NextHopThrift> nhts;
+        folly::IPAddress network =
+            network::toIPAddress(*route.dest_ref()->ip_ref());
+        uint8_t mask =
+            static_cast<uint8_t>(*route.dest_ref()->prefixLength_ref());
+        if (route.nextHops_ref()->empty() &&
+            !route.nextHopAddrs_ref()->empty()) {
+          nhts = thriftNextHopsFromAddresses(*route.nextHopAddrs_ref());
+        } else {
+          nhts = *route.nextHops_ref();
+        }
+        RouteNextHopSet nexthops = util::toRouteNextHopSet(nhts);
+        if (nexthops.size()) {
+          updater.addRoute(
+              routerId,
+              network,
+              mask,
+              clientId,
+              RouteNextHopEntry(std::move(nexthops), adminDistance));
+        } else {
+          XLOG(DBG3) << "Blackhole route:" << network << "/"
+                     << static_cast<int>(mask);
+          updater.addRoute(
+              routerId,
+              network,
+              mask,
+              clientId,
+              RouteNextHopEntry(RouteForwardAction::DROP, adminDistance));
+        }
+        if (network.isV4()) {
+          sw_->stats()->addRouteV4();
+        } else {
+          sw_->stats()->addRouteV6();
+        }
       }
       // Del routes
       for (auto& prefix : toDel) {
