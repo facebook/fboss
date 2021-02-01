@@ -326,6 +326,14 @@ void getPortInfoHelper(
   *portInfo.txPause_ref() = *pause.tx_ref();
   *portInfo.rxPause_ref() = *pause.rx_ref();
 
+  if (port->getPfc().has_value()) {
+    PfcConfig pc;
+    auto pfc = port->getPfc();
+    pc.tx_ref() = *pfc->tx_ref();
+    pc.rx_ref() = *pfc->rx_ref();
+    portInfo.pfc_ref() = pc;
+  }
+
   fillPortStats(portInfo, portInfo.portQueues_ref()->size());
 }
 

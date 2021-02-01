@@ -108,6 +108,15 @@ class PortDetailsCmd(cmds.FbossCmd):
             ("Forward Error Correction", fec_status),
             ("Pause", pause),
         ]
+
+        if hasattr(port_info, "pfc") and port_info.pfc:
+            pfc_str = ""
+            if port_info.pfc.tx:
+                pfc_str = "TX "
+            if port_info.pfc.rx:
+                pfc_str = pfc_str + "RX"
+            lines.append(("PFC", pfc_str))
+
         if hasattr(port_info, "profileID") and port_info.profileID:
             lines.append(("ProfileID", port_info.profileID))
 

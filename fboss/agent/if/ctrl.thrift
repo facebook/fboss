@@ -319,6 +319,11 @@ struct PortQueueThrift {
   11: optional list<byte> dscps,
 }
 
+struct PfcConfig {
+  1: bool tx,
+  2: bool rx,
+}
+
 struct PortInfoThrift {
   1: i32 portId,
   2: i64 speedMbps,
@@ -337,6 +342,7 @@ struct PortInfoThrift {
   17: list<PortQueueThrift> portQueues = [],
   18: string fecMode,
   19: string profileID,
+  20: optional PfcConfig pfc,
 }
 
 struct NdpEntryThrift {
