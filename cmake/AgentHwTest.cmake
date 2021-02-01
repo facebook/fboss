@@ -139,6 +139,7 @@ add_library(hw_switch_test
   fboss/agent/hw/test/HwAclPriorityTests.cpp
   fboss/agent/hw/test/HwAclQualifierTests.cpp
   fboss/agent/hw/test/HwAclStatTests.cpp
+  fboss/agent/hw/test/HwDiagShellStressTest.cpp
   fboss/agent/hw/test/HwPortUtils.cpp
   fboss/agent/hw/test/HwPortLedTests.cpp
   fboss/agent/hw/test/HwPortProfileTests.cpp
