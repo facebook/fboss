@@ -1125,3 +1125,22 @@ TEST_F(BcmRouteTest, UnresolveResolveNextHop) {
   setup();
   verify();
 }
+
+TEST_F(BcmTest, VerifyDropEgress) {
+  auto setup = [] {
+    // Default drop egress should be created during BcmUnit initialization.
+    // No need to apply an extra config
+  };
+
+  auto verify = [this] {
+    bcm_l3_egress_t expectedEgress;
+    bcm_l3_egress_t_init(&expectedEgress);
+
+    auto dropEgressID = getHwSwitch()->getDropEgressId();
+    auto rv = bcm_l3_egress_get(getUnit(), dropEgressID, &expectedEgress);
+    bcmCheckError(rv, "failed to get drop egress ", dropEgressID);
+
+    EXPECT_TRUE(expectedEgress.flags & BCM_L3_DST_DISCARD);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}

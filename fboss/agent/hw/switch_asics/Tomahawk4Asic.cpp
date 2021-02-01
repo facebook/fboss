@@ -14,8 +14,6 @@ namespace {
 // already installed in the group.
 // So 63 is the largest group id we can get.
 constexpr auto kDefaultACLGroupID = 63;
-
-constexpr auto kDefaultDropEgressID = 100001;
 } // namespace
 
 namespace facebook::fboss {
@@ -105,10 +103,6 @@ int Tomahawk4Asic::getStationID(int intfId) const {
     stationId = intfId - 1000 + 100; // 100, 101, 102, ...
   }
   return stationId;
-}
-
-int Tomahawk4Asic::getDefaultDropEgressID() const {
-  return kDefaultDropEgressID;
 }
 
 int Tomahawk4Asic::getNumLanesPerPhysicalPort() const {

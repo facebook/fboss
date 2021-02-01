@@ -40,46 +40,15 @@ bool BcmEgress::alreadyExists(const bcm_l3_egress_t& newEgress) const {
 }
 
 void BcmEgress::setupDefaultDropEgress(int unit, bcm_if_t dropEgressID) {
-  // Some platforms can create the default drop egress automaticall once the
-  // chip finishes initialization. But some still needs to manually create it.
-  // First check whether this default drop egress exists
   bcm_l3_egress_t egress;
   bcm_l3_egress_t_init(&egress);
   auto rv = bcm_l3_egress_get(unit, dropEgressID, &egress);
-  if (rv == 0) {
-    if (!(egress.flags & BCM_L3_DST_DISCARD)) {
-      throw FbossError(
-          "Egress ID ", dropEgressID, " is not programmed as drop");
-    }
-    XLOG(DBG1) << "Default drop egress: " << dropEgressID
-               << " is already created";
-  } else if (rv == BCM_E_NOT_FOUND) {
-    // T75758668 Current HSDK has issue to get a default drop egress.
-    // We need to manually create one with a dummy interface
-    // If the egress doesn't exist, create a drop egress with the same id
-    bcm_l3_intf_t ifParams;
-    bcm_l3_intf_t_init(&ifParams);
-    ifParams.l3a_vrf = 0;
-    ifParams.l3a_flags = BCM_L3_SRC_DISCARD | BCM_L3_DST_DISCARD;
-    memcpy(
-        &ifParams.l3a_mac_addr,
-        getLocalMacAddress().bytes(),
-        sizeof(ifParams.l3a_mac_addr));
-    rv = bcm_l3_intf_create(unit, &ifParams);
-    bcmCheckError(rv, "failed to create a dummp L3 interface");
-    egress.intf = ifParams.l3a_intf_id;
-
-    egress.flags |= BCM_L3_DST_DISCARD;
-    rv = bcm_l3_egress_create(unit, BCM_L3_WITH_ID, &egress, &dropEgressID);
-    bcmCheckError(rv, "failed to create default drop egress ", dropEgressID);
-    // Make sure the create successfully
-    bcm_l3_egress_t_init(&egress);
-    rv = bcm_l3_egress_get(unit, dropEgressID, &egress);
-    bcmCheckError(rv, "failed to get drop egress ", dropEgressID);
-    XLOG(DBG1) << "Successfully created default drop egress:" << dropEgressID;
-  } else {
-    bcmCheckError(rv, "failed to get drop egress ", dropEgressID);
+  bcmCheckError(rv, "failed to get drop egress ", dropEgressID);
+  if (!(egress.flags & BCM_L3_DST_DISCARD)) {
+    throw FbossError("Egress ID ", dropEgressID, " is not programmed as drop");
   }
+  XLOG(DBG1) << "Default drop egress: " << dropEgressID
+             << " is already created";
 }
 
 void BcmEgress::program(
