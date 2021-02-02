@@ -1,8 +1,8 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestStatUtils.h"
 #include "fboss/agent/state/Mirror.h"
@@ -57,11 +57,11 @@ const std::string kErspan = "erspan";
 namespace facebook::fboss {
 
 template <typename AddrT>
-class BcmDataPlaneMirrorTest : public BcmLinkStateDependentTests {
+class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
  public:
   using EcmpSetupAnyNPortsT = typename utility::EcmpSetupAnyNPorts<AddrT>;
   void SetUp() override {
-    BcmLinkStateDependentTests::SetUp();
+    HwLinkStateDependentTest::SetUp();
     ecmpHelper_ =
         std::make_unique<EcmpSetupAnyNPortsT>(getProgrammedState(), kRid);
     trafficPort_ = ecmpHelper_->nhop(0).portDesc.phyPortID();
@@ -246,31 +246,31 @@ class BcmDataPlaneMirrorTest : public BcmLinkStateDependentTests {
   std::unique_ptr<EcmpSetupAnyNPortsT> ecmpHelper_;
 };
 
-TYPED_TEST_SUITE(BcmDataPlaneMirrorTest, TestTypes);
+TYPED_TEST_SUITE(HwDataPlaneMirrorTest, TestTypes);
 
-TYPED_TEST(BcmDataPlaneMirrorTest, SpanPortMirror) {
+TYPED_TEST(HwDataPlaneMirrorTest, SpanPortMirror) {
   this->testPortMirror(kSpan);
 }
 
-TYPED_TEST(BcmDataPlaneMirrorTest, ErspanPortMirror) {
+TYPED_TEST(HwDataPlaneMirrorTest, ErspanPortMirror) {
   if (this->skipTest()) {
     return;
   }
   this->testPortMirror(kErspan);
 }
 
-TYPED_TEST(BcmDataPlaneMirrorTest, SpanAclMirror) {
+TYPED_TEST(HwDataPlaneMirrorTest, SpanAclMirror) {
   this->testAclMirror(kSpan);
 }
 
-TYPED_TEST(BcmDataPlaneMirrorTest, ErspanAclMirror) {
+TYPED_TEST(HwDataPlaneMirrorTest, ErspanAclMirror) {
   if (this->skipTest()) {
     return;
   }
   this->testAclMirror(kErspan);
 }
 
-TYPED_TEST(BcmDataPlaneMirrorTest, TrucatePortErspanMirror) {
+TYPED_TEST(HwDataPlaneMirrorTest, TrucatePortErspanMirror) {
   if (this->skipTest() ||
       !this->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::MIRROR_PACKET_TRUNCATION)) {
