@@ -17,6 +17,7 @@
 #include "fboss/agent/state/SwitchState.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/test/ResourceLibUtil.h"
 
 #include <folly/IPAddress.h>
 extern "C" {
@@ -69,6 +70,17 @@ class BcmAddDelEcmpTest : public BcmTest {
   void runTest() {
     auto cfg = initialConfig();
     applyNewConfig(cfg);
+    // create as many entries as possible to verify no ecmp out of resource
+    auto generator = utility::PrefixGenerator<folly::IPAddressV6>(64);
+    std::vector<RoutePrefixV6> prefixes = generator.getNextN(
+        masterLogicalPortIds().size() - 1 - cidrNetworks_.size());
+    std::transform(
+        prefixes.begin(),
+        prefixes.end(),
+        std::back_inserter(cidrNetworks_),
+        [](RoutePrefixV6 prefix) {
+          return IPAddress::createNetwork(prefix.str());
+        });
     auto setup = [=]() {
       EXPECT_LT(cidrNetworks_.size(), masterLogicalPortIds().size());
       auto ecmpWidth = cidrNetworks_.size() + 1;
@@ -116,7 +128,10 @@ class BcmAddDelEcmpTest : public BcmTest {
       }
       cidrNetworks_.resize(routesRemaining);
     };
-    auto verify = [=]() {};
+    auto verify = [=]() {
+      auto ecmpCount = utility::getEcmpsInHw(getHwSwitch()).size();
+      EXPECT_EQ(cidrNetworks_.size(), ecmpCount);
+    };
     auto verifyPostWB = [=]() {
       auto ecmpCount = utility::getEcmpsInHw(getHwSwitch()).size();
       EXPECT_EQ(cidrNetworks_.size(), ecmpCount);

@@ -326,9 +326,6 @@ void BcmEcmpEgress::program() {
     int ret = 0;
     if (useHsdk_) {
       if (ucmpSupported_) {
-        // TODO(daiweix): use 512 for now before confirming the right way to set
-        // max_paths with native wecmp support in CS00011368811
-        obj.max_paths = 512;
         obj.ecmp_group_flags = BCM_L3_ECMP_MEMBER_WEIGHTED;
       }
       // @lint-ignore HOWTOEVEN CLANGTIDY CArray
