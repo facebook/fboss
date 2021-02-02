@@ -59,7 +59,6 @@ add_executable(bcm_test
   fboss/agent/hw/bcm/tests/HwTestCoppUtils.cpp
   fboss/agent/hw/bcm/tests/oss/BcmSwitchEnsemble.cpp
 
-  fboss/agent/hw/bcm/tests/dataplane_tests/BcmSflowTests.cpp
   fboss/agent/hw/bcm/tests/dataplane_tests/BcmMultiAqmProfileTests.cpp
   fboss/agent/hw/bcm/tests/dataplane_tests/BcmQosUtils.cpp
   fboss/agent/hw/bcm/tests/dataplane_tests/BcmQcmDataTests.cpp

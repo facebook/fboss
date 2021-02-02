@@ -7,8 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -17,7 +17,7 @@
 
 namespace facebook::fboss {
 
-class BcmSflowTest : public BcmLinkStateDependentTests {
+class HwSflowTest : public HwLinkStateDependentTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::oneL3IntfConfig(
@@ -105,10 +105,10 @@ class BcmSflowTest : public BcmLinkStateDependentTests {
   }
 }; // namespace facebook::fboss
 
-TEST_F(BcmSflowTest, SflowSamplingEnabled) {
+TEST_F(HwSflowTest, SflowSamplingEnabled) {
   runTest(true);
 }
-TEST_F(BcmSflowTest, SflowSamplingDisabled) {
+TEST_F(HwSflowTest, SflowSamplingDisabled) {
   runTest(false);
 }
 
