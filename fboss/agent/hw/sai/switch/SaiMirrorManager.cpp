@@ -55,6 +55,35 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addMirrorErSpan(
   return store.setObject(k, attributes);
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
+SaiMirrorHandle::SaiMirror SaiMirrorManager::addMirrorSflow(
+    const std::shared_ptr<Mirror>& mirror,
+    PortSaiId monitorPort) {
+  auto mirrorTunnel = mirror->getMirrorTunnel().value();
+  SaiSflowMirrorTraits::CreateAttributes attributes{
+      SAI_MIRROR_SESSION_TYPE_SFLOW,
+      monitorPort,
+      mirror->getDscp(),
+      mirrorTunnel.srcIp,
+      mirrorTunnel.dstIp,
+      mirrorTunnel.srcMac,
+      mirrorTunnel.dstMac,
+      mirrorTunnel.udpPorts.value().udpSrcPort,
+      mirrorTunnel.udpPorts.value().udpDstPort,
+      mirrorTunnel.ttl,
+  };
+  SaiSflowMirrorTraits::AdapterHostKey k{
+      SAI_MIRROR_SESSION_TYPE_SFLOW,
+      monitorPort,
+      mirrorTunnel.srcIp,
+      mirrorTunnel.dstIp,
+      mirrorTunnel.udpPorts.value().udpSrcPort,
+      mirrorTunnel.udpPorts.value().udpDstPort};
+  auto& store = SaiStore::getInstance()->get<SaiSflowMirrorTraits>();
+  return store.setObject(k, attributes);
+}
+#endif
+
 void SaiMirrorManager::addMirror(const std::shared_ptr<Mirror>& mirror) {
   auto mirrorHandleIter = mirrorHandles_.find(mirror->getID());
   if (mirrorHandleIter != mirrorHandles_.end()) {
@@ -69,14 +98,18 @@ void SaiMirrorManager::addMirror(const std::shared_ptr<Mirror>& mirror) {
       mirror->getEgressPort().value());
   if (!monitorPortHandle) {
     throw FbossError(
-        "Failed to find sai port for egress port for mirrpring: ",
+        "Failed to find sai port for egress port for mirroring: ",
         mirror->getEgressPort().value());
   }
   if (mirror->getMirrorTunnel().has_value()) {
     auto mirrorTunnel = mirror->getMirrorTunnel().value();
     if (mirrorTunnel.udpPorts.has_value()) {
-      // TODO: sflow tunnel
-      throw FbossError("Sflow tunnel not supported yet");
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
+      mirrorHandle->mirror =
+          addMirrorSflow(mirror, monitorPortHandle->port->adapterKey());
+#else
+      throw FbossError("sflow mirror not supported");
+#endif
     } else {
       mirrorHandle->mirror =
           addMirrorErSpan(mirror, monitorPortHandle->port->adapterKey());

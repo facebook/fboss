@@ -25,11 +25,19 @@ class SaiPlatform;
 
 using SaiMirror2Port = SaiObject<SaiLocalMirrorTraits>;
 using SaiMirror2GreTunnel = SaiObject<SaiEnhancedRemoteMirrorTraits>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
+using SaiMirrorSflowTunnel = SaiObject<SaiSflowMirrorTraits>;
+#endif
 
 struct SaiMirrorHandle {
   using SaiMirror = std::variant<
       std::shared_ptr<SaiMirror2Port>,
-      std::shared_ptr<SaiMirror2GreTunnel>>;
+      std::shared_ptr<SaiMirror2GreTunnel>
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
+      ,
+      std::shared_ptr<SaiMirrorSflowTunnel>
+#endif
+      >;
   SaiMirror mirror;
   MirrorSaiId adapterKey() {
     return std::visit(
@@ -57,6 +65,9 @@ class SaiMirrorManager {
       mirrorHandles_;
   SaiMirrorHandle::SaiMirror addMirrorSpan(PortSaiId monitorPort);
   SaiMirrorHandle::SaiMirror addMirrorErSpan(
+      const std::shared_ptr<Mirror>& mirror,
+      PortSaiId monitorPort);
+  SaiMirrorHandle::SaiMirror addMirrorSflow(
       const std::shared_ptr<Mirror>& mirror,
       PortSaiId monitorPort);
 };
