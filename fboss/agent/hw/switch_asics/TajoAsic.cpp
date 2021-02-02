@@ -38,6 +38,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::DEBUG_COUNTER:
     case HwAsic::Feature::PENDING_L2_ENTRY:
+    case HwAsic::Feature::COUNTER_REFRESH_INTERVAL:
       return true;
     case HwAsic::Feature::HOT_SWAP:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
@@ -61,7 +62,6 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::INGRESS_L3_INTERFACE:
     case HwAsic::Feature::NON_UNICAST_HASH:
     case HwAsic::Feature::DETAILED_L2_UPDATE:
-    case HwAsic::Feature::COUNTER_REFRESH_INTERVAL:
     case HwAsic::Feature::TELEMETRY_AND_MONITORING:
     case HwAsic::Feature::WIDE_ECMP:
       return false;
