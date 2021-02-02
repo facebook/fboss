@@ -1,6 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
+#include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestPacketSnooper.h"
@@ -19,11 +19,11 @@
 using namespace std::chrono_literals;
 using namespace ::testing;
 
-DEFINE_int32(sflow_test_rate, 90000, "sflow sampling rate for bcm test");
+DEFINE_int32(sflow_test_rate, 90000, "sflow sampling rate for hw test");
 DEFINE_int32(sflow_test_time, 5, "sflow test traffic time in seconds");
 
 namespace facebook::fboss {
-class BcmSflowMirrorTest : public BcmLinkStateDependentTests {
+class HwSflowMirrorTest : public HwLinkStateDependentTest {
  protected:
   utility::EthFrame genPacket(int portIndex, size_t payloadSize) {
     auto vlanId = utility::kBaseVlanId + portIndex;
@@ -45,7 +45,6 @@ class BcmSflowMirrorTest : public BcmLinkStateDependentTests {
   void generateTraffic(size_t payloadSize = 1400) {
     auto ports = masterLogicalPortIds();
     for (auto i = 1; i < ports.size(); i++) {
-      auto port = ports[i];
       auto pkt = genPacket(i, payloadSize);
       sendPkt(ports[i], pkt.getTxPacket(getHwSwitch()));
     }
@@ -63,7 +62,7 @@ class BcmSflowMirrorTest : public BcmLinkStateDependentTests {
   void
   configMirror(cfg::SwitchConfig* config, bool truncate, bool isV4 = true) {
     cfg::SflowTunnel sflowTunnel;
-    *sflowTunnel.ip_ref() = isV4 ? "101.101.101.101" : "2401:101:101::101";
+    sflowTunnel.ip_ref() = isV4 ? "101.101.101.101" : "2401:101:101::101";
     sflowTunnel.udpSrcPort_ref() = 6545;
     sflowTunnel.udpDstPort_ref() = 5343;
 
@@ -74,16 +73,16 @@ class BcmSflowMirrorTest : public BcmLinkStateDependentTests {
     destination.tunnel_ref() = tunnel;
 
     config->mirrors_ref()->resize(1);
-    *config->mirrors_ref()[0].name_ref() = "mirror";
-    *config->mirrors_ref()[0].destination_ref() = destination;
-    *config->mirrors_ref()[0].truncate_ref() = truncate;
+    config->mirrors_ref()[0].name_ref() = "mirror";
+    config->mirrors_ref()[0].destination_ref() = destination;
+    config->mirrors_ref()[0].truncate_ref() = truncate;
   }
 
   void configSampling(cfg::SwitchConfig* config, int sampleRate) const {
     for (auto i = 1; i < masterLogicalPortIds().size(); i++) {
       auto portId = masterLogicalPortIds()[i];
       auto portCfg = utility::findCfgPort(*config, portId);
-      *portCfg->sFlowIngressRate_ref() = sampleRate;
+      portCfg->sFlowIngressRate_ref() = sampleRate;
       portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
       portCfg->ingressMirror_ref() = "mirror";
     }
@@ -96,7 +95,7 @@ class BcmSflowMirrorTest : public BcmLinkStateDependentTests {
       if (static_cast<PortID>(*portCfg->logicalID_ref()) == port) {
         portCfg->ingressMirror_ref() = "mirror";
         portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
-        *portCfg->sFlowIngressRate_ref() = 1;
+        portCfg->sFlowIngressRate_ref() = 1;
         break;
       }
     }
@@ -234,7 +233,7 @@ class BcmSflowMirrorTest : public BcmLinkStateDependentTests {
   constexpr static auto kIpStr = "2401:db00:dead:beef:";
 };
 
-TEST_F(BcmSflowMirrorTest, VerifySampledPacket) {
+TEST_F(HwSflowMirrorTest, VerifySampledPacket) {
   if (!getPlatform()->getAsic()->isSupported(HwAsic::Feature::SFLOW_SAMPLING)) {
     return;
   }
@@ -280,7 +279,7 @@ TEST_F(BcmSflowMirrorTest, VerifySampledPacket) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmSflowMirrorTest, VerifySampledPacketWithTruncateV4) {
+TEST_F(HwSflowMirrorTest, VerifySampledPacketWithTruncateV4) {
   if (!getPlatform()->getAsic()->isSupported(HwAsic::Feature::SFLOW_SAMPLING) ||
       !getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::MIRROR_PACKET_TRUNCATION)) {
@@ -320,7 +319,7 @@ TEST_F(BcmSflowMirrorTest, VerifySampledPacketWithTruncateV4) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmSflowMirrorTest, VerifySampledPacketWithTruncateV6) {
+TEST_F(HwSflowMirrorTest, VerifySampledPacketWithTruncateV6) {
   if (!getPlatform()->getAsic()->isSupported(HwAsic::Feature::SFLOW_SAMPLING) ||
       !getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::MIRROR_PACKET_TRUNCATION) ||
@@ -362,11 +361,11 @@ TEST_F(BcmSflowMirrorTest, VerifySampledPacketWithTruncateV6) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmSflowMirrorTest, VerifySampledPacketCount) {
+TEST_F(HwSflowMirrorTest, VerifySampledPacketCount) {
   runSampleRateTest();
 }
 
-TEST_F(BcmSflowMirrorTest, VerifySampledPacketCountWithLargePackets) {
+TEST_F(HwSflowMirrorTest, VerifySampledPacketCountWithLargePackets) {
   runSampleRateTest(8192);
 }
 } // namespace facebook::fboss
