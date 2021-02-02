@@ -1043,6 +1043,20 @@ void ThriftHandler::clearPortStats(unique_ptr<vector<int32_t>> ports) {
     }
   };
 
+  auto getPortLinkStateCounterKey = [&](std::vector<std::string>& portKeys,
+                                        const std::shared_ptr<Port> port) {
+    auto portId = port->getID();
+    auto portName = port->getName().empty()
+        ? folly::to<std::string>("port", portId)
+        : port->getName();
+    portKeys.emplace_back(
+        folly::to<std::string>(portName, ".", "link_state.flap"));
+  };
+
+  auto getLinkStateCounterKey = [&](std::vector<std::string>& globalKeys) {
+    globalKeys.emplace_back("link_state.flap");
+  };
+
   auto statsMap = facebook::fb303::fbData->getStatMap();
   for (const auto& portId : *ports) {
     const auto port = sw_->getState()->getPorts()->getPortIf(PortID(portId));
@@ -1050,12 +1064,22 @@ void ThriftHandler::clearPortStats(unique_ptr<vector<int32_t>> ports) {
     getPortCounterKeys(portKeys, "out_", port);
     getPortCounterKeys(portKeys, "in_", port);
     getQueueCounterKeys(portKeys, port);
+    getPortLinkStateCounterKey(portKeys, port);
     for (const auto& key : portKeys) {
       // this API locks statistics for the key
       // ensuring no race condition with update/delete
       // in different thread
       statsMap->clearValue(key);
     }
+  }
+
+  std::vector<std::string> globalKeys;
+  getLinkStateCounterKey(globalKeys);
+  for (const auto& key : globalKeys) {
+    // this API locks statistics for the key
+    // ensuring no race condition with update/delete
+    // in different thread
+    statsMap->clearValue(key);
   }
 }
 
