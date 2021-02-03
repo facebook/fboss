@@ -16,6 +16,7 @@
 #include "fboss/qsfp_service/module/Transceiver.h"
 
 #include <folly/Synchronized.h>
+#include <folly/experimental/FunctionScheduler.h>
 #include <folly/futures/Future.h>
 #include <optional>
 
@@ -125,6 +126,9 @@ class QsfpModule : public Transceiver {
   std::vector<msm::back::state_machine<modulePortStateMachine>>
       opticsModulePortStateMachine_;
 
+  // Module state machine function scheduler
+  folly::FunctionScheduler opticsMsmFunctionScheduler_;
+
   /*
    * This is the helper function to create port state machine for all ports in
    * this module.
@@ -145,6 +149,26 @@ class QsfpModule : public Transceiver {
    * the Module State Machine
    */
   void genMsmModPortsDownEvent();
+  /*
+   * In the Discovered state we spawn a timeout to check for Agent port state
+   * syncup to qsfp_service
+   */
+  void scheduleAgentPortSyncupTimeout();
+  /*
+   * While exiting the Discovered state we need to cancel the agent sync timeout
+   * function scheduled earlier.
+   */
+  void cancelAgentPortSyncupTimeout();
+  /*
+   * This function spawns a periodic function to bring up the module/port by
+   * bring up (first time only) or the remediate.
+   */
+  void scheduleBringupRemediateFunction();
+  /*
+   * This function cancels the function scheduled by Module SM Inactive state
+   * entry function and stop the scheduled thread
+   */
+  void exitBringupRemediateFunction();
 
   using LengthAndGauge = std::pair<double, uint8_t>;
 

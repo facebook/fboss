@@ -46,6 +46,12 @@ using std::mutex;
 namespace facebook {
 namespace fboss {
 
+// Module state machine Timeout (seconds) for Agent to qsfp_service port status
+// sync up first time
+static constexpr int kStateMachineAgentPortSyncupTimeout = 120;
+// Module State machine optics remediation/bringup interval (seconds)
+static constexpr int kStateMachineOpticsRemediateInterval = 30;
+
 TransceiverID QsfpModule::getID() const {
   return TransceiverID(qsfpImpl_->getNum());
 }
@@ -537,6 +543,94 @@ void QsfpModule::genMsmModPortsDownEvent() {
   if (downports >= opticsModulePortStateMachine_.size() - 1) {
     opticsModuleStateMachine_.process_event(MODULE_EVENT_PSM_MODPORTS_DOWN);
   }
+}
+
+/*
+ * scheduleAgentPortSyncupTimeout
+ *
+ * Once the Module SM enters Discovered state, we need to wait for agent port
+ * sync up to go to next state. If the sync up does not happen for some time
+ * then we need to time out. Here we will spawn a timer function to check
+ * agent sync up timeout
+ */
+void QsfpModule::scheduleAgentPortSyncupTimeout() {
+  XLOG(INFO) << "MSM: Scheduling Agent port sync timeout function for module "
+             << qsfpImpl_->getName() << std::endl;
+
+  // Schedule a function to do bring up / remediate after some time
+  opticsMsmFunctionScheduler_.addFunctionOnce(
+      [&]() {
+        // Trigger the timeout event to MSM
+        opticsModuleStateMachine_.process_event(
+            MODULE_EVENT_AGENT_SYNC_TIMEOUT);
+      },
+      // Name of the scheduled function/thread for identifying later
+      folly::to<std::string>("ModuleStateMachine-", qsfpImpl_->getName()),
+      // Delay after which this function needs to be invoked in different thread
+      std::chrono::milliseconds(kStateMachineAgentPortSyncupTimeout * 1000));
+  // Start the function scheduler now
+  opticsMsmFunctionScheduler_.start();
+}
+
+/*
+ * cancelAgentPortSyncupTimeout
+ *
+ * In the discovered state the agent sync timeout is scheduled. On exiting
+ * this state we need to cancel this timeout function
+ */
+void QsfpModule::cancelAgentPortSyncupTimeout() {
+  // Cancel the current scheduled function
+  opticsMsmFunctionScheduler_.cancelFunction(
+      folly::to<std::string>("ModuleStateMachine-", qsfpImpl_->getName()));
+
+  // Stop the scheduler thread
+  opticsMsmFunctionScheduler_.shutdown();
+}
+
+/*
+ * scheduleBringupRemediateFunction
+ *
+ * Once the Module SM enters Inactive state, we need to spawn a periodic
+ * function which will attempt to bring up the module/port by doing either
+ * bring up (first time only) or the remediate function.
+ */
+void QsfpModule::scheduleBringupRemediateFunction() {
+  XLOG(INFO) << "MSM: Scheduling Remediate/bringup function for module "
+             << qsfpImpl_->getName() << std::endl;
+
+  // Schedule a function to do bring up / remediate after some time
+  opticsMsmFunctionScheduler_.addFunctionOnce(
+      [&]() {
+        if (opticsModuleStateMachine_.get_attribute(moduleBringupDone)) {
+          // Do the remediate function second time onwards
+          opticsModuleStateMachine_.process_event(MODULE_EVENT_REMEDIATE_DONE);
+        } else {
+          // Bring up to be attempted for first time only
+          opticsModuleStateMachine_.process_event(MODULE_EVENT_BRINGUP_DONE);
+        }
+      },
+      // Name of the scheduled function/thread for identifying later
+      folly::to<std::string>("ModuleStateMachine-", qsfpImpl_->getName()),
+      // Delay after which this function needs to be invoked in different thread
+      std::chrono::milliseconds(kStateMachineOpticsRemediateInterval * 1000));
+  // Start the function scheduler now
+  opticsMsmFunctionScheduler_.start();
+}
+
+/*
+ * exitBringupRemediateFunction
+ *
+ * The Module SM is exiting the Inactive state, we had spawned a periodic
+ * function to do bring up/remediate, we need to cancel the function
+ * scheduled and stop the scheduled thread.
+ */
+void QsfpModule::exitBringupRemediateFunction() {
+  // Cancel the current scheduled function
+  opticsMsmFunctionScheduler_.cancelFunction(
+      folly::to<std::string>("ModuleStateMachine-", qsfpImpl_->getName()));
+
+  // Stop the scheduler thread
+  opticsMsmFunctionScheduler_.shutdown();
 }
 
 } // namespace fboss
