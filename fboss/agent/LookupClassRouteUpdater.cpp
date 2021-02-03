@@ -10,6 +10,7 @@
 
 #include "fboss/agent/LookupClassRouteUpdater.h"
 
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/NodeBase-defs.h"
@@ -459,12 +460,8 @@ void LookupClassRouteUpdater::processNeighborRemoved(
      * passing to addRouteAndFindClassID.
      */
     if (cidr.first.isV6()) {
-      auto route = newState->getRouteTables()
-                       ->getRouteTable(rid)
-                       ->getRibV6()
-                       ->routes()
-                       ->getRouteIf(RoutePrefix<folly::IPAddressV6>{
-                           cidr.first.asV6(), cidr.second});
+      auto route = findRoute<folly::IPAddressV6>(
+          sw_->isStandaloneRibEnabled(), rid, cidr, newState);
       if (route) {
         routeClassID = addRouteAndFindClassID(
             stateDelta,
@@ -473,12 +470,8 @@ void LookupClassRouteUpdater::processNeighborRemoved(
             std::make_pair(removedNeighbor->getIP(), vlanID));
       }
     } else {
-      auto route = newState->getRouteTables()
-                       ->getRouteTable(rid)
-                       ->getRibV4()
-                       ->routes()
-                       ->getRouteIf(RoutePrefix<folly::IPAddressV4>{
-                           cidr.first.asV4(), cidr.second});
+      auto route = findRoute<folly::IPAddressV4>(
+          sw_->isStandaloneRibEnabled(), rid, cidr, newState);
       if (route) {
         routeClassID = addRouteAndFindClassID(
             stateDelta,
