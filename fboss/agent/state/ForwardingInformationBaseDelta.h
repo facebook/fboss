@@ -23,6 +23,15 @@ class ForwardingInformationBaseContainerDelta
 
   NodeMapDelta<ForwardingInformationBaseV4> getV4FibDelta() const;
   NodeMapDelta<ForwardingInformationBaseV6> getV6FibDelta() const;
+
+  template <typename AddrT>
+  auto getFibDelta() const {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      return getV4FibDelta();
+    } else {
+      return getV6FibDelta();
+    }
+  }
 };
 
 using ForwardingInformationBaseMapDelta = NodeMapDelta<
