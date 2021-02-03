@@ -750,31 +750,19 @@ void LookupClassRouteUpdater::processRouteChanged(
 template <typename AddrT>
 void LookupClassRouteUpdater::processRouteUpdates(
     const StateDelta& stateDelta) {
-  for (auto const& routeTableDelta : stateDelta.getRouteTablesDelta()) {
-    auto const& newRouteTable = routeTableDelta.getNew();
-    if (!newRouteTable) {
-      auto const& oldRouteTable = routeTableDelta.getOld();
-      for (const auto& oldRoute :
-           *(oldRouteTable->template getRib<AddrT>()->routes())) {
-        processRouteRemoved(stateDelta, oldRouteTable->getID(), oldRoute);
-      }
-      continue;
-    }
-
-    auto rid = newRouteTable->getID();
-    for (auto const& routeDelta : routeTableDelta.getRoutesDelta<AddrT>()) {
-      auto const& oldRoute = routeDelta.getOld();
-      auto const& newRoute = routeDelta.getNew();
-
-      if (!oldRoute) {
-        processRouteAdded(stateDelta, rid, newRoute);
-      } else if (!newRoute) {
-        processRouteRemoved(stateDelta, rid, oldRoute);
-      } else {
+  auto changedFn =
+      [&stateDelta, this](
+          RouterID rid, const auto& oldRoute, const auto& newRoute) {
         processRouteChanged(stateDelta, rid, oldRoute, newRoute);
-      }
-    }
-  }
+      };
+  auto addedFn = [&stateDelta, this](RouterID rid, const auto& newRoute) {
+    processRouteAdded(stateDelta, rid, newRoute);
+  };
+  auto removedFn = [&stateDelta, this](RouterID rid, const auto& oldRoute) {
+    processRouteRemoved(stateDelta, rid, oldRoute);
+  };
+  forEachChangedRoute<AddrT>(
+      sw_->isStandaloneRibEnabled(), stateDelta, changedFn, addedFn, removedFn);
 }
 
 // Methods for scheduling state updates

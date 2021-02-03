@@ -18,6 +18,8 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/types.h"
 
+#include "fboss/agent/state/StateDelta.h"
+
 #include <folly/IPAddress.h>
 
 #include <memory>
@@ -61,4 +63,65 @@ void forAllRoutes(
   }
 }
 
+template <
+    typename AddrT,
+    typename ChangedFn,
+    typename AddFn,
+    typename RemoveFn,
+    typename... Args>
+void forEachChangedRoute(
+    bool isStandaloneRib,
+    const StateDelta& stateDelta,
+    ChangedFn changedFn,
+    AddFn addedFn,
+    RemoveFn removedFn,
+    const Args&... args) {
+  if (isStandaloneRib) {
+    // TODO
+
+  } else {
+    for (auto const& routeTableDelta : stateDelta.getRouteTablesDelta()) {
+      auto const& newRouteTable = routeTableDelta.getNew();
+      if (!newRouteTable) {
+        auto const& oldRouteTable = routeTableDelta.getOld();
+        for (const auto& oldRoute :
+             *(oldRouteTable->template getRib<AddrT>()->routes())) {
+          removedFn(oldRouteTable->getID(), oldRoute);
+        }
+        continue;
+      }
+      auto rid = newRouteTable->getID();
+      for (auto const& routeDelta : routeTableDelta.getRoutesDelta<AddrT>()) {
+        auto const& oldRoute = routeDelta.getOld();
+        auto const& newRoute = routeDelta.getNew();
+
+        if (!oldRoute) {
+          addedFn(rid, newRoute);
+        } else if (!newRoute) {
+          removedFn(rid, oldRoute);
+        } else {
+          changedFn(rid, oldRoute, newRoute);
+        }
+      }
+    }
+  }
+}
+
+template <
+    typename ChangedFn,
+    typename AddFn,
+    typename RemoveFn,
+    typename... Args>
+void forEachChangedRoute(
+    bool isStandaloneRib,
+    const StateDelta& delta,
+    ChangedFn changedFn,
+    AddFn addedFn,
+    RemoveFn removedFn,
+    const Args&... args) {
+  forEachChangedRoute<folly::IPAddressV4>(
+      isStandaloneRib, delta, changedFn, addedFn, removedFn, args...);
+  forEachChangedRoute<folly::IPAddressV6>(
+      isStandaloneRib, delta, changedFn, addedFn, removedFn, args...);
+}
 } // namespace facebook::fboss
