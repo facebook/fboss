@@ -200,6 +200,8 @@ void RoutingInformationBase::setClassID(
       updateRoute(v6Rib, prefix.first.asV6(), prefix.second);
     }
   }
+  fibUpdateCallback(
+      rid, it->second.v4NetworkToRoute, it->second.v6NetworkToRoute, cookie);
 }
 
 folly::dynamic RoutingInformationBase::toFollyDynamic() const {

@@ -155,6 +155,7 @@ ForwardingInformationBaseUpdater::toFibRoute(const Route<AddrT>& ribRoute) {
     fibRoute->setConnected();
   }
 
+  fibRoute->updateClassID(ribRoute.getClassID());
   return fibRoute;
 }
 
