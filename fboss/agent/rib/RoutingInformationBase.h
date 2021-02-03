@@ -25,6 +25,9 @@ namespace facebook::fboss::rib {
 
 class RoutingInformationBase {
  public:
+  RoutingInformationBase(const RoutingInformationBase& o) = delete;
+  RoutingInformationBase& operator=(const RoutingInformationBase& o) = delete;
+  RoutingInformationBase() = default;
   using FibUpdateFunction = std::function<void(
       RouterID vrf,
       const IPv4NetworkToRouteMap& v4NetworkToRoute,
@@ -96,7 +99,8 @@ class RoutingInformationBase {
       void* cookie);
 
   folly::dynamic toFollyDynamic() const;
-  static RoutingInformationBase fromFollyDynamic(const folly::dynamic& ribJson);
+  static std::unique_ptr<RoutingInformationBase> fromFollyDynamic(
+      const folly::dynamic& ribJson);
 
   void createVrf(RouterID rid);
   std::vector<RouterID> getVrfList() const;

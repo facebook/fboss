@@ -222,11 +222,11 @@ folly::dynamic RoutingInformationBase::toFollyDynamic() const {
   return rib;
 }
 
-RoutingInformationBase RoutingInformationBase::fromFollyDynamic(
-    const folly::dynamic& ribJson) {
-  auto rib = RoutingInformationBase();
+std::unique_ptr<RoutingInformationBase>
+RoutingInformationBase::fromFollyDynamic(const folly::dynamic& ribJson) {
+  auto rib = std::make_unique<RoutingInformationBase>();
 
-  auto lockedRouteTables = rib.synchronizedRouteTables_.wlock();
+  auto lockedRouteTables = rib->synchronizedRouteTables_.wlock();
   for (const auto& routeTable : ribJson.items()) {
     lockedRouteTables->insert(std::make_pair(
         RouterID(routeTable.first.asInt()),

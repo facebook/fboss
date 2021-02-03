@@ -18,7 +18,7 @@
 
 namespace facebook::fboss {
 
-rib::RoutingInformationBase switchStateToStandaloneRib(
+std::unique_ptr<rib::RoutingInformationBase> switchStateToStandaloneRib(
     const std::shared_ptr<RouteTableMap>& swStateRib);
 
 std::shared_ptr<RouteTableMap> standaloneToSwitchStateRib(

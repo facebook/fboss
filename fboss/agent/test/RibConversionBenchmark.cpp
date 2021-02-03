@@ -58,9 +58,9 @@ static void runConversionBenchmark() {
 
   auto swStateTables = state->getRouteTables();
   auto standaloneRib = switchStateToStandaloneRib(swStateTables);
-  auto swStateRib = standaloneToSwitchStateRib(standaloneRib);
+  auto swStateRib = standaloneToSwitchStateRib(*standaloneRib);
 
-  syncFibWithStandaloneRib(standaloneRib, sw);
+  syncFibWithStandaloneRib(*standaloneRib, sw);
 }
 
 BENCHMARK(RibConversionFSW) {

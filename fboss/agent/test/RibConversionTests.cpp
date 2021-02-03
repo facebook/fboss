@@ -57,13 +57,13 @@ static void runConversionTest() {
 
   auto swStateTables = state->getRouteTables();
   auto standaloneRib = switchStateToStandaloneRib(swStateTables);
-  auto swStateRib = standaloneToSwitchStateRib(standaloneRib);
+  auto swStateRib = standaloneToSwitchStateRib(*standaloneRib);
   EXPECT_EQ(swStateRib->toFollyDynamic(), swStateTables->toFollyDynamic());
 
-  syncFibWithStandaloneRib(standaloneRib, sw);
+  syncFibWithStandaloneRib(*standaloneRib, sw);
 
   size_t ribRouteCount = 0;
-  for (auto routerID : standaloneRib.getVrfList()) {
+  for (auto routerID : standaloneRib->getVrfList()) {
     auto table = swStateTables->getRouteTable(routerID);
     for (const auto& entry : *table->getRibV4()->routes()) {
       if (entry->isResolved())
@@ -77,7 +77,7 @@ static void runConversionTest() {
 
   size_t fibRouteCount = 0;
   const auto& fibs = sw->getState()->getFibs();
-  for (auto routerID : standaloneRib.getVrfList()) {
+  for (auto routerID : standaloneRib->getVrfList()) {
     auto container = fibs->getFibContainer(routerID);
     fibRouteCount += container->getFibV4()->size();
     fibRouteCount += container->getFibV6()->size();
