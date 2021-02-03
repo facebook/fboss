@@ -9,6 +9,8 @@
  */
 
 #include "fboss/agent/FibHelpers.h"
+#include "fboss/agent/state/ForwardingInformationBase.h"
+#include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/RouteTable.h"
 #include "fboss/agent/state/RouteTableMap.h"
 #include "fboss/agent/state/RouteTableRib.h"
@@ -22,20 +24,25 @@ std::shared_ptr<Route<AddrT>> findRoute(
     RouterID rid,
     const folly::CIDRNetwork& prefix,
     const std::shared_ptr<SwitchState>& state) {
+  auto findInFib = [&prefix](const auto& fibRoutes) {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
+      return fibRoutes->getRouteIf(
+          RoutePrefix<folly::IPAddressV6>{prefix.first.asV6(), prefix.second});
+    } else {
+      return fibRoutes->getRouteIf(
+          RoutePrefix<folly::IPAddressV4>{prefix.first.asV4(), prefix.second});
+    }
+  };
   if (isStandaloneRib) {
-    return nullptr;
+    auto& fib = state->getFibs()->getFibContainer(rid)->getFib<AddrT>();
+    return findInFib(fib);
+
   } else {
     auto& routes = state->getRouteTables()
                        ->getRouteTable(rid)
                        ->template getRib<AddrT>()
                        ->routes();
-    if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
-      return routes->getRouteIf(
-          RoutePrefix<folly::IPAddressV6>{prefix.first.asV6(), prefix.second});
-    } else {
-      return routes->getRouteIf(
-          RoutePrefix<folly::IPAddressV4>{prefix.first.asV4(), prefix.second});
-    }
+    return findInFib(routes);
   }
   CHECK(false) << " Should never get here, route lookup failed";
   return nullptr;
