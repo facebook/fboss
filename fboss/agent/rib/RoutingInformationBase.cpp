@@ -12,6 +12,7 @@
 
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/Constants.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/rib/ConfigApplier.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/RouteNextHopEntry.h"
@@ -39,6 +40,19 @@ class Timer {
 } // namespace
 
 namespace facebook::fboss::rib {
+
+RoutingInformationBase::RoutingInformationBase() {
+  ribUpdateThread_ = std::make_unique<std::thread>([this] {
+    initThread("ribUpdateThread");
+    ribUpdateEventBase_.loopForever();
+  });
+}
+
+RoutingInformationBase::~RoutingInformationBase() {
+  ribUpdateEventBase_.runInEventBaseThread(
+      [this] { ribUpdateEventBase_.terminateLoopSoon(); });
+  ribUpdateThread_->join();
+}
 
 void RoutingInformationBase::reconfigure(
     const RouterIDAndNetworkToInterfaceRoutes& configRouterIDToInterfaceRoutes,

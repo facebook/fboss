@@ -27,7 +27,8 @@ class RoutingInformationBase {
  public:
   RoutingInformationBase(const RoutingInformationBase& o) = delete;
   RoutingInformationBase& operator=(const RoutingInformationBase& o) = delete;
-  RoutingInformationBase() = default;
+  RoutingInformationBase();
+  ~RoutingInformationBase();
   using FibUpdateFunction = std::function<void(
       RouterID vrf,
       const IPv4NetworkToRouteMap& v4NetworkToRoute,
@@ -143,6 +144,8 @@ class RoutingInformationBase {
           configRouterIDToInterfaceRoutes) const;
 
   SynchronizedRouteTables synchronizedRouteTables_;
+  std::unique_ptr<std::thread> ribUpdateThread_;
+  folly::EventBase ribUpdateEventBase_;
 };
 
 } // namespace facebook::fboss::rib
