@@ -861,6 +861,21 @@ class BcmSdkInterface {
       int unit,
       bcm_vlan_t vlan,
       bcm_vlan_control_vlan_t* control) = 0;
+
+  virtual int bcm_cosq_priority_group_mapping_profile_get(
+      int unit,
+      int profile_index,
+      bcm_cosq_priority_group_mapping_profile_type_t type,
+      int array_max,
+      int* arg,
+      int* array_count) = 0;
+
+  virtual int bcm_cosq_priority_group_mapping_profile_set(
+      int unit,
+      int profile_index,
+      bcm_cosq_priority_group_mapping_profile_type_t type,
+      int array_count,
+      int* arg) = 0;
 };
 
 } // namespace facebook::fboss

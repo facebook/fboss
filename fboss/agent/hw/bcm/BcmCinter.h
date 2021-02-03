@@ -352,6 +352,12 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       uint32 kbits_sec_min,
       uint32 kbits_sec_max,
       uint32 flags) override;
+  int bcm_cosq_priority_group_mapping_profile_set(
+      int unit,
+      int profile_index,
+      bcm_cosq_priority_group_mapping_profile_type_t type,
+      int array_count,
+      int* arg) override;
   int bcm_field_init(int unit) override;
   int bcm_field_group_create_id(
       int unit,
@@ -1023,6 +1029,15 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       uint32* /*flags*/) override {
     return 0;
   }
+  int bcm_cosq_priority_group_mapping_profile_get(
+      int /*unit*/,
+      int /*profile_index*/,
+      bcm_cosq_priority_group_mapping_profile_type_t /*type*/,
+      int /*array_max*/,
+      int* /*arg*/,
+      int* /*array_count*/) override {
+    return 0;
+  }
   int bcm_cosq_gport_traverse(
       int /*unit*/,
       bcm_cosq_gport_traverse_cb /*cb*/,
@@ -1521,6 +1536,7 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   std::string getNextL3IntfIdVar();
   std::string getNextStatVar();
   std::string getNextMirrorDestIdVar();
+  std::string getNextPriorityToPgVar();
 
   /*
    * Wrap a generated cint function call with return error code
@@ -1625,6 +1641,7 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   std::atomic<uint> l3IntfCreated_{0};
   std::atomic<uint> statCreated_{0};
   std::atomic<uint> mirrorDestIdCreated_{0};
+  std::atomic<uint> tmpProrityToPgCreated_{0};
 
   std::unique_ptr<AsyncLogger> asyncLogger_;
 

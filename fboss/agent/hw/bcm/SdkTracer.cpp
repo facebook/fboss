@@ -1485,6 +1485,21 @@ int __real_bcm_vlan_control_vlan_get(
 
 int __real_sh_process_command(int unit, char* cmd);
 
+int __real_bcm_cosq_priority_group_mapping_profile_get(
+    int unit,
+    int profile_index,
+    bcm_cosq_priority_group_mapping_profile_type_t type,
+    int array_max,
+    int* arg,
+    int* array_count);
+
+int __real_bcm_cosq_priority_group_mapping_profile_set(
+    int unit,
+    int profile_index,
+    bcm_cosq_priority_group_mapping_profile_type_t type,
+    int array_max,
+    int* arg);
+
 } // extern "C"
 
 using namespace facebook::fboss;
@@ -3563,6 +3578,27 @@ int __wrap_bcm_vlan_control_vlan_get(
 
 int __wrap_sh_process_command(int unit, char* cmd) {
   CALL_WRAPPERS_RV(sh_process_command(unit, cmd));
+}
+
+int __wrap_bcm_cosq_priority_group_mapping_profile_get(
+    int unit,
+    int profile_index,
+    bcm_cosq_priority_group_mapping_profile_type_t type,
+    int array_max,
+    int* arg,
+    int* array_count) {
+  CALL_WRAPPERS_RV(bcm_cosq_priority_group_mapping_profile_get(
+      unit, profile_index, type, array_max, arg, array_count));
+}
+
+int __wrap_bcm_cosq_priority_group_mapping_profile_set(
+    int unit,
+    int profile_index,
+    bcm_cosq_priority_group_mapping_profile_type_t type,
+    int array_max,
+    int* arg) {
+  CALL_WRAPPERS_RV(bcm_cosq_priority_group_mapping_profile_set(
+      unit, profile_index, type, array_max, arg));
 }
 
 } // extern "C"

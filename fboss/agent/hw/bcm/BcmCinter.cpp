@@ -239,6 +239,10 @@ string BcmCinter::getNextStatVar() {
   return to<string>("stat_", ++statCreated_);
 }
 
+string BcmCinter::getNextPriorityToPgVar() {
+  return to<string>("priorityToPg_", ++tmpProrityToPgCreated_);
+}
+
 string BcmCinter::getNextMirrorDestIdVar() {
   return to<string>("mirrorDestId_", ++mirrorDestIdCreated_);
 }
@@ -532,6 +536,32 @@ int BcmCinter::bcm_cosq_gport_mapping_set(
 
 int BcmCinter::bcm_field_init(int unit) {
   writeCintLines(wrapFunc(to<string>("bcm_field_init(", unit, ")")));
+  return 0;
+}
+
+int BcmCinter::bcm_cosq_priority_group_mapping_profile_set(
+    int unit,
+    int profile_index,
+    bcm_cosq_priority_group_mapping_profile_type_t type,
+    int array_count,
+    int* arg) {
+  std::vector<string> argValues;
+  for (int i = 0; i < array_count; ++i) {
+    argValues.push_back(to<string>(arg[i]));
+  }
+  string argVarArrayName = getNextPriorityToPgVar();
+  string argVarArray = to<string>(
+      "int ", argVarArrayName, "[] =", " {", join(", ", argValues), "}");
+  vector<string> cint = {argVarArray};
+  auto cintForFn = wrapFunc(to<string>(
+      "bcm_cosq_priority_group_mapping_profile_set(",
+      makeParamStr(unit, profile_index, type, array_count, argVarArrayName),
+      ")"));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(cintForFn.begin()),
+      make_move_iterator((cintForFn.end())));
+  writeCintLines(std::move(cint));
   return 0;
 }
 
