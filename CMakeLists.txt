@@ -775,6 +775,7 @@ if (NOT SAI_ONLY)
          fboss/agent/test/CounterCache.cpp
          fboss/agent/test/DHCPv4HandlerTest.cpp
          fboss/agent/test/EcmpSetupHelper.cpp
+         fboss/agent/test/FibHelperTests.cpp
          fboss/agent/test/ICMPTest.cpp
          fboss/agent/test/IPv4Test.cpp
          fboss/agent/test/LldpManagerTest.cpp
