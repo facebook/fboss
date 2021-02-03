@@ -75,8 +75,6 @@ void LookupClassUpdater::removeClassIDForPortAndMac(
   }
 
   removeNeighborFromLocalCacheForEntry(removedEntry, vlan);
-  XLOG(DBG2) << "Updating Qos Policy for Removed Neighbor: port: "
-             << removedEntry->str() << " classID: None";
 
   if constexpr (std::is_same_v<RemovedEntryT, MacEntry>) {
     auto removeMacClassIDFn = [vlan, removedEntry](
@@ -511,11 +509,21 @@ void LookupClassUpdater::removeNeighborFromLocalCacheForEntry(
   auto portID = removedEntry->getPort().phyPortID();
   auto mac = removedEntry->getMac();
 
+  XLOG(DBG2) << "Remove neighbor entry. Port: " << portID
+             << " , mac: " << mac.toString() << ", vlan: " << vlanID;
+  if (!isInited(portID)) {
+    XLOG(ERR) << "LookupClass not even inited for port: " << portID
+              << " , mac: " << mac.toString();
+    return;
+  }
+
   auto& macAndVlan2ClassIDAndRefCnt = port2MacAndVlanEntries_[portID];
   auto& [classID, refCnt] =
       macAndVlan2ClassIDAndRefCnt[std::make_pair(mac, vlanID)];
   auto& classID2Count = port2ClassIDAndCount_[portID];
 
+  XLOG(DBG2) << "Reference count: " << (int)refCnt
+             << " for classID: " << (int)classID;
   CHECK_GT(refCnt, 0);
 
   refCnt--;
@@ -545,6 +553,9 @@ void LookupClassUpdater::updateStateObserverLocalCacheForEntry(
         std::make_pair(mac, vlanID),
         std::make_pair(classID, 1 /* initialize refCnt */)));
     classID2Count[classID]++;
+    XLOG(DBG2) << "Create neighbor entry for port: " << portID
+               << " , mac: " << mac.toString() << " , vlan: " << vlanID
+               << ", classId: " << static_cast<int>(classID);
   } else {
     auto& [classID_, refCnt] = iter->second;
     CHECK(classID_ == classID);
