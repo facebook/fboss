@@ -40,23 +40,12 @@ namespace facebook::fboss {
 // Helper methods
 
 void LookupClassRouteUpdater::reAddAllRoutes(const StateDelta& stateDelta) {
-  auto& newState = stateDelta.newState();
-
-  for (const auto& routeTable : *newState->getRouteTables()) {
-    auto rid = routeTable->getID();
-
-    for (const auto& route : *(routeTable->getRibV6()->routes())) {
-      if (!route->getClassID().has_value()) {
-        processRouteAdded(stateDelta, rid, route);
-      }
+  auto addRoute = [&stateDelta, this](RouterID rid, const auto& route) {
+    if (!route->getClassID().has_value()) {
+      processRouteAdded(stateDelta, rid, route);
     }
-
-    for (const auto& route : *(routeTable->getRibV4()->routes())) {
-      if (!route->getClassID().has_value()) {
-        processRouteAdded(stateDelta, rid, route);
-      }
-    }
-  }
+  };
+  forAllRoutes(sw_->isStandaloneRibEnabled(), stateDelta.newState(), addRoute);
 }
 
 bool LookupClassRouteUpdater::vlanHasOtherPortsWithClassIDs(

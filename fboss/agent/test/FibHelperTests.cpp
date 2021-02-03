@@ -44,14 +44,18 @@ class FibHelperTest : public ::testing::Test {
     sw_ = handle_->getSw();
     resolveNeighbor(kIpAddressA(), kMacAddressA());
     // Install kPrefix1 in FIB
+    programRoute(kPrefix1());
+  }
+
+  void programRoute(const folly::CIDRNetwork& prefix) {
     SwSwitchRouteUpdateWrapper routeUpdater(sw_);
     RouteNextHopSet nexthops{
         UnresolvedNextHop(kIpAddressA(), UCMP_DEFAULT_WEIGHT)};
     routeUpdater.addRoute(
-        this->kRid(),
-        kPrefix1().first,
-        kPrefix1().second,
-        this->kClientID(),
+        kRid(),
+        prefix.first,
+        prefix.second,
+        kClientID(),
         RouteNextHopEntry(nexthops, AdminDistance::MAX_ADMIN_DISTANCE));
     routeUpdater.program();
   }
@@ -169,5 +173,25 @@ TYPED_TEST(FibHelperTest, findRoute) {
       this->kPrefix2(),
       this->sw_->getState());
   EXPECT_EQ(route, nullptr);
+}
+
+TYPED_TEST(FibHelperTest, forAllRoutes) {
+  int count = 0;
+  auto countRoutes = [&count](RouterID rid, auto& route) { ++count; };
+  forAllRoutes(
+      this->sw_->isStandaloneRibEnabled(), this->sw_->getState(), countRoutes);
+  auto prevCount = count;
+  // Program prefix1 again, should not change the count
+  this->programRoute(this->kPrefix1());
+  count = 0;
+  forAllRoutes(
+      this->sw_->isStandaloneRibEnabled(), this->sw_->getState(), countRoutes);
+  EXPECT_EQ(count, prevCount);
+  // Add one more route, now count should increment
+  this->programRoute(this->kPrefix2());
+  count = 0;
+  forAllRoutes(
+      this->sw_->isStandaloneRibEnabled(), this->sw_->getState(), countRoutes);
+  EXPECT_EQ(count, prevCount + 1);
 }
 } // namespace facebook::fboss
