@@ -741,6 +741,17 @@ void BcmPort::setupStatsIfNeeded(const std::shared_ptr<Port>& swPort) {
       hasPortQueueChanges(savedPort, swPort)) {
     reinitPortStats(swPort);
   }
+
+  // Set bcmPortControlStatOversize to max frame size so that we don't trigger
+  // OVR counters increment due to jumbo frame
+  auto rv = bcm_port_control_set(
+      unit_, port_, bcmPortControlStatOversize, swPort->getMaxFrameSize());
+  bcmCheckError(
+      rv,
+      "Failed to set bcmPortControlStatOversize for port ",
+      port_,
+      " to size=",
+      swPort->getMaxFrameSize());
 }
 
 void BcmPort::setupPrbs(const std::shared_ptr<Port>& swPort) {
