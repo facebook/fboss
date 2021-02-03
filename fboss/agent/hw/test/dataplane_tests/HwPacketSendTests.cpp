@@ -113,6 +113,55 @@ TEST_F(HwPacketSendTest, LldpToFrontPanelOutOfPort) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(HwPacketSendTest, LldpToFrontPanelWithBufClone) {
+  auto setup = [=]() {};
+  auto verify = [=]() {
+    auto portStatsBefore = getLatestPortStats(masterLogicalPortIds()[0]);
+    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto payLoadSize = 256;
+    auto numPkts = 20;
+    std::vector<folly::IOBuf*> bufs;
+    for (int i = 0; i < numPkts; i++) {
+      auto txPacket = utility::makeEthTxPacket(
+          getHwSwitch(),
+          vlanId,
+          srcMac,
+          folly::MacAddress("01:80:c2:00:00:0e"),
+          facebook::fboss::ETHERTYPE::ETHERTYPE_LLDP,
+          std::vector<uint8_t>(payLoadSize, 0xff));
+      // emulate packet buf clone in PcapPkt, which should make
+      // freeTxBuf() get called after txPacket destructor
+      auto buf = new folly::IOBuf();
+      txPacket->buf()->cloneInto(*buf);
+      bufs.push_back(buf);
+      getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
+          std::move(txPacket), masterLogicalPortIds()[0], std::nullopt);
+    }
+    for (auto buf : bufs) {
+      delete buf;
+    }
+    auto portStatsAfter = getLatestPortStats(masterLogicalPortIds()[0]);
+    XLOG(INFO) << "Lldp Packet:"
+               << " before pkts:" << *portStatsBefore.outMulticastPkts__ref()
+               << ", after pkts:" << *portStatsAfter.outMulticastPkts__ref()
+               << ", before bytes:" << *portStatsBefore.outBytes__ref()
+               << ", after bytes:" << *portStatsAfter.outBytes__ref();
+    auto pktLengthSent = (EthHdr::SIZE + payLoadSize) * numPkts;
+    EXPECT_EQ(
+        pktLengthSent,
+        *portStatsAfter.outBytes__ref() - *portStatsBefore.outBytes__ref());
+    if (getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_TAJO) {
+      EXPECT_EQ(
+          numPkts,
+          *portStatsAfter.outMulticastPkts__ref() -
+              *portStatsBefore.outMulticastPkts__ref());
+    }
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 TEST_F(HwPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
   auto setup = [=]() {};
   auto verify = [=]() {

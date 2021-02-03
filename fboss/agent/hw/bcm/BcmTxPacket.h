@@ -34,7 +34,7 @@ class BcmSwitch;
 struct BcmFreeTxBufUserData {
   BcmFreeTxBufUserData(const BcmPacketT& bcmPacket, const BcmSwitch* bcmSwitch)
       : bcmPacket(bcmPacket), bcmSwitch(bcmSwitch) {}
-  const BcmPacketT& bcmPacket;
+  const BcmPacketT bcmPacket;
   const BcmSwitch* bcmSwitch;
 };
 
