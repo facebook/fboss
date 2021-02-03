@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
 #include "fboss/agent/hw/bcm/BcmQosMap.h"
+#include "fboss/agent/hw/bcm/BcmQosUtils.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -36,6 +37,7 @@ BcmQosPolicy::BcmQosPolicy(
   programIngressDscpQosMap(qosPolicy);
   programIngressExpQosMap(qosPolicy);
   programEgressExpQosMap(qosPolicy);
+  programTrafficClassToPgMap(qosPolicy);
 }
 
 BcmQosPolicyHandle BcmQosPolicy::getHandle(BcmQosMap::Type type) const {
@@ -70,10 +72,11 @@ void BcmQosPolicy::update(
   updateIngressDscpQosMap(oldQosPolicy, newQosPolicy);
   updateEgressExpQosMap(oldQosPolicy, newQosPolicy);
   updateIngressExpQosMap(oldQosPolicy, newQosPolicy);
+  updateTrafficClassToPgMap(oldQosPolicy, newQosPolicy);
 }
 
 void BcmQosPolicy::remove() {
-  programTrafficClassToPg(kDefaultTrafficClassToPg);
+  programTrafficClassToPg(getBcmDefaultTrafficClassToPgArr());
 }
 
 void BcmQosPolicy::updateIngressDscpQosMap(
@@ -343,13 +346,15 @@ void BcmQosPolicy::programPriorityGroupMapping(
       "failed to program ",
       profileTypeStr,
       " size: ",
-      trafficClassToPgId.size());
+      trafficClassToPgId.size(),
+      " type: ",
+      profileType);
 }
 
 void BcmQosPolicy::programTrafficClassToPgMap(
     const std::shared_ptr<QosPolicy>& qosPolicy) {
   // init the array with HW defaults
-  std::vector<int> trafficClassToPg = kDefaultTrafficClassToPg;
+  std::vector<int> trafficClassToPg = getBcmDefaultTrafficClassToPgArr();
   if (auto trafficClassToPgMap = qosPolicy->getTrafficClassToPgId()) {
     // override with what user configures
     for (const auto& entry : *trafficClassToPgMap) {
@@ -364,5 +369,4 @@ void BcmQosPolicy::programTrafficClassToPgMap(
   }
   programTrafficClassToPg(trafficClassToPg);
 }
-
 } // namespace facebook::fboss

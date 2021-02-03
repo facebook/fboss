@@ -66,6 +66,7 @@ void BcmQosPolicyTable::processRemovedQosPolicy(
     throw FbossError("BcmQosPolicy=", qosPolicy->getName(), " does not exist");
   }
   XLOG(DBG1) << "Remove policy entry for: " << qosPolicy->getName();
+  getQosPolicy(qosPolicy->getName())->remove();
   qosPolicyMap_.erase(iter);
 }
 

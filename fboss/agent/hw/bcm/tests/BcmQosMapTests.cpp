@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
+#include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
 
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
@@ -16,9 +17,16 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
 extern "C" {
+#include <bcm/cosq.h>
 #include <bcm/error.h>
 #include <bcm/qos.h>
 }
+
+namespace {
+const std::vector<int> kTrafficClassToPgId{0, 1, 2, 3, 4, 5, 6, 7};
+const std::vector<int>
+    kTrafficClassToPgIdInHw{0, 1, 2, 3, 4, 5, 6, 7, 0, 0, 0, 0, 0, 0, 0, 0};
+} // namespace
 
 namespace facebook::fboss {
 
@@ -27,6 +35,43 @@ class BcmQosMapTest : public BcmTest {
   cfg::SwitchConfig initialConfig() const override {
     return utility::oneL3IntfNPortConfig(
         getHwSwitch(), {masterLogicalPortIds()[0], masterLogicalPortIds()[1]});
+  }
+
+  cfg::SwitchConfig setupDefaultQueueWithTc2Pg() {
+    auto config = initialConfig();
+    cfg::QosMap qosMap;
+    std::map<int16_t, int16_t> tc2PgId;
+    for (auto i = 0; i < kTrafficClassToPgId.size(); i++) {
+      tc2PgId.emplace(i, kTrafficClassToPgId[i]);
+    }
+    qosMap.trafficClassToPgId_ref() = tc2PgId;
+    config.qosPolicies_ref()->resize(1);
+    config.qosPolicies_ref()[0].name_ref() = "qp";
+    config.qosPolicies_ref()[0].qosMap_ref() = qosMap;
+
+    cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
+    dataPlaneTrafficPolicy.defaultQosPolicy_ref() = "qp";
+    config.dataPlaneTrafficPolicy_ref() = dataPlaneTrafficPolicy;
+    applyNewConfig(config);
+    return config;
+  }
+
+  void validateTc2PgId(const std::vector<int>& expectedTc2Pg) {
+    int i = 0;
+    std::vector<int> tc2PgId;
+    tc2PgId.resize(getBcmDefaultTrafficClassToPgSize());
+    int arrayCount = 0;
+    bcm_cosq_priority_group_mapping_profile_get(
+        getUnit(),
+        0,
+        bcmCosqInputPriPriorityGroupMcMapping,
+        getBcmDefaultTrafficClassToPgSize(),
+        tc2PgId.data(),
+        &arrayCount);
+    EXPECT_EQ(arrayCount, expectedTc2Pg.size());
+    for (i = 0; i < expectedTc2Pg.size(); ++i) {
+      EXPECT_EQ(expectedTc2Pg[i], tc2PgId[i]);
+    }
   }
 };
 
@@ -84,6 +129,137 @@ TEST_F(BcmQosMapTest, BcmDscpMapWithRules) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+// configure trafficClassToPg map, remove the qos
+// policy so that trafficClassToPg map is reset  to default
+// Query HW to validate the same
+TEST_F(BcmQosMapTest, Tc2PgRemovePolicy) {
+  if (!isSupported(HwAsic::Feature::PFC)) {
+    XLOG(WARNING) << "Platform doesn't support PFC";
+    return;
+  }
+
+  auto setup = [this]() {
+    auto config = setupDefaultQueueWithTc2Pg();
+    // reset qosPolicy
+    config = initialConfig();
+    applyNewConfig(config);
+  };
+
+  auto verify = [this]() {
+    validateTc2PgId(getBcmDefaultTrafficClassToPgArr());
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// configure trafficClassToPg map and remove it
+// explicitly, so that defaults get programmed
+// Query HW to validate the same.
+// Since we reset the trafficClassToPg map explicitly
+// it takes a diffeent code path from Tc2PgRemovePolicy
+TEST_F(BcmQosMapTest, Tc2PgReset) {
+  if (!isSupported(HwAsic::Feature::PFC)) {
+    XLOG(WARNING) << "Platform doesn't support PFC";
+    return;
+  }
+
+  auto setup = [this]() {
+    cfg::QosMap qosMap;
+    auto config = setupDefaultQueueWithTc2Pg();
+    // reset TC <-> PG Id
+    qosMap.trafficClassToPgId_ref().reset();
+    config.qosPolicies_ref()[0].qosMap_ref() = qosMap;
+    applyNewConfig(config);
+  };
+
+  auto verify = [this]() {
+    validateTc2PgId(getBcmDefaultTrafficClassToPgArr());
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(BcmQosMapTest, BcmAllQosMapsWithTc2PgWith) {
+  if (!isSupported(HwAsic::Feature::PFC)) {
+    XLOG(WARNING) << "Platform doesn't support PFC";
+    return;
+  }
+
+  auto setup = [this]() {
+    auto config = initialConfig();
+
+    cfg::QosMap qosMap;
+    qosMap.dscpMaps_ref()->resize(8);
+    for (auto i = 0; i < 8; i++) {
+      qosMap.dscpMaps_ref()[i].internalTrafficClass_ref() = i;
+      for (auto j = 0; j < 8; j++) {
+        qosMap.dscpMaps_ref()[i].fromDscpToTrafficClass_ref()->push_back(
+            8 * i + j);
+      }
+    }
+    qosMap.expMaps_ref()->resize(8);
+    for (auto i = 0; i < 8; i++) {
+      qosMap.expMaps_ref()[i].internalTrafficClass_ref() = i;
+      qosMap.expMaps_ref()[i].fromExpToTrafficClass_ref()->push_back(i);
+      qosMap.expMaps_ref()[i].fromTrafficClassToExp_ref() = i;
+    }
+
+    std::map<int16_t, int16_t> tc2PgId;
+    for (auto i = 0; i < kTrafficClassToPgId.size(); i++) {
+      // add trafficClassToPgId mappings as well
+      tc2PgId.emplace(i, kTrafficClassToPgId[i]);
+    }
+    qosMap.trafficClassToPgId_ref() = tc2PgId;
+
+    config.qosPolicies_ref()->resize(1);
+    config.qosPolicies_ref()[0].name_ref() = "qp";
+    config.qosPolicies_ref()[0].qosMap_ref() = qosMap;
+
+    cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
+    dataPlaneTrafficPolicy.defaultQosPolicy_ref() = "qp";
+    config.dataPlaneTrafficPolicy_ref() = dataPlaneTrafficPolicy;
+    applyNewConfig(config);
+  };
+
+  auto verify = [this]() {
+    auto mapIdsAndFlags = getBcmQosMapIdsAndFlags(getUnit());
+    int numEntries = mapIdsAndFlags.size();
+    EXPECT_EQ(
+        numEntries, 3); // 3 qos maps (ingress dscp, ingress mpls, egress mpls)
+    for (auto mapIdAndFlag : mapIdsAndFlags) {
+      auto mapId = mapIdAndFlag.first;
+      auto flag = mapIdAndFlag.second;
+      int array_count = 0;
+      bcm_qos_map_multi_get(getUnit(), flag, mapId, 0, nullptr, &array_count);
+      if ((flag & (BCM_QOS_MAP_INGRESS | BCM_QOS_MAP_L3)) ==
+          (BCM_QOS_MAP_INGRESS | BCM_QOS_MAP_L3)) {
+        EXPECT_EQ(array_count, 64);
+      }
+      if ((flag & (BCM_QOS_MAP_INGRESS | BCM_QOS_MAP_MPLS)) ==
+          (BCM_QOS_MAP_INGRESS | BCM_QOS_MAP_MPLS)) {
+        EXPECT_EQ(array_count, 8);
+      }
+      if ((flag & (BCM_QOS_MAP_EGRESS | BCM_QOS_MAP_MPLS)) ==
+          (BCM_QOS_MAP_EGRESS | BCM_QOS_MAP_MPLS)) {
+        // TH4 always return 48 entries not including ghost ones when
+        // qos_map_multi_get_mode is 1.
+        EXPECT_TRUE(array_count == 64 || array_count == 48);
+        std::vector<bcm_qos_map_t> entries;
+        entries.resize(array_count);
+        bcm_qos_map_multi_get(
+            getUnit(),
+            flag,
+            mapId,
+            entries.size(),
+            entries.data(),
+            &array_count);
+        // not returning any invalid or ghost entries now
+        EXPECT_EQ(array_count, 48);
+      }
+    }
+    validateTc2PgId(kTrafficClassToPgIdInHw);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 TEST_F(BcmQosMapTest, BcmAllQosMaps) {
   auto setup = [this]() {
     auto config = initialConfig();
@@ -107,7 +283,6 @@ TEST_F(BcmQosMapTest, BcmAllQosMaps) {
     for (auto i = 0; i < 8; i++) {
       qosMap.trafficClassToQueueId_ref()->emplace(i, i);
     }
-
     config.qosPolicies_ref()->resize(1);
     *config.qosPolicies_ref()[0].name_ref() = "qp";
     config.qosPolicies_ref()[0].qosMap_ref() = qosMap;

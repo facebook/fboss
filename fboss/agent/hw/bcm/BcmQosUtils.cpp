@@ -8,6 +8,14 @@ extern "C" {
 #include <bcm/qos.h>
 }
 
+namespace {
+// array with index representing the traffic class and array value is priority
+// group (PG) defaults from HW required for mapping incoming traffic to PG on
+// ingress for PFC purposes
+std::vector<int>
+    kDefaultTrafficClassToPg{7, 1, 2, 3, 4, 5, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+} // unnamed namespace
+
 namespace facebook::fboss {
 
 std::vector<BcmQosMapIdAndFlag> getBcmQosMapIdsAndFlags(int unit) {
@@ -42,6 +50,14 @@ int getBcmQosMapFlagsMPLSIngress() {
 
 int getBcmQosMapFlagsMPLSEgress() {
   return BCM_QOS_MAP_EGRESS | BCM_QOS_MAP_MPLS;
+}
+
+std::vector<int>& getBcmDefaultTrafficClassToPgArr() {
+  return kDefaultTrafficClassToPg;
+}
+
+int getBcmDefaultTrafficClassToPgSize() {
+  return kDefaultTrafficClassToPg.size();
 }
 
 } // namespace facebook::fboss

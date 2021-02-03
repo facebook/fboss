@@ -10,4 +10,7 @@ using BcmQosMapIdAndFlag = std::pair<int, int>;
 
 std::vector<BcmQosMapIdAndFlag> getBcmQosMapIdsAndFlags(int unit);
 
+std::vector<int>& getBcmDefaultTrafficClassToPgArr();
+int getBcmDefaultTrafficClassToPgSize();
+
 } // namespace facebook::fboss
