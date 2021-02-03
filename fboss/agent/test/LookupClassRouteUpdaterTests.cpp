@@ -10,6 +10,7 @@
 
 #include <gtest/gtest.h>
 
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/LookupClassRouteUpdater.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
@@ -172,14 +173,11 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
       RoutePrefix<AddrT> routePrefix,
       std::optional<cfg ::AclLookupClass> classID) {
     this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
-      auto state = sw_->getState();
-      auto vlan = state->getVlans()->getVlan(kVlan());
-      auto routeTableRib = state->getRouteTables()
-                               ->getRouteTable(kRid())
-                               ->template getRib<AddrT>();
-
-      auto route = routeTableRib->routes()->getRouteIf(routePrefix);
-      XLOG(DBG) << route->str();
+      auto route = findRoute<AddrT>(
+          sw_->isStandaloneRibEnabled(),
+          kRid(),
+          {folly::IPAddress(routePrefix.network), routePrefix.mask},
+          sw_->getState());
       EXPECT_EQ(route->getClassID(), classID);
     });
   }
