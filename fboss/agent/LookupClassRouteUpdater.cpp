@@ -141,6 +141,7 @@ void LookupClassRouteUpdater::updateSubnetsCache(
     bool reAddAllRoutesEnabled) {
   auto& newState = stateDelta.newState();
 
+  bool subnetCacheUpdated = false;
   for (const auto& [vlanID, vlanInfo] : port->getVlans()) {
     std::ignore = vlanInfo;
     auto vlan = newState->getVlans()->getVlanIf(vlanID);
@@ -153,20 +154,19 @@ void LookupClassRouteUpdater::updateSubnetsCache(
         newState->getInterfaces()->getInterfaceIf(vlan->getInterfaceID());
     if (interface) {
       for (auto address : interface->getAddresses()) {
-        subnetsCache.insert(address);
-
-        if (reAddAllRoutesEnabled) {
-          /*
-           * When a new subnet is added to the cache, the nextHops of existing
-           * routes may become eligible for caching in
-           * nextHopAndVlan2Prefixes_. Furthermore, such a nextHop may have
-           * classID associated with it, and in that case, the corresponding
-           * route could inherit that classID. Thus, re-add all the routes.
-           */
-          reAddAllRoutes(stateDelta);
-        }
+        subnetCacheUpdated = subnetsCache.insert(address).second;
       }
     }
+  }
+  if (subnetCacheUpdated && reAddAllRoutesEnabled) {
+    /*
+     * When a new subnet is added to the cache, the nextHops of existing
+     * routes may become eligible for caching in
+     * nextHopAndVlan2Prefixes_. Furthermore, such a nextHop may have
+     * classID associated with it, and in that case, the corresponding
+     * route could inherit that classID. Thus, re-add all the routes.
+     */
+    reAddAllRoutes(stateDelta);
   }
 }
 
