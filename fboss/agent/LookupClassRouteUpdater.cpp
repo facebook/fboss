@@ -785,7 +785,7 @@ void LookupClassRouteUpdater::updateClassIDForRouteHelper(
     std::shared_ptr<SwitchState>& newState,
     const std::shared_ptr<RouteTable>& routeTable,
     const RoutePrefix<AddrT>& routePrefix,
-    std::optional<cfg::AclLookupClass> classID) {
+    std::optional<cfg::AclLookupClass> classID) const {
   auto routeTableRib =
       routeTable->template getRib<AddrT>()->modify(rid, &newState);
 
@@ -798,7 +798,7 @@ void LookupClassRouteUpdater::updateClassIDForRouteHelper(
 }
 
 void LookupClassRouteUpdater::updateClassIDsForRoutes(
-    const std::vector<RouteAndClassID>& routesAndClassIDs) {
+    const std::vector<RouteAndClassID>& routesAndClassIDs) const {
   if (sw_->isStandaloneRibEnabled()) {
     std::unordered_map<
         std::pair<RouterID, std::optional<cfg::AclLookupClass>>,
@@ -846,34 +846,22 @@ void LookupClassRouteUpdater::updateClassIDsForRoutes(
   }
 }
 
-template <typename AddrT>
-void LookupClassRouteUpdater::clearClassIDsForRoutes() const {
+void LookupClassRouteUpdater::clearClassIDsForRoutes(
+    const std::shared_ptr<SwitchState>& state) const {
   CHECK(!FLAGS_queue_per_host_route_fix);
 
-  auto updateRouteClassIDFn = [](const std::shared_ptr<SwitchState>& state)
-      -> std::shared_ptr<SwitchState> {
-    auto newState{state};
-
-    for (const auto& routeTable : *newState->getRouteTables()) {
-      auto rid = routeTable->getID();
-      auto routeTableRib = routeTable->template getRib<AddrT>();
-      auto newRouteTableRib = routeTableRib->modify(rid, &newState);
-
-      for (const auto& route : *routeTableRib->routes()) {
-        if (route->getClassID().has_value()) {
-          auto newRoute = route->clone();
-          newRoute->updateClassID(std::nullopt);
-          newRouteTableRib->updateRoute(newRoute);
-        }
-      }
+  std::vector<RouteAndClassID> toClear;
+  auto routesToClear = [&toClear](RouterID rid, auto& route) {
+    std::optional<cfg::AclLookupClass> nullClassId;
+    if (route->getClassID()) {
+      auto& prefix = route->prefix();
+      toClear.emplace_back(std::make_pair(
+          std::make_pair(rid, folly::CIDRNetwork{prefix.network, prefix.mask}),
+          nullClassId));
     }
-
-    return newState;
   };
-
-  sw_->updateState(
-      "Disable queue-per-host route fix, clear classID for every route ",
-      std::move(updateRouteClassIDFn));
+  forAllRoutes(sw_->isStandaloneRibEnabled(), state, routesToClear);
+  updateClassIDsForRoutes(toClear);
 }
 
 void LookupClassRouteUpdater::stateUpdated(const StateDelta& stateDelta) {
@@ -886,8 +874,7 @@ void LookupClassRouteUpdater::stateUpdated(const StateDelta& stateDelta) {
   if (!inited_) {
     inited_ = true;
     if (!FLAGS_queue_per_host_route_fix) {
-      clearClassIDsForRoutes<folly::IPAddressV6>();
-      clearClassIDsForRoutes<folly::IPAddressV4>();
+      clearClassIDsForRoutes(stateDelta.newState());
       return;
     }
   } else {

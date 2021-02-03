@@ -151,12 +151,11 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
       std::shared_ptr<SwitchState>& newState,
       const std::shared_ptr<RouteTable>& routeTable,
       const RoutePrefix<AddrT>& routePrefix,
-      std::optional<cfg::AclLookupClass> classID);
+      std::optional<cfg::AclLookupClass> classID) const;
   void updateClassIDsForRoutes(
-      const std::vector<RouteAndClassID>& routesAndClassIDs);
+      const std::vector<RouteAndClassID>& routesAndClassIDs) const;
 
-  template <typename AddrT>
-  void clearClassIDsForRoutes() const;
+  void clearClassIDsForRoutes(const std::shared_ptr<SwitchState>& state) const;
 
   /*
    * We need to maintain nexthop to route mapping so that when a nexthop is
