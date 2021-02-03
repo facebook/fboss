@@ -86,6 +86,12 @@ QsfpModule::QsfpModule(
   // subsequent remediation takes places every 5 minutes if needed.
   lastWorkingTime_ = std::time(nullptr) -
       (FLAGS_remediate_interval - FLAGS_initial_remediate_interval);
+
+  // Keeping the QsfpModule object raw pointer inside the Module State Machine
+  // as an FSM attribute. This will be used when FSM invokes the state
+  // transition or event handling function and in the callback we need something
+  // from QsfpModule object
+  opticsModuleStateMachine_.get_attribute(qsfpModuleObjPtr) = this;
 }
 
 QsfpModule::~QsfpModule() {}
@@ -468,5 +474,70 @@ bool QsfpModule::writeTransceiverLocked(
   }
   return true;
 }
+
+/*
+ * addModulePortStateMachines
+ *
+ * This is the helper function to create port state machine for all ports in
+ * this module. This function will be called when MSM enters the discovered
+ * state and number of ports being present in the module  is known
+ */
+void QsfpModule::addModulePortStateMachines() {
+  // Create Port state machine for all ports in this optics module
+  for (int i = 0; i < portsPerTransceiver_; i++) {
+    opticsModulePortStateMachine_.push_back(
+        msm::back::state_machine<modulePortStateMachine>());
+  }
+  // In Port State Machine keeping the object pointer to the QsfpModule
+  // because in the event handler callback we need to access some data from
+  // this object
+  for (int i = 0; i < portsPerTransceiver_; i++) {
+    opticsModulePortStateMachine_[i].get_attribute(qsfpModuleObjPtr) = this;
+  }
+}
+
+/*
+ * eraseModulePortStateMachines
+ *
+ * This is the helper function to remove all the port state machine for the
+ * module. This is called when the module is physically removed
+ */
+void QsfpModule::eraseModulePortStateMachines() {
+  opticsModulePortStateMachine_.clear();
+}
+
+/*
+ * genMsmModPortUpEvent
+ *
+ * This is the helper function to generate the Module State Machine event -
+ * Module Port Up. Any port up indication from Agent invokes this function.
+ * If the module supports n ports then port up indication for 1 to n ports
+ * will cause this event
+ */
+void QsfpModule::genMsmModPortUpEvent() {
+  opticsModuleStateMachine_.process_event(MODULE_EVENT_PSM_MODPORT_UP);
+}
+
+/*
+ * genMsmModPortsDownEvent
+ *
+ * This is the helper function to generate the Module State Machine event -
+ * Module Port Down. If the Agent indicates that all ports inside this module
+ * are down then this Module Port Down event is generated to Module SM
+ */
+void QsfpModule::genMsmModPortsDownEvent() {
+  int downports = 0;
+  for (int i = 0; i < opticsModulePortStateMachine_.size(); i++) {
+    if (opticsModulePortStateMachine_[i].current_state()[0] == 2) {
+      downports++;
+    }
+  }
+  // Check port down for N-1 ports only because current PSM port
+  // state is in transition to  Down state
+  if (downports >= opticsModulePortStateMachine_.size() - 1) {
+    opticsModuleStateMachine_.process_event(MODULE_EVENT_PSM_MODPORTS_DOWN);
+  }
+}
+
 } // namespace fboss
 } // namespace facebook

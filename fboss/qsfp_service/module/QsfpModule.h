@@ -12,6 +12,7 @@
 #include <mutex>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
+#include "fboss/qsfp_service/module/ModuleStateMachine.h"
 #include "fboss/qsfp_service/module/Transceiver.h"
 
 #include <folly/Synchronized.h>
@@ -116,6 +117,34 @@ class QsfpModule : public Transceiver {
     // Number of channels per module
     CHANNEL_COUNT = 4,
   };
+
+  // Module State Machine for this QsfpModule object
+  msm::back::state_machine<moduleStateMachine> opticsModuleStateMachine_;
+
+  // Port State Machine for all the ports inside this optics module
+  std::vector<msm::back::state_machine<modulePortStateMachine>>
+      opticsModulePortStateMachine_;
+
+  /*
+   * This is the helper function to create port state machine for all ports in
+   * this module.
+   */
+  void addModulePortStateMachines();
+  /*
+   * This is the helper function to remove all the port state machine for the
+   * module.
+   */
+  void eraseModulePortStateMachines();
+  /*
+   * This is the helper function to generate the event "Module Port Up" to the
+   * Module State Machine
+   */
+  void genMsmModPortUpEvent();
+  /*
+   * This is the helper function to generate the event "Module Port Down" to
+   * the Module State Machine
+   */
+  void genMsmModPortsDownEvent();
 
   using LengthAndGauge = std::pair<double, uint8_t>;
 
