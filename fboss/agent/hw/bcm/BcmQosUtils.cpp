@@ -12,8 +12,12 @@ namespace {
 // array with index representing the traffic class and array value is priority
 // group (PG) defaults from HW required for mapping incoming traffic to PG on
 // ingress for PFC purposes
-std::vector<int>
+const std::vector<int>
     kDefaultTrafficClassToPg{7, 1, 2, 3, 4, 5, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+// array with index representing pfc priority and value is priority group (PG)
+// defaults from HW
+const std::vector<int> kDefaultPfcPriorityToPg{0, 1, 2, 3, 4, 5, 6, 7};
+constexpr int kDefaultProfileId = 0;
 } // unnamed namespace
 
 namespace facebook::fboss {
@@ -52,12 +56,24 @@ int getBcmQosMapFlagsMPLSEgress() {
   return BCM_QOS_MAP_EGRESS | BCM_QOS_MAP_MPLS;
 }
 
-std::vector<int>& getBcmDefaultTrafficClassToPgArr() {
+const std::vector<int>& getBcmDefaultTrafficClassToPgArr() {
   return kDefaultTrafficClassToPg;
 }
 
 int getBcmDefaultTrafficClassToPgSize() {
   return kDefaultTrafficClassToPg.size();
+}
+
+const std::vector<int>& getBcmDefaultPfcPriorityToPgArr() {
+  return kDefaultPfcPriorityToPg;
+}
+
+int getBcmDefaultPfcPriorityToPgSize() {
+  return kDefaultPfcPriorityToPg.size();
+}
+
+int getDefaultProfileId() {
+  return kDefaultProfileId;
 }
 
 } // namespace facebook::fboss

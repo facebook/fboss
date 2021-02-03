@@ -116,7 +116,25 @@ void BcmQosPolicy::updateIngressDscpQosMap(
   }
 }
 
-void BcmQosPolicy::programTrafficClassToPg(std::vector<int>& trafficClassPg) {
+void BcmQosPolicy::programPfcPriorityToPg(std::vector<int>& pfcPriorityPg) {
+  if (!hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+    return;
+  }
+  // an array with index representing pfc priority
+  // value is PG Id
+  auto rv = bcm_cosq_priority_group_pfc_priority_mapping_profile_set(
+      hw_->getUnit(),
+      kDefaultProfileId,
+      pfcPriorityPg.size(),
+      pfcPriorityPg.data());
+  bcmCheckError(
+      rv,
+      "Failed to program bcm_cosq_priority_group_pfc_priority_mapping_profile_set, size: ",
+      pfcPriorityPg.size());
+}
+
+void BcmQosPolicy::programTrafficClassToPg(
+    const std::vector<int>& trafficClassPg) {
   if (!hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
     return;
   }
@@ -133,7 +151,23 @@ void BcmQosPolicy::programTrafficClassToPg(std::vector<int>& trafficClassPg) {
       "bcmCosqInputPriPriorityGroupMcMapping");
 }
 
-// as usual 4 cases exist
+// case 1: !old cfg, !new cfg
+// case 2: !old cfg, new cfg
+// case 3: old cfg, !new cfg
+// case 4: old cfg!= new cfg
+void BcmQosPolicy::updatePfcPriorityToPgMap(
+    const std::shared_ptr<QosPolicy>& oldQosPolicy,
+    const std::shared_ptr<QosPolicy>& newQosPolicy) {
+  if (!newQosPolicy->getPfcPriorityToPgId() &&
+      !oldQosPolicy->getPfcPriorityToPgId()) {
+    // case 1
+    // nothing to do with pfc priority <-> pg id mapping
+    return;
+  }
+  // all other cases handled here
+  programPfcPriorityToPgMap(newQosPolicy);
+}
+
 // case 1: !old cfg, !new cfg
 // case 2: !old cfg, new cfg
 // case 3: old cfg, !new cfg
@@ -149,7 +183,6 @@ void BcmQosPolicy::updateTrafficClassToPgMap(
   }
   // all other cases handled here
   programTrafficClassToPgMap(newQosPolicy);
-  return;
 }
 
 void BcmQosPolicy::updateIngressExpQosMap(
@@ -333,14 +366,16 @@ const BcmQosMap* BcmQosPolicy::getEgressExpQosMap() const {
 
 void BcmQosPolicy::programPriorityGroupMapping(
     const bcm_cosq_priority_group_mapping_profile_type_t profileType,
-    std::vector<int>& trafficClassToPgId,
+    const std::vector<int>& trafficClassToPgId,
     const std::string& profileTypeStr) {
+  auto tmpTrafficClassToPgId =
+      const_cast<std::vector<int>&>(trafficClassToPgId);
   auto rv = bcm_cosq_priority_group_mapping_profile_set(
       hw_->getUnit(),
       kDefaultProfileId,
       profileType,
       trafficClassToPgId.size(),
-      trafficClassToPgId.data());
+      tmpTrafficClassToPgId.data());
   bcmCheckError(
       rv,
       "failed to program ",
@@ -351,6 +386,29 @@ void BcmQosPolicy::programPriorityGroupMapping(
       profileType);
 }
 
+void BcmQosPolicy::programPfcPriorityToPgMap(
+    const std::shared_ptr<QosPolicy>& qosPolicy) {
+  std::vector<int> pfcPriorityToPg = getBcmDefaultPfcPriorityToPgArr();
+  if (auto pfcPriorityToPgMap = qosPolicy->getPfcPriorityToPgId()) {
+    // override with what user configures
+    for (const auto& entry : *pfcPriorityToPgMap) {
+      CHECK_LE(
+          static_cast<int>(entry.first),
+          cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX())
+          << "Policy: " << qosPolicy->getName() << " has invalid pfc priority"
+          << (int)entry.first;
+      CHECK_LE(entry.second, cfg::switch_config_constants::PORT_PG_VALUE_MAX())
+          << " Policy: " << qosPolicy->getName() << " has invalid PG ID "
+          << entry.second;
+      CHECK_GT(pfcPriorityToPg.size(), static_cast<int>(entry.first))
+          << " Policy: " << qosPolicy->getName()
+          << " has invalid pfcPriorityToPg size " << pfcPriorityToPg.size();
+      pfcPriorityToPg[entry.first] = entry.second;
+    }
+  }
+  programPfcPriorityToPg(pfcPriorityToPg);
+}
+
 void BcmQosPolicy::programTrafficClassToPgMap(
     const std::shared_ptr<QosPolicy>& qosPolicy) {
   // init the array with HW defaults
@@ -358,12 +416,15 @@ void BcmQosPolicy::programTrafficClassToPgMap(
   if (auto trafficClassToPgMap = qosPolicy->getTrafficClassToPgId()) {
     // override with what user configures
     for (const auto& entry : *trafficClassToPgMap) {
-      CHECK_LE((int)entry.first, BCM_PRIO_MAX)
+      CHECK_LE(static_cast<int>(entry.first), BCM_PRIO_MAX)
           << "Policy: " << qosPolicy->getName() << " has invalid priority "
           << (int)entry.first;
       CHECK_LE(entry.second, cfg::switch_config_constants::PORT_PG_VALUE_MAX())
           << " Policy: " << qosPolicy->getName() << " has invalid PG ID "
           << entry.second;
+      CHECK_GT(trafficClassToPg.size(), static_cast<int>(entry.first))
+          << " Policy: " << qosPolicy->getName()
+          << " has invalid trafficClassToPg size " << trafficClassToPg.size();
       trafficClassToPg[entry.first] = entry.second;
     }
   }

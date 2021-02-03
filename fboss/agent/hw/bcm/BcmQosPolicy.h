@@ -48,20 +48,27 @@ class BcmQosPolicy {
   void updateEgressExpQosMap(
       const std::shared_ptr<QosPolicy>& oldQosPolicy,
       const std::shared_ptr<QosPolicy>& newQosPolicy);
-  void updateTrafficClassToPgMap(
-      const std::shared_ptr<QosPolicy>& oldQosPolicy,
-      const std::shared_ptr<QosPolicy>& newQosPolicy);
-
   void programIngressDscpQosMap(const std::shared_ptr<QosPolicy>& qosPolicy);
   void programIngressExpQosMap(const std::shared_ptr<QosPolicy>& qosPolicy);
   void programEgressExpQosMap(const std::shared_ptr<QosPolicy>& qosPolicy);
 
+  // tc <-> pg map functions
   void programTrafficClassToPgMap(const std::shared_ptr<QosPolicy>& qosPolicy);
   void programPriorityGroupMapping(
       const bcm_cosq_priority_group_mapping_profile_type_t profileType,
-      std::vector<int>& trafficClassToPgId,
+      const std::vector<int>& trafficClassToPgId,
       const std::string& profileTypeStr);
-  void programTrafficClassToPg(std::vector<int>& trafficClassPg);
+  void programTrafficClassToPg(const std::vector<int>& trafficClassPg);
+  void updateTrafficClassToPgMap(
+      const std::shared_ptr<QosPolicy>& oldQosPolicy,
+      const std::shared_ptr<QosPolicy>& newQosPolicy);
+
+  // pfc pri <-> pg map functions
+  void programPfcPriorityToPgMap(const std::shared_ptr<QosPolicy>& qosPolicy);
+  void programPfcPriorityToPg(std::vector<int>& pfcPriorityPg);
+  void updatePfcPriorityToPgMap(
+      const std::shared_ptr<QosPolicy>& oldQosPolicy,
+      const std::shared_ptr<QosPolicy>& newQosPolicy);
 
   BcmSwitch* hw_;
   std::unique_ptr<BcmQosMap> ingressDscpQosMap_;
