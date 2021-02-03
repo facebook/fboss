@@ -11,6 +11,7 @@
 
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
+#include "fboss/agent/state/ForwardingInformationBaseDelta.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteTable.h"
 #include "fboss/agent/state/RouteTableMap.h"
@@ -76,33 +77,51 @@ void forEachChangedRoute(
     AddFn addedFn,
     RemoveFn removedFn,
     const Args&... args) {
+  auto removeAll = [&removedFn](RouterID rid, const auto& routes) {
+    for (const auto& oldRoute : routes) {
+      removedFn(rid, oldRoute);
+    }
+  };
+  auto processRoutesDelta = [&](RouterID rid, const auto& routesDelta) {
+    for (auto const& routeDelta : routesDelta) {
+      auto const& oldRoute = routeDelta.getOld();
+      auto const& newRoute = routeDelta.getNew();
+
+      if (!oldRoute) {
+        addedFn(rid, newRoute);
+      } else if (!newRoute) {
+        removedFn(rid, oldRoute);
+      } else {
+        changedFn(rid, oldRoute, newRoute);
+      }
+    }
+  };
   if (isStandaloneRib) {
-    // TODO
+    for (const auto& fibContainerDelta : stateDelta.getFibsDelta()) {
+      auto const& newFibContainer = fibContainerDelta.getNew();
+      if (!newFibContainer) {
+        auto const& oldFibContainer = fibContainerDelta.getOld();
+        removeAll(
+            oldFibContainer->getID(),
+            *oldFibContainer->template getFib<AddrT>());
+        continue;
+      }
+      processRoutesDelta(
+          newFibContainer->getID(), fibContainerDelta.getFibDelta<AddrT>());
+    }
 
   } else {
     for (auto const& routeTableDelta : stateDelta.getRouteTablesDelta()) {
       auto const& newRouteTable = routeTableDelta.getNew();
       if (!newRouteTable) {
         auto const& oldRouteTable = routeTableDelta.getOld();
-        for (const auto& oldRoute :
-             *(oldRouteTable->template getRib<AddrT>()->routes())) {
-          removedFn(oldRouteTable->getID(), oldRoute);
-        }
+        removeAll(
+            oldRouteTable->getID(),
+            *oldRouteTable->template getRib<AddrT>()->routes());
         continue;
       }
-      auto rid = newRouteTable->getID();
-      for (auto const& routeDelta : routeTableDelta.getRoutesDelta<AddrT>()) {
-        auto const& oldRoute = routeDelta.getOld();
-        auto const& newRoute = routeDelta.getNew();
-
-        if (!oldRoute) {
-          addedFn(rid, newRoute);
-        } else if (!newRoute) {
-          removedFn(rid, oldRoute);
-        } else {
-          changedFn(rid, oldRoute, newRoute);
-        }
-      }
+      processRoutesDelta(
+          newRouteTable->getID(), routeTableDelta.getRoutesDelta<AddrT>());
     }
   }
 }
