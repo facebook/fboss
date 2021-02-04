@@ -61,60 +61,64 @@ void RoutingInformationBase::reconfigure(
     const std::vector<cfg::StaticRouteNoNextHops>& staticRoutesToCpu,
     FibUpdateFunction updateFibCallback,
     void* cookie) {
-  auto lockedRouteTables = synchronizedRouteTables_.wlock();
+  auto updateFn = [&] {
+    auto lockedRouteTables = synchronizedRouteTables_.wlock();
 
-  // Config application is accomplished in the following sequence of steps:
-  // 1. Update the VRFs held in RoutingInformationBase's SynchronizedRouteTables
-  // data-structure
-  //
-  // For each VRF specified in config:
-  //
-  // 2. Update all of RIB's static routes to be only those specified in
-  // config
-  //
-  // 3. Update all of RIB's interface routes to be only those specified in
-  // config
-  //
-  // 4. Re-resolve routes
-  //
-  // 5. Update FIB
-  //
-  // Steps 2-5 take place in ConfigApplier.
+    // Config application is accomplished in the following sequence of steps:
+    // 1. Update the VRFs held in RoutingInformationBase's
+    // SynchronizedRouteTables data-structure
+    //
+    // For each VRF specified in config:
+    //
+    // 2. Update all of RIB's static routes to be only those specified in
+    // config
+    //
+    // 3. Update all of RIB's interface routes to be only those specified in
+    // config
+    //
+    // 4. Re-resolve routes
+    //
+    // 5. Update FIB
+    //
+    // Steps 2-5 take place in ConfigApplier.
 
-  *lockedRouteTables =
-      constructRouteTables(lockedRouteTables, configRouterIDToInterfaceRoutes);
+    *lockedRouteTables = constructRouteTables(
+        lockedRouteTables, configRouterIDToInterfaceRoutes);
 
-  // Because of this sequential loop over each VRF, config application scales
-  // linearly with the number of VRFs. If FBOSS is run in a multi-VRF routing
-  // architecture in the future, this slow-down can be avoided by parallelizing
-  // this loop. Converting this loop to use task-level parallelism should be
-  // straightfoward because it has been written to avoid dependencies across
-  // different iterations of the loop.
-  for (auto& vrfAndRouteTable : *lockedRouteTables) {
-    auto vrf = vrfAndRouteTable.first;
-    const auto& interfaceRoutes = configRouterIDToInterfaceRoutes.at(vrf);
+    // Because of this sequential loop over each VRF, config application scales
+    // linearly with the number of VRFs. If FBOSS is run in a multi-VRF routing
+    // architecture in the future, this slow-down can be avoided by
+    // parallelizing this loop. Converting this loop to use task-level
+    // parallelism should be straightfoward because it has been written to avoid
+    // dependencies across different iterations of the loop.
+    for (auto& vrfAndRouteTable : *lockedRouteTables) {
+      auto vrf = vrfAndRouteTable.first;
+      const auto& interfaceRoutes = configRouterIDToInterfaceRoutes.at(vrf);
 
-    // A ConfigApplier object should be independent of the VRF whose routes it
-    // is processing. However, because interface and static routes for _all_
-    // VRFs are passed to ConfigApplier, the vrf argument is needed to identify
-    // the subset of those routes which should be processed.
+      // A ConfigApplier object should be independent of the VRF whose routes it
+      // is processing. However, because interface and static routes for _all_
+      // VRFs are passed to ConfigApplier, the vrf argument is needed to
+      // identify the subset of those routes which should be processed.
 
-    // ConfigApplier can be made independent of the VRF whose routes it is
-    // processing by the use of boost::filter_iterator.
-    ConfigApplier configApplier(
-        vrf,
-        &(vrfAndRouteTable.second.v4NetworkToRoute),
-        &(vrfAndRouteTable.second.v6NetworkToRoute),
-        folly::range(interfaceRoutes.cbegin(), interfaceRoutes.cend()),
-        folly::range(staticRoutesToCpu.cbegin(), staticRoutesToCpu.cend()),
-        folly::range(staticRoutesToNull.cbegin(), staticRoutesToNull.cend()),
-        folly::range(
-            staticRoutesWithNextHops.cbegin(), staticRoutesWithNextHops.cend()),
-        updateFibCallback,
-        cookie);
+      // ConfigApplier can be made independent of the VRF whose routes it is
+      // processing by the use of boost::filter_iterator.
+      ConfigApplier configApplier(
+          vrf,
+          &(vrfAndRouteTable.second.v4NetworkToRoute),
+          &(vrfAndRouteTable.second.v6NetworkToRoute),
+          folly::range(interfaceRoutes.cbegin(), interfaceRoutes.cend()),
+          folly::range(staticRoutesToCpu.cbegin(), staticRoutesToCpu.cend()),
+          folly::range(staticRoutesToNull.cbegin(), staticRoutesToNull.cend()),
+          folly::range(
+              staticRoutesWithNextHops.cbegin(),
+              staticRoutesWithNextHops.cend()),
+          updateFibCallback,
+          cookie);
 
-    configApplier.updateRibAndFib();
-  }
+      configApplier.updateRibAndFib();
+    }
+  };
+  ribUpdateEventBase_.runInEventBaseThreadAndWait(updateFn);
 }
 
 RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
@@ -129,93 +133,105 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
     void* cookie) {
   UpdateStatistics stats;
 
-  Timer updateTimer(&stats.duration);
+  auto updateFn = [&]() {
+    Timer updateTimer(&stats.duration);
 
-  auto lockedRouteTables = synchronizedRouteTables_.wlock();
+    auto lockedRouteTables = synchronizedRouteTables_.wlock();
 
-  auto it = lockedRouteTables->find(routerID);
-  if (it == lockedRouteTables->end()) {
-    throw FbossError("VRF ", routerID, " not configured");
-  }
-
-  RouteUpdater updater(
-      &(it->second.v4NetworkToRoute), &(it->second.v6NetworkToRoute));
-
-  if (resetClientsRoutes) {
-    updater.removeAllRoutesForClient(clientID);
-  }
-
-  for (const auto& route : toAdd) {
-    auto network = facebook::network::toIPAddress(route.dest.ip);
-    auto mask = static_cast<uint8_t>(route.dest.prefixLength);
-
-    if (network.isV4()) {
-      ++stats.v4RoutesAdded;
-    } else {
-      ++stats.v6RoutesAdded;
+    auto it = lockedRouteTables->find(routerID);
+    if (it == lockedRouteTables->end()) {
+      throw FbossError("VRF ", routerID, " not configured");
     }
 
-    updater.addRoute(
-        network,
-        mask,
-        clientID,
-        RouteNextHopEntry::from(route, adminDistanceFromClientID));
-  }
+    RouteUpdater updater(
+        &(it->second.v4NetworkToRoute), &(it->second.v6NetworkToRoute));
 
-  for (const auto& prefix : toDelete) {
-    auto network = facebook::network::toIPAddress(prefix.ip);
-    auto mask = static_cast<uint8_t>(prefix.prefixLength);
-
-    if (network.isV4()) {
-      ++stats.v4RoutesDeleted;
-    } else {
-      ++stats.v6RoutesDeleted;
+    if (resetClientsRoutes) {
+      updater.removeAllRoutesForClient(clientID);
     }
 
-    updater.delRoute(network, mask, clientID);
-  }
+    for (const auto& route : toAdd) {
+      auto network =
+          facebook::network::toIPAddress(*route.dest_ref()->ip_ref());
+      auto mask = static_cast<uint8_t>(*route.dest_ref()->prefixLength_ref());
 
-  updater.updateDone();
+      if (network.isV4()) {
+        ++stats.v4RoutesAdded;
+      } else {
+        ++stats.v6RoutesAdded;
+      }
 
-  fibUpdateCallback(
-      routerID,
-      it->second.v4NetworkToRoute,
-      it->second.v6NetworkToRoute,
-      cookie);
+      updater.addRoute(
+          network,
+          mask,
+          clientID,
+          RouteNextHopEntry::from(route, adminDistanceFromClientID));
+    }
+
+    for (const auto& prefix : toDelete) {
+      auto network = facebook::network::toIPAddress(*prefix.ip_ref());
+      auto mask = static_cast<uint8_t>(*prefix.prefixLength_ref());
+
+      if (network.isV4()) {
+        ++stats.v4RoutesDeleted;
+      } else {
+        ++stats.v6RoutesDeleted;
+      }
+
+      updater.delRoute(network, mask, clientID);
+    }
+
+    updater.updateDone();
+
+    fibUpdateCallback(
+        routerID,
+        it->second.v4NetworkToRoute,
+        it->second.v6NetworkToRoute,
+        cookie);
+  };
+  ribUpdateEventBase_.runInEventBaseThreadAndWait(updateFn);
 
   return stats;
 }
 
-void RoutingInformationBase::setClassID(
+void RoutingInformationBase::setClassIDImpl(
     RouterID rid,
     const std::vector<folly::CIDRNetwork>& prefixes,
     FibUpdateFunction fibUpdateCallback,
     std::optional<cfg::AclLookupClass> classId,
-    void* cookie) {
-  auto lockedRouteTables = synchronizedRouteTables_.wlock();
+    void* cookie,
+    bool async) {
+  auto updateFn = [=]() {
+    auto lockedRouteTables = synchronizedRouteTables_.wlock();
 
-  auto it = lockedRouteTables->find(rid);
-  if (it == lockedRouteTables->end()) {
-    throw FbossError("VRF ", rid, " not configured");
-  }
-  auto updateRoute = [&classId](auto& rib, auto ip, uint8_t mask) {
-    auto ritr = rib.exactMatch(ip, mask);
-    if (ritr == rib.end()) {
-      return;
+    auto it = lockedRouteTables->find(rid);
+    if (it == lockedRouteTables->end()) {
+      throw FbossError("VRF ", rid, " not configured");
     }
-    ritr->value().setClassID(classId);
+    auto updateRoute = [&classId](auto& rib, auto ip, uint8_t mask) {
+      auto ritr = rib.exactMatch(ip, mask);
+      if (ritr == rib.end()) {
+        return;
+      }
+      ritr->value().setClassID(classId);
+    };
+    auto& v4Rib = it->second.v4NetworkToRoute;
+    auto& v6Rib = it->second.v6NetworkToRoute;
+    for (auto& prefix : prefixes) {
+      if (prefix.first.isV4()) {
+        updateRoute(v4Rib, prefix.first.asV4(), prefix.second);
+      } else {
+        updateRoute(v6Rib, prefix.first.asV6(), prefix.second);
+      }
+    }
+    fibUpdateCallback(
+        rid, it->second.v4NetworkToRoute, it->second.v6NetworkToRoute, cookie);
   };
-  auto& v4Rib = it->second.v4NetworkToRoute;
-  auto& v6Rib = it->second.v6NetworkToRoute;
-  for (auto& prefix : prefixes) {
-    if (prefix.first.isV4()) {
-      updateRoute(v4Rib, prefix.first.asV4(), prefix.second);
-    } else {
-      updateRoute(v6Rib, prefix.first.asV6(), prefix.second);
-    }
+  if (async) {
+    ribUpdateEventBase_.runInEventBaseThread(updateFn);
+  } else {
+    ribUpdateEventBase_.runInEventBaseThreadAndWait(updateFn);
   }
-  fibUpdateCallback(
-      rid, it->second.v4NetworkToRoute, it->second.v6NetworkToRoute, cookie);
 }
 
 folly::dynamic RoutingInformationBase::toFollyDynamic() const {

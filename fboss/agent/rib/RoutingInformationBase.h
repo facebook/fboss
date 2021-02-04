@@ -68,13 +68,6 @@ class RoutingInformationBase {
       FibUpdateFunction fibUpdateCallback,
       void* cookie);
 
-  void setClassID(
-      RouterID rid,
-      const std::vector<folly::CIDRNetwork>& prefixes,
-      FibUpdateFunction fibUpdateCallback,
-      std::optional<cfg::AclLookupClass> classId,
-      void* cookie);
-
   /*
    * VrfAndNetworkToInterfaceRoute is conceptually a mapping from the pair
    * (RouterID, folly::CIDRNetwork) to the pair (Interface(1),
@@ -99,6 +92,24 @@ class RoutingInformationBase {
       FibUpdateFunction fibUpdateCallback,
       void* cookie);
 
+  void setClassID(
+      RouterID rid,
+      const std::vector<folly::CIDRNetwork>& prefixes,
+      FibUpdateFunction fibUpdateCallback,
+      std::optional<cfg::AclLookupClass> classId,
+      void* cookie) {
+    setClassIDImpl(rid, prefixes, fibUpdateCallback, classId, cookie, false);
+  }
+
+  void setClassIDAsync(
+      RouterID rid,
+      const std::vector<folly::CIDRNetwork>& prefixes,
+      FibUpdateFunction fibUpdateCallback,
+      std::optional<cfg::AclLookupClass> classId,
+      void* cookie) {
+    setClassIDImpl(rid, prefixes, fibUpdateCallback, classId, cookie, true);
+  }
+
   folly::dynamic toFollyDynamic() const;
   static std::unique_ptr<RoutingInformationBase> fromFollyDynamic(
       const folly::dynamic& ribJson);
@@ -113,6 +124,14 @@ class RoutingInformationBase {
   }
 
  private:
+  void setClassIDImpl(
+      RouterID rid,
+      const std::vector<folly::CIDRNetwork>& prefixes,
+      FibUpdateFunction fibUpdateCallback,
+      std::optional<cfg::AclLookupClass> classId,
+      void* cookie,
+      bool async);
+
   struct RouteTable {
     IPv4NetworkToRouteMap v4NetworkToRoute;
     IPv6NetworkToRouteMap v6NetworkToRoute;
