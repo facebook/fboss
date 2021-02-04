@@ -75,6 +75,47 @@ class HwPacketSendReceiveTest : public HwLinkStateDependentTest {
   std::atomic<int> numPkts_{0};
 };
 
+class HwPacketFloodTest : public HwLinkStateDependentTest {
+ protected:
+  std::vector<PortID> getLogicalPortIDs() const {
+    return {masterLogicalPortIds()[0], masterLogicalPortIds()[1]};
+  }
+  cfg::SwitchConfig initialConfig() const override {
+    auto cfg = utility::oneL3IntfNPortConfig(
+        getHwSwitch(), getLogicalPortIDs(), cfg::PortLoopbackMode::MAC);
+    utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
+    utility::addCpuQueueConfig(cfg, getAsic());
+    return cfg;
+  }
+  HwSwitchEnsemble::Features featuresDesired() const override {
+    return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX};
+  }
+
+  void checkPacketFlooding(
+      std::map<PortID, HwPortStats>& portStatsBefore,
+      bool v6) {
+    auto portStatsAfter = getLatestPortStats(masterLogicalPortIds());
+    for (auto portId : getLogicalPortIDs()) {
+      auto packetsBefore = v6
+          ? *portStatsBefore[portId].outMulticastPkts__ref()
+          : *portStatsBefore[portId].outBroadcastPkts__ref();
+      auto packetsAfter = v6 ? *portStatsAfter[portId].outMulticastPkts__ref()
+                             : *portStatsAfter[portId].outBroadcastPkts__ref();
+      XLOG(INFO) << "port id: " << portId << " before pkts:" << packetsBefore
+                 << ", after pkts:" << packetsAfter << ", before bytes:"
+                 << *portStatsBefore[portId].outBytes__ref()
+                 << ", after bytes:" << *portStatsAfter[portId].outBytes__ref();
+      EXPECT_NE(
+          0,
+          *portStatsAfter[portId].outBytes__ref() -
+              *portStatsBefore[portId].outBytes__ref());
+      if (getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_TAJO) {
+        EXPECT_NE(0, packetsAfter - packetsBefore);
+      }
+    }
+  }
+};
+
 TEST_F(HwPacketSendTest, LldpToFrontPanelOutOfPort) {
   auto setup = [=]() {};
   auto verify = [=]() {
@@ -223,6 +264,51 @@ TEST_F(HwPacketSendReceiveTest, LldpPacketReceiveSrcPort) {
       ASSERT_TRUE(verifyNumPktsReceived(expectedNumPktsReceived++));
       EXPECT_EQ(port, getLastPktSrcPort());
     }
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwPacketFloodTest, ArpRequestFloodTest) {
+  auto setup = [=]() {};
+  auto verify = [=]() {
+    auto portStatsBefore = getLatestPortStats(masterLogicalPortIds());
+    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto randomIP = folly::IPAddressV4("1.1.1.5");
+    auto txPacket = utility::makeARPTxPacket(
+        getHwSwitch(),
+        vlanId,
+        srcMac,
+        folly::MacAddress("ff:ff:ff:ff:ff:ff"),
+        folly::IPAddress("1.1.1.2"),
+        randomIP,
+        ARP_OPER::ARP_OPER_REQUEST,
+        std::nullopt);
+    getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
+        std::move(txPacket), masterLogicalPortIds()[0], std::nullopt);
+    checkPacketFlooding(portStatsBefore, false);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwPacketFloodTest, NdpFloodTest) {
+  auto setup = [=]() {};
+  auto verify = [=]() {
+    auto portStatsBefore = getLatestPortStats(masterLogicalPortIds());
+    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto txPacket = utility::makeIpTxPacket(
+        getHwSwitch(),
+        vlanId,
+        srcMac,
+        folly::MacAddress("33:33:00:00:00:02"),
+        folly::IPAddress("1::1"),
+        folly::IPAddress("ff02::2"));
+    getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
+        std::move(txPacket), masterLogicalPortIds()[0], std::nullopt);
+    checkPacketFlooding(portStatsBefore, true);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
