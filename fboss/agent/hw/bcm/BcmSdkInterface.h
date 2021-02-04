@@ -876,6 +876,19 @@ class BcmSdkInterface {
       bcm_cosq_priority_group_mapping_profile_type_t type,
       int array_count,
       int* arg) = 0;
+
+  virtual int bcm_cosq_priority_group_pfc_priority_mapping_profile_set(
+      int unit,
+      int profile_index,
+      int array_count,
+      int* pg_array) = 0;
+
+  virtual int bcm_cosq_priority_group_pfc_priority_mapping_profile_get(
+      int unit,
+      int profile_index,
+      int array_max,
+      int* pg_array,
+      int* array_count) = 0;
 };
 
 } // namespace facebook::fboss

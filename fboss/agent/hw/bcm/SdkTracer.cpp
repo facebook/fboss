@@ -1500,6 +1500,19 @@ int __real_bcm_cosq_priority_group_mapping_profile_set(
     int array_max,
     int* arg);
 
+int __real_bcm_cosq_priority_group_pfc_priority_mapping_profile_get(
+    int unit,
+    int profile_index,
+    int array_max,
+    int* pg_array,
+    int* array_count);
+
+int __real_bcm_cosq_priority_group_pfc_priority_mapping_profile_set(
+    int unit,
+    int profile_index,
+    int array_count,
+    int* pg_array);
+
 } // extern "C"
 
 using namespace facebook::fboss;
@@ -3599,6 +3612,25 @@ int __wrap_bcm_cosq_priority_group_mapping_profile_set(
     int* arg) {
   CALL_WRAPPERS_RV(bcm_cosq_priority_group_mapping_profile_set(
       unit, profile_index, type, array_max, arg));
+}
+
+int __wrap_bcm_cosq_priority_group_pfc_priority_mapping_profile_get(
+    int unit,
+    int profile_index,
+    int array_max,
+    int* pg_array,
+    int* array_count) {
+  CALL_WRAPPERS_RV(bcm_cosq_priority_group_pfc_priority_mapping_profile_get(
+      unit, profile_index, array_max, pg_array, array_count));
+}
+
+int __wrap_bcm_cosq_priority_group_pfc_priority_mapping_profile_set(
+    int unit,
+    int profile_index,
+    int array_count,
+    int* pg_array) {
+  CALL_WRAPPERS_RV(bcm_cosq_priority_group_pfc_priority_mapping_profile_set(
+      unit, profile_index, array_count, pg_array));
 }
 
 } // extern "C"
