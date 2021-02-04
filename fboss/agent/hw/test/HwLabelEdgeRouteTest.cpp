@@ -2,9 +2,9 @@
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
+#include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/hw/test/HwTestMplsUtils.h"
 #include "fboss/agent/state/LabelForwardingAction.h"
-#include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 namespace facebook::fboss {
@@ -83,8 +83,7 @@ class HwLabelEdgeRouteTest : public HwLinkStateDependentTest {
       labelAction = LabelForwardingAction(
           LabelForwardingAction::LabelForwardingType::PUSH, std::move(stack));
     }
-    auto state = getProgrammedState();
-    RouteUpdater updater(state->getRouteTables());
+    HwSwitchEnsembleRouteUpdateWrapper updater(getHwSwitchEnsemble());
     updater.addRoute(
         kRouter0,
         network,
@@ -93,11 +92,7 @@ class HwLabelEdgeRouteTest : public HwLinkStateDependentTest {
         RouteNextHopEntry(
             UnresolvedNextHop(nexthop, ECMP_WEIGHT, labelAction),
             AdminDistance::MAX_ADMIN_DISTANCE));
-    auto tables = updater.updateDone();
-    tables->publish();
-    auto newState = state->clone();
-    newState->resetRouteTables(tables);
-    applyNewState(newState);
+    updater.program();
   }
 
   void resolveLabeledNextHops(AddrT network, uint8_t mask) {
