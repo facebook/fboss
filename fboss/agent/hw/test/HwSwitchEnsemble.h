@@ -158,6 +158,9 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   virtual void runDiagCommand(
       const std::string& input,
       std::string& output) = 0;
+  bool isStandaloneRibEnabled() const {
+    return false;
+  }
 
  protected:
   /*

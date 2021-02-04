@@ -72,6 +72,7 @@ target_link_libraries(hw_link_state_toggler
 
 add_library(hw_switch_ensemble
   fboss/agent/hw/test/HwSwitchEnsemble.cpp
+  fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.cpp
   fboss/agent/hw/test/StaticL2ForNeighborHwSwitchUpdater.cpp
 )
 
