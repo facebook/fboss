@@ -39,4 +39,13 @@ void RouteUpdateWrapper::delRoute(
   ribRoutesToAddDel_[std::make_pair(vrf, clientId)].toDel.emplace_back(
       std::move(pfx));
 }
+
+void RouteUpdateWrapper::program() {
+  if (isStandaloneRibEnabled_) {
+    programStandAloneRib();
+  } else {
+    programLegacyRib();
+  }
+  ribRoutesToAddDel_.clear();
+}
 } // namespace facebook::fboss

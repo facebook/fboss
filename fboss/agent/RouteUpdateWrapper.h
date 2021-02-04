@@ -41,10 +41,17 @@ class RouteUpdateWrapper {
       const folly::IPAddress& network,
       uint8_t mask,
       ClientID clientId);
-  virtual void program() = 0;
+  void program();
+
+ private:
+  virtual void programLegacyRib() = 0;
+  virtual void programStandAloneRib() = 0;
 
  protected:
+  explicit RouteUpdateWrapper(bool isStandaloneRibEnabled)
+      : isStandaloneRibEnabled_(isStandaloneRibEnabled) {}
   std::unordered_map<std::pair<RouterID, ClientID>, AddDelRoutes>
       ribRoutesToAddDel_;
+  bool isStandaloneRibEnabled_{false};
 };
 } // namespace facebook::fboss

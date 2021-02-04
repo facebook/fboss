@@ -35,14 +35,10 @@ void hwSwitchEnsembleFibUpdate(
   hwEnsemble->applyNewState(fibUpdater(hwEnsemble->getProgrammedState()));
 }
 
-void HwSwitchEnsembleRouteUpdateWrapper::program() {
-  if (hwEnsemble_->isStandaloneRibEnabled()) {
-    programStandAloneRib();
-  } else {
-    programLegacyRib();
-  }
-  ribRoutesToAddDel_.clear();
-}
+HwSwitchEnsembleRouteUpdateWrapper::HwSwitchEnsembleRouteUpdateWrapper(
+    HwSwitchEnsemble* hwEnsemble)
+    : RouteUpdateWrapper(hwEnsemble->isStandaloneRibEnabled()),
+      hwEnsemble_(hwEnsemble) {}
 
 void HwSwitchEnsembleRouteUpdateWrapper::programStandAloneRib() {
   for (auto [ridClientId, addDelRoutes] : ribRoutesToAddDel_) {

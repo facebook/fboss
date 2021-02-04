@@ -32,14 +32,8 @@ void swSwitchFibUpdate(
   sw->updateStateBlocking("", std::move(fibUpdater));
 }
 
-void SwSwitchRouteUpdateWrapper::program() {
-  if (sw_->isStandaloneRibEnabled()) {
-    programStandAloneRib();
-  } else {
-    programLegacyRib();
-  }
-  ribRoutesToAddDel_.clear();
-}
+SwSwitchRouteUpdateWrapper::SwSwitchRouteUpdateWrapper(SwSwitch* sw)
+    : RouteUpdateWrapper(sw->isStandaloneRibEnabled()), sw_(sw) {}
 
 void SwSwitchRouteUpdateWrapper::programStandAloneRib() {
   for (auto [ridClientId, addDelRoutes] : ribRoutesToAddDel_) {

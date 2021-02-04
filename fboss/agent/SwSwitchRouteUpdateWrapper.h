@@ -23,12 +23,11 @@ void swSwitchFibUpdate(
 
 class SwSwitchRouteUpdateWrapper : public RouteUpdateWrapper {
  public:
-  explicit SwSwitchRouteUpdateWrapper(SwSwitch* sw) : sw_(sw) {}
-  void program() override;
+  explicit SwSwitchRouteUpdateWrapper(SwSwitch* sw);
 
  private:
-  void programLegacyRib();
-  void programStandAloneRib();
+  void programLegacyRib() override;
+  void programStandAloneRib() override;
   SwSwitch* sw_;
 };
 } // namespace facebook::fboss
