@@ -12,6 +12,7 @@
 
 #include <folly/logging/xlog.h>
 
+#include <any>
 #include <optional>
 #include <tuple>
 
