@@ -797,7 +797,7 @@ void LookupClassRouteUpdater::updateClassIDsForRoutes(
       ridClassId2Prefixes[std::make_pair(rid, classID)].emplace_back(cidr);
     }
     for (const auto& [ridAndClassId, prefixes] : ridClassId2Prefixes) {
-      sw_->getRib()->setClassID(
+      sw_->getRib()->setClassIDAsync(
           ridAndClassId.first,
           prefixes,
           &swSwitchFibUpdate,

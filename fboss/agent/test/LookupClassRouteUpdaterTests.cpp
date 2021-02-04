@@ -38,7 +38,9 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
 
   void SetUp() override {
     auto config = testConfigAWithLookupClasses();
-    handle_ = createTestHandle(&config);
+    auto flags = hasStandAloneRib ? SwitchFlags::ENABLE_STANDALONE_RIB
+                                  : SwitchFlags::DEFAULT;
+    handle_ = createTestHandle(&config, flags);
     sw_ = handle_->getSw();
   }
 
@@ -55,6 +57,7 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
   }
 
   void TearDown() override {
+    waitForRibUpdates(sw_);
     schedulePendingTestStateUpdates();
   }
 
@@ -154,18 +157,29 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
           0);
     }
 
+    // Wait for neighbor update to be done, this should
+    // queue up state updates
     sw_->getNeighborUpdater()->waitForPendingUpdates();
-    waitForBackgroundThread(sw_);
     waitForStateUpdates(sw_);
     sw_->getNeighborUpdater()->waitForPendingUpdates();
+    waitForStateUpdates(sw_);
+    // Neighbor updates may in turn cause route class Id updates
+    // wait for them
+    waitForRibUpdates(sw_);
     waitForStateUpdates(sw_);
   }
 
   void unresolveNeighbor(folly::IPAddress ipAddress) {
     sw_->getNeighborUpdater()->flushEntry(kVlan(), ipAddress);
-
+    // Wait for neighbor update to be done, this should
+    // queue up state updates
     sw_->getNeighborUpdater()->waitForPendingUpdates();
-    waitForBackgroundThread(sw_);
+    waitForStateUpdates(sw_);
+    sw_->getNeighborUpdater()->waitForPendingUpdates();
+    waitForStateUpdates(sw_);
+    // Neighbor updates may in turn cause route class Id updates
+    // wait for them
+    waitForRibUpdates(sw_);
     waitForStateUpdates(sw_);
   }
 
@@ -197,6 +211,7 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     routeUpdater.program();
     waitForStateUpdates(this->sw_);
     this->sw_->getNeighborUpdater()->waitForPendingUpdates();
+    waitForRibUpdates(sw_);
     waitForBackgroundThread(this->sw_);
     waitForStateUpdates(this->sw_);
   }
@@ -218,6 +233,7 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
         });
     waitForStateUpdates(this->sw_);
     this->sw_->getNeighborUpdater()->waitForPendingUpdates();
+    waitForRibUpdates(sw_);
     waitForBackgroundThread(this->sw_);
     waitForStateUpdates(this->sw_);
   }
@@ -237,9 +253,12 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
           return newState;
         });
 
-    waitForStateUpdates(this->sw_);
+    // Wait for neighbors to notice the port change
     this->sw_->getNeighborUpdater()->waitForPendingUpdates();
+    waitForStateUpdates(this->sw_);
     waitForBackgroundThread(this->sw_);
+    waitForStateUpdates(this->sw_);
+    waitForRibUpdates(sw_);
     waitForStateUpdates(this->sw_);
   }
 
