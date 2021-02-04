@@ -68,6 +68,10 @@ class FakeManager {
     map_.clear();
   }
 
+  bool exists(const K& k) {
+    return map_.find(k) != map_.end();
+  }
+
  private:
   static size_t count_;
   std::unordered_map<K, T> map_;

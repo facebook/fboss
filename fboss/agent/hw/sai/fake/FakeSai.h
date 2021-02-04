@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/sai/fake/FakeSaiHash.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiHostif.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiInSegEntryManager.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiLag.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiMirror.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiNeighbor.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiNextHop.h"
@@ -61,6 +62,7 @@ struct FakeSai {
   FakeInSegEntryManager inSegEntryManager;
   FakeNeighborManager neighborManager;
   FakeMirrorManager mirrorManager;
+  FakeLagManager lagManager;
   FakeNextHopManager nextHopManager;
   FakeNextHopGroupManager nextHopGroupManager;
   FakePortManager portManager;
