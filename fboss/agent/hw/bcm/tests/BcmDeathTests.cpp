@@ -3,7 +3,7 @@
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmRoute.h"
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
-#include "fboss/agent/state/RouteUpdater.h"
+#include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -43,7 +43,7 @@ class BcmDeathTest : public BcmTest {
     }
 
     auto state = getProgrammedState();
-    RouteUpdater updater(state->getRouteTables());
+    HwSwitchEnsembleRouteUpdateWrapper updater(getHwSwitchEnsemble());
     updater.addRoute(
         RouterID(0),
         network,
@@ -51,11 +51,7 @@ class BcmDeathTest : public BcmTest {
         client,
         RouteNextHopEntry(
             std::move(nexthopSet), AdminDistance::MAX_ADMIN_DISTANCE));
-    auto tables = updater.updateDone();
-    tables->publish();
-    auto newState = state->clone();
-    newState->resetRouteTables(tables);
-    applyNewState(newState);
+    updater.program();
   }
 
   template <typename SetUpFn, typename DieFn>

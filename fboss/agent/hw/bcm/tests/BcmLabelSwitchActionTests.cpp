@@ -10,9 +10,8 @@
 #include <gtest/gtest.h>
 #include "fboss/agent/hw/bcm/BcmLabelSwitchingUtils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/test/LabelForwardingUtils.h"
-
-#include "fboss/agent/state/RouteUpdater.h"
 
 using namespace ::testing;
 
@@ -152,8 +151,7 @@ class BcmLabelSwitchActionTest : public BcmTest {
     }
   }
 
-  std::shared_ptr<RouteTableMap> addL3Route(
-      const std::shared_ptr<RouteTableMap>& tables,
+  void addL3Route(
       const folly::IPAddressV4& network,
       uint8_t mask,
       const LabelForwardingEntry& entry) {
@@ -161,15 +159,15 @@ class BcmLabelSwitchActionTest : public BcmTest {
     for (const auto& nhop : entry.getLabelNextHop().getNextHopSet()) {
       nexthops.insert(UnresolvedNextHop(nhop.addr(), nhop.weight()));
     }
+    HwSwitchEnsembleRouteUpdateWrapper updater(getHwSwitchEnsemble());
 
-    RouteUpdater updater(tables);
     updater.addRoute(
         RouterID(0),
         network,
         mask,
         ClientID(786),
         RouteNextHopEntry(std::move(nexthops), AdminDistance::STATIC_ROUTE));
-    return updater.updateDone();
+    updater.program();
   }
 
   void addL3Routes() {
@@ -179,13 +177,9 @@ class BcmLabelSwitchActionTest : public BcmTest {
         folly::IPAddressV4("10.1.103.10"),
         folly::IPAddressV4("10.1.104.10"),
     };
-    auto state = getProgrammedState()->clone();
-    std::shared_ptr<RouteTableMap> tables = state->getRouteTables();
     for (auto i = 0; i < 4; i++) {
-      tables = addL3Route(tables, addrs[i], 24, *entries_[i]);
+      addL3Route(addrs[i], 24, *entries_[i]);
     }
-    state->resetRouteTables(tables);
-    applyNewState(state);
   }
 
   std::vector<std::shared_ptr<LabelForwardingEntry>> entries_;
