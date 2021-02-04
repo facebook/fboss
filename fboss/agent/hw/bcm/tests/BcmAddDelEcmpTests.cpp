@@ -12,8 +12,8 @@
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
+#include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/state/Route.h"
-#include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -60,12 +60,9 @@ class BcmAddDelEcmpTest : public BcmTest {
     applyNewState(newState);
   }
   void delRoute(const CIDRNetwork& network) {
-    RouteUpdater updater(getProgrammedState()->getRouteTables());
+    HwSwitchEnsembleRouteUpdateWrapper updater(getHwSwitchEnsemble());
     updater.delRoute(kRid, network.first, network.second, ClientID(1001));
-    auto newRouteTables = updater.updateDone();
-    auto newState = getProgrammedState()->clone();
-    newState->resetRouteTables(newRouteTables);
-    applyNewState(newState);
+    updater.program();
   }
   void runTest() {
     auto cfg = initialConfig();
