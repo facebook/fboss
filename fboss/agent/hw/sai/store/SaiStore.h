@@ -39,6 +39,9 @@ template <>
 struct AdapterHostKeyWarmbootRecoverable<SaiNextHopGroupTraits>
     : std::false_type {};
 
+template <>
+struct AdapterHostKeyWarmbootRecoverable<SaiLagTraits> : std::false_type {};
+
 /*
  * SaiObjectStore is the critical component of SaiStore,
  * it provides the needed operations on a single type of SaiObject
@@ -297,6 +300,26 @@ class SaiObjectStore {
   }
 
  private:
+  template <
+      typename T = SaiObjectTraits,
+      typename = std::enable_if_t<std::is_same_v<T, SaiLagTraits>>>
+  ObjectType getObject(
+      typename T::AdapterKey key,
+      const folly::dynamic* adapterKey2AdapterHostKey) {
+    static_assert(
+        !AdapterHostKeyWarmbootRecoverable<SaiObjectTraits>::value, "LAG!");
+    auto ahk = getAdapterHostKey(key, adapterKey2AdapterHostKey);
+    if (ahk) {
+      return ObjectType(key, ahk.value());
+    }
+    auto label = SaiApiTable::getInstance()->lagApi().getAttribute(
+        key, SaiLagTraits::Attributes::Label{});
+    return ObjectType(key, label);
+  }
+
+  template <
+      typename T = SaiObjectTraits,
+      typename = std::enable_if_t<!std::is_same_v<T, SaiLagTraits>>>
   ObjectType getObject(
       typename SaiObjectTraits::AdapterKey key,
       const folly::dynamic* adapterKey2AdapterHostKey) {
@@ -469,7 +492,9 @@ class SaiStore {
       SaiObjectStore<SaiTamReportTraits>,
       SaiObjectStore<SaiTamEventActionTraits>,
       SaiObjectStore<SaiTamEventTraits>,
-      SaiObjectStore<SaiTamTraits>>
+      SaiObjectStore<SaiTamTraits>,
+      SaiObjectStore<SaiLagTraits>,
+      SaiObjectStore<SaiLagMemberTraits>>
       stores_;
 };
 

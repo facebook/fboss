@@ -106,5 +106,21 @@ SaiObject<SaiNextHopGroupTraits>::follyDynamicToAdapterHostKey(
   }
   return key;
 }
+
+template <>
+folly::dynamic SaiObject<SaiLagTraits>::adapterHostKeyToFollyDynamic() {
+  const auto& value = adapterHostKey_.value();
+  std::string label{std::begin(value), std::end(value)};
+  return label;
+}
+
+template <>
+typename SaiLagTraits::AdapterHostKey
+SaiObject<SaiLagTraits>::follyDynamicToAdapterHostKey(folly::dynamic json) {
+  std::string label = json.asString();
+  SaiLagTraits::AdapterHostKey::ValueType key{};
+  std::copy(std::begin(label), std::end(label), std::begin(key));
+  return key;
+}
 } // namespace fboss
 } // namespace facebook
