@@ -108,6 +108,11 @@ struct WrappedSaiType<std::vector<sai_qos_map_t>> {
   using value = sai_qos_map_list_t;
 };
 
+template <>
+struct WrappedSaiType<std::array<char, 32>> {
+  using value = char[32];
+};
+
 template <typename T>
 class AclEntryField {
  public:

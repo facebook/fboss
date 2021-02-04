@@ -127,10 +127,11 @@ namespace {
     return sai_attribute.value._field;                                  \
   }
 
+using facebook::fboss::SaiCharArray32;
 using facebook::fboss::SaiObjectIdT;
 
 DEFINE_extract(bool, booldata);
-DEFINE_extract(char[32], chardata);
+DEFINE_extract(SaiCharArray32, chardata);
 DEFINE_extract(sai_uint8_t, u8);
 DEFINE_extract(sai_uint16_t, u16);
 DEFINE_extract(sai_uint32_t, u32);
@@ -189,6 +190,18 @@ typename std::enable_if<
     std::is_convertible<SrcT, DstT>::value>::type
 _fill(const SrcT& src, DstT& dst) {
   dst = src;
+}
+
+inline void _fill(const std::array<char, 32>& src, char dst[32]) {
+  for (auto i = 0; i < 32; i++) {
+    dst[i] = src[i];
+  }
+}
+
+inline void _fill(const char src[32], std::array<char, 32>& dst) {
+  for (auto i = 0; i < 32; i++) {
+    dst[i] = src[i];
+  }
 }
 
 inline void _fill(const folly::IPAddress& src, sai_ip_address_t& dst) {

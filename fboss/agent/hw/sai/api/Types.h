@@ -28,6 +28,8 @@ FBOSS_STRONG_TYPE(sai_object_id_t, DebugCounterSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, HashSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, HostifTrapGroupSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, HostifTrapSaiId);
+FBOSS_STRONG_TYPE(sai_object_id_t, LagSaiId);
+FBOSS_STRONG_TYPE(sai_object_id_t, LagMemberSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, MirrorSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, NextHopSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, NextHopGroupSaiId);
@@ -50,6 +52,8 @@ FBOSS_STRONG_TYPE(sai_object_id_t, TamEventSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, TamSaiId);
 
 namespace facebook::fboss {
+
+using SaiCharArray32 = std::array<char, 32>;
 
 template <typename SaiId>
 sai_object_id_t* rawSaiId(SaiId* id) {

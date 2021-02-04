@@ -284,4 +284,19 @@ struct formatter<
   }
 };
 
+// Formatting for char[32]
+template <>
+struct formatter<SaiCharArray32> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+
+  auto format(const SaiCharArray32& data, FormatContext& ctx) {
+    return format_to(ctx.out(), "{}", std::string(data.begin(), data.end()));
+  }
+};
+
 } // namespace fmt
