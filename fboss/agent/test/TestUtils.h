@@ -117,6 +117,11 @@ std::shared_ptr<SwitchState> waitForStateUpdates(SwSwitch* sw);
  */
 void waitForBackgroundThread(SwSwitch* sw);
 
+/*
+ * Wait until all currently queued lambdas on ribUpdateThread are
+ * done
+ */
+void waitForRibUpdates(SwSwitch* sw);
 /**
  * check the field value
  */

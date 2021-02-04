@@ -123,6 +123,10 @@ class RoutingInformationBase {
     return !(*this == other);
   }
 
+  void waitForRibUpdates() {
+    ribUpdateEventBase_.runInEventBaseThreadAndWait([] { return; });
+  }
+
  private:
   void setClassIDImpl(
       RouterID rid,

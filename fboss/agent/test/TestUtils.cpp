@@ -291,6 +291,12 @@ void waitForBackgroundThread(SwSwitch* sw) {
   evb->runInEventBaseThreadAndWait([]() { return; });
 }
 
+void waitForRibUpdates(SwSwitch* sw) {
+  if (sw->isStandaloneRibEnabled()) {
+    sw->getRib()->waitForRibUpdates();
+  }
+}
+
 shared_ptr<SwitchState> testState(cfg::SwitchConfig cfg) {
   auto state = make_shared<SwitchState>();
 
