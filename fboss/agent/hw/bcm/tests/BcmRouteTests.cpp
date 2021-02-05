@@ -840,36 +840,6 @@ TEST_F(BcmRouteTest, HostRouteStat) {
   verify();
 }
 
-/* TODO (pshaikh) T36690958
-TEST_F(BcmRouteTest, LpmRouteV6Stat64b) {
-  HwResourceStats preUpdateStat;
-  auto setup = [&]() {
-    applyNewConfig(initialConfig());
-    preUpdateStat = getHwSwitch()->getStatUpdater()->getHwTableStats();
-    auto network = CIDRNetwork(IPAddress("1001::0"), 48);
-    auto nexthop = IPAddress("1::10");
-    shared_ptr<RouteTableMap> routeTables =
-      getProgrammedState()->getRouteTables();
-    routeTables = utility::addRoute(routeTables, network, nexthop);
-    routeTables = publishRoutes(routeTables);
-
-  };
-
-  auto verify = [&]() {
-    HwResourceStats postUpdateStat;
-    postUpdateStat = getHwSwitch()->getStatUpdater()->getHwTableStats();
-    EXPECT_EQ(postUpdateStat.lpm_ipv4_used, preUpdateStat.lpm_ipv4_used);
-    EXPECT_EQ(
-        postUpdateStat.lpm_ipv6_mask_0_64_used,
-        preUpdateStat.lpm_ipv6_mask_0_64_used + 1);
-    EXPECT_EQ(
-        postUpdateStat.lpm_ipv6_mask_65_127_used,
-        preUpdateStat.lpm_ipv6_mask_65_127_used);
-  };
-  setup();
-  verify();
-}*/
-
 TEST_F(BcmRouteTest, LpmRouteV6Stat128b) {
   HwResourceStats preUpdateStat;
   auto setup = [&]() {
