@@ -11,6 +11,7 @@
 #include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmEcmpUtils.h"
@@ -20,9 +21,9 @@
 #include "fboss/agent/hw/bcm/BcmRoute.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
-#include "fboss/agent/hw/bcm/tests/BcmTestRouteUtils.h"
 #include "fboss/agent/hw/bcm/tests/BcmTestUtils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Route.h"
@@ -227,6 +228,8 @@ int findHwHost(int unit, const IPAddress& networkIP, bcm_l3_host_t& host) {
   return bcm_l3_host_find(unit, &host);
 }
 
+const RouterID kRouter0(0);
+
 } // namespace
 
 using IncomingPacketCb =
@@ -243,19 +246,7 @@ class BcmRouteTest : public BcmTest {
         getHwSwitch(), masterLogicalPortIds()[0], masterLogicalPortIds()[1]);
   }
 
-  std::shared_ptr<RouteTableMap> publishRoutes(
-      std::shared_ptr<RouteTableMap> routeTables) {
-    if (nullptr != routeTables) {
-      auto newState = getProgrammedState()->clone();
-      newState->resetRouteTables(routeTables);
-      applyNewState(newState)->getRouteTables();
-    }
-    return routeTables;
-  }
-
-  BcmHostKey getHostKey(
-      IPAddress address,
-      RouterID routerID = utility::kRouter0) {
+  BcmHostKey getHostKey(IPAddress address, RouterID routerID = kRouter0) {
     return BcmHostKey(getHwSwitch()->getBcmVrfId(routerID), address);
   }
 
@@ -294,6 +285,29 @@ class BcmRouteTest : public BcmTest {
   void verifyBcmHostReference(bcm_vrf_t vrf, const RouteNextHopSet& nexthops);
 
   void verifyNextHopReferences(const std::vector<IPAddress>& nexthops);
+  void addRoute(
+      folly::CIDRNetwork network,
+      const std::vector<folly::IPAddress>& nexthopAddrs) {
+    HwSwitchEnsembleRouteUpdateWrapper updater(getHwSwitchEnsemble());
+    RouteNextHopEntry::NextHopSet nexthops;
+
+    for (const auto& nexthopAddr : nexthopAddrs) {
+      nexthops.emplace(UnresolvedNextHop(nexthopAddr, ECMP_WEIGHT));
+    }
+    updater.addRoute(
+        kRouter0,
+        network.first,
+        network.second,
+        ClientID(1001),
+        RouteNextHopEntry(
+            std::move(nexthops), AdminDistance::MAX_ADMIN_DISTANCE));
+    updater.program();
+  }
+  void delRoute(folly::CIDRNetwork network) {
+    HwSwitchEnsembleRouteUpdateWrapper updater(getHwSwitchEnsemble());
+    updater.delRoute(kRouter0, network.first, network.second, ClientID(1001));
+    updater.program();
+  }
 };
 
 class BcmRouteHostReferenceTest : public BcmRouteTest {
@@ -310,10 +324,10 @@ class BcmRouteHostReferenceTest : public BcmRouteTest {
       int interface,
       NextHopWeight weight = UCMP_DEFAULT_WEIGHT) {
     return BcmMultiPathNextHopKey(
-        utility::kRouter0,
+        kRouter0,
         RouteNextHopEntry(
             ResolvedNextHop(nexthop, InterfaceID(interface), weight),
-            utility::DISTANCE)
+            AdminDistance::MAX_ADMIN_DISTANCE)
             .getNextHopSet());
   }
 
@@ -343,14 +357,11 @@ TEST_F(BcmRouteTest, AddRoutesAndCountPrintCheckToCPU) {
         CIDRNetwork(IPAddress("2001::0"), 48),
     };
 
-    shared_ptr<RouteTableMap> routeTables =
-        getProgrammedState()->getRouteTables();
     for (auto tuple : boost::combine(networks, nexthops)) {
       auto network = tuple.get<0>();
       auto nexthop = tuple.get<1>();
-      routeTables = utility::addRoute(routeTables, network, nexthop);
+      addRoute(network, {nexthop});
     }
-    routeTables = publishRoutes(routeTables);
   };
 
   auto verify = [=]() {
@@ -411,8 +422,6 @@ TEST_F(BcmRouteHostReferenceTest, AddRouteAndCheckHostReference) {
   };
   auto setup = [=]() {
     applyNewConfig(initialConfig());
-    shared_ptr<RouteTableMap> routeTables =
-        getProgrammedState()->getRouteTables();
     std::vector<CIDRNetwork> networks = {
         CIDRNetwork(IPAddress("10.1.1.0"), 24),
         CIDRNetwork(IPAddress("1001:1::"), 48),
@@ -422,9 +431,8 @@ TEST_F(BcmRouteHostReferenceTest, AddRouteAndCheckHostReference) {
     for (auto tuple : boost::combine(networks, nexthops)) {
       auto network = tuple.get<0>();
       auto nexthop = tuple.get<1>();
-      routeTables = utility::addRoute(routeTables, network, nexthop);
+      addRoute(network, {nexthop});
     }
-    routeTables = publishRoutes(routeTables);
   };
 
   auto verify = [=]() {
@@ -455,15 +463,12 @@ TEST_F(
         CIDRNetwork(IPAddress("1001:1::"), 48),
         CIDRNetwork(IPAddress("1001:2::"), 48),
     };
-    shared_ptr<RouteTableMap> routeTables =
-        getProgrammedState()->getRouteTables();
     /* add routes */
     for (auto tuple : boost::combine(networks, nexthops)) {
       auto network = tuple.get<0>();
       auto nexthop = tuple.get<1>();
-      routeTables = utility::addRoute(routeTables, network, nexthop);
+      addRoute(network, {nexthop});
     }
-    routeTables = publishRoutes(routeTables);
   };
   auto verify = [=]() {
     /* each next hop is reached from only one route, so reference count for each
@@ -488,8 +493,6 @@ TEST_F(
   };
   auto setup = [=]() {
     applyNewConfig(initialConfig());
-    shared_ptr<RouteTableMap> routeTables =
-        getProgrammedState()->getRouteTables();
     std::vector<CIDRNetwork> networks = {
         CIDRNetwork(IPAddress("10.1.1.0"), 24),
         CIDRNetwork(IPAddress("10.1.2.0"), 24),
@@ -501,9 +504,8 @@ TEST_F(
     for (auto tuple : boost::combine(networks, nexthops)) {
       auto network = tuple.get<0>();
       auto nexthop = tuple.get<1>();
-      routeTables = utility::addRoute(routeTables, network, nexthop);
+      addRoute(network, {nexthop});
     }
-    routeTables = publishRoutes(routeTables);
   };
 
   auto verify = [=]() {
@@ -521,8 +523,6 @@ TEST_F(BcmRouteHostReferenceTest, DeleteRoutesAndCheckHostReference) {
   int intf1 = kBaseVlanId; /* config has one interface */
   auto setup = [=]() {
     applyNewConfig(initialConfig());
-    shared_ptr<RouteTableMap> routeTables =
-        getProgrammedState()->getRouteTables();
     std::vector<IPAddress> nexthops = {
         IPAddress("1.1.1.101"),
         IPAddress("1::1"),
@@ -540,9 +540,8 @@ TEST_F(BcmRouteHostReferenceTest, DeleteRoutesAndCheckHostReference) {
     for (auto tuple : boost::combine(networks, nexthops)) {
       auto network = tuple.get<0>();
       auto nexthop = tuple.get<1>();
-      routeTables = utility::addRoute(routeTables, network, nexthop);
+      addRoute(network, {nexthop});
     }
-    routeTables = publishRoutes(routeTables);
     for (auto nexthop : nexthops) {
       EXPECT_EQ(referenceCount(getKey(nexthop, intf1)), 2);
     }
@@ -554,9 +553,8 @@ TEST_F(BcmRouteHostReferenceTest, DeleteRoutesAndCheckHostReference) {
     nexthops.pop_back();
 
     for (auto network : networks) {
-      routeTables = utility::deleteRoute(routeTables, network);
+      delRoute(network);
     }
-    routeTables = publishRoutes(routeTables);
   };
 
   auto verify = [=]() {
@@ -582,8 +580,6 @@ TEST_F(BcmRouteHostReferenceTest, AddRouteAndCheckInvalidHostReference) {
   };
   auto setup = [=]() {
     applyNewConfig(initialConfig());
-    shared_ptr<RouteTableMap> routeTables =
-        getProgrammedState()->getRouteTables();
     std::vector<CIDRNetwork> networks = {
         CIDRNetwork(IPAddress("10.1.1.0"), 24),
         CIDRNetwork(IPAddress("1001:1::"), 48),
@@ -593,9 +589,8 @@ TEST_F(BcmRouteHostReferenceTest, AddRouteAndCheckInvalidHostReference) {
     for (auto tuple : boost::combine(networks, nexthops)) {
       auto network = tuple.get<0>();
       auto nexthop = tuple.get<1>();
-      routeTables = utility::addRoute(routeTables, network, nexthop);
+      addRoute(network, {nexthop});
     }
-    routeTables = publishRoutes(routeTables);
   };
 
   auto verify = [=]() {
@@ -643,10 +638,7 @@ void BcmRouteTest::routeReferenceCountTest(
     const IPAddress& nexthop) {
   auto setup = [=]() {
     applyNewConfig(initialConfig());
-    shared_ptr<RouteTableMap> routeTables =
-        getProgrammedState()->getRouteTables();
-    routeTables = utility::addRoute(routeTables, network, nexthop);
-    routeTables = publishRoutes(routeTables);
+    addRoute(network, {nexthop});
   };
 
   auto verify = [=]() {
@@ -723,21 +715,21 @@ void BcmRouteTest::verifyNextHopReferences(
     const std::vector<IPAddress>& nexthops) {
   for (auto& nexthop : nexthops) {
     if (nexthop.isV6()) {
-      const auto& route = getProgrammedState()
-                              ->getRouteTables()
-                              ->getRouteTable(RouterID(0))
-                              ->getRibV6()
-                              ->longestMatch(nexthop.asV6());
+      const auto& route = findLongestMatchRoute(
+          getHwSwitchEnsemble()->isStandaloneRibEnabled(),
+          RouterID(0),
+          nexthop.asV6(),
+          getProgrammedState());
       EXPECT_EQ(route->isResolved(), true);
       const auto& fwd = route->getForwardInfo();
       verifyBcmHostReference(0, fwd.normalizedNextHops());
 
     } else {
-      const auto& route = getProgrammedState()
-                              ->getRouteTables()
-                              ->getRouteTable(RouterID(0))
-                              ->getRibV4()
-                              ->longestMatch(nexthop.asV4());
+      const auto& route = findLongestMatchRoute(
+          getHwSwitchEnsemble()->isStandaloneRibEnabled(),
+          RouterID(0),
+          nexthop.asV4(),
+          getProgrammedState());
       EXPECT_EQ(route->isResolved(), true);
       const auto& fwd = route->getForwardInfo();
       verifyBcmHostReference(0, fwd.normalizedNextHops());
@@ -773,13 +765,9 @@ TEST_F(BcmRouteTest, RemoveHWNonexistentNonHostRoute) {
 
   auto setup = [=]() {
     applyNewConfig(initialConfig());
-    shared_ptr<RouteTableMap> routeTables =
-        getProgrammedState()->getRouteTables();
-
     for (const auto& route : nonHostRoutes) {
-      routeTables = utility::addRoute(routeTables, route.first, route.second);
+      addRoute(route.first, {route.second});
     }
-    routeTables = publishRoutes(routeTables);
 
     // First delete routes directly from HW
     for (const auto& route : nonHostRoutes) {
@@ -791,9 +779,8 @@ TEST_F(BcmRouteTest, RemoveHWNonexistentNonHostRoute) {
 
     // Then call the regular remove routes logic
     for (const auto& route : nonHostRoutes) {
-      routeTables = utility::deleteRoute(routeTables, route.first);
+      delRoute(route.first);
     }
-    routeTables = publishRoutes(routeTables);
   };
 
   auto verify = [&]() {
@@ -826,10 +813,7 @@ TEST_F(BcmRouteTest, HostRouteStat) {
     preUpdateStat = getHwSwitch()->getStatUpdater()->getHwTableStats();
     auto network = CIDRNetwork(IPAddress("10.1.1.10"), 32);
     auto nexthop = IPAddress("1.1.1.10");
-    shared_ptr<RouteTableMap> routeTables =
-        getProgrammedState()->getRouteTables();
-    routeTables = utility::addRoute(routeTables, network, nexthop);
-    routeTables = publishRoutes(routeTables);
+    addRoute(network, {nexthop});
   };
 
   auto verify = [&]() {
@@ -893,10 +877,7 @@ TEST_F(BcmRouteTest, LpmRouteV6Stat128b) {
     preUpdateStat = getHwSwitch()->getStatUpdater()->getHwTableStats();
     auto network = CIDRNetwork(IPAddress("1001::0"), 127);
     auto nexthop = IPAddress("1::10");
-    shared_ptr<RouteTableMap> routeTables =
-        getProgrammedState()->getRouteTables();
-    routeTables = utility::addRoute(routeTables, network, nexthop);
-    routeTables = publishRoutes(routeTables);
+    addRoute(network, {nexthop});
   };
 
   auto verify = [&]() {
@@ -945,13 +926,9 @@ TEST_F(BcmRouteTest, BcmHostReference) {
   auto setup = [=]() {
     // add multi path route
     applyNewConfig(initialConfig());
-    shared_ptr<RouteTableMap> routeTables =
-        getProgrammedState()->getRouteTables();
     /* add routes */
-    routeTables = utility::addRoute(routeTables, v4Network, v4Nexthops);
-    routeTables = utility::addRoute(routeTables, v6Network, v6Nexthops);
-
-    routeTables = publishRoutes(routeTables);
+    addRoute(v4Network, {v4Nexthops});
+    addRoute(v6Network, {v6Nexthops});
   };
   auto verify = [=]() {
     verifyNextHopReferences(v4Nexthops);
@@ -994,40 +971,26 @@ TEST_F(BcmRouteTest, EgressUpdateOnHostRouteUpdateOneHopToManyHops) {
     }
 
     // host route has only one next hop
-    auto rtables0 = getProgrammedState()->getRouteTables();
-    rtables0 = utility::addRoute(rtables0, hostRouteV4, v4Nexthops[0]);
-    rtables0 = utility::addRoute(rtables0, hostRouteV6, v6Nexthops[0]);
-    auto state0 = getProgrammedState()->clone();
-    state0->resetRouteTables(rtables0);
-    auto state1 = applyNewState(state0);
+    addRoute(hostRouteV4, {v4Nexthops[0]});
+    addRoute(hostRouteV6, {v6Nexthops[0]});
 
-    auto rtables1 = state1->getRouteTables();
     // make it ECMP egress
-    rtables1 = utility::addRoute(rtables1, hostRouteV4, v4Nexthops);
-    rtables1 = utility::addRoute(rtables1, hostRouteV6, v6Nexthops);
-
-    state1 = state1->clone();
-    state1->resetRouteTables(rtables1);
-
-    applyNewState(state1);
+    addRoute(hostRouteV4, v4Nexthops);
+    addRoute(hostRouteV6, v6Nexthops);
   };
 
   auto verify = [=]() {
-    auto v4SwRoute = getProgrammedState()
-                         ->getRouteTables()
-                         ->getRouteTable(RouterID(0))
-                         ->getRibV4()
-                         ->routes()
-                         ->getRouteIf(RoutePrefixV4{
-                             hostRouteV4.first.asV4(), hostRouteV4.second});
+    auto v4SwRoute = findRoute<folly::IPAddressV4>(
+        getHwSwitchEnsemble()->isStandaloneRibEnabled(),
+        RouterID(0),
+        {hostRouteV4.first, hostRouteV4.second},
+        getProgrammedState());
 
-    auto v6SwRoute = getProgrammedState()
-                         ->getRouteTables()
-                         ->getRouteTable(RouterID(0))
-                         ->getRibV6()
-                         ->routes()
-                         ->getRouteIf(RoutePrefixV6{
-                             hostRouteV6.first.asV6(), hostRouteV6.second});
+    auto v6SwRoute = findRoute<folly::IPAddressV6>(
+        getHwSwitchEnsemble()->isStandaloneRibEnabled(),
+        RouterID(0),
+        {hostRouteV6.first, hostRouteV6.second},
+        getProgrammedState());
 
     ASSERT_NE(v4SwRoute, nullptr);
     ASSERT_NE(v6SwRoute, nullptr);

@@ -16,8 +16,8 @@
 #include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/hw/bcm/BcmRoute.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
-#include "fboss/agent/hw/bcm/tests/BcmTestRouteUtils.h"
 #include "fboss/agent/hw/bcm/tests/BcmTestUtils.h"
+#include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/state/Interface.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -314,15 +314,19 @@ TEST_F(BcmHostTest, HostRouteLookupClassNotSet) {
           CIDRNetwork(IPAddress("2001::0"), 128), IPAddress("2::10"))};
   auto setup = [=]() {
     applyNewConfig(initialConfig());
-    auto newRouteTables = getProgrammedState()->getRouteTables();
+    HwSwitchEnsembleRouteUpdateWrapper updater(getHwSwitchEnsemble());
     for (const auto& networkAndNexthop : networkAndNexthops) {
-      newRouteTables = utility::addRoute(
-          newRouteTables, networkAndNexthop.first, networkAndNexthop.second);
-      CHECK(newRouteTables != nullptr);
+      boost::container::flat_set<NextHop> nexthopSet{
+          UnresolvedNextHop(networkAndNexthop.second, ECMP_WEIGHT)};
+      updater.addRoute(
+          RouterID(0),
+          networkAndNexthop.first.first,
+          networkAndNexthop.first.second,
+          ClientID(1001),
+          RouteNextHopEntry(
+              std::move(nexthopSet), AdminDistance::MAX_ADMIN_DISTANCE));
     }
-    auto newState = getProgrammedState()->clone();
-    newState->resetRouteTables(newRouteTables);
-    applyNewState(newState);
+    updater.program();
   };
   auto verify = [=]() {
     for (const auto& networkAndNexthop : networkAndNexthops) {
@@ -334,7 +338,7 @@ TEST_F(BcmHostTest, HostRouteLookupClassNotSet) {
         hostTableIf = getHwSwitch()->routeTable();
       }
       auto hostRoute = hostTableIf->getBcmHostIf(BcmHostKey(
-          getHwSwitch()->getBcmVrfId(utility::kRouter0),
+          getHwSwitch()->getBcmVrfId(RouterID(0)),
           networkAndNexthop.first.first));
       // Host route should not set dst class l3 id
       checkBcmHostMatchInHw(hostRoute, false);
