@@ -49,7 +49,6 @@ add_executable(bcm_test
   fboss/agent/hw/bcm/tests/BcmRtag7Test.cpp
   fboss/agent/hw/bcm/tests/BcmRouteTests.cpp
   fboss/agent/hw/bcm/tests/BcmStateDeltaTests.cpp
-  fboss/agent/hw/bcm/tests/BcmTestRouteUtils.cpp
   fboss/agent/hw/bcm/tests/BcmTrunkTests.cpp
   fboss/agent/hw/bcm/tests/BcmTrunkUtils.cpp
   fboss/agent/hw/bcm/tests/BcmUnitTests.cpp
