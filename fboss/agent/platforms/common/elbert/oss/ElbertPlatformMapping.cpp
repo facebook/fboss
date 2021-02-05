@@ -8,9 +8,9 @@
  *
  */
 
-#include "fboss/agent/platforms/wedge/elbert/ElbertPlatformMapping.h"
+#include "fboss/agent/platforms/common/elbert/ElbertPlatformMapping.h"
 
-#include "fboss/agent/platforms/wedge/elbert/Elbert16QPimPlatformMapping.h"
+#include "fboss/agent/platforms/common/elbert/Elbert16QPimPlatformMapping.h"
 
 namespace facebook::fboss {
 ElbertPlatformMapping::ElbertPlatformMapping() {

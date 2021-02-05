@@ -12,12 +12,12 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/PlatformMode.h"
+#include "fboss/agent/platforms/common/elbert/Elbert16QPimPlatformMapping.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyFCPlatformMapping.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyLCPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge100/Wedge100PlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge40/Wedge40PlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400/Wedge400PlatformMapping.h"
-#include "fboss/agent/platforms/wedge/elbert/Elbert16QPimPlatformMapping.h"
 #include "fboss/agent/platforms/wedge/minipack/Minipack16QPimPlatformMapping.h"
 #include "fboss/agent/platforms/wedge/yamp/YampPlatformMapping.h"
 

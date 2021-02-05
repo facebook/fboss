@@ -10,8 +10,8 @@
 #include "fboss/agent/platforms/tests/utils/BcmTestElbertPlatform.h"
 
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
+#include "fboss/agent/platforms/common/elbert/Elbert16QPimPlatformMapping.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestElbertPort.h"
-#include "fboss/agent/platforms/wedge/elbert/Elbert16QPimPlatformMapping.h"
 
 namespace facebook::fboss {
 

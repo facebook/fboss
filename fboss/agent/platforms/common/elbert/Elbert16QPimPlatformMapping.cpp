@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/agent/platforms/wedge/elbert/Elbert16QPimPlatformMapping.h"
+#include "fboss/agent/platforms/common/elbert/Elbert16QPimPlatformMapping.h"
 
 namespace {
 constexpr auto kJsonPlatformMappingStr = R"(
