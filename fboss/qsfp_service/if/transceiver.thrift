@@ -157,6 +157,16 @@ enum ExtendedSpecComplianceCode {
   FR1_100G = 38,
 }
 
+// Transceiver identifier as read from module page 0 reg 0
+enum TransceiverModuleIdentifier {
+  UNKNOWN = 0,
+  QSFP = 0xC,
+  QSFP_PLUS = 0xD,
+  QSFP28 = 0x11,
+  QSFP_DD = 0x18,
+  QSFP_PLUS_CMIS = 0x1E,
+}
+
 struct TransceiverSettings {
   1: FeatureState cdrTx,
   2: FeatureState cdrRx,

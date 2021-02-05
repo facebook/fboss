@@ -72,8 +72,6 @@ constexpr uint8_t kCMISOffsetStageCtrlSet0 = 143;
 // 0x01 overrides low power mode
 // 0x04 is an LR4-specific bit that is otherwise reserved
 
-// CMIS module Identifier (from module register 0)
-constexpr uint8_t kCMISIdentifier = 0x1e;
 constexpr uint8_t kCmisPowerModeMask = (1 << 4);
 }
 
@@ -170,7 +168,8 @@ TransceiverManagementInterface getModuleType(
     return TransceiverManagementInterface::NONE;
   }
 
-  if (moduleId == kCMISIdentifier) {
+  if (moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_PLUS_CMIS) ||
+      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_DD)) {
     return TransceiverManagementInterface::CMIS;
   } else {
     return TransceiverManagementInterface::SFF;
