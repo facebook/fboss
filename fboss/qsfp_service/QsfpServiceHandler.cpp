@@ -1,5 +1,7 @@
 #include "fboss/qsfp_service/QsfpServiceHandler.h"
 
+#include "fboss/agent/FbossError.h"
+
 #include <fboss/lib/LogThriftCall.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>

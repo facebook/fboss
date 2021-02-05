@@ -12,8 +12,8 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/StateObserver.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
-#include "fboss/agent/platforms/wedge/PhyInterfaceHandler.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/phy/PhyInterfaceHandler.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 
