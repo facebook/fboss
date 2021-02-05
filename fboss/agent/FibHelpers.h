@@ -36,6 +36,13 @@ std::shared_ptr<Route<AddrT>> findRoute(
     const folly::CIDRNetwork& prefix,
     const std::shared_ptr<SwitchState>& state);
 
+template <typename AddrT>
+std::shared_ptr<Route<AddrT>> findLongestMatchRoute(
+    bool isStandaloneRib,
+    RouterID rid,
+    const AddrT& addr,
+    const std::shared_ptr<SwitchState>& state);
+
 template <typename Func>
 void forAllRoutes(
     bool isStandaloneRib,

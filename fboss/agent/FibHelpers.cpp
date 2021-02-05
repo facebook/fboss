@@ -18,19 +18,27 @@
 
 namespace facebook::fboss {
 
+namespace {
 template <typename AddrT>
-std::shared_ptr<Route<AddrT>> findRoute(
+std::shared_ptr<Route<AddrT>> findRouteImpl(
     bool isStandaloneRib,
     RouterID rid,
     const folly::CIDRNetwork& prefix,
-    const std::shared_ptr<SwitchState>& state) {
-  auto findInFib = [&prefix](const auto& fibRoutes) {
+    const std::shared_ptr<SwitchState>& state,
+    bool exactMatch) {
+  if (!exactMatch) {
+    CHECK_EQ(prefix.second, prefix.first.bitCount())
+        << " Longest match must pass in a IPAddress";
+  }
+  auto findInFib = [&prefix, exactMatch](const auto& fibRoutes) {
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
-      return fibRoutes->getRouteIf(
-          RoutePrefix<folly::IPAddressV6>{prefix.first.asV6(), prefix.second});
+      return exactMatch
+          ? fibRoutes->exactMatch({prefix.first.asV6(), prefix.second})
+          : fibRoutes->longestMatch(prefix.first.asV6());
     } else {
-      return fibRoutes->getRouteIf(
-          RoutePrefix<folly::IPAddressV4>{prefix.first.asV4(), prefix.second});
+      return exactMatch
+          ? fibRoutes->exactMatch({prefix.first.asV4(), prefix.second})
+          : fibRoutes->longestMatch(prefix.first.asV4());
     }
   };
   if (isStandaloneRib) {
@@ -38,14 +46,37 @@ std::shared_ptr<Route<AddrT>> findRoute(
     return findInFib(fib);
 
   } else {
-    auto& routes = state->getRouteTables()
-                       ->getRouteTable(rid)
-                       ->template getRib<AddrT>()
-                       ->routes();
-    return findInFib(routes);
+    auto& rib =
+        state->getRouteTables()->getRouteTable(rid)->template getRib<AddrT>();
+    return findInFib(rib);
   }
   CHECK(false) << " Should never get here, route lookup failed";
   return nullptr;
+}
+} // namespace
+
+template <typename AddrT>
+std::shared_ptr<Route<AddrT>> findRoute(
+    bool isStandaloneRib,
+    RouterID rid,
+    const folly::CIDRNetwork& prefix,
+    const std::shared_ptr<SwitchState>& state) {
+  return findRouteImpl<AddrT>(
+      isStandaloneRib, rid, prefix, state, true /*exact match*/);
+}
+
+template <typename AddrT>
+std::shared_ptr<Route<AddrT>> findLongestMatchRoute(
+    bool isStandaloneRib,
+    RouterID rid,
+    const AddrT& addr,
+    const std::shared_ptr<SwitchState>& state) {
+  return findRouteImpl<AddrT>(
+      isStandaloneRib,
+      rid,
+      {addr, addr.bitCount()},
+      state,
+      false /*longest match*/);
 }
 
 template std::shared_ptr<Route<folly::IPAddressV6>> findRoute(
@@ -59,4 +90,17 @@ template std::shared_ptr<Route<folly::IPAddressV4>> findRoute(
     RouterID rid,
     const folly::CIDRNetwork& prefix,
     const std::shared_ptr<SwitchState>& state);
+
+template std::shared_ptr<Route<folly::IPAddressV6>> findLongestMatchRoute(
+    bool isStandaloneRib,
+    RouterID rid,
+    const folly::IPAddressV6& addr,
+    const std::shared_ptr<SwitchState>& state);
+
+template std::shared_ptr<Route<folly::IPAddressV4>> findLongestMatchRoute(
+    bool isStandaloneRib,
+    RouterID rid,
+    const folly::IPAddressV4& addr,
+    const std::shared_ptr<SwitchState>& state);
+
 } // namespace facebook::fboss

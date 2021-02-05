@@ -180,7 +180,13 @@ class RouteTableRib : public NodeBase {
 
   std::shared_ptr<Route<AddrT>> longestMatch(const AddrT& nexthop) const {
     auto citr = radixTree_.longestMatch(nexthop, nexthop.bitCount());
-    return citr != radixTree_.end() ? citr->value() : nullptr;
+    if (citr == radixTree_.end()) {
+      return nullptr;
+    }
+    // FIXME - we must return the nodemap route node as we don;t
+    // reflect classID updates into RIB nodes. We should actually
+    // reflect the classIDs back
+    return exactMatch(citr->value()->prefix());
   }
 
   void addRouteInRadixTree(const std::shared_ptr<Route<AddrT>>& route) {

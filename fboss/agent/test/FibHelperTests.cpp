@@ -103,6 +103,20 @@ class FibHelperTest : public ::testing::Test {
       return {folly::IPAddressV6{"2803:6080:d038:3066::"}, 64};
     }
   }
+  AddrT kInSubnetIp() const {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      return folly::IPAddressV4{"10.1.4.1"};
+    } else {
+      return folly::IPAddressV6{"2803:6080:d038:3066::1"};
+    }
+  }
+  AddrT kNotInSubnetIp() const {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      return folly::IPAddressV4{"10.1.5.1"};
+    } else {
+      return folly::IPAddressV6{"2803:6080:d038:4066::1"};
+    }
+  }
 
   folly::CIDRNetwork kPrefix2() const {
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
@@ -167,6 +181,7 @@ TYPED_TEST(FibHelperTest, findRoute) {
       this->kPrefix1(),
       this->sw_->getState());
   EXPECT_NE(route, nullptr);
+
   route = findRoute<typename TestFixture::AddrT>(
       this->sw_->isStandaloneRibEnabled(),
       this->kRid(),
@@ -175,6 +190,28 @@ TYPED_TEST(FibHelperTest, findRoute) {
   EXPECT_EQ(route, nullptr);
 }
 
+TYPED_TEST(FibHelperTest, findLongestMatchRoute) {
+  auto route = findRoute<typename TestFixture::AddrT>(
+      this->sw_->isStandaloneRibEnabled(),
+      this->kRid(),
+      this->kPrefix1(),
+      this->sw_->getState());
+  EXPECT_NE(route, nullptr);
+  auto route2 = findLongestMatchRoute<typename TestFixture::AddrT>(
+      this->sw_->isStandaloneRibEnabled(),
+      this->kRid(),
+      this->kInSubnetIp(),
+      this->sw_->getState());
+
+  EXPECT_EQ(route, route2);
+
+  auto route3 = findLongestMatchRoute<typename TestFixture::AddrT>(
+      this->sw_->isStandaloneRibEnabled(),
+      this->kRid(),
+      this->kNotInSubnetIp(),
+      this->sw_->getState());
+  EXPECT_NE(route2, route3);
+}
 TYPED_TEST(FibHelperTest, forAllRoutes) {
   int count = 0;
   auto countRoutes = [&count](RouterID rid, auto& route) { ++count; };
