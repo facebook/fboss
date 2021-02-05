@@ -12,10 +12,12 @@
 
 #include <folly/IPAddress.h>
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
+class SwitchState;
 
 /*
  * Wrapper class to handle route updates and programming across both
@@ -29,6 +31,7 @@ class RouteUpdateWrapper {
 
  public:
   virtual ~RouteUpdateWrapper() = default;
+  using UpdateStatistics = rib::RoutingInformationBase::UpdateStatistics;
   void addRoute(
       RouterID id,
       const folly::IPAddress& network,
@@ -46,8 +49,12 @@ class RouteUpdateWrapper {
  private:
   virtual void programLegacyRib() = 0;
   virtual void programStandAloneRib() = 0;
+  virtual void updateStats(const UpdateStatistics& stats) = 0;
+  virtual AdminDistance clientIdToAdminDistance(ClientID clientID) const = 0;
 
  protected:
+  std::pair<std::shared_ptr<SwitchState>, UpdateStatistics>
+  programLegacyRibHelper(const std::shared_ptr<SwitchState>& in) const;
   explicit RouteUpdateWrapper(bool isStandaloneRibEnabled)
       : isStandaloneRibEnabled_(isStandaloneRibEnabled) {}
   std::unordered_map<std::pair<RouterID, ClientID>, AddDelRoutes>

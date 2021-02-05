@@ -10,6 +10,7 @@
 
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
@@ -35,99 +36,42 @@ void swSwitchFibUpdate(
 SwSwitchRouteUpdateWrapper::SwSwitchRouteUpdateWrapper(SwSwitch* sw)
     : RouteUpdateWrapper(sw->isStandaloneRibEnabled()), sw_(sw) {}
 
+void SwSwitchRouteUpdateWrapper::updateStats(
+    const rib::RoutingInformationBase::UpdateStatistics& stats) {
+  sw_->stats()->addRoutesV4(stats.v4RoutesAdded);
+  sw_->stats()->addRoutesV6(stats.v6RoutesAdded);
+  sw_->stats()->delRoutesV4(stats.v4RoutesDeleted);
+  sw_->stats()->delRoutesV6(stats.v6RoutesDeleted);
+}
+
 void SwSwitchRouteUpdateWrapper::programStandAloneRib() {
   for (auto [ridClientId, addDelRoutes] : ribRoutesToAddDel_) {
-    auto adminDistance =
-        sw_->clientIdToAdminDistance(static_cast<int>(ridClientId.second));
     // TODO handle route update failures
     auto stats = sw_->getRib()->update(
         ridClientId.first,
         ridClientId.second,
-        adminDistance,
+        clientIdToAdminDistance(ridClientId.second),
         addDelRoutes.toAdd,
         addDelRoutes.toDel,
         false,
         "RIB update",
         &swSwitchFibUpdate,
         static_cast<void*>(sw_));
-    sw_->stats()->addRoutesV4(stats.v4RoutesAdded);
-    sw_->stats()->addRoutesV6(stats.v6RoutesAdded);
-    sw_->stats()->delRoutesV4(stats.v4RoutesDeleted);
-    sw_->stats()->delRoutesV6(stats.v6RoutesDeleted);
+    updateStats(stats);
   }
 }
 
 void SwSwitchRouteUpdateWrapper::programLegacyRib() {
-  for (auto [ridClientId, addDelRoutes] : ribRoutesToAddDel_) {
-    if (ridClientId.first != RouterID(0)) {
-      throw FbossError("Multi-VRF only supported with Stand-Alone RIB");
-    }
-    auto adminDistance =
-        sw_->clientIdToAdminDistance(static_cast<int>(ridClientId.second));
-    auto& toAdd = addDelRoutes.toAdd;
-    auto& toDel = addDelRoutes.toDel;
-    RouterID routerId = ridClientId.first;
-    ClientID clientId = ridClientId.second;
-    auto updateFn = [&](const std::shared_ptr<SwitchState>& state) {
-      RouteUpdater updater(state->getRouteTables());
-      for (auto& route : toAdd) {
-        std::vector<NextHopThrift> nhts;
-        folly::IPAddress network =
-            network::toIPAddress(*route.dest_ref()->ip_ref());
-        uint8_t mask =
-            static_cast<uint8_t>(*route.dest_ref()->prefixLength_ref());
-        if (route.nextHops_ref()->empty() &&
-            !route.nextHopAddrs_ref()->empty()) {
-          nhts = thriftNextHopsFromAddresses(*route.nextHopAddrs_ref());
-        } else {
-          nhts = *route.nextHops_ref();
-        }
-        RouteNextHopSet nexthops = util::toRouteNextHopSet(nhts);
-        if (nexthops.size()) {
-          updater.addRoute(
-              routerId,
-              network,
-              mask,
-              clientId,
-              RouteNextHopEntry(std::move(nexthops), adminDistance));
-        } else {
-          XLOG(DBG3) << "Blackhole route:" << network << "/"
-                     << static_cast<int>(mask);
-          updater.addRoute(
-              routerId,
-              network,
-              mask,
-              clientId,
-              RouteNextHopEntry(RouteForwardAction::DROP, adminDistance));
-        }
-        if (network.isV4()) {
-          sw_->stats()->addRouteV4();
-        } else {
-          sw_->stats()->addRouteV6();
-        }
-      }
-      // Del routes
-      for (auto& prefix : toDel) {
-        auto network = network::toIPAddress(*prefix.ip_ref());
-        auto mask = static_cast<uint8_t>(*prefix.prefixLength_ref());
-        if (network.isV4()) {
-          sw_->stats()->delRouteV4();
-        } else {
-          sw_->stats()->delRouteV6();
-        }
-        updater.delRoute(routerId, network, mask, clientId);
-      }
-
-      auto newRt = updater.updateDone();
-      if (!newRt) {
-        return std::shared_ptr<SwitchState>();
-      }
-      auto newState = state->clone();
-      newState->resetRouteTables(std::move(newRt));
-      return newState;
-    };
-    sw_->updateStateBlocking("Add/Del routes", updateFn);
-  }
+  auto updateFn = [this](const std::shared_ptr<SwitchState>& in) {
+    auto [newState, stats] = programLegacyRibHelper(in);
+    updateStats(stats);
+    return newState;
+  };
+  sw_->updateStateBlocking("Add/Del routes", updateFn);
 }
 
+AdminDistance SwSwitchRouteUpdateWrapper::clientIdToAdminDistance(
+    ClientID clientID) const {
+  return sw_->clientIdToAdminDistance(static_cast<int>(clientID));
+}
 } // namespace facebook::fboss

@@ -11,9 +11,10 @@
 #pragma once
 
 #include "fboss/agent/RouteUpdateWrapper.h"
-#include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
 
 namespace facebook::fboss {
+class SwSwitch;
 
 void swSwitchFibUpdate(
     facebook::fboss::RouterID vrf,
@@ -26,6 +27,10 @@ class SwSwitchRouteUpdateWrapper : public RouteUpdateWrapper {
   explicit SwSwitchRouteUpdateWrapper(SwSwitch* sw);
 
  private:
+  virtual AdminDistance clientIdToAdminDistance(
+      ClientID clientID) const override;
+  void updateStats(
+      const rib::RoutingInformationBase::UpdateStatistics& stats) override;
   void programLegacyRib() override;
   void programStandAloneRib() override;
   SwSwitch* sw_;

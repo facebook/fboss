@@ -57,63 +57,10 @@ void HwSwitchEnsembleRouteUpdateWrapper::programStandAloneRib() {
 }
 
 void HwSwitchEnsembleRouteUpdateWrapper::programLegacyRib() {
-  for (auto [ridClientId, addDelRoutes] : ribRoutesToAddDel_) {
-    if (ridClientId.first != RouterID(0)) {
-      throw FbossError("Multi-VRF only supported with Stand-Alone RIB");
-    }
-    auto& toAdd = addDelRoutes.toAdd;
-    auto& toDel = addDelRoutes.toDel;
-    RouterID routerId = ridClientId.first;
-    ClientID clientId = ridClientId.second;
-    auto state = hwEnsemble_->getProgrammedState();
-    RouteUpdater updater(state->getRouteTables());
-    for (auto& route : toAdd) {
-      std::vector<NextHopThrift> nhts;
-      folly::IPAddress network =
-          network::toIPAddress(*route.dest_ref()->ip_ref());
-      uint8_t mask =
-          static_cast<uint8_t>(*route.dest_ref()->prefixLength_ref());
-      if (route.nextHops_ref()->empty() && !route.nextHopAddrs_ref()->empty()) {
-        nhts = thriftNextHopsFromAddresses(*route.nextHopAddrs_ref());
-      } else {
-        nhts = *route.nextHops_ref();
-      }
-      RouteNextHopSet nexthops = util::toRouteNextHopSet(nhts);
-      if (nexthops.size()) {
-        updater.addRoute(
-            routerId,
-            network,
-            mask,
-            clientId,
-            RouteNextHopEntry(
-                std::move(nexthops), AdminDistance::MAX_ADMIN_DISTANCE));
-      } else {
-        XLOG(DBG3) << "Blackhole route:" << network << "/"
-                   << static_cast<int>(mask);
-        updater.addRoute(
-            routerId,
-            network,
-            mask,
-            clientId,
-            RouteNextHopEntry(
-                RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
-      }
-    }
-    // Del routes
-    for (auto& prefix : toDel) {
-      auto network = network::toIPAddress(*prefix.ip_ref());
-      auto mask = static_cast<uint8_t>(*prefix.prefixLength_ref());
-      updater.delRoute(routerId, network, mask, clientId);
-    }
-
-    auto newRt = updater.updateDone();
-    if (!newRt) {
-      return;
-    }
-    auto newState = state->clone();
-    newState->resetRouteTables(std::move(newRt));
-    hwEnsemble_->applyNewState(newState);
-  }
+  auto [newState, stats] =
+      programLegacyRibHelper(hwEnsemble_->getProgrammedState());
+  updateStats(stats);
+  hwEnsemble_->applyNewState(newState);
 }
 
 } // namespace facebook::fboss

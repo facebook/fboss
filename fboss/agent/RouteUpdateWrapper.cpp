@@ -11,6 +11,11 @@
 #include "fboss/agent/RouteUpdateWrapper.h"
 
 #include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
+#include "fboss/agent/state/RouteUpdater.h"
+#include "fboss/agent/state/SwitchState.h"
+
+#include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
 
@@ -47,5 +52,76 @@ void RouteUpdateWrapper::program() {
     programLegacyRib();
   }
   ribRoutesToAddDel_.clear();
+}
+std::pair<std::shared_ptr<SwitchState>, RouteUpdateWrapper::UpdateStatistics>
+RouteUpdateWrapper::programLegacyRibHelper(
+    const std::shared_ptr<SwitchState>& in) const {
+  UpdateStatistics stats;
+  auto state = in->clone();
+  RouteUpdater updater(state->getRouteTables());
+  for (auto [ridClientId, addDelRoutes] : ribRoutesToAddDel_) {
+    if (ridClientId.first != RouterID(0)) {
+      throw FbossError("Multi-VRF only supported with Stand-Alone RIB");
+    }
+    auto adminDistance = clientIdToAdminDistance(ridClientId.second);
+    auto& toAdd = addDelRoutes.toAdd;
+    auto& toDel = addDelRoutes.toDel;
+    RouterID routerId = ridClientId.first;
+    ClientID clientId = ridClientId.second;
+    for (auto& route : toAdd) {
+      std::vector<NextHopThrift> nhts;
+      folly::IPAddress network =
+          network::toIPAddress(*route.dest_ref()->ip_ref());
+      uint8_t mask =
+          static_cast<uint8_t>(*route.dest_ref()->prefixLength_ref());
+      if (route.nextHops_ref()->empty() && !route.nextHopAddrs_ref()->empty()) {
+        nhts = thriftNextHopsFromAddresses(*route.nextHopAddrs_ref());
+      } else {
+        nhts = *route.nextHops_ref();
+      }
+      RouteNextHopSet nexthops = util::toRouteNextHopSet(nhts);
+      if (nexthops.size()) {
+        updater.addRoute(
+            routerId,
+            network,
+            mask,
+            clientId,
+            RouteNextHopEntry(std::move(nexthops), adminDistance));
+      } else {
+        XLOG(DBG3) << "Blackhole route:" << network << "/"
+                   << static_cast<int>(mask);
+        updater.addRoute(
+            routerId,
+            network,
+            mask,
+            clientId,
+            RouteNextHopEntry(RouteForwardAction::DROP, adminDistance));
+      }
+      if (network.isV4()) {
+        ++stats.v4RoutesAdded;
+      } else {
+        ++stats.v6RoutesAdded;
+      }
+    }
+    // Del routes
+    for (auto& prefix : toDel) {
+      auto network = network::toIPAddress(*prefix.ip_ref());
+      auto mask = static_cast<uint8_t>(*prefix.prefixLength_ref());
+      if (network.isV4()) {
+        ++stats.v4RoutesDeleted;
+      } else {
+        ++stats.v6RoutesDeleted;
+      }
+      updater.delRoute(routerId, network, mask, clientId);
+    }
+  }
+
+  auto newRt = updater.updateDone();
+  if (!newRt) {
+    return {std::shared_ptr<SwitchState>(), stats};
+  }
+  auto newState = state->clone();
+  newState->resetRouteTables(std::move(newRt));
+  return {newState, stats};
 }
 } // namespace facebook::fboss

@@ -28,6 +28,12 @@ class HwSwitchEnsembleRouteUpdateWrapper : public RouteUpdateWrapper {
   explicit HwSwitchEnsembleRouteUpdateWrapper(HwSwitchEnsemble* hwEnsemble);
 
  private:
+  void updateStats(
+      const rib::RoutingInformationBase::UpdateStatistics& /*stats*/) override {
+  }
+  AdminDistance clientIdToAdminDistance(ClientID /*clientID*/) const override {
+    return AdminDistance::MAX_ADMIN_DISTANCE;
+  }
   void programLegacyRib() override;
   void programStandAloneRib() override;
   HwSwitchEnsemble* hwEnsemble_;
