@@ -20,6 +20,9 @@
 
 namespace facebook::fboss {
 
+enum class SamplePacketDirection { INGRESS = 1, EGRESS = 2 };
+enum class SamplePacketAction { START = 1, STOP = 2 };
+
 class SaiManagerTable;
 class SaiPlatform;
 
