@@ -16,6 +16,8 @@
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/FbossHwUpdateError.h"
+#include "fboss/agent/FibHelpers.h"
+
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/IPv4Handler.h"
 #include "fboss/agent/IPv6Handler.h"
@@ -1621,21 +1623,12 @@ void SwSwitch::clearPortGearboxPrbsStats(int32_t portId, phy::Side side) {
 bool SwSwitch::isStandaloneRibEnabled() const {
   return getFlags() & SwitchFlags::ENABLE_STANDALONE_RIB;
 }
-
 template <typename AddressT>
 std::shared_ptr<Route<AddressT>> SwSwitch::longestMatch(
     std::shared_ptr<SwitchState> state,
     const AddressT& address,
     RouterID vrf) {
-  if (isStandaloneRibEnabled()) {
-    auto fibContainer = state->getFibs()->getFibContainer(vrf);
-
-    return fibContainer->getFib<AddressT>()->longestMatch(address);
-  } else {
-    auto routeTable = state->getRouteTables()->getRouteTable(vrf);
-
-    return routeTable->getRib<AddressT>()->longestMatch(address);
-  }
+  return findLongestMatchRoute(isStandaloneRibEnabled(), vrf, address, state);
 }
 
 template std::shared_ptr<Route<folly::IPAddressV4>> SwSwitch::longestMatch(
