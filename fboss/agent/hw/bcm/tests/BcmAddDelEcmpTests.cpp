@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -104,16 +105,20 @@ class BcmAddDelEcmpTest : public BcmTest {
             getProgrammedState()->getRouteTables()->getRouteTable(kRid);
         bool deleted = false;
         if (network.first.isV6()) {
-          auto rib = routeTable->getRibV6();
-          if (rib->routes()->getRouteIf(
-                  RoutePrefixV6{network.first.asV6(), network.second})) {
+          if (findRoute<folly::IPAddressV6>(
+                  getHwSwitchEnsemble()->isStandaloneRibEnabled(),
+                  kRid,
+                  network,
+                  getProgrammedState())) {
             delRoute(network);
             deleted = true;
           }
         } else {
-          auto rib = routeTable->getRibV4();
-          if (rib->routes()->getRouteIf(
-                  RoutePrefixV4{network.first.asV4(), network.second})) {
+          if (findRoute<folly::IPAddressV4>(
+                  getHwSwitchEnsemble()->isStandaloneRibEnabled(),
+                  kRid,
+                  network,
+                  getProgrammedState())) {
             delRoute(network);
             deleted = true;
           }

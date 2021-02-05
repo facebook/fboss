@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
 
 #include "fboss/agent/ApplyThriftConfig.h"
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/bcm/BcmEcmpUtils.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
@@ -79,8 +80,11 @@ void BcmEcmpTest::programRouteWithUnresolvedNhops() {
 }
 
 const BcmMultiPathNextHop* BcmEcmpTest::getBcmMultiPathNextHop() const {
-  auto routeTable = getProgrammedState()->getRouteTables()->getRouteTable(kRid);
-  auto resolvedRoute = routeTable->getRibV6()->exactMatch(kDefaultRoute);
+  auto resolvedRoute = findRoute<folly::IPAddressV6>(
+      getHwSwitchEnsemble()->isStandaloneRibEnabled(),
+      kRid,
+      kDefaultRoutePrefix,
+      getProgrammedState());
   const auto multiPathTable = getHwSwitch()->getMultiPathNextHopTable();
   RouteNextHopSet nhops;
   std::unordered_map<IPAddress, NextHopWeight> ws;
