@@ -19,7 +19,7 @@ class MirrorTest : public ::testing::Test {
   void SetUp() override {
     config_ = testConfigA();
     platform_ = createMockPlatform();
-    state_ = testState(config_);
+    state_ = testStateA();
   }
 
   void configureAcl(const std::string& name, uint16_t dstL4Port = 1234) {

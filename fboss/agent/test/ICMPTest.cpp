@@ -587,8 +587,7 @@ TEST(ICMPTest, PacketTooBigV6) {
    */
   config.interfaces_ref()[0].mtu_ref() = 9000;
   config.interfaces_ref()[1].mtu_ref() = 1500;
-  auto state = testState(config);
-  auto handle = createTestHandle(state);
+  auto handle = createTestHandle(&config);
   auto sw = handle->getSw();
 
   /* ICMPv6 exchange on vlan 1 */

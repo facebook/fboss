@@ -173,10 +173,6 @@ std::shared_ptr<SwitchState> testStateAWithPortsUp();
 std::shared_ptr<SwitchState> testStateAWithLookupClasses();
 
 /*
- * Test may want to tweak default configuration
- */
-std::shared_ptr<SwitchState> testState(cfg::SwitchConfig config);
-/*
  * Bring all ports up for a given input state
  */
 std::shared_ptr<SwitchState> bringAllPortsUp(

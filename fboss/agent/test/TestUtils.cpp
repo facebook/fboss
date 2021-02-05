@@ -297,61 +297,6 @@ void waitForRibUpdates(SwSwitch* sw) {
   }
 }
 
-shared_ptr<SwitchState> testState(cfg::SwitchConfig cfg) {
-  auto state = make_shared<SwitchState>();
-
-  for (auto cfgVlan : *cfg.vlans_ref()) {
-    auto vlan =
-        make_shared<Vlan>(VlanID(*cfgVlan.id_ref()), *cfgVlan.name_ref());
-    state->addVlan(vlan);
-  }
-
-  for (auto cfgVlanPort : *cfg.vlanPorts_ref()) {
-    state->registerPort(
-        PortID(*cfgVlanPort.logicalPort_ref()),
-        folly::to<string>("port", *cfgVlanPort.logicalPort_ref()));
-    auto vlan = state->getVlans()->getVlanIf(VlanID(*cfgVlanPort.vlanID_ref()));
-    if (vlan) {
-      vlan->addPort(PortID(*cfgVlanPort.logicalPort_ref()), false);
-    }
-  }
-
-  for (auto cfgInterface : *cfg.interfaces_ref()) {
-    auto interface = make_shared<Interface>(
-        InterfaceID(*cfgInterface.intfID_ref()),
-        RouterID(0), /* TODO - vrf is 0 */
-        VlanID(*cfgInterface.vlanID_ref()),
-        cfgInterface.name_ref().value_or({}),
-        folly::MacAddress(cfgInterface.mac_ref().value_or({})),
-        cfgInterface.mtu_ref().value_or({}),
-        false, /* is virtual */
-        false /* is state_sync disabled */
-    );
-
-    Interface::Addresses addrs;
-    for (auto cfgIpAddress : *cfgInterface.ipAddresses_ref()) {
-      /** TODO - fill IPs **/
-      std::vector<std::string> splitVec;
-      folly::split("/", cfgIpAddress, splitVec);
-      addrs.emplace(IPAddress(splitVec[0]), folly::to<uint8_t>(splitVec[1]));
-    }
-    interface->setAddresses(addrs);
-
-    state->addIntf(interface);
-
-    auto vlan =
-        state->getVlans()->getVlanIf(VlanID(*cfgInterface.vlanID_ref()));
-    if (vlan) {
-      vlan->setInterfaceID(interface->getID());
-    }
-  }
-  RouteUpdater routeUpdater(state->getRouteTables());
-  routeUpdater.addInterfaceAndLinkLocalRoutes(state->getInterfaces());
-
-  state->resetRouteTables(routeUpdater.updateDone());
-  return state;
-}
-
 shared_ptr<SwitchState> testStateA() {
   // Setup a default state object
   auto state = make_shared<SwitchState>();
