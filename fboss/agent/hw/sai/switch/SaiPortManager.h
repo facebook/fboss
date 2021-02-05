@@ -14,8 +14,10 @@
 #include "fboss/agent/hw/sai/api/PortApi.h"
 #include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
+#include "fboss/agent/hw/sai/switch/SaiMirrorManager.h"
 #include "fboss/agent/hw/sai/switch/SaiQosMapManager.h"
 #include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSamplePacketManager.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -35,12 +37,41 @@ class QosPolicy;
 using SaiPort = SaiObjectWithCounters<SaiPortTraits>;
 using SaiPortSerdes = SaiObject<SaiPortSerdesTraits>;
 
+/*
+ * Cache port mirror data from sw switch
+ */
+struct SaiPortMirrorInfo {
+  std::optional<std::string> ingressMirror;
+  std::optional<std::string> egressMirror;
+  bool samplingMirror;
+  SaiPortMirrorInfo() {}
+  SaiPortMirrorInfo(
+      std::optional<std::string> ingressMirror,
+      std::optional<std::string> egressMirror,
+      bool samplingMirror)
+      : ingressMirror(ingressMirror),
+        egressMirror(egressMirror),
+        samplingMirror(samplingMirror) {}
+  std::optional<std::string> getIngressMirror() {
+    return ingressMirror;
+  }
+  std::optional<std::string> getEgressMirror() {
+    return egressMirror;
+  }
+  bool isMirrorSampled() {
+    return samplingMirror;
+  }
+};
+
 struct SaiPortHandle {
   std::shared_ptr<SaiPort> port;
   std::shared_ptr<SaiPortSerdes> serdes;
   std::shared_ptr<SaiBridgePort> bridgePort;
   std::vector<SaiQueueHandle*> configuredQueues;
+  std::shared_ptr<SaiSamplePacket> ingressSamplePacket;
+  std::shared_ptr<SaiSamplePacket> egressSamplePacket;
   SaiQueueHandles queues;
+  SaiPortMirrorInfo mirrorInfo;
 };
 
 class SaiPortManager {
