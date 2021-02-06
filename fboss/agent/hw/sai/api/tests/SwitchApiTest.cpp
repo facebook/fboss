@@ -450,3 +450,140 @@ TEST_F(SwitchApiTest, setCounterRefreshInterval) {
           switchId, SaiSwitchTraits::Attributes::CounterRefreshInterval()),
       20);
 }
+
+TEST_F(SwitchApiTest, testSetFirmwareFile) {
+  SaiSwitchTraits::Attributes::FirmwarePathname fwPath =
+      std::vector<int8_t>{'f', 'i', 'l', 'e'};
+  switchApi->setAttribute(switchId, fwPath);
+  auto fwPathGot = switchApi->getAttribute(
+      switchId, SaiSwitchTraits::Attributes::FirmwarePathname{});
+
+  EXPECT_EQ(fwPathGot.size(), 4);
+  EXPECT_EQ(fwPathGot[0], 'f');
+  EXPECT_EQ(fwPathGot[1], 'i');
+  EXPECT_EQ(fwPathGot[2], 'l');
+  EXPECT_EQ(fwPathGot[3], 'e');
+}
+
+TEST_F(SwitchApiTest, testFwLoadMethod) {
+  SaiSwitchTraits::Attributes::FirmwareLoadMethod method{
+      SAI_SWITCH_FIRMWARE_LOAD_METHOD_INTERNAL};
+  switchApi->setAttribute(switchId, method);
+
+  auto gotMethod = switchApi->getAttribute(
+      switchId, SaiSwitchTraits::Attributes::FirmwareLoadMethod{});
+  EXPECT_EQ(method, gotMethod);
+}
+
+TEST_F(SwitchApiTest, testFwLoadType) {
+  SaiSwitchTraits::Attributes::FirmwareLoadType loadType{
+      SAI_SWITCH_FIRMWARE_LOAD_TYPE_AUTO};
+  switchApi->setAttribute(switchId, loadType);
+
+  auto gotLoadType = switchApi->getAttribute(
+      switchId, SaiSwitchTraits::Attributes::FirmwareLoadType{});
+  EXPECT_EQ(loadType, gotLoadType);
+}
+
+TEST_F(SwitchApiTest, testAccessBus) {
+  SaiSwitchTraits::Attributes::HardwareAccessBus bus{
+      SAI_SWITCH_HARDWARE_ACCESS_BUS_MDIO};
+  switchApi->setAttribute(switchId, bus);
+
+  auto gotBus = switchApi->getAttribute(
+      switchId, SaiSwitchTraits::Attributes::HardwareAccessBus{});
+  EXPECT_EQ(bus, gotBus);
+}
+
+TEST_F(SwitchApiTest, testPlatformContext) {
+  SaiSwitchTraits::Attributes::PlatformContext context{0x1122334455667788};
+  switchApi->setAttribute(switchId, context);
+
+  auto gotContext = switchApi->getAttribute(
+      switchId, SaiSwitchTraits::Attributes::PlatformContext{});
+  EXPECT_EQ(context, gotContext);
+}
+
+TEST_F(SwitchApiTest, testProfileId) {
+  SaiSwitchTraits::Attributes::SwitchProfileId prof{1};
+  switchApi->setAttribute(switchId, prof);
+
+  auto gotProf = switchApi->getAttribute(
+      switchId, SaiSwitchTraits::Attributes::SwitchProfileId{});
+  EXPECT_EQ(prof, gotProf);
+}
+
+TEST_F(SwitchApiTest, testFwStatus) {
+  auto fwStatus = switchApi->getAttribute(
+      switchId, SaiSwitchTraits::Attributes::FirmwareStatus{});
+  EXPECT_EQ(fwStatus, true);
+}
+
+TEST_F(SwitchApiTest, testFwVersion) {
+  auto fwMajor = switchApi->getAttribute(
+      switchId, SaiSwitchTraits::Attributes::FirmwareMajorVersion{});
+  EXPECT_EQ(fwMajor, 0);
+
+  auto fwMinor = switchApi->getAttribute(
+      switchId, SaiSwitchTraits::Attributes::FirmwareMinorVersion{});
+  EXPECT_EQ(fwMinor, 0);
+}
+
+TEST_F(SwitchApiTest, testSwitchId) {
+  SaiSwitchTraits::Attributes::SwitchId swId{1};
+  switchApi->setAttribute(switchId, swId);
+
+  auto gotId = switchApi->getAttribute(
+      switchId, SaiSwitchTraits::Attributes::SwitchId{});
+  EXPECT_EQ(swId, gotId);
+}
+
+TEST_F(SwitchApiTest, testMaxSysCores) {
+  SaiSwitchTraits::Attributes::MaxSystemCores sysCores{1};
+  switchApi->setAttribute(switchId, sysCores);
+
+  auto gotCores = switchApi->getAttribute(
+      switchId, SaiSwitchTraits::Attributes::MaxSystemCores{});
+  EXPECT_EQ(sysCores, gotCores);
+}
+
+TEST_F(SwitchApiTest, testSysPortCfgList) {
+  SaiSwitchTraits::Attributes::SysPortConfigList cfgList =
+      std::vector<sai_object_id_t>{1, 2, 3, 4};
+  switchApi->setAttribute(switchId, cfgList);
+  auto gotList = switchApi->getAttribute(
+      switchId, SaiSwitchTraits::Attributes::SysPortConfigList{});
+
+  EXPECT_EQ(gotList.size(), 4);
+  EXPECT_EQ(gotList[0], 1);
+  EXPECT_EQ(gotList[1], 2);
+  EXPECT_EQ(gotList[2], 3);
+  EXPECT_EQ(gotList[3], 4);
+}
+
+TEST_F(SwitchApiTest, testSwitchType) {
+  SaiSwitchTraits::Attributes::SwitchType swType{1};
+  switchApi->setAttribute(switchId, swType);
+
+  auto gotType = switchApi->getAttribute(
+      switchId, SaiSwitchTraits::Attributes::SwitchType{});
+  EXPECT_EQ(swType, gotType);
+}
+
+TEST_F(SwitchApiTest, testReadFn) {
+  SaiSwitchTraits::Attributes::RegisterReadFn readFunc{0};
+  switchApi->setAttribute(switchId, readFunc);
+
+  auto gotFn = switchApi->getAttribute(
+      switchId, SaiSwitchTraits::Attributes::RegisterReadFn{});
+  EXPECT_EQ(readFunc, gotFn);
+}
+
+TEST_F(SwitchApiTest, testWriteFn) {
+  SaiSwitchTraits::Attributes::RegisterWriteFn writeFunc{0};
+  switchApi->setAttribute(switchId, writeFunc);
+
+  auto gotFn = switchApi->getAttribute(
+      switchId, SaiSwitchTraits::Attributes::RegisterWriteFn{});
+  EXPECT_EQ(writeFunc, gotFn);
+}
