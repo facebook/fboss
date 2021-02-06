@@ -195,7 +195,86 @@ struct SaiSwitchTraits {
         SAI_SWITCH_ATTR_ECN_ECT_THRESHOLD_ENABLE,
         bool,
         SaiBoolDefaultFalse>;
-
+    using FirmwarePathname = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_FIRMWARE_PATH_NAME,
+        std::vector<sai_int8_t>,
+        SaiS8ListDefault>;
+    using FirmwareLoadMethod = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_FIRMWARE_LOAD_METHOD,
+        int32_t,
+        SaiIntDefault<int32_t>>;
+    using FirmwareLoadType = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_FIRMWARE_LOAD_TYPE,
+        int32_t,
+        SaiIntDefault<int32_t>>;
+    using HardwareAccessBus = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_HARDWARE_ACCESS_BUS,
+        int32_t,
+        SaiIntDefault<int32_t>>;
+    using PlatformContext = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_PLATFROM_CONTEXT,
+        sai_uint64_t,
+        SaiIntDefault<sai_uint64_t>>;
+    using SwitchProfileId = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_SWITCH_PROFILE_ID,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
+    using FirmwareStatus = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_FIRMWARE_STATUS,
+        bool,
+        SaiBoolDefaultTrue>;
+    using FirmwareMajorVersion = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_FIRMWARE_MAJOR_VERSION,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
+    using FirmwareMinorVersion = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_FIRMWARE_MINOR_VERSION,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
+    using PortConnectorList = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_PORT_CONNECTOR_LIST,
+        std::vector<sai_object_id_t>,
+        SaiObjectIdListDefault>;
+    using SwitchId = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_SWITCH_ID,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
+    using MaxSystemCores = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_MAX_SYSTEM_CORES,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
+    using SysPortConfigList = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_SYSTEM_PORT_CONFIG_LIST,
+        std::vector<sai_object_id_t>,
+        SaiObjectIdListDefault>;
+    using SwitchType = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_TYPE,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
+    using RegisterReadFn = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_REGISTER_READ,
+        sai_pointer_t,
+        SaiPointerDefault>;
+    using RegisterWriteFn = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_REGISTER_WRITE,
+        sai_pointer_t,
+        SaiPointerDefault>;
     /*
      * Set the default value to 1 since we read the stats only
      * from sw cache.
@@ -253,7 +332,19 @@ struct SaiSwitchTraits {
       std::optional<Attributes::AclFieldList>,
       std::optional<Attributes::TamObject>,
       std::optional<Attributes::UseEcnThresholds>,
-      std::optional<Attributes::CounterRefreshInterval>>;
+      std::optional<Attributes::CounterRefreshInterval>,
+      std::optional<Attributes::FirmwarePathname>,
+      std::optional<Attributes::FirmwareLoadMethod>,
+      std::optional<Attributes::FirmwareLoadType>,
+      std::optional<Attributes::HardwareAccessBus>,
+      std::optional<Attributes::PlatformContext>,
+      std::optional<Attributes::SwitchProfileId>,
+      std::optional<Attributes::SwitchId>,
+      std::optional<Attributes::MaxSystemCores>,
+      std::optional<Attributes::SysPortConfigList>,
+      std::optional<Attributes::SwitchType>,
+      std::optional<Attributes::RegisterReadFn>,
+      std::optional<Attributes::RegisterWriteFn>>;
 };
 
 SAI_ATTRIBUTE_NAME(Switch, InitSwitch)
@@ -309,6 +400,23 @@ SAI_ATTRIBUTE_NAME(Switch, TamObject)
 SAI_ATTRIBUTE_NAME(Switch, UseEcnThresholds)
 SAI_ATTRIBUTE_NAME(Switch, EgressPoolAvaialableSize)
 SAI_ATTRIBUTE_NAME(Switch, CounterRefreshInterval)
+
+SAI_ATTRIBUTE_NAME(Switch, FirmwarePathname)
+SAI_ATTRIBUTE_NAME(Switch, FirmwareLoadMethod)
+SAI_ATTRIBUTE_NAME(Switch, FirmwareLoadType)
+SAI_ATTRIBUTE_NAME(Switch, HardwareAccessBus)
+SAI_ATTRIBUTE_NAME(Switch, PlatformContext)
+SAI_ATTRIBUTE_NAME(Switch, SwitchProfileId)
+SAI_ATTRIBUTE_NAME(Switch, FirmwareStatus)
+SAI_ATTRIBUTE_NAME(Switch, FirmwareMajorVersion)
+SAI_ATTRIBUTE_NAME(Switch, FirmwareMinorVersion)
+SAI_ATTRIBUTE_NAME(Switch, PortConnectorList)
+SAI_ATTRIBUTE_NAME(Switch, SwitchId)
+SAI_ATTRIBUTE_NAME(Switch, MaxSystemCores)
+SAI_ATTRIBUTE_NAME(Switch, SysPortConfigList)
+SAI_ATTRIBUTE_NAME(Switch, SwitchType)
+SAI_ATTRIBUTE_NAME(Switch, RegisterReadFn)
+SAI_ATTRIBUTE_NAME(Switch, RegisterWriteFn)
 
 class SwitchApi : public SaiApi<SwitchApi> {
  public:

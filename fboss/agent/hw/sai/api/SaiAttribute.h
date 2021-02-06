@@ -140,6 +140,7 @@ DEFINE_extract(sai_int8_t, s8);
 DEFINE_extract(sai_int16_t, s16);
 DEFINE_extract(sai_int32_t, s32);
 DEFINE_extract(sai_int64_t, s64);
+DEFINE_extract(sai_pointer_t, ptr);
 DEFINE_extract(sai_u32_range_t, u32range);
 DEFINE_extract(sai_s32_range_t, s32range);
 DEFINE_extract(folly::MacAddress, mac);

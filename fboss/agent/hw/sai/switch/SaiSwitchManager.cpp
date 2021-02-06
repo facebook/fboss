@@ -104,8 +104,8 @@ SaiSwitchTraits::CreateAttributes getSwitchAttributes(
 
   return {
       initSwitch,
-      hwInfo,
-      srcMac,
+      hwInfo, // hardware info
+      srcMac, // source mac
       std::nullopt, // shell
       std::nullopt, // ecmp hash v4
       std::nullopt, // ecmp hash v6
@@ -121,7 +121,19 @@ SaiSwitchTraits::CreateAttributes getSwitchAttributes(
       aclFieldList,
       std::nullopt, // tam object list
       useEcnThresholds,
-      std::nullopt // counter refresh interval
+      std::nullopt, // counter refresh interval
+      std::nullopt, // Firmware path name
+      std::nullopt, // Firmware load method
+      std::nullopt, // Firmware load type
+      std::nullopt, // Hardware access bus
+      std::nullopt, // Platform context
+      std::nullopt, // Switch profile id
+      std::nullopt, // Switch id
+      std::nullopt, // Max system cores
+      std::nullopt, // System port config list
+      std::nullopt, // Switch type
+      std::nullopt, // Read function
+      std::nullopt, // Write function
   };
 }
 

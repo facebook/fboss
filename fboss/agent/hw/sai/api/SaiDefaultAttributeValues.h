@@ -62,7 +62,14 @@ struct SaiListDefault {
   }
 };
 
+struct SaiPointerDefault {
+  sai_pointer_t operator()() const {
+    return SAI_NULL_OBJECT_ID;
+  }
+};
+
 using SaiObjectIdListDefault = SaiListDefault<sai_object_list_t>;
 using SaiU32ListDefault = SaiListDefault<sai_u32_list_t>;
+using SaiS8ListDefault = SaiListDefault<sai_s8_list_t>;
 
 } // namespace facebook::fboss
