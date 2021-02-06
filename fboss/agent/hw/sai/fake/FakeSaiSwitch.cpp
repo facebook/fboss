@@ -200,6 +200,46 @@ sai_status_t set_switch_attribute_fn(
     case SAI_SWITCH_ATTR_COUNTER_REFRESH_INTERVAL:
       sw.setCounterRefreshInterval(attr->value.u32);
       break;
+    case SAI_SWITCH_ATTR_FIRMWARE_PATH_NAME:
+      sw.setFirmwarePathName(std::vector<int8_t>(
+          attr->value.s8list.list,
+          attr->value.s8list.list + attr->value.s8list.count));
+      break;
+    case SAI_SWITCH_ATTR_FIRMWARE_LOAD_METHOD:
+      sw.setFirmwareLoadMethod(attr->value.s32);
+      break;
+    case SAI_SWITCH_ATTR_FIRMWARE_LOAD_TYPE:
+      sw.setFirmwareLoadType(attr->value.s32);
+      break;
+    case SAI_SWITCH_ATTR_HARDWARE_ACCESS_BUS:
+      sw.setHardwareAccessBus(attr->value.s32);
+      break;
+    case SAI_SWITCH_ATTR_PLATFROM_CONTEXT:
+      sw.setPlatformContext(attr->value.u64);
+      break;
+    case SAI_SWITCH_ATTR_SWITCH_PROFILE_ID:
+      sw.setProfileId(attr->value.u32);
+      break;
+    case SAI_SWITCH_ATTR_SWITCH_ID:
+      sw.setSwitchId(attr->value.u32);
+      break;
+    case SAI_SWITCH_ATTR_MAX_SYSTEM_CORES:
+      sw.setMaxSystemCores(attr->value.u32);
+      break;
+    case SAI_SWITCH_ATTR_SYSTEM_PORT_CONFIG_LIST:
+      sw.setSysPortConfigList(std::vector<sai_object_id_t>(
+          attr->value.objlist.list,
+          attr->value.objlist.list + attr->value.objlist.count));
+      break;
+    case SAI_SWITCH_ATTR_TYPE:
+      sw.setSwitchType(attr->value.u32);
+      break;
+    case SAI_SWITCH_ATTR_REGISTER_READ:
+      sw.setReadFn(attr->value.ptr);
+      break;
+    case SAI_SWITCH_ATTR_REGISTER_WRITE:
+      sw.setWriteFn(attr->value.ptr);
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -248,6 +288,7 @@ sai_status_t get_switch_attribute_fn(
       case SAI_SWITCH_ATTR_PORT_NUMBER:
         attr[i].value.u32 = fs->portManager.map().size();
         break;
+      case SAI_SWITCH_ATTR_PORT_CONNECTOR_LIST:
       case SAI_SWITCH_ATTR_PORT_LIST: {
         if (fs->portManager.map().size() > attr[i].value.objlist.count) {
           attr[i].value.objlist.count = fs->portManager.map().size();
@@ -364,7 +405,51 @@ sai_status_t get_switch_attribute_fn(
       case SAI_SWITCH_ATTR_COUNTER_REFRESH_INTERVAL:
         attr[i].value.u32 = sw.getCounterRefreshInterval();
         break;
-
+      case SAI_SWITCH_ATTR_FIRMWARE_PATH_NAME:
+        attr[i].value.s8list.count = sw.firmwarePath().size();
+        attr[i].value.s8list.list = sw.firmwarePathData();
+        break;
+      case SAI_SWITCH_ATTR_FIRMWARE_LOAD_METHOD:
+        attr[i].value.s32 = sw.firmwareLoadMethod();
+        break;
+      case SAI_SWITCH_ATTR_FIRMWARE_LOAD_TYPE:
+        attr[i].value.s32 = sw.firmwareLoadType();
+        break;
+      case SAI_SWITCH_ATTR_HARDWARE_ACCESS_BUS:
+        attr[i].value.s32 = sw.hardwareAccessBus();
+        break;
+      case SAI_SWITCH_ATTR_PLATFROM_CONTEXT:
+        attr[i].value.u64 = sw.platformContext();
+        break;
+      case SAI_SWITCH_ATTR_SWITCH_PROFILE_ID:
+        attr[i].value.u32 = sw.profileId();
+        break;
+      case SAI_SWITCH_ATTR_FIRMWARE_STATUS:
+        attr[i].value.booldata = true;
+        break;
+      case SAI_SWITCH_ATTR_FIRMWARE_MAJOR_VERSION:
+      case SAI_SWITCH_ATTR_FIRMWARE_MINOR_VERSION:
+        attr[i].value.u32 = 0;
+        break;
+      case SAI_SWITCH_ATTR_SWITCH_ID:
+        attr[i].value.u32 = sw.switchId();
+        break;
+      case SAI_SWITCH_ATTR_MAX_SYSTEM_CORES:
+        attr[i].value.u32 = sw.maxSystemCores();
+        break;
+      case SAI_SWITCH_ATTR_SYSTEM_PORT_CONFIG_LIST:
+        attr[i].value.objlist.count = sw.sysPortConfigList().size();
+        attr[i].value.objlist.list = sw.sysPortConfigListData();
+        break;
+      case SAI_SWITCH_ATTR_TYPE:
+        attr[i].value.u32 = sw.switchType();
+        break;
+      case SAI_SWITCH_ATTR_REGISTER_READ:
+        attr[i].value.ptr = sw.readFn();
+        break;
+      case SAI_SWITCH_ATTR_REGISTER_WRITE:
+        attr[i].value.ptr = sw.writeFn();
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }

@@ -64,6 +64,42 @@ class FakeSwitch {
   void setRestartWarm(bool warm) {
     restartWarm_ = warm;
   }
+  void setFirmwarePathName(std::vector<int8_t> fwPath) {
+    firmwarePathName_ = std::move(fwPath);
+  }
+  void setFirmwareLoadMethod(int32_t fwLoadMethod) {
+    firmwareLoadMethod_ = fwLoadMethod;
+  }
+  void setFirmwareLoadType(int32_t firmwareLoadType) {
+    firmwareLoadType_ = firmwareLoadType;
+  }
+  void setHardwareAccessBus(int32_t hardwareAccessBus) {
+    hardwareAccessBus_ = hardwareAccessBus;
+  }
+  void setPlatformContext(sai_uint64_t platformContext) {
+    platformContext_ = platformContext;
+  }
+  void setProfileId(sai_uint32_t profileId) {
+    profileId_ = profileId;
+  }
+  void setSwitchId(sai_uint32_t switchId) {
+    switchId_ = switchId;
+  }
+  void setMaxSystemCores(sai_uint32_t maxSystemCores) {
+    maxSystemCores_ = maxSystemCores;
+  }
+  void setSysPortConfigList(std::vector<sai_object_id_t> sysPortConfigList) {
+    sysPortConfigList_ = std::move(sysPortConfigList);
+  }
+  void setSwitchType(sai_uint32_t switchType) {
+    switchType_ = switchType;
+  }
+  void setReadFn(sai_pointer_t readFn) {
+    readFn_ = readFn;
+  }
+  void setWriteFn(sai_pointer_t writeFn) {
+    writeFn_ = writeFn;
+  }
   bool isShellEnabled() const {
     return shellEnabled_;
   }
@@ -93,6 +129,48 @@ class FakeSwitch {
   }
   bool restartWarm() const {
     return restartWarm_;
+  }
+  const std::vector<int8_t>& firmwarePath() const {
+    return firmwarePathName_;
+  }
+  int8_t* firmwarePathData() {
+    return firmwarePathName_.data();
+  }
+  int32_t firmwareLoadMethod() {
+    return firmwareLoadMethod_;
+  }
+  int32_t firmwareLoadType() {
+    return firmwareLoadType_;
+  }
+  int32_t hardwareAccessBus() {
+    return hardwareAccessBus_;
+  }
+  sai_uint64_t platformContext() {
+    return platformContext_;
+  }
+  sai_uint32_t profileId() {
+    return profileId_;
+  }
+  int32_t switchId() {
+    return switchId_;
+  }
+  int32_t maxSystemCores() {
+    return maxSystemCores_;
+  }
+  const std::vector<sai_object_id_t>& sysPortConfigList() const {
+    return sysPortConfigList_;
+  }
+  sai_object_id_t* sysPortConfigListData() {
+    return sysPortConfigList_.data();
+  }
+  int32_t switchType() {
+    return switchType_;
+  }
+  sai_pointer_t readFn() {
+    return readFn_;
+  }
+  sai_pointer_t writeFn() {
+    return writeFn_;
   }
   void setDscpToTc(sai_object_id_t oid) {
     qosMapDscpToTc_ = oid;
@@ -160,6 +238,18 @@ class FakeSwitch {
   };
   std::map<int, FakeSwitchLedState> ledState_{{0, {}}, {1, {}}};
   sai_uint32_t counterRefreshInterval_{1};
+  std::vector<int8_t> firmwarePathName_;
+  int32_t firmwareLoadMethod_;
+  int32_t firmwareLoadType_;
+  int32_t hardwareAccessBus_;
+  sai_uint64_t platformContext_;
+  sai_uint32_t profileId_;
+  sai_uint32_t switchId_;
+  sai_uint32_t maxSystemCores_;
+  std::vector<sai_object_id_t> sysPortConfigList_;
+  sai_uint32_t switchType_;
+  sai_pointer_t readFn_;
+  sai_pointer_t writeFn_;
 };
 
 using FakeSwitchManager = FakeManager<sai_object_id_t, FakeSwitch>;
