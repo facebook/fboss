@@ -180,6 +180,12 @@ class SaiPortManager {
   void removeMirror(const std::shared_ptr<Port>& swPort);
   void addSamplePacket(const std::shared_ptr<Port>& swPort);
   void removeSamplePacket(const std::shared_ptr<Port>& swPort);
+  void changeMirror(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
+  void changeSamplePacket(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
   ConcurrentIndices* concurrentIndices_;

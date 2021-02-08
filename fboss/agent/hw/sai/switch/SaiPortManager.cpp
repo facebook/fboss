@@ -446,6 +446,116 @@ void SaiPortManager::changeQueue(
   }
 }
 
+void SaiPortManager::changeSamplePacket(
+    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort) {
+  if (newPort->getSflowIngressRate() != oldPort->getSflowIngressRate()) {
+    if (newPort->getSflowIngressRate() != 0) {
+      programSampling(
+          newPort->getID(),
+          SamplePacketDirection::INGRESS,
+          SamplePacketAction::START,
+          newPort->getSflowIngressRate(),
+          newPort->getSampleDestination());
+    } else {
+      programSampling(
+          newPort->getID(),
+          SamplePacketDirection::INGRESS,
+          SamplePacketAction::STOP,
+          newPort->getSflowIngressRate(),
+          newPort->getSampleDestination());
+    }
+  }
+
+  if (newPort->getSflowEgressRate() != oldPort->getSflowEgressRate()) {
+    if (newPort->getSflowEgressRate() != 0) {
+      programSampling(
+          newPort->getID(),
+          SamplePacketDirection::EGRESS,
+          SamplePacketAction::START,
+          newPort->getSflowEgressRate(),
+          newPort->getSampleDestination());
+    } else {
+      programSampling(
+          newPort->getID(),
+          SamplePacketDirection::EGRESS,
+          SamplePacketAction::STOP,
+          newPort->getSflowEgressRate(),
+          newPort->getSampleDestination());
+    }
+  }
+}
+
+void SaiPortManager::changeMirror(
+    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort) {
+  bool samplingMirror = newPort->getSampleDestination().has_value() &&
+      newPort->getSampleDestination().value() == cfg::SampleDestination::MIRROR;
+
+  /*
+   * If there is any update to the mirror session on a
+   * port, detach the current  the mirror session from the
+   * port and re-attach the new mirror session if valid
+   */
+  programMirror(
+      newPort->getID(),
+      MirrorDirection::INGRESS,
+      MirrorAction::STOP,
+      oldPort->getIngressMirror());
+  programSamplingMirror(
+      newPort->getID(),
+      MirrorDirection::INGRESS,
+      MirrorAction::STOP,
+      oldPort->getIngressMirror());
+
+  if (newPort->getIngressMirror().has_value()) {
+    if (samplingMirror) {
+      programSamplingMirror(
+          newPort->getID(),
+          MirrorDirection::INGRESS,
+          MirrorAction::START,
+          newPort->getIngressMirror());
+    } else {
+      programMirror(
+          newPort->getID(),
+          MirrorDirection::INGRESS,
+          MirrorAction::START,
+          newPort->getIngressMirror());
+    }
+  }
+
+  programMirror(
+      newPort->getID(),
+      MirrorDirection::EGRESS,
+      MirrorAction::STOP,
+      oldPort->getIngressMirror());
+  programSamplingMirror(
+      newPort->getID(),
+      MirrorDirection::EGRESS,
+      MirrorAction::STOP,
+      oldPort->getIngressMirror());
+  if (newPort->getEgressMirror().has_value()) {
+    if (samplingMirror) {
+      programSamplingMirror(
+          newPort->getID(),
+          MirrorDirection::EGRESS,
+          MirrorAction::START,
+          newPort->getIngressMirror());
+    } else {
+      programMirror(
+          newPort->getID(),
+          MirrorDirection::EGRESS,
+          MirrorAction::START,
+          newPort->getIngressMirror());
+    }
+  }
+
+  SaiPortHandle* portHandle = getPortHandle(newPort->getID());
+  SaiPortMirrorInfo mirrorInfo{
+      newPort->getIngressMirror(), newPort->getEgressMirror(), samplingMirror};
+  portHandle->mirrorInfo = mirrorInfo;
+}
+
 void SaiPortManager::changePort(
     const std::shared_ptr<Port>& oldPort,
     const std::shared_ptr<Port>& newPort) {
@@ -482,6 +592,9 @@ void SaiPortManager::changePort(
     auto platformPort = platform_->getPort(newPort->getID());
     platformPort->setCurrentProfile(newPort->getProfileID());
   }
+
+  changeSamplePacket(oldPort, newPort);
+  changeMirror(oldPort, newPort);
 
   if (newPort->isEnabled()) {
     if (!oldPort->isEnabled()) {
