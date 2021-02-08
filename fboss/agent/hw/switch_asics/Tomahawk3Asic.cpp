@@ -60,6 +60,8 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DETAILED_L2_UPDATE:
     case HwAsic::Feature::COUNTER_REFRESH_INTERVAL:
     case HwAsic::Feature::BUFFER_POOL:
+    case HwAsic::Feature::SAI_MIRRORING:
+    case HwAsic::Feature::SAI_SAMPLING:
       return false;
   }
   return false;

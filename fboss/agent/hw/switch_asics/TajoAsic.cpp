@@ -64,6 +64,8 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::DETAILED_L2_UPDATE:
     case HwAsic::Feature::TELEMETRY_AND_MONITORING:
     case HwAsic::Feature::WIDE_ECMP:
+    case HwAsic::Feature::SAI_MIRRORING:
+    case HwAsic::Feature::SAI_SAMPLING:
       return false;
   }
   return false;

@@ -60,6 +60,8 @@ class HwAsic {
     COUNTER_REFRESH_INTERVAL,
     TELEMETRY_AND_MONITORING,
     WIDE_ECMP,
+    SAI_MIRRORING,
+    SAI_SAMPLING,
   };
 
   enum class AsicType {
