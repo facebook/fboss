@@ -908,4 +908,62 @@ void SaiPortManager::programMirror(
             << (direction == MirrorDirection::INGRESS ? "ingress" : "egress");
 }
 
+void SaiPortManager::programSamplingMirror(
+    PortID portId,
+    MirrorDirection direction,
+    MirrorAction action,
+    std::optional<std::string> mirrorId) {
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::SAI_MIRRORING)) {
+    return;
+  }
+  auto portHandle = getPortHandle(portId);
+  std::vector<sai_object_id_t> mirrorOidList{};
+  if (action == MirrorAction::START) {
+    auto mirrorHandle =
+        managerTable_->mirrorManager().getMirrorHandle(mirrorId.value());
+    if (!mirrorHandle) {
+      XLOG(DBG) << "Failed to find mirror session: " << mirrorId.value();
+      return;
+    }
+    mirrorOidList.push_back(mirrorHandle->adapterKey());
+  }
+  /*
+   * case 1: Only mirroring:
+   * Sample destination will be empty and no sample object will be created
+   * INGRESS_MIRROR/EGRESS_MIRROR attribute will be set to the mirror OID
+   * and INGRESS_SAMPLE_MIRROR/EGRESS_SAMPLE_MIRROR will be reset to
+   * NULL object ID.
+   *
+   * case 2: Only sampling
+   * When sample destination is CPU, then no mirroring object will be created.
+   * A sample packet object will be created with destination as CPU and the
+   * mirroring attributes on a port will be reset to NULL object ID.
+   *
+   * case 3: Mirroring and sampling
+   * When sample destination is MIRROR, a sample object will be created with
+   * destination as MIRROR. INGRESS_SAMPLE_MIRROR/EGRESS_SAMPLE_MIRROR will be
+   * set with the right mirror OID and INGRESS_MIRROR/EGRESS_MIRROR attribute
+   * will be reset to NULL object ID.
+   *
+   * NOTE: Some vendors do not free the SAI object unless the attributes
+   * are set to NULL OID.
+   */
+
+  if (direction == MirrorDirection::INGRESS) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::IngressSampleMirrorSession{mirrorOidList});
+#endif
+  } else {
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::EgressSampleMirrorSession{mirrorOidList});
+#endif
+  }
+
+  XLOG(DBG) << "Programming sampling mirror: "
+            << " action: " << (action == MirrorAction::START ? "start" : "stop")
+            << " direction: "
+            << (direction == MirrorDirection::INGRESS ? "ingress" : "egress");
+}
 } // namespace facebook::fboss

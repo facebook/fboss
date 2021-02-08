@@ -171,6 +171,11 @@ class SaiPortManager {
       MirrorDirection direction,
       MirrorAction action,
       std::optional<std::string> mirrorId);
+  void programSamplingMirror(
+      PortID portId,
+      MirrorDirection direction,
+      MirrorAction action,
+      std::optional<std::string> mirrorId);
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
   ConcurrentIndices* concurrentIndices_;
