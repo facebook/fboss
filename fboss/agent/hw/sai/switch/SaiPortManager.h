@@ -176,6 +176,8 @@ class SaiPortManager {
       MirrorDirection direction,
       MirrorAction action,
       std::optional<std::string> mirrorId);
+  void addMirror(const std::shared_ptr<Port>& swPort);
+  void addSamplePacket(const std::shared_ptr<Port>& swPort);
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
   ConcurrentIndices* concurrentIndices_;

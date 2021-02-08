@@ -163,6 +163,65 @@ void SaiPortManager::loadPortQueues(SaiPortHandle* portHandle) {
       portHandle->port->adapterKey(), queueSaiIds);
 }
 
+void SaiPortManager::addMirror(const std::shared_ptr<Port>& swPort) {
+  bool samplingMirror = swPort->getSampleDestination().has_value() &&
+      swPort->getSampleDestination() == cfg::SampleDestination::MIRROR;
+  /*
+   * Based on sample destination, configure sflow based mirroring
+   * or regular mirror on port attribute
+   */
+  if (samplingMirror) {
+    if (swPort->getIngressMirror().has_value()) {
+      programSamplingMirror(
+          swPort->getID(),
+          MirrorDirection::INGRESS,
+          MirrorAction::START,
+          swPort->getIngressMirror());
+    }
+    if (swPort->getEgressMirror().has_value()) {
+      programSamplingMirror(
+          swPort->getID(),
+          MirrorDirection::EGRESS,
+          MirrorAction::START,
+          swPort->getEgressMirror());
+    }
+  } else {
+    if (swPort->getIngressMirror().has_value()) {
+      programMirror(
+          swPort->getID(),
+          MirrorDirection::INGRESS,
+          MirrorAction::START,
+          swPort->getIngressMirror());
+    }
+    if (swPort->getEgressMirror().has_value()) {
+      programMirror(
+          swPort->getID(),
+          MirrorDirection::EGRESS,
+          MirrorAction::START,
+          swPort->getEgressMirror());
+    }
+  }
+}
+
+void SaiPortManager::addSamplePacket(const std::shared_ptr<Port>& swPort) {
+  if (swPort->getSflowIngressRate()) {
+    programSampling(
+        swPort->getID(),
+        SamplePacketDirection::INGRESS,
+        SamplePacketAction::START,
+        swPort->getSflowIngressRate(),
+        swPort->getSampleDestination());
+  }
+  if (swPort->getSflowEgressRate()) {
+    programSampling(
+        swPort->getID(),
+        SamplePacketDirection::EGRESS,
+        SamplePacketAction::START,
+        swPort->getSflowEgressRate(),
+        swPort->getSampleDestination());
+  }
+}
+
 PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   SaiPortHandle* portHandle = getPortHandle(swPort->getID());
   if (portHandle) {
@@ -209,6 +268,12 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
         SaiBridgePortTraits::Attributes::FdbLearningMode{
             getFdbLearningMode(l2LearningMode_.value())});
   }
+
+  bool samplingMirror = swPort->getSampleDestination().has_value() &&
+      swPort->getSampleDestination() == cfg::SampleDestination::MIRROR;
+  SaiPortMirrorInfo mirrorInfo{
+      swPort->getIngressMirror(), swPort->getEgressMirror(), samplingMirror};
+  handle->mirrorInfo = mirrorInfo;
   handles_.emplace(swPort->getID(), std::move(handle));
   if (swPort->isEnabled()) {
     portStats_.emplace(
@@ -222,6 +287,10 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
         globalTcToQueueQosMap_->adapterKey(),
         {swPort->getID()});
   }
+
+  addSamplePacket(swPort);
+  addMirror(swPort);
+
   concurrentIndices_->portIds.emplace(saiPort->adapterKey(), swPort->getID());
   concurrentIndices_->portSaiIds.emplace(
       swPort->getID(), saiPort->adapterKey());
@@ -248,6 +317,7 @@ void SaiPortManager::removePort(const std::shared_ptr<Port>& swPort) {
         QosMapSaiId(SAI_NULL_OBJECT_ID),
         {swPort->getID()});
   }
+
   concurrentIndices_->portIds.erase(itr->second->port->adapterKey());
   concurrentIndices_->portSaiIds.erase(swId);
   concurrentIndices_->vlanIds.erase(itr->second->port->adapterKey());
@@ -355,6 +425,7 @@ void SaiPortManager::changePort(
     auto platformPort = platform_->getPort(newPort->getID());
     platformPort->setCurrentProfile(newPort->getProfileID());
   }
+
   if (newPort->isEnabled()) {
     if (!oldPort->isEnabled()) {
       // Port transitioned from disabled to enabled, setup port stats
