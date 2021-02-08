@@ -11,7 +11,8 @@ namespace facebook::fboss {
 
 // CDB command definitions
 static constexpr uint16_t kCdbCommandFirmwareDownloadStart = 0x0101;
-static constexpr uint16_t kCdbCommandFirmwareDownloadImage = 0x0103;
+static constexpr uint16_t kCdbCommandFirmwareDownloadImageLpl = 0x0103;
+static constexpr uint16_t kCdbCommandFirmwareDownloadImageEpl = 0x0104;
 static constexpr uint16_t kCdbCommandFirmwareDownloadComplete = 0x0107;
 static constexpr uint16_t kCdbCommandFirmwareDownloadRun = 0x0109;
 static constexpr uint16_t kCdbCommandFirmwareDownloadCommit = 0x010a;
@@ -24,7 +25,10 @@ static constexpr uint8_t kCdbCommandStatusBusyCmdCaptured = 0x81;
 static constexpr uint8_t kCdbCommandStatusBusyCmdCheck = 0x82;
 static constexpr uint8_t kCdbCommandStatusBusyCmdExec = 0x83;
 
-constexpr int cdbCommandTimeoutUsec = 2000000;
+// All the CDB commands finishes well within 2 seconds but one particular DSP
+// firmware download takes too much time. During this each CDB command takes
+// average 5 seconds to increasing this CDB timeout value to 10 seconds
+constexpr int cdbCommandTimeoutUsec = 10000000;
 constexpr int cdbCommandIntervalUsec = 100000;
 
 // CMIS firmware related register offsets
@@ -34,6 +38,27 @@ constexpr uint8_t kPageSelectReg = 127;
 constexpr uint8_t kCdbCommandMsbReg = 128;
 constexpr uint8_t kCdbCommandLsbReg = 129;
 constexpr uint8_t kCdbRlplLengthReg = 134;
+
+/*
+ * i2cWriteAndContinue
+ * Local function to perform the i2c write to module and continue in case of
+ * error. This is used during firmware upgrade where huge number of i2c
+ * transactions are going on
+ */
+static void i2cWriteAndContinue(
+    TransceiverI2CApi* bus,
+    unsigned int modId,
+    uint8_t i2cAddress,
+    int offset,
+    int length,
+    const uint8_t* buf) {
+  try {
+    bus->moduleWrite(modId, i2cAddress, offset, length, buf);
+  } catch (const std::exception& e) {
+    XLOG(INFO) << "write() raised exception: Sleep for 100ms and continue";
+    usleep(cdbCommandIntervalUsec);
+  }
+}
 
 /*
  * cmisRunCdbCommand
@@ -68,20 +93,10 @@ bool CdbCommandBlock::cmisRunCdbCommand(
   int WRITE_BLOCK_SIZE = 32;
   int numBlock = (len - bufIndex) / WRITE_BLOCK_SIZE;
 
-  auto i2cWriteAndContinue = [&](uint8_t i2cAddress,
-                                 int offset,
-                                 int length,
-                                 const uint8_t* buf) {
-    try {
-      bus->moduleWrite(modId, i2cAddress, offset, length, buf);
-    } catch (const std::exception& e) {
-      XLOG(INFO) << "write() raised exception: Sleep for 100ms and continue";
-      usleep(cdbCommandIntervalUsec);
-    }
-  };
-
   for (int i = 0; i < numBlock; i++) {
     i2cWriteAndContinue(
+        bus,
+        modId,
         TransceiverI2CApi::ADDR_QSFP,
         regOffset,
         WRITE_BLOCK_SIZE,
@@ -94,6 +109,8 @@ bool CdbCommandBlock::cmisRunCdbCommand(
   // Write last chunk
   if (bufIndex < len) {
     i2cWriteAndContinue(
+        bus,
+        modId,
         TransceiverI2CApi::ADDR_QSFP,
         regOffset,
         len - bufIndex,
@@ -104,9 +121,9 @@ bool CdbCommandBlock::cmisRunCdbCommand(
   // command register LSB will trigger the actual command
 
   i2cWriteAndContinue(
-      TransceiverI2CApi::ADDR_QSFP, kCdbCommandMsbReg, 1, &buf[0]);
+      bus, modId, TransceiverI2CApi::ADDR_QSFP, kCdbCommandMsbReg, 1, &buf[0]);
   i2cWriteAndContinue(
-      TransceiverI2CApi::ADDR_QSFP, kCdbCommandLsbReg, 1, &buf[1]);
+      bus, modId, TransceiverI2CApi::ADDR_QSFP, kCdbCommandLsbReg, 1, &buf[1]);
 
   // Special handling for RUN command
   if (this->cdbFields_.cdbCommandCode ==
@@ -217,25 +234,25 @@ void CdbCommandBlock::createCdbCmdFwDownloadStart(
         imageBuf[imageOffset];
   }
 
-  cdbFields_.cdbChecksum = onesComplementSum(cdbFields_.cdbLplLength + 8);
+  cdbFields_.cdbChecksum = onesComplementSum();
 }
 
 /*
- * createCdbCmdFwDownloadImage
+ * createCdbCmdFwDownloadImageLpl
  *
  * This function creates CDB command block for firmware image download. Upto
  * 116 bytes of firmware image is put in the lpl_memory region of this command
  * block. The image offset after reading the given number of bytes is returned
  * from this function.
  */
-void CdbCommandBlock::createCdbCmdFwDownloadImage(
+void CdbCommandBlock::createCdbCmdFwDownloadImageLpl(
     uint8_t startCommandPayloadSize,
     int imageLen,
     const uint8_t* imageBuf,
     int& imageOffset,
     int& imageChunkLen) {
   resetCdbBlock();
-  cdbFields_.cdbCommandCode = htons(kCdbCommandFirmwareDownloadImage);
+  cdbFields_.cdbCommandCode = htons(kCdbCommandFirmwareDownloadImageLpl);
   cdbFields_.cdbEplLength = 0;
 
   imageChunkLen = (imageLen - imageOffset > 116) ? 116 : imageLen - imageOffset;
@@ -247,7 +264,85 @@ void CdbCommandBlock::createCdbCmdFwDownloadImage(
     cdbFields_.cdbLplMemory.cdbFwDnldImageData.image[i] = imageBuf[imageOffset];
   }
 
-  cdbFields_.cdbChecksum = onesComplementSum(cdbFields_.cdbLplLength + 8);
+  cdbFields_.cdbChecksum = onesComplementSum();
+}
+
+/*
+ * createCdbCmdFwDownloadImageEpl
+ *
+ * This function creates CDB command block for firmware image download. This
+ * function assumes that the firmware download will happen through module
+ * EPL memory which is 2048 bytes external SRAM (faster) block.
+ */
+void CdbCommandBlock::createCdbCmdFwDownloadImageEpl(
+    uint8_t startCommandPayloadSize,
+    int imageLen,
+    int& imageOffset,
+    int& imageChunkLen) {
+  resetCdbBlock();
+  cdbFields_.cdbCommandCode = htons(kCdbCommandFirmwareDownloadImageEpl);
+
+  imageChunkLen =
+      (imageLen - imageOffset > 2048) ? 2048 : imageLen - imageOffset;
+  cdbFields_.cdbEplLength = htons(imageChunkLen);
+
+  cdbFields_.cdbLplLength = 4;
+  cdbFields_.cdbLplMemory.cdbFwDnldImageData.address =
+      htonl(imageOffset - startCommandPayloadSize);
+
+  cdbFields_.cdbChecksum = onesComplementSum();
+}
+
+/*
+ * writeEplPayload
+ *
+ * This function writes the image to EPL payload memory which is extrenal to
+ * CDB but used by CDB. This memory needs to be written prior to issuing the
+ * CDB command
+ */
+void CdbCommandBlock::writeEplPayload(
+    TransceiverI2CApi* bus,
+    unsigned int modId,
+    const uint8_t* imageBuf,
+    int& imageOffset,
+    int imageChunkLen) {
+  int WRITE_BLOCK_SIZE = 32;
+  int finalImageOffset = imageOffset + imageChunkLen;
+  uint8_t currPage = 0xa0;
+  int currPageOffset = 128;
+
+  // Set the page as 0xa0
+  i2cWriteAndContinue(
+      bus, modId, TransceiverI2CApi::ADDR_QSFP, kPageSelectReg, 1, &currPage);
+
+  while (imageOffset < finalImageOffset) {
+    // If the cuurent page offset has gone above 256 then move over to the
+    // next page [a0..af]
+    if (currPageOffset >= 256) {
+      currPageOffset = 128;
+      currPage++;
+      i2cWriteAndContinue(
+          bus,
+          modId,
+          TransceiverI2CApi::ADDR_QSFP,
+          kPageSelectReg,
+          1,
+          &currPage);
+    }
+    int i2cChunk = ((finalImageOffset - imageOffset) > WRITE_BLOCK_SIZE)
+        ? WRITE_BLOCK_SIZE
+        : (finalImageOffset - imageOffset);
+    i2cWriteAndContinue(
+        bus,
+        modId,
+        TransceiverI2CApi::ADDR_QSFP,
+        currPageOffset,
+        i2cChunk,
+        &imageBuf[imageOffset]);
+
+    imageOffset += i2cChunk;
+    currPageOffset += i2cChunk;
+  }
 }
 
 /*
@@ -262,7 +357,7 @@ void CdbCommandBlock::createCdbCmdFwDownloadComplete() {
   cdbFields_.cdbEplLength = 0;
 
   cdbFields_.cdbLplLength = 0;
-  cdbFields_.cdbChecksum = onesComplementSum(8);
+  cdbFields_.cdbChecksum = onesComplementSum();
 }
 
 /*
@@ -280,7 +375,7 @@ void CdbCommandBlock::createCdbCmdFwImageRun() {
   // No delay needed before running this ccommand
   cdbFields_.cdbLplMemory.cdbLplFlatMemory[2] = 0;
   cdbFields_.cdbLplMemory.cdbLplFlatMemory[3] = 0;
-  cdbFields_.cdbChecksum = onesComplementSum(cdbFields_.cdbLplLength + 8);
+  cdbFields_.cdbChecksum = onesComplementSum();
 }
 
 /*
@@ -296,7 +391,7 @@ void CdbCommandBlock::createCdbCmdFwCommit() {
   cdbFields_.cdbEplLength = 0;
 
   cdbFields_.cdbLplLength = 0;
-  cdbFields_.cdbChecksum = onesComplementSum(cdbFields_.cdbLplLength + 8);
+  cdbFields_.cdbChecksum = onesComplementSum();
 }
 
 /*
@@ -313,7 +408,7 @@ void CdbCommandBlock::createCdbCmdModuleQuery() {
   cdbFields_.cdbEplLength = 0;
 
   cdbFields_.cdbLplLength = 2;
-  cdbFields_.cdbChecksum = onesComplementSum(cdbFields_.cdbLplLength + 8);
+  cdbFields_.cdbChecksum = onesComplementSum();
 }
 
 /*
@@ -330,7 +425,7 @@ void CdbCommandBlock::createCdbCmdGetFwFeatureInfo() {
   cdbFields_.cdbEplLength = 0;
 
   cdbFields_.cdbLplLength = 0;
-  cdbFields_.cdbChecksum = onesComplementSum(cdbFields_.cdbLplLength + 5);
+  cdbFields_.cdbChecksum = onesComplementSum();
 }
 
 /*
@@ -354,7 +449,7 @@ void CdbCommandBlock::createCdbCmdGeneric(
     cdbFields_.cdbLplMemory.cdbLplFlatMemory[memIndex++] = lplByte;
   }
 
-  cdbFields_.cdbChecksum = onesComplementSum(cdbFields_.cdbLplLength + 8);
+  cdbFields_.cdbChecksum = onesComplementSum();
 }
 
 /*
@@ -374,11 +469,12 @@ uint8_t CdbCommandBlock::getResponseData(uint8_t** pResponse) {
  * required for the CDB command because the whole CDB block is protected by one
  * complement sum
  */
-uint8_t CdbCommandBlock::onesComplementSum(int len) {
+uint8_t CdbCommandBlock::onesComplementSum() {
   uint8_t* buf = (uint8_t*)&cdbFields_;
   uint16_t sum = 0;
   uint8_t result;
   int i;
+  int len = cdbFields_.cdbLplLength + 8;
 
   for (i = 0; i < len; i++) {
     sum += buf[i];

@@ -36,12 +36,23 @@ class CdbCommandBlock {
       int& imageOffset,
       const uint8_t* imageBuf);
   // Create Firmware download image command
-  void createCdbCmdFwDownloadImage(
+  void createCdbCmdFwDownloadImageLpl(
       uint8_t startCommandPayloadSize,
       int imageLen,
       const uint8_t* imageBuf,
       int& imageOffset,
       int& imageChunkLen);
+  void createCdbCmdFwDownloadImageEpl(
+      uint8_t startCommandPayloadSize,
+      int imageLen,
+      int& imageOffset,
+      int& imageChunkLen);
+  void writeEplPayload(
+      TransceiverI2CApi* bus,
+      unsigned int modId,
+      const uint8_t* imageBuf,
+      int& imageOffset,
+      int imageChunkLen);
   // Create Firmware download complete command
   void createCdbCmdFwDownloadComplete();
   // Create Firmware image Run command
@@ -90,7 +101,7 @@ class CdbCommandBlock {
   } cdbFields_;
 
   // Utility function to compute the One's complement sum
-  uint8_t onesComplementSum(int len);
+  uint8_t onesComplementSum();
 
   // Function to reset this data block
   void resetCdbBlock() {

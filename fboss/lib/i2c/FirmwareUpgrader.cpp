@@ -91,6 +91,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   uint8_t startCommandPayloadSize = 0;
   bool status;
   int imageOffset, imageChunkLen;
+  bool eplSupported = false;
 
   XLOG(INFO) << folly::sformat(
       "cmisModuleFirmwareDownload: Mod{:d}: Starting to download the image with length {:d}",
@@ -148,6 +149,15 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
     // Get the firmware header size from CDB
     startCommandPayloadSize =
         commandBlock->cdbFields_.cdbLplMemory.cdbLplFlatMemory[2];
+
+    // Check if EPL memory is supported
+    if (commandBlock->cdbFields_.cdbLplMemory.cdbLplFlatMemory[5] == 0x10 ||
+        commandBlock->cdbFields_.cdbLplMemory.cdbLplFlatMemory[5] == 0x11) {
+      eplSupported = true;
+      XLOG(INFO) << folly::sformat(
+          "cmisModuleFirmwareDownload: Mod{:d} will use EPL memory for firmware download",
+          moduleId_);
+    }
   } else {
     XLOG(INFO) << folly::sformat(
         "cmisModuleFirmwareDownload: Mod{:d}: Could not get result from CDB Firmware Update Feature command",
@@ -206,12 +216,23 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
       imageOffset);
 
   while (imageOffset < imageLen) {
-    commandBlock->createCdbCmdFwDownloadImage(
-        startCommandPayloadSize,
-        imageLen,
-        imageBuf,
-        imageOffset,
-        imageChunkLen);
+    if (!eplSupported) {
+      // Create CDB command block using internal LPL memory
+      commandBlock->createCdbCmdFwDownloadImageLpl(
+          startCommandPayloadSize,
+          imageLen,
+          imageBuf,
+          imageOffset,
+          imageChunkLen);
+    } else {
+      // Create CDB command block assuming external EPL memory
+      commandBlock->createCdbCmdFwDownloadImageEpl(
+          startCommandPayloadSize, imageLen, imageOffset, imageChunkLen);
+
+      // Write the image payload to external EPL before invoking the command
+      commandBlock->writeEplPayload(
+          bus_, moduleId_, imageBuf, imageOffset, imageChunkLen);
+    }
 
     // Run the CDB command
     status = commandBlock->cmisRunCdbCommand(bus_, moduleId_);

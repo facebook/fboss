@@ -141,7 +141,9 @@ struct ModulePartInfo_s modulePartInfo[] = {
   // Finisar 200G module info
   {{'F','T','C','C','1','1','1','2','E','1','P','L','L','-','F','B'}, 64},
   // Innolight 200G module info
-  {{'T','-','F','X','4','F','N','T','-','H','F','B',0x20,0x20,0x20,0x20}, 48}
+  {{'T','-','F','X','4','F','N','T','-','H','F','B',0x20,0x20,0x20,0x20}, 48},
+  // Innolight 400G module info
+  {{'T','-','D','Q','4','C','N','T','-','N','F','B',0x20,0x20,0x20,0x20}, 48}
 };
 constexpr uint8_t kNumModuleInfo = sizeof(modulePartInfo)/sizeof(struct ModulePartInfo_s);
 };
