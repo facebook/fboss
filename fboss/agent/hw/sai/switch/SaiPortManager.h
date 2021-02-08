@@ -166,6 +166,11 @@ class SaiPortManager {
       SamplePacketAction action,
       uint64_t sampleRate,
       std::optional<cfg::SampleDestination> sampleDestination);
+  void programMirror(
+      PortID portId,
+      MirrorDirection direction,
+      MirrorAction action,
+      std::optional<std::string> mirrorId);
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
   ConcurrentIndices* concurrentIndices_;

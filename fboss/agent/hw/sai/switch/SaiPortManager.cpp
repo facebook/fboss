@@ -874,4 +874,38 @@ void SaiPortManager::programSampling(
             << " sample packet oid " << std::hex << samplePacketAdapterKey;
 }
 
+void SaiPortManager::programMirror(
+    PortID portId,
+    MirrorDirection direction,
+    MirrorAction action,
+    std::optional<std::string> mirrorId) {
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::SAI_MIRRORING)) {
+    return;
+  }
+  auto portHandle = getPortHandle(portId);
+  std::vector<sai_object_id_t> mirrorOidList{};
+  if (action == MirrorAction::START) {
+    auto mirrorHandle =
+        managerTable_->mirrorManager().getMirrorHandle(mirrorId.value());
+    if (!mirrorHandle) {
+      XLOG(DBG) << "Failed to find mirror session: " << mirrorId.value();
+      return;
+    }
+    mirrorOidList.push_back(mirrorHandle->adapterKey());
+  }
+
+  if (direction == MirrorDirection::INGRESS) {
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::IngressMirrorSession{mirrorOidList});
+  } else {
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::EgressMirrorSession{mirrorOidList});
+  }
+
+  XLOG(DBG) << "Programming mirror: "
+            << " action: " << (action == MirrorAction::START ? "start" : "stop")
+            << " direction: "
+            << (direction == MirrorDirection::INGRESS ? "ingress" : "egress");
+}
+
 } // namespace facebook::fboss
