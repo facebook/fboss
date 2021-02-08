@@ -305,6 +305,60 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   return saiPort->adapterKey();
 }
 
+void SaiPortManager::removeMirror(const std::shared_ptr<Port>& swPort) {
+  SaiPortHandle* portHandle = getPortHandle(swPort->getID());
+  if (swPort->getIngressMirror().has_value()) {
+    if (portHandle->mirrorInfo.isMirrorSampled()) {
+      programSamplingMirror(
+          swPort->getID(),
+          MirrorDirection::INGRESS,
+          MirrorAction::STOP,
+          swPort->getIngressMirror());
+    } else {
+      programMirror(
+          swPort->getID(),
+          MirrorDirection::INGRESS,
+          MirrorAction::STOP,
+          swPort->getIngressMirror());
+    }
+  }
+
+  if (swPort->getEgressMirror().has_value()) {
+    if (portHandle->mirrorInfo.isMirrorSampled()) {
+      programSamplingMirror(
+          swPort->getID(),
+          MirrorDirection::EGRESS,
+          MirrorAction::STOP,
+          swPort->getEgressMirror());
+    } else {
+      programMirror(
+          swPort->getID(),
+          MirrorDirection::EGRESS,
+          MirrorAction::STOP,
+          swPort->getEgressMirror());
+    }
+  }
+}
+
+void SaiPortManager::removeSamplePacket(const std::shared_ptr<Port>& swPort) {
+  if (swPort->getSflowIngressRate()) {
+    programSampling(
+        swPort->getID(),
+        SamplePacketDirection::INGRESS,
+        SamplePacketAction::STOP,
+        swPort->getSflowIngressRate(),
+        swPort->getSampleDestination());
+  }
+  if (swPort->getSflowEgressRate()) {
+    programSampling(
+        swPort->getID(),
+        SamplePacketDirection::EGRESS,
+        SamplePacketAction::STOP,
+        swPort->getSflowEgressRate(),
+        swPort->getSampleDestination());
+  }
+}
+
 void SaiPortManager::removePort(const std::shared_ptr<Port>& swPort) {
   auto swId = swPort->getID();
   auto itr = handles_.find(swId);
@@ -317,6 +371,9 @@ void SaiPortManager::removePort(const std::shared_ptr<Port>& swPort) {
         QosMapSaiId(SAI_NULL_OBJECT_ID),
         {swPort->getID()});
   }
+
+  removeMirror(swPort);
+  removeSamplePacket(swPort);
 
   concurrentIndices_->portIds.erase(itr->second->port->adapterKey());
   concurrentIndices_->portSaiIds.erase(swId);
