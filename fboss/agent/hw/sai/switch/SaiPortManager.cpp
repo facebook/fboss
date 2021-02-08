@@ -1207,4 +1207,47 @@ void SaiPortManager::programSamplingMirror(
             << " direction: "
             << (direction == MirrorDirection::INGRESS ? "ingress" : "egress");
 }
+
+void SaiPortManager::programMirrorOnAllPorts(
+    const std::string& mirrorName,
+    MirrorAction action) {
+  /*
+   * This is invoked by the mirror manager when a mirror session is
+   * created or deleted. Based on the action and samplingMirror flag,
+   * configure the right attribute.
+   *
+   * TODO: The ingress and egress mirror is cached in port handle
+   * for this comparison. Query the mirror session ID from the port,
+   * compare it with mirrorName adapterkey and update port if they
+   * are the same.
+   */
+  for (const auto& portIdAndHandle : handles_) {
+    auto& mirrorInfo = portIdAndHandle.second->mirrorInfo;
+    if (mirrorInfo.getIngressMirror() == mirrorName) {
+      if (mirrorInfo.isMirrorSampled()) {
+        programSamplingMirror(
+            portIdAndHandle.first,
+            MirrorDirection::INGRESS,
+            action,
+            mirrorName);
+      } else {
+        programMirror(
+            portIdAndHandle.first,
+            MirrorDirection::INGRESS,
+            action,
+            mirrorName);
+      }
+    }
+    if (mirrorInfo.getEgressMirror() == mirrorName) {
+      if (mirrorInfo.isMirrorSampled()) {
+        programSamplingMirror(
+            portIdAndHandle.first, MirrorDirection::EGRESS, action, mirrorName);
+      } else {
+        programMirror(
+            portIdAndHandle.first, MirrorDirection::EGRESS, action, mirrorName);
+      }
+    }
+  }
+}
+
 } // namespace facebook::fboss

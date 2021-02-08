@@ -141,6 +141,10 @@ class SaiPortManager {
   }
   void setL2LearningMode(cfg::L2LearningMode l2LearningMode);
 
+  void programMirrorOnAllPorts(
+      const std::string& mirrorName,
+      MirrorAction action);
+
  private:
   void addRemovedHandle(PortID portID);
   void removeRemovedHandleIf(PortID portID);
