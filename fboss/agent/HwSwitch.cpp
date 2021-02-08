@@ -20,6 +20,8 @@
 #include <folly/experimental/TestUtil.h>
 #include <folly/logging/xlog.h>
 
+DEFINE_bool(flexports, false, "Load the agent with flexport support enabled");
+
 namespace facebook::fboss {
 
 std::string HwSwitch::getDebugDump() const {

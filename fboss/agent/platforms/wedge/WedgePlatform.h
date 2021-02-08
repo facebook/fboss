@@ -24,6 +24,8 @@
 #include <unordered_map>
 
 DECLARE_bool(enable_routes_in_host_table);
+DECLARE_string(volatile_state_dir);
+DECLARE_string(persistent_state_dir);
 
 namespace facebook::fboss {
 

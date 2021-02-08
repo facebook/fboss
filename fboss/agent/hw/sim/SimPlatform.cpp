@@ -19,15 +19,6 @@
 
 #include <folly/Memory.h>
 
-DEFINE_string(
-    volatile_state_dir,
-    "/tmp/fboss_sim/volatile",
-    "Directory for storing volatile state");
-DEFINE_string(
-    persistent_state_dir,
-    "/tmp/fboss_sim/persistent",
-    "Directory for storing persistent state");
-
 using std::make_unique;
 using std::unique_ptr;
 
@@ -58,10 +49,12 @@ unique_ptr<ThriftHandler> SimPlatform::createHandler(SwSwitch* sw) {
 }
 
 std::string SimPlatform::getVolatileStateDir() const {
+  FLAGS_volatile_state_dir = "/tmp/fboss_sim/volatile";
   return FLAGS_volatile_state_dir;
 }
 
 std::string SimPlatform::getPersistentStateDir() const {
+  FLAGS_persistent_state_dir = "/tmp/fboss_sim/persistent";
   return FLAGS_persistent_state_dir;
 }
 

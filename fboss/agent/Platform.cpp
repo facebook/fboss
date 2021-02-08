@@ -27,6 +27,20 @@ DEFINE_string(
     "crash_hw_state",
     "File for dumping HW state on crash");
 
+DEFINE_string(
+    hw_config_file,
+    "hw_config",
+    "File for dumping HW config on startup");
+
+DEFINE_string(
+    volatile_state_dir,
+    "/dev/shm/fboss",
+    "Directory for storing volatile state");
+DEFINE_string(
+    persistent_state_dir,
+    "/var/facebook/fboss",
+    "Directory for storing persistent state");
+
 namespace facebook::fboss {
 
 Platform::Platform(

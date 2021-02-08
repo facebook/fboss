@@ -63,7 +63,6 @@ extern "C" {
 #include <sai.h>
 }
 
-DEFINE_bool(flexports, true, "Load the agent with flexport support enabled");
 /*
  * Setting the default sai sdk logging level to CRITICAL for several reasons:
  * 1) These are synchronous writes to the syslog so that agent

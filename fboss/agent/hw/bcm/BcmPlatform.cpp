@@ -17,10 +17,6 @@
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmConfig.h"
 
-DEFINE_string(
-    hw_config_file,
-    "hw_config",
-    "File for dumping HW config on startup");
 DEFINE_bool(
     enable_routes_in_host_table,
     false,

@@ -23,6 +23,7 @@ DECLARE_bool(load_qcm_fw);
 DECLARE_string(qcm_fw_path);
 DECLARE_bool(enable_qcm_ifp_statistics);
 DECLARE_int32(init_gport_available_count);
+DECLARE_string(hw_config_file);
 
 namespace facebook::fboss {
 

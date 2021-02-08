@@ -33,15 +33,6 @@
 #include <future>
 
 DEFINE_string(
-    volatile_state_dir,
-    "/dev/shm/fboss",
-    "Directory for storing volatile state");
-DEFINE_string(
-    persistent_state_dir,
-    "/var/facebook/fboss",
-    "Directory for storing persistent state");
-
-DEFINE_string(
     fabric_location,
     "",
     "Provides location of fabric , LEFT or RIGHT");

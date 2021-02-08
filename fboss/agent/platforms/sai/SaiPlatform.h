@@ -29,6 +29,8 @@ extern "C" {
 #include <saiswitch.h>
 }
 
+DECLARE_string(hw_config_file);
+
 namespace facebook::fboss {
 
 class SaiSwitch;

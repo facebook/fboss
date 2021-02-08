@@ -38,6 +38,8 @@ extern "C" {
 #include <bcm/types.h>
 }
 
+DECLARE_bool(flexports);
+
 namespace facebook::fboss {
 
 class AclEntry;

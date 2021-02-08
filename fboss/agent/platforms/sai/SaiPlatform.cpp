@@ -27,11 +27,6 @@
 
 #include "fboss/agent/hw/sai/switch/SaiHandler.h"
 
-DEFINE_string(
-    hw_config_file,
-    "hw_config",
-    "File for dumping HW config on startup");
-
 namespace {
 
 std::unordered_map<std::string, std::string> kSaiProfileValues;

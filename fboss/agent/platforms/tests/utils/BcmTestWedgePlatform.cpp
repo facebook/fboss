@@ -12,15 +12,6 @@
 
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 
-DEFINE_string(
-    volatile_state_dir,
-    "/dev/shm/fboss/bcm_test",
-    "Directory for storing volatile state");
-DEFINE_string(
-    persistent_state_dir,
-    "/var/facebook/fboss/bcm_test",
-    "Directory for storing persistent state");
-
 namespace facebook::fboss {
 
 BcmTestWedgePlatform::BcmTestWedgePlatform(
@@ -29,10 +20,12 @@ BcmTestWedgePlatform::BcmTestWedgePlatform(
     : BcmTestPlatform(std::move(productInfo), std::move(platformMapping)) {}
 
 std::string BcmTestWedgePlatform::getVolatileStateDir() const {
+  FLAGS_volatile_state_dir = "/dev/shm/fboss/bcm_test";
   return FLAGS_volatile_state_dir;
 }
 
 std::string BcmTestWedgePlatform::getPersistentStateDir() const {
+  FLAGS_persistent_state_dir = "/var/facebook/fboss/bcm_test";
   return FLAGS_persistent_state_dir;
 }
 

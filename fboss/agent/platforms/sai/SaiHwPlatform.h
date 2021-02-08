@@ -20,6 +20,9 @@ extern "C" {
 #include <saiswitch.h>
 }
 
+DECLARE_string(volatile_state_dir);
+DECLARE_string(persistent_state_dir);
+
 namespace facebook::fboss {
 
 class SaiHwPlatform : public SaiPlatform {

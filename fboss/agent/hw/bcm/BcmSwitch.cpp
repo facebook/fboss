@@ -150,7 +150,6 @@ using namespace std::chrono;
 using namespace facebook::fboss::utility;
 
 DEFINE_int32(linkscan_interval_us, 250000, "The Broadcom linkscan interval");
-DEFINE_bool(flexports, false, "Load the agent with flexport support enabled");
 DEFINE_int32(
     update_bststats_interval_s,
     60,

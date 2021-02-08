@@ -11,6 +11,9 @@
 
 #include "fboss/agent/Platform.h"
 
+DECLARE_string(volatile_state_dir);
+DECLARE_string(persistent_state_dir);
+
 namespace facebook::fboss {
 
 class SimSwitch;
