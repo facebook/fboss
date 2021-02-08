@@ -160,6 +160,12 @@ class SaiPortManager {
   std::shared_ptr<SaiPortSerdes> programSerdes(
       std::shared_ptr<SaiPort> saiPort,
       std::shared_ptr<Port> swPort);
+  void programSampling(
+      PortID portId,
+      SamplePacketDirection direction,
+      SamplePacketAction action,
+      uint64_t sampleRate,
+      std::optional<cfg::SampleDestination> sampleDestination);
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
   ConcurrentIndices* concurrentIndices_;

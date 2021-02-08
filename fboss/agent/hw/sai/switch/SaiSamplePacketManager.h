@@ -33,7 +33,7 @@ class SaiSamplePacketManager {
   SaiSamplePacketManager(
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
-  std::shared_ptr<SaiSamplePacket> createSamplePacket(
+  std::shared_ptr<SaiSamplePacket> getOrCreateSamplePacket(
       uint64_t sampleRate,
       cfg::SampleDestination sampleDestination);
 

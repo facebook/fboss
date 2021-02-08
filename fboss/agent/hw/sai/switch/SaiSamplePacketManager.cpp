@@ -35,7 +35,8 @@ sai_samplepacket_type_t getSamplePacketType(
 } // namespace
 namespace facebook::fboss {
 
-std::shared_ptr<SaiSamplePacket> SaiSamplePacketManager::createSamplePacket(
+std::shared_ptr<SaiSamplePacket>
+SaiSamplePacketManager::getOrCreateSamplePacket(
     uint64_t sampleRate,
     cfg::SampleDestination sampleDestination) {
   auto type = getSamplePacketType(sampleDestination);

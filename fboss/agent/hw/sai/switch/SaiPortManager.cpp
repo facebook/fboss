@@ -830,4 +830,48 @@ SaiPortManager::serdesAttributesFromSwPort(
 
   return attrs;
 }
+
+void SaiPortManager::programSampling(
+    PortID portId,
+    SamplePacketDirection direction,
+    SamplePacketAction action,
+    uint64_t sampleRate,
+    std::optional<cfg::SampleDestination> sampleDestination) {
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::SAI_SAMPLING)) {
+    return;
+  }
+  CHECK(sampleDestination.has_value());
+  SaiPortHandle* portHandle = getPortHandle(portId);
+  auto samplePacketHandle = action == SamplePacketAction::START
+      ? managerTable_->samplePacketManager().getOrCreateSamplePacket(
+            sampleRate, sampleDestination.value())
+      : nullptr;
+  /*
+   * Create the sammple packet object, update the port sample packet
+   * oid and then overwrite the sample packet object on port.
+   */
+  auto samplePacketAdapterKey = samplePacketHandle
+      ? samplePacketHandle->adapterKey()
+      : SAI_NULL_OBJECT_ID;
+  if (direction == SamplePacketDirection::INGRESS) {
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::IngressSamplePacketEnable{
+            SamplePacketSaiId(samplePacketAdapterKey)});
+    portHandle->ingressSamplePacket = samplePacketHandle;
+  } else {
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::EgressSamplePacketEnable{
+            SamplePacketSaiId(samplePacketAdapterKey)});
+    portHandle->egressSamplePacket = samplePacketHandle;
+  }
+
+  XLOG(DBG) << "Programming sample packet: "
+            << " action: "
+            << (action == SamplePacketAction::START ? "start" : "stop")
+            << " direction: "
+            << (direction == SamplePacketDirection::INGRESS ? "ingress"
+                                                            : "egress")
+            << " sample packet oid " << std::hex << samplePacketAdapterKey;
+}
+
 } // namespace facebook::fboss
