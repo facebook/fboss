@@ -169,6 +169,21 @@ class QsfpModule : public Transceiver {
    * entry function and stop the scheduled thread
    */
   void exitBringupRemediateFunction();
+  /*
+   * This function generates the port Up or port Down event to PSM if the Agent
+   * has synced up port status info to qsfp_service
+   */
+  void checkAgentModulePortSyncup();
+  /*
+   * Function to return module id value for reference
+   */
+  int getModuleId();
+  /*
+   * This function will do optics module's port level hardware initialization.
+   * If some optics needs the port/lane level init then the inheriting class
+   * should override/implement this function.
+   */
+  virtual void opticsModulePortHwInit(int portId);
 
   using LengthAndGauge = std::pair<double, uint8_t>;
 
@@ -217,6 +232,17 @@ class QsfpModule : public Transceiver {
 
   // last time we know transceiver was working because at least one port was up
   time_t lastWorkingTime_{0};
+
+  // This is a map of system level port id to the local port id inside the
+  // module. The local port id is used to identify the Port State Machine
+  // instance within the module
+  std::map<uint32_t, uint32_t> systemPortToModulePortIdMap_;
+
+  /*
+   * This function will return the local module port id for the given system
+   * port id. The local module port id is used to index into PSM instance
+   */
+  uint32_t getSystemPortToModulePortIdLocked(uint32_t sysPortId);
 
   /*
    * Perform transceiver customization

@@ -52,9 +52,11 @@ BOOST_MSM_EUML_ACTION(moduleDiscoveredStateEntryFn){
     template <class Event, class Fsm, class State>
     void
     operator()(const Event& /* ev */, Fsm& fsm, State& /* currState */) const {
-        XLOG(INFO) << "MSM: moduleDiscoveredStateEntryFn: "
+        XLOG(INFO) << "MSM"
+                   << fsm.get_attribute(qsfpModuleObjPtr)->getModuleId()
+                   << ": moduleDiscoveredStateEntryFn: "
                    << "Entering state MODULE_STATE_DISCOVERED, "
-                   << "need to create Port State Machines\n";
+                   << "need to create Port State Machines";
 
 // Module is discovered, now create port state machines
 fsm.get_attribute(qsfpModuleObjPtr)->addModulePortStateMachines();
@@ -77,8 +79,10 @@ BOOST_MSM_EUML_ACTION(moduleDiscoveredStateExitFn){
     template <class Event, class Fsm, class State>
     void
     operator()(const Event& /* ev */, Fsm& fsm, State& /* currState */) const {
-        XLOG(INFO) << "MSM: moduleDiscoveredStateExitFn: "
-                   << "Exiting state MODULE_STATE_DISCOVERED\n";
+        XLOG(INFO) << "MSM"
+                   << fsm.get_attribute(qsfpModuleObjPtr)->getModuleId()
+                   << ": moduleDiscoveredStateExitFn: "
+                   << "Exiting state MODULE_STATE_DISCOVERED";
 
 // Cancel the Agent port sync up timer
 fsm.get_attribute(qsfpModuleObjPtr)->cancelAgentPortSyncupTimeout();
@@ -102,8 +106,10 @@ BOOST_MSM_EUML_ACTION(moduleInactiveStateEntryFn){
     template <class Event, class Fsm, class State>
     void
     operator()(const Event& /* ev */, Fsm& fsm, State& /* currState */) const {
-        XLOG(INFO) << "MSM: moduleInactiveStateEntryFn: "
-                   << "Entering state MODULE_STATE_INACTIVE\n";
+        XLOG(INFO) << "MSM"
+                   << fsm.get_attribute(qsfpModuleObjPtr)->getModuleId()
+                   << ": moduleInactiveStateEntryFn: "
+                   << "Entering state MODULE_STATE_INACTIVE";
 
 // In the Inactive state we will periodically do bring up (first time only)
 // or the remediate function so that the optics comes up and port also
@@ -125,8 +131,10 @@ BOOST_MSM_EUML_ACTION(moduleInactiveStateExitFn){
     template <class Event, class Fsm, class State>
     void
     operator()(const Event& /* ev */, Fsm& fsm, State& /* currState */) const {
-        XLOG(INFO) << "MSM: moduleInactiveStateExitFn: "
-                   << "Exiting state MODULE_STATE_INACTIVE\n";
+        XLOG(INFO) << "MSM"
+                   << fsm.get_attribute(qsfpModuleObjPtr)->getModuleId()
+                   << ": moduleInactiveStateExitFn: "
+                   << "Exiting state MODULE_STATE_INACTIVE";
 
 // In the Inactive state we had spawn the scheduler thread to do periodic
 // bringup/remediate work. Since we are exising that thread, we need to
@@ -170,12 +178,12 @@ BOOST_MSM_EUML_EVENT(MODULE_EVENT_OPTICS_RESET)
 BOOST_MSM_EUML_ACTION(
     onOpticsDetected){template <class Event, class Fsm> void operator()(
     const Event& /* ev */,
-    Fsm& /* fsm */,
+    Fsm& fsm,
     BOOST_MSM_EUML_STATE_NAME(MODULE_STATE_NOT_PRESENT) & /* sourceState */,
     BOOST_MSM_EUML_STATE_NAME(MODULE_STATE_PRESENT) &
     /* targetState */) const {
-    XLOG(INFO) << "MSM: onOpticsDetected: "
-               << "Transitioning to MODULE_STATE_PRESENT\n";
+    XLOG(INFO) << "MSM" << fsm.get_attribute(qsfpModuleObjPtr)->getModuleId()
+               << ": onOpticsDetected: Transitioning to MODULE_STATE_PRESENT";
 }
 }
 ;
@@ -189,12 +197,12 @@ BOOST_MSM_EUML_ACTION(
 BOOST_MSM_EUML_ACTION(
     onEepromRead){template <class Event, class Fsm> void operator()(
     const Event& /* ev */,
-    Fsm& /* fsm */,
+    Fsm& fsm,
     BOOST_MSM_EUML_STATE_NAME(MODULE_STATE_PRESENT) & /* sourceState */,
     BOOST_MSM_EUML_STATE_NAME(MODULE_STATE_DISCOVERED) &
     /* targetState */) const {
-    XLOG(INFO) << "MSM: onEepromRead: "
-               << "Transitioning to MODULE_STATE_DISCOVERED\n";
+    XLOG(INFO) << "MSM" << fsm.get_attribute(qsfpModuleObjPtr)->getModuleId()
+               << ": onEepromRead: Transitioning to MODULE_STATE_DISCOVERED";
 }
 }
 ;
@@ -211,23 +219,25 @@ BOOST_MSM_EUML_ACTION(
 BOOST_MSM_EUML_ACTION(
     onModuleAllPortsDown){template <class Event, class Fsm> void operator()(
     const Event& /* ev */,
-    Fsm& /* fsm */,
+    Fsm& fsm,
     BOOST_MSM_EUML_STATE_NAME(MODULE_STATE_DISCOVERED) & /* sourceState */,
     BOOST_MSM_EUML_STATE_NAME(MODULE_STATE_INACTIVE) &
     /* targetState */) const {
-    XLOG(INFO) << "MSM: onModuleAllPortsDown: "
-               << "Transitioning to MODULE_STATE_INACTIVE\n";
+    XLOG(INFO) << "MSM" << fsm.get_attribute(qsfpModuleObjPtr)->getModuleId()
+               << ": onModuleAllPortsDown: "
+               << "Transitioning to MODULE_STATE_INACTIVE";
 }
 
 template <class Event, class Fsm>
 void operator()(
     const Event& /* ev */,
-    Fsm& /* fsm */,
+    Fsm& fsm,
     BOOST_MSM_EUML_STATE_NAME(MODULE_STATE_ACTIVE) & /* sourceState */,
     BOOST_MSM_EUML_STATE_NAME(MODULE_STATE_INACTIVE) &
     /* targetState */) const {
-  XLOG(INFO) << "MSM: onModuleAllPortsDown: "
-             << "Transitioning to MODULE_STATE_INACTIVE\n";
+  XLOG(INFO) << "MSM" << fsm.get_attribute(qsfpModuleObjPtr)->getModuleId()
+             << ": onModuleAllPortsDown: "
+             << "Transitioning to MODULE_STATE_INACTIVE";
 }
 }
 ;
@@ -245,12 +255,13 @@ void operator()(
 BOOST_MSM_EUML_ACTION(
     onAgentSyncTimeout){template <class Event, class Fsm> void operator()(
     const Event& /* ev */,
-    Fsm& /* fsm */,
+    Fsm& fsm,
     BOOST_MSM_EUML_STATE_NAME(MODULE_STATE_DISCOVERED) & /* sourceState */,
     BOOST_MSM_EUML_STATE_NAME(MODULE_STATE_INACTIVE) &
     /* targetState */) const {
-    XLOG(INFO) << "MSM: onAgentSyncTimeout: "
-               << "Transitioning to MODULE_STATE_INACTIVE\n";
+    XLOG(INFO) << "MSM" << fsm.get_attribute(qsfpModuleObjPtr)->getModuleId()
+               << ": onAgentSyncTimeout: "
+               << "Transitioning to MODULE_STATE_INACTIVE";
 }
 }
 ;
@@ -270,8 +281,9 @@ BOOST_MSM_EUML_ACTION(
     BOOST_MSM_EUML_STATE_NAME(MODULE_STATE_DISCOVERED) & /* sourceState */,
     BOOST_MSM_EUML_STATE_NAME(MODULE_STATE_ACTIVE) &
     /* targetState */) const {
-    XLOG(INFO) << "MSM: onModuleAnyPortUp: "
-               << "Transitioning to MODULE_STATE_ACTIVE\n";
+    XLOG(INFO) << "MSM" << fsm.get_attribute(qsfpModuleObjPtr)->getModuleId()
+               << ": onModuleAnyPortUp: "
+               << "Transitioning to MODULE_STATE_ACTIVE";
 // When Module state was Discovered and Agent informed that some of the
 // port are up then the state need to move to Active. There is no need to
 // do any bring up in this case. This will take care of warm boot case
@@ -285,10 +297,12 @@ void operator()(
     BOOST_MSM_EUML_STATE_NAME(MODULE_STATE_INACTIVE) & /* sourceState */,
     BOOST_MSM_EUML_STATE_NAME(MODULE_STATE_ACTIVE) &
     /* targetState */) const {
-  XLOG(INFO) << "MSM: onModuleAnyPortUp: "
-             << "Transitioning to MODULE_STATE_ACTIVE\n";
-  // When Agent informed that some of the port are up then the state need to
-  // move to Active state.
+  XLOG(INFO) << "MSM" << fsm.get_attribute(qsfpModuleObjPtr)->getModuleId()
+             << ": onModuleAnyPortUp: "
+             << "Transitioning to MODULE_STATE_ACTIVE";
+  // When Module state was Inactive and Agent informed that some of the
+  // port are up then the state need to move to Active. There is no need to
+  // do any bring up in this case. This will take care of warm boot case
   fsm.get_attribute(moduleBringupDone) = true;
 }
 }
@@ -307,12 +321,13 @@ void operator()(
 BOOST_MSM_EUML_ACTION(
     onTriggerUpgrade){template <class Event, class Fsm> void operator()(
     const Event& /* ev */,
-    Fsm& /* fsm */,
+    Fsm& fsm,
     BOOST_MSM_EUML_STATE_NAME(MODULE_STATE_INACTIVE) & /* sourceState */,
     BOOST_MSM_EUML_STATE_NAME(MODULE_STATE_UPGRADING) &
     /* targetState */) const {
-    XLOG(INFO) << "MSM: onTriggerUpgrade: "
-               << "Transitioning to MODULE_STATE_UPGRADING\n";
+    XLOG(INFO) << "MSM" << fsm.get_attribute(qsfpModuleObjPtr)->getModuleId()
+               << ": onTriggerUpgrade: "
+               << "Transitioning to MODULE_STATE_UPGRADING";
 }
 }
 ;
@@ -329,23 +344,25 @@ BOOST_MSM_EUML_ACTION(
 BOOST_MSM_EUML_ACTION(
     onForcedUpgrade){template <class Event, class Fsm> void operator()(
     const Event& /* ev */,
-    Fsm& /* fsm */,
+    Fsm& fsm,
     BOOST_MSM_EUML_STATE_NAME(MODULE_STATE_INACTIVE) & /* sourceState */,
     BOOST_MSM_EUML_STATE_NAME(MODULE_STATE_UPGRADING) &
     /* targetState */) const {
-    XLOG(INFO) << "MSM: onForcedUpgrade: "
-               << "Transitioning to MODULE_STATE_UPGRADING\n";
+    XLOG(INFO) << "MSM" << fsm.get_attribute(qsfpModuleObjPtr)->getModuleId()
+               << ": onForcedUpgrade: "
+               << "Transitioning to MODULE_STATE_UPGRADING";
 }
 
 template <class Event, class Fsm>
 void operator()(
     const Event& /* ev */,
-    Fsm& /* fsm */,
+    Fsm& fsm,
     BOOST_MSM_EUML_STATE_NAME(MODULE_STATE_ACTIVE) & /* sourceState */,
     BOOST_MSM_EUML_STATE_NAME(MODULE_STATE_UPGRADING) &
     /* targetState */) const {
-  XLOG(INFO) << "MSM: onForcedUpgrade: "
-             << "Transitioning to MODULE_STATE_UPGRADING\n";
+  XLOG(INFO) << "MSM" << fsm.get_attribute(qsfpModuleObjPtr)->getModuleId()
+             << ": onForcedUpgrade: "
+             << "Transitioning to MODULE_STATE_UPGRADING";
 }
 }
 ;
@@ -366,7 +383,8 @@ BOOST_MSM_EUML_ACTION(
     BOOST_MSM_EUML_STATE_NAME(MODULE_STATE_INACTIVE) & /* sourceState */,
     BOOST_MSM_EUML_STATE_NAME(MODULE_STATE_INACTIVE) &
     /* targetState */) const {
-    XLOG(INFO) << "MSM: onBringupDone: Stay in MODULE_STATE_INACTIVE\n";
+    XLOG(INFO) << "MSM" << fsm.get_attribute(qsfpModuleObjPtr)->getModuleId()
+               << ": onBringupDone: Stay in MODULE_STATE_INACTIVE";
 // Module bring up has been tried, set the attribute for this in MSM
 fsm.get_attribute(moduleBringupDone) = true;
 }
@@ -384,11 +402,12 @@ fsm.get_attribute(moduleBringupDone) = true;
 BOOST_MSM_EUML_ACTION(
     onRemediateDone){template <class Event, class Fsm> void operator()(
     const Event& /* ev */,
-    Fsm& /* fsm */,
+    Fsm& fsm,
     BOOST_MSM_EUML_STATE_NAME(MODULE_STATE_INACTIVE) & /* sourceState */,
     BOOST_MSM_EUML_STATE_NAME(MODULE_STATE_INACTIVE) &
     /* targetState */) const {
-    XLOG(INFO) << "MSM: onRemediateDone: Stay in MODULE_STATE_INACTIVE\n";
+    XLOG(INFO) << "MSM" << fsm.get_attribute(qsfpModuleObjPtr)->getModuleId()
+               << ": onRemediateDone: Stay in MODULE_STATE_INACTIVE";
 }
 }
 ;
@@ -408,9 +427,11 @@ BOOST_MSM_EUML_ACTION(onOpticsReset){
         Fsm& fsm,
         Source& /* sourceState */,
         Target& /* targetState */) const {
-        XLOG(INFO) << "MSM: onOpticsReset: "
+        XLOG(INFO) << "MSM"
+                   << fsm.get_attribute(qsfpModuleObjPtr)->getModuleId()
+                   << ": onOpticsReset: "
                    << "Transitioning to MODULE_STATE_NOT_PRESENT\n"
-                   << "Delete the PSM\n";
+                   << "Delete the PSM";
 // Module has been reset so remove port state machines inside this module
 fsm.get_attribute(qsfpModuleObjPtr)->eraseModulePortStateMachines();
 // Make the module bring up attribute as False now
@@ -434,9 +455,11 @@ BOOST_MSM_EUML_ACTION(onOpticsRemoval){
         Fsm& fsm,
         Source& /* sourceState */,
         Target& /* targetState */) const {
-        XLOG(INFO) << "MSM: onOpticsRemoval: "
+        XLOG(INFO) << "MSM"
+                   << fsm.get_attribute(qsfpModuleObjPtr)->getModuleId()
+                   << ": onOpticsRemoval: "
                    << "Transitioning to MODULE_STATE_NOT_PRESENT\n"
-                   << "Delete the PSM\n";
+                   << "Delete the PSM";
 // Module has been removed so remove port state machines inside this module
 fsm.get_attribute(qsfpModuleObjPtr)->eraseModulePortStateMachines();
 // Make the module bring up attribute as False now
@@ -503,9 +526,57 @@ BOOST_MSM_EUML_DECLARE_STATE_MACHINE(
 
 /**************************** Port State Machine *****************************/
 
+/*
+ * modulePortStateInitializedEntryFn
+ * Type: State Entry Function
+ *
+ * State Entry Function for the PSM state MODULE_PORT_STATE_INITIALIZED.
+ * This function will check if the Agent to qsfp_service sync up has already
+ * happened to bring in the port operational state information. In case the
+ * module port state information is already available then this function will
+ * generate the Module Port Up or Down event to bring the Port state machine
+ * (PSM) to the next state. This is required to take care of the scenario
+ * where the Agent sync up has already happened before PSM gets created.
+ */
+BOOST_MSM_EUML_ACTION(modulePortStateInitializedEntryFn){
+    template <class Event, class Fsm, class State>
+    void
+    operator()(const Event& /* ev */, Fsm& fsm, State& /* currState */) const {
+        XLOG(INFO) << "MSM"
+                   << fsm.get_attribute(qsfpModuleObjPtr)->getModuleId()
+                   << ": modulePortStateInitializedEntryFn: "
+                   << "Entering state MODULE_PORT_STATE_INITIALIZED";
+
+// Call the function to check the module port state info and generate
+// the event to PSM if required
+fsm.get_attribute(qsfpModuleObjPtr)->checkAgentModulePortSyncup();
+}
+}
+;
+
+/*
+ * modulePortStateInitializedExitFn
+ * Type: State Exit Function
+ *
+ * State Exit Function for state MODULE_PORT_STATE_INITIALIZED.
+ */
+BOOST_MSM_EUML_ACTION(modulePortStateInitializedExitFn){
+    template <class Event, class Fsm, class State>
+    void
+    operator()(const Event& /* ev */, Fsm& fsm, State& /* currState */) const {
+        XLOG(INFO) << "MSM"
+                   << fsm.get_attribute(qsfpModuleObjPtr)->getModuleId()
+                   << ": modulePortStateInitializedExitFn: "
+                   << "Exiting state MODULE_PORT_STATE_INITIALIZED";
+}
+}
+;
+
 // Port State Machine States
 BOOST_MSM_EUML_STATE((), MODULE_PORT_STATE_IDLE)
-BOOST_MSM_EUML_STATE((), MODULE_PORT_STATE_INITIALIZED)
+BOOST_MSM_EUML_STATE(
+    (modulePortStateInitializedEntryFn, modulePortStateInitializedExitFn),
+    MODULE_PORT_STATE_INITIALIZED)
 BOOST_MSM_EUML_STATE((), MODULE_PORT_STATE_DOWN)
 BOOST_MSM_EUML_STATE((), MODULE_PORT_STATE_UP)
 
@@ -524,12 +595,13 @@ BOOST_MSM_EUML_EVENT(MODULE_PORT_EVENT_AGENT_PORT_DOWN)
 BOOST_MSM_EUML_ACTION(
     onModulePortInitialize){template <class Event, class Fsm> void operator()(
     const Event& /* ev */,
-    Fsm& /* fsm */,
+    Fsm& fsm,
     BOOST_MSM_EUML_STATE_NAME(MODULE_PORT_STATE_IDLE) & /* sourceState */,
     BOOST_MSM_EUML_STATE_NAME(MODULE_PORT_STATE_INITIALIZED) &
     /* targetState */) const {
-    XLOG(INFO) << "MSM: onModulePortInitialize: "
-               << "Transitioning to MODULE_PORT_STATE_INITIALIZED\n";
+    XLOG(INFO) << "MSM" << fsm.get_attribute(qsfpModuleObjPtr)->getModuleId()
+               << ": onModulePortInitialize: "
+               << "Transitioning to MODULE_PORT_STATE_INITIALIZED";
 }
 }
 ;
@@ -550,8 +622,9 @@ BOOST_MSM_EUML_ACTION(
         MODULE_PORT_STATE_INITIALIZED) & /* sourceState */,
     BOOST_MSM_EUML_STATE_NAME(MODULE_PORT_STATE_UP) &
     /* targetState */) const {
-    XLOG(INFO) << "MSM: onModulePortAgentUp: "
-               << "Transitioning to MODULE_PORT_STATE_UP\n";
+    XLOG(INFO) << "MSM" << fsm.get_attribute(qsfpModuleObjPtr)->getModuleId()
+               << ": onModulePortAgentUp: "
+               << "Transitioning to MODULE_PORT_STATE_UP";
 // This transition generates Module Port Up event to Module State Machine
 fsm.get_attribute(qsfpModuleObjPtr)->genMsmModPortUpEvent();
 }
@@ -563,8 +636,9 @@ void operator()(
     BOOST_MSM_EUML_STATE_NAME(MODULE_PORT_STATE_DOWN) & /* sourceState */,
     BOOST_MSM_EUML_STATE_NAME(MODULE_PORT_STATE_UP) &
     /* targetState */) const {
-  XLOG(INFO) << "MSM: onModulePortAgentUp: "
-             << "Transitioning to MODULE_PORT_STATE_UP\n";
+  XLOG(INFO) << "MSM" << fsm.get_attribute(qsfpModuleObjPtr)->getModuleId()
+             << ": onModulePortAgentUp: "
+             << "Transitioning to MODULE_PORT_STATE_UP";
   // This transition generates Module Port Up event to Module State Machine
   fsm.get_attribute(qsfpModuleObjPtr)->genMsmModPortUpEvent();
 }
@@ -589,8 +663,9 @@ BOOST_MSM_EUML_ACTION(
         MODULE_PORT_STATE_INITIALIZED) & /* sourceState */,
     BOOST_MSM_EUML_STATE_NAME(MODULE_PORT_STATE_DOWN) &
     /* targetState */) const {
-    XLOG(INFO) << "MSM: onModulePortAgentDown: "
-               << "Transitioning to MODULE_PORT_STATE_DOWN\n";
+    XLOG(INFO) << "MSM" << fsm.get_attribute(qsfpModuleObjPtr)->getModuleId()
+               << ": onModulePortAgentDown: "
+               << "Transitioning to MODULE_PORT_STATE_DOWN";
 // This module port has gone down, check if all other module port are
 // also down If that is the case then generate the Module Port Down event
 // to the Module State Machine
@@ -604,8 +679,9 @@ void operator()(
     BOOST_MSM_EUML_STATE_NAME(MODULE_PORT_STATE_UP) & /* sourceState */,
     BOOST_MSM_EUML_STATE_NAME(MODULE_PORT_STATE_DOWN) &
     /* targetState */) const {
-  XLOG(INFO) << "MSM: onModulePortAgentDown: "
-             << "Transitioning to MODULE_PORT_STATE_DOWN\n";
+  XLOG(INFO) << "MSM" << fsm.get_attribute(qsfpModuleObjPtr)->getModuleId()
+             << ": onModulePortAgentDown: "
+             << "Transitioning to MODULE_PORT_STATE_DOWN";
   // This module port has gone down, check if all other module port are
   // also down If that is the case then generate the Module Port Down event
   // to the Module State Machine

@@ -100,7 +100,41 @@ QsfpModule::QsfpModule(
   opticsModuleStateMachine_.get_attribute(qsfpModuleObjPtr) = this;
 }
 
-QsfpModule::~QsfpModule() {}
+QsfpModule::~QsfpModule() {
+  // The transceiver has been removed
+  opticsModuleStateMachine_.process_event(MODULE_EVENT_OPTICS_REMOVED);
+}
+
+/*
+ * Function to return module id for reference in state machine logging
+ */
+int QsfpModule::getModuleId() {
+  return qsfpImpl_->getNum();
+}
+
+/*
+ * getSystemPortToModulePortIdLocked
+ *
+ * This function will return the local module port id for the given system
+ * port id. The local module port id is used to index into PSM instance. It
+ * also adds the system port Id to  the port mapping list if that does not
+ * exist.
+ */
+uint32_t QsfpModule::getSystemPortToModulePortIdLocked(uint32_t sysPortId) {
+  // If the system port id exist in the list then return the module port id
+  // corresponding to it
+  if (systemPortToModulePortIdMap_.find(sysPortId) !=
+      systemPortToModulePortIdMap_.end()) {
+    return systemPortToModulePortIdMap_.find(sysPortId)->second;
+  }
+
+  // If the system port id does not exist in the list then add it to the
+  // end of the list and return that index
+  uint32_t modPortId = systemPortToModulePortIdMap_.size();
+  systemPortToModulePortIdMap_[sysPortId] = modPortId;
+
+  return modPortId;
+}
 
 void QsfpModule::getQsfpValue(
     int dataAddress,
@@ -270,12 +304,24 @@ cfg::PortSpeed QsfpModule::getPortSpeed() const {
 void QsfpModule::transceiverPortsChanged(
     const std::map<uint32_t, PortStatus>& ports) {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
+  // List of ports inside this module whose operation status has changed
+  std::vector<uint32_t> changedPortList;
 
   for (auto& it : ports) {
     CHECK(
         TransceiverID(
             *it.second.transceiverIdx_ref().value_or({}).transceiverId_ref()) ==
         getID());
+
+    // Record this port in the changed port list if:
+    //  - The existing port status is empty (first time sync from agent)
+    //  - The new port status synced from Agent is different from existing port
+    //  status
+    if (ports_[it.first].profileID_ref()->empty() ||
+        (*ports_[it.first].up_ref() != *it.second.up_ref())) {
+      changedPortList.push_back(it.first);
+    }
+
     ports_[it.first] = std::move(it.second);
   }
 
@@ -295,6 +341,28 @@ void QsfpModule::transceiverPortsChanged(
     // port in. Refresh inline in this case in order to not return
     // stale data.
     refreshLocked();
+  }
+
+  // For the ports in the Changed Port List, generate the Port Up or Port Down
+  // event to the corresponding Port State Machine
+  for (auto& it : changedPortList) {
+    // Get the module port id so that we can index into port state machine
+    // instance
+    uint32_t modulePortId = getSystemPortToModulePortIdLocked(it);
+
+    if (*ports_[it].up_ref()) {
+      // Generate Port up event
+      if (modulePortId < opticsModulePortStateMachine_.size()) {
+        opticsModulePortStateMachine_[modulePortId].process_event(
+            MODULE_PORT_EVENT_AGENT_PORT_UP);
+      }
+    } else {
+      // Generate Port Down event
+      if (modulePortId < opticsModulePortStateMachine_.size()) {
+        opticsModulePortStateMachine_[modulePortId].process_event(
+            MODULE_PORT_EVENT_AGENT_PORT_DOWN);
+      }
+    }
   }
 }
 
@@ -328,16 +396,31 @@ folly::Future<folly::Unit> QsfpModule::futureRefresh() {
 void QsfpModule::refreshLocked() {
   detectPresenceLocked();
 
+  bool newTransceiverDetected = false;
   auto customizeWanted = customizationWanted(FLAGS_customize_interval);
   auto willRefresh = !dirty_ && shouldRefresh(FLAGS_qsfp_data_refresh_interval);
   if (!dirty_ && !customizeWanted && !willRefresh) {
     return;
   }
 
+  if (dirty_ && present_) {
+    // A new transceiver has been detected
+    opticsModuleStateMachine_.process_event(MODULE_EVENT_OPTICS_DETECTED);
+    newTransceiverDetected = true;
+  } else if (dirty_ && !present_) {
+    // The transceiver has been removed
+    opticsModuleStateMachine_.process_event(MODULE_EVENT_OPTICS_REMOVED);
+  }
+
   if (dirty_) {
     // make sure data is up to date before trying to customize.
     ensureOutOfReset();
     updateQsfpData(true);
+  }
+
+  if (newTransceiverDetected) {
+    // Data has been read for the new optics
+    opticsModuleStateMachine_.process_event(MODULE_EVENT_EEPROM_READ);
   }
 
   if (customizeWanted) {
@@ -482,6 +565,23 @@ bool QsfpModule::writeTransceiverLocked(
 }
 
 /*
+ * opticsModulePortHwInit
+ *
+ * This is a virtual function which should  will do optics module's port level
+ * hardware initialization. If some optics needs the port/lane level init then
+ * the inheriting class should override/implement this function.
+ * If nothing special is required for optics module's port level HW bring up
+ * then we can just raise the Init done event to move the port state machine
+ * to Initialized state.
+ */
+void QsfpModule::opticsModulePortHwInit(int modulePortId) {
+  // Assume nothing special needs to be done for this optic's port level
+  // HW init
+  opticsModulePortStateMachine_[modulePortId].process_event(
+      MODULE_PORT_EVENT_OPTICS_INITIALIZED);
+}
+
+/*
  * addModulePortStateMachines
  *
  * This is the helper function to create port state machine for all ports in
@@ -499,6 +599,12 @@ void QsfpModule::addModulePortStateMachines() {
   // this object
   for (int i = 0; i < portsPerTransceiver_; i++) {
     opticsModulePortStateMachine_[i].get_attribute(qsfpModuleObjPtr) = this;
+  }
+
+  // After the port state machine is created, start its port level
+  // hardware init so that the PSM can move to next state
+  for (int i = 0; i < portsPerTransceiver_; i++) {
+    opticsModulePortHwInit(i);
   }
 }
 
@@ -555,7 +661,7 @@ void QsfpModule::genMsmModPortsDownEvent() {
  */
 void QsfpModule::scheduleAgentPortSyncupTimeout() {
   XLOG(INFO) << "MSM: Scheduling Agent port sync timeout function for module "
-             << qsfpImpl_->getName() << std::endl;
+             << qsfpImpl_->getName();
 
   // Schedule a function to do bring up / remediate after some time
   opticsMsmFunctionScheduler_.addFunctionOnce(
@@ -579,12 +685,15 @@ void QsfpModule::scheduleAgentPortSyncupTimeout() {
  * this state we need to cancel this timeout function
  */
 void QsfpModule::cancelAgentPortSyncupTimeout() {
+  XLOG(INFO) << "MSM: Cancelling Agent port sync timeout function for module "
+             << qsfpImpl_->getNum();
+
   // Cancel the current scheduled function
   opticsMsmFunctionScheduler_.cancelFunction(
       folly::to<std::string>("ModuleStateMachine-", qsfpImpl_->getName()));
 
   // Stop the scheduler thread
-  opticsMsmFunctionScheduler_.shutdown();
+  // opticsMsmFunctionScheduler_.shutdown();
 }
 
 /*
@@ -596,7 +705,7 @@ void QsfpModule::cancelAgentPortSyncupTimeout() {
  */
 void QsfpModule::scheduleBringupRemediateFunction() {
   XLOG(INFO) << "MSM: Scheduling Remediate/bringup function for module "
-             << qsfpImpl_->getName() << std::endl;
+             << qsfpImpl_->getName();
 
   // Schedule a function to do bring up / remediate after some time
   opticsMsmFunctionScheduler_.addFunctionOnce(
@@ -630,7 +739,41 @@ void QsfpModule::exitBringupRemediateFunction() {
       folly::to<std::string>("ModuleStateMachine-", qsfpImpl_->getName()));
 
   // Stop the scheduler thread
-  opticsMsmFunctionScheduler_.shutdown();
+  // opticsMsmFunctionScheduler_.shutdown();
+}
+
+/*
+ * checkAgentModulePortSyncup
+ *
+ * This function checks if the Agent has synced up the port status information
+ * If it is done then we need to generate the port Up or port Down event to
+ * the port state machine (PSM). This is to take care of the case when PSM
+ * has entered Initialized state and the Agent to qsfp_service sync up has
+ * already happened.
+ */
+void QsfpModule::checkAgentModulePortSyncup() {
+  uint32_t systemPortId, modulePortId;
+  // Look into the synced port information and generate the event if the
+  // info is already present
+  for (auto& port : ports_) {
+    systemPortId = port.first;
+    // Get the local module port id to identify the port state machine
+    modulePortId = getSystemPortToModulePortIdLocked(systemPortId);
+
+    // If the module port status has been synced up from agent then based
+    // on port up/down status, raise the port status machine event
+    if (!port.second.profileID_ref()->empty()) {
+      if (*port.second.up_ref()) {
+        // Raise port up event to PSM
+        opticsModulePortStateMachine_[modulePortId].process_event(
+            MODULE_PORT_EVENT_AGENT_PORT_UP);
+      } else {
+        // Raise port down event to PSM
+        opticsModulePortStateMachine_[modulePortId].process_event(
+            MODULE_PORT_EVENT_AGENT_PORT_DOWN);
+      }
+    }
+  }
 }
 
 } // namespace fboss
