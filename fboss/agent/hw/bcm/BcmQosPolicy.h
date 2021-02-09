@@ -65,7 +65,7 @@ class BcmQosPolicy {
 
   // pfc pri <-> pg map functions
   void programPfcPriorityToPgMap(const std::shared_ptr<QosPolicy>& qosPolicy);
-  void programPfcPriorityToPg(std::vector<int>& pfcPriorityPg);
+  void programPfcPriorityToPg(const std::vector<int>& pfcPriorityPg);
   void updatePfcPriorityToPgMap(
       const std::shared_ptr<QosPolicy>& oldQosPolicy,
       const std::shared_ptr<QosPolicy>& newQosPolicy);

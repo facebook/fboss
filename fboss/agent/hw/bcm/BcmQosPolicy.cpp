@@ -38,6 +38,7 @@ BcmQosPolicy::BcmQosPolicy(
   programIngressExpQosMap(qosPolicy);
   programEgressExpQosMap(qosPolicy);
   programTrafficClassToPgMap(qosPolicy);
+  programPfcPriorityToPgMap(qosPolicy);
 }
 
 BcmQosPolicyHandle BcmQosPolicy::getHandle(BcmQosMap::Type type) const {
@@ -73,10 +74,12 @@ void BcmQosPolicy::update(
   updateEgressExpQosMap(oldQosPolicy, newQosPolicy);
   updateIngressExpQosMap(oldQosPolicy, newQosPolicy);
   updateTrafficClassToPgMap(oldQosPolicy, newQosPolicy);
+  updatePfcPriorityToPgMap(oldQosPolicy, newQosPolicy);
 }
 
 void BcmQosPolicy::remove() {
   programTrafficClassToPg(getBcmDefaultTrafficClassToPgArr());
+  programPfcPriorityToPg(getBcmDefaultPfcPriorityToPgArr());
 }
 
 void BcmQosPolicy::updateIngressDscpQosMap(
@@ -116,17 +119,19 @@ void BcmQosPolicy::updateIngressDscpQosMap(
   }
 }
 
-void BcmQosPolicy::programPfcPriorityToPg(std::vector<int>& pfcPriorityPg) {
+void BcmQosPolicy::programPfcPriorityToPg(
+    const std::vector<int>& pfcPriorityPg) {
   if (!hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
     return;
   }
+  auto& tmpPfcPriorityToPg = const_cast<std::vector<int>&>(pfcPriorityPg);
   // an array with index representing pfc priority
   // value is PG Id
   auto rv = bcm_cosq_priority_group_pfc_priority_mapping_profile_set(
       hw_->getUnit(),
       kDefaultProfileId,
       pfcPriorityPg.size(),
-      pfcPriorityPg.data());
+      tmpPfcPriorityToPg.data());
   bcmCheckError(
       rv,
       "Failed to program bcm_cosq_priority_group_pfc_priority_mapping_profile_set, size: ",
