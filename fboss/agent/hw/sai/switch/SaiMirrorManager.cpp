@@ -13,6 +13,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
@@ -121,6 +122,8 @@ void SaiMirrorManager::addMirror(const std::shared_ptr<Mirror>& mirror) {
   mirrorHandles_.emplace(mirror->getID(), std::move(mirrorHandle));
   managerTable_->portManager().programMirrorOnAllPorts(
       mirror->getID(), MirrorAction::START);
+  managerTable_->aclTableManager().programMirrorOnAllAcls(
+      mirror->getID(), MirrorAction::START);
 }
 
 void SaiMirrorManager::removeMirror(const std::shared_ptr<Mirror>& mirror) {
@@ -130,6 +133,8 @@ void SaiMirrorManager::removeMirror(const std::shared_ptr<Mirror>& mirror) {
         "Attempted to remove non-existent mirror: ", mirror->getID());
   }
   managerTable_->portManager().programMirrorOnAllPorts(
+      mirror->getID(), MirrorAction::STOP);
+  managerTable_->aclTableManager().programMirrorOnAllAcls(
       mirror->getID(), MirrorAction::STOP);
   mirrorHandles_.erase(mirrorHandleIter);
 }

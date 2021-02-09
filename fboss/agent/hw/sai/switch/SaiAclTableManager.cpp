@@ -938,4 +938,20 @@ void SaiAclTableManager::programMirror(
   }
 }
 
+void SaiAclTableManager::programMirrorOnAllAcls(
+    const std::optional<std::string>& mirrorId,
+    MirrorAction action) {
+  for (const auto& handle : handles_) {
+    for (const auto& aclMember : handle.second->aclTableMembers) {
+      if (aclMember.second->getIngressMirror() == mirrorId) {
+        programMirror(
+            aclMember.second.get(), MirrorDirection::INGRESS, action, mirrorId);
+      }
+      if (aclMember.second->getEgressMirror() == mirrorId) {
+        programMirror(
+            aclMember.second.get(), MirrorDirection::EGRESS, action, mirrorId);
+      }
+    }
+  }
+}
 } // namespace facebook::fboss
