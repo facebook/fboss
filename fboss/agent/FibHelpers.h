@@ -84,9 +84,9 @@ void forEachChangedRoute(
     AddFn addedFn,
     RemoveFn removedFn,
     const Args&... args) {
-  auto removeAll = [&removedFn](RouterID rid, const auto& routes) {
+  auto removeAll = [&](RouterID rid, const auto& routes) {
     for (const auto& oldRoute : routes) {
-      removedFn(rid, oldRoute);
+      removedFn(args..., rid, oldRoute);
     }
   };
   auto processRoutesDelta = [&](RouterID rid, const auto& routesDelta) {
@@ -95,11 +95,11 @@ void forEachChangedRoute(
       auto const& newRoute = routeDelta.getNew();
 
       if (!oldRoute) {
-        addedFn(rid, newRoute);
+        addedFn(args..., rid, newRoute);
       } else if (!newRoute) {
-        removedFn(rid, oldRoute);
+        removedFn(args..., rid, oldRoute);
       } else {
-        changedFn(rid, oldRoute, newRoute);
+        changedFn(args..., rid, oldRoute, newRoute);
       }
     }
   };
