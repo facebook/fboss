@@ -38,7 +38,12 @@ TEST_F(BcmTest, fpGroupExists) {
   BCM_FIELD_QSET_INIT(qset);
   // TH does not allow creating groups with empty QSETs
   BCM_FIELD_QSET_ADD(qset, bcmFieldQualifyDstIp6);
-  createFPGroup(getUnit(), qset, kGid, kPri);
+  createFPGroup(
+      getUnit(),
+      qset,
+      kGid,
+      kPri,
+      getPlatform()->getAsic()->isSupported(HwAsic::Feature::HSDK));
   ASSERT_TRUE(fpGroupExists(getUnit(), kGid));
 }
 

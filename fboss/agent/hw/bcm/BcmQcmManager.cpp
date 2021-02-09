@@ -95,7 +95,8 @@ void BcmQcmManager::createIfpGroup() {
       hw_->getUnit(),
       qset,
       FLAGS_qcm_ifp_gid /* gid */,
-      FLAGS_qcm_ifp_pri /* pri*/);
+      FLAGS_qcm_ifp_pri /* pri*/,
+      hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::HSDK));
 }
 
 void BcmQcmManager::initExactMatchGroupCreate() {

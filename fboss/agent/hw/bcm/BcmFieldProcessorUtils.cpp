@@ -257,10 +257,10 @@ void createFPGroup(
     int unit,
     bcm_field_qset_t qset,
     bcm_field_group_t gid,
-    int g_pri) {
-  auto rv = bcm_field_group_create_id(unit, qset, g_pri, gid);
-  if (rv == BCM_E_UNAVAIL) {
-    // If we can't use create_id function, then fall to use config_create
+    int g_pri,
+    bool onHSDK) {
+  int rv;
+  if (onHSDK) {
     bcm_field_group_config_t config;
     bcm_field_group_config_t_init(&config);
     config.flags = BCM_FIELD_GROUP_CREATE_WITH_ID;
@@ -269,6 +269,8 @@ void createFPGroup(
     config.priority = g_pri;
     config.group = gid;
     rv = bcm_field_group_config_create(unit, &config);
+  } else {
+    rv = bcm_field_group_create_id(unit, qset, g_pri, gid);
   }
 
   bcmCheckError(rv, "failed to create fp group: ", gid);

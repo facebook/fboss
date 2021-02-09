@@ -341,7 +341,8 @@ void createFPGroup(
     int unit,
     bcm_field_qset_t qset,
     bcm_field_group_t gid,
-    int g_pri);
+    int g_pri,
+    bool onHSDK);
 
 bool qsetsEqual(const bcm_field_qset_t& lhs, const bcm_field_qset_t& rhs);
 

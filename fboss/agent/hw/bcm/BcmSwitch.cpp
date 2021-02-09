@@ -2930,7 +2930,8 @@ void BcmSwitch::createAclGroup() {
       unit_,
       getAclQset(getPlatform()->getAsic()->getAsicType()),
       platform_->getAsic()->getDefaultACLGroupID(),
-      FLAGS_acl_g_pri);
+      FLAGS_acl_g_pri,
+      getPlatform()->getAsic()->isSupported(HwAsic::Feature::HSDK));
 }
 
 void BcmSwitch::dropDhcpPackets() {

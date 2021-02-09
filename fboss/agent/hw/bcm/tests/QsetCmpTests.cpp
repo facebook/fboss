@@ -65,7 +65,12 @@ TEST_F(BcmTest, BcmAddsExtraQuals) {
   // default
   const auto kTmpGroup =
       static_cast<bcm_field_group_t>(getAsic()->getDefaultACLGroupID()) - 1;
-  createFPGroup(getUnit(), qset, kTmpGroup, kTmpPriority);
+  createFPGroup(
+      getUnit(),
+      qset,
+      kTmpGroup,
+      kTmpPriority,
+      getPlatform()->getAsic()->isSupported(HwAsic::Feature::HSDK));
 
   auto effectiveQset = getGroupQset(getUnit(), kTmpGroup);
   // Check whether bcmFieldQualifyStage is added if needsExtraFPQsetQualifiers()
