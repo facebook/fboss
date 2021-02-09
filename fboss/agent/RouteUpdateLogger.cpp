@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/RouteUpdateLogger.h"
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 
 namespace facebook::fboss {
@@ -18,6 +19,7 @@ template <typename AddrT>
 void handleChangedRoute(
     const RouteUpdateLoggingPrefixTracker& tracker,
     const std::unique_ptr<RouteLogger<AddrT>>& logger,
+    RouterID /*rid*/,
     const std::shared_ptr<Route<AddrT>>& oldRoute,
     const std::shared_ptr<Route<AddrT>>& newRoute) {
   std::vector<std::string> matchedIdentifiers;
@@ -31,6 +33,7 @@ template <typename AddrT>
 void handleRemovedRoute(
     const RouteUpdateLoggingPrefixTracker& tracker,
     const std::unique_ptr<RouteLogger<AddrT>>& logger,
+    RouterID /*rid*/,
     const std::shared_ptr<Route<AddrT>>& oldRoute) {
   std::vector<std::string> matchedIdentifiers;
   auto prefix = oldRoute->prefix();
@@ -43,6 +46,7 @@ template <typename AddrT>
 void handleAddedRoute(
     const RouteUpdateLoggingPrefixTracker& tracker,
     const std::unique_ptr<RouteLogger<AddrT>>& logger,
+    RouterID /*rid*/,
     const std::shared_ptr<Route<AddrT>>& newRoute) {
   std::vector<std::string> matchedIdentifiers;
   auto prefix = newRoute->prefix();
@@ -65,27 +69,28 @@ RouteUpdateLogger::RouteUpdateLogger(
     std::unique_ptr<RouteLogger<folly::IPAddressV6>> routeLoggerV6,
     std::unique_ptr<MplsRouteLogger> mplsRouteLogger)
     : AutoRegisterStateObserver(sw, "RouteUpdateLogger"),
+      swSwitch_(sw),
       routeLoggerV4_(std::move(routeLoggerV4)),
       routeLoggerV6_(std::move(routeLoggerV6)),
       mplsRouteLogger_(std::move(mplsRouteLogger)) {}
 
 void RouteUpdateLogger::stateUpdated(const StateDelta& delta) {
-  for (const auto& rtDelta : delta.getRouteTablesDelta()) {
-    DeltaFunctions::forEachChanged(
-        rtDelta.getRoutesV4Delta(),
-        &handleChangedRoute<folly::IPAddressV4>,
-        &handleAddedRoute<folly::IPAddressV4>,
-        &handleRemovedRoute<folly::IPAddressV4>,
-        prefixTracker_,
-        routeLoggerV4_);
-    DeltaFunctions::forEachChanged(
-        rtDelta.getRoutesV6Delta(),
-        &handleChangedRoute<folly::IPAddressV6>,
-        &handleAddedRoute<folly::IPAddressV6>,
-        &handleRemovedRoute<folly::IPAddressV6>,
-        prefixTracker_,
-        routeLoggerV6_);
-  }
+  forEachChangedRoute<folly::IPAddressV4>(
+      swSwitch_->isStandaloneRibEnabled(),
+      delta,
+      &handleChangedRoute<folly::IPAddressV4>,
+      &handleAddedRoute<folly::IPAddressV4>,
+      &handleRemovedRoute<folly::IPAddressV4>,
+      prefixTracker_,
+      routeLoggerV4_);
+  forEachChangedRoute<folly::IPAddressV6>(
+      swSwitch_->isStandaloneRibEnabled(),
+      delta,
+      &handleChangedRoute<folly::IPAddressV6>,
+      &handleAddedRoute<folly::IPAddressV6>,
+      &handleRemovedRoute<folly::IPAddressV6>,
+      prefixTracker_,
+      routeLoggerV6_);
 
   auto* mplsRouteLogger = mplsRouteLogger_.get();
   CHECK(mplsRouteLogger);

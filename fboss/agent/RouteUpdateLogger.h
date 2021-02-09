@@ -195,6 +195,7 @@ class RouteUpdateLogger : public AutoRegisterStateObserver {
   }
 
  private:
+  const SwSwitch* swSwitch_;
   RouteUpdateLoggingPrefixTracker prefixTracker_;
   folly::Synchronized<LabelsTracker> labelTracker_;
   std::unique_ptr<RouteLogger<folly::IPAddressV4>> routeLoggerV4_;
