@@ -24,7 +24,7 @@ getEcmpGroupInHw(const BcmSwitch* hw, bcm_if_t ecmp, int sizeInSw) {
   existing.ecmp_intf = ecmp;
   int pathsInHwCount;
   if (hw->getPlatform()->getAsic()->isSupported(HwAsic::Feature::HSDK)) {
-    // @lint-ignore HOWTOEVEN CLANGTIDY CArray
+    // @lint-ignore CLANGTIDY
     bcm_l3_ecmp_member_t pathsInHw[sizeInSw];
     bcm_l3_ecmp_get(
         hw->getUnit(), &existing, sizeInSw, pathsInHw, &pathsInHwCount);
@@ -39,7 +39,7 @@ getEcmpGroupInHw(const BcmSwitch* hw, bcm_if_t ecmp, int sizeInSw) {
       }
     }
   } else {
-    // @lint-ignore HOWTOEVEN CLANGTIDY CArray
+    // @lint-ignore CLANGTIDY
     bcm_if_t pathsInHw[sizeInSw];
     bcm_l3_egress_ecmp_get(
         hw->getUnit(), &existing, sizeInSw, pathsInHw, &pathsInHwCount);

@@ -328,7 +328,7 @@ void BcmEcmpEgress::program() {
       if (ucmpSupported_) {
         obj.ecmp_group_flags = BCM_L3_ECMP_MEMBER_WEIGHTED;
       }
-      // @lint-ignore HOWTOEVEN CLANGTIDY CArray
+      // @lint-ignore CLANGTIDY
       bcm_l3_ecmp_member_t ecmpMemberArray[numPaths];
       auto idx = 0;
       for (const auto& path : egressId2Weight_) {
@@ -364,7 +364,7 @@ void BcmEcmpEgress::program() {
         createWideEcmpEntry(numPaths);
         return;
       } else {
-        // @lint-ignore HOWTOEVEN CLANGTIDY
+        // @lint-ignore CLANGTIDY
         bcm_if_t pathsArray[numPaths];
         auto index = 0;
         for (const auto& path : egressId2Weight_) {
@@ -576,7 +576,7 @@ bool BcmEcmpEgress::removeEgressIdHwNotLocked(
       ret = bcm_l3_ecmp_get(unit, &existing, 0, nullptr, &totalMembersInHw);
       bcmCheckError(ret, "Unable to get ecmp entry ", ecmpId);
       if (totalMembersInHw > 0) {
-        // @lint-ignore HOWTOEVEN CLANGTIDY CArray
+        // @lint-ignore CLANGTIDY
         bcm_l3_ecmp_member_t membersInHw[totalMembersInHw];
         ret = bcm_l3_ecmp_get(
             unit, &existing, totalMembersInHw, membersInHw, &totalMembersInHw);
@@ -705,7 +705,7 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
   existing.ecmp_intf = ecmpId;
   int countInHw = 0;
   int ret;
-  // @lint-ignore HOWTOEVEN CLANGTIDY CArray
+  // @lint-ignore CLANGTIDY
   bcm_l3_ecmp_member_t membersInHw[numPaths];
   int totalMembersInHw = -1;
   int memberIndex = -1;
@@ -727,7 +727,7 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
       }
     }
   } else {
-    // @lint-ignore HOWTOEVEN CLANGTIDY CArray
+    // @lint-ignore CLANGTIDY
     // In WideECMP case, HW will have kMaxWeightedEcmpPaths entries
     bcm_if_t pathsInHw[kMaxWeightedEcmpPaths];
     int totalPathsInHw;
@@ -930,7 +930,7 @@ void BcmEcmpEgress::programWideEcmp(
   bcm_l3_egress_ecmp_t obj;
   bcm_l3_egress_ecmp_t_init(&obj);
   // weighted path size needs to be power of 2
-  // @lint-ignore HOWTOEVEN CLANGTIDY
+  // @lint-ignore CLANGTIDY
   bcm_if_t pathsArray[kMaxWeightedEcmpPaths];
   auto index = 0;
   if (id != INVALID) {
@@ -974,7 +974,7 @@ bool BcmEcmpEgress::rebalanceWideEcmpEntry(
     int unit,
     EgressId ecmpId,
     std::pair<EgressId, int> toRemove) {
-  // @lint-ignore HOWTOEVEN CLANGTIDY
+  // @lint-ignore CLANGTIDY
   bcm_if_t pathsInHw[kMaxWeightedEcmpPaths];
   int totalPathsInHw;
   bcm_l3_egress_ecmp_t obj;
