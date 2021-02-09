@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiMirrorManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -684,6 +685,15 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   std::optional<SaiAclEntryTraits::Attributes::ActionSetDSCP> aclActionSetDSCP{
       std::nullopt};
 
+  std::optional<SaiAclEntryTraits::Attributes::ActionMirrorIngress>
+      aclActionMirrorIngress{};
+
+  std::optional<SaiAclEntryTraits::Attributes::ActionMirrorEgress>
+      aclActionMirrorEgress{};
+
+  std::optional<std::string> ingressMirror{std::nullopt};
+  std::optional<std::string> egressMirror{std::nullopt};
+
   auto action = addedAclEntry->getAclAction();
   if (action) {
     if (action.value().getTrafficCounter()) {
@@ -746,6 +756,31 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       }
     }
 
+    if (action.value().getIngressMirror().has_value()) {
+      std::vector<sai_object_id_t> aclEntryMirrorIngressOidList;
+      auto mirrorHandle = managerTable_->mirrorManager().getMirrorHandle(
+          action.value().getIngressMirror().value());
+      if (mirrorHandle) {
+        aclEntryMirrorIngressOidList.push_back(mirrorHandle->adapterKey());
+      }
+      ingressMirror = action.value().getIngressMirror().value();
+      aclActionMirrorIngress =
+          SaiAclEntryTraits::Attributes::ActionMirrorIngress{
+              AclEntryActionSaiObjectIdList(aclEntryMirrorIngressOidList)};
+    }
+
+    if (action.value().getEgressMirror().has_value()) {
+      std::vector<sai_object_id_t> aclEntryMirrorEgressOidList;
+      auto mirrorHandle = managerTable_->mirrorManager().getMirrorHandle(
+          action.value().getEgressMirror().value());
+      if (mirrorHandle) {
+        aclEntryMirrorEgressOidList.push_back(mirrorHandle->adapterKey());
+      }
+      egressMirror = action.value().getEgressMirror().value();
+      aclActionMirrorEgress = SaiAclEntryTraits::Attributes::ActionMirrorEgress{
+          AclEntryActionSaiObjectIdList(aclEntryMirrorEgressOidList)};
+    }
+
     if (action.value().getSetDscp()) {
       const int dscpValue =
           *action.value().getSetDscp().value().dscpValue_ref();
@@ -771,7 +806,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
          fieldRouteDstUserMeta.has_value() ||
          fieldNeighborDstUserMeta.has_value()) &&
         (aclActionPacketAction.has_value() || aclActionCounter.has_value() ||
-         aclActionSetTC.has_value() || aclActionSetDSCP.has_value()))) {
+         aclActionSetTC.has_value() || aclActionSetDSCP.has_value() ||
+         aclActionMirrorIngress.has_value() ||
+         aclActionMirrorEgress.has_value()))) {
     XLOG(DBG)
         << "Unsupported field/action for aclEntry: addedAclEntry->getID())";
     return AclEntrySaiId{0};
@@ -808,15 +845,16 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclActionCounter,
       aclActionSetTC,
       aclActionSetDSCP,
-      std::nullopt, // mirrorIngress
-      std::nullopt, // mirrorEgress
+      aclActionMirrorIngress,
+      aclActionMirrorEgress,
   };
 
   auto saiAclEntry = aclEntryStore.setObject(adapterHostKey, attributes);
   auto entryHandle = std::make_unique<SaiAclEntryHandle>();
   entryHandle->aclEntry = saiAclEntry;
   entryHandle->aclCounter = saiAclCounter;
-
+  entryHandle->ingressMirror = ingressMirror;
+  entryHandle->egressMirror = egressMirror;
   auto [it, inserted] = aclTableHandle->aclTableMembers.emplace(
       addedAclEntry->getPriority(), std::move(entryHandle));
   CHECK(inserted);
@@ -871,5 +909,6 @@ const SaiAclEntryHandle* FOLLY_NULLABLE SaiAclTableManager::getAclEntryHandle(
   }
   return itr->second.get();
 }
+
 
 } // namespace facebook::fboss

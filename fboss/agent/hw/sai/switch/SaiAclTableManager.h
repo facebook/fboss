@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/api/Types.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/state/AclEntry.h"
+#include "fboss/agent/state/Mirror.h"
 #include "fboss/agent/types.h"
 
 #include <folly/MacAddress.h>
@@ -42,6 +43,14 @@ struct SaiAclEntryHandle {
    */
   std::shared_ptr<SaiAclCounter> aclCounter;
   std::shared_ptr<SaiAclEntry> aclEntry;
+  std::optional<std::string> ingressMirror;
+  std::optional<std::string> egressMirror;
+  std::optional<std::string> getIngressMirror() {
+    return ingressMirror;
+  }
+  std::optional<std::string> getEgressMirror() {
+    return egressMirror;
+  }
 };
 
 struct SaiAclTableHandle {
