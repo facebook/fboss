@@ -567,10 +567,6 @@ class BcmInterface {
   virtual int
   bcm_switch_control_get(int unit, bcm_switch_control_t type, int* arg) = 0;
 
-  virtual int bcm_trunk_chip_info_get(
-      int unit,
-      bcm_trunk_chip_info_t* ta_info) = 0;
-
   virtual int bcm_trunk_init(int unit) = 0;
 
   virtual int bcm_trunk_get(

@@ -1075,14 +1075,6 @@ pair<string, vector<string>> BcmCinter::cintForTrunkMemberArray(
   return make_pair(memberArrayName, cintLines);
 }
 
-int BcmCinter::bcm_trunk_chip_info_get(
-    int unit,
-    bcm_trunk_chip_info_t* /* ta_info */) {
-  writeCintLines(wrapFunc(to<string>(
-      "bcm_trunk_chip_info_get(", makeParamStr(unit, "&ta_info"), ")")));
-  return 0;
-}
-
 int BcmCinter::bcm_trunk_init(int unit) {
   writeCintLines(
       wrapFunc(to<string>("bcm_trunk_init(", makeParamStr(unit), ")")));

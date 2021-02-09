@@ -594,7 +594,6 @@ int __real_bcm_trunk_member_delete(
 int __real_bcm_port_loopback_get(int unit, bcm_port_t port, uint32* value);
 int __real_bcm_port_loopback_set(int unit, bcm_port_t port, uint32 value);
 
-int __real_bcm_trunk_chip_info_get(int unit, bcm_trunk_chip_info_t* ta_info);
 int __real_bcm_trunk_init(int unit);
 int __real_bcm_trunk_get(
     int unit,
@@ -2308,10 +2307,6 @@ int __wrap_bcm_l3_egress_ecmp_delete(
 }
 
 // Trunks
-int __wrap_bcm_trunk_chip_info_get(int unit, bcm_trunk_chip_info_t* ta_info) {
-  CALL_WRAPPERS_RV(bcm_trunk_chip_info_get(unit, ta_info));
-}
-
 int __wrap_bcm_trunk_init(int unit) {
   CALL_WRAPPERS_RV(bcm_trunk_init(unit));
 }

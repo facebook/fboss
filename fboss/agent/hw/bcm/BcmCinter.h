@@ -573,8 +573,6 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   int bcm_vlan_gport_delete_all(int unit, bcm_vlan_t vlan) override;
   int bcm_l3_egress_multipath_delete(int unit, bcm_if_t mpintf, bcm_if_t intf)
       override;
-  virtual int bcm_trunk_chip_info_get(int unit, bcm_trunk_chip_info_t* ta_info)
-      override;
   int bcm_trunk_init(int unit) override;
   int bcm_trunk_set(
       int unit,
