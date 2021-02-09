@@ -163,6 +163,12 @@ class SaiAclTableManager {
       sai_uint32_t dstUserMetaDataRangeMin,
       sai_uint32_t dstUserMetaDataRangeMax) const;
 
+  void programMirror(
+      const SaiAclEntryHandle* aclEntryHandle,
+      MirrorDirection direction,
+      MirrorAction action,
+      const std::optional<std::string>& mirrorId);
+
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
 

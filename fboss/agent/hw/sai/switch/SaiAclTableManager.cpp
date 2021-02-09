@@ -910,5 +910,32 @@ const SaiAclEntryHandle* FOLLY_NULLABLE SaiAclTableManager::getAclEntryHandle(
   return itr->second.get();
 }
 
+void SaiAclTableManager::programMirror(
+    const SaiAclEntryHandle* aclEntryHandle,
+    MirrorDirection direction,
+    MirrorAction action,
+    const std::optional<std::string>& mirrorId) {
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::SAI_MIRRORING)) {
+    return;
+  }
+  if (!mirrorId.has_value()) {
+    XLOG(DBG) << "mirror session not configured: ";
+    return;
+  }
+  auto mirrorHandle =
+      managerTable_->mirrorManager().getMirrorHandle(mirrorId.value());
+  std::vector<sai_object_id_t> mirrorOidList;
+  if (mirrorHandle && action == MirrorAction::START) {
+    mirrorOidList.push_back(mirrorHandle->adapterKey());
+  }
+
+  if (direction == MirrorDirection::INGRESS) {
+    aclEntryHandle->aclEntry->setOptionalAttribute(
+        SaiAclEntryTraits::Attributes::ActionMirrorIngress{mirrorOidList});
+  } else {
+    aclEntryHandle->aclEntry->setOptionalAttribute(
+        SaiAclEntryTraits::Attributes::ActionMirrorEgress{mirrorOidList});
+  }
+}
 
 } // namespace facebook::fboss
