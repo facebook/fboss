@@ -420,4 +420,11 @@ class WaitForSwitchState : public AutoRegisterStateObserver {
   std::string name_;
 };
 
+struct NoRib {
+  static constexpr bool hasStandAloneRib = false;
+};
+struct Rib {
+  static constexpr bool hasStandAloneRib = true;
+};
+
 } // namespace facebook::fboss

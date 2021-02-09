@@ -400,13 +400,6 @@ void sendNeighborAdvertisement(
 
 } // unnamed namespace
 
-struct NoRib {
-  static constexpr bool hasStandAloneRib = false;
-};
-struct Rib {
-  static constexpr bool hasStandAloneRib = true;
-};
-
 template <typename StandaAloneRib>
 class NdpTest : public ::testing::Test {
  public:
