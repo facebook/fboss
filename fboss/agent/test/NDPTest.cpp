@@ -12,6 +12,7 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TxPacket.h"
@@ -24,7 +25,6 @@
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
-#include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/HwTestHandle.h"
@@ -115,53 +115,6 @@ cfg::SwitchConfig createSwitchConfig(seconds raInterval, seconds ndpTimeout) {
   }
 
   return config;
-}
-
-unique_ptr<HwTestHandle> setupTestHandle(
-    seconds raInterval,
-    seconds ndpInterval) {
-  auto config = createSwitchConfig(raInterval, ndpInterval);
-
-  *config.maxNeighborProbes_ref() = 1;
-  *config.staleEntryInterval_ref() = 1;
-
-  auto handle = createTestHandle(&config, kPlatformMac);
-  handle->getSw()->initialConfigApplied(std::chrono::steady_clock::now());
-  return handle;
-}
-
-shared_ptr<SwitchState> addMockRouteTable(shared_ptr<SwitchState> state) {
-  RouteNextHopSet nexthops;
-  // resolved by intf 1
-  nexthops.emplace(UnresolvedNextHop(
-      IPAddress("2401:db00:2110:3004::1"), UCMP_DEFAULT_WEIGHT));
-  // resolved by intf 1
-  nexthops.emplace(UnresolvedNextHop(
-      IPAddress("2401:db00:2110:3004::2"), UCMP_DEFAULT_WEIGHT));
-  // un-resolvable
-  nexthops.emplace(UnresolvedNextHop(
-      IPAddress("5555:db00:2110:3004::1"), UCMP_DEFAULT_WEIGHT));
-
-  RouteUpdater updater(state->getRouteTables());
-  updater.addRoute(
-      RouterID(0),
-      IPAddressV6("1111:1111:1:1::1"),
-      64,
-      ClientID(1001),
-      RouteNextHopEntry(nexthops, AdminDistance::MAX_ADMIN_DISTANCE));
-
-  auto newRt = updater.updateDone();
-  auto newState = state->clone();
-  newState->resetRouteTables(newRt);
-  return newState;
-}
-
-unique_ptr<HwTestHandle> setupTestHandle() {
-  return setupTestHandle(seconds(0), seconds(0));
-}
-
-unique_ptr<HwTestHandle> setupTestHandleWithNdpTimeout(seconds ndpTimeout) {
-  return setupTestHandle(seconds(0), ndpTimeout);
 }
 
 typedef std::function<void(Cursor* cursor, uint32_t length)> PayloadCheckFn;
@@ -447,8 +400,67 @@ void sendNeighborAdvertisement(
 
 } // unnamed namespace
 
-TEST(NdpTest, UnsolicitedRequest) {
-  auto handle = setupTestHandle();
+struct NoRib {
+  static constexpr bool hasStandAloneRib = false;
+};
+struct Rib {
+  static constexpr bool hasStandAloneRib = true;
+};
+
+template <typename StandaAloneRib>
+class NdpTest : public ::testing::Test {
+ public:
+  unique_ptr<HwTestHandle> setupTestHandle(
+      seconds raInterval = seconds(0),
+      seconds ndpInterval = seconds(0)) {
+    auto config = createSwitchConfig(raInterval, ndpInterval);
+
+    *config.maxNeighborProbes_ref() = 1;
+    *config.staleEntryInterval_ref() = 1;
+    auto flags = StandaAloneRib::hasStandAloneRib
+        ? SwitchFlags::ENABLE_STANDALONE_RIB
+        : SwitchFlags::DEFAULT;
+    auto handle = createTestHandle(&config, kPlatformMac, flags);
+    sw_ = handle->getSw();
+    sw_->initialConfigApplied(std::chrono::steady_clock::now());
+    return handle;
+  }
+  unique_ptr<HwTestHandle> setupTestHandleWithNdpTimeout(seconds ndpTimeout) {
+    return setupTestHandle(seconds(0), ndpTimeout);
+  }
+  void addRoutes() {
+    RouteNextHopSet nexthops;
+    // resolved by intf 1
+    nexthops.emplace(UnresolvedNextHop(
+        IPAddress("2401:db00:2110:3004::1"), UCMP_DEFAULT_WEIGHT));
+    // resolved by intf 1
+    nexthops.emplace(UnresolvedNextHop(
+        IPAddress("2401:db00:2110:3004::2"), UCMP_DEFAULT_WEIGHT));
+    // un-resolvable
+    nexthops.emplace(UnresolvedNextHop(
+        IPAddress("5555:db00:2110:3004::1"), UCMP_DEFAULT_WEIGHT));
+
+    SwSwitchRouteUpdateWrapper updater(sw_);
+    updater.addRoute(
+        RouterID(0),
+        IPAddressV6("1111:1111:1:1::1"),
+        64,
+        ClientID(1001),
+        RouteNextHopEntry(nexthops, AdminDistance::MAX_ADMIN_DISTANCE));
+
+    updater.program();
+  }
+
+ protected:
+  SwSwitch* sw_;
+};
+
+using NdpTestTypes = ::testing::Types<NoRib, Rib>;
+
+TYPED_TEST_CASE(NdpTest, NdpTestTypes);
+
+TYPED_TEST(NdpTest, UnsolicitedRequest) {
+  auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
 
   // Create an neighbor solicitation request
@@ -506,11 +518,11 @@ TEST(NdpTest, UnsolicitedRequest) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.ndp.sum", 1);
 }
 
-TEST(NdpTest, TriggerSolicitation) {
-  auto handle = setupTestHandle();
+TYPED_TEST(NdpTest, TriggerSolicitation) {
+  auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
 
-  sw->updateStateBlocking("add test route table", addMockRouteTable);
+  this->addRoutes();
 
   // Create a packet to a node in the attached IPv6 subnet
   auto pkt = PktUtil::parseHexData(
@@ -642,7 +654,7 @@ TEST(NdpTest, TriggerSolicitation) {
       sw, IPAddressV6("2401:db00:2110:3004::2"), VlanID(5));
 }
 
-TEST(NdpTest, RouterAdvertisement) {
+TYPED_TEST(NdpTest, RouterAdvertisement) {
   seconds raInterval(1);
   auto config = createSwitchConfig(raInterval, seconds(0));
   // Add an interface with a /128 mask, to make sure it isn't included
@@ -792,8 +804,8 @@ TEST(NdpTest, RouterAdvertisement) {
           expectedPrefixes));
 }
 
-TEST(NdpTest, receiveNeighborAdvertisementUnsolicited) {
-  auto handle = setupTestHandle();
+TYPED_TEST(NdpTest, receiveNeighborAdvertisementUnsolicited) {
+  auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
 
   // Send two unsolicited neighbor advertisements, state should update at
@@ -811,8 +823,8 @@ TEST(NdpTest, receiveNeighborAdvertisementUnsolicited) {
   EXPECT_EQ(numFlushed, 1);
 }
 
-TEST(NdpTest, FlushEntry) {
-  auto handle = setupTestHandle();
+TYPED_TEST(NdpTest, FlushEntry) {
+  auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
 
   ThriftHandler thriftHandler(sw);
@@ -881,8 +893,8 @@ TEST(NdpTest, FlushEntry) {
   EXPECT_EQ(numFlushed, 0);
 }
 
-TEST(NdpTest, PendingNdp) {
-  auto handle = setupTestHandle();
+TYPED_TEST(NdpTest, PendingNdp) {
+  auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
 
   auto vlanID = VlanID(5);
@@ -977,12 +989,12 @@ TEST(NdpTest, PendingNdp) {
   EXPECT_EQ(entry->isPending(), false);
 };
 
-TEST(NdpTest, PendingNdpCleanup) {
+TYPED_TEST(NdpTest, PendingNdpCleanup) {
   seconds ndpTimeout(1);
-  auto handle = setupTestHandleWithNdpTimeout(ndpTimeout);
+  auto handle = this->setupTestHandleWithNdpTimeout(ndpTimeout);
   auto sw = handle->getSw();
 
-  sw->updateStateBlocking("add test route table", addMockRouteTable);
+  this->addRoutes();
 
   auto vlanID = VlanID(5);
 
@@ -1151,12 +1163,12 @@ TEST(NdpTest, PendingNdpCleanup) {
   EXPECT_NE(sw, nullptr);
 };
 
-TEST(NdpTest, NdpExpiration) {
+TYPED_TEST(NdpTest, NdpExpiration) {
   seconds ndpTimeout(1);
-  auto handle = setupTestHandleWithNdpTimeout(ndpTimeout);
+  auto handle = this->setupTestHandleWithNdpTimeout(ndpTimeout);
   auto sw = handle->getSw();
 
-  sw->updateStateBlocking("add test route table", addMockRouteTable);
+  this->addRoutes();
 
   auto vlanID = VlanID(5);
 
@@ -1422,11 +1434,11 @@ TEST(NdpTest, NdpExpiration) {
   EXPECT_EQ(entry, nullptr);
 }
 
-TEST(NdpTest, PortFlapRecover) {
-  auto handle = setupTestHandleWithNdpTimeout(seconds(0));
+TYPED_TEST(NdpTest, PortFlapRecover) {
+  auto handle = this->setupTestHandleWithNdpTimeout(seconds(0));
   auto sw = handle->getSw();
 
-  sw->updateStateBlocking("add test route table", addMockRouteTable);
+  this->addRoutes();
 
   // We only have special port down handling after the fib is
   // synced, so we set that here.
