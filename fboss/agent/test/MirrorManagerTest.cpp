@@ -36,8 +36,17 @@ constexpr auto kMirrorName = "mirror";
 constexpr AdminDistance DISTANCE = AdminDistance::STATIC_ROUTE;
 const PortID kMirrorEgressPort{5};
 
-template <typename AddrT>
+template <typename AddrType, bool StandAloneRib>
+struct AddrAndRib {
+  using AddrT = AddrType;
+  static constexpr auto hasStandAloneRib = StandAloneRib;
+};
+
+template <typename AddrAndRib>
 struct MirrorManagerTestParams {
+  using AddrT = typename AddrAndRib::AddrT;
+  static constexpr auto hasStandAloneRib = AddrAndRib::hasStandAloneRib;
+
   AddrT mirrorDestination;
   AddrT mirrorSource;
   std::array<AddrT, 2> neighborIPs;
@@ -68,50 +77,49 @@ struct MirrorManagerTestParams {
   const UnresolvedNextHop nextHop(int neighborIndex) const {
     return UnresolvedNextHop(neighborIPs[neighborIndex % 2], NextHopWeight(80));
   }
-  static MirrorManagerTestParams<AddrT> getParams();
 };
 
-using MirrorManagerV4TestParams = MirrorManagerTestParams<folly::IPAddressV4>;
-using MirrorManagerV6TestParams = MirrorManagerTestParams<folly::IPAddressV6>;
-
-template <>
-MirrorManagerV4TestParams
-MirrorManagerTestParams<folly::IPAddressV4>::getParams() {
-  return MirrorManagerV4TestParams(
-      IPAddressV4("10.0.10.101"),
-      IPAddressV4("10.0.11.101"),
-      {IPAddressV4("10.0.0.111"), IPAddressV4("10.0.55.111")},
-      {MacAddress("10:0:0:0:1:11"), MacAddress("10:0:0:55:1:11")},
-      {PortID(6), PortID(7)},
-      {InterfaceID(1), InterfaceID(55)},
-      {IPAddressV4("10.0.10.100"), 31},
-      {IPAddressV4("10.0.0.0"), 16});
-}
-
-template <>
-MirrorManagerV6TestParams
-MirrorManagerTestParams<folly::IPAddressV6>::getParams() {
-  return MirrorManagerV6TestParams(
-      IPAddressV6("2401:db00:2110:10::1001"),
-      IPAddressV6("2401:db00:2110:11::1001"),
-      {IPAddressV6("2401:db00:2110:3001::0111"),
-       IPAddressV6("2401:db00:2110:3055::0111")},
-      {MacAddress("10:0:0:0:1:11"), MacAddress("10:0:0:55:1:11")},
-      {PortID(6), PortID(7)},
-      {InterfaceID(1), InterfaceID(55)},
-      {IPAddressV6("2401:db00:2110:10::1000"), 127},
-      {IPAddressV6("2401:db00:2110:10::0000"), 64});
+template <typename AddrAndRib>
+MirrorManagerTestParams<AddrAndRib> getParams() {
+  if constexpr (std::
+                    is_same_v<typename AddrAndRib::AddrT, folly::IPAddressV4>) {
+    return MirrorManagerTestParams<AddrAndRib>(
+        IPAddressV4("10.0.10.101"),
+        IPAddressV4("10.0.11.101"),
+        {IPAddressV4("10.0.0.111"), IPAddressV4("10.0.55.111")},
+        {MacAddress("10:0:0:0:1:11"), MacAddress("10:0:0:55:1:11")},
+        {PortID(6), PortID(7)},
+        {InterfaceID(1), InterfaceID(55)},
+        {IPAddressV4("10.0.10.100"), 31},
+        {IPAddressV4("10.0.0.0"), 16});
+  } else {
+    return MirrorManagerTestParams<AddrAndRib>(
+        IPAddressV6("2401:db00:2110:10::1001"),
+        IPAddressV6("2401:db00:2110:11::1001"),
+        {IPAddressV6("2401:db00:2110:3001::0111"),
+         IPAddressV6("2401:db00:2110:3055::0111")},
+        {MacAddress("10:0:0:0:1:11"), MacAddress("10:0:0:55:1:11")},
+        {PortID(6), PortID(7)},
+        {InterfaceID(1), InterfaceID(55)},
+        {IPAddressV6("2401:db00:2110:10::1000"), 127},
+        {IPAddressV6("2401:db00:2110:10::0000"), 64});
+  }
 }
 } // namespace
 
-template <typename AddrT>
+template <typename AddrAndRib>
 class MirrorManagerTest : public ::testing::Test {
  public:
   using Func = folly::Function<void()>;
   using StateUpdateFn = SwSwitch::StateUpdateFn;
+  using AddrT = typename AddrAndRib::AddrT;
+  static constexpr auto hasStandAloneRib = AddrAndRib::hasStandAloneRib;
 
   void SetUp() override {
-    handle_ = createTestHandle(testStateA());
+    auto config = testConfigA();
+    auto flags = hasStandAloneRib ? SwitchFlags::ENABLE_STANDALONE_RIB
+                                  : SwitchFlags::DEFAULT;
+    handle_ = createTestHandle(&config, flags);
     sw_ = handle_->getSw();
   }
 
@@ -248,12 +256,17 @@ class MirrorManagerTest : public ::testing::Test {
   SwSwitch* sw_;
 };
 
-using TestTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
+using V4NoRib = AddrAndRib<folly::IPAddressV4, false>;
+using V4Rib = AddrAndRib<folly::IPAddressV4, true>;
+using V6NoRib = AddrAndRib<folly::IPAddressV6, false>;
+using V6Rib = AddrAndRib<folly::IPAddressV6, true>;
+
+using TestTypes = ::testing::Types<V4NoRib, V4Rib, V6NoRib, V6Rib>;
 
 TYPED_TEST_SUITE(MirrorManagerTest, TestTypes);
 
 TYPED_TEST(MirrorManagerTest, CanNotUpdateMirrors) {
-  auto params = MirrorManagerTestParams<TypeParam>::getParams();
+  auto params = getParams<TypeParam>();
 
   this->updateState(
       "CanNotUpdateMirrors", [=](const std::shared_ptr<SwitchState>& state) {
@@ -270,7 +283,7 @@ TYPED_TEST(MirrorManagerTest, CanNotUpdateMirrors) {
 }
 
 TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithoutRoutes) {
-  auto params = MirrorManagerTestParams<TypeParam>::getParams();
+  auto params = getParams<TypeParam>();
   this->updateState(
       "ResolveNoMirrorWithoutRoutes",
       [=](const std::shared_ptr<SwitchState>& state) {
@@ -293,7 +306,7 @@ TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithoutRoutes) {
 }
 
 TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithoutArpEntry) {
-  auto params = MirrorManagerTestParams<TypeParam>::getParams();
+  auto params = getParams<TypeParam>();
   this->updateState(
       "ResolveNoMirrorWithoutArpEntry",
       [=](const std::shared_ptr<SwitchState>& state) {
@@ -327,7 +340,7 @@ TYPED_TEST(MirrorManagerTest, LocalMirrorAlreadyResolved) {
 }
 
 TYPED_TEST(MirrorManagerTest, ResolveMirrorWithoutEgressPort) {
-  const auto params = MirrorManagerTestParams<TypeParam>::getParams();
+  const auto params = getParams<TypeParam>();
 
   this->updateState(
       "ResolveMirrorWithoutEgressPort",
@@ -366,7 +379,7 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithoutEgressPort) {
 }
 
 TYPED_TEST(MirrorManagerTest, ResolveMirrorWithEgressPort) {
-  const auto params = MirrorManagerTestParams<TypeParam>::getParams();
+  const auto params = getParams<TypeParam>();
 
   this->updateState(
       "ResolveMirrorWithEgressPort",
@@ -419,7 +432,7 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithEgressPort) {
 }
 
 TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithEgressPort) {
-  const auto params = MirrorManagerTestParams<TypeParam>::getParams();
+  const auto params = getParams<TypeParam>();
 
   this->updateState(
       "ResolveNoMirrorWithEgressPort",
@@ -456,7 +469,7 @@ TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithEgressPort) {
 }
 
 TYPED_TEST(MirrorManagerTest, ResolveMirrorWithDirectlyConnectedRoute) {
-  const auto params = MirrorManagerTestParams<TypeParam>::getParams();
+  const auto params = getParams<TypeParam>();
 
   this->updateState(
       "ResolveMirrorWithDirectlyConnectedRoute",
@@ -495,7 +508,7 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithDirectlyConnectedRoute) {
 }
 
 TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithDirectlyConnectedRoute) {
-  const auto params = MirrorManagerTestParams<TypeParam>::getParams();
+  const auto params = getParams<TypeParam>();
   this->updateState(
       "ResolveNoMirrorWithDirectlyConnectedRoute",
       [=](const std::shared_ptr<SwitchState>& state) {
@@ -514,7 +527,7 @@ TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithDirectlyConnectedRoute) {
 }
 
 TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteDelete) {
-  const auto params = MirrorManagerTestParams<TypeParam>::getParams();
+  const auto params = getParams<TypeParam>();
   this->updateState(
       "UpdateMirrorOnRouteDelete: addMirror",
       [=](const std::shared_ptr<SwitchState>& state) {
@@ -590,7 +603,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteDelete) {
 }
 
 TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteAdd) {
-  const auto params = MirrorManagerTestParams<TypeParam>::getParams();
+  const auto params = getParams<TypeParam>();
   this->updateState(
       "UpdateMirrorOnRouteAdd: addMirror",
       [=](const std::shared_ptr<SwitchState>& state) {
@@ -669,7 +682,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteAdd) {
 }
 
 TYPED_TEST(MirrorManagerTest, UpdateNoMirrorWithEgressPortOnRouteDel) {
-  const auto params = MirrorManagerTestParams<TypeParam>::getParams();
+  const auto params = getParams<TypeParam>();
 
   this->updateState(
       "UpdateNoMirrorWithEgressPortOnRouteDel",
@@ -734,7 +747,7 @@ TYPED_TEST(MirrorManagerTest, UpdateNoMirrorWithEgressPortOnRouteDel) {
 }
 
 TYPED_TEST(MirrorManagerTest, UpdateNoMirrorWithEgressPortOnRouteAdd) {
-  const auto params = MirrorManagerTestParams<TypeParam>::getParams();
+  const auto params = getParams<TypeParam>();
 
   this->updateState(
       "UpdateNoMirrorWithEgressPortOnRouteAdd",
@@ -775,7 +788,7 @@ TYPED_TEST(MirrorManagerTest, UpdateNoMirrorWithEgressPortOnRouteAdd) {
 }
 
 TYPED_TEST(MirrorManagerTest, UpdateMirrorOnNeighborChange) {
-  const auto params = MirrorManagerTestParams<TypeParam>::getParams();
+  const auto params = getParams<TypeParam>();
   this->updateState(
       "UpdateMirrorOnNeighborChange: addMirror",
       [=](const std::shared_ptr<SwitchState>& state) {
@@ -870,7 +883,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnNeighborChange) {
 }
 
 TYPED_TEST(MirrorManagerTest, EmptyDelta) {
-  const auto params = MirrorManagerTestParams<TypeParam>::getParams();
+  const auto params = getParams<TypeParam>();
 
   const auto oldState = this->sw_->getState();
 
@@ -900,7 +913,7 @@ TYPED_TEST(MirrorManagerTest, EmptyDelta) {
 
 // test for gre src ip resolved
 TYPED_TEST(MirrorManagerTest, GreMirrorWithSrcIp) {
-  const auto params = MirrorManagerTestParams<TypeParam>::getParams();
+  const auto params = getParams<TypeParam>();
 
   this->updateState(
       "GreMirrorWithSrcIp", [=](const std::shared_ptr<SwitchState>& state) {
@@ -944,7 +957,7 @@ TYPED_TEST(MirrorManagerTest, GreMirrorWithSrcIp) {
 }
 
 TYPED_TEST(MirrorManagerTest, SflowMirrorWithSrcIp) {
-  const auto params = MirrorManagerTestParams<TypeParam>::getParams();
+  const auto params = getParams<TypeParam>();
 
   this->updateState(
       "GreMirrorWithSrcIp", [=](const std::shared_ptr<SwitchState>& state) {
@@ -991,7 +1004,7 @@ TYPED_TEST(MirrorManagerTest, SflowMirrorWithSrcIp) {
 }
 
 TYPED_TEST(MirrorManagerTest, ResolveMirrorOnMirrorUpdate) {
-  const auto params = MirrorManagerTestParams<TypeParam>::getParams();
+  const auto params = getParams<TypeParam>();
 
   this->updateState(
       "add sflowMirror", [=](const std::shared_ptr<SwitchState>& state) {
@@ -1057,7 +1070,7 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorOnMirrorUpdate) {
 }
 
 TYPED_TEST(MirrorManagerTest, ConfigHasEgressPort) {
-  const auto params = MirrorManagerTestParams<TypeParam>::getParams();
+  const auto params = getParams<TypeParam>();
 
   this->updateState(
       "add sflowMirror", [=](const std::shared_ptr<SwitchState>& state) {
@@ -1113,7 +1126,7 @@ TYPED_TEST(MirrorManagerTest, ConfigHasEgressPort) {
 }
 
 TYPED_TEST(MirrorManagerTest, NeighborUpdates) {
-  const auto params = MirrorManagerTestParams<TypeParam>::getParams();
+  const auto params = getParams<TypeParam>();
 
   this->updateState(
       "GreMirrorWithOutPort-0", [=](const std::shared_ptr<SwitchState>& state) {
@@ -1201,7 +1214,7 @@ TYPED_TEST(MirrorManagerTest, NeighborUpdates) {
 }
 
 TYPED_TEST(MirrorManagerTest, UpdateRoute) {
-  const auto params = MirrorManagerTestParams<TypeParam>::getParams();
+  const auto params = getParams<TypeParam>();
 
   this->updateState(
       "add mirror", [=](const std::shared_ptr<SwitchState>& state) {
