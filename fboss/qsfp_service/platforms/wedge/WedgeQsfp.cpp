@@ -137,7 +137,7 @@ TransceiverManagementInterface WedgeQsfp::getTransceiverManagementInterface() {
 folly::Future<TransceiverManagementInterface>
 WedgeQsfp::futureGetTransceiverManagementInterface() {
   auto i2cEvb = getI2cEventBase();
-  TransceiverManagementInterface managementInterface;
+  auto managementInterface = TransceiverManagementInterface::NONE;
   if (!i2cEvb) {
     try {
       managementInterface = getTransceiverManagementInterface();
