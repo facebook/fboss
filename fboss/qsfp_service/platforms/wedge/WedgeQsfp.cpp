@@ -142,9 +142,9 @@ WedgeQsfp::futureGetTransceiverManagementInterface() {
     try {
       managementInterface = getTransceiverManagementInterface();
     } catch (const std::exception& ex) {
-      XLOG(DBG3) << "WedgeQsfp " << getNum()
-                 << ": Error calling getTransceiverManagementInterface(): "
-                 << ex.what();
+      XLOG(ERR) << "WedgeQsfp " << getNum()
+                << ": Error calling getTransceiverManagementInterface(): "
+                << ex.what();
     }
     return managementInterface;
   }
@@ -154,9 +154,9 @@ WedgeQsfp::futureGetTransceiverManagementInterface() {
     try {
       mgmtInterface = this->getTransceiverManagementInterface();
     } catch (const std::exception& ex) {
-      XLOG(DBG3) << "WedgeQsfp " << this->getNum()
-                 << ": Error calling getTransceiverManagementInterface(): "
-                 << ex.what();
+      XLOG(ERR) << "WedgeQsfp " << this->getNum()
+                << ": Error calling getTransceiverManagementInterface(): "
+                << ex.what();
     }
     return mgmtInterface;
   });

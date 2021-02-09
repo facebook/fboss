@@ -429,9 +429,9 @@ void WedgeManager::updateTransceiverMap() {
           std::make_unique<SffModule>(
               this, std::move(qsfpImpls[idx]), portsPerTransceiver));
     } else {
-      XLOG(DBG3) << "Unknown Transceiver interface: "
-                 << static_cast<int>(futInterfaces[idx].value()) << " at idx "
-                 << idx;
+      XLOG(ERR) << "Unknown Transceiver interface: "
+                << static_cast<int>(futInterfaces[idx].value()) << " at idx "
+                << idx;
 
       try {
         if (!qsfpImpls[idx]->detectTransceiver()) {
