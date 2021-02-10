@@ -16,6 +16,7 @@
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/platforms/sai/SaiBcmGalaxyFCPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmGalaxyLCPlatform.h"
+#include "fboss/agent/platforms/sai/SaiBcmMinipackPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge100Platform.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge400Platform.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge40Platform.h"
@@ -51,6 +52,8 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
     return std::make_unique<SaiBcmGalaxyLCPlatform>(std::move(productInfo));
   } else if (productInfo->getMode() == PlatformMode::WEDGE400) {
     return std::make_unique<SaiBcmWedge400Platform>(std::move(productInfo));
+  } else if (productInfo->getMode() == PlatformMode::MINIPACK) {
+    return std::make_unique<SaiBcmMinipackPlatform>(std::move(productInfo));
   } else if (productInfo->getMode() == PlatformMode::WEDGE400C) {
     bool isEbbLab = isEbbLabRole();
     if (isEbbLab) {
