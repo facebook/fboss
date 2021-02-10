@@ -28,7 +28,14 @@ void RouteUpdateWrapper::addRoute(
   UnicastRoute tempRoute;
   tempRoute.dest_ref()->ip_ref() = network::toBinaryAddress(network);
   tempRoute.dest_ref()->prefixLength_ref() = mask;
-  tempRoute.nextHops_ref() = util::fromRouteNextHopSet(nhop.getNextHopSet());
+  if (nhop.getAction() == RouteForwardAction::NEXTHOPS) {
+    tempRoute.nextHops_ref() = util::fromRouteNextHopSet(nhop.getNextHopSet());
+    tempRoute.action_ref() = RouteForwardAction::NEXTHOPS;
+  } else {
+    tempRoute.action_ref() = nhop.getAction() == RouteForwardAction::DROP
+        ? RouteForwardAction::DROP
+        : RouteForwardAction::TO_CPU;
+  }
   ribRoutesToAddDel_[std::make_pair(vrf, clientId)].toAdd.emplace_back(
       std::move(tempRoute));
 }
@@ -95,7 +102,10 @@ RouteUpdateWrapper::programLegacyRibHelper(
             network,
             mask,
             clientId,
-            RouteNextHopEntry(RouteForwardAction::DROP, adminDistance));
+            RouteNextHopEntry(
+                route.action_ref() ? *route.action_ref()
+                                   : RouteForwardAction::DROP,
+                adminDistance));
       }
       if (network.isV4()) {
         ++stats.v4RoutesAdded;

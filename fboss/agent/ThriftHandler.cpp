@@ -810,6 +810,11 @@ void ThriftHandler::updateUnicastRoutesImpl(
       }
       RouteNextHopSet nexthops = util::toRouteNextHopSet(nhts);
       if (nexthops.size()) {
+        if (route.action_ref() &&
+            *route.action_ref() != RouteForwardAction::NEXTHOPS) {
+          throw FbossError(
+              "Next hops specified but action set to :", *route.action_ref());
+        }
         updater.addRoute(
             routerId,
             network,
@@ -824,7 +829,10 @@ void ThriftHandler::updateUnicastRoutesImpl(
             network,
             mask,
             ClientID(client),
-            RouteNextHopEntry(RouteForwardAction::DROP, adminDistance));
+            RouteNextHopEntry(
+                route.action_ref() ? *route.action_ref()
+                                   : RouteForwardAction::DROP,
+                adminDistance));
       }
       if (network.isV4()) {
         sw_->stats()->addRouteV4();

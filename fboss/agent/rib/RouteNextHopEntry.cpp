@@ -185,9 +185,20 @@ RouteNextHopEntry RouteNextHopEntry::from(
 
   auto adminDistance = route.adminDistance_ref().value_or(defaultAdminDistance);
 
-  return nexthops.size()
-      ? RouteNextHopEntry(std::move(nexthops), adminDistance)
-      : RouteNextHopEntry(RouteForwardAction::DROP, adminDistance);
+  if (nexthops.size()) {
+    if (route.action_ref() &&
+        *route.action_ref() != facebook::fboss::RouteForwardAction::NEXTHOPS) {
+      throw FbossError(
+          "Nexthops specified, but action is set to : ", *route.action_ref());
+    }
+    return RouteNextHopEntry(std::move(nexthops), adminDistance);
+  }
+
+  if (!route.action_ref() ||
+      *route.action_ref() == facebook::fboss::RouteForwardAction::DROP) {
+    return RouteNextHopEntry(RouteForwardAction::DROP, adminDistance);
+  }
+  return RouteNextHopEntry(RouteForwardAction::TO_CPU, adminDistance);
 }
 
 bool RouteNextHopEntry::isValid(bool forMplsRoute) const {
