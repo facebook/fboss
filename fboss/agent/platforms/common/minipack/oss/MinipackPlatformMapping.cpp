@@ -8,9 +8,9 @@
  *
  */
 
-#include "fboss/agent/platforms/wedge/minipack/MinipackPlatformMapping.h"
+#include "fboss/agent/platforms/common/minipack/MinipackPlatformMapping.h"
 
-#include "fboss/agent/platforms/wedge/minipack/Minipack16QPimPlatformMapping.h"
+#include "fboss/agent/platforms/common/minipack/Minipack16QPimPlatformMapping.h"
 
 namespace facebook {
 namespace fboss {

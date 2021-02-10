@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/agent/platforms/wedge/minipack/Minipack16QPimPlatformMapping.h"
+#include "fboss/agent/platforms/common/minipack/Minipack16QPimPlatformMapping.h"
 #include <folly/logging/xlog.h>
 
 namespace {

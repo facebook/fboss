@@ -10,8 +10,8 @@
 #include "fboss/agent/platforms/tests/utils/BcmTestMinipackPlatform.h"
 
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
+#include "fboss/agent/platforms/common/minipack/Minipack16QPimPlatformMapping.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestMinipackPort.h"
-#include "fboss/agent/platforms/wedge/minipack/Minipack16QPimPlatformMapping.h"
 
 namespace facebook::fboss {
 
