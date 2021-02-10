@@ -278,6 +278,9 @@ L2EntryThrift SaiFdbManager::fdbToL2Entry(
       VlanSaiId{fdbEntry.bridgeVlanId()}, SaiVlanTraits::Attributes::VlanId{})};
   entry.vlanID_ref() = swVlanId;
   entry.mac_ref() = fdbEntry.mac().toString();
+  // If we programmed a entry via SaiFdbManager,
+  // its valiadted
+  entry.l2EntryType_ref() = L2EntryType::L2_ENTRY_TYPE_VALIDATED;
 
   // To get the PortID, we get the bridgePortId from the fdb entry,
   // then get that Bridge Port's PortId attribute. We can lookup the
