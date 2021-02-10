@@ -532,3 +532,130 @@ TYPED_TEST(RouteTest, resolveDropToCPUMix) {
     EXPECT_EQ(0, fwd.getNextHopSet().size());
   }
 }
+
+// Testing add and delete ECMP routes
+TYPED_TEST(RouteTest, addDel) {
+  auto rid = RouterID(0);
+
+  RouteNextHopSet nexthops = makeNextHops(
+      {"1.1.1.10", // intf 1
+       "2::2", // intf 2
+       "1.1.2.10"}); // Drop (via default null route)
+  RouteNextHopSet nexthops2 = makeNextHops(
+      {"1.1.3.10", // Drop (via default null route)
+       "11:11::1"}); // Drop (via default null route)
+
+  SwSwitchRouteUpdateWrapper u1(this->sw_);
+  u1.addRoute(
+      rid,
+      IPAddress("10.1.1.1"),
+      24,
+      kClientA,
+      RouteNextHopEntry(nexthops, DISTANCE));
+  u1.addRoute(
+      rid,
+      IPAddress("2001::1"),
+      48,
+      kClientA,
+      RouteNextHopEntry(nexthops, DISTANCE));
+  u1.program();
+
+  auto stateV2 = this->sw_->getState();
+  // v4 route
+  auto r2 = this->findRoute4(stateV2, rid, "10.1.1.0/24");
+  EXPECT_RESOLVED(r2);
+  EXPECT_FALSE(r2->isDrop());
+  EXPECT_FALSE(r2->isToCPU());
+  EXPECT_FALSE(r2->isConnected());
+  // v6 route
+  auto r2v6 = this->findRoute6(stateV2, rid, "2001::0/48");
+  EXPECT_RESOLVED(r2v6);
+  EXPECT_FALSE(r2v6->isDrop());
+  EXPECT_FALSE(r2v6->isToCPU());
+  EXPECT_FALSE(r2v6->isConnected());
+  // forwarding info
+  EXPECT_EQ(RouteForwardAction::NEXTHOPS, r2->getForwardInfo().getAction());
+  EXPECT_EQ(RouteForwardAction::NEXTHOPS, r2v6->getForwardInfo().getAction());
+  const auto& fwd2 = r2->getForwardInfo().getNextHopSet();
+  const auto& fwd2v6 = r2v6->getForwardInfo().getNextHopSet();
+  EXPECT_EQ(2, fwd2.size());
+  EXPECT_EQ(2, fwd2v6.size());
+  RouteNextHopSet expFwd2;
+  expFwd2.emplace(
+      ResolvedNextHop(IPAddress("1.1.1.10"), InterfaceID(1), ECMP_WEIGHT));
+  expFwd2.emplace(
+      ResolvedNextHop(IPAddress("2::2"), InterfaceID(2), ECMP_WEIGHT));
+  EXPECT_EQ(expFwd2, fwd2);
+  EXPECT_EQ(expFwd2, fwd2v6);
+
+  // change the nexthops of the V4 route
+  SwSwitchRouteUpdateWrapper u2(this->sw_);
+  u2.addRoute(
+      rid,
+      IPAddress("10.1.1.1"),
+      24,
+      kClientA,
+      RouteNextHopEntry(nexthops2, DISTANCE));
+  u2.program();
+  EXPECT_NODEMAP_MATCH(this->sw_);
+  auto stateV3 = this->sw_->getState();
+
+  auto r3 = this->findRoute4(stateV3, rid, "10.1.1.0/24");
+  ASSERT_NE(nullptr, r3);
+  EXPECT_TRUE(r3->isResolved()); // Resolved to default NULL
+  EXPECT_TRUE(r3->isDrop());
+  EXPECT_FALSE(r3->isConnected());
+  EXPECT_FALSE(r3->needResolve());
+
+  // re-add the same route does not cause change
+  SwSwitchRouteUpdateWrapper u3(this->sw_);
+  u3.addRoute(
+      rid,
+      IPAddress("10.1.1.1"),
+      24,
+      kClientA,
+      RouteNextHopEntry(nexthops2, DISTANCE));
+  u3.program();
+  EXPECT_EQ(stateV3, this->sw_->getState());
+
+  // now delete the V4 route
+  SwSwitchRouteUpdateWrapper u4(this->sw_);
+  u4.delRoute(rid, IPAddress("10.1.1.1"), 24, kClientA);
+  u4.program();
+  EXPECT_NODEMAP_MATCH(this->sw_);
+
+  auto r5 = this->findRoute4(this->sw_->getState(), rid, "10.1.1.0/24");
+  EXPECT_EQ(nullptr, r5);
+
+  // change an old route to punt to CPU, add a new route to DROP
+  SwSwitchRouteUpdateWrapper u5(this->sw_);
+  u5.addRoute(
+      rid,
+      IPAddress("10.1.1.0"),
+      24,
+      kClientA,
+      RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
+  u5.addRoute(
+      rid,
+      IPAddress("10.1.2.0"),
+      24,
+      kClientA,
+      RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE));
+  u5.program();
+  EXPECT_NODEMAP_MATCH(this->sw_);
+  auto stateV6 = this->sw_->getState();
+
+  auto r6_1 = this->findRoute4(stateV6, rid, "10.1.1.0/24");
+  EXPECT_RESOLVED(r6_1);
+  EXPECT_FALSE(r6_1->isConnected());
+  EXPECT_TRUE(r6_1->isToCPU());
+  EXPECT_FALSE(r6_1->isDrop());
+  EXPECT_EQ(RouteForwardAction::TO_CPU, r6_1->getForwardInfo().getAction());
+
+  auto r6_2 = this->findRoute4(stateV6, rid, "10.1.2.0/24");
+  EXPECT_RESOLVED(r6_2);
+  EXPECT_FALSE(r6_2->isConnected());
+  EXPECT_FALSE(r6_2->isToCPU());
+  EXPECT_TRUE(r6_2->isDrop());
+  EXPECT_EQ(RouteForwardAction::DROP, r6_2->getForwardInfo().getAction());
+}
