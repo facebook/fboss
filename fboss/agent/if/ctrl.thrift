@@ -74,7 +74,7 @@ struct NextHopThrift {
   3: optional mpls.MplsAction mplsAction,
 }
 
-enum RouteForwardingAction {
+enum RouteForwardAction {
   DROP = 0,
   TO_CPU = 1,
   NEXTHOPS = 2
@@ -90,7 +90,7 @@ struct UnicastRoute {
   4: list<NextHopThrift> nextHops,
   // Optional forwarding action. If not specified (for backward compatibility)
   // infer from nexthops
-  5: optional RouteForwardingAction action
+  5: optional RouteForwardAction action
 }
 
 struct MplsRoute {

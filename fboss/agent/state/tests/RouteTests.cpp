@@ -348,7 +348,7 @@ TEST(Route, resolveDropToCPUMix) {
 
   auto rid = RouterID(0);
 
-  // add a DROP route and a ToCPU route
+  // add a RouteForwardAction::DROP route and a ToCPU route
   RouteUpdater u1(stateV1->getRouteTables());
   u1.addRoute(
       rid,
@@ -363,11 +363,11 @@ TEST(Route, resolveDropToCPUMix) {
       CLIENT_A,
       RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
   // then, add a route for 4 nexthops. One to each interface, one
-  // to the DROP and one to the ToCPU
+  // to the RouteForwardAction::DROP and one to the ToCPU
   RouteNextHopSet nhops = makeNextHops(
       {"1.1.1.10", // intf 1
        "2.2.2.10", // intf 2
-       "11.1.1.10", // DROP
+       "11.1.1.10", // RouteForwardAction::DROP
        "22.1.1.10"}); // ToCPU
   u1.addRoute(
       rid,
@@ -390,10 +390,11 @@ TEST(Route, resolveDropToCPUMix) {
     EXPECT_EQ(2, fwd.getNextHopSet().size());
   }
 
-  // now update the route with just DROP and ToCPU, expect ToCPU to win
+  // now update the route with just RouteForwardAction::DROP and ToCPU, expect
+  // ToCPU to win
   RouteUpdater u2(table2);
   RouteNextHopSet nhops2 = makeNextHops(
-      {"11.1.1.10", // DROP
+      {"11.1.1.10", // RouteForwardAction::DROP
        "22.1.1.10"}); // ToCPU
   u2.addRoute(
       rid,
@@ -416,9 +417,10 @@ TEST(Route, resolveDropToCPUMix) {
     EXPECT_EQ(0, fwd.getNextHopSet().size());
   }
 
-  // now update the route with just DROP
+  // now update the route with just RouteForwardAction::DROP
   RouteUpdater u3(table3);
-  RouteNextHopSet nhops3 = makeNextHops({"11.1.1.10"}); // DROP
+  RouteNextHopSet nhops3 =
+      makeNextHops({"11.1.1.10"}); // RouteForwardAction::DROP
   u3.addRoute(
       rid,
       IPAddress("8.8.8.0"),
@@ -544,7 +546,8 @@ TEST(Route, addDel) {
   auto r5 = rib5->exactMatch({IPAddressV4("10.1.1.0"), 24});
   EXPECT_EQ(nullptr, r5);
 
-  // change an old route to punt to CPU, add a new route to DROP
+  // change an old route to punt to CPU, add a new route to
+  // RouteForwardAction::DROP
   RouteUpdater u5(tables3);
   u5.addRoute(
       rid,
@@ -1347,7 +1350,7 @@ TEST(Route, PruneChangedRoutes) {
   auto state2 = state1;
   // state1
   //  ... Add route for prefix41
-  //  ... Add route for prefix42 (TO_CPU)
+  //  ... Add route for prefix42 (RouteForwardAction::TO_CPU)
   // state2
   auto rid0 = RouterID(0);
   auto tables1 = state1->getRouteTables();
@@ -1368,7 +1371,7 @@ TEST(Route, PruneChangedRoutes) {
       prefix42.network,
       prefix41.mask,
       CLIENT_A,
-      RouteNextHopEntry(TO_CPU, DISTANCE));
+      RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
 
   auto tables2 = u1.updateDone();
   EXPECT_NODEMAP_MATCH(tables2);
@@ -1557,7 +1560,7 @@ TEST(Route, delRoutes) {
       IPAddress("22.22.22.22"),
       32,
       CLIENT_B,
-      RouteNextHopEntry(TO_CPU, DISTANCE));
+      RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
   tables1 = u1.updateDone();
   EXPECT_NODEMAP_MATCH(tables1);
 
@@ -1566,7 +1569,7 @@ TEST(Route, delRoutes) {
   EXPECT_TRUE(nullptr != ribV4->exactMatch(prefix10));
   EXPECT_TRUE(nullptr != ribV4->exactMatch(prefix22));
 
-  // delRoute() should work for the route with TO_CPU.
+  // delRoute() should work for the route with RouteForwardAction::TO_CPU.
   RouteUpdater u2(tables1);
   u2.delRoute(rid, IPAddress("22.22.22.22"), 32, CLIENT_B);
   auto tables2 = u2.updateDone();
@@ -1885,13 +1888,13 @@ TEST(Route, dropRoutes) {
       IPAddress("10.10.10.10"),
       32,
       CLIENT_A,
-      RouteNextHopEntry(DROP, DISTANCE));
+      RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE));
   u1.addRoute(
       rid,
       IPAddress("2001::0"),
       128,
       CLIENT_A,
-      RouteNextHopEntry(DROP, DISTANCE));
+      RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE));
   // Check recursive resolution for drop routes
   RouteNextHopSet v4nexthops = makeNextHops({"10.10.10.10"});
   u1.addRoute(
@@ -1916,25 +1919,36 @@ TEST(Route, dropRoutes) {
   auto r1 = GET_ROUTE_V4(tables2, rid, "10.10.10.10/32");
   EXPECT_RESOLVED(r1);
   EXPECT_FALSE(r1->isConnected());
-  EXPECT_TRUE(r1->has(CLIENT_A, RouteNextHopEntry(DROP, DISTANCE)));
-  EXPECT_EQ(r1->getForwardInfo(), RouteNextHopEntry(DROP, DISTANCE));
+  EXPECT_TRUE(
+      r1->has(CLIENT_A, RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE)));
+  EXPECT_EQ(
+      r1->getForwardInfo(),
+      RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE));
 
   auto r2 = GET_ROUTE_V4(tables2, rid, "20.20.20.0/24");
   EXPECT_RESOLVED(r2);
   EXPECT_FALSE(r2->isConnected());
-  EXPECT_FALSE(r2->has(CLIENT_A, RouteNextHopEntry(DROP, DISTANCE)));
-  EXPECT_EQ(r2->getForwardInfo(), RouteNextHopEntry(DROP, DISTANCE));
+  EXPECT_FALSE(
+      r2->has(CLIENT_A, RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE)));
+  EXPECT_EQ(
+      r2->getForwardInfo(),
+      RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE));
 
   auto r3 = GET_ROUTE_V6(tables2, rid, "2001::0/128");
   EXPECT_RESOLVED(r3);
   EXPECT_FALSE(r3->isConnected());
-  EXPECT_TRUE(r3->has(CLIENT_A, RouteNextHopEntry(DROP, DISTANCE)));
-  EXPECT_EQ(r3->getForwardInfo(), RouteNextHopEntry(DROP, DISTANCE));
+  EXPECT_TRUE(
+      r3->has(CLIENT_A, RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE)));
+  EXPECT_EQ(
+      r3->getForwardInfo(),
+      RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE));
 
   auto r4 = GET_ROUTE_V6(tables2, rid, "2001:1::/64");
   EXPECT_RESOLVED(r4);
   EXPECT_FALSE(r4->isConnected());
-  EXPECT_EQ(r4->getForwardInfo(), RouteNextHopEntry(DROP, DISTANCE));
+  EXPECT_EQ(
+      r4->getForwardInfo(),
+      RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE));
 }
 
 TEST(Route, toCPURoutes) {
@@ -1948,13 +1962,13 @@ TEST(Route, toCPURoutes) {
       IPAddress("10.10.10.10"),
       32,
       CLIENT_A,
-      RouteNextHopEntry(TO_CPU, DISTANCE));
+      RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
   u1.addRoute(
       rid,
       IPAddress("2001::0"),
       128,
       CLIENT_A,
-      RouteNextHopEntry(TO_CPU, DISTANCE));
+      RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
   // Check recursive resolution for to_cpu routes
   RouteNextHopSet v4nexthops = makeNextHops({"10.10.10.10"});
   u1.addRoute(
@@ -1979,24 +1993,34 @@ TEST(Route, toCPURoutes) {
   auto r1 = GET_ROUTE_V4(tables2, rid, "10.10.10.10/32");
   EXPECT_RESOLVED(r1);
   EXPECT_FALSE(r1->isConnected());
-  EXPECT_TRUE(r1->has(CLIENT_A, RouteNextHopEntry(TO_CPU, DISTANCE)));
-  EXPECT_EQ(r1->getForwardInfo(), RouteNextHopEntry(TO_CPU, DISTANCE));
+  EXPECT_TRUE(r1->has(
+      CLIENT_A, RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE)));
+  EXPECT_EQ(
+      r1->getForwardInfo(),
+      RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
 
   auto r2 = GET_ROUTE_V4(tables2, rid, "20.20.20.0/24");
   EXPECT_RESOLVED(r2);
   EXPECT_FALSE(r2->isConnected());
-  EXPECT_EQ(r2->getForwardInfo(), RouteNextHopEntry(TO_CPU, DISTANCE));
+  EXPECT_EQ(
+      r2->getForwardInfo(),
+      RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
 
   auto r3 = GET_ROUTE_V6(tables2, rid, "2001::0/128");
   EXPECT_RESOLVED(r3);
   EXPECT_FALSE(r3->isConnected());
-  EXPECT_TRUE(r3->has(CLIENT_A, RouteNextHopEntry(TO_CPU, DISTANCE)));
-  EXPECT_EQ(r3->getForwardInfo(), RouteNextHopEntry(TO_CPU, DISTANCE));
+  EXPECT_TRUE(r3->has(
+      CLIENT_A, RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE)));
+  EXPECT_EQ(
+      r3->getForwardInfo(),
+      RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
 
   auto r5 = GET_ROUTE_V6(tables2, rid, "2001:1::/64");
   EXPECT_RESOLVED(r5);
   EXPECT_FALSE(r5->isConnected());
-  EXPECT_EQ(r5->getForwardInfo(), RouteNextHopEntry(TO_CPU, DISTANCE));
+  EXPECT_EQ(
+      r5->getForwardInfo(),
+      RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
 }
 
 // Very basic test for serialization/deseralization of Routes

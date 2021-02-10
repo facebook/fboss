@@ -86,7 +86,7 @@ void BcmHostIf::setEgressId(bcm_if_t eid) {
   egress_ = std::make_unique<BcmHostEgress>(eid);
   // in case if both neighbor & host route prefix end up using same host entry
   // next hops referring to it, can't refer to hostRouteEgress
-  action_ = DROP;
+  action_ = RouteForwardAction::DROP;
 }
 
 void BcmHost::initHostCommon(bcm_l3_host_t* host) const {
@@ -237,7 +237,7 @@ void BcmHostIf::program(
   if (mac) {
     egressPtr->programToPort(intf, vrf, addr, *mac, port);
   } else {
-    if (action == DROP) {
+    if (action == RouteForwardAction::DROP) {
       egressPtr->programToDrop(intf, vrf, addr);
     } else {
       egressPtr->programToCPU(intf, vrf, addr);
@@ -309,8 +309,9 @@ void BcmHostIf::program(
     ecmpAction = BcmEcmpEgress::Action::EXPAND;
   }
 
-  // Update port mapping, for entries marked to DROP or to CPU port gets
-  // set to 0, which implies no ports are associated with this entry now.
+  // Update port mapping, for entries marked to RouteForwardAction::DROP or to
+  // CPU port gets set to 0, which implies no ports are associated with this
+  // entry now.
   hw_->writableEgressManager()->updatePortToEgressMapping(
       egressPtr->getID(), getSetPortAsGPort(), BcmPort::asGPort(port));
 
@@ -369,7 +370,7 @@ void BcmHostIf::programToTrunk(
         getEgressId(), BcmEcmpEgress::Action::SKIP);
   }
   egressPort_ = newEgressPort;
-  action_ = NEXTHOPS;
+  action_ = RouteForwardAction::NEXTHOPS;
 }
 
 BcmHostIf::~BcmHostIf() {

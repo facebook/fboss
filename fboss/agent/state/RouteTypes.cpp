@@ -22,11 +22,11 @@ namespace facebook::fboss {
 
 std::string forwardActionStr(RouteForwardAction action) {
   switch (action) {
-    case DROP:
+    case RouteForwardAction::DROP:
       return kDrop;
-    case TO_CPU:
+    case RouteForwardAction::TO_CPU:
       return kToCpu;
-    case NEXTHOPS:
+    case RouteForwardAction::NEXTHOPS:
       return kNexthops;
   }
   CHECK(0);
@@ -34,12 +34,12 @@ std::string forwardActionStr(RouteForwardAction action) {
 
 RouteForwardAction str2ForwardAction(const std::string& action) {
   if (action == kDrop) {
-    return DROP;
+    return RouteForwardAction::DROP;
   } else if (action == kToCpu) {
-    return TO_CPU;
+    return RouteForwardAction::TO_CPU;
   } else {
     CHECK(action == kNexthops);
-    return NEXTHOPS;
+    return RouteForwardAction::NEXTHOPS;
   }
 }
 
@@ -90,6 +90,15 @@ void toAppend(const RoutePrefixV4& prefix, std::string* result) {
 
 void toAppend(const RoutePrefixV6& prefix, std::string* result) {
   result->append(prefix.str());
+}
+
+void toAppend(const RouteForwardAction& action, std::string* result) {
+  result->append(forwardActionStr(action));
+}
+
+std::ostream& operator<<(std::ostream& os, const RouteForwardAction& action) {
+  os << forwardActionStr(action);
+  return os;
 }
 
 template class RoutePrefix<folly::IPAddressV4>;

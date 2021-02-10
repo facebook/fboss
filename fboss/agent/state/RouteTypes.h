@@ -18,15 +18,6 @@
 
 namespace facebook::fboss {
 
-/**
- * Route forward actions
- */
-enum RouteForwardAction {
-  DROP, // Drop the packets
-  TO_CPU, // Punt the packets to the CPU
-  NEXTHOPS, // Forward the packets to one or multiple nexthops
-};
-
 std::string forwardActionStr(RouteForwardAction action);
 RouteForwardAction str2ForwardAction(const std::string& action);
 
@@ -67,5 +58,7 @@ typedef RoutePrefix<folly::IPAddressV6> RoutePrefixV6;
 
 void toAppend(const RoutePrefixV4& prefix, std::string* result);
 void toAppend(const RoutePrefixV6& prefix, std::string* result);
+void toAppend(const RouteForwardAction& action, std::string* result);
+std::ostream& operator<<(std::ostream& os, const RouteForwardAction& action);
 
 } // namespace facebook::fboss

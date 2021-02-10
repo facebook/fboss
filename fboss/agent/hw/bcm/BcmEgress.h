@@ -67,15 +67,15 @@ class BcmEgress : public BcmEgressBase {
       const folly::IPAddress& ip,
       folly::MacAddress mac,
       bcm_port_t port) {
-    return program(intfId, vrf, ip, &mac, port, NEXTHOPS);
+    return program(intfId, vrf, ip, &mac, port, RouteForwardAction::NEXTHOPS);
   }
   void
   programToCPU(bcm_if_t intfId, bcm_vrf_t vrf, const folly::IPAddress& ip) {
-    return program(intfId, vrf, ip, nullptr, 0, TO_CPU);
+    return program(intfId, vrf, ip, nullptr, 0, RouteForwardAction::TO_CPU);
   }
   void
   programToDrop(bcm_if_t intfId, bcm_vrf_t vrf, const folly::IPAddress& ip) {
-    return program(intfId, vrf, ip, nullptr, 0, DROP);
+    return program(intfId, vrf, ip, nullptr, 0, RouteForwardAction::DROP);
   }
   void programToTrunk(
       bcm_if_t intfId,

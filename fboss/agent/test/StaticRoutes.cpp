@@ -79,7 +79,8 @@ TEST(StaticRoutes, configureUnconfigure) {
   EXPECT_FALSE(r1v4->needResolve());
   EXPECT_EQ(
       r1v4->getForwardInfo(),
-      RouteNextHopEntry(DROP, AdminDistance::MAX_ADMIN_DISTANCE));
+      RouteNextHopEntry(
+          RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
 
   auto r2v4 = rib1v4->exactMatch(prefix2v4);
   ASSERT_NE(nullptr, r2v4);
@@ -89,9 +90,10 @@ TEST(StaticRoutes, configureUnconfigure) {
   EXPECT_FALSE(r2v4->needResolve());
   EXPECT_EQ(
       r2v4->getForwardInfo(),
-      RouteNextHopEntry(TO_CPU, AdminDistance::MAX_ADMIN_DISTANCE));
+      RouteNextHopEntry(
+          RouteForwardAction::TO_CPU, AdminDistance::MAX_ADMIN_DISTANCE));
 
-  // Recursive resolution to DROP
+  // Recursive resolution to RouteForwardAction::DROP
   auto r3v4 = rib1v4->exactMatch(prefix3v4);
   ASSERT_NE(nullptr, r3v4);
   EXPECT_TRUE(r3v4->isResolved());
@@ -100,7 +102,8 @@ TEST(StaticRoutes, configureUnconfigure) {
   EXPECT_FALSE(r3v4->needResolve());
   EXPECT_EQ(
       r3v4->getForwardInfo(),
-      RouteNextHopEntry(DROP, AdminDistance::MAX_ADMIN_DISTANCE));
+      RouteNextHopEntry(
+          RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
 
   // Recursive resolution to CPU
   auto r4v4 = rib1v4->exactMatch(prefix4v4);
@@ -111,7 +114,8 @@ TEST(StaticRoutes, configureUnconfigure) {
   EXPECT_FALSE(r4v4->needResolve());
   EXPECT_EQ(
       r4v4->getForwardInfo(),
-      RouteNextHopEntry(TO_CPU, AdminDistance::MAX_ADMIN_DISTANCE));
+      RouteNextHopEntry(
+          RouteForwardAction::TO_CPU, AdminDistance::MAX_ADMIN_DISTANCE));
 
   auto rib1v6 = t1->getRibV6();
   auto r1v6 = rib1v6->exactMatch(prefix1v6);
@@ -122,7 +126,8 @@ TEST(StaticRoutes, configureUnconfigure) {
   EXPECT_FALSE(r1v6->needResolve());
   EXPECT_EQ(
       r1v6->getForwardInfo(),
-      RouteNextHopEntry(DROP, AdminDistance::MAX_ADMIN_DISTANCE));
+      RouteNextHopEntry(
+          RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
 
   auto r2v6 = rib1v6->exactMatch(prefix2v6);
   ASSERT_NE(nullptr, r2v6);
@@ -132,9 +137,10 @@ TEST(StaticRoutes, configureUnconfigure) {
   EXPECT_FALSE(r2v6->needResolve());
   EXPECT_EQ(
       r2v6->getForwardInfo(),
-      RouteNextHopEntry(TO_CPU, AdminDistance::MAX_ADMIN_DISTANCE));
+      RouteNextHopEntry(
+          RouteForwardAction::TO_CPU, AdminDistance::MAX_ADMIN_DISTANCE));
 
-  // Recursive resolution to DROP
+  // Recursive resolution to RouteForwardAction::DROP
   auto r3v6 = rib1v6->exactMatch(prefix3v6);
   ASSERT_NE(nullptr, r3v6);
   EXPECT_TRUE(r3v6->isResolved());
@@ -143,7 +149,8 @@ TEST(StaticRoutes, configureUnconfigure) {
   EXPECT_FALSE(r3v6->needResolve());
   EXPECT_EQ(
       r3v6->getForwardInfo(),
-      RouteNextHopEntry(DROP, AdminDistance::MAX_ADMIN_DISTANCE));
+      RouteNextHopEntry(
+          RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
 
   // Recursive resolution to CPU
   auto r4v6 = rib1v6->exactMatch(prefix4v6);
@@ -154,7 +161,8 @@ TEST(StaticRoutes, configureUnconfigure) {
   EXPECT_FALSE(r4v6->needResolve());
   EXPECT_EQ(
       r4v6->getForwardInfo(),
-      RouteNextHopEntry(TO_CPU, AdminDistance::MAX_ADMIN_DISTANCE));
+      RouteNextHopEntry(
+          RouteForwardAction::TO_CPU, AdminDistance::MAX_ADMIN_DISTANCE));
 
   // Now blow away the static routes from config.
   cfg::SwitchConfig emptyConfig;

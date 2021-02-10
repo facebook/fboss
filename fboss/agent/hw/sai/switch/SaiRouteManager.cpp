@@ -146,7 +146,7 @@ void SaiRouteManager::addOrUpdateRoute(
     metadata = 0;
   }
 
-  if (fwd.getAction() == NEXTHOPS) {
+  if (fwd.getAction() == RouteForwardAction::NEXTHOPS) {
     packetAction = SAI_PACKET_ACTION_FORWARD;
     /*
      * A Route which satisfies isConnected() is an interface subnet route.
@@ -234,14 +234,14 @@ void SaiRouteManager::addOrUpdateRoute(
       attributes =
           SaiRouteTraits::CreateAttributes{packetAction, nextHopId, metadata};
     }
-  } else if (fwd.getAction() == TO_CPU) {
+  } else if (fwd.getAction() == RouteForwardAction::TO_CPU) {
     packetAction = SAI_PACKET_ACTION_FORWARD;
     SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
     PortSaiId cpuPortId{SaiApiTable::getInstance()->switchApi().getAttribute(
         switchId, SaiSwitchTraits::Attributes::CpuPort{})};
     attributes = SaiRouteTraits::CreateAttributes{
         packetAction, std::move(cpuPortId), metadata};
-  } else if (fwd.getAction() == DROP) {
+  } else if (fwd.getAction() == RouteForwardAction::DROP) {
     packetAction = SAI_PACKET_ACTION_DROP;
     attributes = SaiRouteTraits::CreateAttributes{
         packetAction, SAI_NULL_OBJECT_ID, metadata};

@@ -92,15 +92,15 @@ class BcmHostIf {
       folly::MacAddress mac,
       bcm_port_t port,
       std::optional<cfg::AclLookupClass> classID = std::nullopt) {
-    return program(intf, &mac, port, NEXTHOPS, classID);
+    return program(intf, &mac, port, RouteForwardAction::NEXTHOPS, classID);
   }
   void programToCPU(
       bcm_if_t intf,
       std::optional<cfg::AclLookupClass> classID = std::nullopt) {
-    return program(intf, nullptr, 0, TO_CPU, classID);
+    return program(intf, nullptr, 0, RouteForwardAction::TO_CPU, classID);
   }
   void programToDrop(bcm_if_t intf) {
-    return program(intf, nullptr, 0, DROP);
+    return program(intf, nullptr, 0, RouteForwardAction::DROP);
   }
   void programToTrunk(bcm_if_t intf, folly::MacAddress mac, bcm_trunk_t trunk);
 
@@ -138,13 +138,13 @@ class BcmHostIf {
   std::optional<BcmPortDescriptor> getEgressPortDescriptor() const;
 
   bool isProgrammedToDrop() const {
-    return action_ == DROP;
+    return action_ == RouteForwardAction::DROP;
   }
   bool isProgrammedToCPU() const {
-    return action_ == TO_CPU;
+    return action_ == RouteForwardAction::TO_CPU;
   }
   bool isProgrammedToNextHops() const {
-    return action_ == NEXTHOPS;
+    return action_ == RouteForwardAction::NEXTHOPS;
   }
 
   BcmEgress* getEgress() const {
@@ -176,7 +176,7 @@ class BcmHostIf {
   std::optional<BcmPortDescriptor> egressPort_;
   bool addedInHW_{false}; // if added to the HW host(ARP) table or not
   int lookupClassId_{0}; // DST Lookup Class
-  RouteForwardAction action_{DROP};
+  RouteForwardAction action_{RouteForwardAction::DROP};
   std::unique_ptr<BcmHostEgress> egress_;
 
  private:

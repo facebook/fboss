@@ -226,7 +226,7 @@ void BcmEgress::prepareEgressObject(
   CHECK(eObj);
   bcm_l3_egress_t_init(eObj);
   if (!mac) {
-    if (action == TO_CPU) {
+    if (action == RouteForwardAction::TO_CPU) {
       eObj->flags |= (BCM_L3_L2TOCPU | BCM_L3_COPY_TO_CPU);
     } else {
       eObj->flags |= BCM_L3_DST_DISCARD;
