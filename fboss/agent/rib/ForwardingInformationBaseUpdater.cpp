@@ -11,7 +11,9 @@
 
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
+#include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/NodeMap.h"
+#include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include <folly/logging/xlog.h>
@@ -93,12 +95,12 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
         // Reuse prior FIB route
       } else {
         updated = true;
-        fibRoute = toFibRoute(ribRoute);
+        fibRoute = toFibRoute(ribRoute, fibRoute);
       }
     } else {
       // new route
       updated = true;
-      fibRoute = toFibRoute(ribRoute);
+      fibRoute = toFibRoute(ribRoute, fibRoute);
     }
 
     updatedFib.emplace_hint(updatedFib.cend(), fibPrefix, fibRoute);
@@ -157,15 +159,19 @@ ForwardingInformationBaseUpdater::toFibNextHop(
 }
 
 template <typename AddrT>
-std::unique_ptr<facebook::fboss::Route<AddrT>>
-ForwardingInformationBaseUpdater::toFibRoute(const Route<AddrT>& ribRoute) {
+std::shared_ptr<facebook::fboss::Route<AddrT>>
+ForwardingInformationBaseUpdater::toFibRoute(
+    const Route<AddrT>& ribRoute,
+    const std::shared_ptr<facebook::fboss::Route<AddrT>>& curFibRoute) {
   CHECK(ribRoute.isResolved());
 
   facebook::fboss::RoutePrefix<AddrT> fibPrefix;
   fibPrefix.network = ribRoute.prefix().network;
   fibPrefix.mask = ribRoute.prefix().mask;
 
-  auto fibRoute = std::make_unique<facebook::fboss::Route<AddrT>>(fibPrefix);
+  auto fibRoute = curFibRoute
+      ? curFibRoute->clone()
+      : std::make_shared<facebook::fboss::Route<AddrT>>(fibPrefix);
 
   fibRoute->setResolved(toFibNextHop(ribRoute.getForwardInfo()));
   if (ribRoute.isConnected()) {
@@ -176,11 +182,13 @@ ForwardingInformationBaseUpdater::toFibRoute(const Route<AddrT>& ribRoute) {
   return fibRoute;
 }
 
-template std::unique_ptr<facebook::fboss::Route<folly::IPAddressV4>>
+template std::shared_ptr<facebook::fboss::Route<folly::IPAddressV4>>
 ForwardingInformationBaseUpdater::toFibRoute<folly::IPAddressV4>(
-    const Route<folly::IPAddressV4>&);
-template std::unique_ptr<facebook::fboss::Route<folly::IPAddressV6>>
+    const Route<folly::IPAddressV4>&,
+    const std::shared_ptr<facebook::fboss::Route<folly::IPAddressV4>>&);
+template std::shared_ptr<facebook::fboss::Route<folly::IPAddressV6>>
 ForwardingInformationBaseUpdater::toFibRoute<folly::IPAddressV6>(
-    const Route<folly::IPAddressV6>&);
+    const Route<folly::IPAddressV6>&,
+    const std::shared_ptr<facebook::fboss::Route<folly::IPAddressV6>>&);
 
 } // namespace facebook::fboss::rib
