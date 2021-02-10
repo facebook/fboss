@@ -32,6 +32,10 @@ class QsfpModule;
 // already done or not yet
 BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, moduleBringupDone)
 
+// Module state machine attribute used only for CMIS module to tell if the
+// module is in Ready state or not
+BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, cmisModuleReady)
+
 // Module State Machine will also have one attribute containing the QsfpModule
 // object raw pointer. This is needed because the MSM calls event action
 // functions asynchronously and in those function calls sometime we need to
@@ -521,7 +525,7 @@ BOOST_MSM_EUML_DECLARE_STATE_MACHINE(
      init_ << MODULE_STATE_NOT_PRESENT,
      no_action,
      no_action,
-     attributes_ << moduleBringupDone << qsfpModuleObjPtr),
+     attributes_ << moduleBringupDone << cmisModuleReady << qsfpModuleObjPtr),
     moduleStateMachine)
 
 /**************************** Port State Machine *****************************/

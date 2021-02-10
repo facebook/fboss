@@ -167,6 +167,14 @@ enum TransceiverModuleIdentifier {
   QSFP_PLUS_CMIS = 0x1E,
 }
 
+enum CmisModuleState {
+  LOW_POWER = 0x1,
+  POWERING_UP = 0x2,
+  READY = 0x3,
+  POWERING_DOWN = 0x4,
+  FAULT = 0x5,
+}
+
 struct TransceiverSettings {
   1: FeatureState cdrTx,
   2: FeatureState cdrRx,
