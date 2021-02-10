@@ -45,8 +45,11 @@ class ForwardingInformationBaseUpdater {
       const Route<AddrT>& ribRoute);
 
  private:
+  /*
+   * Return updated FIB on change, null otherwise
+   */
   template <typename AddressT>
-  std::unique_ptr<typename facebook::fboss::ForwardingInformationBase<AddressT>>
+  std::shared_ptr<typename facebook::fboss::ForwardingInformationBase<AddressT>>
   createUpdatedFib(
       const facebook::fboss::rib::NetworkToRouteMap<AddressT>& rib,
       const std::shared_ptr<

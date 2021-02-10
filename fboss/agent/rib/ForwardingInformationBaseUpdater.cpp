@@ -30,8 +30,6 @@ ForwardingInformationBaseUpdater::ForwardingInformationBaseUpdater(
 
 std::shared_ptr<SwitchState> ForwardingInformationBaseUpdater::operator()(
     const std::shared_ptr<SwitchState>& state) {
-  std::shared_ptr<SwitchState> nextState(state);
-
   // A ForwardingInformationBaseContainer holds a
   // ForwardingInformationBaseV4 and a ForwardingInformationBaseV6 for a
   // particular VRF. Since FIBs for both address families will be updated,
@@ -42,32 +40,38 @@ std::shared_ptr<SwitchState> ForwardingInformationBaseUpdater::operator()(
   // SwitchState for a single VRF.
   auto previousFibContainer = state->getFibs()->getFibContainerIf(vrf_);
   CHECK(previousFibContainer);
+  auto newFibV4 =
+      createUpdatedFib(v4NetworkToRoute_, previousFibContainer->getFibV4());
 
+  auto newFibV6 =
+      createUpdatedFib(v6NetworkToRoute_, previousFibContainer->getFibV6());
+
+  if (!newFibV4 && !newFibV6) {
+    return state;
+  }
+  std::shared_ptr<SwitchState> nextState(state);
   auto nextFibContainer = previousFibContainer->modify(&nextState);
 
-  nextFibContainer->writableFields()->fibV4 =
-      std::shared_ptr<ForwardingInformationBaseV4>(createUpdatedFib(
-          v4NetworkToRoute_, previousFibContainer->getFibV4()));
+  if (newFibV4) {
+    nextFibContainer->writableFields()->fibV4 = std::move(newFibV4);
+  }
 
-  nextFibContainer->writableFields()->fibV6 =
-      std::shared_ptr<ForwardingInformationBaseV6>(createUpdatedFib(
-          v6NetworkToRoute_, previousFibContainer->getFibV6()));
-
+  if (newFibV6) {
+    nextFibContainer->writableFields()->fibV6 = std::move(newFibV6);
+  }
   return nextState;
 }
 
 template <typename AddressT>
-std::unique_ptr<typename facebook::fboss::ForwardingInformationBase<AddressT>>
+std::shared_ptr<typename facebook::fboss::ForwardingInformationBase<AddressT>>
 ForwardingInformationBaseUpdater::createUpdatedFib(
     const facebook::fboss::rib::NetworkToRouteMap<AddressT>& rib,
     const std::shared_ptr<facebook::fboss::ForwardingInformationBase<AddressT>>&
         fib) {
-  // TODO(samank): updateFib should have size equal to the number of resovled
-  // routes in the rib
-
   typename facebook::fboss::ForwardingInformationBase<
       AddressT>::Base::NodeContainer updatedFib;
 
+  bool updated = false;
   for (const auto& entry : rib) {
     const facebook::fboss::rib::Route<AddressT>& ribRoute = entry.value();
 
@@ -88,13 +92,25 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
               fibRoute->getForwardInfo()) {
         // Reuse prior FIB route
       } else {
+        updated = true;
         fibRoute = toFibRoute(ribRoute);
       }
     } else {
+      // new route
+      updated = true;
       fibRoute = toFibRoute(ribRoute);
     }
 
     updatedFib.emplace_hint(updatedFib.cend(), fibPrefix, fibRoute);
+  }
+  // Check for deleted routes. Routes that were in the previous FIB
+  // and have now been removed
+  for (const auto& fibEntry : *fib) {
+    const auto& prefix = fibEntry->prefix();
+    if (rib.exactMatch(prefix.network, prefix.mask) == rib.end()) {
+      updated = true;
+      break;
+    }
   }
 
   DCHECK_EQ(
@@ -107,8 +123,9 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
             return entry.value().isResolved();
           }));
 
-  return std::make_unique<ForwardingInformationBase<AddressT>>(
-      std::move(updatedFib));
+  return updated ? std::make_shared<ForwardingInformationBase<AddressT>>(
+                       std::move(updatedFib))
+                 : nullptr;
 }
 
 facebook::fboss::RouteNextHopEntry
