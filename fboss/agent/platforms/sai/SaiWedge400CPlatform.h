@@ -14,6 +14,7 @@
 namespace facebook::fboss {
 
 class TajoAsic;
+class Wedge400CEbbLabPlatformMapping;
 
 class SaiWedge400CPlatform : public SaiHwPlatform {
  public:
@@ -44,6 +45,11 @@ class SaiWedge400CPlatform : public SaiHwPlatform {
     return false;
   }
   void initLEDs() override {}
+
+ protected:
+  SaiWedge400CPlatform(
+      std::unique_ptr<PlatformProductInfo> productInfo,
+      std::unique_ptr<Wedge400CEbbLabPlatformMapping> mapping);
 
  private:
   std::unique_ptr<TajoAsic> asic_;

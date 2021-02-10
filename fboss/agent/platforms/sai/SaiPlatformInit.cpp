@@ -21,6 +21,22 @@
 #include "fboss/agent/platforms/sai/SaiBcmWedge40Platform.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatform.h"
 
+namespace {
+constexpr auto kRole = "role";
+constexpr auto kLEB = "LEB";
+
+bool isEbbLabRole() {
+  std::string netwhoamiStr;
+  if (!folly::readFile(FLAGS_netwhoami.data(), netwhoamiStr)) {
+    return false;
+  }
+  auto netwhoamiDynamic = folly::parseJson(netwhoamiStr);
+  if (netwhoamiDynamic.find(kRole) == netwhoamiDynamic.items().end()) {
+    return false;
+  }
+  return netwhoamiDynamic[kRole].asString() == kLEB;
+}
+} // namespace
 namespace facebook::fboss {
 
 std::unique_ptr<SaiPlatform> chooseSaiPlatform(
@@ -36,6 +52,11 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
   } else if (productInfo->getMode() == PlatformMode::WEDGE400) {
     return std::make_unique<SaiBcmWedge400Platform>(std::move(productInfo));
   } else if (productInfo->getMode() == PlatformMode::WEDGE400C) {
+    bool isEbbLab = isEbbLabRole();
+    if (isEbbLab) {
+      // TODO: provide platform for EBB Lab Role
+      return nullptr;
+    }
     return std::make_unique<SaiWedge400CPlatform>(std::move(productInfo));
   }
 

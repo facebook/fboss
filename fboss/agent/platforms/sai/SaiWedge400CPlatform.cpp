@@ -10,6 +10,7 @@
 
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatform.h"
 #include "fboss/agent/hw/switch_asics/TajoAsic.h"
+#include "fboss/agent/platforms/common/ebb_lab/Wedge400CEbbLabPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CPlatformMapping.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
 
@@ -22,6 +23,13 @@ SaiWedge400CPlatform::SaiWedge400CPlatform(
     : SaiHwPlatform(
           std::move(productInfo),
           std::make_unique<Wedge400CPlatformMapping>()) {
+  asic_ = std::make_unique<TajoAsic>();
+}
+
+SaiWedge400CPlatform::SaiWedge400CPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    std::unique_ptr<Wedge400CEbbLabPlatformMapping> mapping)
+    : SaiHwPlatform(std::move(productInfo), std::move(mapping)) {
   asic_ = std::make_unique<TajoAsic>();
 }
 
