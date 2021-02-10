@@ -74,6 +74,12 @@ struct NextHopThrift {
   3: optional mpls.MplsAction mplsAction,
 }
 
+enum RouteForwardingAction {
+  DROP = 0,
+  TO_CPU = 1,
+  NEXTHOPS = 2
+}
+
 struct UnicastRoute {
   1: required IpPrefix dest,
   // NOTE: nextHopAddrs was once required. While we work on
@@ -82,6 +88,9 @@ struct UnicastRoute {
   2: list<Address.BinaryAddress> nextHopAddrs,
   3: optional AdminDistance adminDistance,
   4: list<NextHopThrift> nextHops,
+  // Optional forwarding action. If not specified (for backward compatibility)
+  // infer from nexthops
+  5: optional RouteForwardingAction action
 }
 
 struct MplsRoute {
