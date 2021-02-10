@@ -186,6 +186,18 @@ class RouteTest : public ::testing::Test {
     return findRouteImpl<IPAddressV6>(
         rid, {prefix.network, prefix.mask}, state);
   }
+  std::shared_ptr<Route<IPAddressV4>> findRoute4(
+      const std::shared_ptr<SwitchState>& state,
+      RouterID rid,
+      const std::string& prefixStr) {
+    return findRoute4(state, rid, makePrefixV4(prefixStr));
+  }
+  std::shared_ptr<Route<IPAddressV6>> findRoute6(
+      const std::shared_ptr<SwitchState>& state,
+      RouterID rid,
+      const std::string& prefixStr) {
+    return findRoute6(state, rid, makePrefixV6(prefixStr));
+  }
 
  private:
   template <typename AddrT>
@@ -278,4 +290,245 @@ TYPED_TEST(RouteTest, dedup) {
   EXPECT_EQ(stateV2r2->getGeneration() + 1, stateV4r2->getGeneration());
   EXPECT_EQ(stateV2r3, stateV4r3);
   EXPECT_EQ(stateV2r4, stateV4r4);
+}
+
+TYPED_TEST(RouteTest, resolve) {
+  auto rid = RouterID(0);
+  auto stateV1 = this->sw_->getState();
+  // recursive lookup
+  {
+    SwSwitchRouteUpdateWrapper u1(this->sw_);
+    RouteNextHopSet nexthops1 =
+        makeNextHops({"1.1.1.10"}); // resolved by intf 1
+    u1.addRoute(
+        rid,
+        IPAddress("1.1.3.0"),
+        24,
+        kClientA,
+        RouteNextHopEntry(nexthops1, DISTANCE));
+    RouteNextHopSet nexthops2 = makeNextHops({"1.1.3.10"}); // rslvd. by
+                                                            // '1.1.3/24'
+    u1.addRoute(
+        rid,
+        IPAddress("8.8.8.0"),
+        24,
+        kClientA,
+        RouteNextHopEntry(nexthops2, DISTANCE));
+    u1.program();
+    auto stateV2 = this->sw_->getState();
+    EXPECT_NE(stateV1, stateV2);
+    EXPECT_NODEMAP_MATCH(this->sw_);
+
+    auto r21 = this->findRoute4(stateV2, rid, "1.1.3.0/24");
+    EXPECT_RESOLVED(r21);
+    EXPECT_FALSE(r21->isConnected());
+
+    auto r22 = this->findRoute4(stateV2, rid, "8.8.8.0/24");
+    EXPECT_RESOLVED(r22);
+    EXPECT_FALSE(r22->isConnected());
+    // r21 and r22 are different routes
+    EXPECT_NE(r21, r22);
+    EXPECT_NE(r21->prefix(), r22->prefix());
+    // check the forwarding info
+    RouteNextHopSet expFwd2;
+    expFwd2.emplace(
+        ResolvedNextHop(IPAddress("1.1.1.10"), InterfaceID(1), ECMP_WEIGHT));
+    EXPECT_EQ(expFwd2, r21->getForwardInfo().getNextHopSet());
+    EXPECT_EQ(expFwd2, r22->getForwardInfo().getNextHopSet());
+  }
+  // recursive lookup loop
+  {
+    // create a route table w/ the following 3 routes
+    // 1. 30/8 -> 20.1.1.1
+    // 2. 20/8 -> 10.1.1.1
+    // 3. 10/8 -> 30.1.1.1
+    // The above 3 routes causes lookup loop, which should result in
+    // all unresolvable.
+    SwSwitchRouteUpdateWrapper u1(this->sw_);
+    u1.addRoute(
+        rid,
+        IPAddress("30.0.0.0"),
+        8,
+        kClientA,
+        RouteNextHopEntry(makeNextHops({"20.1.1.1"}), DISTANCE));
+    u1.addRoute(
+        rid,
+        IPAddress("20.0.0.0"),
+        8,
+        kClientA,
+        RouteNextHopEntry(makeNextHops({"10.1.1.1"}), DISTANCE));
+    u1.addRoute(
+        rid,
+        IPAddress("10.0.0.0"),
+        8,
+        kClientA,
+        RouteNextHopEntry(makeNextHops({"30.1.1.1"}), DISTANCE));
+    u1.program();
+    auto stateV2 = this->sw_->getState();
+    EXPECT_NE(stateV1, stateV2);
+    EXPECT_NODEMAP_MATCH(this->sw_);
+
+    auto verifyPrefix = [&](std::string prefixStr) {
+      auto route = this->findRoute4(stateV2, rid, prefixStr);
+      if (TypeParam::hasStandAloneRib) {
+        // In standalone RIB, unresolved routes never make it to FIB
+        EXPECT_EQ(route, nullptr);
+      } else {
+        EXPECT_FALSE(route->isResolved());
+        EXPECT_TRUE(route->isUnresolvable());
+        EXPECT_FALSE(route->isConnected());
+        EXPECT_FALSE(route->needResolve());
+        EXPECT_FALSE(route->isProcessing());
+      }
+    };
+    verifyPrefix("10.0.0.0/8");
+    verifyPrefix("20.0.0.0/8");
+    verifyPrefix("30.0.0.0/8");
+  }
+  // recursive lookup across 2 updates
+  {
+    SwSwitchRouteUpdateWrapper u1(this->sw_);
+    RouteNextHopSet nexthops1 = makeNextHops({"50.0.0.1"});
+    u1.addRoute(
+        rid,
+        IPAddress("40.0.0.0"),
+        8,
+        kClientA,
+        RouteNextHopEntry(nexthops1, DISTANCE));
+
+    u1.program();
+
+    auto stateV2 = this->sw_->getState();
+    // 40.0.0.0/8 -> 50.0.0.1 which should be resolved by default
+    // NULL route
+    auto r21 = this->findRoute4(stateV2, rid, "40.0.0.0/8");
+    EXPECT_TRUE(r21->isResolved());
+    EXPECT_TRUE(r21->isDrop());
+    EXPECT_FALSE(r21->isConnected());
+    EXPECT_FALSE(r21->needResolve());
+
+    // Resolve 50.0.0.1 this should also resolve 40.0.0.0/8
+    SwSwitchRouteUpdateWrapper u2(this->sw_);
+    u2.addRoute(
+        rid,
+        IPAddress("50.0.0.0"),
+        8,
+        kClientA,
+        RouteNextHopEntry(makeNextHops({"1.1.1.1"}), DISTANCE));
+    u2.program();
+
+    // 40.0.0.0/8 should be resolved
+    auto stateV3 = this->sw_->getState();
+    auto r31 = this->findRoute4(stateV3, rid, "40.0.0.0/8");
+    EXPECT_RESOLVED(r31);
+    EXPECT_FALSE(r31->isConnected());
+
+    // 50.0.0.1/32 will recurse to 50.0.0.0/8->1.1.1.1 (connected)
+    auto r31NextHops = r31->getForwardInfo().getNextHopSet();
+    EXPECT_EQ(1, r31NextHops.size());
+    auto r32 = findLongestMatchRoute(
+        this->sw_->isStandaloneRibEnabled(),
+        rid,
+        r31NextHops.begin()->addr().asV4(),
+        stateV3);
+    EXPECT_RESOLVED(r32);
+    EXPECT_TRUE(r32->isConnected());
+
+    // 50.0.0.0/8 should be resolved
+    auto r33 = this->findRoute4(stateV3, rid, "50.0.0.0/8");
+    EXPECT_RESOLVED(r33);
+    EXPECT_FALSE(r33->isConnected());
+  }
+}
+
+TYPED_TEST(RouteTest, resolveDropToCPUMix) {
+  auto rid = RouterID(0);
+
+  // add a DROP route and a ToCPU route
+  SwSwitchRouteUpdateWrapper u1(this->sw_);
+  u1.addRoute(
+      rid,
+      IPAddress("11.1.1.0"),
+      24,
+      kClientA,
+      RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE));
+  u1.addRoute(
+      rid,
+      IPAddress("22.1.1.0"),
+      24,
+      kClientA,
+      RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
+  // then, add a route with 4 nexthops. One to each interface, one
+  // to the DROP and one to the ToCPU
+  RouteNextHopSet nhops = makeNextHops(
+      {"1.1.1.10", // intf 1
+       "2.2.2.10", // intf 2
+       "11.1.1.10", // DROP
+       "22.1.1.10"}); // ToCPU
+  u1.addRoute(
+      rid,
+      IPAddress("8.8.8.0"),
+      24,
+      kClientA,
+      RouteNextHopEntry(nhops, DISTANCE));
+  u1.program();
+  EXPECT_NODEMAP_MATCH(this->sw_);
+  auto stateV2 = this->sw_->getState();
+  {
+    auto r2 = this->findRoute4(stateV2, rid, "8.8.8.0/24");
+    EXPECT_RESOLVED(r2);
+    EXPECT_FALSE(r2->isDrop());
+    EXPECT_FALSE(r2->isToCPU());
+    EXPECT_FALSE(r2->isConnected());
+    const auto& fwd = r2->getForwardInfo();
+    EXPECT_EQ(RouteForwardAction::NEXTHOPS, fwd.getAction());
+    EXPECT_EQ(2, fwd.getNextHopSet().size());
+  }
+
+  // now update the route with just DROP and ToCPU, expect ToCPU to win
+  SwSwitchRouteUpdateWrapper u2(this->sw_);
+  RouteNextHopSet nhops2 = makeNextHops(
+      {"11.1.1.10", // DROP
+       "22.1.1.10"}); // ToCPU
+  u2.addRoute(
+      rid,
+      IPAddress("8.8.8.0"),
+      24,
+      kClientA,
+      RouteNextHopEntry(nhops2, DISTANCE));
+  u2.program();
+  auto stateV3 = this->sw_->getState();
+  EXPECT_NODEMAP_MATCH(this->sw_);
+  {
+    auto r2 = this->findRoute4(stateV3, rid, "8.8.8.0/24");
+    EXPECT_RESOLVED(r2);
+    EXPECT_FALSE(r2->isDrop());
+    EXPECT_TRUE(r2->isToCPU());
+    EXPECT_FALSE(r2->isConnected());
+    const auto& fwd = r2->getForwardInfo();
+    EXPECT_EQ(RouteForwardAction::TO_CPU, fwd.getAction());
+    EXPECT_EQ(0, fwd.getNextHopSet().size());
+  }
+  // now update the route with just DROP
+  SwSwitchRouteUpdateWrapper u3(this->sw_);
+  RouteNextHopSet nhops3 = makeNextHops({"11.1.1.10"}); // DROP
+  u3.addRoute(
+      rid,
+      IPAddress("8.8.8.0"),
+      24,
+      kClientA,
+      RouteNextHopEntry(nhops3, DISTANCE));
+  u3.program();
+  auto stateV4 = this->sw_->getState();
+  EXPECT_NODEMAP_MATCH(this->sw_);
+  {
+    auto r2 = this->findRoute4(stateV4, rid, "8.8.8.0/24");
+    EXPECT_RESOLVED(r2);
+    EXPECT_TRUE(r2->isDrop());
+    EXPECT_FALSE(r2->isToCPU());
+    EXPECT_FALSE(r2->isConnected());
+    const auto& fwd = r2->getForwardInfo();
+    EXPECT_EQ(RouteForwardAction::DROP, fwd.getAction());
+    EXPECT_EQ(0, fwd.getNextHopSet().size());
+  }
 }
