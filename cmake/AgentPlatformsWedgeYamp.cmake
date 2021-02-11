@@ -4,8 +4,8 @@
 # cmake/FooBar.cmake
 
 add_library(yamp_platform_mapping
-  fboss/agent/platforms/wedge/yamp/Yamp16QPimPlatformMapping.cpp
-  fboss/agent/platforms/wedge/yamp/YampPlatformMapping.cpp
+  fboss/agent/platforms/common/yamp/Yamp16QPimPlatformMapping.cpp
+  fboss/agent/platforms/common/yamp/YampPlatformMapping.cpp
 )
 
 target_link_libraries(yamp_platform_mapping

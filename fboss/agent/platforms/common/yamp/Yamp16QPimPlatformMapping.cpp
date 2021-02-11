@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/agent/platforms/wedge/yamp/Yamp16QPimPlatformMapping.h"
+#include "fboss/agent/platforms/common/yamp/Yamp16QPimPlatformMapping.h"
 
 namespace {
 constexpr auto kJsonPlatformMappingStr = R"(

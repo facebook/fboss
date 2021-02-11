@@ -19,7 +19,7 @@
 #include "fboss/agent/platforms/common/wedge100/Wedge100PlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge40/Wedge40PlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400/Wedge400PlatformMapping.h"
-#include "fboss/agent/platforms/wedge/yamp/YampPlatformMapping.h"
+#include "fboss/agent/platforms/common/yamp/YampPlatformMapping.h"
 
 #include <gtest/gtest.h>
 

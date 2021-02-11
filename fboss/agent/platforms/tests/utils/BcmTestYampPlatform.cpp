@@ -9,8 +9,8 @@
  */
 #include "fboss/agent/platforms/tests/utils/BcmTestYampPlatform.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
+#include "fboss/agent/platforms/common/yamp/YampPlatformMapping.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestYampPort.h"
-#include "fboss/agent/platforms/wedge/yamp/YampPlatformMapping.h"
 
 namespace facebook::fboss {
 
