@@ -170,6 +170,10 @@ class EcmpSetupTargetedPorts
       const std::shared_ptr<SwitchState>& inputState,
       const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}}) const;
 
+  void unprogramRoutes(
+      std::unique_ptr<RouteUpdateWrapper> wrapper,
+      const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}}) const;
+
  private:
   virtual void computeNextHops(
       const std::shared_ptr<SwitchState>& inputState,
@@ -307,6 +311,11 @@ class EcmpSetupAnyNPorts {
   std::shared_ptr<SwitchState> pruneECMPRoutes(
       const std::shared_ptr<SwitchState>& inputState,
       const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}}) const;
+
+  void unprogramRoutes(
+      std::unique_ptr<RouteUpdateWrapper> wrapper,
+      const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}}) const;
+
   std::optional<VlanID> getVlan(const PortDescriptor& port) const {
     return ecmpSetupTargetedPorts_.getVlan(port);
   }

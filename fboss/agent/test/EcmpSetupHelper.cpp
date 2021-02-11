@@ -349,6 +349,20 @@ std::shared_ptr<SwitchState> EcmpSetupTargetedPorts<IPAddrT>::pruneECMPRoutes(
 }
 
 template <typename IPAddrT>
+void EcmpSetupTargetedPorts<IPAddrT>::unprogramRoutes(
+    std::unique_ptr<RouteUpdateWrapper> wrapper,
+    const std::vector<RouteT>& prefixes) const {
+  for (const auto& prefix : prefixes) {
+    wrapper->delRoute(
+        routerId_,
+        folly::IPAddress(prefix.network),
+        prefix.mask,
+        ClientID::BGPD);
+  }
+  wrapper->program();
+}
+
+template <typename IPAddrT>
 std::shared_ptr<SwitchState>
 EcmpSetupTargetedPorts<IPAddrT>::setupIp2MplsECMPForwarding(
     const std::shared_ptr<SwitchState>& inputState,
@@ -469,6 +483,13 @@ std::shared_ptr<SwitchState> EcmpSetupAnyNPorts<IPAddrT>::pruneECMPRoutes(
     const std::shared_ptr<SwitchState>& inputState,
     const std::vector<RouteT>& prefixes) const {
   return ecmpSetupTargetedPorts_.pruneECMPRoutes(inputState, prefixes);
+}
+
+template <typename IPAddrT>
+void EcmpSetupAnyNPorts<IPAddrT>::unprogramRoutes(
+    std::unique_ptr<RouteUpdateWrapper> wrapper,
+    const std::vector<RouteT>& prefixes) const {
+  ecmpSetupTargetedPorts_.unprogramRoutes(std::move(wrapper), prefixes);
 }
 
 template <typename IPAddrT>
