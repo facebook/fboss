@@ -46,6 +46,7 @@ add_library(ecmp_helper
 target_link_libraries(ecmp_helper
   switch_config_cpp2
   state
+  core
 )
 
 add_library(trunk_utils

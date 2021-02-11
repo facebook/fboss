@@ -26,7 +26,8 @@
 
 namespace facebook::fboss {
 class SwitchState;
-}
+class RouteUpdateWrapper;
+} // namespace facebook::fboss
 
 namespace facebook::fboss::utility {
 
@@ -151,6 +152,12 @@ class EcmpSetupTargetedPorts
       const std::vector<NextHopWeight>& weights =
           std::vector<NextHopWeight>()) const;
 
+  void programRoutes(
+      RouteUpdateWrapper& wrapper,
+      const boost::container::flat_set<PortDescriptor>& nhops,
+      const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
+      const std::vector<NextHopWeight>& weights =
+          std::vector<NextHopWeight>()) const;
   std::shared_ptr<SwitchState> setupIp2MplsECMPForwarding(
       const std::shared_ptr<SwitchState>& inputState,
       const boost::container::flat_set<PortDescriptor>& portDescriptors,
@@ -278,6 +285,12 @@ class EcmpSetupAnyNPorts {
    */
   std::shared_ptr<SwitchState> setupECMPForwarding(
       const std::shared_ptr<SwitchState>& inputState,
+      size_t width,
+      const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
+      const std::vector<NextHopWeight>& weights =
+          std::vector<NextHopWeight>()) const;
+  void programRoutes(
+      RouteUpdateWrapper& wrapper,
       size_t width,
       const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
       const std::vector<NextHopWeight>& weights =

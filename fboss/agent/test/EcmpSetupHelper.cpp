@@ -12,6 +12,7 @@
 
 #include <iterator>
 
+#include "fboss/agent/RouteUpdateWrapper.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
@@ -281,6 +282,43 @@ EcmpSetupTargetedPorts<IPAddrT>::setupECMPForwarding(
 }
 
 template <typename IPAddrT>
+void EcmpSetupTargetedPorts<IPAddrT>::programRoutes(
+    RouteUpdateWrapper& updater,
+    const flat_set<PortDescriptor>& portDescriptors,
+    const std::vector<RouteT>& prefixes,
+    const std::vector<NextHopWeight>& weights) const {
+  if (prefixes.empty()) {
+    return;
+  }
+  std::vector<NextHopWeight> hopWeights;
+  if (!weights.size()) {
+    for (auto i = 0; i < portDescriptors.size(); ++i) {
+      hopWeights.push_back(ECMP_WEIGHT);
+    }
+  } else {
+    hopWeights = weights;
+  }
+
+  CHECK_EQ(portDescriptors.size(), hopWeights.size());
+  RouteNextHopSet nhops;
+  {
+    auto i = 0;
+    for (const auto& portDescriptor : portDescriptors) {
+      nhops.emplace(UnresolvedNextHop(
+          BaseEcmpSetupHelperT::ip(portDescriptor), hopWeights[i++]));
+    }
+  }
+  for (const auto& prefix : prefixes) {
+    updater.addRoute(
+        routerId_,
+        folly::IPAddress(prefix.network),
+        prefix.mask,
+        ClientID(1001),
+        RouteNextHopEntry(nhops, AdminDistance::STATIC_ROUTE));
+  }
+  updater.program();
+}
+template <typename IPAddrT>
 std::shared_ptr<SwitchState> EcmpSetupTargetedPorts<IPAddrT>::pruneECMPRoutes(
     const std::shared_ptr<SwitchState>& inputState,
     const std::vector<RouteT>& prefixes) const {
@@ -414,6 +452,16 @@ std::shared_ptr<SwitchState> EcmpSetupAnyNPorts<IPAddrT>::setupECMPForwarding(
     const std::vector<NextHopWeight>& weights) const {
   return ecmpSetupTargetedPorts_.setupECMPForwarding(
       inputState, getPortDescs(ecmpWidth), prefixes, weights);
+}
+
+template <typename IPAddrT>
+void EcmpSetupAnyNPorts<IPAddrT>::programRoutes(
+    RouteUpdateWrapper& updater,
+    size_t width,
+    const std::vector<RouteT>& prefixes,
+    const std::vector<NextHopWeight>& weights) const {
+  ecmpSetupTargetedPorts_.programRoutes(
+      updater, getPortDescs(width), prefixes, weights);
 }
 
 template <typename IPAddrT>
