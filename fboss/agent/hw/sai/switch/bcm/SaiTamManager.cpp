@@ -8,7 +8,11 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
 extern "C" {
+#if !defined(SAI_VERSION_4_3_0_12_ODP)
 #include <experimental/saiexperimentalswitch.h>
+#else
+#include <experimental/saiswitchextensions.h>
+#endif
 #include <experimental/saitamextensions.h>
 }
 namespace facebook::fboss {

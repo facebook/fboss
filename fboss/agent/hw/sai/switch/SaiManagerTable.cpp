@@ -82,7 +82,11 @@ void SaiManagerTable::createSaiTableManagers(
   inSegEntryManager_ = std::make_unique<SaiInSegEntryManager>(this, platform);
   lagManager_ = std::make_unique<SaiUnsupportedFeatureManager>("LAG");
   wredManager_ = std::make_unique<SaiWredManager>(this, platform);
+
+  // CSP CS00011823810
+#if !defined(SAI_VERSION_4_3_0_12_ODP)
   tamManager_ = std::make_unique<SaiTamManager>(this, platform);
+#endif
 }
 
 SaiManagerTable::~SaiManagerTable() {
@@ -138,7 +142,11 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
 
   bufferManager_.reset();
   wredManager_.reset();
+
+  // CSP CS00011823810
+#if !defined(SAI_VERSION_4_3_0_12_ODP)
   tamManager_.reset();
+#endif
 
   queueManager_.reset();
   routeManager_.reset();
