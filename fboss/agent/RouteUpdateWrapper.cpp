@@ -130,8 +130,8 @@ RouteUpdateWrapper::programLegacyRibHelper(
   if (!newRt) {
     return {std::shared_ptr<SwitchState>(), stats};
   }
-  auto newState = state->clone();
-  newState->resetRouteTables(std::move(newRt));
-  return {newState, stats};
+  newRt->publish();
+  state->resetRouteTables(std::move(newRt));
+  return {state, stats};
 }
 } // namespace facebook::fboss

@@ -32,7 +32,7 @@ class HwSwitchEnsembleRouteUpdateWrapper : public RouteUpdateWrapper {
       const rib::RoutingInformationBase::UpdateStatistics& /*stats*/) override {
   }
   AdminDistance clientIdToAdminDistance(ClientID /*clientID*/) const override {
-    return AdminDistance::MAX_ADMIN_DISTANCE;
+    return AdminDistance::STATIC_ROUTE;
   }
   void programLegacyRib() override;
   void programStandAloneRib() override;

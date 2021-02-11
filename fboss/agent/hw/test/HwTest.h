@@ -23,6 +23,7 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
+#include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/hw/test/HwTestConstants.h"
 #include "fboss/agent/hw/test/HwTestStatUtils.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -99,6 +100,8 @@ class HwTest : public ::testing::Test,
   virtual std::optional<TransceiverInfo> overrideTransceiverInfo() const {
     return std::nullopt;
   }
+
+  std::unique_ptr<HwSwitchEnsembleRouteUpdateWrapper> getRouteUpdateWrapper();
 
   template <
       typename SETUP_FN,

@@ -153,7 +153,7 @@ class EcmpSetupTargetedPorts
           std::vector<NextHopWeight>()) const;
 
   void programRoutes(
-      RouteUpdateWrapper& wrapper,
+      std::unique_ptr<RouteUpdateWrapper> wrapper,
       const boost::container::flat_set<PortDescriptor>& nhops,
       const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
       const std::vector<NextHopWeight>& weights =
@@ -294,7 +294,7 @@ class EcmpSetupAnyNPorts {
       const std::vector<NextHopWeight>& weights =
           std::vector<NextHopWeight>()) const;
   void programRoutes(
-      RouteUpdateWrapper& wrapper,
+      std::unique_ptr<RouteUpdateWrapper> wrapper,
       size_t width,
       const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
       const std::vector<NextHopWeight>& weights =

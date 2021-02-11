@@ -160,4 +160,9 @@ std::map<PortID, HwPortStats> HwTest::getLatestPortStats(
   return hwSwitchEnsemble_->getLatestPortStats(ports);
 }
 
+std::unique_ptr<HwSwitchEnsembleRouteUpdateWrapper>
+HwTest::getRouteUpdateWrapper() {
+  return std::make_unique<HwSwitchEnsembleRouteUpdateWrapper>(
+      getHwSwitchEnsemble());
+}
 } // namespace facebook::fboss

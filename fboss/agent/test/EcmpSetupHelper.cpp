@@ -283,7 +283,7 @@ EcmpSetupTargetedPorts<IPAddrT>::setupECMPForwarding(
 
 template <typename IPAddrT>
 void EcmpSetupTargetedPorts<IPAddrT>::programRoutes(
-    RouteUpdateWrapper& updater,
+    std::unique_ptr<RouteUpdateWrapper> updater,
     const flat_set<PortDescriptor>& portDescriptors,
     const std::vector<RouteT>& prefixes,
     const std::vector<NextHopWeight>& weights) const {
@@ -309,14 +309,14 @@ void EcmpSetupTargetedPorts<IPAddrT>::programRoutes(
     }
   }
   for (const auto& prefix : prefixes) {
-    updater.addRoute(
+    updater->addRoute(
         routerId_,
         folly::IPAddress(prefix.network),
         prefix.mask,
         ClientID(1001),
         RouteNextHopEntry(nhops, AdminDistance::STATIC_ROUTE));
   }
-  updater.program();
+  updater->program();
 }
 template <typename IPAddrT>
 std::shared_ptr<SwitchState> EcmpSetupTargetedPorts<IPAddrT>::pruneECMPRoutes(
@@ -470,12 +470,12 @@ std::shared_ptr<SwitchState> EcmpSetupAnyNPorts<IPAddrT>::setupECMPForwarding(
 
 template <typename IPAddrT>
 void EcmpSetupAnyNPorts<IPAddrT>::programRoutes(
-    RouteUpdateWrapper& updater,
+    std::unique_ptr<RouteUpdateWrapper> updater,
     size_t width,
     const std::vector<RouteT>& prefixes,
     const std::vector<NextHopWeight>& weights) const {
   ecmpSetupTargetedPorts_.programRoutes(
-      updater, getPortDescs(width), prefixes, weights);
+      std::move(updater), getPortDescs(width), prefixes, weights);
 }
 
 template <typename IPAddrT>

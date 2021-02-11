@@ -110,10 +110,10 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
   std::shared_ptr<SwitchState> setupECMPForwarding(
       const ECMP_HELPER& ecmpHelper) {
     auto kEcmpWidthForTest = 1;
-    auto newState = ecmpHelper.setupECMPForwarding(
-        ecmpHelper.resolveNextHops(getProgrammedState(), kEcmpWidthForTest),
-        kEcmpWidthForTest);
+    auto newState =
+        ecmpHelper.resolveNextHops(getProgrammedState(), kEcmpWidthForTest);
     applyNewState(newState);
+    ecmpHelper.programRoutes(getRouteUpdateWrapper(), kEcmpWidthForTest);
     return getProgrammedState();
   }
   void assertDeviceWatermark(bool expectZero, int retries = 1) {
