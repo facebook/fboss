@@ -11,6 +11,7 @@ add_library(sai_platform
   fboss/agent/platforms/sai/SaiBcmGalaxyFCPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmGalaxyLCPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmMinipackPlatform.cpp
+  fboss/agent/platforms/sai/SaiBcmYampPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmWedge100Platform.cpp
   fboss/agent/platforms/sai/SaiBcmWedge40Platform.cpp
   fboss/agent/platforms/sai/SaiBcmWedge400Platform.cpp
@@ -40,6 +41,7 @@ target_link_libraries(sai_platform
   hw_switch_warmboot_helper
   fake_test_platform_mapping
   minipack_platform_mapping
+  yamp_platform_mapping
   galaxy_platform_mapping
   wedge100_platform_mapping
   wedge40_platform_mapping
