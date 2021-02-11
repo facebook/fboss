@@ -7,6 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
@@ -127,6 +128,14 @@ template <typename StandAloneRib>
 class RouteTest : public ::testing::Test {
  public:
   void SetUp() override {
+    auto flags = StandAloneRib::hasStandAloneRib
+        ? SwitchFlags::ENABLE_STANDALONE_RIB
+        : SwitchFlags::DEFAULT;
+    auto config = initialConfig();
+    handle_ = createTestHandle(&config, flags);
+    sw_ = handle_->getSw();
+  }
+  cfg::SwitchConfig initialConfig() const {
     cfg::SwitchConfig config;
     config.vlans_ref()->resize(4);
     config.vlans_ref()[0].id_ref() = 1;
@@ -166,12 +175,9 @@ class RouteTest : public ::testing::Test {
     config.interfaces_ref()[3].ipAddresses_ref()->resize(2);
     config.interfaces_ref()[3].ipAddresses_ref()[0] = "4.4.4.4/24";
     config.interfaces_ref()[3].ipAddresses_ref()[1] = "4::1/48";
-    auto flags = StandAloneRib::hasStandAloneRib
-        ? SwitchFlags::ENABLE_STANDALONE_RIB
-        : SwitchFlags::DEFAULT;
-    handle_ = createTestHandle(&config, flags);
-    sw_ = handle_->getSw();
+    return config;
   }
+
   std::shared_ptr<Route<IPAddressV4>> findRoute4(
       const std::shared_ptr<SwitchState>& state,
       RouterID rid,
@@ -658,4 +664,72 @@ TYPED_TEST(RouteTest, addDel) {
   EXPECT_FALSE(r6_2->isToCPU());
   EXPECT_TRUE(r6_2->isDrop());
   EXPECT_EQ(RouteForwardAction::DROP, r6_2->getForwardInfo().getAction());
+}
+
+TYPED_TEST(RouteTest, InterfaceRoutes) {
+  RouterID rid = RouterID(0);
+  auto stateV1 = this->sw_->getState();
+  // verify the ipv4 interface route
+  {
+    auto rt = this->findRoute4(stateV1, rid, "1.1.1.0/24");
+    EXPECT_EQ(0, rt->getGeneration());
+    EXPECT_RESOLVED(rt);
+    EXPECT_TRUE(rt->isConnected());
+    EXPECT_FALSE(rt->isToCPU());
+    EXPECT_FALSE(rt->isDrop());
+    EXPECT_EQ(RouteForwardAction::NEXTHOPS, rt->getForwardInfo().getAction());
+    EXPECT_FWD_INFO(rt, InterfaceID(1), "1.1.1.1");
+  }
+  // verify the ipv6 interface route
+  {
+    auto rt = this->findRoute6(stateV1, rid, "2::0/48");
+    EXPECT_EQ(0, rt->getGeneration());
+    EXPECT_RESOLVED(rt);
+    EXPECT_TRUE(rt->isConnected());
+    EXPECT_FALSE(rt->isToCPU());
+    EXPECT_FALSE(rt->isDrop());
+    EXPECT_EQ(RouteForwardAction::NEXTHOPS, rt->getForwardInfo().getAction());
+    EXPECT_FWD_INFO(rt, InterfaceID(2), "2::1");
+  }
+
+  {
+    // verify v6 link local route
+    auto rt = this->findRoute6(stateV1, rid, "fe80::/64");
+    EXPECT_EQ(0, rt->getGeneration());
+    EXPECT_RESOLVED(rt);
+    EXPECT_FALSE(rt->isConnected());
+    EXPECT_TRUE(rt->isToCPU());
+    EXPECT_EQ(RouteForwardAction::TO_CPU, rt->getForwardInfo().getAction());
+    const auto& fwds = rt->getForwardInfo().getNextHopSet();
+    EXPECT_EQ(0, fwds.size());
+  }
+
+  auto config = this->initialConfig();
+  // swap the interface addresses which causes route change
+  config.interfaces_ref()[1].ipAddresses_ref()[0] = "1.1.1.1/24";
+  config.interfaces_ref()[1].ipAddresses_ref()[1] = "1::1/48";
+  config.interfaces_ref()[0].ipAddresses_ref()[0] = "2.2.2.2/24";
+  config.interfaces_ref()[0].ipAddresses_ref()[1] = "2::1/48";
+  auto updateFn = [&config, this](const std::shared_ptr<SwitchState>& in) {
+    return applyThriftConfig(
+        in,
+        &config,
+        this->sw_->getPlatform(),
+        TypeParam::hasStandAloneRib ? this->sw_->getRib() : nullptr);
+  };
+  this->sw_->updateStateBlocking("New config", updateFn);
+  auto stateV2 = this->sw_->getState();
+  EXPECT_NE(stateV1, stateV2);
+  // verify the ipv4 route
+  {
+    auto rt = this->findRoute4(stateV2, rid, "1.1.1.0/24");
+    EXPECT_EQ(1, rt->getGeneration());
+    EXPECT_FWD_INFO(rt, InterfaceID(2), "1.1.1.1");
+  }
+  // verify the ipv6 route
+  {
+    auto rt = this->findRoute6(stateV2, rid, "2::0/48");
+    EXPECT_EQ(1, rt->getGeneration());
+    EXPECT_FWD_INFO(rt, InterfaceID(1), "2::1");
+  }
 }
