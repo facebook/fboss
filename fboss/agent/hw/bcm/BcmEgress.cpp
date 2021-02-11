@@ -568,44 +568,9 @@ bool BcmEcmpEgress::removeEgressIdHwNotLocked(
     bcm_l3_ecmp_member_t_init(&member);
     member.egress_if = toRemove.first;
     if (ucmpSupported) {
-      int totalMembersInHw;
-      int memberIndex = -1;
-      bcm_l3_egress_ecmp_t existing;
-      bcm_l3_egress_ecmp_t_init(&existing);
-      existing.ecmp_intf = ecmpId;
-      ret = bcm_l3_ecmp_get(unit, &existing, 0, nullptr, &totalMembersInHw);
-      bcmCheckError(ret, "Unable to get ecmp entry ", ecmpId);
-      if (totalMembersInHw > 0) {
-        // @lint-ignore CLANGTIDY
-        bcm_l3_ecmp_member_t membersInHw[totalMembersInHw];
-        ret = bcm_l3_ecmp_get(
-            unit, &existing, totalMembersInHw, membersInHw, &totalMembersInHw);
-        bcmCheckError(ret, "Unable to get ecmp entry ", ecmpId);
-        for (size_t i = 0; i < totalMembersInHw; ++i) {
-          if (toRemove.first == membersInHw[i].egress_if) {
-            memberIndex = i;
-            break;
-          }
-        }
-        if (memberIndex != -1) {
-          if (membersInHw[memberIndex].weight <= toRemove.second) {
-            // delete this member
-            ret = bcm_l3_ecmp_member_delete(unit, ecmpId, &member);
-          } else {
-            // update weight of this member
-            membersInHw[memberIndex].weight -= toRemove.second;
-            ret = bcm_l3_ecmp_create(
-                unit,
-                BCM_L3_ECMP_O_CREATE_WITH_ID | BCM_L3_ECMP_O_REPLACE,
-                &existing,
-                totalMembersInHw,
-                membersInHw);
-          }
-        }
-      }
-      if (memberIndex == -1) {
-        ret = BCM_E_NOT_FOUND;
-      }
+      // This function will always blow away all egress members
+      // associated with the toRemove egress intf.
+      ret = bcm_l3_ecmp_member_delete(unit, ecmpId, &member);
     } else {
       for (int i = 0; i < toRemove.second; i++) {
         ret = bcm_l3_ecmp_member_delete(unit, ecmpId, &member);
