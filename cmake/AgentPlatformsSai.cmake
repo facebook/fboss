@@ -20,6 +20,7 @@ add_library(sai_platform
   fboss/agent/platforms/sai/SaiHwPlatform.cpp
   fboss/agent/platforms/sai/SaiPlatformPort.cpp
   fboss/agent/platforms/sai/SaiPlatformInit.cpp
+  fboss/agent/platforms/sai/oss/SaiPlatformInit.cpp
   fboss/agent/platforms/sai/SaiWedge400CPlatform.cpp
   fboss/agent/platforms/sai/SaiWedge400CPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiBcmGalaxyPlatformPort.cpp
@@ -47,6 +48,7 @@ target_link_libraries(sai_platform
   wedge40_platform_mapping
   wedge400_platform_mapping
   wedge400c_platform_mapping
+  wedge400c_ebb_lab_platform_mapping
   qsfp_cache
   wedge_led_utils
 )

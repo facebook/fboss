@@ -55,4 +55,10 @@ class SaiWedge400CPlatform : public SaiHwPlatform {
   std::unique_ptr<TajoAsic> asic_;
 };
 
+class SaiWedge400CEbbLabPlatform : public SaiWedge400CPlatform {
+ public:
+  explicit SaiWedge400CEbbLabPlatform(
+      std::unique_ptr<PlatformProductInfo> productInfo);
+};
+
 } // namespace facebook::fboss

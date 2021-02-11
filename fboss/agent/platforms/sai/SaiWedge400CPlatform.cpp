@@ -43,4 +43,10 @@ HwAsic* SaiWedge400CPlatform::getAsic() const {
 
 SaiWedge400CPlatform::~SaiWedge400CPlatform() {}
 
+SaiWedge400CEbbLabPlatform::SaiWedge400CEbbLabPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo)
+    : SaiWedge400CPlatform(
+          std::move(productInfo),
+          std::make_unique<Wedge400CEbbLabPlatformMapping>()) {}
+
 } // namespace facebook::fboss
