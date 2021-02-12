@@ -207,7 +207,6 @@ class RouteTableCmd(cmds.FbossCmd):
                                     nextHop,
                                     vlan_aggregate_port_map=vlan_aggregate_port_map,
                                     vlan_port_map=vlan_port_map,
-                                    ucmp_active=ucmp_active,
                                 )
                             )
                         )

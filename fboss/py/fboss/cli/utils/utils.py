@@ -279,19 +279,15 @@ def nexthop_to_str(
     nexthop: NextHopThrift,
     vlan_aggregate_port_map: t.Dict[str, str] = None,
     vlan_port_map: t.DefaultDict[str, t.DefaultDict[str, t.List[str]]] = None,
-    ucmp_active: bool = False,
 ) -> str:
-    nh_str = ""
-    ip_str = ""
     weight_str = ""
     via_str = ""
     label_str = label_forwarding_action_to_str(nexthop.mplsAction)
 
-    if ucmp_active:
-        weight_str = " - weight {}".format(nexthop.weight)
+    if nexthop.weight:
+        weight_str = " weight {}".format(nexthop.weight)
 
     nh = nexthop.address
-    ip_str = ip_ntop(nh.addr)
     if nh.ifName:
         if vlan_port_map:
             vlan_id = int(nh.ifName.replace("fboss", ""))
@@ -310,5 +306,6 @@ def nexthop_to_str(
         else:
             via_str = nh.ifName
 
-    nh_str = "{}%{}{}{}".format(ip_str, via_str, label_str, weight_str)
-    return nh_str
+    if via_str:
+        via_str = f" dev {via_str.strip()}"
+    return f"{ip_ntop(nh.addr)}{via_str}{weight_str}{label_str}"
