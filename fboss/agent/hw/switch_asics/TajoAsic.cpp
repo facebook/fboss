@@ -66,6 +66,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::WIDE_ECMP:
     case HwAsic::Feature::SAI_MIRRORING:
     case HwAsic::Feature::SAI_SAMPLING:
+    case HwAsic::Feature::ALPM_ROUTE_PROJECTION:
       return false;
   }
   return false;

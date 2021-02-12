@@ -62,6 +62,7 @@ class HwAsic {
     WIDE_ECMP,
     SAI_MIRRORING,
     SAI_SAMPLING,
+    ALPM_ROUTE_PROJECTION,
   };
 
   enum class AsicType {

@@ -178,8 +178,7 @@ bool BcmHwTableStatManager::refreshAlpmFreeRouteCounts(
   {
     // v4
     int v4Max, v4Used;
-    auto ret1 = bcm_switch_object_count_get(
-        0, bcmSwitchObjectL3RouteV4RoutesMax, &v4Max);
+    auto ret1 = getAlpmMaxRouteCount(v4Max, false);
     auto ret2 = bcm_switch_object_count_get(
         0, bcmSwitchObjectL3RouteV4RoutesUsed, &v4Used);
     if (!ret1 && !ret2) {
@@ -192,14 +191,11 @@ bool BcmHwTableStatManager::refreshAlpmFreeRouteCounts(
     // v6
     int v6Max, v6Used;
     int ret1, ret2;
+    ret1 = getAlpmMaxRouteCount(v6Max, true);
     if (is128ByteIpv6Enabled_) {
-      ret1 = bcm_switch_object_count_get(
-          0, bcmSwitchObjectL3RouteV6Routes128bMax, &v6Max);
       ret2 = bcm_switch_object_count_get(
           0, bcmSwitchObjectL3RouteV6Routes128bUsed, &v6Used);
     } else {
-      ret1 = bcm_switch_object_count_get(
-          0, bcmSwitchObjectL3RouteV6Routes64bMax, &v6Max);
       ret2 = bcm_switch_object_count_get(
           0, bcmSwitchObjectL3RouteV6Routes64bUsed, &v6Used);
     }

@@ -42,6 +42,7 @@ class BcmHwTableStatManager {
   void incrementBcmMirrorStat(
       const std::shared_ptr<Mirror>& addedMirror,
       HwResourceStats* stats) const;
+  int getAlpmMaxRouteCount(int& count, bool isV6) const;
 
   const BcmSwitch* hw_{nullptr};
 

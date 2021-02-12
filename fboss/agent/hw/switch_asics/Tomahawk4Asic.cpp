@@ -53,6 +53,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::INGRESS_L3_INTERFACE:
     case HwAsic::Feature::DETAILED_L2_UPDATE:
     case HwAsic::Feature::TELEMETRY_AND_MONITORING:
+    case HwAsic::Feature::ALPM_ROUTE_PROJECTION:
       return true;
     case HwAsic::Feature::NON_UNICAST_HASH:
     case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
