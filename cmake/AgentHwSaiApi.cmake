@@ -79,7 +79,7 @@ set(SAI_API_SRC
 if (SAI_TAJO_IMPL)
   list(APPEND SAI_API_SRC
     fboss/agent/hw/sai/api/tajo/PortApi.cpp
-    fboss/agent/hw/sai/api/oss/TamApi.cpp
+    fboss/agent/hw/sai/api/tajo/TamApi.cpp
     fboss/agent/hw/sai/api/tajo/SwitchApi.cpp
   )
 

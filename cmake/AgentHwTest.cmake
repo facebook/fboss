@@ -148,6 +148,7 @@ add_library(hw_switch_test
   fboss/agent/hw/test/HwResourceStatsTests.cpp
   fboss/agent/hw/test/HwSwitchStateReplayTest.cpp
   fboss/agent/hw/test/FlexPortTests.cpp
+  fboss/agent/hw/test/HwParityErrorTest.cpp
 
   fboss/agent/hw/test/dataplane_tests/HwAclCounterTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwConfigSetupTest.cpp
