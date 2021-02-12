@@ -326,10 +326,6 @@ void SwSwitch::gracefulExit() {
                       .count();
 
     folly::dynamic switchState = folly::dynamic::object;
-    // TODO - Serialize both desired and applied state to
-    // file. Right now we just serialize applied state and
-    // then rely on a route/FIB sync on warm boot to recover
-    // desired state.
     switchState[kSwSwitch] = getAppliedState()->toFollyDynamic();
 
     steady_clock::time_point switchStateToFollyDone = steady_clock::now();
