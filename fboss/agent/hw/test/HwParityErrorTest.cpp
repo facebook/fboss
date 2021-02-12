@@ -4,6 +4,7 @@
 
 #include "fboss/agent/hw/HwSwitchStats.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwTestTamUtils.h"
 
 namespace facebook::fboss {
 
@@ -58,13 +59,11 @@ class HwParityErrorTest : public HwLinkStateDependentTest {
         XLOG(FATAL) << "Unsupported HwAsic";
         break;
       case HwAsic::AsicType::ASIC_TYPE_TAJO:
-        generateTajoParityError();
-        break;
       case HwAsic::AsicType::ASIC_TYPE_TRIDENT2:
       case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK:
       case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
       case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
-        generateBcmParityError();
+        utility::triggerParityError(getHwSwitchEnsemble());
     }
   }
 
