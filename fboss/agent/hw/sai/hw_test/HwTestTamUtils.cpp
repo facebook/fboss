@@ -5,6 +5,8 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 
+#include "fboss/agent/hw/sai/api/TamApi.h"
+
 namespace facebook::fboss {
 namespace {
 void triggerSaiBcmParityError(HwSwitchEnsemble* ensemble) {
@@ -29,6 +31,7 @@ void triggerParityError(HwSwitchEnsemble* ensemble) {
   if (asic != HwAsic::AsicType::ASIC_TYPE_TAJO) {
     triggerSaiBcmParityError(ensemble);
   }
+  injectTamError();
 }
 } // namespace utility
 } // namespace facebook::fboss

@@ -216,4 +216,6 @@ class TamApi : public SaiApi<TamApi> {
   friend class SaiApi<TamApi>;
 };
 
+void injectTamError();
+
 } // namespace facebook::fboss

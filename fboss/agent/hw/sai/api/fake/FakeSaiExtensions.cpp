@@ -54,4 +54,6 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
     AttributeEgressPoolAvaialableSizeIdWrapper::operator()() {
   return SAI_SWITCH_ATTR_DEFAULT_EGRESS_BUFFER_POOL_SHARED_SIZE;
 }
+
+void injectTamError() {}
 } // namespace facebook::fboss
