@@ -131,7 +131,7 @@ FbDomFpga::PimType FbDomFpga::getPimType() {
       return static_cast<FbDomFpga::PimType>(curPimTypeReg);
     default:
       throw FbossError(
-          "Unrecoginized pim type with register value:", curPimTypeReg);
+          "Unrecognized pim type with register value:", curPimTypeReg);
   }
 }
 
