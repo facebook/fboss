@@ -447,6 +447,17 @@ void qosMapListAttr(
   }
 }
 
+void charDataAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    vector<string>& attrLines) {
+  string prefix = to<string>("s_a[", i, "].value.");
+  for (int j = 0; j < 32; ++j) {
+    attrLines.push_back(to<string>(
+        prefix, "chardata[", j, "]=", attr_list[i].value.chardata[j]));
+  }
+}
+
 void macAddressAttr(
     const sai_attribute_t* attr_list,
     int i,

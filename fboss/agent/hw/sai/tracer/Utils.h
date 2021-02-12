@@ -124,6 +124,11 @@ void qosMapListAttr(
     uint32_t listIndex,
     std::vector<std::string>& attrLines);
 
+void charDataAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines);
+
 void macAddressAttr(
     const sai_attribute_t* attr_list,
     int i,

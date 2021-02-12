@@ -20,6 +20,7 @@
 #include "fboss/agent/hw/sai/tracer/FdbApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/HashApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/HostifApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/LagApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/MirrorApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/MplsApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/NeighborApiTracer.h"
@@ -269,6 +270,13 @@ sai_status_t __wrap_sai_api_query(
           static_cast<sai_tam_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrappedTamApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "tam_api");
+      break;
+    case SAI_API_LAG:
+      SaiTracer::getInstance()->lagApi_ =
+          static_cast<sai_lag_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrappedLagApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "lag_api");
+      break;
     default:
       // TODO: For other APIs, create new API wrappers and invoke wrappedApi()
       // funtion here
@@ -1046,6 +1054,12 @@ vector<string> SaiTracer::setAttrList(
       break;
     case SAI_OBJECT_TYPE_INSEG_ENTRY:
       setInsegEntryAttributes(attr_list, attr_count, attrLines);
+      break;
+    case SAI_OBJECT_TYPE_LAG:
+      setLagAttributes(attr_list, attr_count, attrLines);
+      break;
+    case SAI_OBJECT_TYPE_LAG_MEMBER:
+      setLagMemberAttributes(attr_list, attr_count, attrLines);
       break;
     case SAI_OBJECT_TYPE_MIRROR_SESSION:
       setMirrorSessionAttributes(attr_list, attr_count, attrLines);
