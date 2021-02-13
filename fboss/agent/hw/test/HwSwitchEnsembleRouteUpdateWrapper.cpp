@@ -46,7 +46,7 @@ void HwSwitchEnsembleRouteUpdateWrapper::programStandAloneRib() {
     hwEnsemble_->getRib()->update(
         ridClientId.first,
         ridClientId.second,
-        AdminDistance::MAX_ADMIN_DISTANCE,
+        AdminDistance::STATIC_ROUTE,
         addDelRoutes.toAdd,
         addDelRoutes.toDel,
         false,
