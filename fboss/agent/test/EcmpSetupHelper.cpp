@@ -357,7 +357,7 @@ void EcmpSetupTargetedPorts<IPAddrT>::unprogramRoutes(
         routerId_,
         folly::IPAddress(prefix.network),
         prefix.mask,
-        ClientID::BGPD);
+        ClientID(1001));
   }
   wrapper->program();
 }

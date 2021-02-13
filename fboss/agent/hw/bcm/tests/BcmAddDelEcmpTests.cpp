@@ -51,19 +51,26 @@ class BcmAddDelEcmpTest : public BcmTest {
     return cfg;
   }
   template <typename AddrT>
-  void setupECMPForwarding(
+  void programRoute(
       const utility::EcmpSetupAnyNPorts<AddrT>& ecmpHelper,
       int ecmpWidth,
       const RoutePrefix<AddrT>& prefix) {
-    auto newState = ecmpHelper.setupECMPForwarding(
-        getProgrammedState(), ecmpWidth, {prefix});
-    newState = ecmpHelper.resolveNextHops(newState, ecmpWidth);
-    applyNewState(newState);
+    ecmpHelper.programRoutes(getRouteUpdateWrapper(), ecmpWidth, {prefix});
   }
+
   void delRoute(const CIDRNetwork& network) {
-    HwSwitchEnsembleRouteUpdateWrapper updater(getHwSwitchEnsemble());
-    updater.delRoute(kRid, network.first, network.second, ClientID(1001));
-    updater.program();
+    auto unprogram = [this](auto ecmpHelper, const auto& prefix) {
+      ecmpHelper.unprogramRoutes(getRouteUpdateWrapper(), {prefix});
+    };
+    if (network.first.isV4()) {
+      unprogram(
+          utility::EcmpSetupAnyNPorts4(getProgrammedState(), kRid),
+          RoutePrefixV4{network.first.asV4(), network.second});
+    } else {
+      unprogram(
+          utility::EcmpSetupAnyNPorts6(getProgrammedState(), kRid),
+          RoutePrefixV6{network.first.asV6(), network.second});
+    }
   }
   void runTest() {
     auto cfg = initialConfig();
@@ -84,12 +91,12 @@ class BcmAddDelEcmpTest : public BcmTest {
       auto ecmpWidth = cidrNetworks_.size() + 1;
       for (auto& cidrNetwork : cidrNetworks_) {
         if (cidrNetwork.first.isV6()) {
-          setupECMPForwarding(
+          programRoute(
               utility::EcmpSetupAnyNPorts6(getProgrammedState(), kRid),
               ecmpWidth--,
               RoutePrefixV6{cidrNetwork.first.asV6(), cidrNetwork.second});
         } else {
-          setupECMPForwarding(
+          programRoute(
               utility::EcmpSetupAnyNPorts4(getProgrammedState(), kRid),
               ecmpWidth--,
               RoutePrefixV4{cidrNetwork.first.asV4(), cidrNetwork.second});
