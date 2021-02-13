@@ -65,6 +65,22 @@ sai_service_method_table_t kSaiServiceMethodTable = {
     .profile_get_next_value = saiProfileGetNextValue,
 };
 
+using facebook::fboss::SaiPlatform;
+using facebook::fboss::SaiSwitchTraits;
+using facebook::fboss::cfg::PlatformAttributes;
+SaiSwitchTraits::Attributes::HwInfo getHwInfo(SaiPlatform* platform) {
+  std::vector<int8_t> connectionHandle;
+  auto connStr =
+      platform->getPlatformAttribute(PlatformAttributes::CONNECTION_HANDLE);
+  if (connStr.has_value()) {
+    std::copy(
+        connStr->c_str(),
+        connStr->c_str() + connStr->size() + 1,
+        std::back_inserter(connectionHandle));
+  }
+  return connectionHandle;
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -291,6 +307,67 @@ std::vector<SaiPlatformPort*> SaiPlatform::getPortsWithTransceiverID(
     }
   }
   return ports;
+}
+
+SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
+    bool mandatoryOnly) {
+  SaiSwitchTraits::Attributes::InitSwitch initSwitch(true);
+
+  std::optional<SaiSwitchTraits::Attributes::HwInfo> hwInfo = getHwInfo(this);
+  std::optional<SaiSwitchTraits::Attributes::SrcMac> srcMac;
+  std::optional<SaiSwitchTraits::Attributes::MacAgingTime> macAgingTime;
+  if (!mandatoryOnly) {
+    srcMac = getLocalMac();
+    macAgingTime = getDefaultMacAgingTime();
+  }
+
+  std::optional<SaiSwitchTraits::Attributes::AclFieldList> aclFieldList =
+      getAclFieldList();
+
+  std::optional<SaiSwitchTraits::Attributes::UseEcnThresholds> useEcnThresholds{
+      std::nullopt};
+  if (getAsic()->isSupported(HwAsic::Feature::SAI_ECN_WRED)) {
+    useEcnThresholds = true;
+  }
+
+  return {
+      initSwitch,
+      hwInfo, // hardware info
+      srcMac, // source mac
+      std::nullopt, // shell
+      std::nullopt, // ecmp hash v4
+      std::nullopt, // ecmp hash v6
+      std::nullopt, // ecmp hash seed
+      std::nullopt, // lag hash seed
+      std::nullopt, // ecmp hash algo
+      std::nullopt, // lag hash algo
+      std::nullopt, // restart warm
+      std::nullopt, // qos dscp to tc map
+      std::nullopt, // qos tc to queue map
+      macAgingTime,
+      std::nullopt, // ingress acl
+      aclFieldList,
+      std::nullopt, // tam object list
+      useEcnThresholds,
+      std::nullopt, // counter refresh interval
+      std::nullopt, // Firmware path name
+      std::nullopt, // Firmware load method
+      std::nullopt, // Firmware load type
+      std::nullopt, // Hardware access bus
+      std::nullopt, // Platform context
+      std::nullopt, // Switch profile id
+      std::nullopt, // Switch id
+      std::nullopt, // Max system cores
+      std::nullopt, // System port config list
+      std::nullopt, // Switch type
+      std::nullopt, // Read function
+      std::nullopt, // Write function
+  };
+}
+
+uint32_t SaiPlatform::getDefaultMacAgingTime() const {
+  static auto constexpr kL2AgeTimerSeconds = 300;
+  return kL2AgeTimerSeconds;
 }
 
 } // namespace facebook::fboss

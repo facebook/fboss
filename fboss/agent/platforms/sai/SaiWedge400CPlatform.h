@@ -46,6 +46,9 @@ class SaiWedge400CPlatform : public SaiHwPlatform {
   }
   void initLEDs() override {}
 
+  std::optional<SaiSwitchTraits::Attributes::AclFieldList> getAclFieldList()
+      const override;
+
  protected:
   SaiWedge400CPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,

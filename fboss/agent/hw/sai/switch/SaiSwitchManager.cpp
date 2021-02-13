@@ -37,106 +37,6 @@ DEFINE_uint32(
 
 namespace {
 using namespace facebook::fboss;
-
-SaiSwitchTraits::Attributes::HwInfo getHwInfo(SaiPlatform* platform) {
-  std::vector<int8_t> connectionHandle;
-  auto connStr = platform->getPlatformAttribute(
-      cfg::PlatformAttributes::CONNECTION_HANDLE);
-  if (connStr.has_value()) {
-    std::copy(
-        connStr->c_str(),
-        connStr->c_str() + connStr->size() + 1,
-        std::back_inserter(connectionHandle));
-  }
-  return connectionHandle;
-}
-
-SaiSwitchTraits::Attributes::SrcMac getSrcMac(const SaiPlatform* platform) {
-  return platform->getLocalMac();
-}
-SaiSwitchTraits::Attributes::MacAgingTime getMacAgingTime() {
-  const auto kL2AgeTimerSeconds = 300;
-  return kL2AgeTimerSeconds;
-}
-
-const std::vector<sai_int32_t>& kTajoAclFieldList() {
-  static const std::vector<sai_int32_t> aclFieldList = {
-      SAI_ACL_TABLE_ATTR_FIELD_SRC_IPV6,
-      SAI_ACL_TABLE_ATTR_FIELD_DST_IPV6,
-      SAI_ACL_TABLE_ATTR_FIELD_SRC_IP,
-      SAI_ACL_TABLE_ATTR_FIELD_DST_IP,
-      SAI_ACL_TABLE_ATTR_FIELD_IP_PROTOCOL,
-      SAI_ACL_TABLE_ATTR_FIELD_DSCP,
-      SAI_ACL_TABLE_ATTR_FIELD_ACL_IP_TYPE,
-      SAI_ACL_TABLE_ATTR_FIELD_TTL,
-      SAI_ACL_TABLE_ATTR_FIELD_FDB_DST_USER_META,
-      SAI_ACL_TABLE_ATTR_FIELD_ROUTE_DST_USER_META,
-      SAI_ACL_TABLE_ATTR_FIELD_NEIGHBOR_DST_USER_META,
-  };
-
-  return aclFieldList;
-}
-
-// (TODO: srikrishnagopu) Move this to SaiPlatform ?
-SaiSwitchTraits::CreateAttributes getSwitchAttributes(
-    SaiPlatform* platform,
-    bool mandatoryOnly) {
-  SaiSwitchTraits::Attributes::InitSwitch initSwitch(true);
-  std::optional<SaiSwitchTraits::Attributes::HwInfo> hwInfo{
-      getHwInfo(platform)};
-  std::optional<SaiSwitchTraits::Attributes::SrcMac> srcMac;
-  std::optional<SaiSwitchTraits::Attributes::MacAgingTime> macAgingTime;
-  if (!mandatoryOnly) {
-    srcMac = getSrcMac(platform);
-    macAgingTime = getMacAgingTime();
-  }
-
-  std::optional<SaiSwitchTraits::Attributes::AclFieldList> aclFieldList{
-      std::nullopt};
-  if (platform->getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TAJO) {
-    aclFieldList = kTajoAclFieldList();
-  }
-  std::optional<SaiSwitchTraits::Attributes::UseEcnThresholds> useEcnThresholds{
-      std::nullopt};
-  if (platform->getAsic()->isSupported(HwAsic::Feature::SAI_ECN_WRED)) {
-    useEcnThresholds = true;
-  }
-
-  return {
-      initSwitch,
-      hwInfo, // hardware info
-      srcMac, // source mac
-      std::nullopt, // shell
-      std::nullopt, // ecmp hash v4
-      std::nullopt, // ecmp hash v6
-      std::nullopt, // ecmp hash seed
-      std::nullopt, // lag hash seed
-      std::nullopt, // ecmp hash algo
-      std::nullopt, // lag hash algo
-      std::nullopt, // restart warm
-      std::nullopt, // qos dscp to tc map
-      std::nullopt, // qos tc to queue map
-      macAgingTime,
-      std::nullopt, // ingress acl
-      aclFieldList,
-      std::nullopt, // tam object list
-      useEcnThresholds,
-      std::nullopt, // counter refresh interval
-      std::nullopt, // Firmware path name
-      std::nullopt, // Firmware load method
-      std::nullopt, // Firmware load type
-      std::nullopt, // Hardware access bus
-      std::nullopt, // Platform context
-      std::nullopt, // Switch profile id
-      std::nullopt, // Switch id
-      std::nullopt, // Max system cores
-      std::nullopt, // System port config list
-      std::nullopt, // Switch type
-      std::nullopt, // Read function
-      std::nullopt, // Write function
-  };
-}
-
 sai_hash_algorithm_t toSaiHashAlgo(cfg::HashingAlgorithm algo) {
   switch (algo) {
     case cfg::HashingAlgorithm::CRC16_CCITT:
@@ -167,15 +67,17 @@ SaiSwitchManager::SaiSwitchManager(
     // init attribute (warm boot path)
     auto& switchApi = SaiApiTable::getInstance()->switchApi();
     auto newSwitchId = switchApi.create<SaiSwitchTraits>(
-        getSwitchAttributes(platform, true), 0 /* switch id; ignored */);
+        platform->getSwitchAttributes(true), 0 /* switch id; ignored */);
     // Load all switch attributes
     switch_ = std::make_unique<SaiSwitchObj>(newSwitchId);
-    switch_->setOptionalAttribute(getSrcMac(platform));
-    switch_->setOptionalAttribute(getMacAgingTime());
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::SrcMac{platform->getLocalMac()});
+    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::MacAgingTime{
+        platform->getDefaultMacAgingTime()});
   } else {
     switch_ = std::make_unique<SaiSwitchObj>(
         std::monostate(),
-        getSwitchAttributes(platform, false),
+        platform->getSwitchAttributes(false),
         0 /* fake switch id; ignored */);
   }
 }

@@ -43,6 +43,24 @@ HwAsic* SaiWedge400CPlatform::getAsic() const {
 
 SaiWedge400CPlatform::~SaiWedge400CPlatform() {}
 
+std::optional<SaiSwitchTraits::Attributes::AclFieldList>
+SaiWedge400CPlatform::getAclFieldList() const {
+  static const std::vector<sai_int32_t> kAclFieldList = {
+      SAI_ACL_TABLE_ATTR_FIELD_SRC_IPV6,
+      SAI_ACL_TABLE_ATTR_FIELD_DST_IPV6,
+      SAI_ACL_TABLE_ATTR_FIELD_SRC_IP,
+      SAI_ACL_TABLE_ATTR_FIELD_DST_IP,
+      SAI_ACL_TABLE_ATTR_FIELD_IP_PROTOCOL,
+      SAI_ACL_TABLE_ATTR_FIELD_DSCP,
+      SAI_ACL_TABLE_ATTR_FIELD_ACL_IP_TYPE,
+      SAI_ACL_TABLE_ATTR_FIELD_TTL,
+      SAI_ACL_TABLE_ATTR_FIELD_FDB_DST_USER_META,
+      SAI_ACL_TABLE_ATTR_FIELD_ROUTE_DST_USER_META,
+      SAI_ACL_TABLE_ATTR_FIELD_NEIGHBOR_DST_USER_META,
+  };
+  return kAclFieldList;
+}
+
 SaiWedge400CEbbLabPlatform::SaiWedge400CEbbLabPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo)
     : SaiWedge400CPlatform(

@@ -19,6 +19,7 @@
 #include "fboss/agent/platforms/tests/utils/TestPlatformTypes.h"
 
 #include "fboss/agent/hw/sai/api/SaiVersion.h"
+#include "fboss/agent/hw/sai/api/SwitchApi.h"
 
 #include <memory>
 #include <vector>
@@ -101,6 +102,16 @@ class SaiPlatform : public Platform, public StateObserver {
       TransceiverID id) const;
 
   virtual void initLEDs() = 0;
+
+  virtual SaiSwitchTraits::CreateAttributes getSwitchAttributes(
+      bool mandatoryOnly);
+
+  uint32_t getDefaultMacAgingTime() const;
+
+  virtual std::optional<SaiSwitchTraits::Attributes::AclFieldList>
+  getAclFieldList() const {
+    return std::nullopt;
+  }
 
  private:
   void initImpl(uint32_t hwFeaturesDesired) override;
