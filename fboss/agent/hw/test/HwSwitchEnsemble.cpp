@@ -38,6 +38,8 @@ DEFINE_int32(
     5909,
     "Port for thrift server to use (use with --setup_thrift");
 
+DECLARE_bool(enable_standalone_rib);
+
 using namespace std::chrono_literals;
 
 namespace facebook::fboss {
@@ -164,7 +166,7 @@ void HwSwitchEnsemble::applyInitialConfig(const cfg::SwitchConfig& initCfg) {
       << "Link scan feature must be enabled for exercising "
       << "applyInitialConfig";
   linkToggler_->applyInitialConfig(
-      getProgrammedState(), getPlatform(), initCfg);
+      getProgrammedState(), getPlatform(), initCfg, getRib());
   switchRunStateChanged(SwitchRunState::CONFIGURED);
 }
 
@@ -290,6 +292,9 @@ void HwSwitchEnsemble::setupEnsemble(
   platform_ = std::move(platform);
   linkToggler_ = std::move(linkToggler);
 
+  if (FLAGS_enable_standalone_rib) {
+    routingInformationBase_ = std::make_unique<rib::RoutingInformationBase>();
+  }
   programmedState_ =
       getHwSwitch()->init(this, true /*failHwCallsOnWarmboot*/).switchState;
   // HwSwitch::init() returns an unpublished programmedState_.  SwSwitch is
@@ -301,15 +306,16 @@ void HwSwitchEnsemble::setupEnsemble(
   updater.stateUpdated(
       StateDelta(std::make_shared<SwitchState>(), programmedState_));
 
-  routingInformationBase_ = std::make_unique<rib::RoutingInformationBase>();
-
-  // Handle ALPM state. ALPM requires that default routes be programmed
-  // before any other routes. We handle that setup here. Similarly ALPM
-  // requires that default routes be deleted last. That aspect is handled
-  // in TearDown
-  auto alpmState = setupAlpmState(programmedState_);
-  if (alpmState) {
-    applyNewState(alpmState);
+  if (!routingInformationBase_) {
+    // If not standalone RIB setup ALPM route state (RIB does this internally)
+    // Handle ALPM state. ALPM requires that default routes be programmed
+    // before any other routes. We handle that setup here. Similarly ALPM
+    // requires that default routes be deleted last. That aspect is handled
+    // in TearDown
+    auto alpmState = setupAlpmState(programmedState_);
+    if (alpmState) {
+      applyNewState(alpmState);
+    }
   }
 
   thriftThread_ = std::move(thriftThread);

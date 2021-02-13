@@ -74,8 +74,10 @@ void HwLinkStateToggler::portStateChangeImpl(
 void HwLinkStateToggler::applyInitialConfig(
     const std::shared_ptr<SwitchState>& curState,
     const Platform* platform,
-    const cfg::SwitchConfig& initCfg) {
-  auto newState = applyInitialConfigWithPortsDown(curState, platform, initCfg);
+    const cfg::SwitchConfig& initCfg,
+    rib::RoutingInformationBase* rib) {
+  auto newState =
+      applyInitialConfigWithPortsDown(curState, platform, initCfg, rib);
   bringUpPorts(newState, initCfg);
 }
 
@@ -83,7 +85,8 @@ std::shared_ptr<SwitchState>
 HwLinkStateToggler::applyInitialConfigWithPortsDown(
     const std::shared_ptr<SwitchState>& curState,
     const Platform* platform,
-    const cfg::SwitchConfig& initCfg) {
+    const cfg::SwitchConfig& initCfg,
+    rib::RoutingInformationBase* rib) {
   // Goal of this function is twofold
   // - Apply initial config.
   // - Set preemphasis on all ports to 0
@@ -110,7 +113,7 @@ HwLinkStateToggler::applyInitialConfigWithPortsDown(
   // tided over, over the first set of linkscan events that come as a result of
   // init (since there are no portup events in init + initial config
   // application). iii) Start tests.
-  auto newState = applyThriftConfig(curState, &cfg, platform);
+  auto newState = applyThriftConfig(curState, &cfg, platform, rib);
   stateUpdateFn_(newState);
   for (auto& port : *cfg.ports_ref()) {
     // Set all port preemphasis values to 0 so that we can bring ports up and

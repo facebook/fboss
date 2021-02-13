@@ -159,7 +159,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
       const std::string& input,
       std::string& output) = 0;
   bool isStandaloneRibEnabled() const {
-    return false;
+    return routingInformationBase_.get() != nullptr;
   }
 
  protected:

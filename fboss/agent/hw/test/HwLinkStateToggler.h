@@ -21,6 +21,9 @@
 #include <optional>
 
 namespace facebook::fboss {
+namespace rib {
+class RoutingInformationBase;
+}
 
 class Platform;
 class SwitchState;
@@ -39,7 +42,8 @@ class HwLinkStateToggler {
   void applyInitialConfig(
       const std::shared_ptr<SwitchState>& curState,
       const Platform* platform,
-      const cfg::SwitchConfig& initCfg);
+      const cfg::SwitchConfig& initCfg,
+      rib::RoutingInformationBase* rib);
   void linkStateChanged(PortID port, bool up) noexcept;
   void bringUpPorts(
       std::shared_ptr<SwitchState> switchState,
@@ -56,7 +60,8 @@ class HwLinkStateToggler {
   std::shared_ptr<SwitchState> applyInitialConfigWithPortsDown(
       const std::shared_ptr<SwitchState>& curState,
       const Platform* platform,
-      const cfg::SwitchConfig& initCfg);
+      const cfg::SwitchConfig& initCfg,
+      rib::RoutingInformationBase* rib);
   void bringUpPorts(
       const std::shared_ptr<SwitchState>& curState,
       const cfg::SwitchConfig& initCfg);
