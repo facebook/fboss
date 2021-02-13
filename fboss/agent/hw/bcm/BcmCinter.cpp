@@ -2464,8 +2464,7 @@ int BcmCinter::bcm_vlan_control_vlan_get(
 }
 
 int BcmCinter::sh_process_command(int unit, char* cmd) {
-  auto funcCint =
-      wrapFunc(to<string>("sh_process_command(", unit, ", \"", cmd, "\")"));
+  auto funcCint = wrapFunc(to<string>("bshell(", unit, ", \"", cmd, "\")"));
   vector<string> cintLine = {funcCint};
   writeCintLines(cintLine);
   return 0;
