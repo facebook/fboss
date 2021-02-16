@@ -3,7 +3,7 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
-add_library(sai_switch
+set(SAI_SWITCH_SRC
   fboss/agent/hw/sai/switch/ConcurrentIndices.cpp
   fboss/agent/hw/sai/switch/SaiAclTableGroupManager.cpp
   fboss/agent/hw/sai/switch/SaiAclTableManager.cpp
@@ -33,10 +33,26 @@ add_library(sai_switch
   fboss/agent/hw/sai/switch/SaiVlanManager.cpp
   fboss/agent/hw/sai/switch/SaiVirtualRouterManager.cpp
   fboss/agent/hw/sai/switch/SaiWredManager.cpp
-  fboss/agent/hw/sai/switch/oss/SaiBufferManager.cpp
-  fboss/agent/hw/sai/switch/oss/SaiSwitch.cpp
-  fboss/agent/hw/sai/switch/oss/SaiTamManager.cpp
-  fboss/agent/hw/sai/switch/oss/SaiPortManager.cpp
+)
+
+if (SAI_TAJO_IMPL)
+  list(APPEND SAI_SWITCH_SRC
+    fboss/agent/hw/sai/switch/oss/SaiBufferManager.cpp
+    fboss/agent/hw/sai/switch/tajo/SaiSwitch.cpp
+    fboss/agent/hw/sai/switch/tajo/SaiTamManager.cpp
+    fboss/agent/hw/sai/switch/oss/SaiPortManager.cpp
+  )
+else()
+  list(APPEND SAI_SWITCH_SRC
+    fboss/agent/hw/sai/switch/oss/SaiBufferManager.cpp
+    fboss/agent/hw/sai/switch/oss/SaiSwitch.cpp
+    fboss/agent/hw/sai/switch/oss/SaiTamManager.cpp
+    fboss/agent/hw/sai/switch/oss/SaiPortManager.cpp
+  )
+endif()
+
+add_library(sai_switch
+  "${SAI_SWITCH_SRC}"
 )
 
 target_link_libraries(sai_switch
