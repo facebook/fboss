@@ -151,6 +151,12 @@ class HwTest : public ::testing::Test,
   }
   std::shared_ptr<SwitchState> getProgrammedState() const;
 
+  template <typename EcmpHelperT>
+  void resolveNeigborAndProgramRoutes(const EcmpHelperT& ecmp, int width) {
+    applyNewState(ecmp.resolveNextHops(getProgrammedState(), width));
+    ecmp.programRoutes(getRouteUpdateWrapper(), width);
+  }
+
  private:
   std::shared_ptr<SwitchState> applyNewStateImpl(
       const std::shared_ptr<SwitchState>& newState,

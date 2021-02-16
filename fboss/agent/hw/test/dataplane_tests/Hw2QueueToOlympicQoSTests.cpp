@@ -36,12 +36,6 @@ class Hw2QueueToOlympicQoSTest : public HwLinkStateDependentTest {
     return cfg;
   }
 
-  void setupECMPForwarding() {
-    auto newState = helper_->setupECMPForwarding(
-        helper_->resolveNextHops(getProgrammedState(), kEcmpWidth), kEcmpWidth);
-    applyNewState(newState);
-  }
-
   std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
       uint8_t dscpVal) const {
     auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
@@ -96,7 +90,7 @@ class Hw2QueueToOlympicQoSTest : public HwLinkStateDependentTest {
     }
 
     auto setup = [=]() {
-      setupECMPForwarding();
+      resolveNeigborAndProgramRoutes(*helper_, kEcmpWidth);
       auto newCfg{initialConfig()};
       auto streamType =
           *(getPlatform()->getAsic()->getQueueStreamTypes(false).begin());

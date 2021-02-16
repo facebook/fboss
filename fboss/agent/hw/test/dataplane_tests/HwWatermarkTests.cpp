@@ -107,13 +107,9 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
     }
   }
   template <typename ECMP_HELPER>
-  std::shared_ptr<SwitchState> setupECMPForwarding(
-      const ECMP_HELPER& ecmpHelper) {
+  std::shared_ptr<SwitchState> programRoutes(const ECMP_HELPER& ecmpHelper) {
     auto kEcmpWidthForTest = 1;
-    auto newState =
-        ecmpHelper.resolveNextHops(getProgrammedState(), kEcmpWidthForTest);
-    applyNewState(newState);
-    ecmpHelper.programRoutes(getRouteUpdateWrapper(), kEcmpWidthForTest);
+    resolveNeigborAndProgramRoutes(ecmpHelper, kEcmpWidthForTest);
     return getProgrammedState();
   }
   void assertDeviceWatermark(bool expectZero, int retries = 1) {
@@ -126,7 +122,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
 
     auto setup = [this]() {
       utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
-      setupECMPForwarding(ecmpHelper6);
+      programRoutes(ecmpHelper6);
     };
     auto verify = [this, queueId]() {
       auto dscpsForQueue = utility::kOlympicQueueToDscp().find(queueId)->second;
@@ -154,7 +150,7 @@ TEST_F(HwWatermarkTest, VerifyNonDefaultQueue) {
 TEST_F(HwWatermarkTest, VerifyDeviceWatermark) {
   auto setup = [this]() {
     utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
-    setupECMPForwarding(ecmpHelper6);
+    programRoutes(ecmpHelper6);
   };
   auto verify = [this]() {
     sendUdpPkts(0);
