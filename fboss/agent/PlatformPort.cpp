@@ -55,6 +55,12 @@ std::vector<phy::PinConfig> PlatformPort::getIphyPinConfigs(
       PlatformPortProfileConfigMatcher(profileID, id_));
 }
 
+std::optional<std::vector<phy::PinConfig>>
+PlatformPort::getTransceiverPinConfigs(cfg::PortProfileID profileID) const {
+  return platform_->getPlatformMapping()->getPortTransceiverPinConfigs(
+      PlatformPortProfileConfigMatcher(profileID, id_));
+}
+
 phy::PortPinConfig PlatformPort::getPortXphyPinConfig(
     cfg::PortProfileID profileID) const {
   if (platform_->needTransceiverInfo()) {
@@ -68,6 +74,43 @@ phy::PortPinConfig PlatformPort::getPortXphyPinConfig(
   }
   return platform_->getPlatformMapping()->getPortXphyPinConfig(
       PlatformPortProfileConfigMatcher(profileID, id_));
+}
+
+phy::PortPinConfig PlatformPort::getPortPinConfigs(
+    cfg::PortProfileID profileID) const {
+  auto pinConfig = getPortXphyPinConfig(profileID);
+  pinConfig.iphy_ref() = getIphyPinConfigs(profileID);
+  if (auto transceiverPins = getTransceiverPinConfigs(profileID)) {
+    pinConfig.transceiver_ref() = *transceiverPins;
+  }
+  return pinConfig;
+}
+
+std::map<std::string, phy::DataPlanePhyChip>
+PlatformPort::getPortDataplaneChips(cfg::PortProfileID profileID) const {
+  auto pins = getPortPinConfigs(profileID);
+  auto allChips = platform_->getPlatformMapping()->getChips();
+  std::map<std::string, phy::DataPlanePhyChip> chips;
+
+  auto addChips = [&allChips, &chips](const auto& pins) {
+    for (auto& pin : pins) {
+      auto chip = *pin.id_ref()->chip_ref();
+      chips[chip] = allChips[chip];
+    }
+  };
+
+  addChips(*pins.iphy_ref());
+  if (auto xphySys = pins.xphySys_ref()) {
+    addChips(*xphySys);
+  }
+  if (auto xphyLine = pins.xphyLine_ref()) {
+    addChips(*xphyLine);
+  }
+  if (auto transceiver = pins.transceiver_ref()) {
+    addChips(*transceiver);
+  }
+
+  return chips;
 }
 
 cfg::PortProfileID PlatformPort::getProfileIDBySpeed(

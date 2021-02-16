@@ -12,7 +12,9 @@ include "common/network/if/Address.thrift"
 include "fboss/agent/if/mpls.thrift"
 include "fboss/agent/if/optic.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
+include "fboss/agent/switch_config.thrift"
 include "fboss/agent/platform_config.thrift"
+include "fboss/lib/phy/phy.thrift"
 
 typedef binary (cpp2.type = "::folly::fbstring") fbbinary
 typedef string (cpp2.type = "::folly::fbstring") fbstring
@@ -352,6 +354,15 @@ struct PortInfoThrift {
   18: string fecMode,
   19: string profileID,
   20: optional PfcConfig pfc,
+
+  21: optional PortHardwareDetails hw,
+}
+
+struct PortHardwareDetails {
+  1: switch_config.PortProfileID profile,
+  2: phy.PortProfileConfig profileConfig,
+  3: phy.PortPinConfig pinConfig,
+  4: map<string, phy.DataPlanePhyChip> chips,
 }
 
 struct NdpEntryThrift {

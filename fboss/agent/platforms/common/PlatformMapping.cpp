@@ -299,6 +299,24 @@ std::vector<phy::PinConfig> PlatformMapping::getPortIphyPinConfigs(
   return iphyCfg;
 }
 
+std::optional<std::vector<phy::PinConfig>>
+PlatformMapping::getPortTransceiverPinConfigs(
+    PlatformPortProfileConfigMatcher matcher) const {
+  auto portID = matcher.getPortIDIf();
+  auto profileID = matcher.getProfileID();
+  if (!portID.has_value()) {
+    throw FbossError("getPortIphyPinConfigs miss portID match factor");
+  }
+  const auto& platformPortConfig =
+      getPlatformPortConfig(portID.value(), profileID);
+
+  // no transceiver pin overrides
+  if (auto transceiverPins = platformPortConfig.pins_ref()->transceiver_ref()) {
+    return *transceiverPins;
+  }
+  return std::nullopt;
+}
+
 std::vector<phy::PinConfig> PlatformMapping::getPortXphySidePinConfigs(
     PlatformPortProfileConfigMatcher matcher,
     phy::Side side) const {

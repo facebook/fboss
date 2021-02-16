@@ -322,6 +322,17 @@ void getPortInfoHelper(
   *portInfo.profileID_ref() =
       apache::thrift::util::enumName(port->getProfileID());
 
+  if (port->isEnabled()) {
+    const auto platformPort = sw.getPlatform()->getPlatformPort(port->getID());
+    PortHardwareDetails hw;
+    hw.profile_ref() = port->getProfileID();
+    hw.profileConfig_ref() =
+        platformPort->getPortProfileConfig(*hw.profile_ref());
+    hw.pinConfig_ref() = platformPort->getPortPinConfigs(*hw.profile_ref());
+    hw.chips_ref() = platformPort->getPortDataplaneChips(*hw.profile_ref());
+    portInfo.hw_ref() = hw;
+  }
+
   auto pause = port->getPause();
   *portInfo.txPause_ref() = *pause.tx_ref();
   *portInfo.rxPause_ref() = *pause.rx_ref();

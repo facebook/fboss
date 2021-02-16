@@ -47,7 +47,15 @@ class PlatformPort {
   virtual std::vector<phy::PinConfig> getIphyPinConfigs(
       cfg::PortProfileID profileID) const;
 
+  std::optional<std::vector<phy::PinConfig>> getTransceiverPinConfigs(
+      cfg::PortProfileID profileID) const;
+
   phy::PortPinConfig getPortXphyPinConfig(cfg::PortProfileID profileID) const;
+
+  phy::PortPinConfig getPortPinConfigs(cfg::PortProfileID profileID) const;
+
+  std::map<std::string, phy::DataPlanePhyChip> getPortDataplaneChips(
+      cfg::PortProfileID profileID) const;
 
   cfg::PortProfileID getProfileIDBySpeed(cfg::PortSpeed speed) const;
   std::optional<cfg::PortProfileID> getProfileIDBySpeedIf(
