@@ -240,6 +240,9 @@ sai_status_t set_switch_attribute_fn(
     case SAI_SWITCH_ATTR_REGISTER_WRITE:
       sw.setWriteFn(attr->value.ptr);
       break;
+    case SAI_SWITCH_ATTR_EXT_FAKE_HW_ECC_ERROR_INITIATE:
+      // no-op
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -449,6 +452,9 @@ sai_status_t get_switch_attribute_fn(
         break;
       case SAI_SWITCH_ATTR_REGISTER_WRITE:
         attr[i].value.ptr = sw.writeFn();
+        break;
+      case SAI_SWITCH_ATTR_EXT_FAKE_HW_ECC_ERROR_INITIATE:
+        // noop;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
