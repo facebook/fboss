@@ -310,6 +310,12 @@ struct SaiSwitchTraits {
     using EgressPoolAvaialableSize = SaiExtensionAttribute<
         sai_uint32_t,
         AttributeEgressPoolAvaialableSizeIdWrapper>;
+
+    struct HwEccErrorInitiateWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using HwEccErrorInitiate =
+        SaiExtensionAttribute<sai_uint16_t, HwEccErrorInitiateWrapper>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -417,6 +423,8 @@ SAI_ATTRIBUTE_NAME(Switch, SysPortConfigList)
 SAI_ATTRIBUTE_NAME(Switch, SwitchType)
 SAI_ATTRIBUTE_NAME(Switch, RegisterReadFn)
 SAI_ATTRIBUTE_NAME(Switch, RegisterWriteFn)
+
+SAI_ATTRIBUTE_NAME(Switch, HwEccErrorInitiate)
 
 class SwitchApi : public SaiApi<SwitchApi> {
  public:

@@ -23,4 +23,9 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::HwEccErrorInitiateWrapper::operator()() {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

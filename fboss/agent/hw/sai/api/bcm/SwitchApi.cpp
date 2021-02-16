@@ -30,4 +30,9 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
   return SAI_SWITCH_ATTR_DEFAULT_EGRESS_BUFFER_POOL_SHARED_SIZE;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::HwEccErrorInitiateWrapper::operator()() {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss
