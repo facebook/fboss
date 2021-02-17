@@ -82,6 +82,8 @@ DEFINE_bool(
     false,
     "Fail if any warm boot handles are left unclaimed.");
 
+DECLARE_bool(enable_standalone_rib);
+
 namespace {
 /*
  * For the devices/SDK we use, the only events we should get (and process)
@@ -477,28 +479,46 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
         &SaiFdbManager::removeMac);
   }
 
-  for (const auto& routeDelta : delta.getRouteTablesDelta()) {
-    auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
-                                        : routeDelta.getNew()->getID();
+  auto processV4RoutesDelta = [this, &lockPolicy](
+                                  RouterID rid, const auto& routesDelta) {
     processDelta(
-        routeDelta.getRoutesV4Delta(),
+        routesDelta,
         managerTable_->routeManager(),
         lockPolicy,
         &SaiRouteManager::changeRoute<folly::IPAddressV4>,
         &SaiRouteManager::addRoute<folly::IPAddressV4>,
         &SaiRouteManager::removeRoute<folly::IPAddressV4>,
-        routerID);
+        rid);
+  };
 
+  auto processV6RoutesDelta = [this, &lockPolicy](
+                                  RouterID rid, const auto& routesDelta) {
     processDelta(
-        routeDelta.getRoutesV6Delta(),
+        routesDelta,
         managerTable_->routeManager(),
         lockPolicy,
         &SaiRouteManager::changeRoute<folly::IPAddressV6>,
         &SaiRouteManager::addRoute<folly::IPAddressV6>,
         &SaiRouteManager::removeRoute<folly::IPAddressV6>,
-        routerID);
+        rid);
+  };
+  if (FLAGS_enable_standalone_rib) {
+    for (const auto& routeDelta : delta.getFibsDelta()) {
+      auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
+                                          : routeDelta.getNew()->getID();
+      processV4RoutesDelta(
+          routerID, routeDelta.getFibDelta<folly::IPAddressV4>());
+      processV6RoutesDelta(
+          routerID, routeDelta.getFibDelta<folly::IPAddressV6>());
+    }
+  } else {
+    for (const auto& routeDelta : delta.getRouteTablesDelta()) {
+      auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
+                                          : routeDelta.getNew()->getID();
+      processV4RoutesDelta(routerID, routeDelta.getRoutesV4Delta());
+      processV6RoutesDelta(routerID, routeDelta.getRoutesV6Delta());
+    }
   }
-
   {
     auto controlPlaneDelta = delta.getControlPlaneDelta();
     if (controlPlaneDelta.getOld() != controlPlaneDelta.getNew()) {
