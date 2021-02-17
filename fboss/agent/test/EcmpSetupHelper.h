@@ -152,14 +152,23 @@ class EcmpSetupTargetedPorts
       const std::vector<NextHopWeight>& weights =
           std::vector<NextHopWeight>()) const;
 
+  std::shared_ptr<SwitchState> setupIp2MplsECMPForwarding(
+      const std::shared_ptr<SwitchState>& inputState,
+      const boost::container::flat_set<PortDescriptor>& portDescriptors,
+      std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks,
+      const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
+      const std::vector<NextHopWeight>& weights =
+          std::vector<NextHopWeight>()) const;
+
   void programRoutes(
       std::unique_ptr<RouteUpdateWrapper> wrapper,
       const boost::container::flat_set<PortDescriptor>& nhops,
       const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
       const std::vector<NextHopWeight>& weights =
           std::vector<NextHopWeight>()) const;
-  std::shared_ptr<SwitchState> setupIp2MplsECMPForwarding(
-      const std::shared_ptr<SwitchState>& inputState,
+
+  void programIp2MplsRoutes(
+      std::unique_ptr<RouteUpdateWrapper> wrapper,
       const boost::container::flat_set<PortDescriptor>& portDescriptors,
       std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks,
       const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
@@ -293,6 +302,15 @@ class EcmpSetupAnyNPorts {
       const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
       const std::vector<NextHopWeight>& weights =
           std::vector<NextHopWeight>()) const;
+
+  std::shared_ptr<SwitchState> setupIp2MplsECMPForwarding(
+      const std::shared_ptr<SwitchState>& inputState,
+      size_t width,
+      const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
+      std::vector<LabelForwardingAction::LabelStack> stacks = {{10010}},
+      const std::vector<NextHopWeight>& weights =
+          std::vector<NextHopWeight>()) const;
+
   void programRoutes(
       std::unique_ptr<RouteUpdateWrapper> wrapper,
       size_t width,
@@ -300,8 +318,8 @@ class EcmpSetupAnyNPorts {
       const std::vector<NextHopWeight>& weights =
           std::vector<NextHopWeight>()) const;
 
-  std::shared_ptr<SwitchState> setupIp2MplsECMPForwarding(
-      const std::shared_ptr<SwitchState>& inputState,
+  void programIp2MplsRoutes(
+      std::unique_ptr<RouteUpdateWrapper> wrapper,
       size_t width,
       const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
       std::vector<LabelForwardingAction::LabelStack> stacks = {{10010}},

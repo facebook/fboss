@@ -23,7 +23,7 @@ class HwEcmpDataPlaneTestUtil {
       : ensemble_(hwSwitchEnsemble), helper_(std::move(helper)) {}
   virtual ~HwEcmpDataPlaneTestUtil() {}
 
-  virtual void setupECMPForwarding(
+  virtual void programRoutes(
       int ecmpWidth,
       const std::vector<NextHopWeight>& weights) = 0;
 
@@ -64,9 +64,8 @@ class HwIpEcmpDataPlaneTestUtil
       RouterID vrf,
       std::vector<LabelForwardingAction::LabelStack> stacks);
 
-  void setupECMPForwarding(
-      int ecmpWidth,
-      const std::vector<NextHopWeight>& weights) override;
+  void programRoutes(int ecmpWidth, const std::vector<NextHopWeight>& weights)
+      override;
   /* pump IP traffic */
   void pumpTrafficThroughPort(std::optional<PortID> port) override;
 
@@ -86,9 +85,8 @@ class HwMplsEcmpDataPlaneTestUtil
       MPLSHdr::Label topLabel,
       LabelForwardingAction::LabelForwardingType actionType);
 
-  void setupECMPForwarding(
-      int ecmpWidth,
-      const std::vector<NextHopWeight>& weights) override;
+  void programRoutes(int ecmpWidth, const std::vector<NextHopWeight>& weights)
+      override;
 
  private:
   /* pump MPLS traffic */

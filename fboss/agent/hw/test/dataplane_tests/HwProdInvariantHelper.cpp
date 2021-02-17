@@ -26,7 +26,7 @@ namespace facebook::fboss {
 void HwProdInvariantHelper::setupEcmp() {
   ecmpHelper_ = std::make_unique<utility::HwIpV6EcmpDataPlaneTestUtil>(
       ensemble_, RouterID(0));
-  ecmpHelper_->setupECMPForwarding(
+  ecmpHelper_->programRoutes(
       kEcmpWidth, std::vector<NextHopWeight>(kEcmpWidth, 1));
 }
 

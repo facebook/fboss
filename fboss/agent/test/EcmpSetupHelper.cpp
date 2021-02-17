@@ -318,6 +318,55 @@ void EcmpSetupTargetedPorts<IPAddrT>::programRoutes(
   }
   updater->program();
 }
+
+template <typename IPAddrT>
+void EcmpSetupTargetedPorts<IPAddrT>::programIp2MplsRoutes(
+    std::unique_ptr<RouteUpdateWrapper> updater,
+    const boost::container::flat_set<PortDescriptor>& portDescriptors,
+    std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks,
+    const std::vector<RouteT>& prefixes,
+    const std::vector<NextHopWeight>& weights) const {
+  std::vector<NextHopWeight> hopWeights;
+  std::vector<NextHopWeight> forwardingActions;
+
+  if (!weights.size()) {
+    for (auto i = 0; i < portDescriptors.size(); ++i) {
+      hopWeights.push_back(ECMP_WEIGHT);
+    }
+  } else {
+    hopWeights = weights;
+  }
+
+  CHECK_EQ(portDescriptors.size(), hopWeights.size());
+  RouteNextHopSet nhops;
+  {
+    auto i = 0;
+    for (const auto& portDescriptor : portDescriptors) {
+      auto itr = stacks.find(portDescriptor);
+      if (itr != stacks.end() && !itr->second.empty()) {
+        nhops.emplace(UnresolvedNextHop(
+            BaseEcmpSetupHelperT::ip(portDescriptor),
+            hopWeights[i++],
+            LabelForwardingAction(
+                LabelForwardingAction::LabelForwardingType::PUSH,
+                itr->second)));
+      } else {
+        nhops.emplace(UnresolvedNextHop(
+            BaseEcmpSetupHelperT::ip(portDescriptor), hopWeights[i++]));
+      }
+    }
+  }
+  for (const auto& prefix : prefixes) {
+    updater->addRoute(
+        routerId_,
+        folly::IPAddress(prefix.network),
+        prefix.mask,
+        ClientID(1001),
+        RouteNextHopEntry(nhops, AdminDistance::STATIC_ROUTE));
+  }
+  updater->program();
+}
+
 template <typename IPAddrT>
 std::shared_ptr<SwitchState> EcmpSetupTargetedPorts<IPAddrT>::pruneECMPRoutes(
     const std::shared_ptr<SwitchState>& inputState,
@@ -476,6 +525,24 @@ void EcmpSetupAnyNPorts<IPAddrT>::programRoutes(
     const std::vector<NextHopWeight>& weights) const {
   ecmpSetupTargetedPorts_.programRoutes(
       std::move(updater), getPortDescs(width), prefixes, weights);
+}
+
+template <typename IPAddrT>
+void EcmpSetupAnyNPorts<IPAddrT>::programIp2MplsRoutes(
+    std::unique_ptr<RouteUpdateWrapper> updater,
+    size_t width,
+    const std::vector<RouteT>& prefixes,
+    std::vector<LabelForwardingAction::LabelStack> stacks,
+    const std::vector<NextHopWeight>& weights) const {
+  auto ports = getPortDescs(width);
+  std::map<PortDescriptor, LabelForwardingAction::LabelStack> port2Stack;
+  auto i = 0;
+  for (auto port : ports) {
+    i = (i % stacks.size());
+    port2Stack.emplace(port, stacks[i++]);
+  }
+  ecmpSetupTargetedPorts_.programIp2MplsRoutes(
+      std::move(updater), ports, port2Stack, prefixes, weights);
 }
 
 template <typename IPAddrT>

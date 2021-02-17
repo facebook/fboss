@@ -6,6 +6,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
+#include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -91,18 +92,21 @@ HwIpEcmpDataPlaneTestUtil<AddrT>::HwIpEcmpDataPlaneTestUtil(
     : HwIpEcmpDataPlaneTestUtil(ensemble, vrf, {}) {}
 
 template <typename AddrT>
-void HwIpEcmpDataPlaneTestUtil<AddrT>::setupECMPForwarding(
+void HwIpEcmpDataPlaneTestUtil<AddrT>::programRoutes(
     int ecmpWidth,
     const std::vector<NextHopWeight>& weights) {
   auto* helper = BaseT::ecmpSetupHelper();
   auto* ensemble = BaseT::getEnsemble();
-  auto state =
-      helper->resolveNextHops(ensemble->getProgrammedState(), ecmpWidth);
-  auto newState = stacks_.empty()
-      ? helper->setupECMPForwarding(state, ecmpWidth, {{AddrT(), 0}}, weights)
-      : helper->setupIp2MplsECMPForwarding(
-            state, ecmpWidth, {{AddrT(), 0}}, stacks_, weights);
-  ensemble->applyNewState(newState);
+  ensemble->applyNewState(
+      helper->resolveNextHops(ensemble->getProgrammedState(), ecmpWidth));
+  auto updater = std::make_unique<HwSwitchEnsembleRouteUpdateWrapper>(ensemble);
+  if (stacks_.empty()) {
+    helper->programRoutes(
+        std::move(updater), ecmpWidth, {{AddrT(), 0}}, weights);
+  } else {
+    helper->programIp2MplsRoutes(
+        std::move(updater), ecmpWidth, {{AddrT(), 0}}, stacks_, weights);
+  }
 }
 
 template <typename AddrT>
@@ -135,7 +139,7 @@ HwMplsEcmpDataPlaneTestUtil<AddrT>::HwMplsEcmpDataPlaneTestUtil(
       label_(topLabel) {}
 
 template <typename AddrT>
-void HwMplsEcmpDataPlaneTestUtil<AddrT>::setupECMPForwarding(
+void HwMplsEcmpDataPlaneTestUtil<AddrT>::programRoutes(
     int ecmpWidth,
     const std::vector<NextHopWeight>& weights) {
   auto* helper = BaseT::ecmpSetupHelper();
