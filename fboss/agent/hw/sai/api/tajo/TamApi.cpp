@@ -18,5 +18,4 @@ SaiTamEventTraits::Attributes::AttributeEventId::operator()() {
   return std::nullopt;
 }
 
-void injectTamError() {}
 } // namespace facebook::fboss

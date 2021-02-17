@@ -41,7 +41,6 @@ void triggerParityError(HwSwitchEnsemble* ensemble) {
     SaiApiTable::getInstance()->switchApi().setAttribute(
         switchId, initiateError);
   }
-  injectTamError();
 }
 } // namespace utility
 } // namespace facebook::fboss

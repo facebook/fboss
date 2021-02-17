@@ -60,5 +60,4 @@ SaiSwitchTraits::Attributes::HwEccErrorInitiateWrapper::operator()() {
   return SAI_SWITCH_ATTR_EXT_FAKE_HW_ECC_ERROR_INITIATE;
 }
 
-void injectTamError() {}
 } // namespace facebook::fboss
