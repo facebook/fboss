@@ -32,8 +32,8 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
 
   void counterBumpOnHitHelper(bool bumpOnHit, bool frontPanel) {
     auto setup = [this]() {
-      applyNewState(helper_->setupECMPForwarding(
-          helper_->resolveNextHops(getProgrammedState(), 2), kEcmpWidth));
+      applyNewState(helper_->resolveNextHops(getProgrammedState(), 2));
+      helper_->programRoutes(getRouteUpdateWrapper(), kEcmpWidth);
       auto newCfg{initialConfig()};
       addTtlAclStat(&newCfg);
       applyNewConfig(newCfg);

@@ -41,13 +41,6 @@ class HwAqmTest : public HwLinkStateDependentTest {
   }
 
   template <typename ECMP_HELPER>
-  void setupECMPForwarding(const ECMP_HELPER& ecmpHelper, int ecmpWidth) {
-    auto newState = ecmpHelper.setupECMPForwarding(
-        ecmpHelper.resolveNextHops(getProgrammedState(), ecmpWidth), ecmpWidth);
-    applyNewState(newState);
-  }
-
-  template <typename ECMP_HELPER>
   void disableTTLDecrements(const ECMP_HELPER& ecmpHelper) {
     for (const auto& nextHop : ecmpHelper.getNextHops()) {
       utility::disableTTLDecrements(
@@ -113,7 +106,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       auto kEcmpWidthForTest = 1;
       utility::EcmpSetupAnyNPorts6 ecmpHelper6{
           getProgrammedState(), getIntfMac()};
-      setupECMPForwarding(ecmpHelper6, kEcmpWidthForTest);
+      resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
       if (isEcn) {
         // Assert that ECT capable packets are not counted by port ECN
         // counter and on congestion encountered packets are counted.

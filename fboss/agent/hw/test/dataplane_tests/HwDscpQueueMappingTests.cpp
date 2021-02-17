@@ -49,8 +49,7 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
   }
 
   void setupHelper() {
-    applyNewState(helper_->setupECMPForwarding(
-        helper_->resolveNextHops(getProgrammedState(), 2), kEcmpWidth));
+    resolveNeigborAndProgramRoutes(*helper_, kEcmpWidth);
     applyNewState(addNeighbor(getProgrammedState()));
   }
 

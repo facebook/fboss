@@ -588,8 +588,7 @@ TEST_F(HwCoppTest, L3MTUErrorToLowPriQ) {
     // COPP is part of initial config already
     utility::EcmpSetupAnyNPorts6 ecmpHelper(
         getProgrammedState(), getPlatform()->getLocalMac());
-    applyNewState(ecmpHelper.setupECMPForwarding(
-        ecmpHelper.resolveNextHops(getProgrammedState(), 1), 1));
+    resolveNeigborAndProgramRoutes(ecmpHelper, 1);
   };
   auto verify = [=]() {
     // Make sure all packets packet with large payload (> MTU)
