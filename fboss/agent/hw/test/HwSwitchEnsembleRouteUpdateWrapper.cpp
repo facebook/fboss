@@ -46,7 +46,7 @@ void HwSwitchEnsembleRouteUpdateWrapper::programStandAloneRib() {
     hwEnsemble_->getRib()->update(
         ridClientId.first,
         ridClientId.second,
-        AdminDistance::STATIC_ROUTE,
+        clientIdToAdminDistance(ridClientId.second),
         addDelRoutes.toAdd,
         addDelRoutes.toDel,
         false,
@@ -63,4 +63,15 @@ void HwSwitchEnsembleRouteUpdateWrapper::programLegacyRib() {
   hwEnsemble_->applyNewState(newState);
 }
 
+AdminDistance HwSwitchEnsembleRouteUpdateWrapper::clientIdToAdminDistance(
+    ClientID clientId) const {
+  static const std::map<ClientID, AdminDistance> kClient2Admin = {
+      {ClientID::BGPD, AdminDistance::EBGP},
+      {ClientID::OPENR, AdminDistance::OPENR},
+      {ClientID::STATIC_ROUTE, AdminDistance::STATIC_ROUTE},
+  };
+  auto itr = kClient2Admin.find(clientId);
+  return itr == kClient2Admin.end() ? AdminDistance::MAX_ADMIN_DISTANCE
+                                    : itr->second;
+}
 } // namespace facebook::fboss
