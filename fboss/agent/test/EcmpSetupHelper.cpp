@@ -265,8 +265,8 @@ EcmpSetupTargetedPorts<IPAddrT>::setupECMPForwarding(
         routerId_,
         folly::IPAddress(prefix.network),
         prefix.mask,
-        ClientID(1001),
-        RouteNextHopEntry(nhops, AdminDistance::STATIC_ROUTE));
+        ClientID::BGPD,
+        RouteNextHopEntry(nhops, AdminDistance::EBGP));
   }
 
   auto tables2 = u2.updateDone();
@@ -313,8 +313,8 @@ void EcmpSetupTargetedPorts<IPAddrT>::programRoutes(
         routerId_,
         folly::IPAddress(prefix.network),
         prefix.mask,
-        ClientID(1001),
-        RouteNextHopEntry(nhops, AdminDistance::STATIC_ROUTE));
+        ClientID::BGPD,
+        RouteNextHopEntry(nhops, AdminDistance::EBGP));
   }
   updater->program();
 }
@@ -361,8 +361,8 @@ void EcmpSetupTargetedPorts<IPAddrT>::programIp2MplsRoutes(
         routerId_,
         folly::IPAddress(prefix.network),
         prefix.mask,
-        ClientID(1001),
-        RouteNextHopEntry(nhops, AdminDistance::STATIC_ROUTE));
+        ClientID::BGPD,
+        RouteNextHopEntry(nhops, AdminDistance::EBGP));
   }
   updater->program();
 }
@@ -382,7 +382,7 @@ std::shared_ptr<SwitchState> EcmpSetupTargetedPorts<IPAddrT>::pruneECMPRoutes(
         routerId_,
         folly::IPAddress(prefix.network),
         prefix.mask,
-        ClientID(1001));
+        ClientID::BGPD);
   }
 
   auto tables2 = u2.updateDone();
@@ -406,7 +406,7 @@ void EcmpSetupTargetedPorts<IPAddrT>::unprogramRoutes(
         routerId_,
         folly::IPAddress(prefix.network),
         prefix.mask,
-        ClientID(1001));
+        ClientID::BGPD);
   }
   wrapper->program();
 }
@@ -457,8 +457,8 @@ EcmpSetupTargetedPorts<IPAddrT>::setupIp2MplsECMPForwarding(
         routerId_,
         folly::IPAddress(prefix.network),
         prefix.mask,
-        ClientID(1001),
-        RouteNextHopEntry(nhops, AdminDistance::STATIC_ROUTE));
+        ClientID::BGPD,
+        RouteNextHopEntry(nhops, AdminDistance::EBGP));
   }
   auto tables2 = u2.updateDone();
   tables2->publish();
