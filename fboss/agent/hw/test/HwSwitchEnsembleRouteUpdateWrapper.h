@@ -32,8 +32,10 @@ class HwSwitchEnsembleRouteUpdateWrapper : public RouteUpdateWrapper {
       const rib::RoutingInformationBase::UpdateStatistics& /*stats*/) override {
   }
   AdminDistance clientIdToAdminDistance(ClientID clientId) const override;
+  rib::RoutingInformationBase* getRib() override;
   void programLegacyRib() override;
   void programStandAloneRib() override;
+
   HwSwitchEnsemble* hwEnsemble_;
 };
 } // namespace facebook::fboss

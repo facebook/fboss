@@ -42,6 +42,7 @@
 #include "fboss/agent/RouteUpdateLogger.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/StaticL2ForNeighborObserver.h"
+#include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TunManager.h"
@@ -455,21 +456,6 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
         StateDelta(std::make_shared<SwitchState>(), initialState));
   });
 
-  if (getFlags() & SwitchFlags::ENABLE_STANDALONE_RIB) {
-    // ALPM is enabled for the stand-alone RIB in ConfigApplier
-  } else {
-    auto alpmInitState = setupAlpmState(initialState);
-    if (alpmInitState) {
-      // If setupAlpmInitState caused a new switchState to get
-      // generated, applyIt
-      // send a state update to h/w
-      updateEventBase_.runInEventBaseThread(
-          [alpmInitState, initialState, this]() {
-            applyUpdate(initialState, alpmInitState, false /*isTransaction*/);
-          });
-    }
-  }
-
   startThreads();
   XLOG(INFO)
       << "Time to init switch and start all threads "
@@ -548,6 +534,7 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
       });
 
   setSwitchRunState(SwitchRunState::INITIALIZED);
+  SwSwitchRouteUpdateWrapper(this).programMinAlpmState();
   if (FLAGS_log_all_fib_updates) {
     constexpr auto kAllFibUpdates = "all_fib_updates";
     logRouteUpdates("::", 0, kAllFibUpdates);

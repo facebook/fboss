@@ -44,6 +44,10 @@ void SwSwitchRouteUpdateWrapper::updateStats(
   sw_->stats()->delRoutesV6(stats.v6RoutesDeleted);
 }
 
+rib::RoutingInformationBase* SwSwitchRouteUpdateWrapper::getRib() {
+  return sw_->getRib();
+}
+
 void SwSwitchRouteUpdateWrapper::programStandAloneRib() {
   for (auto [ridClientId, addDelRoutes] : ribRoutesToAddDel_) {
     // TODO handle route update failures

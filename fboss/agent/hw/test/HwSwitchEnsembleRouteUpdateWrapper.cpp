@@ -40,6 +40,10 @@ HwSwitchEnsembleRouteUpdateWrapper::HwSwitchEnsembleRouteUpdateWrapper(
     : RouteUpdateWrapper(hwEnsemble->isStandaloneRibEnabled()),
       hwEnsemble_(hwEnsemble) {}
 
+rib::RoutingInformationBase* HwSwitchEnsembleRouteUpdateWrapper::getRib() {
+  return hwEnsemble_->getRib();
+}
+
 void HwSwitchEnsembleRouteUpdateWrapper::programStandAloneRib() {
   for (auto [ridClientId, addDelRoutes] : ribRoutesToAddDel_) {
     // TODO handle route update failures

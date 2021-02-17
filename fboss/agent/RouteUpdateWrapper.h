@@ -45,8 +45,10 @@ class RouteUpdateWrapper {
       uint8_t mask,
       ClientID clientId);
   void program();
+  void programMinAlpmState();
 
  private:
+  virtual rib::RoutingInformationBase* getRib() = 0;
   virtual void programLegacyRib() = 0;
   virtual void programStandAloneRib() = 0;
   virtual void updateStats(const UpdateStatistics& stats) = 0;

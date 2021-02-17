@@ -27,8 +27,9 @@ class SwSwitchRouteUpdateWrapper : public RouteUpdateWrapper {
   explicit SwSwitchRouteUpdateWrapper(SwSwitch* sw);
 
  private:
-  virtual AdminDistance clientIdToAdminDistance(
-      ClientID clientID) const override;
+  rib::RoutingInformationBase* getRib() override;
+
+  AdminDistance clientIdToAdminDistance(ClientID clientID) const override;
   void updateStats(
       const rib::RoutingInformationBase::UpdateStatistics& stats) override;
   void programLegacyRib() override;

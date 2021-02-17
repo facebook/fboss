@@ -12,6 +12,7 @@
 
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -65,6 +66,28 @@ void RouteUpdateWrapper::program() {
   }
   ribRoutesToAddDel_.clear();
 }
+
+void RouteUpdateWrapper::programMinAlpmState() {
+  if (isStandaloneRibEnabled_) {
+    getRib()->ensureVrf(RouterID(0));
+  }
+  addRoute(
+      RouterID(0),
+      folly::IPAddressV4("0.0.0.0"),
+      0,
+      ClientID::STATIC_INTERNAL,
+      RouteNextHopEntry(
+          RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
+  addRoute(
+      RouterID(0),
+      folly::IPAddressV6("::"),
+      0,
+      ClientID::STATIC_INTERNAL,
+      RouteNextHopEntry(
+          RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
+  program();
+}
+
 std::pair<std::shared_ptr<SwitchState>, RouteUpdateWrapper::UpdateStatistics>
 RouteUpdateWrapper::programLegacyRibHelper(
     const std::shared_ptr<SwitchState>& in) const {

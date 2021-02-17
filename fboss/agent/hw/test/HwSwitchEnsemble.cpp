@@ -19,6 +19,7 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
+#include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/hw/test/StaticL2ForNeighborHwSwitchUpdater.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
@@ -306,17 +307,11 @@ void HwSwitchEnsemble::setupEnsemble(
   updater.stateUpdated(
       StateDelta(std::make_shared<SwitchState>(), programmedState_));
 
-  if (!routingInformationBase_) {
-    // If not standalone RIB setup ALPM route state (RIB does this internally)
-    // Handle ALPM state. ALPM requires that default routes be programmed
-    // before any other routes. We handle that setup here. Similarly ALPM
-    // requires that default routes be deleted last. That aspect is handled
-    // in TearDown
-    auto alpmState = setupAlpmState(programmedState_);
-    if (alpmState) {
-      applyNewState(alpmState);
-    }
-  }
+  // ALPM requires that default routes be programmed
+  // before any other routes. We handle that setup here. Similarly ALPM
+  // requires that default routes be deleted last. That aspect is handled
+  // in TearDown
+  HwSwitchEnsembleRouteUpdateWrapper(this).programMinAlpmState();
 
   thriftThread_ = std::move(thriftThread);
   switchRunStateChanged(SwitchRunState::INITIALIZED);
