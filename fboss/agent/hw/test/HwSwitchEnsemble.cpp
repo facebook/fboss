@@ -71,8 +71,6 @@ HwSwitchEnsemble::~HwSwitchEnsemble() {
     // done via interfaceToMe routes. So blow away routes and interface
     // addresses.
     auto noRoutesState{getProgrammedState()->clone()};
-    auto routeTables = noRoutesState->getRouteTables()->modify(&noRoutesState);
-    routeTables->removeRouteTable(routeTables->getRouteTable(RouterID(0)));
 
     auto vlans = noRoutesState->getVlans()->modify(&noRoutesState);
     for (auto& vlan : *vlans) {
@@ -88,7 +86,8 @@ HwSwitchEnsemble::~HwSwitchEnsemble() {
       newIntfMap->updateNode(newIntf);
     }
     noRoutesState->resetIntfs(newIntfMap);
-    applyNewState(setupAlpmState(noRoutesState));
+    applyNewState(
+        setupMinAlpmRouteState(routingInformationBase_.get(), noRoutesState));
     // Unregister callbacks before we start destroying hwSwitch
     getHwSwitch()->unregisterCallbacks();
   }

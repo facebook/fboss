@@ -11,49 +11,91 @@
 #include <gtest/gtest.h>
 
 #include "fboss/agent/AlpmUtils.h"
+#include "fboss/agent/GtestDefs.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteTable.h"
 #include "fboss/agent/state/RouteTableRib.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/types.h"
 
-using facebook::fboss::Route;
-using facebook::fboss::RoutePrefix;
-using facebook::fboss::RouterID;
-using facebook::fboss::RouteTableRib;
-using facebook::fboss::SwitchState;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
 
+namespace facebook::fboss {
+
 namespace {
 template <typename AddrType>
-std::shared_ptr<RouteTableRib<AddrType>> getRib(
+std::shared_ptr<RouteTableRib<AddrType>> getLegacyFib(
     const std::shared_ptr<SwitchState>& state) {
   auto routeTable = state->getRouteTables()->getRouteTable(RouterID(0));
   return routeTable->getRib<AddrType>();
 }
+
+template <typename AddrType>
+std::shared_ptr<ForwardingInformationBase<AddrType>> getStandAloneFib(
+    const std::shared_ptr<SwitchState>& state) {
+  auto fibContainer = state->getFibs()->getFibContainer(RouterID(0));
+  return fibContainer->template getFib<AddrType>();
+}
+
+template <typename AddrType>
+std::shared_ptr<Route<AddrType>> getDefaultRouteLegacyRib(
+    const std::shared_ptr<SwitchState>& state) {
+  auto rib = getLegacyFib<AddrType>(state);
+  return rib->routes()->getRouteIf(RoutePrefix<AddrType>{AddrType(), 0});
+}
+
+template <typename AddrType>
+std::shared_ptr<Route<AddrType>> getDefaultRouteStandAloneRib(
+    const std::shared_ptr<SwitchState>& state) {
+  auto fib = getStandAloneFib<AddrType>(state);
+  return fib->getRouteIf(RoutePrefix<AddrType>{AddrType(), 0});
+}
+
 template <typename AddrType>
 std::shared_ptr<Route<AddrType>> getDefaultRoute(
+    bool isStandAloneRibEnabled,
     const std::shared_ptr<SwitchState>& state) {
-  auto rib = getRib<AddrType>(state);
-  return rib->routes()->getRouteIf(RoutePrefix<AddrType>{AddrType(), 0});
+  return isStandAloneRibEnabled ? getDefaultRouteStandAloneRib<AddrType>(state)
+                                : getDefaultRouteLegacyRib<AddrType>(state);
+}
+
+template <typename AddrType>
+size_t getFibSize(
+    bool isStandAloneRibEnabled,
+    const std::shared_ptr<SwitchState>& state) {
+  return isStandAloneRibEnabled ? getStandAloneFib<AddrType>(state)->size()
+                                : getLegacyFib<AddrType>(state)->size();
 }
 } // namespace
 
-namespace facebook::fboss {
+template <typename StandAloneRib>
+class AlpmUtilsTest : public ::testing::Test {
+ public:
+  static constexpr auto hasStandAloneRib = StandAloneRib::hasStandAloneRib;
+};
 
-TEST(AlpmUtilsTests, DefaultNullRoutesAddedOnEmptyState) {
+using TestTypes = ::testing::Types<NoRib, Rib>;
+TYPED_TEST_SUITE(AlpmUtilsTest, TestTypes);
+
+TYPED_TEST(AlpmUtilsTest, DefaultNullRoutesAddedOnEmptyState) {
   auto emptyState = std::make_shared<SwitchState>();
-  auto alpmInitState = setupAlpmState(emptyState);
+  auto alpmInitState =
+      setupMinAlpmRouteState(this->hasStandAloneRib, emptyState);
   EXPECT_NE(nullptr, alpmInitState);
-  auto v4Rib = getRib<folly::IPAddressV4>(alpmInitState);
-  EXPECT_EQ(1, v4Rib->size());
-  auto v6Rib = getRib<folly::IPAddressV6>(alpmInitState);
-  EXPECT_EQ(1, v6Rib->size());
+  auto v4RibSize =
+      getFibSize<folly::IPAddressV4>(this->hasStandAloneRib, alpmInitState);
+  EXPECT_EQ(1, v4RibSize);
+  auto v6RibSize =
+      getFibSize<folly::IPAddressV6>(this->hasStandAloneRib, alpmInitState);
+  EXPECT_EQ(1, v6RibSize);
 
-  auto v4Default = getDefaultRoute<IPAddressV4>(alpmInitState);
-  auto v6Default = getDefaultRoute<IPAddressV6>(alpmInitState);
+  auto v4Default =
+      getDefaultRoute<IPAddressV4>(this->hasStandAloneRib, alpmInitState);
+  auto v6Default =
+      getDefaultRoute<IPAddressV6>(this->hasStandAloneRib, alpmInitState);
   auto assertNullRoute = [=](const auto& route) {
     EXPECT_NE(nullptr, route);
     EXPECT_TRUE(route->prefix().network.isZero());
@@ -67,22 +109,30 @@ TEST(AlpmUtilsTests, DefaultNullRoutesAddedOnEmptyState) {
   assertNullRoute(v6Default);
 }
 
-TEST(AlpmUtilsTests, DefaultNullRoutesNotReAdded) {
+TYPED_TEST(AlpmUtilsTest, DefaultNullRoutesNotReAdded) {
   auto emptyState = std::make_shared<SwitchState>();
-  auto alpmInitState = setupAlpmState(emptyState);
-  auto alpmAgainState = setupAlpmState(alpmInitState);
-  EXPECT_EQ(nullptr, alpmAgainState);
+  auto alpmInitState =
+      setupMinAlpmRouteState(this->hasStandAloneRib, emptyState);
+  auto alpmAgainState =
+      setupMinAlpmRouteState(this->hasStandAloneRib, alpmInitState);
+
+  auto v4RibSize =
+      getFibSize<folly::IPAddressV4>(this->hasStandAloneRib, alpmAgainState);
+  EXPECT_EQ(1, v4RibSize);
+  auto v6RibSize =
+      getFibSize<folly::IPAddressV6>(this->hasStandAloneRib, alpmAgainState);
+  EXPECT_EQ(1, v6RibSize);
 }
 
-TEST(AlpmUtilsTests, minAlpmRouteCount) {
+TYPED_TEST(AlpmUtilsTest, minAlpmRouteCount) {
   EXPECT_EQ(2, numMinAlpmRoutes());
 }
 
-TEST(AlpmUtilsTests, minAlpmV4RouteCount) {
+TYPED_TEST(AlpmUtilsTest, minAlpmV4RouteCount) {
   EXPECT_EQ(1, numMinAlpmV4Routes());
 }
 
-TEST(AlpmUtilsTests, minAlpmV6RouteCount) {
+TYPED_TEST(AlpmUtilsTest, minAlpmV6RouteCount) {
   EXPECT_EQ(1, numMinAlpmV6Routes());
 }
 
