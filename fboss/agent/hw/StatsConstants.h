@@ -41,6 +41,14 @@ inline folly::StringPiece constexpr kInPause() {
   return "in_pause_frames";
 }
 
+inline folly::StringPiece constexpr kInPfc() {
+  return "in_pfc_frames";
+}
+
+inline folly::StringPiece constexpr kInPfcXon() {
+  return "in_pfc_xon_frames";
+}
+
 inline folly::StringPiece constexpr kInIpv4HdrErrors() {
   return "in_ipv4_header_errors";
 }
@@ -95,6 +103,10 @@ inline folly::StringPiece constexpr kOutErrors() {
 
 inline folly::StringPiece constexpr kOutPause() {
   return "out_pause_frames";
+}
+
+inline folly::StringPiece constexpr kOutPfc() {
+  return "out_pfc_frames";
 }
 
 inline folly::StringPiece constexpr kOutCongestionDiscards() {

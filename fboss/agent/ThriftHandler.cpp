@@ -1062,6 +1062,27 @@ void ThriftHandler::clearPortStats(unique_ptr<vector<int32_t>> ports) {
     }
   };
 
+  auto getPortPfcCounterKeys = [&](std::vector<std::string>& portKeys,
+                                   const std::shared_ptr<Port> port) {
+    auto portId = port->getID();
+    auto portName = port->getName().empty()
+        ? folly::to<std::string>("port", portId)
+        : port->getName();
+    auto portNameExt = folly::to<std::string>(portName, ".");
+    std::array<int, 2> enabledPfcPriorities_{0, 7};
+    for (auto pri : enabledPfcPriorities_) {
+      portKeys.emplace_back(
+          folly::to<std::string>(portNameExt, "in_pfc_frames.priority", pri));
+      portKeys.emplace_back(folly::to<std::string>(
+          portNameExt, "in_pfc_xon_frames.priority", pri));
+      portKeys.emplace_back(
+          folly::to<std::string>(portNameExt, "out_pfc_frames.priority", pri));
+    }
+    portKeys.emplace_back(folly::to<std::string>(portNameExt, "in_pfc_frames"));
+    portKeys.emplace_back(
+        folly::to<std::string>(portNameExt, "out_pfc_frames"));
+  };
+
   auto getPortLinkStateCounterKey = [&](std::vector<std::string>& portKeys,
                                         const std::shared_ptr<Port> port) {
     auto portId = port->getID();
@@ -1084,6 +1105,9 @@ void ThriftHandler::clearPortStats(unique_ptr<vector<int32_t>> ports) {
     getPortCounterKeys(portKeys, "in_", port);
     getQueueCounterKeys(portKeys, port);
     getPortLinkStateCounterKey(portKeys, port);
+    if (port->getPfc().has_value()) {
+      getPortPfcCounterKeys(portKeys, port);
+    }
     for (const auto& key : portKeys) {
       // this API locks statistics for the key
       // ensuring no race condition with update/delete

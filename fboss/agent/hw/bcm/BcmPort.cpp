@@ -84,6 +84,24 @@ bool hasPortQueueChanges(
   return false;
 }
 
+bool hasPfcStatusChangedToEnabled(
+    const shared_ptr<facebook::fboss::Port>& oldPort,
+    const shared_ptr<facebook::fboss::Port>& newPort) {
+  if (newPort->getPfc().has_value() && !oldPort->getPfc().has_value()) {
+    return true;
+  }
+  return false;
+}
+
+bool hasPfcStatusChangedToDisabled(
+    const shared_ptr<facebook::fboss::Port>& oldPort,
+    const shared_ptr<facebook::fboss::Port>& newPort) {
+  if (oldPort->getPfc().has_value() && !newPort->getPfc().has_value()) {
+    return true;
+  }
+  return false;
+}
+
 using namespace facebook::fboss;
 
 bcm_port_resource_t getCurrentPortResource(int unit, bcm_gport_t gport) {
@@ -150,6 +168,36 @@ static const std::vector<bcm_stat_val_t> kOutPktLengthStats = {
     snmpBcmTransmittedPkts4095to9216Octets,
     snmpBcmTransmittedPkts9217to16383Octets,
 };
+static const std::vector<bcm_stat_val_t> kInPfcXonStats = {
+    snmpBcmRxPFCFrameXonPriority0,
+    snmpBcmRxPFCFrameXonPriority1,
+    snmpBcmRxPFCFrameXonPriority2,
+    snmpBcmRxPFCFrameXonPriority3,
+    snmpBcmRxPFCFrameXonPriority4,
+    snmpBcmRxPFCFrameXonPriority5,
+    snmpBcmRxPFCFrameXonPriority6,
+    snmpBcmRxPFCFrameXonPriority7,
+};
+static const std::vector<bcm_stat_val_t> kInPfcStats = {
+    snmpBcmRxPFCFramePriority0,
+    snmpBcmRxPFCFramePriority1,
+    snmpBcmRxPFCFramePriority2,
+    snmpBcmRxPFCFramePriority3,
+    snmpBcmRxPFCFramePriority4,
+    snmpBcmRxPFCFramePriority5,
+    snmpBcmRxPFCFramePriority6,
+    snmpBcmRxPFCFramePriority7,
+};
+static const std::vector<bcm_stat_val_t> kOutPfcStats = {
+    snmpBcmTxPFCFramePriority0,
+    snmpBcmTxPFCFramePriority1,
+    snmpBcmTxPFCFramePriority2,
+    snmpBcmTxPFCFramePriority3,
+    snmpBcmTxPFCFramePriority4,
+    snmpBcmTxPFCFramePriority5,
+    snmpBcmTxPFCFramePriority6,
+    snmpBcmTxPFCFramePriority7,
+};
 
 MonotonicCounter* BcmPort::getPortCounterIf(folly::StringPiece statKey) {
   auto pcitr = portCounters_.find(statKey.str());
@@ -171,6 +219,45 @@ void BcmPort::reinitPortStat(
     stat->swap(newStat);
     utility::deleteCounter(newStat.getName());
   }
+}
+
+void BcmPort::removePortStat(folly::StringPiece statKey) {
+  auto stat = getPortCounterIf(statKey);
+  if (stat) {
+    utility::deleteCounter(stat->getName());
+    portCounters_.erase(stat->getName());
+  }
+}
+
+void BcmPort::removePortPfcStats(const std::shared_ptr<Port>& swPort) {
+  XLOG(DBG3) << "Destroy PFC stats for " << swPort->getName();
+
+  auto lockedPortStatsPtr = lastPortStats_.wlock();
+  // Destroy per priority PFC statistics
+  for (auto pri : enabledPfcPriorities_) {
+    removePortStat(getPfcPriorityStatsKey(kInPfc(), pri));
+    removePortStat(getPfcPriorityStatsKey(kInPfcXon(), pri));
+    removePortStat(getPfcPriorityStatsKey(kOutPfc(), pri));
+  }
+
+  // Destroy per port PFC statistics
+  removePortStat(kInPfc());
+  removePortStat(kOutPfc());
+}
+
+void BcmPort::reinitPortPfcStats(std::string portName) {
+  XLOG(DBG3) << "Reinitializing PFC stats for " << portName;
+
+  // Reinit per priority PFC statistics
+  for (auto pri : enabledPfcPriorities_) {
+    reinitPortStat(getPfcPriorityStatsKey(kInPfc(), pri), portName);
+    reinitPortStat(getPfcPriorityStatsKey(kInPfcXon(), pri), portName);
+    reinitPortStat(getPfcPriorityStatsKey(kOutPfc(), pri), portName);
+  }
+
+  // Reinit per port PFC statistics
+  reinitPortStat(kInPfc(), portName);
+  reinitPortStat(kOutPfc(), portName);
 }
 
 void BcmPort::reinitPortStats(const std::shared_ptr<Port>& swPort) {
@@ -201,6 +288,11 @@ void BcmPort::reinitPortStats(const std::shared_ptr<Port>& swPort) {
   reinitPortStat(kWredDroppedPackets(), portName);
   reinitPortStat(kFecCorrectable(), portName);
   reinitPortStat(kFecUncorrectable(), portName);
+
+  if (swPort->getPfc().has_value()) {
+    // Init port PFC stats only if PFC is enabled on the port!
+    reinitPortPfcStats(portName);
+  }
 
   if (swPort) {
     queueManager_->setPortName(portName);
@@ -738,8 +830,13 @@ void BcmPort::setupStatsIfNeeded(const std::shared_ptr<Port>& swPort) {
   }
 
   if (!savedPort || swPort->getName() != savedPort->getName() ||
-      hasPortQueueChanges(savedPort, swPort)) {
+      hasPortQueueChanges(savedPort, swPort) ||
+      hasPfcStatusChangedToEnabled(savedPort, swPort)) {
     reinitPortStats(swPort);
+  }
+  if (savedPort && hasPfcStatusChangedToDisabled(savedPort, swPort)) {
+    // Remove stats in case PFC is disabled
+    removePortPfcStats(swPort);
   }
 
   // Set bcmPortControlStatOversize to max frame size so that we don't trigger
@@ -958,6 +1055,9 @@ void BcmPort::updateStats() {
       kInDstNullDiscards(),
       snmpBcmCustomReceive3,
       &(*curPortStats.inDstNullDiscards__ref()));
+  if ((*programmedSettings_.rlock())->getPfc().has_value()) {
+    updatePortPfcStats(now, curPortStats);
+  }
   updateFecStats(now, curPortStats);
   updateWredStats(now, &(*curPortStats.wredDroppedPackets__ref()));
   queueManager_->updateQueueStats(now, &curPortStats);
@@ -1053,6 +1153,45 @@ void BcmPort::setQueueWaterMarks(
     std::map<int16_t, int64_t> queueId2WatermarkBytes) {
   lastPortStats_.wlock()->value().setQueueWaterMarks(
       std::move(queueId2WatermarkBytes));
+}
+
+std::string BcmPort::getPfcPriorityStatsKey(
+    folly::StringPiece statKey,
+    int priority) {
+  return folly::to<std::string>(statKey, ".priority", priority);
+}
+
+void BcmPort::updatePortPfcStats(
+    std::chrono::seconds now,
+    HwPortStats& portStats) {
+  // Update per priority statistics for the priorities
+  // which are enabled for PFC!
+  for (auto pri : enabledPfcPriorities_) {
+    updateStat(
+        now,
+        getPfcPriorityStatsKey(kInPfc(), pri),
+        kInPfcStats.at(pri),
+        &(portStats.inPfc__ref()[pri]));
+    updateStat(
+        now,
+        getPfcPriorityStatsKey(kInPfcXon(), pri),
+        kInPfcXonStats.at(pri),
+        &(portStats.inPfcXon__ref()[pri]));
+    updateStat(
+        now,
+        getPfcPriorityStatsKey(kOutPfc(), pri),
+        kOutPfcStats.at(pri),
+        &(portStats.outPfc__ref()[pri]));
+  }
+
+  // Update per port PFC statistics
+  updateStat(
+      now, kInPfc(), snmpBcmRxPFCControlFrame, &(*portStats.inPfcCtrl__ref()));
+  updateStat(
+      now,
+      kOutPfc(),
+      snmpBcmTxPFCControlFrame,
+      &(*portStats.outPfcCtrl__ref()));
 }
 
 void BcmPort::updateStat(

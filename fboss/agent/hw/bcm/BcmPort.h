@@ -242,6 +242,11 @@ class BcmPort {
       bcm_stat_val_t type,
       int64_t* portStatVal);
   void updateFecStats(std::chrono::seconds now, HwPortStats& curPortStats);
+  void removePortStat(folly::StringPiece statKey);
+  void removePortPfcStats(const std::shared_ptr<Port>& swPort);
+  void reinitPortPfcStats(std::string portName);
+  void updatePortPfcStats(std::chrono::seconds now, HwPortStats& curPortStats);
+  std::string getPfcPriorityStatsKey(folly::StringPiece statKey, int priority);
   void updatePktLenHist(
       std::chrono::seconds now,
       fb303::ExportedHistogramMapImpl::LockableHistogram* hist,
@@ -314,6 +319,7 @@ class BcmPort {
 
   std::atomic<bool> statCollectionEnabled_{false};
   std::atomic<bool> destroyed_{false};
+  std::vector<int> enabledPfcPriorities_{0, 7};
 };
 
 } // namespace facebook::fboss

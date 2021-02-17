@@ -37,6 +37,11 @@ struct HwPortStats {
             STAT_UNINITIALIZED (cpp2.type = "std::uint64_t");
   28: i64 fecUncorrectableErrors =
             STAT_UNINITIALIZED (cpp2.type = "std::uint64_t");
+  29: i64 inPfcCtrl_ = STAT_UNINITIALIZED;
+  30: i64 outPfcCtrl_ = STAT_UNINITIALIZED;
+  31: map<i16, i64> inPfc_ = {}
+  32: map<i16, i64> inPfcXon_ = {}
+  33: map<i16, i64> outPfc_ = {}
 
   // seconds from epoch
   50: i64 timestamp_ = STAT_UNINITIALIZED;

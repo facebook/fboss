@@ -56,6 +56,11 @@ HwPortStats getInitedStats() {
       {{0, 0}, {0, 0}}, // queueWatermarkBytes
       0, // fecCorrectableErrors
       0, // fecUncorrectableErrors
+      0, // inPfcCtrl_
+      0, // outPfcCtrl_
+      {{0, 1}, {7, 1}}, // inPfc_
+      {{0, 2}, {7, 2}}, // inPfcXon_
+      {{0, 3}, {7, 3}}, // outPfc_
       0, // timestamp
       "test", // portName
   };
