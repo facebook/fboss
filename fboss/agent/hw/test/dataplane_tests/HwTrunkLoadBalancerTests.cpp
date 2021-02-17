@@ -73,14 +73,12 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
   }
 
   template <typename ECMP_HELPER>
-  void setupECMPForwarding(
-      const ECMP_HELPER& ecmpHelper,
-      const AggPortInfo aggInfo) {
+  void programRoutes(const ECMP_HELPER& ecmpHelper, const AggPortInfo aggInfo) {
     auto newState = utility::enableTrunkPorts(getProgrammedState());
-    newState = ecmpHelper.setupECMPForwarding(
-        ecmpHelper.resolveNextHops(newState, getAggregatePorts(aggInfo)),
-        getAggregatePorts(aggInfo));
-    applyNewState(newState);
+    applyNewState(
+        ecmpHelper.resolveNextHops(newState, getAggregatePorts(aggInfo)));
+    ecmpHelper.programRoutes(
+        getRouteUpdateWrapper(), getAggregatePorts(aggInfo));
   }
 
  protected:
@@ -100,8 +98,8 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
       applyNewConfig(config);
       utility::EcmpSetupTargetedPorts6 ecmpHelper6{getProgrammedState()};
       utility::EcmpSetupTargetedPorts4 ecmpHelper4{getProgrammedState()};
-      setupECMPForwarding(ecmpHelper6, aggInfo);
-      setupECMPForwarding(ecmpHelper4, aggInfo);
+      programRoutes(ecmpHelper6, aggInfo);
+      programRoutes(ecmpHelper4, aggInfo);
       applyNewState(utility::addLoadBalancers(
           getPlatform(), getProgrammedState(), loadBalancers));
     };
