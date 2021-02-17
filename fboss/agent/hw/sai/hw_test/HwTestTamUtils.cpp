@@ -2,9 +2,11 @@
 
 #include "fboss/agent/hw/test/HwTestTamUtils.h"
 
+#include "fboss/agent/hw/sai/hw_test/SaiSwitchEnsemble.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 
+#include "fboss/agent/hw/sai/api/SwitchApi.h"
 #include "fboss/agent/hw/sai/api/TamApi.h"
 
 namespace facebook::fboss {
@@ -30,6 +32,14 @@ void triggerParityError(HwSwitchEnsemble* ensemble) {
   auto asic = ensemble->getPlatform()->getAsic()->getAsicType();
   if (asic != HwAsic::AsicType::ASIC_TYPE_TAJO) {
     triggerSaiBcmParityError(ensemble);
+    return;
+  }
+  SaiSwitchEnsemble* saiEnsemble = static_cast<SaiSwitchEnsemble*>(ensemble);
+  if (SaiSwitchTraits::Attributes::HwEccErrorInitiate::AttributeId()()) {
+    SaiSwitchTraits::Attributes::HwEccErrorInitiate initiateError{2};
+    auto switchId = static_cast<SwitchSaiId>(saiEnsemble->getSwitchId());
+    SaiApiTable::getInstance()->switchApi().setAttribute(
+        switchId, initiateError);
   }
   injectTamError();
 }
