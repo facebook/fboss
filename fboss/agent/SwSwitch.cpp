@@ -175,7 +175,6 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
       routeUpdateLogger_(new RouteUpdateLogger(this)),
       resolvedNexthopMonitor_(new ResolvedNexthopMonitor(this)),
       resolvedNexthopProbeScheduler_(new ResolvedNexthopProbeScheduler(this)),
-      rib_(new rib::RoutingInformationBase()),
       portUpdateHandler_(new PortUpdateHandler(this)),
       lookupClassUpdater_(new LookupClassUpdater(this)),
       lookupClassRouteUpdater_(new LookupClassRouteUpdater(this)),
@@ -328,7 +327,7 @@ void SwSwitch::gracefulExit() {
 
     folly::dynamic switchState = folly::dynamic::object;
     switchState[kSwSwitch] = getAppliedState()->toFollyDynamic();
-    if (isStandaloneRibEnabled()) {
+    if (rib_) {
       switchState[kRib] = rib_->toFollyDynamic();
     }
 
@@ -431,6 +430,7 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
   auto hwInitRet = hw_->init(this, false /*failHwCallsOnWarmboot*/);
   auto initialState = hwInitRet.switchState;
   bootType_ = hwInitRet.bootType;
+  rib_ = std::move(hwInitRet.rib);
   fb303::fbData->setCounter(kHwUpdateFailures, 0);
 
   XLOG(DBG0) << "hardware initialized in " << hwInitRet.bootTime

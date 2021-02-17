@@ -701,7 +701,7 @@ class SwSwitch : public HwSwitch::Callback {
   void publishInitTimes(std::string name, const float& time);
   void updatePortInfo();
   void updateRouteStats();
-  void publishSwitchInfo(struct HwInitResult hwInitRet);
+  void publishSwitchInfo(const HwInitResult& hwInitRet);
   void setSwitchRunState(SwitchRunState desiredState);
   SwitchStats* createSwitchStats();
   void handlePacket(std::unique_ptr<RxPacket> pkt);

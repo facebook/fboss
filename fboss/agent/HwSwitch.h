@@ -13,6 +13,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
@@ -34,10 +35,12 @@ class RxPacket;
 class TxPacket;
 class L2Entry;
 class HwSwitchStats;
+
 enum class L2EntryUpdateType : uint8_t;
 
 struct HwInitResult {
   std::shared_ptr<SwitchState> switchState{nullptr};
+  std::unique_ptr<rib::RoutingInformationBase> rib{nullptr};
   BootType bootType{BootType::UNINITIALIZED};
   float initializedTime{0.0};
   float bootTime{0.0};

@@ -51,6 +51,7 @@ using std::shared_ptr;
 using std::string;
 using std::unique_ptr;
 using ::testing::_;
+using ::testing::ByMove;
 using ::testing::NiceMock;
 using ::testing::Return;
 
@@ -199,7 +200,10 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
   HwInitResult ret;
   ret.switchState = state ? state : make_shared<SwitchState>();
   ret.bootType = BootType::COLD_BOOT;
-  EXPECT_HW_CALL(sw, init(_, false)).WillOnce(Return(ret));
+  if (flags & SwitchFlags::ENABLE_STANDALONE_RIB) {
+    ret.rib = std::make_unique<rib::RoutingInformationBase>();
+  }
+  EXPECT_HW_CALL(sw, init(_, false)).WillOnce(Return(ByMove(std::move(ret))));
   initSwSwitchWithFlags(sw.get(), flags);
   waitForStateUpdates(sw.get());
   return sw;

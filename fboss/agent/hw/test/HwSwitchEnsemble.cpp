@@ -292,11 +292,9 @@ void HwSwitchEnsemble::setupEnsemble(
   platform_ = std::move(platform);
   linkToggler_ = std::move(linkToggler);
 
-  if (FLAGS_enable_standalone_rib) {
-    routingInformationBase_ = std::make_unique<rib::RoutingInformationBase>();
-  }
-  programmedState_ =
-      getHwSwitch()->init(this, true /*failHwCallsOnWarmboot*/).switchState;
+  auto hwInitResult = getHwSwitch()->init(this, true /*failHwCallsOnWarmboot*/);
+  programmedState_ = hwInitResult.switchState;
+  routingInformationBase_ = std::move(hwInitResult.rib);
   // HwSwitch::init() returns an unpublished programmedState_.  SwSwitch is
   // normally responsible for publishing it.  Go ahead and call publish now.
   // This will catch errors if test cases accidentally try to modify this

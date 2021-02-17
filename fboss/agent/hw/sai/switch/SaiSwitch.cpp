@@ -47,6 +47,8 @@
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
+
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -924,6 +926,9 @@ HwInitResult SaiSwitch::initLocked(
   ret.bootType = bootType_;
   std::unique_ptr<folly::dynamic> adapterKeysJson;
   std::unique_ptr<folly::dynamic> adapterKeys2AdapterHostKeysJson;
+  if (FLAGS_enable_standalone_rib) {
+    ret.rib = std::make_unique<rib::RoutingInformationBase>();
+  }
 
   sai_api_initialize(0, platform_->getServiceMethodTable());
   SaiApiTable::getInstance()->queryApis();
@@ -937,6 +942,11 @@ HwInitResult SaiSwitch::initLocked(
     auto switchStateJson = platform_->getWarmBootHelper()->getWarmBootState();
     ret.switchState = SwitchState::fromFollyDynamic(switchStateJson[kSwSwitch]);
     ret.switchState->publish();
+    if (FLAGS_enable_standalone_rib &&
+        switchStateJson.find(kRib) != switchStateJson.items().end()) {
+      ret.rib =
+          rib::RoutingInformationBase::fromFollyDynamic(switchStateJson[kRib]);
+    }
     if (platform_->getAsic()->isSupported(HwAsic::Feature::OBJECT_KEY_CACHE)) {
       adapterKeysJson = std::make_unique<folly::dynamic>(
           switchStateJson[kHwSwitch][kAdapterKeys]);
