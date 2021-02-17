@@ -14,6 +14,7 @@ set(SAI_SWITCH_SRC
   fboss/agent/hw/sai/switch/SaiHashManager.cpp
   fboss/agent/hw/sai/switch/SaiHostifManager.cpp
   fboss/agent/hw/sai/switch/SaiInSegEntryManager.cpp
+  fboss/agent/hw/sai/switch/SaiLagManager.cpp
   fboss/agent/hw/sai/switch/SaiManagerTable.cpp
   fboss/agent/hw/sai/switch/SaiMirrorManager.cpp
   fboss/agent/hw/sai/switch/SaiNeighborManager.cpp

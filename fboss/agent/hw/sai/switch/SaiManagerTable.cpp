@@ -21,6 +21,7 @@
 #include "fboss/agent/hw/sai/switch/SaiHashManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiInSegEntryManager.h"
+#include "fboss/agent/hw/sai/switch/SaiLagManager.h"
 #include "fboss/agent/hw/sai/switch/SaiMirrorManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
@@ -80,7 +81,7 @@ void SaiManagerTable::createSaiTableManagers(
       std::make_unique<SaiNextHopGroupManager>(this, platform);
   neighborManager_ = std::make_unique<SaiNeighborManager>(this, platform);
   inSegEntryManager_ = std::make_unique<SaiInSegEntryManager>(this, platform);
-  lagManager_ = std::make_unique<SaiUnsupportedFeatureManager>("LAG");
+  lagManager_ = std::make_unique<SaiLagManager>(this, platform);
   wredManager_ = std::make_unique<SaiWredManager>(this, platform);
 
   // CSP CS00011823810
@@ -321,10 +322,10 @@ const SaiInSegEntryManager& SaiManagerTable::inSegEntryManager() const {
   return *inSegEntryManager_;
 }
 
-SaiUnsupportedFeatureManager& SaiManagerTable::lagManager() {
+SaiLagManager& SaiManagerTable::lagManager() {
   return *lagManager_;
 }
-const SaiUnsupportedFeatureManager& SaiManagerTable::lagManager() const {
+const SaiLagManager& SaiManagerTable::lagManager() const {
   return *lagManager_;
 }
 

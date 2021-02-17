@@ -32,6 +32,7 @@
 #include "fboss/agent/hw/sai/switch/SaiHashManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiInSegEntryManager.h"
+#include "fboss/agent/hw/sai/switch/SaiLagManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiMirrorManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
@@ -435,9 +436,9 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
       delta.getAggregatePortsDelta(),
       managerTable_->lagManager(),
       lockPolicy,
-      &SaiUnsupportedFeatureManager::processChanged,
-      &SaiUnsupportedFeatureManager::processAdded,
-      &SaiUnsupportedFeatureManager::processRemoved);
+      &SaiLagManager::changeLag,
+      &SaiLagManager::addLag,
+      &SaiLagManager::removeLag);
 
   if (platform_->getAsic()->isSupported(HwAsic::Feature::QOS_MAP_GLOBAL)) {
     processDefaultDataPlanePolicyDelta(

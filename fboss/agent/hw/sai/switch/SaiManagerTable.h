@@ -31,6 +31,7 @@ class SaiFdbManager;
 class SaiHashManager;
 class SaiHostifManager;
 class SaiInSegEntryManager;
+class SaiLagManager;
 class SaiMirrorManager;
 class SaiNeighborManager;
 class SaiNextHopManager;
@@ -127,8 +128,8 @@ class SaiManagerTable {
   SaiInSegEntryManager& inSegEntryManager();
   const SaiInSegEntryManager& inSegEntryManager() const;
 
-  SaiUnsupportedFeatureManager& lagManager();
-  const SaiUnsupportedFeatureManager& lagManager() const;
+  SaiLagManager& lagManager();
+  const SaiLagManager& lagManager() const;
 
   SaiWredManager& wredManager();
   const SaiWredManager& wredManager() const;
@@ -158,13 +159,12 @@ class SaiManagerTable {
   std::unique_ptr<SaiRouteManager> routeManager_;
   std::unique_ptr<SaiRouterInterfaceManager> routerInterfaceManager_;
   std::unique_ptr<SaiSamplePacketManager> samplePacketManager_;
-  ;
   std::unique_ptr<SaiSchedulerManager> schedulerManager_;
   std::unique_ptr<SaiSwitchManager> switchManager_;
   std::unique_ptr<SaiVirtualRouterManager> virtualRouterManager_;
   std::unique_ptr<SaiVlanManager> vlanManager_;
   std::unique_ptr<SaiInSegEntryManager> inSegEntryManager_;
-  std::unique_ptr<SaiUnsupportedFeatureManager> lagManager_;
+  std::unique_ptr<SaiLagManager> lagManager_;
   std::unique_ptr<SaiWredManager> wredManager_;
   std::unique_ptr<SaiTamManager> tamManager_;
 };
