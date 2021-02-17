@@ -2,6 +2,9 @@
 
 #include "fboss/agent/hw/sai/switch/SaiLagManager.h"
 
+#include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
+
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 
 namespace facebook::fboss {
@@ -50,9 +53,17 @@ void SaiLagManager::changeLag(
 }
 
 std::shared_ptr<SaiLagMember> SaiLagManager::addMember(
-    const std::shared_ptr<SaiLag>& /*lag*/,
-    AggregatePortFields::Subport /*subPort*/) {
-  return nullptr;
+    const std::shared_ptr<SaiLag>& lag,
+    AggregatePortFields::Subport subPort) {
+  auto portId = subPort.portID;
+  auto portHandle = managerTable_->portManager().getPortHandle(portId);
+  CHECK(portHandle);
+  auto saiPortId = portHandle->port->adapterKey();
+  auto saiLagId = lag->adapterKey();
+
+  SaiLagMemberTraits::CreateAttributes attrs{saiLagId, saiPortId};
+  auto& lagMemberStore = SaiStore::getInstance()->get<SaiLagMemberTraits>();
+  return lagMemberStore.setObject(attrs, attrs);
 }
 
 void SaiLagManager::removeMember(
