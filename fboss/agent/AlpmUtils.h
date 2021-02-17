@@ -16,10 +16,6 @@ class SwitchState;
 
 std::shared_ptr<SwitchState> setupAlpmState(
     std::shared_ptr<SwitchState> curState);
-/*
- * Minimum required ALPM State
- */
-std::shared_ptr<SwitchState> getMinimumAlpmState();
 
 uint64_t numMinAlpmRoutes();
 uint64_t numMinAlpmV4Routes();

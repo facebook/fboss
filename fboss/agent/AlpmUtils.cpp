@@ -21,19 +21,19 @@
 #include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/state/SwitchState.h"
 
-using facebook::fboss::getMinimumAlpmState;
-using facebook::fboss::SwitchState;
+namespace facebook::fboss {
 
 namespace {
 
+std::shared_ptr<SwitchState> getMinimumAlpmState() {
+  return setupAlpmState(std::make_shared<SwitchState>());
+}
 std::pair<uint64_t, uint64_t> numMinV4AndV6AlpmRoutes() {
   uint64_t v4Routes{0}, v6Routes{0};
   getMinimumAlpmState()->getRouteTables()->getRouteCount(&v4Routes, &v6Routes);
   return std::make_pair(v4Routes, v6Routes);
 }
 } // namespace
-
-namespace facebook::fboss {
 
 std::shared_ptr<SwitchState> setupAlpmState(
     std::shared_ptr<SwitchState> curState) {
@@ -65,10 +65,6 @@ std::shared_ptr<SwitchState> setupAlpmState(
     return newState;
   }
   return nullptr;
-}
-
-std::shared_ptr<SwitchState> getMinimumAlpmState() {
-  return setupAlpmState(std::make_shared<SwitchState>());
 }
 
 uint64_t numMinAlpmRoutes() {
