@@ -32,8 +32,8 @@ class SaiLagManager {
       const std::shared_ptr<AggregatePort>& newAggregatePort);
 
  private:
-  void addMember(
-      std::shared_ptr<SaiLag> lag,
+  std::shared_ptr<SaiLagMember> addMember(
+      const std::shared_ptr<SaiLag>& lag,
       AggregatePortFields::Subport subPort);
   void removeMember(
       std::shared_ptr<SaiLag> lag,
