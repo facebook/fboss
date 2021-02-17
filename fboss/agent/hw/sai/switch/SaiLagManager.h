@@ -9,9 +9,11 @@
 namespace facebook::fboss {
 
 using SaiLag = SaiObject<SaiLagTraits>;
+using SaiLagMember = SaiObject<SaiLagMemberTraits>;
 
 struct SaiLagHandle {
   std::shared_ptr<SaiLag> lag;
+  std::vector<std::shared_ptr<SaiLagMember>> members;
 };
 
 class SaiManagerTable;
@@ -30,6 +32,13 @@ class SaiLagManager {
       const std::shared_ptr<AggregatePort>& newAggregatePort);
 
  private:
+  void addMember(
+      std::shared_ptr<SaiLag> lag,
+      AggregatePortFields::Subport subPort);
+  void removeMember(
+      std::shared_ptr<SaiLag> lag,
+      AggregatePortFields::Subport subPort);
+
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
   Handles handles_;

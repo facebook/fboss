@@ -14,4 +14,11 @@ void SaiLagManager::changeLag(
     const std::shared_ptr<AggregatePort>& /*oldAggregatePort*/,
     const std::shared_ptr<AggregatePort>& /*newAggregatePort*/) {}
 
+void SaiLagManager::addMember(
+    std::shared_ptr<SaiLag> /*lag*/,
+    AggregatePortFields::Subport /*subPort*/) {}
+
+void SaiLagManager::removeMember(
+    std::shared_ptr<SaiLag> /*lag*/,
+    AggregatePortFields::Subport /*subPort*/) {}
 } // namespace facebook::fboss
