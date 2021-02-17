@@ -318,6 +318,7 @@ vector<string> BcmCinter::cintForL3Route(const bcm_l3_route_t& l3_route) {
             getCintVar(l3IntfIdVars, l3_route.l3a_intf)),
         to<string>("l3_route.l3a_ip6_net = ", v6Var),
         to<string>("l3_route.l3a_ip6_mask = ", v6Mask),
+        to<string>("l3_route.l3a_lookup_class = ", l3_route.l3a_lookup_class),
         to<string>("l3_route.l3a_flags = ", l3_route.l3a_flags)};
 
   } else {
@@ -329,6 +330,7 @@ vector<string> BcmCinter::cintForL3Route(const bcm_l3_route_t& l3_route) {
             getCintVar(l3IntfIdVars, l3_route.l3a_intf)),
         to<string>("l3_route.l3a_subnet = ", l3_route.l3a_subnet),
         to<string>("l3_route.l3a_ip_mask = ", l3_route.l3a_ip_mask),
+        to<string>("l3_route.l3a_lookup_class = ", l3_route.l3a_lookup_class),
         to<string>("l3_route.l3a_flags = ", l3_route.l3a_flags)};
   }
   return cintLines;
