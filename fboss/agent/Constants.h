@@ -40,6 +40,7 @@ inline constexpr folly::StringPiece kNextHops{"nexthops"};
 inline constexpr folly::StringPiece kPaths{"paths"};
 inline constexpr folly::StringPiece kPort{"port"};
 inline constexpr folly::StringPiece kPrefix{"prefix"};
+inline constexpr folly::StringPiece kRib{"rib"};
 inline constexpr folly::StringPiece kRibV4{"ribV4"};
 inline constexpr folly::StringPiece kRibV6{"ribV6"};
 inline constexpr folly::StringPiece kRouterId{"routerId"};

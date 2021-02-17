@@ -345,6 +345,9 @@ void HwSwitchEnsemble::gracefulExit() {
   folly::dynamic switchState = folly::dynamic::object;
   getHwSwitch()->unregisterCallbacks();
   switchState[kSwSwitch] = getProgrammedState()->toFollyDynamic();
+  if (routingInformationBase_) {
+    switchState[kRib] = routingInformationBase_->toFollyDynamic();
+  }
   getHwSwitch()->gracefulExit(switchState);
 }
 

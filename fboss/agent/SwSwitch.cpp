@@ -328,6 +328,9 @@ void SwSwitch::gracefulExit() {
 
     folly::dynamic switchState = folly::dynamic::object;
     switchState[kSwSwitch] = getAppliedState()->toFollyDynamic();
+    if (isStandaloneRibEnabled()) {
+      switchState[kRib] = rib_->toFollyDynamic();
+    }
 
     steady_clock::time_point switchStateToFollyDone = steady_clock::now();
     XLOG(INFO) << "[Exit] Switch state to folly dynamic "
