@@ -269,7 +269,7 @@ RoutingInformationBase::fromFollyDynamic(const folly::dynamic& ribJson) {
   return rib;
 }
 
-void RoutingInformationBase::createVrf(RouterID rid) {
+void RoutingInformationBase::ensureVrf(RouterID rid) {
   auto lockedRouteTables = synchronizedRouteTables_.wlock();
   lockedRouteTables->insert(std::make_pair(rid, RouteTable()));
 }

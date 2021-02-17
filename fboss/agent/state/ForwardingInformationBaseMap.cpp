@@ -66,7 +66,11 @@ ForwardingInformationBaseMap* ForwardingInformationBaseMap::modify(
 
 void ForwardingInformationBaseMap::updateForwardingInformationBaseContainer(
     const std::shared_ptr<ForwardingInformationBaseContainer>& fibContainer) {
-  updateNode(fibContainer);
+  if (getNodeIf(fibContainer->getID())) {
+    updateNode(fibContainer);
+  } else {
+    addNode(fibContainer);
+  }
 }
 
 FBOSS_INSTANTIATE_NODE_MAP(

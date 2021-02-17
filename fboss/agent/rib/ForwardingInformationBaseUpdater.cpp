@@ -40,7 +40,14 @@ std::shared_ptr<SwitchState> ForwardingInformationBaseUpdater::operator()(
   // ForwardingInformationBaseV6) in succession.
   // Unlike the coupled RIB implementation, we need only update the
   // SwitchState for a single VRF.
-  auto previousFibContainer = state->getFibs()->getFibContainerIf(vrf_);
+  std::shared_ptr<SwitchState> nextState(state);
+  auto previousFibContainer = nextState->getFibs()->getFibContainerIf(vrf_);
+  if (!previousFibContainer) {
+    auto fibMap = nextState->getFibs()->modify(&nextState);
+    fibMap->updateForwardingInformationBaseContainer(
+        std::make_shared<ForwardingInformationBaseContainer>(vrf_));
+    previousFibContainer = nextState->getFibs()->getFibContainerIf(vrf_);
+  }
   CHECK(previousFibContainer);
   auto newFibV4 =
       createUpdatedFib(v4NetworkToRoute_, previousFibContainer->getFibV4());
@@ -49,9 +56,9 @@ std::shared_ptr<SwitchState> ForwardingInformationBaseUpdater::operator()(
       createUpdatedFib(v6NetworkToRoute_, previousFibContainer->getFibV6());
 
   if (!newFibV4 && !newFibV6) {
-    return state;
+    // return nextState in case we modified state above to insert new VRF
+    return nextState;
   }
-  std::shared_ptr<SwitchState> nextState(state);
   auto nextFibContainer = previousFibContainer->modify(&nextState);
 
   if (newFibV4) {
