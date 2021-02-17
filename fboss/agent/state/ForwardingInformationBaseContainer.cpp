@@ -11,6 +11,14 @@
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/SwitchState.h"
 
+#include <folly/logging/xlog.h>
+
+namespace {
+constexpr auto kFibV4{"fibV4"};
+constexpr auto kFibV6{"fibV6"};
+constexpr auto kVrf{"vrf"};
+} // namespace
+
 namespace facebook::fboss {
 
 ForwardingInformationBaseContainerFields::
@@ -41,14 +49,22 @@ ForwardingInformationBaseContainer::getFibV6() const {
 
 std::shared_ptr<ForwardingInformationBaseContainer>
 ForwardingInformationBaseContainer::fromFollyDynamic(
-    const folly::dynamic& /* json */) {
-  // TODO(samank)
-  return nullptr;
+    const folly::dynamic& json) {
+  auto fibContainer = std::make_shared<ForwardingInformationBaseContainer>(
+      RouterID(json[kVrf].asInt()));
+  fibContainer->writableFields()->fibV4 =
+      ForwardingInformationBaseV4::fromFollyDynamic(json[kFibV4]);
+  fibContainer->writableFields()->fibV6 =
+      ForwardingInformationBaseV6::fromFollyDynamic(json[kFibV6]);
+  return fibContainer;
 }
 
 folly::dynamic ForwardingInformationBaseContainer::toFollyDynamic() const {
-  // TODO(samank)
-  return folly::dynamic::object;
+  folly::dynamic json = folly::dynamic::object;
+  json[kVrf] = static_cast<int>(getID());
+  json[kFibV4] = getFibV4()->toFollyDynamic();
+  json[kFibV6] = getFibV6()->toFollyDynamic();
+  return json;
 }
 
 ForwardingInformationBaseContainer* ForwardingInformationBaseContainer::modify(

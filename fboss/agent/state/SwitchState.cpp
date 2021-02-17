@@ -57,6 +57,7 @@ constexpr auto kSwitchSettings = "switchSettings";
 constexpr auto kDefaultDataplaneQosPolicy = "defaultDataPlaneQosPolicy";
 constexpr auto kQcmCfg = "qcmConfig";
 constexpr auto kBufferPoolCfgs = "bufferPoolConfigs";
+constexpr auto kFibs = "fibs";
 } // namespace
 
 // TODO: it might be worth splitting up limits for ecmp/ucmp
@@ -109,6 +110,7 @@ folly::dynamic SwitchStateFields::toFollyDynamic() const {
         defaultDataPlaneQosPolicy->toFollyDynamic();
   }
   switchState[kQosPolicies] = qosPolicies->toFollyDynamic();
+  switchState[kFibs] = fibs->toFollyDynamic();
   return switchState;
 }
 
@@ -171,6 +173,10 @@ SwitchStateFields SwitchStateFields::fromFollyDynamic(
   if (swJson.find(kBufferPoolCfgs) != swJson.items().end()) {
     switchState.bufferPoolCfgs =
         BufferPoolCfgMap::fromFollyDynamic(swJson[kBufferPoolCfgs]);
+  }
+  if (swJson.find(kFibs) != swJson.items().end()) {
+    switchState.fibs =
+        ForwardingInformationBaseMap::fromFollyDynamic(swJson[kFibs]);
   }
 
   // TODO verify that created state here is internally consistent t4155406
