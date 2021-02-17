@@ -38,7 +38,6 @@ enum class L2EntryUpdateType : uint8_t;
 
 struct HwInitResult {
   std::shared_ptr<SwitchState> switchState{nullptr};
-  std::shared_ptr<SwitchState> switchStateDesired{nullptr};
   BootType bootType{BootType::UNINITIALIZED};
   float initializedTime{0.0};
   float bootTime{0.0};
