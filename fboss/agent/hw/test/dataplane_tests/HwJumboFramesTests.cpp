@@ -61,8 +61,7 @@ class HwJumboFramesTest : public HwLinkStateDependentTest {
     auto setup = [=]() {
       utility::EcmpSetupAnyNPorts6 ecmpHelper(
           getProgrammedState(), RouterID(0));
-      applyNewState(ecmpHelper.setupECMPForwarding(
-          ecmpHelper.resolveNextHops(getProgrammedState(), 1), 1));
+      resolveNeigborAndProgramRoutes(ecmpHelper, 1);
     };
 
     auto verify = [=]() {

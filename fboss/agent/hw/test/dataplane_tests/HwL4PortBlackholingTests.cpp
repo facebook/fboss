@@ -36,12 +36,6 @@ class HwL4PortBlackHolingTest : public HwLinkStateDependentTest {
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
     return cfg;
   }
-  template <typename ECMP_HELPER>
-  void setupECMPForwarding(const ECMP_HELPER& ecmpHelper) {
-    auto newState = ecmpHelper.setupECMPForwarding(
-        ecmpHelper.resolveNextHops(getProgrammedState(), 1), 1);
-    applyNewState(newState);
-  }
   void pumpTraffic(bool isV6) {
     auto srcIp = IPAddress(isV6 ? "1001::1" : "100.0.0.1");
     auto dstIp = IPAddress(isV6 ? "2001::1" : "200.0.0.1");
@@ -69,10 +63,10 @@ class HwL4PortBlackHolingTest : public HwLinkStateDependentTest {
     auto setup = [=]() {
       auto cfg = initialConfig();
       const RouterID kRid{0};
-      setupECMPForwarding(
-          utility::EcmpSetupAnyNPorts6(getProgrammedState(), kRid));
-      setupECMPForwarding(
-          utility::EcmpSetupAnyNPorts4(getProgrammedState(), kRid));
+      resolveNeigborAndProgramRoutes(
+          utility::EcmpSetupAnyNPorts6(getProgrammedState(), kRid), 1);
+      resolveNeigborAndProgramRoutes(
+          utility::EcmpSetupAnyNPorts4(getProgrammedState(), kRid), 1);
     };
     auto verify = [=]() {
       auto originalPortStats = getLatestPortStats(masterLogicalPortIds());
