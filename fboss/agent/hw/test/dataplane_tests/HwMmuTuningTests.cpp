@@ -37,8 +37,7 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
   void setup() {
     utility::EcmpSetupAnyNPorts6 helper(getProgrammedState(), dstMac());
     auto constexpr kEcmpWidth = 1;
-    applyNewState(helper.setupECMPForwarding(
-        helper.resolveNextHops(getProgrammedState(), kEcmpWidth), kEcmpWidth));
+    resolveNeigborAndProgramRoutes(helper, kEcmpWidth);
     utility::setPortTxEnable(getHwSwitch(), masterLogicalPortIds()[0], false);
   }
   void verify(

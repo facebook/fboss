@@ -42,13 +42,6 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
     return utility::getInterfaceMac(getProgrammedState(), vlanId);
   }
 
-  template <typename ECMP_HELPER>
-  void setupECMPForwarding(const ECMP_HELPER& ecmpHelper, int ecmpWidth) {
-    auto newState = ecmpHelper.setupECMPForwarding(
-        ecmpHelper.resolveNextHops(getProgrammedState(), ecmpWidth), ecmpWidth);
-    applyNewState(newState);
-  }
-
   std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
       uint8_t dscpVal) const {
     auto srcMac = utility::MacAddressGenerator().get(dstMac().u64NBO() + 1);
@@ -139,7 +132,7 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
       const utility::EcmpSetupAnyNPorts6& ecmpHelper6,
       const std::vector<int>& queueIds) {
     auto kEcmpWidthForTest = 1;
-    setupECMPForwarding(ecmpHelper6, kEcmpWidthForTest);
+    resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
     for (const auto& nextHop : ecmpHelper6.getNextHops()) {
       utility::disableTTLDecrements(
           getHwSwitch(), ecmpHelper6.getRouterId(), nextHop);

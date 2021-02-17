@@ -121,13 +121,12 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
   void setupDataPlaneWithMirror(
       const std::string& mirrorName,
       bool truncate = false) {
-    auto mirrors = getProgrammedState()->getMirrors()->clone();
+    resolveNeigborAndProgramRoutes(*ecmpHelper_, 1);
+    auto state = getProgrammedState()->clone();
+    auto mirrors = state->getMirrors()->clone();
     auto mirror = mirrorName == kSpan ? getSpanMirror() : getErSpanMirror();
     mirror->setTruncate(truncate);
     mirrors->addMirror(mirror);
-
-    auto state = ecmpHelper_->setupECMPForwarding(
-        ecmpHelper_->resolveNextHops(getProgrammedState(), 1), 1);
     state->resetMirrors(mirrors);
 
     applyNewState(state);
