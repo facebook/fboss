@@ -368,36 +368,6 @@ void EcmpSetupTargetedPorts<IPAddrT>::programIp2MplsRoutes(
 }
 
 template <typename IPAddrT>
-std::shared_ptr<SwitchState> EcmpSetupTargetedPorts<IPAddrT>::pruneECMPRoutes(
-    const std::shared_ptr<SwitchState>& inputState,
-    const std::vector<RouteT>& prefixes) const {
-  auto outputState{inputState->clone()};
-  if (prefixes.empty()) {
-    return outputState;
-  }
-  const auto& tables1 = outputState->getRouteTables();
-  RouteUpdater u2(tables1);
-  for (const auto& prefix : prefixes) {
-    u2.delRoute(
-        routerId_,
-        folly::IPAddress(prefix.network),
-        prefix.mask,
-        ClientID::BGPD);
-  }
-
-  auto tables2 = u2.updateDone();
-  if (!tables2) {
-    // Route updater returns null when nothing changed, indicating
-    // that route was already programmed as desired. So just return
-    return outputState;
-  }
-  tables2->publish();
-
-  outputState->resetRouteTables(tables2);
-  return outputState;
-}
-
-template <typename IPAddrT>
 void EcmpSetupTargetedPorts<IPAddrT>::unprogramRoutes(
     std::unique_ptr<RouteUpdateWrapper> wrapper,
     const std::vector<RouteT>& prefixes) const {
@@ -543,13 +513,6 @@ void EcmpSetupAnyNPorts<IPAddrT>::programIp2MplsRoutes(
   }
   ecmpSetupTargetedPorts_.programIp2MplsRoutes(
       std::move(updater), ports, port2Stack, prefixes, weights);
-}
-
-template <typename IPAddrT>
-std::shared_ptr<SwitchState> EcmpSetupAnyNPorts<IPAddrT>::pruneECMPRoutes(
-    const std::shared_ptr<SwitchState>& inputState,
-    const std::vector<RouteT>& prefixes) const {
-  return ecmpSetupTargetedPorts_.pruneECMPRoutes(inputState, prefixes);
 }
 
 template <typename IPAddrT>

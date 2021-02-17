@@ -201,7 +201,7 @@ TEST_F(HwEcmpTest, ecmpToDropToEcmp) {
   applyNewState(
       ecmpHelper_->unresolveNextHops(getProgrammedState(), kEcmpWidthForTest));
   EXPECT_EQ(0, getEcmpSizeInHw());
-  applyNewState(ecmpHelper_->pruneECMPRoutes(getProgrammedState()));
+  ecmpHelper_->unprogramRoutes(getRouteUpdateWrapper());
   // Bring the route back, but mimic learning it from peers one by one first
   applyNewState(
       ecmpHelper_->resolveNextHops(getProgrammedState(), kEcmpWidthForTest));

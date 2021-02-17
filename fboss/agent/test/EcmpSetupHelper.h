@@ -175,10 +175,6 @@ class EcmpSetupTargetedPorts
       const std::vector<NextHopWeight>& weights =
           std::vector<NextHopWeight>()) const;
 
-  std::shared_ptr<SwitchState> pruneECMPRoutes(
-      const std::shared_ptr<SwitchState>& inputState,
-      const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}}) const;
-
   void unprogramRoutes(
       std::unique_ptr<RouteUpdateWrapper> wrapper,
       const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}}) const;
@@ -325,10 +321,6 @@ class EcmpSetupAnyNPorts {
       std::vector<LabelForwardingAction::LabelStack> stacks = {{10010}},
       const std::vector<NextHopWeight>& weights =
           std::vector<NextHopWeight>()) const;
-
-  std::shared_ptr<SwitchState> pruneECMPRoutes(
-      const std::shared_ptr<SwitchState>& inputState,
-      const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}}) const;
 
   void unprogramRoutes(
       std::unique_ptr<RouteUpdateWrapper> wrapper,

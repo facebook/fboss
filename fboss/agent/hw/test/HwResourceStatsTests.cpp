@@ -114,8 +114,8 @@ TEST_F(HwResourceStatsTest, l3Stats) {
     }
     EXPECT_EQ(ecmpFreeAfter, ecmpFreeBefore - 2);
     // Unresolve so we can rerun verify for many (warmboot) iterations
-    applyNewState(ecmp4.pruneECMPRoutes(getProgrammedState(), {kPrefix4()}));
-    applyNewState(ecmp6.pruneECMPRoutes(getProgrammedState(), {kPrefix6()}));
+    ecmp4.unprogramRoutes(getRouteUpdateWrapper(), {kPrefix4()});
+    ecmp6.unprogramRoutes(getRouteUpdateWrapper(), {kPrefix6()});
     applyNewState(ecmp4.unresolveNextHops(getProgrammedState(), kEcmpWidth));
     applyNewState(ecmp6.unresolveNextHops(getProgrammedState(), kEcmpWidth));
   };
