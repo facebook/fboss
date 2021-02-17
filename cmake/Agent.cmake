@@ -88,6 +88,7 @@ target_link_libraries(stats
 
 add_library(fboss_types
   fboss/agent/types.cpp
+  fboss/agent/PortDescriptorTemplate.h
 )
 
 target_link_libraries(fboss_types

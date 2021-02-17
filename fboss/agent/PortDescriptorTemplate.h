@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include "fboss/agent/types.h"
+
 #include <folly/Conv.h>
 #include <folly/dynamic.h>
 #include <folly/logging/xlog.h>
@@ -27,6 +29,7 @@ class PortDescriptorTemplate {
     PHYSICAL,
     AGGREGATE,
   };
+  PortDescriptorTemplate() {}
   explicit PortDescriptorTemplate(PortIdType p)
       : type_(PortType::PHYSICAL), physicalPortID_(p) {}
   explicit PortDescriptorTemplate(TrunkIdType p)
@@ -126,7 +129,7 @@ class PortDescriptorTemplate {
   }
 
  private:
-  PortType type_;
+  PortType type_{PortType::PHYSICAL};
   PortIdType physicalPortID_{0};
   TrunkIdType aggregatePortID_{0};
 };
@@ -137,5 +140,7 @@ inline std::ostream& operator<<(
     const PortDescriptorTemplate<PortIdT, TrunkIdT>& pd) {
   return out << pd.str();
 }
+
+using BasePortDescriptor = PortDescriptorTemplate<PortID, AggregatePortID>;
 
 } // namespace facebook::fboss

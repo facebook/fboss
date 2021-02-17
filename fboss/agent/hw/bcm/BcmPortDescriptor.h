@@ -7,7 +7,7 @@ extern "C" {
 #include <bcm/types.h>
 }
 
-#include "fboss/agent/state/PortDescriptorTemplate.h"
+#include "fboss/agent/PortDescriptorTemplate.h"
 #include "fboss/agent/types.h"
 
 FBOSS_STRONG_TYPE(bcm_port_t, BcmPortId)

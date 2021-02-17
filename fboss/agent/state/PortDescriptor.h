@@ -13,7 +13,7 @@
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/types.h"
 
-#include "fboss/agent/state/PortDescriptorTemplate.h"
+#include "fboss/agent/PortDescriptorTemplate.h"
 
 #include <folly/Conv.h>
 #include <folly/dynamic.h>
