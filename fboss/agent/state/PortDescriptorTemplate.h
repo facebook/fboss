@@ -9,8 +9,6 @@
  */
 #pragma once
 
-#include "fboss/agent/FbossError.h"
-
 #include <folly/Conv.h>
 #include <folly/dynamic.h>
 #include <folly/logging/xlog.h>
@@ -120,13 +118,6 @@ class PortDescriptorTemplate {
     } else {
       return PortDescriptorTemplate(PortIdType(descJSON.asInt()));
     }
-  }
-  PortIdType getPhysicalPortOrThrow() const {
-    if (type() != PortType::PHYSICAL) {
-      throw FbossError("PortDescriptor is not physical");
-    }
-
-    return physicalPortID_;
   }
   std::string str() const {
     return isPhysicalPort()
