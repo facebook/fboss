@@ -40,6 +40,7 @@ void SaiLagManager::addLag(
       PortDescriptorSaiId(lag->adapterKey()));
   handle->members = std::move(members);
   handle->lag = std::move(lag);
+  handle->minimumLinkCount = aggregatePort->getMinimumLinkCount();
   handles_.emplace(aggregatePort->getID(), std::move(handle));
 }
 
@@ -61,6 +62,8 @@ void SaiLagManager::changeLag(
   auto handleIter = handles_.find(oldAggregatePort->getID());
   CHECK(handleIter != handles_.end());
   auto& saiLagHandle = handleIter->second;
+
+  saiLagHandle->minimumLinkCount = newAggregatePort->getMinimumLinkCount();
 
   auto oldPortAndFwdState = oldAggregatePort->subportAndFwdState();
   auto newPortAndFwdState = newAggregatePort->subportAndFwdState();

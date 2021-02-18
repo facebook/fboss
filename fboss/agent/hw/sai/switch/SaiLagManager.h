@@ -13,9 +13,10 @@ using SaiLag = SaiObject<SaiLagTraits>;
 using SaiLagMember = SaiObject<SaiLagMemberTraits>;
 
 struct SaiLagHandle {
-  std::shared_ptr<SaiLag> lag;
-  std::map<PortSaiId, std::shared_ptr<SaiLagMember>> members;
-  std::shared_ptr<SaiBridgePort> bridgePort;
+  std::shared_ptr<SaiLag> lag{};
+  std::map<PortSaiId, std::shared_ptr<SaiLagMember>> members{};
+  std::shared_ptr<SaiBridgePort> bridgePort{};
+  uint32_t minimumLinkCount{0};
 };
 
 class SaiManagerTable;
