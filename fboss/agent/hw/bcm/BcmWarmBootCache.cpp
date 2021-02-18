@@ -404,12 +404,8 @@ BcmWarmBootCache::findEgressFromLabeledHostKey(const BcmLabeledHostKey& key) {
       : findEgress(iter->second);
 }
 
-void BcmWarmBootCache::populate(std::optional<folly::dynamic> warmBootState) {
-  if (warmBootState) {
-    populateFromWarmBootState(*warmBootState);
-  } else {
-    populateFromWarmBootState(getWarmBootState());
-  }
+void BcmWarmBootCache::populate(const folly::dynamic& warmBootState) {
+  populateFromWarmBootState(warmBootState);
   bcm_vlan_data_t* vlanList = nullptr;
   int vlanCount = 0;
   SCOPE_EXIT {

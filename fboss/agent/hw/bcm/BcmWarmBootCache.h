@@ -62,7 +62,7 @@ class BcmWarmBootCache {
  public:
   explicit BcmWarmBootCache(const BcmSwitchIf* hw);
   folly::dynamic getWarmBootStateFollyDynamic() const;
-  void populate(std::optional<folly::dynamic> warmBootState = std::nullopt);
+  void populate(const folly::dynamic& warmBootState);
   struct VlanInfo {
     VlanInfo(
         VlanID _vlan,

@@ -181,6 +181,8 @@ DEFINE_int32(
 // Put lowest priority for this group among all i.e. lower than acl_g_pri.
 DEFINE_int32(qcm_ifp_pri, -1, "Group priority for ACL field group");
 
+DECLARE_bool(enable_standalone_rib);
+
 enum : uint8_t {
   kRxCallbackPriority = 1,
 };
@@ -871,7 +873,17 @@ HwInitResult BcmSwitch::init(
     // This needs to be done after we have set
     // bcmSwitchL3EgressMode else the egress ids
     // in the host table don't show up correctly.
-    warmBootCache_->populate();
+    auto warmBootState = getPlatform()->getWarmBootHelper()->getWarmBootState();
+    if (FLAGS_enable_standalone_rib &&
+        warmBootState.find(kRib) != warmBootState.items().end()) {
+      ret.rib =
+          rib::RoutingInformationBase::fromFollyDynamic(warmBootState[kRib]);
+    }
+
+    warmBootCache_->populate(warmBootState);
+  }
+  if (FLAGS_enable_standalone_rib && !ret.rib) {
+    ret.rib = std::make_unique<rib::RoutingInformationBase>();
   }
   setupToCpuEgress();
   portTable_->initPorts(&pcfg, warmBoot);
