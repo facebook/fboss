@@ -1,18 +1,20 @@
-// Copyright 2004-present Facebook. All Rights Reserved.
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+
+#include "fboss/agent/hw/test/HwTestMirrorUtils.h"
 
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
-#include "fboss/agent/hw/bcm/BcmAclTable.h"
-#include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
-#include "fboss/agent/hw/bcm/BcmMirrorTable.h"
-#include "fboss/agent/hw/bcm/tests/BcmTest.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/state/Interface.h"
-
-extern "C" {
-#include <bcm/field.h>
-#include <bcm/mirror.h>
-}
 
 namespace facebook::fboss {
 
@@ -57,18 +59,17 @@ TestParams<IPAddressV6>::TestParams()
 } // namespace
 
 template <typename AddrT>
-class BcmMirrorTest : public BcmTest {
+class HwMirrorTest : public HwTest {
   using IPAddressV4 = folly::IPAddressV4;
   using IPAddressV6 = folly::IPAddressV6;
-  using MirrorTraverseArgT = std::pair<bcm_mirror_destination_t*, int>;
 
  public:
   void SetUp() override {
-    BcmTest::SetUp();
+    HwTest::SetUp();
   }
 
  protected:
-  cfg::SwitchConfig initialConfig() const override {
+  cfg::SwitchConfig initialConfig() const {
     return utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
   }
 
@@ -82,10 +83,10 @@ class BcmMirrorTest : public BcmTest {
     destination.egressPort_ref()->set_logicalID(masterLogicalPortIds()[0]);
 
     cfg::Mirror mirrorConfig;
-    *mirrorConfig.name_ref() = mirrorName;
-    *mirrorConfig.destination_ref() = destination;
-    *mirrorConfig.dscp_ref() = dscp;
-    *mirrorConfig.truncate_ref() = truncate;
+    mirrorConfig.name_ref() = mirrorName;
+    mirrorConfig.destination_ref() = destination;
+    mirrorConfig.dscp_ref() = dscp;
+    mirrorConfig.truncate_ref() = truncate;
     return mirrorConfig;
   }
 
@@ -99,14 +100,14 @@ class BcmMirrorTest : public BcmTest {
     cfg::MirrorDestination destination;
     cfg::MirrorTunnel tunnel;
     cfg::GreTunnel greTunnel;
-    *greTunnel.ip_ref() = destinationIp.str();
+    greTunnel.ip_ref() = destinationIp.str();
     tunnel.greTunnel_ref() = greTunnel;
     destination.tunnel_ref() = tunnel;
 
     cfg::Mirror mirrorConfig;
-    *mirrorConfig.name_ref() = mirrorName;
-    *mirrorConfig.destination_ref() = destination;
-    *mirrorConfig.dscp_ref() = dscp;
+    mirrorConfig.name_ref() = mirrorName;
+    mirrorConfig.destination_ref() = destination;
+    mirrorConfig.dscp_ref() = dscp;
     return mirrorConfig;
   }
 
@@ -120,7 +121,7 @@ class BcmMirrorTest : public BcmTest {
     cfg::MirrorDestination destination;
     cfg::MirrorTunnel tunnel;
     cfg::SflowTunnel sflowTunnel;
-    *sflowTunnel.ip_ref() = destinationIp.str();
+    sflowTunnel.ip_ref() = destinationIp.str();
     sflowTunnel.udpSrcPort_ref() = 6545;
     sflowTunnel.udpDstPort_ref() = 5343;
     tunnel.sflowTunnel_ref() = sflowTunnel;
@@ -128,213 +129,10 @@ class BcmMirrorTest : public BcmTest {
     destination.tunnel_ref() = tunnel;
 
     cfg::Mirror mirrorConfig;
-    *mirrorConfig.name_ref() = mirrorName;
-    *mirrorConfig.destination_ref() = destination;
-    *mirrorConfig.dscp_ref() = dscp;
+    mirrorConfig.name_ref() = mirrorName;
+    mirrorConfig.destination_ref() = destination;
+    mirrorConfig.dscp_ref() = dscp;
     return mirrorConfig;
-  }
-
-  template <typename T = AddrT>
-  bool areTunnelIpAddrsCorrect(
-      bcm_mirror_destination_t* dest,
-      const std::enable_if_t<
-          std::is_same<T, folly::IPAddressV6>::value,
-          MirrorTunnel>& tunnel) const {
-    return dest->version == 6 && isIpAddrSame(dest->src6_addr, tunnel.srcIp) &&
-        isIpAddrSame(dest->dst6_addr, tunnel.dstIp);
-  }
-
-  template <typename T = AddrT>
-  bool areTunnelIpAddrsCorrect(
-      bcm_mirror_destination_t* dest,
-      const std::enable_if_t<
-          std::is_same<T, folly::IPAddressV4>::value,
-          MirrorTunnel>& tunnel) const {
-    return dest->version == 4 && isIpAddrSame(dest->src_addr, tunnel.srcIp) &&
-        isIpAddrSame(dest->dst_addr, tunnel.dstIp);
-  }
-
-  template <typename T = AddrT>
-  bool isIpAddrSame(
-      std::enable_if_t<std::is_same<T, folly::IPAddressV4>::value, bcm_ip_t>
-          bcmIp,
-      const folly::IPAddress& ipAddr) const {
-    return ipAddr.asV4().toLongHBO() == bcmIp;
-  }
-
-  template <typename T = AddrT>
-  bool isIpAddrSame(
-      std::enable_if_t<std::is_same<T, folly::IPAddressV6>::value, bcm_ip6_t>&
-          bcmIp6,
-      const folly::IPAddress& ipAddr) const {
-    return ipFromBcm(bcmIp6) == ipAddr;
-  }
-
-  bool isMacAddrSame(
-      const bcm_mac_t& bcmMac,
-      const folly::MacAddress& macAddres) {
-    for (auto i = 0; i < 6; i++) {
-      if (bcmMac[i] != *(macAddres.bytes() + i)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  template <typename T = AddrT>
-  static int
-  traverse(int unit, bcm_mirror_destination_t* mirror_dest, void* user_data) {
-    MirrorTraverseArgT* args = static_cast<MirrorTraverseArgT*>(user_data);
-    bcm_mirror_destination_t* buffer = args->first;
-    int handle = args->second;
-    if (mirror_dest->mirror_dest_id == handle) {
-      std::memcpy(buffer, mirror_dest, sizeof(bcm_mirror_destination_t));
-    }
-    return 0;
-  }
-
-  void verifyResolvedBcmMirror(const std::shared_ptr<Mirror>& mirror) {
-    ASSERT_NE(mirror, nullptr);
-    ASSERT_EQ(mirror->isResolved(), true);
-    const auto* bcmMirrorTable = this->getHwSwitch()->getBcmMirrorTable();
-    auto* bcmMirror = bcmMirrorTable->getMirrorIf(mirror->getID());
-    ASSERT_NE(bcmMirror, nullptr);
-    ASSERT_TRUE(bcmMirror->isProgrammed());
-
-    auto handle = bcmMirror->getHandle().value();
-    bcm_mirror_destination_t mirror_dest;
-    bcm_mirror_destination_t_init(&mirror_dest);
-    MirrorTraverseArgT args = std::make_pair(&mirror_dest, handle);
-
-    bcm_mirror_destination_traverse(0, &BcmMirrorTest::traverse, &args);
-
-    EXPECT_EQ(mirror_dest.mirror_dest_id, handle);
-    bcm_gport_t gport;
-    BCM_GPORT_MODPORT_SET(
-        gport, this->getHwSwitch()->getUnit(), mirror->getEgressPort().value());
-    EXPECT_EQ(mirror_dest.gport, gport);
-    EXPECT_EQ(mirror_dest.tos, mirror->getDscp());
-    EXPECT_EQ(
-        bool(mirror_dest.truncate & BCM_MIRROR_PAYLOAD_TRUNCATE),
-        mirror->getTruncate());
-    if (!mirror->getMirrorTunnel().has_value()) {
-      return;
-    }
-    const auto& tunnel = mirror->getMirrorTunnel();
-    std::optional<TunnelUdpPorts> udpPorts = mirror->getTunnelUdpPorts();
-    EXPECT_EQ(
-        udpPorts.has_value(),
-        bool(mirror_dest.flags & BCM_MIRROR_DEST_TUNNEL_SFLOW));
-    EXPECT_EQ(
-        !udpPorts.has_value(),
-        bool(mirror_dest.flags & BCM_MIRROR_DEST_TUNNEL_IP_GRE));
-
-    if (udpPorts.has_value()) {
-      EXPECT_EQ(udpPorts.value().udpSrcPort, mirror_dest.udp_src_port);
-      EXPECT_EQ(udpPorts.value().udpDstPort, mirror_dest.udp_dst_port);
-      EXPECT_NE(0, mirror_dest.flags & BCM_MIRROR_DEST_TUNNEL_SFLOW);
-    } else {
-      EXPECT_EQ(tunnel->greProtocol, mirror_dest.gre_protocol);
-      EXPECT_NE(0, mirror_dest.flags & BCM_MIRROR_DEST_TUNNEL_IP_GRE);
-    }
-    if (mirror->getDestinationIp()->isV4()) {
-      EXPECT_EQ(mirror_dest.version, 4);
-      EXPECT_EQ(
-          tunnel->srcIp, folly::IPAddress::fromLongHBO(mirror_dest.src_addr));
-      EXPECT_EQ(
-          tunnel->dstIp, folly::IPAddress::fromLongHBO(mirror_dest.dst_addr));
-    } else {
-      EXPECT_EQ(mirror_dest.version, 6);
-      EXPECT_EQ(
-          tunnel->srcIp,
-          folly::IPAddress::fromBinary(
-              folly::ByteRange(mirror_dest.src6_addr, 16)));
-      EXPECT_EQ(
-          tunnel->dstIp,
-          folly::IPAddress::fromBinary(
-              folly::ByteRange(mirror_dest.dst6_addr, 16)));
-    }
-    EXPECT_EQ(tunnel->srcMac, macFromBcm(mirror_dest.src_mac));
-    EXPECT_EQ(tunnel->dstMac, macFromBcm(mirror_dest.dst_mac));
-    EXPECT_EQ(tunnel->ttl, mirror_dest.ttl);
-  }
-
-  void getAllMirrorDestinations(std::vector<bcm_gport_t>& destinations) {
-    auto traverse = [&destinations](bcm_mirror_destination_t* destination) {
-      destinations.push_back(destination->mirror_dest_id);
-    };
-
-    auto callback = [](int /*unit*/,
-                       bcm_mirror_destination_t* destination,
-                       void* closure) -> int {
-      (*static_cast<decltype(traverse)*>(closure))(destination);
-      return 0;
-    };
-
-    bcm_mirror_destination_traverse(
-        getHwSwitch()->getUnit(), callback, &traverse);
-  }
-
-  void verifyUnResolvedBcmMirror(const std::shared_ptr<Mirror>& mirror) {
-    ASSERT_NE(mirror, nullptr);
-    ASSERT_EQ(mirror->isResolved(), false);
-    const auto* bcmMirrorTable = this->getHwSwitch()->getBcmMirrorTable();
-    auto* bcmMirror = bcmMirrorTable->getMirrorIf(mirror->getID());
-    ASSERT_NE(bcmMirror, nullptr);
-    ASSERT_FALSE(bcmMirror->isProgrammed());
-  }
-
-  void verifyPortMirrorDestination(
-      PortID port,
-      uint32 flags,
-      bcm_gport_t mirror_dest_id) {
-    bcm_gport_t port_mirror_dest_id = 0;
-    int count = 0;
-    bcm_mirror_port_dest_get(
-        this->getHwSwitch()->getUnit(),
-        port,
-        flags,
-        1,
-        &port_mirror_dest_id,
-        &count);
-
-    EXPECT_NE(count, 0);
-    EXPECT_EQ(port_mirror_dest_id, mirror_dest_id);
-  }
-
-  void verifyAclMirrorDestination(
-      BcmAclEntryHandle bcmAclHandle,
-      bcm_field_action_t flags,
-      bcm_gport_t mirror_dest_id) {
-    uint32_t param0 = 0;
-    uint32_t param1 = 0;
-    bcm_field_action_get(0, bcmAclHandle, flags, &param0, &param1);
-    EXPECT_EQ(param1, mirror_dest_id);
-  }
-
-  void verifyNoAclMirrorDestination(
-      BcmAclEntryHandle bcmAclHandle,
-      bcm_field_action_t flags,
-      bcm_gport_t mirror_dest_id) {
-    uint32_t param0 = 0;
-    uint32_t param1 = 0;
-    bcm_field_action_get(0, bcmAclHandle, flags, &param0, &param1);
-    EXPECT_NE(param1, mirror_dest_id);
-  }
-
-  void verifyPortNoMirrorDestination(PortID port, uint32 flags) {
-    bcm_gport_t port_mirror_dest_id = 0;
-    int count = 0;
-    bcm_mirror_port_dest_get(
-        this->getHwSwitch()->getUnit(),
-        port,
-        flags,
-        1,
-        &port_mirror_dest_id,
-        &count);
-
-    EXPECT_EQ(count, 0);
-    EXPECT_EQ(port_mirror_dest_id, 0);
   }
 
   TestParams<AddrT> testParams() const {
@@ -365,8 +163,8 @@ class BcmMirrorTest : public BcmTest {
     mirrorAction.egressMirror_ref() = mirror;
 
     cfg::MatchToAction match2Action;
-    *match2Action.matcher_ref() = *acl.name_ref();
-    *match2Action.action_ref() = mirrorAction;
+    match2Action.matcher_ref() = *acl.name_ref();
+    match2Action.action_ref() = mirrorAction;
 
     if (!cfg.dataPlaneTrafficPolicy_ref()) {
       cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
@@ -379,9 +177,9 @@ class BcmMirrorTest : public BcmTest {
   }
 };
 
-TYPED_TEST_SUITE(BcmMirrorTest, TestTypes);
+TYPED_TEST_SUITE(HwMirrorTest, TestTypes);
 
-TYPED_TEST(BcmMirrorTest, ResolvedSpanMirror) {
+TYPED_TEST(HwMirrorTest, ResolvedSpanMirror) {
   auto setup = [=]() {
     auto cfg = this->initialConfig();
     cfg.mirrors_ref()->push_back(this->getSpanMirror());
@@ -389,13 +187,13 @@ TYPED_TEST(BcmMirrorTest, ResolvedSpanMirror) {
   };
   auto verify = [=]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getMirrorIf(kSpan);
-    this->verifyResolvedBcmMirror(mirror);
+    utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, DscpHasDefault) {
+TYPED_TEST(HwMirrorTest, DscpHasDefault) {
   auto setup = [=]() {
     auto cfg = this->initialConfig();
     cfg.mirrors_ref()->push_back(this->getSpanMirror(kSpan, kDscpDefault));
@@ -404,13 +202,13 @@ TYPED_TEST(BcmMirrorTest, DscpHasDefault) {
   auto verify = [=]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getMirrorIf(kSpan);
     EXPECT_EQ(mirror->getDscp(), kDscpDefault);
-    this->verifyResolvedBcmMirror(mirror);
+    utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, DscpHasSetValue) {
+TYPED_TEST(HwMirrorTest, DscpHasSetValue) {
   auto setup = [=]() {
     auto cfg = this->initialConfig();
     cfg.mirrors_ref()->push_back(this->getSpanMirror(kSpan, kDscp));
@@ -419,13 +217,13 @@ TYPED_TEST(BcmMirrorTest, DscpHasSetValue) {
   auto verify = [=]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getMirrorIf(kSpan);
     EXPECT_EQ(mirror->getDscp(), kDscp);
-    this->verifyResolvedBcmMirror(mirror);
+    utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, MirrorWithTruncation) {
+TYPED_TEST(HwMirrorTest, MirrorWithTruncation) {
   if (!this->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::MIRROR_PACKET_TRUNCATION)) {
     return;
@@ -438,13 +236,13 @@ TYPED_TEST(BcmMirrorTest, MirrorWithTruncation) {
   auto verify = [=]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getMirrorIf(kSpan);
     EXPECT_EQ(mirror->getDscp(), kDscp);
-    this->verifyResolvedBcmMirror(mirror);
+    utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, ResolvedErspanMirror) {
+TYPED_TEST(HwMirrorTest, ResolvedErspanMirror) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
@@ -471,7 +269,7 @@ TYPED_TEST(BcmMirrorTest, ResolvedErspanMirror) {
   auto verify = [=]() {
     auto mirror =
         this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
-    this->verifyResolvedBcmMirror(mirror);
+    utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
   };
   if (this->skipMirrorTest()) {
     return;
@@ -479,7 +277,7 @@ TYPED_TEST(BcmMirrorTest, ResolvedErspanMirror) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, ResolvedSflowMirror) {
+TYPED_TEST(HwMirrorTest, ResolvedSflowMirror) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
@@ -507,7 +305,7 @@ TYPED_TEST(BcmMirrorTest, ResolvedSflowMirror) {
   };
   auto verify = [=]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getMirrorIf(kSflow);
-    this->verifyResolvedBcmMirror(mirror);
+    utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
   };
   if (this->skipMirrorTest()) {
     return;
@@ -515,7 +313,7 @@ TYPED_TEST(BcmMirrorTest, ResolvedSflowMirror) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, UnresolvedErspanMirror) {
+TYPED_TEST(HwMirrorTest, UnresolvedErspanMirror) {
   auto setup = [=]() {
     auto cfg = this->initialConfig();
     cfg.mirrors_ref()->push_back(this->getErspanMirror());
@@ -524,7 +322,7 @@ TYPED_TEST(BcmMirrorTest, UnresolvedErspanMirror) {
   auto verify = [=]() {
     auto mirror =
         this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
-    this->verifyUnResolvedBcmMirror(mirror);
+    utility::verifyUnResolvedMirror(this->getHwSwitch(), mirror);
   };
   if (this->skipMirrorTest()) {
     return;
@@ -532,7 +330,7 @@ TYPED_TEST(BcmMirrorTest, UnresolvedErspanMirror) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, MirrorRemoved) {
+TYPED_TEST(HwMirrorTest, MirrorRemoved) {
   auto setup = [=]() {
     auto cfg = this->initialConfig();
     cfg.mirrors_ref()->push_back(this->getSpanMirror());
@@ -549,7 +347,7 @@ TYPED_TEST(BcmMirrorTest, MirrorRemoved) {
     EXPECT_EQ(local, nullptr);
     auto erspan =
         this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
-    this->verifyUnResolvedBcmMirror(erspan);
+    utility::verifyUnResolvedMirror(this->getHwSwitch(), erspan);
   };
   if (this->skipMirrorTest()) {
     return;
@@ -557,7 +355,7 @@ TYPED_TEST(BcmMirrorTest, MirrorRemoved) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, UnresolvedToUnresolvedUpdate) {
+TYPED_TEST(HwMirrorTest, UnresolvedToUnresolvedUpdate) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
@@ -577,10 +375,10 @@ TYPED_TEST(BcmMirrorTest, UnresolvedToUnresolvedUpdate) {
   };
   auto verify = [=]() {
     auto local = this->getProgrammedState()->getMirrors()->getMirrorIf(kSpan);
-    this->verifyResolvedBcmMirror(local);
+    utility::verifyResolvedMirror(this->getHwSwitch(), local);
     auto erspan =
         this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
-    this->verifyUnResolvedBcmMirror(erspan);
+    utility::verifyUnResolvedMirror(this->getHwSwitch(), erspan);
   };
   if (this->skipMirrorTest()) {
     return;
@@ -588,7 +386,7 @@ TYPED_TEST(BcmMirrorTest, UnresolvedToUnresolvedUpdate) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, ResolvedToResolvedUpdate) {
+TYPED_TEST(HwMirrorTest, ResolvedToResolvedUpdate) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
@@ -628,7 +426,7 @@ TYPED_TEST(BcmMirrorTest, ResolvedToResolvedUpdate) {
   auto verify = [=]() {
     auto mirror =
         this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
-    this->verifyResolvedBcmMirror(mirror);
+    utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
   };
   if (this->skipMirrorTest()) {
     return;
@@ -636,7 +434,7 @@ TYPED_TEST(BcmMirrorTest, ResolvedToResolvedUpdate) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, ResolvedToUnresolvedUpdate) {
+TYPED_TEST(HwMirrorTest, ResolvedToUnresolvedUpdate) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
@@ -670,7 +468,7 @@ TYPED_TEST(BcmMirrorTest, ResolvedToUnresolvedUpdate) {
   auto verify = [=]() {
     auto mirror =
         this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
-    this->verifyUnResolvedBcmMirror(mirror);
+    utility::verifyUnResolvedMirror(this->getHwSwitch(), mirror);
   };
   if (this->skipMirrorTest()) {
     return;
@@ -678,7 +476,7 @@ TYPED_TEST(BcmMirrorTest, ResolvedToUnresolvedUpdate) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, NoPortMirroringIfUnResolved) {
+TYPED_TEST(HwMirrorTest, NoPortMirroringIfUnResolved) {
   auto setup = [=]() {
     auto cfg = this->initialConfig();
     cfg.mirrors_ref()->push_back(this->getErspanMirror());
@@ -690,11 +488,15 @@ TYPED_TEST(BcmMirrorTest, NoPortMirroringIfUnResolved) {
   auto verify = [=]() {
     auto mirror =
         this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
-    this->verifyUnResolvedBcmMirror(mirror);
-    this->verifyPortNoMirrorDestination(
-        PortID(this->masterLogicalPortIds()[0]), BCM_MIRROR_PORT_INGRESS);
-    this->verifyPortNoMirrorDestination(
-        PortID(this->masterLogicalPortIds()[0]), BCM_MIRROR_PORT_EGRESS);
+    utility::verifyUnResolvedMirror(this->getHwSwitch(), mirror);
+    utility::verifyPortNoMirrorDestination(
+        this->getHwSwitch(),
+        PortID(this->masterLogicalPortIds()[0]),
+        utility::getMirrorPortIngressFlags());
+    utility::verifyPortNoMirrorDestination(
+        this->getHwSwitch(),
+        PortID(this->masterLogicalPortIds()[0]),
+        utility::getMirrorPortEgressFlags());
   };
   if (this->skipMirrorTest()) {
     return;
@@ -702,7 +504,7 @@ TYPED_TEST(BcmMirrorTest, NoPortMirroringIfUnResolved) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, PortMirroringIfResolved) {
+TYPED_TEST(HwMirrorTest, PortMirroringIfResolved) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
@@ -730,18 +532,20 @@ TYPED_TEST(BcmMirrorTest, PortMirroringIfResolved) {
   auto verify = [=]() {
     auto mirror =
         this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
-    this->verifyResolvedBcmMirror(mirror);
-    std::vector<bcm_gport_t> destinations;
-    this->getAllMirrorDestinations(destinations);
+    utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
+    std::vector<uint64_t> destinations;
+    utility::getAllMirrorDestinations(this->getHwSwitch(), destinations);
 
     ASSERT_EQ(destinations.size(), 1);
-    this->verifyPortMirrorDestination(
+    utility::verifyPortMirrorDestination(
+        this->getHwSwitch(),
         PortID(this->masterLogicalPortIds()[0]),
-        BCM_MIRROR_PORT_INGRESS,
+        utility::getMirrorPortIngressFlags(),
         destinations[0]);
-    this->verifyPortMirrorDestination(
+    utility::verifyPortMirrorDestination(
+        this->getHwSwitch(),
         PortID(this->masterLogicalPortIds()[0]),
-        BCM_MIRROR_PORT_EGRESS,
+        utility::getMirrorPortEgressFlags(),
         destinations[0]);
   };
   if (this->skipMirrorTest()) {
@@ -750,7 +554,7 @@ TYPED_TEST(BcmMirrorTest, PortMirroringIfResolved) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, PortMirrorUpdateIfMirrorUpdate) {
+TYPED_TEST(HwMirrorTest, PortMirrorUpdateIfMirrorUpdate) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
@@ -794,14 +598,15 @@ TYPED_TEST(BcmMirrorTest, PortMirrorUpdateIfMirrorUpdate) {
   auto verify = [=]() {
     auto mirror =
         this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
-    this->verifyResolvedBcmMirror(mirror);
-    std::vector<bcm_gport_t> destinations;
-    this->getAllMirrorDestinations(destinations);
+    utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
+    std::vector<uint64_t> destinations;
+    utility::getAllMirrorDestinations(this->getHwSwitch(), destinations);
 
     ASSERT_EQ(destinations.size(), 1);
-    this->verifyPortMirrorDestination(
+    utility::verifyPortMirrorDestination(
+        this->getHwSwitch(),
         PortID(this->masterLogicalPortIds()[0]),
-        BCM_MIRROR_PORT_INGRESS,
+        utility::getMirrorPortIngressFlags(),
         destinations[0]);
   };
   if (this->skipMirrorTest()) {
@@ -810,7 +615,7 @@ TYPED_TEST(BcmMirrorTest, PortMirrorUpdateIfMirrorUpdate) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, PortMirror) {
+TYPED_TEST(HwMirrorTest, PortMirror) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
@@ -839,14 +644,15 @@ TYPED_TEST(BcmMirrorTest, PortMirror) {
   auto verify = [=]() {
     auto mirror =
         this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
-    this->verifyResolvedBcmMirror(mirror);
-    std::vector<bcm_gport_t> destinations;
-    this->getAllMirrorDestinations(destinations);
+    utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
+    std::vector<uint64_t> destinations;
+    utility::getAllMirrorDestinations(this->getHwSwitch(), destinations);
 
     ASSERT_EQ(destinations.size(), 1);
-    this->verifyPortMirrorDestination(
+    utility::verifyPortMirrorDestination(
+        this->getHwSwitch(),
         PortID(this->masterLogicalPortIds()[0]),
-        BCM_MIRROR_PORT_INGRESS,
+        utility::getMirrorPortIngressFlags(),
         destinations[0]);
   };
   if (this->skipMirrorTest()) {
@@ -855,7 +661,7 @@ TYPED_TEST(BcmMirrorTest, PortMirror) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, UpdatePortMirror) {
+TYPED_TEST(HwMirrorTest, UpdatePortMirror) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
@@ -891,23 +697,29 @@ TYPED_TEST(BcmMirrorTest, UpdatePortMirror) {
   };
   auto verify = [=]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getMirrorIf(kSpan);
-    this->verifyResolvedBcmMirror(mirror);
-    std::vector<bcm_gport_t> destinations;
-    this->getAllMirrorDestinations(destinations);
+    utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
+    std::vector<uint64_t> destinations;
+    utility::getAllMirrorDestinations(this->getHwSwitch(), destinations);
 
     ASSERT_EQ(destinations.size(), 1);
-    this->verifyPortNoMirrorDestination(
-        PortID(this->masterLogicalPortIds()[0]), BCM_MIRROR_PORT_INGRESS);
-    this->verifyPortNoMirrorDestination(
-        PortID(this->masterLogicalPortIds()[0]), BCM_MIRROR_PORT_EGRESS);
+    utility::verifyPortNoMirrorDestination(
+        this->getHwSwitch(),
+        PortID(this->masterLogicalPortIds()[0]),
+        utility::getMirrorPortIngressFlags());
+    utility::verifyPortNoMirrorDestination(
+        this->getHwSwitch(),
+        PortID(this->masterLogicalPortIds()[0]),
+        utility::getMirrorPortEgressFlags());
 
-    this->verifyPortMirrorDestination(
+    utility::verifyPortMirrorDestination(
+        this->getHwSwitch(),
         PortID(this->masterLogicalPortIds()[1]),
-        BCM_MIRROR_PORT_INGRESS,
+        utility::getMirrorPortIngressFlags(),
         destinations[0]);
-    this->verifyPortMirrorDestination(
+    utility::verifyPortMirrorDestination(
+        this->getHwSwitch(),
         PortID(this->masterLogicalPortIds()[1]),
-        BCM_MIRROR_PORT_EGRESS,
+        utility::getMirrorPortEgressFlags(),
         destinations[0]);
   };
   if (this->skipMirrorTest()) {
@@ -916,7 +728,7 @@ TYPED_TEST(BcmMirrorTest, UpdatePortMirror) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, RemovePortMirror) {
+TYPED_TEST(HwMirrorTest, RemovePortMirror) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
@@ -948,15 +760,19 @@ TYPED_TEST(BcmMirrorTest, RemovePortMirror) {
   auto verify = [=]() {
     auto mirror =
         this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
-    this->verifyResolvedBcmMirror(mirror);
-    std::vector<bcm_gport_t> destinations;
-    this->getAllMirrorDestinations(destinations);
+    utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
+    std::vector<uint64_t> destinations;
+    utility::getAllMirrorDestinations(this->getHwSwitch(), destinations);
     ASSERT_EQ(destinations.size(), 1);
 
-    this->verifyPortNoMirrorDestination(
-        PortID(this->masterLogicalPortIds()[0]), BCM_MIRROR_PORT_INGRESS);
-    this->verifyPortNoMirrorDestination(
-        PortID(this->masterLogicalPortIds()[0]), BCM_MIRROR_PORT_EGRESS);
+    utility::verifyPortNoMirrorDestination(
+        this->getHwSwitch(),
+        PortID(this->masterLogicalPortIds()[0]),
+        utility::getMirrorPortIngressFlags());
+    utility::verifyPortNoMirrorDestination(
+        this->getHwSwitch(),
+        PortID(this->masterLogicalPortIds()[0]),
+        utility::getMirrorPortEgressFlags());
   };
   if (this->skipMirrorTest()) {
     return;
@@ -964,7 +780,7 @@ TYPED_TEST(BcmMirrorTest, RemovePortMirror) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, BcmMirrorStat) {
+TYPED_TEST(HwMirrorTest, HwMirrorStat) {
   auto setup = [=]() {
     auto cfg = this->initialConfig();
     cfg.mirrors_ref()->push_back(this->getSpanMirror());
@@ -972,7 +788,7 @@ TYPED_TEST(BcmMirrorTest, BcmMirrorStat) {
     this->applyNewConfig(cfg);
   };
   auto verify = [=]() {
-    auto stats = this->getHwSwitch()->getStatUpdater()->getHwTableStats();
+    auto stats = utility::getHwTableStats(this->getHwSwitch());
     EXPECT_EQ(*stats.mirrors_used_ref(), 1);
     EXPECT_EQ(*stats.mirrors_span_ref(), 1);
     EXPECT_EQ(*stats.mirrors_erspan_ref(), 0);
@@ -983,7 +799,7 @@ TYPED_TEST(BcmMirrorTest, BcmMirrorStat) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, BcmResolvedMirrorStat) {
+TYPED_TEST(HwMirrorTest, HwResolvedMirrorStat) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
@@ -1025,7 +841,7 @@ TYPED_TEST(BcmMirrorTest, BcmResolvedMirrorStat) {
     this->applyNewState(newState);
   };
   auto verify = [=]() {
-    auto stats = this->getHwSwitch()->getStatUpdater()->getHwTableStats();
+    auto stats = utility::getHwTableStats(this->getHwSwitch());
     auto span = this->getProgrammedState()->getMirrors()->getMirrorIf(kSpan);
     auto erspan =
         this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
@@ -1047,7 +863,7 @@ TYPED_TEST(BcmMirrorTest, BcmResolvedMirrorStat) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, BcmUnresolvedMirrorStat) {
+TYPED_TEST(HwMirrorTest, HwUnresolvedMirrorStat) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
@@ -1107,7 +923,7 @@ TYPED_TEST(BcmMirrorTest, BcmUnresolvedMirrorStat) {
     this->applyNewState(newState);
   };
   auto verify = [=]() {
-    auto stats = this->getHwSwitch()->getStatUpdater()->getHwTableStats();
+    auto stats = utility::getHwTableStats(this->getHwSwitch());
     auto span = this->getProgrammedState()->getMirrors()->getMirrorIf(kSpan);
     auto erspan =
         this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
@@ -1126,13 +942,13 @@ TYPED_TEST(BcmMirrorTest, BcmUnresolvedMirrorStat) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, AclMirror) {
+TYPED_TEST(HwMirrorTest, AclMirror) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors_ref()->push_back(this->getErspanMirror());
     cfg::AclEntry acl;
-    *acl.name_ref() = "acl0";
+    acl.name_ref() = "acl0";
     acl.dstIp_ref() = "192.168.0.0/16";
     this->addAclMirror(kErspan, acl, cfg);
     this->applyNewConfig(cfg);
@@ -1156,26 +972,8 @@ TYPED_TEST(BcmMirrorTest, AclMirror) {
   auto verify = [=]() {
     auto mirror =
         this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
-    this->verifyResolvedBcmMirror(mirror);
-    std::vector<bcm_gport_t> destinations;
-    this->getAllMirrorDestinations(destinations);
-
-    ASSERT_EQ(destinations.size(), 1);
-    auto* bcmSwitch = this->getHwSwitch();
-    bcmSwitch->getAclTable()->forFilteredEach(
-        [=](const auto& pair) {
-          const auto& bcmAclEntry = pair.second;
-          return (bcmAclEntry->getIngressAclMirror() == kErspan) ||
-              (bcmAclEntry->getEgressAclMirror() == kErspan);
-        },
-        [&](const auto& pair) {
-          const auto& bcmAclEntry = pair.second;
-          auto bcmAclHandle = bcmAclEntry->getHandle();
-          this->verifyAclMirrorDestination(
-              bcmAclHandle, bcmFieldActionMirrorIngress, destinations[0]);
-          this->verifyAclMirrorDestination(
-              bcmAclHandle, bcmFieldActionMirrorEgress, destinations[0]);
-        });
+    utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
+    utility::verifyAclMirrorDestination(this->getHwSwitch(), kErspan);
   };
   if (this->skipMirrorTest()) {
     return;
@@ -1183,14 +981,14 @@ TYPED_TEST(BcmMirrorTest, AclMirror) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, UpdateAclMirror) {
+TYPED_TEST(HwMirrorTest, UpdateAclMirror) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors_ref()->push_back(this->getSpanMirror());
     cfg.mirrors_ref()->push_back(this->getErspanMirror());
     cfg::AclEntry acl;
-    *acl.name_ref() = "acl0";
+    acl.name_ref() = "acl0";
     acl.dstIp_ref() = "192.168.0.0/16";
     this->addAclMirror(kErspan, acl, cfg);
     this->applyNewConfig(cfg);
@@ -1228,25 +1026,8 @@ TYPED_TEST(BcmMirrorTest, UpdateAclMirror) {
     EXPECT_EQ(erspan, nullptr);
 
     auto span = this->getProgrammedState()->getMirrors()->getMirrorIf(kSpan);
-    this->verifyResolvedBcmMirror(span);
-    std::vector<bcm_gport_t> destinations;
-    this->getAllMirrorDestinations(destinations);
-    ASSERT_EQ(destinations.size(), 1);
-    auto* bcmSwitch = this->getHwSwitch();
-    bcmSwitch->getAclTable()->forFilteredEach(
-        [=](const auto& pair) {
-          const auto& bcmAclEntry = pair.second;
-          return (bcmAclEntry->getIngressAclMirror() == kSpan) ||
-              (bcmAclEntry->getEgressAclMirror() == kSpan);
-        },
-        [&](const auto& pair) {
-          const auto& bcmAclEntry = pair.second;
-          auto bcmAclHandle = bcmAclEntry->getHandle();
-          this->verifyAclMirrorDestination(
-              bcmAclHandle, bcmFieldActionMirrorIngress, destinations[0]);
-          this->verifyAclMirrorDestination(
-              bcmAclHandle, bcmFieldActionMirrorEgress, destinations[0]);
-        });
+    utility::verifyResolvedMirror(this->getHwSwitch(), span);
+    utility::verifyAclMirrorDestination(this->getHwSwitch(), kSpan);
   };
   if (this->skipMirrorTest()) {
     return;
@@ -1254,13 +1035,13 @@ TYPED_TEST(BcmMirrorTest, UpdateAclMirror) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, RemoveAclMirror) {
+TYPED_TEST(HwMirrorTest, RemoveAclMirror) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors_ref()->push_back(this->getErspanMirror());
     cfg::AclEntry acl;
-    *acl.name_ref() = "acl0";
+    acl.name_ref() = "acl0";
     acl.dstIp_ref() = "192.168.0.0/16";
     this->addAclMirror(kErspan, acl, cfg);
     this->applyNewConfig(cfg);
@@ -1293,23 +1074,8 @@ TYPED_TEST(BcmMirrorTest, RemoveAclMirror) {
   auto verify = [=]() {
     auto mirror =
         this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
-    this->verifyResolvedBcmMirror(mirror);
-    std::vector<bcm_gport_t> destinations;
-    this->getAllMirrorDestinations(destinations);
-    ASSERT_EQ(destinations.size(), 1);
-    auto* bcmSwitch = this->getHwSwitch();
-    bcmSwitch->getAclTable()->forFilteredEach(
-        [=](const auto& /*pair*/) {
-          return true; /* check for all acls */
-        },
-        [&](const auto& pair) {
-          const auto& bcmAclEntry = pair.second;
-          auto bcmAclHandle = bcmAclEntry->getHandle();
-          this->verifyNoAclMirrorDestination(
-              bcmAclHandle, bcmFieldActionMirrorIngress, destinations[0]);
-          this->verifyNoAclMirrorDestination(
-              bcmAclHandle, bcmFieldActionMirrorEgress, destinations[0]);
-        });
+    utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
+    utility::verifyNoAclMirrorDestination(this->getHwSwitch(), kErspan);
   };
   if (this->skipMirrorTest()) {
     return;
@@ -1317,7 +1083,7 @@ TYPED_TEST(BcmMirrorTest, RemoveAclMirror) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, BcmMirrorLimitExceeded) {
+TYPED_TEST(HwMirrorTest, HwMirrorLimitExceeded) {
   if (this->skipMirrorTest()) {
     return;
   }
@@ -1337,7 +1103,7 @@ TYPED_TEST(BcmMirrorTest, BcmMirrorLimitExceeded) {
       this->getHwSwitch()->isValidStateUpdate(StateDelta(oldState, newState)));
 }
 
-TYPED_TEST(BcmMirrorTest, SampleOnePort) {
+TYPED_TEST(HwMirrorTest, SampleOnePort) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
@@ -1372,13 +1138,14 @@ TYPED_TEST(BcmMirrorTest, SampleOnePort) {
   };
   auto verify = [=]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getMirrorIf(kSflow);
-    this->verifyResolvedBcmMirror(mirror);
-    std::vector<bcm_gport_t> destinations;
-    this->getAllMirrorDestinations(destinations);
+    utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
+    std::vector<uint64_t> destinations;
+    utility::getAllMirrorDestinations(this->getHwSwitch(), destinations);
     ASSERT_EQ(destinations.size(), 1);
-    this->verifyPortMirrorDestination(
+    utility::verifyPortMirrorDestination(
+        this->getHwSwitch(),
         PortID(this->masterLogicalPortIds()[1]),
-        BCM_MIRROR_PORT_INGRESS | BCM_MIRROR_PORT_SFLOW,
+        utility::getMirrorPortIngressAndSflowFlags(),
         destinations[0]);
   };
   if (this->skipMirrorTest() || this->skipSflowTest()) {
@@ -1387,7 +1154,7 @@ TYPED_TEST(BcmMirrorTest, SampleOnePort) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, SampleAllPorts) {
+TYPED_TEST(HwMirrorTest, SampleAllPorts) {
   /* Setup sample destination to mirror for all ports, and mirror only one port
   this will ensure all port traffic is sampled and sent to that mirror */
   auto setup = [=]() {
@@ -1425,14 +1192,15 @@ TYPED_TEST(BcmMirrorTest, SampleAllPorts) {
   };
   auto verify = [=]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getMirrorIf(kSflow);
-    this->verifyResolvedBcmMirror(mirror);
-    std::vector<bcm_gport_t> destinations;
-    this->getAllMirrorDestinations(destinations);
+    utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
+    std::vector<uint64_t> destinations;
+    utility::getAllMirrorDestinations(this->getHwSwitch(), destinations);
     ASSERT_EQ(destinations.size(), 1);
     for (auto port : this->masterLogicalPortIds()) {
-      this->verifyPortMirrorDestination(
+      utility::verifyPortMirrorDestination(
+          this->getHwSwitch(),
           port,
-          BCM_MIRROR_PORT_INGRESS | BCM_MIRROR_PORT_SFLOW,
+          utility::getMirrorPortIngressAndSflowFlags(),
           destinations[0]);
     }
   };
@@ -1442,7 +1210,7 @@ TYPED_TEST(BcmMirrorTest, SampleAllPorts) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, SflowMirrorWithErspanMirror) {
+TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirror) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
@@ -1498,32 +1266,38 @@ TYPED_TEST(BcmMirrorTest, SflowMirrorWithErspanMirror) {
   auto verify = [=]() {
     auto mirrors = this->getProgrammedState()->getMirrors();
     for (auto mirror : *mirrors) {
-      this->verifyResolvedBcmMirror(mirror);
+      utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
     }
-    std::vector<bcm_gport_t> destinations;
-    this->getAllMirrorDestinations(destinations);
+    std::vector<uint64_t> destinations;
+    utility::getAllMirrorDestinations(this->getHwSwitch(), destinations);
     ASSERT_EQ(destinations.size(), 2);
-    bcm_gport_t sflow = 0;
-    bcm_gport_t erspan = 0;
+    uint64_t sflow = 0;
+    uint64_t erspan = 0;
     for (auto destination : destinations) {
-      bcm_mirror_destination_t mirror_dest;
-      bcm_mirror_destination_t_init(&mirror_dest);
-      bcm_mirror_destination_get(
-          this->getHwSwitch()->getUnit(), destination, &mirror_dest);
-      if (mirror_dest.flags & BCM_MIRROR_DEST_TUNNEL_SFLOW) {
+      if (utility::isMirrorSflowTunnelEnabled(
+              this->getHwSwitch(), destination)) {
         sflow = destination;
       } else {
         erspan = destination;
       }
     }
     for (auto port : this->masterLogicalPortIds()) {
-      this->verifyPortMirrorDestination(
-          port, BCM_MIRROR_PORT_INGRESS | BCM_MIRROR_PORT_SFLOW, sflow);
+      utility::verifyPortMirrorDestination(
+          this->getHwSwitch(),
+          port,
+          utility::getMirrorPortIngressAndSflowFlags(),
+          sflow);
     }
-    this->verifyPortMirrorDestination(
-        this->masterLogicalPortIds()[2], BCM_MIRROR_PORT_INGRESS, erspan);
-    this->verifyPortMirrorDestination(
-        this->masterLogicalPortIds()[2], BCM_MIRROR_PORT_EGRESS, erspan);
+    utility::verifyPortMirrorDestination(
+        this->getHwSwitch(),
+        this->masterLogicalPortIds()[2],
+        utility::getMirrorPortIngressFlags(),
+        erspan);
+    utility::verifyPortMirrorDestination(
+        this->getHwSwitch(),
+        this->masterLogicalPortIds()[2],
+        utility::getMirrorPortEgressFlags(),
+        erspan);
   };
   if (this->skipMirrorTest() || this->skipSflowTest()) {
     return;
@@ -1531,7 +1305,7 @@ TYPED_TEST(BcmMirrorTest, SflowMirrorWithErspanMirror) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, SflowMirrorWithErspanMirrorOnePortSflow) {
+TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirrorOnePortSflow) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
@@ -1593,32 +1367,38 @@ TYPED_TEST(BcmMirrorTest, SflowMirrorWithErspanMirrorOnePortSflow) {
   auto verify = [=]() {
     auto mirrors = this->getProgrammedState()->getMirrors();
     for (auto mirror : *mirrors) {
-      this->verifyResolvedBcmMirror(mirror);
+      utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
     }
-    std::vector<bcm_gport_t> destinations;
-    this->getAllMirrorDestinations(destinations);
+    std::vector<uint64_t> destinations;
+    utility::getAllMirrorDestinations(this->getHwSwitch(), destinations);
     ASSERT_EQ(destinations.size(), 2);
-    bcm_gport_t sflow = 0;
-    bcm_gport_t erspan = 0;
+    uint64_t sflow = 0;
+    uint64_t erspan = 0;
     for (auto destination : destinations) {
-      bcm_mirror_destination_t mirror_dest;
-      bcm_mirror_destination_t_init(&mirror_dest);
-      bcm_mirror_destination_get(
-          this->getHwSwitch()->getUnit(), destination, &mirror_dest);
-      if (mirror_dest.flags & BCM_MIRROR_DEST_TUNNEL_SFLOW) {
+      if (utility::isMirrorSflowTunnelEnabled(
+              this->getHwSwitch(), destination)) {
         sflow = destination;
       } else {
         erspan = destination;
       }
     }
     for (auto port : this->masterLogicalPortIds()) {
-      this->verifyPortMirrorDestination(
-          port, BCM_MIRROR_PORT_INGRESS | BCM_MIRROR_PORT_SFLOW, sflow);
+      utility::verifyPortMirrorDestination(
+          this->getHwSwitch(),
+          port,
+          utility::getMirrorPortIngressAndSflowFlags(),
+          sflow);
     }
-    this->verifyPortMirrorDestination(
-        this->masterLogicalPortIds()[2], BCM_MIRROR_PORT_INGRESS, erspan);
-    this->verifyPortMirrorDestination(
-        this->masterLogicalPortIds()[2], BCM_MIRROR_PORT_EGRESS, erspan);
+    utility::verifyPortMirrorDestination(
+        this->getHwSwitch(),
+        this->masterLogicalPortIds()[2],
+        utility::getMirrorPortIngressFlags(),
+        erspan);
+    utility::verifyPortMirrorDestination(
+        this->getHwSwitch(),
+        this->masterLogicalPortIds()[2],
+        utility::getMirrorPortEgressFlags(),
+        erspan);
   };
   if (this->skipMirrorTest() || this->skipSflowTest()) {
     return;
@@ -1626,7 +1406,7 @@ TYPED_TEST(BcmMirrorTest, SflowMirrorWithErspanMirrorOnePortSflow) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, SflowMirrorWithErspanMirrorNoPortSflow) {
+TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirrorNoPortSflow) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
@@ -1681,41 +1461,46 @@ TYPED_TEST(BcmMirrorTest, SflowMirrorWithErspanMirrorNoPortSflow) {
 
     for (auto i = 0; i < 2; i++) {
       auto portId = this->masterLogicalPortIds()[i];
-      auto portCfg = utility::findCfgPort(cfg, portId);
-      portCfg->sampleDest_ref() = cfg::SampleDestination::CPU;
-      *portCfg->sFlowIngressRate_ref() = 0;
-      portCfg->ingressMirror_ref().reset();
+      auto portConfig = utility::findCfgPort(cfg, portId);
+      portConfig->sampleDest_ref() = cfg::SampleDestination::CPU;
+      *portConfig->sFlowIngressRate_ref() = 0;
+      portConfig->ingressMirror_ref().reset();
     }
     this->applyNewConfig(cfg);
   };
   auto verify = [=]() {
     auto mirrors = this->getProgrammedState()->getMirrors();
     for (auto mirror : *mirrors) {
-      this->verifyResolvedBcmMirror(mirror);
+      utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
     }
-    std::vector<bcm_gport_t> destinations;
-    this->getAllMirrorDestinations(destinations);
+    std::vector<uint64_t> destinations;
+    utility::getAllMirrorDestinations(this->getHwSwitch(), destinations);
     ASSERT_EQ(destinations.size(), 2);
-    bcm_gport_t erspan = 0;
+    uint64_t erspan = 0;
     for (auto destination : destinations) {
-      bcm_mirror_destination_t mirror_dest;
-      bcm_mirror_destination_t_init(&mirror_dest);
-      bcm_mirror_destination_get(
-          this->getHwSwitch()->getUnit(), destination, &mirror_dest);
-      if (mirror_dest.flags & BCM_MIRROR_DEST_TUNNEL_SFLOW) {
+      if (utility::isMirrorSflowTunnelEnabled(
+              this->getHwSwitch(), destination)) {
         std::ignore = destination;
       } else {
         erspan = destination;
       }
     }
     for (auto port : this->masterLogicalPortIds()) {
-      this->verifyPortNoMirrorDestination(
-          port, BCM_MIRROR_PORT_INGRESS | BCM_MIRROR_PORT_SFLOW);
+      utility::verifyPortNoMirrorDestination(
+          this->getHwSwitch(),
+          port,
+          utility::getMirrorPortIngressAndSflowFlags());
     }
-    this->verifyPortMirrorDestination(
-        this->masterLogicalPortIds()[2], BCM_MIRROR_PORT_INGRESS, erspan);
-    this->verifyPortMirrorDestination(
-        this->masterLogicalPortIds()[2], BCM_MIRROR_PORT_EGRESS, erspan);
+    utility::verifyPortMirrorDestination(
+        this->getHwSwitch(),
+        this->masterLogicalPortIds()[2],
+        utility::getMirrorPortIngressFlags(),
+        erspan);
+    utility::verifyPortMirrorDestination(
+        this->getHwSwitch(),
+        this->masterLogicalPortIds()[2],
+        utility::getMirrorPortEgressFlags(),
+        erspan);
   };
   if (this->skipMirrorTest() || this->skipSflowTest()) {
     return;
@@ -1723,7 +1508,7 @@ TYPED_TEST(BcmMirrorTest, SflowMirrorWithErspanMirrorNoPortSflow) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, SampleAllPortsMirrorUnresolved) {
+TYPED_TEST(HwMirrorTest, SampleAllPortsMirrorUnresolved) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
@@ -1774,16 +1559,17 @@ TYPED_TEST(BcmMirrorTest, SampleAllPortsMirrorUnresolved) {
   };
   auto verify = [=]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getMirrorIf(kSflow);
-    this->verifyUnResolvedBcmMirror(mirror);
-    std::vector<bcm_gport_t> destinations;
-    this->getAllMirrorDestinations(destinations);
+    utility::verifyUnResolvedMirror(this->getHwSwitch(), mirror);
+    std::vector<uint64_t> destinations;
+    utility::getAllMirrorDestinations(this->getHwSwitch(), destinations);
     ASSERT_EQ(destinations.size(), 0); // no mirror found
     EXPECT_TRUE(mirror->getTunnelUdpPorts().has_value());
     for (auto port : this->masterLogicalPortIds()) {
-      this->verifyPortNoMirrorDestination(
+      utility::verifyPortNoMirrorDestination(
+          this->getHwSwitch(),
           port,
-          BCM_MIRROR_PORT_INGRESS |
-              BCM_MIRROR_PORT_SFLOW); // noo mirroring to port
+          utility::getMirrorPortIngressAndSflowFlags()); // noo mirroring
+                                                         // to port
     }
   };
   if (this->skipMirrorTest() || this->skipSflowTest()) {
@@ -1792,7 +1578,7 @@ TYPED_TEST(BcmMirrorTest, SampleAllPortsMirrorUnresolved) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, SampleAllPortsMirrorUnresolvedResolved) {
+TYPED_TEST(HwMirrorTest, SampleAllPortsMirrorUnresolvedResolved) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
@@ -1863,14 +1649,15 @@ TYPED_TEST(BcmMirrorTest, SampleAllPortsMirrorUnresolvedResolved) {
   };
   auto verify = [=]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getMirrorIf(kSflow);
-    this->verifyResolvedBcmMirror(mirror);
-    std::vector<bcm_gport_t> destinations;
-    this->getAllMirrorDestinations(destinations);
+    utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
+    std::vector<uint64_t> destinations;
+    utility::getAllMirrorDestinations(this->getHwSwitch(), destinations);
     ASSERT_EQ(destinations.size(), 1);
     for (auto port : this->masterLogicalPortIds()) {
-      this->verifyPortMirrorDestination(
+      utility::verifyPortMirrorDestination(
+          this->getHwSwitch(),
           port,
-          BCM_MIRROR_PORT_INGRESS | BCM_MIRROR_PORT_SFLOW,
+          utility::getMirrorPortIngressAndSflowFlags(),
           destinations[0]);
     }
   };
@@ -1880,7 +1667,7 @@ TYPED_TEST(BcmMirrorTest, SampleAllPortsMirrorUnresolvedResolved) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, SampleAllPortsMirrorUpdate) {
+TYPED_TEST(HwMirrorTest, SampleAllPortsMirrorUpdate) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
@@ -1916,14 +1703,15 @@ TYPED_TEST(BcmMirrorTest, SampleAllPortsMirrorUpdate) {
   };
   auto verify = [=]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getMirrorIf(kSflow);
-    this->verifyResolvedBcmMirror(mirror);
-    std::vector<bcm_gport_t> destinations;
-    this->getAllMirrorDestinations(destinations);
+    utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
+    std::vector<uint64_t> destinations;
+    utility::getAllMirrorDestinations(this->getHwSwitch(), destinations);
     ASSERT_EQ(destinations.size(), 1);
     for (auto port : this->masterLogicalPortIds()) {
-      this->verifyPortMirrorDestination(
+      utility::verifyPortMirrorDestination(
+          this->getHwSwitch(),
           port,
-          BCM_MIRROR_PORT_INGRESS | BCM_MIRROR_PORT_SFLOW,
+          utility::getMirrorPortIngressAndSflowFlags(),
           destinations[0]);
     }
   };
@@ -1976,7 +1764,7 @@ TYPED_TEST(BcmMirrorTest, SampleAllPortsMirrorUpdate) {
   this->verifyAcrossWarmBoots(setup, verify, setupPostWb, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, RemoveSampleAllPorts) {
+TYPED_TEST(HwMirrorTest, RemoveSampleAllPorts) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
@@ -2017,12 +1805,14 @@ TYPED_TEST(BcmMirrorTest, RemoveSampleAllPorts) {
   auto verify = [=]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getMirrorIf(kSflow);
     EXPECT_EQ(mirror, nullptr);
-    std::vector<bcm_gport_t> destinations;
-    this->getAllMirrorDestinations(destinations);
+    std::vector<uint64_t> destinations;
+    utility::getAllMirrorDestinations(this->getHwSwitch(), destinations);
     ASSERT_EQ(destinations.size(), 0);
     for (auto port : this->masterLogicalPortIds()) {
-      this->verifyPortNoMirrorDestination(
-          port, BCM_MIRROR_PORT_INGRESS | BCM_MIRROR_PORT_SFLOW);
+      utility::verifyPortNoMirrorDestination(
+          this->getHwSwitch(),
+          port,
+          utility::getMirrorPortIngressAndSflowFlags());
     }
   };
   if (this->skipMirrorTest() || this->skipSflowTest()) {
@@ -2031,7 +1821,7 @@ TYPED_TEST(BcmMirrorTest, RemoveSampleAllPorts) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmMirrorTest, RemoveSampleAllPortsAfterWarmBoot) {
+TYPED_TEST(HwMirrorTest, RemoveSampleAllPortsAfterWarmBoot) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
@@ -2067,14 +1857,15 @@ TYPED_TEST(BcmMirrorTest, RemoveSampleAllPortsAfterWarmBoot) {
   };
   auto verify = [=]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getMirrorIf(kSflow);
-    this->verifyResolvedBcmMirror(mirror);
-    std::vector<bcm_gport_t> destinations;
-    this->getAllMirrorDestinations(destinations);
+    utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
+    std::vector<uint64_t> destinations;
+    utility::getAllMirrorDestinations(this->getHwSwitch(), destinations);
     ASSERT_EQ(destinations.size(), 1);
     for (auto port : this->masterLogicalPortIds()) {
-      this->verifyPortMirrorDestination(
+      utility::verifyPortMirrorDestination(
+          this->getHwSwitch(),
           port,
-          BCM_MIRROR_PORT_INGRESS | BCM_MIRROR_PORT_SFLOW,
+          utility::getMirrorPortIngressAndSflowFlags(),
           destinations[0]);
     }
   };
@@ -2085,12 +1876,14 @@ TYPED_TEST(BcmMirrorTest, RemoveSampleAllPortsAfterWarmBoot) {
   auto verifyPostWb = [=]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getMirrorIf(kSflow);
     EXPECT_EQ(mirror, nullptr);
-    std::vector<bcm_gport_t> destinations;
-    this->getAllMirrorDestinations(destinations);
+    std::vector<uint64_t> destinations;
+    utility::getAllMirrorDestinations(this->getHwSwitch(), destinations);
     ASSERT_EQ(destinations.size(), 0);
     for (auto port : this->masterLogicalPortIds()) {
-      this->verifyPortNoMirrorDestination(
-          port, BCM_MIRROR_PORT_INGRESS | BCM_MIRROR_PORT_SFLOW);
+      utility::verifyPortNoMirrorDestination(
+          this->getHwSwitch(),
+          port,
+          utility::getMirrorPortIngressAndSflowFlags());
     }
   };
   if (this->skipMirrorTest() || this->skipSflowTest()) {
@@ -2099,7 +1892,7 @@ TYPED_TEST(BcmMirrorTest, RemoveSampleAllPortsAfterWarmBoot) {
   this->verifyAcrossWarmBoots(setup, verify, setupPostWb, verifyPostWb);
 }
 
-TYPED_TEST(BcmMirrorTest, SampleAllPortsReloadConfig) {
+TYPED_TEST(HwMirrorTest, SampleAllPortsReloadConfig) {
   /* Setup sample destination to mirror for all ports, and mirror only one port
   this will ensure all port traffic is sampled and sent to that mirror */
   auto setup = [=]() {
@@ -2140,14 +1933,15 @@ TYPED_TEST(BcmMirrorTest, SampleAllPortsReloadConfig) {
   };
   auto verify = [=]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getMirrorIf(kSflow);
-    this->verifyResolvedBcmMirror(mirror);
-    std::vector<bcm_gport_t> destinations;
-    this->getAllMirrorDestinations(destinations);
+    utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
+    std::vector<uint64_t> destinations;
+    utility::getAllMirrorDestinations(this->getHwSwitch(), destinations);
     ASSERT_EQ(destinations.size(), 1);
     for (auto port : this->masterLogicalPortIds()) {
-      this->verifyPortMirrorDestination(
+      utility::verifyPortMirrorDestination(
+          this->getHwSwitch(),
           port,
-          BCM_MIRROR_PORT_INGRESS | BCM_MIRROR_PORT_SFLOW,
+          utility::getMirrorPortIngressAndSflowFlags(),
           destinations[0]);
     }
   };
