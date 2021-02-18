@@ -23,14 +23,14 @@ void SaiLagManager::addLag(
   auto& lagStore = SaiStore::getInstance()->get<SaiLagTraits>();
   auto lag = lagStore.setObject(
       SaiLagTraits::Attributes::Label{labelValue}, std::tuple<>());
-  std::vector<std::shared_ptr<SaiLagMember>> members;
+  std::map<PortSaiId, std::shared_ptr<SaiLagMember>> members;
   for (auto iter : folly::enumerate(aggregatePort->subportAndFwdState())) {
     auto [subPort, fwdState] = *iter;
     if (fwdState == AggregatePort::Forwarding::DISABLED) {
       // subport disabled for forwarding
       continue;
     }
-    members.push_back(addMember(lag, subPort));
+    members.emplace(addMember(lag, subPort));
   }
 
   auto handle = std::make_unique<SaiLagHandle>();
@@ -63,7 +63,7 @@ void SaiLagManager::changeLag(
   addLag(newAggregatePort);
 }
 
-std::shared_ptr<SaiLagMember> SaiLagManager::addMember(
+std::pair<PortSaiId, std::shared_ptr<SaiLagMember>> SaiLagManager::addMember(
     const std::shared_ptr<SaiLag>& lag,
     PortID subPort) {
   auto portHandle = managerTable_->portManager().getPortHandle(subPort);
@@ -73,7 +73,7 @@ std::shared_ptr<SaiLagMember> SaiLagManager::addMember(
 
   SaiLagMemberTraits::CreateAttributes attrs{saiLagId, saiPortId};
   auto& lagMemberStore = SaiStore::getInstance()->get<SaiLagMemberTraits>();
-  return lagMemberStore.setObject(attrs, attrs);
+  return {saiPortId, lagMemberStore.setObject(attrs, attrs)};
 }
 
 void SaiLagManager::removeMember(

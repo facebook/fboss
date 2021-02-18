@@ -14,7 +14,7 @@ using SaiLagMember = SaiObject<SaiLagMemberTraits>;
 
 struct SaiLagHandle {
   std::shared_ptr<SaiLag> lag;
-  std::vector<std::shared_ptr<SaiLagMember>> members;
+  std::map<PortSaiId, std::shared_ptr<SaiLagMember>> members;
   std::shared_ptr<SaiBridgePort> bridgePort;
 };
 
@@ -34,7 +34,7 @@ class SaiLagManager {
       const std::shared_ptr<AggregatePort>& newAggregatePort);
 
  private:
-  std::shared_ptr<SaiLagMember> addMember(
+  std::pair<PortSaiId, std::shared_ptr<SaiLagMember>> addMember(
       const std::shared_ptr<SaiLag>& lag,
       PortID subPort);
   void removeMember(std::shared_ptr<SaiLag> lag, PortID subPort);
