@@ -146,7 +146,7 @@ class HwLabelEdgeRouteTest : public HwLinkStateDependentTest {
     return result;
   }
 
-  void setupEcmpForwarding(
+  void programRoutes(
       AddrT network,
       uint8_t mask,
       LabelForwardingAction::Label tunnelLabel) {
@@ -155,15 +155,14 @@ class HwLabelEdgeRouteTest : public HwLinkStateDependentTest {
     typename Route<AddrT>::Prefix prefix{network, mask};
     auto* ecmpHelper = ecmpHelpers_[prefix].get();
     if (!stacks.empty()) {
-      applyNewState(ecmpHelper->setupIp2MplsECMPForwarding(
-          getProgrammedState(), allPorts(), std::move(stacks), {prefix}));
+      ecmpHelper->programIp2MplsRoutes(
+          getRouteUpdateWrapper(), allPorts(), std::move(stacks), {prefix});
     } else {
-      applyNewState(ecmpHelper->setupECMPForwarding(
-          getProgrammedState(), allPorts(), {prefix}));
+      ecmpHelper->programRoutes(getRouteUpdateWrapper(), allPorts(), {prefix});
     }
   }
 
-  void setupECMPHelper(
+  void makeEcmpHelper(
       uint8_t unlabeledPaths,
       uint8_t labeledPaths,
       AddrT network,
@@ -297,7 +296,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, OneLabel) {
   // test that tunnel initiator is setup
   // test that route is setup to labeled egress
   auto params = this->testParams(0);
-  this->setupECMPHelper(0, 1, params.nexthop, params.prefix.mask);
+  this->makeEcmpHelper(0, 1, params.nexthop, params.prefix.mask);
   auto setup = [=]() {
     this->setupL3Route(
         ClientID::BGPD,
@@ -305,7 +304,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, OneLabel) {
         params.prefix.mask,
         params.nexthop); // unlabaled route from client
     this->resolveLabeledNextHops(params.nexthop, params.prefix.mask);
-    this->setupEcmpForwarding(params.nexthop, params.prefix.mask, params.label);
+    this->programRoutes(params.nexthop, params.prefix.mask, params.label);
     this->getProgrammedState();
   };
   auto verify = [=]() {
@@ -331,7 +330,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, MaxLabels) {
   // test that labeled egress is associated with tunnel
   auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto params = this->testParams(0);
-  this->setupECMPHelper(0, 1, params.nexthop, params.prefix.mask);
+  this->makeEcmpHelper(0, 1, params.nexthop, params.prefix.mask);
   auto setup = [=]() {
     // program l3 route with stack of size one less than maximum supported
     // additional label is adjacency label, which completes stack depth
@@ -343,7 +342,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, MaxLabels) {
         LabelForwardingAction::LabelStack(
             params.stack->begin(), params.stack->begin() + maxSize - 1));
     this->resolveLabeledNextHops(params.nexthop, params.prefix.mask);
-    this->setupEcmpForwarding(
+    this->programRoutes(
         params.nexthop,
         params.prefix.mask,
         params.label); // apply adjacency label
@@ -376,7 +375,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, ExceedMaxLabels) {
   // setup nexthop with stack exceeding labels
   auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto params = this->testParams(0);
-  this->setupECMPHelper(0, 1, params.nexthop, params.prefix.mask);
+  this->makeEcmpHelper(0, 1, params.nexthop, params.prefix.mask);
   auto setup = [=]() {
     this->setupL3Route(
         ClientID::BGPD,
@@ -386,7 +385,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, ExceedMaxLabels) {
         LabelForwardingAction::LabelStack(
             params.stack->begin(), params.stack->begin() + maxSize));
     this->resolveLabeledNextHops(params.nexthop, params.prefix.mask);
-    this->setupEcmpForwarding(params.nexthop, params.prefix.mask, params.label);
+    this->programRoutes(params.nexthop, params.prefix.mask, params.label);
   };
   EXPECT_THROW(setup(), FbossError);
 }
@@ -398,7 +397,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, HalfPathsWithLabels) {
   // test that tunnel initiator is setup correctly
   // test that labeled egress is associated with tunnel
   auto params = this->testParams(0);
-  this->setupECMPHelper(1, 1, params.nexthop, params.prefix.mask);
+  this->makeEcmpHelper(1, 1, params.nexthop, params.prefix.mask);
   auto setup = [=]() {
     // program l3 route with stack of size one less than maximum supported
     // additional label is adjacency label, which completes stack depth
@@ -409,7 +408,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, HalfPathsWithLabels) {
         params.nexthop);
     this->resolveUnLabeledNextHops(params.nexthop, params.prefix.mask);
     this->resolveLabeledNextHops(params.nexthop, params.prefix.mask);
-    this->setupEcmpForwarding(params.nexthop, params.prefix.mask, params.label);
+    this->programRoutes(params.nexthop, params.prefix.mask, params.label);
     this->getProgrammedState();
   };
   auto verify = [=]() {
@@ -443,7 +442,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, PathWithDifferentTunnelLabels) {
   // test that labeled egresses are associated with tunnel
   auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto params = this->testParams(0);
-  this->setupECMPHelper(0, 2, params.nexthop, params.prefix.mask);
+  this->makeEcmpHelper(0, 2, params.nexthop, params.prefix.mask);
   auto setup = [=]() {
     this->setupL3Route(
         ClientID::BGPD,
@@ -453,7 +452,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, PathWithDifferentTunnelLabels) {
         LabelForwardingAction::LabelStack(
             params.stack->begin(), params.stack->begin() + maxSize - 1));
     this->resolveLabeledNextHops(params.nexthop, params.prefix.mask);
-    this->setupEcmpForwarding(params.nexthop, params.prefix.mask, params.label);
+    this->programRoutes(params.nexthop, params.prefix.mask, params.label);
     this->getProgrammedState();
   };
   auto verify = [=]() {
@@ -490,8 +489,8 @@ TYPED_TEST(HwLabelEdgeRouteTest, PathsWithDifferentLabelStackSameTunnelLabel) {
       this->testParams(0),
       this->testParams(1),
   };
-  this->setupECMPHelper(0, 2, params[0].nexthop, params[0].prefix.mask);
-  this->setupECMPHelper(0, 2, params[1].nexthop, params[1].prefix.mask);
+  this->makeEcmpHelper(0, 2, params[0].nexthop, params[0].prefix.mask);
+  this->makeEcmpHelper(0, 2, params[1].nexthop, params[1].prefix.mask);
 
   LabelForwardingEntry::Label tunnelLabel = 511;
   auto setup = [=]() {
@@ -506,7 +505,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, PathsWithDifferentLabelStackSameTunnelLabel) {
               params[i].stack->begin() + maxSize - 1));
       this->resolveLabeledNextHops(params[i].nexthop, params[i].prefix.mask);
 
-      this->setupEcmpForwarding(
+      this->programRoutes(
           params[i].nexthop, params[i].prefix.mask, tunnelLabel);
     }
     this->getProgrammedState();
@@ -542,8 +541,8 @@ TYPED_TEST(HwLabelEdgeRouteTest, PathsWithSameLabelStackDifferentTunnelLabel) {
       this->testParams(0),
       this->testParams(1),
   };
-  this->setupECMPHelper(0, 2, params[0].nexthop, params[0].prefix.mask);
-  this->setupECMPHelper(0, 2, params[1].nexthop, params[1].prefix.mask);
+  this->makeEcmpHelper(0, 2, params[0].nexthop, params[0].prefix.mask);
+  this->makeEcmpHelper(0, 2, params[1].nexthop, params[1].prefix.mask);
 
   auto setup = [=]() {
     for (auto i = 0; i < params.size(); i++) {
@@ -557,7 +556,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, PathsWithSameLabelStackDifferentTunnelLabel) {
               params[0].stack->begin() + maxSize - 1));
       this->resolveLabeledNextHops(params[i].nexthop, params[i].prefix.mask);
 
-      this->setupEcmpForwarding(
+      this->programRoutes(
           params[i].nexthop, params[i].prefix.mask, params[i].label);
     }
     this->getProgrammedState();
@@ -598,7 +597,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, RoutesToSameNextHopWithDifferentStack) {
       this->testParams(0),
       this->testParams(1),
   };
-  this->setupECMPHelper(0, 2, params[0].nexthop, params[0].prefix.mask);
+  this->makeEcmpHelper(0, 2, params[0].nexthop, params[0].prefix.mask);
 
   auto setup = [=]() {
     for (auto i = 0; i < params.size(); i++) {
@@ -613,7 +612,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, RoutesToSameNextHopWithDifferentStack) {
     }
     /* same next hop to 2 prefixes with different stacks */
     this->resolveLabeledNextHops(params[0].nexthop, params[0].prefix.mask);
-    this->setupEcmpForwarding(
+    this->programRoutes(
         params[0].nexthop, params[0].prefix.mask, params[0].label);
     this->getProgrammedState();
   };
@@ -639,7 +638,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, RoutesToSameNextHopWithDifferentStack) {
 TYPED_TEST(HwLabelEdgeRouteTest, UnresolvedNextHops) {
   auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto params = this->testParams(0);
-  this->setupECMPHelper(
+  this->makeEcmpHelper(
       0, 2, params.nexthop, params.prefix.mask); // two labeled ports
 
   auto setup = [=]() {
@@ -650,7 +649,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, UnresolvedNextHops) {
         params.nexthop,
         LabelForwardingAction::LabelStack(
             params.stack->begin(), params.stack->begin() + maxSize - 1));
-    this->setupEcmpForwarding(params.nexthop, params.prefix.mask, params.label);
+    this->programRoutes(params.nexthop, params.prefix.mask, params.label);
     this->getProgrammedState();
   };
   auto verify = [=]() {
@@ -668,7 +667,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, UnresolvedNextHops) {
 TYPED_TEST(HwLabelEdgeRouteTest, UnresolveResolvedNextHops) {
   auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto params = this->testParams(0);
-  this->setupECMPHelper(
+  this->makeEcmpHelper(
       0, 2, params.nexthop, params.prefix.mask); // two labeled ports
 
   auto setup = [=]() {
@@ -679,7 +678,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, UnresolveResolvedNextHops) {
         params.nexthop,
         LabelForwardingAction::LabelStack(
             params.stack->begin(), params.stack->begin() + maxSize - 1));
-    this->setupEcmpForwarding(params.nexthop, params.prefix.mask, params.label);
+    this->programRoutes(params.nexthop, params.prefix.mask, params.label);
     this->resolveLabeledNextHops(params.nexthop, params.prefix.mask);
     this->unresolveLabeledNextHops(params.nexthop, params.prefix.mask);
     this->getProgrammedState();
@@ -699,7 +698,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, UnresolveResolvedNextHops) {
 TYPED_TEST(HwLabelEdgeRouteTest, UnresolvedHybridNextHops) {
   auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto params = this->testParams(0);
-  this->setupECMPHelper(1, 1, params.nexthop, params.prefix.mask);
+  this->makeEcmpHelper(1, 1, params.nexthop, params.prefix.mask);
 
   auto setup = [=]() {
     this->setupL3Route(
@@ -709,7 +708,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, UnresolvedHybridNextHops) {
         params.nexthop,
         LabelForwardingAction::LabelStack(
             params.stack->begin(), params.stack->begin() + maxSize - 1));
-    this->setupEcmpForwarding(params.nexthop, params.prefix.mask, params.label);
+    this->programRoutes(params.nexthop, params.prefix.mask, params.label);
     this->resolveLabeledNextHops(params.nexthop, params.prefix.mask);
     this->resolveUnLabeledNextHops(params.nexthop, params.prefix.mask);
     this->unresolveLabeledNextHops(params.nexthop, params.prefix.mask);
@@ -738,7 +737,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, UnresolvedHybridNextHops) {
 TYPED_TEST(HwLabelEdgeRouteTest, UnresolvedAndResolvedNextHopMultiPathGroup) {
   auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto params = this->testParams(0);
-  this->setupECMPHelper(1, 1, params.nexthop, params.prefix.mask);
+  this->makeEcmpHelper(1, 1, params.nexthop, params.prefix.mask);
 
   auto setup = [=]() {
     this->setupL3Route(
@@ -748,7 +747,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, UnresolvedAndResolvedNextHopMultiPathGroup) {
         params.nexthop,
         LabelForwardingAction::LabelStack(
             params.stack->begin(), params.stack->begin() + maxSize - 1));
-    this->setupEcmpForwarding(params.nexthop, params.prefix.mask, params.label);
+    this->programRoutes(params.nexthop, params.prefix.mask, params.label);
     this->resolveUnLabeledNextHops(params.nexthop, params.prefix.mask);
     this->getProgrammedState();
   };
@@ -779,8 +778,8 @@ TYPED_TEST(HwLabelEdgeRouteTest, UpdateRouteLabels) {
       this->testParams(0),
       this->testParams(1),
   };
-  this->setupECMPHelper(0, 2, params[0].nexthop, params[0].prefix.mask);
-  this->setupECMPHelper(0, 2, params[1].nexthop, params[1].prefix.mask);
+  this->makeEcmpHelper(0, 2, params[0].nexthop, params[0].prefix.mask);
+  this->makeEcmpHelper(0, 2, params[1].nexthop, params[1].prefix.mask);
 
   auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto setup = [=]() {
@@ -794,7 +793,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, UpdateRouteLabels) {
               params[i].stack->begin(),
               params[i].stack->begin() + maxSize - 1));
       this->resolveLabeledNextHops(params[i].nexthop, params[i].prefix.mask);
-      this->setupEcmpForwarding(
+      this->programRoutes(
           params[i].nexthop, params[i].prefix.mask, params[i].label);
     }
     // update label stack for prefix of param 1
@@ -837,8 +836,8 @@ TYPED_TEST(HwLabelEdgeRouteTest, UpdatePortLabel) {
       this->testParams(0),
       this->testParams(1),
   };
-  this->setupECMPHelper(0, 2, params[0].nexthop, params[0].prefix.mask);
-  this->setupECMPHelper(0, 2, params[1].nexthop, params[1].prefix.mask);
+  this->makeEcmpHelper(0, 2, params[0].nexthop, params[0].prefix.mask);
+  this->makeEcmpHelper(0, 2, params[1].nexthop, params[1].prefix.mask);
 
   auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto setup = [=]() {
@@ -852,7 +851,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, UpdatePortLabel) {
               params[i].stack->begin(),
               params[i].stack->begin() + maxSize - 1));
       this->resolveLabeledNextHops(params[i].nexthop, params[i].prefix.mask);
-      this->setupEcmpForwarding(
+      this->programRoutes(
           params[i].nexthop, params[i].prefix.mask, params[i].label);
     }
 
@@ -893,7 +892,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, RecursiveStackResolution) {
 
   auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto halfSize = (maxSize >>= 1); // half label stack
-  this->setupECMPHelper(0, 2, params[1].nexthop, params[1].nexthop.bitCount());
+  this->makeEcmpHelper(0, 2, params[1].nexthop, params[1].nexthop.bitCount());
 
   auto setup = [=]() {
     this->setupL3Route(
@@ -911,7 +910,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, RecursiveStackResolution) {
         LabelForwardingAction::LabelStack(
             params[0].stack->begin() + halfSize,
             params[0].stack->begin() + maxSize - 1));
-    this->setupEcmpForwarding(
+    this->programRoutes(
         params[1].nexthop, params[1].nexthop.bitCount(), params[1].label);
     this->getProgrammedState();
   };
@@ -946,8 +945,8 @@ TYPED_TEST(HwLabelEdgeRouteTest, TunnelRefTest) {
   };
 
   auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
-  this->setupECMPHelper(0, 2, params[0].nexthop, params[0].nexthop.bitCount());
-  this->setupECMPHelper(0, 2, params[1].nexthop, params[1].nexthop.bitCount());
+  this->makeEcmpHelper(0, 2, params[0].nexthop, params[0].nexthop.bitCount());
+  this->makeEcmpHelper(0, 2, params[1].nexthop, params[1].nexthop.bitCount());
 
   auto setup = [=]() {
     for (auto i = 0; i < 2; i++) {
@@ -967,7 +966,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, TunnelRefTest) {
 
       this->resolveLabeledNextHops(
           params[i].nexthop, params[i].nexthop.bitCount());
-      this->setupEcmpForwarding(
+      this->programRoutes(
           params[i].nexthop, params[i].nexthop.bitCount(), params[0].label);
     }
     this->getProgrammedState();

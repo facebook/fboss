@@ -82,10 +82,8 @@ TEST_F(HwResourceStatsTest, l3Stats) {
          v6NextHopsFreeBefore,
          v4HostFreeBefore,
          v6HostFreeBefore] = getStatsFn();
-    applyNewState(ecmp4.setupECMPForwarding(
-        getProgrammedState(), kEcmpWidth, {kPrefix4()}));
-    applyNewState(ecmp6.setupECMPForwarding(
-        getProgrammedState(), kEcmpWidth, {kPrefix6()}));
+    ecmp4.programRoutes(getRouteUpdateWrapper(), kEcmpWidth, {kPrefix4()});
+    ecmp6.programRoutes(getRouteUpdateWrapper(), kEcmpWidth, {kPrefix6()});
     applyNewState(ecmp4.resolveNextHops(getProgrammedState(), kEcmpWidth));
     applyNewState(ecmp6.resolveNextHops(getProgrammedState(), kEcmpWidth));
     // Trigger a stats collection
