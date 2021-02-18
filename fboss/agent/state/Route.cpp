@@ -76,7 +76,6 @@ std::shared_ptr<Route<AddrT>> Route<AddrT>::fromFollyDynamic(
   }
 
   auto route = std::make_shared<Route<AddrT>>(rt);
-  CHECK(!route->hasNoEntry());
   return route;
 }
 
