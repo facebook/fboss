@@ -45,10 +45,7 @@ void HwSendPacketToQueueTest::checkSendPacket(
       // need to set up ecmp for switching
       auto kEcmpWidthForTest = 1;
       utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
-      auto newState = ecmpHelper6.setupECMPForwarding(
-          ecmpHelper6.resolveNextHops(getProgrammedState(), kEcmpWidthForTest),
-          kEcmpWidthForTest);
-      applyNewState(newState);
+      resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
     }
   };
 

@@ -70,9 +70,7 @@ class HwSflowTest : public HwLinkStateDependentTest {
       portCfg->sFlowEgressRate_ref() = enableSflow ? 1 : 0;
       applyNewConfig(cfg);
       utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-      auto newState = ecmpHelper.setupECMPForwarding(
-          ecmpHelper.resolveNextHops(getProgrammedState(), 1), 1);
-      applyNewState(newState);
+      resolveNeigborAndProgramRoutes(ecmpHelper, 1);
     };
 
     auto verify = [this, enableSflow]() {

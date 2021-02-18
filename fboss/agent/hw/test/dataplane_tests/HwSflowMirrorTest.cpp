@@ -157,17 +157,18 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
       }
     }
 
-    state = helper6.setupECMPForwarding(state, nhops);
+    helper6.programRoutes(getRouteUpdateWrapper(), nhops);
+    state = getProgrammedState();
     for (auto i = 1; i < size; i++) {
       boost::container::flat_set<PortDescriptor> port;
       port.insert(PortDescriptor(ports[i]));
-      state = helper6.setupECMPForwarding(
-          state,
+      helper6.programRoutes(
+          getRouteUpdateWrapper(),
           {PortDescriptor(ports[i])},
           {RouteV6::Prefix{
               folly::IPAddressV6(folly::to<std::string>(kIpStr, i, "::0")),
               80}});
-      state = applyNewState(state);
+      state = getProgrammedState();
     }
   }
 

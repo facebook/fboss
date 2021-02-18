@@ -57,16 +57,14 @@ class HwQueuePerHostRouteTest : public HwLinkStateDependentTest {
     }
   }
 
-  std::shared_ptr<SwitchState> addRoutes(
-      const std::shared_ptr<SwitchState>& inState,
-      const std::vector<RoutePrefix<AddrT>>& routePrefixes) {
+  void addRoutes(const std::vector<RoutePrefix<AddrT>>& routePrefixes) {
     auto kEcmpWidth = 1;
-    utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(inState, kRouterID());
+    utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(
+        getProgrammedState(), kRouterID());
 
-    return ecmpHelper.setupECMPForwarding(
-        ecmpHelper.resolveNextHops(this->getProgrammedState(), kEcmpWidth),
-        kEcmpWidth,
-        routePrefixes);
+    applyNewState(ecmpHelper.resolveNextHops(getProgrammedState(), kEcmpWidth));
+    ecmpHelper.programRoutes(
+        getRouteUpdateWrapper(), kEcmpWidth, routePrefixes);
   }
 
   std::shared_ptr<SwitchState> updateRoutesClassID(
@@ -109,14 +107,13 @@ class HwQueuePerHostRouteTest : public HwLinkStateDependentTest {
     utility::addQueuePerHostQueueConfig(&newCfg);
     utility::addQueuePerHostAcls(&newCfg);
 
-    auto state = this->applyNewConfig(newCfg);
-    auto state2 = this->addRoutes(state, {this->kGetRoutePrefix()});
-    this->applyNewState(state2);
+    this->applyNewConfig(newCfg);
+    this->addRoutes({this->kGetRoutePrefix()});
 
-    auto state3 = this->updateRoutesClassID(
+    auto state = this->updateRoutesClassID(
         this->getProgrammedState(),
         {{this->kGetRoutePrefix(), this->kLookupClass()}});
-    this->applyNewState(state3);
+    this->applyNewState(state);
   }
 
   std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt() {
