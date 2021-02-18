@@ -172,14 +172,16 @@ TEST_F(NeighborManagerTest, addDuplicateUnresolvedNeighbor) {
 TEST_F(NeighborManagerTest, linkDown) {
   auto arpEntry = resolveArp(intf0.id, h0);
   checkEntry(arpEntry, h0.mac);
-  saiManagerTable->fdbManager().handleLinkDown(PortID(h0.port.id));
+  saiManagerTable->fdbManager().handleLinkDown(
+      SaiPortDescriptor(PortID(h0.port.id)));
   checkUnresolved(arpEntry);
 }
 
 TEST_F(NeighborManagerTest, linkDownReResolve) {
   auto arpEntry = resolveArp(intf0.id, h0);
   checkEntry(arpEntry, h0.mac);
-  saiManagerTable->fdbManager().handleLinkDown(PortID(h0.port.id));
+  saiManagerTable->fdbManager().handleLinkDown(
+      SaiPortDescriptor(PortID(h0.port.id)));
   checkUnresolved(arpEntry);
   saiManagerTable->neighborManager().removeNeighbor(arpEntry);
   arpEntry = resolveArp(intf0.id, h0);

@@ -65,7 +65,7 @@ void ManagedFdbEntry::removeObject(size_t, PublisherObjects) {
   this->resetObject();
 }
 
-PortID ManagedFdbEntry::getPortId() const {
+SaiPortDescriptor ManagedFdbEntry::getPortId() const {
   return portId_;
 }
 
@@ -74,11 +74,12 @@ L2Entry ManagedFdbEntry::toL2Entry() const {
   if (metadata_) {
     classId = static_cast<cfg::AclLookupClass>(metadata_.value());
   }
+  // TODO(pshaikh): L2 entry return for LAG
   return L2Entry(
       mac_,
       // For FBOSS Vlan and interface ids are always 1:1
       VlanID(interfaceId_),
-      PortDescriptor(portId_),
+      PortDescriptor(portId_.phyPortID()),
       // Since this entry is already programmed, its validated.
       // In vlan traffic to this MAC will be unicast and not
       // flooded.
@@ -97,7 +98,7 @@ SaiFdbTraits::FdbEntry ManagedFdbEntry::makeFdbEntry(
 }
 
 void SaiFdbManager::addFdbEntry(
-    PortID port,
+    SaiPortDescriptor port,
     InterfaceID interfaceId,
     folly::MacAddress mac,
     sai_fdb_entry_type_t type,
@@ -105,7 +106,7 @@ void SaiFdbManager::addFdbEntry(
   XLOGF(
       INFO,
       "Add fdb entry {}, {}, {}, type: {}, metadata: {}",
-      port,
+      port.str(),
       interfaceId,
       mac,
       (type == SAI_FDB_ENTRY_TYPE_STATIC ? "static" : "dynamic"),
@@ -118,7 +119,7 @@ void SaiFdbManager::addFdbEntry(
     XLOGF(
         INFO,
         "fdb entry {}, {}, {}, type: {}, metadata: {} already exists.",
-        managedFdbEntryIter->second->getPortId(),
+        managedFdbEntryIter->second->getPortId().str(),
         managedFdbEntryIter->second->getInterfaceID(),
         managedFdbEntryIter->second->getMac(),
         (managedFdbEntryIter->second->getType() == SAI_FDB_ENTRY_TYPE_STATIC
@@ -190,7 +191,7 @@ void SaiFdbManager::addMac(const std::shared_ptr<MacEntry>& macEntry) {
       break;
   };
   addFdbEntry(
-      macEntry->getPort().phyPortID(),
+      SaiPortDescriptor(macEntry->getPort().phyPortID()),
       getInterfaceId(macEntry),
       macEntry->getMac(),
       type,
@@ -243,7 +244,7 @@ InterfaceID SaiFdbManager::getInterfaceId(
       concurrentIndices_->vlanIds.find(portHandle->port->adapterKey())->second);
 }
 
-void SaiFdbManager::handleLinkDown(PortID portId) {
+void SaiFdbManager::handleLinkDown(SaiPortDescriptor portId) {
   auto portToKeysItr = portToKeys_.find(portId);
   if (portToKeysItr != portToKeys_.end()) {
     for (const auto& key : portToKeysItr->second) {

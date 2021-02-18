@@ -44,7 +44,7 @@ std::shared_ptr<SaiBridgePort> SaiBridgeManager::addBridgePort(
       portId,
       true,
       SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW};
-  return store.setObject(k, attributes, swPortId);
+  return store.setObject(k, attributes, SaiPortDescriptor(swPortId));
 }
 
 SaiBridgeManager::SaiBridgeManager(

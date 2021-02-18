@@ -11,6 +11,8 @@
 
 #include "fboss/agent/types.h"
 
+#include "fboss/agent/PortDescriptorTemplate.h"
+
 extern "C" {
 #include <sai.h>
 }
@@ -59,5 +61,7 @@ template <typename SaiId>
 sai_object_id_t* rawSaiId(SaiId* id) {
   return reinterpret_cast<sai_object_id_t*>(id);
 }
+
+using SaiPortDescriptor = BasePortDescriptor;
 
 } // namespace facebook::fboss

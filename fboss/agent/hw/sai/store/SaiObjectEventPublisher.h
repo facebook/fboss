@@ -44,7 +44,7 @@ struct IsPublisherKeyCustomType<SaiBridgePortTraits> : std::true_type {};
 
 template <>
 struct PublisherKey<SaiBridgePortTraits>
-    : detail::PublisherKeyInternal<SaiBridgePortTraits, PortID> {};
+    : detail::PublisherKeyInternal<SaiBridgePortTraits, SaiPortDescriptor> {};
 
 template <>
 struct IsObjectPublisher<SaiRouterInterfaceTraits> : std::true_type {};

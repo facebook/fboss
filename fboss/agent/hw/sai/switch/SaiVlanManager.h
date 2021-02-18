@@ -51,7 +51,9 @@ class ManagedVlanMember : public SaiObjectEventAggregateSubscriber<
       PortID portId,
       VlanID vlanId,
       SaiVlanMemberTraits::Attributes::VlanId saiVlanId)
-      : Base(portId), vlanId_(vlanId), saiVlanId_(saiVlanId) {}
+      : Base(SaiPortDescriptor(portId)),
+        vlanId_(vlanId),
+        saiVlanId_(saiVlanId) {}
 
   void createObject(PublisherObjects added);
 

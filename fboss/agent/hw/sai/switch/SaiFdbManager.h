@@ -56,7 +56,7 @@ class ManagedFdbEntry : public SaiObjectEventAggregateSubscriber<
 
   ManagedFdbEntry(
       SwitchSaiId switchId,
-      PortID portId,
+      SaiPortDescriptor portId,
       InterfaceID interfaceId,
       const folly::MacAddress& mac,
       sai_fdb_entry_type_t type,
@@ -74,7 +74,7 @@ class ManagedFdbEntry : public SaiObjectEventAggregateSubscriber<
   SaiFdbTraits::FdbEntry makeFdbEntry(
       const SaiManagerTable* managerTable) const;
 
-  PortID getPortId() const;
+  SaiPortDescriptor getPortId() const;
   L2Entry toL2Entry() const;
   InterfaceID getInterfaceID() const {
     return interfaceId_;
@@ -93,7 +93,7 @@ class ManagedFdbEntry : public SaiObjectEventAggregateSubscriber<
 
  private:
   SwitchSaiId switchId_;
-  PortID portId_;
+  SaiPortDescriptor portId_;
   InterfaceID interfaceId_;
   folly::MacAddress mac_;
   sai_fdb_entry_type_t type_;
@@ -108,7 +108,7 @@ class SaiFdbManager {
       const ConcurrentIndices* concurrentIndices);
 
   void addFdbEntry(
-      PortID,
+      SaiPortDescriptor,
       InterfaceID,
       folly::MacAddress,
       sai_fdb_entry_type_t type,
@@ -120,7 +120,7 @@ class SaiFdbManager {
   void changeMac(
       const std::shared_ptr<MacEntry>& oldEntry,
       const std::shared_ptr<MacEntry>& newEntry);
-  void handleLinkDown(PortID portId);
+  void handleLinkDown(SaiPortDescriptor portId);
   std::vector<L2EntryThrift> getL2Entries() const;
 
  private:
@@ -134,7 +134,7 @@ class SaiFdbManager {
       std::shared_ptr<ManagedFdbEntry>>
       managedFdbEntries_;
   folly::F14FastMap<
-      PortID,
+      SaiPortDescriptor,
       folly::F14FastSet<PublisherKey<SaiFdbTraits>::custom_type>>
       portToKeys_;
 };

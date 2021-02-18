@@ -874,7 +874,7 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
        * already resolved neighbors over that link.
        */
       std::lock_guard<std::mutex> lock{saiSwitchMutex_};
-      managerTable_->fdbManager().handleLinkDown(swPortId);
+      managerTable_->fdbManager().handleLinkDown(SaiPortDescriptor(swPortId));
     }
     swPortId2Status[swPortId] = up;
   }

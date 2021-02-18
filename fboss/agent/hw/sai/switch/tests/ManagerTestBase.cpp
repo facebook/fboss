@@ -260,7 +260,7 @@ std::shared_ptr<ArpEntry> ManagerTestBase::resolveArp(
   auto arpEntry = makeArpEntry(id, testRemoteHost, metadata);
   saiManagerTable->neighborManager().addNeighbor(arpEntry);
   saiManagerTable->fdbManager().addFdbEntry(
-      arpEntry->getPort().phyPortID(),
+      SaiPortDescriptor(arpEntry->getPort().phyPortID()),
       arpEntry->getIntfID(),
       arpEntry->getMac(),
       SAI_FDB_ENTRY_TYPE_STATIC,
