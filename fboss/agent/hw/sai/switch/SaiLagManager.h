@@ -34,6 +34,10 @@ class SaiLagManager {
       const std::shared_ptr<AggregatePort>& oldAggregatePort,
       const std::shared_ptr<AggregatePort>& newAggregatePort);
 
+  SaiLagHandle* getLagHandleIf(AggregatePortID aggregatePortID) const;
+  SaiLagHandle* getLagHandle(AggregatePortID aggregatePortID) const;
+  bool isMinimumLinkMet(AggregatePortID aggregatePortID) const;
+
  private:
   std::pair<PortSaiId, std::shared_ptr<SaiLagMember>> addMember(
       const std::shared_ptr<SaiLag>& lag,

@@ -138,4 +138,27 @@ void SaiLagManager::removeMember(AggregatePortID aggPort, PortID subPort) {
   auto saiPortId = portHandle->port->adapterKey();
   iter->second->members.erase(saiPortId);
 }
+
+SaiLagHandle* FOLLY_NULLABLE
+SaiLagManager::getLagHandleIf(AggregatePortID aggregatePortID) const {
+  auto iter = handles_.find(aggregatePortID);
+  if (iter == handles_.end()) {
+    return nullptr;
+  }
+  return iter->second.get();
+}
+
+SaiLagHandle* SaiLagManager::getLagHandle(
+    AggregatePortID aggregatePortID) const {
+  auto* handle = getLagHandleIf(aggregatePortID);
+  if (!handle) {
+    return handle;
+  }
+  throw FbossError("handle for aggregate port ", aggregatePortID, " not found");
+}
+
+bool SaiLagManager::isMinimumLinkMet(AggregatePortID aggregatePortID) const {
+  const auto* handle = getLagHandle(aggregatePortID);
+  return handle->minimumLinkCount <= handle->members.size();
+}
 } // namespace facebook::fboss
