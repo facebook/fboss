@@ -242,7 +242,8 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   handle->serdes = programSerdes(saiPort, swPort);
 
   handle->bridgePort = managerTable_->bridgeManager().addBridgePort(
-      swPort->getID(), saiPort->adapterKey());
+      SaiPortDescriptor(swPort->getID()),
+      PortDescriptorSaiId(saiPort->adapterKey()));
   loadPortQueues(handle.get());
   const auto asic = platform_->getAsic();
   for (auto portQueue : swPort->getPortQueues()) {

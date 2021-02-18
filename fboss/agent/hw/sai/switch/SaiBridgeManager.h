@@ -33,8 +33,8 @@ class SaiBridgeManager {
  public:
   SaiBridgeManager(SaiManagerTable* managerTable, const SaiPlatform* platform);
   std::shared_ptr<SaiBridgePort> addBridgePort(
-      PortID swPortId,
-      PortSaiId portId);
+      SaiPortDescriptor portDescriptor,
+      PortDescriptorSaiId saiId);
 
  private:
   SaiManagerTable* managerTable_;

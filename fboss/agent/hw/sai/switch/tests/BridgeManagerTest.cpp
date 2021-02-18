@@ -23,8 +23,8 @@ using namespace facebook::fboss;
 class BridgeManagerTest : public ManagerTestBase {};
 
 TEST_F(BridgeManagerTest, addBridgePort) {
-  auto bridgePort =
-      saiManagerTable->bridgeManager().addBridgePort(PortID(42), PortSaiId(42));
+  auto bridgePort = saiManagerTable->bridgeManager().addBridgePort(
+      SaiPortDescriptor(PortID(42)), PortDescriptorSaiId(PortSaiId(42)));
   EXPECT_EQ(
       GET_ATTR(BridgePort, Type, bridgePort->attributes()),
       SAI_BRIDGE_PORT_TYPE_PORT);

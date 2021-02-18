@@ -63,5 +63,6 @@ sai_object_id_t* rawSaiId(SaiId* id) {
 }
 
 using SaiPortDescriptor = BasePortDescriptor;
+using PortDescriptorSaiId = PortDescriptorTemplate<PortSaiId, LagSaiId>;
 
 } // namespace facebook::fboss
