@@ -26,6 +26,11 @@ inline uint8_t getQsfpPimPort(int module) {
 } // namespace
 
 namespace facebook::fboss {
+
+Minipack16QTransceiverApi::Minipack16QTransceiverApi() {
+  MinipackFpga::getInstance()->initHW();
+}
+
 /* Trigger the QSFP hard reset for a given QSFP module in the minipack chassis
  * switch. For that module, this function getsthe PIM module id, PIM port id
  * and then call FPGA function to do QSFP reset

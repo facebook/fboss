@@ -17,7 +17,7 @@ namespace facebook::fboss {
  */
 class Minipack16QTransceiverApi : public TransceiverPlatformApi {
  public:
-  Minipack16QTransceiverApi() {}
+  Minipack16QTransceiverApi();
   ~Minipack16QTransceiverApi() override {}
 
   /* Trigger the QSFP hard reset for a given QSFP module in the minipack chassis
