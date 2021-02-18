@@ -1081,11 +1081,13 @@ void SaiPortManager::programSampling(
   if (!platform_->getAsic()->isSupported(HwAsic::Feature::SAI_SAMPLING)) {
     return;
   }
-  CHECK(sampleDestination.has_value());
+  auto destination = sampleDestination.has_value()
+      ? sampleDestination.value()
+      : cfg::SampleDestination::CPU;
   SaiPortHandle* portHandle = getPortHandle(portId);
   auto samplePacketHandle = action == SamplePacketAction::START
       ? managerTable_->samplePacketManager().getOrCreateSamplePacket(
-            sampleRate, sampleDestination.value())
+            sampleRate, destination)
       : nullptr;
   /*
    * Create the sammple packet object, update the port sample packet
