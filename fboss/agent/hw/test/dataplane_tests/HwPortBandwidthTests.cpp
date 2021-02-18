@@ -53,13 +53,6 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
   }
 
   template <typename ECMP_HELPER>
-  void setupECMPForwarding(const ECMP_HELPER& ecmpHelper, int ecmpWidth) {
-    auto newState = ecmpHelper.setupECMPForwarding(
-        ecmpHelper.resolveNextHops(getProgrammedState(), ecmpWidth), ecmpWidth);
-    applyNewState(newState);
-  }
-
-  template <typename ECMP_HELPER>
   void disableTTLDecrements(const ECMP_HELPER& ecmpHelper) {
     for (const auto& nextHop : ecmpHelper.getNextHops()) {
       utility::disableTTLDecrements(
@@ -149,7 +142,7 @@ void HwPortBandwidthTest::verifyRateHelper(
   auto setup = [=]() {
     auto kEcmpWidthForTest = 1;
     utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
-    setupECMPForwarding(ecmpHelper6, kEcmpWidthForTest);
+    resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
     disableTTLDecrements(ecmpHelper6);
   };
 

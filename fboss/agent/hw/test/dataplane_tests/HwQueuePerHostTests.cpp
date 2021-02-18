@@ -161,8 +161,7 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
   }
 
   void _setupHelper() {
-    applyNewState(helper_->setupECMPForwarding(
-        helper_->resolveNextHops(getProgrammedState(), 2), kEcmpWidth));
+    resolveNeigborAndProgramRoutes(*helper_, kEcmpWidth);
     auto newCfg{initialConfig()};
     utility::addQueuePerHostQueueConfig(&newCfg);
     utility::addQueuePerHostAcls(&newCfg);

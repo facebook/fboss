@@ -37,8 +37,8 @@ class HwOlympicQosTests : public HwLinkStateDependentTest {
     }
 
     auto setup = [=]() {
-      applyNewState(helper_->setupECMPForwarding(
-          helper_->resolveNextHops(getProgrammedState(), 2), kEcmpWidth));
+      resolveNeigborAndProgramRoutes(*helper_, kEcmpWidth);
+
       auto newCfg{initialConfig()};
       utility::addOlympicQosMaps(newCfg);
       applyNewConfig(newCfg);
