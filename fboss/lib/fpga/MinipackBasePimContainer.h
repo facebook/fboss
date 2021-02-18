@@ -5,6 +5,8 @@
 #include "fboss/lib/fpga/FbFpgaI2c.h"
 #include "fboss/lib/fpga/FbFpgaPimQsfpController.h"
 #include "fboss/lib/fpga/FpgaDevice.h"
+#include "fboss/lib/fpga/MinipackLed.h"
+#include "fboss/lib/fpga/MinipackPimController.h"
 
 namespace facebook::fboss {
 
@@ -25,8 +27,17 @@ class MinipackBasePimContainer {
 
   virtual FbFpgaI2cController* getI2cController(unsigned int port) = 0;
 
+  MinipackLed* getLedController(int qsfp) const;
+
+  MinipackPimController* getController() {
+    return pimController_.get();
+  }
+
  protected:
+  static constexpr auto kNumLedPerPim = 16;
   std::unique_ptr<FbFpgaPimQsfpController> pimQsfpController_;
+  std::unique_ptr<MinipackLed> ledControllers_[kNumLedPerPim];
+  std::unique_ptr<MinipackPimController> pimController_;
   int pim_;
 };
 
