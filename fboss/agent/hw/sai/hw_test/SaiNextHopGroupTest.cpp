@@ -29,8 +29,7 @@ class SaiNextHopGroupTest : public SaiLinkStateDependentTests {
   }
 
   void addRoute(int nextHopGroupMemberCount) {
-    applyNewState(helper_->setupECMPForwarding(
-        getProgrammedState(), nextHopGroupMemberCount));
+    helper_->programRoutes(getRouteUpdateWrapper(), nextHopGroupMemberCount);
   }
 
   void resolveNeighbors(int neighborCount) {

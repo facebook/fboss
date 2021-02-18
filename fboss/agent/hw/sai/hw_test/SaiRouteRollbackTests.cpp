@@ -72,25 +72,17 @@ class SaiRouteRollbackTest : public SaiRollbackTest {
     applyNewState(v4EcmpHelper_->resolveNextHops(getProgrammedState(), width));
     applyNewState(v6EcmpHelper_->resolveNextHops(getProgrammedState(), width));
   }
-  std::shared_ptr<SwitchState> ecmpRoutesState(
-      const std::shared_ptr<SwitchState>& in) {
-    auto newState =
-        v4EcmpHelper_->setupECMPForwarding(in, kEcmpWidth, {kV4Prefix1()});
-    return v6EcmpHelper_->setupECMPForwarding(
-        newState, kEcmpWidth, {kV6Prefix1()});
+  std::shared_ptr<SwitchState> programEcmp() {
+    v4EcmpHelper_->programRoutes(
+        getRouteUpdateWrapper(), kEcmpWidth, {kV4Prefix1()});
+    v6EcmpHelper_->programRoutes(
+        getRouteUpdateWrapper(), kEcmpWidth, {kV6Prefix1()});
+    return getProgrammedState();
   }
-  std::shared_ptr<SwitchState> nonEcmpRoutesState(
-      const std::shared_ptr<SwitchState>& in) {
-    auto newState = v4EcmpHelper_->setupECMPForwarding(in, 1, {kV4Prefix2()});
-    return v6EcmpHelper_->setupECMPForwarding(newState, 1, {kV6Prefix2()});
-  }
-
-  void setupEcmpRoutes() {
-    applyNewState(ecmpRoutesState(getProgrammedState()));
-  }
-
-  void setupNonEcmpRoutes() {
-    applyNewState(nonEcmpRoutesState(getProgrammedState()));
+  std::shared_ptr<SwitchState> programNonEcmp() {
+    v4EcmpHelper_->programRoutes(getRouteUpdateWrapper(), 1, {kV4Prefix2()});
+    v6EcmpHelper_->programRoutes(getRouteUpdateWrapper(), 1, {kV6Prefix2()});
+    return getProgrammedState();
   }
 
   void SetUp() override {
@@ -109,14 +101,16 @@ class SaiRouteRollbackTest : public SaiRollbackTest {
       for (auto i = 0; i < numIters; ++i) {
         // Cache rollback states
         auto noRouteState = getProgrammedState();
-        auto ecmpRoutesOnlyState = ecmpRoutesState(getProgrammedState());
-        auto nonEcmpRoutesOnlyState = nonEcmpRoutesState(getProgrammedState());
+        auto ecmpRoutesOnlyState = programEcmp();
+        applyNewState(noRouteState);
+        auto nonEcmpRoutesOnlyState = programNonEcmp();
+        applyNewState(noRouteState);
+
         std::vector<folly::CIDRNetwork> routesPresent, routesRemoved;
         // Program Routes
-        setupEcmpRoutes();
-        setupNonEcmpRoutes();
+        programEcmp();
+        programNonEcmp();
         // Rollback
-        // TODO verify routess post rollback
         if (rollbackEcmp && rollbackNonEcmp) {
           rollback(noRouteState);
           routesRemoved = allNetworks();
