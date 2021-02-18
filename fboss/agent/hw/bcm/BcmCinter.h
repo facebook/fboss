@@ -363,6 +363,11 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       int profile_index,
       int array_count,
       int* pg_array) override;
+  int bcm_cosq_pfc_class_config_profile_set(
+      int unit,
+      int profile_index,
+      int count,
+      bcm_cosq_pfc_class_map_config_t* config_array) override;
   int bcm_field_init(int unit) override;
   int bcm_field_group_create_id(
       int unit,
@@ -1049,6 +1054,14 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       int* /*array_count*/) override {
     return 0;
   }
+  int bcm_cosq_pfc_class_config_profile_get(
+      int /*unit*/,
+      int /*profile_index*/,
+      int /*max_count*/,
+      bcm_cosq_pfc_class_map_config_t* /*config_array*/,
+      int* /*count*/) override {
+    return 0;
+  }
 
   int bcm_cosq_gport_traverse(
       int /*unit*/,
@@ -1550,6 +1563,7 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   std::string getNextMirrorDestIdVar();
   std::string getNextPriorityToPgVar();
   std::string getNextPfcPriToPgVar();
+  std::string getNextPfcPriToQueueVar();
 
   /*
    * Wrap a generated cint function call with return error code
@@ -1656,6 +1670,7 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   std::atomic<uint> mirrorDestIdCreated_{0};
   std::atomic<uint> tmpProrityToPgCreated_{0};
   std::atomic<uint> tmpPfcPriToPgCreated_{0};
+  std::atomic<uint> tmpPfcPriToQueueCreated_{0};
 
   std::unique_ptr<AsyncLogger> asyncLogger_;
 

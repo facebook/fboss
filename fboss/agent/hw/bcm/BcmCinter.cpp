@@ -247,6 +247,10 @@ string BcmCinter::getNextPfcPriToPgVar() {
   return to<string>("pfcPriToPg_", ++tmpPfcPriToPgCreated_);
 }
 
+string BcmCinter::getNextPfcPriToQueueVar() {
+  return to<string>("pfcPriToQueue_", ++tmpPfcPriToQueueCreated_);
+}
+
 string BcmCinter::getNextMirrorDestIdVar() {
   return to<string>("mirrorDestId_", ++mirrorDestIdCreated_);
 }
@@ -545,6 +549,42 @@ int BcmCinter::bcm_field_init(int unit) {
   return 0;
 }
 
+int BcmCinter::bcm_cosq_pfc_class_config_profile_set(
+    int unit,
+    int profile_index,
+    int count,
+    bcm_cosq_pfc_class_map_config_t* config_array) {
+  string arrayVarName = getNextPfcPriToQueueVar();
+  vector<string> cintLines;
+  string argVarArray = to<string>(
+      "bcm_cosq_pfc_class_map_config_t ", arrayVarName, "[", count, "]");
+  cintLines.push_back(argVarArray);
+  for (int i = 0; i < count; ++i) {
+    cintLines.push_back(to<string>(
+        "bcm_cosq_pfc_class_map_config_t_init(&", arrayVarName, "[", i, "])"));
+    cintLines.push_back(to<string>(
+        arrayVarName, "[", i, "].pfc_enable=", config_array[i].pfc_enable));
+    cintLines.push_back(to<string>(
+        arrayVarName,
+        "[",
+        i,
+        "].pfc_optimized=",
+        config_array[i].pfc_optimized));
+    cintLines.push_back(to<string>(
+        arrayVarName, "[", i, "].cos_list_bmp=", config_array[i].cos_list_bmp));
+  }
+  auto cintForFn = wrapFunc(to<string>(
+      "bcm_cosq_pfc_class_config_profile_set(",
+      makeParamStr(unit, profile_index, count, arrayVarName),
+      ")"));
+  cintLines.insert(
+      cintLines.end(),
+      make_move_iterator(cintForFn.begin()),
+      make_move_iterator(cintForFn.end()));
+  writeCintLines(std::move(cintLines));
+  return 0;
+}
+
 int BcmCinter::bcm_cosq_priority_group_pfc_priority_mapping_profile_set(
     int unit,
     int profile_index,
@@ -554,7 +594,7 @@ int BcmCinter::bcm_cosq_priority_group_pfc_priority_mapping_profile_set(
   for (int i = 0; i < array_count; ++i) {
     argValues.push_back(to<string>(pg_array[i]));
   }
-  string argVarArrayName = getNextPriorityToPgVar();
+  string argVarArrayName = getNextPfcPriToPgVar();
   string argVarArray = to<string>(
       "int ", argVarArrayName, "[] =", " {", join(", ", argValues), "}");
   vector<string> cint = {argVarArray};

@@ -1512,6 +1512,18 @@ int __real_bcm_cosq_priority_group_pfc_priority_mapping_profile_set(
     int array_count,
     int* pg_array);
 
+int __real_bcm_cosq_pfc_class_config_profile_set(
+    int unit,
+    int profile_index,
+    int count,
+    bcm_cosq_pfc_class_map_config_t* config_array);
+
+int __real_bcm_cosq_pfc_class_config_profile_get(
+    int unit,
+    int profile_index,
+    int max_count,
+    bcm_cosq_pfc_class_map_config_t* config_array,
+    int* count);
 } // extern "C"
 
 using namespace facebook::fboss;
@@ -3626,6 +3638,25 @@ int __wrap_bcm_cosq_priority_group_pfc_priority_mapping_profile_set(
     int* pg_array) {
   CALL_WRAPPERS_RV(bcm_cosq_priority_group_pfc_priority_mapping_profile_set(
       unit, profile_index, array_count, pg_array));
+}
+
+int __wrap_bcm_cosq_pfc_class_config_profile_set(
+    int unit,
+    int profile_index,
+    int count,
+    bcm_cosq_pfc_class_map_config_t* config_array) {
+  CALL_WRAPPERS_RV(bcm_cosq_pfc_class_config_profile_set(
+      unit, profile_index, count, config_array));
+}
+
+int __wrap_bcm_cosq_pfc_class_config_profile_get(
+    int unit,
+    int profile_index,
+    int max_count,
+    bcm_cosq_pfc_class_map_config_t* config_array,
+    int* count) {
+  CALL_WRAPPERS_RV(bcm_cosq_pfc_class_config_profile_get(
+      unit, profile_index, max_count, config_array, count));
 }
 
 } // extern "C"
