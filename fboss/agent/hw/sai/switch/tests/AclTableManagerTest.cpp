@@ -27,6 +27,10 @@ constexpr auto kAclTable2 = "AclTable2";
 
 class AclTableManagerTest : public ManagerTestBase {
  public:
+  void SetUp() override {
+    setupStage = SetupStage::PORT | SetupStage::VLAN | SetupStage::INTERFACE;
+    ManagerTestBase::SetUp();
+  }
   int kPriority() {
     return 1;
   }
@@ -223,4 +227,26 @@ TEST_F(AclTableManagerTest, checkNonExistentAclEntry) {
   auto aclEntryHandle = saiManagerTable->aclTableManager().getAclEntryHandle(
       aclTableHandle, kPriority());
   EXPECT_FALSE(aclEntryHandle);
+}
+
+TEST_F(AclTableManagerTest, aclMirroring) {
+  std::string mirrorId = "mirror1";
+  auto mirror = std::make_shared<Mirror>(mirrorId, PortID(1), std::nullopt);
+  saiManagerTable->mirrorManager().addMirror(mirror);
+  auto aclTableId = saiManagerTable->aclTableManager()
+                        .getAclTableHandle(SaiSwitch::kAclTable1)
+                        ->aclTable->adapterKey();
+  auto aclEntry = std::make_shared<AclEntry>(kPriority(), "AclEntry1");
+  aclEntry->setDscp(kDscp());
+  aclEntry->setActionType(kActionType());
+  MatchAction matchAction = MatchAction();
+  matchAction.setIngressMirror(mirrorId);
+  aclEntry->setAclAction(matchAction);
+  AclEntrySaiId aclEntryId = saiManagerTable->aclTableManager().addAclEntry(
+      aclEntry, SaiSwitch::kAclTable1);
+  SaiMirrorHandle* mirrorHandle =
+      saiManagerTable->mirrorManager().getMirrorHandle(mirrorId);
+  auto gotMirrorSaiIdList = saiApiTable->aclApi().getAttribute(
+      aclEntryId, SaiAclEntryTraits::Attributes::ActionMirrorIngress());
+  EXPECT_EQ((gotMirrorSaiIdList.getData())[0], mirrorHandle->adapterKey());
 }
