@@ -17,7 +17,7 @@ class MinipackBaseSystemContainer {
    * to any HW devices.
    * For now, it just allocate FPGA memory map to get it ready.
    */
-  void initHW();
+  virtual void initHW();
 
   // To avoid ambiguity, we explicitly decided the pim number starts from 2.
   uint32_t getPimOffset(int pim);

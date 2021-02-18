@@ -12,8 +12,6 @@
 #include <folly/logging/xlog.h>
 #include <chrono>
 #include <sstream>
-#include "fboss/lib/fpga/FujiFpga.h"
-#include "fboss/lib/fpga/MinipackFpga.h"
 #include "fboss/mdio/MdioError.h"
 
 namespace {
@@ -63,7 +61,8 @@ void FbFpgaMdio::setClockDivisor(int div) {
 void FbFpgaMdio::setFastMode(bool enable) {
   auto config = readReg<MdioConfig>();
   config.fastMode = ((enable) ? 1 : 0);
-  XLOG(DBG1) << "Setting mdio controller fastMode to " << (enable ? "enabled" : "disabled");
+  XLOG(DBG1) << "Setting mdio controller fastMode to "
+             << (enable ? "enabled" : "disabled");
   writeReg(config);
 }
 
