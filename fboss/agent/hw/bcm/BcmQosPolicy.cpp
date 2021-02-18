@@ -30,6 +30,7 @@ BcmQosPolicy::BcmQosPolicy(
   programEgressExpQosMap(qosPolicy);
   programTrafficClassToPgMap(qosPolicy);
   programPfcPriorityToPgMap(qosPolicy);
+  programPfcPriorityToQueueMap(qosPolicy);
 }
 
 BcmQosPolicyHandle BcmQosPolicy::getHandle(BcmQosMap::Type type) const {
@@ -66,11 +67,13 @@ void BcmQosPolicy::update(
   updateIngressExpQosMap(oldQosPolicy, newQosPolicy);
   updateTrafficClassToPgMap(oldQosPolicy, newQosPolicy);
   updatePfcPriorityToPgMap(oldQosPolicy, newQosPolicy);
+  updatePfcPriorityToQueueMap(oldQosPolicy, newQosPolicy);
 }
 
 void BcmQosPolicy::remove() {
-  programTrafficClassToPg(getBcmDefaultTrafficClassToPgArr());
-  programPfcPriorityToPg(getBcmDefaultPfcPriorityToPgArr());
+  programTrafficClassToPg(getDefaultTrafficClassToPg());
+  programPfcPriorityToPg(getDefaultPfcPriorityToPg());
+  programPfcPriorityToQueue(getDefaultPfcPriorityToQueue());
 }
 
 void BcmQosPolicy::updateIngressDscpQosMap(
@@ -432,7 +435,7 @@ void BcmQosPolicy::programPriorityGroupMapping(
 
 void BcmQosPolicy::programPfcPriorityToPgMap(
     const std::shared_ptr<QosPolicy>& qosPolicy) {
-  std::vector<int> pfcPriorityToPg = getBcmDefaultPfcPriorityToPgArr();
+  std::vector<int> pfcPriorityToPg = getDefaultPfcPriorityToPg();
   if (auto pfcPriorityToPgMap = qosPolicy->getPfcPriorityToPgId()) {
     // override with what user configures
     for (const auto& entry : *pfcPriorityToPgMap) {
@@ -449,7 +452,7 @@ void BcmQosPolicy::programPfcPriorityToPgMap(
 void BcmQosPolicy::programTrafficClassToPgMap(
     const std::shared_ptr<QosPolicy>& qosPolicy) {
   // init the array with HW defaults
-  std::vector<int> trafficClassToPg = getBcmDefaultTrafficClassToPgArr();
+  std::vector<int> trafficClassToPg = getDefaultTrafficClassToPg();
   if (auto trafficClassToPgMap = qosPolicy->getTrafficClassToPgId()) {
     // override with what user configures
     for (const auto& entry : *trafficClassToPgMap) {
@@ -466,7 +469,7 @@ void BcmQosPolicy::programTrafficClassToPgMap(
 void BcmQosPolicy::programPfcPriorityToQueueMap(
     const std::shared_ptr<QosPolicy>& qosPolicy) {
   // init the array with HW defaults
-  std::vector<int> pfcPriorityToQueue = getBcmDefaultPfcPriorityToQueueArr();
+  std::vector<int> pfcPriorityToQueue = getDefaultPfcPriorityToQueue();
   if (const auto& pfcPriorityToQueueMap =
           qosPolicy->getPfcPriorityToQueueId()) {
     // override with what user configures

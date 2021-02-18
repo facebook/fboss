@@ -20,6 +20,10 @@ const std::vector<int> kDefaultPfcPriorityToPg{0, 1, 2, 3, 4, 5, 6, 7};
 // array index representing pfc priority and value is corresponding queue id
 const std::vector<int> kDefaultPfcPriorityToQueue = {0, 1, 2, 3, 4, 5, 6, 7};
 constexpr int kDefaultProfileId = 0;
+const std::vector<int> kDefaultPfcEnableForPriToQueue =
+    {1, 1, 1, 1, 1, 1, 1, 1};
+const std::vector<int> kDefaultPfcOptimizedForPriToQueue =
+    {0, 0, 0, 0, 0, 0, 0, 0};
 } // unnamed namespace
 
 namespace facebook::fboss {
@@ -58,28 +62,28 @@ int getBcmQosMapFlagsMPLSEgress() {
   return BCM_QOS_MAP_EGRESS | BCM_QOS_MAP_MPLS;
 }
 
-const std::vector<int>& getBcmDefaultTrafficClassToPgArr() {
+const std::vector<int>& getDefaultTrafficClassToPg() {
   return kDefaultTrafficClassToPg;
 }
 
-int getBcmDefaultTrafficClassToPgSize() {
-  return kDefaultTrafficClassToPg.size();
-}
-
-const std::vector<int>& getBcmDefaultPfcPriorityToPgArr() {
+const std::vector<int>& getDefaultPfcPriorityToPg() {
   return kDefaultPfcPriorityToPg;
-}
-
-int getBcmDefaultPfcPriorityToPgSize() {
-  return kDefaultPfcPriorityToPg.size();
 }
 
 int getDefaultProfileId() {
   return kDefaultProfileId;
 }
 
-const std::vector<int>& getBcmDefaultPfcPriorityToQueueArr() {
+const std::vector<int>& getDefaultPfcPriorityToQueue() {
   return kDefaultPfcPriorityToQueue;
+}
+
+const std::vector<int>& getDefaultPfcEnablePriorityToQueue() {
+  return kDefaultPfcEnableForPriToQueue;
+}
+
+const std::vector<int>& getDefaultPfcOptimizedPriorityToQueue() {
+  return kDefaultPfcOptimizedForPriToQueue;
 }
 
 } // namespace facebook::fboss

@@ -23,8 +23,12 @@ extern "C" {
 }
 
 namespace {
+// arbit vector values for testing
 const std::vector<int> kTrafficClassToPgId{0, 1, 2, 3, 4, 5, 6, 7};
 const std::vector<int> kPfcPriorityToPgId{7, 7, 7, 7, 7, 7, 7, 7};
+const std::vector<int> kPfcPriorityToQueue = {0, 1, 2, 2, 4, 7, 7, 6};
+// this one is an extenion of the kTrafficClassToPgId
+// in HW kTrafficClassToPgId is programmed as 16 entries
 const std::vector<int>
     kTrafficClassToPgIdInHw{0, 1, 2, 3, 4, 5, 6, 7, 0, 0, 0, 0, 0, 0, 0, 0};
 } // namespace
@@ -43,6 +47,8 @@ class BcmQosMapTest : public BcmTest {
     cfg::QosMap qosMap;
     std::map<int16_t, int16_t> tc2PgId;
     std::map<int16_t, int16_t> pfcPri2PgId;
+    std::map<int16_t, int16_t> pfcPri2QueueId;
+
     for (auto i = 0; i < kTrafficClassToPgId.size(); i++) {
       tc2PgId.emplace(i, kTrafficClassToPgId[i]);
     }
@@ -50,9 +56,14 @@ class BcmQosMapTest : public BcmTest {
       pfcPri2PgId.emplace(i, kPfcPriorityToPgId[i]);
     }
 
+    for (auto i = 0; i < kPfcPriorityToQueue.size(); ++i) {
+      pfcPri2QueueId.emplace(i, kPfcPriorityToQueue[i]);
+    }
+
     // setup pfc maps
     qosMap.trafficClassToPgId_ref() = tc2PgId;
     qosMap.pfcPriorityToPgId_ref() = pfcPri2PgId;
+    qosMap.pfcPriorityToQueueId_ref() = pfcPri2QueueId;
 
     config.qosPolicies_ref()->resize(1);
     config.qosPolicies_ref()[0].name_ref() = "qp";
@@ -67,13 +78,14 @@ class BcmQosMapTest : public BcmTest {
 
   void validateTc2PgId(const std::vector<int>& expectedTc2Pg) {
     std::vector<int> tc2PgId;
-    tc2PgId.resize(getBcmDefaultTrafficClassToPgSize());
+    const int defaultTrafficClassToPgSize = getDefaultTrafficClassToPg().size();
+    tc2PgId.resize(defaultTrafficClassToPgSize);
     int arrayCount = 0;
     bcm_cosq_priority_group_mapping_profile_get(
         getUnit(),
         0,
         bcmCosqInputPriPriorityGroupMcMapping,
-        getBcmDefaultTrafficClassToPgSize(),
+        defaultTrafficClassToPgSize,
         tc2PgId.data(),
         &arrayCount);
     EXPECT_EQ(arrayCount, expectedTc2Pg.size());
@@ -87,12 +99,13 @@ class BcmQosMapTest : public BcmTest {
 
   void validatePfcPri2PgId(const std::vector<int>& expectedPfcPri2Pg) {
     std::vector<int> pfcPri2PgId;
-    pfcPri2PgId.resize(getBcmDefaultPfcPriorityToPgSize());
+    const int defaultPfcPriorityToPgSize = getDefaultPfcPriorityToPg().size();
+    pfcPri2PgId.resize(defaultPfcPriorityToPgSize);
     int arrayCount = 0;
     auto rv = bcm_cosq_priority_group_pfc_priority_mapping_profile_get(
         getUnit(),
         getDefaultProfileId(),
-        getBcmDefaultPfcPriorityToPgSize(),
+        defaultPfcPriorityToPgSize,
         pfcPri2PgId.data(),
         &arrayCount);
     EXPECT_TRUE(BCM_SUCCESS(rv));
@@ -103,6 +116,66 @@ class BcmQosMapTest : public BcmTest {
         expectedPfcPri2Pg.end(),
         pfcPri2PgId.begin(),
         pfcPri2PgId.end()));
+  }
+
+  const std::vector<bcm_cosq_pfc_class_map_config_t>
+  convertPfcPriToCosqPfcClassMapStruct(
+      const std::vector<int>& pfcPri2QueueId,
+      const std::vector<int>& pfcEnable,
+      const std::vector<int>& pfcOptimized) {
+    std::vector<bcm_cosq_pfc_class_map_config_t> pfcClassQueue;
+    // all these arrays are supposed to me equal
+    EXPECT_EQ(pfcPri2QueueId.size(), pfcEnable.size());
+    EXPECT_EQ(pfcPri2QueueId.size(), pfcOptimized.size());
+    for (auto i = 0; i < pfcPri2QueueId.size(); ++i) {
+      bcm_cosq_pfc_class_map_config_t tmp;
+#ifdef IS_OSS /* TODO: remove this once supported by OSS */
+      memset(&tmp, 0, sizeof(bcm_cosq_pfc_class_map_config_t));
+#else
+      bcm_cosq_pfc_class_map_config_t_init(&tmp);
+#endif
+      tmp.pfc_enable = pfcEnable[i];
+      tmp.pfc_optimized = pfcOptimized[i];
+      tmp.cos_list_bmp = (1 << pfcPri2QueueId[i]);
+      pfcClassQueue.emplace_back(std::move(tmp));
+    }
+    return pfcClassQueue;
+  }
+
+  void validatePfcPri2QueueId(
+      const std::vector<bcm_cosq_pfc_class_map_config_t>&
+          expectedPfcPri2Queue) {
+    std::vector<bcm_cosq_pfc_class_map_config_t> pfcPri2QueueId;
+    const int maxStructSize = getDefaultPfcPriorityToQueue().size();
+    pfcPri2QueueId.resize(maxStructSize);
+    int arrayCount = 0;
+    auto rv = bcm_cosq_pfc_class_config_profile_get(
+        getUnit(),
+        getDefaultProfileId(),
+        maxStructSize,
+        pfcPri2QueueId.data(),
+        &arrayCount);
+    EXPECT_TRUE(BCM_SUCCESS(rv));
+    EXPECT_EQ(arrayCount, expectedPfcPri2Queue.size());
+    for (int i = 0; i < arrayCount; ++i) {
+      EXPECT_EQ(
+          pfcPri2QueueId[i].cos_list_bmp, expectedPfcPri2Queue[i].cos_list_bmp);
+    }
+  }
+
+  void validateAllPfcMaps(
+      const std::vector<int>& tc2Pg,
+      const std::vector<int>& pfcPri2Pg,
+      const std::vector<int>& pfcPri2Queue) {
+    validateTc2PgId(tc2Pg);
+    validatePfcPri2PgId(pfcPri2Pg);
+    // currently there is no interface exposed to program
+    // "PfcEnable" and "PfcOptimize" ..hence use the defaults here
+    const auto& pfcClassMapping = convertPfcPriToCosqPfcClassMapStruct(
+        pfcPri2Queue,
+        getDefaultPfcEnablePriorityToQueue(),
+        getDefaultPfcOptimizedPriorityToQueue());
+    validatePfcPri2QueueId(pfcClassMapping);
   }
 };
 
@@ -177,8 +250,10 @@ TEST_F(BcmQosMapTest, PfcMapsRemovePolicy) {
   };
 
   auto verify = [this]() {
-    validateTc2PgId(getBcmDefaultTrafficClassToPgArr());
-    validatePfcPri2PgId(getBcmDefaultPfcPriorityToPgArr());
+    validateAllPfcMaps(
+        getDefaultTrafficClassToPg(),
+        getDefaultPfcPriorityToPg(),
+        getDefaultPfcPriorityToQueue());
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -205,8 +280,10 @@ TEST_F(BcmQosMapTest, PfcMapsReset) {
   };
 
   auto verify = [this]() {
-    validateTc2PgId(getBcmDefaultTrafficClassToPgArr());
-    validatePfcPri2PgId(getBcmDefaultPfcPriorityToPgArr());
+    validateAllPfcMaps(
+        getDefaultTrafficClassToPg(),
+        getDefaultPfcPriorityToPg(),
+        getDefaultPfcPriorityToQueue());
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -238,6 +315,7 @@ TEST_F(BcmQosMapTest, BcmAllQosMapsWithPfcMaps) {
 
     std::map<int16_t, int16_t> tc2PgId;
     std::map<int16_t, int16_t> pfcPri2PgId;
+    std::map<int16_t, int16_t> pfcPri2QueueId;
 
     for (auto i = 0; i < kTrafficClassToPgId.size(); i++) {
       // add trafficClassToPgId mappings as well
@@ -248,8 +326,14 @@ TEST_F(BcmQosMapTest, BcmAllQosMapsWithPfcMaps) {
       // add pfc priority to PG id mappings
       pfcPri2PgId.emplace(i, kPfcPriorityToPgId[i]);
     }
+
+    for (auto i = 0; i < kPfcPriorityToQueue.size(); ++i) {
+      pfcPri2QueueId.emplace(i, kPfcPriorityToQueue[i]);
+    }
+
     qosMap.trafficClassToPgId_ref() = tc2PgId;
     qosMap.pfcPriorityToPgId_ref() = pfcPri2PgId;
+    qosMap.pfcPriorityToQueueId_ref() = pfcPri2QueueId;
 
     config.qosPolicies_ref()->resize(1);
     config.qosPolicies_ref()[0].name_ref() = "qp";
@@ -297,8 +381,9 @@ TEST_F(BcmQosMapTest, BcmAllQosMapsWithPfcMaps) {
         EXPECT_EQ(array_count, 48);
       }
     }
-    validateTc2PgId(kTrafficClassToPgIdInHw);
-    validatePfcPri2PgId(kPfcPriorityToPgId);
+
+    validateAllPfcMaps(
+        kTrafficClassToPgIdInHw, kPfcPriorityToPgId, kPfcPriorityToQueue);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
