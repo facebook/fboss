@@ -200,20 +200,6 @@ void rethrowIfHwNotFull(const facebook::fboss::BcmError& error) {
   XLOG(WARNING) << error.what();
 }
 
-bool routeTableModified(const facebook::fboss::StateDelta& delta) {
-  return delta.getRouteTablesDelta().begin() !=
-      delta.getRouteTablesDelta().end();
-}
-
-bool fibModified(const facebook::fboss::StateDelta& delta) {
-  return delta.getFibsDelta().begin() != delta.getFibsDelta().end();
-}
-
-bool bothStandAloneRibOrRouteTableRibUsed(
-    const facebook::fboss::StateDelta& delta) {
-  return routeTableModified(delta) && fibModified(delta);
-}
-
 /*
  * For the devices/SDK we use on pre-TH4, the only events we should get (and
  * process) are ADD and DELETE. Learning generates ADD, aging generates DELETE,

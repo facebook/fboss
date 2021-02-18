@@ -155,6 +155,15 @@ std::ostream& operator<<(std::ostream& out, const StateDelta& stateDelta) {
   return out << diff;
 }
 
+bool bothStandAloneRibOrRouteTableRibUsed(
+    const facebook::fboss::StateDelta& delta) {
+  auto hasUpdates = [](const auto& routeDelta) {
+    return routeDelta.begin() != routeDelta.end();
+  };
+  return hasUpdates(delta.getFibsDelta()) &&
+      hasUpdates(delta.getRouteTablesDelta());
+}
+
 // Explicit instantiations of NodeMapDelta that are used by StateDelta.
 // This prevents users of StateDelta from needing to include
 // NodeMapDelta-defs.h

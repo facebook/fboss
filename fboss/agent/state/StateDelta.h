@@ -87,4 +87,7 @@ class StateDelta {
 
 std::ostream& operator<<(std::ostream& out, const StateDelta& stateDelta);
 
+bool bothStandAloneRibOrRouteTableRibUsed(
+    const facebook::fboss::StateDelta& delta);
+
 } // namespace facebook::fboss
