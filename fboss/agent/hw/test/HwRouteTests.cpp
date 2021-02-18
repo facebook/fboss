@@ -80,11 +80,10 @@ class HwRouteTest : public HwLinkStateDependentTest {
       const std::vector<RoutePrefix<AddrT>>& routePrefixes) {
     auto kEcmpWidth = 1;
     utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(inState, kRouterID());
-
-    return ecmpHelper.setupECMPForwarding(
-        ecmpHelper.resolveNextHops(this->getProgrammedState(), kEcmpWidth),
-        kEcmpWidth,
-        routePrefixes);
+    applyNewState(ecmpHelper.resolveNextHops(getProgrammedState(), kEcmpWidth));
+    ecmpHelper.programRoutes(
+        this->getRouteUpdateWrapper(), kEcmpWidth, routePrefixes);
+    return getProgrammedState();
   }
 
   std::shared_ptr<SwitchState> updateRoutesClassID(
@@ -165,19 +164,18 @@ TYPED_TEST(HwRouteTest, UnresolvedAndResolvedNextHop) {
     this->applyNewConfig(this->initialConfig());
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
         this->getProgrammedState(), this->kRouterID());
-    auto state0 = ecmpHelper.setupECMPForwarding(
-        this->getProgrammedState(),
+    ecmpHelper.programRoutes(
+        this->getRouteUpdateWrapper(),
         {PortDescriptor(this->masterLogicalPortIds()[0])},
         {this->kGetRoutePrefix0()});
-    this->applyNewState(state0);
 
-    auto state1 = ecmpHelper.setupECMPForwarding(
-        ecmpHelper.resolveNextHops(
-            this->getProgrammedState(),
-            {PortDescriptor(this->masterLogicalPortIds()[1])}),
+    this->applyNewState(ecmpHelper.resolveNextHops(
+        this->getProgrammedState(),
+        {PortDescriptor(this->masterLogicalPortIds()[1])}));
+    ecmpHelper.programRoutes(
+        this->getRouteUpdateWrapper(),
         {PortDescriptor(this->masterLogicalPortIds()[1])},
         {this->kGetRoutePrefix1()});
-    this->applyNewState(state1);
   };
   auto verify = [=]() {
     auto routePrefix0 = this->kGetRoutePrefix0();
@@ -215,13 +213,13 @@ TYPED_TEST(HwRouteTest, UnresolveResolvedNextHop) {
     this->applyNewConfig(this->initialConfig());
     utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(
         this->getProgrammedState(), this->kRouterID());
-    auto state = ecmpHelper.setupECMPForwarding(
-        ecmpHelper.resolveNextHops(this->getProgrammedState(), 1),
-        1,
-        {this->kGetRoutePrefix0()});
-    this->applyNewState(state);
-    state = ecmpHelper.unresolveNextHops(this->getProgrammedState(), 1);
-    this->applyNewState(state);
+    this->applyNewState(
+        ecmpHelper.resolveNextHops(this->getProgrammedState(), 1));
+
+    ecmpHelper.programRoutes(
+        this->getRouteUpdateWrapper(), 1, {this->kGetRoutePrefix0()});
+    this->applyNewState(
+        ecmpHelper.unresolveNextHops(this->getProgrammedState(), 1));
   };
   auto verify = [=]() {
     auto routePrefix = this->kGetRoutePrefix0();
@@ -240,22 +238,21 @@ TYPED_TEST(HwRouteTest, UnresolvedAndResolvedMultiNextHop) {
     this->applyNewConfig(this->initialConfig());
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
         this->getProgrammedState(), this->kRouterID());
-    auto state0 = ecmpHelper.setupECMPForwarding(
-        this->getProgrammedState(),
+    ecmpHelper.programRoutes(
+        this->getRouteUpdateWrapper(),
         {PortDescriptor(this->masterLogicalPortIds()[0]),
          PortDescriptor(this->masterLogicalPortIds()[1])},
         {this->kGetRoutePrefix0()});
-    this->applyNewState(state0);
 
-    auto state1 = ecmpHelper.setupECMPForwarding(
-        ecmpHelper.resolveNextHops(
-            this->getProgrammedState(),
-            {PortDescriptor(this->masterLogicalPortIds()[2]),
-             PortDescriptor(this->masterLogicalPortIds()[3])}),
+    this->applyNewState(ecmpHelper.resolveNextHops(
+        this->getProgrammedState(),
+        {PortDescriptor(this->masterLogicalPortIds()[2]),
+         PortDescriptor(this->masterLogicalPortIds()[3])}));
+    ecmpHelper.programRoutes(
+        this->getRouteUpdateWrapper(),
         {PortDescriptor(this->masterLogicalPortIds()[2]),
          PortDescriptor(this->masterLogicalPortIds()[3])},
         {this->kGetRoutePrefix1()});
-    this->applyNewState(state1);
   };
   auto verify = [=]() {
     auto routePrefix0 = this->kGetRoutePrefix0();
@@ -327,15 +324,15 @@ TYPED_TEST(HwRouteTest, ResolvedMultiNexthopToUnresolvedSingleNexthop) {
   auto verify = [=]() {
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
         this->getProgrammedState(), this->kRouterID());
-    auto state = ecmpHelper.setupECMPForwarding(
-        ecmpHelper.resolveNextHops(
-            this->getProgrammedState(),
-            {PortDescriptor(this->masterLogicalPortIds()[0]),
-             PortDescriptor(this->masterLogicalPortIds()[1])}),
+    this->applyNewState(ecmpHelper.resolveNextHops(
+        this->getProgrammedState(),
+        {PortDescriptor(this->masterLogicalPortIds()[0]),
+         PortDescriptor(this->masterLogicalPortIds()[1])}));
+    ecmpHelper.programRoutes(
+        this->getRouteUpdateWrapper(),
         {PortDescriptor(this->masterLogicalPortIds()[0]),
          PortDescriptor(this->masterLogicalPortIds()[1])},
         {this->kGetRoutePrefix0()});
-    this->applyNewState(state);
     auto routePrefix0 = this->kGetRoutePrefix0();
     auto cidr0 = folly::CIDRNetwork(routePrefix0.network, routePrefix0.mask);
     EXPECT_FALSE(
@@ -365,18 +362,17 @@ TYPED_TEST(HwRouteTest, ResolvedMultiNexthopToUnresolvedSingleNexthop) {
           cidr0,
           folly::IPAddress("2::2")));
     }
-    state = ecmpHelper.unresolveNextHops(
+    this->applyNewState(ecmpHelper.unresolveNextHops(
         this->getProgrammedState(),
         {PortDescriptor(this->masterLogicalPortIds()[0]),
-         PortDescriptor(this->masterLogicalPortIds()[1])});
-    this->applyNewState(state);
-    state = ecmpHelper.setupECMPForwarding(
-        ecmpHelper.resolveNextHops(
-            this->getProgrammedState(),
-            {PortDescriptor(this->masterLogicalPortIds()[0])}),
+         PortDescriptor(this->masterLogicalPortIds()[1])}));
+    this->applyNewState(ecmpHelper.resolveNextHops(
+        this->getProgrammedState(),
+        {PortDescriptor(this->masterLogicalPortIds()[0])}));
+    ecmpHelper.programRoutes(
+        this->getRouteUpdateWrapper(),
         {PortDescriptor(this->masterLogicalPortIds()[0])},
         {this->kGetRoutePrefix0()});
-    this->applyNewState(state);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }

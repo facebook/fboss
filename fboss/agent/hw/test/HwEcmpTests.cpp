@@ -72,12 +72,12 @@ class HwEcmpTest : public HwLinkStateDependentTest {
         flat_set<PortDescriptor>(portDescs.begin(), portDescs.end())));
   }
   void programRouteWithUnresolvedNhops(int numNhops = kNumNextHops) {
-    applyNewState(ecmpHelper_->setupECMPForwarding(
-        getProgrammedState(),
+    ecmpHelper_->programRoutes(
+        getRouteUpdateWrapper(),
         numNhops,
         {kDefaultRoute},
         std::vector<NextHopWeight>(
-            swSwitchWeights_.begin(), swSwitchWeights_.begin() + numNhops)));
+            swSwitchWeights_.begin(), swSwitchWeights_.begin() + numNhops));
   }
   int getEcmpSizeInHw(int sizeInSw = kNumNextHops) const {
     return utility::getEcmpSizeInHw(
@@ -190,10 +190,7 @@ TEST_F(HwEcmpTest, ecmpToDropToEcmp) {
    */
   auto constexpr kEcmpWidthForTest = 4;
   // Program ECMP route
-  auto newState = ecmpHelper_->setupECMPForwarding(
-      ecmpHelper_->resolveNextHops(getProgrammedState(), kEcmpWidthForTest),
-      kEcmpWidthForTest);
-  applyNewState(newState);
+  resolveNeigborAndProgramRoutes(*ecmpHelper_, kEcmpWidthForTest);
   EXPECT_EQ(kEcmpWidthForTest, getEcmpSizeInHw());
   // Mimic neighbor entries going away and route getting removed. Since
   // this is the default route, it actually does not go away but transitions
@@ -206,8 +203,7 @@ TEST_F(HwEcmpTest, ecmpToDropToEcmp) {
   applyNewState(
       ecmpHelper_->resolveNextHops(getProgrammedState(), kEcmpWidthForTest));
   for (auto i = 0; i < kEcmpWidthForTest; ++i) {
-    applyNewState(
-        ecmpHelper_->setupECMPForwarding(getProgrammedState(), i + 1));
+    ecmpHelper_->programRoutes(getRouteUpdateWrapper(), i + 1);
     if (i) {
       EXPECT_EQ(i + 1, getEcmpSizeInHw());
     }
@@ -347,7 +343,7 @@ TEST_F(HwEcmpTest, ResolvePendingResolveNexthop) {
       ntable->updateEntry(*fields);
     }
     applyNewState(state1);
-    applyNewState(ecmpHelper_->setupECMPForwarding(getProgrammedState(), 2));
+    ecmpHelper_->programRoutes(getRouteUpdateWrapper(), 2);
   };
   auto verify = [=]() {
     /* ecmp is resolved */
