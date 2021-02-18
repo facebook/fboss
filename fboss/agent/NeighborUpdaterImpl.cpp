@@ -149,6 +149,16 @@ void NeighborUpdaterImpl::portDown(PortDescriptor port) {
   }
 }
 
+void NeighborUpdaterImpl::portFlushEntries(PortDescriptor port) {
+  for (auto vlanCaches : caches_) {
+    auto arpCache = vlanCaches.second->arpCache;
+    arpCache->portFlushEntries(port);
+
+    auto ndpCache = vlanCaches.second->ndpCache;
+    ndpCache->portFlushEntries(port);
+  }
+}
+
 bool NeighborUpdaterImpl::flushEntryImpl(VlanID vlan, IPAddress ip) {
   if (ip.isV4()) {
     auto cache = getArpCacheInternal(vlan);

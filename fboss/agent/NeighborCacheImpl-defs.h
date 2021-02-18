@@ -396,6 +396,18 @@ void NeighborCacheImpl<NTable>::portDown(PortDescriptor port) {
 }
 
 template <typename NTable>
+void NeighborCacheImpl<NTable>::portFlushEntries(PortDescriptor port) {
+  for (auto item : entries_) {
+    if (item.second->getPort() != port) {
+      continue;
+    }
+    XLOG(DBG2) << "Flush neighbor entry " << item.second->getIP().str()
+               << " on port " << port;
+    flushEntry(item.second->getIP());
+  }
+}
+
+template <typename NTable>
 template <typename NeighborEntryThrift>
 std::list<NeighborEntryThrift> NeighborCacheImpl<NTable>::getCacheData() const {
   std::list<NeighborEntryThrift> thriftEntries;

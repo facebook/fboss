@@ -68,6 +68,11 @@ class NeighborCache {
     impl_->portDown(port);
   }
 
+  void portFlushEntries(PortDescriptor port) {
+    std::lock_guard<std::mutex> g(cacheLock_);
+    impl_->portFlushEntries(port);
+  }
+
   template <typename NeighborEntryThrift>
   std::list<NeighborEntryThrift> getCacheData() {
     std::lock_guard<std::mutex> g(cacheLock_);

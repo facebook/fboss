@@ -91,6 +91,8 @@ class NeighborCacheImpl {
 
   void portDown(PortDescriptor port);
 
+  void portFlushEntries(PortDescriptor port);
+
   SwSwitch* getSw() const {
     return sw_;
   }
