@@ -7,6 +7,8 @@
 
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 
+#include <folly/container/Enumerate.h>
+
 namespace facebook::fboss {
 
 void SaiLagManager::addLag(
@@ -22,7 +24,12 @@ void SaiLagManager::addLag(
   auto lag = lagStore.setObject(
       SaiLagTraits::Attributes::Label{labelValue}, std::tuple<>());
   std::vector<std::shared_ptr<SaiLagMember>> members;
-  for (auto subPort : aggregatePort->sortedSubports()) {
+  for (auto iter : folly::enumerate(aggregatePort->subportAndFwdState())) {
+    auto [subPort, fwdState] = *iter;
+    if (fwdState == AggregatePort::Forwarding::DISABLED) {
+      // subport disabled for forwarding
+      continue;
+    }
     members.push_back(addMember(lag, subPort));
   }
 
@@ -58,9 +65,8 @@ void SaiLagManager::changeLag(
 
 std::shared_ptr<SaiLagMember> SaiLagManager::addMember(
     const std::shared_ptr<SaiLag>& lag,
-    AggregatePortFields::Subport subPort) {
-  auto portId = subPort.portID;
-  auto portHandle = managerTable_->portManager().getPortHandle(portId);
+    PortID subPort) {
+  auto portHandle = managerTable_->portManager().getPortHandle(subPort);
   CHECK(portHandle);
   auto saiPortId = portHandle->port->adapterKey();
   auto saiLagId = lag->adapterKey();
@@ -72,5 +78,5 @@ std::shared_ptr<SaiLagMember> SaiLagManager::addMember(
 
 void SaiLagManager::removeMember(
     std::shared_ptr<SaiLag> /*lag*/,
-    AggregatePortFields::Subport /*subPort*/) {}
+    PortID /*subPort*/) {}
 } // namespace facebook::fboss
