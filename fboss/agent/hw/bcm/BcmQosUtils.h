@@ -16,5 +16,6 @@ const std::vector<int>& getBcmDefaultPfcPriorityToPgArr();
 int getBcmDefaultPfcPriorityToPgSize();
 int getDefaultProfileId();
 int getBcmDefaultTrafficClassToPgSize();
+const std::vector<int>& getBcmDefaultPfcPriorityToQueueArr();
 
 } // namespace facebook::fboss

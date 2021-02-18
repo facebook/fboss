@@ -19,15 +19,6 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/QosPolicy.h"
 
-namespace {
-constexpr int kDefaultProfileId = 0;
-// array with index representing the traffic class and array value is priority
-// group (PG) defaults from HW required for mapping incoming traffic to PG on
-// ingress for PFC purposes
-std::vector<int>
-    kDefaultTrafficClassToPg{7, 1, 2, 3, 4, 5, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-} // unnamed namespace
-
 namespace facebook::fboss {
 
 BcmQosPolicy::BcmQosPolicy(
@@ -129,13 +120,44 @@ void BcmQosPolicy::programPfcPriorityToPg(
   // value is PG Id
   auto rv = bcm_cosq_priority_group_pfc_priority_mapping_profile_set(
       hw_->getUnit(),
-      kDefaultProfileId,
+      getDefaultProfileId(),
       pfcPriorityPg.size(),
       tmpPfcPriorityToPg.data());
   bcmCheckError(
       rv,
       "Failed to program bcm_cosq_priority_group_pfc_priority_mapping_profile_set, size: ",
       pfcPriorityPg.size());
+}
+
+void BcmQosPolicy::programPfcPriorityToQueue(
+    const std::vector<int>& pfcPriorityToQueue) {
+  if (!hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+    return;
+  }
+
+  std::vector<bcm_cosq_pfc_class_map_config_t> cosq_pfc_map;
+  for (const auto& queueId : pfcPriorityToQueue) {
+    bcm_cosq_pfc_class_map_config_t config;
+#ifdef IS_OSS /* TODO: remove once OSS support added */
+    memset(&config, 0, sizeof(bcm_cosq_pfc_class_map_config_t));
+#else
+    bcm_cosq_pfc_class_map_config_t_init(&config);
+#endif
+    config.pfc_enable = 1;
+    config.pfc_optimized = 0;
+    config.cos_list_bmp |= (1 << queueId);
+    cosq_pfc_map.emplace_back(config);
+  }
+
+  auto rv = bcm_cosq_pfc_class_config_profile_set(
+      hw_->getUnit(),
+      getDefaultProfileId(),
+      cosq_pfc_map.size(),
+      cosq_pfc_map.data());
+  bcmCheckError(
+      rv,
+      "Failed to program bcm_cosq_pfc_class_config_profile_set, size: ",
+      cosq_pfc_map.size());
 }
 
 void BcmQosPolicy::programTrafficClassToPg(
@@ -188,6 +210,23 @@ void BcmQosPolicy::updateTrafficClassToPgMap(
   }
   // all other cases handled here
   programTrafficClassToPgMap(newQosPolicy);
+}
+
+// case 1: !old cfg, !new cfg
+// case 2: !old cfg, new cfg
+// case 3: old cfg, !new cfg
+// case 4: old cfg!= new cfg
+void BcmQosPolicy::updatePfcPriorityToQueueMap(
+    const std::shared_ptr<QosPolicy>& oldQosPolicy,
+    const std::shared_ptr<QosPolicy>& newQosPolicy) {
+  if (!newQosPolicy->getPfcPriorityToQueueId() &&
+      !oldQosPolicy->getPfcPriorityToQueueId()) {
+    // case 1
+    // nothing to do with traffic class <-> pg id mapping
+    return;
+  }
+  // all other cases handled here
+  programPfcPriorityToQueueMap(newQosPolicy);
 }
 
 void BcmQosPolicy::updateIngressExpQosMap(
@@ -377,7 +416,7 @@ void BcmQosPolicy::programPriorityGroupMapping(
       const_cast<std::vector<int>&>(trafficClassToPgId);
   auto rv = bcm_cosq_priority_group_mapping_profile_set(
       hw_->getUnit(),
-      kDefaultProfileId,
+      getDefaultProfileId(),
       profileType,
       trafficClassToPgId.size(),
       tmpTrafficClassToPgId.data());
@@ -397,17 +436,10 @@ void BcmQosPolicy::programPfcPriorityToPgMap(
   if (auto pfcPriorityToPgMap = qosPolicy->getPfcPriorityToPgId()) {
     // override with what user configures
     for (const auto& entry : *pfcPriorityToPgMap) {
-      CHECK_LE(
-          static_cast<int>(entry.first),
-          cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX())
-          << "Policy: " << qosPolicy->getName() << " has invalid pfc priority"
-          << (int)entry.first;
-      CHECK_LE(entry.second, cfg::switch_config_constants::PORT_PG_VALUE_MAX())
-          << " Policy: " << qosPolicy->getName() << " has invalid PG ID "
-          << entry.second;
       CHECK_GT(pfcPriorityToPg.size(), static_cast<int>(entry.first))
           << " Policy: " << qosPolicy->getName()
-          << " has invalid pfcPriorityToPg size " << pfcPriorityToPg.size();
+          << " has pfcPriorityToPgMap size " << pfcPriorityToPg.size()
+          << " which is smaller than pfc priority " << entry.first;
       pfcPriorityToPg[entry.first] = entry.second;
     }
   }
@@ -421,18 +453,32 @@ void BcmQosPolicy::programTrafficClassToPgMap(
   if (auto trafficClassToPgMap = qosPolicy->getTrafficClassToPgId()) {
     // override with what user configures
     for (const auto& entry : *trafficClassToPgMap) {
-      CHECK_LE(static_cast<int>(entry.first), BCM_PRIO_MAX)
-          << "Policy: " << qosPolicy->getName() << " has invalid priority "
-          << (int)entry.first;
-      CHECK_LE(entry.second, cfg::switch_config_constants::PORT_PG_VALUE_MAX())
-          << " Policy: " << qosPolicy->getName() << " has invalid PG ID "
-          << entry.second;
       CHECK_GT(trafficClassToPg.size(), static_cast<int>(entry.first))
           << " Policy: " << qosPolicy->getName()
-          << " has invalid trafficClassToPg size " << trafficClassToPg.size();
+          << " has trafficClassToPgMap size " << trafficClassToPg.size()
+          << " which is smaller than traffic class " << entry.first;
       trafficClassToPg[entry.first] = entry.second;
     }
   }
   programTrafficClassToPg(trafficClassToPg);
 }
+
+void BcmQosPolicy::programPfcPriorityToQueueMap(
+    const std::shared_ptr<QosPolicy>& qosPolicy) {
+  // init the array with HW defaults
+  std::vector<int> pfcPriorityToQueue = getBcmDefaultPfcPriorityToQueueArr();
+  if (const auto& pfcPriorityToQueueMap =
+          qosPolicy->getPfcPriorityToQueueId()) {
+    // override with what user configures
+    for (const auto& entry : *pfcPriorityToQueueMap) {
+      CHECK_GT(pfcPriorityToQueue.size(), static_cast<int>(entry.first))
+          << " Policy: " << qosPolicy->getName()
+          << " has pfcPriorityToQueueMap size " << pfcPriorityToQueue.size()
+          << " which is smaller than pfc priority value " << entry.first;
+      pfcPriorityToQueue[entry.first] = entry.second;
+    }
+  }
+  programPfcPriorityToQueue(pfcPriorityToQueue);
+}
+
 } // namespace facebook::fboss

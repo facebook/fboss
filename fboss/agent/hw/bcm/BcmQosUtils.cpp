@@ -17,6 +17,8 @@ const std::vector<int>
 // array with index representing pfc priority and value is priority group (PG)
 // defaults from HW
 const std::vector<int> kDefaultPfcPriorityToPg{0, 1, 2, 3, 4, 5, 6, 7};
+// array index representing pfc priority and value is corresponding queue id
+const std::vector<int> kDefaultPfcPriorityToQueue = {0, 1, 2, 3, 4, 5, 6, 7};
 constexpr int kDefaultProfileId = 0;
 } // unnamed namespace
 
@@ -74,6 +76,10 @@ int getBcmDefaultPfcPriorityToPgSize() {
 
 int getDefaultProfileId() {
   return kDefaultProfileId;
+}
+
+const std::vector<int>& getBcmDefaultPfcPriorityToQueueArr() {
+  return kDefaultPfcPriorityToQueue;
 }
 
 } // namespace facebook::fboss

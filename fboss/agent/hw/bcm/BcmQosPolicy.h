@@ -70,6 +70,14 @@ class BcmQosPolicy {
       const std::shared_ptr<QosPolicy>& oldQosPolicy,
       const std::shared_ptr<QosPolicy>& newQosPolicy);
 
+  // pfc pri <-> queue id functions
+  void programPfcPriorityToQueueMap(
+      const std::shared_ptr<QosPolicy>& qosPolicy);
+  void programPfcPriorityToQueue(const std::vector<int>& pfcPriorityQueue);
+  void updatePfcPriorityToQueueMap(
+      const std::shared_ptr<QosPolicy>& oldQosPolicy,
+      const std::shared_ptr<QosPolicy>& newQosPolicy);
+
   BcmSwitch* hw_;
   std::unique_ptr<BcmQosMap> ingressDscpQosMap_;
   std::unique_ptr<BcmQosMap> ingressExpQosMap_;
