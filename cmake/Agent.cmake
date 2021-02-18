@@ -88,11 +88,12 @@ target_link_libraries(stats
 
 add_library(fboss_types
   fboss/agent/types.cpp
-  fboss/agent/PortDescriptorTemplate.h
+  fboss/agent/PortDescriptorTemplate.cpp
 )
 
 target_link_libraries(fboss_types
   switch_config_cpp2
+  Folly::folly
 )
 
 add_library(core

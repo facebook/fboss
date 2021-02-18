@@ -144,3 +144,10 @@ inline std::ostream& operator<<(
 using BasePortDescriptor = PortDescriptorTemplate<PortID, AggregatePortID>;
 
 } // namespace facebook::fboss
+
+namespace std {
+template <>
+struct hash<facebook::fboss::BasePortDescriptor> {
+  size_t operator()(const facebook::fboss::BasePortDescriptor& key) const;
+};
+} // namespace std
