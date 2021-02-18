@@ -58,9 +58,60 @@ void SaiLagManager::removeLag(
 void SaiLagManager::changeLag(
     const std::shared_ptr<AggregatePort>& oldAggregatePort,
     const std::shared_ptr<AggregatePort>& newAggregatePort) {
-  // TODO(pshaikh): do better
-  removeLag(oldAggregatePort);
-  addLag(newAggregatePort);
+  auto handleIter = handles_.find(oldAggregatePort->getID());
+  CHECK(handleIter != handles_.end());
+  auto& saiLagHandle = handleIter->second;
+
+  auto oldPortAndFwdState = oldAggregatePort->subportAndFwdState();
+  auto newPortAndFwdState = newAggregatePort->subportAndFwdState();
+  auto oldIter = oldPortAndFwdState.begin();
+  auto newIter = newPortAndFwdState.begin();
+
+  while (oldIter != oldPortAndFwdState.end() &&
+         newIter != newPortAndFwdState.end()) {
+    if (oldIter->first < newIter->first) {
+      if (oldIter->second == AggregatePort::Forwarding::ENABLED) {
+        // remove member
+        removeMember(oldAggregatePort->getID(), oldIter->first);
+      }
+      oldIter++;
+    } else if (newIter->first < oldIter->first) {
+      if (newIter->second == AggregatePort::Forwarding::ENABLED) {
+        // add member
+        saiLagHandle->members.emplace(
+            addMember(saiLagHandle->lag, newIter->first));
+      }
+      newIter++;
+    } else if (oldIter->second != newIter->second) {
+      // forwarding state changed
+      if (newIter->second == AggregatePort::Forwarding::ENABLED) {
+        // add member
+        saiLagHandle->members.emplace(
+            addMember(saiLagHandle->lag, newIter->first));
+
+      } else {
+        // remove member
+        removeMember(newAggregatePort->getID(), newIter->first);
+      }
+      newIter++;
+      oldIter++;
+    }
+    while (oldIter != oldPortAndFwdState.end()) {
+      if (oldIter->second == AggregatePort::Forwarding::ENABLED) {
+        // remove member
+        removeMember(oldAggregatePort->getID(), oldIter->first);
+      }
+      oldIter++;
+    }
+    while (newIter != newPortAndFwdState.end()) {
+      if (newIter->second == AggregatePort::Forwarding::ENABLED) {
+        // remove member
+        saiLagHandle->members.emplace(
+            addMember(saiLagHandle->lag, newIter->first));
+      }
+      newIter++;
+    }
+  }
 }
 
 std::pair<PortSaiId, std::shared_ptr<SaiLagMember>> SaiLagManager::addMember(
