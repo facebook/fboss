@@ -122,7 +122,7 @@ HwLinkStateToggler::applyInitialConfigWithPortsDown(
         newState->getPorts()->getPort(PortID(*port.logicalID_ref())), 0);
     *port.state_ref() = portId2DesiredState[*port.logicalID_ref()];
   }
-  newState = applyThriftConfig(newState, &cfg, platform);
+  newState = applyThriftConfig(newState, &cfg, platform, rib);
   stateUpdateFn_(newState);
   platform->getHwSwitch()->switchRunStateChanged(SwitchRunState::CONFIGURED);
   return newState;
