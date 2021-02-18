@@ -37,7 +37,7 @@ class SaiLagManager {
   std::pair<PortSaiId, std::shared_ptr<SaiLagMember>> addMember(
       const std::shared_ptr<SaiLag>& lag,
       PortID subPort);
-  void removeMember(std::shared_ptr<SaiLag> lag, PortID subPort);
+  void removeMember(AggregatePortID aggPort, PortID subPort);
 
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;

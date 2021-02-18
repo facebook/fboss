@@ -76,7 +76,12 @@ std::pair<PortSaiId, std::shared_ptr<SaiLagMember>> SaiLagManager::addMember(
   return {saiPortId, lagMemberStore.setObject(attrs, attrs)};
 }
 
-void SaiLagManager::removeMember(
-    std::shared_ptr<SaiLag> /*lag*/,
-    PortID /*subPort*/) {}
+void SaiLagManager::removeMember(AggregatePortID aggPort, PortID subPort) {
+  auto iter = handles_.find(aggPort);
+  CHECK(iter != handles_.end());
+  auto portHandle = managerTable_->portManager().getPortHandle(subPort);
+  CHECK(portHandle);
+  auto saiPortId = portHandle->port->adapterKey();
+  iter->second->members.erase(saiPortId);
+}
 } // namespace facebook::fboss
