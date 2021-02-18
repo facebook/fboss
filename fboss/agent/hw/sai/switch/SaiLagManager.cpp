@@ -27,8 +27,12 @@ void SaiLagManager::addLag(
   }
 
   auto handle = std::make_unique<SaiLagHandle>();
-  handle->lag = std::move(lag);
+  // create bridge port for LAG
+  handle->bridgePort = managerTable_->bridgeManager().addBridgePort(
+      SaiPortDescriptor(aggregatePort->getID()),
+      PortDescriptorSaiId(lag->adapterKey()));
   handle->members = std::move(members);
+  handle->lag = std::move(lag);
   handles_.emplace(aggregatePort->getID(), std::move(handle));
 }
 

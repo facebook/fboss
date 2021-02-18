@@ -4,6 +4,7 @@
 
 #include "fboss/agent/hw/sai/api/LagApi.h"
 #include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
+#include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/state/AggregatePort.h"
 
 namespace facebook::fboss {
@@ -14,6 +15,7 @@ using SaiLagMember = SaiObject<SaiLagMemberTraits>;
 struct SaiLagHandle {
   std::shared_ptr<SaiLag> lag;
   std::vector<std::shared_ptr<SaiLagMember>> members;
+  std::shared_ptr<SaiBridgePort> bridgePort;
 };
 
 class SaiManagerTable;
