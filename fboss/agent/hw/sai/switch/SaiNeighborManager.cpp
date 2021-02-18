@@ -88,8 +88,9 @@ void SaiNeighborManager::addNeighbor(
         "Attempted to add duplicate neighbor: ", swEntry->getIP().str());
   }
 
-  // TODO(AGGPORT): support aggregate port ID
-  auto portID = swEntry->getPort().phyPortID();
+  // TODO(pshaikh): support LAG
+  SaiPortDescriptor saiPortDesc =
+      SaiPortDescriptor(swEntry->getPort().phyPortID());
 
   std::optional<sai_uint32_t> metadata;
   if (swEntry->getClassID()) {
@@ -97,14 +98,13 @@ void SaiNeighborManager::addNeighbor(
   }
 
   auto subscriber = std::make_shared<ManagedNeighbor>(
-      portID,
+      managerTable_,
+      saiPortDesc,
       swEntry->getIntfID(),
       swEntry->getIP(),
       swEntry->getMac(),
       metadata);
 
-  SaiObjectEventPublisher::getInstance()->get<SaiPortTraits>().subscribe(
-      subscriber);
   SaiObjectEventPublisher::getInstance()
       ->get<SaiRouterInterfaceTraits>()
       .subscribe(subscriber);
@@ -160,14 +160,16 @@ SaiNeighborHandle* SaiNeighborManager::getNeighborHandleImpl(
 }
 
 void ManagedNeighbor::createObject(PublisherObjects objects) {
-  auto port = std::get<PortWeakPtr>(objects).lock();
   auto interface = std::get<RouterInterfaceWeakPtr>(objects).lock();
   auto fdbEntry = std::get<FdbWeakptr>(objects).lock();
   auto adapterHostKey = SaiNeighborTraits::NeighborEntry(
       fdbEntry->adapterHostKey().switchId(), interface->adapterKey(), ip_);
 
+  // TODO(pshaikh): support LAG
+  auto portHandle =
+      managerTable_->portManager().getPortHandle(port_.phyPortID());
   auto portOperStatus = SaiApiTable::getInstance()->portApi().getAttribute(
-      port->adapterKey(), SaiPortTraits::Attributes::OperStatus{});
+      portHandle->port->adapterKey(), SaiPortTraits::Attributes::OperStatus{});
   auto createAttributes = SaiNeighborTraits::CreateAttributes{
       fdbEntry->adapterHostKey().mac(), metadata_};
   // notify next hop subscriber only if port link status is up

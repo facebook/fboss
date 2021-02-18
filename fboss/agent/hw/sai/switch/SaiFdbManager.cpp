@@ -142,6 +142,7 @@ void SaiFdbManager::addFdbEntry(
 }
 
 void ManagedFdbEntry::update(const std::shared_ptr<MacEntry>& updated) {
+  // TODo(pshaikh): support LAG
   CHECK_EQ(portId_, updated->getPort().phyPortID());
   CHECK_EQ(mac_, updated->getMac());
   auto fdbEntry = getSaiObject();
@@ -190,6 +191,7 @@ void SaiFdbManager::addMac(const std::shared_ptr<MacEntry>& macEntry) {
       type = SAI_FDB_ENTRY_TYPE_DYNAMIC;
       break;
   };
+  // TODO(pshaikh): support LAG
   addFdbEntry(
       SaiPortDescriptor(macEntry->getPort().phyPortID()),
       getInterfaceId(macEntry),
@@ -237,6 +239,7 @@ InterfaceID SaiFdbManager::getInterfaceId(
   if (macEntry->getPort().isAggregatePort()) {
     throw FbossError("Aggregate ports not yet supported in SAI");
   }
+  // TODO(pshaikh): support LAG
   auto const portHandle = managerTable_->portManager().getPortHandle(
       macEntry->getPort().phyPortID());
   // FBOSS assumes a 1:1 correpondance b/w Vlan and interfae IDs

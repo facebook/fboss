@@ -37,31 +37,29 @@ struct SaiNeighborHandle {
 class ManagedNeighbor : public SaiObjectEventAggregateSubscriber<
                             ManagedNeighbor,
                             SaiNeighborTraits,
-                            SaiPortTraits,
                             SaiRouterInterfaceTraits,
                             SaiFdbTraits> {
  public:
   using Base = SaiObjectEventAggregateSubscriber<
       ManagedNeighbor,
       SaiNeighborTraits,
-      SaiPortTraits,
       SaiRouterInterfaceTraits,
       SaiFdbTraits>;
-  using PortWeakPtr = std::weak_ptr<const SaiObject<SaiPortTraits>>;
   using RouterInterfaceWeakPtr =
       std::weak_ptr<const SaiObject<SaiRouterInterfaceTraits>>;
   using FdbWeakptr = std::weak_ptr<const SaiObject<SaiFdbTraits>>;
-  using PublisherObjects =
-      std::tuple<PortWeakPtr, RouterInterfaceWeakPtr, FdbWeakptr>;
+  using PublisherObjects = std::tuple<RouterInterfaceWeakPtr, FdbWeakptr>;
 
   // TODO(AGGPORT): support aggregate port ID
   ManagedNeighbor(
-      PortID port,
+      const SaiManagerTable* managerTable,
+      SaiPortDescriptor port,
       InterfaceID interfaceId,
       folly::IPAddress ip,
       folly::MacAddress mac,
       std::optional<sai_uint32_t> metadata)
-      : Base(port, interfaceId, std::make_tuple(interfaceId, mac)),
+      : Base(interfaceId, std::make_tuple(interfaceId, mac)),
+        managerTable_(managerTable),
         port_(port),
         ip_(ip),
         handle_(std::make_unique<SaiNeighborHandle>()),
@@ -75,7 +73,8 @@ class ManagedNeighbor : public SaiObjectEventAggregateSubscriber<
   }
 
  private:
-  PortDescriptor port_;
+  const SaiManagerTable* managerTable_;
+  SaiPortDescriptor port_;
   folly::IPAddress ip_;
   std::unique_ptr<SaiNeighborHandle> handle_;
   std::optional<sai_uint32_t> metadata_;

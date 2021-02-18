@@ -875,6 +875,10 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
        */
       std::lock_guard<std::mutex> lock{saiSwitchMutex_};
       managerTable_->fdbManager().handleLinkDown(SaiPortDescriptor(swPortId));
+      // TODO(pshaikh): support LAG
+      // if !up and member of LAG, then if number of links below minimum
+      // required, simply reset FDB entry. if up and member of LAG, then LAG
+      // manager in SwSwitch shall send update and create LAG members for them.
     }
     swPortId2Status[swPortId] = up;
   }
@@ -1056,6 +1060,7 @@ void SaiSwitch::packetRxCallback(
         portSaiIdOpt = attr_list[index].value.oid;
         break;
       case SAI_HOSTIF_PACKET_ATTR_INGRESS_LAG:
+      // TODO(pshaikh): support LAG
       case SAI_HOSTIF_PACKET_ATTR_HOSTIF_TRAP_ID:
         break;
       default:
