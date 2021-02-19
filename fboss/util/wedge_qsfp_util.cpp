@@ -72,7 +72,7 @@ constexpr uint8_t kCMISOffsetStageCtrlSet0 = 143;
 // 0x01 overrides low power mode
 // 0x04 is an LR4-specific bit that is otherwise reserved
 
-constexpr uint8_t kCmisPowerModeMask = (1 << 4);
+constexpr uint8_t kCmisPowerModeMask = (0b101 << 4);
 }
 
 using folly::MutableByteRange;
