@@ -15,16 +15,21 @@ MinipackSystemContainer::getInstance() {
   return _minipackSystemContainer.try_get();
 }
 
-MinipackSystemContainer::MinipackSystemContainer() {
-  fpgaDevice_ = std::make_unique<FpgaDevice>(
-      PciVendorId(kFacebookFpgaVendorID), PciDeviceId(PCI_MATCH_ANY));
+MinipackSystemContainer::MinipackSystemContainer()
+    : MinipackSystemContainer(std::make_unique<FpgaDevice>(
+          PciVendorId(kFacebookFpgaVendorID),
+          PciDeviceId(PCI_MATCH_ANY))) {}
+
+MinipackSystemContainer::MinipackSystemContainer(
+    std::unique_ptr<FpgaDevice> fpgaDevice)
+    : MinipackBaseSystemContainer(std::move(fpgaDevice)) {
   // create all PIM FPGA controllers
   for (auto pim = kPimStartNum; pim < kPimStartNum + kNumberPim; pim++) {
     // Should we align the PIM number to start from 2 or not?
     pims_[pim - kPimStartNum] = std::make_unique<MinipackPimContainer>(
         pim,
         folly::format("pim{:d}", pim).str(),
-        fpgaDevice_.get(),
+        getFpgaDevice(),
         MinipackBaseSystemContainer::getPimOffset(pim),
         kFacebookFpgaPimSize);
   }

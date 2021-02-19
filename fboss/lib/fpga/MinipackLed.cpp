@@ -11,6 +11,7 @@
 
 #include <folly/Format.h>
 #include <folly/logging/xlog.h>
+#include "fboss/agent/FbossError.h"
 
 namespace {
 using facebook::fboss::MinipackLed;
@@ -50,6 +51,29 @@ void MinipackLed::setColor(MinipackLed::Color color) {
       getColorStr(color),
       io_->getBaseAddress(),
       static_cast<uint32_t>(color));
+}
+
+MinipackLed::Color MinipackLed::getColor() {
+  auto color = io_->readRegister();
+  switch (color) {
+    case static_cast<uint32_t>(MinipackLed::Color::OFF):
+    case static_cast<uint32_t>(MinipackLed::Color::WHITE):
+    case static_cast<uint32_t>(MinipackLed::Color::CYAN):
+    case static_cast<uint32_t>(MinipackLed::Color::BLUE):
+    case static_cast<uint32_t>(MinipackLed::Color::PINK):
+    case static_cast<uint32_t>(MinipackLed::Color::RED):
+    case static_cast<uint32_t>(MinipackLed::Color::ORANGE):
+    case static_cast<uint32_t>(MinipackLed::Color::YELLOW):
+    case static_cast<uint32_t>(MinipackLed::Color::GREEN):
+      auto minipackColor = static_cast<MinipackLed::Color>(color);
+      XLOG(DBG5) << folly::format(
+          "Fpga get LED {:s} is {:s}. Register={:#x}",
+          io_->getName(),
+          getColorStr(minipackColor),
+          io_->getBaseAddress());
+      return minipackColor;
+  }
+  throw FbossError("Invalid color register for MinipackLed ", color);
 }
 
 } // namespace facebook::fboss

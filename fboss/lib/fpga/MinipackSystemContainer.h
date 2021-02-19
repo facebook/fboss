@@ -9,6 +9,8 @@ namespace facebook::fboss {
 class MinipackSystemContainer : public MinipackBaseSystemContainer {
  public:
   MinipackSystemContainer();
+  explicit MinipackSystemContainer(std::unique_ptr<FpgaDevice> fpgaDevice);
+
   static std::shared_ptr<MinipackSystemContainer> getInstance();
 
  private:

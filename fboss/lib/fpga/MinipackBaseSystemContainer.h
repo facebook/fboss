@@ -9,6 +9,9 @@ namespace facebook::fboss {
 // The base system container for Minipack switch family.
 class MinipackBaseSystemContainer {
  public:
+  explicit MinipackBaseSystemContainer(std::unique_ptr<FpgaDevice> fpgaDevice)
+      : fpgaDevice_(std::move(fpgaDevice)) {}
+
   virtual ~MinipackBaseSystemContainer() {}
   const static int kPimStartNum = 2;
   const static int kNumberPim = 8;
@@ -24,6 +27,10 @@ class MinipackBaseSystemContainer {
   virtual MinipackBasePimContainer* getPimContainer(int pim) const;
   virtual std::vector<MinipackBasePimContainer*> getAllPimContainers();
 
+  FpgaDevice* getFpgaDevice() const {
+    return fpgaDevice_.get();
+  }
+
  protected:
   // FPGA Device Info
   static constexpr uint32_t kFacebookFpgaVendorID = 0x1d9b;
@@ -32,8 +39,10 @@ class MinipackBaseSystemContainer {
   static constexpr uint32_t kFacebookFpgaPimSize = 0x8000;
 
   std::array<std::unique_ptr<MinipackBasePimContainer>, kNumberPim> pims_;
-  std::unique_ptr<FpgaDevice> fpgaDevice_;
   bool isHwInitialized_{false};
+
+ private:
+  std::unique_ptr<FpgaDevice> fpgaDevice_;
 };
 
 } // namespace facebook::fboss

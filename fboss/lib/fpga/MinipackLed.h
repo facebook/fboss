@@ -40,6 +40,8 @@ class MinipackLed {
 
   void setColor(Color color);
 
+  Color getColor();
+
  private:
   std::unique_ptr<FpgaMemoryRegister> io_;
 };
