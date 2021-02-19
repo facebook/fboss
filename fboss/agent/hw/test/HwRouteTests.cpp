@@ -86,25 +86,6 @@ class HwRouteTest : public HwLinkStateDependentTest {
     return getProgrammedState();
   }
 
-  std::shared_ptr<SwitchState> updateRoutesClassID(
-      const std::shared_ptr<SwitchState>& inState,
-      const std::map<RoutePrefix<AddrT>, std::optional<cfg::AclLookupClass>>&
-          routePrefix2ClassID) {
-    auto outState{inState->clone()};
-    auto routeTable = outState->getRouteTables()->getRouteTable(kRouterID());
-    auto routeTableRib =
-        routeTable->template getRib<AddrT>()->modify(kRouterID(), &outState);
-
-    for (const auto& [routePrefix, classID] : routePrefix2ClassID) {
-      auto route = routeTableRib->routes()->getRouteIf(routePrefix);
-      CHECK(route);
-      route = route->clone();
-      route->updateClassID(classID);
-      routeTableRib->updateRoute(route);
-    }
-    return outState;
-  }
-
   void verifyClassIDHelper(
       RoutePrefix<AddrT> routePrefix,
       std::optional<cfg::AclLookupClass> classID) {
@@ -130,11 +111,13 @@ TYPED_TEST(HwRouteTest, VerifyClassID) {
         {this->kGetRoutePrefix0(),
          this->kGetRoutePrefix1(),
          this->kGetRoutePrefix2()});
-    auto state3 = this->updateRoutesClassID(
-        state2,
-        {{this->kGetRoutePrefix0(), this->kLookupClass()},
-         {this->kGetRoutePrefix1(), this->kLookupClass()}});
-    this->applyNewState(state3);
+    HwSwitchEnsembleRouteUpdateWrapper updater(this->getHwSwitchEnsemble());
+    updater.programClassID(
+        this->kRouterID(),
+        {this->kGetRoutePrefix0().toCidrNetowrk(),
+         this->kGetRoutePrefix1().toCidrNetowrk()},
+        this->kLookupClass(),
+        false /*sync*/);
 
     // verify classID programming
     this->verifyClassIDHelper(this->kGetRoutePrefix0(), this->kLookupClass());
@@ -142,11 +125,16 @@ TYPED_TEST(HwRouteTest, VerifyClassID) {
     this->verifyClassIDHelper(this->kGetRoutePrefix2(), std::nullopt);
 
     // remove r1's classID, add classID for r2
-    auto state4 = this->updateRoutesClassID(
-        this->getProgrammedState(),
-        {{this->kGetRoutePrefix1(), std::nullopt},
-         {this->kGetRoutePrefix2(), this->kLookupClass()}});
-    this->applyNewState(state4);
+    updater.programClassID(
+        this->kRouterID(),
+        {this->kGetRoutePrefix1().toCidrNetowrk()},
+        std::nullopt,
+        false /*sync*/);
+    updater.programClassID(
+        this->kRouterID(),
+        {this->kGetRoutePrefix2().toCidrNetowrk()},
+        this->kLookupClass(),
+        false /*sync*/);
   };
 
   auto verify = [=]() {

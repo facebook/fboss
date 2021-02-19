@@ -32,6 +32,9 @@ struct RoutePrefix {
     return folly::to<std::string>(network, "/", static_cast<uint32_t>(mask));
   }
 
+  folly::CIDRNetwork toCidrNetowrk() const {
+    return folly::CIDRNetwork{network, mask};
+  }
   /*
    * Serialize to folly::dynamic
    */
