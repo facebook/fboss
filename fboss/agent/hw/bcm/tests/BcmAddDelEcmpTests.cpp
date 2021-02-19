@@ -108,8 +108,6 @@ class BcmAddDelEcmpTest : public BcmTest {
       for (auto ritr = cidrNetworks_.rbegin(); ritr != cidrNetworks_.rend();
            ++ritr) {
         auto& network = *ritr;
-        auto routeTable =
-            getProgrammedState()->getRouteTables()->getRouteTable(kRid);
         bool deleted = false;
         if (network.first.isV6()) {
           if (findRoute<folly::IPAddressV6>(

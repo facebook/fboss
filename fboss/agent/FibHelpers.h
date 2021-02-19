@@ -43,6 +43,10 @@ std::shared_ptr<Route<AddrT>> findLongestMatchRoute(
     const AddrT& addr,
     const std::shared_ptr<SwitchState>& state);
 
+std::pair<uint64_t, uint64_t> getRouteCount(
+    bool isStandaloneRib,
+    const std::shared_ptr<SwitchState>& state);
+
 template <typename Func>
 void forAllRoutes(
     bool isStandaloneRib,
@@ -150,4 +154,5 @@ void forEachChangedRoute(
   forEachChangedRoute<folly::IPAddressV6>(
       isStandaloneRib, delta, changedFn, addedFn, removedFn, args...);
 }
+
 } // namespace facebook::fboss

@@ -79,6 +79,18 @@ std::shared_ptr<Route<AddrT>> findLongestMatchRoute(
       false /*longest match*/);
 }
 
+std::pair<uint64_t, uint64_t> getRouteCount(
+    bool isStandaloneRib,
+    const std::shared_ptr<SwitchState>& state) {
+  uint64_t v6Count{0}, v4Count{0};
+  if (isStandaloneRib) {
+    std::tie(v4Count, v6Count) = state->getFibs()->getRouteCount();
+  } else {
+    state->getRouteTables()->getRouteCount(&v4Count, &v6Count);
+  }
+  return std::make_pair(v4Count, v6Count);
+}
+
 template std::shared_ptr<Route<folly::IPAddressV6>> findRoute(
     bool isStandaloneRib,
     RouterID rid,
