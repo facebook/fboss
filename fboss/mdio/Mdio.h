@@ -54,6 +54,8 @@ class Mdio {
  public:
   virtual ~Mdio() {}
 
+  virtual void init(bool /* forceReset */) {}
+
   // read/write apis.
   virtual phy::Cl45Data readCl45(
       phy::PhyAddress physAddr,
@@ -77,16 +79,11 @@ class MdioController {
       : id_(id),
         rawIO_(IO(std::forward<Args>(args)...)),
         io_(rawIO_),
-        lockFile_(std::make_shared<folly::File>(
-            folly::to<std::string>(kMdioLockFilePath, id),
-            O_RDWR | O_CREAT,
-            0666)),
         eventBase_(std::make_unique<folly::EventBase>()) {
     // start controller thread
     auto* evb = eventBase_.get();
     controllerThread_.reset(new std::thread([evb] { evb->loopForever(); }));
   }
-
 
   MdioController(MdioController<IO>&& old)
       : id_(std::move(old.id_)),
@@ -96,9 +93,9 @@ class MdioController {
         controllerThread_(std::move(old.controllerThread_)),
         eventBase_(std::move(old.eventBase_)) {}
 
-  // Delete the copy constructor. If we try to copy this object while io_ is locked
-  // then the process will immediately deadlock.
-  explicit MdioController(MdioController &) = delete;
+  // Delete the copy constructor. If we try to copy this object while io_ is
+  // locked then the process will immediately deadlock.
+  explicit MdioController(const MdioController&) = delete;
 
   ~MdioController() {
     if (eventBase_) {
@@ -107,6 +104,12 @@ class MdioController {
     if (controllerThread_) {
       controllerThread_->join();
     }
+  }
+
+  void init(bool forceReset = false) {
+    lockFile_ = std::make_shared<folly::File>(
+        folly::to<std::string>(kMdioLockFilePath, id_), O_RDWR | O_CREAT, 0666);
+    fully_lock()->init(forceReset);
   }
 
   phy::Cl45Data readCl45Unlocked(
@@ -124,7 +127,7 @@ class MdioController {
     rawIO_.writeCl45(physAddr, devAddr, regAddr, data);
   }
 
-    phy::Cl45Data readCl45(
+  phy::Cl45Data readCl45(
       phy::PhyAddress physAddr,
       phy::Cl45DeviceAddress devAddr,
       phy::Cl45RegisterAddress regAddr) {
@@ -168,7 +171,8 @@ class MdioController {
     }
 
     // Clear the lockFile when moving so that we don't unlock twice
-    explicit ProcLock(ProcLock&& old): lockFile_(std::move(old.lockFile_)) {
+    explicit ProcLock(ProcLock&& old) noexcept
+        : lockFile_(std::move(old.lockFile_)) {
       old.lockFile_ = nullptr;
     }
     // Delete copy ctor since it doesn't really make sense to have two locks on
@@ -187,10 +191,14 @@ class MdioController {
 
   class FullyLockedMdio {
    public:
-    FullyLockedMdio(LockedPtr&& threadLock, std::shared_ptr<folly::File> lockFile_)
+    FullyLockedMdio(
+        LockedPtr&& threadLock,
+        std::shared_ptr<folly::File> lockFile_) noexcept
         : locked_(std::move(threadLock)), procLock_(lockFile_) {}
 
-    FullyLockedMdio(FullyLockedMdio&& old): locked_(std::move(old.locked_)), procLock_(std::move(old.procLock_)) {}
+    FullyLockedMdio(FullyLockedMdio&& old) noexcept
+        : locked_(std::move(old.locked_)),
+          procLock_(std::move(old.procLock_)) {}
     // Delete copy ctor since we'd just deadlock if we copy the LockedPtr.
     FullyLockedMdio(FullyLockedMdio& old) = delete;
 
@@ -204,13 +212,14 @@ class MdioController {
   };
 
   FullyLockedMdio fully_lock() {
+    CHECK(lockFile_);
     auto threadLock = io_.lock();
     return FullyLockedMdio(std::move(threadLock), lockFile_);
   }
 
-  // TODO (ccpowers): remove this as soon as we've stopped using the accton xphy code
-  // Same as fully_lock, but using 'new' so that we can delegate ownership of locks
-  // to C code that needs them (i.e the Accton xphy commands)
+  // TODO (ccpowers): remove this as soon as we've stopped using the accton xphy
+  // code Same as fully_lock, but using 'new' so that we can delegate ownership
+  // of locks to C code that needs them (i.e the Accton xphy commands)
   FullyLockedMdio* fully_lock_new() {
     auto threadLock = io_.lock();
     return new FullyLockedMdio(std::move(threadLock), lockFile_);
