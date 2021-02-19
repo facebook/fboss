@@ -22,7 +22,8 @@ template <typename AddrT>
 bool Route<AddrT>::operator==(const Route& rf) const {
   return (
       flags == rf.flags && prefix() == rf.prefix() &&
-      nextHopsMulti_ == rf.nextHopsMulti_ && fwd == rf.fwd);
+      nextHopsMulti_ == rf.nextHopsMulti_ && fwd == rf.fwd &&
+      classID_ == rf.classID_);
 }
 
 template <typename AddrT>
@@ -32,6 +33,9 @@ folly::dynamic Route<AddrT>::toFollyDynamic() const {
   routeFields[kNextHopsMulti] = nextHopsMulti_.toFollyDynamic();
   routeFields[kFwdInfo] = fwd.toFollyDynamic();
   routeFields[kFlags] = flags;
+  if (classID_.has_value()) {
+    routeFields[kClassID] = static_cast<int>(classID_.value());
+  }
   return routeFields;
 }
 
@@ -43,6 +47,9 @@ Route<AddrT> Route<AddrT>::fromFollyDynamic(const folly::dynamic& routeJson) {
   route.fwd = RouteNextHopEntry::fromFollyDynamic(routeJson[kFwdInfo]);
   route.flags = routeJson[kFlags].asInt();
 
+  if (routeJson.find(kClassID) != routeJson.items().end()) {
+    route.classID_ = cfg::AclLookupClass(routeJson[kClassID].asInt());
+  }
   CHECK(!route.hasNoEntry());
   return route;
 }
