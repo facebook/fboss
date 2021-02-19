@@ -16,13 +16,18 @@
 
 namespace {
 auto constexpr kChunkSize = 4000;
-}
+// TODO parameterize tests to run for both old and new RIBs
+bool isStandaloneRibEnabled = false;
+} // namespace
 namespace facebook::fboss {
 
 TEST(RouteScaleGeneratorsTest, RSWDistribution) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
   auto routeDistributionGen = utility::RSWRouteScaleGenerator(
-      createTestState(mockPlatform.get()), kChunkSize, 2);
+      createTestState(mockPlatform.get()),
+      isStandaloneRibEnabled,
+      kChunkSize,
+      2);
 
   verifyRouteCount(routeDistributionGen, kExtraRoutes, 7947);
   verifyChunking(routeDistributionGen, 7947, kChunkSize);
@@ -31,7 +36,10 @@ TEST(RouteScaleGeneratorsTest, RSWDistribution) {
 TEST(RouteScaleGeneratorsTest, FSWDistribution) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
   auto routeDistributionGen = utility::FSWRouteScaleGenerator(
-      createTestState(mockPlatform.get()), kChunkSize, 2);
+      createTestState(mockPlatform.get()),
+      isStandaloneRibEnabled,
+      kChunkSize,
+      2);
 
   verifyRouteCount(routeDistributionGen, kExtraRoutes, 16000);
   verifyChunking(routeDistributionGen, 16000, kChunkSize);
@@ -40,7 +48,10 @@ TEST(RouteScaleGeneratorsTest, FSWDistribution) {
 TEST(RouteScaleGeneratorsTest, THAlpmDistribution) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
   auto routeDistributionGen = utility::THAlpmRouteScaleGenerator(
-      createTestState(mockPlatform.get()), kChunkSize, 2);
+      createTestState(mockPlatform.get()),
+      isStandaloneRibEnabled,
+      kChunkSize,
+      2);
 
   verifyRouteCount(routeDistributionGen, kExtraRoutes, 33400);
   verifyChunking(routeDistributionGen, 33400, kChunkSize);
@@ -49,7 +60,10 @@ TEST(RouteScaleGeneratorsTest, THAlpmDistribution) {
 TEST(RouteScaleGeneratorsTest, HgridDuRouteScaleGenerator) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
   auto routeDistributionGen = utility::HgridDuRouteScaleGenerator(
-      createTestState(mockPlatform.get()), kChunkSize, 2);
+      createTestState(mockPlatform.get()),
+      isStandaloneRibEnabled,
+      kChunkSize,
+      2);
 
   verifyRouteCount(routeDistributionGen, kExtraRoutes, 37249);
   verifyChunking(routeDistributionGen, 37249, kChunkSize);
@@ -58,7 +72,10 @@ TEST(RouteScaleGeneratorsTest, HgridDuRouteScaleGenerator) {
 TEST(RouteScaleGeneratorsTest, HgridUuRouteScaleGenerator) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
   auto routeDistributionGen = utility::HgridUuRouteScaleGenerator(
-      createTestState(mockPlatform.get()), kChunkSize, 2);
+      createTestState(mockPlatform.get()),
+      isStandaloneRibEnabled,
+      kChunkSize,
+      2);
 
   verifyRouteCount(routeDistributionGen, kExtraRoutes, 48350);
   verifyChunking(routeDistributionGen, 48350, kChunkSize);
@@ -67,7 +84,10 @@ TEST(RouteScaleGeneratorsTest, HgridUuRouteScaleGenerator) {
 TEST(RouteScaleGeneratorsTest, TurboFSWRouteScaleGenerator) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
   auto routeDistributionGen = utility::TurboFSWRouteScaleGenerator(
-      createTestState(mockPlatform.get()), kChunkSize, 64);
+      createTestState(mockPlatform.get()),
+      isStandaloneRibEnabled,
+      kChunkSize,
+      64);
   verifyRouteCount(routeDistributionGen, kExtraRoutes, 69);
   verifyChunking(routeDistributionGen, 69, kChunkSize);
 }

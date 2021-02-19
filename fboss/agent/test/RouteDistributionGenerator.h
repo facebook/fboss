@@ -10,8 +10,8 @@
 
 #pragma once
 
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/platforms/common/PlatformMode.h"
-#include "fboss/agent/state/RouteTable.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/types.h"
@@ -31,12 +31,12 @@ template <typename AddrT>
 folly::CIDRNetwork getNewPrefix(
     PrefixGenerator<AddrT>& prefixGenerator,
     const std::shared_ptr<facebook::fboss::SwitchState>& state,
-    facebook::fboss::RouterID routerId) {
+    facebook::fboss::RouterID routerId,
+    bool isStandaloneRibEnabled) {
   // Obtain a new prefix.
   auto prefix = prefixGenerator.getNext();
-  const auto& routeTableRib =
-      state->getRouteTables()->getRouteTable(routerId)->getRib<AddrT>();
-  while (routeTableRib->exactMatch(prefix)) {
+  while (findRoute<AddrT>(
+      isStandaloneRibEnabled, routerId, {prefix.network, prefix.mask}, state)) {
     prefix = prefixGenerator.getNext();
   }
   return folly::CIDRNetwork{{prefix.network}, prefix.mask};
@@ -63,6 +63,7 @@ class RouteDistributionGenerator {
       const std::shared_ptr<SwitchState>& startingState,
       const Masklen2NumPrefixes& v6DistributionSpec,
       const Masklen2NumPrefixes& v4DistributionSpec,
+      bool isStandaloneRibEnabled,
       unsigned int chunkSize,
       unsigned int ecmpWidth,
       RouterID routerId = RouterID(0));
@@ -96,6 +97,9 @@ class RouteDistributionGenerator {
   const RouterID getRouterID() const {
     return routerId_;
   }
+  bool isStandaloneRibEnabled() const {
+    return isStandaloneRibEnabled_;
+  }
 
  private:
   template <typename AddrT>
@@ -106,6 +110,7 @@ class RouteDistributionGenerator {
   const std::shared_ptr<SwitchState> startingState_;
   const Masklen2NumPrefixes v6DistributionSpec_;
   const Masklen2NumPrefixes v4DistributionSpec_;
+  bool isStandaloneRibEnabled_{false};
   const unsigned int chunkSize_;
   const unsigned int ecmpWidth_;
   const RouterID routerId_{0};

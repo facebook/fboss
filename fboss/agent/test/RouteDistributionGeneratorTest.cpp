@@ -14,6 +14,10 @@
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 #include "fboss/agent/test/RouteGeneratorTestUtils.h"
 
+namespace {
+// TODO parameterize tests to run for both old and new RIBs
+bool isStandaloneRibEnabled = false;
+} // namespace
 namespace facebook::fboss {
 
 TEST(RouteDistributionGeneratorsTest, v4AndV6DistributionSingleChunk) {
@@ -28,6 +32,7 @@ TEST(RouteDistributionGeneratorsTest, v4AndV6DistributionSingleChunk) {
           {25, 5},
           {32, 5},
       },
+      isStandaloneRibEnabled,
       4000,
       2);
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 20);
@@ -46,6 +51,7 @@ TEST(RouteDistributionGeneratorsTest, v4AndV6DistributionMultipleChunks) {
           {25, 5},
           {32, 5},
       },
+      isStandaloneRibEnabled,
       10,
       2);
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 20);
@@ -66,6 +72,7 @@ TEST(
           {25, 3},
           {32, 7},
       },
+      isStandaloneRibEnabled,
       4,
       2);
 
@@ -87,6 +94,7 @@ TEST(
           {25, 4},
           {32, 5},
       },
+      isStandaloneRibEnabled,
       5,
       2);
 
@@ -102,6 +110,7 @@ TEST(RouteDistributionGeneratorsTest, emptyV4Distribution) {
           {65, 5},
       },
       {},
+      isStandaloneRibEnabled,
       5,
       2);
 
@@ -112,7 +121,12 @@ TEST(RouteDistributionGeneratorsTest, emptyV4Distribution) {
 TEST(RouteDistributionGeneratorsTest, emptyV6Distribution) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
   auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
-      createTestState(mockPlatform.get()), {}, {{24, 5}}, 5, 2);
+      createTestState(mockPlatform.get()),
+      {},
+      {{24, 5}},
+      isStandaloneRibEnabled,
+      5,
+      2);
 
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 5);
   verifyChunking(routeDistributionSwitchStatesGen, 5, 5);
@@ -121,7 +135,12 @@ TEST(RouteDistributionGeneratorsTest, emptyV6Distribution) {
 TEST(RouteDistributionGeneratorsTest, emptyV4AndV6Distribution) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
   auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
-      createTestState(mockPlatform.get()), {}, {}, 5, 2);
+      createTestState(mockPlatform.get()),
+      {},
+      {},
+      isStandaloneRibEnabled,
+      5,
+      2);
 
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 0);
   verifyChunking(routeDistributionSwitchStatesGen, 0, 5);

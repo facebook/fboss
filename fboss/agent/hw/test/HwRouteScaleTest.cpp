@@ -16,6 +16,7 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
 
 namespace facebook::fboss {
 
@@ -33,9 +34,33 @@ class HwRouteScaleTest : public HwTest {
     auto setup = [this]() {
       applyNewConfig(
           utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds()));
-      auto states =
-          RouteScaleGeneratorT(getProgrammedState()).getSwitchStates();
-      applyNewState(states.back());
+
+      applyNewState(utility::EcmpSetupAnyNPorts6(getProgrammedState())
+                        .resolveNextHops(
+                            getProgrammedState(), utility::kDefaulEcmpWidth));
+      applyNewState(utility::EcmpSetupAnyNPorts4(getProgrammedState())
+                        .resolveNextHops(
+                            getProgrammedState(), utility::kDefaulEcmpWidth));
+      auto routeChunks = RouteScaleGeneratorT(
+                             getProgrammedState(),
+                             getHwSwitchEnsemble()->isStandaloneRibEnabled())
+                             .get();
+      HwSwitchEnsembleRouteUpdateWrapper updater(getHwSwitchEnsemble());
+      for (const auto& routeChunk : routeChunks) {
+        for (const auto& route : routeChunk) {
+          RouteNextHopSet nhops;
+          for (const auto& ip : route.nhops) {
+            nhops.emplace(UnresolvedNextHop(ip, ECMP_WEIGHT));
+          }
+          updater.addRoute(
+              RouterID(0),
+              route.prefix.first,
+              route.prefix.second,
+              ClientID::BGPD,
+              RouteNextHopEntry(nhops, AdminDistance::EBGP));
+        }
+      }
+      updater.program();
     };
     auto verify = [] {};
     verifyAcrossWarmBoots(setup, verify);

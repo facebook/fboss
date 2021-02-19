@@ -17,6 +17,13 @@ namespace facebook::fboss {
 
 TEST_F(HwOverflowTest, overflowRoutes) {
   std::shared_ptr<SwitchState> desiredState;
+  applyNewState(
+      utility::EcmpSetupAnyNPorts6(getProgrammedState())
+          .resolveNextHops(getProgrammedState(), utility::kDefaulEcmpWidth));
+  applyNewState(
+      utility::EcmpSetupAnyNPorts4(getProgrammedState())
+          .resolveNextHops(getProgrammedState(), utility::kDefaulEcmpWidth));
+  bool isStandaloneRibEnabled = getHwSwitchEnsemble()->isStandaloneRibEnabled();
   switch (getPlatform()->getMode()) {
     case PlatformMode::WEDGE:
       /*
@@ -24,10 +31,12 @@ TEST_F(HwOverflowTest, overflowRoutes) {
        * mode. Hence we need RSW + Hgrid scale to actually
        * cause overflow
        */
-      desiredState = utility::FSWRouteScaleGenerator(getProgrammedState())
+      desiredState = utility::FSWRouteScaleGenerator(
+                         getProgrammedState(), isStandaloneRibEnabled)
                          .getSwitchStates()
                          .back();
-      desiredState = utility::HgridUuRouteScaleGenerator(desiredState)
+      desiredState = utility::HgridUuRouteScaleGenerator(
+                         desiredState, isStandaloneRibEnabled)
                          .getSwitchStates()
                          .back();
       break;
@@ -35,7 +44,8 @@ TEST_F(HwOverflowTest, overflowRoutes) {
     case PlatformMode::GALAXY_FC:
     case PlatformMode::GALAXY_LC:
     case PlatformMode::WEDGE100:
-      desiredState = utility::HgridUuRouteScaleGenerator(getProgrammedState())
+      desiredState = utility::HgridUuRouteScaleGenerator(
+                         getProgrammedState(), isStandaloneRibEnabled)
                          .getSwitchStates()
                          .back();
       break;

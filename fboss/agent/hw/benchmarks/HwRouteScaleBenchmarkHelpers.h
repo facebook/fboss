@@ -31,7 +31,8 @@ void routeAddDelBenchmarker(bool measureAdd) {
   auto config = utility::onePortPerVlanConfig(
       ensemble->getHwSwitch(), ensemble->masterLogicalPortIds());
   ensemble->applyInitialConfig(config);
-  auto routeGenerator = RouteScaleGeneratorT(ensemble->getProgrammedState());
+  auto routeGenerator = RouteScaleGeneratorT(
+      ensemble->getProgrammedState(), ensemble->isStandaloneRibEnabled());
   if (!routeGenerator.isSupported(ensemble->getPlatform()->getMode())) {
     // skip if this is not supported for a platform
     return;

@@ -86,14 +86,17 @@ void runBenchmark() {
                    {26, 6},
                    {27, 26},
                    {31, 40}},
+                  ensemble->isStandaloneRibEnabled(),
                   4000,
                   4)
                   .getSwitchStates()
                   .back();
   } else {
-    toApply = utility::FSWRouteScaleGenerator(ensemble->getProgrammedState())
-                  .getSwitchStates()
-                  .back();
+    toApply =
+        utility::FSWRouteScaleGenerator(
+            ensemble->getProgrammedState(), ensemble->isStandaloneRibEnabled())
+            .getSwitchStates()
+            .back();
   }
   ensemble->applyNewState(toApply);
   // Static such that the object destructor runs as late as possible. In

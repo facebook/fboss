@@ -28,6 +28,7 @@ namespace facebook::fboss::utility {
  */
 RSWRouteScaleGenerator::RSWRouteScaleGenerator(
     const std::shared_ptr<SwitchState>& startingState,
+    bool isStandaloneRibEnabled,
     unsigned int chunkSize,
     unsigned int ecmpWidth,
     RouterID routerId)
@@ -53,12 +54,14 @@ RSWRouteScaleGenerator::RSWRouteScaleGenerator(
               {31, 128},
               {32, 2176},
           },
+          isStandaloneRibEnabled,
           chunkSize,
           ecmpWidth,
           routerId) {}
 
 FSWRouteScaleGenerator::FSWRouteScaleGenerator(
     const std::shared_ptr<SwitchState>& startingState,
+    bool isStandaloneRibEnabled,
     unsigned int chunkSize,
     unsigned int ecmpWidth,
     RouterID routerId)
@@ -85,12 +88,14 @@ FSWRouteScaleGenerator::FSWRouteScaleGenerator(
               {31, 100},
               {32, 4500},
           },
+          isStandaloneRibEnabled,
           chunkSize,
           ecmpWidth,
           routerId) {}
 
 THAlpmRouteScaleGenerator::THAlpmRouteScaleGenerator(
     const std::shared_ptr<SwitchState>& startingState,
+    bool isStandaloneRibEnabled,
     unsigned int chunkSize,
     unsigned int ecmpWidth,
     RouterID routerId)
@@ -117,12 +122,14 @@ THAlpmRouteScaleGenerator::THAlpmRouteScaleGenerator(
               {30, 400},
               {32, 10000},
           },
+          isStandaloneRibEnabled,
           chunkSize,
           ecmpWidth,
           routerId) {}
 
 HgridDuRouteScaleGenerator::HgridDuRouteScaleGenerator(
     const std::shared_ptr<SwitchState>& startingState,
+    bool isStandaloneRibEnabled,
     unsigned int chunkSize,
     unsigned int ecmpWidth,
     RouterID routerId)
@@ -153,12 +160,14 @@ HgridDuRouteScaleGenerator::HgridDuRouteScaleGenerator(
               {31, 128},
               {32, 16721},
           },
+          isStandaloneRibEnabled,
           chunkSize,
           ecmpWidth,
           routerId) {}
 
 HgridUuRouteScaleGenerator::HgridUuRouteScaleGenerator(
     const std::shared_ptr<SwitchState>& startingState,
+    bool isStandaloneRibEnabled,
     unsigned int chunkSize,
     unsigned int ecmpWidth,
     RouterID routerId)
@@ -195,12 +204,14 @@ HgridUuRouteScaleGenerator::HgridUuRouteScaleGenerator(
               {31, 128},
               {32, 16625},
           },
+          isStandaloneRibEnabled,
           chunkSize,
           ecmpWidth,
           routerId) {}
 
 TurboFSWRouteScaleGenerator::TurboFSWRouteScaleGenerator(
     const std::shared_ptr<SwitchState>& startingState,
+    bool isStandaloneRibEnabled,
     unsigned int chunkSize,
     unsigned int ecmpWidth,
     RouterID routerId)
@@ -219,6 +230,7 @@ TurboFSWRouteScaleGenerator::TurboFSWRouteScaleGenerator(
               {26, 11},
               {32, 11},
           },
+          isStandaloneRibEnabled,
           chunkSize,
           ecmpWidth,
           routerId),
@@ -272,8 +284,8 @@ void TurboFSWRouteScaleGenerator::genIp2MplsRouteDistribution(
     while (numRoutes) {
       int label = labelForChunk;
       for (auto j = 0; j < chunkSize && numRoutes > 0; ++j, numRoutes--) {
-        const auto cidrNetwork =
-            getNewPrefix(prefixGenerator, state, getRouterID());
+        const auto cidrNetwork = getNewPrefix(
+            prefixGenerator, state, getRouterID(), isStandaloneRibEnabled());
         if constexpr (std::is_same<folly::IPAddressV6, AddrT>::value) {
           prefixes.emplace_back(
               RoutePrefix<AddrT>{cidrNetwork.first.asV6(), cidrNetwork.second});

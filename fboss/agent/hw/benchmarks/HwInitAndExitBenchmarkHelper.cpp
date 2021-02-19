@@ -139,16 +139,22 @@ RouteDistributionGenerator::SwitchStates getRouteScaleSwitchStates(
       ensemble->getHwSwitch()->getPlatform()->getAsic()->getAsicType();
 
   if (asicType == HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
-    return utility::RSWRouteScaleGenerator(ensemble->getProgrammedState())
+    return utility::RSWRouteScaleGenerator(
+               ensemble->getProgrammedState(),
+               ensemble->isStandaloneRibEnabled())
         .getSwitchStates();
   } else if (
       asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3 ||
       asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4 ||
       asicType == HwAsic::AsicType::ASIC_TYPE_TAJO) {
-    return utility::HgridUuRouteScaleGenerator(ensemble->getProgrammedState())
+    return utility::HgridUuRouteScaleGenerator(
+               ensemble->getProgrammedState(),
+               ensemble->isStandaloneRibEnabled())
         .getSwitchStates();
   } else if (asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK) {
-    return utility::FSWRouteScaleGenerator(ensemble->getProgrammedState())
+    return utility::FSWRouteScaleGenerator(
+               ensemble->getProgrammedState(),
+               ensemble->isStandaloneRibEnabled())
         .getSwitchStates();
   } else {
     CHECK(false) << "Invalid asic type for route scale";
