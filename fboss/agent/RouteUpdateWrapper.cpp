@@ -162,4 +162,21 @@ RouteUpdateWrapper::programLegacyRibHelper(
   state->resetRouteTables(std::move(newRt));
   return {state, stats};
 }
+
+void RouteUpdateWrapper::programStandAloneRib() {
+  for (auto [ridClientId, addDelRoutes] : ribRoutesToAddDel_) {
+    // TODO handle route update failures
+    auto stats = getRib()->update(
+        ridClientId.first,
+        ridClientId.second,
+        clientIdToAdminDistance(ridClientId.second),
+        addDelRoutes.toAdd,
+        addDelRoutes.toDel,
+        false,
+        "RIB update",
+        *fibUpdateFn_,
+        fibUpdateCookie_);
+    updateStats(stats);
+  }
+}
 } // namespace facebook::fboss

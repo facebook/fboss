@@ -37,27 +37,16 @@ void hwSwitchEnsembleFibUpdate(
 
 HwSwitchEnsembleRouteUpdateWrapper::HwSwitchEnsembleRouteUpdateWrapper(
     HwSwitchEnsemble* hwEnsemble)
-    : RouteUpdateWrapper(hwEnsemble->isStandaloneRibEnabled()),
+    : RouteUpdateWrapper(
+          hwEnsemble->isStandaloneRibEnabled(),
+          hwEnsemble->isStandaloneRibEnabled()
+              ? hwSwitchEnsembleFibUpdate
+              : std::optional<FibUpdateFunction>(),
+          hwEnsemble->isStandaloneRibEnabled() ? hwEnsemble : nullptr),
       hwEnsemble_(hwEnsemble) {}
 
 rib::RoutingInformationBase* HwSwitchEnsembleRouteUpdateWrapper::getRib() {
   return hwEnsemble_->getRib();
-}
-
-void HwSwitchEnsembleRouteUpdateWrapper::programStandAloneRib() {
-  for (auto [ridClientId, addDelRoutes] : ribRoutesToAddDel_) {
-    // TODO handle route update failures
-    hwEnsemble_->getRib()->update(
-        ridClientId.first,
-        ridClientId.second,
-        clientIdToAdminDistance(ridClientId.second),
-        addDelRoutes.toAdd,
-        addDelRoutes.toDel,
-        false,
-        "RIB update",
-        &hwSwitchEnsembleFibUpdate,
-        static_cast<void*>(hwEnsemble_));
-  }
 }
 
 void HwSwitchEnsembleRouteUpdateWrapper::programLegacyRib() {

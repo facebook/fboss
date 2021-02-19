@@ -34,7 +34,12 @@ void swSwitchFibUpdate(
 }
 
 SwSwitchRouteUpdateWrapper::SwSwitchRouteUpdateWrapper(SwSwitch* sw)
-    : RouteUpdateWrapper(sw->isStandaloneRibEnabled()), sw_(sw) {}
+    : RouteUpdateWrapper(
+          sw->isStandaloneRibEnabled(),
+          sw->isStandaloneRibEnabled() ? swSwitchFibUpdate
+                                       : std::optional<FibUpdateFunction>(),
+          sw->isStandaloneRibEnabled() ? sw : nullptr),
+      sw_(sw) {}
 
 void SwSwitchRouteUpdateWrapper::updateStats(
     const rib::RoutingInformationBase::UpdateStatistics& stats) {
@@ -46,23 +51,6 @@ void SwSwitchRouteUpdateWrapper::updateStats(
 
 rib::RoutingInformationBase* SwSwitchRouteUpdateWrapper::getRib() {
   return sw_->getRib();
-}
-
-void SwSwitchRouteUpdateWrapper::programStandAloneRib() {
-  for (auto [ridClientId, addDelRoutes] : ribRoutesToAddDel_) {
-    // TODO handle route update failures
-    auto stats = sw_->getRib()->update(
-        ridClientId.first,
-        ridClientId.second,
-        clientIdToAdminDistance(ridClientId.second),
-        addDelRoutes.toAdd,
-        addDelRoutes.toDel,
-        false,
-        "RIB update",
-        &swSwitchFibUpdate,
-        static_cast<void*>(sw_));
-    updateStats(stats);
-  }
 }
 
 void SwSwitchRouteUpdateWrapper::programLegacyRib() {
@@ -78,4 +66,5 @@ AdminDistance SwSwitchRouteUpdateWrapper::clientIdToAdminDistance(
     ClientID clientID) const {
   return sw_->clientIdToAdminDistance(static_cast<int>(clientID));
 }
+
 } // namespace facebook::fboss

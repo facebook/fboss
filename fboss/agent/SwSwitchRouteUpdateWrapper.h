@@ -33,7 +33,6 @@ class SwSwitchRouteUpdateWrapper : public RouteUpdateWrapper {
   void updateStats(
       const rib::RoutingInformationBase::UpdateStatistics& stats) override;
   void programLegacyRib() override;
-  void programStandAloneRib() override;
   SwSwitch* sw_;
 };
 } // namespace facebook::fboss

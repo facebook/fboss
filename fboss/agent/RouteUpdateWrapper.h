@@ -32,6 +32,7 @@ class RouteUpdateWrapper {
  public:
   virtual ~RouteUpdateWrapper() = default;
   using UpdateStatistics = rib::RoutingInformationBase::UpdateStatistics;
+  using FibUpdateFunction = rib::RoutingInformationBase::FibUpdateFunction;
   void addRoute(
       RouterID id,
       const folly::IPAddress& network,
@@ -50,17 +51,25 @@ class RouteUpdateWrapper {
  private:
   virtual rib::RoutingInformationBase* getRib() = 0;
   virtual void programLegacyRib() = 0;
-  virtual void programStandAloneRib() = 0;
+  void programStandAloneRib();
   virtual void updateStats(const UpdateStatistics& stats) = 0;
   virtual AdminDistance clientIdToAdminDistance(ClientID clientID) const = 0;
 
  protected:
   std::pair<std::shared_ptr<SwitchState>, UpdateStatistics>
   programLegacyRibHelper(const std::shared_ptr<SwitchState>& in) const;
-  explicit RouteUpdateWrapper(bool isStandaloneRibEnabled)
-      : isStandaloneRibEnabled_(isStandaloneRibEnabled) {}
+  RouteUpdateWrapper(
+      bool isStandaloneRibEnabled,
+      std::optional<FibUpdateFunction> fibUpdateFn,
+      void* fibUpdateCookie)
+      : isStandaloneRibEnabled_(isStandaloneRibEnabled),
+        fibUpdateFn_(fibUpdateFn),
+        fibUpdateCookie_(fibUpdateCookie) {}
+
   std::unordered_map<std::pair<RouterID, ClientID>, AddDelRoutes>
       ribRoutesToAddDel_;
   bool isStandaloneRibEnabled_{false};
+  std::optional<FibUpdateFunction> fibUpdateFn_;
+  void* fibUpdateCookie_{nullptr};
 };
 } // namespace facebook::fboss
