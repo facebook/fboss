@@ -47,6 +47,11 @@ class RouteUpdateWrapper {
       ClientID clientId);
   void program();
   void programMinAlpmState();
+  void programClassID(
+      RouterID rid,
+      const std::vector<folly::CIDRNetwork>& prefixes,
+      std::optional<cfg::AclLookupClass> classId,
+      bool async);
 
  private:
   virtual rib::RoutingInformationBase* getRib() = 0;
@@ -54,8 +59,23 @@ class RouteUpdateWrapper {
   void programStandAloneRib();
   virtual void updateStats(const UpdateStatistics& stats) = 0;
   virtual AdminDistance clientIdToAdminDistance(ClientID clientID) const = 0;
+  virtual void programClassIDLegacyRib(
+      RouterID rid,
+      const std::vector<folly::CIDRNetwork>& prefixes,
+      std::optional<cfg::AclLookupClass> classId,
+      bool async) = 0;
+  void programClassIDStandAloneRib(
+      RouterID rid,
+      const std::vector<folly::CIDRNetwork>& prefixes,
+      std::optional<cfg::AclLookupClass> classId,
+      bool async);
 
  protected:
+  std::shared_ptr<SwitchState> updateClassIdLegacyRibHelper(
+      const std::shared_ptr<SwitchState>& in,
+      RouterID rid,
+      const std::vector<folly::CIDRNetwork>& prefixes,
+      std::optional<cfg::AclLookupClass> classId);
   std::pair<std::shared_ptr<SwitchState>, UpdateStatistics>
   programLegacyRibHelper(const std::shared_ptr<SwitchState>& in) const;
   RouteUpdateWrapper(

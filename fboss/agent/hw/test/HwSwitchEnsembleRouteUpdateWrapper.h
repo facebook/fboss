@@ -34,6 +34,11 @@ class HwSwitchEnsembleRouteUpdateWrapper : public RouteUpdateWrapper {
   AdminDistance clientIdToAdminDistance(ClientID clientId) const override;
   rib::RoutingInformationBase* getRib() override;
   void programLegacyRib() override;
+  void programClassIDLegacyRib(
+      RouterID rid,
+      const std::vector<folly::CIDRNetwork>& prefixes,
+      std::optional<cfg::AclLookupClass> classId,
+      bool async) override;
 
   HwSwitchEnsemble* hwEnsemble_;
 };

@@ -13,7 +13,6 @@
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/state/Interface.h"
-#include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -767,70 +766,20 @@ void LookupClassRouteUpdater::processRouteUpdates(
 
 // Methods for scheduling state updates
 
-template <typename AddrT>
-void LookupClassRouteUpdater::updateClassIDForRouteHelper(
-    RouterID rid,
-    std::shared_ptr<SwitchState>& newState,
-    const std::shared_ptr<RouteTable>& routeTable,
-    const RoutePrefix<AddrT>& routePrefix,
-    std::optional<cfg::AclLookupClass> classID) const {
-  auto routeTableRib =
-      routeTable->template getRib<AddrT>()->modify(rid, &newState);
-
-  auto route = routeTableRib->routes()->getRouteIf(routePrefix);
-  if (route) {
-    route = route->clone();
-    route->updateClassID(classID);
-    routeTableRib->updateRoute(route);
-  }
-}
-
 void LookupClassRouteUpdater::updateClassIDsForRoutes(
     const std::vector<RouteAndClassID>& routesAndClassIDs) const {
-  if (sw_->isStandaloneRibEnabled()) {
-    std::unordered_map<
-        std::pair<RouterID, std::optional<cfg::AclLookupClass>>,
-        std::vector<folly::CIDRNetwork>>
-        ridClassId2Prefixes;
-    for (const auto& [ridAndCidr, classID] : routesAndClassIDs) {
-      auto& [rid, cidr] = ridAndCidr;
-      ridClassId2Prefixes[std::make_pair(rid, classID)].emplace_back(cidr);
-    }
-    for (const auto& [ridAndClassId, prefixes] : ridClassId2Prefixes) {
-      sw_->getRib()->setClassIDAsync(
-          ridAndClassId.first,
-          prefixes,
-          &swSwitchFibUpdate,
-          ridAndClassId.second,
-          static_cast<void*>(sw_));
-    }
-  } else {
-    auto updateClassIDsForRoutesFn =
-        [this, routesAndClassIDs](const std::shared_ptr<SwitchState>& state)
-        -> std::shared_ptr<SwitchState> {
-      auto newState{state};
-
-      for (const auto& [ridAndCidr, classID] : routesAndClassIDs) {
-        auto& [rid, cidr] = ridAndCidr;
-        auto& [ipAddress, mask] = cidr;
-        auto routeTables = newState->getRouteTables();
-        auto routeTable = routeTables->getRouteTable(rid);
-
-        if (ipAddress.isV6()) {
-          RoutePrefix<folly::IPAddressV6> routePrefixV6{ipAddress.asV6(), mask};
-          updateClassIDForRouteHelper(
-              rid, newState, routeTable, routePrefixV6, classID);
-        } else {
-          RoutePrefix<folly::IPAddressV4> routePrefixV4{ipAddress.asV4(), mask};
-          updateClassIDForRouteHelper(
-              rid, newState, routeTable, routePrefixV4, classID);
-        }
-      }
-      return newState;
-    };
-
-    sw_->updateState(
-        "Update classIDs for routes", std::move(updateClassIDsForRoutesFn));
+  std::unordered_map<
+      std::pair<RouterID, std::optional<cfg::AclLookupClass>>,
+      std::vector<folly::CIDRNetwork>>
+      ridClassId2Prefixes;
+  for (const auto& [ridAndCidr, classID] : routesAndClassIDs) {
+    auto& [rid, cidr] = ridAndCidr;
+    ridClassId2Prefixes[std::make_pair(rid, classID)].emplace_back(cidr);
+  }
+  SwSwitchRouteUpdateWrapper updater(sw_);
+  for (const auto& [ridAndClassId, prefixes] : ridClassId2Prefixes) {
+    updater.programClassID(
+        ridAndClassId.first, prefixes, ridAndClassId.second, true /*async*/);
   }
 }
 

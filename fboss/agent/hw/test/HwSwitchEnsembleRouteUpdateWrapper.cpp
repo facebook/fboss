@@ -67,4 +67,15 @@ AdminDistance HwSwitchEnsembleRouteUpdateWrapper::clientIdToAdminDistance(
   return itr == kClient2Admin.end() ? AdminDistance::MAX_ADMIN_DISTANCE
                                     : itr->second;
 }
+
+void HwSwitchEnsembleRouteUpdateWrapper::programClassIDLegacyRib(
+    RouterID rid,
+    const std::vector<folly::CIDRNetwork>& prefixes,
+    std::optional<cfg::AclLookupClass> classId,
+    bool async) {
+  CHECK(!async) << "aync updates not available in Hw tests";
+  hwEnsemble_->applyNewState(updateClassIdLegacyRibHelper(
+      hwEnsemble_->getProgrammedState(), rid, prefixes, classId));
+}
+
 } // namespace facebook::fboss

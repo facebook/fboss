@@ -13,6 +13,9 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/state/NodeBase-defs.h"
+#include "fboss/agent/state/RouteTable.h"
+#include "fboss/agent/state/RouteTableRib.h"
 #include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -178,5 +181,65 @@ void RouteUpdateWrapper::programStandAloneRib() {
         fibUpdateCookie_);
     updateStats(stats);
   }
+}
+
+void RouteUpdateWrapper::programClassID(
+    RouterID rid,
+    const std::vector<folly::CIDRNetwork>& prefixes,
+    std::optional<cfg::AclLookupClass> classId,
+    bool async) {
+  if (isStandaloneRibEnabled_) {
+    programClassIDStandAloneRib(rid, prefixes, classId, async);
+  } else {
+    programClassIDLegacyRib(rid, prefixes, classId, async);
+  }
+}
+
+void RouteUpdateWrapper::programClassIDStandAloneRib(
+    RouterID rid,
+    const std::vector<folly::CIDRNetwork>& prefixes,
+    std::optional<cfg::AclLookupClass> classId,
+    bool async) {
+  if (async) {
+    getRib()->setClassIDAsync(
+        rid, prefixes, *fibUpdateFn_, classId, fibUpdateCookie_);
+  } else {
+    getRib()->setClassID(
+        rid, prefixes, *fibUpdateFn_, classId, fibUpdateCookie_);
+  }
+}
+
+std::shared_ptr<SwitchState> RouteUpdateWrapper::updateClassIdLegacyRibHelper(
+    const std::shared_ptr<SwitchState>& in,
+    RouterID rid,
+    const std::vector<folly::CIDRNetwork>& prefixes,
+    std::optional<cfg::AclLookupClass> classId) {
+  auto newState{in};
+
+  auto updateClassId = [classId](auto rib, auto& prefix) {
+    auto route = rib->routes()->getRouteIf(prefix);
+    if (route) {
+      route = route->clone();
+      route->updateClassID(classId);
+      rib->updateRoute(route);
+    }
+  };
+  for (const auto& cidr : prefixes) {
+    auto routeTables = newState->getRouteTables();
+    auto routeTable = routeTables->getRouteTable(rid);
+
+    if (cidr.first.isV6()) {
+      RoutePrefix<folly::IPAddressV6> routePrefixV6{
+          cidr.first.asV6(), cidr.second};
+      auto rib = routeTable->getRibV6()->modify(rid, &newState);
+      updateClassId(rib, routePrefixV6);
+    } else {
+      RoutePrefix<folly::IPAddressV4> routePrefixV4{
+          cidr.first.asV4(), cidr.second};
+      auto rib = routeTable->getRibV4()->modify(rid, &newState);
+      updateClassId(rib, routePrefixV4);
+    }
+  }
+  return newState;
 }
 } // namespace facebook::fboss

@@ -145,13 +145,6 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
       std::pair<RidAndCidr, std::optional<cfg::AclLookupClass>>;
 
   // Methods for scheduling state updates
-  template <typename AddrT>
-  void updateClassIDForRouteHelper(
-      RouterID rid,
-      std::shared_ptr<SwitchState>& newState,
-      const std::shared_ptr<RouteTable>& routeTable,
-      const RoutePrefix<AddrT>& routePrefix,
-      std::optional<cfg::AclLookupClass> classID) const;
   void updateClassIDsForRoutes(
       const std::vector<RouteAndClassID>& routesAndClassIDs) const;
 

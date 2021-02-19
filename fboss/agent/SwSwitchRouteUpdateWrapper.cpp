@@ -67,4 +67,19 @@ AdminDistance SwSwitchRouteUpdateWrapper::clientIdToAdminDistance(
   return sw_->clientIdToAdminDistance(static_cast<int>(clientID));
 }
 
+void SwSwitchRouteUpdateWrapper::programClassIDLegacyRib(
+    RouterID rid,
+    const std::vector<folly::CIDRNetwork>& prefixes,
+    std::optional<cfg::AclLookupClass> classId,
+    bool async) {
+  auto updateFn =
+      [this, rid, prefixes, classId](const std::shared_ptr<SwitchState>& in) {
+        return updateClassIdLegacyRibHelper(in, rid, prefixes, classId);
+      };
+  if (async) {
+    sw_->updateState("Update classsId routes", updateFn);
+  } else {
+    sw_->updateStateBlocking("Update classsId routes", updateFn);
+  }
+}
 } // namespace facebook::fboss

@@ -33,6 +33,11 @@ class SwSwitchRouteUpdateWrapper : public RouteUpdateWrapper {
   void updateStats(
       const rib::RoutingInformationBase::UpdateStatistics& stats) override;
   void programLegacyRib() override;
+  void programClassIDLegacyRib(
+      RouterID rid,
+      const std::vector<folly::CIDRNetwork>& prefixes,
+      std::optional<cfg::AclLookupClass> classId,
+      bool async) override;
   SwSwitch* sw_;
 };
 } // namespace facebook::fboss
