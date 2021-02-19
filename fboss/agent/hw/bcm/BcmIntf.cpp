@@ -51,12 +51,6 @@ void BcmStation::program(MacAddress mac, int intfId) {
   memset(&params.dst_mac_mask, 0xFF, sizeof(params.dst_mac_mask));
   params.flags |= BCM_L2_STATION_IPV4 | BCM_L2_STATION_IPV6 |
       BCM_L2_STATION_ARP_RARP | BCM_L2_STATION_MPLS;
-  auto asic = hw_->getPlatform()->getAsic()->getAsicType();
-  if (asic == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
-    // TODO(daiweix): add this flag to avoid invalid station id complain on
-    // TH4 B0 chip. Required more clarification from Broadcom in CS00011595960.
-    params.flags |= BCM_L2_STATION_UNDERLAY;
-  }
   if (intfId != INVALID) {
     params.vlan = intfId;
     params.vlan_mask = 0x0;
@@ -67,6 +61,19 @@ void BcmStation::program(MacAddress mac, int intfId) {
   const auto warmBootCache = hw_->getWarmBootCache();
   auto vlanStationItr = warmBootCache->findVlanStation(VlanID(intfId));
   auto id = hw_->getPlatform()->getAsic()->getStationID(intfId);
+  auto asic = hw_->getPlatform()->getAsic()->getAsicType();
+  if (asic == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
+    int maxId;
+    rc = bcm_l2_station_size_get(hw_->getUnit(), &maxId);
+    bcmCheckError(rc, "failed to get l2 station table size");
+    if (id > maxId) {
+      throw FbossError(
+          "Station id ", id, " is larger than maximum allowed id ", maxId);
+    }
+    // BCM_L2_STATION_UNDERLAY is required on TH4 to program correct L2 station
+    // table
+    params.flags |= BCM_L2_STATION_UNDERLAY;
+  }
   if (vlanStationItr != warmBootCache->vlan2Station_end()) {
     // Lambda to compare with existing entry to check if we need to reprogram
     auto equivalent = [=](const bcm_l2_station_t& newStation,
