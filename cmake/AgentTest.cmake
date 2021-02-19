@@ -81,6 +81,7 @@ target_link_libraries(multi_node_test
   main
   fboss_agent
   config_factory
+  trunk_utils
   platform
   fboss_config_utils
   ${GTEST}
