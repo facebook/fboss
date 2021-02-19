@@ -56,7 +56,7 @@ class FpgaDevice {
    * we need to support different HW settings, like 4DD, we can leaverage more
    * input parameters to set up FPGA.
    */
-  void mmap() {
+  virtual void mmap() {
     phyMem_->mmap();
   }
 
