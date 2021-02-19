@@ -9,14 +9,14 @@
  */
 #include "fboss/lib/usb/Minipack16QTransceiverApi.h"
 #include "fboss/agent/Utils.h"
-#include "fboss/lib/fpga/MinipackFpga.h"
+#include "fboss/lib/fpga/MinipackSystemContainer.h"
 
 namespace {
-
 constexpr uint32_t kPortsPerPim = 16;
+using facebook::fboss::MinipackSystemContainer;
 
-inline uint8_t getPim(int module) {
-  return 1 + (module - 1) / kPortsPerPim;
+inline uint8_t getPimID(int module) {
+  return MinipackSystemContainer::kPimStartNum + (module - 1) / kPortsPerPim;
 }
 
 inline uint8_t getQsfpPimPort(int module) {
@@ -26,9 +26,8 @@ inline uint8_t getQsfpPimPort(int module) {
 } // namespace
 
 namespace facebook::fboss {
-
 Minipack16QTransceiverApi::Minipack16QTransceiverApi() {
-  MinipackFpga::getInstance()->initHW();
+  MinipackSystemContainer::getInstance()->initHW();
 }
 
 /* Trigger the QSFP hard reset for a given QSFP module in the minipack chassis
@@ -36,17 +35,27 @@ Minipack16QTransceiverApi::Minipack16QTransceiverApi() {
  * and then call FPGA function to do QSFP reset
  */
 void Minipack16QTransceiverApi::triggerQsfpHardReset(unsigned int module) {
-  auto pim = getPim(module);
+  auto pimID = getPimID(module);
   auto port = getQsfpPimPort(module);
 
-  MinipackFpga::getInstance()->triggerQsfpHardReset(pim, port);
+  MinipackSystemContainer::getInstance()
+      ->getPimContainer(pimID)
+      ->getPimQsfpController()
+      ->triggerQsfpHardReset(port);
 }
 
 /* This function will bring all the transceivers out of reset. Just clear the
  * reset bits of all the transceivers through FPGA.
  */
 void Minipack16QTransceiverApi::clearAllTransceiverReset() {
-  MinipackFpga::getInstance()->clearAllTransceiverReset();
+  for (auto pimIndex = 0; pimIndex < MinipackSystemContainer::kNumberPim;
+       pimIndex++) {
+    auto pimID = MinipackSystemContainer::kPimStartNum;
+    MinipackSystemContainer::getInstance()
+        ->getPimContainer(pimID)
+        ->getPimQsfpController()
+        ->clearAllTransceiverReset();
+  }
 }
 
 } // namespace facebook::fboss

@@ -10,18 +10,18 @@
 #include <folly/Benchmark.h>
 
 #include <fboss/agent/platforms/wedge/facebook/minipack/MinipackPlatform.h>
-#include <fboss/lib/fpga/MinipackFpga.h>
+#include <fboss/lib/fpga/MinipackSystemContainer.h>
 
 #include "PhyInitBenchmark-defs.h"
 
 namespace facebook::fboss {
 
 BENCHMARK(MinipackPhyInitAllForce) {
-  PhyInitAllForce<MinipackPlatform, MinipackFpga>();
+  PhyInitAllForce<MinipackPlatform, MinipackSystemContainer>();
 }
 
 BENCHMARK(MinipackPhyInitAllAuto) {
-  PhyInitAllAuto<MinipackPlatform, MinipackFpga>();
+  PhyInitAllAuto<MinipackPlatform, MinipackSystemContainer>();
 }
 
 } // namespace facebook::fboss
