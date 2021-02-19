@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
+#include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestRouteUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
@@ -67,23 +68,18 @@ class HwQueuePerHostRouteTest : public HwLinkStateDependentTest {
         getRouteUpdateWrapper(), kEcmpWidth, routePrefixes);
   }
 
-  std::shared_ptr<SwitchState> updateRoutesClassID(
-      const std::shared_ptr<SwitchState>& inState,
+  void updateRoutesClassID(
       const std::map<RoutePrefix<AddrT>, std::optional<cfg::AclLookupClass>>&
           routePrefix2ClassID) {
-    auto outState{inState->clone()};
-    auto routeTable = outState->getRouteTables()->getRouteTable(kRouterID());
-    auto routeTableRib =
-        routeTable->template getRib<AddrT>()->modify(kRouterID(), &outState);
+    HwSwitchEnsembleRouteUpdateWrapper updater(getHwSwitchEnsemble());
 
     for (const auto& [routePrefix, classID] : routePrefix2ClassID) {
-      auto route = routeTableRib->routes()->getRouteIf(routePrefix);
-      CHECK(route);
-      route = route->clone();
-      route->updateClassID(classID);
-      routeTableRib->updateRoute(route);
+      updater.programClassID(
+          kRouterID(),
+          {{folly::IPAddress(routePrefix.network), routePrefix.mask}},
+          classID,
+          false /* sync*/);
     }
-    return outState;
   }
 
   AddrT kSrcIP() {
@@ -110,10 +106,8 @@ class HwQueuePerHostRouteTest : public HwLinkStateDependentTest {
     this->applyNewConfig(newCfg);
     this->addRoutes({this->kGetRoutePrefix()});
 
-    auto state = this->updateRoutesClassID(
-        this->getProgrammedState(),
+    this->updateRoutesClassID(
         {{this->kGetRoutePrefix(), this->kLookupClass()}});
-    this->applyNewState(state);
   }
 
   std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt() {
