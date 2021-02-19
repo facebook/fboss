@@ -131,7 +131,9 @@ bool isTh3Platform(Platform* platform) {
 }
 
 // Fill in configs for all remaining ports that exist in the default state
-cfg::SwitchConfig createDefaultConfig(const HwSwitch* hwSwitch) {
+cfg::SwitchConfig createDefaultConfig(
+    const HwSwitch* hwSwitch,
+    bool optimizePortProfile = true) {
   cfg::SwitchConfig config;
   auto platform = hwSwitch->getPlatform();
 
@@ -150,7 +152,7 @@ cfg::SwitchConfig createDefaultConfig(const HwSwitch* hwSwitch) {
   // which is not needed and turns out to be expensive op.
   // Approx 300 test cases today doesn't use genPortVlanCfg to convert
   // all ports and benifit from this optimization
-  if (isTh3Platform(platform)) {
+  if (isTh3Platform(platform) && optimizePortProfile) {
     optimizePortProfiles(config, hwSwitch);
   }
   return config;
@@ -161,8 +163,9 @@ cfg::SwitchConfig genPortVlanCfg(
     const std::vector<PortID>& ports,
     const std::map<PortID, VlanID>& port2vlan,
     const std::vector<VlanID>& vlans,
-    cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE) {
-  auto config = createDefaultConfig(hwSwitch);
+    cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE,
+    bool optimizePortProfile = true) {
+  auto config = createDefaultConfig(hwSwitch, optimizePortProfile);
 
   // Port config
   std::map<std::string, cfg::PortProfileID> chipToProfileID;
@@ -313,7 +316,9 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
     const std::vector<PortID>& ports,
     cfg::PortLoopbackMode lbMode,
     bool interfaceHasSubnet,
-    int baseVlanId) {
+    int baseVlanId,
+    bool optimizePortProfile,
+    bool setInterfaceMac) {
   std::map<PortID, VlanID> port2vlan;
   std::vector<VlanID> vlans{VlanID(baseVlanId)};
   std::vector<PortID> vlanPorts;
@@ -321,13 +326,16 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
     port2vlan[port] = VlanID(baseVlanId);
     vlanPorts.push_back(port);
   }
-  auto config = genPortVlanCfg(hwSwitch, vlanPorts, port2vlan, vlans, lbMode);
+  auto config = genPortVlanCfg(
+      hwSwitch, vlanPorts, port2vlan, vlans, lbMode, optimizePortProfile);
 
   config.interfaces_ref()->resize(1);
   config.interfaces_ref()[0].intfID_ref() = baseVlanId;
   config.interfaces_ref()[0].vlanID_ref() = baseVlanId;
   *config.interfaces_ref()[0].routerID_ref() = 0;
-  config.interfaces_ref()[0].mac_ref() = getLocalCpuMacStr();
+  if (setInterfaceMac) {
+    config.interfaces_ref()[0].mac_ref() = getLocalCpuMacStr();
+  }
   config.interfaces_ref()[0].mtu_ref() = 9000;
   if (interfaceHasSubnet) {
     config.interfaces_ref()[0].ipAddresses_ref()->resize(2);
