@@ -24,6 +24,14 @@ using namespace facebook::fboss;
 
 DEFINE_int32(multiNodeTestPort1, 0, "multinode test port 1");
 DEFINE_int32(multiNodeTestPort2, 0, "multinode test port 2");
+DEFINE_int32(
+    multiNodeTestRemotePort1,
+    0,
+    "multinode test port 1 on remote node");
+DEFINE_int32(
+    multiNodeTestRemotePort2,
+    0,
+    "multinode test port 2 on remote node");
 DEFINE_bool(run_forever, false, "run the test forever");
 
 DECLARE_bool(enable_lacp);
@@ -32,6 +40,7 @@ using utility::addAggPort;
 namespace {
 constexpr int kMaxRetries{10};
 constexpr int kBaseVlanId{2000};
+constexpr int kLacpTestTimeout{1};
 } // unnamed namespace
 
 class MultiNodeLacpTest : public MultiNodeTest {
@@ -121,4 +130,47 @@ TEST_F(MultiNodeLacpTest, Bringup) {
       XLOG_EVERY_MS(DBG2, 5000) << "MultiNodeLacpTest running forever";
     }
   }
+}
+
+TEST_F(MultiNodeLacpTest, LinkDown) {
+  // Wait for AggPort
+  ASSERT_TRUE(waitAndCheckForAggPortUp());
+
+  // verify lacp state information
+  verifyLacpState();
+
+  XLOG(DBG2) << "Disable an Agg member port";
+  setPortStatus(PortID(FLAGS_multiNodeTestPort1), false);
+  // wait for LACP protocol to react
+  sleep(kLacpTestTimeout);
+  ASSERT_FALSE(
+      sw()->getState()->getAggregatePorts()->getAggregatePort(kAggId)->isUp());
+
+  XLOG(DBG2) << "Enable the Agg member port";
+  setPortStatus(PortID(FLAGS_multiNodeTestPort1), true);
+
+  ASSERT_TRUE(waitAndCheckForAggPortUp());
+  verifyLacpState();
+}
+
+TEST_F(MultiNodeLacpTest, RemoteLinkDown) {
+  // Wait for AggPort
+  ASSERT_TRUE(waitAndCheckForAggPortUp());
+
+  // verify lacp state information
+  verifyLacpState();
+
+  XLOG(DBG2) << "Disable an Agg member port on remote switch";
+  auto client = getRemoteThriftClient();
+  client->sync_setPortState(FLAGS_multiNodeTestRemotePort1, false);
+
+  // wait for LACP protocol to react
+  sleep(kLacpTestTimeout);
+  ASSERT_FALSE(
+      sw()->getState()->getAggregatePorts()->getAggregatePort(kAggId)->isUp());
+
+  XLOG(DBG2) << "Enable the Agg member port on remote switch";
+  client->sync_setPortState(FLAGS_multiNodeTestRemotePort1, true);
+  ASSERT_TRUE(waitAndCheckForAggPortUp());
+  verifyLacpState();
 }
