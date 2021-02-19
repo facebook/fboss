@@ -224,8 +224,10 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
     // current support is for v6 flows only.
     // We could revisit to add support for v4 at a later time
     if (prefix.isV6()) {
-      applyNewState(ecmpHelper6_->setupECMPForwarding(
-          state, {port}, {RoutePrefixV6{prefix.asV6(), mask}}));
+      ecmpHelper6_->programRoutes(
+          getRouteUpdateWrapper(),
+          {port},
+          {RoutePrefixV6{prefix.asV6(), mask}});
     }
   }
 

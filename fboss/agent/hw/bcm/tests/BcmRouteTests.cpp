@@ -1040,9 +1040,7 @@ TEST_F(BcmRouteTest, UnresolveResolveNextHop) {
       ntable->updateEntry(*fields);
     }
     applyNewState(state1);
-
-    applyNewState(
-        helper.setupECMPForwarding(getProgrammedState(), ports, {route}));
+    helper.programRoutes(getRouteUpdateWrapper(), ports, {route});
   };
   auto verify = [=]() {
     /* route is programmed */

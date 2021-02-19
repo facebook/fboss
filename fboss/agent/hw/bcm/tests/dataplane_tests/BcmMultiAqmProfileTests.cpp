@@ -46,17 +46,15 @@ class BcmMultiAqmProfileTest : public BcmLinkStateDependentTests {
   }
 
   template <typename ECMP_HELPER>
-  void setupECMPForwarding(const ECMP_HELPER& ecmpHelper, int ecmpWidth) {
-    auto newState = ecmpHelper.setupECMPForwarding(
-        ecmpHelper.resolveNextHops(getProgrammedState(), ecmpWidth), ecmpWidth);
-    applyNewState(newState);
+  void programRoutes(const ECMP_HELPER& ecmpHelper, int ecmpWidth) {
+    resolveNeigborAndProgramRoutes(ecmpHelper, ecmpWidth);
   }
 
   void _setup() {
     auto kEcmpWidthForTest = 1;
     utility::EcmpSetupAnyNPorts6 ecmpHelper6{
         getProgrammedState(), getPlatform()->getLocalMac()};
-    setupECMPForwarding(ecmpHelper6, kEcmpWidthForTest);
+    programRoutes(ecmpHelper6, kEcmpWidthForTest);
     disableTTLDecrements(ecmpHelper6);
   }
 

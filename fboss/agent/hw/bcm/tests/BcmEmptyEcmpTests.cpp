@@ -35,13 +35,11 @@ class BcmEmptyEcmpTest : public BcmTest {
     return cfg;
   }
   template <typename AddrT>
-  void setupECMPForwarding(
+  void programRoutes(
       const utility::EcmpSetupAnyNPorts<AddrT>& ecmpHelper,
       int ecmpWidth,
       const RoutePrefix<AddrT>& prefix) {
-    auto newState = ecmpHelper.setupECMPForwarding(
-        getProgrammedState(), ecmpWidth, {prefix});
-    applyNewState(newState);
+    ecmpHelper.programRoutes(getRouteUpdateWrapper(), ecmpWidth, {prefix});
   }
   void runTest(unsigned int ecmpWidth) {
     auto cfg = initialConfig();
@@ -50,7 +48,7 @@ class BcmEmptyEcmpTest : public BcmTest {
       for (auto v6Pfx :
            {RoutePrefixV6{IPAddressV6(), 0},
             RoutePrefixV6{IPAddressV6("1::1"), 128}}) {
-        setupECMPForwarding(
+        programRoutes(
             utility::EcmpSetupAnyNPorts6(getProgrammedState(), kRid),
             ecmpWidth,
             v6Pfx);
@@ -58,7 +56,7 @@ class BcmEmptyEcmpTest : public BcmTest {
       for (auto v4Pfx :
            {RoutePrefixV4{IPAddressV4(), 0},
             RoutePrefixV4{IPAddressV4("1.1.1.1"), 32}}) {
-        setupECMPForwarding(
+        programRoutes(
             utility::EcmpSetupAnyNPorts4(getProgrammedState(), kRid),
             ecmpWidth,
             v4Pfx);

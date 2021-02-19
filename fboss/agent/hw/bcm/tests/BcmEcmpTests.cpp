@@ -75,8 +75,7 @@ class BcmEcmpTest : public BcmLinkStateDependentTests {
 };
 
 void BcmEcmpTest::programRouteWithUnresolvedNhops() {
-  applyNewState(
-      ecmpHelper_->setupECMPForwarding(getProgrammedState(), kNumNextHops));
+  ecmpHelper_->programRoutes(getRouteUpdateWrapper(), kNumNextHops);
 }
 
 const BcmMultiPathNextHop* BcmEcmpTest::getBcmMultiPathNextHop() const {
@@ -133,12 +132,10 @@ TEST_F(BcmEcmpTest, SearchMissingEgressInECMP) {
 TEST_F(BcmEcmpTest, UcmpShrink) {
   const std::vector<NextHopWeight> weights = {3, 1, 1, 1, 1, 1, 1, 1};
   // Program ECMP route
-  auto newState = ecmpHelper_->setupECMPForwarding(
-      ecmpHelper_->resolveNextHops(getProgrammedState(), kNumNextHops),
-      kNumNextHops,
-      {kDefaultRoute},
-      weights);
-  applyNewState(newState);
+  applyNewState(
+      ecmpHelper_->resolveNextHops(getProgrammedState(), kNumNextHops));
+  ecmpHelper_->programRoutes(
+      getRouteUpdateWrapper(), kNumNextHops, {kDefaultRoute}, weights);
   EXPECT_EQ(
       kNumNextHops + 2,
       getEcmpSizeInHw(
