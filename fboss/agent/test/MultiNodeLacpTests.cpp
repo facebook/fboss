@@ -53,7 +53,8 @@ class MultiNodeLacpTest : public MultiNodeTest {
   }
 
  protected:
-  cfg::SwitchConfig getConfigWithAggPort() const {
+  cfg::SwitchConfig getConfigWithAggPort(
+      cfg::LacpPortRate rate = cfg::LacpPortRate::SLOW) const {
     auto config = utility::oneL3IntfNPortConfig(
         platform()->getHwSwitch(),
         {PortID(FLAGS_multiNodeTestPort1), PortID(FLAGS_multiNodeTestPort2)},
@@ -63,7 +64,10 @@ class MultiNodeLacpTest : public MultiNodeTest {
         false, /* optimizePortProfile */
         false /* setInterfaceMac */);
     addAggPort(
-        kAggId, {FLAGS_multiNodeTestPort1, FLAGS_multiNodeTestPort2}, &config);
+        kAggId,
+        {FLAGS_multiNodeTestPort1, FLAGS_multiNodeTestPort2},
+        &config,
+        rate);
     return config;
   }
 
@@ -172,5 +176,23 @@ TEST_F(MultiNodeLacpTest, RemoteLinkDown) {
   XLOG(DBG2) << "Enable the Agg member port on remote switch";
   client->sync_setPortState(FLAGS_multiNodeTestRemotePort1, true);
   ASSERT_TRUE(waitAndCheckForAggPortUp());
+  verifyLacpState();
+}
+
+TEST_F(MultiNodeLacpTest, LacpSlowFastInterop) {
+  // Change Lacp to slow mode
+  auto addAggFastRateFn = [=](const std::shared_ptr<SwitchState>& state) {
+    auto newState = state->clone();
+    auto config = getConfigWithAggPort(cfg::LacpPortRate::FAST);
+    auto endState = applyThriftConfig(newState, &config, platform());
+    return endState;
+  };
+
+  sw()->updateStateBlocking("Add AggPort fast mode", addAggFastRateFn);
+
+  // Wait for AggPort
+  ASSERT_TRUE(waitAndCheckForAggPortUp());
+
+  // verify lacp state information
   verifyLacpState();
 }

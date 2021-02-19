@@ -16,18 +16,20 @@
 
 namespace facebook::fboss::utility {
 
-cfg::AggregatePortMember makePortMember(int32_t port) {
+cfg::AggregatePortMember makePortMember(int32_t port, cfg::LacpPortRate rate) {
   static auto constexpr kAggPriority = 32768;
   cfg::AggregatePortMember aggMember;
   *aggMember.memberPortID_ref() = port;
   *aggMember.priority_ref() = kAggPriority;
+  aggMember.rate_ref() = rate;
   return aggMember;
 }
 
 void addAggPort(
     int key,
     const std::vector<int32_t>& ports,
-    cfg::SwitchConfig* config) {
+    cfg::SwitchConfig* config,
+    cfg::LacpPortRate rate) {
   // Create agg port with requisite members
   static constexpr auto kAggPortName = "AGG";
   cfg::AggregatePort aggPort;
@@ -35,7 +37,7 @@ void addAggPort(
   *aggPort.name_ref() = kAggPortName;
   *aggPort.description_ref() = kAggPortName;
   for (auto port : ports) {
-    aggPort.memberPorts_ref()->push_back(makePortMember(port));
+    aggPort.memberPorts_ref()->push_back(makePortMember(port, rate));
   }
   config->aggregatePorts_ref()->push_back(aggPort);
   // Set VLAN for all members to be the same

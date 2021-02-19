@@ -23,11 +23,12 @@ class SwitchState;
 
 namespace facebook::fboss::utility {
 
-cfg::AggregatePortMember makePortMember(int32_t port);
+cfg::AggregatePortMember makePortMember(int32_t port, cfg::LacpPortRate rate);
 void addAggPort(
     int key,
     const std::vector<int32_t>& ports,
-    cfg::SwitchConfig* config);
+    cfg::SwitchConfig* config,
+    cfg::LacpPortRate rate = cfg::LacpPortRate::FAST);
 std::shared_ptr<SwitchState> enableTrunkPorts(
     std::shared_ptr<SwitchState> curState);
 std::shared_ptr<SwitchState> setTrunkMinLinkCount(
