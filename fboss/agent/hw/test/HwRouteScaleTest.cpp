@@ -46,21 +46,8 @@ class HwRouteScaleTest : public HwTest {
                              getHwSwitchEnsemble()->isStandaloneRibEnabled())
                              .get();
       HwSwitchEnsembleRouteUpdateWrapper updater(getHwSwitchEnsemble());
-      for (const auto& routeChunk : routeChunks) {
-        for (const auto& route : routeChunk) {
-          RouteNextHopSet nhops;
-          for (const auto& ip : route.nhops) {
-            nhops.emplace(UnresolvedNextHop(ip, ECMP_WEIGHT));
-          }
-          updater.addRoute(
-              RouterID(0),
-              route.prefix.first,
-              route.prefix.second,
-              ClientID::BGPD,
-              RouteNextHopEntry(nhops, AdminDistance::EBGP));
-        }
-      }
-      updater.program();
+      updater.programRoutes(
+          RouterID(0), ClientID::BGPD, AdminDistance::EBGP, routeChunks);
     };
     auto verify = [] {};
     verifyAcrossWarmBoots(setup, verify);

@@ -78,4 +78,26 @@ void HwSwitchEnsembleRouteUpdateWrapper::programClassIDLegacyRib(
       hwEnsemble_->getProgrammedState(), rid, prefixes, classId));
 }
 
+void HwSwitchEnsembleRouteUpdateWrapper::programRoutes(
+    RouterID rid,
+    ClientID client,
+    AdminDistance admin,
+    const utility::RouteDistributionGenerator::RouteChunks& routeChunks) {
+  for (const auto& routeChunk : routeChunks) {
+    for (const auto& route : routeChunk) {
+      RouteNextHopSet nhops;
+      for (const auto& ip : route.nhops) {
+        nhops.emplace(UnresolvedNextHop(ip, ECMP_WEIGHT));
+      }
+      addRoute(
+          rid,
+          route.prefix.first,
+          route.prefix.second,
+          client,
+          RouteNextHopEntry(nhops, admin));
+    }
+  }
+  program();
+}
+
 } // namespace facebook::fboss

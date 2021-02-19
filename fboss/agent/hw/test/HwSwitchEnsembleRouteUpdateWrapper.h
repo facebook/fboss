@@ -12,6 +12,7 @@
 
 #include "fboss/agent/RouteUpdateWrapper.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/test/RouteDistributionGenerator.h"
 
 namespace facebook::fboss {
 
@@ -26,6 +27,12 @@ void hwSwitchFibUpdate(
 class HwSwitchEnsembleRouteUpdateWrapper : public RouteUpdateWrapper {
  public:
   explicit HwSwitchEnsembleRouteUpdateWrapper(HwSwitchEnsemble* hwEnsemble);
+
+  void programRoutes(
+      RouterID rid,
+      ClientID client,
+      AdminDistance admin,
+      const utility::RouteDistributionGenerator::RouteChunks& routeChunks);
 
  private:
   void updateStats(
