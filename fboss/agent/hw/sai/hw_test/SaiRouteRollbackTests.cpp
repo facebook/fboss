@@ -84,6 +84,16 @@ class SaiRouteRollbackTest : public SaiRollbackTest {
     v6EcmpHelper_->programRoutes(getRouteUpdateWrapper(), 1, {kV6Prefix2()});
     return getProgrammedState();
   }
+  std::shared_ptr<SwitchState> unprogramEcmp() {
+    v4EcmpHelper_->unprogramRoutes(getRouteUpdateWrapper(), {kV4Prefix1()});
+    v6EcmpHelper_->unprogramRoutes(getRouteUpdateWrapper(), {kV6Prefix1()});
+    return getProgrammedState();
+  }
+  std::shared_ptr<SwitchState> unprogramNonEcmp() {
+    v4EcmpHelper_->unprogramRoutes(getRouteUpdateWrapper(), {kV4Prefix2()});
+    v6EcmpHelper_->unprogramRoutes(getRouteUpdateWrapper(), {kV6Prefix2()});
+    return getProgrammedState();
+  }
 
   void SetUp() override {
     SaiRollbackTest::SetUp();
@@ -97,15 +107,14 @@ class SaiRouteRollbackTest : public SaiRollbackTest {
   void runTest(bool rollbackEcmp, bool rollbackNonEcmp, int numIters) {
     auto verify = [=]() {
       resolveNextHops(kEcmpWidth);
+      // Cache rollback states
+      auto noRouteState = getProgrammedState();
+      auto ecmpRoutesOnlyState = programEcmp();
+      unprogramEcmp();
+      auto nonEcmpRoutesOnlyState = programNonEcmp();
+      unprogramNonEcmp();
       const RouterID kRouterID(0);
       for (auto i = 0; i < numIters; ++i) {
-        // Cache rollback states
-        auto noRouteState = getProgrammedState();
-        auto ecmpRoutesOnlyState = programEcmp();
-        applyNewState(noRouteState);
-        auto nonEcmpRoutesOnlyState = programNonEcmp();
-        applyNewState(noRouteState);
-
         std::vector<folly::CIDRNetwork> routesPresent, routesRemoved;
         // Program Routes
         programEcmp();
