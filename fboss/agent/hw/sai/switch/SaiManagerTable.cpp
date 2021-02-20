@@ -81,7 +81,8 @@ void SaiManagerTable::createSaiTableManagers(
       std::make_unique<SaiNextHopGroupManager>(this, platform);
   neighborManager_ = std::make_unique<SaiNeighborManager>(this, platform);
   inSegEntryManager_ = std::make_unique<SaiInSegEntryManager>(this, platform);
-  lagManager_ = std::make_unique<SaiLagManager>(this, platform);
+  lagManager_ =
+      std::make_unique<SaiLagManager>(this, platform, concurrentIndices);
   wredManager_ = std::make_unique<SaiWredManager>(this, platform);
 
   // CSP CS00011823810

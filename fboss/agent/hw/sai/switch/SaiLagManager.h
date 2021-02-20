@@ -9,6 +9,8 @@
 
 namespace facebook::fboss {
 
+struct ConcurrentIndices;
+
 using SaiLag = SaiObject<SaiLagTraits>;
 using SaiLagMember = SaiObject<SaiLagMemberTraits>;
 
@@ -26,8 +28,14 @@ class SaiLagManager {
  public:
   using Handles =
       folly::F14FastMap<AggregatePortID, std::unique_ptr<SaiLagHandle>>;
-  SaiLagManager(SaiManagerTable* managerTable, SaiPlatform* platform)
-      : managerTable_(managerTable), platform_(platform) {}
+  SaiLagManager(
+      SaiManagerTable* managerTable,
+      SaiPlatform* platform,
+      ConcurrentIndices* concurrentIndices)
+      : managerTable_(managerTable),
+        platform_(platform),
+        concurrentIndices_(concurrentIndices) {}
+  ~SaiLagManager();
   void addLag(const std::shared_ptr<AggregatePort>& aggregatePort);
   void removeLag(const std::shared_ptr<AggregatePort>& aggregatePort);
   void changeLag(
@@ -41,11 +49,14 @@ class SaiLagManager {
  private:
   std::pair<PortSaiId, std::shared_ptr<SaiLagMember>> addMember(
       const std::shared_ptr<SaiLag>& lag,
+      AggregatePortID aggPort,
       PortID subPort);
   void removeMember(AggregatePortID aggPort, PortID subPort);
+  void removeLagHandle(AggregatePortID aggPort, SaiLagHandle* handle);
 
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
+  ConcurrentIndices* concurrentIndices_;
   Handles handles_;
 };
 

@@ -2,6 +2,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiLagManager.h"
 
+#include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 
@@ -30,7 +31,7 @@ void SaiLagManager::addLag(
       // subport disabled for forwarding
       continue;
     }
-    members.emplace(addMember(lag, subPort));
+    members.emplace(addMember(lag, aggregatePort->getID(), subPort));
   }
 
   auto handle = std::make_unique<SaiLagHandle>();
@@ -52,7 +53,7 @@ void SaiLagManager::removeLag(
     throw FbossError(
         "attempting to non-existing remove LAG ", aggregatePort->getID());
   }
-  iter->second.reset();
+  removeLagHandle(iter->first, iter->second.get());
   handles_.erase(iter->first);
 }
 
@@ -81,16 +82,16 @@ void SaiLagManager::changeLag(
     } else if (newIter->first < oldIter->first) {
       if (newIter->second == AggregatePort::Forwarding::ENABLED) {
         // add member
-        saiLagHandle->members.emplace(
-            addMember(saiLagHandle->lag, newIter->first));
+        saiLagHandle->members.emplace(addMember(
+            saiLagHandle->lag, newAggregatePort->getID(), newIter->first));
       }
       newIter++;
     } else if (oldIter->second != newIter->second) {
       // forwarding state changed
       if (newIter->second == AggregatePort::Forwarding::ENABLED) {
         // add member
-        saiLagHandle->members.emplace(
-            addMember(saiLagHandle->lag, newIter->first));
+        saiLagHandle->members.emplace(addMember(
+            saiLagHandle->lag, newAggregatePort->getID(), newIter->first));
 
       } else {
         // remove member
@@ -109,8 +110,8 @@ void SaiLagManager::changeLag(
     while (newIter != newPortAndFwdState.end()) {
       if (newIter->second == AggregatePort::Forwarding::ENABLED) {
         // remove member
-        saiLagHandle->members.emplace(
-            addMember(saiLagHandle->lag, newIter->first));
+        saiLagHandle->members.emplace(addMember(
+            saiLagHandle->lag, newAggregatePort->getID(), newIter->first));
       }
       newIter++;
     }
@@ -119,6 +120,7 @@ void SaiLagManager::changeLag(
 
 std::pair<PortSaiId, std::shared_ptr<SaiLagMember>> SaiLagManager::addMember(
     const std::shared_ptr<SaiLag>& lag,
+    AggregatePortID aggregatePortID,
     PortID subPort) {
   auto portHandle = managerTable_->portManager().getPortHandle(subPort);
   CHECK(portHandle);
@@ -127,7 +129,10 @@ std::pair<PortSaiId, std::shared_ptr<SaiLagMember>> SaiLagManager::addMember(
 
   SaiLagMemberTraits::CreateAttributes attrs{saiLagId, saiPortId};
   auto& lagMemberStore = SaiStore::getInstance()->get<SaiLagMemberTraits>();
-  return {saiPortId, lagMemberStore.setObject(attrs, attrs)};
+  auto member = lagMemberStore.setObject(attrs, attrs);
+  concurrentIndices_->memberPort2AggregatePortIds.emplace(
+      saiPortId, aggregatePortID);
+  return {saiPortId, member};
 }
 
 void SaiLagManager::removeMember(AggregatePortID aggPort, PortID subPort) {
@@ -137,6 +142,7 @@ void SaiLagManager::removeMember(AggregatePortID aggPort, PortID subPort) {
   CHECK(portHandle);
   auto saiPortId = portHandle->port->adapterKey();
   iter->second->members.erase(saiPortId);
+  concurrentIndices_->memberPort2AggregatePortIds.erase(saiPortId);
 }
 
 SaiLagHandle* FOLLY_NULLABLE
@@ -160,5 +166,29 @@ SaiLagHandle* SaiLagManager::getLagHandle(
 bool SaiLagManager::isMinimumLinkMet(AggregatePortID aggregatePortID) const {
   const auto* handle = getLagHandle(aggregatePortID);
   return handle->minimumLinkCount <= handle->members.size();
+}
+
+void SaiLagManager::removeLagHandle(
+    AggregatePortID aggPort,
+    SaiLagHandle* handle) {
+  // remove members
+  while (!handle->members.empty()) {
+    auto membersIter = handle->members.begin();
+    auto portSaiId = membersIter->first;
+    auto iter = concurrentIndices_->portIds.find(portSaiId);
+    CHECK(iter != concurrentIndices_->portIds.end());
+    removeMember(aggPort, iter->second);
+  }
+  // remove bridge port
+  handle->bridgePort.reset();
+  // remove lag
+  handle->lag.reset();
+}
+
+SaiLagManager::~SaiLagManager() {
+  for (auto& handlesIter : handles_) {
+    auto& [aggPortID, handle] = handlesIter;
+    removeLagHandle(aggPortID, handle.get());
+  }
 }
 } // namespace facebook::fboss
