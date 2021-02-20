@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
+#include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
@@ -48,11 +49,12 @@ void runTxSlowPathBenchmark() {
   ensemble->applyInitialConfig(config);
   auto ecmpHelper =
       utility::EcmpSetupAnyNPorts6(ensemble->getProgrammedState());
-  auto ecmpRouteState = ecmpHelper.setupECMPForwarding(
-      ecmpHelper.resolveNextHops(ensemble->getProgrammedState(), kEcmpWidth),
-      kEcmpWidth);
-  ensemble->applyNewState(ecmpRouteState);
 
+  ensemble->applyNewState(
+      ecmpHelper.resolveNextHops(ensemble->getProgrammedState(), kEcmpWidth));
+  ecmpHelper.programRoutes(
+      std::make_unique<HwSwitchEnsembleRouteUpdateWrapper>(ensemble.get()),
+      kEcmpWidth);
   auto cpuMac = ensemble->getPlatform()->getLocalMac();
   std::atomic<bool> packetTxDone{false};
   std::thread t([cpuMac, hwSwitch, &config, &packetTxDone]() {

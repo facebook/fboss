@@ -41,17 +41,19 @@ BENCHMARK(HwEcmpGroupShrinkWithCompetingRouteUpdates) {
   ensemble->applyInitialConfig(config);
   auto ecmpHelper =
       utility::EcmpSetupAnyNPorts6(ensemble->getProgrammedState());
-  auto ecmpRouteState = ecmpHelper.setupECMPForwarding(
-      ecmpHelper.resolveNextHops(ensemble->getProgrammedState(), kEcmpWidth),
+  ensemble->applyNewState(
+      ecmpHelper.resolveNextHops(ensemble->getProgrammedState(), kEcmpWidth));
+  ecmpHelper.programRoutes(
+      std::make_unique<HwSwitchEnsembleRouteUpdateWrapper>(ensemble.get()),
       kEcmpWidth);
-  ensemble->applyNewState(ecmpRouteState);
+
   auto prefix = folly::CIDRNetwork(folly::IPAddress("::"), 0);
   CHECK_EQ(
       kEcmpWidth,
       getEcmpSizeInHw(hwSwitch, prefix, ecmpHelper.getRouterId(), kEcmpWidth));
   // Warm up the stats cache
   ensemble->getLatestPortStats(ensemble->masterLogicalPortIds());
-  auto routeStates = utility::RouteDistributionGenerator(
+  auto routeChunks = utility::RouteDistributionGenerator(
                          ensemble->getProgrammedState(),
                          {{64, 10'000}},
                          {{}},
@@ -59,12 +61,12 @@ BENCHMARK(HwEcmpGroupShrinkWithCompetingRouteUpdates) {
                          10'000,
                          4,
                          RouterID(0))
-                         .getSwitchStates();
+                         .get();
 
-  std::thread t([&ensemble, &routeStates]() {
-    for (const auto& state : routeStates) {
-      ensemble->applyNewState(state);
-    }
+  std::thread t([&ensemble, &routeChunks]() {
+    HwSwitchEnsembleRouteUpdateWrapper updater(ensemble.get());
+    updater.programRoutes(
+        RouterID(0), ClientID::BGPD, AdminDistance::EBGP, routeChunks);
   });
 
   // Toggle loopback mode via direct SDK calls rathe than going through

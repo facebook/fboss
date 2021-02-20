@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
+#include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
@@ -50,10 +51,11 @@ void runRxSlowPathBenchmark() {
       ensemble->getProgrammedState(), utility::firstVlanID(config));
   auto ecmpHelper =
       utility::EcmpSetupAnyNPorts6(ensemble->getProgrammedState(), dstMac);
-  auto ecmpRouteState = ecmpHelper.setupECMPForwarding(
-      ecmpHelper.resolveNextHops(ensemble->getProgrammedState(), kEcmpWidth),
+  ensemble->applyNewState(
+      ecmpHelper.resolveNextHops(ensemble->getProgrammedState(), kEcmpWidth));
+  ecmpHelper.programRoutes(
+      std::make_unique<HwSwitchEnsembleRouteUpdateWrapper>(ensemble.get()),
       kEcmpWidth);
-  ensemble->applyNewState(ecmpRouteState);
   // Disable TTL decrements
   utility::disableTTLDecrements(
       hwSwitch, ecmpHelper.getRouterId(), ecmpHelper.getNextHops()[0]);

@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
+#include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/hw/test/HwTestEcmpUtils.h"
 #include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/state/Port.h"
@@ -35,10 +36,11 @@ BENCHMARK(HwEcmpGroupShrink) {
   ensemble->applyInitialConfig(config);
   auto ecmpHelper =
       utility::EcmpSetupAnyNPorts6(ensemble->getProgrammedState());
-  auto ecmpRouteState = ecmpHelper.setupECMPForwarding(
-      ecmpHelper.resolveNextHops(ensemble->getProgrammedState(), kEcmpWidth),
+  ensemble->applyNewState(
+      ecmpHelper.resolveNextHops(ensemble->getProgrammedState(), kEcmpWidth));
+  ecmpHelper.programRoutes(
+      std::make_unique<HwSwitchEnsembleRouteUpdateWrapper>(ensemble.get()),
       kEcmpWidth);
-  ensemble->applyNewState(ecmpRouteState);
   auto prefix = folly::CIDRNetwork(folly::IPAddress("::"), 0);
   CHECK_EQ(
       kEcmpWidth,

@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
+#include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -60,45 +61,45 @@ void runBenchmark() {
       utility::onePortPerVlanConfig(hwSwitch, ensemble->masterLogicalPortIds());
   ensemble->applyInitialConfig(config);
 
-  std::shared_ptr<SwitchState> toApply;
+  utility::RouteDistributionGenerator::RouteChunks routeChunks;
   if (ensemble->getPlatform()->getMode() == PlatformMode::WEDGE) {
-    toApply = utility::RouteDistributionGenerator(
-                  ensemble->getProgrammedState(),
-                  // Distribution taken from a random wedge in fleet
-                  {
-                      // v6 distribution - mask to num unique prefixes
-                      {37, 7},
-                      {44, 11},
-                      {47, 6},
-                      {48, 3},
-                      {52, 61},
-                      {54, 340},
-                      {64, 1542},
-                      {80, 1},
-                      {127, 4},
-                  },
-                  {// v4 distribution - mask to num unique prefixes
-                   {15, 4},
-                   {16, 1},
-                   {17, 1},
-                   {21, 10},
-                   {24, 31},
-                   {26, 6},
-                   {27, 26},
-                   {31, 40}},
-                  ensemble->isStandaloneRibEnabled(),
-                  4000,
-                  4)
-                  .getSwitchStates()
-                  .back();
+    routeChunks = utility::RouteDistributionGenerator(
+                      ensemble->getProgrammedState(),
+                      // Distribution taken from a random wedge in fleet
+                      {
+                          // v6 distribution - mask to num unique prefixes
+                          {37, 7},
+                          {44, 11},
+                          {47, 6},
+                          {48, 3},
+                          {52, 61},
+                          {54, 340},
+                          {64, 1542},
+                          {80, 1},
+                          {127, 4},
+                      },
+                      {// v4 distribution - mask to num unique prefixes
+                       {15, 4},
+                       {16, 1},
+                       {17, 1},
+                       {21, 10},
+                       {24, 31},
+                       {26, 6},
+                       {27, 26},
+                       {31, 40}},
+                      ensemble->isStandaloneRibEnabled(),
+                      4000,
+                      4)
+                      .get();
   } else {
-    toApply =
+    routeChunks =
         utility::FSWRouteScaleGenerator(
             ensemble->getProgrammedState(), ensemble->isStandaloneRibEnabled())
-            .getSwitchStates()
-            .back();
+            .get();
   }
-  ensemble->applyNewState(toApply);
+  HwSwitchEnsembleRouteUpdateWrapper updater(ensemble.get());
+  updater.programRoutes(
+      RouterID(0), ClientID::BGPD, AdminDistance::EBGP, routeChunks);
   // Static such that the object destructor runs as late as possible. In
   // Static such that the object destructor runs as late as possible. In
   // particular in this case, destructor (and thus the duration calculation)

@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
+#include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestProdConfigUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
@@ -121,7 +122,7 @@ std::optional<uint16_t> getUplinksCount(
   return iter->second;
 }
 
-RouteDistributionGenerator::SwitchStates getRouteScaleSwitchStates(
+utility::RouteDistributionGenerator::RouteChunks getRoutes(
     const HwSwitchEnsemble* ensemble) {
   /*
    * |  Platform   |  Role  |
@@ -142,7 +143,7 @@ RouteDistributionGenerator::SwitchStates getRouteScaleSwitchStates(
     return utility::RSWRouteScaleGenerator(
                ensemble->getProgrammedState(),
                ensemble->isStandaloneRibEnabled())
-        .getSwitchStates();
+        .get();
   } else if (
       asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3 ||
       asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4 ||
@@ -150,12 +151,12 @@ RouteDistributionGenerator::SwitchStates getRouteScaleSwitchStates(
     return utility::HgridUuRouteScaleGenerator(
                ensemble->getProgrammedState(),
                ensemble->isStandaloneRibEnabled())
-        .getSwitchStates();
+        .get();
   } else if (asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK) {
     return utility::FSWRouteScaleGenerator(
                ensemble->getProgrammedState(),
                ensemble->isStandaloneRibEnabled())
-        .getSwitchStates();
+        .get();
   } else {
     CHECK(false) << "Invalid asic type for route scale";
   }
@@ -217,10 +218,10 @@ void initandExitBenchmarkHelper(
     ensemble->switchRunStateChanged(SwitchRunState::CONFIGURED);
   }
   suspender.rehire();
-  auto states = getRouteScaleSwitchStates(ensemble.get());
-  for (auto& state : states) {
-    ensemble->applyNewState(state);
-  }
+  auto routeChunks = getRoutes(ensemble.get());
+  HwSwitchEnsembleRouteUpdateWrapper updater(ensemble.get());
+  updater.programRoutes(
+      RouterID(0), ClientID::BGPD, AdminDistance::EBGP, routeChunks);
   if (FLAGS_setup_for_warmboot) {
     ScopedCallTimer timeIt;
     // Static such that the object destructor runs as late as possible. In

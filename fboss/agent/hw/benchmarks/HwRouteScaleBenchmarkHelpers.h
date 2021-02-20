@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
+#include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 
 #include <folly/Benchmark.h>
 #include "fboss/lib/FunctionCallTimeReporter.h"
@@ -37,23 +38,22 @@ void routeAddDelBenchmarker(bool measureAdd) {
     // skip if this is not supported for a platform
     return;
   }
-  static const auto states = routeGenerator.getSwitchStates();
+  static const auto routeChunks = routeGenerator.get();
 
+  HwSwitchEnsembleRouteUpdateWrapper updater(ensemble.get());
   if (measureAdd) {
     ScopedCallTimer timeIt;
     // Activate benchmarker before applying switch states
     // for adding routes to h/w
     suspender.dismiss();
-    for (auto& state : states) {
-      ensemble->applyNewState(state);
-    }
+    updater.programRoutes(
+        RouterID(0), ClientID::BGPD, AdminDistance::EBGP, routeChunks);
     // We are about to blow away all routes, before that
     // deactivate benchmark measurement.
     suspender.rehire();
   } else {
-    for (auto& state : states) {
-      ensemble->applyNewState(state);
-    }
+    updater.programRoutes(
+        RouterID(0), ClientID::BGPD, AdminDistance::EBGP, routeChunks);
     ScopedCallTimer timeIt;
     // We are about to blow away all routes, before that
     // activate benchmark measurement.
