@@ -32,7 +32,10 @@ void hwSwitchEnsembleFibUpdate(
       vrf, v4NetworkToRoute, v6NetworkToRoute);
 
   auto hwEnsemble = static_cast<facebook::fboss::HwSwitchEnsemble*>(cookie);
-  hwEnsemble->applyNewState(fibUpdater(hwEnsemble->getProgrammedState()));
+  hwEnsemble->getHwSwitch()->transactionsSupported()
+      ? hwEnsemble->applyNewStateTransaction(
+            fibUpdater(hwEnsemble->getProgrammedState()))
+      : hwEnsemble->applyNewState(fibUpdater(hwEnsemble->getProgrammedState()));
 }
 
 HwSwitchEnsembleRouteUpdateWrapper::HwSwitchEnsembleRouteUpdateWrapper(
@@ -53,7 +56,9 @@ void HwSwitchEnsembleRouteUpdateWrapper::programLegacyRib() {
   auto [newState, stats] =
       programLegacyRibHelper(hwEnsemble_->getProgrammedState());
   updateStats(stats);
-  hwEnsemble_->applyNewState(newState);
+  hwEnsemble_->getHwSwitch()->transactionsSupported()
+      ? hwEnsemble_->applyNewStateTransaction(newState)
+      : hwEnsemble_->applyNewState(newState);
 }
 
 AdminDistance HwSwitchEnsembleRouteUpdateWrapper::clientIdToAdminDistance(

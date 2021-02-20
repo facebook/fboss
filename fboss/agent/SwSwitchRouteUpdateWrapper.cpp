@@ -30,7 +30,7 @@ void swSwitchFibUpdate(
       vrf, v4NetworkToRoute, v6NetworkToRoute);
 
   auto sw = static_cast<facebook::fboss::SwSwitch*>(cookie);
-  sw->updateStateBlocking("", std::move(fibUpdater));
+  sw->updateStateWithHwFailureProtection("", std::move(fibUpdater));
 }
 
 SwSwitchRouteUpdateWrapper::SwSwitchRouteUpdateWrapper(SwSwitch* sw)
@@ -59,7 +59,7 @@ void SwSwitchRouteUpdateWrapper::programLegacyRib() {
     updateStats(stats);
     return newState;
   };
-  sw_->updateStateBlocking("Add/Del routes", updateFn);
+  sw_->updateStateWithHwFailureProtection("Add/Del routes", updateFn);
 }
 
 AdminDistance SwSwitchRouteUpdateWrapper::clientIdToAdminDistance(
