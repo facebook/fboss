@@ -56,12 +56,6 @@ std::shared_ptr<SwitchState> createTestState(Platform* platform) {
   return applyThriftConfig(std::make_shared<SwitchState>(), &cfg, platform);
 }
 
-uint64_t getRouteCount(const std::shared_ptr<SwitchState>& state) {
-  uint64_t v4, v6;
-  state->getRouteTables()->getRouteCount(&v4, &v6);
-  return v4 + v6;
-}
-
 uint64_t getNewRouteCount(const StateDelta& delta) {
   return getNewRouteCount<folly::IPAddressV6>(delta) +
       getNewRouteCount<folly::IPAddressV4>(delta);
@@ -83,29 +77,9 @@ void verifyRouteCount(
     const utility::RouteDistributionGenerator& routeDistributionGen,
     uint64_t alreadyExistingRoutes,
     uint64_t expectedNewRoutes) {
-  const auto& switchStates = routeDistributionGen.getSwitchStates();
   const auto& routeChunks = routeDistributionGen.get();
 
-  EXPECT_EQ(
-      getRouteCount(switchStates.back()),
-      expectedNewRoutes + alreadyExistingRoutes);
   EXPECT_EQ(getRouteCount(routeChunks), expectedNewRoutes);
-}
-
-void verifyChunking(
-    const utility::RouteDistributionGenerator::SwitchStates& switchStates,
-    unsigned int totalRoutes,
-    unsigned int chunkSize) {
-  auto remainingRoutes = totalRoutes;
-  XLOG(INFO) << " Switch states : " << switchStates.size();
-  for (auto i = 0; i < switchStates.size() - 1; ++i) {
-    auto routeCount =
-        getNewRouteCount(StateDelta(switchStates[i], switchStates[i + 1]));
-    XLOG(INFO) << " Route count : " << routeCount;
-    EXPECT_EQ(routeCount, std::min(remainingRoutes, chunkSize));
-    remainingRoutes -= routeCount;
-  }
-  EXPECT_EQ(remainingRoutes, 0);
 }
 
 void verifyChunking(
@@ -124,8 +98,6 @@ void verifyChunking(
     const utility::RouteDistributionGenerator& routeDistributionGen,
     unsigned int totalRoutes,
     unsigned int chunkSize) {
-  verifyChunking(
-      routeDistributionGen.getSwitchStates(), totalRoutes, chunkSize);
   verifyChunking(routeDistributionGen.get(), totalRoutes, chunkSize);
 }
 
