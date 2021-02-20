@@ -186,16 +186,6 @@ void NeighborUpdater::aggregatePortChanged(
                << aggregatePortID;
     portDown(PortDescriptor(aggregatePortID));
   }
-
-  /*
-    subports of aggport might have stale neighbor entries.
-    Flush them when LACP is established
-    */
-  if (!oldAggPort->isUp() && newAggPort->isUp()) {
-    for (const auto subPort : newAggPort->sortedSubports()) {
-      portFlushEntries(PortDescriptor(subPort.portID));
-    }
-  }
 }
 
 } // namespace facebook::fboss
