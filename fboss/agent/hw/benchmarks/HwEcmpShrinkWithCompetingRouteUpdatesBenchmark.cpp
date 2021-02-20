@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
+#include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/hw/test/HwTestEcmpUtils.h"
 #include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/state/Port.h"
@@ -54,6 +55,7 @@ BENCHMARK(HwEcmpGroupShrinkWithCompetingRouteUpdates) {
                          ensemble->getProgrammedState(),
                          {{64, 10'000}},
                          {{}},
+                         ensemble->isStandaloneRibEnabled(),
                          10'000,
                          4,
                          RouterID(0))

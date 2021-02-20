@@ -59,9 +59,6 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
 
   explicit HwSwitchEnsemble(const Features& featuresDesired);
   ~HwSwitchEnsemble() override;
-  void setAllowPartialStateApplication(bool allow) {
-    allowPartialStateApplication_ = allow;
-  }
   std::shared_ptr<SwitchState> applyNewState(
       std::shared_ptr<SwitchState> newState) {
     return applyNewStateImpl(newState, false);
@@ -193,7 +190,6 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   const Features featuresDesired_;
   folly::Synchronized<std::set<HwSwitchEventObserverIf*>> hwEventObservers_;
   std::unique_ptr<std::thread> thriftThread_;
-  bool allowPartialStateApplication_{false};
   std::unique_ptr<folly::FunctionScheduler> fs_;
   // Test and observer threads can both apply state
   // updadtes. So protect with a mutex

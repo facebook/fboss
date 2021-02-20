@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwOverflowTest.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
@@ -16,7 +17,6 @@
 namespace facebook::fboss {
 
 TEST_F(HwOverflowTest, overflowRoutes) {
-  std::shared_ptr<SwitchState> desiredState;
   applyNewState(
       utility::EcmpSetupAnyNPorts6(getProgrammedState())
           .resolveNextHops(getProgrammedState(), utility::kDefaulEcmpWidth));
@@ -24,30 +24,39 @@ TEST_F(HwOverflowTest, overflowRoutes) {
       utility::EcmpSetupAnyNPorts4(getProgrammedState())
           .resolveNextHops(getProgrammedState(), utility::kDefaulEcmpWidth));
   bool isStandaloneRibEnabled = getHwSwitchEnsemble()->isStandaloneRibEnabled();
+  utility::RouteDistributionGenerator::RouteChunks routeChunks;
+  HwSwitchEnsembleRouteUpdateWrapper updater(getHwSwitchEnsemble());
+  const RouterID kRid(0);
   switch (getPlatform()->getMode()) {
     case PlatformMode::WEDGE:
       /*
        * On BRCM SAI TD2 scales better then TH in ALPM
-       * mode. Hence we need RSW + Hgrid scale to actually
+       * mode. Hence we need 11K + Hgrid scale to actually
        * cause overflow
        */
-      desiredState = utility::FSWRouteScaleGenerator(
-                         getProgrammedState(), isStandaloneRibEnabled)
-                         .getSwitchStates()
-                         .back();
-      desiredState = utility::HgridUuRouteScaleGenerator(
-                         desiredState, isStandaloneRibEnabled)
-                         .getSwitchStates()
-                         .back();
+      updater.programRoutes(
+          kRid,
+          ClientID::BGPD,
+          AdminDistance::EBGP,
+          utility::RouteDistributionGenerator(
+              getProgrammedState(),
+              {{64, 10000}},
+              {{24, 1000}},
+              isStandaloneRibEnabled,
+              20000,
+              4)
+              .get());
+      routeChunks = utility::HgridUuRouteScaleGenerator(
+                        getProgrammedState(), isStandaloneRibEnabled)
+                        .get();
       break;
 
     case PlatformMode::GALAXY_FC:
     case PlatformMode::GALAXY_LC:
     case PlatformMode::WEDGE100:
-      desiredState = utility::HgridUuRouteScaleGenerator(
-                         getProgrammedState(), isStandaloneRibEnabled)
-                         .getSwitchStates()
-                         .back();
+      routeChunks = utility::HgridUuRouteScaleGenerator(
+                        getProgrammedState(), isStandaloneRibEnabled)
+                        .get();
       break;
     case PlatformMode::WEDGE400:
     case PlatformMode::MINIPACK:
@@ -77,21 +86,18 @@ TEST_F(HwOverflowTest, overflowRoutes) {
       // No overflow test for TH4 yet
       break;
   }
-  if (!desiredState) {
+  if (routeChunks.size() == 0) {
     return;
   }
-  getHwSwitchEnsemble()->setAllowPartialStateApplication(true);
   {
     startPacketTxRxVerify();
     SCOPE_EXIT {
       stopPacketTxRxVerify();
     };
-    if (getHwSwitch()->transactionsSupported()) {
-      applyNewStateTransaction(desiredState);
-    } else {
-      applyNewState(desiredState);
-    }
-    EXPECT_NE(getProgrammedState(), desiredState);
+    EXPECT_THROW(
+        updater.programRoutes(
+            kRid, ClientID::BGPD, AdminDistance::EBGP, routeChunks),
+        FbossHwUpdateError);
   }
   verifyInvariants();
 }

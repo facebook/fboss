@@ -12,6 +12,7 @@
 
 #include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/ApplyThriftConfig.h"
+#include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/Platform.h"
@@ -139,6 +140,7 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewStateImpl(
   if (!newState) {
     return programmedState_;
   }
+
   newState->publish();
   auto appliedState = newState;
   StateDelta delta(programmedState_, newState);
@@ -152,12 +154,11 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewStateImpl(
     // applied by this function invocation
     appliedState = programmedState_;
   }
-  if (!allowPartialStateApplication_) {
-    // Assert that our desired state was applied exactly
-    CHECK_EQ(newState, appliedState);
-  }
   StaticL2ForNeighborHwSwitchUpdater updater(this);
   updater.stateUpdated(StateDelta(delta.oldState(), appliedState));
+  if (newState != appliedState) {
+    throw FbossHwUpdateError(newState, appliedState);
+  }
   return appliedState;
 }
 
