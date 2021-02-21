@@ -74,6 +74,58 @@ void BcmPortIngressBufferManager::readCosqTypeFromHw(
       rv, "failed to get ", typeStr, " for port ", portName_, " cosq ", cosq);
 }
 
+void BcmPortIngressBufferManager::programPfcOnPg(
+    const int cosq,
+    const bool pfcEnable) {
+  bcm_port_priority_group_config_t pgConfig;
+  bcm_port_priority_group_config_t_init(&pgConfig);
+
+  pgConfig.pfc_transmit_enable = pfcEnable ? 1 : 0;
+  auto localPort = BCM_GPORT_MODPORT_PORT_GET(gport_);
+  auto rv =
+      bcm_port_priority_group_config_set(unit_, localPort, cosq, &pgConfig);
+  bcmCheckError(
+      rv,
+      "failed to program bcm_port_priority_group_config_set for port ",
+      portName_,
+      " for pgId ",
+      cosq,
+      " pfc_transmit_enable ",
+      pfcEnable);
+}
+
+int BcmPortIngressBufferManager::getProgrammedPgLosslessMode(
+    const int pgId) const {
+  int arg = 0;
+  auto localPort = BCM_GPORT_MODPORT_PORT_GET(gport_);
+  auto rv = bcm_cosq_port_priority_group_property_get(
+      unit_, localPort, pgId, bcmCosqPriorityGroupLossless, &arg);
+  bcmCheckError(
+      rv,
+      "failed to program bcm_cosq_port_priority_group_property_set for port ",
+      portName_,
+      " pgId ",
+      pgId);
+  return arg;
+}
+
+int BcmPortIngressBufferManager::getProgrammedPfcStatusInPg(
+    const int pgId) const {
+  bcm_port_priority_group_config_t pgConfig;
+  bcm_port_priority_group_config_t_init(&pgConfig);
+
+  auto localPort = BCM_GPORT_MODPORT_PORT_GET(gport_);
+  auto rv =
+      bcm_port_priority_group_config_get(unit_, localPort, pgId, &pgConfig);
+  bcmCheckError(
+      rv,
+      "failed to read bcm_port_priority_group_config_get for port ",
+      portName_,
+      " for pgId ",
+      pgId);
+  return pgConfig.pfc_transmit_enable;
+}
+
 void BcmPortIngressBufferManager::programPg(
     const PortPgConfig* portPgCfg,
     const int cosq) {
@@ -164,6 +216,46 @@ void BcmPortIngressBufferManager::resetPgsToDefault() {
   }
   pgIdList.clear();
   setPgIdListInHw(pgIdList);
+}
+
+void BcmPortIngressBufferManager::programPgLosslessMode(int pgId, int value) {
+  auto localPort = BCM_GPORT_MODPORT_PORT_GET(gport_);
+  XLOG(DBG2) << "Set lossless mode  " << value << "for pgId " << pgId
+             << " port " << portName_;
+  auto rv = bcm_cosq_port_priority_group_property_set(
+      unit_, localPort, pgId, bcmCosqPriorityGroupLossless, value);
+  bcmCheckError(
+      rv,
+      "failed to program bcm_cosq_port_priority_group_property_set for port ",
+      portName_,
+      " pgId ",
+      pgId,
+      " value: ",
+      value);
+}
+
+void BcmPortIngressBufferManager::programLosslessMode(
+    const std::shared_ptr<Port> port) {
+  std::unordered_set<int> losslessPgList;
+  // theoretically its possible that each pg configuration defined is NOT
+  // lossless look for headroom limit set to determine its lossless
+  if (const auto& pgConfigs = port->getPortPgConfigs()) {
+    for (const auto& pgConfig : *pgConfigs) {
+      if (pgConfig->getHeadroomLimitBytes()) {
+        losslessPgList.insert(pgConfig->getID());
+      }
+    }
+  }
+
+  for (int pgId = 0; pgId <= cfg::switch_config_constants::PORT_PG_VALUE_MAX();
+       ++pgId) {
+    int losslessMode = 0;
+    auto iter = losslessPgList.find(pgId);
+    if (iter != losslessPgList.end()) {
+      losslessMode = 1;
+    }
+    programPgLosslessMode(pgId, losslessMode);
+  }
 }
 
 void BcmPortIngressBufferManager::reprogramPgs(

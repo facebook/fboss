@@ -51,6 +51,8 @@ class BcmPortIngressBufferManager {
   // used for test utils
   PgIdSet getPgIdListInHw() const;
   void setPgIdListInHw(PgIdSet& newPgIdList);
+  int getProgrammedPgLosslessMode(const int pgId) const;
+  int getProgrammedPfcStatusInPg(const int pgId) const;
 
  private:
   /* read APIs to the BCM SDK */
@@ -79,6 +81,10 @@ class BcmPortIngressBufferManager {
   void reprogramIngressPools(const std::shared_ptr<Port> port);
   int getIngressPoolHeadroomBytes(bcm_cos_queue_t cosQ) const;
   int getIngressSharedBytes(bcm_cos_queue_t cosQ) const;
+  void programLosslessMode(const std::shared_ptr<Port> port);
+  void programPgLosslessMode(int pgId, int value);
+  void programPfcOnPg(const int cosq, const bool pfcEnable);
+
   BcmSwitch* hw_;
   std::string portName_;
   bcm_gport_t gport_;
