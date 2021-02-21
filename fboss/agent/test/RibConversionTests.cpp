@@ -10,6 +10,8 @@
 
 #include "fboss/agent/StandaloneRibConversions.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
+
 #include "fboss/agent/hw/sim/SimPlatform.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -34,56 +36,38 @@ static void runConversionTest() {
   }
   cfg::SwitchConfig config =
       utility::onePortPerVlanConfig(plat.getHwSwitch(), ports);
-  auto testHandle =
+  std::unique_ptr<rib::RoutingInformationBase> newRibFromLegacySwitchState;
+  uint64_t legacyRibV4, legacyRibV6;
+  {
+    // First SwSwitch with legacy rib. Scoped block to
+    // destroy this SwSwitch on block exit
+    auto testHandle = createTestHandle(&config);
+    auto sw = testHandle->getSw();
+    auto generator = Generator(
+        sw->getState(), sw->isStandaloneRibEnabled(), 1337, kEcmpWidth);
+    const auto& routeChunks = generator.get();
+    programRoutes(routeChunks, sw);
+    auto swStateTables = RouteTableMap::fromFollyDynamic(
+        sw->getState()->getRouteTables()->toFollyDynamic());
+    newRibFromLegacySwitchState = switchStateToStandaloneRib(swStateTables);
+    // From new rib back to legacy results in same route tables
+    auto swStateLegacyRib =
+        standaloneToSwitchStateRib(*newRibFromLegacySwitchState);
+    EXPECT_EQ(
+        swStateLegacyRib->toFollyDynamic(), swStateTables->toFollyDynamic());
+    swStateTables->getRouteCount(&legacyRibV4, &legacyRibV6);
+  }
+  // create new switch with Standalone rib enabled
+  auto testHandleWithRib =
       createTestHandle(&config, SwitchFlags::ENABLE_STANDALONE_RIB);
-  auto sw = testHandle->getSw();
+  auto swWithRib = testHandleWithRib->getSw();
+  // Program reconstructed RIB to FIB
+  syncFibWithStandaloneRib(*newRibFromLegacySwitchState, swWithRib);
 
-  // TODO(sas): This needs to go away after we are done transitionning to the
-  // new RIB mechanism. RouteDistributionGenerator expects `RouteTables` to
-  // have an entry for VRF 0 even if we are not using `RouteTables` at all
-  // (i.e.: when the ENABLE_STANDALONE_RIB flag is set).
-  sw->updateStateBlocking(
-      "add VRF0", [=](const std::shared_ptr<SwitchState>& state) {
-        std::shared_ptr<SwitchState> newState{state};
-        auto newRouteTables = newState->getRouteTables()->modify(&newState);
-        newRouteTables->addRouteTable(
-            std::make_shared<RouteTable>(RouterID(0)));
-        return newState;
-      });
+  auto [newRibV4, newRibV6] = swWithRib->getState()->getFibs()->getRouteCount();
 
-  auto generator = Generator(sw->getState(), 1337, kEcmpWidth);
-  const auto& states = generator.getSwitchStates();
-  auto state = states[states.size() - 1];
-
-  auto swStateTables = state->getRouteTables();
-  auto standaloneRib = switchStateToStandaloneRib(swStateTables);
-  auto swStateRib = standaloneToSwitchStateRib(*standaloneRib);
-  EXPECT_EQ(swStateRib->toFollyDynamic(), swStateTables->toFollyDynamic());
-
-  syncFibWithStandaloneRib(*standaloneRib, sw);
-
-  size_t ribRouteCount = 0;
-  for (auto routerID : standaloneRib->getVrfList()) {
-    auto table = swStateTables->getRouteTable(routerID);
-    for (const auto& entry : *table->getRibV4()->routes()) {
-      if (entry->isResolved())
-        ++ribRouteCount;
-    }
-    for (const auto& entry : *table->getRibV6()->routes()) {
-      if (entry->isResolved())
-        ++ribRouteCount;
-    }
-  }
-
-  size_t fibRouteCount = 0;
-  const auto& fibs = sw->getState()->getFibs();
-  for (auto routerID : standaloneRib->getVrfList()) {
-    auto container = fibs->getFibContainer(routerID);
-    fibRouteCount += container->getFibV4()->size();
-    fibRouteCount += container->getFibV6()->size();
-  }
-
-  EXPECT_EQ(fibRouteCount, ribRouteCount);
+  EXPECT_EQ(legacyRibV4, newRibV4);
+  EXPECT_EQ(legacyRibV6, newRibV6);
 }
 
 #if defined(__OPTIMIZE__)

@@ -24,6 +24,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
+#include "fboss/agent/test/RouteDistributionGenerator.h"
 
 namespace facebook::fboss {
 
@@ -426,5 +427,9 @@ struct NoRib {
 struct Rib {
   static constexpr bool hasStandAloneRib = true;
 };
+
+void programRoutes(
+    const utility::RouteDistributionGenerator::RouteChunks& routeChunks,
+    SwSwitch* sw);
 
 } // namespace facebook::fboss

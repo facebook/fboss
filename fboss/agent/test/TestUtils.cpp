@@ -30,6 +30,7 @@
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/MockTunManager.h"
 
+#include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 
 #include <folly/Memory.h>
@@ -681,4 +682,24 @@ void WaitForSwitchState::stateUpdated(const StateDelta& delta) {
   }
 }
 
+void programRoutes(
+    const utility::RouteDistributionGenerator::RouteChunks& routeChunks,
+    SwSwitch* sw) {
+  SwSwitchRouteUpdateWrapper updater(sw);
+  for (const auto& routeChunk : routeChunks) {
+    for (const auto& route : routeChunk) {
+      RouteNextHopSet nhops;
+      for (const auto& ip : route.nhops) {
+        nhops.emplace(UnresolvedNextHop(ip, ECMP_WEIGHT));
+      }
+      updater.addRoute(
+          RouterID(0),
+          route.prefix.first,
+          route.prefix.second,
+          ClientID::BGPD,
+          RouteNextHopEntry(nhops, AdminDistance::EBGP));
+    }
+  }
+  updater.program();
+}
 } // namespace facebook::fboss
