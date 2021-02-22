@@ -251,6 +251,10 @@ string BcmCinter::getNextPfcPriToQueueVar() {
   return to<string>("pfcPriToQueue_", ++tmpPfcPriToQueueCreated_);
 }
 
+string BcmCinter::getNextPgConfigVar() {
+  return to<string>("pgConfig_", ++tmpPgConfigCreated_);
+}
+
 string BcmCinter::getNextMirrorDestIdVar() {
   return to<string>("mirrorDestId_", ++mirrorDestIdCreated_);
 }
@@ -2509,6 +2513,44 @@ int BcmCinter::sh_process_command(int unit, char* cmd) {
   auto funcCint = wrapFunc(to<string>("bshell(", unit, ", \"", cmd, "\")"));
   vector<string> cintLine = {funcCint};
   writeCintLines(cintLine);
+  return 0;
+}
+
+int BcmCinter::bcm_cosq_port_priority_group_property_set(
+    int unit,
+    bcm_port_t gport,
+    int priority_group_id,
+    bcm_cosq_port_prigroup_control_t type,
+    int arg) {
+  auto funcCint = wrapFunc(to<string>(
+      "bcm_cosq_port_priority_group_property_set(",
+      makeParamStr(unit, gport, priority_group_id, type, arg),
+      ")"));
+  writeCintLines(funcCint);
+  return 0;
+}
+
+int BcmCinter::bcm_port_priority_group_config_set(
+    int unit,
+    bcm_gport_t gport,
+    int priority_group,
+    bcm_port_priority_group_config_t* prigrp_config) {
+  vector<string> cintLines;
+  string varName = getNextPgConfigVar();
+  cintLines.push_back(to<string>("bcm_port_priority_group_config_t ", varName));
+  cintLines.push_back(
+      to<string>("bcm_port_priority_group_config_t_init(&", varName, ")"));
+  cintLines.push_back(to<string>(
+      varName, ".pfc_transmit_enable=", prigrp_config->pfc_transmit_enable));
+  auto cintForFn = wrapFunc(to<string>(
+      "bcm_port_priority_group_config_set(",
+      makeParamStr(unit, gport, priority_group, to<string>("&", varName)),
+      ")"));
+  cintLines.insert(
+      cintLines.end(),
+      make_move_iterator(cintForFn.begin()),
+      make_move_iterator((cintForFn.end())));
+  writeCintLines(std::move(cintLines));
   return 0;
 }
 

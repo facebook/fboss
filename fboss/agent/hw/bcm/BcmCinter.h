@@ -368,6 +368,17 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       int profile_index,
       int count,
       bcm_cosq_pfc_class_map_config_t* config_array) override;
+  int bcm_port_priority_group_config_set(
+      int unit,
+      bcm_gport_t gport,
+      int priority_group,
+      bcm_port_priority_group_config_t* prigrp_config) override;
+  int bcm_cosq_port_priority_group_property_set(
+      int unit,
+      bcm_port_t gport,
+      int priority_group_id,
+      bcm_cosq_port_prigroup_control_t type,
+      int arg) override;
   int bcm_field_init(int unit) override;
   int bcm_field_group_create_id(
       int unit,
@@ -1062,7 +1073,21 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       int* /*count*/) override {
     return 0;
   }
-
+  int bcm_port_priority_group_config_get(
+      int /*unit*/,
+      bcm_gport_t /*gport*/,
+      int /*priority_group*/,
+      bcm_port_priority_group_config_t* /*prigrp_config*/) override {
+    return 0;
+  }
+  int bcm_cosq_port_priority_group_property_get(
+      int /*unit*/,
+      bcm_port_t /*gport*/,
+      int /*priority_group_id*/,
+      bcm_cosq_port_prigroup_control_t /*type*/,
+      int* /*arg*/) override {
+    return 0;
+  }
   int bcm_cosq_gport_traverse(
       int /*unit*/,
       bcm_cosq_gport_traverse_cb /*cb*/,
@@ -1564,6 +1589,7 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   std::string getNextPriorityToPgVar();
   std::string getNextPfcPriToPgVar();
   std::string getNextPfcPriToQueueVar();
+  std::string getNextPgConfigVar();
 
   /*
    * Wrap a generated cint function call with return error code
@@ -1671,6 +1697,7 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   std::atomic<uint> tmpProrityToPgCreated_{0};
   std::atomic<uint> tmpPfcPriToPgCreated_{0};
   std::atomic<uint> tmpPfcPriToQueueCreated_{0};
+  std::atomic<uint> tmpPgConfigCreated_{0};
 
   std::unique_ptr<AsyncLogger> asyncLogger_;
 

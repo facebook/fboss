@@ -1524,6 +1524,33 @@ int __real_bcm_cosq_pfc_class_config_profile_get(
     int max_count,
     bcm_cosq_pfc_class_map_config_t* config_array,
     int* count);
+
+int __real_bcm_port_priority_group_config_set(
+    int unit,
+    bcm_gport_t gport,
+    int priority_group,
+    bcm_port_priority_group_config_t* prigrp_config);
+
+int __real_bcm_port_priority_group_config_get(
+    int unit,
+    bcm_gport_t gport,
+    int priority_group,
+    bcm_port_priority_group_config_t* prigrp_config);
+
+int __real_bcm_cosq_port_priority_group_property_get(
+    int unit,
+    bcm_port_t gport,
+    int priority_group_id,
+    bcm_cosq_port_prigroup_control_t type,
+    int* arg);
+
+int __real_bcm_cosq_port_priority_group_property_set(
+    int unit,
+    bcm_port_t gport,
+    int priority_group_id,
+    bcm_cosq_port_prigroup_control_t type,
+    int arg);
+
 } // extern "C"
 
 using namespace facebook::fboss;
@@ -3657,6 +3684,44 @@ int __wrap_bcm_cosq_pfc_class_config_profile_get(
     int* count) {
   CALL_WRAPPERS_RV(bcm_cosq_pfc_class_config_profile_get(
       unit, profile_index, max_count, config_array, count));
+}
+
+int __wrap_bcm_port_priority_group_config_set(
+    int unit,
+    bcm_gport_t gport,
+    int priority_group,
+    bcm_port_priority_group_config_t* prigrp_config) {
+  CALL_WRAPPERS_RV(bcm_port_priority_group_config_set(
+      unit, gport, priority_group, prigrp_config));
+}
+
+int __wrap_bcm_port_priority_group_config_get(
+    int unit,
+    bcm_gport_t gport,
+    int priority_group,
+    bcm_port_priority_group_config_t* prigrp_config) {
+  CALL_WRAPPERS_RV(bcm_port_priority_group_config_get(
+      unit, gport, priority_group, prigrp_config));
+}
+
+int __wrap_bcm_cosq_port_priority_group_property_get(
+    int unit,
+    bcm_port_t gport,
+    int priority_group_id,
+    bcm_cosq_port_prigroup_control_t type,
+    int* arg) {
+  CALL_WRAPPERS_RV(bcm_cosq_port_priority_group_property_get(
+      unit, gport, priority_group_id, type, arg));
+}
+
+int __wrap_bcm_cosq_port_priority_group_property_set(
+    int unit,
+    bcm_port_t gport,
+    int priority_group_id,
+    bcm_cosq_port_prigroup_control_t type,
+    int arg) {
+  CALL_WRAPPERS_RV(bcm_cosq_port_priority_group_property_set(
+      unit, gport, priority_group_id, type, arg));
 }
 
 } // extern "C"

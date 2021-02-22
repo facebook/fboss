@@ -902,6 +902,32 @@ class BcmSdkInterface {
       int max_count,
       bcm_cosq_pfc_class_map_config_t* config_array,
       int* count) = 0;
+
+  virtual int bcm_port_priority_group_config_set(
+      int unit,
+      bcm_gport_t gport,
+      int priority_group,
+      bcm_port_priority_group_config_t* prigrp_config) = 0;
+
+  virtual int bcm_port_priority_group_config_get(
+      int unit,
+      bcm_gport_t gport,
+      int priority_group,
+      bcm_port_priority_group_config_t* prigrp_config) = 0;
+
+  virtual int bcm_cosq_port_priority_group_property_get(
+      int unit,
+      bcm_port_t gport,
+      int priority_group_id,
+      bcm_cosq_port_prigroup_control_t type,
+      int* arg) = 0;
+
+  virtual int bcm_cosq_port_priority_group_property_set(
+      int unit,
+      bcm_port_t gport,
+      int priority_group_id,
+      bcm_cosq_port_prigroup_control_t type,
+      int arg) = 0;
 };
 
 } // namespace facebook::fboss
