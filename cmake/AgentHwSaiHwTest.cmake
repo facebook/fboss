@@ -126,6 +126,7 @@ function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     fboss/agent/hw/sai/hw_test/HwTestMirrorUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestMplsUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestPacketTrapEntry.cpp
+    fboss/agent/hw/sai/hw_test/HwTestTrunkUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestPortUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestQosUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestRouteUtils.cpp
