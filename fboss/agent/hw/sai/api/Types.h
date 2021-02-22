@@ -66,3 +66,10 @@ using SaiPortDescriptor = BasePortDescriptor;
 using PortDescriptorSaiId = PortDescriptorTemplate<PortSaiId, LagSaiId>;
 
 } // namespace facebook::fboss
+
+namespace std {
+template <>
+struct hash<facebook::fboss::PortDescriptorSaiId> {
+  size_t operator()(const facebook::fboss::PortDescriptorSaiId& key) const;
+};
+} // namespace std

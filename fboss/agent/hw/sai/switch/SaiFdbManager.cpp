@@ -244,7 +244,9 @@ InterfaceID SaiFdbManager::getInterfaceId(
       macEntry->getPort().phyPortID());
   // FBOSS assumes a 1:1 correpondance b/w Vlan and interfae IDs
   return InterfaceID(
-      concurrentIndices_->vlanIds.find(portHandle->port->adapterKey())->second);
+      concurrentIndices_->vlanIds
+          .find(PortDescriptorSaiId(portHandle->port->adapterKey()))
+          ->second);
 }
 
 void SaiFdbManager::handleLinkDown(SaiPortDescriptor portId) {

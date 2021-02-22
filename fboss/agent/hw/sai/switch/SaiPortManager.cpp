@@ -296,7 +296,7 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   concurrentIndices_->portSaiIds.emplace(
       swPort->getID(), saiPort->adapterKey());
   concurrentIndices_->vlanIds.emplace(
-      saiPort->adapterKey(), swPort->getIngressVlan());
+      PortDescriptorSaiId(saiPort->adapterKey()), swPort->getIngressVlan());
   XLOG(INFO) << "added port " << swPort->getID() << " with vlan "
              << swPort->getIngressVlan();
 
@@ -378,7 +378,8 @@ void SaiPortManager::removePort(const std::shared_ptr<Port>& swPort) {
 
   concurrentIndices_->portIds.erase(itr->second->port->adapterKey());
   concurrentIndices_->portSaiIds.erase(swId);
-  concurrentIndices_->vlanIds.erase(itr->second->port->adapterKey());
+  concurrentIndices_->vlanIds.erase(
+      PortDescriptorSaiId(itr->second->port->adapterKey()));
   addRemovedHandle(itr->first);
   handles_.erase(itr);
   portStats_.erase(swId);
@@ -584,7 +585,7 @@ void SaiPortManager::changePort(
   // if vlan changed update it, this is important for rx processing
   if (newPort->getIngressVlan() != oldPort->getIngressVlan()) {
     concurrentIndices_->vlanIds.insert_or_assign(
-        saiPort->adapterKey(), newPort->getIngressVlan());
+        PortDescriptorSaiId(saiPort->adapterKey()), newPort->getIngressVlan());
     XLOG(INFO) << "changed vlan on port " << newPort->getID()
                << ": old vlan: " << oldPort->getIngressVlan()
                << ", new vlan: " << newPort->getIngressVlan();

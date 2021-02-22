@@ -27,10 +27,10 @@ struct ConcurrentIndices {
    * and modified by port/vlan updates
    */
   folly::ConcurrentHashMap<PortSaiId, PortID> portIds;
-  // indexed by port sai id, not vlan sai id, until sai
+  // indexed by port sai id(or lag sai id), not vlan sai id, until sai
   // callback supports punt with vlan id in either an attribute
   // or the frame itself
-  folly::ConcurrentHashMap<PortSaiId, VlanID> vlanIds;
+  folly::ConcurrentHashMap<PortDescriptorSaiId, VlanID> vlanIds;
   /*
    * Indexed by PortID, used by TX to translate port ID
    * to sai port id.

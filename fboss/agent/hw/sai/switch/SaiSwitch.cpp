@@ -1125,7 +1125,8 @@ void SaiSwitch::packetRxCallback(
     return;
   } else {
     swPortId = portItr->second;
-    const auto vlanItr = concurrentIndices_->vlanIds.find(portSaiId);
+    const auto vlanItr =
+        concurrentIndices_->vlanIds.find(PortDescriptorSaiId(portSaiId));
     if (vlanItr == concurrentIndices_->vlanIds.cend()) {
       XLOG(ERR) << "RX packet had port in no known vlan: 0x" << std::hex
                 << portSaiId;
@@ -1549,7 +1550,8 @@ std::optional<L2Entry> SaiSwitch::getL2Entry(
               << ", got non existent port id : " << portSaiId;
     return std::nullopt;
   }
-  auto vlanItr = concurrentIndices_->vlanIds.find(PortSaiId(portSaiId));
+  auto vlanItr = concurrentIndices_->vlanIds.find(
+      PortDescriptorSaiId(PortSaiId(portSaiId)));
   if (vlanItr == concurrentIndices_->vlanIds.end()) {
     XLOG(ERR) << " FDB event for " << mac
               << " could not look up VLAN for : " << portItr->second;

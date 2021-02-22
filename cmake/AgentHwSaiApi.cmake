@@ -45,6 +45,7 @@ set(SAI_API_SRC
   fboss/agent/hw/sai/api/SaiApiLock.cpp
   fboss/agent/hw/sai/api/SaiApiTable.cpp
   fboss/agent/hw/sai/api/SwitchApi.cpp
+  fboss/agent/hw/sai/api/Types.cpp
   fboss/agent/hw/sai/api/AclApi.h
   fboss/agent/hw/sai/api/BridgeApi.h
   fboss/agent/hw/sai/api/FdbApi.h
