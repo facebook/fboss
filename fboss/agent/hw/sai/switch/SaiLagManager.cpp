@@ -47,6 +47,8 @@ void SaiLagManager::addLag(
   auto vlanID = vlanSaiIdsIter->second;
   concurrentIndices_->vlanIds.emplace(
       PortDescriptorSaiId(lag->adapterKey()), vlanID);
+  concurrentIndices_->aggregatePortIds.emplace(
+      lag->adapterKey(), aggregatePort->getID());
   auto handle = std::make_unique<SaiLagHandle>();
   // create bridge port for LAG
   handle->bridgePort = managerTable_->bridgeManager().addBridgePort(
@@ -204,6 +206,7 @@ void SaiLagManager::removeLagHandle(
   handle->bridgePort.reset();
   concurrentIndices_->vlanIds.erase(
       PortDescriptorSaiId(handle->lag->adapterKey()));
+  concurrentIndices_->aggregatePortIds.erase(handle->lag->adapterKey());
   // remove lag
   handle->lag.reset();
 }

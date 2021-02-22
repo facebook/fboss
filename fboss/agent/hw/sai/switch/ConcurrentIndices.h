@@ -41,6 +41,10 @@ struct ConcurrentIndices {
    */
   folly::ConcurrentHashMap<PortSaiId, AggregatePortID>
       memberPort2AggregatePortIds;
+  /*
+   * lag sai id to aggregate port id
+   */
+  folly::ConcurrentHashMap<LagSaiId, AggregatePortID> aggregatePortIds;
 };
 
 } // namespace facebook::fboss

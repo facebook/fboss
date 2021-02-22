@@ -1160,10 +1160,39 @@ void SaiSwitch::packetRxCallback(
 }
 
 void SaiSwitch::packetRxCallback(
-    sai_size_t /*buffer_size*/,
-    const void* /*buffer*/,
-    LagSaiId /*inAggPort*/) {
-  // TODO(pshaikh): support LAG, implement this
+    sai_size_t buffer_size,
+    const void* buffer,
+    LagSaiId lagSaiId) {
+  AggregatePortID swAggPortId(0);
+  VlanID swVlanId(0);
+  auto rxPacket =
+      std::make_unique<SaiRxPacket>(buffer_size, buffer, PortID(0), VlanID(0));
+
+  const auto aggPortItr = concurrentIndices_->aggregatePortIds.find(lagSaiId);
+
+  if (aggPortItr == concurrentIndices_->aggregatePortIds.end()) {
+    // TODO: add counter to keep track of spurious rx packet
+    XLOG(ERR) << "RX packet had lag with unknown sai id: 0x" << std::hex
+              << lagSaiId;
+    return;
+  }
+  swAggPortId = aggPortItr->second;
+  const auto vlanItr =
+      concurrentIndices_->vlanIds.find(PortDescriptorSaiId(lagSaiId));
+  if (vlanItr == concurrentIndices_->vlanIds.cend()) {
+    XLOG(ERR) << "RX packet had lag in no known vlan: 0x" << std::hex
+              << lagSaiId;
+    return;
+  }
+  swVlanId = vlanItr->second;
+  rxPacket->setSrcAggregatePort(swAggPortId);
+  rxPacket->setSrcVlan(swVlanId);
+
+  XLOG(DBG6) << "Rx packet on lag: " << swAggPortId
+             << " and vlan: " << swVlanId;
+  folly::io::Cursor c0(rxPacket->buf());
+  XLOG(DBG6) << PktUtil::hexDump(c0);
+  callback_->packetReceived(std::move(rxPacket));
 }
 
 bool SaiSwitch::isFeatureSetupLocked(
