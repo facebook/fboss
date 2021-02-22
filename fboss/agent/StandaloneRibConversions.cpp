@@ -12,7 +12,12 @@
 
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/state/ForwardingInformationBaseMap.h"
+#include "fboss/agent/state/RouteTableMap.h"
+#include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
 
@@ -55,4 +60,32 @@ void programRib(
   }
 }
 
+std::shared_ptr<ForwardingInformationBaseMap> fibFromStandaloneRib(
+    rib::RoutingInformationBase& rib) {
+  auto state = std::make_shared<SwitchState>();
+  auto fillInFib =
+      [&state](
+          facebook::fboss::RouterID vrf,
+          const facebook::fboss::rib::IPv4NetworkToRouteMap& v4NetworkToRoute,
+          const facebook::fboss::rib::IPv6NetworkToRouteMap& v6NetworkToRoute,
+          void* cookie) {
+        facebook::fboss::rib::ForwardingInformationBaseUpdater fibUpdater(
+            vrf, v4NetworkToRoute, v6NetworkToRoute);
+        fibUpdater(state);
+      };
+
+  for (auto routerID : rib.getVrfList()) {
+    rib.update(
+        routerID,
+        ClientID(-1),
+        AdminDistance(-1),
+        {},
+        {},
+        false,
+        "rib to fib",
+        fillInFib,
+        nullptr);
+  }
+  return state->getFibs();
+}
 } // namespace facebook::fboss

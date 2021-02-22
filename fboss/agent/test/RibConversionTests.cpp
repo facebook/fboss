@@ -65,6 +65,14 @@ static void runConversionTest() {
   programRib(*newRibFromLegacySwitchState, swWithRib);
 
   auto [newRibV4, newRibV6] = swWithRib->getState()->getFibs()->getRouteCount();
+  {
+    // Test conversion to switch state api
+
+    auto fib = fibFromStandaloneRib(*newRibFromLegacySwitchState);
+    EXPECT_EQ(
+        fib->toFollyDynamic(),
+        swWithRib->getState()->getFibs()->toFollyDynamic());
+  }
 
   EXPECT_EQ(legacyRibV4, newRibV4);
   EXPECT_EQ(legacyRibV6, newRibV6);

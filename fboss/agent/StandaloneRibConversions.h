@@ -10,13 +10,15 @@
 
 #pragma once
 
-#include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/rib/RoutingInformationBase.h"
-#include "fboss/agent/state/RouteTableMap.h"
-
 #include <memory>
 
 namespace facebook::fboss {
+class ForwardingInformationBaseMap;
+class RouteTableMap;
+class SwSwitch;
+namespace rib {
+class RoutingInformationBase;
+};
 
 std::unique_ptr<rib::RoutingInformationBase> switchStateToStandaloneRib(
     const std::shared_ptr<RouteTableMap>& swStateRib);
@@ -25,5 +27,8 @@ std::shared_ptr<RouteTableMap> standaloneToSwitchStateRib(
     const rib::RoutingInformationBase& standaloneRib);
 
 void programRib(rib::RoutingInformationBase& standaloneRib, SwSwitch* swSwitch);
+
+std::shared_ptr<ForwardingInformationBaseMap> fibFromStandaloneRib(
+    rib::RoutingInformationBase& rib);
 
 } // namespace facebook::fboss
