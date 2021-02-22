@@ -33,34 +33,30 @@ static void runConversionBenchmark() {
   for (int i = 0; i < 128; ++i) {
     ports.push_back(PortID(i));
   }
+  std::unique_ptr<rib::RoutingInformationBase> newRibFromLegacySwitchState;
   cfg::SwitchConfig config =
       utility::onePortPerVlanConfig(plat.getHwSwitch(), ports);
-  auto testHandle =
+  {
+    // First SwSwitch with legacy rib. Scoped block to
+    // destroy this SwSwitch on block exit
+    auto testHandle = createTestHandle(&config);
+    auto sw = testHandle->getSw();
+
+    auto generator = Generator(
+        sw->getState(), sw->isStandaloneRibEnabled(), 1337, kEcmpWidth);
+    const auto& routeChunks = generator.get();
+    programRoutes(routeChunks, sw);
+
+    auto swStateTables = sw->getState()->getRouteTables();
+    newRibFromLegacySwitchState = switchStateToStandaloneRib(swStateTables);
+    auto swStateRib = standaloneToSwitchStateRib(*newRibFromLegacySwitchState);
+  }
+  // create new switch with Standalone rib enabled
+  auto testHandleWithRib =
       createTestHandle(&config, SwitchFlags::ENABLE_STANDALONE_RIB);
-  auto sw = testHandle->getSw();
-
-  // TODO(sas): This needs to go away after we are done transitionning to the
-  // new RIB mechanism. RouteDistributionGenerator expects `RouteTables` to
-  // have an entry for VRF 0 even if we are not using `RouteTables` at all
-  // (i.e.: when the ENABLE_STANDALONE_RIB flag is set).
-  sw->updateStateBlocking(
-      "add VRF0", [=](const std::shared_ptr<SwitchState>& state) {
-        std::shared_ptr<SwitchState> newState{state};
-        auto newRouteTables = newState->getRouteTables()->modify(&newState);
-        newRouteTables->addRouteTable(
-            std::make_shared<RouteTable>(RouterID(0)));
-        return newState;
-      });
-
-  auto generator = Generator(sw->getState(), 1337, kEcmpWidth);
-  const auto& states = generator.getSwitchStates();
-  auto state = states[states.size() - 1];
-
-  auto swStateTables = state->getRouteTables();
-  auto standaloneRib = switchStateToStandaloneRib(swStateTables);
-  auto swStateRib = standaloneToSwitchStateRib(*standaloneRib);
-
-  syncFibWithStandaloneRib(*standaloneRib, sw);
+  auto swWithRib = testHandleWithRib->getSw();
+  // Program reconstructed RIB to FIB
+  syncFibWithStandaloneRib(*newRibFromLegacySwitchState, swWithRib);
 }
 
 BENCHMARK(RibConversionFSW) {
