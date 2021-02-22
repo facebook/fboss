@@ -29,7 +29,6 @@ add_executable(bcm_test
   fboss/agent/hw/bcm/tests/BcmCosQueueManagerCounterTests.cpp
   fboss/agent/hw/bcm/tests/BcmDeathTests.cpp
   fboss/agent/hw/bcm/tests/BcmEcmpTests.cpp
-  fboss/agent/hw/bcm/tests/BcmEcmpTrunkTests.cpp
   fboss/agent/hw/bcm/tests/BcmEmptyEcmpTests.cpp
   fboss/agent/hw/bcm/tests/BcmFieldProcessorTests.cpp
   fboss/agent/hw/bcm/tests/BcmHostKeyTests.cpp
