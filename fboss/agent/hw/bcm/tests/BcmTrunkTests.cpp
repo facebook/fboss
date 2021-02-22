@@ -20,12 +20,11 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
-#include "fboss/agent/hw/bcm/BcmRxPacket.h"
-#include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
 #include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
-#include "fboss/agent/hw/bcm/tests/BcmTrunkUtils.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
+
+#include "fboss/agent/hw/test/HwTestTrunkUtils.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
@@ -81,17 +80,22 @@ TEST_F(BcmTrunkTest, TrunkCreateHighLowKeyIds) {
     applyConfigAndEnableTrunks(cfg);
   };
   auto verify = [=]() {
-    EXPECT_EQ(2, getHwSwitch()->getTrunkTable()->numTrunkPorts());
+    utility::verifyAggregatePortCount(getHwSwitchEnsemble(), 2);
+    utility::verifyAggregatePort(
+        getHwSwitchEnsemble(), AggregatePortID(1)
+
+    );
+    utility::verifyAggregatePort(
+        getHwSwitchEnsemble(),
+        AggregatePortID(std::numeric_limits<AggregatePortID>::max())
+
+    );
     auto aggIDs = {
         AggregatePortID(1),
         AggregatePortID(std::numeric_limits<AggregatePortID>::max())};
-    auto trunkTable = getHwSwitch()->getTrunkTable();
     for (auto aggId : aggIDs) {
-      EXPECT_NO_THROW(trunkTable->getBcmTrunkId(aggId));
-      EXPECT_EQ(
-          1,
-          utility::getBcmTrunkMemberCount(
-              getUnit(), trunkTable->getBcmTrunkId(aggId), 1));
+      utility::verifyAggregatePortMemberCount(
+          getHwSwitchEnsemble(), aggId, 1, 1);
     }
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -107,30 +111,9 @@ TEST_F(BcmTrunkTest, TrunkCheckIngressPktAggPort) {
     applyConfigAndEnableTrunks(cfg);
   };
   auto verify = [=]() {
-    EXPECT_EQ(1, getHwSwitch()->getTrunkTable()->numTrunkPorts());
-    bool usePktIO = getHwSwitch()->usePKTIO();
-    BcmPacketT bcmPacket;
-    bcm_pkt_t bcmPkt;
-    auto bcmTrunkId = getHwSwitch()->getTrunkTable()->getBcmTrunkId(
+    utility::verifyPktFromAggregatePort(
+        getHwSwitchEnsemble(),
         AggregatePortID(std::numeric_limits<AggregatePortID>::max()));
-    bcmPacket.usePktIO = usePktIO;
-    if (!usePktIO) {
-      bcmPacket.ptrUnion.pkt = &bcmPkt;
-      BCM_PKT_ONE_BUF_SETUP(&bcmPkt, nullptr, 0);
-      bcmPkt.src_trunk = bcmTrunkId;
-      bcmPkt.flags |= BCM_PKT_F_TRUNK;
-      bcmPkt.unit = 0;
-      FbBcmRxPacket fbRxPkt(bcmPacket, getHwSwitch());
-      EXPECT_TRUE(fbRxPkt.isFromAggregatePort());
-      EXPECT_EQ(
-          fbRxPkt.getSrcAggregatePort(),
-          std::numeric_limits<AggregatePortID>::max());
-    }
-    // Note that for PKTIO these tests are not valid.
-    // In the non-PKTIO case, the SDK parse the packet and sets up the fields
-    // in the bcm_pkt_s, so they can be queried from this data structure.
-    // For PKTIO, such information is not available from the packet data
-    // structure.
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -148,14 +131,9 @@ TEST_F(BcmTrunkTest, TrunkMemberPortDownMinLinksViolated) {
     // Member port count should drop to 1 now.
   };
   auto verify = [=]() {
-    auto trunkTable = getHwSwitch()->getTrunkTable();
-
-    EXPECT_EQ(1, trunkTable->numTrunkPorts());
-    EXPECT_NO_THROW(trunkTable->getBcmTrunkId(aggId));
-    EXPECT_EQ(
-        1,
-        utility::getBcmTrunkMemberCount(
-            getUnit(), trunkTable->getBcmTrunkId(aggId), 2));
+    utility::verifyAggregatePortCount(getHwSwitchEnsemble(), 1);
+    utility::verifyAggregatePort(getHwSwitchEnsemble(), aggId);
+    utility::verifyAggregatePortMemberCount(getHwSwitchEnsemble(), aggId, 2, 1);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
