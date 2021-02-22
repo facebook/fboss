@@ -1068,21 +1068,33 @@ void SaiSwitch::packetRxCallback(
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   std::optional<PortSaiId> portSaiIdOpt;
+  std::optional<LagSaiId> lagSaiIdOpt;
   for (uint32_t index = 0; index < attr_count; index++) {
     switch (attr_list[index].id) {
       case SAI_HOSTIF_PACKET_ATTR_INGRESS_PORT:
         portSaiIdOpt = attr_list[index].value.oid;
         break;
       case SAI_HOSTIF_PACKET_ATTR_INGRESS_LAG:
-      // TODO(pshaikh): support LAG
+        lagSaiIdOpt = attr_list[index].value.oid;
+        break;
       case SAI_HOSTIF_PACKET_ATTR_HOSTIF_TRAP_ID:
         break;
       default:
         XLOG(INFO) << "invalid attribute received";
     }
   }
-  CHECK(portSaiIdOpt);
-  PortSaiId portSaiId{portSaiIdOpt.value()};
+  if (portSaiIdOpt) {
+    packetRxCallback(buffer_size, buffer, portSaiIdOpt.value());
+  }
+  if (lagSaiIdOpt) {
+    packetRxCallback(buffer_size, buffer, lagSaiIdOpt.value());
+  }
+}
+
+void SaiSwitch::packetRxCallback(
+    sai_size_t buffer_size,
+    const void* buffer,
+    PortSaiId portSaiId) {
   PortID swPortId(0);
   VlanID swVlanId(0);
   auto rxPacket =
@@ -1145,6 +1157,13 @@ void SaiSwitch::packetRxCallback(
   folly::io::Cursor c0(rxPacket->buf());
   XLOG(DBG6) << PktUtil::hexDump(c0);
   callback_->packetReceived(std::move(rxPacket));
+}
+
+void SaiSwitch::packetRxCallback(
+    sai_size_t /*buffer_size*/,
+    const void* /*buffer*/,
+    LagSaiId /*inAggPort*/) {
+  // TODO(pshaikh): support LAG, implement this
 }
 
 bool SaiSwitch::isFeatureSetupLocked(
