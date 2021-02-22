@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
+#include "fboss/agent/hw/sai/switch/SaiLagManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
@@ -88,9 +89,9 @@ void SaiNeighborManager::addNeighbor(
         "Attempted to add duplicate neighbor: ", swEntry->getIP().str());
   }
 
-  // TODO(pshaikh): support LAG
-  SaiPortDescriptor saiPortDesc =
-      SaiPortDescriptor(swEntry->getPort().phyPortID());
+  SaiPortDescriptor saiPortDesc = swEntry->getPort().isPhysicalPort()
+      ? SaiPortDescriptor(swEntry->getPort().phyPortID())
+      : SaiPortDescriptor(swEntry->getPort().aggPortID());
 
   std::optional<sai_uint32_t> metadata;
   if (swEntry->getClassID()) {
@@ -165,20 +166,34 @@ void ManagedNeighbor::createObject(PublisherObjects objects) {
   auto adapterHostKey = SaiNeighborTraits::NeighborEntry(
       fdbEntry->adapterHostKey().switchId(), interface->adapterKey(), ip_);
 
-  // TODO(pshaikh): support LAG
-  auto portHandle =
-      managerTable_->portManager().getPortHandle(port_.phyPortID());
-  auto portOperStatus = SaiApiTable::getInstance()->portApi().getAttribute(
-      portHandle->port->adapterKey(), SaiPortTraits::Attributes::OperStatus{});
+  // warm boot replay may expand ecmp even if link is down. this may happen
+  // because warm boot was triggered before sw switch could process link down
+  // event and enqueue neighbor delete. if this happens then on warm boot
+  // ecmp will be expanded to have members with link down. to prevent this
+  // check if link is up or if trunk has minimum links met before notifying
+  // next hops.
+  bool resolveNexthop = false;
+  if (port_.isPhysicalPort()) {
+    // notify next hop subscriber only if port link status is up
+    // this is to prevent creation of next hop and next hop group members
+    // for links which are down.
+    auto portHandle =
+        managerTable_->portManager().getPortHandle(port_.phyPortID());
+    auto portOperStatus = SaiApiTable::getInstance()->portApi().getAttribute(
+        portHandle->port->adapterKey(),
+        SaiPortTraits::Attributes::OperStatus{});
+    resolveNexthop = (portOperStatus == SAI_PORT_OPER_STATUS_UP);
+  } else {
+    // notify next hop subscriber only if minimum link count is met
+    // this is to prevent creation of next hop and next hop group members
+    // for lags which are having lesser links up.
+    resolveNexthop =
+        managerTable_->lagManager().isMinimumLinkMet(port_.aggPortID());
+  }
+
   auto createAttributes = SaiNeighborTraits::CreateAttributes{
       fdbEntry->adapterHostKey().mac(), metadata_};
-  // notify next hop subscriber only if port link status is up
-  // this is to prevent creation of next hop and next hop group members
-  // for links which are down.
-  this->setObject(
-      adapterHostKey,
-      createAttributes,
-      portOperStatus == SAI_PORT_OPER_STATUS_UP);
+  this->setObject(adapterHostKey, createAttributes, resolveNexthop);
   handle_->neighbor = getSaiObject();
   handle_->fdbEntry = fdbEntry.get();
 }
