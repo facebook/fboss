@@ -139,7 +139,15 @@ void SaiLagManager::removeMember(AggregatePortID aggPort, PortID subPort) {
   auto iter = handles_.find(aggPort);
   CHECK(iter != handles_.end());
   auto portHandle = managerTable_->portManager().getPortHandle(subPort);
-  CHECK(portHandle);
+  if (!portHandle) {
+    // link down will remove lag member, resulting in LACP machine processing
+    // lag shrink. this  will also cause LACP machine to issue state delta to
+    // remove  lag member. so  ignore the lag member  removal which  could be
+    // issued second time by sw switch.
+    XLOG(DBG6) << "member " << subPort << " of aggregate port " << aggPort
+               << " was already removed.";
+    return;
+  }
   auto saiPortId = portHandle->port->adapterKey();
   iter->second->members.erase(saiPortId);
   concurrentIndices_->memberPort2AggregatePortIds.erase(saiPortId);

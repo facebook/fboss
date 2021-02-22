@@ -842,6 +842,13 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
     }
     PortID swPortId = portItr->second;
 
+    std::optional<AggregatePortID> swAggPort{};
+    const auto aggrItr = concurrentIndices_->memberPort2AggregatePortIds.find(
+        PortSaiId(operStatus[i].port_id));
+    if (aggrItr != concurrentIndices_->memberPort2AggregatePortIds.end()) {
+      swAggPort = aggrItr->second;
+    }
+
     XLOGF(
         INFO,
         "Link state changed {} ({}): {}",
@@ -874,11 +881,18 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
        * already resolved neighbors over that link.
        */
       std::lock_guard<std::mutex> lock{saiSwitchMutex_};
+      if (swAggPort) {
+        // member of lag is gone down. unbundle it from LAG
+        // once link comes back up LACP engine in SwSwitch will bundle it again
+        managerTable_->lagManager().removeMember(swAggPort.value(), swPortId);
+        if (!managerTable_->lagManager().isMinimumLinkMet(swAggPort.value())) {
+          // remove fdb entries on LAG, this would remove neighbors, next hops
+          // will point to drop and next hop group will shrink.
+          managerTable_->fdbManager().handleLinkDown(
+              SaiPortDescriptor(swAggPort.value()));
+        }
+      }
       managerTable_->fdbManager().handleLinkDown(SaiPortDescriptor(swPortId));
-      // TODO(pshaikh): support LAG
-      // if !up and member of LAG, then if number of links below minimum
-      // required, simply reset FDB entry. if up and member of LAG, then LAG
-      // manager in SwSwitch shall send update and create LAG members for them.
     }
     swPortId2Status[swPortId] = up;
   }
