@@ -24,8 +24,6 @@ std::unique_ptr<rib::RoutingInformationBase> switchStateToStandaloneRib(
 std::shared_ptr<RouteTableMap> standaloneToSwitchStateRib(
     const rib::RoutingInformationBase& standaloneRib);
 
-void syncFibWithStandaloneRib(
-    rib::RoutingInformationBase& standaloneRib,
-    SwSwitch* swSwitch);
+void programRib(rib::RoutingInformationBase& standaloneRib, SwSwitch* swSwitch);
 
 } // namespace facebook::fboss

@@ -56,7 +56,7 @@ static void runConversionBenchmark() {
       createTestHandle(&config, SwitchFlags::ENABLE_STANDALONE_RIB);
   auto swWithRib = testHandleWithRib->getSw();
   // Program reconstructed RIB to FIB
-  syncFibWithStandaloneRib(*newRibFromLegacySwitchState, swWithRib);
+  programRib(*newRibFromLegacySwitchState, swWithRib);
 }
 
 BENCHMARK(RibConversionFSW) {

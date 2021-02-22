@@ -62,7 +62,7 @@ static void runConversionTest() {
       createTestHandle(&config, SwitchFlags::ENABLE_STANDALONE_RIB);
   auto swWithRib = testHandleWithRib->getSw();
   // Program reconstructed RIB to FIB
-  syncFibWithStandaloneRib(*newRibFromLegacySwitchState, swWithRib);
+  programRib(*newRibFromLegacySwitchState, swWithRib);
 
   auto [newRibV4, newRibV6] = swWithRib->getState()->getFibs()->getRouteCount();
 

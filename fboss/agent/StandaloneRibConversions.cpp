@@ -10,6 +10,8 @@
 
 #include "fboss/agent/StandaloneRibConversions.h"
 
+#include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
+
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 
 namespace facebook::fboss {
@@ -36,19 +38,7 @@ std::shared_ptr<RouteTableMap> standaloneToSwitchStateRib(
   return RouteTableMap::fromFollyDynamic(serialized);
 }
 
-static void dynamicFibUpdate(
-    facebook::fboss::RouterID vrf,
-    const facebook::fboss::rib::IPv4NetworkToRouteMap& v4NetworkToRoute,
-    const facebook::fboss::rib::IPv6NetworkToRouteMap& v6NetworkToRoute,
-    void* cookie) {
-  rib::ForwardingInformationBaseUpdater fibUpdater(
-      vrf, v4NetworkToRoute, v6NetworkToRoute);
-
-  auto sw = static_cast<facebook::fboss::SwSwitch*>(cookie);
-  sw->updateStateBlocking("", std::move(fibUpdater));
-}
-
-void syncFibWithStandaloneRib(
+void programRib(
     rib::RoutingInformationBase& standaloneRib,
     SwSwitch* swSwitch) {
   for (auto routerID : standaloneRib.getVrfList()) {
@@ -60,7 +50,7 @@ void syncFibWithStandaloneRib(
         {},
         false,
         "post-warmboot FIB sync",
-        &dynamicFibUpdate,
+        &swSwitchFibUpdate,
         static_cast<void*>(swSwitch));
   }
 }
