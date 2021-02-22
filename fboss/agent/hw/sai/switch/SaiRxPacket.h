@@ -22,6 +22,12 @@ class SaiRxPacket : public RxPacket {
       const void* buffer,
       PortID portID,
       VlanID vlanID);
+
+  SaiRxPacket(
+      size_t buffer_size,
+      const void* buffer,
+      AggregatePortID aggregatePortID,
+      VlanID vlanID);
   /*
    * Set the port on which this packet was received.
    */
@@ -33,6 +39,14 @@ class SaiRxPacket : public RxPacket {
    */
   void setSrcVlan(VlanID srcVlan) {
     srcVlan_ = srcVlan;
+  }
+
+  /*
+   * Set the aggregate port on which this packet was received.
+   */
+  void setSrcAggregatePort(AggregatePortID srcAggregatePort) {
+    isFromAggregatePort_ = true;
+    srcAggregatePort_ = srcAggregatePort;
   }
 };
 } // namespace facebook::fboss

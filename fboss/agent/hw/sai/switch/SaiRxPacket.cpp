@@ -30,4 +30,17 @@ SaiRxPacket::SaiRxPacket(
   srcVlan_ = vlanId;
 }
 
+SaiRxPacket::SaiRxPacket(
+    size_t buffer_size,
+    const void* buffer,
+    AggregatePortID aggregatePortID,
+    VlanID vlanId) {
+  buf_ = folly::IOBuf::takeOwnership(
+      const_cast<void*>(buffer), buffer_size, freeRxPacket, nullptr);
+  len_ = buffer_size;
+  srcAggregatePort_ = aggregatePortID;
+  srcVlan_ = vlanId;
+  isFromAggregatePort_ = true;
+}
+
 } // namespace facebook::fboss
