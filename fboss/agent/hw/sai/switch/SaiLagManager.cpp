@@ -33,7 +33,20 @@ void SaiLagManager::addLag(
     }
     members.emplace(addMember(lag, aggregatePort->getID(), subPort));
   }
+  auto& subPort = aggregatePort->sortedSubports().front();
+  auto portSaiIdsIter = concurrentIndices_->portSaiIds.find(subPort.portID);
+  // port must exist before LAG
+  CHECK(portSaiIdsIter != concurrentIndices_->portSaiIds.end());
+  auto portSaiId = portSaiIdsIter->second;
+  // port must be part of some VLAN and all members of same LAG are part of same
+  // VLAN
+  auto vlanSaiIdsIter =
+      concurrentIndices_->vlanIds.find(PortDescriptorSaiId(portSaiId));
+  CHECK(vlanSaiIdsIter != concurrentIndices_->vlanIds.end());
 
+  auto vlanID = vlanSaiIdsIter->second;
+  concurrentIndices_->vlanIds.emplace(
+      PortDescriptorSaiId(lag->adapterKey()), vlanID);
   auto handle = std::make_unique<SaiLagHandle>();
   // create bridge port for LAG
   handle->bridgePort = managerTable_->bridgeManager().addBridgePort(
@@ -189,6 +202,8 @@ void SaiLagManager::removeLagHandle(
   }
   // remove bridge port
   handle->bridgePort.reset();
+  concurrentIndices_->vlanIds.erase(
+      PortDescriptorSaiId(handle->lag->adapterKey()));
   // remove lag
   handle->lag.reset();
 }
