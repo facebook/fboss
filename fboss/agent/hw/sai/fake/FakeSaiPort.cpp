@@ -544,6 +544,16 @@ sai_status_t set_port_serdes_attribute_fn(
   };
 
   switch (attr->id) {
+    case SAI_PORT_SERDES_ATTR_PREEMPHASIS:
+      fillVec(
+          portSerdes.preemphasis,
+          attr->value.u32list.list,
+          attr->value.u32list.count);
+      if (!checkLanes(portSerdes.preemphasis)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+
     case SAI_PORT_SERDES_ATTR_TX_FIR_PRE1:
       fillVec(
           portSerdes.txFirPre1,
@@ -681,6 +691,14 @@ sai_status_t get_port_serdes_attribute_fn(
     switch (attr_list[i].id) {
       case SAI_PORT_SERDES_ATTR_PORT_ID:
         attr_list[i].value.oid = portSerdes.port;
+        break;
+      case SAI_PORT_SERDES_ATTR_PREEMPHASIS:
+        if (!checkListSize(
+                attr_list[i].value.u32list, portSerdes.preemphasis)) {
+          attr_list[i].value.u32list.count = portSerdes.preemphasis.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.preemphasis, attr_list[i].value.u32list);
         break;
       case SAI_PORT_SERDES_ATTR_IDRIVER:
         if (!checkListSize(attr_list[i].value.u32list, portSerdes.iDriver)) {

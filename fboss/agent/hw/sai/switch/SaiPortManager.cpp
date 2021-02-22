@@ -653,8 +653,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   return SaiPortTraits::CreateAttributes {
     hwLaneList, static_cast<uint32_t>(speed), adminState, fecMode,
         internalLoopbackMode, mediaType, globalFlowControlMode, vlanId,
-        std::nullopt, swPort->getMaxFrameSize(), std::nullopt, std::nullopt,
-        std::nullopt, interfaceType, std::nullopt,
+        swPort->getMaxFrameSize(), std::nullopt, std::nullopt, std::nullopt,
+        interfaceType, std::nullopt,
         std::nullopt, // Ingress Mirror Session
         std::nullopt, // Egress Mirror Session
         std::nullopt, // Ingress Sample Packet
@@ -981,9 +981,6 @@ std::shared_ptr<SaiPortSerdes> SaiPortManager::programSerdes(
     // no-op if serdes is already programmed
     // remove warm boot handle if reloaded from adapter but not yet programmed
     serdes = store.setObject(serdesKey, serdes->attributes());
-  }
-  if (txSettings.empty() && rxSettings.empty()) {
-    return nullptr;
   }
   if (!txSettings.empty()) {
     CHECK_EQ(txSettings.size(), portKey.value().size())

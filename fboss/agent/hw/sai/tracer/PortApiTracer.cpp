@@ -270,6 +270,7 @@ void setPortSerdesAttributes(
       case SAI_PORT_SERDES_ATTR_PORT_ID:
         attrLines.push_back(oidAttr(attr_list, i));
         break;
+      case SAI_PORT_SERDES_ATTR_PREEMPHASIS:
       case SAI_PORT_SERDES_ATTR_IDRIVER:
       case SAI_PORT_SERDES_ATTR_TX_FIR_PRE1:
       case SAI_PORT_SERDES_ATTR_TX_FIR_PRE2:

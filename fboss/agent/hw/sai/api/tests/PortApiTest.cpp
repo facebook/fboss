@@ -34,7 +34,7 @@ class PortApiTest : public ::testing::Test {
     SaiPortTraits::CreateAttributes a {
       lanes, speed, adminState, std::nullopt, std::nullopt, std::nullopt,
           std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-          std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+          std::nullopt, std::nullopt, std::nullopt,
           std::nullopt, // Ingress Mirror Session
           std::nullopt, // Egress Mirror Session
           std::nullopt, // Ingress Sample Packet
@@ -50,6 +50,7 @@ class PortApiTest : public ::testing::Test {
 
   PortSerdesSaiId createPortSerdes(
       PortSaiId portSaiId,
+      std::vector<sai_uint32_t> preemphasis,
       std::vector<sai_uint32_t> txPre1,
       std::vector<sai_uint32_t> txMain,
       std::vector<sai_uint32_t> txPost1,
@@ -59,7 +60,8 @@ class PortApiTest : public ::testing::Test {
       std::vector<sai_int32_t> rxAcCouplingByPass) const {
     SaiPortSerdesTraits::CreateAttributes a{
         portSaiId,
-        std::nullopt,
+        preemphasis,
+        std::nullopt, // IDriver
         txPre1,
         txMain,
         txPost1,
@@ -227,13 +229,6 @@ TEST_F(PortApiTest, setGetOptionalAttributes) {
   auto gotPortVlanId = portApi->getAttribute(portId, portVlanId);
   EXPECT_EQ(gotPortVlanId, saiPortVlanId);
 
-  // Port serdes preemphasis
-  std::vector<uint32_t> preemphasis{42, 43};
-  SaiPortTraits::Attributes::Preemphasis portPreemphasis{preemphasis};
-  portApi->setAttribute(portId, portPreemphasis);
-  auto gotPortPreemphasis = portApi->getAttribute(portId, portPreemphasis);
-  EXPECT_EQ(gotPortPreemphasis, preemphasis);
-
   // Port MTU
   sai_uint32_t mtu{9000};
   SaiPortTraits::Attributes::Mtu portMtu{mtu};
@@ -299,7 +294,9 @@ TEST_F(PortApiTest, getSome) {
 
 TEST_F(PortApiTest, serdesApi) {
   auto id = createPort(100000, {42}, true);
-  auto serdesId = createPortSerdes(id, {1}, {2}, {3}, {4}, {5}, {6}, {7});
+  auto serdesId = createPortSerdes(id, {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7});
+  auto preemphasis = portApi->getAttribute(
+      serdesId, SaiPortSerdesTraits::Attributes::Preemphasis{});
   auto txFirPre1 = portApi->getAttribute(
       serdesId, SaiPortSerdesTraits::Attributes::TxFirPre1{});
   auto txFirMain = portApi->getAttribute(
@@ -314,6 +311,7 @@ TEST_F(PortApiTest, serdesApi) {
       serdesId, SaiPortSerdesTraits::Attributes::RxAfeTrim{});
   auto rxAcCouplingByPass = portApi->getAttribute(
       serdesId, SaiPortSerdesTraits::Attributes::RxAcCouplingByPass{});
+  EXPECT_EQ(preemphasis, std::vector<sai_uint32_t>{0});
   EXPECT_EQ(txFirPre1, std::vector<sai_uint32_t>{1});
   EXPECT_EQ(txFirMain, std::vector<sai_uint32_t>{2});
   EXPECT_EQ(txFirPost1, std::vector<sai_uint32_t>{3});

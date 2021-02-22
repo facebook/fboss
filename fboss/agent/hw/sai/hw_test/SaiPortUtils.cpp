@@ -207,10 +207,10 @@ void verifyTxSettting(
 
   auto txSettings = saiPlatform->getPlatformPortTxSettings(portID, profileID);
 
-  if (!serdes) {
-    EXPECT_TRUE(txSettings.empty());
+  if (txSettings.empty()) {
     return;
   }
+
   auto& portApi = SaiApiTable::getInstance()->portApi();
   auto pre = portApi.getAttribute(
       serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirPre1{});

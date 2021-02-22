@@ -55,6 +55,7 @@ struct FakePortSerdes {
   explicit FakePortSerdes(sai_object_id_t _port) : port(_port) {}
   sai_object_id_t id;
   sai_object_id_t port;
+  std::vector<uint32_t> preemphasis;
   std::vector<uint32_t> iDriver;
   std::vector<uint32_t> txFirPre1;
   std::vector<uint32_t> txFirPre2;

@@ -63,10 +63,6 @@ struct SaiPortTraits {
         sai_int32_t>;
     using PortVlanId =
         SaiAttribute<EnumType, SAI_PORT_ATTR_PORT_VLAN_ID, sai_uint16_t>;
-    using Preemphasis = SaiAttribute<
-        EnumType,
-        SAI_PORT_ATTR_SERDES_PREEMPHASIS,
-        std::vector<uint32_t>>;
     using Mtu = SaiAttribute<EnumType, SAI_PORT_ATTR_MTU, sai_uint32_t>;
     using QosDscpToTcMap = SaiAttribute<
         EnumType,
@@ -145,7 +141,6 @@ struct SaiPortTraits {
       std::optional<Attributes::MediaType>,
       std::optional<Attributes::GlobalFlowControlMode>,
       std::optional<Attributes::PortVlanId>,
-      std::optional<Attributes::Preemphasis>,
       std::optional<Attributes::Mtu>,
       std::optional<Attributes::QosDscpToTcMap>,
       std::optional<Attributes::QosTcToQueueMap>,
@@ -193,7 +188,6 @@ SAI_ATTRIBUTE_NAME(Port, InternalLoopbackMode)
 SAI_ATTRIBUTE_NAME(Port, MediaType)
 SAI_ATTRIBUTE_NAME(Port, GlobalFlowControlMode)
 SAI_ATTRIBUTE_NAME(Port, PortVlanId)
-SAI_ATTRIBUTE_NAME(Port, Preemphasis)
 SAI_ATTRIBUTE_NAME(Port, Mtu)
 SAI_ATTRIBUTE_NAME(Port, QosDscpToTcMap)
 SAI_ATTRIBUTE_NAME(Port, QosTcToQueueMap)
@@ -224,6 +218,10 @@ struct SaiPortSerdesTraits {
     using EnumType = sai_port_serdes_attr_t;
     using PortId =
         SaiAttribute<EnumType, SAI_PORT_SERDES_ATTR_PORT_ID, SaiObjectIdT>;
+    using Preemphasis = SaiAttribute<
+        EnumType,
+        SAI_PORT_SERDES_ATTR_PREEMPHASIS,
+        std::vector<uint32_t>>;
     using IDriver = SaiAttribute<
         EnumType,
         SAI_PORT_SERDES_ATTR_IDRIVER,
@@ -293,6 +291,7 @@ struct SaiPortSerdesTraits {
   using AdapterHostKey = Attributes::PortId;
   using CreateAttributes = std::tuple<
       Attributes::PortId,
+      std::optional<Attributes::Preemphasis>,
       std::optional<Attributes::IDriver>,
       std::optional<Attributes::TxFirPre1>,
       std::optional<Attributes::TxFirMain>,
@@ -304,6 +303,7 @@ struct SaiPortSerdesTraits {
 };
 
 SAI_ATTRIBUTE_NAME(PortSerdes, PortId);
+SAI_ATTRIBUTE_NAME(PortSerdes, Preemphasis);
 SAI_ATTRIBUTE_NAME(PortSerdes, IDriver);
 SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPre1);
 SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPre2);

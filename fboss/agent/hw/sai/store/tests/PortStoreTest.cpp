@@ -28,7 +28,7 @@ class PortStoreTest : public SaiStoreTest {
     return SaiPortTraits::CreateAttributes {
       lanes, speed, adminStateOpt, std::nullopt, std::nullopt, std::nullopt,
           std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-          std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+          std::nullopt, std::nullopt, std::nullopt,
           std::nullopt, // Ingress Mirror Session
           std::nullopt, // Egress Mirror Session
           std::nullopt, // Ingress Sample Packet
@@ -160,25 +160,6 @@ TEST_F(PortStoreTest, portUnsetAdminState) {
    * should make it false.
   EXPECT_EQ(apiAdminState, false);
   */
-}
-
-TEST_F(PortStoreTest, portSetPreempasis) {
-  auto portId = createPort(0);
-  SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);
-  EXPECT_EQ(
-      std::get<std::optional<SaiPortTraits::Attributes::Preemphasis>>(
-          portObj.attributes()),
-      std::nullopt);
-  auto newAttrs = makeAttrs(0, 25000);
-  const std::vector<uint32_t> kPreemphasis{42, 43};
-  std::get<std::optional<SaiPortTraits::Attributes::Preemphasis>>(newAttrs) =
-      kPreemphasis;
-  portObj.setAttributes(newAttrs);
-  EXPECT_EQ(
-      GET_OPT_ATTR(Port, Preemphasis, portObj.attributes()), kPreemphasis);
-  auto apiPreemphasis = saiApiTable->portApi().getAttribute(
-      portId, SaiPortTraits::Attributes::Preemphasis{});
-  EXPECT_EQ(apiPreemphasis, kPreemphasis);
 }
 
 TEST_F(PortStoreTest, portSetMtu) {

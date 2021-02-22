@@ -102,7 +102,7 @@ class PortManagerTest : public ManagerTestBase {
     SaiPortTraits::CreateAttributes a {
       lanes, speed, adminState, std::nullopt, std::nullopt, std::nullopt,
           std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-          std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+          std::nullopt, std::nullopt, std::nullopt,
           std::nullopt, // Ingress Mirror Session
           std::nullopt, // Egress Mirror Session
           std::nullopt, // Ingress Sample Packet
