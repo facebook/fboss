@@ -47,6 +47,11 @@ class SaiLagManager {
   bool isMinimumLinkMet(AggregatePortID aggregatePortID) const;
   void removeMember(AggregatePortID aggPort, PortID subPort);
 
+  uint8_t getLagCount() const {
+    return handles_.size();
+  }
+  uint8_t getLagMemberCount(AggregatePortID aggPort) const;
+
  private:
   std::pair<PortSaiId, std::shared_ptr<SaiLagMember>> addMember(
       const std::shared_ptr<SaiLag>& lag,

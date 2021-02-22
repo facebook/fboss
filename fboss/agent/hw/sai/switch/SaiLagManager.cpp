@@ -217,4 +217,9 @@ SaiLagManager::~SaiLagManager() {
     removeLagHandle(aggPortID, handle.get());
   }
 }
+
+uint8_t SaiLagManager::getLagMemberCount(AggregatePortID aggPort) const {
+  auto handle = getLagHandle(aggPort);
+  return handle->members.size();
+}
 } // namespace facebook::fboss
