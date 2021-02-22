@@ -155,4 +155,185 @@ TEST_F(HwEcmpTrunkTest, TrunkMemberRemoveWithRouteTest) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+// ECMP with trunk as member. One trunk member transitions to
+// Down state before warmboot resulting in ECMP shrink. Post warmboot,
+// ECMP stays shrunk. Port transitions to Up after warm boot
+// but ECMP stays shrunk until LACP brings it up.
+TEST_F(
+    HwEcmpTrunkTest,
+    TrunkL2ResolveNhopThenLinkAndLACPDownThenUpThenStateUp) {
+  uint8_t minlinks = 2;
+  uint8_t numEcmpMembersToExclude = 1;
+  auto setup = [=]() {
+    auto state = enableTrunkPorts(getProgrammedState());
+    applyNewState(utility::setTrunkMinLinkCount(state, minlinks));
+    applyNewState(ecmpHelper_->resolveNextHops(
+        ecmpHelper_->setupECMPForwarding(getProgrammedState(), getEcmpPorts()),
+        getEcmpPorts()));
+    // We programmed the default route picked by EcmpSetupAnyNPorts so lookup
+    // the ECMP group for it
+    ASSERT_EQ(
+        kEcmpWidth,
+        getEcmpSizeInHw(getHwSwitch(), kDefaultRoute, RouterID(0), kEcmpWidth));
+
+    utility::verifyPktFromAggregatePort(getHwSwitchEnsemble(), kAggId);
+
+    utility::verifyAggregatePortMemberCount(
+        getHwSwitchEnsemble(), kAggId, minlinks, minlinks);
+
+    // link down on member port resulting in ECMP shrink
+    bringDownPort(PortID(getTrunkMemberPorts()[0]));
+
+    utility::verifyAggregatePortMemberCount(
+        getHwSwitchEnsemble(),
+        kAggId,
+        minlinks,
+        minlinks - numEcmpMembersToExclude);
+
+    // LACP watches on port down and change state
+    state = disableTrunkPort(
+        getProgrammedState(), kAggId, PortID(getTrunkMemberPorts()[0]));
+    applyNewState(state);
+  };
+
+  auto verify = [=]() {
+    // Ecmp should shrink based on the aggCount since the number of ports
+    // in Agg is less than min-links.
+    ASSERT_EQ(
+        kEcmpWidth - numEcmpMembersToExclude,
+        getEcmpSizeInHw(getHwSwitch(), kDefaultRoute, RouterID(0), kEcmpWidth));
+
+    utility::verifyPktFromAggregatePort(getHwSwitchEnsemble(), kAggId);
+    utility::verifyAggregatePortMemberCount(
+        getHwSwitchEnsemble(),
+        kAggId,
+        minlinks,
+        minlinks - numEcmpMembersToExclude);
+  };
+
+  auto setupPostWarmboot = [=]() {
+    // bring up the member link
+    bringUpPort(PortID(getTrunkMemberPorts()[0]));
+    // ECMP should stay shrunk
+    ASSERT_EQ(
+        kEcmpWidth - numEcmpMembersToExclude,
+        getEcmpSizeInHw(getHwSwitch(), kDefaultRoute, RouterID(0), kEcmpWidth));
+
+    utility::verifyPktFromAggregatePort(getHwSwitchEnsemble(), kAggId);
+
+    utility::verifyAggregatePortMemberCount(
+        getHwSwitchEnsemble(),
+        kAggId,
+        minlinks,
+        minlinks - numEcmpMembersToExclude);
+  };
+
+  auto verifyPostWarmboot = [=]() {
+    // LACP enables link post warm boot
+    auto state = enableTrunkPorts(getProgrammedState());
+    applyNewState(state);
+    applyNewState(
+        ecmpHelper_->resolveNextHops(getProgrammedState(), getEcmpPorts()));
+    // ECMP should expand
+    ASSERT_EQ(
+        kEcmpWidth,
+        getEcmpSizeInHw(getHwSwitch(), kDefaultRoute, RouterID(0), kEcmpWidth));
+
+    utility::verifyPktFromAggregatePort(getHwSwitchEnsemble(), kAggId);
+
+    utility::verifyAggregatePortMemberCount(
+        getHwSwitchEnsemble(), kAggId, minlinks, minlinks);
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+}
+
+// ECMP with trunk as member. One trunk member transitions to
+// Down state before warmboot resulting in ECMP shrink.
+// Warmboot happens before LACP reacts to link down resulting
+// in mismatched trunk membership in hardware/software.
+// During warm boot init, the trunk is add to ECMP for a breif
+// time period till port states are re-applied. Post warmboot,
+// ECMP stays shrunk. Port transitions to Up after warm boot
+// but ECMP stays shrunk until LACP brings it up.
+// For details regarding traffic loss during short period
+// of time during warmboot init, please check the wiki -
+//
+// https://github.com/facebook/fboss/blob/master/fboss/agent/wiki/warmboot_link_flaps.rst
+TEST_F(HwEcmpTrunkTest, TrunkL2ResolveNhopThenLinkDownThenUpThenStateUp) {
+  uint8_t minlinks = 2;
+  uint8_t numEcmpMembersToExclude = 1;
+  auto setup = [=]() {
+    auto state = enableTrunkPorts(getProgrammedState());
+    applyNewState(utility::setTrunkMinLinkCount(state, minlinks));
+    applyNewState(ecmpHelper_->resolveNextHops(
+        ecmpHelper_->setupECMPForwarding(getProgrammedState(), getEcmpPorts()),
+        getEcmpPorts()));
+    // We programmed the default route picked by EcmpSetupAnyNPorts so lookup
+    // the ECMP group for it
+    ASSERT_EQ(
+        kEcmpWidth,
+        getEcmpSizeInHw(getHwSwitch(), kDefaultRoute, RouterID(0), kEcmpWidth));
+
+    utility::verifyPktFromAggregatePort(getHwSwitchEnsemble(), kAggId);
+
+    utility::verifyAggregatePortMemberCount(
+        getHwSwitchEnsemble(), kAggId, minlinks, minlinks);
+    // link down on member port resulting in ECMP shrink
+    // LACP does not get a chance to react to port down before warm boot
+    bringDownPort(PortID(getTrunkMemberPorts()[0]));
+  };
+
+  auto verify = [=]() {
+    // Ecmp should shrink based on the aggCount since the number of ports
+    // in Agg is less than min-links.
+    ASSERT_EQ(
+        kEcmpWidth - numEcmpMembersToExclude,
+        getEcmpSizeInHw(getHwSwitch(), kDefaultRoute, RouterID(0), kEcmpWidth));
+
+    utility::verifyPktFromAggregatePort(getHwSwitchEnsemble(), kAggId);
+
+    utility::verifyAggregatePortMemberCount(
+        getHwSwitchEnsemble(), kAggId, minlinks, 1);
+  };
+
+  auto setupPostWarmboot = [=]() {
+    // LACP reacts to link down notification at end of warm boot init
+    auto state = disableTrunkPort(
+        getProgrammedState(), kAggId, PortID(getTrunkMemberPorts()[0]));
+    applyNewState(state);
+
+    // bring up the member link
+    bringUpPort(PortID(getTrunkMemberPorts()[0]));
+    // ECMP should stay shrunk
+
+    ASSERT_EQ(
+        kEcmpWidth - numEcmpMembersToExclude,
+        getEcmpSizeInHw(getHwSwitch(), kDefaultRoute, RouterID(0), kEcmpWidth));
+
+    utility::verifyPktFromAggregatePort(getHwSwitchEnsemble(), kAggId);
+
+    utility::verifyAggregatePortMemberCount(
+        getHwSwitchEnsemble(), kAggId, minlinks, 1);
+  };
+
+  auto verifyPostWarmboot = [=]() {
+    // LACP enables link when state machine converges
+    auto state = enableTrunkPorts(getProgrammedState());
+    applyNewState(state);
+    applyNewState(
+        ecmpHelper_->resolveNextHops(getProgrammedState(), getEcmpPorts()));
+    // ECMP should expand
+    ASSERT_EQ(
+        kEcmpWidth,
+        getEcmpSizeInHw(getHwSwitch(), kDefaultRoute, RouterID(0), kEcmpWidth));
+
+    utility::verifyPktFromAggregatePort(getHwSwitchEnsemble(), kAggId);
+
+    utility::verifyAggregatePortMemberCount(
+        getHwSwitchEnsemble(), kAggId, minlinks, minlinks);
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+}
 } // namespace facebook::fboss
