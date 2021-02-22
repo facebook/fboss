@@ -67,22 +67,13 @@ static void runOldRibTest() {
 
   auto generator = Generator(sw->getState(), 1337, kEcmpWidth);
 
-  // Generate the route chunks which are then cached in the generator and
-  // reused when we call `getSwitchStates()`.
-  generator.get();
+  // Generate route chunks
+  auto routeChunks = generator.get();
 
   // Resume benchmakring post-setup.
   suspender.dismiss();
 
-  auto states = generator.getSwitchStates();
-
-  for (const auto& state : states) {
-    sw->updateStateBlocking(
-        "route updates",
-        [=](const std::shared_ptr<SwitchState>& /* oldState */) {
-          return state;
-        });
-  }
+  programRoutes(routeChunks, sw);
 }
 
 template <typename Generator>
