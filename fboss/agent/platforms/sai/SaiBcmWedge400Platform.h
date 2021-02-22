@@ -23,6 +23,16 @@ class SaiBcmWedge400Platform : public SaiBcmPlatform {
   uint32_t numLanesPerCore() const override {
     return 8;
   }
+
+  std::vector<FlexPortMode> getSupportedFlexPortModes() const override {
+    return {
+        FlexPortMode::FOURX10G,
+        FlexPortMode::FOURX25G,
+        FlexPortMode::ONEX40G,
+        FlexPortMode::TWOX50G,
+        FlexPortMode::ONEX100G};
+  }
+
   void initLEDs() override;
 
  private:
