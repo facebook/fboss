@@ -122,6 +122,7 @@ target_link_libraries(traffic_policy_utils
 add_library(hw_switch_test
   fboss/agent/hw/test/HwEcmpTests.cpp
   fboss/agent/hw/test/HwFlexPortTests.cpp
+  fboss/agent/hw/test/HwEcmpTrunkTests.cpp
   fboss/agent/hw/test/HwLabelEdgeRouteTest.cpp
   fboss/agent/hw/test/HwLabelSwitchRouteTest.cpp
   fboss/agent/hw/test/HwLinkStateDependentTest.cpp
