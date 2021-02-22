@@ -124,6 +124,8 @@ class SaiFdbManager {
   std::vector<L2EntryThrift> getL2Entries() const;
 
  private:
+  PortDescriptorSaiId getPortDescriptorSaiId(
+      const PortDescriptor& portDesc) const;
   L2EntryThrift fdbToL2Entry(const SaiFdbTraits::FdbEntry& fdbEntry) const;
   InterfaceID getInterfaceId(const std::shared_ptr<MacEntry>& macEntry) const;
   SaiManagerTable* managerTable_;

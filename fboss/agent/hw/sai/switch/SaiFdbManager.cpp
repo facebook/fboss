@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
+#include "fboss/agent/hw/sai/switch/SaiLagManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
@@ -74,12 +75,12 @@ L2Entry ManagedFdbEntry::toL2Entry() const {
   if (metadata_) {
     classId = static_cast<cfg::AclLookupClass>(metadata_.value());
   }
-  // TODO(pshaikh): L2 entry return for LAG
   return L2Entry(
       mac_,
       // For FBOSS Vlan and interface ids are always 1:1
       VlanID(interfaceId_),
-      PortDescriptor(portId_.phyPortID()),
+      portId_.isPhysicalPort() ? PortDescriptor(portId_.phyPortID())
+                               : PortDescriptor(portId_.aggPortID()),
       // Since this entry is already programmed, its validated.
       // In vlan traffic to this MAC will be unicast and not
       // flooded.
@@ -142,8 +143,11 @@ void SaiFdbManager::addFdbEntry(
 }
 
 void ManagedFdbEntry::update(const std::shared_ptr<MacEntry>& updated) {
-  // TODo(pshaikh): support LAG
-  CHECK_EQ(portId_, updated->getPort().phyPortID());
+  if (updated->getPort().isPhysicalPort()) {
+    CHECK_EQ(portId_, updated->getPort().phyPortID());
+  } else {
+    CHECK_EQ(portId_, updated->getPort().aggPortID());
+  }
   CHECK_EQ(mac_, updated->getMac());
   auto fdbEntry = getSaiObject();
   if (!fdbEntry) {
@@ -191,9 +195,10 @@ void SaiFdbManager::addMac(const std::shared_ptr<MacEntry>& macEntry) {
       type = SAI_FDB_ENTRY_TYPE_DYNAMIC;
       break;
   };
-  // TODO(pshaikh): support LAG
   addFdbEntry(
-      SaiPortDescriptor(macEntry->getPort().phyPortID()),
+      macEntry->getPort().isPhysicalPort()
+          ? SaiPortDescriptor(macEntry->getPort().phyPortID())
+          : SaiPortDescriptor(macEntry->getPort().aggPortID()),
       getInterfaceId(macEntry),
       macEntry->getMac(),
       type,
@@ -234,19 +239,23 @@ void SaiFdbManager::changeMac(
   }
 }
 
+PortDescriptorSaiId SaiFdbManager::getPortDescriptorSaiId(
+    const PortDescriptor& portDesc) const {
+  if (portDesc.isPhysicalPort()) {
+    auto const portHandle =
+        managerTable_->portManager().getPortHandle(portDesc.phyPortID());
+    return PortDescriptorSaiId(portHandle->port->adapterKey());
+  }
+  auto lagHandle =
+      managerTable_->lagManager().getLagHandle(portDesc.aggPortID());
+  return PortDescriptorSaiId(lagHandle->lag->adapterKey());
+}
+
 InterfaceID SaiFdbManager::getInterfaceId(
     const std::shared_ptr<MacEntry>& macEntry) const {
-  if (macEntry->getPort().isAggregatePort()) {
-    throw FbossError("Aggregate ports not yet supported in SAI");
-  }
-  // TODO(pshaikh): support LAG
-  auto const portHandle = managerTable_->portManager().getPortHandle(
-      macEntry->getPort().phyPortID());
   // FBOSS assumes a 1:1 correpondance b/w Vlan and interfae IDs
-  return InterfaceID(
-      concurrentIndices_->vlanIds
-          .find(PortDescriptorSaiId(portHandle->port->adapterKey()))
-          ->second);
+  auto portDescSaiId = getPortDescriptorSaiId(macEntry->getPort());
+  return InterfaceID(concurrentIndices_->vlanIds.find(portDescSaiId)->second);
 }
 
 void SaiFdbManager::handleLinkDown(SaiPortDescriptor portId) {
