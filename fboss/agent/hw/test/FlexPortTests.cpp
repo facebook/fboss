@@ -16,8 +16,6 @@
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
-DECLARE_bool(flexports);
-
 using namespace facebook::fboss;
 
 namespace {
@@ -57,10 +55,6 @@ void assertFlexConfig(
 class HwFlexPortTest : public HwTest {
  public:
   void flexPortApplyConfigTest(FlexPortMode flexMode, std::string configName) {
-    if (!FLAGS_flexports) {
-      XLOG(INFO) << "Skipping flexport tests on a non flexport enabled setup";
-      return;
-    }
     auto modes = getHwSwitchEnsemble()->getSupportedFlexPortModes();
     if (find(modes.begin(), modes.end(), flexMode) == modes.end()) {
       XLOG(INFO) << "Skipping flexport mode: " << configName;

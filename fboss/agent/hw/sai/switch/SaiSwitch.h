@@ -24,8 +24,6 @@
 #include <mutex>
 #include <thread>
 
-DECLARE_bool(flexports);
-
 namespace facebook::fboss {
 
 class ConcurrentIndices;
