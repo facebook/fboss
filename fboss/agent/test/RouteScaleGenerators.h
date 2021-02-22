@@ -92,6 +92,7 @@ class TurboFSWRouteScaleGenerator : public RouteDistributionGenerator {
  private:
   const MaskLen2PrefixLabelDistribution v6PrefixLabelDistributionSpec_;
   const MaskLen2PrefixLabelDistribution v4PrefixLabelDistributionSpec_;
+  using SwitchStates = std::vector<std::shared_ptr<SwitchState>>;
 
   template <typename AddrT>
   void genIp2MplsRouteDistribution(
@@ -114,6 +115,7 @@ class TurboFSWRouteScaleGenerator : public RouteDistributionGenerator {
 
   const SwitchStates& getSwitchStates() const;
   bool isSupported(PlatformMode mode) const;
+  mutable std::optional<SwitchStates> generatedStates_;
 };
 
 } // namespace facebook::fboss::utility

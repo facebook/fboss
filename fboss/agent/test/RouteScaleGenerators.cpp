@@ -264,7 +264,7 @@ void TurboFSWRouteScaleGenerator::genIp2MplsRouteDistribution(
     SwitchStates& generatedStates) const {
   using PrefixT = RoutePrefix<AddrT>;
   std::vector<PrefixT> prefixes;
-  auto state = generatedStates.back()->clone();
+  auto state = generatedStates_->back()->clone();
   EcmpSetupTargetedPorts<AddrT> ecmpHelper(state);
   auto width = ecmpWidth();
   size_t unlabeledPortsSize = width - 32;
@@ -310,20 +310,19 @@ void TurboFSWRouteScaleGenerator::genIp2MplsRouteDistribution(
       }
       state = ecmpHelper.setupIp2MplsECMPForwarding(
           state, allPorts, labels, prefixes, weights);
-      generatedStates.push_back(state);
+      generatedStates_->push_back(state);
       labelForChunk++;
       prefixes.clear();
     }
   }
 }
 
-const RouteDistributionGenerator::SwitchStates&
+const TurboFSWRouteScaleGenerator::SwitchStates&
 TurboFSWRouteScaleGenerator::getSwitchStates() const {
-  auto& generatedStates = getGeneratedStates();
-  if (generatedStates) {
-    return *generatedStates;
+  if (generatedStates_) {
+    return *generatedStates_;
   }
-  generatedStates = SwitchStates();
+  generatedStates_ = SwitchStates();
   auto state = startingState();
 
   auto ecmpHelper4 = EcmpSetupTargetedPorts4(state);
@@ -363,11 +362,11 @@ TurboFSWRouteScaleGenerator::getSwitchStates() const {
   nhopsResolvedState =
       ecmpHelper4.resolveNextHops(nhopsResolvedState, labeledPorts);
   nhopsResolvedState->publish();
-  generatedStates->push_back(nhopsResolvedState);
+  generatedStates_->push_back(nhopsResolvedState);
 
   std::vector<RoutePrefixV6> v6Prefixes;
   std::vector<RoutePrefixV4> v4Prefixes;
-  auto newState = generatedStates->back()->clone();
+  auto newState = generatedStates_->back()->clone();
 
   // Add ip2ip routes
   for (const auto& routeChunk : get()) {
@@ -386,17 +385,23 @@ TurboFSWRouteScaleGenerator::getSwitchStates() const {
       ecmpHelper6.setupECMPForwarding(newState, unlabeledPorts, v6Prefixes);
   newState =
       ecmpHelper4.setupECMPForwarding(newState, unlabeledPorts, v4Prefixes);
-  generatedStates->push_back(newState);
+  generatedStates_->push_back(newState);
 
   // Add v6 labelled routes
   genIp2MplsRouteDistribution<folly::IPAddressV6>(
-      v6PrefixLabelDistributionSpec_, labeledPorts, allPorts, *generatedStates);
+      v6PrefixLabelDistributionSpec_,
+      labeledPorts,
+      allPorts,
+      *generatedStates_);
 
   // Add v4 labelled routes
   genIp2MplsRouteDistribution<folly::IPAddressV4>(
-      v4PrefixLabelDistributionSpec_, labeledPorts, allPorts, *generatedStates);
+      v4PrefixLabelDistributionSpec_,
+      labeledPorts,
+      allPorts,
+      *generatedStates_);
 
-  return *generatedStates;
+  return *generatedStates_;
 }
 
 bool TurboFSWRouteScaleGenerator::isSupported(PlatformMode mode) const {

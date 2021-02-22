@@ -90,45 +90,4 @@ void RouteDistributionGenerator::genRouteDistribution(
   }
 }
 
-const RouteDistributionGenerator::SwitchStates&
-RouteDistributionGenerator::getSwitchStates() const {
-  if (generatedStates_) {
-    return *generatedStates_;
-  }
-  generatedStates_ = SwitchStates();
-  // Resolving next hops is not strictly necessary, since we will
-  // program routes even when next hops don't have their ARP/NDP resolved.
-  // But for mimicking a more common scenario, resolve these.
-  auto ecmpHelper6 = EcmpSetupAnyNPorts6(startingState());
-  auto ecmpHelper4 = EcmpSetupAnyNPorts4(startingState());
-  auto nhopsResolvedState =
-      ecmpHelper6.resolveNextHops(startingState(), ecmpWidth());
-  nhopsResolvedState =
-      ecmpHelper4.resolveNextHops(nhopsResolvedState, ecmpWidth());
-  nhopsResolvedState->publish();
-  generatedStates_->push_back(nhopsResolvedState);
-  for (const auto& routeChunk : get()) {
-    std::vector<RoutePrefixV6> v6Prefixes;
-    std::vector<RoutePrefixV4> v4Prefixes;
-    for (const auto& route : routeChunk) {
-      const auto& cidrNetwork = route.prefix;
-      if (cidrNetwork.first.isV6()) {
-        v6Prefixes.emplace_back(
-            RoutePrefixV6{cidrNetwork.first.asV6(), cidrNetwork.second});
-      } else {
-        v4Prefixes.emplace_back(
-            RoutePrefixV4{cidrNetwork.first.asV4(), cidrNetwork.second});
-      }
-    }
-    auto newState = generatedStates_->back()->clone();
-    newState =
-        ecmpHelper6.setupECMPForwarding(newState, ecmpWidth(), v6Prefixes);
-    newState =
-        ecmpHelper4.setupECMPForwarding(newState, ecmpWidth(), v4Prefixes);
-    generatedStates_->push_back(newState);
-  }
-
-  return *generatedStates_;
-}
-
 } // namespace facebook::fboss::utility

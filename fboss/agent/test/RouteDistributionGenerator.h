@@ -57,7 +57,6 @@ class RouteDistributionGenerator {
   };
   using RouteChunk = std::vector<Route>;
   using RouteChunks = std::vector<RouteChunk>;
-  using SwitchStates = std::vector<std::shared_ptr<SwitchState>>;
 
   RouteDistributionGenerator(
       const std::shared_ptr<SwitchState>& startingState,
@@ -71,7 +70,6 @@ class RouteDistributionGenerator {
    * Compute, cache and return route distribution
    */
   const RouteChunks& get() const;
-  const SwitchStates& getSwitchStates() const;
 
   std::shared_ptr<SwitchState> startingState() const {
     return startingState_;
@@ -88,12 +86,6 @@ class RouteDistributionGenerator {
   }
 
  protected:
-  std::optional<SwitchStates>& getGeneratedStates() const {
-    return generatedStates_;
-  }
-  std::optional<SwitchStates>& getGeneratedStates() {
-    return generatedStates_;
-  }
   const RouterID getRouterID() const {
     return routerId_;
   }
@@ -115,13 +107,12 @@ class RouteDistributionGenerator {
   const unsigned int ecmpWidth_;
   const RouterID routerId_{0};
   /*
-   * Caches for genertated chunks and states. Mark mutable since
-   * caching is just a optimization doesn't and doesn't reflect the
+   * Caches for generated chunks. Mark mutable since caching is just a
+   * optimization doesn't and doesn't reflect the
    * essential state of this class. So allow modifying from const
    * methods.
    */
   mutable std::optional<RouteChunks> generatedRouteChunks_;
-  mutable std::optional<SwitchStates> generatedStates_;
 };
 
 } // namespace facebook::fboss::utility
