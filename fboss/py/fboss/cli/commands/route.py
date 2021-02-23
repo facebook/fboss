@@ -16,6 +16,7 @@ from facebook.network.Address.ttypes import Address, AddressType, BinaryAddress
 from fboss.cli.commands import commands as cmds
 from fboss.cli.utils import utils
 from neteng.fboss.ctrl.ttypes import IpPrefix, NextHopThrift, UnicastRoute
+from thrift.transport.TTransport import TTransportException
 
 
 def printRouteDetailEntry(entry, vlan_aggregate_port_map, vlan_port_map):
@@ -45,7 +46,7 @@ def printRouteDetailEntry(entry, vlan_aggregate_port_map, vlan_port_map):
                     )
                 )
             )
-    elif len(entry.fwdInfo) > 0:
+    elif entry.fwdInfo and len(entry.fwdInfo) > 0:
         print("  Forwarding via:")
         for ifAndIp in entry.fwdInfo:
             print(
@@ -53,7 +54,7 @@ def printRouteDetailEntry(entry, vlan_aggregate_port_map, vlan_port_map):
                 % (ifAndIp.interfaceID, utils.ip_ntop(ifAndIp.ip.addr))
             )
     else:
-        print("  No Forwarding Info")
+        print("    No Forwarding Info")
     print("  Admin Distance: %s" % entry.adminDistance)
     print()
 
@@ -150,7 +151,10 @@ class RouteIpCmd(cmds.FbossCmd):
             return
         with ExitStack() as stack:
             client = stack.enter_context(self._create_agent_client())
-            qsfp_client = stack.enter_context(self._create_qsfp_client())
+            try:
+                qsfp_client = stack.enter_context(self._create_qsfp_client())
+            except TTransportException:
+                qsfp_client = None
             # Getting the port/agg to VLAN map in order to display them
             vlan_port_map = utils.get_vlan_port_map(
                 client, qsfp_client, colors=False, details=False
@@ -165,7 +169,10 @@ class RouteTableCmd(cmds.FbossCmd):
     def run(self, client_id, ipv4, ipv6, prefixes: t.List[str]):
         with ExitStack() as stack:
             agent_client = stack.enter_context(self._create_agent_client())
-            qsfp_client = stack.enter_context(self._create_qsfp_client())
+            try:
+                qsfp_client = stack.enter_context(self._create_qsfp_client())
+            except TTransportException:
+                qsfp_client = None
             if client_id is None:
                 resp = agent_client.getRouteTable()
             else:
@@ -259,7 +266,10 @@ class RouteTableDetailsCmd(cmds.FbossCmd):
     def run(self, ipv4, ipv6, prefixes: t.List[str]):
         with ExitStack() as stack:
             client = stack.enter_context(self._create_agent_client())
-            qsfp_client = stack.enter_context(self._create_qsfp_client())
+            try:
+                qsfp_client = stack.enter_context(self._create_qsfp_client())
+            except TTransportException:
+                qsfp_client = None
             vlan_port_map = utils.get_vlan_port_map(
                 client, qsfp_client, colors=False, details=False
             )
