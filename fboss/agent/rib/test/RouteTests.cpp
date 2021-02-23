@@ -165,59 +165,6 @@ void configRoutes(
   updater.updateDone();
 }
 
-// Test interface routes when we have more than one address per
-// address family in an interface
-TEST(Route, MultipleAddressInterface) {
-  IPv4NetworkToRouteMap v4Routes;
-  IPv6NetworkToRouteMap v6Routes;
-
-  {
-    RouteUpdater updater(&v4Routes, &v6Routes);
-
-    updater.addInterfaceRoute(
-        folly::IPAddress("1.1.1.1"),
-        24,
-        folly::IPAddress("1.1.1.1"),
-        InterfaceID(1));
-    updater.addInterfaceRoute(
-        folly::IPAddress("1.1.1.1"),
-        24,
-        folly::IPAddress("1.1.1.2"),
-        InterfaceID(1));
-    updater.addInterfaceRoute(
-        folly::IPAddress("1::1"), 48, folly::IPAddress("1::1"), InterfaceID(1));
-    updater.addInterfaceRoute(
-        folly::IPAddress("1::1"), 48, folly::IPAddress("1::2"), InterfaceID(1));
-
-    updater.addLinkLocalRoutes();
-
-    updater.updateDone();
-  }
-
-  EXPECT_EQ(1, v4Routes.size());
-  EXPECT_EQ(2, v6Routes.size());
-  // verify the ipv4 route
-  {
-    auto rt = getRoute(v4Routes, "1.1.1.0/24");
-    EXPECT_RESOLVED(rt);
-    EXPECT_TRUE(rt->isConnected());
-    EXPECT_FALSE(rt->isToCPU());
-    EXPECT_FALSE(rt->isDrop());
-    EXPECT_EQ(RouteForwardAction::NEXTHOPS, rt->getForwardInfo().getAction());
-    EXPECT_FWD_INFO(rt, InterfaceID(1), "1.1.1.2");
-  }
-  // verify the ipv6 route
-  {
-    auto rt = getRoute(v6Routes, "1::0/48");
-    EXPECT_RESOLVED(rt);
-    EXPECT_TRUE(rt->isConnected());
-    EXPECT_FALSE(rt->isToCPU());
-    EXPECT_FALSE(rt->isDrop());
-    EXPECT_EQ(RouteForwardAction::NEXTHOPS, rt->getForwardInfo().getAction());
-    EXPECT_FWD_INFO(rt, InterfaceID(1), "1::2");
-  }
-}
-
 // Test interface + static routes
 TEST(Route, InterfaceAndStatic) {
   IPv4NetworkToRouteMap v4Routes;

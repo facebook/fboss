@@ -197,63 +197,6 @@ std::shared_ptr<SwitchState> applyInitConfig() {
   return stateV1;
 }
 
-// Test interface routes when we have more than one address per
-// address family in an interface
-TEST(Route, MultipleAddressInterface) {
-  auto platform = createMockPlatform();
-  auto rid = RouterID(0);
-  auto stateV0 = make_shared<SwitchState>();
-  auto tablesV0 = stateV0->getRouteTables();
-
-  cfg::SwitchConfig config;
-  config.vlans_ref()->resize(1);
-  *config.vlans_ref()[0].id_ref() = 1;
-
-  config.interfaces_ref()->resize(1);
-  *config.interfaces_ref()[0].intfID_ref() = 1;
-  *config.interfaces_ref()[0].vlanID_ref() = 1;
-  *config.interfaces_ref()[0].routerID_ref() = 0;
-  config.interfaces_ref()[0].mac_ref() = "00:00:00:00:00:11";
-  config.interfaces_ref()[0].ipAddresses_ref()->resize(4);
-  config.interfaces_ref()[0].ipAddresses_ref()[0] = "1.1.1.1/24";
-  config.interfaces_ref()[0].ipAddresses_ref()[1] = "1.1.1.2/24";
-  config.interfaces_ref()[0].ipAddresses_ref()[2] = "1::1/48";
-  config.interfaces_ref()[0].ipAddresses_ref()[3] = "1::2/48";
-
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
-  ASSERT_NE(nullptr, stateV1);
-  stateV1->publish();
-  auto tablesV1 = stateV1->getRouteTables();
-  EXPECT_NODEMAP_MATCH(tablesV1);
-  EXPECT_NE(tablesV0, tablesV1);
-  EXPECT_EQ(1, tablesV1->getGeneration());
-  EXPECT_EQ(1, tablesV1->size());
-  EXPECT_EQ(1, tablesV1->getRouteTableIf(rid)->getRibV4()->size());
-  EXPECT_EQ(2, tablesV1->getRouteTableIf(rid)->getRibV6()->size());
-  // verify the ipv4 route
-  {
-    auto rt = GET_ROUTE_V4(tablesV1, rid, "1.1.1.0/24");
-    EXPECT_EQ(0, rt->getGeneration());
-    EXPECT_RESOLVED(rt);
-    EXPECT_TRUE(rt->isConnected());
-    EXPECT_FALSE(rt->isToCPU());
-    EXPECT_FALSE(rt->isDrop());
-    EXPECT_EQ(RouteForwardAction::NEXTHOPS, rt->getForwardInfo().getAction());
-    EXPECT_FWD_INFO(rt, InterfaceID(1), "1.1.1.2");
-  }
-  // verify the ipv6 route
-  {
-    auto rt = GET_ROUTE_V6(tablesV1, rid, "1::0/48");
-    EXPECT_EQ(0, rt->getGeneration());
-    EXPECT_RESOLVED(rt);
-    EXPECT_TRUE(rt->isConnected());
-    EXPECT_FALSE(rt->isToCPU());
-    EXPECT_FALSE(rt->isDrop());
-    EXPECT_EQ(RouteForwardAction::NEXTHOPS, rt->getForwardInfo().getAction());
-    EXPECT_FWD_INFO(rt, InterfaceID(1), "1::2");
-  }
-}
-
 // Test interface + static routes
 TEST(Route, InterfaceAndStatic) {
   auto platform = createMockPlatform();

@@ -135,7 +135,7 @@ class RouteTest : public ::testing::Test {
     handle_ = createTestHandle(&config, flags);
     sw_ = handle_->getSw();
   }
-  cfg::SwitchConfig initialConfig() const {
+  virtual cfg::SwitchConfig initialConfig() const {
     cfg::SwitchConfig config;
     config.vlans_ref()->resize(4);
     config.vlans_ref()[0].id_ref() = 1;
@@ -731,5 +731,57 @@ TYPED_TEST(RouteTest, InterfaceRoutes) {
     auto rt = this->findRoute6(stateV2, rid, "2::0/48");
     EXPECT_EQ(1, rt->getGeneration());
     EXPECT_FWD_INFO(rt, InterfaceID(1), "2::1");
+  }
+}
+
+// Test interface routes when we have more than one address per
+// address family in an interface
+template <typename StandAloneRib>
+class MultipleAddressInterfaceTest : public RouteTest<StandAloneRib> {
+ public:
+  cfg::SwitchConfig initialConfig() const override {
+    cfg::SwitchConfig config;
+    config.vlans_ref()->resize(1);
+    config.vlans_ref()[0].id_ref() = 1;
+
+    config.interfaces_ref()->resize(1);
+    config.interfaces_ref()[0].intfID_ref() = 1;
+    config.interfaces_ref()[0].vlanID_ref() = 1;
+    config.interfaces_ref()[0].routerID_ref() = 0;
+    config.interfaces_ref()[0].mac_ref() = "00:00:00:00:00:11";
+    config.interfaces_ref()[0].ipAddresses_ref()->resize(4);
+    config.interfaces_ref()[0].ipAddresses_ref()[0] = "1.1.1.1/24";
+    config.interfaces_ref()[0].ipAddresses_ref()[1] = "1.1.1.2/24";
+    config.interfaces_ref()[0].ipAddresses_ref()[2] = "1::1/48";
+    config.interfaces_ref()[0].ipAddresses_ref()[3] = "1::2/48";
+    return config;
+  }
+};
+TYPED_TEST_CASE(MultipleAddressInterfaceTest, RouteTestTypes);
+
+TYPED_TEST(MultipleAddressInterfaceTest, twoAddrsForInterface) {
+  auto rid = RouterID(0);
+  auto [v4Routes, v6Routes] =
+      getRouteCount(TypeParam::hasStandAloneRib, this->sw_->getState());
+
+  EXPECT_EQ(2, v4Routes); // ALPM default + intf routes
+  EXPECT_EQ(3, v6Routes); // ALPM default + intf + link local routes
+  {
+    auto rt = this->findRoute4(this->sw_->getState(), rid, "1.1.1.0/24");
+    EXPECT_EQ(0, rt->getGeneration());
+    EXPECT_TRUE(rt->isResolved());
+    EXPECT_TRUE(rt->isConnected());
+    EXPECT_FALSE(rt->isToCPU());
+    EXPECT_FALSE(rt->isDrop());
+    EXPECT_FWD_INFO(rt, InterfaceID(1), "1.1.1.2");
+  }
+  {
+    auto rt = this->findRoute6(this->sw_->getState(), rid, "1::0/48");
+    EXPECT_EQ(0, rt->getGeneration());
+    EXPECT_TRUE(rt->isResolved());
+    EXPECT_TRUE(rt->isConnected());
+    EXPECT_FALSE(rt->isToCPU());
+    EXPECT_FALSE(rt->isDrop());
+    EXPECT_FWD_INFO(rt, InterfaceID(1), "1::2");
   }
 }
