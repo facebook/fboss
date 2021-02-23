@@ -992,7 +992,12 @@ HwInitResult SaiSwitch::initLocked(
       ret.switchState->resetRouteTables(std::make_shared<RouteTableMap>());
 
     } else if (deserializedRIB) {
-      // TODO:  Transitioning from standalone RIB to no standalone RIB
+      // Transitioning from standalone RIB to no standalone RIB
+      // Emergency rollback + canary on/off handling
+      ret.switchState->resetRouteTables(
+          standaloneToSwitchStateRib(*deserializedRIB));
+      ret.switchState->resetForwardingInformationBases(
+          std::make_shared<ForwardingInformationBaseMap>());
     }
     ret.switchState->publish();
   }
