@@ -43,20 +43,6 @@ ConfigApplier::ConfigApplier(
 void ConfigApplier::updateRibAndFib() {
   RouteUpdater updater(v4NetworkToRoute_, v6NetworkToRoute_);
 
-  // Enable ALPM
-  updater.addRoute(
-      folly::IPAddressV4("0.0.0.0"),
-      0,
-      ClientID::STATIC_INTERNAL,
-      RouteNextHopEntry(
-          RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
-  updater.addRoute(
-      folly::IPAddressV6("::"),
-      0,
-      ClientID::STATIC_INTERNAL,
-      RouteNextHopEntry(
-          RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
-
   // Update static routes
   updater.removeAllRoutesForClient(ClientID::STATIC_ROUTE);
 
