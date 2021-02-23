@@ -14,7 +14,6 @@
 
 #include "fboss/agent/rib/NetworkToRouteMap.h"
 #include "fboss/agent/rib/Route.h"
-#include "fboss/agent/rib/RouteNextHopEntry.h"
 #include "fboss/agent/rib/RouteNextHopsMulti.h"
 #include "fboss/agent/rib/RouteTypes.h"
 

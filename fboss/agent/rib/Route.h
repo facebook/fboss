@@ -14,7 +14,6 @@
 #include <folly/json.h>
 
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
-#include "fboss/agent/rib/RouteNextHopEntry.h"
 #include "fboss/agent/rib/RouteNextHopsMulti.h"
 #include "fboss/agent/rib/RouteTypes.h"
 #include "fboss/agent/types.h"

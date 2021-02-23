@@ -85,6 +85,16 @@ class RouteNextHopEntry {
 
   bool isValid(bool forMplsRoute = false) const;
 
+  static RouteNextHopEntry from(
+      const facebook::fboss::UnicastRoute& route,
+      AdminDistance defaultAdminDistance);
+  static facebook::fboss::RouteNextHopEntry createDrop(
+      AdminDistance adminDistance = AdminDistance::STATIC_ROUTE);
+  static facebook::fboss::RouteNextHopEntry createToCpu(
+      AdminDistance adminDistance = AdminDistance::STATIC_ROUTE);
+  static facebook::fboss::RouteNextHopEntry fromStaticRoute(
+      const cfg::StaticRouteWithNextHops& route);
+
  private:
   AdminDistance adminDistance_;
   Action action_{Action::DROP};

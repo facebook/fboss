@@ -11,7 +11,6 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
-#include "fboss/agent/rib/RouteNextHopEntry.h"
 #include "fboss/agent/rib/RouteTypes.h"
 #include "fboss/agent/rib/RouteUpdater.h"
 
@@ -858,7 +857,7 @@ TEST(RouteTypes, toFromRouteNextHops) {
       FbossError);
 
   // Convert to thrift object
-  auto nhts = rib::util::fromRouteNextHopSet(nhs);
+  auto nhts = facebook::fboss::util::fromRouteNextHopSet(nhs);
   ASSERT_EQ(4, nhts.size());
 
   auto verify = [&](const std::string& ipaddr,
@@ -891,7 +890,7 @@ TEST(RouteTypes, toFromRouteNextHops) {
   verify("fe80::1", InterfaceID(4));
 
   // Convert back to RouteNextHopSet
-  auto newNhs = rib::util::toRouteNextHopSet(nhts);
+  auto newNhs = facebook::fboss::util::toRouteNextHopSet(nhts);
   EXPECT_EQ(nhs, newNhs);
 
   //

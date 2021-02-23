@@ -16,7 +16,7 @@
 #include <boost/container/flat_map.hpp>
 
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
-#include "fboss/agent/rib/RouteNextHopEntry.h"
+#include "fboss/agent/rib/RouteTypes.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss::rib {

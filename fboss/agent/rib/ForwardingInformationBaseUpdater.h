@@ -11,9 +11,10 @@
 
 #include "fboss/agent/rib/NetworkToRouteMap.h"
 #include "fboss/agent/rib/Route.h"
+#include "fboss/agent/rib/RouteTypes.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/Route.h"
-#include "fboss/agent/state/RouteNextHopEntry.h"
+#include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/types.h"
 
 #include <memory>
@@ -25,8 +26,6 @@ class SwitchState;
 } // namespace facebook::fboss
 
 namespace facebook::fboss::rib {
-
-class RouteNextHopEntry;
 
 class ForwardingInformationBaseUpdater {
  public:

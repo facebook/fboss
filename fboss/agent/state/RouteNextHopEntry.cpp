@@ -19,6 +19,19 @@ namespace {
 constexpr auto kNexthops = "nexthops";
 constexpr auto kAction = "action";
 constexpr auto kAdminDistance = "adminDistance";
+
+std::vector<facebook::fboss::NextHopThrift> thriftNextHopsFromAddresses(
+    const std::vector<facebook::network::thrift::BinaryAddress>& addrs) {
+  std::vector<facebook::fboss::NextHopThrift> nhs;
+  nhs.reserve(addrs.size());
+  for (const auto& addr : addrs) {
+    facebook::fboss::NextHopThrift nh;
+    *nh.address_ref() = addr;
+    *nh.weight_ref() = 0;
+    nhs.emplace_back(std::move(nh));
+  }
+  return nhs;
+}
 } // namespace
 
 namespace facebook::fboss {
@@ -255,6 +268,62 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHops() const {
     normalizedNextHops = scaledNextHops;
   }
   return normalizedNextHops;
+}
+
+RouteNextHopEntry RouteNextHopEntry::from(
+    const facebook::fboss::UnicastRoute& route,
+    AdminDistance defaultAdminDistance) {
+  std::vector<NextHopThrift> nhts;
+  if (route.nextHops_ref()->empty() && !route.nextHopAddrs_ref()->empty()) {
+    nhts = thriftNextHopsFromAddresses(*route.nextHopAddrs_ref());
+  } else {
+    nhts = *route.nextHops_ref();
+  }
+
+  RouteNextHopSet nexthops = util::toRouteNextHopSet(nhts);
+
+  auto adminDistance = route.adminDistance_ref().value_or(defaultAdminDistance);
+
+  if (nexthops.size()) {
+    if (route.action_ref() &&
+        *route.action_ref() != facebook::fboss::RouteForwardAction::NEXTHOPS) {
+      throw FbossError(
+          "Nexthops specified, but action is set to : ", *route.action_ref());
+    }
+    return RouteNextHopEntry(std::move(nexthops), adminDistance);
+  }
+
+  if (!route.action_ref() ||
+      *route.action_ref() == facebook::fboss::RouteForwardAction::DROP) {
+    return RouteNextHopEntry(RouteForwardAction::DROP, adminDistance);
+  }
+  return RouteNextHopEntry(RouteForwardAction::TO_CPU, adminDistance);
+}
+
+RouteNextHopEntry RouteNextHopEntry::createDrop(AdminDistance adminDistance) {
+  return RouteNextHopEntry(RouteForwardAction::DROP, adminDistance);
+}
+
+RouteNextHopEntry RouteNextHopEntry::createToCpu(AdminDistance adminDistance) {
+  return RouteNextHopEntry(RouteForwardAction::TO_CPU, adminDistance);
+}
+
+RouteNextHopEntry RouteNextHopEntry::fromStaticRoute(
+    const cfg::StaticRouteWithNextHops& route) {
+  RouteNextHopSet nhops;
+
+  // NOTE: Static routes use the default UCMP weight so that they can be
+  // compatible with UCMP, i.e., so that we can do ucmp where the next
+  // hops resolve to a static route.  If we define recursive static
+  // routes, that may lead to unexpected behavior where some interface
+  // gets more traffic.  If necessary, in the future, we can make it
+  // possible to configure strictly ECMP static routes
+  for (auto& nhopStr : *route.nexthops_ref()) {
+    nhops.emplace(
+        UnresolvedNextHop(folly::IPAddress(nhopStr), UCMP_DEFAULT_WEIGHT));
+  }
+
+  return RouteNextHopEntry(std::move(nhops), AdminDistance::STATIC_ROUTE);
 }
 
 } // namespace facebook::fboss

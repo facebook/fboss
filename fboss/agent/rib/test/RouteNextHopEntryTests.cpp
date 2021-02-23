@@ -11,7 +11,6 @@
 #include "common/network/if/gen-cpp2/Address_types.h"
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
-#include "fboss/agent/rib/RouteNextHopEntry.h"
 #include "fboss/agent/rib/RouteTypes.h"
 
 #include <folly/IPAddress.h>
