@@ -351,14 +351,14 @@ void BcmPort::init(bool warmBoot) {
     // During warmboot, we need to make sure the enabled ports have
     // EgressQueue FlexCounter attached if needed
     if (auto* flexCounterMgr = hw_->getBcmEgressQueueFlexCounterManager();
-        flexCounterMgr && isEnabled()) {
+        flexCounterMgr && isEnabledInSDK()) {
       flexCounterMgr->attachToPort(gport_);
     }
   }
   initCustomStats();
 
   // Notify platform port of initial state
-  getPlatformPort()->linkStatusChanged(isUp(), isEnabled());
+  getPlatformPort()->linkStatusChanged(isUp(), isEnabledInSDK());
   getPlatformPort()->externalState(PortLedExternalState::NONE);
 
   enableLinkscan();
@@ -383,7 +383,7 @@ bcm_pbmp_t BcmPort::getPbmp() {
 }
 
 void BcmPort::disable(const std::shared_ptr<Port>& swPort) {
-  if (!isEnabled()) {
+  if (!isEnabledInSDK()) {
     // Already disabled
     XLOG(DBG2) << "No need to disable port " << port_
                << " since it is already disabled";
@@ -418,6 +418,11 @@ void BcmPort::disableLinkscan() {
 }
 
 bool BcmPort::isEnabled() {
+  return *programmedSettings_.rlock() &&
+      (*programmedSettings_.rlock())->isEnabled();
+}
+
+bool BcmPort::isEnabledInSDK() {
   int enabled;
   auto rv = bcm_port_enable_get(unit_, port_, &enabled);
   bcmCheckError(rv, "Failed to determine if port is already disabled");
@@ -435,7 +440,7 @@ bool BcmPort::isUp() {
 }
 
 void BcmPort::enable(const std::shared_ptr<Port>& swPort) {
-  if (isEnabled()) {
+  if (isEnabledInSDK()) {
     // Port is already enabled, don't need to do anything
     XLOG(DBG2) << "No need to enable port " << port_
                << " since it is already enabled";
@@ -1114,8 +1119,17 @@ void BcmPort::updateFecStats(
     return;
   }
   bcm_port_phy_control_t corrected_ctrl, uncorrected_ctrl;
-  bcm_port_phy_fec_t fec = getCurrentPortResource(unit_, gport_).fec_type;
-
+  bcm_port_phy_fec_t fec;
+  // get fec from programmed cache to improve performance if possible
+  if (*programmedSettings_.rlock()) {
+    auto profileID = (*programmedSettings_.rlock())->getProfileID();
+    const auto profileConf = platformPort_->getPortProfileConfig(profileID);
+    fec = utility::phyFecModeToBcmPortPhyFec(
+        platformPort_->shouldDisableFEC() ? phy::FecMode::NONE
+                                          : profileConf.get_iphy().get_fec());
+  } else {
+    fec = getCurrentPortResource(unit_, gport_).fec_type;
+  }
   // RS-FEC errors are in the CODEWORD_COUNT registers, while BaseR fec
   // errors are in the BLOCK_COUNT registers.
   if ((fec == bcmPortPhyFecRs544) || (fec == bcmPortPhyFecRs272) ||
@@ -1360,14 +1374,14 @@ void BcmPort::destroyAllPortStats() {
 void BcmPort::enableStatCollection(const std::shared_ptr<Port>& port) {
   XLOG(DBG2) << "Enabling stats for " << port->getName();
 
-  if (isEnabled()) {
+  if (isEnabledInSDK()) {
     XLOG(DBG2) << "Skipping bcm_port_stat_enable_set on already enabled port";
   } else {
     if (!hw_->getPlatform()->getAsic()->isSupported(
             HwAsic::Feature::EGRESS_QUEUE_FLEX_COUNTER)) {
       // TODO: we discovered a resource leak on this call when it
       // returns BCM_E_EXISTS so we only call on disabled ports. We
-      // should remove this isEnabled() check once we confirm the api is
+      // should remove this isEnabledInSDK() check once we confirm the api is
       // safe to use, or we get a bcm_port_stat_enable_get() api from
       // broadcom.
       //

@@ -111,13 +111,8 @@ class BcmPort {
 
   bool supportsSpeed(cfg::PortSpeed speed);
 
-  /*
-   * Methods for retreiving the administrative and operational state of the
-   * port according to the SDK.
-   * Both port state methods (isEnabled and isUp) can throw if there is an
-   * error talking to the SDK.
-   */
-  // Return whether we have enabled the port
+  // Return whether we have enabled the port from cached programmedSetting_
+  // isEnabled() should be used whenever possible to improve performance
   bool isEnabled();
   // Return whether the link status of the port is actually up.
   // Note: if it is not enabled, return false
@@ -289,6 +284,9 @@ class BcmPort {
       MirrorAction action,
       MirrorDirection direction,
       cfg::SampleDestination newDestination);
+
+  // Return whether we have enabled the port from SDK
+  bool isEnabledInSDK();
 
   BcmSwitch* const hw_{nullptr};
   const bcm_port_t port_; // Broadcom physical port number
