@@ -28751,41 +28751,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
         }
     }
   },
-  "supportedProfiles": {
-    "23": {
-        "speed": 100000,
-        "iphy": {
-          "numLanes": 4,
-          "modulation": 1,
-          "fec": 528,
-          "medium": 3,
-          "interfaceMode": 3,
-          "interfaceType": 3
-        }
-    },
-    "25": {
-        "speed": 200000,
-        "iphy": {
-          "numLanes": 4,
-          "modulation": 2,
-          "fec": 11,
-          "medium": 3,
-          "interfaceMode": 3,
-          "interfaceType": 3
-        }
-    },
-    "26": {
-        "speed": 400000,
-        "iphy": {
-          "numLanes": 8,
-          "modulation": 2,
-          "fec": 11,
-          "medium": 3,
-          "interfaceMode": 3,
-          "interfaceType": 3
-        }
-    }
-  },
   "chips": [
     {
       "name": "BC1",
@@ -29943,7 +29908,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
   "platformSupportedProfiles": [
     {
       "factor": {
-        "profileID": 23
+        "profileID": 23,
+        "pimIDs": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ]
       },
       "profile": {
         "speed": 100000,
@@ -29959,7 +29934,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
     },
     {
       "factor": {
-        "profileID": 25
+        "profileID": 25,
+        "pimIDs": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ]
       },
       "profile": {
         "speed": 200000,
@@ -29975,7 +29960,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
     },
     {
       "factor": {
-        "profileID": 26
+        "profileID": 26,
+        "pimIDs": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ]
       },
       "profile": {
         "speed": 400000,

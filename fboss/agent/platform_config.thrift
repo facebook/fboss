@@ -14,36 +14,35 @@ include "fboss/lib/phy/phy.thrift"
 include "fboss/agent/switch_config.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
 
-
 enum PlatformAttributes {
-  CONNECTION_HANDLE = 1
+  CONNECTION_HANDLE = 1,
 }
 
 union ChipConfig {
-  1: bcm_config.BcmConfig bcm
-  2: asic_config.AsicConfig asic
+  1: bcm_config.BcmConfig bcm;
+  2: asic_config.AsicConfig asic;
 }
 
 struct PlatformConfig {
-  1: ChipConfig chip
-  3: optional map<PlatformAttributes, string> platformSettings
+  1: ChipConfig chip;
+  3: optional map<PlatformAttributes, string> platformSettings;
 }
 
 struct PlatformPortEntry {
-  1: PlatformPortMapping mapping
-  2: map<switch_config.PortProfileID, PlatformPortConfig> supportedProfiles
+  1: PlatformPortMapping mapping;
+  2: map<switch_config.PortProfileID, PlatformPortConfig> supportedProfiles;
 }
 
 struct PlatformPortMapping {
-  1: i32 id
-  2: string name
-  3: i32 controllingPort
-  4: list<phy.PinConnection> pins
+  1: i32 id;
+  2: string name;
+  3: i32 controllingPort;
+  4: list<phy.PinConnection> pins;
 }
 
 struct PlatformPortConfig {
-  1: optional list<i32> subsumedPorts
-  2: phy.PortPinConfig pins
+  1: optional list<i32> subsumedPorts;
+  2: phy.PortPinConfig pins;
 }
 
 // Currently we have 'PlatformPortConfig' in PlatformPortEntry to define the
@@ -75,27 +74,23 @@ struct PlatformPortConfig {
 // port 2 with PROFILE_100G_4_NRZ_RS528_COPPER
 // is a match
 struct PlatformPortConfigOverrideFactor {
-  1: optional list<i32> ports
-  2: optional list<switch_config.PortProfileID> profiles
-  3: optional list<double> cableLengths
-  4: optional transceiver.ExtendedSpecComplianceCode transceiverSpecComplianceCode
-  5: optional transceiver.TransceiverManagementInterface transceiverManagementInterface
+  1: optional list<i32> ports;
+  2: optional list<switch_config.PortProfileID> profiles;
+  3: optional list<double> cableLengths;
+  4: optional transceiver.ExtendedSpecComplianceCode transceiverSpecComplianceCode;
+  5: optional transceiver.TransceiverManagementInterface transceiverManagementInterface;
 }
 
 struct PlatformPortConfigOverride {
-  1: PlatformPortConfigOverrideFactor factor
-  2: optional phy.PortPinConfig pins
-  3: optional phy.PortProfileConfig portProfileConfig
+  1: PlatformPortConfigOverrideFactor factor;
+  2: optional phy.PortPinConfig pins;
+  3: optional phy.PortProfileConfig portProfileConfig;
 }
 
 /*
-  Currently we use supportedProfiles as a global mapping for each platform's
-  profiles. In the future this will not be enough because for some platforms
-  (right now mixed pim platforms) a single PortProfileID can map to multiple
-  phy.PortProfileConfig. We introduce PlatformPortConfigFactor as the set of
+  We introduce PlatformPortConfigFactor as the set of
   all possible factors that can contribute to profile config selection and
-  introduce a list of PlatformPortProfileConfigEntry to replace
-  supportedProfiles
+  introduce a list of PlatformPortProfileConfigEntry
   As an example, we can have a mixed pim platform with the following
   PlatformPortProfileConfigEntrys:
   [
@@ -119,23 +114,21 @@ struct PlatformPortConfigOverride {
   different profile configs, udner the same profileID P1, depending on pimID
 */
 struct PlatformPortConfigFactor {
-  1: switch_config.PortProfileID profileID
-  2: optional set<i32> pimIDs
+  1: switch_config.PortProfileID profileID;
+  2: optional set<i32> pimIDs;
 }
 
 struct PlatformPortProfileConfigEntry {
-  1: PlatformPortConfigFactor factor
-  2: phy.PortProfileConfig profile
+  1: PlatformPortConfigFactor factor;
+  2: phy.PortProfileConfig profile;
 }
 
 // TODO: Will deprecate the optional fields in PlatformConfig and start using
 // this new struct in agent code
 struct PlatformMapping {
-  1: map<i32, PlatformPortEntry> ports
-  2: map<switch_config.PortProfileID, phy.PortProfileConfig> supportedProfiles
-  3: list<phy.DataPlanePhyChip> chips
-  4: optional map<PlatformAttributes, string> platformSettings
-  5: optional list<PlatformPortConfigOverride> portConfigOverrides
-  // This field will eventually replace supportedProfiles
-  7: list<PlatformPortProfileConfigEntry> platformSupportedProfiles
+  1: map<i32, PlatformPortEntry> ports;
+  3: list<phy.DataPlanePhyChip> chips;
+  4: optional map<PlatformAttributes, string> platformSettings;
+  5: optional list<PlatformPortConfigOverride> portConfigOverrides;
+  7: list<PlatformPortProfileConfigEntry> platformSupportedProfiles;
 }

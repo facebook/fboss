@@ -62799,71 +62799,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
         }
     }
   },
-  "supportedProfiles": {
-    "4": {
-        "speed": 40000,
-        "iphy": {
-          "numLanes": 2,
-          "modulation": 1,
-          "fec": 1,
-          "medium": 1,
-          "interfaceMode": 11,
-          "interfaceType": 11
-        },
-        "xphyLine": {
-          "numLanes": 4,
-          "modulation": 1,
-          "fec": 1
-        },
-        "xphySystem": {
-          "numLanes": 2,
-          "modulation": 1,
-          "fec": 1
-        }
-    },
-    "8": {
-        "speed": 100000,
-        "iphy": {
-          "numLanes": 2,
-          "modulation": 2,
-          "fec": 544,
-          "medium": 1,
-          "interfaceMode": 11,
-          "interfaceType": 11
-        },
-        "xphyLine": {
-          "numLanes": 4,
-          "modulation": 1,
-          "fec": 528
-        },
-        "xphySystem": {
-          "numLanes": 2,
-          "modulation": 2,
-          "fec": 544
-        }
-    },
-    "9": {
-        "speed": 200000,
-        "iphy": {
-          "numLanes": 4,
-          "modulation": 2,
-          "fec": 11,
-          "medium": 1,
-          "interfaceMode": 12,
-          "interfaceType": 12
-        },
-        "xphyLine": {
-          "numLanes": 4,
-          "modulation": 2,
-          "fec": 544
-        },
-        "xphySystem": {
-          "numLanes": 4,
-          "modulation": 2,
-          "fec": 544
-        }
-    }
-  },
   "chips": [
     {
       "name": "BC6",
@@ -64025,7 +63960,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
       },
       "pins": {
         "iphy": [
-
+          
         ],
         "xphyLine": [
           {
@@ -64039,8 +63974,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "main": 15,
               "post": -7,
               "post2": 0,
-              "post3": 0,
-              "amp": 0
+              "post3": 0
             }
           }
         ]
