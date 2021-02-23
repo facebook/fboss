@@ -12,6 +12,7 @@
 
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/LockPolicy.h"
+#include "fboss/agent/StandaloneRibConversions.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
 #include "fboss/agent/hw/HwResourceStatsPublisher.h"
@@ -945,9 +946,6 @@ HwInitResult SaiSwitch::initLocked(
   ret.bootType = bootType_;
   std::unique_ptr<folly::dynamic> adapterKeysJson;
   std::unique_ptr<folly::dynamic> adapterKeys2AdapterHostKeysJson;
-  if (FLAGS_enable_standalone_rib) {
-    ret.rib = std::make_unique<rib::RoutingInformationBase>();
-  }
 
   sai_api_initialize(0, platform_->getServiceMethodTable());
   SaiApiTable::getInstance()->queryApis();
@@ -960,12 +958,6 @@ HwInitResult SaiSwitch::initLocked(
   if (bootType_ == BootType::WARM_BOOT) {
     auto switchStateJson = platform_->getWarmBootHelper()->getWarmBootState();
     ret.switchState = SwitchState::fromFollyDynamic(switchStateJson[kSwSwitch]);
-    ret.switchState->publish();
-    if (FLAGS_enable_standalone_rib &&
-        switchStateJson.find(kRib) != switchStateJson.items().end()) {
-      ret.rib =
-          rib::RoutingInformationBase::fromFollyDynamic(switchStateJson[kRib]);
-    }
     if (platform_->getAsic()->isSupported(HwAsic::Feature::OBJECT_KEY_CACHE)) {
       adapterKeysJson = std::make_unique<folly::dynamic>(
           switchStateJson[kHwSwitch][kAdapterKeys]);
@@ -980,6 +972,34 @@ HwInitResult SaiSwitch::initLocked(
       adapterKeys2AdapterHostKeysJson = std::make_unique<folly::dynamic>(
           switchStateJson[kHwSwitch][kAdapterKey2AdapterHostKey]);
     }
+    std::unique_ptr<rib::RoutingInformationBase> deserializedRIB;
+    if (switchStateJson.find(kRib) != switchStateJson.items().end()) {
+      deserializedRIB =
+          rib::RoutingInformationBase::fromFollyDynamic(switchStateJson[kRib]);
+    }
+    if (FLAGS_enable_standalone_rib) {
+      if (deserializedRIB) {
+        // Common case - deser rib was successful
+        ret.rib = std::move(deserializedRIB);
+
+      } else {
+        // Transitioning from no standalone RIB to standalone RIB
+        // 1. Reconstruct new RIB from old rib
+        // 2. Build FIB from RIB
+        ret.rib = switchStateToStandaloneRib(ret.switchState->getRouteTables());
+        ret.switchState->resetForwardingInformationBases(
+            fibFromStandaloneRib(*ret.rib));
+      }
+      // reset old rib route tables
+      ret.switchState->resetRouteTables(std::make_shared<RouteTableMap>());
+
+    } else if (deserializedRIB) {
+      // TODO:  Transitioning from standalone RIB to no standalone RIB
+    }
+    ret.switchState->publish();
+  }
+  if (FLAGS_enable_standalone_rib && !ret.rib) {
+    ret.rib = std::make_unique<rib::RoutingInformationBase>();
   }
   initStoreAndManagersLocked(
       lock,
