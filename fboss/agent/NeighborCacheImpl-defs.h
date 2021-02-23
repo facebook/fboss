@@ -397,13 +397,17 @@ void NeighborCacheImpl<NTable>::portDown(PortDescriptor port) {
 
 template <typename NTable>
 void NeighborCacheImpl<NTable>::portFlushEntries(PortDescriptor port) {
+  std::vector<AddressType> entriesToFlush;
   for (auto item : entries_) {
     if (item.second->getPort() != port) {
       continue;
     }
-    XLOG(DBG2) << "Flush neighbor entry " << item.second->getIP().str()
-               << " on port " << port;
-    flushEntry(item.second->getIP());
+    entriesToFlush.push_back(item.second->getIP());
+  }
+
+  for (const auto& ip : entriesToFlush) {
+    XLOG(DBG2) << "Flush neighbor entry " << ip.str() << " on port " << port;
+    flushEntry(ip);
   }
 }
 
