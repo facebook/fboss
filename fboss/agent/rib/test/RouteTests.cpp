@@ -11,7 +11,6 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
-#include "fboss/agent/rib/RouteNextHop.h"
 #include "fboss/agent/rib/RouteNextHopEntry.h"
 #include "fboss/agent/rib/RouteTypes.h"
 #include "fboss/agent/rib/RouteUpdater.h"
@@ -33,6 +32,7 @@ const ClientID kClientD = ClientID(1004);
 const ClientID kClientE = ClientID(1005);
 } // namespace
 
+using facebook::fboss::ECMP_WEIGHT;
 using rib::IPv4NetworkToRouteMap;
 using rib::IPv6NetworkToRouteMap;
 using rib::Route;
@@ -61,8 +61,7 @@ rib::Route<AddressT>* getRoute(
 rib::RouteNextHopSet makeNextHops(std::vector<std::string> ipsAsStrings) {
   rib::RouteNextHopSet nhops;
   for (const std::string& ipAsString : ipsAsStrings) {
-    nhops.emplace(
-        rib::UnresolvedNextHop(IPAddress(ipAsString), rib::ECMP_WEIGHT));
+    nhops.emplace(rib::UnresolvedNextHop(IPAddress(ipAsString), ECMP_WEIGHT));
   }
   return nhops;
 }
@@ -906,7 +905,7 @@ TEST(RouteTypes, toFromRouteNextHops) {
   NextHopThrift nht;
   *nht.address_ref() = addr;
   {
-    NextHop nh = rib::util::fromThrift(nht);
+    NextHop nh = facebook::fboss::util::fromThrift(nht);
     EXPECT_EQ(folly::IPAddress("10.0.0.1"), nh.addr());
     EXPECT_EQ(std::nullopt, nh.intfID());
   }
@@ -915,7 +914,7 @@ TEST(RouteTypes, toFromRouteNextHops) {
   addr.ifName_ref() = "fboss10";
   *nht.address_ref() = addr;
   {
-    NextHop nh = rib::util::fromThrift(nht);
+    NextHop nh = facebook::fboss::util::fromThrift(nht);
     EXPECT_EQ(folly::IPAddress("face::1"), nh.addr());
     EXPECT_EQ(std::nullopt, nh.intfID());
   }
@@ -924,7 +923,7 @@ TEST(RouteTypes, toFromRouteNextHops) {
   addr.ifName_ref() = "fboss10";
   *nht.address_ref() = addr;
   {
-    NextHop nh = rib::util::fromThrift(nht);
+    NextHop nh = facebook::fboss::util::fromThrift(nht);
     EXPECT_EQ(folly::IPAddress("fe80::1"), nh.addr());
     EXPECT_EQ(InterfaceID(10), nh.intfID());
   }

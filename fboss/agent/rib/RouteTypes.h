@@ -14,6 +14,7 @@
 #include <folly/IPAddress.h>
 #include <folly/dynamic.h>
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/types.h"
 
@@ -32,5 +33,11 @@ using RoutePrefix = facebook::fboss::RoutePrefix<AddrT>;
 
 using PrefixV4 = facebook::fboss::RoutePrefixV4;
 using PrefixV6 = facebook::fboss::RoutePrefixV6;
+using NextHopWeight = facebook::fboss::NextHopWeight;
+
+using NextHop = facebook::fboss::NextHop;
+using ResolvedNextHop = facebook::fboss::ResolvedNextHop;
+
+using UnresolvedNextHop = facebook::fboss::UnresolvedNextHop;
 
 } // namespace facebook::fboss::rib

@@ -46,7 +46,7 @@ RouteNextHopSet toRouteNextHopSet(std::vector<NextHopThrift> const& nhs) {
   RouteNextHopSet rnhs;
   rnhs.reserve(nhs.size());
   for (auto const& nh : nhs) {
-    rnhs.emplace(fromThrift(nh));
+    rnhs.emplace(facebook::fboss::util::fromThrift(nh));
   }
   return rnhs;
 }
@@ -166,7 +166,7 @@ RouteNextHopEntry RouteNextHopEntry::fromFollyDynamic(
   RouteNextHopEntry entry(Action::DROP, adminDistance);
   entry.action_ = action;
   for (const auto& nhop : entryJson[kNexthops]) {
-    entry.nhopSet_.insert(util::nextHopFromFollyDynamic(nhop));
+    entry.nhopSet_.insert(facebook::fboss::util::nextHopFromFollyDynamic(nhop));
   }
   return entry;
 }

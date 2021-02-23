@@ -11,7 +11,6 @@
 #include "common/network/if/gen-cpp2/Address_types.h"
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
-#include "fboss/agent/rib/RouteNextHop.h"
 #include "fboss/agent/rib/RouteNextHopEntry.h"
 #include "fboss/agent/rib/RouteTypes.h"
 
@@ -23,6 +22,7 @@
 using namespace facebook::fboss::rib;
 
 using facebook::fboss::AdminDistance;
+using facebook::fboss::ECMP_WEIGHT;
 using facebook::fboss::InterfaceID;
 using facebook::fboss::IpPrefix;
 using facebook::fboss::MplsAction;

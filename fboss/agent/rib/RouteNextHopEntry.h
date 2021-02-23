@@ -13,7 +13,6 @@
 
 #include <folly/dynamic.h>
 
-#include "fboss/agent/rib/RouteNextHop.h"
 #include "fboss/agent/rib/RouteTypes.h"
 
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
