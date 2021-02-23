@@ -59,7 +59,7 @@ class RoutingInformationBase;
  * To avoid this, provide convenience wrappers for unit test code to call.
  */
 std::shared_ptr<SwitchState> publishAndApplyConfig(
-    std::shared_ptr<SwitchState>& state,
+    const std::shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,
     const Platform* platform,
     rib::RoutingInformationBase* rib = nullptr);

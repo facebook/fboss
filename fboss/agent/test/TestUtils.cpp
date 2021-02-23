@@ -185,7 +185,7 @@ shared_ptr<SwitchState> bringAllPortsDown(const shared_ptr<SwitchState>& in) {
 }
 
 shared_ptr<SwitchState> publishAndApplyConfig(
-    shared_ptr<SwitchState>& state,
+    const shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,
     const Platform* platform,
     rib::RoutingInformationBase* rib) {
