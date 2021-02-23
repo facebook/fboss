@@ -570,7 +570,6 @@ class BcmSwitch : public BcmSwitchIf {
    * Get default state switch is in on a cold boot
    */
   std::shared_ptr<SwitchState> getColdBootSwitchState() const;
-  std::shared_ptr<SwitchState> applyAndGetWarmBootSwitchState();
 
   void setupToCpuEgress();
 

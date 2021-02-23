@@ -103,6 +103,7 @@ void handleStandaloneRIBTransition(
     deserializedRIB =
         rib::RoutingInformationBase::fromFollyDynamic(switchStateJson[kRib]);
   }
+  ret.switchState = ret.switchState->clone();
   if (FLAGS_enable_standalone_rib) {
     if (deserializedRIB) {
       // Common case - deser rib was successful
@@ -129,5 +130,6 @@ void handleStandaloneRIBTransition(
           std::make_shared<ForwardingInformationBaseMap>());
     }
   }
+  ret.switchState->publish();
 }
 } // namespace facebook::fboss

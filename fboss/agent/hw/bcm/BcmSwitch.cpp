@@ -25,6 +25,7 @@
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/LacpTypes.h"
+#include "fboss/agent/StandaloneRibConversions.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/Utils.h"
@@ -648,15 +649,6 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
   return bootState;
 }
 
-std::shared_ptr<SwitchState> BcmSwitch::applyAndGetWarmBootSwitchState() {
-  auto warmBootState = warmBootCache_->getDumpedSwSwitchState().clone();
-  getPlatform()->preWarmbootStateApplied();
-
-  warmBootState->publish();
-  return stateChangedImpl(
-      StateDelta(make_shared<SwitchState>(), warmBootState));
-}
-
 void BcmSwitch::runBcmScript(const std::string& filename) const {
   std::ifstream scriptFile(filename);
 
@@ -855,18 +847,13 @@ HwInitResult BcmSwitch::init(
 
   setupCos();
 
+  folly::dynamic switchStateJson;
   if (warmBoot) {
     // This needs to be done after we have set
     // bcmSwitchL3EgressMode else the egress ids
     // in the host table don't show up correctly.
-    auto warmBootState = getPlatform()->getWarmBootHelper()->getWarmBootState();
-    if (FLAGS_enable_standalone_rib &&
-        warmBootState.find(kRib) != warmBootState.items().end()) {
-      ret.rib =
-          rib::RoutingInformationBase::fromFollyDynamic(warmBootState[kRib]);
-    }
-
-    warmBootCache_->populate(warmBootState);
+    switchStateJson = getPlatform()->getWarmBootHelper()->getWarmBootState();
+    warmBootCache_->populate(switchStateJson);
   }
   if (FLAGS_enable_standalone_rib && !ret.rib) {
     ret.rib = std::make_unique<rib::RoutingInformationBase>();
@@ -891,9 +878,12 @@ HwInitResult BcmSwitch::init(
   ret.bootType = bootType_;
 
   if (warmBoot) {
-    auto warmBootState = applyAndGetWarmBootSwitchState();
+    ret.switchState = warmBootCache_->getDumpedSwSwitchState().clone();
+    getPlatform()->preWarmbootStateApplied();
+    handleStandaloneRIBTransition(switchStateJson, ret);
+
+    stateChangedImpl(StateDelta(make_shared<SwitchState>(), ret.switchState));
     hostTable_->warmBootHostEntriesSynced();
-    ret.switchState = warmBootState;
     // Done with warm boot, clear warm boot cache
     warmBootCache_->clear();
     if (getPlatform()->getAsic()->getAsicType() ==
@@ -911,6 +901,7 @@ HwInitResult BcmSwitch::init(
     ret.switchState = getColdBootSwitchState();
     setMacAging(std::chrono::seconds(
         ret.switchState->getSwitchSettings()->getL2AgeTimerSeconds()));
+    handleStandaloneRIBTransition(folly::dynamic::object(), ret);
   }
 
   macTable_ = std::make_unique<BcmMacTable>(this);
