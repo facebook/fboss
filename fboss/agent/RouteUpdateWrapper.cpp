@@ -21,11 +21,6 @@
 
 #include <folly/logging/xlog.h>
 
-DEFINE_bool(
-    enable_standalone_rib,
-    false,
-    "Place the RIB under the control of the RoutingInformationBase object");
-
 namespace facebook::fboss {
 
 void RouteUpdateWrapper::addRoute(

@@ -10,12 +10,16 @@
 
 #pragma once
 
+#include <folly/dynamic.h>
+
 #include <memory>
 
 namespace facebook::fboss {
 class ForwardingInformationBaseMap;
 class RouteTableMap;
 class SwSwitch;
+struct HwInitResult;
+
 namespace rib {
 class RoutingInformationBase;
 };
@@ -31,4 +35,7 @@ void programRib(rib::RoutingInformationBase& standaloneRib, SwSwitch* swSwitch);
 std::shared_ptr<ForwardingInformationBaseMap> fibFromStandaloneRib(
     rib::RoutingInformationBase& rib);
 
+void handleStandaloneRIBTransition(
+    const folly::dynamic& switchStateJson,
+    HwInitResult& ret);
 } // namespace facebook::fboss

@@ -86,8 +86,6 @@ DEFINE_bool(
     false,
     "Fail if any warm boot handles are left unclaimed.");
 
-DECLARE_bool(enable_standalone_rib);
-
 namespace {
 /*
  * For the devices/SDK we use, the only events we should get (and process)
@@ -932,7 +930,6 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
   }
   // reconstruct ports
   state->resetPorts(managerTable_->portManager().reconstructPortsFromStore());
-  state->publish();
   return state;
 }
 
@@ -970,39 +967,7 @@ HwInitResult SaiSwitch::initLocked(
       adapterKeys2AdapterHostKeysJson = std::make_unique<folly::dynamic>(
           switchStateJson[kHwSwitch][kAdapterKey2AdapterHostKey]);
     }
-    std::unique_ptr<rib::RoutingInformationBase> deserializedRIB;
-    if (switchStateJson.find(kRib) != switchStateJson.items().end()) {
-      deserializedRIB =
-          rib::RoutingInformationBase::fromFollyDynamic(switchStateJson[kRib]);
-    }
-    if (FLAGS_enable_standalone_rib) {
-      if (deserializedRIB) {
-        // Common case - deser rib was successful
-        ret.rib = std::move(deserializedRIB);
-
-      } else {
-        // Transitioning from no standalone RIB to standalone RIB
-        // 1. Reconstruct new RIB from old rib
-        // 2. Build FIB from RIB
-        ret.rib = switchStateToStandaloneRib(ret.switchState->getRouteTables());
-        ret.switchState->resetForwardingInformationBases(
-            fibFromStandaloneRib(*ret.rib));
-      }
-      // reset old rib route tables
-      ret.switchState->resetRouteTables(std::make_shared<RouteTableMap>());
-
-    } else if (deserializedRIB) {
-      // Transitioning from standalone RIB to no standalone RIB
-      // Emergency rollback + canary on/off handling
-      ret.switchState->resetRouteTables(
-          standaloneToSwitchStateRib(*deserializedRIB));
-      ret.switchState->resetForwardingInformationBases(
-          std::make_shared<ForwardingInformationBaseMap>());
-    }
-    ret.switchState->publish();
-  }
-  if (FLAGS_enable_standalone_rib && !ret.rib) {
-    ret.rib = std::make_unique<rib::RoutingInformationBase>();
+    handleStandaloneRIBTransition(switchStateJson, ret);
   }
   initStoreAndManagersLocked(
       lock,
@@ -1013,7 +978,9 @@ HwInitResult SaiSwitch::initLocked(
     ret.switchState = getColdBootSwitchState();
     managerTable_->switchManager().setMacAgingSeconds(
         ret.switchState->getSwitchSettings()->getL2AgeTimerSeconds());
+    handleStandaloneRIBTransition(folly::dynamic::object(), ret);
   }
+  ret.switchState->publish();
   return ret;
 }
 

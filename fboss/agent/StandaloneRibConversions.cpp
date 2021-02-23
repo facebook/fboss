@@ -12,12 +12,18 @@
 
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 
+#include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/RouteTableMap.h"
 #include "fboss/agent/state/SwitchState.h"
+
+DEFINE_bool(
+    enable_standalone_rib,
+    false,
+    "Place the RIB under the control of the RoutingInformationBase object");
 
 namespace facebook::fboss {
 
@@ -87,5 +93,41 @@ std::shared_ptr<ForwardingInformationBaseMap> fibFromStandaloneRib(
         nullptr);
   }
   return state->getFibs();
+}
+
+void handleStandaloneRIBTransition(
+    const folly::dynamic& switchStateJson,
+    HwInitResult& ret) {
+  std::unique_ptr<rib::RoutingInformationBase> deserializedRIB;
+  if (switchStateJson.find(kRib) != switchStateJson.items().end()) {
+    deserializedRIB =
+        rib::RoutingInformationBase::fromFollyDynamic(switchStateJson[kRib]);
+  }
+  if (FLAGS_enable_standalone_rib) {
+    if (deserializedRIB) {
+      // Common case - deser rib was successful
+      ret.rib = std::move(deserializedRIB);
+
+    } else {
+      // Transitioning from no standalone RIB to standalone RIB
+      // 1. Reconstruct new RIB from old rib
+      // 2. Build FIB from RIB
+      ret.rib = switchStateToStandaloneRib(ret.switchState->getRouteTables());
+      ret.switchState->resetForwardingInformationBases(
+          fibFromStandaloneRib(*ret.rib));
+    }
+    // reset old rib route tables
+    ret.switchState->resetRouteTables(std::make_shared<RouteTableMap>());
+
+  } else {
+    if (deserializedRIB) {
+      // Transitioning from standalone RIB to no standalone RIB
+      // Emergency rollback + canary on/off handling
+      ret.switchState->resetRouteTables(
+          standaloneToSwitchStateRib(*deserializedRIB));
+      ret.switchState->resetForwardingInformationBases(
+          std::make_shared<ForwardingInformationBaseMap>());
+    }
+  }
 }
 } // namespace facebook::fboss
