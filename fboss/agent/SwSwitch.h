@@ -585,7 +585,6 @@ class SwSwitch : public HwSwitch::Callback {
   }
 
   rib::RoutingInformationBase* getRib() {
-    DCHECK(isStandaloneRibEnabled());
     return rib_.get();
   }
 
