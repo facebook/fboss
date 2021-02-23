@@ -734,6 +734,264 @@ TYPED_TEST(RouteTest, InterfaceRoutes) {
   }
 }
 
+namespace TEMP {
+struct Route {
+  uint32_t vrf;
+  IPAddress prefix;
+  uint8_t len;
+  Route(uint32_t vrf, IPAddress prefix, uint8_t len)
+      : vrf(vrf), prefix(prefix), len(len) {}
+  bool operator<(const Route& rt) const {
+    if (vrf < rt.vrf) {
+      return true;
+    } else if (vrf > rt.vrf) {
+      return false;
+    }
+    if (len < rt.len) {
+      return true;
+    } else if (len > rt.len) {
+      return false;
+    }
+    return prefix < rt.prefix;
+  }
+  bool operator==(const Route& rt) const {
+    return vrf == rt.vrf && len == rt.len && prefix == rt.prefix;
+  }
+};
+} // namespace TEMP
+
+void checkChangedRoute(
+    bool isStandaloneRibEnabled,
+    const shared_ptr<SwitchState>& oldState,
+    const shared_ptr<SwitchState>& newState,
+    const std::set<TEMP::Route> changedIDs,
+    const std::set<TEMP::Route> addedIDs,
+    const std::set<TEMP::Route> removedIDs) {
+  std::set<TEMP::Route> foundChanged;
+  std::set<TEMP::Route> foundAdded;
+  std::set<TEMP::Route> foundRemoved;
+  StateDelta delta(oldState, newState);
+
+  forEachChangedRoute(
+      isStandaloneRibEnabled,
+      delta,
+      [&](RouterID id, const auto& oldRt, const auto& newRt) {
+        EXPECT_EQ(oldRt->prefix(), newRt->prefix());
+        EXPECT_NE(oldRt, newRt);
+        const auto prefix = newRt->prefix();
+        auto ret = foundChanged.insert(
+            TEMP::Route(id, IPAddress(prefix.network), prefix.mask));
+        EXPECT_TRUE(ret.second);
+      },
+      [&](RouterID id, const auto& rt) {
+        const auto prefix = rt->prefix();
+        auto ret = foundAdded.insert(
+            TEMP::Route(id, IPAddress(prefix.network), prefix.mask));
+        EXPECT_TRUE(ret.second);
+      },
+      [&](RouterID id, const auto& rt) {
+        const auto prefix = rt->prefix();
+        auto ret = foundRemoved.insert(
+            TEMP::Route(id, IPAddress(prefix.network), prefix.mask));
+        EXPECT_TRUE(ret.second);
+      });
+
+  EXPECT_EQ(changedIDs, foundChanged);
+  EXPECT_EQ(addedIDs, foundAdded);
+  EXPECT_EQ(removedIDs, foundRemoved);
+}
+
+TYPED_TEST(RouteTest, applyNewConfig) {
+  auto config = this->initialConfig();
+  config.vlans_ref()->resize(6);
+  config.vlans_ref()[4].id_ref() = 5;
+  config.vlans_ref()[5].id_ref() = 6;
+  config.interfaces_ref()->resize(6);
+  config.interfaces_ref()[4].intfID_ref() = 5;
+  config.interfaces_ref()[4].vlanID_ref() = 5;
+  config.interfaces_ref()[4].routerID_ref() = 0;
+  config.interfaces_ref()[4].mac_ref() = "00:00:00:00:00:55";
+  config.interfaces_ref()[4].ipAddresses_ref()->resize(4);
+  config.interfaces_ref()[4].ipAddresses_ref()[0] = "5.1.1.1/24";
+  config.interfaces_ref()[4].ipAddresses_ref()[1] = "5.1.1.2/24";
+  config.interfaces_ref()[4].ipAddresses_ref()[2] = "5.1.1.10/24";
+  config.interfaces_ref()[4].ipAddresses_ref()[3] = "::1/48";
+  config.interfaces_ref()[5].intfID_ref() = 6;
+  config.interfaces_ref()[5].vlanID_ref() = 6;
+  config.interfaces_ref()[5].routerID_ref() = 1;
+  config.interfaces_ref()[5].mac_ref() = "00:00:00:00:00:66";
+  config.interfaces_ref()[5].ipAddresses_ref()->resize(2);
+  config.interfaces_ref()[5].ipAddresses_ref()[0] = "5.1.1.1/24";
+  config.interfaces_ref()[5].ipAddresses_ref()[1] = "::1/48";
+
+  auto platform = this->sw_->getPlatform();
+  auto rib = this->sw_->getRib();
+  XLOG(INFO) << " RIB: " << (rib ? "YES" : "NO");
+  auto stateV0 = this->sw_->getState();
+  auto stateV1 =
+      publishAndApplyConfig(this->sw_->getState(), &config, platform, rib);
+
+  ASSERT_NE(nullptr, stateV1);
+  stateV1->publish();
+
+  checkChangedRoute(
+      TypeParam::hasStandAloneRib,
+      stateV0,
+      stateV1,
+      {},
+      {
+          TEMP::Route{0, IPAddress("5.1.1.0"), 24},
+          TEMP::Route{0, IPAddress("::0"), 48},
+          TEMP::Route{1, IPAddress("5.1.1.0"), 24},
+          TEMP::Route{1, IPAddress("::0"), 48},
+          TEMP::Route{1, IPAddress("fe80::"), 64},
+      },
+      {});
+  // change an interface address
+  config.interfaces_ref()[4].ipAddresses_ref()[3] = "11::11/48";
+
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform, rib);
+  ASSERT_NE(nullptr, stateV2);
+  stateV2->publish();
+
+  checkChangedRoute(
+      TypeParam::hasStandAloneRib,
+      stateV1,
+      stateV2,
+      {},
+      {TEMP::Route{0, IPAddress("11::0"), 48}},
+      {TEMP::Route{0, IPAddress("::0"), 48}});
+
+  // move one interface to cause same route prefix conflict
+  config.interfaces_ref()[5].routerID_ref() = 0;
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV2, &config, platform, rib), FbossError);
+
+  // add a new interface in a new VRF
+  config.vlans_ref()->resize(7);
+  config.vlans_ref()[6].id_ref() = 7;
+  config.interfaces_ref()->resize(7);
+  config.interfaces_ref()[6].intfID_ref() = 7;
+  config.interfaces_ref()[6].vlanID_ref() = 7;
+  config.interfaces_ref()[6].routerID_ref() = 2;
+  config.interfaces_ref()[6].mac_ref() = "00:00:00:00:00:77";
+  config.interfaces_ref()[6].ipAddresses_ref()->resize(2);
+  config.interfaces_ref()[6].ipAddresses_ref()[0] = "1.1.1.1/24";
+  config.interfaces_ref()[6].ipAddresses_ref()[1] = "::1/48";
+  // and move one interface to another vrf and fix the address conflict
+  config.interfaces_ref()[5].routerID_ref() = 0;
+  config.interfaces_ref()[5].ipAddresses_ref()->resize(2);
+  config.interfaces_ref()[5].ipAddresses_ref()[0] = "5.2.2.1/24";
+  config.interfaces_ref()[5].ipAddresses_ref()[1] = "5::6/48";
+
+  auto stateV3 = publishAndApplyConfig(stateV2, &config, platform, rib);
+  ASSERT_NE(nullptr, stateV3);
+  checkChangedRoute(
+      TypeParam::hasStandAloneRib,
+      stateV2,
+      stateV3,
+      {},
+      {
+          TEMP::Route{0, IPAddress("5.2.2.0"), 24},
+          TEMP::Route{0, IPAddress("5::0"), 48},
+          TEMP::Route{2, IPAddress("1.1.1.0"), 24},
+          TEMP::Route{2, IPAddress("::0"), 48},
+          TEMP::Route{2, IPAddress("fe80::"), 64},
+      },
+      {
+          TEMP::Route{1, IPAddress("5.1.1.0"), 24},
+          TEMP::Route{1, IPAddress("::0"), 48},
+          TEMP::Route{1, IPAddress("fe80::"), 64},
+      });
+
+  // re-apply the same configure generates no change
+  auto stateV4 = publishAndApplyConfig(stateV3, &config, platform, rib);
+  if (stateV4) {
+    // FIXME - reapplying the same config on standalone rib should yield null,
+    // but it does result in new state. The state delta is empty though, so
+    // no change will be programmed down
+    checkChangedRoute(
+        TypeParam::hasStandAloneRib, stateV3, stateV4, {}, {}, {});
+  }
+}
+
+TYPED_TEST(RouteTest, changedRoutesPostUpdate) {
+  auto rid = RouterID(0);
+  RouteNextHopSet nexthops = makeNextHops(
+      {"1.1.1.10", // resolved by intf 1
+       "2::2"}); // resolved by intf 2
+
+  auto state1 = this->sw_->getState();
+  // Add a couple of routes
+  SwSwitchRouteUpdateWrapper u1(this->sw_);
+  u1.addRoute(
+      rid,
+      IPAddress("10.1.1.0"),
+      24,
+      kClientA,
+      RouteNextHopEntry(nexthops, DISTANCE));
+  u1.addRoute(
+      rid,
+      IPAddress("2001::0"),
+      48,
+      kClientA,
+      RouteNextHopEntry(nexthops, DISTANCE));
+  u1.program();
+  auto state2 = this->sw_->getState();
+  // v4 route
+  auto rtV4 = this->findRoute4(state2, rid, "10.1.1.0/24");
+  EXPECT_TRUE(rtV4->isResolved());
+  EXPECT_FALSE(rtV4->isConnected());
+  // v6 route
+  auto rtV6 = this->findRoute6(state2, rid, "2001::/48");
+  EXPECT_TRUE(rtV6->isResolved());
+  EXPECT_FALSE(rtV6->isConnected());
+  checkChangedRoute(
+      TypeParam::hasStandAloneRib,
+      state1,
+      state2,
+      {},
+      {
+          TEMP::Route{0, IPAddress("10.1.1.0"), 24},
+          TEMP::Route{0, IPAddress("2001::0"), 48},
+      },
+      {});
+  // Add 2 more routes
+  SwSwitchRouteUpdateWrapper u2(this->sw_);
+  u2.addRoute(
+      rid,
+      IPAddress("10.10.1.0"),
+      24,
+      kClientA,
+      RouteNextHopEntry(nexthops, DISTANCE));
+  u2.addRoute(
+      rid,
+      IPAddress("2001:10::0"),
+      48,
+      kClientA,
+      RouteNextHopEntry(nexthops, DISTANCE));
+  u2.program();
+  auto state3 = this->sw_->getState();
+  // v4 route
+  rtV4 = this->findRoute4(state3, rid, "10.10.1.0/24");
+  EXPECT_TRUE(rtV4->isResolved());
+  EXPECT_FALSE(rtV4->isConnected());
+  // v6 route
+  rtV6 = this->findRoute6(state3, rid, "2001:10::/48");
+  EXPECT_TRUE(rtV6->isResolved());
+  EXPECT_FALSE(rtV6->isConnected());
+  checkChangedRoute(
+      TypeParam::hasStandAloneRib,
+      state2,
+      state3,
+      {},
+      {
+          TEMP::Route{0, IPAddress("10.10.1.0"), 24},
+          TEMP::Route{0, IPAddress("2001:10::"), 48},
+      },
+      {});
+}
+
 // Test interface routes when we have more than one address per
 // address family in an interface
 template <typename StandAloneRib>
