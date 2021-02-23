@@ -785,3 +785,41 @@ TYPED_TEST(MultipleAddressInterfaceTest, twoAddrsForInterface) {
     EXPECT_FWD_INFO(rt, InterfaceID(1), "1::2");
   }
 }
+
+template <typename StandAloneRib>
+class StaticRoutesTest : public RouteTest<StandAloneRib> {
+ public:
+  cfg::SwitchConfig initialConfig() const override {
+    auto config = RouteTest<StandAloneRib>::initialConfig();
+    // Add v4/v6 static routes with nhops
+    config.staticRoutesWithNhops_ref()->resize(2);
+    config.staticRoutesWithNhops_ref()[0].nexthops_ref()->resize(1);
+    config.staticRoutesWithNhops_ref()[0].prefix_ref() = "2001::/64";
+    config.staticRoutesWithNhops_ref()[0].nexthops_ref()[0] = "2::2";
+    config.staticRoutesWithNhops_ref()[1].nexthops_ref()->resize(1);
+    config.staticRoutesWithNhops_ref()[1].prefix_ref() = "20.20.20.0/24";
+    config.staticRoutesWithNhops_ref()[1].nexthops_ref()[0] = "2.2.2.3";
+
+    auto insertStaticNoNhopRoutes = [=](auto& staticRouteNoNhops,
+                                        int prefixStartIdx) {
+      staticRouteNoNhops.resize(2);
+      staticRouteNoNhops[0].prefix_ref() =
+          folly::sformat("240{}::/64", prefixStartIdx);
+      staticRouteNoNhops[1].prefix_ref() =
+          folly::sformat("30.30.{}.0/24", prefixStartIdx);
+    };
+    // Add v4/v6 static routes to CPU/NULL
+    insertStaticNoNhopRoutes(*config.staticRoutesToCPU_ref(), 1);
+    insertStaticNoNhopRoutes(*config.staticRoutesToNull_ref(), 2);
+
+    return config;
+  }
+};
+TYPED_TEST_CASE(StaticRoutesTest, RouteTestTypes);
+
+TYPED_TEST(StaticRoutesTest, staticRoutesGetApplied) {
+  auto [numV4Routes, numV6Routes] =
+      getRouteCount(TypeParam::hasStandAloneRib, this->sw_->getState());
+  EXPECT_EQ(8, numV4Routes);
+  EXPECT_EQ(9, numV6Routes);
+}
