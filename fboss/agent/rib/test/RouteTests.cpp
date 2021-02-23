@@ -304,7 +304,7 @@ TEST(Route, delRoutes) {
       IPAddress("22.22.22.22"),
       32,
       kClientB,
-      RouteNextHopEntry(TO_CPU, kDistance));
+      RouteNextHopEntry(RouteForwardAction::TO_CPU, kDistance));
   u1.updateDone();
 
   // Both routes should be present
@@ -313,7 +313,7 @@ TEST(Route, delRoutes) {
   EXPECT_NE(
       v4Routes.end(), v4Routes.exactMatch(prefix22.network, prefix22.mask));
 
-  // delRoute() should work for the route with TO_CPU.
+  // delRoute() should work for the route with RouteForwardAction::TO_CPU.
   RouteUpdater u2(&v4Routes, &v6Routes);
   u2.delRoute(IPAddress("22.22.22.22"), 32, kClientB);
   u2.updateDone();
@@ -644,9 +644,12 @@ TEST(Route, dropRoutes) {
       IPAddress("10.10.10.10"),
       32,
       kClientA,
-      RouteNextHopEntry(DROP, kDistance));
+      RouteNextHopEntry(RouteForwardAction::DROP, kDistance));
   u1.addRoute(
-      IPAddress("2001::0"), 128, kClientA, RouteNextHopEntry(DROP, kDistance));
+      IPAddress("2001::0"),
+      128,
+      kClientA,
+      RouteNextHopEntry(RouteForwardAction::DROP, kDistance));
   // Check recursive resolution for drop routes
   RouteNextHopSet v4nexthops = makeNextHops({"10.10.10.10"});
   u1.addRoute(
@@ -667,25 +670,36 @@ TEST(Route, dropRoutes) {
   auto r1 = getRoute(v4Routes, "10.10.10.10/32");
   EXPECT_RESOLVED(r1);
   EXPECT_FALSE(r1->isConnected());
-  EXPECT_TRUE(r1->has(kClientA, RouteNextHopEntry(DROP, kDistance)));
-  EXPECT_EQ(r1->getForwardInfo(), RouteNextHopEntry(DROP, kDistance));
+  EXPECT_TRUE(r1->has(
+      kClientA, RouteNextHopEntry(RouteForwardAction::DROP, kDistance)));
+  EXPECT_EQ(
+      r1->getForwardInfo(),
+      RouteNextHopEntry(RouteForwardAction::DROP, kDistance));
 
   auto r2 = getRoute(v4Routes, "20.20.20.0/24");
   EXPECT_RESOLVED(r2);
   EXPECT_FALSE(r2->isConnected());
-  EXPECT_FALSE(r2->has(kClientA, RouteNextHopEntry(DROP, kDistance)));
-  EXPECT_EQ(r2->getForwardInfo(), RouteNextHopEntry(DROP, kDistance));
+  EXPECT_FALSE(r2->has(
+      kClientA, RouteNextHopEntry(RouteForwardAction::DROP, kDistance)));
+  EXPECT_EQ(
+      r2->getForwardInfo(),
+      RouteNextHopEntry(RouteForwardAction::DROP, kDistance));
 
   auto r3 = getRoute(v6Routes, "2001::0/128");
   EXPECT_RESOLVED(r3);
   EXPECT_FALSE(r3->isConnected());
-  EXPECT_TRUE(r3->has(kClientA, RouteNextHopEntry(DROP, kDistance)));
-  EXPECT_EQ(r3->getForwardInfo(), RouteNextHopEntry(DROP, kDistance));
+  EXPECT_TRUE(r3->has(
+      kClientA, RouteNextHopEntry(RouteForwardAction::DROP, kDistance)));
+  EXPECT_EQ(
+      r3->getForwardInfo(),
+      RouteNextHopEntry(RouteForwardAction::DROP, kDistance));
 
   auto r4 = getRoute(v6Routes, "2001:1::/64");
   EXPECT_RESOLVED(r4);
   EXPECT_FALSE(r4->isConnected());
-  EXPECT_EQ(r4->getForwardInfo(), RouteNextHopEntry(DROP, kDistance));
+  EXPECT_EQ(
+      r4->getForwardInfo(),
+      RouteNextHopEntry(RouteForwardAction::DROP, kDistance));
 }
 
 TEST(Route, toCPURoutes) {
@@ -697,12 +711,12 @@ TEST(Route, toCPURoutes) {
       IPAddress("10.10.10.10"),
       32,
       kClientA,
-      RouteNextHopEntry(TO_CPU, kDistance));
+      RouteNextHopEntry(RouteForwardAction::TO_CPU, kDistance));
   u1.addRoute(
       IPAddress("2001::0"),
       128,
       kClientA,
-      RouteNextHopEntry(TO_CPU, kDistance));
+      RouteNextHopEntry(RouteForwardAction::TO_CPU, kDistance));
   // Check recursive resolution for to_cpu routes
   RouteNextHopSet v4nexthops = makeNextHops({"10.10.10.10"});
   u1.addRoute(
@@ -723,24 +737,34 @@ TEST(Route, toCPURoutes) {
   auto r1 = getRoute(v4Routes, "10.10.10.10/32");
   EXPECT_RESOLVED(r1);
   EXPECT_FALSE(r1->isConnected());
-  EXPECT_TRUE(r1->has(kClientA, RouteNextHopEntry(TO_CPU, kDistance)));
-  EXPECT_EQ(r1->getForwardInfo(), RouteNextHopEntry(TO_CPU, kDistance));
+  EXPECT_TRUE(r1->has(
+      kClientA, RouteNextHopEntry(RouteForwardAction::TO_CPU, kDistance)));
+  EXPECT_EQ(
+      r1->getForwardInfo(),
+      RouteNextHopEntry(RouteForwardAction::TO_CPU, kDistance));
 
   auto r2 = getRoute(v4Routes, "20.20.20.0/24");
   EXPECT_RESOLVED(r2);
   EXPECT_FALSE(r2->isConnected());
-  EXPECT_EQ(r2->getForwardInfo(), RouteNextHopEntry(TO_CPU, kDistance));
+  EXPECT_EQ(
+      r2->getForwardInfo(),
+      RouteNextHopEntry(RouteForwardAction::TO_CPU, kDistance));
 
   auto r3 = getRoute(v6Routes, "2001::0/128");
   EXPECT_RESOLVED(r3);
   EXPECT_FALSE(r3->isConnected());
-  EXPECT_TRUE(r3->has(kClientA, RouteNextHopEntry(TO_CPU, kDistance)));
-  EXPECT_EQ(r3->getForwardInfo(), RouteNextHopEntry(TO_CPU, kDistance));
+  EXPECT_TRUE(r3->has(
+      kClientA, RouteNextHopEntry(RouteForwardAction::TO_CPU, kDistance)));
+  EXPECT_EQ(
+      r3->getForwardInfo(),
+      RouteNextHopEntry(RouteForwardAction::TO_CPU, kDistance));
 
   auto r5 = getRoute(v6Routes, "2001:1::/64");
   EXPECT_RESOLVED(r5);
   EXPECT_FALSE(r5->isConnected());
-  EXPECT_EQ(r5->getForwardInfo(), RouteNextHopEntry(TO_CPU, kDistance));
+  EXPECT_EQ(
+      r5->getForwardInfo(),
+      RouteNextHopEntry(RouteForwardAction::TO_CPU, kDistance));
 }
 
 // Very basic test for serialization/deseralization of Routes
