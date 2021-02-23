@@ -16,6 +16,7 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
+#include "fboss/agent/state/RouteNextHopsMulti.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/types.h"
 
@@ -44,4 +45,5 @@ using UnresolvedNextHop = facebook::fboss::UnresolvedNextHop;
 using RouteNextHopEntry = facebook::fboss::RouteNextHopEntry;
 using RouteNextHopSet = RouteNextHopEntry::NextHopSet;
 
+using RouteNextHopsMulti = facebook::fboss::RouteNextHopsMulti;
 } // namespace facebook::fboss::rib

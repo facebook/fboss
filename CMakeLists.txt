@@ -641,7 +641,6 @@ if (NOT SAI_ONLY)
       fboss/agent/rib/ConfigApplier.cpp
       fboss/agent/rib/ForwardingInformationBaseUpdater.cpp
       fboss/agent/rib/Route.cpp
-      fboss/agent/rib/RouteNextHopsMulti.cpp
       fboss/agent/rib/RouteUpdater.cpp
       fboss/agent/rib/RoutingInformationBase.cpp
 

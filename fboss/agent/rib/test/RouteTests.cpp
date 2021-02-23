@@ -404,11 +404,9 @@ TEST(Route, toThriftRouteNextHopsMulti) {
   auto clientAndNexthops = nhm1.toThrift();
   EXPECT_EQ(3, clientAndNexthops.size());
   for (auto const& entry : clientAndNexthops) {
+    // We only check next hops and not nextHopAddrs, since the latter was
+    // deprecated
     EXPECT_GE(entry.nextHops.size(), 1);
-    ASSERT_EQ(entry.nextHops.size(), entry.nextHopAddrs.size());
-    for (auto i = 0; i < entry.nextHops.size(); ++i) {
-      EXPECT_EQ(entry.nextHopAddrs.at(i), *entry.nextHops.at(i).address_ref());
-    }
   }
 }
 
