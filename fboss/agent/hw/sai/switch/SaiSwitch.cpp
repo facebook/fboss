@@ -506,22 +506,20 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
         &SaiRouteManager::removeRoute<folly::IPAddressV6>,
         rid);
   };
-  if (FLAGS_enable_standalone_rib) {
-    for (const auto& routeDelta : delta.getFibsDelta()) {
-      auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
-                                          : routeDelta.getNew()->getID();
-      processV4RoutesDelta(
-          routerID, routeDelta.getFibDelta<folly::IPAddressV4>());
-      processV6RoutesDelta(
-          routerID, routeDelta.getFibDelta<folly::IPAddressV6>());
-    }
-  } else {
-    for (const auto& routeDelta : delta.getRouteTablesDelta()) {
-      auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
-                                          : routeDelta.getNew()->getID();
-      processV4RoutesDelta(routerID, routeDelta.getRoutesV4Delta());
-      processV6RoutesDelta(routerID, routeDelta.getRoutesV6Delta());
-    }
+  CHECK(!bothStandAloneRibOrRouteTableRibUsed(delta));
+  for (const auto& routeDelta : delta.getFibsDelta()) {
+    auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
+                                        : routeDelta.getNew()->getID();
+    processV4RoutesDelta(
+        routerID, routeDelta.getFibDelta<folly::IPAddressV4>());
+    processV6RoutesDelta(
+        routerID, routeDelta.getFibDelta<folly::IPAddressV6>());
+  }
+  for (const auto& routeDelta : delta.getRouteTablesDelta()) {
+    auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
+                                        : routeDelta.getNew()->getID();
+    processV4RoutesDelta(routerID, routeDelta.getRoutesV4Delta());
+    processV6RoutesDelta(routerID, routeDelta.getRoutesV6Delta());
   }
   {
     auto controlPlaneDelta = delta.getControlPlaneDelta();
