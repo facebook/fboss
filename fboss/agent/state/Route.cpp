@@ -48,23 +48,21 @@ bool RouteFields<AddrT>::operator==(const RouteFields& rf) const {
 }
 
 template <typename AddrT>
-folly::dynamic Route<AddrT>::toFollyDynamic() const {
+folly::dynamic RouteFields<AddrT>::toFollyDynamic() const {
   folly::dynamic routeFields = folly::dynamic::object;
-  routeFields[kPrefix] = RouteBase::getFields()->prefix.toFollyDynamic();
-  routeFields[kNextHopsMulti] =
-      RouteBase::getFields()->nexthopsmulti.toFollyDynamic();
-  routeFields[kFwdInfo] = RouteBase::getFields()->fwd.toFollyDynamic();
-  routeFields[kFlags] = RouteBase::getFields()->flags;
-  if (RouteBase::getFields()->classID.has_value()) {
-    routeFields[kClassID] =
-        static_cast<int>(RouteBase::getFields()->classID.value());
+  routeFields[kPrefix] = prefix.toFollyDynamic();
+  routeFields[kNextHopsMulti] = nexthopsmulti.toFollyDynamic();
+  routeFields[kFwdInfo] = fwd.toFollyDynamic();
+  routeFields[kFlags] = flags;
+  if (classID.has_value()) {
+    routeFields[kClassID] = static_cast<int>(classID.value());
   }
 
   return routeFields;
 }
 
 template <typename AddrT>
-std::shared_ptr<Route<AddrT>> Route<AddrT>::fromFollyDynamic(
+RouteFields<AddrT> RouteFields<AddrT>::fromFollyDynamic(
     const folly::dynamic& routeJson) {
   RouteFields<AddrT> rt(Prefix::fromFollyDynamic(routeJson[kPrefix]));
   rt.nexthopsmulti =
@@ -74,41 +72,50 @@ std::shared_ptr<Route<AddrT>> Route<AddrT>::fromFollyDynamic(
   if (routeJson.find(kClassID) != routeJson.items().end()) {
     rt.classID = cfg::AclLookupClass(routeJson[kClassID].asInt());
   }
-
-  auto route = std::make_shared<Route<AddrT>>(rt);
-  return route;
+  return rt;
 }
 
 template <typename AddrT>
 RouteDetails RouteFields<AddrT>::toRouteDetails() const {
   RouteDetails rd;
   // Add the prefix
-  rd.dest.ip = toBinaryAddress(prefix.network);
-  rd.dest.prefixLength = prefix.mask;
+  rd.dest_ref()->ip_ref() = toBinaryAddress(prefix.network);
+  rd.dest_ref()->prefixLength_ref() = prefix.mask;
   // Add the action
-  rd.action = forwardActionStr(fwd.getAction());
+  rd.action_ref() = forwardActionStr(fwd.getAction());
   // Add the forwarding info
   for (const auto& nh : fwd.getNextHopSet()) {
     IfAndIP ifAndIp;
     ifAndIp.interfaceID = nh.intf();
     ifAndIp.ip = toBinaryAddress(nh.addr());
-    rd.fwdInfo.push_back(ifAndIp);
+    rd.fwdInfo_ref()->push_back(ifAndIp);
     rd.nextHops_ref()->push_back(nh.toThrift());
   }
 
   // Add the multi-nexthops
-  rd.nextHopMulti = nexthopsmulti.toThrift();
+  rd.nextHopMulti_ref() = nexthopsmulti.toThrift();
+  rd.isConnected_ref() = isConnected();
   return rd;
 }
 
-template class RouteFields<folly::IPAddressV4>;
-template class RouteFields<folly::IPAddressV6>;
+template <typename AddrT>
+void RouteFields<AddrT>::update(ClientID clientId, RouteNextHopEntry entry) {
+  fwd.reset();
+  nexthopsmulti.update(clientId, std::move(entry));
+}
+template <typename AddrT>
+
+bool RouteFields<AddrT>::has(ClientID clientId, const RouteNextHopEntry& entry)
+    const {
+  auto found = nexthopsmulti.getEntryForClient(clientId);
+  return found and (*found) == entry;
+}
 
 template <typename AddrT>
-std::string Route<AddrT>::str() const {
+std::string RouteFields<AddrT>::str() const {
   std::string ret;
-  ret = folly::to<string>(prefix(), '@');
-  ret.append(RouteBase::getFields()->nexthopsmulti.str());
+  ret = folly::to<string>(prefix, '@');
+  ret.append(nexthopsmulti.str());
   ret.append(" State:");
   if (isConnected()) {
     ret.append("C");
@@ -123,10 +130,10 @@ std::string Route<AddrT>::str() const {
     ret.append("P");
   }
   ret.append(", => ");
-  ret.append(RouteBase::getFields()->fwd.str());
+  ret.append(fwd.str());
 
-  auto classIDStr = getClassID().has_value()
-      ? folly::to<std::string>(static_cast<int>(getClassID().value()))
+  auto classIDStr = classID.has_value()
+      ? folly::to<std::string>(static_cast<int>(classID.value()))
       : "None";
   ret.append(", classID: ");
   ret.append(classIDStr);
@@ -135,23 +142,12 @@ std::string Route<AddrT>::str() const {
 }
 
 template <typename AddrT>
-void Route<AddrT>::update(ClientID clientId, RouteNextHopEntry entry) {
-  RouteBase::writableFields()->fwd.reset();
-  RouteBase::writableFields()->nexthopsmulti.update(clientId, std::move(entry));
+void RouteFields<AddrT>::delEntryForClient(ClientID clientId) {
+  nexthopsmulti.delEntryForClient(clientId);
 }
 
-template <typename AddrT>
-void Route<AddrT>::updateClassID(std::optional<cfg::AclLookupClass> classID) {
-  RouteBase::writableFields()->classID = classID;
-}
-
-template <typename AddrT>
-bool Route<AddrT>::has(ClientID clientId, const RouteNextHopEntry& entry)
-    const {
-  auto found =
-      RouteBase::getFields()->nexthopsmulti.getEntryForClient(clientId);
-  return found and (*found) == entry;
-}
+template struct RouteFields<folly::IPAddressV4>;
+template struct RouteFields<folly::IPAddressV6>;
 
 template <typename AddrT>
 bool Route<AddrT>::isSame(const Route<AddrT>* rt) const {
@@ -159,26 +155,10 @@ bool Route<AddrT>::isSame(const Route<AddrT>* rt) const {
 }
 
 template <typename AddrT>
-void Route<AddrT>::delEntryForClient(ClientID clientId) {
-  RouteBase::writableFields()->nexthopsmulti.delEntryForClient(clientId);
-}
-
-template <typename AddrT>
-void Route<AddrT>::setResolved(RouteNextHopEntry fwd) {
-  RouteBase::writableFields()->fwd = std::move(fwd);
-  setFlagsResolved();
-}
-
-template <typename AddrT>
-void Route<AddrT>::setUnresolvable() {
-  RouteBase::writableFields()->fwd.reset();
-  setFlagsUnresolvable();
-}
-
-template <typename AddrT>
-void Route<AddrT>::clearForward() {
-  RouteBase::writableFields()->fwd.reset();
-  clearForwardInFlags();
+std::shared_ptr<Route<AddrT>> Route<AddrT>::fromFollyDynamic(
+    const folly::dynamic& routeJson) {
+  return std::make_shared<Route<AddrT>>(
+      RouteFields<AddrT>::fromFollyDynamic(routeJson));
 }
 
 template class Route<folly::IPAddressV4>;
