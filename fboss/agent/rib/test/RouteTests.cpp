@@ -34,10 +34,10 @@ const ClientID kClientE = ClientID(1005);
 using facebook::fboss::ECMP_WEIGHT;
 using rib::IPv4NetworkToRouteMap;
 using rib::IPv6NetworkToRouteMap;
+using rib::RibRouteUpdater;
 using rib::Route;
 using rib::RouteNextHopEntry;
 using rib::RouteNextHopSet;
-using rib::RouteUpdater;
 
 using folly::IPAddress;
 using folly::IPAddressV4;
@@ -124,7 +124,7 @@ namespace facebook::fboss::rib {
 void configRoutes(
     IPv4NetworkToRouteMap* v4Routes,
     IPv6NetworkToRouteMap* v6Routes) {
-  RouteUpdater updater(v4Routes, v6Routes);
+  RibRouteUpdater updater(v4Routes, v6Routes);
 
   updater.addInterfaceRoute(
       folly::IPAddress("1.1.1.1"),
@@ -180,7 +180,7 @@ TEST(Route, modRoutes) {
   IPv4NetworkToRouteMap v4Routes;
   IPv6NetworkToRouteMap v6Routes;
 
-  RouteUpdater u1(&v4Routes, &v6Routes);
+  RibRouteUpdater u1(&v4Routes, &v6Routes);
 
   RouteV4::Prefix prefix10{IPAddressV4("10.10.10.10"), 32};
   RouteV4::Prefix prefix99{IPAddressV4("99.99.99.99"), 32};
@@ -222,7 +222,7 @@ TEST(Route, modRoutes) {
   EXPECT_TRUE(rt10->has(kClientB, RouteNextHopEntry(nexthops2, kDistance)));
   EXPECT_TRUE(rt99->has(kClientA, RouteNextHopEntry(nexthops3, kDistance)));
 
-  RouteUpdater u2(&v4Routes, &v6Routes);
+  RibRouteUpdater u2(&v4Routes, &v6Routes);
   u2.delRoute(IPAddress("10.10.10.10"), 32, kClientA);
   u2.updateDone();
 
@@ -243,7 +243,7 @@ TEST(Route, modRoutes) {
 
   // Delete the second client/nexthop pair.
   // The route & prefix should disappear altogether.
-  RouteUpdater u3(&v4Routes, &v6Routes);
+  RibRouteUpdater u3(&v4Routes, &v6Routes);
   u3.delRoute(IPAddress("10.10.10.10"), 32, kClientB);
   u3.updateDone();
 
@@ -256,7 +256,7 @@ TEST(Route, disallowEmptyNexthops) {
   IPv4NetworkToRouteMap v4Routes;
   IPv6NetworkToRouteMap v6Routes;
 
-  RouteUpdater u1(&v4Routes, &v6Routes);
+  RibRouteUpdater u1(&v4Routes, &v6Routes);
 
   // It's illegal to add an empty nextHops list to a route
 
@@ -288,7 +288,7 @@ TEST(Route, delRoutes) {
   IPv4NetworkToRouteMap v4Routes;
   IPv6NetworkToRouteMap v6Routes;
 
-  RouteUpdater u1(&v4Routes, &v6Routes);
+  RibRouteUpdater u1(&v4Routes, &v6Routes);
 
   RouteV4::Prefix prefix10{IPAddressV4("10.10.10.10"), 32};
   RouteV4::Prefix prefix22{IPAddressV4("22.22.22.22"), 32};
@@ -312,7 +312,7 @@ TEST(Route, delRoutes) {
       v4Routes.end(), v4Routes.exactMatch(prefix22.network, prefix22.mask));
 
   // delRoute() should work for the route with RouteForwardAction::TO_CPU.
-  RouteUpdater u2(&v4Routes, &v6Routes);
+  RibRouteUpdater u2(&v4Routes, &v6Routes);
   u2.delRoute(IPAddress("22.22.22.22"), 32, kClientB);
   u2.updateDone();
 
@@ -527,7 +527,7 @@ void addNextHopsForClient(
     int16_t clientId,
     std::string ipPrefix,
     AdminDistance adminDistance = AdminDistance::MAX_ADMIN_DISTANCE) {
-  RouteUpdater u(&routes, &v6Routes);
+  RibRouteUpdater u(&routes, &v6Routes);
   u.addRoute(
       prefix.network,
       prefix.mask,
@@ -541,7 +541,7 @@ void deleteNextHopsForClient(
     IPv6NetworkToRouteMap& v6Routes,
     RouteV4::Prefix prefix,
     int16_t clientId) {
-  RouteUpdater u(&routes, &v6Routes);
+  RibRouteUpdater u(&routes, &v6Routes);
   u.delRoute(prefix.network, prefix.mask, ClientID(clientId));
   u.updateDone();
 }
@@ -558,7 +558,7 @@ TEST(Route, fwdInfoRanking) {
   RouteV4::Prefix prefix{network, mask};
 
   // Add client 30, plus an interface for resolution.
-  RouteUpdater u1(&v4Routes, &v6Routes);
+  RibRouteUpdater u1(&v4Routes, &v6Routes);
   // This is the route all the others will resolve to.
   u1.addRoute(
       IPAddress("10.10.0.0"),
@@ -635,7 +635,7 @@ TEST(Route, dropRoutes) {
   IPv4NetworkToRouteMap v4Routes;
   IPv6NetworkToRouteMap v6Routes;
 
-  RouteUpdater u1(&v4Routes, &v6Routes);
+  RibRouteUpdater u1(&v4Routes, &v6Routes);
   u1.addRoute(
       IPAddress("10.10.10.10"),
       32,
@@ -702,7 +702,7 @@ TEST(Route, toCPURoutes) {
   IPv4NetworkToRouteMap v4Routes;
   IPv6NetworkToRouteMap v6Routes;
 
-  RouteUpdater u1(&v4Routes, &v6Routes);
+  RibRouteUpdater u1(&v4Routes, &v6Routes);
   u1.addRoute(
       IPAddress("10.10.10.10"),
       32,
@@ -796,7 +796,7 @@ TEST(Route, serializeRouteTable) {
   RouteV6::Prefix r3{IPAddressV6("1001::0"), 48};
   RouteV6::Prefix r4{IPAddressV6("2001::0"), 48};
 
-  RouteUpdater u2(&v4Routes, &v6Routes);
+  RibRouteUpdater u2(&v4Routes, &v6Routes);
   u2.addRoute(
       r1.network, r1.mask, kClientA, RouteNextHopEntry(nhop1, kDistance));
   u2.addRoute(
@@ -978,7 +978,7 @@ TEST(Route, withLabelForwardingAction) {
   IPv4NetworkToRouteMap v4Routes;
   IPv6NetworkToRouteMap v6Routes;
 
-  RouteUpdater updater(&v4Routes, &v6Routes);
+  RibRouteUpdater updater(&v4Routes, &v6Routes);
   updater.addRoute(
       folly::IPAddressV4("1.1.0.0"),
       16,
@@ -1015,7 +1015,7 @@ TEST(Route, withNoLabelForwardingAction) {
   IPv4NetworkToRouteMap v4Routes;
   IPv6NetworkToRouteMap v6Routes;
 
-  RouteUpdater updater(&v4Routes, &v6Routes);
+  RibRouteUpdater updater(&v4Routes, &v6Routes);
 
   updater.addRoute(
       folly::IPAddressV4("1.1.0.0"), 16, kClientA, routeNextHopEntry);
@@ -1069,7 +1069,7 @@ TEST(Route, withInvalidLabelForwardingAction) {
   IPv4NetworkToRouteMap v4Routes;
   IPv6NetworkToRouteMap v6Routes;
 
-  RouteUpdater updater(&v4Routes, &v6Routes);
+  RibRouteUpdater updater(&v4Routes, &v6Routes);
 
   EXPECT_THROW(
       {
@@ -1095,7 +1095,7 @@ class UcmpTest : public ::testing::Test {
   }
   void resolveRoutes(std::vector<std::pair<folly::IPAddress, RouteNextHopSet>>
                          networkAndNextHops) {
-    RouteUpdater ru(&v4Routes_, &v6Routes_);
+    RibRouteUpdater ru(&v4Routes_, &v6Routes_);
     for (const auto& nnhs : networkAndNextHops) {
       folly::IPAddress net = nnhs.first;
       RouteNextHopSet nhs = nnhs.second;

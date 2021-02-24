@@ -41,7 +41,7 @@ ConfigApplier::ConfigApplier(
 }
 
 void ConfigApplier::updateRibAndFib() {
-  RouteUpdater updater(v4NetworkToRoute_, v6NetworkToRoute_);
+  RibRouteUpdater updater(v4NetworkToRoute_, v6NetworkToRoute_);
 
   // Update static routes
   updater.removeAllRoutesForClient(ClientID::STATIC_ROUTE);
@@ -97,7 +97,7 @@ void ConfigApplier::updateRibAndFib() {
 }
 
 void ConfigApplier::addInterfaceRoutes(
-    RouteUpdater* updater,
+    RibRouteUpdater* updater,
     folly::Range<DirectlyConnectedRouteIterator> directlyConnectedRoutesRange) {
   for (const auto& directlyConnectedRoute : directlyConnectedRoutesRange) {
     auto network = directlyConnectedRoute.first;

@@ -24,7 +24,7 @@
 
 namespace facebook::fboss::rib {
 
-class RouteUpdater;
+class RibRouteUpdater;
 
 // I considered templatizing this class by Iterator but decided against it
 // because
@@ -57,7 +57,7 @@ class ConfigApplier {
 
  private:
   void addInterfaceRoutes(
-      RouteUpdater* updater,
+      RibRouteUpdater* updater,
       folly::Range<DirectlyConnectedRouteIterator>
           directlyConnectedRoutesRange);
 

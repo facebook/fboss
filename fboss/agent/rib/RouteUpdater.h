@@ -21,9 +21,9 @@
 namespace facebook::fboss::rib {
 
 /**
- * Expected behavior of RouteUpdater::resolve():
+ * Expected behavior of RibRouteUpdater::resolve():
  *
- * RouteUpdater::resolve() resolves the route table forwarding information
+ * RibRouteUpdater::resolve() resolves the route table forwarding information
  * based on the RIB, by doing recursively route table lookup. At the end of
  * the process, every route will be either unresolved or resolved with a
  * ECMP group.
@@ -44,9 +44,9 @@ namespace facebook::fboss::rib {
  * 5. If and only if TO_CPU is the only nexthop (directly or indirectly) of
  *    a route, TO_CPU action will be only path in the resolved ECMP group.
  */
-class RouteUpdater {
+class RibRouteUpdater {
  public:
-  RouteUpdater(
+  RibRouteUpdater(
       IPv4NetworkToRouteMap* v4Routes,
       IPv6NetworkToRouteMap* v6Routes);
 

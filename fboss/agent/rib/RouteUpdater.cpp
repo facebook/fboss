@@ -35,13 +35,13 @@ namespace facebook::fboss::rib {
 static const PrefixV6 kIPv6LinkLocalPrefix{folly::IPAddressV6("fe80::"), 64};
 static const auto kInterfaceRouteClientId = ClientID::INTERFACE_ROUTE;
 
-RouteUpdater::RouteUpdater(
+RibRouteUpdater::RibRouteUpdater(
     IPv4NetworkToRouteMap* v4Routes,
     IPv6NetworkToRouteMap* v6Routes)
     : v4Routes_(v4Routes), v6Routes_(v6Routes) {}
 
 template <typename AddressT>
-void RouteUpdater::addRouteImpl(
+void RibRouteUpdater::addRouteImpl(
     const Prefix<AddressT>& prefix,
     NetworkToRouteMap<AddressT>* routes,
     ClientID clientID,
@@ -63,7 +63,7 @@ void RouteUpdater::addRouteImpl(
       prefix.network, prefix.mask, Route<AddressT>(prefix, clientID, entry));
 }
 
-void RouteUpdater::addRoute(
+void RibRouteUpdater::addRoute(
     const folly::IPAddress& network,
     uint8_t mask,
     ClientID clientID,
@@ -81,7 +81,7 @@ void RouteUpdater::addRoute(
   }
 }
 
-void RouteUpdater::addInterfaceRoute(
+void RibRouteUpdater::addInterfaceRoute(
     const folly::IPAddress& network,
     uint8_t mask,
     const folly::IPAddress& address,
@@ -92,7 +92,7 @@ void RouteUpdater::addInterfaceRoute(
   addRoute(network, mask, ClientID::INTERFACE_ROUTE, nextHop);
 }
 
-void RouteUpdater::addLinkLocalRoutes() {
+void RibRouteUpdater::addLinkLocalRoutes() {
   // 169.254/16 is treated as link-local only by convention. Like other vendors,
   // we choose to route 169.254/16.
   addRouteImpl(
@@ -103,12 +103,12 @@ void RouteUpdater::addLinkLocalRoutes() {
           RouteForwardAction::TO_CPU, AdminDistance::DIRECTLY_CONNECTED));
 }
 
-void RouteUpdater::delLinkLocalRoutes() {
+void RibRouteUpdater::delLinkLocalRoutes() {
   delRouteImpl(kIPv6LinkLocalPrefix, v6Routes_, ClientID::LINKLOCAL_ROUTE);
 }
 
 template <typename AddressT>
-void RouteUpdater::delRouteImpl(
+void RibRouteUpdater::delRouteImpl(
     const Prefix<AddressT>& prefix,
     NetworkToRouteMap<AddressT>* routes,
     ClientID clientID) {
@@ -131,7 +131,7 @@ void RouteUpdater::delRouteImpl(
   }
 }
 
-void RouteUpdater::delRoute(
+void RibRouteUpdater::delRoute(
     const folly::IPAddress& network,
     uint8_t mask,
     ClientID clientID) {
@@ -146,7 +146,7 @@ void RouteUpdater::delRoute(
 }
 
 template <typename AddressT>
-void RouteUpdater::removeAllRoutesFromClientImpl(
+void RibRouteUpdater::removeAllRoutesFromClientImpl(
     NetworkToRouteMap<AddressT>* routes,
     ClientID clientID) {
   std::vector<typename NetworkToRouteMap<AddressT>::Iterator> toDelete;
@@ -166,7 +166,7 @@ void RouteUpdater::removeAllRoutesFromClientImpl(
   }
 }
 
-void RouteUpdater::removeAllRoutesForClient(ClientID clientID) {
+void RibRouteUpdater::removeAllRoutesForClient(ClientID clientID) {
   removeAllRoutesFromClientImpl<IPAddressV4>(v4Routes_, clientID);
   removeAllRoutesFromClientImpl<IPAddressV6>(v6Routes_, clientID);
 }
@@ -381,7 +381,7 @@ RouteNextHopSet mergeForwardInfos(
 } // anonymous namespace
 
 template <typename AddressT>
-void RouteUpdater::getFwdInfoFromNhop(
+void RibRouteUpdater::getFwdInfoFromNhop(
     NetworkToRouteMap<AddressT>* routes,
     const AddressT& nh,
     const std::optional<LabelForwardingAction>& labelAction,
@@ -437,7 +437,7 @@ void RouteUpdater::getFwdInfoFromNhop(
 }
 
 template <typename AddressT>
-void RouteUpdater::resolveOne(Route<AddressT>* route) {
+void RibRouteUpdater::resolveOne(Route<AddressT>* route) {
   // mark this route is in processing. This processing bit shall be cleared
   // in setUnresolvable() or setResolved()
   route->setProcessing();
@@ -517,7 +517,7 @@ void RouteUpdater::resolveOne(Route<AddressT>* route) {
 }
 
 template <typename AddressT>
-void RouteUpdater::resolve(NetworkToRouteMap<AddressT>* routes) {
+void RibRouteUpdater::resolve(NetworkToRouteMap<AddressT>* routes) {
   for (auto& entry : *routes) {
     Route<AddressT>* route = &(entry.value());
     if (route->needResolve()) {
@@ -527,7 +527,7 @@ void RouteUpdater::resolve(NetworkToRouteMap<AddressT>* routes) {
 }
 
 template <typename AddressT>
-void RouteUpdater::updateDoneImpl(NetworkToRouteMap<AddressT>* routes) {
+void RibRouteUpdater::updateDoneImpl(NetworkToRouteMap<AddressT>* routes) {
   for (auto& entry : *routes) {
     Route<AddressT>& route = entry.value();
     route.clearForward();
@@ -535,7 +535,7 @@ void RouteUpdater::updateDoneImpl(NetworkToRouteMap<AddressT>* routes) {
   resolve(routes);
 }
 
-void RouteUpdater::updateDone() {
+void RibRouteUpdater::updateDone() {
   updateDoneImpl(v4Routes_);
   updateDoneImpl(v6Routes_);
 }

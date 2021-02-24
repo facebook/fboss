@@ -143,7 +143,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
       throw FbossError("VRF ", routerID, " not configured");
     }
 
-    RouteUpdater updater(
+    RibRouteUpdater updater(
         &(it->second.v4NetworkToRoute), &(it->second.v6NetworkToRoute));
 
     if (resetClientsRoutes) {
