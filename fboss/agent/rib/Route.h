@@ -20,13 +20,6 @@
 #include <boost/container/flat_set.hpp>
 #include <memory>
 
-namespace facebook::fboss {
-
-template <typename AddressT>
-class Route;
-
-} // namespace facebook::fboss
-
 namespace facebook::fboss::rib {
 
 template <typename AddrT>

@@ -60,6 +60,8 @@ class ResolvedNexthopMonitor;
 class ResolvedNexthopProbeScheduler;
 class StaticL2ForNeighborObserver;
 class MKAServiceManager;
+template <typename AddressT>
+class Route;
 
 enum class SwitchFlags : int {
   DEFAULT = 0,
