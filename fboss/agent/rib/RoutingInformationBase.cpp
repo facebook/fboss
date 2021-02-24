@@ -39,7 +39,7 @@ class Timer {
 };
 } // namespace
 
-namespace facebook::fboss::rib {
+namespace facebook::fboss {
 
 RoutingInformationBase::RoutingInformationBase() {
   ribUpdateThread_ = std::make_unique<std::thread>([this] {
@@ -342,4 +342,4 @@ bool RoutingInformationBase::operator==(
   return *routeTables == *otherTables;
 }
 
-} // namespace facebook::fboss::rib
+} // namespace facebook::fboss

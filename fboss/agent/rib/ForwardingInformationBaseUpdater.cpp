@@ -20,7 +20,7 @@
 
 #include <algorithm>
 
-namespace facebook::fboss::rib {
+namespace facebook::fboss {
 
 ForwardingInformationBaseUpdater::ForwardingInformationBaseUpdater(
     RouterID vrf,
@@ -74,7 +74,7 @@ std::shared_ptr<SwitchState> ForwardingInformationBaseUpdater::operator()(
 template <typename AddressT>
 std::shared_ptr<typename facebook::fboss::ForwardingInformationBase<AddressT>>
 ForwardingInformationBaseUpdater::createUpdatedFib(
-    const facebook::fboss::rib::NetworkToRouteMap<AddressT>& rib,
+    const facebook::fboss::NetworkToRouteMap<AddressT>& rib,
     const std::shared_ptr<facebook::fboss::ForwardingInformationBase<AddressT>>&
         fib) {
   typename facebook::fboss::ForwardingInformationBase<
@@ -82,7 +82,7 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
 
   bool updated = false;
   for (const auto& entry : rib) {
-    const facebook::fboss::rib::RibRoute<AddressT>& ribRoute = entry.value();
+    const facebook::fboss::RibRoute<AddressT>& ribRoute = entry.value();
 
     if (!ribRoute.isResolved()) {
       // The recursive resolution algorithm considers a next-hop TO_CPU or
@@ -141,15 +141,15 @@ facebook::fboss::RouteNextHopEntry
 ForwardingInformationBaseUpdater::toFibNextHop(
     const RouteNextHopEntry& ribNextHopEntry) {
   switch (ribNextHopEntry.getAction()) {
-    case facebook::fboss::rib::RouteNextHopEntry::Action::DROP:
+    case facebook::fboss::RouteNextHopEntry::Action::DROP:
       return facebook::fboss::RouteNextHopEntry(
           facebook::fboss::RouteNextHopEntry::Action::DROP,
           ribNextHopEntry.getAdminDistance());
-    case facebook::fboss::rib::RouteNextHopEntry::Action::TO_CPU:
+    case facebook::fboss::RouteNextHopEntry::Action::TO_CPU:
       return facebook::fboss::RouteNextHopEntry(
           facebook::fboss::RouteNextHopEntry::Action::TO_CPU,
           ribNextHopEntry.getAdminDistance());
-    case facebook::fboss::rib::RouteNextHopEntry::Action::NEXTHOPS: {
+    case facebook::fboss::RouteNextHopEntry::Action::NEXTHOPS: {
       facebook::fboss::RouteNextHopEntry::NextHopSet fibNextHopSet;
       for (const auto& ribNextHop : ribNextHopEntry.getNextHopSet()) {
         fibNextHopSet.insert(facebook::fboss::ResolvedNextHop(
@@ -198,4 +198,4 @@ ForwardingInformationBaseUpdater::toFibRoute<folly::IPAddressV6>(
     const RibRoute<folly::IPAddressV6>&,
     const std::shared_ptr<facebook::fboss::Route<folly::IPAddressV6>>&);
 
-} // namespace facebook::fboss::rib
+} // namespace facebook::fboss

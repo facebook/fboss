@@ -18,8 +18,8 @@ class SwSwitch;
 
 void swSwitchFibUpdate(
     facebook::fboss::RouterID vrf,
-    const facebook::fboss::rib::IPv4NetworkToRouteMap& v4NetworkToRoute,
-    const facebook::fboss::rib::IPv6NetworkToRouteMap& v6NetworkToRoute,
+    const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
+    const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
     void* cookie);
 
 class SwSwitchRouteUpdateWrapper : public RouteUpdateWrapper {
@@ -27,11 +27,11 @@ class SwSwitchRouteUpdateWrapper : public RouteUpdateWrapper {
   explicit SwSwitchRouteUpdateWrapper(SwSwitch* sw);
 
  private:
-  rib::RoutingInformationBase* getRib() override;
+  RoutingInformationBase* getRib() override;
 
   AdminDistance clientIdToAdminDistance(ClientID clientID) const override;
   void updateStats(
-      const rib::RoutingInformationBase::UpdateStatistics& stats) override;
+      const RoutingInformationBase::UpdateStatistics& stats) override;
   void programLegacyRib() override;
   void programClassIDLegacyRib(
       RouterID rid,

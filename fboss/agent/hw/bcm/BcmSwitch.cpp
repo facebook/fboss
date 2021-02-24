@@ -856,7 +856,7 @@ HwInitResult BcmSwitch::init(
     warmBootCache_->populate(switchStateJson);
   }
   if (FLAGS_enable_standalone_rib && !ret.rib) {
-    ret.rib = std::make_unique<rib::RoutingInformationBase>();
+    ret.rib = std::make_unique<RoutingInformationBase>();
   }
   setupToCpuEgress();
   portTable_->initPorts(&pcfg, warmBoot);

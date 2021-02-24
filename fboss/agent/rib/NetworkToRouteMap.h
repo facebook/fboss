@@ -17,7 +17,7 @@
 
 #include <memory>
 
-namespace facebook::fboss::rib {
+namespace facebook::fboss {
 
 template <typename AddressT>
 class NetworkToRouteMap
@@ -53,4 +53,4 @@ class NetworkToRouteMap
 using IPv4NetworkToRouteMap = NetworkToRouteMap<folly::IPAddressV4>;
 using IPv6NetworkToRouteMap = NetworkToRouteMap<folly::IPAddressV6>;
 
-} // namespace facebook::fboss::rib
+} // namespace facebook::fboss

@@ -27,18 +27,18 @@ DEFINE_bool(
 
 namespace facebook::fboss {
 
-std::unique_ptr<rib::RoutingInformationBase> switchStateToStandaloneRib(
+std::unique_ptr<RoutingInformationBase> switchStateToStandaloneRib(
     const std::shared_ptr<RouteTableMap>& swStateRib) {
   auto serializedSwState = swStateRib->toFollyDynamic();
   folly::dynamic serialized = folly::dynamic::object;
   for (const auto& entry : serializedSwState[kEntries]) {
     serialized[folly::to<std::string>(entry[kRouterId].asInt())] = entry;
   }
-  return rib::RoutingInformationBase::fromFollyDynamic(serialized);
+  return RoutingInformationBase::fromFollyDynamic(serialized);
 }
 
 std::shared_ptr<RouteTableMap> standaloneToSwitchStateRib(
-    const rib::RoutingInformationBase& standaloneRib) {
+    const RoutingInformationBase& standaloneRib) {
   auto serializedRib = standaloneRib.toFollyDynamic();
   folly::dynamic serialized = folly::dynamic::object;
   serialized[kExtraFields] = folly::dynamic::object;
@@ -49,9 +49,7 @@ std::shared_ptr<RouteTableMap> standaloneToSwitchStateRib(
   return RouteTableMap::fromFollyDynamic(serialized);
 }
 
-void programRib(
-    rib::RoutingInformationBase& standaloneRib,
-    SwSwitch* swSwitch) {
+void programRib(RoutingInformationBase& standaloneRib, SwSwitch* swSwitch) {
   for (auto routerID : standaloneRib.getVrfList()) {
     standaloneRib.update(
         routerID,
@@ -67,15 +65,15 @@ void programRib(
 }
 
 std::shared_ptr<ForwardingInformationBaseMap> fibFromStandaloneRib(
-    rib::RoutingInformationBase& rib) {
+    RoutingInformationBase& rib) {
   auto state = std::make_shared<SwitchState>();
   auto fillInFib =
       [&state](
           facebook::fboss::RouterID vrf,
-          const facebook::fboss::rib::IPv4NetworkToRouteMap& v4NetworkToRoute,
-          const facebook::fboss::rib::IPv6NetworkToRouteMap& v6NetworkToRoute,
+          const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
+          const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
           void* cookie) {
-        facebook::fboss::rib::ForwardingInformationBaseUpdater fibUpdater(
+        facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
             vrf, v4NetworkToRoute, v6NetworkToRoute);
         fibUpdater(state);
       };
@@ -98,10 +96,10 @@ std::shared_ptr<ForwardingInformationBaseMap> fibFromStandaloneRib(
 void handleStandaloneRIBTransition(
     const folly::dynamic& switchStateJson,
     HwInitResult& ret) {
-  std::unique_ptr<rib::RoutingInformationBase> deserializedRIB;
+  std::unique_ptr<RoutingInformationBase> deserializedRIB;
   if (switchStateJson.find(kRib) != switchStateJson.items().end()) {
     deserializedRIB =
-        rib::RoutingInformationBase::fromFollyDynamic(switchStateJson[kRib]);
+        RoutingInformationBase::fromFollyDynamic(switchStateJson[kRib]);
   }
   ret.switchState = ret.switchState->clone();
   if (FLAGS_enable_standalone_rib) {

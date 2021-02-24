@@ -20,30 +20,8 @@
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/types.h"
 
-namespace facebook::fboss::rib {
-
-/**
- * Route forward actions
- */
-using RouteForwardAction = facebook::fboss::RouteForwardAction;
-
-/**
- * Route prefix
- */
-template <typename AddrT>
-using RoutePrefix = facebook::fboss::RoutePrefix<AddrT>;
+namespace facebook::fboss {
 
 using PrefixV4 = facebook::fboss::RoutePrefixV4;
 using PrefixV6 = facebook::fboss::RoutePrefixV6;
-using NextHopWeight = facebook::fboss::NextHopWeight;
-
-using NextHop = facebook::fboss::NextHop;
-using ResolvedNextHop = facebook::fboss::ResolvedNextHop;
-
-using UnresolvedNextHop = facebook::fboss::UnresolvedNextHop;
-
-using RouteNextHopEntry = facebook::fboss::RouteNextHopEntry;
-using RouteNextHopSet = RouteNextHopEntry::NextHopSet;
-
-using RouteNextHopsMulti = facebook::fboss::RouteNextHopsMulti;
-} // namespace facebook::fboss::rib
+} // namespace facebook::fboss

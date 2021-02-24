@@ -25,10 +25,10 @@ namespace facebook::fboss {
 
 void hwSwitchEnsembleFibUpdate(
     facebook::fboss::RouterID vrf,
-    const facebook::fboss::rib::IPv4NetworkToRouteMap& v4NetworkToRoute,
-    const facebook::fboss::rib::IPv6NetworkToRouteMap& v6NetworkToRoute,
+    const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
+    const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
     void* cookie) {
-  facebook::fboss::rib::ForwardingInformationBaseUpdater fibUpdater(
+  facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
       vrf, v4NetworkToRoute, v6NetworkToRoute);
 
   auto hwEnsemble = static_cast<facebook::fboss::HwSwitchEnsemble*>(cookie);
@@ -48,7 +48,7 @@ HwSwitchEnsembleRouteUpdateWrapper::HwSwitchEnsembleRouteUpdateWrapper(
           hwEnsemble->isStandaloneRibEnabled() ? hwEnsemble : nullptr),
       hwEnsemble_(hwEnsemble) {}
 
-rib::RoutingInformationBase* HwSwitchEnsembleRouteUpdateWrapper::getRib() {
+RoutingInformationBase* HwSwitchEnsembleRouteUpdateWrapper::getRib() {
   return hwEnsemble_->getRib();
 }
 

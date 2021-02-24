@@ -18,7 +18,7 @@
 
 #include <folly/IPAddress.h>
 
-namespace facebook::fboss::rib {
+namespace facebook::fboss {
 
 /**
  * Expected behavior of RibRouteUpdater::resolve():
@@ -112,4 +112,4 @@ class RibRouteUpdater {
       RouteNextHopSet& fwd);
 };
 
-} // namespace facebook::fboss::rib
+} // namespace facebook::fboss

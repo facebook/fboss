@@ -13,7 +13,7 @@
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/state/RouteTypes.h"
 
-namespace facebook::fboss::rib {
+namespace facebook::fboss {
 
 template <typename AddrT>
 bool RibRoute<AddrT>::operator==(const RibRoute& rf) const {
@@ -37,4 +37,4 @@ bool RibRoute<AddrT>::isSame(const RibRoute<AddrT>* rt) const {
 template class RibRoute<folly::IPAddressV4>;
 template class RibRoute<folly::IPAddressV6>;
 
-} // namespace facebook::fboss::rib
+} // namespace facebook::fboss

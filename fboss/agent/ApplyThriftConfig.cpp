@@ -81,10 +81,10 @@ const int kAclStartPriority = 100000;
 
 void updateFibFromConfig(
     facebook::fboss::RouterID vrf,
-    const facebook::fboss::rib::IPv4NetworkToRouteMap& v4NetworkToRoute,
-    const facebook::fboss::rib::IPv6NetworkToRouteMap& v6NetworkToRoute,
+    const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
+    const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
     void* cookie) {
-  facebook::fboss::rib::ForwardingInformationBaseUpdater fibUpdater(
+  facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
       vrf, v4NetworkToRoute, v6NetworkToRoute);
 
   auto nextStatePtr =
@@ -110,7 +110,7 @@ class ThriftConfigApplier {
       const std::shared_ptr<SwitchState>& orig,
       const cfg::SwitchConfig* config,
       const Platform* platform,
-      rib::RoutingInformationBase* rib)
+      RoutingInformationBase* rib)
       : orig_(orig), cfg_(config), platform_(platform), rib_(rib) {}
 
   std::shared_ptr<SwitchState> run();
@@ -294,7 +294,7 @@ class ThriftConfigApplier {
   std::shared_ptr<SwitchState> new_;
   const cfg::SwitchConfig* cfg_{nullptr};
   const Platform* platform_{nullptr};
-  rib::RoutingInformationBase* rib_{nullptr};
+  RoutingInformationBase* rib_{nullptr};
 
   struct VlanIpInfo {
     VlanIpInfo(uint8_t mask, MacAddress mac, InterfaceID intf)
@@ -2953,7 +2953,7 @@ shared_ptr<SwitchState> applyThriftConfig(
     const shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,
     const Platform* platform,
-    rib::RoutingInformationBase* rib) {
+    RoutingInformationBase* rib) {
   cfg::SwitchConfig emptyConfig;
   return ThriftConfigApplier(state, config, platform, rib).run();
 }

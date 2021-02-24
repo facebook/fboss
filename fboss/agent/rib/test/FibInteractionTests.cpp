@@ -40,10 +40,10 @@ const AdminDistance kDefaultAdminDistance = AdminDistance::EBGP;
 
 void dynamicFibUpdate(
     facebook::fboss::RouterID vrf,
-    const facebook::fboss::rib::IPv4NetworkToRouteMap& v4NetworkToRoute,
-    const facebook::fboss::rib::IPv6NetworkToRouteMap& v6NetworkToRoute,
+    const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
+    const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
     void* cookie) {
-  facebook::fboss::rib::ForwardingInformationBaseUpdater fibUpdater(
+  facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
       vrf, v4NetworkToRoute, v6NetworkToRoute);
 
   auto sw = static_cast<facebook::fboss::SwSwitch*>(cookie);
@@ -52,26 +52,23 @@ void dynamicFibUpdate(
 } // namespace
 
 TEST(RouteNextHopEntry, ConvertRibDropToFibDrop) {
-  facebook::fboss::rib::RouteNextHopEntry ribDrop(
-      facebook::fboss::rib::RouteNextHopEntry::Action::DROP,
-      kDefaultAdminDistance);
+  facebook::fboss::RouteNextHopEntry ribDrop(
+      facebook::fboss::RouteNextHopEntry::Action::DROP, kDefaultAdminDistance);
 
   facebook::fboss::RouteNextHopEntry fibDrop =
-      facebook::fboss::rib::ForwardingInformationBaseUpdater::toFibNextHop(
-          ribDrop);
+      facebook::fboss::ForwardingInformationBaseUpdater::toFibNextHop(ribDrop);
 
   ASSERT_TRUE(fibDrop.isDrop());
   ASSERT_EQ(fibDrop.getAdminDistance(), kDefaultAdminDistance);
 }
 
 TEST(RouteNextHopEntry, ConvertRibCpuToFibCpu) {
-  facebook::fboss::rib::RouteNextHopEntry ribToCpu(
-      facebook::fboss::rib::RouteNextHopEntry::Action::TO_CPU,
+  facebook::fboss::RouteNextHopEntry ribToCpu(
+      facebook::fboss::RouteNextHopEntry::Action::TO_CPU,
       kDefaultAdminDistance);
 
   facebook::fboss::RouteNextHopEntry fibToCpu =
-      facebook::fboss::rib::ForwardingInformationBaseUpdater::toFibNextHop(
-          ribToCpu);
+      facebook::fboss::ForwardingInformationBaseUpdater::toFibNextHop(ribToCpu);
 
   ASSERT_TRUE(fibToCpu.isToCPU());
   ASSERT_EQ(fibToCpu.getAdminDistance(), kDefaultAdminDistance);
@@ -81,13 +78,13 @@ TEST(RouteNextHopEntry, ConvertRibResolvedNextHopToFibResolvedNextHop) {
   auto address = folly::IPAddress("2401:db00:e112:9103:1028::1b");
   auto interfaceID = InterfaceID(1);
 
-  facebook::fboss::rib::RouteNextHopEntry ribResolvedNextHop(
-      facebook::fboss::rib::ResolvedNextHop(
+  facebook::fboss::RouteNextHopEntry ribResolvedNextHop(
+      facebook::fboss::ResolvedNextHop(
           address, interfaceID, facebook::fboss::ECMP_WEIGHT),
       kDefaultAdminDistance);
 
   facebook::fboss::RouteNextHopEntry fibResolvedNextHop =
-      facebook::fboss::rib::ForwardingInformationBaseUpdater::toFibNextHop(
+      facebook::fboss::ForwardingInformationBaseUpdater::toFibNextHop(
           ribResolvedNextHop);
 
   ASSERT_EQ(
@@ -102,14 +99,14 @@ TEST(RouteNextHopEntry, ConvertRibResolvedNextHopToFibResolvedNextHop) {
 }
 
 TEST(RouteNextHopEntry, AttemptToConvertRibUnresolvedNextHopToFibNextHop) {
-  facebook::fboss::rib::RouteNextHopEntry ribUnresolvedNextHop(
-      facebook::fboss::rib::UnresolvedNextHop(
+  facebook::fboss::RouteNextHopEntry ribUnresolvedNextHop(
+      facebook::fboss::UnresolvedNextHop(
           folly::IPAddress("2401:db00:e112:9103:1028::1b"),
           facebook::fboss::ECMP_WEIGHT),
       kDefaultAdminDistance);
 
   EXPECT_THROW(
-      facebook::fboss::rib::ForwardingInformationBaseUpdater::toFibNextHop(
+      facebook::fboss::ForwardingInformationBaseUpdater::toFibNextHop(
           ribUnresolvedNextHop),
       std::bad_optional_access);
 }
@@ -118,25 +115,24 @@ TEST(Route, RibRouteToFibRoute) {
   folly::IPAddressV6 prefixAddress("::0");
   uint8_t prefixMask = 0;
 
-  facebook::fboss::rib::PrefixV6 prefix;
+  facebook::fboss::PrefixV6 prefix;
   prefix.network = prefixAddress;
   prefix.mask = prefixMask;
 
   folly::IPAddress nextHopAddress("2401:db00:e112:9103:1028::1b");
   InterfaceID nextHopInterfaceID(1);
 
-  facebook::fboss::rib::RouteNextHopEntry ribResolvedNextHop(
-      facebook::fboss::rib::ResolvedNextHop(
+  facebook::fboss::RouteNextHopEntry ribResolvedNextHop(
+      facebook::fboss::ResolvedNextHop(
           nextHopAddress, nextHopInterfaceID, facebook::fboss::ECMP_WEIGHT),
       kDefaultAdminDistance);
 
-  facebook::fboss::rib::RibRouteV6 ribRoute(
+  facebook::fboss::RibRouteV6 ribRoute(
       prefix, facebook::fboss::ClientID(1), ribResolvedNextHop);
   ribRoute.setResolved(ribResolvedNextHop);
 
   auto fibRoute =
-      facebook::fboss::rib::ForwardingInformationBaseUpdater::toFibRoute(
-          ribRoute);
+      facebook::fboss::ForwardingInformationBaseUpdater::toFibRoute(ribRoute);
 
   ASSERT_EQ(fibRoute->prefix().network, prefixAddress);
   ASSERT_EQ(fibRoute->prefix().mask, prefixMask);
@@ -146,26 +142,25 @@ TEST(Route, DirectlyConnectedRibRouteToFibRoute) {
   folly::IPAddressV6 prefixAddress("1::");
   uint8_t prefixMask = 127;
 
-  facebook::fboss::rib::PrefixV6 prefix;
+  facebook::fboss::PrefixV6 prefix;
   prefix.network = prefixAddress;
   prefix.mask = prefixMask;
 
   folly::IPAddress nextHopAddress("2401:db00:e112:9103:1028::1b");
   InterfaceID nextHopInterfaceID(1);
 
-  facebook::fboss::rib::RouteNextHopEntry ribResolvedNextHop(
-      facebook::fboss::rib::ResolvedNextHop(
+  facebook::fboss::RouteNextHopEntry ribResolvedNextHop(
+      facebook::fboss::ResolvedNextHop(
           nextHopAddress, nextHopInterfaceID, facebook::fboss::ECMP_WEIGHT),
       kDefaultAdminDistance);
 
-  facebook::fboss::rib::RibRouteV6 ribRoute(
+  facebook::fboss::RibRouteV6 ribRoute(
       prefix, facebook::fboss::ClientID(1), ribResolvedNextHop);
   ribRoute.setResolved(ribResolvedNextHop);
   ribRoute.setConnected();
 
   auto fibRoute =
-      facebook::fboss::rib::ForwardingInformationBaseUpdater::toFibRoute(
-          ribRoute);
+      facebook::fboss::ForwardingInformationBaseUpdater::toFibRoute(ribRoute);
 
   ASSERT_EQ(fibRoute->prefix().network, prefixAddress);
   ASSERT_EQ(fibRoute->prefix().mask, prefixMask);
@@ -198,9 +193,9 @@ TEST(ForwardingInformationBaseUpdater, ModifyUnpublishedSwitchState) {
   // Second, we pass the unpublished SwitchState through an update, which
   // transitively invokes  modify() on the nodes in the Forwarding Information
   // Base subtree
-  facebook::fboss::rib::IPv4NetworkToRouteMap v4NetworkToRouteMap;
-  facebook::fboss::rib::IPv6NetworkToRouteMap v6NetworkToRouteMap;
-  facebook::fboss::rib::ForwardingInformationBaseUpdater updater(
+  facebook::fboss::IPv4NetworkToRouteMap v4NetworkToRouteMap;
+  facebook::fboss::IPv6NetworkToRouteMap v6NetworkToRouteMap;
+  facebook::fboss::ForwardingInformationBaseUpdater updater(
       vrfOne, v4NetworkToRouteMap, v6NetworkToRouteMap);
   auto updatedState = updater(initialState);
 

@@ -188,7 +188,7 @@ shared_ptr<SwitchState> publishAndApplyConfig(
     const shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,
     const Platform* platform,
-    rib::RoutingInformationBase* rib) {
+    RoutingInformationBase* rib) {
   state->publish();
   return applyThriftConfig(state, config, platform, rib);
 }
@@ -202,7 +202,7 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
   ret.switchState = state ? state : make_shared<SwitchState>();
   ret.bootType = BootType::COLD_BOOT;
   if (flags & SwitchFlags::ENABLE_STANDALONE_RIB) {
-    ret.rib = std::make_unique<rib::RoutingInformationBase>();
+    ret.rib = std::make_unique<RoutingInformationBase>();
   }
   EXPECT_HW_CALL(sw, init(_, false)).WillOnce(Return(ByMove(std::move(ret))));
   initSwSwitchWithFlags(sw.get(), flags);

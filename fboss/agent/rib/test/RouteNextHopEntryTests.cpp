@@ -18,7 +18,7 @@
 #include <algorithm>
 #include <vector>
 
-using namespace facebook::fboss::rib;
+using namespace facebook::fboss;
 
 using facebook::fboss::AdminDistance;
 using facebook::fboss::ECMP_WEIGHT;

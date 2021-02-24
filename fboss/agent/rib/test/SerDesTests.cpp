@@ -55,7 +55,7 @@ cfg::SwitchConfig interfaceAndStaticRoutesWithNextHopsConfig() {
 }
 
 TEST(WarmBoot, Serialization) {
-  rib::RoutingInformationBase rib;
+  RoutingInformationBase rib;
 
   auto emptyState = std::make_shared<SwitchState>();
   auto platform = createMockPlatform();
@@ -66,7 +66,7 @@ TEST(WarmBoot, Serialization) {
 
   auto serializedRib = rib.toFollyDynamic();
   auto deserializedRib =
-      rib::RoutingInformationBase::fromFollyDynamic(serializedRib);
+      RoutingInformationBase::fromFollyDynamic(serializedRib);
 
   ASSERT_EQ(rib, deserializedRib);
 }

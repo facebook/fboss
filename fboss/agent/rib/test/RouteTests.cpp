@@ -31,14 +31,6 @@ const ClientID kClientD = ClientID(1004);
 const ClientID kClientE = ClientID(1005);
 } // namespace
 
-using facebook::fboss::ECMP_WEIGHT;
-using rib::IPv4NetworkToRouteMap;
-using rib::IPv6NetworkToRouteMap;
-using rib::RibRoute;
-using rib::RibRouteUpdater;
-using rib::RouteNextHopEntry;
-using rib::RouteNextHopSet;
-
 using folly::IPAddress;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
@@ -48,26 +40,26 @@ constexpr AdminDistance kDistance = AdminDistance::MAX_ADMIN_DISTANCE;
 namespace {
 // TODO(samank): move helpers into test fixture
 template <typename AddressT>
-rib::RibRoute<AddressT>* getRoute(
-    rib::NetworkToRouteMap<AddressT>& routes,
+RibRoute<AddressT>* getRoute(
+    NetworkToRouteMap<AddressT>& routes,
     std::string prefixAsString) {
-  auto prefix = rib::RoutePrefix<AddressT>::fromString(prefixAsString);
+  auto prefix = RoutePrefix<AddressT>::fromString(prefixAsString);
   auto it = routes.exactMatch(prefix.network, prefix.mask);
 
   return &(it->value());
 }
 
-rib::RouteNextHopSet makeNextHops(std::vector<std::string> ipsAsStrings) {
-  rib::RouteNextHopSet nhops;
+RouteNextHopSet makeNextHops(std::vector<std::string> ipsAsStrings) {
+  RouteNextHopSet nhops;
   for (const std::string& ipAsString : ipsAsStrings) {
-    nhops.emplace(rib::UnresolvedNextHop(IPAddress(ipAsString), ECMP_WEIGHT));
+    nhops.emplace(UnresolvedNextHop(IPAddress(ipAsString), ECMP_WEIGHT));
   }
   return nhops;
 }
 
 template <typename AddrT>
 void EXPECT_FWD_INFO(
-    const rib::RibRoute<AddrT>* route,
+    const RibRoute<AddrT>* route,
     InterfaceID interfaceID,
     std::string ipAsString) {
   const auto& fwds = route->getForwardInfo().getNextHopSet();
@@ -78,7 +70,7 @@ void EXPECT_FWD_INFO(
 }
 
 template <typename AddrT>
-void EXPECT_RESOLVED(const rib::RibRoute<AddrT>* route) {
+void EXPECT_RESOLVED(const RibRoute<AddrT>* route) {
   EXPECT_TRUE(route->isResolved());
   EXPECT_FALSE(route->isUnresolvable());
   EXPECT_FALSE(route->needResolve());
@@ -86,8 +78,8 @@ void EXPECT_RESOLVED(const rib::RibRoute<AddrT>* route) {
 
 template <typename AddrT>
 void EXPECT_ROUTES_MATCH(
-    const rib::NetworkToRouteMap<AddrT>* routesA,
-    const rib::NetworkToRouteMap<AddrT>* routesB) {
+    const NetworkToRouteMap<AddrT>* routesA,
+    const NetworkToRouteMap<AddrT>* routesB) {
   EXPECT_EQ(routesA->size(), routesB->size());
   for (const auto& entryA : *routesA) {
     auto routeA = entryA.value();
@@ -102,8 +94,8 @@ void EXPECT_ROUTES_MATCH(
 }
 
 template <typename AddressT>
-rib::RibRoute<AddressT>* longestMatch(
-    rib::NetworkToRouteMap<AddressT>& routes,
+RibRoute<AddressT>* longestMatch(
+    NetworkToRouteMap<AddressT>& routes,
     AddressT address) {
   auto it = routes.longestMatch(address, address.bitCount());
   CHECK(it != routes.end());
@@ -112,7 +104,7 @@ rib::RibRoute<AddressT>* longestMatch(
 
 } // namespace
 
-namespace facebook::fboss::rib {
+namespace facebook::fboss {
 
 /* The following method updates the RIB with routes that would result from a
  * config with the following interfaces:
@@ -1348,4 +1340,4 @@ TEST_F(UcmpTest, Ten) {
   runVaryFromHundredTest(10, {10, 10, 10, 1});
 }
 
-} // namespace facebook::fboss::rib
+} // namespace facebook::fboss

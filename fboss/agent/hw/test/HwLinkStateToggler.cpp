@@ -75,7 +75,7 @@ void HwLinkStateToggler::applyInitialConfig(
     const std::shared_ptr<SwitchState>& curState,
     const Platform* platform,
     const cfg::SwitchConfig& initCfg,
-    rib::RoutingInformationBase* rib) {
+    RoutingInformationBase* rib) {
   auto newState =
       applyInitialConfigWithPortsDown(curState, platform, initCfg, rib);
   bringUpPorts(newState, initCfg);
@@ -86,7 +86,7 @@ HwLinkStateToggler::applyInitialConfigWithPortsDown(
     const std::shared_ptr<SwitchState>& curState,
     const Platform* platform,
     const cfg::SwitchConfig& initCfg,
-    rib::RoutingInformationBase* rib) {
+    RoutingInformationBase* rib) {
   // Goal of this function is twofold
   // - Apply initial config.
   // - Set preemphasis on all ports to 0

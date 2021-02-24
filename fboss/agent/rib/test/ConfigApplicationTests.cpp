@@ -168,7 +168,7 @@ void checkFibRoute(
 } // namespace
 
 TEST(ConfigApplication, InterfaceRoutes) {
-  rib::RoutingInformationBase rib;
+  RoutingInformationBase rib;
 
   auto emptyState = std::make_shared<SwitchState>();
   auto platform = createMockPlatform();
@@ -215,7 +215,7 @@ TEST(ConfigApplication, InterfaceRoutes) {
 }
 
 TEST(ConfigApplication, StaticRoutesWithNextHops) {
-  rib::RoutingInformationBase rib;
+  RoutingInformationBase rib;
 
   auto emptyState = std::make_shared<SwitchState>();
   auto platform = createMockPlatform();
@@ -266,7 +266,7 @@ TEST(ConfigApplication, StaticRoutesWithNextHops) {
 }
 
 TEST(ConfigApplication, StaticRoutesWithoutNextHops) {
-  rib::RoutingInformationBase rib;
+  RoutingInformationBase rib;
 
   auto emptyState = std::make_shared<SwitchState>();
   auto platform = createMockPlatform();
@@ -325,7 +325,7 @@ TEST(ConfigApplication, StaticRoutesWithoutNextHops) {
 }
 
 TEST(ConfigApplication, MultiVrfColdBoot) {
-  rib::RoutingInformationBase rib;
+  RoutingInformationBase rib;
 
   auto emptyState = std::make_shared<SwitchState>();
   auto platform = createMockPlatform();

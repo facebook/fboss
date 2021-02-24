@@ -37,13 +37,10 @@ class SwitchState;
 class SwSwitch;
 class TxPacket;
 class HwTestHandle;
+class RoutingInformationBase;
 
 namespace cfg {
 class SwitchConfig;
-}
-
-namespace rib {
-class RoutingInformationBase;
 }
 
 /*
@@ -62,7 +59,7 @@ std::shared_ptr<SwitchState> publishAndApplyConfig(
     const std::shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,
     const Platform* platform,
-    rib::RoutingInformationBase* rib = nullptr);
+    RoutingInformationBase* rib = nullptr);
 
 /*
  * Create a SwSwitch for testing purposes, with the specified initial state.

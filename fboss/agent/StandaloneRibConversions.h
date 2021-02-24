@@ -19,21 +19,18 @@ class ForwardingInformationBaseMap;
 class RouteTableMap;
 class SwSwitch;
 struct HwInitResult;
-
-namespace rib {
 class RoutingInformationBase;
-};
 
-std::unique_ptr<rib::RoutingInformationBase> switchStateToStandaloneRib(
+std::unique_ptr<RoutingInformationBase> switchStateToStandaloneRib(
     const std::shared_ptr<RouteTableMap>& swStateRib);
 
 std::shared_ptr<RouteTableMap> standaloneToSwitchStateRib(
-    const rib::RoutingInformationBase& standaloneRib);
+    const RoutingInformationBase& standaloneRib);
 
-void programRib(rib::RoutingInformationBase& standaloneRib, SwSwitch* swSwitch);
+void programRib(RoutingInformationBase& standaloneRib, SwSwitch* swSwitch);
 
 std::shared_ptr<ForwardingInformationBaseMap> fibFromStandaloneRib(
-    rib::RoutingInformationBase& rib);
+    RoutingInformationBase& rib);
 
 void handleStandaloneRIBTransition(
     const folly::dynamic& switchStateJson,

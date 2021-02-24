@@ -586,7 +586,7 @@ class SwSwitch : public HwSwitch::Callback {
     return lookupClassRouteUpdater_.get();
   }
 
-  rib::RoutingInformationBase* getRib() {
+  RoutingInformationBase* getRib() {
     return rib_.get();
   }
 
@@ -859,7 +859,7 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<LinkAggregationManager> lagManager_;
   std::unique_ptr<ResolvedNexthopMonitor> resolvedNexthopMonitor_;
   std::unique_ptr<ResolvedNexthopProbeScheduler> resolvedNexthopProbeScheduler_;
-  std::unique_ptr<rib::RoutingInformationBase> rib_{nullptr};
+  std::unique_ptr<RoutingInformationBase> rib_{nullptr};
 
   BootType bootType_{BootType::UNINITIALIZED};
   std::unique_ptr<LldpManager> lldpManager_;

@@ -137,10 +137,10 @@ static void runNewRibTest() {
         true /* sync */,
         "FibSync benchmark",
         [](RouterID vrf,
-           const rib::IPv4NetworkToRouteMap& v4NetworkToRoute,
-           const rib::IPv6NetworkToRouteMap& v6NetworkToRoute,
+           const IPv4NetworkToRouteMap& v4NetworkToRoute,
+           const IPv6NetworkToRouteMap& v6NetworkToRoute,
            void* cookie) {
-          rib::ForwardingInformationBaseUpdater fibUpdater(
+          ForwardingInformationBaseUpdater fibUpdater(
               vrf, v4NetworkToRoute, v6NetworkToRoute);
           static_cast<SwSwitch*>(cookie)->updateStateBlocking(
               "", std::move(fibUpdater));

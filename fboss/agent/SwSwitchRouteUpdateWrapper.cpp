@@ -23,10 +23,10 @@ namespace facebook::fboss {
 
 void swSwitchFibUpdate(
     facebook::fboss::RouterID vrf,
-    const facebook::fboss::rib::IPv4NetworkToRouteMap& v4NetworkToRoute,
-    const facebook::fboss::rib::IPv6NetworkToRouteMap& v6NetworkToRoute,
+    const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
+    const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
     void* cookie) {
-  facebook::fboss::rib::ForwardingInformationBaseUpdater fibUpdater(
+  facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
       vrf, v4NetworkToRoute, v6NetworkToRoute);
 
   auto sw = static_cast<facebook::fboss::SwSwitch*>(cookie);
@@ -42,14 +42,14 @@ SwSwitchRouteUpdateWrapper::SwSwitchRouteUpdateWrapper(SwSwitch* sw)
       sw_(sw) {}
 
 void SwSwitchRouteUpdateWrapper::updateStats(
-    const rib::RoutingInformationBase::UpdateStatistics& stats) {
+    const RoutingInformationBase::UpdateStatistics& stats) {
   sw_->stats()->addRoutesV4(stats.v4RoutesAdded);
   sw_->stats()->addRoutesV6(stats.v6RoutesAdded);
   sw_->stats()->delRoutesV4(stats.v4RoutesDeleted);
   sw_->stats()->delRoutesV6(stats.v6RoutesDeleted);
 }
 
-rib::RoutingInformationBase* SwSwitchRouteUpdateWrapper::getRib() {
+RoutingInformationBase* SwSwitchRouteUpdateWrapper::getRib() {
   return sw_->getRib();
 }
 

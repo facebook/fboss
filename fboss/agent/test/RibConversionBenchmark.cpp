@@ -33,7 +33,7 @@ static void runConversionBenchmark() {
   for (int i = 0; i < 128; ++i) {
     ports.push_back(PortID(i));
   }
-  std::unique_ptr<rib::RoutingInformationBase> newRibFromLegacySwitchState;
+  std::unique_ptr<RoutingInformationBase> newRibFromLegacySwitchState;
   cfg::SwitchConfig config =
       utility::onePortPerVlanConfig(plat.getHwSwitch(), ports);
   {

@@ -25,7 +25,7 @@ class SwitchState;
 
 } // namespace facebook::fboss
 
-namespace facebook::fboss::rib {
+namespace facebook::fboss {
 
 class ForwardingInformationBaseUpdater {
  public:
@@ -52,7 +52,7 @@ class ForwardingInformationBaseUpdater {
   template <typename AddressT>
   std::shared_ptr<typename facebook::fboss::ForwardingInformationBase<AddressT>>
   createUpdatedFib(
-      const facebook::fboss::rib::NetworkToRouteMap<AddressT>& rib,
+      const facebook::fboss::NetworkToRouteMap<AddressT>& rib,
       const std::shared_ptr<
           facebook::fboss::ForwardingInformationBase<AddressT>>& fib);
 
@@ -61,4 +61,4 @@ class ForwardingInformationBaseUpdater {
   const IPv6NetworkToRouteMap& v6NetworkToRoute_;
 };
 
-} // namespace facebook::fboss::rib
+} // namespace facebook::fboss

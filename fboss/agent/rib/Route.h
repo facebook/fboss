@@ -18,7 +18,7 @@
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/types.h"
 
-namespace facebook::fboss::rib {
+namespace facebook::fboss {
 
 template <typename AddrT>
 class RibRoute {
@@ -132,4 +132,4 @@ class RibRoute {
 using RibRouteV4 = RibRoute<folly::IPAddressV4>;
 using RibRouteV6 = RibRoute<folly::IPAddressV6>;
 
-} // namespace facebook::fboss::rib
+} // namespace facebook::fboss

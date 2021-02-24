@@ -14,9 +14,7 @@
 
 namespace facebook::fboss {
 
-namespace rib {
 class RoutingInformationBase;
-}
 
 namespace cfg {
 class SwitchConfig;
@@ -35,6 +33,6 @@ std::shared_ptr<SwitchState> applyThriftConfig(
     const std::shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,
     const Platform* platform,
-    rib::RoutingInformationBase* rib = nullptr);
+    RoutingInformationBase* rib = nullptr);
 
 } // namespace facebook::fboss

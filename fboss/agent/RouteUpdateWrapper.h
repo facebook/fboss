@@ -31,8 +31,8 @@ class RouteUpdateWrapper {
 
  public:
   virtual ~RouteUpdateWrapper() = default;
-  using UpdateStatistics = rib::RoutingInformationBase::UpdateStatistics;
-  using FibUpdateFunction = rib::RoutingInformationBase::FibUpdateFunction;
+  using UpdateStatistics = RoutingInformationBase::UpdateStatistics;
+  using FibUpdateFunction = RoutingInformationBase::FibUpdateFunction;
   void addRoute(
       RouterID id,
       const folly::IPAddress& network,
@@ -54,7 +54,7 @@ class RouteUpdateWrapper {
       bool async);
 
  private:
-  virtual rib::RoutingInformationBase* getRib() = 0;
+  virtual RoutingInformationBase* getRib() = 0;
   virtual void programLegacyRib() = 0;
   void programStandAloneRib();
   virtual void updateStats(const UpdateStatistics& stats) = 0;

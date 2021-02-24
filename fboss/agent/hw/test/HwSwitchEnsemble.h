@@ -73,10 +73,10 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   HwLinkStateToggler* getLinkToggler() {
     return linkToggler_.get();
   }
-  const rib::RoutingInformationBase* getRib() const {
+  const RoutingInformationBase* getRib() const {
     return routingInformationBase_.get();
   }
-  rib::RoutingInformationBase* getRib() {
+  RoutingInformationBase* getRib() {
     return routingInformationBase_.get();
   }
   virtual Platform* getPlatform() {
@@ -184,7 +184,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
       const std::map<PortID, HwPortStats>& originalPortStats);
 
   std::shared_ptr<SwitchState> programmedState_{nullptr};
-  std::unique_ptr<rib::RoutingInformationBase> routingInformationBase_;
+  std::unique_ptr<RoutingInformationBase> routingInformationBase_;
   std::unique_ptr<HwLinkStateToggler> linkToggler_;
   std::unique_ptr<Platform> platform_;
   const Features featuresDesired_;

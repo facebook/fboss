@@ -21,7 +21,7 @@
 #include <thread>
 #include <vector>
 
-namespace facebook::fboss::rib {
+namespace facebook::fboss {
 
 class RoutingInformationBase {
  public:
@@ -171,4 +171,4 @@ class RoutingInformationBase {
   folly::EventBase ribUpdateEventBase_;
 };
 
-} // namespace facebook::fboss::rib
+} // namespace facebook::fboss

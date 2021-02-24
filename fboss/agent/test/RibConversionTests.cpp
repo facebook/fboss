@@ -36,7 +36,7 @@ static void runConversionTest() {
   }
   cfg::SwitchConfig config =
       utility::onePortPerVlanConfig(plat.getHwSwitch(), ports);
-  std::unique_ptr<rib::RoutingInformationBase> newRibFromLegacySwitchState;
+  std::unique_ptr<RoutingInformationBase> newRibFromLegacySwitchState;
   uint64_t legacyRibV4, legacyRibV6;
   {
     // First SwSwitch with legacy rib. Scoped block to

@@ -40,7 +40,7 @@ enum class L2EntryUpdateType : uint8_t;
 
 struct HwInitResult {
   std::shared_ptr<SwitchState> switchState{nullptr};
-  std::unique_ptr<rib::RoutingInformationBase> rib{nullptr};
+  std::unique_ptr<RoutingInformationBase> rib{nullptr};
   BootType bootType{BootType::UNINITIALIZED};
   float initializedTime{0.0};
   float bootTime{0.0};

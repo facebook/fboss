@@ -20,8 +20,8 @@ class HwSwitchEnsemble;
 
 void hwSwitchFibUpdate(
     facebook::fboss::RouterID vrf,
-    const facebook::fboss::rib::IPv4NetworkToRouteMap& v4NetworkToRoute,
-    const facebook::fboss::rib::IPv6NetworkToRouteMap& v6NetworkToRoute,
+    const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
+    const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
     void* cookie);
 
 class HwSwitchEnsembleRouteUpdateWrapper : public RouteUpdateWrapper {
@@ -36,10 +36,9 @@ class HwSwitchEnsembleRouteUpdateWrapper : public RouteUpdateWrapper {
 
  private:
   void updateStats(
-      const rib::RoutingInformationBase::UpdateStatistics& /*stats*/) override {
-  }
+      const RoutingInformationBase::UpdateStatistics& /*stats*/) override {}
   AdminDistance clientIdToAdminDistance(ClientID clientId) const override;
-  rib::RoutingInformationBase* getRib() override;
+  RoutingInformationBase* getRib() override;
   void programLegacyRib() override;
   void programClassIDLegacyRib(
       RouterID rid,
