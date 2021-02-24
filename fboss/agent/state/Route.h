@@ -50,7 +50,79 @@ struct RouteFields {
   static RouteFields fromFollyDynamic(const folly::dynamic& routeJson);
 
   RouteDetails toRouteDetails() const;
+  bool isHostRoute() const {
+    return prefix.mask == prefix.network.bitCount();
+  }
 
+ private:
+  /**
+   * Bit definition for RouteFields<>::flags
+   *
+   * CONNECTED: This route is directly connected. For example, a route based on
+   *            an interface subnet is a directly connected route.
+   * RESOLVED: This route has been resolved. 'RouteFields::fwd' is valid.
+   * UNRESOLVABLE: This route is not resolvable. A route without RESOLVED set
+   *               does not mean that it is UNRESOLVABLE.
+   *               A route with neither RESOLVED nor UNRESOLVABLE just means
+   *               the route needs to be resolved. As the result of process,
+   *               the route could have either RESOLVED set (resolved) or
+   *               UNRESOLVABLE set.
+   * PROCESSING: This route is being processed to resolve the nexthop.
+   *             This bit is set before look up a route to reach the nexthop.
+   *             If the route used to reach the nexthop also has this bit set,
+   *             that means we have a loop to resolve the route. In this case,
+   *             none of the routes in the loop is resolvable.
+   *             This bit is cleared when setting this route as RESOLVED or
+   *             UNRESOLVABLE.
+   */
+  enum : uint32_t {
+    CONNECTED = 0x1,
+    RESOLVED = 0x2,
+    UNRESOLVABLE = 0x4,
+    PROCESSING = 0x8,
+  };
+
+ public:
+  bool isResolved() const {
+    return (flags & RESOLVED);
+  }
+  bool isUnresolvable() const {
+    return (flags & UNRESOLVABLE);
+  }
+  bool isConnected() const {
+    return (flags & CONNECTED);
+  }
+  bool isDrop() const {
+    return isResolved() && fwd.isDrop();
+  }
+  bool isToCPU() const {
+    return isResolved() && fwd.isToCPU();
+  }
+  bool isProcessing() const {
+    return (flags & PROCESSING);
+  }
+  bool needResolve() const {
+    // not resolved, nor unresolvable, nor in processing
+    return !(flags & (RESOLVED | UNRESOLVABLE | PROCESSING));
+  }
+  void setFlagsProcessing() {
+    flags |= PROCESSING;
+    flags &= ~(RESOLVED | UNRESOLVABLE | CONNECTED);
+  }
+  void setFlagsResolved() {
+    flags |= RESOLVED;
+    flags &= ~(UNRESOLVABLE | PROCESSING);
+  }
+  void setFlagsUnresolvable() {
+    flags |= UNRESOLVABLE;
+    flags &= ~(RESOLVED | PROCESSING | CONNECTED);
+  }
+  void setFlagsConnected() {
+    flags |= CONNECTED;
+  }
+  void clearForwardInFlags() {
+    flags &= ~(RESOLVED | PROCESSING | CONNECTED | UNRESOLVABLE);
+  }
   Prefix prefix;
   // The following fields will not be copied during clone()
   /*
@@ -108,30 +180,29 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
     return prefix();
   }
   bool isResolved() const {
-    return (RouteBase::getFields()->flags & RESOLVED);
+    return RouteBase::getFields()->isResolved();
   }
   bool isUnresolvable() const {
-    return (RouteBase::getFields()->flags & UNRESOLVABLE);
+    return RouteBase::getFields()->isUnresolvable();
   }
   bool isConnected() const {
-    return (RouteBase::getFields()->flags & CONNECTED);
+    return RouteBase::getFields()->isConnected();
   }
   bool isHostRoute() const {
-    return prefix().mask == prefix().network.bitCount();
+    return RouteBase::getFields()->isHostRoute();
   }
   bool isDrop() const {
-    return isResolved() && RouteBase::getFields()->fwd.isDrop();
+    return RouteBase::getFields()->isDrop();
   }
   bool isToCPU() const {
-    return isResolved() && RouteBase::getFields()->fwd.isToCPU();
+    return RouteBase::getFields()->isToCPU();
   }
   bool isProcessing() const {
-    return (RouteBase::getFields()->flags & PROCESSING);
+    return RouteBase::getFields()->isProcessing();
   }
   bool needResolve() const {
     // not resolved, nor unresolvable, nor in processing
-    return !(
-        RouteBase::getFields()->flags & (RESOLVED | UNRESOLVABLE | PROCESSING));
+    return RouteBase::getFields()->needResolve();
   }
   std::string str() const;
   // Return the forwarding info for this route
@@ -183,54 +254,20 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
   // no copy or assign operator
   Route(const Route&) = delete;
   Route& operator&(const Route&) = delete;
-  /**
-   * Bit definition for RouteFields<>::flags
-   *
-   * CONNECTED: This route is directly connected. For example, a route based on
-   *            an interface subnet is a directly connected route.
-   * RESOLVED: This route has been resolved. 'RouteFields::fwd' is valid.
-   * UNRESOLVABLE: This route is not resolvable. A route without RESOLVED set
-   *               does not mean that it is UNRESOLVABLE.
-   *               A route with neither RESOLVED nor UNRESOLVABLE just means
-   *               the route needs to be resolved. As the result of process,
-   *               the route could have either RESOLVED set (resolved) or
-   *               UNRESOLVABLE set.
-   * PROCESSING: This route is being processed to resolve the nexthop.
-   *             This bit is set before look up a route to reach the nexthop.
-   *             If the route used to reach the nexthop also has this bit set,
-   *             that means we have a loop to resolve the route. In this case,
-   *             none of the routes in the loop is resolvable.
-   *             This bit is cleared when setting this route as RESOLVED or
-   *             UNRESOLVABLE.
-   */
-  enum : uint32_t {
-    CONNECTED = 0x1,
-    RESOLVED = 0x2,
-    UNRESOLVABLE = 0x4,
-    PROCESSING = 0x8,
-  };
   void setFlagsProcessing() {
-    auto& flags = RouteBase::writableFields()->flags;
-    flags |= PROCESSING;
-    flags &= ~(RESOLVED | UNRESOLVABLE | CONNECTED);
+    RouteBase::writableFields()->setFlagsProcessing();
   }
   void setFlagsResolved() {
-    auto& flags = RouteBase::writableFields()->flags;
-    flags |= RESOLVED;
-    flags &= ~(UNRESOLVABLE | PROCESSING);
+    RouteBase::writableFields()->setFlagsResolved();
   }
   void setFlagsUnresolvable() {
-    auto& flags = RouteBase::writableFields()->flags;
-    flags |= UNRESOLVABLE;
-    flags &= ~(RESOLVED | PROCESSING | CONNECTED);
+    RouteBase::writableFields()->setFlagsUnresolvable();
   }
   void setFlagsConnected() {
-    auto& flags = RouteBase::writableFields()->flags;
-    flags |= CONNECTED;
+    RouteBase::writableFields()->setFlagsConnected();
   }
   void clearForwardInFlags() {
-    auto& flags = RouteBase::writableFields()->flags;
-    flags &= ~(RESOLVED | PROCESSING | CONNECTED | UNRESOLVABLE);
+    RouteBase::writableFields()->clearForwardInFlags();
   }
 
   // Inherit the constructors required for clone()
