@@ -15,10 +15,8 @@
 
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/rib/RouteTypes.h"
+#include "fboss/agent/state/Route.h"
 #include "fboss/agent/types.h"
-
-#include <boost/container/flat_set.hpp>
-#include <memory>
 
 namespace facebook::fboss::rib {
 
@@ -27,155 +25,111 @@ class Route {
  public:
   using Prefix = RoutePrefix<AddrT>;
 
-  explicit Route(const Prefix& prefix);
+  explicit Route(const Prefix& prefix) : fields_(prefix) {}
   Route(const Prefix& prefix, ClientID clientId, RouteNextHopEntry entry)
-      : prefix_(prefix) {
-    if (!entry.isValid(false)) {
-      throw FbossError("Invalid label forwarding action for IP route");
-    }
-    nextHopsMulti_.update(clientId, entry);
-  }
+      : fields_(prefix, clientId, std::move(entry)) {}
 
   static Route<AddrT> fromFollyDynamic(const folly::dynamic& json);
 
-  folly::dynamic toFollyDynamic() const;
+  folly::dynamic toFollyDynamic() const {
+    return fields_.toFollyDynamic();
+  }
 
   static Route<AddrT> fromJson(const folly::fbstring& jsonStr) {
     return fromFollyDynamic(folly::parseJson(jsonStr));
   }
 
-  RouteDetails toRouteDetails() const;
+  RouteDetails toRouteDetails() const {
+    return fields_.toRouteDetails();
+  }
 
   const Prefix& prefix() const {
-    return prefix_;
+    return fields_.prefix;
   }
   bool isResolved() const {
-    return (flags & RESOLVED);
+    return fields_.isResolved();
   }
   bool isUnresolvable() const {
-    return (flags & UNRESOLVABLE);
+    return fields_.isUnresolvable();
   }
   bool isConnected() const {
-    return (flags & CONNECTED);
+    return fields_.isConnected();
   }
   bool isDrop() const {
-    return isResolved() && fwd.isDrop();
+    return fields_.isDrop();
   }
   bool isToCPU() const {
-    return isResolved() && fwd.isToCPU();
+    return fields_.isToCPU();
   }
   bool isProcessing() const {
-    return (flags & PROCESSING);
+    return fields_.isProcessing();
   }
   bool needResolve() const {
     // not resolved, nor unresolvable, nor in processing
-    return !(flags & (RESOLVED | UNRESOLVABLE | PROCESSING));
+    return fields_.needResolve();
   }
-  std::string str() const;
+  std::string str() const {
+    return fields_.str();
+  }
   // Return the forwarding info for this route
   const RouteNextHopEntry& getForwardInfo() const {
-    return fwd;
+    return fields_.fwd;
   }
   const RouteNextHopEntry* FOLLY_NULLABLE
   getEntryForClient(ClientID clientId) const {
-    return nextHopsMulti_.getEntryForClient(clientId);
+    return fields_.getEntryForClient(clientId);
   }
   std::pair<ClientID, const RouteNextHopEntry*> getBestEntry() const {
-    return nextHopsMulti_.getBestEntry();
+    return fields_.getBestEntry();
   }
   bool hasNoEntry() const {
-    return nextHopsMulti_.isEmpty();
+    return fields_.hasNoEntry();
   }
 
-  bool has(ClientID clientId, const RouteNextHopEntry& entry) const;
+  bool has(ClientID clientId, const RouteNextHopEntry& entry) const {
+    return fields_.has(clientId, entry);
+  }
 
   bool isSame(const Route* rt) const;
 
   void setProcessing() {
-    CHECK(!isProcessing());
-    setFlagsProcessing();
+    fields_.setProcessing();
   }
   void setConnected() {
-    setFlagsConnected();
+    fields_.setConnected();
   }
-  void setResolved(RouteNextHopEntry fwd);
-  void setUnresolvable();
-  void clearForward();
+  void setResolved(RouteNextHopEntry fwd) {
+    fields_.setResolved(std::move(fwd));
+  }
+  void setUnresolvable() {
+    fields_.setUnresolvable();
+  }
+  void clearForward() {
+    fields_.clearForward();
+  }
 
-  void update(ClientID clientId, RouteNextHopEntry entry);
+  void update(ClientID clientId, RouteNextHopEntry entry) {
+    fields_.update(clientId, std::move(entry));
+  }
 
-  void addEntryForClient();
-  void delEntryForClient(ClientID clientId);
+  void delEntryForClient(ClientID clientId) {
+    fields_.delEntryForClient(clientId);
+  }
 
   std::optional<cfg::AclLookupClass> getClassID() const {
-    return classID_;
+    return fields_.getClassID();
   }
   void setClassID(std::optional<cfg::AclLookupClass> classID) {
-    classID_ = classID;
+    fields_.setClassID(std::move(classID));
   }
 
   bool operator==(const Route& rf) const;
 
  private:
-  /**
-   * Bit definition for RouteFields<>::flags
-   *
-   * CONNECTED: This route is directly connected. For example, a route based on
-   *            an interface subnet is a directly connected route.
-   * RESOLVED: This route has been resolved. 'RouteFields::fwd' is valid.
-   * UNRESOLVABLE: This route is not resolvable. A route without RESOLVED set
-   *               does not mean that it is UNRESOLVABLE.
-   *               A route with neither RESOLVED nor UNRESOLVABLE just means
-   *               the route needs to be resolved. As the result of process,
-   *               the route could have either RESOLVED set (resolved) or
-   *               UNRESOLVABLE set.
-   * PROCESSING: This route is being processed to resolve the nexthop.
-   *             This bit is set before look up a route to reach the nexthop.
-   *             If the route used to reach the nexthop also has this bit set,
-   *             that means we have a loop to resolve the route. In this case,
-   *             none of the routes in the loop is resolvable.
-   *             This bit is cleared when setting this route as RESOLVED or
-   *             UNRESOLVABLE.
-   */
-  enum : uint32_t {
-    CONNECTED = 0x1,
-    RESOLVED = 0x2,
-    UNRESOLVABLE = 0x4,
-    PROCESSING = 0x8,
-  };
-  void setFlagsProcessing() {
-    flags |= PROCESSING;
-    flags &= ~(RESOLVED | UNRESOLVABLE | CONNECTED);
-  }
-  void setFlagsResolved() {
-    flags |= RESOLVED;
-    flags &= ~(UNRESOLVABLE | PROCESSING);
-  }
-  void setFlagsUnresolvable() {
-    flags |= UNRESOLVABLE;
-    flags &= ~(RESOLVED | PROCESSING | CONNECTED);
-  }
-  void setFlagsConnected() {
-    flags |= CONNECTED;
-  }
-  void clearForwardInFlags() {
-    flags &= ~(RESOLVED | PROCESSING | CONNECTED | UNRESOLVABLE);
-  }
-  uint32_t flags{0};
-  RouteNextHopEntry fwd{
-      RouteNextHopEntry::Action::DROP,
-      AdminDistance::MAX_ADMIN_DISTANCE};
-
-  Prefix prefix_;
-  /*
-   * All next hops of the routes. This set could be empty if and only if
-   * the route is directly connected
-   */
-  RouteNextHopsMulti nextHopsMulti_;
-  std::optional<cfg::AclLookupClass> classID_{std::nullopt};
+  facebook::fboss::RouteFields<AddrT> fields_;
 };
 
-typedef Route<folly::IPAddressV4> RouteV4;
-typedef Route<folly::IPAddressV6> RouteV6;
+using RouteV4 = Route<folly::IPAddressV4>;
+using RouteV6 = Route<folly::IPAddressV6>;
 
 } // namespace facebook::fboss::rib
