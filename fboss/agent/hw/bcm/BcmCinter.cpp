@@ -2510,6 +2510,9 @@ int BcmCinter::bcm_vlan_control_vlan_get(
 }
 
 int BcmCinter::sh_process_command(int unit, char* cmd) {
+  /* Add cmd in the output to associate output with the command */
+  vector<string> cmdShowCint = {to<string>("printf(\"\\n== ", cmd, ":\\n\")")};
+  writeCintLines(std::move(cmdShowCint));
   auto funcCint = wrapFunc(to<string>("bshell(", unit, ", \"", cmd, "\")"));
   vector<string> cintLine = {funcCint};
   writeCintLines(cintLine);
