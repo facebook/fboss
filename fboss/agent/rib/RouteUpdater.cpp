@@ -32,7 +32,9 @@ using folly::IPAddressV6;
 
 namespace facebook::fboss {
 
-static const PrefixV6 kIPv6LinkLocalPrefix{folly::IPAddressV6("fe80::"), 64};
+static const RoutePrefixV6 kIPv6LinkLocalPrefix{
+    folly::IPAddressV6("fe80::"),
+    64};
 static const auto kInterfaceRouteClientId = ClientID::INTERFACE_ROUTE;
 
 RibRouteUpdater::RibRouteUpdater(
@@ -69,10 +71,10 @@ void RibRouteUpdater::addRoute(
     ClientID clientID,
     RouteNextHopEntry entry) {
   if (network.isV4()) {
-    PrefixV4 prefix{network.asV4().mask(mask), mask};
+    RoutePrefixV4 prefix{network.asV4().mask(mask), mask};
     addRouteImpl(prefix, v4Routes_, clientID, std::move(entry));
   } else {
-    PrefixV6 prefix{network.asV6().mask(mask), mask};
+    RoutePrefixV6 prefix{network.asV6().mask(mask), mask};
     if (prefix.network.isLinkLocal()) {
       XLOG(DBG2) << "Ignoring v6 link-local interface route: " << prefix.str();
       return;
@@ -136,11 +138,11 @@ void RibRouteUpdater::delRoute(
     uint8_t mask,
     ClientID clientID) {
   if (network.isV4()) {
-    PrefixV4 prefix{network.asV4().mask(mask), mask};
+    RoutePrefixV4 prefix{network.asV4().mask(mask), mask};
     delRouteImpl(prefix, v4Routes_, clientID);
   } else {
     CHECK(network.isV6());
-    PrefixV6 prefix{network.asV6().mask(mask), mask};
+    RoutePrefixV6 prefix{network.asV6().mask(mask), mask};
     delRouteImpl(prefix, v6Routes_, clientID);
   }
 }

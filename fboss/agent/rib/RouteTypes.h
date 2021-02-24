@@ -19,9 +19,3 @@
 #include "fboss/agent/state/RouteNextHopsMulti.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/types.h"
-
-namespace facebook::fboss {
-
-using PrefixV4 = facebook::fboss::RoutePrefixV4;
-using PrefixV6 = facebook::fboss::RoutePrefixV6;
-} // namespace facebook::fboss

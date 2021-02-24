@@ -759,7 +759,7 @@ TEST(Route, toCPURoutes) {
 TEST(Route, serializeRoute) {
   ClientID clientId = ClientID(1);
   auto nxtHops = makeNextHops({"10.10.10.10", "11.11.11.11"});
-  RibRoute<IPAddressV4> rt(PrefixV4::fromString("1.2.3.4/32"));
+  RibRoute<IPAddressV4> rt(RoutePrefixV4::fromString("1.2.3.4/32"));
   rt.update(clientId, RouteNextHopEntry(nxtHops, kDistance));
 
   // to folly dynamic

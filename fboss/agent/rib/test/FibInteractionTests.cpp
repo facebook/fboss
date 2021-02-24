@@ -115,7 +115,7 @@ TEST(Route, RibRouteToFibRoute) {
   folly::IPAddressV6 prefixAddress("::0");
   uint8_t prefixMask = 0;
 
-  facebook::fboss::PrefixV6 prefix;
+  facebook::fboss::RoutePrefixV6 prefix;
   prefix.network = prefixAddress;
   prefix.mask = prefixMask;
 
@@ -142,7 +142,7 @@ TEST(Route, DirectlyConnectedRibRouteToFibRoute) {
   folly::IPAddressV6 prefixAddress("1::");
   uint8_t prefixMask = 127;
 
-  facebook::fboss::PrefixV6 prefix;
+  facebook::fboss::RoutePrefixV6 prefix;
   prefix.network = prefixAddress;
   prefix.mask = prefixMask;
 
