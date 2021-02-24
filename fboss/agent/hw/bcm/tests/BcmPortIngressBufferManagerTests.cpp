@@ -36,15 +36,18 @@ constexpr std::string_view kBufferPoolName = "fooBuffer";
 std::vector<cfg::PortPgConfig> getPortPgConfig(
     int mmuCellByes,
     const std::vector<int>& queues,
-    int deltaValue = 0) {
+    int deltaValue = 0,
+    const bool enableHeadroom = true) {
   std::vector<cfg::PortPgConfig> portPgConfigs;
 
   for (const auto queueId : queues) {
     cfg::PortPgConfig pgConfig;
     pgConfig.id_ref() = queueId;
     // use queueId value to assign different values for each param/queue
-    pgConfig.headroomLimitBytes_ref() =
-        (kPgHeadroomLimitCells + queueId + deltaValue) * mmuCellByes;
+    if (enableHeadroom) {
+      pgConfig.headroomLimitBytes_ref() =
+          (kPgHeadroomLimitCells + queueId + deltaValue) * mmuCellByes;
+    }
     pgConfig.minLimitBytes_ref() =
         (kPgMinLimitCells + queueId + deltaValue) * mmuCellByes;
     pgConfig.resumeOffsetBytes_ref() =
@@ -76,19 +79,23 @@ class BcmPortIngressBufferManagerTest : public BcmTest {
     return utility::oneL3IntfConfig(getHwSwitch(), masterLogicalPortIds()[0]);
   }
 
-  void setupHelper() {
+  void setupHelper(bool enableHeadroom = true, bool pfcEnable = true) {
     auto cfg = initialConfig();
     auto portCfg = utility::findCfgPort(cfg, masterLogicalPortIds()[0]);
 
     // setup pfc
     cfg::PortPfc pfc;
     pfc.portPgConfigName_ref() = "foo";
+    pfc.tx_ref() = pfcEnable;
     portCfg->pfc_ref() = pfc;
 
     // setup pgConfig
     std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
-    portPgConfigMap["foo"] =
-        getPortPgConfig(getPlatform()->getMMUCellBytes(), {0, 1});
+    portPgConfigMap["foo"] = getPortPgConfig(
+        getPlatform()->getMMUCellBytes(),
+        {0, 1},
+        0 /* delta value */,
+        enableHeadroom);
     cfg.portPgConfigs_ref() = portPgConfigMap;
 
     // setup bufferPool
@@ -136,10 +143,13 @@ class BcmPortIngressBufferManagerTest : public BcmTest {
     EXPECT_EQ(
         defaultBufferPoolCfg.getSharedBytes(),
         (*bufferPoolCfgInHwPtr).getSharedBytes());
+
+    EXPECT_EQ(bcmPort->getProgrammedPgLosslessMode(0), 0);
+    EXPECT_EQ(bcmPort->getProgrammedPfcStatusInPg(0), 0);
   }
 
   // routine to validate if the SW and HW match for the PG cfg
-  void checkSwHwPgCfgMatch() {
+  void checkSwHwPgCfgMatch(bool pfcEnable = true) {
     PortPgConfigs portPgsHw;
 
     auto bcmPort = getHwSwitch()->getPortTable()->getBcmPort(
@@ -163,9 +173,13 @@ class BcmPortIngressBufferManagerTest : public BcmTest {
           pgConfig->getResumeOffsetBytes().value(),
           portPgsHw[i]->getResumeOffsetBytes().value());
       EXPECT_EQ(pgConfig->getMinLimitBytes(), portPgsHw[i]->getMinLimitBytes());
-      EXPECT_EQ(
-          pgConfig->getHeadroomLimitBytes(),
-          portPgsHw[i]->getHeadroomLimitBytes());
+
+      int pgHeadroom = 0;
+      // for pgs with headroom, lossless mode + pfc should be enabled
+      if (auto pgHdrmOpt = pgConfig->getHeadroomLimitBytes()) {
+        pgHeadroom = *pgHdrmOpt;
+      }
+      EXPECT_EQ(pgHeadroom, portPgsHw[i]->getHeadroomLimitBytes());
       const auto bufferPoolPtr = pgConfig->getBufferPoolConfig();
       EXPECT_EQ(
           (*bufferPoolPtr)->getSharedBytes(),
@@ -173,6 +187,13 @@ class BcmPortIngressBufferManagerTest : public BcmTest {
       EXPECT_EQ(
           (*bufferPoolPtr)->getHeadroomBytes(),
           (*bufferPoolHwPtr).getHeadroomBytes());
+      // we are in lossless mode if headroom > 0, else lossless mode = 0
+      EXPECT_EQ(
+          bcmPort->getProgrammedPgLosslessMode(pgConfig->getID()),
+          pgHeadroom ? 1 : 0);
+      EXPECT_EQ(
+          bcmPort->getProgrammedPfcStatusInPg(pgConfig->getID()),
+          pfcEnable ? 1 : 0);
       i++;
     }
   }
@@ -203,7 +224,7 @@ TEST_F(BcmPortIngressBufferManagerTest, validateConfigReset) {
     return;
   }
 
-  auto setup = [=]() {
+  auto setup = [&]() {
     setupHelper();
     // reset PG config
     auto portCfg = utility::findCfgPort(cfg_, masterLogicalPortIds()[0]);
@@ -225,7 +246,7 @@ TEST_F(BcmPortIngressBufferManagerTest, validateIngressPoolParamChange) {
     return;
   }
 
-  auto setup = [=]() {
+  auto setup = [&]() {
     setupHelper();
     // setup bufferPool
     std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
@@ -250,7 +271,7 @@ TEST_F(BcmPortIngressBufferManagerTest, validatePGParamChange) {
     return;
   }
 
-  auto setup = [=]() {
+  auto setup = [&]() {
     setupHelper();
     // update one PG, and see ifs reflected in the HW
     std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
@@ -273,7 +294,7 @@ TEST_F(BcmPortIngressBufferManagerTest, validatePGQueueChanges) {
     return;
   }
 
-  auto setup = [=]() {
+  auto setup = [&]() {
     setupHelper();
     // update one PG, and see ifs reflected in the HW
     std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
@@ -295,4 +316,39 @@ TEST_F(BcmPortIngressBufferManagerTest, validatePGQueueChanges) {
 
   verifyAcrossWarmBoots(setup, verify);
 }
+
+// Create PG config, associate with PFC config
+// do not create the headroom cfg, PGs should be in lossy mode now
+// validate that SDK programming is as per the cfg
+TEST_F(BcmPortIngressBufferManagerTest, validateLossyMode) {
+  if (!isSupported(HwAsic::Feature::PFC)) {
+    XLOG(WARNING) << "Platform doesn't support PFC";
+    return;
+  }
+
+  auto setup = [&]() { setupHelper(false /* enable headroom */); };
+
+  auto verify = [&]() { checkSwHwPgCfgMatch(); };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// validate the Pg's pfc mode bit
+// by default we have been enabling PFC on the port and hence
+// on every PG. Force the port to have no PFC
+// Validate that Pg's pfc mode is False now
+TEST_F(BcmPortIngressBufferManagerTest, validatePgNoPfc) {
+  if (!isSupported(HwAsic::Feature::PFC)) {
+    XLOG(WARNING) << "Platform doesn't support PFC";
+    return;
+  }
+
+  auto setup = [&]() {
+    setupHelper(true /* enable headroom */, false /* pfc */);
+  };
+  auto verify = [&]() { checkSwHwPgCfgMatch(false /* pfc*/); };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss

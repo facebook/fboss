@@ -64,7 +64,7 @@ class BcmPortIngressBufferManager {
   void programPg(const PortPgConfig* pgConfig, const int cosq);
   void resetPgToDefault(int pgId);
   void resetIngressPoolsToDefault();
-  void resetPgsToDefault();
+  void resetPgsToDefault(const std::shared_ptr<Port> port);
   void reprogramPgs(const std::shared_ptr<Port> port);
   void writeCosqTypeToHw(
       const int cosq,

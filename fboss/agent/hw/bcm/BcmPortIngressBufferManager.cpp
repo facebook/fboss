@@ -181,6 +181,8 @@ void BcmPortIngressBufferManager::programPg(
 void BcmPortIngressBufferManager::resetPgToDefault(int pgId) {
   const auto& portPg = getDefaultPgSettings();
   programPg(&portPg, pgId);
+  // disable pfc on default pgs
+  programPfcOnPg(pgId, false);
 }
 
 void BcmPortIngressBufferManager::resetIngressPoolsToDefault() {
@@ -208,13 +210,15 @@ void BcmPortIngressBufferManager::resetIngressPoolsToDefault() {
       "bcmCosqControlEgressPoolSharedLimitBytes");
 }
 
-void BcmPortIngressBufferManager::resetPgsToDefault() {
+void BcmPortIngressBufferManager::resetPgsToDefault(
+    const std::shared_ptr<Port> port) {
   XLOG(DBG2) << "Reset all programmed PGs to default for port " << portName_;
   auto pgIdList = getPgIdListInHw();
   for (const auto& pgId : pgIdList) {
     resetPgToDefault(pgId);
   }
   pgIdList.clear();
+  programLosslessMode(port);
   setPgIdListInHw(pgIdList);
 }
 
@@ -263,10 +267,17 @@ void BcmPortIngressBufferManager::reprogramPgs(
   PgIdSet newPgList = {};
   const auto portPgCfgs = port->getPortPgConfigs();
   const auto pgIdList = getPgIdListInHw();
+  bool isPfcEnabled = false;
+
+  if (const auto& pfc = port->getPfc()) {
+    isPfcEnabled = *pfc->tx_ref() || *pfc->rx_ref();
+  }
 
   if (portPgCfgs) {
     for (const auto& portPgCfg : *portPgCfgs) {
       programPg(portPgCfg.get(), portPgCfg->getID());
+      // enable pfc on pg if so
+      programPfcOnPg(portPgCfg->getID(), isPfcEnabled);
       newPgList.insert(portPgCfg->getID());
     }
 
@@ -287,6 +298,7 @@ void BcmPortIngressBufferManager::reprogramPgs(
   }
   // update to latest PG list
   setPgIdListInHw(newPgList);
+  programLosslessMode(port);
   XLOG(DBG2) << "New PG list programmed for port " << portName_;
 }
 
@@ -333,7 +345,7 @@ void BcmPortIngressBufferManager::programIngressBuffers(
   if (!portPgCfgs) {
     // unprogram the existing pgs
     // case 2
-    resetPgsToDefault();
+    resetPgsToDefault(port);
     // NOTE:
     // all ports map to 2 separate ingress pools (1 per ITM)
     // now if we reset to default for some port, it effectively happens

@@ -2114,4 +2114,12 @@ const BufferPoolCfg& BcmPort::getDefaultIngressPoolSettings() const {
   return ingressBufferManager_->getDefaultIngressPoolSettings();
 }
 
+int BcmPort::getProgrammedPgLosslessMode(const int pgId) const {
+  return ingressBufferManager_->getProgrammedPgLosslessMode(pgId);
+}
+
+int BcmPort::getProgrammedPfcStatusInPg(const int pgId) const {
+  return ingressBufferManager_->getProgrammedPfcStatusInPg(pgId);
+}
+
 } // namespace facebook::fboss

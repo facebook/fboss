@@ -195,6 +195,8 @@ class BcmPort {
   PortPgConfigs getCurrentProgrammedPgSettings() const;
   PortPgConfigs getCurrentPgSettings() const;
   BufferPoolCfgPtr getCurrentIngressPoolSettings() const;
+  int getProgrammedPgLosslessMode(const int pgId) const;
+  int getProgrammedPfcStatusInPg(const int pgId) const;
 
   const PortPgConfig& getDefaultPgSettings() const;
   const BufferPoolCfg& getDefaultIngressPoolSettings() const;
