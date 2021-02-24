@@ -49,7 +49,7 @@ void RibRouteUpdater::addRouteImpl(
   auto it = routes->exactMatch(prefix.network, prefix.mask);
 
   if (it != routes->end()) {
-    Route<AddressT>* route = &(it->value());
+    RibRoute<AddressT>* route = &(it->value());
     if (route->has(clientID, entry)) {
       return;
     }
@@ -60,7 +60,7 @@ void RibRouteUpdater::addRouteImpl(
 
   CHECK(it == routes->end());
   routes->insert(
-      prefix.network, prefix.mask, Route<AddressT>(prefix, clientID, entry));
+      prefix.network, prefix.mask, RibRoute<AddressT>(prefix, clientID, entry));
 }
 
 void RibRouteUpdater::addRoute(
@@ -119,7 +119,7 @@ void RibRouteUpdater::delRouteImpl(
     return;
   }
 
-  Route<AddressT>& route = it->value();
+  RibRoute<AddressT>& route = it->value();
   route.delEntryForClient(clientID);
 
   XLOG(DBG3) << "Deleted next-hops for prefix " << prefix.str()
@@ -395,7 +395,7 @@ void RibRouteUpdater::getFwdInfoFromNhop(
     return;
   }
 
-  Route<AddressT>* route = &(it->value());
+  RibRoute<AddressT>* route = &(it->value());
   CHECK(route);
 
   if (route->needResolve()) {
@@ -437,7 +437,7 @@ void RibRouteUpdater::getFwdInfoFromNhop(
 }
 
 template <typename AddressT>
-void RibRouteUpdater::resolveOne(Route<AddressT>* route) {
+void RibRouteUpdater::resolveOne(RibRoute<AddressT>* route) {
   // mark this route is in processing. This processing bit shall be cleared
   // in setUnresolvable() or setResolved()
   route->setProcessing();
@@ -519,7 +519,7 @@ void RibRouteUpdater::resolveOne(Route<AddressT>* route) {
 template <typename AddressT>
 void RibRouteUpdater::resolve(NetworkToRouteMap<AddressT>* routes) {
   for (auto& entry : *routes) {
-    Route<AddressT>* route = &(entry.value());
+    RibRoute<AddressT>* route = &(entry.value());
     if (route->needResolve()) {
       resolveOne(route);
     }
@@ -529,7 +529,7 @@ void RibRouteUpdater::resolve(NetworkToRouteMap<AddressT>* routes) {
 template <typename AddressT>
 void RibRouteUpdater::updateDoneImpl(NetworkToRouteMap<AddressT>* routes) {
   for (auto& entry : *routes) {
-    Route<AddressT>& route = entry.value();
+    RibRoute<AddressT>& route = entry.value();
     route.clearForward();
   }
   resolve(routes);

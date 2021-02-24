@@ -100,7 +100,7 @@ class RibRouteUpdater {
   template <typename AddressT>
   void resolve(NetworkToRouteMap<AddressT>* routes);
   template <typename AddressT>
-  void resolveOne(Route<AddressT>* route);
+  void resolveOne(RibRoute<AddressT>* route);
 
   template <typename AddressT>
   void getFwdInfoFromNhop(

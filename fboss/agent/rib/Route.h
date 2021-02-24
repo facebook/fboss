@@ -21,21 +21,21 @@
 namespace facebook::fboss::rib {
 
 template <typename AddrT>
-class Route {
+class RibRoute {
  public:
   using Prefix = RoutePrefix<AddrT>;
 
-  explicit Route(const Prefix& prefix) : fields_(prefix) {}
-  Route(const Prefix& prefix, ClientID clientId, RouteNextHopEntry entry)
+  explicit RibRoute(const Prefix& prefix) : fields_(prefix) {}
+  RibRoute(const Prefix& prefix, ClientID clientId, RouteNextHopEntry entry)
       : fields_(prefix, clientId, std::move(entry)) {}
 
-  static Route<AddrT> fromFollyDynamic(const folly::dynamic& json);
+  static RibRoute<AddrT> fromFollyDynamic(const folly::dynamic& json);
 
   folly::dynamic toFollyDynamic() const {
     return fields_.toFollyDynamic();
   }
 
-  static Route<AddrT> fromJson(const folly::fbstring& jsonStr) {
+  static RibRoute<AddrT> fromJson(const folly::fbstring& jsonStr) {
     return fromFollyDynamic(folly::parseJson(jsonStr));
   }
 
@@ -90,7 +90,7 @@ class Route {
     return fields_.has(clientId, entry);
   }
 
-  bool isSame(const Route* rt) const;
+  bool isSame(const RibRoute* rt) const;
 
   void setProcessing() {
     fields_.setProcessing();
@@ -123,13 +123,13 @@ class Route {
     fields_.setClassID(std::move(classID));
   }
 
-  bool operator==(const Route& rf) const;
+  bool operator==(const RibRoute& rf) const;
 
  private:
   facebook::fboss::RouteFields<AddrT> fields_;
 };
 
-using RouteV4 = Route<folly::IPAddressV4>;
-using RouteV6 = Route<folly::IPAddressV6>;
+using RibRouteV4 = RibRoute<folly::IPAddressV4>;
+using RibRouteV6 = RibRoute<folly::IPAddressV6>;
 
 } // namespace facebook::fboss::rib

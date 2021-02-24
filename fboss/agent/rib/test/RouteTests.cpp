@@ -34,8 +34,8 @@ const ClientID kClientE = ClientID(1005);
 using facebook::fboss::ECMP_WEIGHT;
 using rib::IPv4NetworkToRouteMap;
 using rib::IPv6NetworkToRouteMap;
+using rib::RibRoute;
 using rib::RibRouteUpdater;
-using rib::Route;
 using rib::RouteNextHopEntry;
 using rib::RouteNextHopSet;
 
@@ -48,7 +48,7 @@ constexpr AdminDistance kDistance = AdminDistance::MAX_ADMIN_DISTANCE;
 namespace {
 // TODO(samank): move helpers into test fixture
 template <typename AddressT>
-rib::Route<AddressT>* getRoute(
+rib::RibRoute<AddressT>* getRoute(
     rib::NetworkToRouteMap<AddressT>& routes,
     std::string prefixAsString) {
   auto prefix = rib::RoutePrefix<AddressT>::fromString(prefixAsString);
@@ -67,7 +67,7 @@ rib::RouteNextHopSet makeNextHops(std::vector<std::string> ipsAsStrings) {
 
 template <typename AddrT>
 void EXPECT_FWD_INFO(
-    const rib::Route<AddrT>* route,
+    const rib::RibRoute<AddrT>* route,
     InterfaceID interfaceID,
     std::string ipAsString) {
   const auto& fwds = route->getForwardInfo().getNextHopSet();
@@ -78,7 +78,7 @@ void EXPECT_FWD_INFO(
 }
 
 template <typename AddrT>
-void EXPECT_RESOLVED(const rib::Route<AddrT>* route) {
+void EXPECT_RESOLVED(const rib::RibRoute<AddrT>* route) {
   EXPECT_TRUE(route->isResolved());
   EXPECT_FALSE(route->isUnresolvable());
   EXPECT_FALSE(route->needResolve());
@@ -102,7 +102,7 @@ void EXPECT_ROUTES_MATCH(
 }
 
 template <typename AddressT>
-rib::Route<AddressT>* longestMatch(
+rib::RibRoute<AddressT>* longestMatch(
     rib::NetworkToRouteMap<AddressT>& routes,
     AddressT address) {
   auto it = routes.longestMatch(address, address.bitCount());
@@ -182,8 +182,8 @@ TEST(Route, modRoutes) {
 
   RibRouteUpdater u1(&v4Routes, &v6Routes);
 
-  RouteV4::Prefix prefix10{IPAddressV4("10.10.10.10"), 32};
-  RouteV4::Prefix prefix99{IPAddressV4("99.99.99.99"), 32};
+  RibRouteV4::Prefix prefix10{IPAddressV4("10.10.10.10"), 32};
+  RibRouteV4::Prefix prefix99{IPAddressV4("99.99.99.99"), 32};
 
   RouteNextHopSet nexthops1 = newNextHops(3, "1.1.1.");
   RouteNextHopSet nexthops2 = newNextHops(3, "2.2.2.");
@@ -207,7 +207,7 @@ TEST(Route, modRoutes) {
   u1.updateDone();
 
   IPv4NetworkToRouteMap::Iterator it;
-  RouteV4 *rt10, *rt99;
+  RibRouteV4 *rt10, *rt99;
 
   it = v4Routes.exactMatch(prefix10.network, prefix10.mask);
   ASSERT_NE(v4Routes.end(), it);
@@ -290,8 +290,8 @@ TEST(Route, delRoutes) {
 
   RibRouteUpdater u1(&v4Routes, &v6Routes);
 
-  RouteV4::Prefix prefix10{IPAddressV4("10.10.10.10"), 32};
-  RouteV4::Prefix prefix22{IPAddressV4("22.22.22.22"), 32};
+  RibRouteV4::Prefix prefix10{IPAddressV4("10.10.10.10"), 32};
+  RibRouteV4::Prefix prefix22{IPAddressV4("22.22.22.22"), 32};
 
   u1.addRoute(
       IPAddress("10.10.10.10"),
@@ -474,7 +474,7 @@ bool stringStartsWith(std::string s1, std::string prefix) {
 
 void assertClientsNotPresent(
     IPv4NetworkToRouteMap& routes,
-    RouteV4::Prefix prefix,
+    RibRouteV4::Prefix prefix,
     std::vector<int16_t> clientIds) {
   IPv4NetworkToRouteMap::Iterator it;
 
@@ -490,7 +490,7 @@ void assertClientsNotPresent(
 
 void assertClientsPresent(
     IPv4NetworkToRouteMap& routes,
-    RouteV4::Prefix prefix,
+    RibRouteV4::Prefix prefix,
     std::vector<int16_t> clientIds) {
   IPv4NetworkToRouteMap::Iterator it;
 
@@ -506,7 +506,7 @@ void assertClientsPresent(
 
 void expectFwdInfo(
     IPv4NetworkToRouteMap& routes,
-    RouteV4::Prefix prefix,
+    RibRouteV4::Prefix prefix,
     std::string ipPrefix) {
   auto it = routes.exactMatch(prefix.network, prefix.mask);
   CHECK(routes.end() != it);
@@ -523,7 +523,7 @@ void expectFwdInfo(
 void addNextHopsForClient(
     IPv4NetworkToRouteMap& routes,
     IPv6NetworkToRouteMap& v6Routes,
-    RouteV4::Prefix prefix,
+    RibRouteV4::Prefix prefix,
     int16_t clientId,
     std::string ipPrefix,
     AdminDistance adminDistance = AdminDistance::MAX_ADMIN_DISTANCE) {
@@ -539,7 +539,7 @@ void addNextHopsForClient(
 void deleteNextHopsForClient(
     IPv4NetworkToRouteMap& routes,
     IPv6NetworkToRouteMap& v6Routes,
-    RouteV4::Prefix prefix,
+    RibRouteV4::Prefix prefix,
     int16_t clientId) {
   RibRouteUpdater u(&routes, &v6Routes);
   u.delRoute(prefix.network, prefix.mask, ClientID(clientId));
@@ -555,7 +555,7 @@ TEST(Route, fwdInfoRanking) {
   // We'll be adding and removing a bunch of nexthops for this Network & Mask
   auto network = IPAddressV4("22.22.22.22");
   uint8_t mask = 32;
-  RouteV4::Prefix prefix{network, mask};
+  RibRouteV4::Prefix prefix{network, mask};
 
   // Add client 30, plus an interface for resolution.
   RibRouteUpdater u1(&v4Routes, &v6Routes);
@@ -767,7 +767,7 @@ TEST(Route, toCPURoutes) {
 TEST(Route, serializeRoute) {
   ClientID clientId = ClientID(1);
   auto nxtHops = makeNextHops({"10.10.10.10", "11.11.11.11"});
-  Route<IPAddressV4> rt(PrefixV4::fromString("1.2.3.4/32"));
+  RibRoute<IPAddressV4> rt(PrefixV4::fromString("1.2.3.4/32"));
   rt.update(clientId, RouteNextHopEntry(nxtHops, kDistance));
 
   // to folly dynamic
@@ -779,7 +779,7 @@ TEST(Route, serializeRoute) {
   // back to folly dynamic
   folly::dynamic obj2 = folly::parseJson(json, serOpts);
   // back to Route object
-  auto rt2 = Route<IPAddressV4>::fromFollyDynamic(obj2);
+  auto rt2 = RibRoute<IPAddressV4>::fromFollyDynamic(obj2);
   ASSERT_TRUE(rt2.has(clientId, RouteNextHopEntry(nxtHops, kDistance)));
 }
 
@@ -791,10 +791,10 @@ TEST(Route, serializeRouteTable) {
   RouteNextHopSet nhop1 = makeNextHops({"1.1.1.10"}); // resolved by intf 1
   RouteNextHopSet nhop2 = makeNextHops({"2.2.2.10"}); // resolved by intf 2
   // 4 prefixes
-  RouteV4::Prefix r1{IPAddressV4("10.1.1.0"), 24};
-  RouteV4::Prefix r2{IPAddressV4("20.1.1.0"), 24};
-  RouteV6::Prefix r3{IPAddressV6("1001::0"), 48};
-  RouteV6::Prefix r4{IPAddressV6("2001::0"), 48};
+  RibRouteV4::Prefix r1{IPAddressV4("10.1.1.0"), 24};
+  RibRouteV4::Prefix r2{IPAddressV4("20.1.1.0"), 24};
+  RibRouteV6::Prefix r3{IPAddressV6("1001::0"), 48};
+  RibRouteV6::Prefix r4{IPAddressV6("2001::0"), 48};
 
   RibRouteUpdater u2(&v4Routes, &v6Routes);
   u2.addRoute(
@@ -1163,7 +1163,7 @@ class UcmpTest : public ::testing::Test {
         resolvedWeights);
   }
 
-  std::vector<Route<folly::IPAddressV4>> resolvedRoutes;
+  std::vector<RibRoute<folly::IPAddressV4>> resolvedRoutes;
   const folly::IPAddress intfIp1{"1.1.1.10"};
   const folly::IPAddress intfIp2{"2.2.2.20"};
   const folly::IPAddress intfIp3{"3.3.3.30"};

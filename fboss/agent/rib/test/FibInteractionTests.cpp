@@ -130,7 +130,7 @@ TEST(Route, RibRouteToFibRoute) {
           nextHopAddress, nextHopInterfaceID, facebook::fboss::ECMP_WEIGHT),
       kDefaultAdminDistance);
 
-  facebook::fboss::rib::RouteV6 ribRoute(
+  facebook::fboss::rib::RibRouteV6 ribRoute(
       prefix, facebook::fboss::ClientID(1), ribResolvedNextHop);
   ribRoute.setResolved(ribResolvedNextHop);
 
@@ -158,7 +158,7 @@ TEST(Route, DirectlyConnectedRibRouteToFibRoute) {
           nextHopAddress, nextHopInterfaceID, facebook::fboss::ECMP_WEIGHT),
       kDefaultAdminDistance);
 
-  facebook::fboss::rib::RouteV6 ribRoute(
+  facebook::fboss::rib::RibRouteV6 ribRoute(
       prefix, facebook::fboss::ClientID(1), ribResolvedNextHop);
   ribRoute.setResolved(ribResolvedNextHop);
   ribRoute.setConnected();

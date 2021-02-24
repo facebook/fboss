@@ -82,7 +82,7 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
 
   bool updated = false;
   for (const auto& entry : rib) {
-    const facebook::fboss::rib::Route<AddressT>& ribRoute = entry.value();
+    const facebook::fboss::rib::RibRoute<AddressT>& ribRoute = entry.value();
 
     if (!ribRoute.isResolved()) {
       // The recursive resolution algorithm considers a next-hop TO_CPU or
@@ -168,7 +168,7 @@ ForwardingInformationBaseUpdater::toFibNextHop(
 template <typename AddrT>
 std::shared_ptr<facebook::fboss::Route<AddrT>>
 ForwardingInformationBaseUpdater::toFibRoute(
-    const Route<AddrT>& ribRoute,
+    const RibRoute<AddrT>& ribRoute,
     const std::shared_ptr<facebook::fboss::Route<AddrT>>& curFibRoute) {
   CHECK(ribRoute.isResolved());
 
@@ -191,11 +191,11 @@ ForwardingInformationBaseUpdater::toFibRoute(
 
 template std::shared_ptr<facebook::fboss::Route<folly::IPAddressV4>>
 ForwardingInformationBaseUpdater::toFibRoute<folly::IPAddressV4>(
-    const Route<folly::IPAddressV4>&,
+    const RibRoute<folly::IPAddressV4>&,
     const std::shared_ptr<facebook::fboss::Route<folly::IPAddressV4>>&);
 template std::shared_ptr<facebook::fboss::Route<folly::IPAddressV6>>
 ForwardingInformationBaseUpdater::toFibRoute<folly::IPAddressV6>(
-    const Route<folly::IPAddressV6>&,
+    const RibRoute<folly::IPAddressV6>&,
     const std::shared_ptr<facebook::fboss::Route<folly::IPAddressV6>>&);
 
 } // namespace facebook::fboss::rib

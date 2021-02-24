@@ -16,24 +16,25 @@
 namespace facebook::fboss::rib {
 
 template <typename AddrT>
-bool Route<AddrT>::operator==(const Route& rf) const {
+bool RibRoute<AddrT>::operator==(const RibRoute& rf) const {
   return fields_ == rf.fields_;
 }
 
 template <typename AddrT>
-Route<AddrT> Route<AddrT>::fromFollyDynamic(const folly::dynamic& routeJson) {
-  Route route(Prefix::fromFollyDynamic(routeJson[kPrefix]));
+RibRoute<AddrT> RibRoute<AddrT>::fromFollyDynamic(
+    const folly::dynamic& routeJson) {
+  RibRoute route(Prefix::fromFollyDynamic(routeJson[kPrefix]));
   route.fields_ = RouteFields<AddrT>::fromFollyDynamic(routeJson);
   CHECK(!route.hasNoEntry());
   return route;
 }
 
 template <typename AddrT>
-bool Route<AddrT>::isSame(const Route<AddrT>* rt) const {
+bool RibRoute<AddrT>::isSame(const RibRoute<AddrT>* rt) const {
   return *this == *rt;
 }
 
-template class Route<folly::IPAddressV4>;
-template class Route<folly::IPAddressV6>;
+template class RibRoute<folly::IPAddressV4>;
+template class RibRoute<folly::IPAddressV6>;
 
 } // namespace facebook::fboss::rib

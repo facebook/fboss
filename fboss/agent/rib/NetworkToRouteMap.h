@@ -21,7 +21,7 @@ namespace facebook::fboss::rib {
 
 template <typename AddressT>
 class NetworkToRouteMap
-    : public facebook::network::RadixTree<AddressT, Route<AddressT>> {
+    : public facebook::network::RadixTree<AddressT, RibRoute<AddressT>> {
   static constexpr auto kRoutes = "routes";
 
  public:
@@ -41,7 +41,7 @@ class NetworkToRouteMap
 
     auto routesJson = routes[kRoutes];
     for (const auto& routeJson : routesJson) {
-      auto route = Route<AddressT>::fromFollyDynamic(routeJson);
+      auto route = RibRoute<AddressT>::fromFollyDynamic(routeJson);
       RoutePrefix<AddressT> prefix = route.prefix();
       networkToRouteMap.insert(prefix.network, prefix.mask, std::move(route));
     }

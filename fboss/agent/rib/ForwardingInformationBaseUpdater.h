@@ -41,7 +41,7 @@ class ForwardingInformationBaseUpdater {
       const RouteNextHopEntry& ribNextHopEntry);
   template <typename AddrT>
   static std::shared_ptr<facebook::fboss::Route<AddrT>> toFibRoute(
-      const Route<AddrT>& ribRoute,
+      const RibRoute<AddrT>& ribRoute,
       const std::shared_ptr<facebook::fboss::Route<AddrT>>& curFibRoute =
           nullptr);
 
