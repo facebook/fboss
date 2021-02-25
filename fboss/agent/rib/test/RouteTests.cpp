@@ -11,7 +11,8 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
-#include "fboss/agent/rib/RouteTypes.h"
+#include "fboss/agent/state/RouteNextHop.h"
+
 #include "fboss/agent/rib/RouteUpdater.h"
 
 #include <folly/IPAddress.h>
