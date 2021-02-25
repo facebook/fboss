@@ -418,8 +418,10 @@ void BcmPort::disableLinkscan() {
 }
 
 bool BcmPort::isEnabled() {
-  return *programmedSettings_.rlock() &&
-      (*programmedSettings_.rlock())->isEnabled();
+  if (*programmedSettings_.rlock()) {
+    return (*programmedSettings_.rlock())->isEnabled();
+  }
+  return isEnabledInSDK();
 }
 
 bool BcmPort::isEnabledInSDK() {
