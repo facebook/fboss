@@ -89,9 +89,17 @@ class SaiObjectStore {
 
   std::shared_ptr<ObjectType> reloadObject(
       const typename SaiObjectTraits::AdapterKey& adapterKey) {
-    ObjectType obj(adapterKey);
-    auto adapterHostKey = obj.adapterHostKey();
-    auto ins = objects_.refOrInsert(adapterHostKey, std::move(obj));
+    ObjectType temporary(adapterKey);
+    auto adapterHostKey = temporary.adapterHostKey();
+    auto obj = objects_.ref(adapterHostKey);
+    if (!obj) {
+      auto ins =
+          objects_.refOrInsert(adapterHostKey, std::move(temporary), true);
+      obj = ins.first;
+    } else {
+      // destroy temporary without removing underlying sai object
+      temporary.release();
+    }
     auto iter = warmBootHandles_.find(adapterHostKey);
     if (iter != warmBootHandles_.end()) {
       // Adapter keys are discovered by sai store in two ways
@@ -107,7 +115,7 @@ class SaiObjectStore {
       // always have this object.
       warmBootHandles_.erase(iter);
     }
-    return ins.first;
+    return obj;
   }
 
   void reload(
