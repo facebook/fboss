@@ -92,6 +92,7 @@ cfg::Port createDefaultPortConfig(const HwSwitch* hwSwitch, PortID id) {
   }
 
   *defaultConfig.logicalID_ref() = id;
+  *defaultConfig.ingressVlan_ref() = kDefaultVlanId;
   *defaultConfig.state_ref() = cfg::PortState::DISABLED;
 
   return defaultConfig;

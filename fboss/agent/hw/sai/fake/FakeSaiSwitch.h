@@ -209,6 +209,14 @@ class FakeSwitch {
     counterRefreshInterval_ = interval;
   }
 
+  void setDefaultVlanId(sai_object_id_t id) {
+    defaultVlanId_ = id;
+  }
+
+  sai_object_id_t getDefaultVlanId() const {
+    return defaultVlanId_;
+  }
+
   sai_object_id_t id;
 
   sai_status_t setLed(const sai_attribute_t* attr);
@@ -250,6 +258,7 @@ class FakeSwitch {
   sai_uint32_t switchType_;
   sai_pointer_t readFn_;
   sai_pointer_t writeFn_;
+  sai_object_id_t defaultVlanId_;
 };
 
 using FakeSwitchManager = FakeManager<sai_object_id_t, FakeSwitch>;

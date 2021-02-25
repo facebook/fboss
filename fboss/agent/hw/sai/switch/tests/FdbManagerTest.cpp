@@ -37,7 +37,8 @@ class FdbManagerTest : public ManagerTestBase {
   }
 
   void checkFdbEntry(sai_uint32_t metadata = 0) {
-    auto vlanId = VlanID(0);
+    auto vlanHandle = saiManagerTable->vlanManager().getVlanHandle(VlanID(0));
+    auto vlanId = vlanHandle->vlan->adapterKey();
     SaiFdbTraits::FdbEntry entry{1, vlanId, kMac()};
     auto portHandle = saiManagerTable->portManager().getPortHandle(
         PortID(intf0.remoteHosts[0].id));
