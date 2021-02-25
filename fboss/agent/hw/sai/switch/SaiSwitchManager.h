@@ -66,6 +66,8 @@ class SaiSwitchManager {
 
   void setupCounterRefreshInterval();
 
+  sai_object_id_t getDefaultVlanAdapterKey() const;
+
  private:
   void programLoadBalancerParams(
       cfg::LoadBalancerID id,

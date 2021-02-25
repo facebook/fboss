@@ -237,4 +237,9 @@ void SaiSwitchManager::setupCounterRefreshInterval() {
       SaiSwitchTraits::Attributes::CounterRefreshInterval{
           FLAGS_counter_refresh_interval});
 }
+
+sai_object_id_t SaiSwitchManager::getDefaultVlanAdapterKey() const {
+  return SaiApiTable::getInstance()->switchApi().getAttribute(
+      switch_->adapterKey(), SaiSwitchTraits::Attributes::DefaultVlanId{});
+}
 } // namespace facebook::fboss
