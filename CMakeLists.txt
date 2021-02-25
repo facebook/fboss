@@ -20,6 +20,16 @@ if (SAI_ONLY)
   message(STATUS "Building SAI binaries only")
 endif()
 
+option(BENCHMARK_INSTALL "Installation of benchmark test binaries" OFF)
+if ($ENV{BENCHMARK_INSTALL})
+  message(STATUS "ENV BENCHMARK_INSTALL is set")
+  set (BENCHMARK_INSTALL ON)
+endif()
+
+if (BENCHMARK_INSTALL)
+  message(STATUS "Configured to install benchmark binaries")
+endif()
+
 option(SAI_TAJO_IMPL "Build SAI api with tajo extensions" OFF)
 if ($ENV{SAI_TAJO_IMPL})
   message(STATUS "ENV SAI_TAJO_IMPL is set")

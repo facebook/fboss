@@ -361,7 +361,7 @@ BUILD_SAI_BENCHMARKS("fake" fake_sai)
 find_library(SAI_IMPL sai_impl)
 message(STATUS "SAI_IMPL: ${SAI_IMPL}")
 
-if(SAI_IMPL)
+if(SAI_IMPL AND BENCHMARK_INSTALL)
   BUILD_SAI_BENCHMARKS("sai_impl" ${SAI_IMPL})
 
   install(

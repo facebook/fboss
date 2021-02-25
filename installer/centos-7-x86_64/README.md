@@ -132,6 +132,10 @@ Optionally enable building SAI binaries only
 ```
 export SAI_ONLY=1
 ```
+Optionally configure option to install benchmark binaries. Requires larger disk space.
+```
+export BENCHMARK_INSTALL=1
+```
 Build
 ```
 cd fboss.git
