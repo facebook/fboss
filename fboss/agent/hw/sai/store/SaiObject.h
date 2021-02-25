@@ -234,6 +234,10 @@ class SaiObject {
     live_ = true;
   }
 
+  bool live() const {
+    return live_;
+  }
+
  public:
   // Forbid copy construction and copy assignment
   SaiObject(const SaiObject& other) = delete;

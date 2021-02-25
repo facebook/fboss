@@ -222,8 +222,11 @@ class SaiObjectStore {
   folly::dynamic adapterKeysFollyDynamic() const {
     folly::dynamic adapterKeys = folly::dynamic::array;
     for (const auto& hostKeyAndObj : objects_) {
-      adapterKeys.push_back(toFollyDynamic<SaiObjectTraits>(
-          hostKeyAndObj.second.lock()->adapterKey()));
+      auto obj = hostKeyAndObj.second.lock();
+      if (!obj->live()) {
+        continue;
+      }
+      adapterKeys.push_back(toFollyDynamic<SaiObjectTraits>(obj->adapterKey()));
     }
     return adapterKeys;
   }
