@@ -226,7 +226,18 @@ FlagLevels CmisModule::getQsfpSensorFlags(CmisField fieldName, int offset) {
 
   getQsfpFieldAddress(fieldName, dataAddress, dataOffset, dataLength);
   const uint8_t* data = getQsfpValuePtr(dataAddress, dataOffset, dataLength);
-  return getQsfpFlags(data, offset);
+
+  // CMIS uses different mappings for flags than Sff therefore not using
+  // getQsfpFlags here
+  FlagLevels flags;
+  CHECK_GE(offset, 0);
+  CHECK_LE(offset, 4);
+  flags.alarm_ref()->high_ref() = (*data & (1 << offset));
+  flags.alarm_ref()->low_ref() = (*data & (1 << ++offset));
+  flags.warn_ref()->high_ref() = (*data & (1 << ++offset));
+  flags.warn_ref()->low_ref() = (*data & (1 << ++offset));
+
+  return flags;
 }
 
 double CmisModule::getQsfpDACLength() const {

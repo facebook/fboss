@@ -187,6 +187,17 @@ class QsfpModule : public Transceiver {
 
   using LengthAndGauge = std::pair<double, uint8_t>;
 
+  /*
+   * Returns the number of host lanes. Should be overridden by the appropriate
+   * module's subclass
+   */
+  virtual unsigned int numHostLanes() const = 0;
+  /*
+   * Returns the number of media lanes. Should be overridden by the appropriate
+   * module's subclass
+   */
+  virtual unsigned int numMediaLanes() const = 0;
+
  protected:
   // no copy or assignment
   QsfpModule(QsfpModule const&) = delete;
@@ -386,16 +397,7 @@ class QsfpModule : public Transceiver {
    * byte range of the SFF spec.
    */
   virtual double getQsfpDACLength() const = 0;
-  /*
-   * Returns the number of host lanes. Should be overridden by the appropriate
-   * module's subclass
-   */
-  virtual unsigned int numHostLanes() const = 0;
-  /*
-   * Returns the number of media lanes. Should be overridden by the appropriate
-   * module's subclass
-   */
-  virtual unsigned int numMediaLanes() const = 0;
+
   bool shouldRemediate(time_t cooldown) const;
 
   /*

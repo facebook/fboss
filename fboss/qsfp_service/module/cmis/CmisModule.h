@@ -57,6 +57,15 @@ class CmisModule : public QsfpModule {
 
   using LengthAndGauge = std::pair<double, uint8_t>;
 
+  /*
+   * Returns the number of lanes on the host side
+   */
+  unsigned int numHostLanes() const override;
+  /*
+   * Returns the number of lanes on the media side
+   */
+  unsigned int numMediaLanes() const override;
+
  protected:
   // no copy or assignment
   CmisModule(CmisModule const&) = delete;
@@ -249,14 +258,6 @@ class CmisModule : public QsfpModule {
    * fails
    */
   bool getMediaLaneSettings(std::vector<MediaLaneSettings>& laneSettings);
-  /*
-   * Returns the number of lanes on the host side
-   */
-  unsigned int numHostLanes() const override;
-  /*
-   * Returns the number of lanes on the media side
-   */
-  unsigned int numMediaLanes() const override;
   /*
    * Update the cached data with the information from the physical QSFP.
    *
