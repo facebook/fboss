@@ -22,6 +22,14 @@ using folly::StringPiece;
 using std::make_unique;
 using std::unique_ptr;
 
+namespace {
+constexpr uint8_t kCommonModulePageReg = 127;
+constexpr uint8_t kCommonModuleBasePage = 0;
+constexpr uint8_t kCmisModulePartNoReg = 148;
+constexpr uint8_t kSffModulePartNoReg = 168;
+constexpr uint8_t kCommonModuleFwVerReg = 39;
+} // namespace
+
 namespace facebook {
 namespace fboss {
 
@@ -161,5 +169,83 @@ WedgeQsfp::futureGetTransceiverManagementInterface() {
     return mgmtInterface;
   });
 }
+
+std::array<uint8_t, 16> WedgeQsfp::getModulePartNo() {
+  std::array<uint8_t, 16> partNo;
+  uint8_t page = kCommonModuleBasePage, savedPage;
+
+  auto moduleType = getTransceiverManagementInterface();
+  uint8_t partNoRegOffset = (moduleType == TransceiverManagementInterface::CMIS)
+      ? kCmisModulePartNoReg
+      : kSffModulePartNoReg;
+
+  // Read 16 byte part no from page 0 reg 148 for  CMIS and page 0 reg 168 for
+  // SFF module. Restore the page in the end
+  threadSafeI2CBus_->moduleRead(
+      module_ + 1,
+      TransceiverI2CApi::ADDR_QSFP,
+      kCommonModulePageReg,
+      1,
+      &savedPage);
+  threadSafeI2CBus_->moduleWrite(
+      module_ + 1,
+      TransceiverI2CApi::ADDR_QSFP,
+      kCommonModulePageReg,
+      1,
+      &page);
+  threadSafeI2CBus_->moduleRead(
+      module_ + 1,
+      TransceiverI2CApi::ADDR_QSFP,
+      partNoRegOffset,
+      16,
+      partNo.data());
+  threadSafeI2CBus_->moduleWrite(
+      module_ + 1,
+      TransceiverI2CApi::ADDR_QSFP,
+      kCommonModulePageReg,
+      1,
+      &savedPage);
+  return partNo;
+}
+
+std::array<uint8_t, 2> WedgeQsfp::getFirmwareVer() {
+  std::array<uint8_t, 2> fwVer{0, 0};
+  uint8_t page = kCommonModuleBasePage, savedPage;
+
+  if (getTransceiverManagementInterface() !=
+      TransceiverManagementInterface::CMIS) {
+    XLOG(DBG3) << "Module is not CMIS type so firmware version can't be found";
+    return fwVer;
+  }
+
+  // Read 2 byte part no from base page reg 39 for  CMIS module. Restore the
+  // page in the end
+  threadSafeI2CBus_->moduleRead(
+      module_ + 1,
+      TransceiverI2CApi::ADDR_QSFP,
+      kCommonModulePageReg,
+      1,
+      &savedPage);
+  threadSafeI2CBus_->moduleWrite(
+      module_ + 1,
+      TransceiverI2CApi::ADDR_QSFP,
+      kCommonModulePageReg,
+      1,
+      &page);
+  threadSafeI2CBus_->moduleRead(
+      module_ + 1,
+      TransceiverI2CApi::ADDR_QSFP,
+      kCommonModuleFwVerReg,
+      2,
+      fwVer.data());
+  threadSafeI2CBus_->moduleWrite(
+      module_ + 1,
+      TransceiverI2CApi::ADDR_QSFP,
+      kCommonModulePageReg,
+      1,
+      &savedPage);
+  return fwVer;
+}
+
 } // namespace fboss
 } // namespace facebook

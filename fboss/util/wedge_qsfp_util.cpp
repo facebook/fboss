@@ -131,6 +131,10 @@ DEFINE_bool(get_module_fw_info, false, "Get the module  firmware info for list o
 DEFINE_bool(cdb_command, false, "Read from CDB block, use with --command_code");
 DEFINE_int32(command_code, -1, "CDB command code (16 bit)");
 DEFINE_string(cdb_payload, "", "CDB command LPL payload (list of bytes)");
+DEFINE_bool(update_bulk_module_fw, false,
+            "Update firmware for module, use portA and portB for range of ports, use with --firmware_filename, --module_type, --fw_version");
+DEFINE_string(module_type, "", "specify the module type, ie: finisar-200g");
+DEFINE_string(fw_version, "", "specify the firmware version, ie: 7.8 or ca.f8");
 
 namespace {
 struct ModulePartInfo_s {
@@ -149,6 +153,25 @@ constexpr uint8_t kNumModuleInfo = sizeof(modulePartInfo)/sizeof(struct ModulePa
 };
 
 namespace facebook::fboss {
+
+// Forward declaration of utility functions for firmware upgrade
+std::vector<unsigned int> getUpgradeModList(
+      TransceiverI2CApi* bus,
+      unsigned int portA,
+      unsigned int portB,
+      std::string moduleType,
+      std::string fwVer);
+
+void fwUpgradeThreadHandler(
+    TransceiverI2CApi* bus,
+    std::vector<unsigned int> modlist,
+    std::string firmwareFilename,
+    uint32_t imageHdrLen);
+
+void bucketize(
+      std::vector<unsigned int>& modlist,
+      int modulesPerController,
+      std::vector<std::vector<unsigned int>>& bucket);
 
 std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> getQsfpClient(folly::EventBase& evb) {
   return std::move(QsfpClient::createClient(&evb)).getVia(&evb);
@@ -976,11 +999,12 @@ void cmisHostInputLoopback(TransceiverI2CApi* bus, unsigned int port, LoopbackMo
 /*
  * cliModulefirmwareUpgrade
  *
- * This function makes thrift call to qsfp_service to do the firmware upgrade for
- * for the optical module. The result (pass/fail) along with message is returned
- * back by thrift call and displayed here.
+ * This function does the firmware upgrade on the optics module in the current
+ * thread. This directly invokes the bus->moduleRead/Write API to do the module
+ * CDB based firnware upgrade
  */
-bool cliModulefirmwareUpgrade(TransceiverI2CApi* bus, unsigned int port, std::string firmwareFilename) {
+bool cliModulefirmwareUpgrade(
+  TransceiverI2CApi* bus, unsigned int port, std::string firmwareFilename) {
 
   // Confirm module type is CMIS
   auto moduleType = getModuleType(bus, port);
@@ -1041,6 +1065,280 @@ bool cliModulefirmwareUpgrade(TransceiverI2CApi* bus, unsigned int port, std::st
   }
 
   return ret;
+}
+
+/*
+ * cliModulefirmwareUpgrade
+ *
+ * This is multi-threaded version of the module upgrade trigger function.
+ * This multi-threaded overloaded function gets the list of optics on which
+ * the upgrade needs to be performed. It calls the function bucketize to create
+ * separate buckets of optics for upgrade. Then the threads are created for
+ * each bucket and each thread takes care of upgrading the optics in that
+ * bucket. The idea here is that one thread will take care of upgrading the
+ * optics belonging to one controller so that two ports of the same controller
+ * can't upgrade at the same time whereas multiple ports belonging to different
+ * controller can upgrade at the same time. This function waits for all
+ * threads to finish.
+ */
+bool cliModulefirmwareUpgrade(
+  TransceiverI2CApi* bus,
+  unsigned int portA,
+  unsigned int portB,
+  std::string firmwareFilename) {
+
+  std::vector<std::thread> threadList;
+  std::vector<std::vector<unsigned int>> bucket;
+
+  // Check if the filename is specified
+  if (firmwareFilename.empty()) {
+    fprintf(stderr, "Firmware filename not specified for upgrade\n");
+    return false;
+  }
+
+  // Get the list of all the modules where upgrade can be done
+  std::vector<unsigned int> modlist = getUpgradeModList(
+    bus, portA, portB, FLAGS_module_type, FLAGS_fw_version);
+
+  // Get the modules per controller (platform specific)
+  int modsPerController = getModulesPerController();
+
+  // Bucketize the list of modules among buckets as per the controllers
+  bucketize(modlist, modsPerController, bucket);
+
+  printf("The modules will be upgraded in these %ld buckets\n", bucket.size());
+  printf("Each bucket will be assigned a separate thread\n");
+
+  for (auto& bucketrow : bucket) {
+    printf("Bucket: ");
+    for (auto& module : bucketrow) {
+      printf("%d ", module);
+    }
+    printf("\n");
+  }
+
+  /* sleep override */
+  sleep(10);
+
+  // Get the image header length
+  uint32_t imageHdrLen = 0;
+  if (FLAGS_image_header_len > 0) {
+    imageHdrLen = FLAGS_image_header_len;
+  } else {
+    // Image header length is not provided by user. Try to get it from known
+    // module info frm first module in the list
+    auto domData = fetchDataFromLocalI2CBus (bus, bucket[0][0]);
+    CmisData cmisData = domData.get_cmis();
+    auto dataUpper = cmisData.page0_ref()->data();
+
+    std::array<uint8_t, 16> modPartNo;
+    for (int i=0; i<16; i++) {
+      modPartNo[i] = dataUpper[20+i];
+    }
+
+    for (int i=0; i<kNumModuleInfo; i++) {
+      if (modulePartInfo[i].partNo == modPartNo) {
+        imageHdrLen = modulePartInfo[i].headerLen;
+        break;
+      }
+    }
+    if (imageHdrLen == 0) {
+      printf("Image header length is not specified on command line and");
+      printf(" the default image header size is unknown for this module");
+      printf("Pl re-run the same command with option --image_header_len <len>");
+      return false;
+    }
+  }
+
+// Create threads one for each bucket row and do the upgrade there
+  for (auto& bucketrow : bucket) {
+    std::thread tHandler(
+        fwUpgradeThreadHandler, bus, bucketrow, firmwareFilename, imageHdrLen);
+    threadList.push_back(std::move(tHandler));
+  }
+
+  // Wait for all threads to finish
+  for (auto& tHandler : threadList) {
+    tHandler.join();
+  }
+
+  printf("Firmware upgrade done on some of the modules");
+  printf(
+      "Check the status using: wedge_qsfp_util --get_module_fw_info <portA> <portB>\n");
+  printf("Pl reload the chassis to finish the firmware upgrade last step\n");
+  return true;
+}
+
+/*
+ * fwUpgradeThreadHandler
+ *
+ * This is Entry function for the thread which will do the firmware upgrade
+ * operation. This function gets the list of optics as an argument. It will do
+ * fw upgrade on all these modules one by one in this thread context.
+ */
+void fwUpgradeThreadHandler(
+    TransceiverI2CApi* bus,
+    std::vector<unsigned int> modlist,
+    std::string firmwareFilename,
+    uint32_t imageHdrLen) {
+  std::array<uint8_t, 2> versionNumber;
+
+  for (auto module : modlist) {
+    // Create FbossFirmware object using firmware filename and msa password,
+    // header length as properties
+    FbossFirmware::FwAttributes firmwareAttr;
+    firmwareAttr.filename = firmwareFilename;
+    firmwareAttr.properties["msa_password"] = folly::to<std::string>(FLAGS_msa_password);
+    firmwareAttr.properties["header_length"] = folly::to<std::string>(imageHdrLen);
+    auto fbossFwObj = std::make_unique<FbossFirmware>(firmwareAttr);
+
+    auto fwUpgradeObj = std::make_unique<CmisFirmwareUpgrader>(
+      bus, module, std::move(fbossFwObj));
+
+    // Do the upgrade in this thread
+    bool ret = fwUpgradeObj->cmisModuleFirmwareUpgrade();
+
+    if (ret) {
+      printf("Firmware download successful for module %d, the module is running desired firmware\n", module);
+    } else {
+      printf("Firmware upgrade failed for module %d, you may retry the same command\n", module);
+    }
+
+    // Find out the current version running on module
+    bus->moduleRead(module, TransceiverI2CApi::ADDR_QSFP, 39, 2, versionNumber.data());
+    printf(
+        "cmisModuleFirmwareUpgrade: Mod%d: Module Active Firmware Revision now: %d.%d\n",
+        module,
+        versionNumber[0],
+        versionNumber[1]);
+  }
+}
+
+/*
+ * getUpgradeModList
+ *
+ * This function goes through all the modules in the range specified by portA
+ * to portB (inclusive) and finds the modules which are eligible for firmware
+ * upgrade. The eligible modules meet these criteria:
+ *   - Module is present
+ *   - Module is CMIS type
+ *   - Module is Module type specified matches with mapped module part number
+ *     from its register page 1 byte 148-163
+ *   - Module's current running version is not same as specified in input
+ *     argument
+ *
+ * This function returns the list of such eligible modules for firmware upgrade
+ */
+std::vector<unsigned int> getUpgradeModList(
+    TransceiverI2CApi* bus,
+    unsigned int portA,
+    unsigned int portB,
+    std::string moduleType,
+    std::string fwVer) {
+  std::string partNoStr;
+  std::vector<unsigned int> modlist;
+
+  // Check if we have the mapping for this user specified module type to part
+  // number
+  if (CmisFirmwareUpgrader::partNoMap.find(moduleType) == CmisFirmwareUpgrader::partNoMap.end()) {
+    printf("Module Type is invalid\n");
+    return modlist;
+  }
+
+  partNoStr = CmisFirmwareUpgrader::partNoMap[moduleType];
+
+  for (unsigned int module = portA; module <= portB; module++) {
+    std::array<uint8_t, 16> partNo;
+    std::array<uint8_t, 2> fwVerNo;
+    std::array<char, 16> baseFwVerStr;
+    std::string tempPartNo, tempFwVerStr;
+
+    // Check if the module is present
+    if (!bus->isPresent(module)) {
+      continue;
+    }
+
+    auto qsfpImpl = std::make_unique<WedgeQsfp>(module - 1, bus);
+    auto mgmtInterface = qsfpImpl->getTransceiverManagementInterface();
+
+    // Check if it is CMIS module
+    if (mgmtInterface != TransceiverManagementInterface::CMIS) {
+      continue;
+    }
+
+    fwVerNo = qsfpImpl->getFirmwareVer();
+    partNo = qsfpImpl->getModulePartNo();
+
+    // Check if module is of same type specified in argument
+    for (int i = 0; i < 16; i++) {
+      tempPartNo += partNo[i];
+    }
+    if (tempPartNo != partNoStr) {
+      continue;
+    }
+
+    // Check if the moduleis not already running the same f/w version
+    sprintf(baseFwVerStr.data(), "%x.%x", fwVerNo[0], fwVerNo[1]);
+    tempFwVerStr = baseFwVerStr.data();
+    if (tempFwVerStr == fwVer) {
+      continue;
+    }
+
+    modlist.push_back(module);
+  }
+  return modlist;
+}
+
+/*
+ * bucketize
+ *
+ * This function takes the list of optics to upgrade the firmware and then
+ * bucketize them to the rows where each row contains the list of optics
+ * which can be upgraded in a thread. For example: In yamp platform which has
+ * one i2c controller for 8 modules, if the input  is the list of these modules:
+ *  1 3 5 8 12 15 21 32 38 46 55 59 60 83 88 122 124 128
+ * Then these will be divided in following 9 buckets:
+ *  Bucket: 1 3 5 8
+ *  Bucket: 12 15
+ *  Bucket: 21
+ *  Bucket: 32 38
+ *  Bucket: 46
+ *  Bucket: 55
+ *  Bucket: 59 60
+ *  Bucket: 83 88
+ *  Bucket: 122 124 128
+ */
+void bucketize(
+    std::vector<unsigned int>& modlist,
+    int modulesPerController,
+    std::vector<std::vector<unsigned int>>& bucket) {
+  int currBucketId, currBucketEnd;
+  std::vector<unsigned int> tempModList;
+
+  std::sort(modlist.begin(), modlist.end());
+
+  currBucketId = -1;
+
+  for (auto module : modlist) {
+    currBucketEnd = (currBucketId + 1) * modulesPerController;
+
+    if (module > currBucketEnd) {
+      if (!tempModList.empty()) {
+        bucket.push_back(tempModList);
+        tempModList.clear();
+      }
+      currBucketId = module / modulesPerController;
+      if (module % modulesPerController == 0) {
+        currBucketId--;
+      }
+    }
+
+    tempModList.push_back(module);
+  }
+  if (!tempModList.empty()) {
+    bucket.push_back(tempModList);
+    tempModList.clear();
+  }
 }
 
 /*

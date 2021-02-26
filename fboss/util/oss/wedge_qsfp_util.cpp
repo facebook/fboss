@@ -46,4 +46,8 @@ std::pair<std::unique_ptr<TransceiverPlatformApi>, int>
   return std::make_pair(nullptr, EX_USAGE);
 }
 
+int getModulesPerController() {
+   return 1;
+}
+
 } // namespace facebook::fboss

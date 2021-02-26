@@ -74,7 +74,8 @@ int main(int argc, char* argv[]) {
                      FLAGS_electrical_loopback || FLAGS_optical_loopback ||
                      FLAGS_clear_loopback || FLAGS_read_reg ||
                      FLAGS_write_reg || FLAGS_update_module_firmware ||
-                     FLAGS_get_module_fw_info || FLAGS_app_sel || FLAGS_cdb_command);
+                     FLAGS_get_module_fw_info || FLAGS_app_sel ||
+                     FLAGS_cdb_command || FLAGS_update_bulk_module_fw);
 
   if (FLAGS_direct_i2c || !printInfo) {
     try {
@@ -254,6 +255,27 @@ int main(int argc, char* argv[]) {
     } else {
       get_module_fw_info(bus.get(), ports[0], ports[1]);
     }
+  }
+
+  if (FLAGS_update_bulk_module_fw) {
+    if (ports.size() != 2) {
+      fprintf(stderr, "Pl specify 2 modules for the range: <ModuleA> <moduleB>\n");
+      return EX_USAGE;
+    }
+    if (FLAGS_firmware_filename.empty()) {
+      fprintf(stderr, "Pl specify firmware filename using --firmware_filename\n");
+      return EX_USAGE;
+    }
+    if (FLAGS_module_type.empty()) {
+      fprintf(stderr, "Pl specify module type using --module_type (ie: finisar-200g)\n");
+      return EX_USAGE;
+    }
+    if (FLAGS_fw_version.empty()) {
+      fprintf(stderr, "Pl specify firmware version using --fw_version (ie: 7.8 or ca.f8)\n");
+      return EX_USAGE;
+    }
+
+    cliModulefirmwareUpgrade(bus.get(), ports[0], ports[1], FLAGS_firmware_filename);
   }
 
   return retcode;

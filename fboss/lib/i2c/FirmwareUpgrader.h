@@ -18,6 +18,15 @@ namespace facebook::fboss {
  */
 class CmisFirmwareUpgrader {
  public:
+  // Mapping the module type string to module type part number string
+  // The module type string is provided by user CLI and the mapped module part
+  // number string can be compared with modules's register page 1 byte 148-163
+  static inline std::map<std::string, std::string> partNoMap{
+      {"finisar-200g", "FTCC1112E1PLL-FB"},
+      {"innolight-200g", "T-FX4FNT-HFB"},
+      {"innolight-400g", "T-DQ4CNT-NFB"},
+  };
+
   // Constructor. The caller is responsible for interfacing with Firmware
   // Store and provide the FbossFirmware object
   CmisFirmwareUpgrader(

@@ -104,6 +104,10 @@ class WedgeQsfp : public TransceiverImpl {
   folly::Future<TransceiverManagementInterface>
   futureGetTransceiverManagementInterface();
 
+  std::array<uint8_t, 16> getModulePartNo();
+
+  std::array<uint8_t, 2> getFirmwareVer();
+
  private:
   int module_;
   std::string moduleName_;
