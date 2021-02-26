@@ -143,6 +143,13 @@ std::pair<std::unique_ptr<facebook::fboss::TransceiverPlatformApi>, int>
 
 bool isTrident2();
 
+std::vector<unsigned int> portRangeStrToPortList(
+    std::string portQualifier);
+
 int getModulesPerController();
 
+void bucketize(
+    std::vector<unsigned int>& modlist,
+    int modulesPerController,
+    std::vector<std::vector<unsigned int>>& bucket);
 } // namespace facebook::fboss

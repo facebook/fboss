@@ -56,5 +56,69 @@ TEST_F(QsfpUtilTest, VerifyCheckSum) {
   ASSERT_EQ(*pSum, 0xd1);
 }
 
+TEST_F(QsfpUtilTest, portRegexTest1) {
+  // Input value
+  std::string portListStr("1,2,3-9,12-17,29");
+  // Expected result
+  std::vector<unsigned int> resultPortList{
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 13, 14, 15, 16, 17, 29};
+  // Call the function
+  std::vector<unsigned int> portListVec = portRangeStrToPortList(portListStr);
+  // Verify the result
+  ASSERT_EQ(portListVec, resultPortList);
+}
+
+TEST_F(QsfpUtilTest, portRegexTest2) {
+  // Input value
+  std::string portListStr("1");
+  // Expected result
+  std::vector<unsigned int> resultPortList{1};
+  // Call the function
+  std::vector<unsigned int> portListVec = portRangeStrToPortList(portListStr);
+  // Verify the result
+  ASSERT_EQ(portListVec, resultPortList);
+}
+
+TEST_F(QsfpUtilTest, portRegexTest3) {
+  // Input value
+  std::string portListStr("99,100-101,127-128");
+  // Expected result
+  std::vector<unsigned int> resultPortList{99, 100, 101, 127, 128};
+  // Call the function
+  std::vector<unsigned int> portListVec = portRangeStrToPortList(portListStr);
+  // Verify the result
+  ASSERT_EQ(portListVec, resultPortList);
+}
+
+TEST_F(QsfpUtilTest, portBucketize1) {
+  // Input value
+  std::vector<unsigned int> modlist{
+    1, 3, 5, 8, 12, 15, 21, 33, 38, 46, 55, 59, 60, 83, 88, 122, 124, 128};
+  // Expected result
+  std::vector<std::vector<unsigned int>> resultBucket {
+    {1, 3, 5, 8},
+    {12, 15},
+    {21},
+    {33, 38},
+    {46},
+    {55},
+    {59, 60},
+    {83, 88},
+    {122, 124, 128},
+  };
+  std::vector<std::vector<unsigned int>> bucket;
+
+  // Call the function
+  bucketize(modlist, 8, bucket);
+
+  // Verify the result
+  ASSERT_EQ(bucket.size(), resultBucket.size());
+
+  for (int i = 0; i < bucket.size(); i++) {
+    XLOG(INFO) << "Iteration " << i;
+    ASSERT_EQ(bucket[i], resultBucket[i]);
+  }
+}
+
 } // namespace fboss
 } // namespace facebook

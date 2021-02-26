@@ -168,14 +168,6 @@ void fwUpgradeThreadHandler(
     std::string firmwareFilename,
     uint32_t imageHdrLen);
 
-void bucketize(
-      std::vector<unsigned int>& modlist,
-      int modulesPerController,
-      std::vector<std::vector<unsigned int>>& bucket);
-
-std::vector<unsigned int> portRangeStrToPortList(
-    std::string portQualifier);
-
 std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> getQsfpClient(folly::EventBase& evb) {
   return std::move(QsfpClient::createClient(&evb)).getVia(&evb);
 }
