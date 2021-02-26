@@ -491,6 +491,11 @@ int __real_bcm_l3_egress_traverse(
     bcm_l3_egress_traverse_cb trav_fn,
     void* user_data);
 
+int __real_bcm_l3_ecmp_member_add(
+    int unit,
+    bcm_if_t ecmp_group_id,
+    bcm_l3_ecmp_member_t* ecmp_member);
+
 int __real_bcm_l3_egress_ecmp_add(
     int unit,
     bcm_l3_egress_ecmp_t* ecmp,
@@ -710,6 +715,11 @@ int __real_bcm_cosq_mapping_set(
     bcm_cos_t priority,
     bcm_cos_queue_t cosq);
 
+int __real_bcm_l3_ecmp_member_delete(
+    int unit,
+    bcm_if_t ecmp_group_id,
+    bcm_l3_ecmp_member_t* ecmp_member);
+
 int __real_bcm_l3_egress_ecmp_delete(
     int unit,
     bcm_l3_egress_ecmp_t* ecmp,
@@ -742,6 +752,8 @@ int __real_bcm_port_queued_count_get(int unit, bcm_port_t port, uint32* count);
 int __real_bcm_knet_filter_create(int unit, bcm_knet_filter_t* filter);
 
 int __real_bcm_vlan_create(int unit, bcm_vlan_t vid);
+
+int __real_bcm_l3_ecmp_destroy(int unit, bcm_if_t ecmp_group_id);
 
 int __real_bcm_l3_egress_ecmp_destroy(int unit, bcm_l3_egress_ecmp_t* ecmp);
 
@@ -1156,6 +1168,13 @@ int __real_bcm_port_selective_set(
     bcm_port_info_t* info);
 
 int __real_bcm_port_frame_max_get(int unit, bcm_port_t port, int* size);
+
+int __real_bcm_l3_ecmp_create(
+    int unit,
+    uint32 options,
+    bcm_l3_egress_ecmp_t* ecmp_info,
+    int ecmp_member_count,
+    bcm_l3_ecmp_member_t* ecmp_member_array);
 
 int __real_bcm_l3_egress_ecmp_create(
     int unit,
@@ -2331,11 +2350,25 @@ int __wrap_bcm_l3_egress_traverse(
 
 // ECMP
 
+int __wrap_bcm_l3_ecmp_member_add(
+    int unit,
+    bcm_if_t ecmp_group_id,
+    bcm_l3_ecmp_member_t* ecmp_member) {
+  CALL_WRAPPERS_RV(bcm_l3_ecmp_member_add(unit, ecmp_group_id, ecmp_member));
+}
+
 int __wrap_bcm_l3_egress_ecmp_add(
     int unit,
     bcm_l3_egress_ecmp_t* ecmp,
     bcm_if_t intf) {
   CALL_WRAPPERS_RV(bcm_l3_egress_ecmp_add(unit, ecmp, intf));
+}
+
+int __wrap_bcm_l3_ecmp_member_delete(
+    int unit,
+    bcm_if_t ecmp_group_id,
+    bcm_l3_ecmp_member_t* ecmp_member) {
+  CALL_WRAPPERS_RV(bcm_l3_ecmp_member_delete(unit, ecmp_group_id, ecmp_member));
 }
 
 int __wrap_bcm_l3_egress_ecmp_delete(
@@ -2885,6 +2918,16 @@ int __wrap_bcm_l3_host_delete_all(int unit, bcm_l3_host_t* info) {
   CALL_WRAPPERS_RV(bcm_l3_host_delete_all(unit, info));
 }
 
+int __wrap_bcm_l3_ecmp_create(
+    int unit,
+    uint32 options,
+    bcm_l3_egress_ecmp_t* ecmp_info,
+    int ecmp_member_count,
+    bcm_l3_ecmp_member_t* ecmp_member_array) {
+  CALL_WRAPPERS_RV(bcm_l3_ecmp_create(
+      unit, options, ecmp_info, ecmp_member_count, ecmp_member_array));
+}
+
 int __wrap_bcm_l3_egress_ecmp_create(
     int unit,
     bcm_l3_egress_ecmp_t* ecmp,
@@ -3035,6 +3078,10 @@ int __wrap_bcm_knet_netif_traverse(
 
 int __wrap_bcm_port_enable_set(int unit, bcm_port_t port, int enable) {
   CALL_WRAPPERS_RV(bcm_port_enable_set(unit, port, enable));
+}
+
+int __wrap_bcm_l3_ecmp_destroy(int unit, bcm_if_t ecmp_group_id) {
+  CALL_WRAPPERS_RV(bcm_l3_ecmp_destroy(unit, ecmp_group_id));
 }
 
 int __wrap_bcm_l3_egress_ecmp_destroy(int unit, bcm_l3_egress_ecmp_t* ecmp) {

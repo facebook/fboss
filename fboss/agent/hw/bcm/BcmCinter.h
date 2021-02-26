@@ -466,10 +466,18 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       uint32 flags,
       bcm_l3_egress_t* egr,
       bcm_if_t* if_id) override;
+  int bcm_l3_ecmp_member_add(
+      int unit,
+      bcm_if_t ecmp_group_id,
+      bcm_l3_ecmp_member_t* ecmp_member) override;
   int bcm_l3_egress_ecmp_add(
       int unit,
       bcm_l3_egress_ecmp_t* ecmp,
       bcm_if_t intf) override;
+  int bcm_l3_ecmp_member_delete(
+      int unit,
+      bcm_if_t ecmp_group_id,
+      bcm_l3_ecmp_member_t* ecmp_member) override;
   int bcm_l3_egress_ecmp_delete(
       int unit,
       bcm_l3_egress_ecmp_t* ecmp,
@@ -547,6 +555,12 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       int intf_count,
       bcm_if_t* intf_array,
       bcm_if_t* mpintf) override;
+  int bcm_l3_ecmp_create(
+      int unit,
+      uint32 options,
+      bcm_l3_egress_ecmp_t* ecmp_info,
+      int ecmp_member_count,
+      bcm_l3_ecmp_member_t* ecmp_member_array) override;
   int bcm_l3_egress_ecmp_create(
       int unit,
       bcm_l3_egress_ecmp_t* ecmp,
@@ -568,6 +582,7 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   int bcm_stg_stp_set(int unit, bcm_stg_t stg, bcm_port_t port, int stp_state)
       override;
   int bcm_vlan_default_set(int unit, bcm_vlan_t vid) override;
+  int bcm_l3_ecmp_destroy(int unit, bcm_if_t ecmp_group_id) override;
   int bcm_l3_egress_ecmp_destroy(int unit, bcm_l3_egress_ecmp_t* ecmp) override;
   int bcm_stg_vlan_add(int unit, bcm_stg_t stg, bcm_vlan_t vid) override;
   int bcm_port_learn_set(int unit, bcm_port_t port, uint32 flags) override;
@@ -1658,6 +1673,10 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
 
   std::vector<std::string> cintForMplsTunnelSwitch(
       const bcm_mpls_tunnel_switch_t& switch_info);
+
+  std::vector<std::string> cintForEcmpMembersArray(
+      const bcm_l3_ecmp_member_t* members,
+      int member_count);
 
   std::vector<std::string> cintForPathsArray(
       const bcm_if_t* paths,

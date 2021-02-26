@@ -113,11 +113,13 @@ std::shared_ptr<BcmCinter> BcmCinter::getInstance() {
 }
 
 void BcmCinter::setupGlobals() {
-  array<string, 30> globals = {
+  array<string, 32> globals = {
       "_shr_pbmp_t pbmp",
       "_shr_rx_reasons_t reasons",
       "bcm_cosq_gport_discard_t discard",
       "bcm_field_qset_t qset",
+      "bcm_l3_ecmp_member_t member",
+      "bcm_l3_ecmp_member_t member_array[64]",
       "bcm_if_t intf_array[64]",
       "bcm_l2_station_t station",
       "bcm_l3_egress_ecmp_t ecmp",
@@ -1277,6 +1279,27 @@ int BcmCinter::bcm_mirror_port_dest_delete(
   return 0;
 }
 
+int BcmCinter::bcm_l3_ecmp_member_add(
+    int unit,
+    bcm_if_t ecmp_group_id,
+    bcm_l3_ecmp_member_t* ecmp_member) {
+  vector<string> cintLines;
+  cintLines.push_back("bcm_l3_ecmp_member_t_init(&member)");
+  cintLines.push_back(to<string>(
+      "member.egress_if=", getCintVar(l3IntfIdVars, ecmp_member->egress_if)));
+  cintLines.push_back(to<string>("member.weight=", ecmp_member->weight));
+  auto cintForFn = wrapFunc(to<string>(
+      "bcm_l3_ecmp_member_add(",
+      makeParamStr(unit, getCintVar(l3IntfIdVars, ecmp_group_id), "&member"),
+      ")"));
+  cintLines.insert(
+      cintLines.end(),
+      make_move_iterator(cintForFn.begin()),
+      make_move_iterator(cintForFn.end()));
+  writeCintLines(std::move(cintLines));
+  return 0;
+}
+
 int BcmCinter::bcm_l3_egress_ecmp_add(
     int unit,
     bcm_l3_egress_ecmp_t* ecmp,
@@ -1291,6 +1314,26 @@ int BcmCinter::bcm_l3_egress_ecmp_add(
       make_move_iterator(cintForFn.begin()),
       make_move_iterator(cintForFn.end()));
   writeCintLines(std::move(cint));
+  return 0;
+}
+
+int BcmCinter::bcm_l3_ecmp_member_delete(
+    int unit,
+    bcm_if_t ecmp_group_id,
+    bcm_l3_ecmp_member_t* ecmp_member) {
+  vector<string> cintLines;
+  cintLines.push_back("bcm_l3_ecmp_member_t_init(&member)");
+  cintLines.push_back(to<string>(
+      "member.egress_if=", getCintVar(l3IntfIdVars, ecmp_member->egress_if)));
+  auto cintForFn = wrapFunc(to<string>(
+      "bcm_l3_ecmp_member_delete(",
+      makeParamStr(unit, getCintVar(l3IntfIdVars, ecmp_group_id), "&member"),
+      ")"));
+  cintLines.insert(
+      cintLines.end(),
+      make_move_iterator(cintForFn.begin()),
+      make_move_iterator(cintForFn.end()));
+  writeCintLines(std::move(cintLines));
   return 0;
 }
 
@@ -1792,6 +1835,55 @@ int BcmCinter::bcm_port_dscp_map_mode_set(int unit, bcm_port_t port, int mode) {
   return 0;
 }
 
+int BcmCinter::bcm_l3_ecmp_create(
+    int unit,
+    uint32 options,
+    bcm_l3_egress_ecmp_t* ecmp_info,
+    int ecmp_member_count,
+    bcm_l3_ecmp_member_t* ecmp_member_array) {
+  auto cint =
+      cintForL3Ecmp(reinterpret_cast<const bcm_l3_egress_ecmp_t&>(*ecmp_info));
+  auto cintForMembers =
+      cintForEcmpMembersArray(ecmp_member_array, ecmp_member_count);
+  auto cintForFn = wrapFunc(to<string>(
+      "bcm_l3_ecmp_create(",
+      makeParamStr(
+          unit, options, "&ecmp", ecmp_member_count, "&member_array[0]"),
+      ")"));
+  auto l3IntfIdVar = getNextL3IntfIdVar();
+  { l3IntfIdVars.wlock()->emplace(ecmp_info->ecmp_intf, l3IntfIdVar); }
+  cint.push_back(
+      to<string>("bcm_if_t ", l3IntfIdVar, " = ", ecmp_info->ecmp_intf));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(cintForMembers.begin()),
+      make_move_iterator(cintForMembers.end()));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(cintForFn.begin()),
+      make_move_iterator(cintForFn.end()));
+  writeCintLines(std::move(cint));
+  return 0;
+}
+
+std::vector<std::string> BcmCinter::cintForEcmpMembersArray(
+    const bcm_l3_ecmp_member_t* members,
+    int member_count) {
+  vector<string> cintLines;
+  for (auto i = 0; i < member_count; i++) {
+    cintLines.push_back(
+        to<string>("bcm_l3_ecmp_member_t_init(&member_array[", i, "])"));
+    cintLines.push_back(to<string>(
+        "member_array[",
+        i,
+        "].egress_if=",
+        getCintVar(l3IntfIdVars, members[i].egress_if)));
+    cintLines.push_back(
+        to<string>("member_array[", i, "].weight=", members[i].weight));
+  }
+  return cintLines;
+}
+
 int BcmCinter::bcm_l3_egress_ecmp_create(
     int unit,
     bcm_l3_egress_ecmp_t* ecmp,
@@ -2144,6 +2236,15 @@ int BcmCinter::bcm_port_phy_control_set(
 int BcmCinter::bcm_port_speed_set(int unit, bcm_port_t port, int speed) {
   writeCintLines(wrapFunc(
       to<string>("bcm_port_speed_set(", makeParamStr(unit, port, speed), ")")));
+  return 0;
+}
+
+int BcmCinter::bcm_l3_ecmp_destroy(int unit, bcm_if_t ecmp_group_id) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_l3_ecmp_destroy(",
+      makeParamStr(unit, getCintVar(l3IntfIdVars, ecmp_group_id)),
+      ")")));
+  { l3IntfIdVars.wlock()->erase(ecmp_group_id); }
   return 0;
 }
 

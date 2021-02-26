@@ -68,6 +68,11 @@ class BcmInterface {
 
   virtual int bcm_vlan_destroy_all(int unit) = 0;
 
+  virtual int bcm_l3_ecmp_member_add(
+      int unit,
+      bcm_if_t ecmp_group_id,
+      bcm_l3_ecmp_member_t* ecmp_member) = 0;
+
   virtual int bcm_l3_egress_ecmp_add(
       int unit,
       bcm_l3_egress_ecmp_t* ecmp,
@@ -319,6 +324,11 @@ class BcmInterface {
       bcm_bst_stat_id_t bid,
       bcm_cosq_bst_profile_t* profile) = 0;
 
+  virtual int bcm_l3_ecmp_member_delete(
+      int unit,
+      bcm_if_t ecmp_group_id,
+      bcm_l3_ecmp_member_t* ecmp_member) = 0;
+
   virtual int bcm_l3_egress_ecmp_delete(
       int unit,
       bcm_l3_egress_ecmp_t* ecmp,
@@ -334,6 +344,13 @@ class BcmInterface {
   virtual int bcm_linkscan_enable_set(int unit, int us) = 0;
 
   virtual int bcm_port_dtag_mode_set(int unit, bcm_port_t port, int mode) = 0;
+
+  virtual int bcm_l3_ecmp_create(
+      int unit,
+      uint32 options,
+      bcm_l3_egress_ecmp_t* ecmp_info,
+      int ecmp_member_count,
+      bcm_l3_ecmp_member_t* ecmp_member_array) = 0;
 
   virtual int bcm_l3_egress_ecmp_create(
       int unit,
@@ -395,6 +412,8 @@ class BcmInterface {
   virtual int bcm_vlan_default_set(int unit, bcm_vlan_t vid) = 0;
 
   virtual int bcm_linkscan_unregister(int unit, bcm_linkscan_handler_t f) = 0;
+
+  virtual int bcm_l3_ecmp_destroy(int unit, bcm_if_t ecmp_group_id) = 0;
 
   virtual int bcm_l3_egress_ecmp_destroy(
       int unit,
