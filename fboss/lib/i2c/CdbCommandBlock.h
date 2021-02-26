@@ -19,10 +19,6 @@ namespace facebook::fboss {
  * CDB memory to trigger the CDB operation like firmware download.
  */
 class CdbCommandBlock {
-  // CmisFirmwareUpgrader is a friend class here as that access all data the
-  // data fields of this class
-  friend class CmisFirmwareUpgrader;
-
  public:
   // Constructor to initialize data block from 0
   CdbCommandBlock() {
@@ -75,6 +71,23 @@ class CdbCommandBlock {
   void selectCdbPage(TransceiverI2CApi* bus, unsigned int modId);
   void
   setMsaPassword(TransceiverI2CApi* bus, unsigned int modId, uint32_t msaPw);
+
+  // CDB block access functions for command code
+  uint16_t getCdbCommandCode() const {
+    return cdbFields_.cdbCommandCode;
+  }
+  // CDB block access functions for LPL length
+  uint8_t getCdbLplLength() const {
+    return cdbFields_.cdbLplLength;
+  }
+  // CDB block access functions for RLPL length
+  uint8_t getCdbRlplLength() const {
+    return cdbFields_.cdbRlplLength;
+  }
+  // CDB block access functions for LPL memory (120 Bytes)
+  const uint8_t* getCdbLplFlatMemory() const {
+    return cdbFields_.cdbLplMemory.cdbLplFlatMemory;
+  }
 
  private:
   // Data block

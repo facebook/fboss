@@ -116,8 +116,8 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   status = commandBlock->cmisRunCdbCommand(bus_, moduleId_);
   if (status) {
     // Query result will be in LPL memory at byte offset 2
-    if (commandBlock->cdbFields_.cdbRlplLength >= 3) {
-      if (commandBlock->cdbFields_.cdbLplMemory.cdbLplFlatMemory[2] == 0) {
+    if (commandBlock->getCdbRlplLength() >= 3) {
+      if (commandBlock->getCdbLplFlatMemory()[2] == 0) {
         // This should not happen because before calling this function
         // we supply the password to module to allow priviledged
         // operation. But still download feature is not available here
@@ -145,14 +145,13 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   // If the CDB command is successfull then the Start Command Payload Size is
   // returned by CDB in LPL memory at offset 2
 
-  if (status && commandBlock->cdbFields_.cdbRlplLength >= 3) {
+  if (status && commandBlock->getCdbRlplLength() >= 3) {
     // Get the firmware header size from CDB
-    startCommandPayloadSize =
-        commandBlock->cdbFields_.cdbLplMemory.cdbLplFlatMemory[2];
+    startCommandPayloadSize = commandBlock->getCdbLplFlatMemory()[2];
 
     // Check if EPL memory is supported
-    if (commandBlock->cdbFields_.cdbLplMemory.cdbLplFlatMemory[5] == 0x10 ||
-        commandBlock->cdbFields_.cdbLplMemory.cdbLplFlatMemory[5] == 0x11) {
+    if (commandBlock->getCdbLplFlatMemory()[5] == 0x10 ||
+        commandBlock->getCdbLplFlatMemory()[5] == 0x11) {
       eplSupported = true;
       XLOG(INFO) << folly::sformat(
           "cmisModuleFirmwareDownload: Mod{:d} will use EPL memory for firmware download",
