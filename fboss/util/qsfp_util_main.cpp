@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  if (ports.empty()) {
+  if (ports.empty() && !FLAGS_update_bulk_module_fw) {
     try {
       printPortSummary(bus.get());
     } catch (const std::exception& ex) {
@@ -258,8 +258,8 @@ int main(int argc, char* argv[]) {
   }
 
   if (FLAGS_update_bulk_module_fw) {
-    if (ports.size() != 2) {
-      fprintf(stderr, "Pl specify 2 modules for the range: <ModuleA> <moduleB>\n");
+    if (FLAGS_port_range.empty()) {
+      fprintf(stderr, "Pl specify the port range ie: 1,3,5-8\n");
       return EX_USAGE;
     }
     if (FLAGS_firmware_filename.empty()) {
@@ -275,7 +275,7 @@ int main(int argc, char* argv[]) {
       return EX_USAGE;
     }
 
-    cliModulefirmwareUpgrade(bus.get(), ports[0], ports[1], FLAGS_firmware_filename);
+    cliModulefirmwareUpgrade(bus.get(), FLAGS_port_range, FLAGS_firmware_filename);
   }
 
   return retcode;

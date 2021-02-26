@@ -43,6 +43,7 @@ DECLARE_string(cdb_payload);
 DECLARE_bool(update_bulk_module_fw);
 DECLARE_string(module_type);
 DECLARE_string(fw_version);
+DECLARE_string(port_range);
 
 enum LoopbackMode {
   noLoopback,
@@ -120,7 +121,7 @@ bool doMiniphotonLoopback(TransceiverI2CApi* bus, unsigned int port, LoopbackMod
 void cmisHostInputLoopback(TransceiverI2CApi* bus, unsigned int port, LoopbackMode mode);
 
 bool cliModulefirmwareUpgrade(TransceiverI2CApi* bus, unsigned int port, std::string firmwareFilename);
-bool cliModulefirmwareUpgrade(TransceiverI2CApi* bus, unsigned int portA, unsigned int portB, std::string firmwareFilename);
+bool cliModulefirmwareUpgrade(TransceiverI2CApi* bus, std::string portRangeStr, std::string firmwareFilename);
 
 void get_module_fw_info(TransceiverI2CApi* bus, unsigned int moduleA, unsigned int moduleB);
 

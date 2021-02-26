@@ -132,9 +132,10 @@ DEFINE_bool(cdb_command, false, "Read from CDB block, use with --command_code");
 DEFINE_int32(command_code, -1, "CDB command code (16 bit)");
 DEFINE_string(cdb_payload, "", "CDB command LPL payload (list of bytes)");
 DEFINE_bool(update_bulk_module_fw, false,
-            "Update firmware for module, use portA and portB for range of ports, use with --firmware_filename, --module_type, --fw_version");
+            "Update firmware for module, use with --firmware_filename, --module_type, --fw_version, --port_range");
 DEFINE_string(module_type, "", "specify the module type, ie: finisar-200g");
 DEFINE_string(fw_version, "", "specify the firmware version, ie: 7.8 or ca.f8");
+DEFINE_string(port_range, "", "specify the port range, ie: 1,3,5-8");
 
 namespace {
 struct ModulePartInfo_s {
@@ -157,8 +158,7 @@ namespace facebook::fboss {
 // Forward declaration of utility functions for firmware upgrade
 std::vector<unsigned int> getUpgradeModList(
       TransceiverI2CApi* bus,
-      unsigned int portA,
-      unsigned int portB,
+      std::vector<unsigned int> portlist,
       std::string moduleType,
       std::string fwVer);
 
@@ -172,6 +172,9 @@ void bucketize(
       std::vector<unsigned int>& modlist,
       int modulesPerController,
       std::vector<std::vector<unsigned int>>& bucket);
+
+std::vector<unsigned int> portRangeStrToPortList(
+    std::string portQualifier);
 
 std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> getQsfpClient(folly::EventBase& evb) {
   return std::move(QsfpClient::createClient(&evb)).getVia(&evb);
@@ -1083,8 +1086,7 @@ bool cliModulefirmwareUpgrade(
  */
 bool cliModulefirmwareUpgrade(
   TransceiverI2CApi* bus,
-  unsigned int portA,
-  unsigned int portB,
+  std::string portRangeStr,
   std::string firmwareFilename) {
 
   std::vector<std::thread> threadList;
@@ -1096,15 +1098,18 @@ bool cliModulefirmwareUpgrade(
     return false;
   }
 
+  // Convert the port regex string to list of ports
+  std::vector<unsigned int> modlist = portRangeStrToPortList(portRangeStr);
+
   // Get the list of all the modules where upgrade can be done
-  std::vector<unsigned int> modlist = getUpgradeModList(
-    bus, portA, portB, FLAGS_module_type, FLAGS_fw_version);
+  std::vector<unsigned int> finalModlist = getUpgradeModList(
+    bus, modlist, FLAGS_module_type, FLAGS_fw_version);
 
   // Get the modules per controller (platform specific)
   int modsPerController = getModulesPerController();
 
   // Bucketize the list of modules among buckets as per the controllers
-  bucketize(modlist, modsPerController, bucket);
+  bucketize(finalModlist, modsPerController, bucket);
 
   printf("The modules will be upgraded in these %ld buckets\n", bucket.size());
   printf("Each bucket will be assigned a separate thread\n");
@@ -1150,7 +1155,7 @@ bool cliModulefirmwareUpgrade(
     }
   }
 
-// Create threads one for each bucket row and do the upgrade there
+  // Create threads one for each bucket row and do the upgrade there
   for (auto& bucketrow : bucket) {
     std::thread tHandler(
         fwUpgradeThreadHandler, bus, bucketrow, firmwareFilename, imageHdrLen);
@@ -1231,8 +1236,7 @@ void fwUpgradeThreadHandler(
  */
 std::vector<unsigned int> getUpgradeModList(
     TransceiverI2CApi* bus,
-    unsigned int portA,
-    unsigned int portB,
+    std::vector<unsigned int> portlist,
     std::string moduleType,
     std::string fwVer) {
   std::string partNoStr;
@@ -1247,7 +1251,7 @@ std::vector<unsigned int> getUpgradeModList(
 
   partNoStr = CmisFirmwareUpgrader::partNoMap[moduleType];
 
-  for (unsigned int module = portA; module <= portB; module++) {
+  for (unsigned int module : portlist) {
     std::array<uint8_t, 16> partNo;
     std::array<uint8_t, 2> fwVerNo;
     std::array<char, 16> baseFwVerStr;
@@ -1339,6 +1343,64 @@ void bucketize(
     bucket.push_back(tempModList);
     tempModList.clear();
   }
+}
+
+/*
+ * portRangeStrToPortList
+ *
+ * This function takes port range string which is a string containing the
+ * range of applicable ports and creates a list of port. The string could
+ * be list of port and ranges, something like "1,2,3-9,12-17,29". This
+ * function will expand, create and return a vector of integers:
+ * {1,2,3,4,5,6,7,8,9,12,13,14,15,16,17,29}
+ */
+std::vector<unsigned int> portRangeStrToPortList(
+    std::string portQualifier) {
+  int lastPos = 0, nextPos;
+  int beg, end;
+  bool emptyStr;
+  std::string tempString;
+  std::vector<std::string> portRangeStrings;
+  std::vector<unsigned int> portRangeList;
+
+  // Create a list of substrings separated by command ","
+  // These substrings will contain single port like "5" or port range like "7-9"
+  while ((nextPos = portQualifier.find(std::string(","), lastPos)) !=
+         std::string::npos) {
+    tempString = portQualifier.substr(lastPos, nextPos - lastPos);
+    lastPos = nextPos + 1;
+    portRangeStrings.push_back(tempString);
+  }
+  tempString = portQualifier.substr(lastPos);
+  portRangeStrings.push_back(tempString);
+
+  // Convert this list of substrings to the list of pairs showing range.
+  // The substrings "5","7-9","15-31" will be converted to list of pairs like:
+  // {{5,5},{7,9},{15,31}}
+  for (auto rangeOfPort : portRangeStrings) {
+    lastPos = 0;
+    nextPos = rangeOfPort.find(std::string("-"), lastPos);
+    if (nextPos == std::string::npos) {
+      emptyStr = std::all_of(rangeOfPort.begin(), rangeOfPort.end(), isspace);
+      if (emptyStr) {
+        continue;
+      }
+      beg = end = std::stoi(rangeOfPort);
+    } else {
+      tempString = rangeOfPort.substr(lastPos, nextPos - lastPos);
+      beg = std::stoi(tempString);
+      lastPos = nextPos + 1;
+      tempString = rangeOfPort.substr(lastPos);
+      end = std::stoi(tempString);
+    }
+    for (int i = beg; i <= end; i++) {
+      portRangeList.push_back(i);
+    }
+  }
+  // Sort the list
+  std::sort(portRangeList.begin(), portRangeList.end());
+
+  return portRangeList;
 }
 
 /*
