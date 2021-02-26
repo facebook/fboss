@@ -35,6 +35,8 @@ enum class CmisField {
   TEMPERATURE,
   VCC,
   MODULE_CONTROL,
+  FIRMWARE_REVISION,
+  MEDIA_TYPE_ENCODINGS,
   APPLICATION_ADVERTISING1,
   BANK_SELECT,
   PAGE_SELECT_BYTE,
@@ -149,6 +151,7 @@ enum FieldMasks : uint8_t {
   CDR_IMPL_MASK = 0x01,
   POWER_CONTROL_MASK = 0x40,
   APP_SEL_MASK = 0xf0,
+  FWFAULT_MASK = 0x06,
 };
 
 enum DeviceTechnology : uint8_t {

@@ -56,6 +56,14 @@ TransceiverID QsfpModule::getID() const {
   return TransceiverID(qsfpImpl_->getNum());
 }
 
+// Converts power from milliwatts to decibel-milliwatts
+double QsfpModule::mwToDb(double value) {
+  if (value == 0) {
+    return -40;
+  }
+  return 10 * log10(value);
+};
+
 /*
  * Given a byte, extract bit fields for various alarm flags;
  * note the we might want to use the lower or the upper nibble,
@@ -207,6 +215,8 @@ TransceiverInfo QsfpModule::parseDataLocked() {
   }
   info.settings_ref() = getTransceiverSettingsInfo();
 
+  info.mediaLaneSignals_ref() = std::vector<MediaLaneSignals>(numMediaLanes());
+  info.hostLaneSignals_ref() = std::vector<HostLaneSignals>(numHostLanes());
   for (int i = 0; i < CHANNEL_COUNT; i++) {
     Channel chan;
     chan.channel_ref() = i;
@@ -215,6 +225,16 @@ TransceiverInfo QsfpModule::parseDataLocked() {
   if (!getSensorsPerChanInfo(*info.channels_ref())) {
     info.channels_ref()->clear();
   }
+
+  if (!getSignalsPerMediaLane(*info.mediaLaneSignals_ref())) {
+    info.mediaLaneSignals_ref()->clear();
+    info.mediaLaneSignals_ref().reset();
+  }
+  if (!getSignalsPerHostLane(*info.hostLaneSignals_ref())) {
+    info.hostLaneSignals_ref()->clear();
+    info.hostLaneSignals_ref().reset();
+  }
+
   if (auto transceiverStats = getTransceiverStats()) {
     info.stats_ref() = *transceiverStats;
   }
@@ -223,6 +243,10 @@ TransceiverInfo QsfpModule::parseDataLocked() {
       getExtendedSpecificationComplianceCode();
   info.transceiverManagementInterface_ref() = managementInterface();
 
+  info.identifier_ref() = getIdentifier();
+  info.status_ref() = getModuleStatus();
+
+  info.timeCollected_ref() = lastRefreshTime_;
   return info;
 }
 

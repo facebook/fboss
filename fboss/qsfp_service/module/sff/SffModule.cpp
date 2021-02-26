@@ -57,6 +57,7 @@ static SffFieldInfo::SffFieldMap qsfpFields = {
     {SffField::IDENTIFIER, {SffPages::LOWER, 0, 1}},
     {SffField::STATUS, {SffPages::LOWER, 1, 2}},
     {SffField::LOS, {SffPages::LOWER, 3, 1}},
+    {SffField::FAULT, {SffPages::LOWER, 4, 1}},
     {SffField::LOL, {SffPages::LOWER, 5, 1}},
     {SffField::TEMPERATURE_ALARMS, {SffPages::LOWER, 6, 1}},
     {SffField::VCC_ALARMS, {SffPages::LOWER, 7, 1}},
@@ -106,9 +107,12 @@ static SffFieldInfo::SffFieldMap qsfpFields = {
     {SffField::VCC_THRESH, {SffPages::PAGE3, 144, 8}},
     {SffField::RX_PWR_THRESH, {SffPages::PAGE3, 176, 8}},
     {SffField::TX_BIAS_THRESH, {SffPages::PAGE3, 184, 8}},
+    {SffField::TX_PWR_THRESH, {SffPages::PAGE3, 192, 8}},
     {SffField::TX_EQUALIZATION, {SffPages::PAGE3, 234, 2}},
     {SffField::RX_EMPHASIS, {SffPages::PAGE3, 236, 2}},
     {SffField::RX_AMPLITUDE, {SffPages::PAGE3, 238, 2}},
+    {SffField::SQUELCH_CONTROL, {SffPages::PAGE3, 240, 1}},
+    {SffField::TXRX_OUTPUT_CONTROL, {SffPages::PAGE3, 241, 1}},
 };
 
 static SffFieldMultiplier qsfpMultiplier = {
@@ -288,14 +292,16 @@ std::optional<AlarmThreshold> SffModule::getThresholdInfo() {
     return {};
   }
   AlarmThreshold threshold = AlarmThreshold();
-  *threshold.temp_ref() =
+  threshold.temp_ref() =
       getThresholdValues(SffField::TEMPERATURE_THRESH, SffFieldInfo::getTemp);
-  *threshold.vcc_ref() =
+  threshold.vcc_ref() =
       getThresholdValues(SffField::VCC_THRESH, SffFieldInfo::getVcc);
-  *threshold.rxPwr_ref() =
+  threshold.rxPwr_ref() =
       getThresholdValues(SffField::RX_PWR_THRESH, SffFieldInfo::getPwr);
-  *threshold.txBias_ref() =
+  threshold.txBias_ref() =
       getThresholdValues(SffField::TX_BIAS_THRESH, SffFieldInfo::getTxBias);
+  threshold.txPwr_ref() =
+      getThresholdValues(SffField::TX_PWR_THRESH, SffFieldInfo::getPwr);
   return threshold;
 }
 
@@ -310,14 +316,18 @@ uint8_t SffModule::getSettingsValue(SffField field, uint8_t mask) {
   return data[0] & mask;
 }
 
+TransceiverModuleIdentifier SffModule::getIdentifier() {
+  return (TransceiverModuleIdentifier)getSettingsValue(SffField::IDENTIFIER);
+}
+
 TransceiverSettings SffModule::getTransceiverSettingsInfo() {
   TransceiverSettings settings = TransceiverSettings();
   settings.cdrTx_ref() = SffFieldInfo::getFeatureState(
       getSettingsValue(SffField::EXTENDED_IDENTIFIER, EXT_ID_CDR_TX_MASK),
-      getSettingsValue(SffField::CDR_CONTROL, TX_MASK));
+      getSettingsValue(SffField::CDR_CONTROL, UPPER_BITS_MASK));
   settings.cdrRx_ref() = SffFieldInfo::getFeatureState(
       getSettingsValue(SffField::EXTENDED_IDENTIFIER, EXT_ID_CDR_RX_MASK),
-      getSettingsValue(SffField::CDR_CONTROL, RX_MASK));
+      getSettingsValue(SffField::CDR_CONTROL, LOWER_BITS_MASK));
   settings.powerMeasurement_ref() =
       SffFieldInfo::getFeatureState(getSettingsValue(
           SffField::DIAGNOSTIC_MONITORING_TYPE, POWER_MEASUREMENT_MASK));
@@ -325,7 +335,33 @@ TransceiverSettings SffModule::getTransceiverSettingsInfo() {
   settings.rateSelect_ref() = getRateSelectValue();
   settings.rateSelectSetting_ref() =
       getRateSelectSettingValue(*settings.rateSelect_ref());
+
+  settings.mediaLaneSettings_ref() =
+      std::vector<MediaLaneSettings>(numMediaLanes());
+  settings.hostLaneSettings_ref() =
+      std::vector<HostLaneSettings>(numHostLanes());
+  if (!getMediaLaneSettings(*(settings.mediaLaneSettings_ref()))) {
+    settings.mediaLaneSettings_ref()->clear();
+    settings.mediaLaneSettings_ref().reset();
+  }
+  if (!getHostLaneSettings(*(settings.hostLaneSettings_ref()))) {
+    settings.hostLaneSettings_ref()->clear();
+    settings.hostLaneSettings_ref().reset();
+  }
+
   return settings;
+}
+
+unsigned int SffModule::numHostLanes() const {
+  // Always returns 4 for now. This should return the number of
+  // lanes based on the media type instead
+  return 4;
+}
+
+unsigned int SffModule::numMediaLanes() const {
+  // Always returns 4. This should return the number of
+  // lanes based on the media type instead
+  return 4;
 }
 
 RateSelectSetting SffModule::getRateSelectSettingValue(RateSelectState state) {
@@ -403,6 +439,43 @@ PowerControlState SffModule::getPowerControlValue() {
 }
 
 /*
+ * Iterate through the host lanes collecting appropriate data;
+ */
+
+bool SffModule::getSignalsPerHostLane(std::vector<HostLaneSignals>& signals) {
+  assert(signals.size() == numHostLanes());
+  // Currently no signals to report on host lanes
+  return false;
+}
+
+/*
+ * Iterate through the media channels collecting appropriate data;
+ */
+bool SffModule::getSignalsPerMediaLane(std::vector<MediaLaneSignals>& signals) {
+  assert(signals.size() == numMediaLanes());
+
+  auto txLos = getSettingsValue(SffField::LOS, UPPER_BITS_MASK) >> 4;
+  auto rxLos = getSettingsValue(SffField::LOS, LOWER_BITS_MASK);
+  auto txLol = getSettingsValue(SffField::LOL, UPPER_BITS_MASK) >> 4;
+  auto rxLol = getSettingsValue(SffField::LOL, LOWER_BITS_MASK);
+  auto txFault = getSettingsValue(SffField::FAULT, LOWER_BITS_MASK);
+  auto txAdaptEqFault = getSettingsValue(SffField::FAULT, UPPER_BITS_MASK) >> 4;
+
+  for (int lane = 0; lane < signals.size(); lane++) {
+    auto laneMask = (1 << lane);
+    signals[lane].lane_ref() = lane;
+    signals[lane].txLos_ref() = txLos & laneMask;
+    signals[lane].rxLos_ref() = rxLos & laneMask;
+    signals[lane].txLol_ref() = txLol & laneMask;
+    signals[lane].rxLol_ref() = rxLol & laneMask;
+    signals[lane].txFault_ref() = txFault & laneMask;
+    signals[lane].txAdaptEqFault_ref() = txAdaptEqFault & laneMask;
+  }
+
+  return true;
+}
+
+/*
  * Iterate through the four channels collecting appropriate data;
  * always assumes CHANNEL_COUNT channels is four.
  */
@@ -459,8 +532,11 @@ bool SffModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
 
   for (auto& channel : channels) {
     uint16_t value = data[0] << 8 | data[1];
-    channel.sensors_ref()->rxPwr_ref()->value_ref() =
-        SffFieldInfo::getPwr(value);
+    auto pwr = SffFieldInfo::getPwr(value);
+    channel.sensors_ref()->rxPwr_ref()->value_ref() = pwr;
+    Sensor rxDbm;
+    rxDbm.value_ref() = mwToDb(pwr);
+    channel.sensors_ref()->rxPwrdBm_ref() = rxDbm;
     data += 2;
     length--;
   }
@@ -482,8 +558,11 @@ bool SffModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
 
   for (auto& channel : channels) {
     uint16_t value = data[0] << 8 | data[1];
-    channel.sensors_ref()->txPwr_ref()->value_ref() =
-        SffFieldInfo::getPwr(value);
+    auto pwr = SffFieldInfo::getPwr(value);
+    channel.sensors_ref()->txPwr_ref()->value_ref() = pwr;
+    Sensor txDbm;
+    txDbm.value_ref() = mwToDb(pwr);
+    channel.sensors_ref()->txPwrdBm_ref() = txDbm;
     data += 2;
     length--;
   }
@@ -559,12 +638,12 @@ TransmitterTechnology SffModule::getQsfpTransmitterTechnology() const {
 SignalFlags SffModule::getSignalFlagInfo() {
   SignalFlags signalFlags = SignalFlags();
 
-  signalFlags.txLos_ref() = getSettingsValue(SffField::LOS, TX_MASK);
+  signalFlags.txLos_ref() = getSettingsValue(SffField::LOS, UPPER_BITS_MASK);
   *signalFlags.txLos_ref() >>= 4;
-  signalFlags.rxLos_ref() = getSettingsValue(SffField::LOS, RX_MASK);
-  signalFlags.txLol_ref() = getSettingsValue(SffField::LOL, TX_MASK);
+  signalFlags.rxLos_ref() = getSettingsValue(SffField::LOS, LOWER_BITS_MASK);
+  signalFlags.txLol_ref() = getSettingsValue(SffField::LOL, UPPER_BITS_MASK);
   *signalFlags.txLol_ref() >>= 4;
-  signalFlags.rxLol_ref() = getSettingsValue(SffField::LOL, RX_MASK);
+  signalFlags.rxLol_ref() = getSettingsValue(SffField::LOL, LOWER_BITS_MASK);
 
   return signalFlags;
 }
@@ -572,6 +651,21 @@ SignalFlags SffModule::getSignalFlagInfo() {
 ExtendedSpecComplianceCode SffModule::getExtendedSpecificationComplianceCode() {
   return (ExtendedSpecComplianceCode)getSettingsValue(
       SffField::EXTENDED_SPECIFICATION_COMPLIANCE);
+}
+
+ModuleStatus SffModule::getModuleStatus() {
+  ModuleStatus moduleStatus;
+  std::array<uint8_t, 2> status = {{0, 0}};
+  int offset;
+  int length;
+  int dataAddress;
+
+  getQsfpFieldAddress(SffField::STATUS, dataAddress, offset, length);
+  getQsfpValue(dataAddress, offset, length, status.data());
+  moduleStatus.dataNotReady_ref() = status[1] & (1 << 0);
+  moduleStatus.interruptL_ref() = status[1] & (1 << 1);
+
+  return moduleStatus;
 }
 
 void SffModule::setQsfpFlatMem() {
@@ -965,6 +1059,62 @@ void SffModule::ensureTxEnabled() {
   std::array<uint8_t, 1> buf = {{0}};
   qsfpImpl_->writeTransceiver(
       TransceiverI2CApi::ADDR_QSFP, offset, 1, buf.data());
+}
+
+bool SffModule::getMediaLaneSettings(
+    std::vector<MediaLaneSettings>& laneSettings) {
+  assert(laneSettings.size() == numMediaLanes());
+  auto txSquelch = getSettingsValue(SffField::SQUELCH_CONTROL, LOWER_BITS_MASK);
+  auto txAdaptEq =
+      getSettingsValue(SffField::TXRX_OUTPUT_CONTROL, LOWER_BITS_MASK);
+  auto txDisable = getSettingsValue(SffField::TX_DISABLE);
+
+  for (int lane = 0; lane < laneSettings.size(); lane++) {
+    auto laneMask = (1 << lane);
+    laneSettings[lane].lane_ref() = lane;
+    laneSettings[lane].txSquelch_ref() = txSquelch & laneMask;
+    laneSettings[lane].txAdaptiveEqControl_ref() = txAdaptEq & laneMask;
+    laneSettings[lane].txDisable_ref() = txDisable & laneMask;
+  }
+  return true;
+}
+
+bool SffModule::getHostLaneSettings(
+    std::vector<HostLaneSettings>& laneSettings) {
+  assert(laneSettings.size() == numHostLanes());
+  int offset;
+  int length;
+  int dataAddress;
+
+  std::array<uint8_t, 2> txEq = {{0, 0}};
+  getQsfpFieldAddress(SffField::TX_EQUALIZATION, dataAddress, offset, length);
+  getQsfpValue(dataAddress, offset, length, txEq.data());
+
+  std::array<uint8_t, 2> rxEmp = {{0, 0}};
+  getQsfpFieldAddress(SffField::RX_EMPHASIS, dataAddress, offset, length);
+  getQsfpValue(dataAddress, offset, length, rxEmp.data());
+
+  std::array<uint8_t, 2> rxAmp = {{0, 0}};
+  getQsfpFieldAddress(SffField::RX_AMPLITUDE, dataAddress, offset, length);
+  getQsfpValue(dataAddress, offset, length, rxAmp.data());
+
+  auto rxSquelch = getSettingsValue(SffField::SQUELCH_CONTROL) >> 4;
+  auto rxOutput = getSettingsValue(SffField::TXRX_OUTPUT_CONTROL) >> 4;
+
+  for (int lane = 0; lane < laneSettings.size(); lane++) {
+    bool evenLane = (lane % 2 == 0);
+    auto laneMask = (1 << lane);
+    laneSettings[lane].lane_ref() = lane;
+    laneSettings[lane].txInputEqualization_ref() =
+        evenLane ? txEq[lane / 2] >> 4 : txEq[lane / 2] & 0xf;
+    laneSettings[lane].rxOutputEmphasis_ref() =
+        evenLane ? rxEmp[lane / 2] >> 4 : rxEmp[lane / 2] & 0xf;
+    laneSettings[lane].rxOutputAmplitude_ref() =
+        evenLane ? rxAmp[lane / 2] >> 4 : rxAmp[lane / 2] & 0xf;
+    laneSettings[lane].rxSquelch_ref() = rxSquelch & laneMask;
+    laneSettings[lane].rxOutput_ref() = rxOutput & laneMask;
+  }
+  return true;
 }
 
 void SffModule::overwriteChannelControlSettings() {

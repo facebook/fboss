@@ -24,6 +24,7 @@ enum class SffField {
   IDENTIFIER, // Type of Transceiver
   STATUS, // Support flags for upper pages
   LOS, // Loss of Signal
+  FAULT, // TX Faults
   LOL, // Loss of Lock
   TEMPERATURE_ALARMS,
   VCC_ALARMS, // Voltage
@@ -65,10 +66,13 @@ enum class SffField {
   VCC_THRESH,
   RX_PWR_THRESH,
   TX_BIAS_THRESH,
+  TX_PWR_THRESH,
   EXTENDED_RATE_COMPLIANCE,
   TX_EQUALIZATION,
   RX_EMPHASIS,
   RX_AMPLITUDE,
+  SQUELCH_CONTROL,
+  TXRX_OUTPUT_CONTROL,
   EXTENDED_SPECIFICATION_COMPLIANCE,
 
   // SFP-specific Fields
@@ -149,6 +153,7 @@ enum EthernetCompliance : uint8_t {
 
 enum DiagnosticMonitoringType {
   POWER_MEASUREMENT_MASK = 0x04,
+  RX_POWER_MEASUREMENT_TYPE_MASK = 0x08,
 };
 
 enum EnhancedOptions : uint8_t {
@@ -159,9 +164,9 @@ enum Options : uint8_t {
   OPT_RATE_SELECT_MASK = 1 << 5,
 };
 
-enum DirectionalMasks : uint8_t {
-  RX_MASK = 0x0f,
-  TX_MASK = 0xf0,
+enum HalfByteMasks : uint8_t {
+  UPPER_BITS_MASK = 0xf0,
+  LOWER_BITS_MASK = 0x0f,
 };
 
 class SffFieldInfo {

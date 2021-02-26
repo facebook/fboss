@@ -319,6 +319,15 @@ class QsfpModule : public Transceiver {
    */
   virtual bool getSensorsPerChanInfo(std::vector<Channel>& channels) = 0;
   /*
+   * Gather per-media-lane signal information for thrift queries
+   */
+  virtual bool getSignalsPerMediaLane(
+      std::vector<MediaLaneSignals>& signals) = 0;
+  /*
+   * Gather per-host-lane signal information for thrift queries
+   */
+  virtual bool getSignalsPerHostLane(std::vector<HostLaneSignals>& signals) = 0;
+  /*
    * Gather the vendor info for thrift queries
    */
   virtual Vendor getVendorInfo() = 0;
@@ -350,6 +359,11 @@ class QsfpModule : public Transceiver {
    */
   virtual ExtendedSpecComplianceCode
   getExtendedSpecificationComplianceCode() = 0;
+
+  double mwToDb(double value);
+
+  virtual TransceiverModuleIdentifier getIdentifier() = 0;
+  virtual ModuleStatus getModuleStatus() = 0;
   /*
    * This function returns true if both the sfp is present and the
    * cache data is not stale. This should be checked before any
@@ -372,7 +386,16 @@ class QsfpModule : public Transceiver {
    * byte range of the SFF spec.
    */
   virtual double getQsfpDACLength() const = 0;
-
+  /*
+   * Returns the number of host lanes. Should be overridden by the appropriate
+   * module's subclass
+   */
+  virtual unsigned int numHostLanes() const = 0;
+  /*
+   * Returns the number of media lanes. Should be overridden by the appropriate
+   * module's subclass
+   */
+  virtual unsigned int numMediaLanes() const = 0;
   bool shouldRemediate(time_t cooldown) const;
 
   /*

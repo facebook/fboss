@@ -59,6 +59,8 @@ struct ChannelSensors {
   3: Sensor txPwr,
   4: optional Sensor txSnr,
   5: optional Sensor rxSnr,
+  6: optional Sensor rxPwrdBm,
+  7: optional Sensor txPwrdBm,
 }
 
 struct SignalFlags {
@@ -175,6 +177,77 @@ enum CmisModuleState {
   FAULT = 0x5,
 }
 
+enum SMFMediaInterfaceCode {
+  CWDM4_100G = 0x10,
+  FR4_200G = 0x18,
+  FR4_400G = 0x1D,
+}
+
+union MediaInterfaceUnion {
+  1: SMFMediaInterfaceCode smfCode
+}
+
+enum MediaTypeEncodings {
+  UNDEFINED = 0x0,
+  OPTICAL_MMF = 0x1,
+  OPTICAL_SMF = 0x2,
+  PASSIVE_CU = 0x3,
+  ACTIVE_CABLES = 0x4
+}
+
+struct MediaInterfaceId {
+  1: i32 lane,
+  2: MediaInterfaceUnion media,
+}
+
+enum CmisLaneState {
+  DEACTIVATED = 0x1,
+  DATAPATHINIT = 0x2,
+  DEINIT = 0x3,
+  ACTIVATED = 0x4,
+  TX_ON = 0x5,
+  TX_OFF = 0x6,
+  DATAPATH_INITIALIZED = 0x7,
+}
+
+struct FirmwareStatus {
+  1: optional string version,
+  2: optional i32 fwFault,
+}
+
+struct MediaLaneSettings {
+  1: i32 lane,
+  2: optional bool txDisable,
+  3: optional bool txSquelch,
+  4: optional bool txAdaptiveEqControl, // Only applicable for Sff
+  5: optional bool txSquelchForce, // Only applicable for Cmis
+}
+
+struct HostLaneSettings {
+  1: i32 lane,
+  2: optional i32 txInputEqualization,
+  3: optional i32 rxOutputEmphasis,
+  4: optional i32 rxOutputAmplitude,
+  5: optional bool rxOutput,
+  6: optional bool rxSquelch,
+}
+
+struct MediaLaneSignals {
+  1: i32 lane,
+  2: optional bool txLos,
+  3: optional bool rxLos,
+  4: optional bool txLol,
+  5: optional bool rxLol,
+  6: optional bool txFault,
+  7: optional bool txAdaptEqFault,
+}
+
+struct HostLaneSignals {
+  1: i32 lane,
+  2: optional bool dataPathDeInit,
+  3: optional CmisLaneState cmisLaneState,
+}
+
 struct TransceiverSettings {
   1: FeatureState cdrTx,
   2: FeatureState cdrRx,
@@ -182,6 +255,9 @@ struct TransceiverSettings {
   4: FeatureState powerMeasurement,
   5: PowerControlState powerControl,
   6: RateSelectSetting rateSelectSetting,
+  7: optional list<MediaLaneSettings> mediaLaneSettings,
+  8: optional list<HostLaneSettings> hostLaneSettings,
+  9: optional list<MediaInterfaceId> mediaInterface,
 }
 
 // maintained and populated by qsfp service
@@ -190,6 +266,13 @@ struct TransceiverStats {
   1: double readDownTime,
   // duration between last write and last successful write
   2: double writeDownTime,
+}
+
+struct ModuleStatus {
+  1: optional bool dataNotReady,
+  2: optional bool interruptL,
+  3: optional CmisModuleState cmisModuleState,
+  4: optional FirmwareStatus fwStatus,
 }
 
 struct TransceiverInfo {
@@ -206,6 +289,11 @@ struct TransceiverInfo {
   15: optional SignalFlags signalFlag,
   16: optional ExtendedSpecComplianceCode extendedSpecificationComplianceCode,
   17: optional TransceiverManagementInterface transceiverManagementInterface,
+  18: optional TransceiverModuleIdentifier identifier,
+  19: optional ModuleStatus status,
+  20: optional list<MediaLaneSignals> mediaLaneSignals,
+  21: optional list<HostLaneSignals> hostLaneSignals,
+  22: optional i64 timeCollected,
 }
 
 typedef binary (cpp2.type = "folly::IOBuf") IOBuf

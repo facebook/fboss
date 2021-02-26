@@ -158,6 +158,14 @@ class CmisModule : public QsfpModule {
    */
   bool getSensorsPerChanInfo(std::vector<Channel>& channels) override;
   /*
+   * Gather per-media-lane signal information for thrift queries
+   */
+  bool getSignalsPerMediaLane(std::vector<MediaLaneSignals>& signals) override;
+  /*
+   * Gather per-host-lane signal information for thrift queries
+   */
+  bool getSignalsPerHostLane(std::vector<HostLaneSignals>& signals) override;
+  /*
    * Gather per-channel flag values from bitfields.
    */
   FlagLevels getChannelFlags(CmisField field, int channel);
@@ -208,6 +216,47 @@ class CmisModule : public QsfpModule {
    * of SFF-8024.
    */
   ExtendedSpecComplianceCode getExtendedSpecificationComplianceCode() override;
+  /*
+   * Returns the identifier in byte 0
+   */
+  TransceiverModuleIdentifier getIdentifier() override;
+  /*
+   * Returns the module status in byte 3
+   */
+  ModuleStatus getModuleStatus() override;
+  /*
+   * Fetches the media interface ids per media lane and returns false if it
+   * fails
+   */
+  bool getMediaInterfaceId(std::vector<MediaInterfaceId>& mediaInterface);
+  /*
+   * Gets the Single Mode Fiber Interface codes from SFF-8024
+   */
+  SMFMediaInterfaceCode getSmfMediaInterface();
+  /*
+   * Returns the firmware version
+   */
+  std::string getFwRevision();
+  FirmwareStatus getFwStatus();
+
+  /*
+   * Gather host side per lane configuration settings and return false when it
+   * fails
+   */
+  bool getHostLaneSettings(std::vector<HostLaneSettings>& laneSettings);
+  /*
+   * Gather media side per lane configuration settings and return false when it
+   * fails
+   */
+  bool getMediaLaneSettings(std::vector<MediaLaneSettings>& laneSettings);
+  /*
+   * Returns the number of lanes on the host side
+   */
+  unsigned int numHostLanes() const override;
+  /*
+   * Returns the number of lanes on the media side
+   */
+  unsigned int numMediaLanes() const override;
   /*
    * Update the cached data with the information from the physical QSFP.
    *

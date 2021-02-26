@@ -69,6 +69,8 @@ static CmisFieldInfo::CmisFieldMap cmisFields = {
     {CmisField::TEMPERATURE, {CmisPages::LOWER, 14, 2}},
     {CmisField::VCC, {CmisPages::LOWER, 16, 2}},
     {CmisField::MODULE_CONTROL, {CmisPages::LOWER, 26, 1}},
+    {CmisField::FIRMWARE_REVISION, {CmisPages::LOWER, 39, 2}},
+    {CmisField::MEDIA_TYPE_ENCODINGS, {CmisPages::LOWER, 85, 1}},
     {CmisField::APPLICATION_ADVERTISING1, {CmisPages::LOWER, 86, 4}},
     {CmisField::BANK_SELECT, {CmisPages::LOWER, 126, 1}},
     {CmisField::PAGE_SELECT_BYTE, {CmisPages::LOWER, 127, 1}},
@@ -274,6 +276,18 @@ Vendor CmisModule::getVendorInfo() {
   return vendor;
 }
 
+std::string CmisModule::getFwRevision() {
+  int offset;
+  int length;
+  int dataAddress;
+  getQsfpFieldAddress(
+      CmisField::FIRMWARE_REVISION, dataAddress, offset, length);
+  const uint8_t* data = getQsfpValuePtr(dataAddress, offset, length);
+
+  auto version = folly::format("{}.{}", data[0], data[1]);
+  return version.str();
+}
+
 Cable CmisModule::getCableInfo() {
   Cable cable = Cable();
   cable.transmitterTech_ref() = getQsfpTransmitterTechnology();
@@ -297,6 +311,22 @@ Cable CmisModule::getCableInfo() {
     cable.length_ref() = length;
   }
   return cable;
+}
+
+FirmwareStatus CmisModule::getFwStatus() {
+  FirmwareStatus fwStatus;
+  fwStatus.version_ref() = getFwRevision();
+  fwStatus.fwFault_ref() =
+      (getSettingsValue(CmisField::MODULE_FLAG, FWFAULT_MASK) >> 1);
+  return fwStatus;
+}
+
+ModuleStatus CmisModule::getModuleStatus() {
+  ModuleStatus moduleStatus;
+  moduleStatus.cmisModuleState_ref() =
+      (CmisModuleState)(getSettingsValue(CmisField::MODULE_STATE) >> 1);
+  moduleStatus.fwStatus_ref() = getFwStatus();
+  return moduleStatus;
 }
 
 /*
@@ -376,7 +406,119 @@ TransceiverSettings CmisModule::getTransceiverSettingsInfo() {
 
   getApplicationCapabilities();
 
+  settings.mediaLaneSettings_ref() =
+      std::vector<MediaLaneSettings>(numMediaLanes());
+  settings.hostLaneSettings_ref() =
+      std::vector<HostLaneSettings>(numHostLanes());
+
+  if (!getMediaLaneSettings(*(settings.mediaLaneSettings_ref()))) {
+    settings.mediaLaneSettings_ref()->clear();
+    settings.mediaLaneSettings_ref().reset();
+  }
+
+  if (!getHostLaneSettings(*(settings.hostLaneSettings_ref()))) {
+    settings.hostLaneSettings_ref()->clear();
+    settings.hostLaneSettings_ref().reset();
+  }
+
+  settings.mediaInterface_ref() =
+      std::vector<MediaInterfaceId>(numMediaLanes());
+  if (!getMediaInterfaceId(*(settings.mediaInterface_ref()))) {
+    settings.mediaInterface_ref()->clear();
+    settings.mediaInterface_ref().reset();
+  }
+
   return settings;
+}
+
+bool CmisModule::getMediaLaneSettings(
+    std::vector<MediaLaneSettings>& laneSettings) {
+  assert(laneSettings.size() == numMediaLanes());
+
+  auto txDisable = getSettingsValue(CmisField::TX_DISABLE);
+  auto txSquelchDisable = getSettingsValue(CmisField::TX_SQUELCH_DISABLE);
+  auto txSquelchForce = getSettingsValue(CmisField::TX_FORCE_SQUELCH);
+
+  for (int lane = 0; lane < laneSettings.size(); lane++) {
+    auto laneMask = (1 << lane);
+    laneSettings[lane].lane_ref() = lane;
+    laneSettings[lane].txDisable_ref() = txDisable & laneMask;
+    laneSettings[lane].txSquelch_ref() = txSquelchDisable & laneMask;
+    laneSettings[lane].txSquelchForce_ref() = txSquelchForce & laneMask;
+  }
+
+  return true;
+}
+
+bool CmisModule::getHostLaneSettings(
+    std::vector<HostLaneSettings>& laneSettings) {
+  assert(laneSettings.size() == numHostLanes());
+
+  auto rxOutput = getSettingsValue(CmisField::RX_DISABLE);
+  auto rxSquelchDisable = getSettingsValue(CmisField::RX_SQUELCH_DISABLE);
+
+  for (int lane = 0; lane < laneSettings.size(); lane++) {
+    auto laneMask = (1 << lane);
+    laneSettings[lane].lane_ref() = lane;
+    laneSettings[lane].rxOutput_ref() = rxOutput & laneMask;
+    laneSettings[lane].rxSquelch_ref() = rxSquelchDisable & laneMask;
+  }
+
+  return true;
+}
+
+unsigned int CmisModule::numHostLanes() const {
+  // Always returns 4 for now assuming 200G-FR4. This should return the number
+  // of lanes based on the media type instead
+  return 4;
+}
+
+unsigned int CmisModule::numMediaLanes() const {
+  // Always returns 4 for now assuming 200G-FR4. This should return the number
+  // of lanes based on the media type instead
+  return 4;
+}
+
+SMFMediaInterfaceCode CmisModule::getSmfMediaInterface() {
+  uint8_t currentApplicationSel =
+      getSettingsValue(CmisField::ACTIVE_CTRL_LANE_1, APP_SEL_MASK);
+  // The application sel code is at the higher four bits of the field.
+  currentApplicationSel = currentApplicationSel >> 4;
+
+  uint8_t currentApplication;
+  int offset;
+  int length;
+  int dataAddress;
+
+  getQsfpFieldAddress(
+      CmisField::APPLICATION_ADVERTISING1, dataAddress, offset, length);
+  // We use the module Media Interface ID, which is located at the second byte
+  // of the field, as Application ID here.
+  offset += (currentApplicationSel - 1) * length + 1;
+  getQsfpValue(dataAddress, offset, 1, &currentApplication);
+
+  return (SMFMediaInterfaceCode)currentApplication;
+}
+
+bool CmisModule::getMediaInterfaceId(
+    std::vector<MediaInterfaceId>& mediaInterface) {
+  assert(mediaInterface.size() == numMediaLanes());
+  MediaTypeEncodings encoding =
+      (MediaTypeEncodings)getSettingsValue(CmisField::MEDIA_TYPE_ENCODINGS);
+  if (encoding != MediaTypeEncodings::OPTICAL_SMF) {
+    return false;
+  }
+
+  // Currently setting the same media interface for all media lanes
+  auto smfMediaInterface = getSmfMediaInterface();
+  for (int lane = 0; lane < mediaInterface.size(); lane++) {
+    mediaInterface[lane].lane_ref() = lane;
+    MediaInterfaceUnion media;
+    media.set_smfCode(smfMediaInterface);
+    mediaInterface[lane].media_ref() = media;
+  }
+
+  return true;
 }
 
 void CmisModule::getApplicationCapabilities() {
@@ -439,6 +581,63 @@ FlagLevels CmisModule::getChannelFlags(CmisField field, int channel) {
  * Iterate through channels collecting appropriate data;
  */
 
+bool CmisModule::getSignalsPerMediaLane(
+    std::vector<MediaLaneSignals>& signals) {
+  assert(signals.size() == numMediaLanes());
+
+  auto txLos = getSettingsValue(CmisField::TX_LOS_FLAG);
+  auto rxLos = getSettingsValue(CmisField::RX_LOS_FLAG);
+  auto txLol = getSettingsValue(CmisField::TX_LOL_FLAG);
+  auto rxLol = getSettingsValue(CmisField::RX_LOL_FLAG);
+  auto txFault = getSettingsValue(CmisField::TX_FAULT_FLAG);
+  auto txEq = getSettingsValue(CmisField::TX_EQ_FLAG);
+
+  for (int lane = 0; lane < signals.size(); lane++) {
+    auto laneMask = (1 << lane);
+    signals[lane].lane_ref() = lane;
+    signals[lane].txLos_ref() = txLos & laneMask;
+    signals[lane].rxLos_ref() = rxLos & laneMask;
+    signals[lane].txLol_ref() = txLol & laneMask;
+    signals[lane].rxLol_ref() = rxLol & laneMask;
+    signals[lane].txFault_ref() = txFault & laneMask;
+    signals[lane].txAdaptEqFault_ref() = txEq & laneMask;
+  }
+
+  return true;
+}
+
+/*
+ * Iterate through channels collecting appropriate data;
+ */
+
+bool CmisModule::getSignalsPerHostLane(std::vector<HostLaneSignals>& signals) {
+  const uint8_t* data;
+  int offset;
+  int length;
+  int dataAddress;
+
+  assert(signals.size() == numHostLanes());
+
+  auto dataPathDeInit = getSettingsValue(CmisField::DATA_PATH_DEINIT);
+  getQsfpFieldAddress(CmisField::DATA_PATH_STATE, dataAddress, offset, length);
+  data = getQsfpValuePtr(dataAddress, offset, length);
+
+  for (int lane = 0; lane < signals.size(); lane++) {
+    signals[lane].lane_ref() = lane;
+    signals[lane].dataPathDeInit_ref() = dataPathDeInit & (1 << lane);
+
+    bool evenLane = (lane % 2 == 0);
+    signals[lane].cmisLaneState_ref() = (CmisLaneState)(
+        evenLane ? data[lane / 2] & 0xF : (data[lane / 2] >> 4) & 0xF);
+  }
+
+  return true;
+}
+
+/*
+ * Iterate through channels collecting appropriate data;
+ */
+
 bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   const uint8_t* data;
   int offset;
@@ -465,8 +664,11 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
 
   for (auto& channel : channels) {
     uint16_t value = data[0] << 8 | data[1];
-    channel.sensors_ref()->rxPwr_ref()->value_ref() =
-        CmisFieldInfo::getPwr(value);
+    auto pwr = CmisFieldInfo::getPwr(value); // This is in mW
+    channel.sensors_ref()->rxPwr_ref()->value_ref() = pwr;
+    Sensor rxDbm;
+    rxDbm.value_ref() = mwToDb(pwr);
+    channel.sensors_ref()->rxPwrdBm_ref() = rxDbm;
     data += 2;
     length--;
   }
@@ -488,8 +690,11 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
 
   for (auto& channel : channels) {
     uint16_t value = data[0] << 8 | data[1];
-    channel.sensors_ref()->txPwr_ref()->value_ref() =
-        CmisFieldInfo::getPwr(value);
+    auto pwr = CmisFieldInfo::getPwr(value); // This is in mW
+    channel.sensors_ref()->txPwr_ref()->value_ref() = pwr;
+    Sensor txDbm;
+    txDbm.value_ref() = mwToDb(pwr);
+    channel.sensors_ref()->txPwrdBm_ref() = txDbm;
     data += 2;
     length--;
   }
@@ -583,6 +788,10 @@ ExtendedSpecComplianceCode
 CmisModule::getExtendedSpecificationComplianceCode() {
   return (ExtendedSpecComplianceCode)getSettingsValue(
       CmisField::EXTENDED_SPECIFICATION_COMPLIANCE);
+}
+
+TransceiverModuleIdentifier CmisModule::getIdentifier() {
+  return (TransceiverModuleIdentifier)getSettingsValue(CmisField::IDENTIFIER);
 }
 
 void CmisModule::setQsfpFlatMem() {

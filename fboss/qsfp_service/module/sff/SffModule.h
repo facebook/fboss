@@ -156,6 +156,14 @@ class SffModule : public QsfpModule {
    */
   bool getSensorsPerChanInfo(std::vector<Channel>& channels) override;
   /*
+   * Gather per-media-lane signal information for thrift queries
+   */
+  bool getSignalsPerMediaLane(std::vector<MediaLaneSignals>& signals) override;
+  /*
+   * Gather per-host-lane signal information for thrift queries
+   */
+  bool getSignalsPerHostLane(std::vector<HostLaneSignals>& signals) override;
+  /*
    * Gather the vendor info for thrift queries
    */
   Vendor getVendorInfo() override;
@@ -198,6 +206,32 @@ class SffModule : public QsfpModule {
    * of SFF-8024.
    */
   ExtendedSpecComplianceCode getExtendedSpecificationComplianceCode() override;
+  /*
+   * Return information in the identifier byte 0
+   */
+  TransceiverModuleIdentifier getIdentifier() override;
+  /*
+   * Returns the status in bytes 1 and 2 in the lower page
+   */
+  ModuleStatus getModuleStatus() override;
+  /*
+   * Gather host side per lane configuration settings and return false when it
+   * fails
+   */
+  bool getHostLaneSettings(std::vector<HostLaneSettings>& laneSettings);
+  /*
+   * Gather media side per lane configuration settings and return false when it
+   * fails
+   */
+  bool getMediaLaneSettings(std::vector<MediaLaneSettings>& laneSettings);
+  /*
+   * Returns the number of lanes on the host side
+   */
+  unsigned int numHostLanes() const override;
+  /*
+   * Returns the number of lanes on the media side
+   */
+  unsigned int numMediaLanes() const override;
   /*
    * Update the cached data with the information from the physical QSFP.
    *
