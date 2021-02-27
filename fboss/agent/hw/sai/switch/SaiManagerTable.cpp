@@ -96,8 +96,6 @@ SaiManagerTable::~SaiManagerTable() {
 }
 
 void SaiManagerTable::reset(bool skipSwitchManager) {
-  // unsupported features reset first. Order does not matter for these
-  lagManager_.reset();
   // Need to destroy routes and label fib entries before destroying other
   // managers, as the route and label fib entry destructors will trigger calls
   // in those managers
@@ -119,6 +117,7 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   nextHopManager_.reset();
   routerInterfaceManager_.reset();
   virtualRouterManager_.reset();
+  lagManager_.reset();
   bridgeManager_.reset();
   vlanManager_.reset();
   debugCounterManager_.reset();
