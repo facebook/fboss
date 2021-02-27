@@ -69,15 +69,6 @@ void SaiVlanManager::createVlanMember(VlanID swVlanId, PortID swPortId) {
         "Failed to add vlan member: no vlan matching vlanID: ", swVlanId);
   }
 
-  // Compute the BridgePort sai id to associate with this vlan member
-  SaiPortHandle* portHandle =
-      managerTable_->portManager().getPortHandle(swPortId);
-  if (!portHandle) {
-    throw FbossError(
-        "Failed to add vlan member: no port handle matching vlan member port: ",
-        swPortId);
-  }
-
   SaiVlanMemberTraits::Attributes::VlanId vlanIdAttribute{
       vlanHandle->vlan->adapterKey()};
   auto vlanMember =

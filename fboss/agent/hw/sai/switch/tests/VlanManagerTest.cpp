@@ -179,9 +179,3 @@ TEST_F(VlanManagerTest, removeVlanWithMembers) {
   auto swId = VlanID(0);
   EXPECT_FALSE(vlanManager.getVlanHandle(swId));
 }
-
-TEST_F(VlanManagerTest, addBadVlanMember) {
-  TestInterface intf{0, 5};
-  std::shared_ptr<Vlan> swVlan = makeVlan(intf);
-  EXPECT_THROW(saiManagerTable->vlanManager().addVlan(swVlan), FbossError);
-}
