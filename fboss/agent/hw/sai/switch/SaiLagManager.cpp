@@ -139,6 +139,7 @@ std::pair<PortSaiId, std::shared_ptr<SaiLagMember>> SaiLagManager::addMember(
     PortID subPort) {
   auto portHandle = managerTable_->portManager().getPortHandle(subPort);
   CHECK(portHandle);
+  portHandle->bridgePort.reset();
   auto saiPortId = portHandle->port->adapterKey();
   auto saiLagId = lag->adapterKey();
 
@@ -169,6 +170,9 @@ void SaiLagManager::removeMember(AggregatePortID aggPort, PortID subPort) {
   membersIter->second.reset();
   handlesIter->second->members.erase(membersIter);
   concurrentIndices_->memberPort2AggregatePortIds.erase(saiPortId);
+  portHandle->bridgePort = managerTable_->bridgeManager().addBridgePort(
+      SaiPortDescriptor(subPort),
+      PortDescriptorSaiId(portHandle->port->adapterKey()));
 }
 
 SaiLagHandle* FOLLY_NULLABLE
