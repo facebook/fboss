@@ -29,7 +29,7 @@ using std::string;
 namespace facebook::fboss {
 
 class HwSwitchStateReplayTest : public HwTest {
-  std::shared_ptr<SwitchState> getWarmBootState() const {
+  std::shared_ptr<SwitchState> getWarmBootState() {
     if (FLAGS_replay_switch_state_file.size()) {
       std::string warmBootJson;
       auto ret =
@@ -51,7 +51,8 @@ class HwSwitchStateReplayTest : public HwTest {
         << "No replay state file specified, applying one port per vlan config";
     auto config =
         utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
-    return applyThriftConfig(getProgrammedState(), &config, getPlatform());
+    applyNewConfig(config);
+    return getProgrammedState();
   }
 
  protected:
@@ -69,8 +70,6 @@ class HwSwitchStateReplayTest : public HwTest {
     auto verify = [=]() {};
     verifyAcrossWarmBoots(setup, verify);
   }
-
- private:
 };
 
 TEST_F(HwSwitchStateReplayTest, test) {
