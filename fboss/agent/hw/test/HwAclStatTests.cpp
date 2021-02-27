@@ -326,15 +326,12 @@ TEST_F(HwAclStatTest, AclStatRenameShared) {
 }
 
 TEST_F(HwAclStatTest, AclStatCreateSameTwice) {
+  auto state = getProgrammedState();
   auto newCfg = initialConfig();
   addDscpAcl(&newCfg, "acl0");
   utility::addAclStat(&newCfg, "acl0", "stat0");
-
-  auto newState =
-      applyThriftConfig(getProgrammedState(), &newCfg, getPlatform());
-  newState->publish();
-  StateDelta delta(getProgrammedState(), newState);
-  applyNewState(newState);
+  applyNewConfig(newCfg);
+  StateDelta delta(state, getProgrammedState());
   EXPECT_THROW(getHwSwitch()->stateChanged(delta), FbossError);
 }
 
@@ -344,13 +341,11 @@ TEST_F(HwAclStatTest, AclStatDeleteNonExistent) {
   utility::addAclStat(&newCfg, "acl0", "stat0");
   applyNewConfig(newCfg);
 
+  auto state = getProgrammedState();
   utility::delAcl(&newCfg, "acl0");
   utility::delAclStat(&newCfg, "acl0", "stat0");
-  auto newState =
-      applyThriftConfig(getProgrammedState(), &newCfg, getPlatform());
-  newState->publish();
-  StateDelta delta(getProgrammedState(), newState);
-  applyNewState(newState);
+  applyNewConfig(newCfg);
+  StateDelta delta(state, getProgrammedState());
   EXPECT_THROW(getHwSwitch()->stateChanged(delta), FbossError);
 }
 
