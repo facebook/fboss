@@ -102,6 +102,35 @@ class SaiRouteRollbackTest : public SaiRollbackTest {
     v6EcmpHelper_ = std::make_unique<utility::EcmpSetupAnyNPorts6>(
         getProgrammedState(), RouterID(0));
   }
+  void rollbackStandaloneRib(const std::vector<folly::CIDRNetwork>& prefixes) {
+    // Since we are forcing a rollback (as opposed to a overflow causing a
+    // rollback) we need to rollback routes in rib too.
+    if (!getHwSwitchEnsemble()->isStandaloneRibEnabled()) {
+      return;
+    }
+    auto ribOnlyUpdate =
+        [](facebook::fboss::RouterID /*vrf*/,
+           const facebook::fboss::IPv4NetworkToRouteMap& /*v4NetworkToRoute*/,
+           const facebook::fboss::IPv6NetworkToRouteMap& /*v6NetworkToRoute*/,
+           void* /*cookie*/) { /* no op for HW update*/ };
+    std::vector<IpPrefix> ipPfxs;
+    for (const auto& prefix : prefixes) {
+      IpPrefix pfx;
+      pfx.ip_ref() = network::toBinaryAddress(prefix.first);
+      pfx.prefixLength_ref() = prefix.second;
+      ipPfxs.push_back(pfx);
+    }
+    getHwSwitchEnsemble()->getRib()->update(
+        RouterID(0),
+        ClientID::BGPD,
+        AdminDistance::EBGP,
+        {},
+        ipPfxs,
+        false,
+        "Rollback",
+        ribOnlyUpdate,
+        nullptr);
+  }
 
  protected:
   void runTest(bool rollbackEcmp, bool rollbackNonEcmp, int numIters) {
@@ -132,6 +161,7 @@ class SaiRouteRollbackTest : public SaiRollbackTest {
           routesRemoved = nonEcmpNetworks();
           routesPresent = ecmpNetworks();
         }
+        rollbackStandaloneRib(routesRemoved);
         // Verify routes in HW
         for (auto& route : routesRemoved) {
           EXPECT_THROW(
