@@ -90,8 +90,10 @@ class SaiVlanManager {
     return handles_;
   }
 
- private:
   void createVlanMember(VlanID swVlanId, SaiPortDescriptor portDesc);
+  void removeVlanMember(VlanID swVlanId, SaiPortDescriptor portDesc);
+
+ private:
   SaiVlanHandle* getVlanHandleImpl(VlanID swVlanId) const;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;

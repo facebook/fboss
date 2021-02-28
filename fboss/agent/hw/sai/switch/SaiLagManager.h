@@ -19,6 +19,7 @@ struct SaiLagHandle {
   std::map<PortSaiId, std::shared_ptr<SaiLagMember>> members{};
   std::shared_ptr<SaiBridgePort> bridgePort{};
   uint32_t minimumLinkCount{0};
+  VlanID vlanId{};
 };
 
 class SaiManagerTable;

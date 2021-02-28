@@ -80,6 +80,26 @@ void SaiVlanManager::createVlanMember(
   vlanHandle->vlanMembers.emplace(portDesc, std::move(vlanMember));
 }
 
+void SaiVlanManager::removeVlanMember(
+    VlanID swVlanId,
+    SaiPortDescriptor portDesc) {
+  const auto vlanIter = handles_.find(swVlanId);
+  if (vlanIter == handles_.end()) {
+    throw FbossError(
+        "attempted to remove member from non-existent vlan ", swVlanId);
+  }
+
+  auto portDescIter = vlanIter->second->vlanMembers.find(portDesc);
+  if (portDescIter == vlanIter->second->vlanMembers.end()) {
+    throw FbossError(
+        "attempted to remove non-existent member ",
+        portDesc.str(),
+        " from vlan ",
+        swVlanId);
+  }
+  vlanIter->second->vlanMembers.erase(portDescIter);
+}
+
 void SaiVlanManager::removeVlan(const std::shared_ptr<Vlan>& swVlan) {
   auto swVlanId = swVlan->getID();
   const auto citr = handles_.find(swVlanId);

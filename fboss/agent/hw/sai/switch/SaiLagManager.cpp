@@ -5,6 +5,7 @@
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
+#include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 
@@ -57,7 +58,10 @@ void SaiLagManager::addLag(
   handle->members = std::move(members);
   handle->lag = std::move(lag);
   handle->minimumLinkCount = aggregatePort->getMinimumLinkCount();
+  handle->vlanId = vlanID;
   handles_.emplace(aggregatePort->getID(), std::move(handle));
+  managerTable_->vlanManager().createVlanMember(
+      vlanID, SaiPortDescriptor(aggregatePort->getID()));
 }
 
 void SaiLagManager::removeLag(
@@ -211,6 +215,8 @@ void SaiLagManager::removeLagHandle(
   }
   // remove bridge port
   handle->bridgePort.reset();
+  managerTable_->vlanManager().removeVlanMember(
+      handle->vlanId, SaiPortDescriptor(aggPort));
   concurrentIndices_->vlanIds.erase(
       PortDescriptorSaiId(handle->lag->adapterKey()));
   concurrentIndices_->aggregatePortIds.erase(handle->lag->adapterKey());
