@@ -57,12 +57,14 @@ VlanSaiId SaiVlanManager::addVlan(const std::shared_ptr<Vlan>& swVlan) {
   // Create VLAN members
   for (const auto& memberPort : swVlan->getPorts()) {
     PortID swPortId = memberPort.first;
-    createVlanMember(swVlanId, swPortId);
+    createVlanMember(swVlanId, SaiPortDescriptor(swPortId));
   }
   return saiVlan->adapterKey();
 }
 
-void SaiVlanManager::createVlanMember(VlanID swVlanId, PortID swPortId) {
+void SaiVlanManager::createVlanMember(
+    VlanID swVlanId,
+    SaiPortDescriptor portDesc) {
   auto vlanHandle = getVlanHandle(swVlanId);
   if (!vlanHandle) {
     throw FbossError(
@@ -72,10 +74,10 @@ void SaiVlanManager::createVlanMember(VlanID swVlanId, PortID swPortId) {
   SaiVlanMemberTraits::Attributes::VlanId vlanIdAttribute{
       vlanHandle->vlan->adapterKey()};
   auto vlanMember =
-      std::make_shared<ManagedVlanMember>(swPortId, swVlanId, vlanIdAttribute);
+      std::make_shared<ManagedVlanMember>(portDesc, swVlanId, vlanIdAttribute);
   SaiObjectEventPublisher::getInstance()->get<SaiBridgePortTraits>().subscribe(
       vlanMember);
-  vlanHandle->vlanMembers.emplace(swPortId, std::move(vlanMember));
+  vlanHandle->vlanMembers.emplace(portDesc, std::move(vlanMember));
 }
 
 void SaiVlanManager::removeVlan(const std::shared_ptr<Vlan>& swVlan) {
@@ -112,7 +114,7 @@ void SaiVlanManager::changeVlan(
       std::inserter(removed, removed.begin()),
       compareIds);
   for (const auto& swPortId : removed) {
-    handle->vlanMembers.erase(swPortId.first);
+    handle->vlanMembers.erase(SaiPortDescriptor(swPortId.first));
     SaiPortHandle* portHandle =
         managerTable_->portManager().getPortHandle(swPortId.first);
     if (!portHandle) {
@@ -131,7 +133,7 @@ void SaiVlanManager::changeVlan(
       std::inserter(added, added.begin()),
       compareIds);
   for (const auto& swPortId : added) {
-    createVlanMember(swVlanId, swPortId.first);
+    createVlanMember(swVlanId, SaiPortDescriptor(swPortId.first));
   }
 }
 

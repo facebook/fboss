@@ -48,12 +48,10 @@ class ManagedVlanMember : public SaiObjectEventAggregateSubscriber<
   using PublisherObjects = std::tuple<BridgePortWeakPtr>;
 
   ManagedVlanMember(
-      PortID portId,
+      SaiPortDescriptor portDesc,
       VlanID vlanId,
       SaiVlanMemberTraits::Attributes::VlanId saiVlanId)
-      : Base(SaiPortDescriptor(portId)),
-        vlanId_(vlanId),
-        saiVlanId_(saiVlanId) {}
+      : Base(portDesc), vlanId_(vlanId), saiVlanId_(saiVlanId) {}
 
   void createObject(PublisherObjects added);
 
@@ -66,7 +64,8 @@ class ManagedVlanMember : public SaiObjectEventAggregateSubscriber<
 
 struct SaiVlanHandle {
   std::shared_ptr<SaiVlan> vlan;
-  folly::F14FastMap<PortID, std::shared_ptr<ManagedVlanMember>> vlanMembers;
+  folly::F14FastMap<SaiPortDescriptor, std::shared_ptr<ManagedVlanMember>>
+      vlanMembers;
 };
 
 class SaiVlanManager {
@@ -92,7 +91,7 @@ class SaiVlanManager {
   }
 
  private:
-  void createVlanMember(VlanID swVlanId, PortID swPortId);
+  void createVlanMember(VlanID swVlanId, SaiPortDescriptor portDesc);
   SaiVlanHandle* getVlanHandleImpl(VlanID swVlanId) const;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
