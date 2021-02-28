@@ -163,7 +163,6 @@ RouteUpdateWrapper::programLegacyRibHelper(
 
 void RouteUpdateWrapper::programStandAloneRib() {
   for (auto [ridClientId, addDelRoutes] : ribRoutesToAddDel_) {
-    // TODO handle route update failures
     auto stats = getRib()->update(
         ridClientId.first,
         ridClientId.second,

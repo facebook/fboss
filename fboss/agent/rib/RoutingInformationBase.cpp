@@ -12,6 +12,7 @@
 
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/Constants.h"
+#include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/rib/ConfigApplier.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
@@ -133,6 +134,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
     void* cookie) {
   UpdateStatistics stats;
 
+  std::optional<FbossHwUpdateError> hwUpdateError;
   auto updateFn = [&]() {
     Timer updateTimer(&stats.duration);
 
@@ -182,14 +184,21 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
     }
 
     updater.updateDone();
-
-    fibUpdateCallback(
-        routerID,
-        it->second.v4NetworkToRoute,
-        it->second.v6NetworkToRoute,
-        cookie);
+    try {
+      fibUpdateCallback(
+          routerID,
+          it->second.v4NetworkToRoute,
+          it->second.v6NetworkToRoute,
+          cookie);
+    } catch (const FbossHwUpdateError& ex) {
+      // TODO - rollback RIB as well.
+      hwUpdateError = ex;
+    }
   };
   ribUpdateEventBase_.runInEventBaseThreadAndWait(updateFn);
+  if (hwUpdateError) {
+    throw *hwUpdateError;
+  }
 
   return stats;
 }
