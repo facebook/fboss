@@ -75,6 +75,8 @@ class HwAsic {
     ASIC_TYPE_TOMAHAWK4,
 
     ASIC_TYPE_TAJO,
+
+    ASIC_TYPE_ELBERT_8DD,
   };
 
   virtual ~HwAsic() {}

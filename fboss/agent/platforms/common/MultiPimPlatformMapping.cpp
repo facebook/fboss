@@ -66,5 +66,13 @@ PlatformMapping* MultiPimPlatformMapping::getPimPlatformMapping(uint8_t pimID) {
   }
   throw FbossError("Invalid pim id:", static_cast<int>(pimID));
 }
+
+std::unique_ptr<PlatformMapping>
+MultiPimPlatformMapping::getPimPlatformMappingUniquePtr(uint8_t pimID) {
+  if (auto itPim = pims_.find(pimID); itPim != pims_.end()) {
+    return std::move(itPim->second);
+  }
+  throw FbossError("Invalid pim id:", static_cast<int>(pimID));
+}
 } // namespace fboss
 } // namespace facebook

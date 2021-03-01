@@ -20,6 +20,9 @@ class MultiPimPlatformMapping : public PlatformMapping {
 
   PlatformMapping* getPimPlatformMapping(uint8_t pimID);
 
+  std::unique_ptr<PlatformMapping> getPimPlatformMappingUniquePtr(
+      uint8_t pimID);
+
  protected:
   std::map<uint8_t, std::unique_ptr<PlatformMapping>> pims_;
 

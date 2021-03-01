@@ -3329,6 +3329,7 @@ void BcmSwitch::disableHotSwap() const {
       } break;
       case HwAsic::AsicType::ASIC_TYPE_TAJO:
       case HwAsic::AsicType::ASIC_TYPE_MOCK:
+      case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
         CHECK(0) << " Invalid ASIC type";
     }
   }

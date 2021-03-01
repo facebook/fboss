@@ -361,6 +361,7 @@ bool needsExtraFPQsetQualifiers(HwAsic::AsicType asicType) {
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
       return false;
     case HwAsic::AsicType::ASIC_TYPE_TAJO:
+    case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
       throw FbossError("Unsupported ASIC type");
   }
   return true;
