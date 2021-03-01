@@ -61,6 +61,10 @@ class BcmBstStatsMgr {
       const std::string& portName,
       int queue,
       uint64_t peakBytes) const;
+  void publishPgWatermarks(
+      const std::string& portName,
+      const uint64_t& pgHeadroomBytes,
+      const uint64_t& pgSharedBytes) const;
 
   BufferStatsLogger* getBufferStatsLogger() const {
     return bufferStatsLogger_.get();

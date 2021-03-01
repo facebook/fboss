@@ -43,7 +43,13 @@ bool BcmBstStatsMgr::stopBufferStatCollection() {
 void BcmBstStatsMgr::syncStats() const {
   auto rv = bcm_cosq_bst_stat_sync(
       hw_->getUnit(), (bcm_bst_stat_id_t)bcmBstStatIdUcast);
-  bcmCheckError(rv, "Failed to sync BST stat");
+  bcmCheckError(rv, "Failed to sync bcmBstStatIdUcast stat");
+  rv = bcm_cosq_bst_stat_sync(
+      hw_->getUnit(), (bcm_bst_stat_id_t)bcmBstStatIdPriGroupHeadroom);
+  bcmCheckError(rv, "Failed to sync bcmBstStatIdPriGroupHeadroom stat");
+  rv = bcm_cosq_bst_stat_sync(
+      hw_->getUnit(), (bcm_bst_stat_id_t)bcmBstStatIdPriGroupShared);
+  bcmCheckError(rv, "Failed to sync bcmBstStatIdPriGroupShared stat");
 }
 
 void BcmBstStatsMgr::getAndPublishDeviceWatermark() {
@@ -109,6 +115,20 @@ void BcmBstStatsMgr::updateStats() {
       }
     }
     bcmPort->setQueueWaterMarks(std::move(queueId2WatermarkBytes));
+
+    // Get PG MAX headroom/shared stats
+    if (bcmPort->isPortPgConfigured()) {
+      uint64_t maxSharedBytes = 0;
+      uint64_t maxHeadroomBytes = 0;
+      uint64_t maxHeadroomCells = cosMgr->statGet(
+          PortID(bcmPort->getBcmPortId()), -1, bcmBstStatIdPriGroupHeadroom);
+      uint64_t maxSharedCells = cosMgr->statGet(
+          PortID(bcmPort->getBcmPortId()), -1, bcmBstStatIdPriGroupShared);
+      maxHeadroomBytes = maxHeadroomCells * hw_->getMMUCellBytes();
+      maxSharedBytes = maxSharedCells * hw_->getMMUCellBytes();
+      publishPgWatermarks(
+          bcmPort->getPortName(), maxHeadroomBytes, maxSharedBytes);
+    }
   }
   getAndPublishDeviceWatermark();
 }

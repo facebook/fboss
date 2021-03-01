@@ -192,6 +192,7 @@ class BcmPort {
 
   void setLoopbackMode(cfg::PortLoopbackMode mode);
 
+  bool isPortPgConfigured() const;
   PortPgConfigs getCurrentProgrammedPgSettings() const;
   PortPgConfigs getCurrentPgSettings() const;
   BufferPoolCfgPtr getCurrentIngressPoolSettings() const;

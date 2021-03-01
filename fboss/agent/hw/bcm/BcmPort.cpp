@@ -2096,6 +2096,12 @@ cfg::PortProfileID BcmPort::getCurrentProfile() const {
   return (*programmedSettings_.rlock())->getProfileID();
 }
 
+bool BcmPort::isPortPgConfigured() const {
+  return (
+      hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC) &&
+      (*programmedSettings_.rlock())->getPortPgConfigs().has_value());
+}
+
 PortPgConfigs BcmPort::getCurrentProgrammedPgSettings() const {
   return ingressBufferManager_->getCurrentProgrammedPgSettingsHw();
 }

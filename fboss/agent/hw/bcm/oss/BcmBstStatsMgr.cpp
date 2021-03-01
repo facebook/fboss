@@ -20,6 +20,10 @@ void BcmBstStatsMgr::publishQueueuWatermark(
     const std::string& /*portName*/,
     int /*queue*/,
     uint64_t /*peakBytes*/) const {}
+void BcmBstStatsMgr::publishPgWatermarks(
+    const std::string& /*portName*/,
+    const uint64_t& /*pgHeadroomBytes*/,
+    const uint64_t& /*pgSharedBytes*/) const {}
 
 void BcmBstStatsMgr::publishDeviceWatermark(uint64_t /*peakBytes*/) const {}
 } // namespace facebook::fboss
