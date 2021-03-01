@@ -473,7 +473,13 @@ DOMDataUnion fetchDataFromLocalI2CBus(TransceiverI2CApi* bus, unsigned int port)
               nullptr,
               std::move(qsfpImpl),
               1);
-      cmisModule->refresh();
+      try {
+        cmisModule->refresh();
+      } catch (FbossError& e) {
+        printf("refresh() FbossError for port %d\n", port);
+      } catch (I2cError& e) {
+        printf("refresh() YampI2cError for port %d\n", port);
+      }
       return cmisModule->getDOMDataUnion();
     } else if (mgmtInterface == TransceiverManagementInterface::SFF)
     {
