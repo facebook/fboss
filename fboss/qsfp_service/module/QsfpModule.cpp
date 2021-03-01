@@ -176,7 +176,7 @@ bool QsfpModule::detectPresence() {
 bool QsfpModule::detectPresenceLocked() {
   auto currentQsfpStatus = qsfpImpl_->detectTransceiver();
   if (currentQsfpStatus != present_) {
-    XLOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName())
+    XLOG(DBG1) << "Port: " << folly::to<std::string>(qsfpImpl_->getName())
                << " QSFP status changed to " << currentQsfpStatus;
     dirty_ = true;
     present_ = currentQsfpStatus;
@@ -252,7 +252,7 @@ TransceiverInfo QsfpModule::parseDataLocked() {
 
 bool QsfpModule::safeToCustomize() const {
   if (ports_.size() < portsPerTransceiver_) {
-    XLOG(INFO) << "Not all ports present in transceiver " << getID()
+    XLOG(DBG1) << "Not all ports present in transceiver " << getID()
                << " (expected=" << portsPerTransceiver_
                << "). Skip customization";
 
@@ -684,7 +684,7 @@ void QsfpModule::genMsmModPortsDownEvent() {
  * agent sync up timeout
  */
 void QsfpModule::scheduleAgentPortSyncupTimeout() {
-  XLOG(INFO) << "MSM: Scheduling Agent port sync timeout function for module "
+  XLOG(DBG2) << "MSM: Scheduling Agent port sync timeout function for module "
              << qsfpImpl_->getName();
 
   // Schedule a function to do bring up / remediate after some time
@@ -709,7 +709,7 @@ void QsfpModule::scheduleAgentPortSyncupTimeout() {
  * this state we need to cancel this timeout function
  */
 void QsfpModule::cancelAgentPortSyncupTimeout() {
-  XLOG(INFO) << "MSM: Cancelling Agent port sync timeout function for module "
+  XLOG(DBG2) << "MSM: Cancelling Agent port sync timeout function for module "
              << qsfpImpl_->getNum();
 
   // Cancel the current scheduled function
@@ -728,7 +728,7 @@ void QsfpModule::cancelAgentPortSyncupTimeout() {
  * bring up (first time only) or the remediate function.
  */
 void QsfpModule::scheduleBringupRemediateFunction() {
-  XLOG(INFO) << "MSM: Scheduling Remediate/bringup function for module "
+  XLOG(DBG2) << "MSM: Scheduling Remediate/bringup function for module "
              << qsfpImpl_->getName();
 
   // Schedule a function to do bring up / remediate after some time
