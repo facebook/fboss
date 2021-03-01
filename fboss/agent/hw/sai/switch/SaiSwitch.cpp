@@ -521,7 +521,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
   }
   {
     auto controlPlaneDelta = delta.getControlPlaneDelta();
-    if (controlPlaneDelta.getOld() != controlPlaneDelta.getNew()) {
+    if (*controlPlaneDelta.getOld() != *controlPlaneDelta.getNew()) {
       [[maybe_unused]] const auto& lock = lockPolicy.lock();
       managerTable_->hostifManager().processHostifDelta(controlPlaneDelta);
     }
