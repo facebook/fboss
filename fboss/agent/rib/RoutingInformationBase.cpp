@@ -145,6 +145,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
       throw FbossError("VRF ", routerID, " not configured");
     }
 
+    std::vector<RibRouteUpdater::RouteEntry> deletedRoutes;
     try {
       stats = updateImpl(
           &(it->second),
@@ -156,7 +157,8 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
           resetClientsRoutes,
           updateType,
           fibUpdateCallback,
-          cookie);
+          cookie,
+          &deletedRoutes);
     } catch (const FbossHwUpdateError& /*ex*/) {
       // TODO - rollback RIB as well.
       throw;
@@ -176,7 +178,8 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::updateImpl(
     bool resetClientsRoutes,
     folly::StringPiece updateType,
     FibUpdateFunction fibUpdateCallback,
-    void* cookie) {
+    void* cookie,
+    std::vector<RibRouteUpdater::RouteEntry>* deletedRoutes) {
   UpdateStatistics stats;
 
   std::optional<FbossHwUpdateError> hwUpdateError;
@@ -184,7 +187,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::updateImpl(
     RibRouteUpdater updater(
         &(routeTables->v4NetworkToRoute), &(routeTables->v6NetworkToRoute));
     if (resetClientsRoutes) {
-      updater.removeAllRoutesForClient(clientID);
+      *deletedRoutes = updater.removeAllRoutesForClient(clientID);
     }
 
     for (const auto& route : toAdd) {
@@ -215,7 +218,10 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::updateImpl(
         ++stats.v6RoutesDeleted;
       }
 
-      updater.delRoute(network, mask, clientID);
+      auto deleted = updater.delRoute(network, mask, clientID);
+      if (deleted) {
+        deletedRoutes->push_back(std::move(*deleted));
+      }
     }
 
     updater.updateDone();

@@ -12,6 +12,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
+#include "fboss/agent/rib/RouteUpdater.h"
 #include "fboss/agent/types.h"
 
 #include <folly/Synchronized.h>
@@ -159,7 +160,8 @@ class RoutingInformationBase {
       bool resetClientsRoutes,
       folly::StringPiece updateType,
       FibUpdateFunction fibUpdateCallback,
-      void* cookie);
+      void* cookie,
+      std::vector<RibRouteUpdater::RouteEntry>* deletedRoutes);
   /*
    * Currently, route updates to separate VRFs are made to be sequential. In the
    * event FBOSS has to operate in a routing architecture with numerous VRFs,
