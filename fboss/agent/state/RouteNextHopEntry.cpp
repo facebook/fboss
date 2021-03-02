@@ -56,6 +56,18 @@ std::vector<NextHopThrift> fromRouteNextHopSet(RouteNextHopSet const& nhs) {
   return nhts;
 }
 
+UnicastRoute toUnicastRoute(
+    const folly::CIDRNetwork& nw,
+    const RouteNextHopEntry& nhopEntry) {
+  UnicastRoute thriftRoute;
+  thriftRoute.dest_ref()->ip_ref() = network::toBinaryAddress(nw.first);
+  thriftRoute.dest_ref()->prefixLength_ref() = nw.second;
+  thriftRoute.action_ref() = nhopEntry.getAction();
+  if (nhopEntry.getAction() == RouteForwardAction::NEXTHOPS) {
+    thriftRoute.nextHops_ref() = fromRouteNextHopSet(nhopEntry.getNextHopSet());
+  }
+  return thriftRoute;
+}
 } // namespace util
 
 RouteNextHopEntry::RouteNextHopEntry(NextHopSet nhopSet, AdminDistance distance)

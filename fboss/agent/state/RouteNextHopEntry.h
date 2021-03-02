@@ -129,6 +129,10 @@ RouteNextHopSet toRouteNextHopSet(std::vector<NextHopThrift> const& nhts);
  * Convert RouteNextHops to thrift representaion of nexthops
  */
 std::vector<NextHopThrift> fromRouteNextHopSet(RouteNextHopSet const& nhs);
+
+UnicastRoute toUnicastRoute(
+    const folly::CIDRNetwork& nw,
+    const RouteNextHopEntry& nhopEntry);
 } // namespace util
 
 } // namespace facebook::fboss
