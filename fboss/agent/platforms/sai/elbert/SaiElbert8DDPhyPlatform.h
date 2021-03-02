@@ -43,6 +43,8 @@ class SaiElbert8DDPhyPlatform : public SaiHwPlatform {
 
   const std::set<sai_api_t>& getSupportedApiList() const override;
 
+  void preHwInitialized() override;
+
  private:
   uint8_t pimId_{0};
   int phyId_{0};

@@ -933,6 +933,16 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
   return state;
 }
 
+void SaiSwitch::initSaiApis(
+    sai_service_method_table_t* serviceMethodTable,
+    const std::set<sai_api_t>& desiredApis) {
+  // Initialize the SAI API
+  auto rv = sai_api_initialize(0, serviceMethodTable);
+  saiCheckError(rv, "Unable to initialize sai api");
+  // Get the API lists
+  SaiApiTable::getInstance()->queryApis(desiredApis);
+}
+
 HwInitResult SaiSwitch::initLocked(
     const std::lock_guard<std::mutex>& lock,
     HwWriteBehavior behavior,
@@ -942,8 +952,6 @@ HwInitResult SaiSwitch::initLocked(
   std::unique_ptr<folly::dynamic> adapterKeysJson;
   std::unique_ptr<folly::dynamic> adapterKeys2AdapterHostKeysJson;
 
-  sai_api_initialize(0, platform_->getServiceMethodTable());
-  SaiApiTable::getInstance()->queryApis(platform_->getSupportedApiList());
   concurrentIndices_ = std::make_unique<ConcurrentIndices>();
   managerTable_ = std::make_unique<SaiManagerTable>(platform_, bootType_);
   switchId_ = managerTable_->switchManager().getSwitchSaiId();

@@ -131,6 +131,13 @@ class Platform {
   PlatformMode getMode() const;
 
   /*
+   * preHwInitialized() will be called before HwSwitch object has been
+   * initialized. Platform-specific initialization that requires setup before
+   * HwSwitch creation can be performed here.
+   */
+  virtual void preHwInitialized() {}
+
+  /*
    * onHwInitialized() will be called once the HwSwitch object has been
    * initialized.  Platform-specific initialization that requires access to the
    * HwSwitch can be performed here.

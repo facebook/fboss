@@ -10,8 +10,11 @@
 
 #include "fboss/agent/platforms/sai/elbert/SaiElbert8DDPhyPlatform.h"
 
+#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/Elbert8DDAsic.h"
 #include "fboss/agent/platforms/common/elbert/facebook/Elbert8DDPimPlatformMapping.h"
+
+sai_status_t credo_library_initialize(void);
 
 namespace {
 static auto constexpr kSaiBootType = "SAI_KEY_BOOT_TYPE";
@@ -126,5 +129,16 @@ sai_service_method_table_t* SaiElbert8DDPhyPlatform::getServiceMethodTable()
 const std::set<sai_api_t>& SaiElbert8DDPhyPlatform::getSupportedApiList()
     const {
   return getDefaultPhyAsicSupportedApis();
+}
+
+void SaiElbert8DDPhyPlatform::preHwInitialized() {
+  // Credo library needs to be initialized when the library is attached as a
+  // shared library
+  credo_library_initialize();
+  // Call SaiSwitch::initSaiApis before creating SaiSwitch.
+  // Only call this function once to make sure we only initialize sai apis
+  // once even we'll create multiple SaiSwitch based on how many Elbert8DD Phys
+  // in the system.
+  SaiSwitch::initSaiApis(getServiceMethodTable(), getSupportedApiList());
 }
 } // namespace facebook::fboss

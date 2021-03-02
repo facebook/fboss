@@ -21,6 +21,10 @@ class PhyManager {
    */
   virtual bool initExternalPhyMap() = 0;
 
+  int getNumOfSlot() const {
+    return numOfSlot_;
+  }
+
   /*
    * This function returns the ExternalPhy object for the given slot number,
    * mdio controller id and phy id.
