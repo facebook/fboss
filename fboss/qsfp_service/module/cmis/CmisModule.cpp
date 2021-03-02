@@ -28,6 +28,7 @@ using namespace apache::thrift;
 namespace {
 
 constexpr int kUsecBetweenPowerModeFlap = 100000;
+constexpr int kUsecBetweenLaneInit = 10000;
 constexpr int kResetCounterLimit = 5;
 
 } // namespace
@@ -479,15 +480,11 @@ bool CmisModule::getHostLaneSettings(
 }
 
 unsigned int CmisModule::numHostLanes() const {
-  // Always returns 4 for now assuming 200G-FR4. This should return the number
-  // of lanes based on the media type instead
-  return 4;
+  return numHostLanes_;
 }
 
 unsigned int CmisModule::numMediaLanes() const {
-  // Always returns 4 for now assuming 200G-FR4. This should return the number
-  // of lanes based on the media type instead
-  return 4;
+  return numMediaLanes_;
 }
 
 SMFMediaInterfaceCode CmisModule::getSmfMediaInterface() {
@@ -550,8 +547,15 @@ void CmisModule::getApplicationCapabilities() {
 
     XLOG(DBG3) << "Adding module capability: " << data[1] << " at position "
                << (i + 1);
+    ApplicationAdvertisingField applicationAdvertisingField;
+    applicationAdvertisingField.ApSelCode = (i + 1);
+    applicationAdvertisingField.moduleMediaInterface = data[1];
+    applicationAdvertisingField.hostLaneCount =
+        (data[2] & FieldMasks::UPPER_FOUR_BITS_MASK) >> 4;
+    applicationAdvertisingField.mediaLaneCount =
+        data[2] & FieldMasks::LOWER_FOUR_BITS_MASK;
 
-    moduleCapabilities_[data[1]] = (i + 1);
+    moduleCapabilities_[data[1]] = applicationAdvertisingField;
   }
 }
 
@@ -655,17 +659,17 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   int length;
   int dataAddress;
 
-  for (int channel = 0; channel < CHANNEL_COUNT; channel++) {
+  for (int channel = 0; channel < numMediaLanes(); channel++) {
     channels[channel].sensors_ref()->rxPwr_ref()->flags_ref() =
         getChannelFlags(CmisField::RX_PWR_FLAG, channel);
   }
 
-  for (int channel = 0; channel < CHANNEL_COUNT; channel++) {
+  for (int channel = 0; channel < numMediaLanes(); channel++) {
     channels[channel].sensors_ref()->txBias_ref()->flags_ref() =
         getChannelFlags(CmisField::TX_BIAS_FLAG, channel);
   }
 
-  for (int channel = 0; channel < CHANNEL_COUNT; channel++) {
+  for (int channel = 0; channel < numMediaLanes(); channel++) {
     channels[channel].sensors_ref()->txPwr_ref()->flags_ref() =
         getChannelFlags(CmisField::TX_PWR_FLAG, channel);
   }
@@ -1078,7 +1082,7 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
         qsfpImpl_->getName(),
         " Unsupported Application by the module: ",
         applicationIter->second));
-  } else if (capabilityIter->second == currentApplicationSel) {
+  } else if (capabilityIter->second.ApSelCode == currentApplicationSel) {
     // There shouldn't be a valid path to get here. But just to be safe, having
     // another check here.
     throw FbossError(folly::to<std::string>(
@@ -1087,31 +1091,49 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
         " confused about the application settings, currentApplicationSel: ",
         currentApplicationSel,
         ". Trying to switch to ",
-        capabilityIter->second));
+        capabilityIter->second.ApSelCode));
   }
-
-  // Currently we will have only one data path and apply the default settings.
-  // So assume the lower four bits are all zero here. CMIS4.0-8.7.3
-  uint8_t newApSelCode = capabilityIter->second << 4;
-
-  XLOG(INFO) << "newApSelCode: " << std::hex << (int)newApSelCode;
 
   // Flip to page 0x10 to get prepared.
   uint8_t page = 0x10;
   qsfpImpl_->writeTransceiver(
       TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
 
+  // In 400G-FR4 case we will have 8 host lanes instead of 4. Further more,
+  // we need to deactivate all the lanes when we switch to an application with
+  // a different lane count. CMIS4.0-8.8.4
+  getQsfpFieldAddress(CmisField::DATA_PATH_DEINIT, dataAddress, offset, length);
+  uint8_t dataPathDeInit = 0xff;
+  qsfpImpl_->writeTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, offset, length, &dataPathDeInit);
+  /* sleep override */
+  usleep(kUsecBetweenLaneInit);
+
+  // Currently we will have only one data path and apply the default settings.
+  // So assume the lower four bits are all zero here. CMIS4.0-8.7.3
+  uint8_t newApSelCode = capabilityIter->second.ApSelCode << 4;
+
+  // Update the numHostLanes and numMediaLanes of the module.
+  numHostLanes_ = capabilityIter->second.hostLaneCount;
+  numMediaLanes_ = capabilityIter->second.mediaLaneCount;
+
+  XLOG(INFO) << "newApSelCode: " << std::hex << (int)newApSelCode;
+
   getQsfpFieldAddress(CmisField::APP_SEL_LANE_1, dataAddress, offset, length);
 
-  for (int channel = 0; channel < CHANNEL_COUNT; channel++) {
+  for (int channel = 0; channel < numHostLanes(); channel++) {
+    // For now we don't have complicated lane assignment. Either using first
+    // four lanes for 100G/200G or all eight lanes for 400G.
+    uint8_t laneApSelCode =
+        (channel < capabilityIter->second.hostLaneCount) ? newApSelCode : 0;
     qsfpImpl_->writeTransceiver(
         TransceiverI2CApi::ADDR_QSFP,
         offset + channel,
-        sizeof(newApSelCode),
-        &newApSelCode);
+        sizeof(laneApSelCode),
+        &laneApSelCode);
   }
 
-  uint8_t applySet0 = 0x0f;
+  uint8_t applySet0 = (capabilityIter->second.hostLaneCount == 8) ? 0xff : 0x0f;
 
   getQsfpFieldAddress(CmisField::STAGE_CTRL_SET_0, dataAddress, offset, length);
   qsfpImpl_->writeTransceiver(
@@ -1119,6 +1141,12 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
 
   XLOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName())
              << " set application to " << capabilityIter->first;
+
+  // Release the lanes from DeInit.
+  getQsfpFieldAddress(CmisField::DATA_PATH_DEINIT, dataAddress, offset, length);
+  dataPathDeInit = 0x0;
+  qsfpImpl_->writeTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, offset, length, &dataPathDeInit);
 }
 
 /*

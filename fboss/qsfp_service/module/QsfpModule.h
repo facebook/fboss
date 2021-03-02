@@ -455,6 +455,9 @@ class QsfpModule : public Transceiver {
   unsigned int portsPerTransceiver_{0};
   unsigned int moduleResetCounter_{0};
 
+  unsigned int numHostLanes_{4};
+  unsigned int numMediaLanes_{4};
+
  private:
   /*
    * Perform a raw register read on the transceiver

@@ -20,6 +20,13 @@ class CmisModule : public QsfpModule {
       unsigned int portsPerTransceiver);
   virtual ~CmisModule() override;
 
+  struct ApplicationAdvertisingField {
+    uint8_t ApSelCode;
+    uint8_t moduleMediaInterface;
+    int hostLaneCount;
+    int mediaLaneCount;
+  };
+
   /*
    * Return a valid type.
    */
@@ -51,8 +58,6 @@ class CmisModule : public QsfpModule {
   enum : unsigned int {
     // Size of page read from QSFP via I2C
     MAX_QSFP_PAGE_SIZE = 128,
-    // Number of channels per module
-    CHANNEL_COUNT = 4,
   };
 
   using LengthAndGauge = std::pair<double, uint8_t>;
@@ -321,7 +326,7 @@ class CmisModule : public QsfpModule {
   /*
    * ApplicationCode to ApplicationCodeSel mapping.
    */
-  std::map<uint8_t, uint8_t> moduleCapabilities_;
+  std::map<uint8_t, ApplicationAdvertisingField> moduleCapabilities_;
 };
 
 } // namespace fboss

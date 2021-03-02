@@ -152,6 +152,8 @@ enum FieldMasks : uint8_t {
   POWER_CONTROL_MASK = 0x40,
   APP_SEL_MASK = 0xf0,
   FWFAULT_MASK = 0x06,
+  UPPER_FOUR_BITS_MASK = 0xf0,
+  LOWER_FOUR_BITS_MASK = 0x0f,
 };
 
 enum DeviceTechnology : uint8_t {
