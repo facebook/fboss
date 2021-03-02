@@ -140,8 +140,6 @@ class RoutingInformationBase {
     IPv4NetworkToRouteMap v4NetworkToRoute;
     IPv6NetworkToRouteMap v6NetworkToRoute;
 
-    UpdateStatistics lastUpdateStats_;
-
     bool operator==(const RouteTable& other) const {
       return v4NetworkToRoute == other.v4NetworkToRoute &&
           v6NetworkToRoute == other.v6NetworkToRoute;

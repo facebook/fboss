@@ -271,8 +271,8 @@ RoutingInformationBase::fromFollyDynamic(const folly::dynamic& ribJson) {
         RouterID(routeTable.first.asInt()),
         RouteTable{
             IPv4NetworkToRouteMap::fromFollyDynamic(routeTable.second[kRibV4]),
-            IPv6NetworkToRouteMap::fromFollyDynamic(routeTable.second[kRibV6]),
-            UpdateStatistics{}}));
+            IPv6NetworkToRouteMap::fromFollyDynamic(
+                routeTable.second[kRibV6])}));
   }
 
   return rib;
