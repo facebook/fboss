@@ -2204,3 +2204,61 @@ TEST_F(UcmpTest, Twenty) {
 TEST_F(UcmpTest, Ten) {
   runVaryFromHundredTest(10, {10, 10, 10, 1});
 }
+
+TEST(RouteNextHopEntry, toUnicastRouteDrop) {
+  folly::CIDRNetwork nw{folly::IPAddress{"1::1"}, 64};
+  auto unicastRoute = util::toUnicastRoute(
+      nw, RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE));
+
+  EXPECT_EQ(
+      nw,
+      folly::CIDRNetwork(
+          facebook::network::toIPAddress(*unicastRoute.dest_ref()->ip_ref()),
+          *unicastRoute.dest_ref()->prefixLength_ref()));
+  EXPECT_EQ(RouteForwardAction::DROP, unicastRoute.action_ref());
+  EXPECT_EQ(0, unicastRoute.nextHops_ref()->size());
+}
+
+TEST(RouteNextHopEntry, toUnicastRouteCPU) {
+  folly::CIDRNetwork nw{folly::IPAddress{"1.1.1.1"}, 24};
+  auto unicastRoute = util::toUnicastRoute(
+      nw, RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
+
+  EXPECT_EQ(
+      nw,
+      folly::CIDRNetwork(
+          facebook::network::toIPAddress(*unicastRoute.dest_ref()->ip_ref()),
+          *unicastRoute.dest_ref()->prefixLength_ref()));
+  EXPECT_EQ(RouteForwardAction::TO_CPU, unicastRoute.action_ref());
+  EXPECT_EQ(0, unicastRoute.nextHops_ref()->size());
+}
+
+TEST(RouteNextHopEntry, toUnicastRouteNhopsNonEcmp) {
+  folly::CIDRNetwork nw{folly::IPAddress{"1::1"}, 64};
+  RouteNextHopSet nhops = makeNextHops({"1.1.1.10"});
+  auto unicastRoute =
+      util::toUnicastRoute(nw, RouteNextHopEntry(nhops, DISTANCE));
+
+  EXPECT_EQ(
+      nw,
+      folly::CIDRNetwork(
+          facebook::network::toIPAddress(*unicastRoute.dest_ref()->ip_ref()),
+          *unicastRoute.dest_ref()->prefixLength_ref()));
+  EXPECT_EQ(RouteForwardAction::NEXTHOPS, unicastRoute.action_ref());
+  EXPECT_EQ(1, unicastRoute.nextHops_ref()->size());
+}
+
+TEST(RouteNextHopEntry, toUnicastRouteNhopsEcmp) {
+  folly::CIDRNetwork nw{folly::IPAddress{"1::1"}, 64};
+  RouteNextHopSet nhops = makeNextHops({"1.1.1.10", "2::2"});
+  auto unicastRoute =
+      util::toUnicastRoute(nw, RouteNextHopEntry(nhops, DISTANCE));
+
+  EXPECT_EQ(
+      nw,
+      folly::CIDRNetwork(
+          facebook::network::toIPAddress(*unicastRoute.dest_ref()->ip_ref()),
+          *unicastRoute.dest_ref()->prefixLength_ref()));
+  EXPECT_EQ(RouteForwardAction::NEXTHOPS, unicastRoute.action_ref());
+  EXPECT_EQ(2, unicastRoute.nextHops_ref()->size());
+}

@@ -68,6 +68,7 @@ UnicastRoute toUnicastRoute(
   }
   return thriftRoute;
 }
+
 } // namespace util
 
 RouteNextHopEntry::RouteNextHopEntry(NextHopSet nhopSet, AdminDistance distance)
