@@ -593,7 +593,7 @@ TYPED_TEST(ThriftTest, addDelUnicastRoutes) {
         RouteNextHopEntry(
             makeResolvedNextHops({{kIntf1, cli2_nhop4}}),
             AdminDistance::MAX_ADMIN_DISTANCE));
-    // Random client, bgp, static routes. Static shouold win
+    // Random client, bgp, static routes. Static should win
     auto rtC6 = findRoute<folly::IPAddressV6>(
         hasStandAloneRib, rid, IPAddress::createNetwork(prefixC6), state);
     EXPECT_NE(nullptr, rtC6);
@@ -697,6 +697,113 @@ TYPED_TEST(ThriftTest, addDelUnicastRoutes) {
     EXPECT_EQ(6, v6Routes);
   }
 }
+
+TYPED_TEST(ThriftTest, delUnicastRoutes) {
+  RouterID rid = RouterID(0);
+
+  // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
+  this->sw_->fibSynced();
+  ThriftHandler handler(this->sw_);
+
+  auto randomClient = 500;
+  auto bgpClient = static_cast<int16_t>(ClientID::BGPD);
+  auto staticClient = static_cast<int16_t>(ClientID::STATIC_ROUTE);
+  auto randomClientAdmin = this->sw_->clientIdToAdminDistance(randomClient);
+  auto bgpAdmin = this->sw_->clientIdToAdminDistance(bgpClient);
+  auto staticAdmin = this->sw_->clientIdToAdminDistance(staticClient);
+  // STATIC_ROUTE > BGPD > RANDOM_CLIENT
+  //
+  // Add a few BGP routes
+  //
+
+  auto cli1_nhop4 = "10.0.0.11";
+  auto cli1_nhop6 = "2401:db00:2110:3001::0011";
+  auto cli2_nhop4 = "10.0.0.22";
+  auto cli2_nhop6 = "2401:db00:2110:3001::0022";
+  auto cli3_nhop6 = "2401:db00:2110:3001::0033";
+
+  // These routes will include nexthops from client 10 only
+  auto prefixA4 = "7.1.0.0/16";
+  auto prefixA6 = "aaaa:1::0/64";
+  handler.addUnicastRoute(
+      randomClient, makeUnicastRoute(prefixA4, cli1_nhop4, randomClientAdmin));
+  handler.addUnicastRoute(
+      randomClient, makeUnicastRoute(prefixA6, cli1_nhop6, randomClientAdmin));
+
+  // This route will include nexthops from clients randomClient and bgpClient
+  auto prefixB4 = "7.2.0.0/16";
+  handler.addUnicastRoute(
+      randomClient, makeUnicastRoute(prefixB4, cli1_nhop4, randomClientAdmin));
+  handler.addUnicastRoute(
+      bgpClient, makeUnicastRoute(prefixB4, cli2_nhop4, bgpAdmin));
+
+  // This route will include nexthops from clients randomClient and bgpClient
+  // and staticClient
+  auto prefixC6 = "aaaa:3::0/64";
+  handler.addUnicastRoute(
+      randomClient, makeUnicastRoute(prefixC6, cli1_nhop6, randomClientAdmin));
+  handler.addUnicastRoute(
+      bgpClient, makeUnicastRoute(prefixC6, cli2_nhop6, bgpAdmin));
+  handler.addUnicastRoute(
+      staticClient, makeUnicastRoute(prefixC6, cli3_nhop6, staticAdmin));
+
+  auto assertRoute = [rid, prefixC6, this](
+                         bool expectPresent, const std::string& nhop) {
+    auto kIntf1 = InterfaceID(1);
+    auto rtC6 = findRoute<folly::IPAddressV6>(
+        this->sw_->isStandaloneRibEnabled(),
+        rid,
+        IPAddress::createNetwork(prefixC6),
+        this->sw_->getState());
+    if (!expectPresent) {
+      EXPECT_EQ(nullptr, rtC6);
+      return;
+    }
+    ASSERT_NE(nullptr, rtC6);
+    EXPECT_EQ(
+        rtC6->getForwardInfo(),
+        RouteNextHopEntry(
+            makeResolvedNextHops({{kIntf1, nhop}}),
+            AdminDistance::MAX_ADMIN_DISTANCE));
+  };
+  // Random client, bgp, static routes. Static should win
+  assertRoute(true, cli3_nhop6);
+  std::vector<IpPrefix> delRoutes = {
+      ipPrefix(IPAddress::createNetwork(prefixC6)),
+  };
+  // Now delete prefixC6 for Static client. BGP should win
+  handler.deleteUnicastRoutes(
+      staticClient, std::make_unique<std::vector<IpPrefix>>(delRoutes));
+  // Random client, bgp, routes. BGP should win
+  assertRoute(true, cli2_nhop6);
+  // Now delete prefixC6 for BGP client. random client should win
+  // For good measure - use the single route delete API here
+  handler.deleteUnicastRoute(
+      bgpClient,
+      std::make_unique<IpPrefix>(ipPrefix(IPAddress::createNetwork(prefixC6))));
+  // Random client routes only
+  assertRoute(true, cli1_nhop6);
+  // Now delete prefixC6 for random client. Route should be dropped now
+  handler.deleteUnicastRoutes(
+      randomClient, std::make_unique<std::vector<IpPrefix>>(delRoutes));
+  // Random client, bgp, routes. BGP should win
+  assertRoute(false, "none");
+  // Add routes back and see that lowest admin distance route comes in
+  // again
+  handler.addUnicastRoute(
+      randomClient, makeUnicastRoute(prefixC6, cli1_nhop6, randomClientAdmin));
+  // Random client routes only
+  assertRoute(true, cli1_nhop6);
+  handler.addUnicastRoute(
+      bgpClient, makeUnicastRoute(prefixC6, cli2_nhop6, bgpAdmin));
+  // Random client, bgp, routes. BGP should win
+  assertRoute(true, cli2_nhop6);
+  handler.addUnicastRoute(
+      staticClient, makeUnicastRoute(prefixC6, cli3_nhop6, staticAdmin));
+  // Random client, bgp, static routes. Static should win
+  assertRoute(true, cli3_nhop6);
+}
+
 TYPED_TEST(ThriftTest, syncFibIsHwProtected) {
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
   this->sw_->fibSynced();
