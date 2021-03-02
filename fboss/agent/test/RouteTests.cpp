@@ -63,8 +63,11 @@ const std::array<InterfaceID, 4> kInterfaces{
     InterfaceID(4),
 };
 const ClientID kClientA = ClientID(1001);
+const ClientID kClientB = ClientID(2001);
 
 constexpr AdminDistance DISTANCE = AdminDistance::MAX_ADMIN_DISTANCE;
+constexpr AdminDistance EBGP_DISTANCE = AdminDistance::EBGP;
+
 //
 // Helper functions
 //
@@ -222,6 +225,64 @@ class RouteTest : public ::testing::Test {
 using RouteTestTypes = ::testing::Types<NoRib, Rib>;
 
 TYPED_TEST_CASE(RouteTest, RouteTestTypes);
+
+TYPED_TEST(RouteTest, routeApi) {
+  RoutePrefixV6 pfx6{folly::IPAddressV6("2001::"), 64};
+  RouteNextHopSet nhops = makeNextHops({"2::10"});
+  RouteNextHopEntry nhopEntry(nhops, DISTANCE);
+  auto testRouteApi = [&](auto route) {
+    if constexpr (TypeParam::hasStandAloneRib) {
+      EXPECT_TRUE(
+          route.fromFollyDynamic(route.toFollyDynamic()).isSame(&route));
+    } else {
+      EXPECT_TRUE(
+          route.fromFollyDynamic(route.toFollyDynamic())->isSame(&route));
+    }
+    EXPECT_EQ(pfx6, route.prefix());
+    EXPECT_EQ(route.toRouteDetails(), route.getFields()->toRouteDetails());
+    EXPECT_EQ(route.str(), route.getFields()->str());
+    EXPECT_EQ(route.getFields()->flags, 0);
+    EXPECT_FALSE(route.isResolved());
+    EXPECT_FALSE(route.isUnresolvable());
+    EXPECT_FALSE(route.isConnected());
+    EXPECT_FALSE(route.isProcessing());
+    EXPECT_FALSE(route.isDrop());
+    EXPECT_FALSE(route.isToCPU());
+    EXPECT_TRUE(route.needResolve());
+    EXPECT_EQ(
+        route.getForwardInfo(),
+        RouteNextHopEntry(
+            RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
+
+    EXPECT_EQ(nhopEntry, *route.getEntryForClient(kClientA));
+    auto [bestClient, bestNhopEntry] = route.getBestEntry();
+    EXPECT_EQ(bestClient, kClientA);
+    EXPECT_EQ(*bestNhopEntry, nhopEntry);
+    EXPECT_FALSE(route.hasNoEntry());
+    EXPECT_TRUE(route.has(kClientA, nhopEntry));
+    EXPECT_FALSE(route.has(kClientB, nhopEntry));
+    RouteNextHopEntry nhopEntry2(makeNextHops({"1.1.1.1"}), EBGP_DISTANCE);
+    route.update(kClientB, nhopEntry2);
+    EXPECT_TRUE(route.has(kClientB, nhopEntry2));
+    EXPECT_FALSE(route.has(kClientA, nhopEntry2));
+    std::tie(bestClient, bestNhopEntry) = route.getBestEntry();
+    EXPECT_EQ(bestClient, kClientB);
+    EXPECT_EQ(*bestNhopEntry, nhopEntry2);
+    // del entry for client, should not be found after
+    route.delEntryForClient(kClientA);
+    EXPECT_FALSE(route.has(kClientA, nhopEntry));
+    // get, set classID
+    EXPECT_EQ(std::nullopt, route.getClassID());
+    route.updateClassID(cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+    EXPECT_EQ(
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1, route.getClassID());
+  };
+  if constexpr (TypeParam::hasStandAloneRib) {
+    testRouteApi(RibRouteV6(pfx6, kClientA, nhopEntry));
+  } else {
+    testRouteApi(RouteV6(pfx6, kClientA, nhopEntry));
+  }
+}
 
 TYPED_TEST(RouteTest, dedup) {
   EXPECT_NODEMAP_MATCH(this->sw_);

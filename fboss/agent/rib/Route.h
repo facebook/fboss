@@ -122,6 +122,9 @@ class RibRoute {
   void updateClassID(std::optional<cfg::AclLookupClass> classID) {
     fields_.setClassID(std::move(classID));
   }
+  const facebook::fboss::RouteFields<AddrT>* getFields() const {
+    return &fields_;
+  }
 
   bool operator==(const RibRoute& rf) const;
 
