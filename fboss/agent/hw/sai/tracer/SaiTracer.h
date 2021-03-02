@@ -227,6 +227,7 @@ class SaiTracer {
   folly::Synchronized<std::map<sai_object_id_t, std::string>> variables_;
 
   std::map<sai_object_type_t, std::string> varNames_{
+      {SAI_OBJECT_TYPE_ACL_COUNTER, "aclCounter_"},
       {SAI_OBJECT_TYPE_ACL_ENTRY, "aclEntry_"},
       {SAI_OBJECT_TYPE_ACL_TABLE, "aclTable_"},
       {SAI_OBJECT_TYPE_ACL_TABLE_GROUP, "aclTableGroup_"},
@@ -266,6 +267,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_WRED, "wred_"}};
 
   std::map<sai_object_type_t, std::string> fnPrefix_{
+      {SAI_OBJECT_TYPE_ACL_COUNTER, "acl_api->"},
       {SAI_OBJECT_TYPE_ACL_ENTRY, "acl_api->"},
       {SAI_OBJECT_TYPE_ACL_TABLE, "acl_api->"},
       {SAI_OBJECT_TYPE_ACL_TABLE_GROUP, "acl_api->"},
@@ -293,7 +295,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_ROUTER_INTERFACE, "router_interface_api->"},
       {SAI_OBJECT_TYPE_QOS_MAP, "qos_map_api->"},
       {SAI_OBJECT_TYPE_QUEUE, "queue_api->"},
-      {SAI_OBJECT_TYPE_SCHEDULER, "samplepacket_api->"},
+      {SAI_OBJECT_TYPE_SAMPLEPACKET, "samplepacket_api->"},
       {SAI_OBJECT_TYPE_SCHEDULER, "scheduler_api->"},
       {SAI_OBJECT_TYPE_SCHEDULER_GROUP, "scheduler_group_api->"},
       {SAI_OBJECT_TYPE_SWITCH, "switch_api->"},

@@ -121,29 +121,49 @@ sai_status_t wrap_create_acl_counter(
     sai_object_id_t switch_id,
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
-  // TODO: To be implemented if the function is used by fboss
-  return SaiTracer::getInstance()->aclApi_->create_acl_counter(
+  auto rv = SaiTracer::getInstance()->aclApi_->create_acl_counter(
       acl_counter_id, switch_id, attr_count, attr_list);
+
+  SaiTracer::getInstance()->logCreateFn(
+      "create_acl_counter",
+      acl_counter_id,
+      switch_id,
+      attr_count,
+      attr_list,
+      SAI_OBJECT_TYPE_ACL_COUNTER,
+      rv);
+  return rv;
 }
 
 sai_status_t wrap_remove_acl_counter(sai_object_id_t acl_counter_id) {
-  // TODO: To be implemented if the function is used by fboss
-  return SaiTracer::getInstance()->aclApi_->remove_acl_counter(acl_counter_id);
+  auto rv =
+      SaiTracer::getInstance()->aclApi_->remove_acl_counter(acl_counter_id);
+
+  SaiTracer::getInstance()->logRemoveFn(
+      "remove_acl_counter", acl_counter_id, SAI_OBJECT_TYPE_ACL_COUNTER, rv);
+  return rv;
 }
 
 sai_status_t wrap_set_acl_counter_attribute(
     sai_object_id_t acl_counter_id,
     const sai_attribute_t* attr) {
-  // TODO: To be implemented if the function is used by fboss
-  return SaiTracer::getInstance()->aclApi_->set_acl_counter_attribute(
+  auto rv = SaiTracer::getInstance()->aclApi_->set_acl_counter_attribute(
       acl_counter_id, attr);
+
+  SaiTracer::getInstance()->logSetAttrFn(
+      "set_acl_counter_attribute",
+      acl_counter_id,
+      attr,
+      SAI_OBJECT_TYPE_ACL_COUNTER,
+      rv);
+  return rv;
 }
 
 sai_status_t wrap_get_acl_counter_attribute(
     sai_object_id_t acl_counter_id,
     uint32_t attr_count,
     sai_attribute_t* attr_list) {
-  // TODO: To be implemented if the function is used by fboss
+  // TODO(zecheng): Log get functions as well
   return SaiTracer::getInstance()->aclApi_->get_acl_counter_attribute(
       acl_counter_id, attr_count, attr_list);
 }
@@ -330,6 +350,30 @@ sai_acl_api_t* wrappedAclApi() {
   return &aclWrappers;
 }
 
+void setAclCounterAttributes(
+    const sai_attribute_t* attr_list,
+    uint32_t attr_count,
+    std::vector<std::string>& attrLines) {
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_ACL_COUNTER_ATTR_TABLE_ID:
+        attrLines.push_back(oidAttr(attr_list, i));
+        break;
+      case SAI_ACL_COUNTER_ATTR_ENABLE_PACKET_COUNT:
+      case SAI_ACL_COUNTER_ATTR_ENABLE_BYTE_COUNT:
+        attrLines.push_back(boolAttr(attr_list, i));
+        break;
+      case SAI_ACL_COUNTER_ATTR_PACKETS:
+      case SAI_ACL_COUNTER_ATTR_BYTES:
+        attrLines.push_back(u64Attr(attr_list, i));
+        break;
+      default:
+        // TODO(zecheng): Better check for newly added attributes (T69350100)
+        break;
+    }
+  }
+}
+
 void setAclEntryAttributes(
     const sai_attribute_t* attr_list,
     uint32_t attr_count,
@@ -442,6 +486,10 @@ void setAclTableAttributes(
       case SAI_ACL_TABLE_ATTR_FIELD_ROUTE_DST_USER_META:
       case SAI_ACL_TABLE_ATTR_FIELD_NEIGHBOR_DST_USER_META:
         attrLines.push_back(boolAttr(attr_list, i));
+        break;
+      case SAI_ACL_TABLE_ATTR_AVAILABLE_ACL_ENTRY:
+      case SAI_ACL_TABLE_ATTR_AVAILABLE_ACL_COUNTER:
+        attrLines.push_back(u32Attr(attr_list, i));
         break;
       default:
         // TODO(zecheng): What to do in this situation?
