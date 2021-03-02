@@ -13,6 +13,61 @@
 #include "fboss/agent/hw/switch_asics/Elbert8DDAsic.h"
 #include "fboss/agent/platforms/common/elbert/facebook/Elbert8DDPimPlatformMapping.h"
 
+namespace {
+static auto constexpr kSaiBootType = "SAI_KEY_BOOT_TYPE";
+static auto constexpr kSaiConfigFile = "SAI_KEY_INIT_CONFIG_FILE";
+const std::string kSaiProfileDir = "/lib/firmware/fboss/credo/gearbox/";
+const std::array<std::string, 8> kPhyConfigProfiles = {
+    kSaiProfileDir + "Elbert_16Q_0.xml",
+    kSaiProfileDir + "Elbert_16Q_1.xml",
+    kSaiProfileDir + "Elbert_16Q_2.xml",
+    kSaiProfileDir + "Elbert_16Q_3.xml",
+    kSaiProfileDir + "Elbert_16Q_4.xml",
+    kSaiProfileDir + "Elbert_16Q_5.xml",
+    kSaiProfileDir + "Elbert_16Q_6.xml",
+    kSaiProfileDir + "Elbert_16Q_7.xml"};
+
+/*
+ * saiProfileGetValue
+ *
+ * This function returns some key values to the SAI while doing
+ * sai_api_initialize.
+ * For SAI_KEY_BOOT_TYPE, currently we only return the cold boot type.
+ * For SAI_KEY_INIT_CONFIG_FILE, the profile id tells SAI which default
+ * configuration to pick up for the Phy.
+ */
+const char* FOLLY_NULLABLE
+saiProfileGetValue(sai_switch_profile_id_t profileId, const char* variable) {
+  if (strcmp(variable, kSaiBootType) == 0) {
+    // TODO(rajank) Support warmboot
+    return "cold";
+  } else if (strcmp(variable, kSaiConfigFile) == 0) {
+    if (profileId >= 0 && profileId <= 7) {
+      return kPhyConfigProfiles[profileId].c_str();
+    }
+  }
+  return nullptr;
+}
+
+/*
+ * saiProfileGetNextValue
+ *
+ * This function lets SAI pick up next value for a given key. Currently this
+ * returns null
+ */
+int saiProfileGetNextValue(
+    sai_switch_profile_id_t /* profile_id */,
+    const char** /* variable */,
+    const char** /* value */) {
+  return -1;
+}
+
+sai_service_method_table_t kSaiServiceMethodTable = {
+    .profile_get_value = saiProfileGetValue,
+    .profile_get_next_value = saiProfileGetNextValue,
+};
+} // namespace
+
 namespace facebook::fboss {
 SaiElbert8DDPhyPlatform::SaiElbert8DDPhyPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
@@ -61,5 +116,10 @@ bool SaiElbert8DDPhyPlatform::supportInterfaceType() const {
 }
 void SaiElbert8DDPhyPlatform::initLEDs() {
   throw FbossError("SaiElbert8DDPhyPlatform doesn't support initLEDs()");
+}
+
+sai_service_method_table_t* SaiElbert8DDPhyPlatform::getServiceMethodTable()
+    const {
+  return &kSaiServiceMethodTable;
 }
 } // namespace facebook::fboss

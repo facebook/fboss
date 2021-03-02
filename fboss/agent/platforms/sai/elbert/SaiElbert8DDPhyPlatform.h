@@ -39,6 +39,8 @@ class SaiElbert8DDPhyPlatform : public SaiHwPlatform {
   bool supportInterfaceType() const override;
   void initLEDs() override;
 
+  sai_service_method_table_t* getServiceMethodTable() const override;
+
  private:
   uint8_t pimId_{0};
   int phyId_{0};
