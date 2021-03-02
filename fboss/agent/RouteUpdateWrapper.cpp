@@ -63,13 +63,16 @@ void RouteUpdateWrapper::delRoute(
       std::move(pfx));
 }
 
-void RouteUpdateWrapper::program() {
+void RouteUpdateWrapper::program(
+    const std::unordered_set<RouterIDAndClient>& syncFibFor) {
+  syncFibFor_ = syncFibFor;
   if (isStandaloneRibEnabled_) {
     programStandAloneRib();
   } else {
     programLegacyRib();
   }
   ribRoutesToAddDel_.clear();
+  syncFibFor_.clear();
 }
 
 void RouteUpdateWrapper::programMinAlpmState() {
@@ -108,6 +111,9 @@ RouteUpdateWrapper::programLegacyRibHelper(
     auto& toDel = addDelRoutes.toDel;
     RouterID routerId = ridClientId.first;
     ClientID clientId = ridClientId.second;
+    if (syncFibFor_.find(ridClientId) != syncFibFor_.end()) {
+      updater.removeAllRoutesForClient(routerId, clientId);
+    }
     for (auto& route : toAdd) {
       std::vector<NextHopThrift> nhts;
       folly::IPAddress network =
@@ -184,7 +190,7 @@ void RouteUpdateWrapper::programStandAloneRib() {
         clientIdToAdminDistance(ridClientId.second),
         addDelRoutes.toAdd,
         addDelRoutes.toDel,
-        false,
+        syncFibFor_.find(ridClientId) != syncFibFor_.end(),
         "RIB update",
         *fibUpdateFn_,
         fibUpdateCookie_);
