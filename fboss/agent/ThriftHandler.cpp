@@ -127,20 +127,6 @@ std::vector<network::thrift::BinaryAddress> fromFwdNextHops(
 
 namespace {
 
-void dynamicFibUpdate(
-    facebook::fboss::RouterID vrf,
-    const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
-    const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
-    void* cookie) {
-  facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
-      vrf, v4NetworkToRoute, v6NetworkToRoute);
-
-  auto sw = static_cast<facebook::fboss::SwSwitch*>(cookie);
-  // TODO - figure out transactions approach when we upgrade to RIB,
-  // RIB will also need to reflect rollback status.
-  sw->updateStateBlocking("", std::move(fibUpdater));
-}
-
 void fillPortStats(PortInfoThrift& portInfo, int numPortQs) {
   auto portId = *portInfo.portId_ref();
   auto statMap = facebook::fb303::fbData->getStatMap();
@@ -749,103 +735,19 @@ void ThriftHandler::updateUnicastRoutesImpl(
     const std::unique_ptr<std::vector<UnicastRoute>>& routes,
     const std::string& updType,
     bool sync) {
-  if (sw_->isStandaloneRibEnabled()) {
-    auto routerID = RouterID(vrf);
-    auto clientID = ClientID(client);
-    auto defaultAdminDistance = sw_->clientIdToAdminDistance(client);
-
-    auto stats = sw_->getRib()->update(
-        routerID,
-        clientID,
-        defaultAdminDistance,
-        *routes /* routes to add */,
-        {} /* prefixes to delete */,
-        sync,
-        updType,
-        &dynamicFibUpdate,
-        static_cast<void*>(sw_));
-
-    sw_->stats()->addRoutesV4(stats.v4RoutesAdded);
-    sw_->stats()->addRoutesV6(stats.v6RoutesAdded);
-
-    auto totalRouteCount = stats.v4RoutesAdded + stats.v6RoutesAdded;
-    sw_->stats()->routeUpdate(stats.duration, totalRouteCount);
-    XLOG(DBG0) << updType << " " << totalRouteCount << " routes took "
-               << stats.duration.count() << "us";
-
-    return;
+  SwSwitchRouteUpdateWrapper updater{sw_};
+  auto routerID = RouterID(vrf);
+  auto clientID = ClientID(client);
+  for (const auto& route : *routes) {
+    updater.addRoute(routerID, clientID, route);
   }
+  RouteUpdateWrapper::SyncFibFor syncFibs;
 
-  if (vrf != 0) {
-    throw FbossError("Multi-VRF only supported with Stand-Alone RIB");
+  if (sync) {
+    syncFibs.insert({routerID, clientID});
   }
-
-  RouteUpdateStats stats(sw_, updType, routes->size());
-
-  // Note that we capture routes by reference here, since it is a unique_ptr.
-  // This is safe since we use updateStateBlocking(), so routes will still
-  // be valid in our scope when updateFn() is called.
-  // We could use folly::MoveWrapper if we did need to capture routes by value.
-  auto updateFn = [&](const shared_ptr<SwitchState>& state) {
-    // create an update object starting from empty
-    RouteUpdater updater(state->getRouteTables());
-    RouterID routerId = RouterID(0); // TODO, default vrf for now
-    auto clientIdToAdmin = sw_->clientIdToAdminDistance(client);
-    if (sync) {
-      updater.removeAllRoutesForClient(routerId, ClientID(client));
-    }
-    for (const auto& route : *routes) {
-      folly::IPAddress network = toIPAddress(route.dest.ip);
-      uint8_t mask = static_cast<uint8_t>(route.dest.prefixLength);
-      auto adminDistance = route.adminDistance_ref().value_or(clientIdToAdmin);
-      std::vector<NextHopThrift> nhts;
-      if (route.nextHops_ref()->empty() && !route.nextHopAddrs_ref()->empty()) {
-        nhts = thriftNextHopsFromAddresses(*route.nextHopAddrs_ref());
-      } else {
-        nhts = *route.nextHops_ref();
-      }
-      RouteNextHopSet nexthops = util::toRouteNextHopSet(nhts);
-      if (nexthops.size()) {
-        if (route.action_ref() &&
-            *route.action_ref() != RouteForwardAction::NEXTHOPS) {
-          throw FbossError(
-              "Next hops specified but action set to :", *route.action_ref());
-        }
-        updater.addRoute(
-            routerId,
-            network,
-            mask,
-            ClientID(client),
-            RouteNextHopEntry(std::move(nexthops), adminDistance));
-      } else {
-        XLOG(DBG3) << "Blackhole route:" << network << "/"
-                   << static_cast<int>(mask);
-        updater.addRoute(
-            routerId,
-            network,
-            mask,
-            ClientID(client),
-            RouteNextHopEntry(
-                route.action_ref() ? *route.action_ref()
-                                   : RouteForwardAction::DROP,
-                adminDistance));
-      }
-      if (network.isV4()) {
-        sw_->stats()->addRouteV4();
-      } else {
-        sw_->stats()->addRouteV6();
-      }
-    }
-    auto newRt = updater.updateDone();
-    if (!newRt) {
-      return shared_ptr<SwitchState>();
-    }
-    auto newState = state->clone();
-    newState->resetRouteTables(std::move(newRt));
-    return newState;
-  };
   try {
-    sw_->updateStateWithHwFailureProtection(updType, updateFn);
+    updater.program(syncFibs);
   } catch (const FbossHwUpdateError& ex) {
     translateToFibError(ex);
   }

@@ -31,6 +31,7 @@ class RouteUpdateWrapper {
 
  public:
   using RouterIDAndClient = std::pair<RouterID, ClientID>;
+  using SyncFibFor = std::unordered_set<RouterIDAndClient>;
   virtual ~RouteUpdateWrapper() = default;
   using UpdateStatistics = RoutingInformationBase::UpdateStatistics;
   using FibUpdateFunction = RoutingInformationBase::FibUpdateFunction;
@@ -49,7 +50,7 @@ class RouteUpdateWrapper {
       ClientID clientId);
 
   void delRoute(RouterID id, const IpPrefix& pfx, ClientID clientId);
-  void program(const std::unordered_set<RouterIDAndClient>& syncFibFor = {});
+  void program(const SyncFibFor& syncFibFor = {});
   void programMinAlpmState();
   void programClassID(
       RouterID rid,

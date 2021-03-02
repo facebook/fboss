@@ -69,8 +69,7 @@ void RouteUpdateWrapper::delRoute(
       std::move(pfx));
 }
 
-void RouteUpdateWrapper::program(
-    const std::unordered_set<RouterIDAndClient>& syncFibFor) {
+void RouteUpdateWrapper::program(const SyncFibFor& syncFibFor) {
   syncFibFor_ = syncFibFor;
   if (isStandaloneRibEnabled_) {
     programStandAloneRib();
