@@ -46,6 +46,7 @@ class QsfpModuleTest : public ::testing::Test {
     transImpl_ = transceiverImpl.get();
     qsfp_ = std::make_unique<MockSffModule>(
         wedgeManager_.get(), std::move(transceiverImpl), portsPerTransceiver);
+    qsfp_->setVendorPN();
 
     gflags::SetCommandLineOptionWithMode(
         "tx_enable_interval", "0", gflags::SET_FLAGS_DEFAULT);
@@ -181,6 +182,8 @@ TEST_F(QsfpModuleTest, setCdr) {
 }
 
 TEST_F(QsfpModuleTest, portsChangedAllDown25G) {
+  ON_CALL(*qsfp_, getTransceiverInfo())
+      .WillByDefault(Return(qsfp_.get()->fakeInfo_));
   // should customize w/ 25G
   EXPECT_CALL(*qsfp_, setCdrIfSupported(cfg::PortSpeed::TWENTYFIVEG, _, _))
       .Times(1);
@@ -204,6 +207,8 @@ TEST_F(QsfpModuleTest, portsChangedSpeedMismatch) {
 }
 
 TEST_F(QsfpModuleTest, portsChangedSpeedMismatchButDisabled) {
+  ON_CALL(*qsfp_, getTransceiverInfo())
+      .WillByDefault(Return(qsfp_.get()->fakeInfo_));
   // should customize w/ 25G. Mismatched port is disabled
   EXPECT_CALL(*qsfp_, setCdrIfSupported(cfg::PortSpeed::TWENTYFIVEG, _, _))
       .Times(1);
@@ -216,6 +221,8 @@ TEST_F(QsfpModuleTest, portsChangedSpeedMismatchButDisabled) {
 }
 
 TEST_F(QsfpModuleTest, portsChanged50G) {
+  ON_CALL(*qsfp_, getTransceiverInfo())
+      .WillByDefault(Return(qsfp_.get()->fakeInfo_));
   // should customize w/ 50G
   EXPECT_CALL(*qsfp_, setCdrIfSupported(cfg::PortSpeed::FIFTYG, _, _)).Times(1);
   qsfp_->transceiverPortsChanged({
@@ -247,6 +254,8 @@ TEST_F(QsfpModuleTest, portsChangedOneUp) {
 }
 
 TEST_F(QsfpModuleTest, portsChangedAllDown) {
+  ON_CALL(*qsfp_, getTransceiverInfo())
+      .WillByDefault(Return(qsfp_.get()->fakeInfo_));
   EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(1);
   qsfp_->transceiverPortsChanged({
       {1, portStatus(true, false)},
@@ -277,6 +286,8 @@ TEST_F(QsfpModuleTest, portsChangedExtraPort) {
 
 TEST_F(QsfpModuleTest, portsChangedOnePortPerModule) {
   setupQsfp(1);
+  ON_CALL(*qsfp_, getTransceiverInfo())
+      .WillByDefault(Return(qsfp_.get()->fakeInfo_));
   EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(1);
   qsfp_->transceiverPortsChanged({
       {1, portStatus(true, false)},
@@ -325,6 +336,8 @@ TEST_F(QsfpModuleTest, portsChangedNonsensicalDisabledButUpOneEnabled) {
 TEST_F(QsfpModuleTest, portsChangedNotDirtySafeToCustomize) {
   // refresh, which should set module dirty_ = false
   qsfp_->refresh();
+  ON_CALL(*qsfp_, getTransceiverInfo())
+      .WillByDefault(Return(qsfp_.get()->fakeInfo_));
 
   EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
   qsfp_->transceiverPortsChanged({
@@ -344,6 +357,8 @@ TEST_F(QsfpModuleTest, portsChangedNotDirtySafeToCustomize) {
 TEST_F(QsfpModuleTest, portsChangedNotDirtySafeToCustomizeStale) {
   // refresh, which should set module dirty_ = false
   qsfp_->refresh();
+  ON_CALL(*qsfp_, getTransceiverInfo())
+      .WillByDefault(Return(qsfp_.get()->fakeInfo_));
 
   EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
   qsfp_->transceiverPortsChanged({
@@ -411,6 +426,8 @@ TEST_F(QsfpModuleTest, updateQsfpDataFull) {
 }
 
 TEST_F(QsfpModuleTest, skipCustomizingMissingPorts) {
+  ON_CALL(*qsfp_, getTransceiverInfo())
+      .WillByDefault(Return(qsfp_.get()->fakeInfo_));
   // set present_ = false, dirty_ = true
   EXPECT_CALL(*transImpl_, detectTransceiver()).WillRepeatedly(Return(false));
   qsfp_->detectPresence();
@@ -429,6 +446,8 @@ TEST_F(QsfpModuleTest, skipCustomizingMissingPorts) {
 }
 
 TEST_F(QsfpModuleTest, skipCustomizingCopperPorts) {
+  ON_CALL(*qsfp_, getTransceiverInfo())
+      .WillByDefault(Return(qsfp_.get()->fakeInfo_));
   // Should get detected as copper and skip all customization
   EXPECT_CALL(*qsfp_, getQsfpTransmitterTechnology())
       .WillRepeatedly(Return(TransmitterTechnology::COPPER));

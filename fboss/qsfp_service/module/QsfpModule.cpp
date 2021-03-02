@@ -51,6 +51,8 @@ namespace fboss {
 static constexpr int kStateMachineAgentPortSyncupTimeout = 120;
 // Module State machine optics remediation/bringup interval (seconds)
 static constexpr int kStateMachineOpticsRemediateInterval = 30;
+// Miniphoton module part number
+static constexpr auto kMiniphotonPartNumber = "LUX1626C4AD";
 
 TransceiverID QsfpModule::getID() const {
   return TransceiverID(qsfpImpl_->getNum());
@@ -469,8 +471,17 @@ void QsfpModule::refreshLocked() {
   *info_.wlock() = parseDataLocked();
 }
 
-bool QsfpModule::shouldRemediate(time_t cooldown) const {
+bool QsfpModule::shouldRemediate(time_t cooldown) {
   auto now = std::time(nullptr);
+  // Since Miniphton module is always showing as present and four ports
+  // sharing a single optical module. Doing remediation on one port will
+  // have side effect on the neighbor port as well. So we don't do
+  // remediation as suggested by our HW optic team.
+  if (apache::thrift::can_throw(
+          *getTransceiverInfo().vendor_ref()->partNumber_ref()) ==
+      kMiniphotonPartNumber) {
+    return false;
+  }
   bool remediationEnabled =
       now > transceiverManager_->getPauseRemediationUntil();
   bool remediationCooled =

@@ -21,6 +21,12 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+namespace {
+
+constexpr auto kIntelModulePN = "SPTSBP2CLCKS";
+
+}
+
 namespace facebook {
 namespace fboss {
 
@@ -88,6 +94,16 @@ class MockSffModule : public SffModule {
     return settings;
   }
 
+  void setVendorPN(std::string vendorPN = kIntelModulePN) {
+    TransceiverInfo info;
+    Vendor vendor = Vendor();
+    // shouldRemediate will check the vendor PN to skip doing it on Miniphoton
+    // modules. Here we take a PN other than Miniphoton.
+    vendor.partNumber_ref() = vendorPN;
+    info.vendor_ref() = vendor;
+    fakeInfo_ = info;
+  }
+
   void setRateSelect(RateSelectState state, RateSelectSetting setting) {
     state_ = state;
     setting_ = setting;
@@ -109,6 +125,8 @@ class MockSffModule : public SffModule {
   bool writeTransceiver(TransceiverIOParameters param, uint8_t data) override {
     return SffModule::writeTransceiver(param, data);
   }
+
+  TransceiverInfo fakeInfo_;
 
  private:
   FeatureState cdrTx_ = FeatureState::UNSUPPORTED;
