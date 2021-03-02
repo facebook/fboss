@@ -105,10 +105,6 @@ void RibRouteUpdater::addLinkLocalRoutes() {
           RouteForwardAction::TO_CPU, AdminDistance::DIRECTLY_CONNECTED));
 }
 
-void RibRouteUpdater::delLinkLocalRoutes() {
-  delRouteImpl(kIPv6LinkLocalPrefix, v6Routes_, ClientID::LINKLOCAL_ROUTE);
-}
-
 template <typename AddressT>
 void RibRouteUpdater::delRouteImpl(
     const Prefix<AddressT>& prefix,

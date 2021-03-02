@@ -64,7 +64,6 @@ class RibRouteUpdater {
   // TODO(samank): make del vs remove consistent
   void
   delRoute(const folly::IPAddress& network, uint8_t mask, ClientID clientID);
-  void delLinkLocalRoutes();
   void removeAllRoutesForClient(ClientID clientID);
 
   void updateDone();
