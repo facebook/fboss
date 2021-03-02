@@ -20,6 +20,7 @@
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/RouteUpdateLogger.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/Utils.h"
@@ -673,29 +674,13 @@ void ThriftHandler::deleteUnicastRoutesInVrf(
   ensureFibSynced(__func__);
 
   if (sw_->isStandaloneRibEnabled()) {
+    SwSwitchRouteUpdateWrapper updater(sw_);
     auto routerID = RouterID(vrf);
     auto clientID = ClientID(client);
-    auto defaultAdminDistance = sw_->clientIdToAdminDistance(client);
-
-    auto stats = sw_->getRib()->update(
-        routerID,
-        clientID,
-        defaultAdminDistance,
-        {} /* routes to add */,
-        *prefixes /* prefixes to delete */,
-        false /* reset routes for client */,
-        "delete unicast route",
-        &dynamicFibUpdate,
-        static_cast<void*>(sw_));
-
-    sw_->stats()->delRoutesV4(stats.v4RoutesDeleted);
-    sw_->stats()->delRoutesV6(stats.v6RoutesDeleted);
-
-    auto totalRouteCount = stats.v4RoutesDeleted + stats.v6RoutesDeleted;
-    sw_->stats()->routeUpdate(stats.duration, totalRouteCount);
-    XLOG(DBG0) << "Delete " << totalRouteCount << " routes took "
-               << stats.duration.count() << "us";
-
+    for (const auto& prefix : *prefixes) {
+      updater.delRoute(routerID, prefix, clientID);
+    }
+    updater.program();
     return;
   }
 

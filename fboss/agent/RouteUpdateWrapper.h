@@ -45,6 +45,8 @@ class RouteUpdateWrapper {
       const folly::IPAddress& network,
       uint8_t mask,
       ClientID clientId);
+
+  void delRoute(RouterID id, const IpPrefix& pfx, ClientID clientId);
   void program();
   void programMinAlpmState();
   void programClassID(
@@ -56,6 +58,7 @@ class RouteUpdateWrapper {
  private:
   virtual RoutingInformationBase* getRib() = 0;
   virtual void programLegacyRib() = 0;
+  void printStats(const UpdateStatistics& stats) const;
   void programStandAloneRib();
   virtual void updateStats(const UpdateStatistics& stats) = 0;
   virtual AdminDistance clientIdToAdminDistance(ClientID clientID) const = 0;

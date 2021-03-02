@@ -52,6 +52,13 @@ void RouteUpdateWrapper::delRoute(
   IpPrefix pfx;
   pfx.ip_ref() = network::toBinaryAddress(network);
   pfx.prefixLength_ref() = mask;
+  delRoute(vrf, pfx, clientId);
+}
+
+void RouteUpdateWrapper::delRoute(
+    RouterID vrf,
+    const IpPrefix& pfx,
+    ClientID clientId) {
   ribRoutesToAddDel_[std::make_pair(vrf, clientId)].toDel.emplace_back(
       std::move(pfx));
 }
@@ -158,7 +165,15 @@ RouteUpdateWrapper::programLegacyRibHelper(
   }
   newRt->publish();
   state->resetRouteTables(std::move(newRt));
+  printStats(stats);
   return {state, stats};
+}
+
+void RouteUpdateWrapper::printStats(const UpdateStatistics& stats) const {
+  XLOG(DBG0) << " Routes added: " << stats.v4RoutesAdded + stats.v6RoutesAdded
+             << " Routes deleted: "
+             << stats.v4RoutesDeleted + stats.v6RoutesDeleted << " Duration "
+             << stats.duration.count() << " us ";
 }
 
 void RouteUpdateWrapper::programStandAloneRib() {
@@ -173,6 +188,7 @@ void RouteUpdateWrapper::programStandAloneRib() {
         "RIB update",
         *fibUpdateFn_,
         fibUpdateCookie_);
+    printStats(stats);
     updateStats(stats);
   }
 }
