@@ -322,6 +322,40 @@ TEST(Route, delRoutes) {
       v4Routes.end(), v4Routes.exactMatch(prefix22.network, prefix22.mask));
 }
 
+TEST(Route, removeRoutesForClient) {
+  IPv4NetworkToRouteMap v4Routes;
+  IPv6NetworkToRouteMap v6Routes;
+
+  // 2 different nexthops
+  RouteNextHopSet nhop1 = makeNextHops({"1.1.1.10"}); // resolved by intf 1
+  RouteNextHopSet nhop2 = makeNextHops({"2.2.2.10"}); // resolved by intf 2
+  // 4 prefixes
+  RibRouteV4::Prefix r1{IPAddressV4("10.1.1.0"), 24};
+  RibRouteV4::Prefix r2{IPAddressV4("20.1.1.0"), 24};
+  RibRouteV6::Prefix r3{IPAddressV6("1001::0"), 48};
+  RibRouteV6::Prefix r4{IPAddressV6("2001::0"), 48};
+
+  RibRouteUpdater u2(&v4Routes, &v6Routes);
+  u2.addRoute(
+      r1.network, r1.mask, kClientA, RouteNextHopEntry(nhop1, kDistance));
+  u2.addRoute(
+      r2.network, r2.mask, kClientB, RouteNextHopEntry(nhop2, kDistance));
+  u2.addRoute(
+      r3.network, r3.mask, kClientA, RouteNextHopEntry(nhop1, kDistance));
+  u2.addRoute(
+      r4.network, r4.mask, kClientB, RouteNextHopEntry(nhop2, kDistance));
+  u2.updateDone();
+
+  // No routes for clientC
+  EXPECT_EQ(0, u2.removeAllRoutesForClient(kClientC).size());
+  // Remove routes
+  EXPECT_EQ(2, u2.removeAllRoutesForClient(kClientA).size());
+  EXPECT_EQ(2, u2.removeAllRoutesForClient(kClientB).size());
+  // No more routes after removal
+  EXPECT_EQ(0, u2.removeAllRoutesForClient(kClientA).size());
+  EXPECT_EQ(0, u2.removeAllRoutesForClient(kClientB).size());
+}
+
 // Test equality of RouteNextHopsMulti.
 TEST(Route, equality) {
   // Create two identical RouteNextHopsMulti, and compare

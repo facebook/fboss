@@ -157,11 +157,20 @@ std::optional<RibRouteUpdater::RouteEntry> RibRouteUpdater::delRoute(
 template <typename AddressT>
 void RibRouteUpdater::removeAllRoutesFromClientImpl(
     NetworkToRouteMap<AddressT>* routes,
-    ClientID clientID) {
+    ClientID clientID,
+    std::vector<RouteEntry>* deleted) {
   std::vector<typename NetworkToRouteMap<AddressT>::Iterator> toDelete;
 
   for (auto it = routes->begin(); it != routes->end(); ++it) {
     auto& route = it->value();
+    auto nhopEntry = route.getEntryForClient(clientID);
+    if (!nhopEntry) {
+      continue;
+    }
+    deleted->push_back(
+        {{folly::IPAddress(route.prefix().network), route.prefix().mask},
+         clientID,
+         *nhopEntry});
     route.delEntryForClient(clientID);
     if (route.hasNoEntry()) {
       // The nexthops we removed was the only one.  Delete the route.
@@ -175,9 +184,12 @@ void RibRouteUpdater::removeAllRoutesFromClientImpl(
   }
 }
 
-void RibRouteUpdater::removeAllRoutesForClient(ClientID clientID) {
-  removeAllRoutesFromClientImpl<IPAddressV4>(v4Routes_, clientID);
-  removeAllRoutesFromClientImpl<IPAddressV6>(v6Routes_, clientID);
+std::vector<RibRouteUpdater::RouteEntry>
+RibRouteUpdater::removeAllRoutesForClient(ClientID clientID) {
+  std::vector<RouteEntry> deleted;
+  removeAllRoutesFromClientImpl<IPAddressV4>(v4Routes_, clientID, &deleted);
+  removeAllRoutesFromClientImpl<IPAddressV6>(v6Routes_, clientID, &deleted);
+  return deleted;
 }
 
 // Some helper functions for recursive weight resolution

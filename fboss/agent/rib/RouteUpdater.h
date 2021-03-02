@@ -69,7 +69,7 @@ class RibRouteUpdater {
   // TODO(samank): make del vs remove consistent
   std::optional<RouteEntry>
   delRoute(const folly::IPAddress& network, uint8_t mask, ClientID clientID);
-  void removeAllRoutesForClient(ClientID clientID);
+  std::vector<RouteEntry> removeAllRoutesForClient(ClientID clientID);
 
   void updateDone();
 
@@ -96,7 +96,8 @@ class RibRouteUpdater {
   template <typename AddressT>
   void removeAllRoutesFromClientImpl(
       NetworkToRouteMap<AddressT>* routes,
-      ClientID clientID);
+      ClientID clientID,
+      std::vector<RouteEntry>* deleted);
   template <typename AddressT>
   void updateDoneImpl(NetworkToRouteMap<AddressT>* routes);
 
