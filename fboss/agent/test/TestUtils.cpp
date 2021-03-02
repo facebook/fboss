@@ -578,6 +578,15 @@ RouteNextHopSet makeNextHops(std::vector<std::string> ipStrs) {
   }
   return nhops;
 }
+RouteNextHopSet makeResolvedNextHops(
+    std::vector<std::pair<InterfaceID, std::string>> intfAndIPs) {
+  RouteNextHopSet nhops;
+  for (auto intfAndIP : intfAndIPs) {
+    nhops.emplace(ResolvedNextHop(
+        IPAddress(intfAndIP.second), intfAndIP.first, ECMP_WEIGHT));
+  }
+  return nhops;
+}
 
 RoutePrefixV4 makePrefixV4(std::string str) {
   std::vector<std::string> vec;

@@ -241,6 +241,8 @@ std::string fbossHexDump(folly::StringPiece buf);
 std::string fbossHexDump(const std::string& buf);
 
 RouteNextHopSet makeNextHops(std::vector<std::string> ipStrs);
+RouteNextHopSet makeResolvedNextHops(
+    std::vector<std::pair<InterfaceID, std::string>> intfAndIP);
 
 RoutePrefixV4 makePrefixV4(std::string str);
 
