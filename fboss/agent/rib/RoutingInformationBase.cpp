@@ -134,9 +134,9 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
     void* cookie) {
   UpdateStatistics stats;
 
-  std::optional<FbossHwUpdateError> hwUpdateError;
-  auto updateFn = [&]() {
-    Timer updateTimer(&stats.duration);
+  std::chrono::microseconds duration;
+  {
+    Timer updateTimer(&duration);
 
     auto lockedRouteTables = synchronizedRouteTables_.wlock();
 
@@ -145,9 +145,44 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
       throw FbossError("VRF ", routerID, " not configured");
     }
 
-    RibRouteUpdater updater(
-        &(it->second.v4NetworkToRoute), &(it->second.v6NetworkToRoute));
+    try {
+      stats = updateImpl(
+          &(it->second),
+          routerID,
+          clientID,
+          adminDistanceFromClientID,
+          toAdd,
+          toDelete,
+          resetClientsRoutes,
+          updateType,
+          fibUpdateCallback,
+          cookie);
+    } catch (const FbossHwUpdateError& /*ex*/) {
+      // TODO - rollback RIB as well.
+      throw;
+    }
+  }
+  stats.duration = duration;
+  return stats;
+}
 
+RoutingInformationBase::UpdateStatistics RoutingInformationBase::updateImpl(
+    RouteTable* routeTables,
+    RouterID routerID,
+    ClientID clientID,
+    AdminDistance adminDistanceFromClientID,
+    const std::vector<UnicastRoute>& toAdd,
+    const std::vector<IpPrefix>& toDelete,
+    bool resetClientsRoutes,
+    folly::StringPiece updateType,
+    FibUpdateFunction fibUpdateCallback,
+    void* cookie) {
+  UpdateStatistics stats;
+
+  std::optional<FbossHwUpdateError> hwUpdateError;
+  auto updateFn = [&]() {
+    RibRouteUpdater updater(
+        &(routeTables->v4NetworkToRoute), &(routeTables->v6NetworkToRoute));
     if (resetClientsRoutes) {
       updater.removeAllRoutesForClient(clientID);
     }
@@ -187,11 +222,10 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
     try {
       fibUpdateCallback(
           routerID,
-          it->second.v4NetworkToRoute,
-          it->second.v6NetworkToRoute,
+          routeTables->v4NetworkToRoute,
+          routeTables->v6NetworkToRoute,
           cookie);
     } catch (const FbossHwUpdateError& ex) {
-      // TODO - rollback RIB as well.
       hwUpdateError = ex;
     }
   };
@@ -199,7 +233,6 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
   if (hwUpdateError) {
     throw *hwUpdateError;
   }
-
   return stats;
 }
 

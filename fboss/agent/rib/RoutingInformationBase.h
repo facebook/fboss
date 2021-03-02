@@ -149,6 +149,17 @@ class RoutingInformationBase {
     }
   };
 
+  UpdateStatistics updateImpl(
+      RouteTable* routeTables,
+      RouterID routerID,
+      ClientID clientID,
+      AdminDistance adminDistanceFromClientID,
+      const std::vector<UnicastRoute>& toAdd,
+      const std::vector<IpPrefix>& toDelete,
+      bool resetClientsRoutes,
+      folly::StringPiece updateType,
+      FibUpdateFunction fibUpdateCallback,
+      void* cookie);
   /*
    * Currently, route updates to separate VRFs are made to be sequential. In the
    * event FBOSS has to operate in a routing architecture with numerous VRFs,
