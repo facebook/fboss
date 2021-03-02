@@ -119,7 +119,7 @@ class RibRoute {
   std::optional<cfg::AclLookupClass> getClassID() const {
     return fields_.getClassID();
   }
-  void setClassID(std::optional<cfg::AclLookupClass> classID) {
+  void updateClassID(std::optional<cfg::AclLookupClass> classID) {
     fields_.setClassID(std::move(classID));
   }
 

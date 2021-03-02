@@ -222,7 +222,7 @@ void RoutingInformationBase::setClassIDImpl(
       if (ritr == rib.end()) {
         return;
       }
-      ritr->value().setClassID(classId);
+      ritr->value().updateClassID(classId);
     };
     auto& v4Rib = it->second.v4NetworkToRoute;
     auto& v6Rib = it->second.v6NetworkToRoute;
