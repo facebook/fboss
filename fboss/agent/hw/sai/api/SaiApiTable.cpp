@@ -21,6 +21,12 @@ extern "C" {
 
 namespace {
 struct singleton_tag_type {};
+
+template <typename SaiApiPtr>
+sai_api_t getSaiApiType(SaiApiPtr& /* api */) {
+  using SaiApiT = typename std::pointer_traits<SaiApiPtr>::element_type;
+  return SaiApiT::ApiType;
+}
 } // namespace
 
 using facebook::fboss::SaiApiTable;
@@ -31,44 +37,35 @@ std::shared_ptr<SaiApiTable> SaiApiTable::getInstance() {
 
 namespace facebook::fboss {
 
-void SaiApiTable::queryApis() {
+const std::set<sai_api_t>& SaiApiTable::getFullApiList() const {
+  static std::set<sai_api_t> fullApiList;
+  if (fullApiList.empty()) {
+    // Generate fullApiList_ based on the ApiT in apis_ tuple
+    tupleForEach(
+        [this](auto& api) { fullApiList.insert(getSaiApiType(api)); }, apis_);
+  }
+  return fullApiList;
+}
+
+template <typename SaiApiPtr>
+void SaiApiTable::initApiIfDesired(
+    SaiApiPtr& /* api */,
+    const std::set<sai_api_t>& desiredApis) {
+  using SaiApiT = typename std::pointer_traits<SaiApiPtr>::element_type;
+  if (auto it = desiredApis.find(SaiApiT::ApiType); it != desiredApis.end()) {
+    std::get<std::unique_ptr<SaiApiT>>(apis_) = std::make_unique<SaiApiT>();
+  }
+}
+
+void SaiApiTable::queryApis(const std::set<sai_api_t>& desiredApis) {
   if (apisQueried_) {
     return;
   }
   apisQueried_ = true;
-  std::get<std::unique_ptr<AclApi>>(apis_) = std::make_unique<AclApi>();
-  std::get<std::unique_ptr<BridgeApi>>(apis_) = std::make_unique<BridgeApi>();
-  std::get<std::unique_ptr<BufferApi>>(apis_) = std::make_unique<BufferApi>();
-  std::get<std::unique_ptr<DebugCounterApi>>(apis_) =
-      std::make_unique<DebugCounterApi>();
-  std::get<std::unique_ptr<FdbApi>>(apis_) = std::make_unique<FdbApi>();
-  std::get<std::unique_ptr<HashApi>>(apis_) = std::make_unique<HashApi>();
-  std::get<std::unique_ptr<HostifApi>>(apis_) = std::make_unique<HostifApi>();
-  std::get<std::unique_ptr<HashApi>>(apis_) = std::make_unique<HashApi>();
-  std::get<std::unique_ptr<MirrorApi>>(apis_) = std::make_unique<MirrorApi>();
-  std::get<std::unique_ptr<MplsApi>>(apis_) = std::make_unique<MplsApi>();
-  std::get<std::unique_ptr<NextHopApi>>(apis_) = std::make_unique<NextHopApi>();
-  std::get<std::unique_ptr<NextHopGroupApi>>(apis_) =
-      std::make_unique<NextHopGroupApi>();
-  std::get<std::unique_ptr<NeighborApi>>(apis_) =
-      std::make_unique<NeighborApi>();
-  std::get<std::unique_ptr<PortApi>>(apis_) = std::make_unique<PortApi>();
-  std::get<std::unique_ptr<QosMapApi>>(apis_) = std::make_unique<QosMapApi>();
-  std::get<std::unique_ptr<QueueApi>>(apis_) = std::make_unique<QueueApi>();
-  std::get<std::unique_ptr<RouteApi>>(apis_) = std::make_unique<RouteApi>();
-  std::get<std::unique_ptr<RouterInterfaceApi>>(apis_) =
-      std::make_unique<RouterInterfaceApi>();
-  std::get<std::unique_ptr<SamplePacketApi>>(apis_) =
-      std::make_unique<SamplePacketApi>();
-  std::get<std::unique_ptr<SchedulerApi>>(apis_) =
-      std::make_unique<SchedulerApi>();
-  std::get<std::unique_ptr<SwitchApi>>(apis_) = std::make_unique<SwitchApi>();
-  std::get<std::unique_ptr<VirtualRouterApi>>(apis_) =
-      std::make_unique<VirtualRouterApi>();
-  std::get<std::unique_ptr<VlanApi>>(apis_) = std::make_unique<VlanApi>();
-  std::get<std::unique_ptr<WredApi>>(apis_) = std::make_unique<WredApi>();
-  std::get<std::unique_ptr<TamApi>>(apis_) = std::make_unique<TamApi>();
-  std::get<std::unique_ptr<LagApi>>(apis_) = std::make_unique<LagApi>();
+  const auto& apis = SaiApiTable::getInstance()->allApis();
+  tupleForEach(
+      [this, &desiredApis](auto& api) { initApiIfDesired(api, desiredApis); },
+      apis);
 }
 
 AclApi& SaiApiTable::aclApi() {
@@ -265,9 +262,11 @@ HwWriteBehvaiorRAII::HwWriteBehvaiorRAII(HwWriteBehavior behavior) {
   const auto& apis = SaiApiTable::getInstance()->allApis();
   tupleForEach(
       [this, behavior](auto& api) {
-        previousApiBehavior_.emplace(
-            std::make_pair(api->apiType(), api->getHwWriteBehavior()));
-        api->setHwWriteBehavior(behavior);
+        if (api) {
+          previousApiBehavior_.emplace(
+              std::make_pair(api->apiType(), api->getHwWriteBehavior()));
+          api->setHwWriteBehavior(behavior);
+        }
       },
       apis);
 }
@@ -276,8 +275,10 @@ HwWriteBehvaiorRAII::~HwWriteBehvaiorRAII() {
   const auto& apis = SaiApiTable::getInstance()->allApis();
   tupleForEach(
       [this](auto& api) {
-        api->setHwWriteBehavior(
-            previousApiBehavior_.find(api->apiType())->second);
+        if (api) {
+          api->setHwWriteBehavior(
+              previousApiBehavior_.find(api->apiType())->second);
+        }
       },
       apis);
 }

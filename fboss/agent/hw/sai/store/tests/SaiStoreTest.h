@@ -24,7 +24,7 @@ class SaiStoreTest : public ::testing::Test {
     fs = FakeSai::getInstance();
     sai_api_initialize(0, nullptr);
     saiApiTable = SaiApiTable::getInstance();
-    saiApiTable->queryApis();
+    saiApiTable->queryApis(saiApiTable->getFullApiList());
   }
   template <typename Traits, typename... Args>
   SaiObject<Traits> createObj(Args&&... args) {

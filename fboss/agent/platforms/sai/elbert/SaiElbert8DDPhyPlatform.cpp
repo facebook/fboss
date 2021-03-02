@@ -122,4 +122,9 @@ sai_service_method_table_t* SaiElbert8DDPhyPlatform::getServiceMethodTable()
     const {
   return &kSaiServiceMethodTable;
 }
+
+const std::set<sai_api_t>& SaiElbert8DDPhyPlatform::getSupportedApiList()
+    const {
+  return getDefaultPhyAsicSupportedApis();
+}
 } // namespace facebook::fboss

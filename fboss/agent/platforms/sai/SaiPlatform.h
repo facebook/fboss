@@ -113,6 +113,19 @@ class SaiPlatform : public Platform, public StateObserver {
     return std::nullopt;
   }
 
+  /*
+   * Based on the switch types: regular switch vs phy, some apis might not be
+   * supported.
+   * The default apis list for these two different asic types are just based
+   * on our current experience. Eventually we will use getSupportedApiList()
+   * to return current SaiPlatform supported api list. In most case, we can just
+   * direcly reuse the default list. But user can also adjust the api list based
+   * on specfic platform.
+   */
+  const std::set<sai_api_t>& getDefaultSwitchAsicSupportedApis() const;
+  const std::set<sai_api_t>& getDefaultPhyAsicSupportedApis() const;
+  virtual const std::set<sai_api_t>& getSupportedApiList() const;
+
  private:
   void initImpl(uint32_t hwFeaturesDesired) override;
   void initSaiProfileValues();

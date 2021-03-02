@@ -65,13 +65,11 @@ sai_service_method_table_t kSaiServiceMethodTable = {
     .profile_get_next_value = saiProfileGetNextValue,
 };
 
-using facebook::fboss::SaiPlatform;
-using facebook::fboss::SaiSwitchTraits;
-using facebook::fboss::cfg::PlatformAttributes;
+using namespace facebook::fboss;
 SaiSwitchTraits::Attributes::HwInfo getHwInfo(SaiPlatform* platform) {
   std::vector<int8_t> connectionHandle;
-  auto connStr =
-      platform->getPlatformAttribute(PlatformAttributes::CONNECTION_HANDLE);
+  auto connStr = platform->getPlatformAttribute(
+      cfg::PlatformAttributes::CONNECTION_HANDLE);
   if (connStr.has_value()) {
     std::copy(
         connStr->c_str(),
@@ -80,7 +78,6 @@ SaiSwitchTraits::Attributes::HwInfo getHwInfo(SaiPlatform* platform) {
   }
   return connectionHandle;
 }
-
 } // namespace
 
 namespace facebook::fboss {
@@ -368,6 +365,29 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 uint32_t SaiPlatform::getDefaultMacAgingTime() const {
   static auto constexpr kL2AgeTimerSeconds = 300;
   return kL2AgeTimerSeconds;
+}
+
+const std::set<sai_api_t>& SaiPlatform::getDefaultSwitchAsicSupportedApis()
+    const {
+  // For now, most of the apis are supported for switch asic.
+  // Therefore we can just reuse SaiApiTable::getFullApiList()
+  // But in case in the future we have some special phy api which won't be
+  // supported in the switch asic, we can also exclude those apis ad-hoc.
+  static auto apis = SaiApiTable::getInstance()->getFullApiList();
+  return apis;
+}
+const std::set<sai_api_t>& SaiPlatform::getDefaultPhyAsicSupportedApis() const {
+  // TODO(ccpowers) Add MacSecApi
+  static const std::set<sai_api_t> kSupportedPhyApiList = {
+      facebook::fboss::AclApi::ApiType,
+      facebook::fboss::PortApi::ApiType,
+      facebook::fboss::SwitchApi::ApiType,
+  };
+  return kSupportedPhyApiList;
+}
+
+const std::set<sai_api_t>& SaiPlatform::getSupportedApiList() const {
+  return getDefaultSwitchAsicSupportedApis();
 }
 
 } // namespace facebook::fboss

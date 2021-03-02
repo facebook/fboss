@@ -33,7 +33,7 @@ class MirrorStoreTest : public SaiStoreTest {
     fs = FakeSai::getInstance();
     sai_api_initialize(0, nullptr);
     saiApiTable = SaiApiTable::getInstance();
-    saiApiTable->queryApis();
+    saiApiTable->queryApis(saiApiTable->getFullApiList());
   }
   std::shared_ptr<FakeSai> fs;
   std::shared_ptr<SaiApiTable> saiApiTable;

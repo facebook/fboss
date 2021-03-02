@@ -36,6 +36,7 @@
 #include "fboss/agent/hw/sai/fake/FakeSaiWred.h"
 
 #include <memory>
+#include <set>
 
 extern "C" {
 #include <sai.h>

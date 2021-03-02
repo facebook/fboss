@@ -943,7 +943,7 @@ HwInitResult SaiSwitch::initLocked(
   std::unique_ptr<folly::dynamic> adapterKeys2AdapterHostKeysJson;
 
   sai_api_initialize(0, platform_->getServiceMethodTable());
-  SaiApiTable::getInstance()->queryApis();
+  SaiApiTable::getInstance()->queryApis(platform_->getSupportedApiList());
   concurrentIndices_ = std::make_unique<ConcurrentIndices>();
   managerTable_ = std::make_unique<SaiManagerTable>(platform_, bootType_);
   switchId_ = managerTable_->switchManager().getSwitchSaiId();

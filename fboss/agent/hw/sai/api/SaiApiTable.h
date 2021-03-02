@@ -50,11 +50,11 @@ class SaiApiTable {
   static std::shared_ptr<SaiApiTable> getInstance();
 
   /*
-   * This constructs each individual SAI API object which queries the Adapter
-   * for the api implementation and thus renders them ready for use by the
-   * Adapter Host.
+   * This constructs each individual SAI API object based on the input apis list
+   * which queries the Adapter for the api implementation and thus renders them
+   * ready for use by the Adapter Host.
    */
-  void queryApis();
+  void queryApis(const std::set<sai_api_t>& desiredApis);
 
   AclApi& aclApi();
   const AclApi& aclApi() const;
@@ -146,6 +146,8 @@ class SaiApiTable {
     return apis_;
   }
 
+  const std::set<sai_api_t>& getFullApiList() const;
+
  private:
   std::tuple<
       std::unique_ptr<AclApi>,
@@ -175,6 +177,9 @@ class SaiApiTable {
       std::unique_ptr<LagApi>>
       apis_;
   bool apisQueried_{false};
+
+  template <typename SaiApiPtr>
+  void initApiIfDesired(SaiApiPtr& api, const std::set<sai_api_t>& desiredApis);
 };
 
 class HwWriteBehvaiorRAII {
