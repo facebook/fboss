@@ -70,7 +70,7 @@ class AsyncLogger {
   std::mutex latch_;
   std::thread* flushThread_;
   std::condition_variable cv_;
-  std::chrono::microseconds logTimeout_;
+  std::chrono::milliseconds logTimeout_;
 
   folly::Synchronized<folly::File> logFile_;
 };

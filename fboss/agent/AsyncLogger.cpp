@@ -111,6 +111,7 @@ void AsyncLogger::worker_thread() {
 
     // Write content in swap buffer to file
     if (currSize > 0) {
+      flushCount_++;
       auto bytesWritten = logFile_.withWLock([&](auto& lockedFile) {
         return folly::writeFull(lockedFile.fd(), writeBuffer, currSize);
       });
@@ -119,8 +120,6 @@ void AsyncLogger::worker_thread() {
         throw SysError(
             errno, "error writing ", currSize, " bytes to log file.");
       }
-
-      flushCount_++;
     }
 
     memset(writeBuffer, 0, bufferSize_);
