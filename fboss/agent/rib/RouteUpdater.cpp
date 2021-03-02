@@ -106,7 +106,7 @@ void RibRouteUpdater::addLinkLocalRoutes() {
 }
 
 template <typename AddressT>
-void RibRouteUpdater::delRouteImpl(
+std::optional<RouteNextHopEntry> RibRouteUpdater::delRouteImpl(
     const Prefix<AddressT>& prefix,
     NetworkToRouteMap<AddressT>* routes,
     ClientID clientID) {
@@ -114,10 +114,15 @@ void RibRouteUpdater::delRouteImpl(
   if (it == routes->end()) {
     XLOG(DBG3) << "Failed to delete route: " << prefix.str()
                << " does not exist";
-    return;
+    return std::nullopt;
   }
 
   RibRoute<AddressT>& route = it->value();
+  auto clientNhopEntry = route.getEntryForClient(clientID);
+  if (!clientNhopEntry) {
+    return std::nullopt;
+  }
+  std::optional<RouteNextHopEntry> nhopEntry{*clientNhopEntry};
   route.delEntryForClient(clientID);
 
   XLOG(DBG3) << "Deleted next-hops for prefix " << prefix.str()
@@ -127,20 +132,26 @@ void RibRouteUpdater::delRouteImpl(
     XLOG(DBG3) << "...and then deleted route " << route.str();
     routes->erase(it);
   }
+  return nhopEntry;
 }
 
-void RibRouteUpdater::delRoute(
+std::optional<RibRouteUpdater::RouteEntry> RibRouteUpdater::delRoute(
     const folly::IPAddress& network,
     uint8_t mask,
     ClientID clientID) {
+  std::optional<RouteNextHopEntry> nhopEntry;
   if (network.isV4()) {
     RoutePrefixV4 prefix{network.asV4().mask(mask), mask};
-    delRouteImpl(prefix, v4Routes_, clientID);
+    nhopEntry = delRouteImpl(prefix, v4Routes_, clientID);
   } else {
     CHECK(network.isV6());
     RoutePrefixV6 prefix{network.asV6().mask(mask), mask};
-    delRouteImpl(prefix, v6Routes_, clientID);
+    nhopEntry = delRouteImpl(prefix, v6Routes_, clientID);
   }
+  if (nhopEntry) {
+    return RouteEntry{{network, mask}, clientID, *nhopEntry};
+  }
+  return std::nullopt;
 }
 
 template <typename AddressT>

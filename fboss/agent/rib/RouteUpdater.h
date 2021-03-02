@@ -61,8 +61,13 @@ class RibRouteUpdater {
       const folly::IPAddress& address,
       InterfaceID interface);
 
+  struct RouteEntry {
+    folly::CIDRNetwork prefix;
+    ClientID client;
+    RouteNextHopEntry nhopEntry;
+  };
   // TODO(samank): make del vs remove consistent
-  void
+  std::optional<RouteEntry>
   delRoute(const folly::IPAddress& network, uint8_t mask, ClientID clientID);
   void removeAllRoutesForClient(ClientID clientID);
 
@@ -84,7 +89,7 @@ class RibRouteUpdater {
       ClientID clientID,
       RouteNextHopEntry entry);
   template <typename AddressT>
-  void delRouteImpl(
+  std::optional<RouteNextHopEntry> delRouteImpl(
       const Prefix<AddressT>& prefix,
       NetworkToRouteMap<AddressT>* routes,
       ClientID clientID);

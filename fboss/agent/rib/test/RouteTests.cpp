@@ -306,7 +306,12 @@ TEST(Route, delRoutes) {
 
   // delRoute() should work for the route with RouteForwardAction::TO_CPU.
   RibRouteUpdater u2(&v4Routes, &v6Routes);
-  u2.delRoute(IPAddress("22.22.22.22"), 32, kClientB);
+  // Deleting a with wrong client ID should fail
+  EXPECT_FALSE(u2.delRoute(IPAddress("22.22.22.22"), 32, kClientA).has_value());
+  // Deleting a existing route should succeed
+  EXPECT_TRUE(u2.delRoute(IPAddress("22.22.22.22"), 32, kClientB).has_value());
+  // Deleting already deleted route should return null
+  EXPECT_FALSE(u2.delRoute(IPAddress("22.22.22.22"), 32, kClientB).has_value());
   u2.updateDone();
 
   // Route for 10.10.10.10 should still be there,
