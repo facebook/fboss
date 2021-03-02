@@ -48,7 +48,6 @@
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteTable.h"
 #include "fboss/agent/state/RouteTableRib.h"
-#include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
@@ -654,45 +653,13 @@ void ThriftHandler::deleteUnicastRoutesInVrf(
   ensureConfigured(__func__);
   ensureFibSynced(__func__);
 
-  if (sw_->isStandaloneRibEnabled()) {
-    SwSwitchRouteUpdateWrapper updater(sw_);
-    auto routerID = RouterID(vrf);
-    auto clientID = ClientID(client);
-    for (const auto& prefix : *prefixes) {
-      updater.delRoute(routerID, prefix, clientID);
-    }
-    updater.program();
-    return;
+  SwSwitchRouteUpdateWrapper updater(sw_);
+  auto routerID = RouterID(vrf);
+  auto clientID = ClientID(client);
+  for (const auto& prefix : *prefixes) {
+    updater.delRoute(routerID, prefix, clientID);
   }
-
-  if (vrf != 0) {
-    throw FbossError("Multi-VRF only supported with Stand-Alone RIB");
-  }
-
-  RouteUpdateStats stats(sw_, "Delete", prefixes->size());
-  // Perform the update
-  auto updateFn = [&](const shared_ptr<SwitchState>& state) {
-    RouteUpdater updater(state->getRouteTables());
-    RouterID routerId = RouterID(0); // TODO, default vrf for now
-    for (const auto& prefix : *prefixes) {
-      auto network = toIPAddress(prefix.ip);
-      auto mask = static_cast<uint8_t>(prefix.prefixLength);
-      if (network.isV4()) {
-        sw_->stats()->delRouteV4();
-      } else {
-        sw_->stats()->delRouteV6();
-      }
-      updater.delRoute(routerId, network, mask, ClientID(client));
-    }
-    auto newRt = updater.updateDone();
-    if (!newRt) {
-      return shared_ptr<SwitchState>();
-    }
-    auto newState = state->clone();
-    newState->resetRouteTables(std::move(newRt));
-    return newState;
-  };
-  sw_->updateStateBlocking("delete unicast route", updateFn);
+  updater.program();
 }
 
 void ThriftHandler::deleteUnicastRoutes(
