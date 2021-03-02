@@ -195,7 +195,7 @@ struct SaiSwitchTraits {
         SAI_SWITCH_ATTR_ECN_ECT_THRESHOLD_ENABLE,
         bool,
         SaiBoolDefaultFalse>;
-    using FirmwarePathname = SaiAttribute<
+    using FirmwarePathName = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_FIRMWARE_PATH_NAME,
         std::vector<sai_int8_t>,
@@ -339,7 +339,7 @@ struct SaiSwitchTraits {
       std::optional<Attributes::TamObject>,
       std::optional<Attributes::UseEcnThresholds>,
       std::optional<Attributes::CounterRefreshInterval>,
-      std::optional<Attributes::FirmwarePathname>,
+      std::optional<Attributes::FirmwarePathName>,
       std::optional<Attributes::FirmwareLoadMethod>,
       std::optional<Attributes::FirmwareLoadType>,
       std::optional<Attributes::HardwareAccessBus>,
@@ -407,7 +407,7 @@ SAI_ATTRIBUTE_NAME(Switch, UseEcnThresholds)
 SAI_ATTRIBUTE_NAME(Switch, EgressPoolAvaialableSize)
 SAI_ATTRIBUTE_NAME(Switch, CounterRefreshInterval)
 
-SAI_ATTRIBUTE_NAME(Switch, FirmwarePathname)
+SAI_ATTRIBUTE_NAME(Switch, FirmwarePathName)
 SAI_ATTRIBUTE_NAME(Switch, FirmwareLoadMethod)
 SAI_ATTRIBUTE_NAME(Switch, FirmwareLoadType)
 SAI_ATTRIBUTE_NAME(Switch, HardwareAccessBus)
