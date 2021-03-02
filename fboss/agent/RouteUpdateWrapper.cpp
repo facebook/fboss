@@ -40,8 +40,14 @@ void RouteUpdateWrapper::addRoute(
         ? RouteForwardAction::DROP
         : RouteForwardAction::TO_CPU;
   }
-  ribRoutesToAddDel_[std::make_pair(vrf, clientId)].toAdd.emplace_back(
-      std::move(tempRoute));
+  addRoute(vrf, clientId, std::move(tempRoute));
+}
+
+void RouteUpdateWrapper::addRoute(
+    RouterID vrf,
+    ClientID clientId,
+    const UnicastRoute& route) {
+  ribRoutesToAddDel_[std::make_pair(vrf, clientId)].toAdd.emplace_back(route);
 }
 
 void RouteUpdateWrapper::delRoute(

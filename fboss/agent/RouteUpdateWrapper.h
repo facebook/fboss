@@ -41,6 +41,7 @@ class RouteUpdateWrapper {
       ClientID clientId,
       RouteNextHopEntry entry);
 
+  void addRoute(RouterID id, ClientID clientId, const UnicastRoute& route);
   void delRoute(
       RouterID id,
       const folly::IPAddress& network,
