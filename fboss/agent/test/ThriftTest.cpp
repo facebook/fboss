@@ -59,11 +59,28 @@ IpPrefix ipPrefix(StringPiece ip, int length) {
 
 } // unnamed namespace
 
-TEST(ThriftTest, getInterfaceDetail) {
-  auto handle = setupTestHandle();
-  auto sw = handle->getSw();
+template <typename StandaloneRib>
+class ThriftTest : public ::testing::Test {
+ public:
+  static constexpr auto hasStandAloneRib = StandaloneRib::hasStandAloneRib;
 
-  ThriftHandler handler(sw);
+  void SetUp() override {
+    auto config = testConfigA();
+    auto flags = hasStandAloneRib ? SwitchFlags::ENABLE_STANDALONE_RIB
+                                  : SwitchFlags::DEFAULT;
+    handle_ = createTestHandle(&config, flags);
+    sw_ = handle_->getSw();
+    sw_->initialConfigApplied(std::chrono::steady_clock::now());
+  }
+  SwSwitch* sw_;
+  std::unique_ptr<HwTestHandle> handle_;
+};
+
+using ThriftTestTypes = ::testing::Types<NoRib, Rib>;
+TYPED_TEST_CASE(ThriftTest, ThriftTestTypes);
+
+TYPED_TEST(ThriftTest, getInterfaceDetail) {
+  ThriftHandler handler(this->sw_);
 
   // Query the two interfaces configured by testStateA()
   InterfaceDetail info;
@@ -77,6 +94,7 @@ TEST(ThriftTest, getInterfaceDetail) {
       ipPrefix("10.0.0.1", 24),
       ipPrefix("192.168.0.1", 24),
       ipPrefix("2401:db00:2110:3001::0001", 64),
+      ipPrefix("fe80::202:ff:fe00:1", 64),
   };
   EXPECT_THAT(*info.address_ref(), UnorderedElementsAreArray(expectedAddrs));
 
@@ -90,6 +108,7 @@ TEST(ThriftTest, getInterfaceDetail) {
       ipPrefix("10.0.55.1", 24),
       ipPrefix("192.168.55.1", 24),
       ipPrefix("2401:db00:2110:3055::0001", 64),
+      ipPrefix("fe80::202:ff:fe00:55", 64),
   };
   EXPECT_THAT(*info.address_ref(), UnorderedElementsAreArray(expectedAddrs));
 
@@ -98,30 +117,24 @@ TEST(ThriftTest, getInterfaceDetail) {
   EXPECT_THROW(handler.getInterfaceDetail(info, 123), FbossError);
 }
 
-TEST(ThriftTest, listHwObjects) {
-  auto handle = setupTestHandle();
-  auto sw = handle->getSw();
-
-  ThriftHandler handler(sw);
+TYPED_TEST(ThriftTest, listHwObjects) {
+  ThriftHandler handler(this->sw_);
   std::string out;
   std::vector<HwObjectType> in{HwObjectType::PORT};
-  EXPECT_HW_CALL(sw, listObjects(in, testing::_)).Times(1);
+  EXPECT_HW_CALL(this->sw_, listObjects(in, testing::_)).Times(1);
   handler.listHwObjects(
       out, std::make_unique<std::vector<HwObjectType>>(in), false);
 }
 
-TEST(ThriftTest, getHwDebugDump) {
-  auto handle = setupTestHandle();
-  auto sw = handle->getSw();
-
-  ThriftHandler handler(sw);
+TYPED_TEST(ThriftTest, getHwDebugDump) {
+  ThriftHandler handler(this->sw_);
   std::string out;
-  EXPECT_HW_CALL(sw, dumpDebugState(testing::_)).Times(1);
+  EXPECT_HW_CALL(this->sw_, dumpDebugState(testing::_)).Times(1);
   // Mock getHwDebugDump doesn't write any thing so expect FbossError
   EXPECT_THROW(handler.getHwDebugDump(out), FbossError);
 }
 
-TEST(ThriftTest, assertPortSpeeds) {
+TEST(ThriftEnum, assertPortSpeeds) {
   // We rely on the exact value of the port speeds for some
   // logic, so we want to ensure that these values don't change.
   for (const auto key : TEnumTraits<cfg::PortSpeed>::values) {
@@ -159,50 +172,53 @@ TEST(ThriftTest, assertPortSpeeds) {
   }
 }
 
-TEST(ThriftTest, LinkLocalRoutes) {
-  auto platform = createMockPlatform();
-  auto stateV0 = testStateB();
-  // Remove all linklocalroutes from stateV0 in order to clear all
-  // linklocalroutes
-  RouteUpdater updater(stateV0->getRouteTables());
-  updater.delLinkLocalRoutes(RouterID(0));
-  auto newRt = updater.updateDone();
-  stateV0->resetRouteTables(newRt);
-  cfg::SwitchConfig config;
-  config.vlans_ref()->resize(1);
-  *config.vlans_ref()[0].id_ref() = 1;
-  config.interfaces_ref()->resize(1);
-  *config.interfaces_ref()[0].intfID_ref() = 1;
-  *config.interfaces_ref()[0].vlanID_ref() = 1;
-  *config.interfaces_ref()[0].routerID_ref() = 0;
-  config.interfaces_ref()[0].mac_ref() = "00:02:00:00:00:01";
-  config.interfaces_ref()[0].ipAddresses_ref()->resize(3);
-  config.interfaces_ref()[0].ipAddresses_ref()[0] = "10.0.0.1/24";
-  config.interfaces_ref()[0].ipAddresses_ref()[1] = "192.168.0.1/24";
-  config.interfaces_ref()[0].ipAddresses_ref()[2] =
-      "2401:db00:2110:3001::0001/64";
-  config.ports_ref()->resize(10);
-  for (int i = 0; i < 10; i++) {
-    auto port = i + 1;
-    config.ports_ref()[i].logicalID_ref() = port;
-    config.ports_ref()[i].name_ref() = folly::format("port{}", port).str();
-    config.ports_ref()[i].state_ref() = cfg::PortState::DISABLED;
-  }
-  // Call applyThriftConfig
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
-  stateV1->publish();
-  // Verify that stateV1 contains the link local route
-  shared_ptr<RouteTable> rt =
-      stateV1->getRouteTables()->getRouteTableIf(RouterID(0));
-  ASSERT_NE(nullptr, rt);
+TYPED_TEST(ThriftTest, LinkLocalRoutes) {
   // Link local addr.
   auto ip = IPAddressV6("fe80::");
   // Find longest match to link local addr.
-  auto longestMatchRoute = rt->getRibV6()->longestMatch(ip);
-  // Verify that a route is found
+  auto longestMatchRoute = findLongestMatchRoute(
+      TypeParam::hasStandAloneRib, RouterID(0), ip, this->sw_->getState());
+  // Verify that a route is found. Link local route should always
+  // be present
   ASSERT_NE(nullptr, longestMatchRoute);
   // Verify that the route is to link local addr.
   ASSERT_EQ(longestMatchRoute->prefix().network, ip);
+}
+
+TYPED_TEST(ThriftTest, flushNonExistentNeighbor) {
+  ThriftHandler handler(this->sw_);
+  EXPECT_EQ(
+      handler.flushNeighborEntry(
+          std::make_unique<BinaryAddress>(
+              toBinaryAddress(IPAddress("100.100.100.1"))),
+          1),
+      0);
+  EXPECT_EQ(
+      handler.flushNeighborEntry(
+          std::make_unique<BinaryAddress>(
+              toBinaryAddress(IPAddress("100::100"))),
+          1),
+      0);
+}
+
+TYPED_TEST(ThriftTest, setPortState) {
+  const PortID port1{1};
+  ThriftHandler handler(this->sw_);
+  handler.setPortState(port1, true);
+  this->sw_->linkStateChanged(port1, true);
+  waitForStateUpdates(this->sw_);
+
+  auto port = this->sw_->getState()->getPorts()->getPortIf(port1);
+  EXPECT_TRUE(port->isUp());
+  EXPECT_TRUE(port->isEnabled());
+
+  this->sw_->linkStateChanged(port1, false);
+  handler.setPortState(port1, false);
+  waitForStateUpdates(this->sw_);
+
+  port = this->sw_->getState()->getPorts()->getPortIf(port1);
+  EXPECT_FALSE(port->isUp());
+  EXPECT_FALSE(port->isEnabled());
 }
 
 std::unique_ptr<UnicastRoute> makeUnicastRoute(
@@ -219,9 +235,8 @@ std::unique_ptr<UnicastRoute> makeUnicastRoute(
   nr->adminDistance_ref() = distance;
   return nr;
 }
-
 // Test for the ThriftHandler::syncFib method
-TEST(ThriftTest, syncFib) {
+TEST(ThriftRouteTest, syncFib) {
   RouterID rid = RouterID(0);
 
   // Create a config
@@ -365,7 +380,7 @@ TEST(ThriftTest, syncFib) {
   EXPECT_EQ(4 + 1, tables3->getRouteTable(rid)->getRibV6()->size());
 }
 
-TEST(ThriftTest, syncFibIsHwProtected) {
+TEST(ThriftRouteTest, syncFibIsHwProtected) {
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
   auto handle = setupTestHandle();
   auto sw = handle->getSw();
@@ -398,7 +413,7 @@ TEST(ThriftTest, syncFibIsHwProtected) {
       FbossFibUpdateError);
 }
 
-TEST(ThriftTest, addUnicastRoutesIsHwProtected) {
+TEST(ThriftRouteTest, addUnicastRoutesIsHwProtected) {
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
   auto handle = setupTestHandle();
   auto sw = handle->getSw();
@@ -440,7 +455,7 @@ std::unique_ptr<MplsRoute> makeMplsRoute(
   return nr;
 }
 
-TEST(ThriftTest, syncMplsFibIsHwProtected) {
+TEST(ThriftRouteTest, syncMplsFibIsHwProtected) {
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
   auto handle = setupTestHandle();
   auto sw = handle->getSw();
@@ -463,7 +478,7 @@ TEST(ThriftTest, syncMplsFibIsHwProtected) {
       FbossFibUpdateError);
 }
 
-TEST(ThriftTest, addMplsRoutesIsHwProtected) {
+TEST(ThriftRouteTest, addMplsRoutesIsHwProtected) {
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
   auto handle = setupTestHandle();
   auto sw = handle->getSw();
@@ -485,44 +500,4 @@ TEST(ThriftTest, addMplsRoutesIsHwProtected) {
         }
       },
       FbossFibUpdateError);
-}
-
-TEST(ThriftTest, flushNonExistentNeighbor) {
-  auto handle = setupTestHandle();
-  auto sw = handle->getSw();
-  ThriftHandler handler(sw);
-  EXPECT_EQ(
-      handler.flushNeighborEntry(
-          std::make_unique<BinaryAddress>(
-              toBinaryAddress(IPAddress("100.100.100.1"))),
-          1),
-      0);
-  EXPECT_EQ(
-      handler.flushNeighborEntry(
-          std::make_unique<BinaryAddress>(
-              toBinaryAddress(IPAddress("100::100"))),
-          1),
-      0);
-}
-
-TEST(ThriftTest, setPortState) {
-  auto handle = setupTestHandle();
-  auto sw = handle->getSw();
-  const PortID port1{1};
-  ThriftHandler handler(sw);
-  handler.setPortState(port1, true);
-  sw->linkStateChanged(port1, true);
-  waitForStateUpdates(sw);
-
-  auto port = sw->getState()->getPorts()->getPortIf(port1);
-  EXPECT_TRUE(port->isUp());
-  EXPECT_TRUE(port->isEnabled());
-
-  sw->linkStateChanged(port1, false);
-  handler.setPortState(port1, false);
-  waitForStateUpdates(sw);
-
-  port = sw->getState()->getPorts()->getPortIf(port1);
-  EXPECT_FALSE(port->isUp());
-  EXPECT_FALSE(port->isEnabled());
 }
