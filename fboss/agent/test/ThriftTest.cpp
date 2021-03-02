@@ -236,58 +236,54 @@ std::unique_ptr<UnicastRoute> makeUnicastRoute(
   return nr;
 }
 // Test for the ThriftHandler::syncFib method
-TEST(ThriftRouteTest, syncFib) {
+TYPED_TEST(ThriftTest, syncFib) {
   RouterID rid = RouterID(0);
 
-  // Create a config
-  cfg::SwitchConfig config;
-  config.vlans_ref()->resize(1);
-  *config.vlans_ref()[0].id_ref() = 1;
-  config.interfaces_ref()->resize(1);
-  *config.interfaces_ref()[0].intfID_ref() = 1;
-  *config.interfaces_ref()[0].vlanID_ref() = 1;
-  *config.interfaces_ref()[0].routerID_ref() = 0;
-  config.interfaces_ref()[0].mac_ref() = "00:02:00:00:00:01";
-  config.interfaces_ref()[0].ipAddresses_ref()->resize(3);
-  config.interfaces_ref()[0].ipAddresses_ref()[0] = "10.0.0.1/24";
-  config.interfaces_ref()[0].ipAddresses_ref()[1] = "192.168.0.19/24";
-  config.interfaces_ref()[0].ipAddresses_ref()[2] =
-      "2401:db00:2110:3001::0001/64";
-
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
-  auto handle = createTestHandle(&config);
-  auto sw = handle->getSw();
-  sw->initialConfigApplied(std::chrono::steady_clock::now());
-  sw->fibSynced();
-  ThriftHandler handler(sw);
+  this->sw_->fibSynced();
+  ThriftHandler handler(this->sw_);
 
+  auto randomClient = 500;
+  auto bgpClient = static_cast<int16_t>(ClientID::BGPD);
+  auto staticClient = static_cast<int16_t>(ClientID::STATIC_ROUTE);
+  auto randomClientAdmin = this->sw_->clientIdToAdminDistance(randomClient);
+  auto bgpAdmin = this->sw_->clientIdToAdminDistance(bgpClient);
+  auto staticAdmin = this->sw_->clientIdToAdminDistance(staticClient);
+  // STATIC_ROUTE > BGPD > RANDOM_CLIENT
   //
   // Add a few BGP routes
   //
 
-  auto cli1_nhop4 = "11.11.11.11";
-  auto cli1_nhop6 = "11:11::0";
-  auto cli2_nhop4 = "22.22.22.22";
-  auto cli2_nhop6 = "22:22::0";
-  auto cli3_nhop6 = "33:33::0";
-  auto cli1_nhop6b = "44:44::0";
+  auto cli1_nhop4 = "10.0.0.11";
+  auto cli1_nhop6 = "2401:db00:2110:3001::0011";
+  auto cli2_nhop4 = "10.0.0.22";
+  auto cli2_nhop6 = "2401:db00:2110:3001::0022";
+  auto cli3_nhop6 = "2401:db00:2110:3001::0033";
 
   // These routes will include nexthops from client 10 only
   auto prefixA4 = "7.1.0.0/16";
   auto prefixA6 = "aaaa:1::0/64";
-  handler.addUnicastRoute(10, makeUnicastRoute(prefixA4, cli1_nhop4));
-  handler.addUnicastRoute(10, makeUnicastRoute(prefixA6, cli1_nhop6));
+  handler.addUnicastRoute(
+      randomClient, makeUnicastRoute(prefixA4, cli1_nhop4, randomClientAdmin));
+  handler.addUnicastRoute(
+      randomClient, makeUnicastRoute(prefixA6, cli1_nhop6, randomClientAdmin));
 
-  // This route will include nexthops from clients 10 and 20
+  // This route will include nexthops from clients randomClient and bgpClient
   auto prefixB4 = "7.2.0.0/16";
-  handler.addUnicastRoute(10, makeUnicastRoute(prefixB4, cli1_nhop4));
-  handler.addUnicastRoute(20, makeUnicastRoute(prefixB4, cli2_nhop4));
+  handler.addUnicastRoute(
+      randomClient, makeUnicastRoute(prefixB4, cli1_nhop4, randomClientAdmin));
+  handler.addUnicastRoute(
+      bgpClient, makeUnicastRoute(prefixB4, cli2_nhop4, bgpAdmin));
 
-  // This route will include nexthops from clients 10 and 20 and 30
+  // This route will include nexthops from clients randomClient and bgpClient
+  // and staticClient
   auto prefixC6 = "aaaa:3::0/64";
-  handler.addUnicastRoute(10, makeUnicastRoute(prefixC6, cli1_nhop6));
-  handler.addUnicastRoute(20, makeUnicastRoute(prefixC6, cli2_nhop6));
-  handler.addUnicastRoute(30, makeUnicastRoute(prefixC6, cli3_nhop6));
+  handler.addUnicastRoute(
+      randomClient, makeUnicastRoute(prefixC6, cli1_nhop6, randomClientAdmin));
+  handler.addUnicastRoute(
+      bgpClient, makeUnicastRoute(prefixC6, cli2_nhop6, bgpAdmin));
+  handler.addUnicastRoute(
+      staticClient, makeUnicastRoute(prefixC6, cli3_nhop6, staticAdmin));
 
   // These routes will not be used until fibSync happens.
   auto prefixD4 = "7.4.0.0/16";
@@ -298,86 +294,169 @@ TEST(ThriftRouteTest, syncFib) {
   //
 
   // Make sure all the static and link-local routes are there
-  auto tables2 = sw->getState()->getRouteTables();
-  GET_ROUTE_V4(tables2, rid, "10.0.0.0/24");
-  GET_ROUTE_V4(tables2, rid, "192.168.0.0/24");
-  GET_ROUTE_V6(tables2, rid, "2401:db00:2110:3001::/64");
-  GET_ROUTE_V6(tables2, rid, "fe80::/64");
-  // Make sure the client 10&20&30 routes are there.
-  GET_ROUTE_V4(tables2, rid, prefixA4);
-  GET_ROUTE_V6(tables2, rid, prefixA6);
-  GET_ROUTE_V4(tables2, rid, prefixB4);
-  GET_ROUTE_V6(tables2, rid, prefixC6);
-  // Make sure there are no more routes than the ones we just tested
-  // plus the 1 default route that gets added automatically
-  EXPECT_EQ(4 + 1, tables2->getRouteTable(rid)->getRibV4()->size());
-  EXPECT_EQ(4 + 1, tables2->getRouteTable(rid)->getRibV6()->size());
-  EXPECT_NO_ROUTE(tables2, rid, prefixD4);
-  EXPECT_NO_ROUTE(tables2, rid, prefixD6);
+  auto hasStandAloneRib = TypeParam::hasStandAloneRib;
+  auto ensureConfigRoutes = [this, hasStandAloneRib, rid]() {
+    auto state = this->sw_->getState();
+    EXPECT_NE(
+        nullptr,
+        findRoute<folly::IPAddressV4>(
+            hasStandAloneRib,
+            rid,
+            IPAddress::createNetwork("10.0.0.0/24"),
+            state));
+    EXPECT_NE(
+        nullptr,
+        findRoute<folly::IPAddressV4>(
+            hasStandAloneRib,
+            rid,
+            IPAddress::createNetwork("192.168.0.0/24"),
+            state));
+    EXPECT_NE(
+        nullptr,
+        findRoute<folly::IPAddressV6>(
+            hasStandAloneRib,
+            rid,
+            IPAddress::createNetwork("2401:db00:2110:3001::/64"),
+            state));
+    EXPECT_NE(
+        nullptr,
+        findRoute<folly::IPAddressV6>(
+            hasStandAloneRib,
+            rid,
+            IPAddress::createNetwork("fe80::/64"),
+            state));
+  };
+  auto kIntf1 = InterfaceID(1);
+  ensureConfigRoutes();
+  // Make sure the lowest adming distance route is installed in FIB routes are
+  // there.
 
+  {
+    auto state = this->sw_->getState();
+    // Only random client routes
+    auto rtA4 = findRoute<folly::IPAddressV4>(
+        hasStandAloneRib, rid, IPAddress::createNetwork(prefixA4), state);
+    EXPECT_NE(nullptr, rtA4);
+    EXPECT_EQ(
+        rtA4->getForwardInfo(),
+        RouteNextHopEntry(
+            makeResolvedNextHops({{kIntf1, cli1_nhop4}}),
+            AdminDistance::MAX_ADMIN_DISTANCE));
+
+    auto rtA6 = findRoute<folly::IPAddressV6>(
+        hasStandAloneRib, rid, IPAddress::createNetwork(prefixA6), state);
+    EXPECT_NE(nullptr, rtA6);
+    EXPECT_EQ(
+        rtA6->getForwardInfo(),
+        RouteNextHopEntry(
+            makeResolvedNextHops({{kIntf1, cli1_nhop6}}),
+            AdminDistance::MAX_ADMIN_DISTANCE));
+    // Random client and BGP routes - bgp should win
+    auto rtB4 = findRoute<folly::IPAddressV4>(
+        hasStandAloneRib, rid, IPAddress::createNetwork(prefixB4), state);
+    EXPECT_NE(nullptr, rtB4);
+    EXPECT_EQ(
+        rtB4->getForwardInfo(),
+        RouteNextHopEntry(
+            makeResolvedNextHops({{kIntf1, cli2_nhop4}}),
+            AdminDistance::MAX_ADMIN_DISTANCE));
+    // Random client, bgp, static routes. Static shouold win
+    auto rtC6 = findRoute<folly::IPAddressV6>(
+        hasStandAloneRib, rid, IPAddress::createNetwork(prefixC6), state);
+    EXPECT_NE(nullptr, rtC6);
+    EXPECT_EQ(
+        rtC6->getForwardInfo(),
+        RouteNextHopEntry(
+            makeResolvedNextHops({{kIntf1, cli3_nhop6}}),
+            AdminDistance::MAX_ADMIN_DISTANCE));
+    auto [v4Routes, v6Routes] = getRouteCount(hasStandAloneRib, state);
+    EXPECT_EQ(
+        7, v4Routes); // 4 intf routes + 2 routes from above + 1 default routes
+    EXPECT_EQ(
+        6, v6Routes); // 2 intf routes + 2 routes from above + 1 link local
+                      // + 1 default route
+    // Unistalled routes. These should not be found
+    EXPECT_EQ(
+        nullptr,
+        findRoute<folly::IPAddressV4>(
+            hasStandAloneRib, rid, IPAddress::createNetwork(prefixD4), state));
+    EXPECT_EQ(
+        nullptr,
+        findRoute<folly::IPAddressV6>(
+            hasStandAloneRib, rid, IPAddress::createNetwork(prefixD6), state));
+  }
   //
-  // Now use syncFib to remove all the routes for client 10 and add
+  // Now use syncFib to remove all the routes for randomClient and add
   // some new ones
-  // Statics, link-locals, and clients 20 and 30 should remain unchanged.
+  // Statics, link-locals, and clients bgp and static should remain unchanged.
   //
 
   auto newRoutes = std::make_unique<std::vector<UnicastRoute>>();
-  UnicastRoute nr1 = *makeUnicastRoute(prefixC6, cli1_nhop6b).get();
-  UnicastRoute nr2 = *makeUnicastRoute(prefixD6, cli1_nhop6b).get();
-  UnicastRoute nr3 = *makeUnicastRoute(prefixD4, cli1_nhop4).get();
+  UnicastRoute nr1 =
+      *makeUnicastRoute(prefixC6, cli1_nhop6, randomClientAdmin).get();
+  UnicastRoute nr2 =
+      *makeUnicastRoute(prefixD6, cli1_nhop6, randomClientAdmin).get();
+  UnicastRoute nr3 =
+      *makeUnicastRoute(prefixD4, cli1_nhop4, randomClientAdmin).get();
   newRoutes->push_back(nr1);
   newRoutes->push_back(nr2);
   newRoutes->push_back(nr3);
-  handler.syncFib(10, std::move(newRoutes));
+  handler.syncFib(randomClient, std::move(newRoutes));
 
   //
   // Test the state of things after syncFib
   //
+  {
+    // Make sure all the static and link-local routes are still there
+    auto state = this->sw_->getState();
+    ensureConfigRoutes();
+    // Only random client routes from before are gone, since we did not syncFib
+    // with them
+    auto rtA4 = findRoute<folly::IPAddressV4>(
+        hasStandAloneRib, rid, IPAddress::createNetwork(prefixA4), state);
+    EXPECT_EQ(nullptr, rtA4);
 
-  // Make sure all the static and link-local routes are still there
-  auto tables3 = sw->getState()->getRouteTables();
-  GET_ROUTE_V4(tables3, rid, "10.0.0.0/24");
-  GET_ROUTE_V4(tables3, rid, "192.168.0.0/24");
-  GET_ROUTE_V6(tables3, rid, "2401:db00:2110:3001::/64");
-  GET_ROUTE_V6(tables3, rid, "fe80::/64");
+    auto rtA6 = findRoute<folly::IPAddressV6>(
+        hasStandAloneRib, rid, IPAddress::createNetwork(prefixA6), state);
+    EXPECT_EQ(nullptr, rtA6);
+    // random client and bgp routes. Bgp should continue to win
+    auto rtB4 = findRoute<folly::IPAddressV4>(
+        hasStandAloneRib, rid, IPAddress::createNetwork(prefixB4), state);
+    EXPECT_TRUE(rtB4->getForwardInfo().isSame(RouteNextHopEntry(
+        makeResolvedNextHops({{InterfaceID(1), cli2_nhop4}}),
+        AdminDistance::MAX_ADMIN_DISTANCE)));
 
-  // The prefixA* routes should have disappeared
-  EXPECT_NO_ROUTE(tables3, rid, prefixA4);
-  EXPECT_NO_ROUTE(tables3, rid, prefixA6);
-
-  // The prefixB4 route should have client 20 only
-  auto rt1 = GET_ROUTE_V4(tables3, rid, prefixB4);
-  ASSERT_TRUE(rt1->getFields()->nexthopsmulti.isSame(
-      ClientID(20),
-      RouteNextHopEntry(
-          makeNextHops({cli2_nhop4}), AdminDistance::MAX_ADMIN_DISTANCE)));
-  auto bestNextHops = rt1->getBestEntry().second->getNextHopSet();
-  EXPECT_EQ(IPAddress(cli2_nhop4), bestNextHops.begin()->addr());
-
-  // The prefixC6 route should have clients 20 & 30, and a new value for
-  // client 10
-  auto rt2 = GET_ROUTE_V6(tables3, rid, prefixC6);
-  ASSERT_TRUE(rt2->getFields()->nexthopsmulti.isSame(
-      ClientID(20),
-      RouteNextHopEntry(
-          makeNextHops({cli2_nhop6}), AdminDistance::MAX_ADMIN_DISTANCE)));
-  ASSERT_TRUE(rt2->getFields()->nexthopsmulti.isSame(
-      ClientID(30),
-      RouteNextHopEntry(
-          makeNextHops({cli3_nhop6}), AdminDistance::MAX_ADMIN_DISTANCE)));
-  ASSERT_TRUE(rt2->getFields()->nexthopsmulti.isSame(
-      ClientID(10),
-      RouteNextHopEntry(
-          makeNextHops({cli1_nhop6b}), AdminDistance::MAX_ADMIN_DISTANCE)));
-
-  // The prefixD4 and prefixD6 routes should have been created
-  GET_ROUTE_V4(tables3, rid, prefixD4);
-  GET_ROUTE_V6(tables3, rid, prefixD6);
-
-  // Make sure there are no more routes (ie. the old ones were deleted)
-  // + the one that gets added by default
-  EXPECT_EQ(4 + 1, tables3->getRouteTable(rid)->getRibV4()->size());
-  EXPECT_EQ(4 + 1, tables3->getRouteTable(rid)->getRibV6()->size());
+    // Random client, bgp, static routes. Static should win
+    auto rtC6 = findRoute<folly::IPAddressV6>(
+        hasStandAloneRib, rid, IPAddress::createNetwork(prefixC6), state);
+    EXPECT_NE(nullptr, rtC6);
+    EXPECT_EQ(
+        rtC6->getForwardInfo(),
+        RouteNextHopEntry(
+            makeResolvedNextHops({{kIntf1, cli3_nhop6}}),
+            AdminDistance::MAX_ADMIN_DISTANCE));
+    // D6 and D4 should now be found and resolved by random client nhops
+    auto rtD4 = findRoute<folly::IPAddressV4>(
+        hasStandAloneRib, rid, IPAddress::createNetwork(prefixD4), state);
+    EXPECT_NE(nullptr, rtD4);
+    EXPECT_EQ(
+        rtD4->getForwardInfo(),
+        RouteNextHopEntry(
+            makeResolvedNextHops({{kIntf1, cli1_nhop4}}),
+            AdminDistance::MAX_ADMIN_DISTANCE));
+    auto rtD6 = findRoute<folly::IPAddressV6>(
+        hasStandAloneRib, rid, IPAddress::createNetwork(prefixD6), state);
+    EXPECT_NE(nullptr, rtD6);
+    EXPECT_EQ(
+        rtD6->getForwardInfo(),
+        RouteNextHopEntry(
+            makeResolvedNextHops({{kIntf1, cli1_nhop6}}),
+            AdminDistance::MAX_ADMIN_DISTANCE));
+    // A4, A6 removed, D4, D6 added. Count should remain same
+    auto [v4Routes, v6Routes] = getRouteCount(hasStandAloneRib, state);
+    EXPECT_EQ(7, v4Routes);
+    EXPECT_EQ(6, v6Routes);
+  }
 }
 
 TEST(ThriftRouteTest, syncFibIsHwProtected) {
