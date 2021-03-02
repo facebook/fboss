@@ -13,6 +13,7 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/FbossHwUpdateError.h"
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/LinkAggregationManager.h"
@@ -475,32 +476,26 @@ IpPrefix getIpPrefix(const Route<AddrT>& route) {
   return pfx;
 }
 
-void translateToFibError(const FbossHwUpdateError& updError) {
-  FbossFibUpdateError fibError;
+void translateToFibError(
+    bool isStandaloneRibEnabled,
+    const FbossHwUpdateError& updError) {
   StateDelta delta(updError.appliedState, updError.desiredState);
-  auto processIpRoutesDelta = [&fibError](
-                                  const auto& routeDelta, RouterID rid) {
-    DeltaFunctions::forEachChanged(
-        routeDelta,
-        [&](const auto& /*removed*/, const auto& added) {
-          fibError.vrf2failedAddUpdatePrefixes_ref()[rid].push_back(
-              getIpPrefix(*added));
-        },
-        [&](const auto& added) {
-          fibError.vrf2failedAddUpdatePrefixes_ref()[rid].push_back(
-              getIpPrefix(*added));
-        },
-        [&](const auto& removed) {
-          fibError.vrf2failedDeletePrefixes_ref()[rid].push_back(
-              getIpPrefix(*removed));
-        });
-  };
-  for (const auto& routeDelta : delta.getRouteTablesDelta()) {
-    auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
-                                        : routeDelta.getNew()->getID();
-    processIpRoutesDelta(routeDelta.getRoutesV4Delta(), routerID);
-    processIpRoutesDelta(routeDelta.getRoutesV6Delta(), routerID);
-  }
+  FbossFibUpdateError fibError;
+  forEachChangedRoute(
+      isStandaloneRibEnabled,
+      delta,
+      [&](RouterID rid, const auto& /*removed*/, const auto& added) {
+        fibError.vrf2failedAddUpdatePrefixes_ref()[rid].push_back(
+            getIpPrefix(*added));
+      },
+      [&](RouterID rid, const auto& added) {
+        fibError.vrf2failedAddUpdatePrefixes_ref()[rid].push_back(
+            getIpPrefix(*added));
+      },
+      [&](RouterID rid, const auto& removed) {
+        fibError.vrf2failedDeletePrefixes_ref()[rid].push_back(
+            getIpPrefix(*removed));
+      });
 
   DeltaFunctions::forEachChanged(
       delta.getLabelForwardingInformationBaseDelta(),
@@ -749,7 +744,7 @@ void ThriftHandler::updateUnicastRoutesImpl(
   try {
     updater.program(syncFibs);
   } catch (const FbossHwUpdateError& ex) {
-    translateToFibError(ex);
+    translateToFibError(sw_->isStandaloneRibEnabled(), ex);
   }
 }
 
@@ -1808,7 +1803,7 @@ void ThriftHandler::addMplsRoutes(
   try {
     sw_->updateStateWithHwFailureProtection("addMplsRoutes", updateFn);
   } catch (const FbossHwUpdateError& ex) {
-    translateToFibError(ex);
+    translateToFibError(sw_->isStandaloneRibEnabled(), ex);
   }
 }
 
@@ -1944,7 +1939,7 @@ void ThriftHandler::syncMplsFib(
   try {
     sw_->updateStateWithHwFailureProtection("syncMplsFib", updateFn);
   } catch (const FbossHwUpdateError& ex) {
-    translateToFibError(ex);
+    translateToFibError(sw_->isStandaloneRibEnabled(), ex);
   }
 }
 
