@@ -15,14 +15,7 @@ namespace facebook::fboss {
 
 sai_port_api_t* wrappedPortApi();
 
-void setPortAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines);
-
-void setPortSerdesAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines);
+SET_ATTRIBUTE_FUNC_DECLARATION(Port);
+SET_ATTRIBUTE_FUNC_DECLARATION(PortSerdes);
 
 } // namespace facebook::fboss

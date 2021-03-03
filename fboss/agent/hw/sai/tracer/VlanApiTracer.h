@@ -14,14 +14,7 @@ namespace facebook::fboss {
 
 sai_vlan_api_t* wrappedVlanApi();
 
-void setVlanAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines);
-
-void setVlanMemberAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines);
+SET_ATTRIBUTE_FUNC_DECLARATION(Vlan);
+SET_ATTRIBUTE_FUNC_DECLARATION(VlanMember);
 
 } // namespace facebook::fboss

@@ -16,9 +16,6 @@ namespace facebook::fboss {
 
 sai_next_hop_api_t* wrappedNextHopApi();
 
-void setNextHopAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines);
+SET_ATTRIBUTE_FUNC_DECLARATION(NextHop);
 
 } // namespace facebook::fboss

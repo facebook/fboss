@@ -16,9 +16,6 @@ namespace facebook::fboss {
 
 sai_neighbor_api_t* wrappedNeighborApi();
 
-void setNeighborEntryAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines);
+SET_ATTRIBUTE_FUNC_DECLARATION(NeighborEntry);
 
 } // namespace facebook::fboss

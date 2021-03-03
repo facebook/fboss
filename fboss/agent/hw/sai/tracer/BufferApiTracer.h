@@ -16,14 +16,7 @@ namespace facebook::fboss {
 
 sai_buffer_api_t* wrappedBufferApi();
 
-void setBufferPoolAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines);
-
-void setBufferProfileAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines);
+SET_ATTRIBUTE_FUNC_DECLARATION(BufferPool);
+SET_ATTRIBUTE_FUNC_DECLARATION(BufferProfile);
 
 } // namespace facebook::fboss

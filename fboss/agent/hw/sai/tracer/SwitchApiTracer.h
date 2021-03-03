@@ -14,9 +14,6 @@ namespace facebook::fboss {
 
 sai_switch_api_t* wrappedSwitchApi();
 
-void setSwitchAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines);
+SET_ATTRIBUTE_FUNC_DECLARATION(Switch);
 
 } // namespace facebook::fboss

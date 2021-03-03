@@ -14,9 +14,6 @@ namespace facebook::fboss {
 
 sai_mirror_api_t* wrappedMirrorApi();
 
-void setMirrorSessionAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines);
+SET_ATTRIBUTE_FUNC_DECLARATION(MirrorSession);
 
 } // namespace facebook::fboss

@@ -14,14 +14,7 @@ namespace facebook::fboss {
 
 sai_lag_api_t* wrappedLagApi();
 
-void setLagAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines);
-
-void setLagMemberAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines);
+SET_ATTRIBUTE_FUNC_DECLARATION(Lag);
+SET_ATTRIBUTE_FUNC_DECLARATION(LagMember);
 
 } // namespace facebook::fboss

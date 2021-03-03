@@ -15,9 +15,6 @@ namespace facebook::fboss {
 
 sai_hash_api_t* wrappedHashApi();
 
-void setHashAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines);
+SET_ATTRIBUTE_FUNC_DECLARATION(Hash);
 
 } // namespace facebook::fboss

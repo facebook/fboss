@@ -14,14 +14,7 @@ namespace facebook::fboss {
 
 sai_bridge_api_t* wrappedBridgeApi();
 
-void setBridgePortAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines);
-
-void setBridgeAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines);
+SET_ATTRIBUTE_FUNC_DECLARATION(Bridge);
+SET_ATTRIBUTE_FUNC_DECLARATION(BridgePort);
 
 } // namespace facebook::fboss

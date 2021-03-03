@@ -16,9 +16,6 @@ namespace facebook::fboss {
 
 sai_fdb_api_t* wrappedFdbApi();
 
-void setFdbEntryAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines);
+SET_ATTRIBUTE_FUNC_DECLARATION(FdbEntry);
 
 } // namespace facebook::fboss

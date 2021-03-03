@@ -16,9 +16,6 @@ namespace facebook::fboss {
 
 sai_qos_map_api_t* wrappedQosMapApi();
 
-void setQosMapAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines);
+SET_ATTRIBUTE_FUNC_DECLARATION(QosMap);
 
 } // namespace facebook::fboss

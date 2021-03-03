@@ -16,19 +16,8 @@ namespace facebook::fboss {
 
 sai_hostif_api_t* wrappedHostifApi();
 
-void setHostifTrapAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines);
-
-void setHostifTrapGroupAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines);
-
-void setHostifPacketAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines);
+SET_ATTRIBUTE_FUNC_DECLARATION(HostifTrap);
+SET_ATTRIBUTE_FUNC_DECLARATION(HostifTrapGroup);
+SET_ATTRIBUTE_FUNC_DECLARATION(HostifPacket);
 
 } // namespace facebook::fboss

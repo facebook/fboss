@@ -16,9 +16,6 @@ namespace facebook::fboss {
 
 sai_route_api_t* wrappedRouteApi();
 
-void setRouteEntryAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines);
+SET_ATTRIBUTE_FUNC_DECLARATION(RouteEntry);
 
 } // namespace facebook::fboss
