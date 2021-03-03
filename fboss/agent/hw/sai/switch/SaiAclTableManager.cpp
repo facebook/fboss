@@ -49,21 +49,24 @@ SaiAclTableManager::SaiAclTableManager(
           getMetaDataMask(neighborDstUserMetaDataRangeMax_)) {}
 
 sai_u32_range_t SaiAclTableManager::getFdbDstUserMetaDataRange() const {
-  return SaiApiTable::getInstance()->switchApi().getAttribute(
-      managerTable_->switchManager().getSwitchSaiId(),
-      SaiSwitchTraits::Attributes::FdbDstUserMetaDataRange());
+  std::optional<SaiSwitchTraits::Attributes::FdbDstUserMetaDataRange> range =
+      SaiSwitchTraits::Attributes::FdbDstUserMetaDataRange();
+  return *(SaiApiTable::getInstance()->switchApi().getAttribute(
+      managerTable_->switchManager().getSwitchSaiId(), range));
 }
 
 sai_u32_range_t SaiAclTableManager::getRouteDstUserMetaDataRange() const {
-  return SaiApiTable::getInstance()->switchApi().getAttribute(
-      managerTable_->switchManager().getSwitchSaiId(),
-      SaiSwitchTraits::Attributes::RouteDstUserMetaDataRange());
+  std::optional<SaiSwitchTraits::Attributes::RouteDstUserMetaDataRange> range =
+      SaiSwitchTraits::Attributes::RouteDstUserMetaDataRange();
+  return *(SaiApiTable::getInstance()->switchApi().getAttribute(
+      managerTable_->switchManager().getSwitchSaiId(), range));
 }
 
 sai_u32_range_t SaiAclTableManager::getNeighborDstUserMetaDataRange() const {
-  return SaiApiTable::getInstance()->switchApi().getAttribute(
-      managerTable_->switchManager().getSwitchSaiId(),
-      SaiSwitchTraits::Attributes::NeighborDstUserMetaDataRange());
+  std::optional<SaiSwitchTraits::Attributes::NeighborDstUserMetaDataRange>
+      range = SaiSwitchTraits::Attributes::NeighborDstUserMetaDataRange();
+  return *(SaiApiTable::getInstance()->switchApi().getAttribute(
+      managerTable_->switchManager().getSwitchSaiId(), range));
 }
 
 sai_uint32_t SaiAclTableManager::getMetaDataMask(
