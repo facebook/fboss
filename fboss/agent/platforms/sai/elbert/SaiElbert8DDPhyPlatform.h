@@ -38,6 +38,7 @@ class SaiElbert8DDPhyPlatform : public SaiHwPlatform {
   bool isSerdesApiSupported() override;
   bool supportInterfaceType() const override;
   void initLEDs() override;
+  void initPorts() override {}
 
   sai_service_method_table_t* getServiceMethodTable() const override;
 
@@ -45,9 +46,21 @@ class SaiElbert8DDPhyPlatform : public SaiHwPlatform {
 
   void preHwInitialized() override;
 
+  SaiSwitchTraits::CreateAttributes getSwitchAttributes(
+      bool /* mandatoryOnly */) override {
+    CHECK(switchCreateAttrs_);
+    return *switchCreateAttrs_;
+  }
+  void setSwitchAttributes(SaiSwitchTraits::CreateAttributes attrs) {
+    switchCreateAttrs_ = attrs;
+  }
+
  private:
   uint8_t pimId_{0};
   int phyId_{0};
   std::unique_ptr<Elbert8DDAsic> asic_;
+  std::optional<SaiSwitchTraits::CreateAttributes> switchCreateAttrs_;
+
+  void initImpl(uint32_t hwFeaturesDesired) override;
 };
 } // namespace facebook::fboss

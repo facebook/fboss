@@ -141,4 +141,8 @@ void SaiElbert8DDPhyPlatform::preHwInitialized() {
   // in the system.
   SaiSwitch::initSaiApis(getServiceMethodTable(), getSupportedApiList());
 }
+
+void SaiElbert8DDPhyPlatform::initImpl(uint32_t hwFeaturesDesired) {
+  saiSwitch_ = std::make_unique<SaiSwitch>(this, hwFeaturesDesired);
+}
 } // namespace facebook::fboss

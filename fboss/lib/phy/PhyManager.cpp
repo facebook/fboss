@@ -16,19 +16,31 @@ phy::ExternalPhy*
 PhyManager::getExternalPhy(int slotId, int mdioId, int phyId) {
   // Check if the slot id is valid
   if (slotId >= numOfSlot_ || slotId >= externalPhyMap_.size()) {
-    throw FbossError(
-        folly::sformat("getExternalPhy: Invalid Slot Id {:d}", slotId));
+    throw FbossError(folly::sformat(
+        "getExternalPhy: Invalid Slot Id {:d}, externalPhyMap_.size={:d}",
+        slotId,
+        externalPhyMap_.size()));
   }
   // Check if within the slot, the MDIO based phy list is populated
   if (mdioId >= numMdioController_[slotId] ||
       mdioId >= externalPhyMap_[slotId].size()) {
-    throw FbossError(
-        folly::sformat("getExternalPhy: Invalid Mdio Id {:d}", mdioId));
+    throw FbossError(folly::sformat(
+        "getExternalPhy: Invalid Mdio Id {:d}, numMdioController_ is {:d}, "
+        "externalPhyMap_[{:d}] size is {:d}",
+        mdioId,
+        numMdioController_[slotId],
+        slotId,
+        externalPhyMap_[slotId].size()));
   }
   // Check if within the slot and mdio id, the phy object for the phy id exist
   if (phyId >= externalPhyMap_[slotId][mdioId].size()) {
-    throw FbossError(
-        folly::sformat("getExternalPhy: Invalid Phy Id {:d}", phyId));
+    throw FbossError(folly::sformat(
+        "getExternalPhy: Invalid Phy Id {:d}, "
+        "externalPhyMap_[{:d}][{:d}] size is {:d}",
+        phyId,
+        slotId,
+        mdioId,
+        externalPhyMap_[slotId][mdioId].size()));
   }
   // Return the externalPhy object for this slot, mdio, phy
   return externalPhyMap_[slotId][mdioId][phyId].get();
