@@ -372,4 +372,10 @@ class SaiTracer {
       "void run_trace() {\n";
 };
 
+#define SET_ATTRIBUTE_FUNC_DECLARATION(obj_type) \
+  void set##obj_type##Attributes(                \
+      const sai_attribute_t* attr_list,          \
+      uint32_t attr_count,                       \
+      std::vector<std::string>& attrLines);
+
 } // namespace facebook::fboss

@@ -15,29 +15,10 @@ namespace facebook::fboss {
 
 sai_acl_api_t* wrappedAclApi();
 
-void setAclCounterAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines);
-
-void setAclEntryAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines);
-
-void setAclTableAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines);
-
-void setAclTableGroupAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines);
-
-void setAclTableGroupMemberAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines);
+SET_ATTRIBUTE_FUNC_DECLARATION(AclCounter);
+SET_ATTRIBUTE_FUNC_DECLARATION(AclEntry);
+SET_ATTRIBUTE_FUNC_DECLARATION(AclTable);
+SET_ATTRIBUTE_FUNC_DECLARATION(AclTableGroup);
+SET_ATTRIBUTE_FUNC_DECLARATION(AclTableGroupMember);
 
 } // namespace facebook::fboss
