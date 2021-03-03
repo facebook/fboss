@@ -31,6 +31,10 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::HwEccErrorInitiateWrapper::operator()() {
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 1)
+  return SAI_SWITCH_ATTR_EXT_HW_ECC_ERROR_INITIATE;
+#else
   return std::nullopt;
+#endif
 }
 } // namespace facebook::fboss

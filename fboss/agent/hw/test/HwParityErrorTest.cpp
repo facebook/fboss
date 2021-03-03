@@ -11,7 +11,8 @@ namespace facebook::fboss {
 class HwParityErrorTest : public HwLinkStateDependentTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
-    return utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
+    return utility::onePortPerVlanConfig(
+        getHwSwitch(), {masterLogicalPortIds()[0]});
   }
 
   HwSwitchEnsemble::Features featuresDesired() const override {
@@ -75,13 +76,6 @@ class HwParityErrorTest : public HwLinkStateDependentTest {
 };
 
 TEST_F(HwParityErrorTest, verifyParityError) {
-  if (skipTest()) {
-// profile is not supported.
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-    return;
-  }
   auto setup = [=]() { applyNewConfig(initialConfig()); };
   auto verify = [=]() {
     auto ensemble = getHwSwitchEnsemble();
@@ -91,7 +85,7 @@ TEST_F(HwParityErrorTest, verifyParityError) {
     auto retries = 3;
     stats = ensemble->getHwSwitch()->getSwitchStats();
     while (retries-- && stats->getCorrParityErrorCount() == 0) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      std::this_thread::sleep_for(std::chrono::milliseconds(200));
       stats = ensemble->getHwSwitch()->getSwitchStats();
     }
     verifyParityError();

@@ -43,7 +43,7 @@ SaiTamManager::SaiTamManager(
   SaiTamEventTraits::CreateAttributes eventTraits;
   std::vector<sai_object_id_t> actions{action->adapterKey()};
   std::vector<sai_object_id_t> collectors{};
-  std::vector<sai_int32_t> eventTypes{SAI_SWITCH_EVENT_TYPE_ALL};
+  std::vector<sai_int32_t> eventTypes{SAI_SWITCH_EVENT_TYPE_PARITY_ERROR};
   std::get<SaiTamEventTraits::Attributes::Type>(eventTraits) =
       SAI_TAM_EVENT_TYPE_SWITCH;
   std::get<SaiTamEventTraits::Attributes::ActionList>(eventTraits) = actions;
