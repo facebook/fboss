@@ -31,7 +31,7 @@ def oui(mac):
         "(?P<oui>[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2})(?::[0-9A-F]{2}){3}", mac.upper()
     )
     if not m:
-        raise Exception("misformatted mac: {}".format(mac))
+        return None
     return m.group("oui")
 
 
@@ -40,6 +40,8 @@ def vendors_for_macs(macs, ignore_unknown=False):
     ouis = {oui(mac) for mac in macs}
 
     for o in ouis:
+        if not o:
+            continue
         vendor = oui_vendor_map().get(o)
         if vendor is None:
             msg = f"Unknown MAC OUI: {o}"
