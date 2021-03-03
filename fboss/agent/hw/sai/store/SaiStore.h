@@ -215,6 +215,23 @@ class SaiObjectStore {
     return objects_.ref(adapterHostKey);
   }
 
+  std::shared_ptr<ObjectType> find(
+      const typename SaiObjectTraits::AdapterKey& adapterKey) {
+    XLOGF(DBG5, "SaiStore find object {}", adapterKey);
+    for (auto iter : warmBootHandles_) {
+      if (iter.second->adapterKey() == adapterKey) {
+        return iter.second;
+      }
+    }
+    for (auto iter : objects_) {
+      auto obj = iter.second.lock();
+      if (obj->adapterKey() == adapterKey) {
+        return obj;
+      }
+    }
+    return nullptr;
+  }
+
   void release() {
     objects_.clear();
   }
