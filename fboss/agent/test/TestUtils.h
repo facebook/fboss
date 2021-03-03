@@ -340,14 +340,15 @@ class TxPacketMatcher : public ::testing::MatcherInterface<TxPacketPtr> {
       folly::StringPiece name,
       TxMatchFn&& fn);
 
-#ifndef IS_OSS
-  bool MatchAndExplain(
-      const TxPacketPtr& pkt,
-      ::testing::MatchResultListener* l) const override;
+// TODO(T69712535): Remove old googletest code
+#if defined(MOCK_METHOD)
+  using GMTxPacketPtr = TxPacketPtr;
 #else
-  bool MatchAndExplain(TxPacketPtr pkt, ::testing::MatchResultListener* l)
-      const override;
+  using GMTxPacketPtr = const TxPacketPtr&;
 #endif
+
+  bool MatchAndExplain(GMTxPacketPtr pkt, ::testing::MatchResultListener* l)
+      const override;
 
   void DescribeTo(std::ostream* os) const override;
   void DescribeNegationTo(std::ostream* os) const override;
@@ -368,14 +369,14 @@ class RxPacketMatcher : public ::testing::MatcherInterface<RxMatchFnArgs> {
   static ::testing::Matcher<RxMatchFnArgs>
   createMatcher(folly::StringPiece name, InterfaceID dstIfID, RxMatchFn&& fn);
 
-#ifndef IS_OSS
-  bool MatchAndExplain(
-      const RxMatchFnArgs& args,
-      ::testing::MatchResultListener* l) const override;
+// TODO(T69712535): Remove old googletest code
+#if defined(MOCK_METHOD)
+  using GMRxMatchFnArgs = RxMatchFnArgs;
 #else
-  bool MatchAndExplain(RxMatchFnArgs args, ::testing::MatchResultListener* l)
-      const override;
+  using GMRxMatchFnArgs = RxMatchFnArgs const&;
 #endif
+  bool MatchAndExplain(GMRxMatchFnArgs args, ::testing::MatchResultListener* l)
+      const override;
 
   void DescribeTo(std::ostream* os) const override;
   void DescribeNegationTo(std::ostream* os) const override;
