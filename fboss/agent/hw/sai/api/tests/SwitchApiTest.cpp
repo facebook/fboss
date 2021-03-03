@@ -295,23 +295,23 @@ TEST_F(SwitchApiTest, setDstUserMetaDataRange) {
       SaiApiError);
 }
 
-TEST_F(SwitchApiTest, getEcnEctThresholdEnable) {
+TEST_F(SwitchApiTest, getUseEcnThresholds) {
   EXPECT_FALSE(switchApi->getAttribute(
-      switchId, SaiSwitchTraits::Attributes::EcnEctThresholdEnable()));
+      switchId, SaiSwitchTraits::Attributes::UseEcnThresholds()));
 }
 
-TEST_F(SwitchApiTest, setEcnEctThresholdEnable) {
+TEST_F(SwitchApiTest, setUseEcnThresholds) {
   switchApi->setAttribute(
-      switchId, SaiSwitchTraits::Attributes::EcnEctThresholdEnable{true});
+      switchId, SaiSwitchTraits::Attributes::UseEcnThresholds{true});
 
   EXPECT_TRUE(switchApi->getAttribute(
-      switchId, SaiSwitchTraits::Attributes::EcnEctThresholdEnable()));
+      switchId, SaiSwitchTraits::Attributes::UseEcnThresholds()));
 
   switchApi->setAttribute(
-      switchId, SaiSwitchTraits::Attributes::EcnEctThresholdEnable{false});
+      switchId, SaiSwitchTraits::Attributes::UseEcnThresholds{false});
 
   EXPECT_FALSE(switchApi->getAttribute(
-      switchId, SaiSwitchTraits::Attributes::EcnEctThresholdEnable{}));
+      switchId, SaiSwitchTraits::Attributes::UseEcnThresholds{}));
 }
 
 TEST_F(SwitchApiTest, ExtensionAttributes) {

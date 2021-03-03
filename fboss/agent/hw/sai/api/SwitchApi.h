@@ -36,14 +36,21 @@ struct SaiSwitchTraits {
   using SaiApiT = SwitchApi;
   struct Attributes {
     using EnumType = sai_switch_attr_t;
-    using CpuPort =
-        SaiAttribute<EnumType, SAI_SWITCH_ATTR_CPU_PORT, SaiObjectIdT>;
+    using CpuPort = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_CPU_PORT,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
     using DefaultVirtualRouterId = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_DEFAULT_VIRTUAL_ROUTER_ID,
-        SaiObjectIdT>;
-    using DefaultVlanId =
-        SaiAttribute<EnumType, SAI_SWITCH_ATTR_DEFAULT_VLAN_ID, SaiObjectIdT>;
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
+    using DefaultVlanId = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_DEFAULT_VLAN_ID,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
     using PortNumber =
         SaiAttribute<EnumType, SAI_SWITCH_ATTR_PORT_NUMBER, sai_uint32_t>;
     using PortList = SaiAttribute<
@@ -53,63 +60,94 @@ struct SaiSwitchTraits {
     using SrcMac = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_SRC_MAC_ADDRESS,
-        folly::MacAddress>;
+        folly::MacAddress,
+        SaiMacAddressDefault>;
     using HwInfo = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_SWITCH_HARDWARE_INFO,
-        std::vector<int8_t>>;
+        std::vector<int8_t>,
+        SaiS8ListDefault>;
     using Default1QBridgeId = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_DEFAULT_1Q_BRIDGE_ID,
-        SaiObjectIdT>;
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
     using InitSwitch =
         SaiAttribute<EnumType, SAI_SWITCH_ATTR_INIT_SWITCH, bool>;
     using MaxNumberOfSupportedPorts = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_MAX_NUMBER_OF_SUPPORTED_PORTS,
         sai_uint32_t>;
-    using SwitchShellEnable =
-        SaiAttribute<EnumType, SAI_SWITCH_ATTR_SWITCH_SHELL_ENABLE, bool>;
+    using SwitchShellEnable = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_SWITCH_SHELL_ENABLE,
+        bool,
+        SaiBoolDefaultFalse>;
     using NumberOfUnicastQueues = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_NUMBER_OF_UNICAST_QUEUES,
-        sai_uint32_t>;
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
     using NumberOfMulticastQueues = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_NUMBER_OF_MULTICAST_QUEUES,
-        sai_uint32_t>;
-    using NumberOfQueues =
-        SaiAttribute<EnumType, SAI_SWITCH_ATTR_NUMBER_OF_QUEUES, sai_uint32_t>;
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
+    using NumberOfQueues = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_NUMBER_OF_QUEUES,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
     using NumberOfCpuQueues = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_NUMBER_OF_CPU_QUEUES,
-        sai_uint32_t>;
-    using EcmpHash =
-        SaiAttribute<EnumType, SAI_SWITCH_ATTR_ECMP_HASH, SaiObjectIdT>;
-    using LagHash =
-        SaiAttribute<EnumType, SAI_SWITCH_ATTR_LAG_HASH, SaiObjectIdT>;
-    using EcmpHashV4 =
-        SaiAttribute<EnumType, SAI_SWITCH_ATTR_ECMP_HASH_IPV4, SaiObjectIdT>;
-    using EcmpHashV6 =
-        SaiAttribute<EnumType, SAI_SWITCH_ATTR_ECMP_HASH_IPV6, SaiObjectIdT>;
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
+    using EcmpHash = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_ECMP_HASH,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
+    using LagHash = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_LAG_HASH,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
+    using EcmpHashV4 = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_ECMP_HASH_IPV4,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
+    using EcmpHashV6 = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_ECMP_HASH_IPV6,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
     using EcmpDefaultHashSeed = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_ECMP_DEFAULT_HASH_SEED,
-        sai_uint32_t>;
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
     using LagDefaultHashSeed = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_LAG_DEFAULT_HASH_SEED,
-        sai_uint32_t>;
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
     using EcmpDefaultHashAlgorithm = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_ECMP_DEFAULT_HASH_ALGORITHM,
-        int32_t>;
+        int32_t,
+        SaiIntDefault<int32_t>>;
     using LagDefaultHashAlgorithm = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_LAG_DEFAULT_HASH_ALGORITHM,
-        int32_t>;
-    using SwitchRestartWarm =
-        SaiAttribute<EnumType, SAI_SWITCH_ATTR_RESTART_WARM, bool>;
+        int32_t,
+        SaiIntDefault<int32_t>>;
+    using SwitchRestartWarm = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_RESTART_WARM,
+        bool,
+        SaiBoolDefaultFalse>;
     using QosDscpToTcMap = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_QOS_DSCP_TO_TC_MAP,
@@ -128,54 +166,66 @@ struct SaiSwitchTraits {
         EnumType,
         SAI_SWITCH_ATTR_ACL_ENTRY_MAXIMUM_PRIORITY,
         sai_uint32_t>;
-    using MacAgingTime =
-        SaiAttribute<EnumType, SAI_SWITCH_ATTR_FDB_AGING_TIME, sai_uint32_t>;
+    using MacAgingTime = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_FDB_AGING_TIME,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
     using FdbDstUserMetaDataRange = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_FDB_DST_USER_META_DATA_RANGE,
-        sai_u32_range_t>;
+        sai_u32_range_t,
+        SaiIntRangeDefault<sai_u32_range_t>>;
     using RouteDstUserMetaDataRange = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_ROUTE_DST_USER_META_DATA_RANGE,
-        sai_u32_range_t>;
+        sai_u32_range_t,
+        SaiIntRangeDefault<sai_u32_range_t>>;
     using NeighborDstUserMetaDataRange = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_NEIGHBOR_DST_USER_META_DATA_RANGE,
-        sai_u32_range_t>;
-    using EcnEctThresholdEnable =
-        SaiAttribute<EnumType, SAI_SWITCH_ATTR_ECN_ECT_THRESHOLD_ENABLE, bool>;
+        sai_u32_range_t,
+        SaiIntRangeDefault<sai_u32_range_t>>;
     using AvailableIpv4RouteEntry = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_AVAILABLE_IPV4_ROUTE_ENTRY,
-        sai_uint32_t>;
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
     using AvailableIpv6RouteEntry = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_AVAILABLE_IPV6_ROUTE_ENTRY,
-        sai_uint32_t>;
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
     using AvailableIpv4NextHopEntry = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_AVAILABLE_IPV4_NEXTHOP_ENTRY,
-        sai_uint32_t>;
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
     using AvailableIpv6NextHopEntry = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_AVAILABLE_IPV6_NEXTHOP_ENTRY,
-        sai_uint32_t>;
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
     using AvailableNextHopGroupEntry = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_AVAILABLE_NEXT_HOP_GROUP_ENTRY,
-        sai_uint32_t>;
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
     using AvailableNextHopGroupMemberEntry = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_AVAILABLE_NEXT_HOP_GROUP_MEMBER_ENTRY,
-        sai_uint32_t>;
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
     using AvailableIpv4NeighborEntry = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_AVAILABLE_IPV4_NEIGHBOR_ENTRY,
-        sai_uint32_t>;
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
     using AvailableIpv6NeighborEntry = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_AVAILABLE_IPV6_NEIGHBOR_ENTRY,
-        sai_uint32_t>;
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
     using IngressAcl = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_INGRESS_ACL,
@@ -381,7 +431,6 @@ SAI_ATTRIBUTE_NAME(Switch, AclEntryMinimumPriority)
 SAI_ATTRIBUTE_NAME(Switch, AclEntryMaximumPriority)
 
 SAI_ATTRIBUTE_NAME(Switch, MacAgingTime)
-SAI_ATTRIBUTE_NAME(Switch, EcnEctThresholdEnable)
 
 SAI_ATTRIBUTE_NAME(Switch, FdbDstUserMetaDataRange)
 SAI_ATTRIBUTE_NAME(Switch, RouteDstUserMetaDataRange)

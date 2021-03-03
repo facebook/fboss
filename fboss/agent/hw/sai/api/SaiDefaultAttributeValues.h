@@ -13,6 +13,8 @@
 #include "fboss/agent/hw/sai/api/Traits.h"
 #include "fboss/agent/hw/sai/api/Types.h"
 
+#include <folly/MacAddress.h>
+
 extern "C" {
 #include <sai.h>
 }
@@ -52,6 +54,19 @@ struct SaiBoolDefaultTrue {
 struct SaiPortInterfaceTypeDefault {
   sai_port_interface_type_t operator()() const {
     return SAI_PORT_INTERFACE_TYPE_NONE;
+  }
+};
+
+struct SaiMacAddressDefault {
+  folly::MacAddress operator()() const {
+    return folly::MacAddress{};
+  }
+};
+
+template <typename SaiIntRangeT>
+struct SaiIntRangeDefault {
+  SaiIntRangeT operator()() const {
+    return {0, 0};
   }
 };
 

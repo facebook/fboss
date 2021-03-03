@@ -43,27 +43,41 @@ struct SaiPortTraits {
     using QosNumberOfQueues = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_QOS_NUMBER_OF_QUEUES,
-        sai_uint32_t>;
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
     using QosQueueList = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_QOS_QUEUE_LIST,
-        std::vector<sai_object_id_t>>;
+        std::vector<sai_object_id_t>,
+        SaiObjectIdListDefault>;
     using FecMode = SaiAttribute<EnumType, SAI_PORT_ATTR_FEC_MODE, sai_int32_t>;
     using OperStatus =
         SaiAttribute<EnumType, SAI_PORT_ATTR_OPER_STATUS, sai_int32_t>;
     using InternalLoopbackMode = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_INTERNAL_LOOPBACK_MODE,
-        sai_int32_t>;
-    using MediaType =
-        SaiAttribute<EnumType, SAI_PORT_ATTR_MEDIA_TYPE, sai_int32_t>;
+        sai_int32_t,
+        SaiIntDefault<sai_int32_t>>;
+    using MediaType = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_MEDIA_TYPE,
+        sai_int32_t,
+        SaiIntDefault<sai_int32_t>>;
     using GlobalFlowControlMode = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_GLOBAL_FLOW_CONTROL_MODE,
-        sai_int32_t>;
-    using PortVlanId =
-        SaiAttribute<EnumType, SAI_PORT_ATTR_PORT_VLAN_ID, sai_uint16_t>;
-    using Mtu = SaiAttribute<EnumType, SAI_PORT_ATTR_MTU, sai_uint32_t>;
+        sai_int32_t,
+        SaiIntDefault<sai_int32_t>>;
+    using PortVlanId = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_PORT_VLAN_ID,
+        sai_uint16_t,
+        SaiIntDefault<sai_uint16_t>>;
+    using Mtu = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_MTU,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
     using QosDscpToTcMap = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_QOS_DSCP_TO_TC_MAP,
@@ -101,11 +115,13 @@ struct SaiPortTraits {
     using IngressMirrorSession = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_INGRESS_MIRROR_SESSION,
-        std::vector<sai_object_id_t>>;
+        std::vector<sai_object_id_t>,
+        SaiObjectIdListDefault>;
     using EgressMirrorSession = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_EGRESS_MIRROR_SESSION,
-        std::vector<sai_object_id_t>>;
+        std::vector<sai_object_id_t>,
+        SaiObjectIdListDefault>;
     using IngressSamplePacketEnable = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_INGRESS_SAMPLEPACKET_ENABLE,
@@ -221,7 +237,8 @@ struct SaiPortSerdesTraits {
     using Preemphasis = SaiAttribute<
         EnumType,
         SAI_PORT_SERDES_ATTR_PREEMPHASIS,
-        std::vector<uint32_t>>;
+        std::vector<uint32_t>,
+        SaiU32ListDefault>;
     using IDriver = SaiAttribute<
         EnumType,
         SAI_PORT_SERDES_ATTR_IDRIVER,

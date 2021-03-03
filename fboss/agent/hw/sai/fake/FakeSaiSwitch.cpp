@@ -183,7 +183,7 @@ sai_status_t set_switch_attribute_fn(
       sw.setMacAgingTime(attr->value.u32);
       break;
     case SAI_SWITCH_ATTR_ECN_ECT_THRESHOLD_ENABLE:
-      sw.setEcnEctThresholdEnable(attr->value.booldata);
+      sw.setUseEcnThresholds(attr->value.booldata);
       break;
     case SAI_SWITCH_ATTR_INGRESS_ACL:
       sw.setIngressAcl(attr->value.oid);
@@ -385,7 +385,7 @@ sai_status_t get_switch_attribute_fn(
         attr[i].value.u32range.max = kDefaultNeighborDstUserMetaDataRangeMax;
         break;
       case SAI_SWITCH_ATTR_ECN_ECT_THRESHOLD_ENABLE:
-        attr[i].value.booldata = sw.getEcnEctThresholdEnable();
+        attr[i].value.booldata = sw.getUseEcnThresholds();
         break;
       case SAI_SWITCH_ATTR_EXT_FAKE_LED:
       case SAI_SWITCH_ATTR_EXT_FAKE_LED_RESET:

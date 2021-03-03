@@ -190,11 +190,11 @@ class FakeSwitch {
   void setMacAgingTime(sai_uint32_t time) {
     macAgingTime_ = time;
   }
-  void setEcnEctThresholdEnable(bool enabled) {
-    ecnEctThresholdEnable_ = enabled;
+  void setUseEcnThresholds(bool enabled) {
+    UseEcnThresholds_ = enabled;
   }
-  bool getEcnEctThresholdEnable() {
-    return ecnEctThresholdEnable_;
+  bool getUseEcnThresholds() {
+    return UseEcnThresholds_;
   }
   sai_object_id_t getIngressAcl() {
     return ingressAcl_;
@@ -237,7 +237,7 @@ class FakeSwitch {
   std::vector<int8_t> hwInfo_;
   bool restartWarm_{false};
   sai_uint32_t macAgingTime_{0};
-  bool ecnEctThresholdEnable_{false};
+  bool UseEcnThresholds_{false};
   sai_object_id_t ingressAcl_{SAI_NULL_OBJECT_ID};
   struct FakeSwitchLedState {
     bool reset{};
