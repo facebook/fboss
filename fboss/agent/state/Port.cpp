@@ -43,23 +43,12 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
   PortFields port(PortID(portThrift.portId), portThrift.portName);
   port.description = *portThrift.portDescription_ref();
 
-  // For backwards compatibility, we still need the ability to read in
-  // both possible names for the admin port state. The production agent
-  // still writes out POWER_DOWN/UP instead of DISABLED/ENABLED. After
-  // another release, where we only write ENABLED/DISABLED we can get rid
-  // of this and use the NAMES_TO_VALUES map directly.
-  std::unordered_map<std::string, cfg::PortState> transitionAdminStateMap{
-      {"DISABLED", cfg::PortState::DISABLED},
-      {"POWER_DOWN", cfg::PortState::DISABLED},
-      {"DOWN", cfg::PortState::DISABLED},
-      {"ENABLED", cfg::PortState::ENABLED},
-      {"UP", cfg::PortState::ENABLED},
-  };
-  auto itrAdminState =
-      transitionAdminStateMap.find(*portThrift.portState_ref());
-  CHECK(itrAdminState != transitionAdminStateMap.end())
-      << "Invalid port state: " << *portThrift.portState_ref();
-  port.adminState = itrAdminState->second;
+  cfg::PortState portState;
+  if (!TEnumTraits<cfg::PortState>::findValue(
+          portThrift.portState_ref()->c_str(), &portState)) {
+    CHECK(false) << "Invalid port state: " << *portThrift.portState_ref();
+  }
+  port.adminState = portState;
 
   port.operState = OperState(*portThrift.portOperState_ref());
   port.ingressVlan = VlanID(*portThrift.ingressVlan_ref());
