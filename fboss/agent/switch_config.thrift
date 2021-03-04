@@ -818,6 +818,12 @@ struct Port {
   24: PortProfileID profileID = PortProfileID.PROFILE_DEFAULT
 
   25: optional PortPfc pfc
+
+  /*
+   * Counter tags associated with this port, useful to support
+   * pre-aggregated ODS counters
+   */
+  26: optional list<string> counterTags
 }
 
 enum LacpPortRate {
@@ -859,6 +865,12 @@ struct AggregatePort {
   3: string description
   4: list<AggregatePortMember> memberPorts
   5: MinimumCapacity minimumCapacity = ALL_LINKS
+
+  /*
+   * Counter tags associated with this port, useful to support
+   * pre-aggregated ODS counters
+   */
+  6: optional list<string> counterTags
 }
 
 struct Lacp {
