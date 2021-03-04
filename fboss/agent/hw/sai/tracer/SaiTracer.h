@@ -378,4 +378,56 @@ class SaiTracer {
       uint32_t attr_count,                       \
       std::vector<std::string>& attrLines);
 
+#define WRAP_CREATE_FUNC(obj_type, sai_obj_type, api_type)                 \
+  sai_status_t wrap_create_##obj_type(                                     \
+      sai_object_id_t* obj_type##_id,                                      \
+      sai_object_id_t switch_id,                                           \
+      uint32_t attr_count,                                                 \
+      const sai_attribute_t* attr_list) {                                  \
+    auto rv = SaiTracer::getInstance()->api_type##Api_->create_##obj_type( \
+        obj_type##_id, switch_id, attr_count, attr_list);                  \
+                                                                           \
+    SaiTracer::getInstance()->logCreateFn(                                 \
+        "create_" #obj_type,                                               \
+        obj_type##_id,                                                     \
+        switch_id,                                                         \
+        attr_count,                                                        \
+        attr_list,                                                         \
+        sai_obj_type,                                                      \
+        rv);                                                               \
+    return rv;                                                             \
+  }
+
+#define WRAP_REMOVE_FUNC(obj_type, sai_obj_type, api_type)                 \
+  sai_status_t wrap_remove_##obj_type(sai_object_id_t obj_type##_id) {     \
+    auto rv = SaiTracer::getInstance()->api_type##Api_->remove_##obj_type( \
+        obj_type##_id);                                                    \
+                                                                           \
+    SaiTracer::getInstance()->logRemoveFn(                                 \
+        "remove_" #obj_type, obj_type##_id, sai_obj_type, rv);             \
+    return rv;                                                             \
+  }
+
+#define WRAP_SET_ATTR_FUNC(obj_type, sai_obj_type, api_type)                   \
+  sai_status_t wrap_set_##obj_type##_attribute(                                \
+      sai_object_id_t obj_type##_id, const sai_attribute_t* attr) {            \
+    auto rv =                                                                  \
+        SaiTracer::getInstance()->api_type##Api_->set_##obj_type##_attribute(  \
+            obj_type##_id, attr);                                              \
+                                                                               \
+    SaiTracer::getInstance()->logSetAttrFn(                                    \
+        "set_" #obj_type "_attribute", obj_type##_id, attr, sai_obj_type, rv); \
+    return rv;                                                                 \
+  }
+
+#define WRAP_GET_ATTR_FUNC(obj_type, sai_obj_type, api_type) \
+  sai_status_t wrap_get_##obj_type##_attribute(              \
+      sai_object_id_t obj_type##_id,                         \
+      uint32_t attr_count,                                   \
+      sai_attribute_t* attr_list) {                          \
+    return SaiTracer::getInstance()                          \
+        ->api_type##Api_->get_##obj_type##_attribute(        \
+            obj_type##_id, attr_count, attr_list);           \
+  }
+
 } // namespace facebook::fboss
