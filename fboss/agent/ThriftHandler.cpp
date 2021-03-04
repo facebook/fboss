@@ -299,13 +299,6 @@ void getPortInfoHelper(
   *portInfo.operState_ref() =
       PortOperState(port->getOperState() == Port::OperState::UP);
 
-  // NOTE: this is not 100% accurate on some platforms (mainly
-  // Backpack). We will replace with better logic as we add support
-  // for new fec types and move over to platform config. We *COULD*
-  // hit hardware to ask for this information, but that can lead to
-  // interesting failure modes (see T65569157)
-  *portInfo.fecEnabled_ref() = port->getFEC() != cfg::PortFEC::OFF;
-  *portInfo.fecMode_ref() = apache::thrift::util::enumName(port->getFEC());
   *portInfo.profileID_ref() =
       apache::thrift::util::enumName(port->getProfileID());
 
@@ -318,6 +311,10 @@ void getPortInfoHelper(
     hw.pinConfig_ref() = platformPort->getPortPinConfigs(*hw.profile_ref());
     hw.chips_ref() = platformPort->getPortDataplaneChips(*hw.profile_ref());
     portInfo.hw_ref() = hw;
+
+    auto fec = hw.profileConfig_ref()->iphy_ref()->fec_ref().value();
+    portInfo.fecEnabled_ref() = fec != phy::FecMode::NONE;
+    portInfo.fecMode_ref() = apache::thrift::util::enumName(fec);
   }
 
   auto pause = port->getPause();

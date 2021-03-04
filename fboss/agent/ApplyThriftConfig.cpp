@@ -1240,8 +1240,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       newSampleDest == orig->getSampleDestination() &&
       portConf->name_ref().value_or({}) == orig->getName() &&
       portConf->description_ref().value_or({}) == orig->getDescription() &&
-      vlans == orig->getVlans() && *portConf->fec_ref() == orig->getFEC() &&
-      queuesUnchanged && portPgConfigUnchanged &&
+      vlans == orig->getVlans() && queuesUnchanged && portPgConfigUnchanged &&
       *portConf->loopbackMode_ref() == orig->getLoopbackMode() &&
       mirrorsUnChanged && newQosPolicy == orig->getQosPolicy() &&
       *portConf->expectedLLDPValues_ref() == orig->getLLDPValidations() &&
@@ -1268,7 +1267,6 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->setSampleDestination(newSampleDest);
   newPort->setName(portConf->name_ref().value_or({}));
   newPort->setDescription(portConf->description_ref().value_or({}));
-  newPort->setFEC(*portConf->fec_ref());
   newPort->setLoopbackMode(*portConf->loopbackMode_ref());
   newPort->resetPortQueues(portQueues);
   newPort->setIngressMirror(newIngressMirror);

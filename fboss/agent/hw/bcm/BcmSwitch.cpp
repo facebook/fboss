@@ -1419,9 +1419,6 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
             (oldPort->getSflowEgressRate() != newPort->getSflowEgressRate());
         XLOG_IF(DBG1, sFlowChanged) << "New sFlow settings on port " << id;
 
-        auto fecChanged = oldPort->getFEC() != newPort->getFEC();
-        XLOG_IF(DBG1, fecChanged) << "New FEC settings on port " << id;
-
         auto loopbackChanged =
             oldPort->getLoopbackMode() != newPort->getLoopbackMode();
         XLOG_IF(DBG1, loopbackChanged)
@@ -1451,7 +1448,7 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
         XLOG_IF(DBG1, pgCfgChanged) << "New pg config settings on port " << id;
 
         if (speedChanged || profileIDChanged || vlanChanged || pauseChanged ||
-            sFlowChanged || fecChanged || loopbackChanged || mirrorChanged ||
+            sFlowChanged || loopbackChanged || mirrorChanged ||
             qosPolicyChanged || nameChanged || asicPrbsChanged || pfcChanged ||
             pgCfgChanged) {
           bcmPort->program(newPort);

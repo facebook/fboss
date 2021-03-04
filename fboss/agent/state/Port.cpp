@@ -75,13 +75,6 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
     port.profileID = portProfileID;
   }
 
-  cfg::PortFEC portFEC;
-  if (!TEnumTraits<cfg::PortFEC>::findValue(
-          portThrift.portFEC_ref()->c_str(), &portFEC)) {
-    CHECK(false) << "Unexpected FEC value: " << *portThrift.portFEC_ref();
-  }
-  port.fec = portFEC;
-
   if (portThrift.portLoopbackMode_ref()->empty()) {
     // Backward compatibility for when we were not serializing loopback mode
     port.loopbackMode = cfg::PortLoopbackMode::NONE;
@@ -177,11 +170,8 @@ state::PortFields PortFields::toThrift() const {
 
   *port.portProfileID_ref() = apache::thrift::util::enumNameSafe(profileID);
 
-  auto fecName = apache::thrift::util::enumName(fec);
-  if (fecName == nullptr) {
-    CHECK(false) << "Unexpected port FEC: " << static_cast<int>(fec);
-  }
-  *port.portFEC_ref() = fecName;
+  // TODO: remove this after next version is pushed
+  port.portFEC_ref() = "OFF";
 
   auto loopbackModeName = apache::thrift::util::enumName(loopbackMode);
   if (loopbackModeName == nullptr) {

@@ -80,7 +80,6 @@ struct PortFields {
   std::optional<cfg::SampleDestination> sampleDest;
   QueueConfig queues;
   std::optional<PortPgConfigs> pgConfigs;
-  cfg::PortFEC fec{cfg::PortFEC::OFF}; // TODO: should this default to ON?
   cfg::PortLoopbackMode loopbackMode{cfg::PortLoopbackMode::NONE};
   std::optional<std::string> ingressMirror;
   std::optional<std::string> egressMirror;
@@ -246,13 +245,6 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
   }
   void setMaxFrameSize(int32_t maxFrameSize) {
     writableFields()->maxFrameSize = maxFrameSize;
-  }
-
-  cfg::PortFEC getFEC() const {
-    return getFields()->fec;
-  }
-  void setFEC(cfg::PortFEC fec) {
-    writableFields()->fec = fec;
   }
 
   cfg::PortLoopbackMode getLoopbackMode() const {

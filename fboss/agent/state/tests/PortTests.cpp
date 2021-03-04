@@ -295,7 +295,6 @@ TEST(Port, ToFromJSON) {
   EXPECT_EQ(VlanID(2000), port->getIngressVlan());
   EXPECT_EQ(cfg::PortSpeed::XG, port->getSpeed());
   EXPECT_EQ(cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC, port->getProfileID());
-  EXPECT_EQ(cfg::PortFEC::OFF, port->getFEC());
   EXPECT_TRUE(*port->getPause().tx_ref());
   EXPECT_EQ(cfg::PortLoopbackMode::PHY, port->getLoopbackMode());
   EXPECT_TRUE(port->getSampleDestination().has_value());
@@ -587,7 +586,6 @@ TEST(Port, ToFromJSONLoopbackModeMissingFromJson) {
   EXPECT_EQ(VlanID(2000), port->getIngressVlan());
   EXPECT_EQ(cfg::PortSpeed::XG, port->getSpeed());
   EXPECT_EQ(cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC, port->getProfileID());
-  EXPECT_EQ(cfg::PortFEC::OFF, port->getFEC());
   EXPECT_TRUE(*port->getPause().tx_ref());
   EXPECT_EQ(cfg::PortLoopbackMode::NONE, port->getLoopbackMode());
 
