@@ -78,7 +78,6 @@ class QsfpModule : public Transceiver {
 
   virtual void refresh() override;
   folly::Future<folly::Unit> futureRefresh() override;
-  void refreshLocked();
 
   /*
    * Customize QSPF fields as necessary
@@ -241,8 +240,8 @@ class QsfpModule : public Transceiver {
   time_t lastCustomizeTime_{0};
   time_t lastRemediateTime_{0};
 
-  // last time we know transceiver was working because at least one port was up
-  time_t lastWorkingTime_{0};
+  // last time we know that no port was up on this transceiver.
+  time_t lastDownTime_{0};
 
   // This is a map of system level port id to the local port id inside the
   // module. The local port id is used to identify the Port State Machine
@@ -459,6 +458,7 @@ class QsfpModule : public Transceiver {
   unsigned int numMediaLanes_{4};
 
  private:
+  void refreshLocked();
   /*
    * Perform a raw register read on the transceiver
    * This must be called with a lock held on qsfpModuleMutex_

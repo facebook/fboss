@@ -31,7 +31,7 @@ DEFINE_int32(
     "minimum interval between customizing the same down port twice");
 DEFINE_int32(
     remediate_interval,
-    300,
+    360,
     "seconds between running more destructive remediations on down ports");
 DEFINE_int32(
     initial_remediate_interval,
@@ -95,12 +95,11 @@ QsfpModule::QsfpModule(
       portsPerTransceiver_(portsPerTransceiver) {
   CHECK_GT(portsPerTransceiver_, 0);
 
-  // set last up time to be current time since we don't know if the
-  // port was up before we just restarted.
-  // Setting up the last working time as current time minus 3 mins so
-  // that the first remediation takes pace 2 minutes from now and the
-  // subsequent remediation takes places every 5 minutes if needed.
-  lastWorkingTime_ = std::time(nullptr) -
+  // Setting up the last down time as current time minus the difference
+  // between remediate_interval and initial_remediate_interval so
+  // that the first remediation takes place initial_remediate_interval from now
+  // and the subsequent remediation takes places every remediate_interval.
+  lastDownTime_ = std::time(nullptr) -
       (FLAGS_remediate_interval - FLAGS_initial_remediate_interval);
 
   // Keeping the QsfpModule object raw pointer inside the Module State Machine
@@ -356,10 +355,9 @@ void QsfpModule::transceiverPortsChanged(
 
   if (safeToCustomize()) {
     needsCustomization_ = true;
-  } else {
-    // Since we don't have positive confirmation all ports are down,
-    // update the lastWorkingTime_ to now.
-    lastWorkingTime_ = std::time(nullptr);
+    // safetocustomize helped confirmed that no port was up for this
+    // transceiver. Record the time for future references.
+    lastDownTime_ = std::time(nullptr);
   }
 
   if (dirty_) {
@@ -484,8 +482,12 @@ bool QsfpModule::shouldRemediate(time_t cooldown) {
   }
   bool remediationEnabled =
       now > transceiverManager_->getPauseRemediationUntil();
+  // Rather than immediately attempting to remediate a module,
+  // we would like to introduce a bit delay to de-couple the consequences
+  // of a remediation with the root cause that brought down the link.
+  // This is an effort to help with debugging.
   bool remediationCooled =
-      now - std::max(lastWorkingTime_, lastRemediateTime_) > cooldown;
+      now - std::max(lastDownTime_, lastRemediateTime_) > cooldown;
   return remediationEnabled && remediationCooled;
 }
 
