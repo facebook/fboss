@@ -159,9 +159,10 @@ class SaiTracer {
   sai_samplepacket_api_t* samplepacketApi_;
   sai_scheduler_api_t* schedulerApi_;
   sai_switch_api_t* switchApi_;
+  sai_tam_api_t* tamApi_;
   sai_virtual_router_api_t* virtualRouterApi_;
   sai_vlan_api_t* vlanApi_;
-  sai_tam_api_t* tamApi_;
+  sai_wred_api_t* wredApi_;
 
   std::map<sai_api_t, std::string> init_api_;
 
@@ -305,7 +306,8 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_TAM, "tam_api->"},
       {SAI_OBJECT_TYPE_VIRTUAL_ROUTER, "virtual_router_api->"},
       {SAI_OBJECT_TYPE_VLAN, "vlan_api->"},
-      {SAI_OBJECT_TYPE_VLAN_MEMBER, "vlan_api->"}};
+      {SAI_OBJECT_TYPE_VLAN_MEMBER, "vlan_api->"},
+      {SAI_OBJECT_TYPE_WRED, "wred_api->"}};
 
   const char* cpp_header_ =
       "/*\n"

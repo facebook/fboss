@@ -38,6 +38,7 @@
 #include "fboss/agent/hw/sai/tracer/TamApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/VirtualRouterApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/VlanApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/WredApiTracer.h"
 
 #include <folly/FileUtil.h>
 #include <folly/MacAddress.h>
@@ -175,6 +176,12 @@ sai_status_t __wrap_sai_api_query(
       *api_method_table = facebook::fboss::wrappedHostifApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "hostif_api");
       break;
+    case SAI_API_LAG:
+      SaiTracer::getInstance()->lagApi_ =
+          static_cast<sai_lag_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrappedLagApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "lag_api");
+      break;
     case SAI_API_MIRROR:
       SaiTracer::getInstance()->mirrorApi_ =
           static_cast<sai_mirror_api_t*>(*api_method_table);
@@ -253,6 +260,12 @@ sai_status_t __wrap_sai_api_query(
       *api_method_table = facebook::fboss::wrappedSwitchApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "switch_api");
       break;
+    case SAI_API_TAM:
+      SaiTracer::getInstance()->tamApi_ =
+          static_cast<sai_tam_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrappedTamApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "tam_api");
+      break;
     case SAI_API_VIRTUAL_ROUTER:
       SaiTracer::getInstance()->virtualRouterApi_ =
           static_cast<sai_virtual_router_api_t*>(*api_method_table);
@@ -265,17 +278,11 @@ sai_status_t __wrap_sai_api_query(
       *api_method_table = facebook::fboss::wrappedVlanApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "vlan_api");
       break;
-    case SAI_API_TAM:
-      SaiTracer::getInstance()->tamApi_ =
-          static_cast<sai_tam_api_t*>(*api_method_table);
-      *api_method_table = facebook::fboss::wrappedTamApi();
-      SaiTracer::getInstance()->logApiQuery(sai_api_id, "tam_api");
-      break;
-    case SAI_API_LAG:
-      SaiTracer::getInstance()->lagApi_ =
-          static_cast<sai_lag_api_t*>(*api_method_table);
-      *api_method_table = facebook::fboss::wrappedLagApi();
-      SaiTracer::getInstance()->logApiQuery(sai_api_id, "lag_api");
+    case SAI_API_WRED:
+      SaiTracer::getInstance()->wredApi_ =
+          static_cast<sai_wred_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrappedWredApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "wred_api");
       break;
     default:
       // TODO: For other APIs, create new API wrappers and invoke wrappedApi()
@@ -1114,6 +1121,9 @@ vector<string> SaiTracer::setAttrList(
       break;
     case SAI_OBJECT_TYPE_VLAN_MEMBER:
       setVlanMemberAttributes(attr_list, attr_count, attrLines);
+      break;
+    case SAI_OBJECT_TYPE_WRED:
+      setWredAttributes(attr_list, attr_count, attrLines);
       break;
     default:
       // TODO: For other APIs, create new API wrappers and invoke
