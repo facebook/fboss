@@ -188,9 +188,6 @@ state::PortFields PortFields::toThrift() const {
 
   *port.portProfileID_ref() = apache::thrift::util::enumNameSafe(profileID);
 
-  // TODO(aeckert): t24117229 remove this after next version is pushed
-  *port.portMaxSpeed_ref() = *port.portSpeed_ref();
-
   auto fecName = apache::thrift::util::enumName(fec);
   if (fecName == nullptr) {
     CHECK(false) << "Unexpected port FEC: " << static_cast<int>(fec);
