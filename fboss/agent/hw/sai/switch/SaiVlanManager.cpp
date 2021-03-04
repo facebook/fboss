@@ -29,7 +29,14 @@ SaiVlanManager::SaiVlanManager(
     SaiManagerTable* managerTable,
     const SaiPlatform* platform,
     ConcurrentIndices* concurrentIndices)
-    : managerTable_(managerTable), platform_(platform) {}
+    : managerTable_(managerTable), platform_(platform) {
+  // default vlan
+  // TODO(pshaikh): manage default vlan more graciously
+  auto key = managerTable_->switchManager().getDefaultVlanAdapterKey();
+  auto defaultVlan = SaiStore::getInstance()->get<SaiVlanTraits>().reloadObject(
+      VlanSaiId(key));
+  defaultVlan->release();
+}
 
 VlanSaiId SaiVlanManager::addVlan(const std::shared_ptr<Vlan>& swVlan) {
   std::shared_ptr<SaiStore> s = SaiStore::getInstance();
