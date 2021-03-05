@@ -27,6 +27,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sysexits.h>
+#include <dirent.h>
+#include <fstream>
 
 #include <thread>
 #include <vector>
@@ -1004,6 +1006,60 @@ void cmisHostInputLoopback(TransceiverI2CApi* bus, unsigned int port, LoopbackMo
 }
 
 /*
+ * getPidForProcess
+ *
+ * This function returns process id for a given process name. This function
+ * looks into the proc entries and search for the process name in all these
+ * files: /proc/<pid>/cmdline
+ * It will return PID if process is found otherwise -1.
+ */
+int getPidForProcess(std::string proccessName)
+{
+  // Look into the /proc directory
+  DIR *dp = opendir("/proc");
+  if (dp == nullptr) {
+    return -1;
+  }
+
+  // Look for all /proc/<pid>/cmdline to check if anything matches with
+  // input processName
+  struct dirent *dirEntry;
+  while ((dirEntry = readdir(dp))) {
+    int currPid = atoi(dirEntry->d_name);
+    if (currPid <= 0) {
+      // skip non user processes
+      continue;
+    }
+
+    // This is proper user process, read cmdline
+    std::string commandPath = std::string("/proc/") + dirEntry->d_name + "/cmdline";
+    std::ifstream commandFile(commandPath.c_str());
+    std::string commandLine;
+    getline(commandFile, commandLine);
+    if (commandLine.empty()) {
+      continue;
+    }
+
+    // The commandline could be like /tmp/qsfp_service --macsec_bypass
+    // Keep only first word and remove directory names
+    size_t position = commandLine.find('\0');
+    if (position != std::string::npos) {
+      commandLine = commandLine.substr(0, position);
+    }
+    position = commandLine.find('/');
+    if (position != std::string::npos) {
+      commandLine = commandLine.substr(position + 1);
+    }
+
+    // Now compare the process name
+    if (commandLine == proccessName) {
+      return currPid;
+    }
+  }
+  return -1;
+}
+
+/*
  * cliModulefirmwareUpgrade
  *
  * This function does the firmware upgrade on the optics module in the current
@@ -1012,6 +1068,15 @@ void cmisHostInputLoopback(TransceiverI2CApi* bus, unsigned int port, LoopbackMo
  */
 bool cliModulefirmwareUpgrade(
   TransceiverI2CApi* bus, unsigned int port, std::string firmwareFilename) {
+
+  // If the qsfp_service is running then this firmware upgrade command is most
+  // likely to fail. Print warning and returning from here
+  if (getPidForProcess("qsfp_service") > 0) {
+    printf("The qsfp_service seems to be running.\n");
+    printf("The f/w upgrade CLI may not work reliably\n");
+    printf("Consider stopping qsfp_service and re-issue this upgrade command\n");
+    return false;
+  }
 
   // Confirm module type is CMIS
   auto moduleType = getModuleType(bus, port);

@@ -152,4 +152,7 @@ void bucketize(
     std::vector<unsigned int>& modlist,
     int modulesPerController,
     std::vector<std::vector<unsigned int>>& bucket);
+
+int getPidForProcess(std::string proccessName);
+
 } // namespace facebook::fboss
