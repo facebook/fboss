@@ -1008,17 +1008,20 @@ void cmisHostInputLoopback(TransceiverI2CApi* bus, unsigned int port, LoopbackMo
 /*
  * getPidForProcess
  *
- * This function returns process id for a given process name. This function
- * looks into the proc entries and search for the process name in all these
- * files: /proc/<pid>/cmdline
- * It will return PID if process is found otherwise -1.
+ * This function returns process id (or a list of process ids) for a given
+ * process name. This function looks into the proc entries and search for
+ * the process name in all these files: /proc/<pid>/cmdline
+ * It will return list of PID corresponding to the process name. If no such
+ * process found then the return list will be empty.
  */
-int getPidForProcess(std::string proccessName)
+std::vector<int> getPidForProcess(std::string proccessName)
 {
+  std::vector<int> pidList;
+
   // Look into the /proc directory
   DIR *dp = opendir("/proc");
   if (dp == nullptr) {
-    return -1;
+    return pidList;
   }
 
   // Look for all /proc/<pid>/cmdline to check if anything matches with
@@ -1053,10 +1056,11 @@ int getPidForProcess(std::string proccessName)
 
     // Now compare the process name
     if (commandLine == proccessName) {
-      return currPid;
+      pidList.push_back(currPid);
     }
   }
-  return -1;
+  closedir(dp);
+  return pidList;
 }
 
 /*
@@ -1071,7 +1075,8 @@ bool cliModulefirmwareUpgrade(
 
   // If the qsfp_service is running then this firmware upgrade command is most
   // likely to fail. Print warning and returning from here
-  if (getPidForProcess("qsfp_service") > 0) {
+  auto pidList = getPidForProcess("qsfp_service");
+  if (!pidList.empty()) {
     printf("The qsfp_service seems to be running.\n");
     printf("The f/w upgrade CLI may not work reliably\n");
     printf("Consider stopping qsfp_service and re-issue this upgrade command\n");

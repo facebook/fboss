@@ -5,6 +5,7 @@
 #include <folly/Singleton.h>
 #include <folly/logging/xlog.h>
 #include "common/init/Init.h"
+#include <fstream>
 
 using namespace facebook::fboss;
 
@@ -118,6 +119,38 @@ TEST_F(QsfpUtilTest, portBucketize1) {
     XLOG(INFO) << "Iteration " << i;
     ASSERT_EQ(bucket[i], resultBucket[i]);
   }
+}
+
+TEST_F(QsfpUtilTest, CheckProcessName) {
+  // Get command line of this test process
+  int currPid = getpid();
+  std::string commandPath = folly::to<std::string>("/proc/", currPid, "/cmdline");
+  std::ifstream commandFile(commandPath.c_str());
+  std::string commandLine;
+  getline(commandFile, commandLine);
+  ASSERT_NE(commandLine.empty(), true);
+
+  // Command line could  be like /usr/local/bin/buck test @mode/opt....
+  // Extract the command name 'buck' from that
+  size_t position = commandLine.find('\0');
+  if (position != std::string::npos) {
+    commandLine = commandLine.substr(0, position);
+  }
+  position = commandLine.find('/');
+  if (position != std::string::npos) {
+    commandLine = commandLine.substr(position + 1);
+  }
+
+  // Check if the getPidForProcess function returns correct PID for this test
+  // process name
+  auto resultPidList = getPidForProcess(commandLine);
+  bool foundProcess = false;
+  for (auto resultPid : resultPidList) {
+    if (resultPid == currPid) {
+      foundProcess = true;
+    }
+  }
+  ASSERT_EQ(foundProcess, true);
 }
 
 } // namespace fboss
