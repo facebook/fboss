@@ -5,5 +5,12 @@
 #include "fboss/agent/hw/sai/tracer/SaiTracer.h"
 
 namespace facebook::fboss {
+
 sai_tam_api_t* wrappedTamApi();
+
+SET_ATTRIBUTE_FUNC_DECLARATION(Tam);
+SET_ATTRIBUTE_FUNC_DECLARATION(TamEvent);
+SET_ATTRIBUTE_FUNC_DECLARATION(TamEventAction);
+SET_ATTRIBUTE_FUNC_DECLARATION(TamReport);
+
 } // namespace facebook::fboss

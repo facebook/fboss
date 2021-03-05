@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/sai/tracer/TamApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/Utils.h"
 
 namespace facebook::fboss {
 
@@ -51,6 +52,80 @@ sai_tam_api_t* wrappedTamApi() {
   return &tamWrappers;
 }
 
-// TODO(zecheng): Set Tam attributes
+void setTamAttributes(
+    const sai_attribute_t* attr_list,
+    uint32_t attr_count,
+    std::vector<std::string>& attrLines) {
+  uint32_t listCount = 0;
+
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_TAM_ATTR_EVENT_OBJECTS_LIST:
+        oidListAttr(attr_list, i, listCount++, attrLines);
+        break;
+      case SAI_TAM_ATTR_TAM_BIND_POINT_TYPE_LIST:
+        s32ListAttr(attr_list, i, listCount++, attrLines);
+        break;
+      default:
+        // TODO(zecheng): Better check for newly added attributes (T69350100)
+        break;
+    }
+  }
+}
+
+void setTamEventAttributes(
+    const sai_attribute_t* attr_list,
+    uint32_t attr_count,
+    std::vector<std::string>& attrLines) {
+  uint32_t listCount = 0;
+
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      // TODO(zecheng): Handle Tam event extension attribute SwitchEventType
+      case SAI_TAM_EVENT_ATTR_TYPE:
+        attrLines.push_back(s32Attr(attr_list, i));
+        break;
+      case SAI_TAM_EVENT_ATTR_ACTION_LIST:
+      case SAI_TAM_EVENT_ATTR_COLLECTOR_LIST:
+        oidListAttr(attr_list, i, listCount++, attrLines);
+        break;
+      default:
+        // TODO(zecheng): Better check for newly added attributes (T69350100)
+        break;
+    }
+  }
+}
+
+void setTamEventActionAttributes(
+    const sai_attribute_t* attr_list,
+    uint32_t attr_count,
+    std::vector<std::string>& attrLines) {
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_TAM_EVENT_ACTION_ATTR_REPORT_TYPE:
+        attrLines.push_back(oidAttr(attr_list, i));
+        break;
+      default:
+        // TODO(zecheng): Better check for newly added attributes (T69350100)
+        break;
+    }
+  }
+}
+
+void setTamReportAttributes(
+    const sai_attribute_t* attr_list,
+    uint32_t attr_count,
+    std::vector<std::string>& attrLines) {
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_TAM_REPORT_ATTR_TYPE:
+        attrLines.push_back(s32Attr(attr_list, i));
+        break;
+      default:
+        // TODO(zecheng): Better check for newly added attributes (T69350100)
+        break;
+    }
+  }
+}
 
 } // namespace facebook::fboss

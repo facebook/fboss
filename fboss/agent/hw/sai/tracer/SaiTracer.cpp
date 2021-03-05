@@ -1113,6 +1113,18 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_SWITCH:
       setSwitchAttributes(attr_list, attr_count, attrLines);
       break;
+    case SAI_OBJECT_TYPE_TAM:
+      setTamAttributes(attr_list, attr_count, attrLines);
+      break;
+    case SAI_OBJECT_TYPE_TAM_EVENT:
+      setTamEventAttributes(attr_list, attr_count, attrLines);
+      break;
+    case SAI_OBJECT_TYPE_TAM_EVENT_ACTION:
+      setTamEventActionAttributes(attr_list, attr_count, attrLines);
+      break;
+    case SAI_OBJECT_TYPE_TAM_REPORT:
+      setTamReportAttributes(attr_list, attr_count, attrLines);
+      break;
     case SAI_OBJECT_TYPE_VIRTUAL_ROUTER:
       setVirtualRouterAttributes(attr_list, attr_count, attrLines);
       break;
