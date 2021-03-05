@@ -211,8 +211,8 @@ std::optional<TransceiverInfo> PlatformPort::getTransceiverInfo(
   try {
     return std::optional(getFutureTransceiverInfo().getVia(evb));
   } catch (const std::exception& e) {
-    XLOG(ERR) << "Error retrieving TransceiverInfo for transceiver " << *transID
-              << " Exception: " << folly::exceptionStr(e);
+    XLOG(DBG3) << "Error retrieving TransceiverInfo for transceiver "
+               << *transID << " Exception: " << folly::exceptionStr(e);
     return std::nullopt;
   }
 }
