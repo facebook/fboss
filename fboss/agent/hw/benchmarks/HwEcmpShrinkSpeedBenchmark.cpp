@@ -76,6 +76,9 @@ BENCHMARK(HwEcmpGroupShrink) {
     while (getEcmpSizeInHw(
                hwSwitch, prefix, ecmpHelper.getRouterId(), kEcmpWidth) !=
            kEcmpWidth - 1) {
+      // bcm_l3_ecmp_traverse() might get stuck for not getting the mutex taken
+      // by bcm_l3_ecmp_get(). Thus, sleep 1us.
+      usleep(1);
     }
     suspender.rehire();
   }
