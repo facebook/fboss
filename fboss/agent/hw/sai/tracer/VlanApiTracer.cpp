@@ -13,102 +13,15 @@
 
 namespace facebook::fboss {
 
-sai_status_t wrap_create_vlan(
-    sai_object_id_t* vlan_id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  auto rv = SaiTracer::getInstance()->vlanApi_->create_vlan(
-      vlan_id, switch_id, attr_count, attr_list);
+WRAP_CREATE_FUNC(vlan, SAI_OBJECT_TYPE_VLAN, vlan);
+WRAP_REMOVE_FUNC(vlan, SAI_OBJECT_TYPE_VLAN, vlan);
+WRAP_SET_ATTR_FUNC(vlan, SAI_OBJECT_TYPE_VLAN, vlan);
+WRAP_GET_ATTR_FUNC(vlan, SAI_OBJECT_TYPE_VLAN, vlan);
 
-  SaiTracer::getInstance()->logCreateFn(
-      "create_vlan",
-      vlan_id,
-      switch_id,
-      attr_count,
-      attr_list,
-      SAI_OBJECT_TYPE_VLAN,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_remove_vlan(sai_object_id_t vlan_id) {
-  auto rv = SaiTracer::getInstance()->vlanApi_->remove_vlan(vlan_id);
-
-  SaiTracer::getInstance()->logRemoveFn(
-      "remove_vlan", vlan_id, SAI_OBJECT_TYPE_VLAN, rv);
-  return rv;
-}
-
-sai_status_t wrap_set_vlan_attribute(
-    sai_object_id_t vlan_id,
-    const sai_attribute_t* attr) {
-  auto rv =
-      SaiTracer::getInstance()->vlanApi_->set_vlan_attribute(vlan_id, attr);
-
-  SaiTracer::getInstance()->logSetAttrFn(
-      "set_vlan_attribute", vlan_id, attr, SAI_OBJECT_TYPE_VLAN, rv);
-  return rv;
-}
-
-sai_status_t wrap_get_vlan_attribute(
-    sai_object_id_t vlan_id,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list) {
-  return SaiTracer::getInstance()->vlanApi_->get_vlan_attribute(
-      vlan_id, attr_count, attr_list);
-}
-
-sai_status_t wrap_create_vlan_member(
-    sai_object_id_t* vlan_member_id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  auto rv = SaiTracer::getInstance()->vlanApi_->create_vlan_member(
-      vlan_member_id, switch_id, attr_count, attr_list);
-
-  SaiTracer::getInstance()->logCreateFn(
-      "create_vlan_member",
-      vlan_member_id,
-      switch_id,
-      attr_count,
-      attr_list,
-      SAI_OBJECT_TYPE_VLAN_MEMBER,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_remove_vlan_member(sai_object_id_t vlan_member_id) {
-  auto rv =
-      SaiTracer::getInstance()->vlanApi_->remove_vlan_member(vlan_member_id);
-
-  SaiTracer::getInstance()->logRemoveFn(
-      "remove_vlan_member", vlan_member_id, SAI_OBJECT_TYPE_VLAN_MEMBER, rv);
-  return rv;
-}
-
-sai_status_t wrap_set_vlan_member_attribute(
-    sai_object_id_t vlan_member_id,
-    const sai_attribute_t* attr) {
-  auto rv = SaiTracer::getInstance()->vlanApi_->set_vlan_member_attribute(
-      vlan_member_id, attr);
-
-  SaiTracer::getInstance()->logSetAttrFn(
-      "set_vlan_member_attribute",
-      vlan_member_id,
-      attr,
-      SAI_OBJECT_TYPE_VLAN_MEMBER,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_get_vlan_member_attribute(
-    sai_object_id_t vlan_member_id,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list) {
-  return SaiTracer::getInstance()->vlanApi_->get_vlan_member_attribute(
-      vlan_member_id, attr_count, attr_list);
-}
+WRAP_CREATE_FUNC(vlan_member, SAI_OBJECT_TYPE_VLAN_MEMBER, vlan);
+WRAP_REMOVE_FUNC(vlan_member, SAI_OBJECT_TYPE_VLAN_MEMBER, vlan);
+WRAP_SET_ATTR_FUNC(vlan_member, SAI_OBJECT_TYPE_VLAN_MEMBER, vlan);
+WRAP_GET_ATTR_FUNC(vlan_member, SAI_OBJECT_TYPE_VLAN_MEMBER, vlan);
 
 sai_vlan_api_t* wrappedVlanApi() {
   static sai_vlan_api_t vlanWrappers;

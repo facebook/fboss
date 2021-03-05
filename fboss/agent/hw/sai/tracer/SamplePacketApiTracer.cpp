@@ -13,57 +13,10 @@
 
 namespace facebook::fboss {
 
-sai_status_t wrap_create_samplepacket(
-    sai_object_id_t* samplepacket_id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  auto rv = SaiTracer::getInstance()->samplepacketApi_->create_samplepacket(
-      samplepacket_id, switch_id, attr_count, attr_list);
-
-  SaiTracer::getInstance()->logCreateFn(
-      "create_samplepacket",
-      samplepacket_id,
-      switch_id,
-      attr_count,
-      attr_list,
-      SAI_OBJECT_TYPE_SAMPLEPACKET,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_remove_samplepacket(sai_object_id_t samplepacket_id) {
-  auto rv = SaiTracer::getInstance()->samplepacketApi_->remove_samplepacket(
-      samplepacket_id);
-
-  SaiTracer::getInstance()->logRemoveFn(
-      "remove_samplepacket", samplepacket_id, SAI_OBJECT_TYPE_SAMPLEPACKET, rv);
-  return rv;
-}
-
-sai_status_t wrap_set_samplepacket_attribute(
-    sai_object_id_t samplepacket_id,
-    const sai_attribute_t* attr) {
-  auto rv =
-      SaiTracer::getInstance()->samplepacketApi_->set_samplepacket_attribute(
-          samplepacket_id, attr);
-
-  SaiTracer::getInstance()->logSetAttrFn(
-      "set_samplepacket_attribute",
-      samplepacket_id,
-      attr,
-      SAI_OBJECT_TYPE_SAMPLEPACKET,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_get_samplepacket_attribute(
-    sai_object_id_t samplepacket_id,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list) {
-  return SaiTracer::getInstance()->samplepacketApi_->get_samplepacket_attribute(
-      samplepacket_id, attr_count, attr_list);
-}
+WRAP_CREATE_FUNC(samplepacket, SAI_OBJECT_TYPE_SAMPLEPACKET, samplepacket);
+WRAP_REMOVE_FUNC(samplepacket, SAI_OBJECT_TYPE_SAMPLEPACKET, samplepacket);
+WRAP_SET_ATTR_FUNC(samplepacket, SAI_OBJECT_TYPE_SAMPLEPACKET, samplepacket);
+WRAP_GET_ATTR_FUNC(samplepacket, SAI_OBJECT_TYPE_SAMPLEPACKET, samplepacket);
 
 sai_samplepacket_api_t* wrappedSamplePacketApi() {
   static sai_samplepacket_api_t samplepacketWrappers;

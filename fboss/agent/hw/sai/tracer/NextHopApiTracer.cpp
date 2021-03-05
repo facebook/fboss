@@ -14,56 +14,10 @@
 
 namespace facebook::fboss {
 
-sai_status_t wrap_create_next_hop(
-    sai_object_id_t* next_hop_id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  auto rv = SaiTracer::getInstance()->nextHopApi_->create_next_hop(
-      next_hop_id, switch_id, attr_count, attr_list);
-
-  SaiTracer::getInstance()->logCreateFn(
-      "create_next_hop",
-      next_hop_id,
-      switch_id,
-      attr_count,
-      attr_list,
-      SAI_OBJECT_TYPE_NEXT_HOP,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_remove_next_hop(sai_object_id_t next_hop_id) {
-  auto rv = SaiTracer::getInstance()->nextHopApi_->remove_next_hop(next_hop_id);
-
-  SaiTracer::getInstance()->logRemoveFn(
-      "remove_next_hop", next_hop_id, SAI_OBJECT_TYPE_NEXT_HOP, rv);
-  return rv;
-}
-
-sai_status_t wrap_set_next_hop_attribute(
-    sai_object_id_t next_hop_id,
-    const sai_attribute_t* attr) {
-  auto rv = SaiTracer::getInstance()->nextHopApi_->set_next_hop_attribute(
-      next_hop_id, attr);
-
-  SaiTracer::getInstance()->logSetAttrFn(
-      "set_next_hop_attribute",
-      next_hop_id,
-      attr,
-      SAI_OBJECT_TYPE_NEXT_HOP,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_get_next_hop_attribute(
-    sai_object_id_t next_hop_id,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list) {
-  // TODO(zecheng): Log get functions as well
-  return SaiTracer::getInstance()->nextHopApi_->get_next_hop_attribute(
-      next_hop_id, attr_count, attr_list);
-}
+WRAP_CREATE_FUNC(next_hop, SAI_OBJECT_TYPE_NEXT_HOP, nextHop);
+WRAP_REMOVE_FUNC(next_hop, SAI_OBJECT_TYPE_NEXT_HOP, nextHop);
+WRAP_SET_ATTR_FUNC(next_hop, SAI_OBJECT_TYPE_NEXT_HOP, nextHop);
+WRAP_GET_ATTR_FUNC(next_hop, SAI_OBJECT_TYPE_NEXT_HOP, nextHop);
 
 sai_next_hop_api_t* wrappedNextHopApi() {
   static sai_next_hop_api_t nextHopWrappers;

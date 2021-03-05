@@ -13,51 +13,15 @@
 
 namespace facebook::fboss {
 
-sai_status_t wrap_create_bridge(
-    sai_object_id_t* bridge_id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  auto rv = SaiTracer::getInstance()->bridgeApi_->create_bridge(
-      bridge_id, switch_id, attr_count, attr_list);
+WRAP_CREATE_FUNC(bridge, SAI_OBJECT_TYPE_BRIDGE, bridge);
+WRAP_REMOVE_FUNC(bridge, SAI_OBJECT_TYPE_BRIDGE, bridge);
+WRAP_SET_ATTR_FUNC(bridge, SAI_OBJECT_TYPE_BRIDGE, bridge);
+WRAP_GET_ATTR_FUNC(bridge, SAI_OBJECT_TYPE_BRIDGE, bridge);
 
-  SaiTracer::getInstance()->logCreateFn(
-      "create_bridge",
-      bridge_id,
-      switch_id,
-      attr_count,
-      attr_list,
-      SAI_OBJECT_TYPE_BRIDGE,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_remove_bridge(sai_object_id_t bridge_id) {
-  auto rv = SaiTracer::getInstance()->bridgeApi_->remove_bridge(bridge_id);
-
-  SaiTracer::getInstance()->logRemoveFn(
-      "remove_bridge", bridge_id, SAI_OBJECT_TYPE_BRIDGE, rv);
-  return rv;
-}
-
-sai_status_t wrap_set_bridge_attribute(
-    sai_object_id_t bridge_id,
-    const sai_attribute_t* attr) {
-  auto rv = SaiTracer::getInstance()->bridgeApi_->set_bridge_attribute(
-      bridge_id, attr);
-
-  SaiTracer::getInstance()->logSetAttrFn(
-      "set_bridge_attribute", bridge_id, attr, SAI_OBJECT_TYPE_BRIDGE, rv);
-  return rv;
-}
-
-sai_status_t wrap_get_bridge_attribute(
-    sai_object_id_t bridge_id,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list) {
-  return SaiTracer::getInstance()->bridgeApi_->get_bridge_attribute(
-      bridge_id, attr_count, attr_list);
-}
+WRAP_CREATE_FUNC(bridge_port, SAI_OBJECT_TYPE_BRIDGE_PORT, bridge);
+WRAP_REMOVE_FUNC(bridge_port, SAI_OBJECT_TYPE_BRIDGE_PORT, bridge);
+WRAP_SET_ATTR_FUNC(bridge_port, SAI_OBJECT_TYPE_BRIDGE_PORT, bridge);
+WRAP_GET_ATTR_FUNC(bridge_port, SAI_OBJECT_TYPE_BRIDGE_PORT, bridge);
 
 sai_status_t wrap_get_bridge_stats(
     sai_object_id_t bridge_id,
@@ -84,57 +48,6 @@ sai_status_t wrap_clear_bridge_stats(
     const sai_stat_id_t* counter_ids) {
   return SaiTracer::getInstance()->bridgeApi_->clear_bridge_stats(
       bridge_id, number_of_counters, counter_ids);
-}
-
-sai_status_t wrap_create_bridge_port(
-    sai_object_id_t* bridge_port_id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  auto rv = SaiTracer::getInstance()->bridgeApi_->create_bridge_port(
-      bridge_port_id, switch_id, attr_count, attr_list);
-
-  SaiTracer::getInstance()->logCreateFn(
-      "create_bridge_port",
-      bridge_port_id,
-      switch_id,
-      attr_count,
-      attr_list,
-      SAI_OBJECT_TYPE_BRIDGE_PORT,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_remove_bridge_port(sai_object_id_t bridge_port_id) {
-  auto rv =
-      SaiTracer::getInstance()->bridgeApi_->remove_bridge_port(bridge_port_id);
-
-  SaiTracer::getInstance()->logRemoveFn(
-      "remove_bridge_port", bridge_port_id, SAI_OBJECT_TYPE_BRIDGE_PORT, rv);
-  return rv;
-}
-
-sai_status_t wrap_set_bridge_port_attribute(
-    sai_object_id_t bridge_port_id,
-    const sai_attribute_t* attr) {
-  auto rv = SaiTracer::getInstance()->bridgeApi_->set_bridge_port_attribute(
-      bridge_port_id, attr);
-
-  SaiTracer::getInstance()->logSetAttrFn(
-      "set_bridge_port_attribute",
-      bridge_port_id,
-      attr,
-      SAI_OBJECT_TYPE_BRIDGE_PORT,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_get_bridge_port_attribute(
-    sai_object_id_t bridge_port_id,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list) {
-  return SaiTracer::getInstance()->bridgeApi_->get_bridge_port_attribute(
-      bridge_port_id, attr_count, attr_list);
 }
 
 sai_status_t wrap_get_bridge_port_stats(

@@ -4,184 +4,25 @@
 
 namespace facebook::fboss {
 
-sai_status_t wrap_create_tam(
-    sai_object_id_t* id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  auto rv = SaiTracer::getInstance()->tamApi_->create_tam(
-      id, switch_id, attr_count, attr_list);
-  SaiTracer::getInstance()->logCreateFn(
-      "create_tam",
-      id,
-      switch_id,
-      attr_count,
-      attr_list,
-      SAI_OBJECT_TYPE_TAM,
-      rv);
-  return rv;
-}
+WRAP_CREATE_FUNC(tam, SAI_OBJECT_TYPE_TAM, tam);
+WRAP_REMOVE_FUNC(tam, SAI_OBJECT_TYPE_TAM, tam);
+WRAP_SET_ATTR_FUNC(tam, SAI_OBJECT_TYPE_TAM, tam);
+WRAP_GET_ATTR_FUNC(tam, SAI_OBJECT_TYPE_TAM, tam);
 
-sai_status_t wrap_remove_tam(sai_object_id_t id) {
-  auto rv = SaiTracer::getInstance()->tamApi_->remove_tam(id);
-  SaiTracer::getInstance()->logRemoveFn(
-      "remove_tam", id, SAI_OBJECT_TYPE_TAM, rv);
-  return rv;
-}
+WRAP_CREATE_FUNC(tam_event, SAI_OBJECT_TYPE_TAM_EVENT, tam);
+WRAP_REMOVE_FUNC(tam_event, SAI_OBJECT_TYPE_TAM_EVENT, tam);
+WRAP_SET_ATTR_FUNC(tam_event, SAI_OBJECT_TYPE_TAM_EVENT, tam);
+WRAP_GET_ATTR_FUNC(tam_event, SAI_OBJECT_TYPE_TAM_EVENT, tam);
 
-sai_status_t wrap_get_tam_attribute(
-    sai_object_id_t id,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list) {
-  return SaiTracer::getInstance()->tamApi_->get_tam_attribute(
-      id, attr_count, attr_list);
-}
+WRAP_CREATE_FUNC(tam_event_action, SAI_OBJECT_TYPE_TAM_EVENT_ACTION, tam);
+WRAP_REMOVE_FUNC(tam_event_action, SAI_OBJECT_TYPE_TAM_EVENT_ACTION, tam);
+WRAP_SET_ATTR_FUNC(tam_event_action, SAI_OBJECT_TYPE_TAM_EVENT_ACTION, tam);
+WRAP_GET_ATTR_FUNC(tam_event_action, SAI_OBJECT_TYPE_TAM_EVENT_ACTION, tam);
 
-sai_status_t wrap_set_tam_attribute(
-    sai_object_id_t id,
-    const sai_attribute_t* attr_list) {
-  auto rv = SaiTracer::getInstance()->tamApi_->set_tam_attribute(id, attr_list);
-  SaiTracer::getInstance()->logSetAttrFn(
-      "set_tam_attribute", id, attr_list, SAI_OBJECT_TYPE_TAM, rv);
-  return rv;
-}
-
-sai_status_t wrap_create_tam_event(
-    sai_object_id_t* id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  auto rv = SaiTracer::getInstance()->tamApi_->create_tam_event(
-      id, switch_id, attr_count, attr_list);
-  SaiTracer::getInstance()->logCreateFn(
-      "create_tam_event",
-      id,
-      switch_id,
-      attr_count,
-      attr_list,
-      SAI_OBJECT_TYPE_TAM_EVENT,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_remove_tam_event(sai_object_id_t id) {
-  auto rv = SaiTracer::getInstance()->tamApi_->remove_tam_event(id);
-  SaiTracer::getInstance()->logRemoveFn(
-      "remove_tam", id, SAI_OBJECT_TYPE_TAM_EVENT, rv);
-  return rv;
-}
-
-sai_status_t wrap_get_tam_event_attribute(
-    sai_object_id_t id,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list) {
-  return SaiTracer::getInstance()->tamApi_->get_tam_event_attribute(
-      id, attr_count, attr_list);
-}
-
-sai_status_t wrap_set_tam_event_attribute(
-    sai_object_id_t id,
-    const sai_attribute_t* attr_list) {
-  auto rv =
-      SaiTracer::getInstance()->tamApi_->set_tam_event_attribute(id, attr_list);
-  SaiTracer::getInstance()->logSetAttrFn(
-      "set_tam_event_attribute", id, attr_list, SAI_OBJECT_TYPE_TAM_EVENT, rv);
-  return rv;
-}
-
-sai_status_t wrap_create_tam_event_action(
-    sai_object_id_t* id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  auto rv = SaiTracer::getInstance()->tamApi_->create_tam_event_action(
-      id, switch_id, attr_count, attr_list);
-  SaiTracer::getInstance()->logCreateFn(
-      "create_tam_event_action",
-      id,
-      switch_id,
-      attr_count,
-      attr_list,
-      SAI_OBJECT_TYPE_TAM_EVENT_ACTION,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_remove_tam_event_action(sai_object_id_t id) {
-  auto rv = SaiTracer::getInstance()->tamApi_->remove_tam_event_action(id);
-  SaiTracer::getInstance()->logRemoveFn(
-      "remove_tam_event_action", id, SAI_OBJECT_TYPE_TAM_EVENT_ACTION, rv);
-  return rv;
-}
-
-sai_status_t wrap_get_tam_event_action_attribute(
-    sai_object_id_t id,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list) {
-  return SaiTracer::getInstance()->tamApi_->get_tam_event_action_attribute(
-      id, attr_count, attr_list);
-}
-
-sai_status_t wrap_set_tam_event_action_attribute(
-    sai_object_id_t id,
-    const sai_attribute_t* attr_list) {
-  auto rv = SaiTracer::getInstance()->tamApi_->set_tam_event_action_attribute(
-      id, attr_list);
-  SaiTracer::getInstance()->logSetAttrFn(
-      "set_tam_event_action_attribute",
-      id,
-      attr_list,
-      SAI_OBJECT_TYPE_PORT,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_create_tam_report(
-    sai_object_id_t* id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  auto rv = SaiTracer::getInstance()->tamApi_->create_tam_report(
-      id, switch_id, attr_count, attr_list);
-  SaiTracer::getInstance()->logCreateFn(
-      "create_tam_report",
-      id,
-      switch_id,
-      attr_count,
-      attr_list,
-      SAI_OBJECT_TYPE_TAM_REPORT,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_remove_tam_report(sai_object_id_t id) {
-  auto rv = SaiTracer::getInstance()->tamApi_->remove_tam_report(id);
-  SaiTracer::getInstance()->logRemoveFn(
-      "remove_tam_report", id, SAI_OBJECT_TYPE_TAM_REPORT, rv);
-  return rv;
-}
-
-sai_status_t wrap_get_tam_report_attribute(
-    sai_object_id_t id,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list) {
-  return SaiTracer::getInstance()->tamApi_->get_tam_report_attribute(
-      id, attr_count, attr_list);
-}
-
-sai_status_t wrap_set_tam_report_attribute(
-    sai_object_id_t id,
-    const sai_attribute_t* attr_list) {
-  auto rv = SaiTracer::getInstance()->tamApi_->set_tam_report_attribute(
-      id, attr_list);
-  SaiTracer::getInstance()->logSetAttrFn(
-      "set_tam_report_attribute",
-      id,
-      attr_list,
-      SAI_OBJECT_TYPE_TAM_REPORT,
-      rv);
-  return rv;
-}
+WRAP_CREATE_FUNC(tam_report, SAI_OBJECT_TYPE_TAM_REPORT, tam);
+WRAP_REMOVE_FUNC(tam_report, SAI_OBJECT_TYPE_TAM_REPORT, tam);
+WRAP_SET_ATTR_FUNC(tam_report, SAI_OBJECT_TYPE_TAM_REPORT, tam);
+WRAP_GET_ATTR_FUNC(tam_report, SAI_OBJECT_TYPE_TAM_REPORT, tam);
 
 sai_tam_api_t* wrappedTamApi() {
   static sai_tam_api_t tamWrappers;
@@ -209,4 +50,7 @@ sai_tam_api_t* wrappedTamApi() {
 
   return &tamWrappers;
 }
+
+// TODO(zecheng): Set Tam attributes
+
 } // namespace facebook::fboss

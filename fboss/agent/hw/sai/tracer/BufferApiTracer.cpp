@@ -13,57 +13,15 @@
 
 namespace facebook::fboss {
 
-sai_status_t wrap_create_buffer_pool(
-    sai_object_id_t* buffer_pool_id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  auto rv = SaiTracer::getInstance()->bufferApi_->create_buffer_pool(
-      buffer_pool_id, switch_id, attr_count, attr_list);
+WRAP_CREATE_FUNC(buffer_pool, SAI_OBJECT_TYPE_BUFFER_POOL, buffer);
+WRAP_REMOVE_FUNC(buffer_pool, SAI_OBJECT_TYPE_BUFFER_POOL, buffer);
+WRAP_SET_ATTR_FUNC(buffer_pool, SAI_OBJECT_TYPE_BUFFER_POOL, buffer);
+WRAP_GET_ATTR_FUNC(buffer_pool, SAI_OBJECT_TYPE_BUFFER_POOL, buffer);
 
-  SaiTracer::getInstance()->logCreateFn(
-      "create_buffer_pool",
-      buffer_pool_id,
-      switch_id,
-      attr_count,
-      attr_list,
-      SAI_OBJECT_TYPE_BUFFER_POOL,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_remove_buffer_pool(sai_object_id_t buffer_pool_id) {
-  auto rv =
-      SaiTracer::getInstance()->bufferApi_->remove_buffer_pool(buffer_pool_id);
-
-  SaiTracer::getInstance()->logRemoveFn(
-      "remove_buffer_pool", buffer_pool_id, SAI_OBJECT_TYPE_BUFFER_POOL, rv);
-  return rv;
-}
-
-sai_status_t wrap_set_buffer_pool_attribute(
-    sai_object_id_t buffer_pool_id,
-    const sai_attribute_t* attr) {
-  auto rv = SaiTracer::getInstance()->bufferApi_->set_buffer_pool_attribute(
-      buffer_pool_id, attr);
-
-  SaiTracer::getInstance()->logSetAttrFn(
-      "set_buffer_pool_attribute",
-      buffer_pool_id,
-      attr,
-      SAI_OBJECT_TYPE_BUFFER_POOL,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_get_buffer_pool_attribute(
-    sai_object_id_t buffer_pool_id,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list) {
-  // TODO(zecheng): Log get functions as well
-  return SaiTracer::getInstance()->bufferApi_->get_buffer_pool_attribute(
-      buffer_pool_id, attr_count, attr_list);
-}
+WRAP_CREATE_FUNC(buffer_profile, SAI_OBJECT_TYPE_BUFFER_PROFILE, buffer);
+WRAP_REMOVE_FUNC(buffer_profile, SAI_OBJECT_TYPE_BUFFER_PROFILE, buffer);
+WRAP_SET_ATTR_FUNC(buffer_profile, SAI_OBJECT_TYPE_BUFFER_PROFILE, buffer);
+WRAP_GET_ATTR_FUNC(buffer_profile, SAI_OBJECT_TYPE_BUFFER_PROFILE, buffer);
 
 sai_status_t wrap_get_buffer_pool_stats(
     sai_object_id_t buffer_pool_id,
@@ -90,61 +48,6 @@ sai_status_t wrap_clear_buffer_pool_stats(
     const sai_stat_id_t* counter_ids) {
   return SaiTracer::getInstance()->bufferApi_->clear_buffer_pool_stats(
       buffer_pool_id, number_of_counters, counter_ids);
-}
-
-sai_status_t wrap_create_buffer_profile(
-    sai_object_id_t* buffer_profile_id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  auto rv = SaiTracer::getInstance()->bufferApi_->create_buffer_profile(
-      buffer_profile_id, switch_id, attr_count, attr_list);
-
-  SaiTracer::getInstance()->logCreateFn(
-      "create_buffer_profile",
-      buffer_profile_id,
-      switch_id,
-      attr_count,
-      attr_list,
-      SAI_OBJECT_TYPE_BUFFER_PROFILE,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_remove_buffer_profile(sai_object_id_t buffer_profile_id) {
-  auto rv = SaiTracer::getInstance()->bufferApi_->remove_buffer_profile(
-      buffer_profile_id);
-
-  SaiTracer::getInstance()->logRemoveFn(
-      "remove_buffer_profile",
-      buffer_profile_id,
-      SAI_OBJECT_TYPE_BUFFER_PROFILE,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_set_buffer_profile_attribute(
-    sai_object_id_t buffer_profile_id,
-    const sai_attribute_t* attr) {
-  auto rv = SaiTracer::getInstance()->bufferApi_->set_buffer_profile_attribute(
-      buffer_profile_id, attr);
-
-  SaiTracer::getInstance()->logSetAttrFn(
-      "set_buffer_profile_attribute",
-      buffer_profile_id,
-      attr,
-      SAI_OBJECT_TYPE_BUFFER_PROFILE,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_get_buffer_profile_attribute(
-    sai_object_id_t buffer_profile_id,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list) {
-  // TODO(zecheng): Log get functions as well
-  return SaiTracer::getInstance()->bufferApi_->get_buffer_profile_attribute(
-      buffer_profile_id, attr_count, attr_list);
 }
 
 sai_buffer_api_t* wrappedBufferApi() {

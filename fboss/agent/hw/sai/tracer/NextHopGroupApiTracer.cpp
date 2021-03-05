@@ -13,122 +13,33 @@
 
 namespace facebook::fboss {
 
-sai_status_t wrap_create_next_hop_group(
-    sai_object_id_t* next_hop_group_id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  auto rv = SaiTracer::getInstance()->nextHopGroupApi_->create_next_hop_group(
-      next_hop_group_id, switch_id, attr_count, attr_list);
+WRAP_CREATE_FUNC(next_hop_group, SAI_OBJECT_TYPE_NEXT_HOP_GROUP, nextHopGroup);
+WRAP_REMOVE_FUNC(next_hop_group, SAI_OBJECT_TYPE_NEXT_HOP_GROUP, nextHopGroup);
+WRAP_SET_ATTR_FUNC(
+    next_hop_group,
+    SAI_OBJECT_TYPE_NEXT_HOP_GROUP,
+    nextHopGroup);
+WRAP_GET_ATTR_FUNC(
+    next_hop_group,
+    SAI_OBJECT_TYPE_NEXT_HOP_GROUP,
+    nextHopGroup);
 
-  SaiTracer::getInstance()->logCreateFn(
-      "create_next_hop_group",
-      next_hop_group_id,
-      switch_id,
-      attr_count,
-      attr_list,
-      SAI_OBJECT_TYPE_NEXT_HOP_GROUP,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_remove_next_hop_group(sai_object_id_t next_hop_group_id) {
-  auto rv = SaiTracer::getInstance()->nextHopGroupApi_->remove_next_hop_group(
-      next_hop_group_id);
-
-  SaiTracer::getInstance()->logRemoveFn(
-      "remove_next_hop_group",
-      next_hop_group_id,
-      SAI_OBJECT_TYPE_NEXT_HOP_GROUP,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_set_next_hop_group_attribute(
-    sai_object_id_t next_hop_group_id,
-    const sai_attribute_t* attr) {
-  auto rv =
-      SaiTracer::getInstance()->nextHopGroupApi_->set_next_hop_group_attribute(
-          next_hop_group_id, attr);
-
-  SaiTracer::getInstance()->logSetAttrFn(
-      "set_next_hop_group_attribute",
-      next_hop_group_id,
-      attr,
-      SAI_OBJECT_TYPE_NEXT_HOP_GROUP,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_get_next_hop_group_attribute(
-    sai_object_id_t next_hop_group_id,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list) {
-  // TODO(zecheng): Log get functions as well
-  return SaiTracer::getInstance()
-      ->nextHopGroupApi_->get_next_hop_group_attribute(
-          next_hop_group_id, attr_count, attr_list);
-}
-
-sai_status_t wrap_create_next_hop_group_member(
-    sai_object_id_t* next_hop_group_member_id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  auto rv =
-      SaiTracer::getInstance()->nextHopGroupApi_->create_next_hop_group_member(
-          next_hop_group_member_id, switch_id, attr_count, attr_list);
-
-  SaiTracer::getInstance()->logCreateFn(
-      "create_next_hop_group_member",
-      next_hop_group_member_id,
-      switch_id,
-      attr_count,
-      attr_list,
-      SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_remove_next_hop_group_member(
-    sai_object_id_t next_hop_group_member_id) {
-  auto rv =
-      SaiTracer::getInstance()->nextHopGroupApi_->remove_next_hop_group_member(
-          next_hop_group_member_id);
-
-  SaiTracer::getInstance()->logRemoveFn(
-      "remove_next_hop_group_member",
-      next_hop_group_member_id,
-      SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_set_next_hop_group_member_attribute(
-    sai_object_id_t next_hop_group_member_id,
-    const sai_attribute_t* attr) {
-  auto rv = SaiTracer::getInstance()
-                ->nextHopGroupApi_->set_next_hop_group_member_attribute(
-                    next_hop_group_member_id, attr);
-
-  SaiTracer::getInstance()->logSetAttrFn(
-      "set_next_hop_group_member_attribute",
-      next_hop_group_member_id,
-      attr,
-      SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_get_next_hop_group_member_attribute(
-    sai_object_id_t next_hop_group_member_id,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list) {
-  // TODO(zecheng): Log get functions as well
-  return SaiTracer::getInstance()
-      ->nextHopGroupApi_->get_next_hop_group_member_attribute(
-          next_hop_group_member_id, attr_count, attr_list);
-}
+WRAP_CREATE_FUNC(
+    next_hop_group_member,
+    SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER,
+    nextHopGroup);
+WRAP_REMOVE_FUNC(
+    next_hop_group_member,
+    SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER,
+    nextHopGroup);
+WRAP_SET_ATTR_FUNC(
+    next_hop_group_member,
+    SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER,
+    nextHopGroup);
+WRAP_GET_ATTR_FUNC(
+    next_hop_group_member,
+    SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER,
+    nextHopGroup);
 
 sai_next_hop_group_api_t* wrappedNextHopGroupApi() {
   static sai_next_hop_group_api_t nextHopGroupWrappers;

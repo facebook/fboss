@@ -13,63 +13,22 @@
 
 namespace facebook::fboss {
 
-sai_status_t wrap_create_router_interface(
-    sai_object_id_t* router_interface_id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  auto rv =
-      SaiTracer::getInstance()->routerInterfaceApi_->create_router_interface(
-          router_interface_id, switch_id, attr_count, attr_list);
-
-  SaiTracer::getInstance()->logCreateFn(
-      "create_router_interface",
-      router_interface_id,
-      switch_id,
-      attr_count,
-      attr_list,
-      SAI_OBJECT_TYPE_ROUTER_INTERFACE,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_remove_router_interface(sai_object_id_t router_interface_id) {
-  auto rv =
-      SaiTracer::getInstance()->routerInterfaceApi_->remove_router_interface(
-          router_interface_id);
-
-  SaiTracer::getInstance()->logRemoveFn(
-      "remove_router_interface",
-      router_interface_id,
-      SAI_OBJECT_TYPE_ROUTER_INTERFACE,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_set_router_interface_attribute(
-    sai_object_id_t router_interface_id,
-    const sai_attribute_t* attr) {
-  auto rv = SaiTracer::getInstance()
-                ->routerInterfaceApi_->set_router_interface_attribute(
-                    router_interface_id, attr);
-
-  SaiTracer::getInstance()->logSetAttrFn(
-      "set_router_interface_attribute",
-      router_interface_id,
-      attr,
-      SAI_OBJECT_TYPE_ROUTER_INTERFACE,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_get_router_interface_attribute(
-    sai_object_id_t router_interface_id,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list) {
-  return SaiTracer::getInstance()
-      ->routerInterfaceApi_->get_router_interface_attribute(
-          router_interface_id, attr_count, attr_list);
-}
+WRAP_CREATE_FUNC(
+    router_interface,
+    SAI_OBJECT_TYPE_ROUTER_INTERFACE,
+    routerInterface);
+WRAP_REMOVE_FUNC(
+    router_interface,
+    SAI_OBJECT_TYPE_ROUTER_INTERFACE,
+    routerInterface);
+WRAP_SET_ATTR_FUNC(
+    router_interface,
+    SAI_OBJECT_TYPE_ROUTER_INTERFACE,
+    routerInterface);
+WRAP_GET_ATTR_FUNC(
+    router_interface,
+    SAI_OBJECT_TYPE_ROUTER_INTERFACE,
+    routerInterface);
 
 sai_status_t wrap_get_router_interface_stats(
     sai_object_id_t router_interface_id,

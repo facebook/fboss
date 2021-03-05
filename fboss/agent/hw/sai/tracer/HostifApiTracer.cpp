@@ -14,114 +14,21 @@
 
 namespace facebook::fboss {
 
-sai_status_t wrap_create_hostif_trap(
-    sai_object_id_t* hostif_trap_id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  auto rv = SaiTracer::getInstance()->hostifApi_->create_hostif_trap(
-      hostif_trap_id, switch_id, attr_count, attr_list);
+WRAP_CREATE_FUNC(hostif_trap, SAI_OBJECT_TYPE_HOSTIF_TRAP, hostif);
+WRAP_REMOVE_FUNC(hostif_trap, SAI_OBJECT_TYPE_HOSTIF_TRAP, hostif);
+WRAP_SET_ATTR_FUNC(hostif_trap, SAI_OBJECT_TYPE_HOSTIF_TRAP, hostif);
+WRAP_GET_ATTR_FUNC(hostif_trap, SAI_OBJECT_TYPE_HOSTIF_TRAP, hostif);
 
-  SaiTracer::getInstance()->logCreateFn(
-      "create_hostif_trap",
-      hostif_trap_id,
-      switch_id,
-      attr_count,
-      attr_list,
-      SAI_OBJECT_TYPE_HOSTIF_TRAP,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_remove_hostif_trap(sai_object_id_t hostif_trap_id) {
-  auto rv =
-      SaiTracer::getInstance()->hostifApi_->remove_hostif_trap(hostif_trap_id);
-
-  SaiTracer::getInstance()->logRemoveFn(
-      "remove_hostif_trap", hostif_trap_id, SAI_OBJECT_TYPE_HOSTIF_TRAP, rv);
-  return rv;
-}
-
-sai_status_t wrap_set_hostif_trap_attribute(
-    sai_object_id_t hostif_trap_id,
-    const sai_attribute_t* attr) {
-  auto rv = SaiTracer::getInstance()->hostifApi_->set_hostif_trap_attribute(
-      hostif_trap_id, attr);
-
-  SaiTracer::getInstance()->logSetAttrFn(
-      "set_hostif_trap_attribute",
-      hostif_trap_id,
-      attr,
-      SAI_OBJECT_TYPE_HOSTIF_TRAP,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_get_hostif_trap_attribute(
-    sai_object_id_t hostif_trap_id,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list) {
-  // TODO(zecheng): Log get functions as well
-  return SaiTracer::getInstance()->hostifApi_->get_hostif_trap_attribute(
-      hostif_trap_id, attr_count, attr_list);
-}
-
-sai_status_t wrap_create_hostif_trap_group(
-    sai_object_id_t* hostif_trap_group_id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  auto rv = SaiTracer::getInstance()->hostifApi_->create_hostif_trap_group(
-      hostif_trap_group_id, switch_id, attr_count, attr_list);
-
-  SaiTracer::getInstance()->logCreateFn(
-      "create_hostif_trap_group",
-      hostif_trap_group_id,
-      switch_id,
-      attr_count,
-      attr_list,
-      SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_remove_hostif_trap_group(
-    sai_object_id_t hostif_trap_group_id) {
-  auto rv = SaiTracer::getInstance()->hostifApi_->remove_hostif_trap_group(
-      hostif_trap_group_id);
-
-  SaiTracer::getInstance()->logRemoveFn(
-      "remove_hostif_trap_group",
-      hostif_trap_group_id,
-      SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_set_hostif_trap_group_attribute(
-    sai_object_id_t hostif_trap_group_id,
-    const sai_attribute_t* attr) {
-  auto rv =
-      SaiTracer::getInstance()->hostifApi_->set_hostif_trap_group_attribute(
-          hostif_trap_group_id, attr);
-
-  SaiTracer::getInstance()->logSetAttrFn(
-      "set_hostif_trap_group_attribute",
-      hostif_trap_group_id,
-      attr,
-      SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_get_hostif_trap_group_attribute(
-    sai_object_id_t hostif_trap_group_id,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list) {
-  // TODO(zecheng): Log get functions as well
-  return SaiTracer::getInstance()->hostifApi_->get_hostif_trap_group_attribute(
-      hostif_trap_group_id, attr_count, attr_list);
-}
+WRAP_CREATE_FUNC(hostif_trap_group, SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP, hostif);
+WRAP_REMOVE_FUNC(hostif_trap_group, SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP, hostif);
+WRAP_SET_ATTR_FUNC(
+    hostif_trap_group,
+    SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP,
+    hostif);
+WRAP_GET_ATTR_FUNC(
+    hostif_trap_group,
+    SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP,
+    hostif);
 
 sai_status_t wrap_send_hostif_packet(
     sai_object_id_t hostif_id,

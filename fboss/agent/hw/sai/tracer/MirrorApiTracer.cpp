@@ -14,56 +14,10 @@
 
 namespace facebook::fboss {
 
-sai_status_t wrap_create_mirror_session(
-    sai_object_id_t* mirror_id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  auto rv = SaiTracer::getInstance()->mirrorApi_->create_mirror_session(
-      mirror_id, switch_id, attr_count, attr_list);
-
-  SaiTracer::getInstance()->logCreateFn(
-      "create_mirror_session",
-      mirror_id,
-      switch_id,
-      attr_count,
-      attr_list,
-      SAI_OBJECT_TYPE_MIRROR_SESSION,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_remove_mirror_session(sai_object_id_t mirror_id) {
-  auto rv =
-      SaiTracer::getInstance()->mirrorApi_->remove_mirror_session(mirror_id);
-
-  SaiTracer::getInstance()->logRemoveFn(
-      "remove_mirror_session", mirror_id, SAI_OBJECT_TYPE_MIRROR_SESSION, rv);
-  return rv;
-}
-
-sai_status_t wrap_set_mirror_session_attribute(
-    sai_object_id_t mirror_id,
-    const sai_attribute_t* attr) {
-  auto rv = SaiTracer::getInstance()->mirrorApi_->set_mirror_session_attribute(
-      mirror_id, attr);
-
-  SaiTracer::getInstance()->logSetAttrFn(
-      "set_mirror_session_attribute",
-      mirror_id,
-      attr,
-      SAI_OBJECT_TYPE_MIRROR_SESSION,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_get_mirror_session_attribute(
-    sai_object_id_t mirror_id,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list) {
-  return SaiTracer::getInstance()->mirrorApi_->get_mirror_session_attribute(
-      mirror_id, attr_count, attr_list);
-}
+WRAP_CREATE_FUNC(mirror_session, SAI_OBJECT_TYPE_MIRROR_SESSION, mirror);
+WRAP_REMOVE_FUNC(mirror_session, SAI_OBJECT_TYPE_MIRROR_SESSION, mirror);
+WRAP_SET_ATTR_FUNC(mirror_session, SAI_OBJECT_TYPE_MIRROR_SESSION, mirror);
+WRAP_GET_ATTR_FUNC(mirror_session, SAI_OBJECT_TYPE_MIRROR_SESSION, mirror);
 
 sai_mirror_api_t* wrappedMirrorApi() {
   static sai_mirror_api_t mirrorWrappers;

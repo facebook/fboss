@@ -13,52 +13,10 @@
 
 namespace facebook::fboss {
 
-sai_status_t wrap_create_qos_map(
-    sai_object_id_t* qos_map_id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  auto rv = SaiTracer::getInstance()->qosMapApi_->create_qos_map(
-      qos_map_id, switch_id, attr_count, attr_list);
-
-  SaiTracer::getInstance()->logCreateFn(
-      "create_qos_map",
-      qos_map_id,
-      switch_id,
-      attr_count,
-      attr_list,
-      SAI_OBJECT_TYPE_QOS_MAP,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_remove_qos_map(sai_object_id_t qos_map_id) {
-  auto rv = SaiTracer::getInstance()->qosMapApi_->remove_qos_map(qos_map_id);
-
-  SaiTracer::getInstance()->logRemoveFn(
-      "remove_qos_map", qos_map_id, SAI_OBJECT_TYPE_QOS_MAP, rv);
-  return rv;
-}
-
-sai_status_t wrap_set_qos_map_attribute(
-    sai_object_id_t qos_map_id,
-    const sai_attribute_t* attr) {
-  auto rv = SaiTracer::getInstance()->qosMapApi_->set_qos_map_attribute(
-      qos_map_id, attr);
-
-  SaiTracer::getInstance()->logSetAttrFn(
-      "set_qos_map_attribute", qos_map_id, attr, SAI_OBJECT_TYPE_QOS_MAP, rv);
-  return rv;
-}
-
-sai_status_t wrap_get_qos_map_attribute(
-    sai_object_id_t qos_map_id,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list) {
-  // TODO(zecheng): Log get functions as well
-  return SaiTracer::getInstance()->qosMapApi_->get_qos_map_attribute(
-      qos_map_id, attr_count, attr_list);
-}
+WRAP_CREATE_FUNC(qos_map, SAI_OBJECT_TYPE_QOS_MAP, qosMap);
+WRAP_REMOVE_FUNC(qos_map, SAI_OBJECT_TYPE_QOS_MAP, qosMap);
+WRAP_SET_ATTR_FUNC(qos_map, SAI_OBJECT_TYPE_QOS_MAP, qosMap);
+WRAP_GET_ATTR_FUNC(qos_map, SAI_OBJECT_TYPE_QOS_MAP, qosMap);
 
 sai_qos_map_api_t* wrappedQosMapApi() {
   static sai_qos_map_api_t qosMapWrappers;

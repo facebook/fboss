@@ -13,52 +13,10 @@
 
 namespace facebook::fboss {
 
-sai_status_t wrap_create_queue(
-    sai_object_id_t* queue_id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  auto rv = SaiTracer::getInstance()->queueApi_->create_queue(
-      queue_id, switch_id, attr_count, attr_list);
-
-  SaiTracer::getInstance()->logCreateFn(
-      "create_queue",
-      queue_id,
-      switch_id,
-      attr_count,
-      attr_list,
-      SAI_OBJECT_TYPE_QUEUE,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_remove_queue(sai_object_id_t queue_id) {
-  auto rv = SaiTracer::getInstance()->queueApi_->remove_queue(queue_id);
-
-  SaiTracer::getInstance()->logRemoveFn(
-      "remove_queue", queue_id, SAI_OBJECT_TYPE_QUEUE, rv);
-  return rv;
-}
-
-sai_status_t wrap_set_queue_attribute(
-    sai_object_id_t queue_id,
-    const sai_attribute_t* attr) {
-  auto rv =
-      SaiTracer::getInstance()->queueApi_->set_queue_attribute(queue_id, attr);
-
-  SaiTracer::getInstance()->logSetAttrFn(
-      "set_queue_attribute", queue_id, attr, SAI_OBJECT_TYPE_QUEUE, rv);
-  return rv;
-}
-
-sai_status_t wrap_get_queue_attribute(
-    sai_object_id_t queue_id,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list) {
-  // TODO(zecheng): Log get functions as well
-  return SaiTracer::getInstance()->queueApi_->get_queue_attribute(
-      queue_id, attr_count, attr_list);
-}
+WRAP_CREATE_FUNC(queue, SAI_OBJECT_TYPE_QUEUE, queue);
+WRAP_REMOVE_FUNC(queue, SAI_OBJECT_TYPE_QUEUE, queue);
+WRAP_SET_ATTR_FUNC(queue, SAI_OBJECT_TYPE_QUEUE, queue);
+WRAP_GET_ATTR_FUNC(queue, SAI_OBJECT_TYPE_QUEUE, queue);
 
 sai_status_t wrap_get_queue_stats(
     sai_object_id_t queue_id,

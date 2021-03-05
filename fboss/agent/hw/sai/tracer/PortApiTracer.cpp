@@ -13,51 +13,15 @@
 
 namespace facebook::fboss {
 
-sai_status_t wrap_create_port(
-    sai_object_id_t* port_id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  auto rv = SaiTracer::getInstance()->portApi_->create_port(
-      port_id, switch_id, attr_count, attr_list);
+WRAP_CREATE_FUNC(port, SAI_OBJECT_TYPE_PORT, port);
+WRAP_REMOVE_FUNC(port, SAI_OBJECT_TYPE_PORT, port);
+WRAP_SET_ATTR_FUNC(port, SAI_OBJECT_TYPE_PORT, port);
+WRAP_GET_ATTR_FUNC(port, SAI_OBJECT_TYPE_PORT, port);
 
-  SaiTracer::getInstance()->logCreateFn(
-      "create_port",
-      port_id,
-      switch_id,
-      attr_count,
-      attr_list,
-      SAI_OBJECT_TYPE_PORT,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_remove_port(sai_object_id_t port_id) {
-  auto rv = SaiTracer::getInstance()->portApi_->remove_port(port_id);
-
-  SaiTracer::getInstance()->logRemoveFn(
-      "remove_port", port_id, SAI_OBJECT_TYPE_PORT, rv);
-  return rv;
-}
-
-sai_status_t wrap_set_port_attribute(
-    sai_object_id_t port_id,
-    const sai_attribute_t* attr) {
-  auto rv =
-      SaiTracer::getInstance()->portApi_->set_port_attribute(port_id, attr);
-
-  SaiTracer::getInstance()->logSetAttrFn(
-      "set_port_attribute", port_id, attr, SAI_OBJECT_TYPE_PORT, rv);
-  return rv;
-}
-
-sai_status_t wrap_get_port_attribute(
-    sai_object_id_t port_id,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list) {
-  return SaiTracer::getInstance()->portApi_->get_port_attribute(
-      port_id, attr_count, attr_list);
-}
+WRAP_CREATE_FUNC(port_serdes, SAI_OBJECT_TYPE_PORT_SERDES, port);
+WRAP_REMOVE_FUNC(port_serdes, SAI_OBJECT_TYPE_PORT_SERDES, port);
+WRAP_SET_ATTR_FUNC(port_serdes, SAI_OBJECT_TYPE_PORT_SERDES, port);
+WRAP_GET_ATTR_FUNC(port_serdes, SAI_OBJECT_TYPE_PORT_SERDES, port);
 
 sai_status_t wrap_get_port_stats(
     sai_object_id_t port_id,
@@ -143,55 +107,6 @@ sai_status_t wrap_clear_port_pool_stats(
     const sai_stat_id_t* counter_ids) {
   return SaiTracer::getInstance()->portApi_->clear_port_pool_stats(
       port_pool_id, number_of_counters, counter_ids);
-}
-
-sai_status_t wrap_create_port_serdes(
-    sai_object_id_t* port_serdes_id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  auto rv = SaiTracer::getInstance()->portApi_->create_port_serdes(
-      port_serdes_id, switch_id, attr_count, attr_list);
-  SaiTracer::getInstance()->logCreateFn(
-      "create_port_serdes",
-      port_serdes_id,
-      switch_id,
-      attr_count,
-      attr_list,
-      SAI_OBJECT_TYPE_PORT_SERDES,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_remove_port_serdes(sai_object_id_t port_serdes_id) {
-  auto rv =
-      SaiTracer::getInstance()->portApi_->remove_port_serdes(port_serdes_id);
-  SaiTracer::getInstance()->logRemoveFn(
-      "remove_port_serdes", port_serdes_id, SAI_OBJECT_TYPE_PORT_SERDES, rv);
-  return rv;
-}
-
-sai_status_t wrap_set_port_serdes_attribute(
-    sai_object_id_t port_serdes_id,
-    const sai_attribute_t* attr) {
-  auto rv = SaiTracer::getInstance()->portApi_->set_port_serdes_attribute(
-      port_serdes_id, attr);
-  SaiTracer::getInstance()->logSetAttrFn(
-      "set_port_serdes_attribute",
-      port_serdes_id,
-      attr,
-      SAI_OBJECT_TYPE_PORT_SERDES,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_get_port_serdes_attribute(
-    sai_object_id_t port_serdes_id,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list) {
-  // TODO: log get port serdes attribute
-  return SaiTracer::getInstance()->portApi_->get_port_serdes_attribute(
-      port_serdes_id, attr_count, attr_list);
 }
 
 sai_port_api_t* wrappedPortApi() {

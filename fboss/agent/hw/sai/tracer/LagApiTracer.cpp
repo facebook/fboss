@@ -14,100 +14,15 @@
 
 namespace facebook::fboss {
 
-sai_status_t wrap_create_lag(
-    sai_object_id_t* lag_id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  auto rv = SaiTracer::getInstance()->lagApi_->create_lag(
-      lag_id, switch_id, attr_count, attr_list);
+WRAP_CREATE_FUNC(lag, SAI_OBJECT_TYPE_LAG, lag);
+WRAP_REMOVE_FUNC(lag, SAI_OBJECT_TYPE_LAG, lag);
+WRAP_SET_ATTR_FUNC(lag, SAI_OBJECT_TYPE_LAG, lag);
+WRAP_GET_ATTR_FUNC(lag, SAI_OBJECT_TYPE_LAG, lag);
 
-  SaiTracer::getInstance()->logCreateFn(
-      "create_lag",
-      lag_id,
-      switch_id,
-      attr_count,
-      attr_list,
-      SAI_OBJECT_TYPE_LAG,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_remove_lag(sai_object_id_t lag_id) {
-  auto rv = SaiTracer::getInstance()->lagApi_->remove_lag(lag_id);
-
-  SaiTracer::getInstance()->logRemoveFn(
-      "remove_lag", lag_id, SAI_OBJECT_TYPE_LAG, rv);
-  return rv;
-}
-
-sai_status_t wrap_set_lag_attribute(
-    sai_object_id_t lag_id,
-    const sai_attribute_t* attr) {
-  auto rv = SaiTracer::getInstance()->lagApi_->set_lag_attribute(lag_id, attr);
-
-  SaiTracer::getInstance()->logSetAttrFn(
-      "set_lag_attribute", lag_id, attr, SAI_OBJECT_TYPE_LAG, rv);
-  return rv;
-}
-
-sai_status_t wrap_get_lag_attribute(
-    sai_object_id_t lag_id,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list) {
-  return SaiTracer::getInstance()->lagApi_->get_lag_attribute(
-      lag_id, attr_count, attr_list);
-}
-
-sai_status_t wrap_create_lag_member(
-    sai_object_id_t* lag_member_id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  auto rv = SaiTracer::getInstance()->lagApi_->create_lag_member(
-      lag_member_id, switch_id, attr_count, attr_list);
-
-  SaiTracer::getInstance()->logCreateFn(
-      "create_lag_member",
-      lag_member_id,
-      switch_id,
-      attr_count,
-      attr_list,
-      SAI_OBJECT_TYPE_LAG_MEMBER,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_remove_lag_member(sai_object_id_t lag_member_id) {
-  auto rv = SaiTracer::getInstance()->lagApi_->remove_lag_member(lag_member_id);
-
-  SaiTracer::getInstance()->logRemoveFn(
-      "remove_lag_member", lag_member_id, SAI_OBJECT_TYPE_LAG_MEMBER, rv);
-  return rv;
-}
-
-sai_status_t wrap_set_lag_member_attribute(
-    sai_object_id_t lag_member_id,
-    const sai_attribute_t* attr) {
-  auto rv = SaiTracer::getInstance()->lagApi_->set_lag_member_attribute(
-      lag_member_id, attr);
-
-  SaiTracer::getInstance()->logSetAttrFn(
-      "set_lag_member_attribute",
-      lag_member_id,
-      attr,
-      SAI_OBJECT_TYPE_LAG_MEMBER,
-      rv);
-  return rv;
-}
-
-sai_status_t wrap_get_lag_member_attribute(
-    sai_object_id_t lag_member_id,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list) {
-  return SaiTracer::getInstance()->lagApi_->get_lag_member_attribute(
-      lag_member_id, attr_count, attr_list);
-}
+WRAP_CREATE_FUNC(lag_member, SAI_OBJECT_TYPE_LAG_MEMBER, lag);
+WRAP_REMOVE_FUNC(lag_member, SAI_OBJECT_TYPE_LAG_MEMBER, lag);
+WRAP_SET_ATTR_FUNC(lag_member, SAI_OBJECT_TYPE_LAG_MEMBER, lag);
+WRAP_GET_ATTR_FUNC(lag_member, SAI_OBJECT_TYPE_LAG_MEMBER, lag);
 
 sai_lag_api_t* wrappedLagApi() {
   static sai_lag_api_t lagWrappers;
