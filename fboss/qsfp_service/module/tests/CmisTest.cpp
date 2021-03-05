@@ -40,6 +40,7 @@ TEST(CmisTest, transceiverInfoTest) {
   TransceiverTestsHelper tests(info);
 
   tests.verifyVendorName("FACETEST");
+  tests.verifyFwInfo("2.7", "1.10", "3.101");
   tests.verifyTemp(40.26953125);
   tests.verifyVcc(3.3020);
 

@@ -225,5 +225,32 @@ void TransceiverTestsHelper::verifyThresholds(
   EXPECT_DOUBLE_EQ(lowWarn, *level.warn_ref()->low_ref());
 }
 
+void TransceiverTestsHelper::verifyFwInfo(
+    const std::string& expectedFwRev,
+    const std::string& expectedDspFw,
+    const std::string& expecedBuildRev) {
+  EXPECT_EQ(
+      expectedFwRev,
+      *info_.status_ref()
+           .value_or({})
+           .fwStatus_ref()
+           .value_or({})
+           .version_ref());
+  EXPECT_EQ(
+      expectedDspFw,
+      *info_.status_ref()
+           .value_or({})
+           .fwStatus_ref()
+           .value_or({})
+           .dspFwVer_ref());
+  EXPECT_EQ(
+      expecedBuildRev,
+      *info_.status_ref()
+           .value_or({})
+           .fwStatus_ref()
+           .value_or({})
+           .buildRev_ref());
+}
+
 } // namespace fboss
 } // namespace facebook

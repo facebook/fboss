@@ -93,6 +93,8 @@ static CmisFieldInfo::CmisFieldMap cmisFields = {
     {CmisField::LENGTH_OM2, {CmisPages::PAGE01, 136, 1}},
     {CmisField::TX_SIG_INT_CONT_AD, {CmisPages::PAGE01, 161, 1}},
     {CmisField::RX_SIG_INT_CONT_AD, {CmisPages::PAGE01, 162, 1}},
+    {CmisField::DSP_FW_VERSION, {CmisPages::PAGE01, 194, 2}},
+    {CmisField::BUILD_REVISION, {CmisPages::PAGE01, 196, 2}},
     // Page 02h
     {CmisField::TEMPERATURE_THRESH, {CmisPages::PAGE02, 128, 8}},
     {CmisField::VCC_THRESH, {CmisPages::PAGE02, 136, 8}},
@@ -288,16 +290,25 @@ Vendor CmisModule::getVendorInfo() {
   return vendor;
 }
 
-std::string CmisModule::getFwRevision() {
+std::array<std::string, 3> CmisModule::getFwRevisions() {
   int offset;
   int length;
   int dataAddress;
+  std::array<std::string, 3> fwVersions;
+  // Get module f/w version
   getQsfpFieldAddress(
       CmisField::FIRMWARE_REVISION, dataAddress, offset, length);
   const uint8_t* data = getQsfpValuePtr(dataAddress, offset, length);
-
-  auto version = folly::format("{}.{}", data[0], data[1]);
-  return version.str();
+  fwVersions[0] = fmt::format("{}.{}", data[0], data[1]);
+  // Get DSP f/w version
+  getQsfpFieldAddress(CmisField::DSP_FW_VERSION, dataAddress, offset, length);
+  data = getQsfpValuePtr(dataAddress, offset, length);
+  fwVersions[1] = fmt::format("{}.{}", data[0], data[1]);
+  // Get the build revision
+  getQsfpFieldAddress(CmisField::BUILD_REVISION, dataAddress, offset, length);
+  data = getQsfpValuePtr(dataAddress, offset, length);
+  fwVersions[2] = fmt::format("{}.{}", data[0], data[1]);
+  return fwVersions;
 }
 
 Cable CmisModule::getCableInfo() {
@@ -327,7 +338,10 @@ Cable CmisModule::getCableInfo() {
 
 FirmwareStatus CmisModule::getFwStatus() {
   FirmwareStatus fwStatus;
-  fwStatus.version_ref() = getFwRevision();
+  auto fwRevisions = getFwRevisions();
+  fwStatus.version_ref() = fwRevisions[0];
+  fwStatus.dspFwVer_ref() = fwRevisions[1];
+  fwStatus.buildRev_ref() = fwRevisions[2];
   fwStatus.fwFault_ref() =
       (getSettingsValue(CmisField::MODULE_FLAG, FWFAULT_MASK) >> 1);
   return fwStatus;

@@ -213,6 +213,8 @@ enum CmisLaneState {
 struct FirmwareStatus {
   1: optional string version,
   2: optional i32 fwFault,
+  3: optional string dspFwVer,
+  4: optional string buildRev,
 }
 
 struct MediaLaneSettings {

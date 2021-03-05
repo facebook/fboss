@@ -81,6 +81,7 @@ using std::pair;
 using std::make_pair;
 using std::chrono::seconds;
 using std::chrono::steady_clock;
+using apache::thrift::can_throw;
 
 // We can check on the hardware type:
 
@@ -757,9 +758,10 @@ void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
   CmisData cmisData = domDataUnion.get_cmis();
   auto lowerBuf = cmisData.lower_ref()->data();
   auto page0Buf = cmisData.page0_ref()->data();
-  auto page10Buf = cmisData.page10_ref()->data();
-  auto page11Buf = cmisData.page11_ref()->data();
-  auto page14Buf = cmisData.page14_ref()->data();
+  auto page01Buf = can_throw(cmisData.page01_ref())->data();
+  auto page10Buf = can_throw(cmisData.page10_ref())->data();
+  auto page11Buf = can_throw(cmisData.page11_ref())->data();
+  auto page14Buf = can_throw(cmisData.page14_ref())->data();
 
   printf("Port %d\n", port);
   printf("  Module Interface Type: CMIS (200G or above)\n");
@@ -774,7 +776,9 @@ void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
   printf("  Low power: 0x%x\n", (lowerBuf[26] >> 6) & 0x1);
   printf("  Low power forced: 0x%x\n", (lowerBuf[26] >> 4) & 0x1);
 
-  printf("  FW Version: %d.%d\n", lowerBuf[39], lowerBuf[40]);
+  printf("  Module FW Version: %x.%x\n", lowerBuf[39], lowerBuf[40]);
+  printf("  DSP FW Version: %x.%x\n", page01Buf[66], page01Buf[67]);
+  printf("  Build Rev: %x.%x\n", page01Buf[68], page01Buf[69]);
   printf("  Firmware fault: 0x%x\n", (lowerBuf[8] >> 1) & 0x3);
   auto vendor = sfpString(page0Buf, 1, 16);
   auto vendorPN = sfpString(page0Buf, 20, 16);

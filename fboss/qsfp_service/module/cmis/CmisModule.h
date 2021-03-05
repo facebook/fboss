@@ -249,8 +249,9 @@ class CmisModule : public QsfpModule {
   SMFMediaInterfaceCode getSmfMediaInterface();
   /*
    * Returns the firmware version
+   * <Module firmware version, DSP version, Build revision>
    */
-  std::string getFwRevision();
+  std::array<std::string, 3> getFwRevisions();
   FirmwareStatus getFwStatus();
 
   /*

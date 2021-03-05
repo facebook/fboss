@@ -40,6 +40,10 @@ class TransceiverTestsHelper {
       double lowAlarm,
       double highWarn,
       double lowWarn);
+  void verifyFwInfo(
+      const std::string& expectedFwRev,
+      const std::string& expectedDspFw,
+      const std::string& expecedBuildRev);
 
  private:
   TransceiverInfo info_;
