@@ -10,6 +10,8 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/bcm/BcmCosQueueManagerUtils.h"
+#include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
@@ -40,6 +42,8 @@ facebook::fboss::phy::FecMode bcmPortPhyFecToPhyFecMode(bcm_port_phy_fec_t fec);
 uint32_t getDesiredPhyLaneConfig(const phy::PortProfileConfig& profileCfg);
 
 bcm_gport_t getPortGport(int unit, int port);
+
+int getPortItm(utility::BcmChip chip, BcmPort* bcmPort);
 
 bcm_port_loopback_t fbToBcmLoopbackMode(cfg::PortLoopbackMode inMode);
 } // namespace facebook::fboss::utility

@@ -32,6 +32,7 @@ class BcmWarmBootHelper;
 class PortQueue;
 class PortPgConfig;
 class BufferPoolCfg;
+class BcmPort;
 
 /*
  * BcmPlatform specifies additional APIs that must be provided by platforms
@@ -107,6 +108,7 @@ class BcmPlatform : public Platform {
 
   virtual bool useQueueGportForCos() const = 0;
 
+  virtual int getPortItm(BcmPort* bcmPort) const;
   virtual const PortPgConfig& getDefaultPortPgSettings() const;
   virtual const BufferPoolCfg& getDefaultPortIngressPoolSettings() const;
 

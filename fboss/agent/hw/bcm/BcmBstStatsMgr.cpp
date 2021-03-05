@@ -44,12 +44,21 @@ void BcmBstStatsMgr::syncStats() const {
   auto rv = bcm_cosq_bst_stat_sync(
       hw_->getUnit(), (bcm_bst_stat_id_t)bcmBstStatIdUcast);
   bcmCheckError(rv, "Failed to sync bcmBstStatIdUcast stat");
-  rv = bcm_cosq_bst_stat_sync(
-      hw_->getUnit(), (bcm_bst_stat_id_t)bcmBstStatIdPriGroupHeadroom);
-  bcmCheckError(rv, "Failed to sync bcmBstStatIdPriGroupHeadroom stat");
-  rv = bcm_cosq_bst_stat_sync(
-      hw_->getUnit(), (bcm_bst_stat_id_t)bcmBstStatIdPriGroupShared);
-  bcmCheckError(rv, "Failed to sync bcmBstStatIdPriGroupShared stat");
+  if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+    // All the below are PG related and available on platforms supporting PFC
+    rv = bcm_cosq_bst_stat_sync(
+        hw_->getUnit(), (bcm_bst_stat_id_t)bcmBstStatIdPriGroupHeadroom);
+    bcmCheckError(rv, "Failed to sync bcmBstStatIdPriGroupHeadroom stat");
+    rv = bcm_cosq_bst_stat_sync(
+        hw_->getUnit(), (bcm_bst_stat_id_t)bcmBstStatIdPriGroupShared);
+    bcmCheckError(rv, "Failed to sync bcmBstStatIdPriGroupShared stat");
+    rv = bcm_cosq_bst_stat_sync(
+        hw_->getUnit(), (bcm_bst_stat_id_t)bcmBstStatIdHeadroomPool);
+    bcmCheckError(rv, "Failed to sync bcmBstStatIdHeadroomPool stat");
+    rv = bcm_cosq_bst_stat_sync(
+        hw_->getUnit(), (bcm_bst_stat_id_t)bcmBstStatIdIngPool);
+    bcmCheckError(rv, "Failed to sync bcmBstStatIdIngPool stat");
+  }
 }
 
 void BcmBstStatsMgr::getAndPublishDeviceWatermark() {
@@ -73,9 +82,49 @@ void BcmBstStatsMgr::getAndPublishDeviceWatermark() {
   }
 }
 
+void BcmBstStatsMgr::getAndPublishGlobalWatermarks(
+    const std::map<int, bcm_port_t>& itmToPortMap) const {
+  auto cosMgr = hw_->getCosMgr();
+  for (auto it = itmToPortMap.begin(); it != itmToPortMap.end(); it++) {
+    int itm = it->first;
+    bcm_port_t bcmPortId = it->second;
+    uint64_t maxGlobalHeadroomBytes =
+        cosMgr->statGet(PortID(bcmPortId), -1, bcmBstStatIdHeadroomPool) *
+        hw_->getMMUCellBytes();
+    uint64_t maxGlobalSharedBytes =
+        cosMgr->statGet(PortID(bcmPortId), -1, bcmBstStatIdIngPool) *
+        hw_->getMMUCellBytes();
+    publishGlobalWatermarks(itm, maxGlobalHeadroomBytes, maxGlobalSharedBytes);
+  }
+}
+
+void BcmBstStatsMgr::createItmToPortMap(
+    std::map<int, bcm_port_t>& itmToPortMap) const {
+  if (itmToPortMap.size() == 0) {
+    /*
+     * ITM to port map not available, need to populate it first!
+     * Global headroom/shared buffer stats are per ITM, but as
+     * the counters are to be read per port, we need to keep track
+     * of one port per ITM for which stats can be read. This mapping
+     * is static and doesnt change.
+     */
+    for (const auto& entry : *hw_->getPortTable()) {
+      BcmPort* bcmPort = entry.second;
+      int itm = hw_->getPlatform()->getPortItm(bcmPort);
+      if (itmToPortMap.find(itm) == itmToPortMap.end()) {
+        itmToPortMap[itm] = bcmPort->getBcmPortId();
+        XLOG(DBG2) << "ITM" << itm << " mapped to bcmport "
+                   << itmToPortMap[itm];
+      }
+    }
+  }
+}
+
 void BcmBstStatsMgr::updateStats() {
   syncStats();
 
+  // Track if PG is enabled on any port in the system
+  bool pgEnabled = false;
   for (const auto& entry : *hw_->getPortTable()) {
     BcmPort* bcmPort = entry.second;
 
@@ -118,18 +167,33 @@ void BcmBstStatsMgr::updateStats() {
 
     // Get PG MAX headroom/shared stats
     if (bcmPort->isPortPgConfigured()) {
-      uint64_t maxSharedBytes = 0;
-      uint64_t maxHeadroomBytes = 0;
-      uint64_t maxHeadroomCells = cosMgr->statGet(
-          PortID(bcmPort->getBcmPortId()), -1, bcmBstStatIdPriGroupHeadroom);
-      uint64_t maxSharedCells = cosMgr->statGet(
-          PortID(bcmPort->getBcmPortId()), -1, bcmBstStatIdPriGroupShared);
-      maxHeadroomBytes = maxHeadroomCells * hw_->getMMUCellBytes();
-      maxSharedBytes = maxSharedCells * hw_->getMMUCellBytes();
+      bcm_port_t bcmPortId = bcmPort->getBcmPortId();
+      uint64_t maxHeadroomBytes =
+          cosMgr->statGet(PortID(bcmPortId), -1, bcmBstStatIdPriGroupHeadroom) *
+          hw_->getMMUCellBytes();
+      uint64_t maxSharedBytes =
+          cosMgr->statGet(PortID(bcmPortId), -1, bcmBstStatIdPriGroupShared) *
+          hw_->getMMUCellBytes();
       publishPgWatermarks(
           bcmPort->getPortName(), maxHeadroomBytes, maxSharedBytes);
+      pgEnabled = true;
     }
   }
+
+  if (pgEnabled) {
+    /*
+     * Ingress Traffic Manager(ITM) is part of the MMU. The ports in the
+     * system are split between multiple ITMs and the ITMs has buffers
+     * shared by all port which are part of the same ITM. The global
+     * ingress buffer statistics are tracked per ITM and hence needs
+     * to be fetched only once per ITM. This would mean we first find
+     * the port->ITM mapping and then read the statistics once per ITM.
+     */
+    static std::map<int, bcm_port_t> itmToPortMap;
+    createItmToPortMap(itmToPortMap);
+    getAndPublishGlobalWatermarks(itmToPortMap);
+  }
+
   getAndPublishDeviceWatermark();
 }
 

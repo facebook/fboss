@@ -65,6 +65,13 @@ class BcmBstStatsMgr {
       const std::string& portName,
       const uint64_t& pgHeadroomBytes,
       const uint64_t& pgSharedBytes) const;
+  void publishGlobalWatermarks(
+      const int itm,
+      const uint64_t& globalHeadroomBytes,
+      const uint64_t& globalSharedBytes) const;
+  void getAndPublishGlobalWatermarks(
+      const std::map<int, bcm_port_t>& itmToPortMap) const;
+  void createItmToPortMap(std::map<int, bcm_port_t>& itmToPortMap) const;
 
   BufferStatsLogger* getBufferStatsLogger() const {
     return bufferStatsLogger_.get();

@@ -187,6 +187,33 @@ bcm_gport_t getPortGport(int unit, int port) {
   return portGport;
 }
 
+int getPortItm(utility::BcmChip chip, BcmPort* bcmPort) {
+  auto port = bcmPort->getBcmPortId();
+  auto pipe = bcmPort->determinePipe();
+
+  int itm = -1;
+  switch (chip) {
+    case utility::BcmChip::TOMAHAWK3:
+      /*
+       * TH3 ports belong to one of the 8 pipes, and these
+       * pipes are split equally between the 2 ITMs.
+       */
+      if (pipe == 0 || pipe == 1 || pipe == 6 || pipe == 7) {
+        itm = 0;
+      } else if (pipe >= 2 && pipe <= 5) {
+        itm = 1;
+      } else {
+        throw FbossError(
+            "Port ", port, " pipe ", pipe, " not associated w/ any ITM");
+      }
+      break;
+
+    default:
+      throw FbossError("Unsupported platform for retrieving ITM for port");
+  }
+  return itm;
+}
+
 bcm_port_loopback_t fbToBcmLoopbackMode(cfg::PortLoopbackMode inMode) {
   switch (inMode) {
     case cfg::PortLoopbackMode::NONE:

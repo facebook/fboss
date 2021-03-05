@@ -45,6 +45,10 @@ void BcmPlatform::dumpHwConfig() const {
   }
 }
 
+int BcmPlatform::getPortItm(BcmPort* /*bcmPort*/) const {
+  throw FbossError("Unsupported platform for retrieving ITM for port");
+}
+
 const PortPgConfig& BcmPlatform::getDefaultPortPgSettings() const {
   throw FbossError("Unsupported platform for retrieving PG settings ");
 }

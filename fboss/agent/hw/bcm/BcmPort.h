@@ -201,6 +201,7 @@ class BcmPort {
 
   const PortPgConfig& getDefaultPgSettings() const;
   const BufferPoolCfg& getDefaultIngressPoolSettings() const;
+  uint8_t determinePipe() const;
 
  private:
   class BcmPortStats {
@@ -281,7 +282,6 @@ class BcmPort {
       const std::vector<phy::PinConfig>& iphyPinConfigs);
 
   bool isMmuLossy() const;
-  uint8_t determinePipe() const;
 
   void applyMirrorAction(
       MirrorAction action,
