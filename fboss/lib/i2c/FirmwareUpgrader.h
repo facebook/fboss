@@ -23,6 +23,7 @@ class CmisFirmwareUpgrader {
   // number string can be compared with modules's register page 1 byte 148-163
   static inline std::map<std::string, std::string> partNoMap{
       {"finisar-200g", "FTCC1112E1PLL-FB"},
+      {"finisar-400g", "FTCD4313E2PCL   "},
       {"innolight-200g", "T-FX4FNT-HFB"},
       {"innolight-400g", "T-DQ4CNT-NFB"},
   };

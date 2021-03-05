@@ -145,6 +145,8 @@ struct ModulePartInfo_s {
 struct ModulePartInfo_s modulePartInfo[] = {
   // Finisar 200G module info
   {{'F','T','C','C','1','1','1','2','E','1','P','L','L','-','F','B'}, 64},
+  // Finisar 400G module info
+  {{'F','T','C','D','4','3','1','3','E','2','P','C','L',0x20,0x20,0x20}, 64},
   // Innolight 200G module info
   {{'T','-','F','X','4','F','N','T','-','H','F','B',0x20,0x20,0x20,0x20}, 48},
   // Innolight 400G module info
