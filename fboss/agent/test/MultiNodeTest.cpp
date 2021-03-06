@@ -85,6 +85,22 @@ std::unique_ptr<FbossCtrlAsyncClient> MultiNodeTest::getRemoteThriftClient() {
   return std::make_unique<FbossCtrlAsyncClient>(std::move(chan));
 }
 
+bool MultiNodeTest::waitForSwitchStateCondition(
+    std::function<bool(const std::shared_ptr<SwitchState>&)> conditionFn,
+    uint32_t retries,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry) {
+  auto newState = sw()->getState();
+  while (retries--) {
+    if (conditionFn(newState)) {
+      return true;
+    }
+    std::this_thread::sleep_for(msBetweenRetry);
+    newState = sw()->getState();
+  }
+  XLOG(DBG3) << "Awaited state condition was never satisfied";
+  return false;
+}
+
 void MultiNodeTest::setPortStatus(PortID portId, bool up) {
   auto configFnLinkDown = [=](const std::shared_ptr<SwitchState>& state) {
     auto newState = state->clone();

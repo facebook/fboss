@@ -99,6 +99,9 @@ class LinkAggregationManager : public AutoRegisterStateObserver,
       const std::shared_ptr<AggregatePort>& oldAggPort,
       const std::shared_ptr<AggregatePort>& newAggPort);
 
+  /* For testing purpose */
+  void stopLacpOnSubPort(PortID subPort);
+
  private:
   void aggregatePortRemoved(const std::shared_ptr<AggregatePort>& aggPort);
   void aggregatePortAdded(const std::shared_ptr<AggregatePort>& aggPort);

@@ -212,6 +212,14 @@ void LinkAggregationManager::aggregatePortRemoved(
   }
 }
 
+void LinkAggregationManager::stopLacpOnSubPort(PortID subPort) {
+  PortIDToController::iterator it;
+  it = portToController_.find(subPort);
+  CHECK_NE(it, portToController_.end());
+  it->second->stopMachines();
+  portToController_.erase(it);
+}
+
 void LinkAggregationManager::aggregatePortChanged(
     const std::shared_ptr<AggregatePort>& oldAggPort,
     const std::shared_ptr<AggregatePort>& newAggPort) {

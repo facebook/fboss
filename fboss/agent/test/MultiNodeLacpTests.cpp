@@ -24,23 +24,15 @@ using namespace facebook::fboss;
 
 DEFINE_int32(multiNodeTestPort1, 0, "multinode test port 1");
 DEFINE_int32(multiNodeTestPort2, 0, "multinode test port 2");
-DEFINE_int32(
-    multiNodeTestRemotePort1,
-    0,
-    "multinode test port 1 on remote node");
-DEFINE_int32(
-    multiNodeTestRemotePort2,
-    0,
-    "multinode test port 2 on remote node");
 DEFINE_bool(run_forever, false, "run the test forever");
 
 DECLARE_bool(enable_lacp);
 
 using utility::addAggPort;
 namespace {
-constexpr int kMaxRetries{10};
+constexpr int kMaxRetries{60};
 constexpr int kBaseVlanId{2000};
-constexpr int kLacpTestTimeout{1};
+constexpr int kLacpLongTimeout{30};
 } // unnamed namespace
 
 class MultiNodeLacpTest : public MultiNodeTest {
@@ -72,53 +64,54 @@ class MultiNodeLacpTest : public MultiNodeTest {
   }
 
   // Waits for Aggregate port to be up
-  bool waitAndCheckForAggPortUp() {
-    auto iter = kMaxRetries;
-    while (iter--) {
-      const auto& aggPorts = sw()->getState()->getAggregatePorts();
+  void waitForAggPortStatus(bool portStatus) {
+    auto aggPortUp = [&](const std::shared_ptr<SwitchState>& state) {
+      const auto& aggPorts = state->getAggregatePorts();
       if (aggPorts && aggPorts->getAggregatePort(kAggId) &&
-          aggPorts->getAggregatePort(kAggId)->isUp()) {
+          aggPorts->getAggregatePort(kAggId)->isUp() == portStatus) {
         return true;
       }
-      // wait for remote side to react to lacp control packets
-      // and establish session.
-      sleep(5);
-    }
-    const auto& aggPorts = sw()->getState()->getAggregatePorts();
-    if (aggPorts && aggPorts->getAggregatePort(kAggId)) {
-      const auto& memberAndStates =
-          aggPorts->getAggregatePort(kAggId)->subportAndFwdState();
-      for (const auto& memberAndState : memberAndStates) {
-        if (memberAndState.second != AggregatePort::Forwarding::ENABLED) {
-          XLOG(DBG2) << "LACP failed to converge on subport "
-                     << memberAndState.first;
-        }
-      }
-    }
-    return false;
+      return false;
+    };
+    EXPECT_TRUE(waitForSwitchStateCondition(aggPortUp, kMaxRetries));
   }
 
   // Verify that LACP converged on all member ports
   void verifyLacpState() {
     const auto& aggPort =
         sw()->getState()->getAggregatePorts()->getAggregatePort(kAggId);
-    ASSERT_EQ(aggPort->forwardingSubportCount(), aggPort->subportsCount());
+    EXPECT_NE(aggPort, nullptr);
+    EXPECT_EQ(aggPort->forwardingSubportCount(), aggPort->subportsCount());
     for (const auto& memberAndState : aggPort->subportAndFwdState()) {
       // Verify that member port is enabled
-      ASSERT_EQ(memberAndState.second, AggregatePort::Forwarding::ENABLED);
+      EXPECT_EQ(memberAndState.second, AggregatePort::Forwarding::ENABLED);
       // Verify that partner has synced
-      ASSERT_EQ(
+      EXPECT_TRUE(
           aggPort->getPartnerState(memberAndState.first).state &
-              LacpState::IN_SYNC,
           LacpState::IN_SYNC);
     }
   }
+
+  AggregatePort::SubportsConstRange getSubPorts() {
+    const auto& aggPort =
+        sw()->getState()->getAggregatePorts()->getAggregatePort(kAggId);
+    EXPECT_NE(aggPort, nullptr);
+    return aggPort->sortedSubports();
+  }
+
+  ParticipantInfo::Port getRemotePortID(PortID portId) {
+    const auto& aggPort =
+        sw()->getState()->getAggregatePorts()->getAggregatePort(kAggId);
+    EXPECT_NE(aggPort, nullptr);
+    return aggPort->getPartnerState(portId).port;
+  }
+
   const facebook::fboss::AggregatePortID kAggId{500};
 };
 
 TEST_F(MultiNodeLacpTest, Bringup) {
   // Wait for AggPort
-  ASSERT_TRUE(waitAndCheckForAggPortUp());
+  waitForAggPortStatus(true);
 
   // verify lacp state information
   verifyLacpState();
@@ -138,44 +131,47 @@ TEST_F(MultiNodeLacpTest, Bringup) {
 
 TEST_F(MultiNodeLacpTest, LinkDown) {
   // Wait for AggPort
-  ASSERT_TRUE(waitAndCheckForAggPortUp());
+  waitForAggPortStatus(true);
 
   // verify lacp state information
   verifyLacpState();
 
   XLOG(DBG2) << "Disable an Agg member port";
-  setPortStatus(PortID(FLAGS_multiNodeTestPort1), false);
+  const auto& subPorts = getSubPorts();
+  EXPECT_NE(subPorts.size(), 0);
+  const auto& testPort = subPorts.front().portID;
+  setPortStatus(testPort, false);
+
   // wait for LACP protocol to react
-  sleep(kLacpTestTimeout);
-  ASSERT_FALSE(
-      sw()->getState()->getAggregatePorts()->getAggregatePort(kAggId)->isUp());
+  waitForAggPortStatus(false);
 
-  XLOG(DBG2) << "Enable the Agg member port";
-  setPortStatus(PortID(FLAGS_multiNodeTestPort1), true);
+  XLOG(DBG2) << "Enable Agg member port";
+  setPortStatus(testPort, true);
 
-  ASSERT_TRUE(waitAndCheckForAggPortUp());
+  waitForAggPortStatus(true);
   verifyLacpState();
 }
 
 TEST_F(MultiNodeLacpTest, RemoteLinkDown) {
   // Wait for AggPort
-  ASSERT_TRUE(waitAndCheckForAggPortUp());
+  waitForAggPortStatus(true);
 
   // verify lacp state information
   verifyLacpState();
 
   XLOG(DBG2) << "Disable an Agg member port on remote switch";
+  const auto& subPorts = getSubPorts();
+  EXPECT_NE(subPorts.size(), 0);
+  const auto& remotePortID = getRemotePortID(subPorts.front().portID);
   auto client = getRemoteThriftClient();
-  client->sync_setPortState(FLAGS_multiNodeTestRemotePort1, false);
+  client->sync_setPortState(remotePortID, false);
 
   // wait for LACP protocol to react
-  sleep(kLacpTestTimeout);
-  ASSERT_FALSE(
-      sw()->getState()->getAggregatePorts()->getAggregatePort(kAggId)->isUp());
+  waitForAggPortStatus(false);
 
-  XLOG(DBG2) << "Enable the Agg member port on remote switch";
-  client->sync_setPortState(FLAGS_multiNodeTestRemotePort1, true);
-  ASSERT_TRUE(waitAndCheckForAggPortUp());
+  XLOG(DBG2) << "Enable Agg member port on remote switch";
+  client->sync_setPortState(remotePortID, true);
+  waitForAggPortStatus(true);
   verifyLacpState();
 }
 
@@ -191,8 +187,35 @@ TEST_F(MultiNodeLacpTest, LacpSlowFastInterop) {
   sw()->updateStateBlocking("Add AggPort fast mode", addAggFastRateFn);
 
   // Wait for AggPort
-  ASSERT_TRUE(waitAndCheckForAggPortUp());
+  waitForAggPortStatus(true);
 
   // verify lacp state information
   verifyLacpState();
+}
+
+// Stop sending LACP on one port and verify
+// that remote side times out
+TEST_F(MultiNodeLacpTest, LacpTimeout) {
+  waitForAggPortStatus(true);
+  // verify lacp state information
+  verifyLacpState();
+
+  // stop LACP on one of the member ports
+  const auto& subPortRange = getSubPorts();
+  EXPECT_GE(subPortRange.size(), 2);
+  auto lagMgr = sw()->getLagManager();
+  lagMgr->stopLacpOnSubPort(subPortRange.back().portID);
+
+  auto remoteLacpTimeout = [this](const std::shared_ptr<SwitchState>& state) {
+    const auto& localPort = getSubPorts().front().portID;
+    const auto& aggPort = state->getAggregatePorts()->getAggregatePort(kAggId);
+    const auto& remoteState = aggPort->getPartnerState(localPort).state;
+    const auto flagsToCheck =
+        LacpState::IN_SYNC | LacpState::COLLECTING | LacpState::DISTRIBUTING;
+    return ((remoteState & flagsToCheck) == 0);
+  };
+  // Remote side LACP should timeout on second member and
+  // bring down both members due to minlink violation after 3 timeouts
+  EXPECT_TRUE(
+      waitForSwitchStateCondition(remoteLacpTimeout, 4 * kLacpLongTimeout));
 }

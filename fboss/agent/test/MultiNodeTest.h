@@ -21,6 +21,11 @@ class MultiNodeTest : public ::testing::Test, public AgentInitializer {
   void TearDown() override;
   void setPortStatus(PortID port, bool up);
   std::unique_ptr<FbossCtrlAsyncClient> getRemoteThriftClient();
+  bool waitForSwitchStateCondition(
+      std::function<bool(const std::shared_ptr<SwitchState>&)> conditionFn,
+      uint32_t retries = 10,
+      std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
+          std::chrono::milliseconds(1000));
 
  private:
   virtual cfg::SwitchConfig initialConfig() const = 0;
