@@ -59,13 +59,22 @@ std::vector<cfg::PortPgConfig> getPortPgConfig(
   return portPgConfigs;
 }
 
-cfg::BufferPoolConfig getBufferPoolConfig(int mmuCellByes, int deltaValue = 0) {
+cfg::BufferPoolConfig getBufferPoolHighDefaultConfig(int mmuBytesInCell) {
+  cfg::BufferPoolConfig tmpCfg;
+  tmpCfg.headroomBytes_ref() = 12432 * mmuBytesInCell;
+  tmpCfg.sharedBytes_ref() = 119044 * mmuBytesInCell;
+  return tmpCfg;
+}
+
+cfg::BufferPoolConfig getBufferPoolConfig(
+    int mmuBytesInCell,
+    int deltaValue = 0) {
   // same as one in pg
   // std::string bufferName = "fooBuffer";
   cfg::BufferPoolConfig tmpCfg;
   tmpCfg.headroomBytes_ref() =
-      (kPoolHeadroomLimitCells + deltaValue) * mmuCellByes;
-  tmpCfg.sharedBytes_ref() = (kPoolSharedCells + deltaValue) * mmuCellByes;
+      (kPoolHeadroomLimitCells + deltaValue) * mmuBytesInCell;
+  tmpCfg.sharedBytes_ref() = (kPoolSharedCells + deltaValue) * mmuBytesInCell;
   return tmpCfg;
 }
 
@@ -79,17 +88,22 @@ class BcmPortIngressBufferManagerTest : public BcmTest {
     return utility::oneL3IntfConfig(getHwSwitch(), masterLogicalPortIds()[0]);
   }
 
-  void setupHelper(bool enableHeadroom = true, bool pfcEnable = true) {
-    auto cfg = initialConfig();
-    auto portCfg = utility::findCfgPort(cfg, masterLogicalPortIds()[0]);
+  void setupGlobalBuffer(cfg::SwitchConfig& cfg, bool useLargeHwValues) {
+    std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
+    cfg::BufferPoolConfig bufferPoolConfig;
+    if (useLargeHwValues) {
+      bufferPoolConfig =
+          getBufferPoolHighDefaultConfig(getPlatform()->getMMUCellBytes());
+    } else {
+      bufferPoolConfig = getBufferPoolConfig(getPlatform()->getMMUCellBytes());
+    }
 
-    // setup pfc
-    cfg::PortPfc pfc;
-    pfc.portPgConfigName_ref() = "foo";
-    pfc.tx_ref() = pfcEnable;
-    portCfg->pfc_ref() = pfc;
+    bufferPoolCfgMap.insert(
+        make_pair(static_cast<std::string>(kBufferPoolName), bufferPoolConfig));
+    cfg.bufferPoolConfigs_ref() = std::move(bufferPoolCfgMap);
+  }
 
-    // setup pgConfig
+  void setupPgBuffers(cfg::SwitchConfig& cfg, const bool enableHeadroom) {
     std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
     portPgConfigMap["foo"] = getPortPgConfig(
         getPlatform()->getMMUCellBytes(),
@@ -97,15 +111,36 @@ class BcmPortIngressBufferManagerTest : public BcmTest {
         0 /* delta value */,
         enableHeadroom);
     cfg.portPgConfigs_ref() = portPgConfigMap;
+  }
 
+  void
+  setupPfc(cfg::SwitchConfig& cfg, const PortID& portId, const bool pfcEnable) {
+    auto portCfg = utility::findCfgPort(cfg, portId);
+    // setup pfc
+    cfg::PortPfc pfc;
+    pfc.portPgConfigName_ref() = "foo";
+    pfc.tx_ref() = pfcEnable;
+    portCfg->pfc_ref() = pfc;
+  }
+
+  void setupHelper(
+      bool enableHeadroom = true,
+      bool pfcEnable = true,
+      bool enableHighBufferValues = false) {
+    auto cfg = initialConfig();
+
+    // setup PFC
+    setupPfc(cfg, masterLogicalPortIds()[0], pfcEnable);
+    // setup pgConfig
+    setupPgBuffers(cfg, enableHeadroom);
     // setup bufferPool
-    std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
-    bufferPoolCfgMap.insert(make_pair(
-        static_cast<std::string>(kBufferPoolName),
-        getBufferPoolConfig(getPlatform()->getMMUCellBytes())));
-    cfg.bufferPoolConfigs_ref() = std::move(bufferPoolCfgMap);
+    setupGlobalBuffer(cfg, enableHighBufferValues);
     applyNewConfig(cfg);
     cfg_ = cfg;
+  }
+
+  void setupHelperWithHighBufferValues() {
+    setupHelper(true, true, true /* enable high buffer defaults */);
   }
 
   // routine to validate that default cfg matches HW
@@ -348,6 +383,21 @@ TEST_F(BcmPortIngressBufferManagerTest, validatePgNoPfc) {
   };
   auto verify = [&]() { checkSwHwPgCfgMatch(false /* pfc*/); };
 
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// validate that if we program the global buffer with high values
+// we don't throw any errors programming
+// we saw this issue, when we try programming higher values and logic
+// has been added to program whaever buffer value is lower than
+// programmed first to workaround the sdk error
+TEST_F(BcmPortIngressBufferManagerTest, validateHighBufferValues) {
+  if (!isSupported(HwAsic::Feature::PFC)) {
+    XLOG(WARNING) << "Platform doesn't support PFC";
+    return;
+  }
+  auto setup = [&]() { setupHelperWithHighBufferValues(); };
+  auto verify = [&]() { checkSwHwPgCfgMatch(); };
   verifyAcrossWarmBoots(setup, verify);
 }
 

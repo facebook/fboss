@@ -66,6 +66,12 @@ class BcmPortIngressBufferManager {
   void resetIngressPoolsToDefault();
   void resetPgsToDefault(const std::shared_ptr<Port> port);
   void reprogramPgs(const std::shared_ptr<Port> port);
+  void setIngressPoolHeadroomBytes(
+      const bcm_cos_queue_t cosQ,
+      const int headroomBytes);
+  void setIngressSharedBytes(const bcm_cos_queue_t cosQ, const int sharedBytes);
+  void setEgressSharedBytes(const bcm_cos_queue_t cosQ, const int sharedBytes);
+
   void writeCosqTypeToHw(
       const int cosq,
       const bcm_cosq_control_t type,

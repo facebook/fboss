@@ -307,22 +307,38 @@ void BcmPortIngressBufferManager::reprogramIngressPools(
   const auto& portPgCfgs = port->getPortPgConfigs();
   for (const auto& portPgCfg : *portPgCfgs) {
     if (auto bufferPoolPtr = portPgCfg->getBufferPoolConfig()) {
-      writeCosqTypeToHw(
-          portPgCfg->getID() /* pgid */,
-          bcmCosqControlIngressPoolLimitBytes,
-          (*bufferPoolPtr)->getSharedBytes(),
-          "bcmCosqControlIngressPoolLimitBytes");
-      writeCosqTypeToHw(
-          portPgCfg->getID() /* pgid */,
-          bcmCosqControlIngressHeadroomPoolLimitBytes,
-          (*bufferPoolPtr)->getHeadroomBytes(),
-          "bcmCosqControlIngressHeadroomPoolLimitBytes");
+      auto currentGlobalHeadroomBytes =
+          getIngressPoolHeadroomBytes(portPgCfg->getID());
+      auto currentGlobalSharedBytes = getIngressSharedBytes(portPgCfg->getID());
+      auto newGlobalSharedBytes = (*bufferPoolPtr)->getSharedBytes();
+      auto newGlobalHeadroomBytes = (*bufferPoolPtr)->getHeadroomBytes();
+
+      // When we program shared pool, SDK runs a check on hdrm + shared buffer
+      // and it shouldn't exceed the MAX. If we program shared buffer first
+      // and its higher than default (common case),  hdrm + shared buffer > MAX
+      // and SDK fails! Vice versa  can also happen where hdrm is higher if we
+      // program hdrm first. One way to solve this is to program whichever one
+      // is lower, so that SDK check for hdrm + shared < MAX always hold true
+      if ((currentGlobalHeadroomBytes == newGlobalHeadroomBytes) &&
+          (currentGlobalSharedBytes == newGlobalSharedBytes)) {
+        // nothing to do if its the same
+        XLOG(DBG2) << "No change in the global buffers for port: " << portName_;
+        continue;
+      }
+
+      if (newGlobalHeadroomBytes < currentGlobalHeadroomBytes) {
+        // new global hdrm is lower than current, lets program this one first
+        setIngressPoolHeadroomBytes(portPgCfg->getID(), newGlobalHeadroomBytes);
+        setIngressSharedBytes(portPgCfg->getID(), newGlobalSharedBytes);
+      } else {
+        // (1) new shared ingress pool is lower than current
+        // (2) new shared ingress pool  > current
+        // (3) new global hdroom pool > current
+        setIngressSharedBytes(portPgCfg->getID(), newGlobalSharedBytes);
+        setIngressPoolHeadroomBytes(portPgCfg->getID(), newGlobalHeadroomBytes);
+      }
       // program the egress one equivalently
-      writeCosqTypeToHw(
-          portPgCfg->getID() /* pgid */,
-          bcmCosqControlEgressPoolSharedLimitBytes,
-          (*bufferPoolPtr)->getSharedBytes(),
-          "bcmCosqControlEgressPoolSharedLimitBytes");
+      setEgressSharedBytes(portPgCfg->getID(), newGlobalSharedBytes);
     }
   }
 }
@@ -470,6 +486,36 @@ PortPgConfigs BcmPortIngressBufferManager::getCurrentProgrammedPgSettingsHw()
     pgs.emplace_back(pg);
   }
   return pgs;
+}
+
+void BcmPortIngressBufferManager::setIngressPoolHeadroomBytes(
+    const bcm_cos_queue_t cosQ,
+    const int headroomBytes) {
+  writeCosqTypeToHw(
+      cosQ,
+      bcmCosqControlIngressHeadroomPoolLimitBytes,
+      headroomBytes,
+      "bcmCosqControlIngressHeadroomPoolLimitBytes");
+}
+
+void BcmPortIngressBufferManager::setIngressSharedBytes(
+    const bcm_cos_queue_t cosQ,
+    const int sharedBytes) {
+  writeCosqTypeToHw(
+      cosQ,
+      bcmCosqControlIngressPoolLimitBytes,
+      sharedBytes,
+      "bcmCosqControlIngressPoolLimitBytes");
+}
+
+void BcmPortIngressBufferManager::setEgressSharedBytes(
+    const bcm_cos_queue_t cosQ,
+    const int sharedBytes) {
+  writeCosqTypeToHw(
+      cosQ,
+      bcmCosqControlEgressPoolSharedLimitBytes,
+      sharedBytes,
+      "bcmCosqControlEgressPoolSharedLimitBytes");
 }
 
 int BcmPortIngressBufferManager::getIngressPoolHeadroomBytes(
