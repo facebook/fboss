@@ -11,19 +11,19 @@
 #include "fboss/agent/platforms/sai/SaiBcmMinipackPlatform.h"
 
 #include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
+#include "fboss/agent/platforms/common/minipack/MinipackPlatformMapping.h"
 
 #include <cstdio>
 #include <cstring>
 namespace facebook::fboss {
 
-HwAsic* SaiBcmMinipackPlatform::getAsic() const {
-  return asic_.get();
+SaiBcmMinipackPlatform::SaiBcmMinipackPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo)
+    : SaiBcmPlatform(
+          std::move(productInfo),
+          std::make_unique<MinipackPlatformMapping>(
+              ExternalPhyVersion::MILN5_2)) {
+  asic_ = std::make_unique<Tomahawk3Asic>();
 }
-
-void SaiBcmMinipackPlatform::initLEDs() {
-  // TODO skhare
-}
-
-SaiBcmMinipackPlatform::~SaiBcmMinipackPlatform() {}
 
 } // namespace facebook::fboss

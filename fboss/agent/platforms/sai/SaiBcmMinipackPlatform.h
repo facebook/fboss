@@ -10,6 +10,8 @@
 #pragma once
 
 #include "fboss/agent/platforms/sai/SaiBcmPlatform.h"
+#include "fboss/lib/phy/PhyInterfaceHandler.h"
+
 namespace facebook::fboss {
 
 class Tomahawk3Asic;
@@ -27,6 +29,10 @@ class SaiBcmMinipackPlatform : public SaiBcmPlatform {
 
  private:
   std::unique_ptr<Tomahawk3Asic> asic_;
+
+  // The platform contains the top level Phy Interface handler object. The
+  // Agent can use this to access the Phy functions.
+  std::unique_ptr<PhyInterfaceHandler> phyInterfaceHandler_;
 };
 
 } // namespace facebook::fboss
