@@ -131,16 +131,7 @@ void LinkAggregationManager::stateUpdated(const StateDelta& delta) {
   CHECK(sw_->getUpdateEvb()->inRunningEventBaseThread());
 
   folly::SharedMutexWritePriority::WriteHolder writeGuard(&controllersLock_);
-  // The first state update after warmboot contains saved state in
-  // oldState. Apply oldState before checking delta
-  if (!initialStateSynced_) {
-    const auto aggPorts = delta.oldState()->getAggregatePorts();
-    for (const auto aggPort : *aggPorts) {
-      XLOG(DBG3) << "Adding AggregatePort " << aggPort->getID();
-      aggregatePortAdded(aggPort);
-    }
-    initialStateSynced_ = true;
-  }
+
   DeltaFunctions::forEachChanged(
       delta.getAggregatePortsDelta(),
       &LinkAggregationManager::aggregatePortChanged,

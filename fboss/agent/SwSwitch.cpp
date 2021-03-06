@@ -443,6 +443,15 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
   initialState->publish();
   setStateInternal(initialState);
 
+  // start LACP thread
+  lacpThread_.reset(new std::thread(
+      [=] { this->threadLoop("fbossLacpThread", &lacpEventBase_); }));
+
+  // start lagMananger
+  if (flags & SwitchFlags::ENABLE_LACP) {
+    lagManager_ = std::make_unique<LinkAggregationManager>(this);
+  }
+
   if (flags & SwitchFlags::ENABLE_TUN) {
     if (tunMgr) {
       tunMgr_ = std::move(tunMgr);
@@ -478,9 +487,6 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
     lldpManager_ = std::make_unique<LldpManager>(this);
   }
 
-  if (flags & SwitchFlags::ENABLE_LACP) {
-    lagManager_ = std::make_unique<LinkAggregationManager>(this);
-  }
 #if FOLLY_HAS_COROUTINES
   if (flags & SwitchFlags::ENABLE_MACSEC) {
     mkaServiceManager_ = std::make_unique<MKAServiceManager>(this);
@@ -1146,8 +1152,6 @@ void SwSwitch::startThreads() {
     this->threadLoop(
         "fbossPcapDistributionThread", &pcapDistributionEventBase_);
   }));
-  lacpThread_.reset(new std::thread(
-      [=] { this->threadLoop("fbossLacpThread", &lacpEventBase_); }));
   neighborCacheThread_.reset(new std::thread([=] {
     this->threadLoop("fbossNeighborCacheThread", &neighborCacheEventBase_);
   }));
