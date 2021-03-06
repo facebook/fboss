@@ -193,10 +193,8 @@ void ManagedVlanMember::createObject(PublisherObjects objects) {
       bridgePortSaiId};
   SaiVlanMemberTraits::CreateAttributes memberAttributes{
       vlanIdAttribute, bridgePortIdAttribute};
-  SaiVlanMemberTraits::AdapterHostKey memberAdapterHostKey{
-      bridgePortIdAttribute};
 
-  this->setObject(memberAdapterHostKey, memberAttributes);
+  this->setObject(memberAttributes, memberAttributes);
 }
 
 void ManagedVlanMember::removeObject(size_t, PublisherObjects) {

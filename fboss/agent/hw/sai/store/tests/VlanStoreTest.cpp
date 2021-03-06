@@ -52,7 +52,7 @@ TEST_F(VlanStoreTest, loadVlanMember) {
   s.reload();
   auto& store = s.get<SaiVlanMemberTraits>();
 
-  auto got = store.get(SaiVlanMemberTraits::Attributes::BridgePortId{10});
+  auto got = store.get(SaiVlanMemberTraits::CreateAttributes{vlanId, 10});
   EXPECT_EQ(got->adapterKey(), vlanMemberId);
 }
 
@@ -79,8 +79,7 @@ TEST_F(VlanStoreTest, vlanCreateCtor) {
 TEST_F(VlanStoreTest, vlanMemberCreateCtor) {
   auto vlanId = createVlan(42);
   SaiVlanMemberTraits::CreateAttributes c{vlanId, 10};
-  SaiVlanMemberTraits::AdapterHostKey k{10};
-  auto obj = createObj<SaiVlanMemberTraits>(k, c, 0);
+  auto obj = createObj<SaiVlanMemberTraits>(c, c, 0);
   EXPECT_EQ(GET_ATTR(VlanMember, VlanId, obj.attributes()), vlanId);
   EXPECT_EQ(GET_ATTR(VlanMember, BridgePortId, obj.attributes()), 10);
 }

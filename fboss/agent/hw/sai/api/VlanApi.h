@@ -60,9 +60,9 @@ struct SaiVlanMemberTraits {
   };
 
   using AdapterKey = VlanMemberSaiId;
-  using AdapterHostKey = Attributes::BridgePortId;
-  using CreateAttributes =
+  using AdapterHostKey =
       std::tuple<Attributes::VlanId, Attributes::BridgePortId>;
+  using CreateAttributes = AdapterHostKey;
 };
 SAI_ATTRIBUTE_NAME(VlanMember, BridgePortId);
 SAI_ATTRIBUTE_NAME(VlanMember, VlanId);
