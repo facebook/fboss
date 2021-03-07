@@ -36,6 +36,9 @@ class SaiBridgeManager {
       SaiPortDescriptor portDescriptor,
       PortDescriptorSaiId saiId);
 
+  sai_bridge_port_fdb_learning_mode_t getFdbLearningMode(
+      cfg::L2LearningMode l2LearningMode) const;
+
  private:
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;

@@ -57,4 +57,18 @@ SaiBridgeManager::SaiBridgeManager(
   store.setObjectOwnedByAdapter(true);
 }
 
+sai_bridge_port_fdb_learning_mode_t SaiBridgeManager::getFdbLearningMode(
+    cfg::L2LearningMode l2LearningMode) const {
+  sai_bridge_port_fdb_learning_mode_t fdbLearningMode;
+  switch (l2LearningMode) {
+    case cfg::L2LearningMode::HARDWARE:
+      fdbLearningMode = SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW;
+      break;
+    case cfg::L2LearningMode::SOFTWARE:
+      fdbLearningMode = SAI_BRIDGE_PORT_FDB_LEARNING_MODE_FDB_NOTIFICATION;
+      break;
+  }
+  return fdbLearningMode;
+}
+
 } // namespace facebook::fboss

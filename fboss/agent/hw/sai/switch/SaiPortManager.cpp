@@ -108,19 +108,6 @@ void fillHwPortStats(
   }
 }
 
-sai_bridge_port_fdb_learning_mode_t getFdbLearningMode(
-    cfg::L2LearningMode l2LearningMode) {
-  sai_bridge_port_fdb_learning_mode_t fdbLearningMode;
-  switch (l2LearningMode) {
-    case cfg::L2LearningMode::HARDWARE:
-      fdbLearningMode = SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW;
-      break;
-    case cfg::L2LearningMode::SOFTWARE:
-      fdbLearningMode = SAI_BRIDGE_PORT_FDB_LEARNING_MODE_FDB_NOTIFICATION;
-      break;
-  }
-  return fdbLearningMode;
-}
 } // namespace
 
 SaiPortManager::SaiPortManager(
@@ -265,9 +252,10 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   managerTable_->queueManager().ensurePortQueueConfig(
       saiPort->adapterKey(), handle->queues, swPort->getPortQueues());
   if (l2LearningMode_) {
+    auto fdbLearningMode = managerTable_->bridgeManager().getFdbLearningMode(
+        l2LearningMode_.value());
     handle->bridgePort->setOptionalAttribute(
-        SaiBridgePortTraits::Attributes::FdbLearningMode{
-            getFdbLearningMode(l2LearningMode_.value())});
+        SaiBridgePortTraits::Attributes::FdbLearningMode{fdbLearningMode});
   }
 
   bool samplingMirror = swPort->getSampleDestination().has_value() &&
@@ -937,7 +925,8 @@ void SaiPortManager::clearQosPolicy() {
 }
 
 void SaiPortManager::setL2LearningMode(cfg::L2LearningMode l2LearningMode) {
-  auto fdbLearningMode = getFdbLearningMode(l2LearningMode);
+  auto fdbLearningMode =
+      managerTable_->bridgeManager().getFdbLearningMode(l2LearningMode);
   for (auto& portIdAndHandle : managerTable_->portManager()) {
     auto& portHandle = portIdAndHandle.second;
     portHandle->bridgePort->setOptionalAttribute(
