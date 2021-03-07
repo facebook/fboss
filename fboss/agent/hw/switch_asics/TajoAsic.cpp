@@ -39,6 +39,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::DEBUG_COUNTER:
     case HwAsic::Feature::PENDING_L2_ENTRY:
     case HwAsic::Feature::COUNTER_REFRESH_INTERVAL:
+    case HwAsic::Feature::MAC_AGING:
       return true;
     case HwAsic::Feature::HOT_SWAP:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:

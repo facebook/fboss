@@ -63,6 +63,7 @@ class HwAsic {
     SAI_MIRRORING,
     SAI_SAMPLING,
     ALPM_ROUTE_PROJECTION,
+    MAC_AGING,
   };
 
   enum class AsicType {

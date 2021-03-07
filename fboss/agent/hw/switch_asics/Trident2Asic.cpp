@@ -24,6 +24,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PENDING_L2_ENTRY:
     case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::TELEMETRY_AND_MONITORING:
+    case HwAsic::Feature::MAC_AGING:
       return true;
 
     case HwAsic::Feature::TRUNCATE_MIRROR_PACKET:

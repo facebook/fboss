@@ -928,8 +928,13 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
     cpu->resetQueues(cpuQueues);
     state->resetControlPlane(cpu);
   }
-  // reconstruct ports
-  state->resetPorts(managerTable_->portManager().reconstructPortsFromStore());
+  // TODO(joseph5wu) We need to design how to restore xphy ports for the state
+  // Temporarily skil resetPorts for ASIC_TYPE_ELBERT_8DD
+  if (platform_->getAsic()->getAsicType() !=
+      HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD) {
+    // reconstruct ports
+    state->resetPorts(managerTable_->portManager().reconstructPortsFromStore());
+  }
   return state;
 }
 
@@ -984,8 +989,10 @@ HwInitResult SaiSwitch::initLocked(
       adapterKeys2AdapterHostKeysJson.get());
   if (bootType_ != BootType::WARM_BOOT) {
     ret.switchState = getColdBootSwitchState();
-    managerTable_->switchManager().setMacAgingSeconds(
-        ret.switchState->getSwitchSettings()->getL2AgeTimerSeconds());
+    if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::MAC_AGING)) {
+      managerTable_->switchManager().setMacAgingSeconds(
+          ret.switchState->getSwitchSettings()->getL2AgeTimerSeconds());
+    }
     handleStandaloneRIBTransition(folly::dynamic::object(), ret);
   }
   ret.switchState->publish();
@@ -1031,9 +1038,14 @@ void SaiSwitch::initStoreAndManagersLocked(
    */
   {
     HwWriteBehvaiorRAII writeBehavior{behavior};
-    managerTable_->aclTableGroupManager().addAclTableGroup(
-        SAI_ACL_STAGE_INGRESS);
-    managerTable_->aclTableManager().addAclTable(kAclTable1);
+    // TODO(rajank) Might need different STAGE for phy acl group
+    // Temporarily skip adding acl table group for ASIC_TYPE_ELBERT_8DD
+    if (getPlatform()->getAsic()->getAsicType() !=
+        HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD) {
+      managerTable_->aclTableGroupManager().addAclTableGroup(
+          SAI_ACL_STAGE_INGRESS);
+      managerTable_->aclTableManager().addAclTable(kAclTable1);
+    }
 
     if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::DEBUG_COUNTER)) {
       managerTable_->debugCounterManager().setupDebugCounters();

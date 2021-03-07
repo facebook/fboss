@@ -37,6 +37,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::TELEMETRY_AND_MONITORING:
     case HwAsic::Feature::WIDE_ECMP:
     case HwAsic::Feature::ALPM_ROUTE_PROJECTION:
+    case HwAsic::Feature::MAC_AGING:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
