@@ -22,6 +22,9 @@
 #include <memory>
 #include <utility>
 
+#include <folly/ScopeGuard.h>
+#include <folly/logging/xlog.h>
+
 namespace {
 class Timer {
  public:
@@ -183,19 +186,23 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
       std::vector<RibRouteUpdater::RouteEntry> dontCare;
       // Attempt rollback. Exception in rollback will cause
       // immediate termination.
-      updateImpl(
-          &(it->second),
-          routerID,
-          clientID,
-          adminDistanceFromClientID,
-          deletesToRollback,
-          addsToRollback,
-          resetClientsRoutes,
-          updateType,
-          fibUpdateCallback,
-          cookie,
-          &dontCare);
-
+      {
+        SCOPE_FAIL {
+          XLOG(FATAL) << " RIB Rollback failed, aborting program";
+        };
+        updateImpl(
+            &(it->second),
+            routerID,
+            clientID,
+            adminDistanceFromClientID,
+            deletesToRollback,
+            addsToRollback,
+            resetClientsRoutes,
+            updateType,
+            fibUpdateCallback,
+            cookie,
+            &dontCare);
+      }
       // TODO: Fix HwUpdateError to reflect the correct state of HW
       throw;
     }
@@ -213,7 +220,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::updateImpl(
     const std::vector<IpPrefix>& toDelete,
     bool resetClientsRoutes,
     folly::StringPiece updateType,
-    FibUpdateFunction fibUpdateCallback,
+    FibUpdateFunction& fibUpdateCallback,
     void* cookie,
     std::vector<RibRouteUpdater::RouteEntry>* deletedRoutes) {
   UpdateStatistics stats;

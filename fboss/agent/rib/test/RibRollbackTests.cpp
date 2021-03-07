@@ -49,13 +49,24 @@ void recordUpdates(
   (*nextStatePtr)->publish();
 }
 
-void failUpdates(
-    RouterID /*vrf*/,
-    const IPv4NetworkToRouteMap& /*v4NetworkToRoute*/,
-    const IPv6NetworkToRouteMap& /*v6NetworkToRoute*/,
-    void* /*cookie*/) {
-  throw FbossHwUpdateError(nullptr, nullptr);
-}
+class FailSomeUpdates {
+ public:
+  explicit FailSomeUpdates(std::unordered_set<int> toFail)
+      : toFail_(std::move(toFail)) {}
+  void operator()(
+      RouterID /*vrf*/,
+      const IPv4NetworkToRouteMap& /*v4NetworkToRoute*/,
+      const IPv6NetworkToRouteMap& /*v6NetworkToRoute*/,
+      void* /*cookie*/) {
+    if (toFail_.find(++cnt_) != toFail_.end()) {
+      throw FbossHwUpdateError(nullptr, nullptr);
+    }
+  }
+
+ private:
+  int cnt_{0};
+  std::unordered_set<int> toFail_;
+};
 
 IpPrefix makePrefix(const folly::CIDRNetwork& nw) {
   IpPrefix pfx;
@@ -75,7 +86,25 @@ UnicastRoute makeUnicastRoute(
   return nr;
 }
 
-TEST(RibRollbackTest, rollbackAdds) {
+TEST(RibRollbackTest, rollbackFail) {
+  RoutingInformationBase rib;
+  rib.ensureVrf(kRid);
+  FailSomeUpdates failUpdateAndRollback({1, 2});
+  EXPECT_DEATH(
+      rib.update(
+          kRid,
+          kBgpClient,
+          kBgpDistance,
+          {makeUnicastRoute(kPrefix1, RouteForwardAction::DROP)},
+          {},
+          false,
+          "add only",
+          failUpdateAndRollback,
+          nullptr),
+      ".*");
+}
+
+TEST(RibRollbackTest, rollbackAdd) {
   auto switchState = std::make_shared<SwitchState>();
   switchState->publish();
   auto origSwitchState = switchState;
@@ -102,6 +131,7 @@ TEST(RibRollbackTest, rollbackAdds) {
   assertRouteCount();
   // Fail route update. Rib should rollback to pre failed add state
   auto routeTableBeforeFailedUpdate = rib.getRouteTableDetails(kRid);
+  FailSomeUpdates failFirstUpdate({1});
   EXPECT_THROW(
       rib.update(
           kRid,
@@ -111,8 +141,8 @@ TEST(RibRollbackTest, rollbackAdds) {
           {},
           false,
           "fail add",
-          failUpdates,
-          &switchState),
+          failFirstUpdate,
+          nullptr),
       FbossHwUpdateError);
   assertRouteCount();
   EXPECT_EQ(routeTableBeforeFailedUpdate, rib.getRouteTableDetails(kRid));
@@ -145,6 +175,7 @@ TEST(RibRollbackTest, rollbackDel) {
   assertRouteCount();
   // Fail route update. Rib should rollback to pre failed add state
   auto routeTableBeforeFailedUpdate = rib.getRouteTableDetails(kRid);
+  FailSomeUpdates failFirstUpdate({1});
   EXPECT_THROW(
       rib.update(
           kRid,
@@ -154,8 +185,8 @@ TEST(RibRollbackTest, rollbackDel) {
           {makePrefix(kPrefix1)},
           false,
           "fail del",
-          failUpdates,
-          &switchState),
+          failFirstUpdate,
+          nullptr),
       FbossHwUpdateError);
   assertRouteCount();
   EXPECT_EQ(routeTableBeforeFailedUpdate, rib.getRouteTableDetails(kRid));

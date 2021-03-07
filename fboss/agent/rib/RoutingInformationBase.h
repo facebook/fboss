@@ -159,7 +159,7 @@ class RoutingInformationBase {
       const std::vector<IpPrefix>& toDelete,
       bool resetClientsRoutes,
       folly::StringPiece updateType,
-      FibUpdateFunction fibUpdateCallback,
+      FibUpdateFunction& fibUpdateCallback,
       void* cookie,
       std::vector<RibRouteUpdater::RouteEntry>* deletedRoutes);
   /*
