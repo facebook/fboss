@@ -31,12 +31,13 @@ void verifyAggregatePort(
 void verifyAggregatePortMemberCount(
     const HwSwitchEnsemble* ensemble,
     AggregatePortID aggregatePortID,
-    uint8_t /*totalCount*/,
+    uint8_t totalCount,
     uint8_t currentCount) {
   auto* saiSwitchEnsemble = static_cast<const SaiSwitchEnsemble*>(ensemble);
   auto* saiSwitch = saiSwitchEnsemble->getHwSwitch();
   auto& lagManager = saiSwitch->managerTable()->lagManager();
-  EXPECT_EQ(lagManager.getLagMemberCount(aggregatePortID), currentCount);
+  EXPECT_EQ(lagManager.getLagMemberCount(aggregatePortID), totalCount);
+  EXPECT_EQ(lagManager.getActiveMemberCount(aggregatePortID), currentCount);
 }
 
 void verifyPktFromAggregatePort(

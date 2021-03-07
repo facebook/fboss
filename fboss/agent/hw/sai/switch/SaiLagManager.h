@@ -46,19 +46,26 @@ class SaiLagManager {
   SaiLagHandle* getLagHandleIf(AggregatePortID aggregatePortID) const;
   SaiLagHandle* getLagHandle(AggregatePortID aggregatePortID) const;
   bool isMinimumLinkMet(AggregatePortID aggregatePortID) const;
-  void removeMember(AggregatePortID aggPort, PortID subPort);
 
   uint8_t getLagCount() const {
     return handles_.size();
   }
-  uint8_t getLagMemberCount(AggregatePortID aggPort) const;
+  size_t getLagMemberCount(AggregatePortID aggPort) const;
+  size_t getActiveMemberCount(AggregatePortID aggPort) const;
+
+  void disableMember(AggregatePortID aggPort, PortID subPort);
 
  private:
   std::pair<PortSaiId, std::shared_ptr<SaiLagMember>> addMember(
       const std::shared_ptr<SaiLag>& lag,
       AggregatePortID aggPort,
       PortID subPort);
+  void removeMember(AggregatePortID aggPort, PortID subPort);
+
   void removeLagHandle(AggregatePortID aggPort, SaiLagHandle* handle);
+
+  void setMemberState(SaiLagMember* member, AggregatePort::Forwarding fwdState);
+  SaiLagMember* getMember(SaiLagHandle* handle, PortID port);
 
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;

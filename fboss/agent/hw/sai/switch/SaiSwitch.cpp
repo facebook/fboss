@@ -881,7 +881,7 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
       if (swAggPort) {
         // member of lag is gone down. unbundle it from LAG
         // once link comes back up LACP engine in SwSwitch will bundle it again
-        managerTable_->lagManager().removeMember(swAggPort.value(), swPortId);
+        managerTable_->lagManager().disableMember(swAggPort.value(), swPortId);
         if (!managerTable_->lagManager().isMinimumLinkMet(swAggPort.value())) {
           // remove fdb entries on LAG, this would remove neighbors, next hops
           // will point to drop and next hop group will shrink.

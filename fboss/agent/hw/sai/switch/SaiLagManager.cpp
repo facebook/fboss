@@ -28,11 +28,9 @@ void SaiLagManager::addLag(
   std::map<PortSaiId, std::shared_ptr<SaiLagMember>> members;
   for (auto iter : folly::enumerate(aggregatePort->subportAndFwdState())) {
     auto [subPort, fwdState] = *iter;
-    if (fwdState == AggregatePort::Forwarding::DISABLED) {
-      // subport disabled for forwarding
-      continue;
-    }
-    members.emplace(addMember(lag, aggregatePort->getID(), subPort));
+    auto member = addMember(lag, aggregatePort->getID(), subPort);
+    setMemberState(member.second.get(), fwdState);
+    members.emplace(std::move(member));
   }
   auto& subPort = aggregatePort->sortedSubports().front();
   auto portSaiIdsIter = concurrentIndices_->portSaiIds.find(subPort.portID);
@@ -93,45 +91,31 @@ void SaiLagManager::changeLag(
   while (oldIter != oldPortAndFwdState.end() &&
          newIter != newPortAndFwdState.end()) {
     if (oldIter->first < newIter->first) {
-      if (oldIter->second == AggregatePort::Forwarding::ENABLED) {
-        // remove member
-        removeMember(oldAggregatePort->getID(), oldIter->first);
-      }
+      removeMember(oldAggregatePort->getID(), oldIter->first);
       oldIter++;
     } else if (newIter->first < oldIter->first) {
-      if (newIter->second == AggregatePort::Forwarding::ENABLED) {
-        // add member
-        saiLagHandle->members.emplace(addMember(
-            saiLagHandle->lag, newAggregatePort->getID(), newIter->first));
-      }
+      // add member
+      auto member = addMember(
+          saiLagHandle->lag, newAggregatePort->getID(), newIter->first);
+      setMemberState(member.second.get(), newIter->second);
+      saiLagHandle->members.emplace(std::move(member));
       newIter++;
     } else if (oldIter->second != newIter->second) {
       // forwarding state changed
-      if (newIter->second == AggregatePort::Forwarding::ENABLED) {
-        // add member
-        saiLagHandle->members.emplace(addMember(
-            saiLagHandle->lag, newAggregatePort->getID(), newIter->first));
-
-      } else {
-        // remove member
-        removeMember(newAggregatePort->getID(), newIter->first);
-      }
+      auto member = getMember(saiLagHandle.get(), newIter->first);
+      setMemberState(member, newIter->second);
       newIter++;
       oldIter++;
     }
     while (oldIter != oldPortAndFwdState.end()) {
-      if (oldIter->second == AggregatePort::Forwarding::ENABLED) {
-        // remove member
-        removeMember(oldAggregatePort->getID(), oldIter->first);
-      }
+      removeMember(oldAggregatePort->getID(), oldIter->first);
       oldIter++;
     }
     while (newIter != newPortAndFwdState.end()) {
-      if (newIter->second == AggregatePort::Forwarding::ENABLED) {
-        // remove member
-        saiLagHandle->members.emplace(addMember(
-            saiLagHandle->lag, newAggregatePort->getID(), newIter->first));
-      }
+      auto member = addMember(
+          saiLagHandle->lag, newAggregatePort->getID(), newIter->first);
+      setMemberState(member.second.get(), newIter->second);
+      saiLagHandle->members.emplace(std::move(member));
       newIter++;
     }
   }
@@ -201,7 +185,7 @@ SaiLagHandle* SaiLagManager::getLagHandle(
 
 bool SaiLagManager::isMinimumLinkMet(AggregatePortID aggregatePortID) const {
   const auto* handle = getLagHandle(aggregatePortID);
-  return handle->minimumLinkCount <= handle->members.size();
+  return handle->minimumLinkCount <= getActiveMemberCount(aggregatePortID);
 }
 
 void SaiLagManager::removeLagHandle(
@@ -233,8 +217,57 @@ SaiLagManager::~SaiLagManager() {
   }
 }
 
-uint8_t SaiLagManager::getLagMemberCount(AggregatePortID aggPort) const {
+size_t SaiLagManager::getLagMemberCount(AggregatePortID aggPort) const {
   auto handle = getLagHandle(aggPort);
   return handle->members.size();
+}
+
+size_t SaiLagManager::getActiveMemberCount(AggregatePortID aggPort) const {
+  const auto* handle = getLagHandle(aggPort);
+  return std::count_if(
+      std::begin(handle->members),
+      std::end(handle->members),
+      [](const auto& entry) {
+        auto member = entry.second;
+        auto attributes = member->attributes();
+        auto isEgressDisabled =
+            std::get<SaiLagMemberTraits::Attributes::EgressDisable>(attributes)
+                .value();
+        return !isEgressDisabled;
+      });
+}
+
+void SaiLagManager::setMemberState(
+    SaiLagMember* member,
+    AggregatePort::Forwarding fwdState) {
+  switch (fwdState) {
+    case AggregatePort::Forwarding::DISABLED:
+      member->setAttribute(SaiLagMemberTraits::Attributes::EgressDisable{true});
+      break;
+    case AggregatePort::Forwarding::ENABLED:
+      member->setAttribute(
+          SaiLagMemberTraits::Attributes::EgressDisable{false});
+      break;
+  }
+}
+
+SaiLagMember* SaiLagManager::getMember(SaiLagHandle* handle, PortID port) {
+  auto portsIter = concurrentIndices_->portSaiIds.find(port);
+  if (portsIter == concurrentIndices_->portSaiIds.end()) {
+    throw FbossError("port sai id not found for lag member port ", port);
+  }
+  auto membersIter = handle->members.find(portsIter->second);
+  if (membersIter == handle->members.end()) {
+    throw FbossError("member not found for lag member port ", port);
+  }
+  return membersIter->second.get();
+}
+
+void SaiLagManager::disableMember(AggregatePortID aggPort, PortID subPort) {
+  auto handleIter = handles_.find(aggPort);
+  CHECK(handleIter != handles_.end());
+  auto& saiLagHandle = handleIter->second;
+  auto member = getMember(saiLagHandle.get(), subPort);
+  setMemberState(member, AggregatePort::Forwarding::DISABLED);
 }
 } // namespace facebook::fboss
