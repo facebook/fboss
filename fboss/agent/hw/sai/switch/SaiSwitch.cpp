@@ -627,6 +627,8 @@ void SaiSwitch::processSwitchSettingsChangedLocked(
                << static_cast<int>(newSwitchSettings->getL2LearningMode());
     managerTable_->portManager().setL2LearningMode(
         newSwitchSettings->getL2LearningMode());
+    managerTable_->lagManager().setL2LearningMode(
+        newSwitchSettings->getL2LearningMode());
   }
 
   const auto oldVal = oldSwitchSettings->getL2AgeTimerSeconds();
@@ -1198,7 +1200,7 @@ void SaiSwitch::packetRxCallback(
   rxPacket->setSrcAggregatePort(swAggPortId);
   rxPacket->setSrcVlan(swVlanId);
 
-  XLOG(DBG6) << "Rx packet on lag: " << swAggPortId
+  XLOG(INFO) << "Rx packet on lag: " << swAggPortId
              << " and vlan: " << swVlanId;
   folly::io::Cursor c0(rxPacket->buf());
   XLOG(DBG6) << PktUtil::hexDump(c0);
