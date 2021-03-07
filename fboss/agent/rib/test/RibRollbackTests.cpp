@@ -57,13 +57,19 @@ void failUpdates(
   throw FbossHwUpdateError(nullptr, nullptr);
 }
 
+IpPrefix makePrefix(const folly::CIDRNetwork& nw) {
+  IpPrefix pfx;
+  pfx.ip_ref() = toBinaryAddress(nw.first);
+  pfx.prefixLength_ref() = nw.second;
+  return pfx;
+}
+
 UnicastRoute makeUnicastRoute(
     const folly::CIDRNetwork& nw,
     RouteForwardAction action,
     AdminDistance distance = kBgpDistance) {
   UnicastRoute nr;
-  nr.dest_ref()->ip_ref() = toBinaryAddress(nw.first);
-  nr.dest_ref()->prefixLength_ref() = nw.second;
+  nr.dest_ref() = makePrefix(nw);
   nr.action_ref() = action;
   nr.adminDistance_ref() = distance;
   return nr;
@@ -105,6 +111,49 @@ TEST(RibRollbackTest, rollbackAdds) {
           {},
           false,
           "fail add",
+          failUpdates,
+          &switchState),
+      FbossHwUpdateError);
+  assertRouteCount();
+  EXPECT_EQ(routeTableBeforeFailedUpdate, rib.getRouteTableDetails(kRid));
+}
+
+TEST(RibRollbackTest, rollbackDel) {
+  auto switchState = std::make_shared<SwitchState>();
+  switchState->publish();
+  auto origSwitchState = switchState;
+  RoutingInformationBase rib;
+  rib.ensureVrf(kRid);
+  rib.update(
+      kRid,
+      kBgpClient,
+      kBgpDistance,
+      {makeUnicastRoute(kPrefix1, RouteForwardAction::DROP)},
+      {},
+      false,
+      "add only",
+      recordUpdates,
+      &switchState);
+  EXPECT_NE(switchState, origSwitchState);
+  EXPECT_EQ(1, switchState->getGeneration());
+  auto assertRouteCount = [&]() {
+    auto [numV4, numV6] = switchState->getFibs()->getRouteCount();
+    EXPECT_EQ(1, numV6);
+    EXPECT_EQ(0, numV4);
+    EXPECT_EQ(1, rib.getRouteTableDetails(kRid).size());
+  };
+  assertRouteCount();
+  // Fail route update. Rib should rollback to pre failed add state
+  auto routeTableBeforeFailedUpdate = rib.getRouteTableDetails(kRid);
+  EXPECT_THROW(
+      rib.update(
+          kRid,
+          kBgpClient,
+          kBgpDistance,
+          {},
+          {makePrefix(kPrefix1)},
+          false,
+          "fail del",
           failUpdates,
           &switchState),
       FbossHwUpdateError);
