@@ -74,30 +74,26 @@ class RibRouteUpdater {
   void updateDone();
 
  private:
-  IPv4NetworkToRouteMap* v4Routes_{nullptr};
-  IPv6NetworkToRouteMap* v6Routes_{nullptr};
-
-  // TODO(samank): rename in original file
   template <typename AddressT>
   using Prefix = RoutePrefix<AddressT>;
 
-  // TODO(samank): make these static
   template <typename AddressT>
-  void addRouteImpl(
+  static void addRouteImpl(
       const Prefix<AddressT>& prefix,
       NetworkToRouteMap<AddressT>* routes,
       ClientID clientID,
       RouteNextHopEntry entry);
   template <typename AddressT>
-  std::optional<RouteNextHopEntry> delRouteImpl(
+  static std::optional<RouteNextHopEntry> delRouteImpl(
       const Prefix<AddressT>& prefix,
       NetworkToRouteMap<AddressT>* routes,
       ClientID clientID);
   template <typename AddressT>
-  void removeAllRoutesFromClientImpl(
+  static void removeAllRoutesFromClientImpl(
       NetworkToRouteMap<AddressT>* routes,
       ClientID clientID,
       std::vector<RouteEntry>* deleted);
+
   template <typename AddressT>
   void updateDoneImpl(NetworkToRouteMap<AddressT>* routes);
 
@@ -114,6 +110,9 @@ class RibRouteUpdater {
       bool* hasToCpu,
       bool* hasDrop,
       RouteNextHopSet& fwd);
+
+  IPv4NetworkToRouteMap* v4Routes_{nullptr};
+  IPv6NetworkToRouteMap* v6Routes_{nullptr};
 };
 
 } // namespace facebook::fboss
