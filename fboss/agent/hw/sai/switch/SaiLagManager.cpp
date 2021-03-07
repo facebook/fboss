@@ -147,9 +147,11 @@ std::pair<PortSaiId, std::shared_ptr<SaiLagMember>> SaiLagManager::addMember(
   auto saiPortId = portHandle->port->adapterKey();
   auto saiLagId = lag->adapterKey();
 
-  SaiLagMemberTraits::CreateAttributes attrs{saiLagId, saiPortId};
+  SaiLagMemberTraits::AdapterHostKey adapterHostKey{saiLagId, saiPortId};
+  SaiLagMemberTraits::CreateAttributes attrs{
+      saiLagId, saiPortId, SaiLagMemberTraits::Attributes::EgressDisable{true}};
   auto& lagMemberStore = SaiStore::getInstance()->get<SaiLagMemberTraits>();
-  auto member = lagMemberStore.setObject(attrs, attrs);
+  auto member = lagMemberStore.setObject(adapterHostKey, attrs);
   concurrentIndices_->memberPort2AggregatePortIds.emplace(
       saiPortId, aggregatePortID);
   return {saiPortId, member};

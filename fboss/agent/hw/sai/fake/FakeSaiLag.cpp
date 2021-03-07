@@ -100,7 +100,7 @@ sai_status_t create_lag_member_fn(
 
   sai_object_id_t lag_id = SAI_NULL_OBJECT_ID;
   sai_object_id_t port_id = SAI_NULL_OBJECT_ID;
-
+  bool egress_disable = false;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_LAG_MEMBER_ATTR_LAG_ID:
@@ -109,11 +109,15 @@ sai_status_t create_lag_member_fn(
       case SAI_LAG_MEMBER_ATTR_PORT_ID:
         port_id = attr_list[i].value.oid;
         break;
+      case SAI_LAG_MEMBER_ATTR_EGRESS_DISABLE:
+        egress_disable = attr_list[i].value.booldata;
+        break;
       default:
         return SAI_STATUS_NOT_SUPPORTED + i;
     }
   }
-  *lag_member_id = fs->lagManager.createMember(lag_id, lag_id, port_id);
+  *lag_member_id =
+      fs->lagManager.createMember(lag_id, lag_id, port_id, egress_disable);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -142,6 +146,9 @@ sai_status_t get_lag_member_attribute_fn(
         break;
       case SAI_LAG_MEMBER_ATTR_PORT_ID:
         attr_list[i].value.oid = lagMember.portId_;
+        break;
+      case SAI_LAG_MEMBER_ATTR_EGRESS_DISABLE:
+        attr_list[i].value.booldata = lagMember.egressDisable_;
         break;
       default:
         return SAI_STATUS_NOT_SUPPORTED + i;

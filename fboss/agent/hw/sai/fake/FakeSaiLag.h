@@ -15,11 +15,15 @@ extern "C" {
 namespace facebook::fboss {
 
 struct FakeLagMember {
-  FakeLagMember(sai_object_id_t lagId, sai_object_id_t portId)
-      : lagId_(lagId), portId_(portId) {}
+  FakeLagMember(
+      sai_object_id_t lagId,
+      sai_object_id_t portId,
+      bool egressDisable)
+      : lagId_(lagId), portId_(portId), egressDisable_(egressDisable) {}
   sai_object_id_t lagId_;
   sai_object_id_t portId_;
   sai_object_id_t id;
+  bool egressDisable_;
 };
 
 struct FakeLag {

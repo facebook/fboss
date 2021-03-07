@@ -35,7 +35,7 @@ class LagApiTest : public ::testing::Test {
   }
 
   LagMemberSaiId createLagMember(sai_object_id_t lag, sai_object_id_t port) {
-    return lagApi->create<SaiLagMemberTraits>({lag, port}, switchid);
+    return lagApi->create<SaiLagMemberTraits>({lag, port, true}, switchid);
   }
 
   bool hasLagMember(LagSaiId lagId, LagMemberSaiId lagMemberId) {

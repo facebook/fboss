@@ -58,14 +58,18 @@ struct SaiLagMemberTraits {
         SaiAttribute<EnumType, SAI_LAG_MEMBER_ATTR_LAG_ID, sai_object_id_t>;
     using PortId =
         SaiAttribute<EnumType, SAI_LAG_MEMBER_ATTR_PORT_ID, sai_object_id_t>;
+    using EgressDisable =
+        SaiAttribute<EnumType, SAI_LAG_MEMBER_ATTR_EGRESS_DISABLE, bool>;
   };
   using AdapterKey = LagMemberSaiId;
   using AdapterHostKey = std::tuple<Attributes::LagId, Attributes::PortId>;
-  using CreateAttributes = AdapterHostKey;
+  using CreateAttributes = std::
+      tuple<Attributes::LagId, Attributes::PortId, Attributes::EgressDisable>;
 };
 
 SAI_ATTRIBUTE_NAME(LagMember, LagId);
 SAI_ATTRIBUTE_NAME(LagMember, PortId);
+SAI_ATTRIBUTE_NAME(LagMember, EgressDisable);
 
 class LagApi : public SaiApi<LagApi> {
  public:

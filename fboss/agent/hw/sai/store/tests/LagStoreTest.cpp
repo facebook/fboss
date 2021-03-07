@@ -33,7 +33,7 @@ class LagStoreTest : public SaiStoreTest {
 
   LagMemberSaiId createLagMember(LagSaiId lagId, sai_object_id_t port) {
     return saiApiTable->lagApi().create<SaiLagMemberTraits>(
-        {static_cast<sai_object_id_t>(lagId), port}, 0);
+        {static_cast<sai_object_id_t>(lagId), port, true}, 0);
   }
 };
 
@@ -45,9 +45,13 @@ TEST_F(LagStoreTest, setObject) {
   auto lag = s.get<SaiLagTraits>().setObject(label, {});
   std::vector<std::shared_ptr<SaiObject<SaiLagMemberTraits>>> members;
   for (auto i : {1, 2, 3, 4}) {
-    SaiLagMemberTraits::CreateAttributes createAttrs{lag->adapterKey(), i};
+    SaiLagMemberTraits::AdapterHostKey adapterHostLey{lag->adapterKey(), i};
+    SaiLagMemberTraits::CreateAttributes createAttrs{
+        lag->adapterKey(),
+        i,
+        SaiLagMemberTraits::Attributes::EgressDisable{true}};
     members.push_back(
-        s.get<SaiLagMemberTraits>().setObject(createAttrs, createAttrs));
+        s.get<SaiLagMemberTraits>().setObject(adapterHostLey, createAttrs));
   }
   for (auto member : members) {
     EXPECT_TRUE(hasMember(lag->adapterKey(), member->adapterKey()));
@@ -63,9 +67,13 @@ TEST_F(LagStoreTest, updateObject) {
   std::vector<std::shared_ptr<SaiObject<SaiLagMemberTraits>>> members;
   std::vector<LagMemberSaiId> memberIds;
   for (auto i : {1, 2, 3, 4}) {
-    SaiLagMemberTraits::CreateAttributes createAttrs{lag->adapterKey(), i};
+    SaiLagMemberTraits::AdapterHostKey adapterHostLey{lag->adapterKey(), i};
+    SaiLagMemberTraits::CreateAttributes createAttrs{
+        lag->adapterKey(),
+        i,
+        SaiLagMemberTraits::Attributes::EgressDisable{true}};
     auto member =
-        s.get<SaiLagMemberTraits>().setObject(createAttrs, createAttrs);
+        s.get<SaiLagMemberTraits>().setObject(adapterHostLey, createAttrs);
     memberIds.push_back(member->adapterKey());
     members.push_back(std::move(member));
   }
