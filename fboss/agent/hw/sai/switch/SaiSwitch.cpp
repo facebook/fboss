@@ -407,6 +407,9 @@ template <typename LockPolicyT>
 std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
     const StateDelta& delta,
     const LockPolicyT& lockPolicy) {
+  // update switch settings first
+  processSwitchSettingsChanged(delta, lockPolicy);
+
   processRemovedDelta(
       delta.getPortsDelta(),
       managerTable_->portManager(),
@@ -551,7 +554,6 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
       &SaiAclTableManager::removeAclEntry,
       kAclTable1);
 
-  processSwitchSettingsChanged(delta, lockPolicy);
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::RESOURCE_USAGE_STATS)) {
     updateResourceUsage(lockPolicy);
