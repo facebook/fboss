@@ -86,16 +86,47 @@ UnicastRoute makeUnicastRoute(
   return nr;
 }
 
-TEST(RibRollbackTest, rollbackFail) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
+class RibRollbackTest : public ::testing::Test {
+ public:
+  void SetUp() override {
+    rib_.ensureVrf(kRid);
+    switchState_ = std::make_shared<SwitchState>();
+    auto origSwitchState = switchState_;
+    switchState_->publish();
+    rib_.update(
+        kRid,
+        kBgpClient,
+        kBgpDistance,
+        {makeUnicastRoute(kPrefix1, RouteForwardAction::DROP)},
+        {},
+        false,
+        "add only",
+        recordUpdates,
+        &switchState_);
+    EXPECT_NE(switchState_, origSwitchState);
+    EXPECT_EQ(1, switchState_->getGeneration());
+    assertRouteCount(0, 1);
+  }
+  void assertRouteCount(int v4Expected, int v6Expected) const {
+    auto [numV4, numV6] = switchState_->getFibs()->getRouteCount();
+    EXPECT_EQ(v6Expected, numV6);
+    EXPECT_EQ(v4Expected, numV4);
+    EXPECT_EQ(v6Expected + v4Expected, rib_.getRouteTableDetails(kRid).size());
+  }
+
+ protected:
+  RoutingInformationBase rib_;
+  std::shared_ptr<SwitchState> switchState_;
+};
+
+TEST_F(RibRollbackTest, rollbackFail) {
   FailSomeUpdates failUpdateAndRollback({1, 2});
   EXPECT_DEATH(
-      rib.update(
+      rib_.update(
           kRid,
           kBgpClient,
           kBgpDistance,
-          {makeUnicastRoute(kPrefix1, RouteForwardAction::DROP)},
+          {makeUnicastRoute(kPrefix2, RouteForwardAction::DROP)},
           {},
           false,
           "add only",
@@ -104,36 +135,12 @@ TEST(RibRollbackTest, rollbackFail) {
       ".*");
 }
 
-TEST(RibRollbackTest, rollbackAdd) {
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-  auto origSwitchState = switchState;
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  rib.update(
-      kRid,
-      kBgpClient,
-      kBgpDistance,
-      {makeUnicastRoute(kPrefix1, RouteForwardAction::DROP)},
-      {},
-      false,
-      "add only",
-      recordUpdates,
-      &switchState);
-  EXPECT_NE(switchState, origSwitchState);
-  EXPECT_EQ(1, switchState->getGeneration());
-  auto assertRouteCount = [&]() {
-    auto [numV4, numV6] = switchState->getFibs()->getRouteCount();
-    EXPECT_EQ(1, numV6);
-    EXPECT_EQ(0, numV4);
-    EXPECT_EQ(1, rib.getRouteTableDetails(kRid).size());
-  };
-  assertRouteCount();
+TEST_F(RibRollbackTest, rollbackAdd) {
   // Fail route update. Rib should rollback to pre failed add state
-  auto routeTableBeforeFailedUpdate = rib.getRouteTableDetails(kRid);
+  auto routeTableBeforeFailedUpdate = rib_.getRouteTableDetails(kRid);
   FailSomeUpdates failFirstUpdate({1});
   EXPECT_THROW(
-      rib.update(
+      rib_.update(
           kRid,
           kBgpClient,
           kBgpDistance,
@@ -144,40 +151,16 @@ TEST(RibRollbackTest, rollbackAdd) {
           failFirstUpdate,
           nullptr),
       FbossHwUpdateError);
-  assertRouteCount();
-  EXPECT_EQ(routeTableBeforeFailedUpdate, rib.getRouteTableDetails(kRid));
+  assertRouteCount(0, 1);
+  EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));
 }
 
-TEST(RibRollbackTest, rollbackDel) {
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-  auto origSwitchState = switchState;
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  rib.update(
-      kRid,
-      kBgpClient,
-      kBgpDistance,
-      {makeUnicastRoute(kPrefix1, RouteForwardAction::DROP)},
-      {},
-      false,
-      "add only",
-      recordUpdates,
-      &switchState);
-  EXPECT_NE(switchState, origSwitchState);
-  EXPECT_EQ(1, switchState->getGeneration());
-  auto assertRouteCount = [&]() {
-    auto [numV4, numV6] = switchState->getFibs()->getRouteCount();
-    EXPECT_EQ(1, numV6);
-    EXPECT_EQ(0, numV4);
-    EXPECT_EQ(1, rib.getRouteTableDetails(kRid).size());
-  };
-  assertRouteCount();
+TEST_F(RibRollbackTest, rollbackDel) {
   // Fail route update. Rib should rollback to pre failed add state
-  auto routeTableBeforeFailedUpdate = rib.getRouteTableDetails(kRid);
+  auto routeTableBeforeFailedUpdate = rib_.getRouteTableDetails(kRid);
   FailSomeUpdates failFirstUpdate({1});
   EXPECT_THROW(
-      rib.update(
+      rib_.update(
           kRid,
           kBgpClient,
           kBgpDistance,
@@ -188,40 +171,16 @@ TEST(RibRollbackTest, rollbackDel) {
           failFirstUpdate,
           nullptr),
       FbossHwUpdateError);
-  assertRouteCount();
-  EXPECT_EQ(routeTableBeforeFailedUpdate, rib.getRouteTableDetails(kRid));
+  assertRouteCount(0, 1);
+  EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));
 }
 
-TEST(RibRollbackTest, rollbackAddAndDel) {
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-  auto origSwitchState = switchState;
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  rib.update(
-      kRid,
-      kBgpClient,
-      kBgpDistance,
-      {makeUnicastRoute(kPrefix1, RouteForwardAction::DROP)},
-      {},
-      false,
-      "add only",
-      recordUpdates,
-      &switchState);
-  EXPECT_NE(switchState, origSwitchState);
-  EXPECT_EQ(1, switchState->getGeneration());
-  auto assertRouteCount = [&]() {
-    auto [numV4, numV6] = switchState->getFibs()->getRouteCount();
-    EXPECT_EQ(1, numV6);
-    EXPECT_EQ(0, numV4);
-    EXPECT_EQ(1, rib.getRouteTableDetails(kRid).size());
-  };
-  assertRouteCount();
+TEST_F(RibRollbackTest, rollbackAddAndDel) {
   // Fail route update. Rib should rollback to pre failed add state
-  auto routeTableBeforeFailedUpdate = rib.getRouteTableDetails(kRid);
+  auto routeTableBeforeFailedUpdate = rib_.getRouteTableDetails(kRid);
   FailSomeUpdates failFirstUpdate({1});
   EXPECT_THROW(
-      rib.update(
+      rib_.update(
           kRid,
           kBgpClient,
           kBgpDistance,
@@ -232,6 +191,6 @@ TEST(RibRollbackTest, rollbackAddAndDel) {
           failFirstUpdate,
           nullptr),
       FbossHwUpdateError);
-  assertRouteCount();
-  EXPECT_EQ(routeTableBeforeFailedUpdate, rib.getRouteTableDetails(kRid));
+  assertRouteCount(0, 1);
+  EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));
 }
