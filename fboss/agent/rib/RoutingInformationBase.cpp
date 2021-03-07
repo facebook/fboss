@@ -160,7 +160,43 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
           cookie,
           &deletedRoutes);
     } catch (const FbossHwUpdateError& /*ex*/) {
-      // TODO - rollback RIB as well.
+      std::vector<IpPrefix> addsToRollback;
+      std::vector<UnicastRoute> deletesToRollback;
+      /* Rollback to pre update state.
+       * 1) Non overlapping prefixes in add, del. Further only new prefixes
+       * were being added. E.g.
+       * (Notation: X->Y, means prefix X with nhops Y)
+       * preupdateRib = {B->X}, Update {add: {A->X}, del: {B}. On rollback
+       * we will add back {B->X} and delete {A->X}
+       */
+      std::for_each(
+          toAdd.begin(), toAdd.end(), [&addsToRollback](const auto& route) {
+            addsToRollback.push_back(*route.dest_ref());
+          });
+      std::for_each(
+          deletedRoutes.begin(),
+          deletedRoutes.end(),
+          [&deletesToRollback](const auto& deletedRoute) {
+            deletesToRollback.push_back(util::toUnicastRoute(
+                deletedRoute.prefix, deletedRoute.nhopEntry));
+          });
+      std::vector<RibRouteUpdater::RouteEntry> dontCare;
+      // Attempt rollback. Exception in rollback will cause
+      // immediate termination.
+      updateImpl(
+          &(it->second),
+          routerID,
+          clientID,
+          adminDistanceFromClientID,
+          deletesToRollback,
+          addsToRollback,
+          resetClientsRoutes,
+          updateType,
+          fibUpdateCallback,
+          cookie,
+          &dontCare);
+
+      // TODO: Fix HwUpdateError to reflect the correct state of HW
       throw;
     }
   }
