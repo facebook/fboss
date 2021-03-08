@@ -161,14 +161,6 @@ DEFINE_string(
     "script_pre_asic_init",
     "Broadcom script file to be run before ASIC init");
 
-DEFINE_int32(cosq_hipri, 9, "The high priority cos queue number");
-
-DEFINE_int32(cosq_midpri, 2, "The medium priority cos queue number");
-
-DEFINE_int32(cosq_default, 1, "The default cos queue number");
-
-DEFINE_int32(cosq_lopri, 0, "The low priority cos queue number");
-
 DEFINE_int32(
     copp_acl_entry_priority_start,
     1,
