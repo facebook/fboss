@@ -43,7 +43,7 @@ RibRouteUpdater::RibRouteUpdater(
     : v4Routes_(v4Routes), v6Routes_(v6Routes) {}
 
 template <typename AddressT>
-void RibRouteUpdater::addRouteImpl(
+std::optional<RouteNextHopEntry> RibRouteUpdater::addRouteImpl(
     const Prefix<AddressT>& prefix,
     NetworkToRouteMap<AddressT>* routes,
     ClientID clientID,
@@ -52,38 +52,49 @@ void RibRouteUpdater::addRouteImpl(
 
   if (it != routes->end()) {
     RibRoute<AddressT>* route = &(it->value());
-    if (route->has(clientID, entry)) {
-      return;
+    auto existingRouteForClient = route->getEntryForClient(clientID);
+    if (existingRouteForClient && *existingRouteForClient == entry) {
+      return std::nullopt;
     }
-
     route->update(clientID, entry);
-    return;
+    return existingRouteForClient
+        ? std::optional<RouteNextHopEntry>(*existingRouteForClient)
+        : std::nullopt;
   }
 
   CHECK(it == routes->end());
   routes->insert(
       prefix.network, prefix.mask, RibRoute<AddressT>(prefix, clientID, entry));
+  // Inserted new route, no replacement
+  return std::nullopt;
 }
 
-void RibRouteUpdater::addRoute(
+std::optional<RibRouteUpdater::RouteEntry> RibRouteUpdater::addRoute(
     const folly::IPAddress& network,
     uint8_t mask,
     ClientID clientID,
     RouteNextHopEntry entry) {
+  std::optional<RouteNextHopEntry> replacedNhopEntry;
   if (network.isV4()) {
     RoutePrefixV4 prefix{network.asV4().mask(mask), mask};
-    addRouteImpl(prefix, v4Routes_, clientID, std::move(entry));
+    replacedNhopEntry =
+        addRouteImpl(prefix, v4Routes_, clientID, std::move(entry));
   } else {
     RoutePrefixV6 prefix{network.asV6().mask(mask), mask};
     if (prefix.network.isLinkLocal()) {
       XLOG(DBG2) << "Ignoring v6 link-local interface route: " << prefix.str();
-      return;
+      return std::nullopt;
     }
-    addRouteImpl(prefix, v6Routes_, clientID, std::move(entry));
+    replacedNhopEntry =
+        addRouteImpl(prefix, v6Routes_, clientID, std::move(entry));
   }
+  if (replacedNhopEntry) {
+    return RouteEntry{{network, mask}, clientID, *replacedNhopEntry};
+  }
+  return std::nullopt;
 }
 
-void RibRouteUpdater::addInterfaceRoute(
+std::optional<RibRouteUpdater::RouteEntry> RibRouteUpdater::addInterfaceRoute(
     const folly::IPAddress& network,
     uint8_t mask,
     const folly::IPAddress& address,
@@ -91,7 +102,7 @@ void RibRouteUpdater::addInterfaceRoute(
   ResolvedNextHop resolvedNextHop(address, interface, UCMP_DEFAULT_WEIGHT);
   RouteNextHopEntry nextHop(resolvedNextHop, AdminDistance::DIRECTLY_CONNECTED);
 
-  addRoute(network, mask, ClientID::INTERFACE_ROUTE, nextHop);
+  return addRoute(network, mask, ClientID::INTERFACE_ROUTE, nextHop);
 }
 
 void RibRouteUpdater::addLinkLocalRoutes() {

@@ -49,24 +49,29 @@ class RibRouteUpdater {
       IPv4NetworkToRouteMap* v4Routes,
       IPv6NetworkToRouteMap* v6Routes);
 
-  void addRoute(
-      const folly::IPAddress& network,
-      uint8_t mask,
-      ClientID clientID,
-      RouteNextHopEntry entry);
-  void addLinkLocalRoutes();
-  void addInterfaceRoute(
-      const folly::IPAddress& network,
-      uint8_t mask,
-      const folly::IPAddress& address,
-      InterfaceID interface);
-
   struct RouteEntry {
     folly::CIDRNetwork prefix;
     ClientID client;
     RouteNextHopEntry nhopEntry;
   };
-  // TODO(samank): make del vs remove consistent
+  /*
+   * Will return previous route on replacement, nullopt
+   * otherwise
+   */
+  std::optional<RouteEntry> addRoute(
+      const folly::IPAddress& network,
+      uint8_t mask,
+      ClientID clientID,
+      RouteNextHopEntry entry);
+  // No return value, since we always add the same
+  // link local route. So there is no replacing of
+  // routes here
+  void addLinkLocalRoutes();
+  std::optional<RouteEntry> addInterfaceRoute(
+      const folly::IPAddress& network,
+      uint8_t mask,
+      const folly::IPAddress& address,
+      InterfaceID interface);
   std::optional<RouteEntry>
   delRoute(const folly::IPAddress& network, uint8_t mask, ClientID clientID);
   std::vector<RouteEntry> removeAllRoutesForClient(ClientID clientID);
@@ -78,7 +83,7 @@ class RibRouteUpdater {
   using Prefix = RoutePrefix<AddressT>;
 
   template <typename AddressT>
-  static void addRouteImpl(
+  static std::optional<RouteNextHopEntry> addRouteImpl(
       const Prefix<AddressT>& prefix,
       NetworkToRouteMap<AddressT>* routes,
       ClientID clientID,
