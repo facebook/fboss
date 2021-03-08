@@ -92,6 +92,12 @@ class Transceiver {
       TransceiverIOParameters param,
       uint8_t data) = 0;
 
+  /*
+   * return the cached signal flags and clear it after the read like an clear
+   * on read register.
+   */
+  virtual SignalFlags readAndClearCachedSignalFlags() = 0;
+
  private:
   // no copy or assignment
   Transceiver(Transceiver const&) = delete;

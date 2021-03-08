@@ -78,6 +78,18 @@ class WedgeManager : public TransceiverManager {
    */
   void publishI2cTransactionStats() override;
 
+  /*
+   * This is introduced mainly due to the mismatch of ODS reporting frequency
+   * and the interval of us reading transceiver data. Some of the clear on read
+   * information may be lost in this process and not being captured in the ODS
+   * time series. This would bring difficulty in root cause link issues. Thus
+   * here we provide a way of read and clear the data for the purpose of ODS
+   * data reporting.
+   */
+  void getAndClearTransceiversSignalFlags(
+      std::map<int32_t, SignalFlags>& signalFlagsMap,
+      std::unique_ptr<std::vector<int32_t>> ids) override;
+
   // This function will bring all the transceivers out of reset, making use
   // of the specific implementation from each platform. Platforms that bring
   // transceiver out of reset by default will stay no op.

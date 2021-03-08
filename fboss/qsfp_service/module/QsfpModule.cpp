@@ -240,6 +240,7 @@ TransceiverInfo QsfpModule::parseDataLocked() {
     info.stats_ref() = *transceiverStats;
   }
   info.signalFlag_ref() = getSignalFlagInfo();
+  cacheSignalFlags(getSignalFlagInfo());
   info.extendedSpecificationComplianceCode_ref() =
       getExtendedSpecificationComplianceCode();
   info.transceiverManagementInterface_ref() = managementInterface();
@@ -324,6 +325,17 @@ cfg::PortSpeed QsfpModule::getPortSpeed() const {
     }
   }
   return speed;
+}
+
+void QsfpModule::cacheSignalFlags(const SignalFlags& signalflag) {
+  signalFlagCache_.txLos_ref() =
+      *signalflag.txLos_ref() | *signalFlagCache_.txLos_ref();
+  signalFlagCache_.rxLos_ref() =
+      *signalflag.rxLos_ref() | *signalFlagCache_.rxLos_ref();
+  signalFlagCache_.txLol_ref() =
+      *signalflag.txLol_ref() | *signalFlagCache_.txLol_ref();
+  signalFlagCache_.rxLol_ref() =
+      *signalflag.rxLol_ref() | *signalFlagCache_.rxLol_ref();
 }
 
 void QsfpModule::transceiverPortsChanged(
@@ -599,6 +611,23 @@ bool QsfpModule::writeTransceiverLocked(
     throw;
   }
   return true;
+}
+
+SignalFlags QsfpModule::readAndClearCachedSignalFlags() {
+  lock_guard<std::mutex> g(qsfpModuleMutex_);
+  SignalFlags signalFlag;
+  // Store the cached data before clearing it.
+  signalFlag.txLos_ref() = *signalFlagCache_.txLos_ref();
+  signalFlag.rxLos_ref() = *signalFlagCache_.rxLos_ref();
+  signalFlag.txLol_ref() = *signalFlagCache_.txLol_ref();
+  signalFlag.rxLol_ref() = *signalFlagCache_.rxLol_ref();
+
+  // Clear the cached data after read.
+  signalFlagCache_.txLos_ref() = 0;
+  signalFlagCache_.rxLos_ref() = 0;
+  signalFlagCache_.txLol_ref() = 0;
+  signalFlagCache_.rxLol_ref() = 0;
+  return signalFlag;
 }
 
 /*

@@ -184,6 +184,12 @@ class QsfpModule : public Transceiver {
    */
   virtual void opticsModulePortHwInit(int portId);
 
+  /*
+   * return the cached signal flags and clear it after the read like an clear
+   * on read register.
+   */
+  SignalFlags readAndClearCachedSignalFlags() override;
+
   using LengthAndGauge = std::pair<double, uint8_t>;
 
   /*
@@ -450,12 +456,25 @@ class QsfpModule : public Transceiver {
    */
   cfg::PortSpeed getPortSpeed() const;
 
+  /*
+   * Perform logic OR operation to signal flags in order to cache them
+   * for ODS to report.
+   */
+  void cacheSignalFlags(const SignalFlags& signalflag);
+
   std::map<uint32_t, PortStatus> ports_;
   unsigned int portsPerTransceiver_{0};
   unsigned int moduleResetCounter_{0};
 
   unsigned int numHostLanes_{4};
   unsigned int numMediaLanes_{4};
+
+  // Due to the mismatch of ODS reporting frequency and the interval of us
+  // reading transceiver data, some of the clear on read information may
+  // be lost in this process and not being captured in the ODS time series.
+  // This would bring difficulty in root cause link issues. Thus here we
+  // have a cache to store the collected data in ODS reporting frequency.
+  SignalFlags signalFlagCache_;
 
  private:
   void refreshLocked();

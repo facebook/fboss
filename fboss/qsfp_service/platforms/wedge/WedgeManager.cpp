@@ -541,6 +541,39 @@ void WedgeManager::publishI2cTransactionStats() {
 }
 
 /*
+ * This is introduced mainly due to the mismatch of ODS reporting frequency
+ * and the interval of us reading transceiver data. Some of the clear on read
+ * information may be lost in this process and not being captured in the ODS
+ * time series. This would bring difficulty in root cause link issues. Thus
+ * here we provide a way of read and clear the data for the purpose of ODS
+ * data reporting.
+ */
+void WedgeManager::getAndClearTransceiversSignalFlags(
+    std::map<int32_t, SignalFlags>& signalFlagsMap,
+    std::unique_ptr<std::vector<int32_t>> ids) {
+  XLOG(INFO) << "getAndClearTransceiversSignalFlags, with ids: "
+             << (ids->size() > 0 ? folly::join(",", *ids) : "None");
+  if (ids->empty()) {
+    folly::gen::range(0, getNumQsfpModules()) | folly::gen::appendTo(*ids);
+  }
+
+  auto lockedTransceivers = transceivers_.rlock();
+  for (const auto& i : *ids) {
+    if (!isValidTransceiver(i)) {
+      // If the transceiver idx is not valid,
+      // just skip and continue to the next.
+      continue;
+    }
+    SignalFlags signalFlags;
+    if (auto it = lockedTransceivers->find(TransceiverID(i));
+        it != lockedTransceivers->end()) {
+      signalFlags = it->second->readAndClearCachedSignalFlags();
+      signalFlagsMap[i] = signalFlags;
+    }
+  }
+}
+
+/*
  * getPhyPortConfigValues
  *
  * This function takes the portId and port profile id. Based on these it looks
