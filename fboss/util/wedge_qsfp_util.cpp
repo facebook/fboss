@@ -139,6 +139,7 @@ DEFINE_bool(update_bulk_module_fw, false,
 DEFINE_string(module_type, "", "specify the module type, ie: finisar-200g");
 DEFINE_string(fw_version, "", "specify the firmware version, ie: 7.8 or ca.f8");
 DEFINE_string(port_range, "", "specify the port range, ie: 1,3,5-8");
+DEFINE_bool(dsp_image, false, "if this is a DSP firmware image");
 
 namespace {
 struct ModulePartInfo_s {
@@ -1126,6 +1127,7 @@ bool cliModulefirmwareUpgrade(
   firmwareAttr.filename = firmwareFilename;
   firmwareAttr.properties["msa_password"] = folly::to<std::string>(FLAGS_msa_password);
   firmwareAttr.properties["header_length"] = folly::to<std::string>(imageHdrLen);
+  firmwareAttr.properties["image_type"] = FLAGS_dsp_image ? "dsp" : "application";
   auto fbossFwObj = std::make_unique<FbossFirmware>(firmwareAttr);
 
   auto fwUpgradeObj = std::make_unique<CmisFirmwareUpgrader>(
@@ -1269,6 +1271,7 @@ void fwUpgradeThreadHandler(
     firmwareAttr.filename = firmwareFilename;
     firmwareAttr.properties["msa_password"] = folly::to<std::string>(FLAGS_msa_password);
     firmwareAttr.properties["header_length"] = folly::to<std::string>(imageHdrLen);
+    firmwareAttr.properties["image_type"] = FLAGS_dsp_image ? "dsp" : "application";
     auto fbossFwObj = std::make_unique<FbossFirmware>(firmwareAttr);
 
     auto fwUpgradeObj = std::make_unique<CmisFirmwareUpgrader>(

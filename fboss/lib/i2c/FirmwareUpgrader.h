@@ -54,6 +54,8 @@ class CmisFirmwareUpgrader {
   std::array<uint8_t, 4> msaPassword_;
   // Default image header length
   uint32_t imageHeaderLen_;
+  // Image type (App/Dsp)
+  bool appImage_{true};
 
   // Private function to finally download firmware image on module using cdb
   // process

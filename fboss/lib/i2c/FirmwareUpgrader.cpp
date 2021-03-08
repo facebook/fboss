@@ -76,6 +76,10 @@ CmisFirmwareUpgrader::CmisFirmwareUpgrader(
   msaPassword_[1] = (msaPwVal & 0x00FF0000) >> 16;
   msaPassword_[2] = (msaPwVal & 0x0000FF00) >> 8;
   msaPassword_[3] = (msaPwVal & 0x000000FF);
+
+  // Get the image type
+  std::string imageTypeStr = fbossFirmware_->getProperty("image_type");
+  appImage_ = (imageTypeStr == "application") ? true : false;
 }
 
 /*
@@ -270,6 +274,12 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   XLOG(INFO) << folly::sformat(
       "cmisModuleFirmwareDownload: Mod{:d}: Step 3: Issued Firmware download complete command successfully",
       moduleId_);
+
+  // Non App images like DSP image don't need last 2 steps (Run, Commit) for the
+  // firmware download
+  if (!appImage_) {
+    return true;
+  }
 
   // Step 4: Issue CDB command: Run the downloaded firmware
   commandBlock->createCdbCmdFwImageRun();

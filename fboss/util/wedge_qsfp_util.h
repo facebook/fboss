@@ -44,6 +44,7 @@ DECLARE_bool(update_bulk_module_fw);
 DECLARE_string(module_type);
 DECLARE_string(fw_version);
 DECLARE_string(port_range);
+DECLARE_bool(dsp_image);
 
 enum LoopbackMode {
   noLoopback,
