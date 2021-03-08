@@ -114,8 +114,8 @@ TYPED_TEST(HwRouteTest, VerifyClassID) {
     HwSwitchEnsembleRouteUpdateWrapper updater(this->getHwSwitchEnsemble());
     updater.programClassID(
         this->kRouterID(),
-        {this->kGetRoutePrefix0().toCidrNetowrk(),
-         this->kGetRoutePrefix1().toCidrNetowrk()},
+        {this->kGetRoutePrefix0().toCidrNetwork(),
+         this->kGetRoutePrefix1().toCidrNetwork()},
         this->kLookupClass(),
         false /*sync*/);
 
@@ -127,12 +127,12 @@ TYPED_TEST(HwRouteTest, VerifyClassID) {
     // remove r1's classID, add classID for r2
     updater.programClassID(
         this->kRouterID(),
-        {this->kGetRoutePrefix1().toCidrNetowrk()},
+        {this->kGetRoutePrefix1().toCidrNetwork()},
         std::nullopt,
         false /*sync*/);
     updater.programClassID(
         this->kRouterID(),
-        {this->kGetRoutePrefix2().toCidrNetowrk()},
+        {this->kGetRoutePrefix2().toCidrNetwork()},
         this->kLookupClass(),
         false /*sync*/);
   };
