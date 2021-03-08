@@ -155,7 +155,8 @@ ForwardingInformationBaseUpdater::toFibNextHop(
         fibNextHopSet.insert(facebook::fboss::ResolvedNextHop(
             ribNextHop.addr(),
             ribNextHop.intfID().value(),
-            ribNextHop.weight()));
+            ribNextHop.weight(),
+            ribNextHop.labelForwardingAction()));
       }
       return facebook::fboss::RouteNextHopEntry(
           fibNextHopSet, ribNextHopEntry.getAdminDistance());
