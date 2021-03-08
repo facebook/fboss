@@ -98,6 +98,12 @@ TEST_F(HwOverflowTest, overflowRoutes) {
         updater.programRoutes(
             kRid, ClientID::BGPD, AdminDistance::EBGP, routeChunks),
         FbossHwUpdateError);
+
+    auto programmedState = getProgrammedState();
+    EXPECT_TRUE(programmedState->isPublished());
+    HwSwitchEnsembleRouteUpdateWrapper updater2(getHwSwitchEnsemble());
+    updater2.program();
+    EXPECT_EQ(programmedState, getProgrammedState());
   }
   verifyInvariants();
 }
