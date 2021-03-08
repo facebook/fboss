@@ -28,9 +28,9 @@ BcmQosPolicy::BcmQosPolicy(
   programIngressDscpQosMap(qosPolicy);
   programIngressExpQosMap(qosPolicy);
   programEgressExpQosMap(qosPolicy);
-  programTrafficClassToPgMap(qosPolicy);
-  programPfcPriorityToPgMap(qosPolicy);
-  programPfcPriorityToQueueMap(qosPolicy);
+  initTrafficClassToPgMap(qosPolicy);
+  initPfcPriorityToPgMap(qosPolicy);
+  initPfcPriorityToQueueMap(qosPolicy);
 }
 
 BcmQosPolicyHandle BcmQosPolicy::getHandle(BcmQosMap::Type type) const {
@@ -118,6 +118,7 @@ void BcmQosPolicy::programPfcPriorityToPg(
   if (!hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
     return;
   }
+  XLOG(DBG2) << "Start to program pfcPriorityToPg";
   auto& tmpPfcPriorityToPg = const_cast<std::vector<int>&>(pfcPriorityPg);
   // an array with index representing pfc priority
   // value is PG Id
@@ -138,6 +139,7 @@ void BcmQosPolicy::programPfcPriorityToQueue(
     return;
   }
 
+  XLOG(DBG2) << "Start to program pfcPriorityToQueue";
   std::vector<bcm_cosq_pfc_class_map_config_t> cosq_pfc_map;
   for (const auto& queueId : pfcPriorityToQueue) {
     bcm_cosq_pfc_class_map_config_t config;
@@ -168,6 +170,7 @@ void BcmQosPolicy::programTrafficClassToPg(
   if (!hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
     return;
   }
+  XLOG(DBG2) << "Start to program trafficClassToPg";
   // program unicast mapping
   programPriorityGroupMapping(
       bcmCosqInputPriPriorityGroupUcMapping,
@@ -447,6 +450,30 @@ void BcmQosPolicy::programPfcPriorityToPgMap(
     }
   }
   programPfcPriorityToPg(pfcPriorityToPg);
+}
+
+void BcmQosPolicy::initTrafficClassToPgMap(
+    const std::shared_ptr<QosPolicy>& qosPolicy) {
+  if (!qosPolicy->getTrafficClassToPgId()) {
+    return;
+  }
+  programTrafficClassToPgMap(qosPolicy);
+}
+
+void BcmQosPolicy::initPfcPriorityToPgMap(
+    const std::shared_ptr<QosPolicy>& qosPolicy) {
+  if (!qosPolicy->getPfcPriorityToPgId()) {
+    return;
+  }
+  programPfcPriorityToPgMap(qosPolicy);
+}
+
+void BcmQosPolicy::initPfcPriorityToQueueMap(
+    const std::shared_ptr<QosPolicy>& qosPolicy) {
+  if (!qosPolicy->getPfcPriorityToQueueId()) {
+    return;
+  }
+  programPfcPriorityToQueueMap(qosPolicy);
 }
 
 void BcmQosPolicy::programTrafficClassToPgMap(

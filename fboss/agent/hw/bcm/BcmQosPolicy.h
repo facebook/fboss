@@ -48,6 +48,11 @@ class BcmQosPolicy {
   void updateEgressExpQosMap(
       const std::shared_ptr<QosPolicy>& oldQosPolicy,
       const std::shared_ptr<QosPolicy>& newQosPolicy);
+
+  void initTrafficClassToPgMap(const std::shared_ptr<QosPolicy>& qosPolicy);
+  void initPfcPriorityToPgMap(const std::shared_ptr<QosPolicy>& qosPolicy);
+  void initPfcPriorityToQueueMap(const std::shared_ptr<QosPolicy>& qosPolicy);
+
   void programIngressDscpQosMap(const std::shared_ptr<QosPolicy>& qosPolicy);
   void programIngressExpQosMap(const std::shared_ptr<QosPolicy>& qosPolicy);
   void programEgressExpQosMap(const std::shared_ptr<QosPolicy>& qosPolicy);
