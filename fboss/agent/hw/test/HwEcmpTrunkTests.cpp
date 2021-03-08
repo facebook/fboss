@@ -58,10 +58,9 @@ class HwEcmpTrunkTest : public HwLinkStateDependentTest {
     auto setup = [=]() {
       auto state = enableTrunkPorts(getProgrammedState());
       applyNewState(utility::setTrunkMinLinkCount(state, minlinks));
-      applyNewState(ecmpHelper_->resolveNextHops(
-          ecmpHelper_->setupECMPForwarding(
-              getProgrammedState(), getEcmpPorts()),
-          getEcmpPorts()));
+      applyNewState(
+          ecmpHelper_->resolveNextHops(getProgrammedState(), getEcmpPorts()));
+      ecmpHelper_->programRoutes(getRouteUpdateWrapper(), getEcmpPorts());
     };
 
     auto verify = [=]() {
@@ -128,10 +127,10 @@ TEST_F(HwEcmpTrunkTest, TrunkMemberRemoveWithRouteTest) {
         RoutePrefixV6{folly::IPAddressV6("1009::1"), 128},
     };
 
-    applyNewState(ecmpHelper_->resolveNextHops(
-        ecmpHelper_->setupECMPForwarding(
-            getProgrammedState(), getEcmpPorts(), v6Prefixes),
-        getEcmpPorts()));
+    applyNewState(
+        ecmpHelper_->resolveNextHops(getProgrammedState(), getEcmpPorts()));
+    ecmpHelper_->programRoutes(
+        getRouteUpdateWrapper(), getEcmpPorts(), v6Prefixes);
   };
 
   auto verify = [=]() {
@@ -167,9 +166,9 @@ TEST_F(
   auto setup = [=]() {
     auto state = enableTrunkPorts(getProgrammedState());
     applyNewState(utility::setTrunkMinLinkCount(state, minlinks));
-    applyNewState(ecmpHelper_->resolveNextHops(
-        ecmpHelper_->setupECMPForwarding(getProgrammedState(), getEcmpPorts()),
-        getEcmpPorts()));
+    applyNewState(
+        ecmpHelper_->resolveNextHops(getProgrammedState(), getEcmpPorts()));
+    ecmpHelper_->programRoutes(getRouteUpdateWrapper(), getEcmpPorts());
     // We programmed the default route picked by EcmpSetupAnyNPorts so lookup
     // the ECMP group for it
     ASSERT_EQ(
@@ -266,9 +265,9 @@ TEST_F(HwEcmpTrunkTest, TrunkL2ResolveNhopThenLinkDownThenUpThenStateUp) {
   auto setup = [=]() {
     auto state = enableTrunkPorts(getProgrammedState());
     applyNewState(utility::setTrunkMinLinkCount(state, minlinks));
-    applyNewState(ecmpHelper_->resolveNextHops(
-        ecmpHelper_->setupECMPForwarding(getProgrammedState(), getEcmpPorts()),
-        getEcmpPorts()));
+    applyNewState(
+        ecmpHelper_->resolveNextHops(getProgrammedState(), getEcmpPorts()));
+    ecmpHelper_->programRoutes(getRouteUpdateWrapper(), getEcmpPorts());
     // We programmed the default route picked by EcmpSetupAnyNPorts so lookup
     // the ECMP group for it
     ASSERT_EQ(
