@@ -159,4 +159,11 @@ std::vector<NextHopThrift> thriftNextHopsFromAddresses(
   }
   return nhs;
 }
+
+IpPrefix toIpPrefix(const folly::CIDRNetwork& nw) {
+  IpPrefix pfx;
+  pfx.ip_ref() = network::toBinaryAddress(nw.first);
+  pfx.prefixLength_ref() = nw.second;
+  return pfx;
+}
 } // namespace facebook::fboss

@@ -11,6 +11,7 @@
 #include <gtest/gtest.h>
 
 #include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/Utils.h"
 
 #include <folly/IPAddress.h>
 #include "common/network/if/gen-cpp2/Address_types.h"
@@ -31,7 +32,6 @@ fbbinary kV6Binary{0, 0xa, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 std::string kV4Str{"10.0.0.0"};
 std::string kV6Str{"000a:0000:0000:0000:0000:0000:0000:0000"};
 } // namespace
-namespace facebook::fboss {
 
 TEST(AddressUtilTests, ToBinaryAddressV4) {
   auto thriftBinary = toBinaryAddress(kV4Ip);
@@ -93,4 +93,14 @@ TEST(AddressUtilTests, fromThriftAddressV6) {
   EXPECT_EQ(kV6Ip, toIPAddress(thriftAddr));
 }
 
-} // namespace facebook::fboss
+TEST(AddressUtilTests, toIpPrefixV6) {
+  auto ipPfx = facebook::fboss::toIpPrefix(folly::CIDRNetwork{kV6Ip, 64});
+  EXPECT_EQ(kV6Ip, toIPAddress(*ipPfx.ip_ref()));
+  EXPECT_EQ(64, ipPfx.prefixLength_ref());
+}
+
+TEST(AddressUtilTests, toIpPrefixV4) {
+  auto ipPfx = facebook::fboss::toIpPrefix(folly::CIDRNetwork{kV4Ip, 24});
+  EXPECT_EQ(kV4Ip, toIPAddress(*ipPfx.ip_ref()));
+  EXPECT_EQ(24, ipPfx.prefixLength_ref());
+}

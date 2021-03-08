@@ -15,6 +15,7 @@
 #include <boost/container/flat_map.hpp>
 #include <boost/iterator/filter_iterator.hpp>
 
+#include <folly/IPAddress.h>
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
@@ -126,5 +127,7 @@ folly::MacAddress getLocalMacAddress();
 
 std::vector<NextHopThrift> thriftNextHopsFromAddresses(
     const std::vector<network::thrift::BinaryAddress>& addrs);
+
+IpPrefix toIpPrefix(const folly::CIDRNetwork& nw);
 
 } // namespace facebook::fboss
