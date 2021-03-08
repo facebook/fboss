@@ -43,7 +43,7 @@ RibRouteUpdater::RibRouteUpdater(
     : v4Routes_(v4Routes), v6Routes_(v6Routes) {}
 
 template <typename AddressT>
-std::optional<RouteNextHopEntry> RibRouteUpdater::addRouteImpl(
+std::optional<RouteNextHopEntry> RibRouteUpdater::addOrReplaceRouteImpl(
     const Prefix<AddressT>& prefix,
     NetworkToRouteMap<AddressT>* routes,
     ClientID clientID,
@@ -69,7 +69,7 @@ std::optional<RouteNextHopEntry> RibRouteUpdater::addRouteImpl(
   return std::nullopt;
 }
 
-std::optional<RibRouteUpdater::RouteEntry> RibRouteUpdater::addRoute(
+std::optional<RibRouteUpdater::RouteEntry> RibRouteUpdater::addOrReplaceRoute(
     const folly::IPAddress& network,
     uint8_t mask,
     ClientID clientID,
@@ -78,7 +78,7 @@ std::optional<RibRouteUpdater::RouteEntry> RibRouteUpdater::addRoute(
   if (network.isV4()) {
     RoutePrefixV4 prefix{network.asV4().mask(mask), mask};
     replacedNhopEntry =
-        addRouteImpl(prefix, v4Routes_, clientID, std::move(entry));
+        addOrReplaceRouteImpl(prefix, v4Routes_, clientID, std::move(entry));
   } else {
     RoutePrefixV6 prefix{network.asV6().mask(mask), mask};
     if (prefix.network.isLinkLocal()) {
@@ -86,7 +86,7 @@ std::optional<RibRouteUpdater::RouteEntry> RibRouteUpdater::addRoute(
       return std::nullopt;
     }
     replacedNhopEntry =
-        addRouteImpl(prefix, v6Routes_, clientID, std::move(entry));
+        addOrReplaceRouteImpl(prefix, v6Routes_, clientID, std::move(entry));
   }
   if (replacedNhopEntry) {
     return RouteEntry{{network, mask}, clientID, *replacedNhopEntry};
@@ -94,7 +94,8 @@ std::optional<RibRouteUpdater::RouteEntry> RibRouteUpdater::addRoute(
   return std::nullopt;
 }
 
-std::optional<RibRouteUpdater::RouteEntry> RibRouteUpdater::addInterfaceRoute(
+std::optional<RibRouteUpdater::RouteEntry>
+RibRouteUpdater::addOrReplaceInterfaceRoute(
     const folly::IPAddress& network,
     uint8_t mask,
     const folly::IPAddress& address,
@@ -102,13 +103,13 @@ std::optional<RibRouteUpdater::RouteEntry> RibRouteUpdater::addInterfaceRoute(
   ResolvedNextHop resolvedNextHop(address, interface, UCMP_DEFAULT_WEIGHT);
   RouteNextHopEntry nextHop(resolvedNextHop, AdminDistance::DIRECTLY_CONNECTED);
 
-  return addRoute(network, mask, ClientID::INTERFACE_ROUTE, nextHop);
+  return addOrReplaceRoute(network, mask, ClientID::INTERFACE_ROUTE, nextHop);
 }
 
 void RibRouteUpdater::addLinkLocalRoutes() {
   // 169.254/16 is treated as link-local only by convention. Like other vendors,
   // we choose to route 169.254/16.
-  addRouteImpl(
+  addOrReplaceRouteImpl(
       kIPv6LinkLocalPrefix,
       v6Routes_,
       ClientID::LINKLOCAL_ROUTE,

@@ -244,7 +244,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::updateImpl(
         ++stats.v6RoutesAdded;
       }
 
-      updater.addRoute(
+      updater.addOrReplaceRoute(
           network,
           mask,
           clientID,

@@ -52,7 +52,7 @@ void ConfigApplier::updateRibAndFib() {
     }
 
     auto prefix = folly::IPAddress::createNetwork(*staticRoute.prefix_ref());
-    updater.addRoute(
+    updater.addOrReplaceRoute(
         prefix.first,
         prefix.second,
         ClientID::STATIC_ROUTE,
@@ -64,7 +64,7 @@ void ConfigApplier::updateRibAndFib() {
     }
 
     auto prefix = folly::IPAddress::createNetwork(*staticRoute.prefix_ref());
-    updater.addRoute(
+    updater.addOrReplaceRoute(
         prefix.first,
         prefix.second,
         ClientID::STATIC_ROUTE,
@@ -76,7 +76,7 @@ void ConfigApplier::updateRibAndFib() {
     }
 
     auto prefix = folly::IPAddress::createNetwork(*staticRoute.prefix_ref());
-    updater.addRoute(
+    updater.addOrReplaceRoute(
         prefix.first,
         prefix.second,
         ClientID::STATIC_ROUTE,
@@ -103,7 +103,7 @@ void ConfigApplier::addInterfaceRoutes(
     auto network = directlyConnectedRoute.first;
     auto interfaceID = directlyConnectedRoute.second.first;
     auto endpoint = directlyConnectedRoute.second.second;
-    updater->addInterfaceRoute(
+    updater->addOrReplaceInterfaceRoute(
         network.first, network.second, endpoint, interfaceID);
   }
 }

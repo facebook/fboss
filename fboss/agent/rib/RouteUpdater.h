@@ -58,7 +58,7 @@ class RibRouteUpdater {
    * Will return previous route on replacement, nullopt
    * otherwise
    */
-  std::optional<RouteEntry> addRoute(
+  std::optional<RouteEntry> addOrReplaceRoute(
       const folly::IPAddress& network,
       uint8_t mask,
       ClientID clientID,
@@ -67,7 +67,7 @@ class RibRouteUpdater {
   // link local route. So there is no replacing of
   // routes here
   void addLinkLocalRoutes();
-  std::optional<RouteEntry> addInterfaceRoute(
+  std::optional<RouteEntry> addOrReplaceInterfaceRoute(
       const folly::IPAddress& network,
       uint8_t mask,
       const folly::IPAddress& address,
@@ -83,7 +83,7 @@ class RibRouteUpdater {
   using Prefix = RoutePrefix<AddressT>;
 
   template <typename AddressT>
-  static std::optional<RouteNextHopEntry> addRouteImpl(
+  static std::optional<RouteNextHopEntry> addOrReplaceRouteImpl(
       const Prefix<AddressT>& prefix,
       NetworkToRouteMap<AddressT>* routes,
       ClientID clientID,
