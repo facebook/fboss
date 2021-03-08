@@ -43,7 +43,8 @@ RibRouteUpdater::RibRouteUpdater(
     : v4Routes_(v4Routes), v6Routes_(v6Routes) {}
 
 template <typename AddressT>
-std::optional<RouteNextHopEntry> RibRouteUpdater::addOrReplaceRouteImpl(
+std::optional<RibRouteUpdater::RouteEntry>
+RibRouteUpdater::addOrReplaceRouteImpl(
     const Prefix<AddressT>& prefix,
     NetworkToRouteMap<AddressT>* routes,
     ClientID clientID,
@@ -57,16 +58,24 @@ std::optional<RouteNextHopEntry> RibRouteUpdater::addOrReplaceRouteImpl(
       return std::nullopt;
     }
     route->update(clientID, entry);
-    return existingRouteForClient
-        ? std::optional<RouteNextHopEntry>(*existingRouteForClient)
-        : std::nullopt;
+    auto op = existingRouteForClient ? RouteEntry::Operation::REPLACE
+                                     : RouteEntry::Operation::ADD;
+    return RouteEntry{
+        {prefix.network, prefix.mask},
+        clientID,
+        op == RouteEntry::Operation::REPLACE ? *existingRouteForClient : entry,
+        op};
   }
 
   CHECK(it == routes->end());
   routes->insert(
       prefix.network, prefix.mask, RibRoute<AddressT>(prefix, clientID, entry));
-  // Inserted new route, no replacement
-  return std::nullopt;
+  // added entry
+  return RouteEntry{
+      {prefix.network, prefix.mask},
+      clientID,
+      entry,
+      RouteEntry::Operation::ADD};
 }
 
 std::optional<RibRouteUpdater::RouteEntry> RibRouteUpdater::addOrReplaceRoute(
@@ -74,10 +83,10 @@ std::optional<RibRouteUpdater::RouteEntry> RibRouteUpdater::addOrReplaceRoute(
     uint8_t mask,
     ClientID clientID,
     RouteNextHopEntry entry) {
-  std::optional<RouteNextHopEntry> replacedNhopEntry;
+  std::optional<RouteEntry> newOrReplacedEntry;
   if (network.isV4()) {
     RoutePrefixV4 prefix{network.asV4().mask(mask), mask};
-    replacedNhopEntry =
+    newOrReplacedEntry =
         addOrReplaceRouteImpl(prefix, v4Routes_, clientID, std::move(entry));
   } else {
     RoutePrefixV6 prefix{network.asV6().mask(mask), mask};
@@ -85,13 +94,10 @@ std::optional<RibRouteUpdater::RouteEntry> RibRouteUpdater::addOrReplaceRoute(
       XLOG(DBG2) << "Ignoring v6 link-local interface route: " << prefix.str();
       return std::nullopt;
     }
-    replacedNhopEntry =
+    newOrReplacedEntry =
         addOrReplaceRouteImpl(prefix, v6Routes_, clientID, std::move(entry));
   }
-  if (replacedNhopEntry) {
-    return RouteEntry{{network, mask}, clientID, *replacedNhopEntry};
-  }
-  return std::nullopt;
+  return newOrReplacedEntry;
 }
 
 std::optional<RibRouteUpdater::RouteEntry>
@@ -161,7 +167,8 @@ std::optional<RibRouteUpdater::RouteEntry> RibRouteUpdater::delRoute(
     nhopEntry = delRouteImpl(prefix, v6Routes_, clientID);
   }
   if (nhopEntry) {
-    return RouteEntry{{network, mask}, clientID, *nhopEntry};
+    return RouteEntry{
+        {network, mask}, clientID, *nhopEntry, RouteEntry::Operation::DEL};
   }
   return std::nullopt;
 }
@@ -182,7 +189,8 @@ void RibRouteUpdater::removeAllRoutesFromClientImpl(
     deleted->push_back(
         {{folly::IPAddress(route.prefix().network), route.prefix().mask},
          clientID,
-         *nhopEntry});
+         *nhopEntry,
+         RouteEntry::Operation::DEL});
     route.delEntryForClient(clientID);
     if (route.hasNoEntry()) {
       // The nexthops we removed was the only one.  Delete the route.

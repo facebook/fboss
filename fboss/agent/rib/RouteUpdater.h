@@ -50,9 +50,11 @@ class RibRouteUpdater {
       IPv6NetworkToRouteMap* v6Routes);
 
   struct RouteEntry {
+    enum class Operation { UNKNOWN, ADD, REPLACE, DEL };
     folly::CIDRNetwork prefix;
     ClientID client;
     RouteNextHopEntry nhopEntry;
+    Operation oper{Operation::UNKNOWN};
   };
   /*
    * Will return previous route on replacement, nullopt
@@ -83,7 +85,7 @@ class RibRouteUpdater {
   using Prefix = RoutePrefix<AddressT>;
 
   template <typename AddressT>
-  static std::optional<RouteNextHopEntry> addOrReplaceRouteImpl(
+  static std::optional<RouteEntry> addOrReplaceRouteImpl(
       const Prefix<AddressT>& prefix,
       NetworkToRouteMap<AddressT>* routes,
       ClientID clientID,
