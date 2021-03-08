@@ -175,6 +175,39 @@ TEST_F(RibRollbackTest, rollbackDel) {
   EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));
 }
 
+TEST_F(RibRollbackTest, rollbackDelNonExistent) {
+  auto routeTableBeforeUpdate = rib_.getRouteTableDetails(kRid);
+  // Noop update - prefix does not exist in rib
+  rib_.update(
+      kRid,
+      kBgpClient,
+      kBgpDistance,
+      {},
+      {makePrefix(kPrefix2)}, // kPrefix2 does not exist in RIB
+      false,
+      "nonexistent prefix del",
+      recordUpdates,
+      &switchState_);
+  assertRouteCount(0, 1);
+  EXPECT_EQ(routeTableBeforeUpdate, rib_.getRouteTableDetails(kRid));
+  // Failed update, still rib is left as is
+  FailSomeUpdates failFirstUpdate({1});
+  EXPECT_THROW(
+      rib_.update(
+          kRid,
+          kBgpClient,
+          kBgpDistance,
+          {},
+          {makePrefix(kPrefix2)}, // kPrefix2 does not exist in RIB
+          false,
+          "fail del",
+          failFirstUpdate,
+          nullptr),
+      FbossHwUpdateError);
+  assertRouteCount(0, 1);
+  EXPECT_EQ(routeTableBeforeUpdate, rib_.getRouteTableDetails(kRid));
+}
+
 TEST_F(RibRollbackTest, rollbackAddAndDel) {
   // Fail route update. Rib should rollback to pre failed add state
   auto routeTableBeforeFailedUpdate = rib_.getRouteTableDetails(kRid);
