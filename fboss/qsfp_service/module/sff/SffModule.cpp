@@ -340,15 +340,16 @@ TransceiverSettings SffModule::getTransceiverSettingsInfo() {
       std::vector<MediaLaneSettings>(numMediaLanes());
   settings.hostLaneSettings_ref() =
       std::vector<HostLaneSettings>(numHostLanes());
-  if (!getMediaLaneSettings(*(settings.mediaLaneSettings_ref()))) {
-    settings.mediaLaneSettings_ref()->clear();
-    settings.mediaLaneSettings_ref().reset();
+  if (!flatMem_) {
+    if (!getMediaLaneSettings(*(settings.mediaLaneSettings_ref()))) {
+      settings.mediaLaneSettings_ref()->clear();
+      settings.mediaLaneSettings_ref().reset();
+    }
+    if (!getHostLaneSettings(*(settings.hostLaneSettings_ref()))) {
+      settings.hostLaneSettings_ref()->clear();
+      settings.hostLaneSettings_ref().reset();
+    }
   }
-  if (!getHostLaneSettings(*(settings.hostLaneSettings_ref()))) {
-    settings.hostLaneSettings_ref()->clear();
-    settings.hostLaneSettings_ref().reset();
-  }
-
   return settings;
 }
 
