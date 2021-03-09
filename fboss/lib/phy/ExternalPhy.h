@@ -74,8 +74,6 @@ struct LaneConfig {
   std::optional<TxSettings> tx;
 
   bool operator==(const LaneConfig& rhs) const;
-  LaneSettings toLaneSettings() const;
-  static LaneConfig fromLaneSettings(const LaneSettings& settings);
   std::string str();
   folly::dynamic toDynamic() const;
 };

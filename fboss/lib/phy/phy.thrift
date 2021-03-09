@@ -129,14 +129,6 @@ struct PolaritySwap {
 
 const PolaritySwap NO_POLARITY_SWAP = {}
 
-struct LaneSettings {
-  // TODO: may need to extend this to be a mapping from speed to tx/rx
-  // settings to support dynamically changing speed
-  1: optional TxSettings tx
-  2: optional RxSettings rx
-  3: PolaritySwap polaritySwap = NO_POLARITY_SWAP
-}
-
 struct PhyFwVersion {
   1: i32 version
   2: i32 crc

@@ -34,28 +34,6 @@ bool LaneConfig::operator==(const LaneConfig& rhs) const {
   return (polaritySwap == rhs.polaritySwap) && (tx == rhs.tx);
 }
 
-LaneSettings LaneConfig::toLaneSettings() const {
-  LaneSettings settings;
-  if (!polaritySwap.has_value()) {
-    *settings.polaritySwap_ref() = {};
-  } else {
-    *settings.polaritySwap_ref() = polaritySwap.value();
-  }
-  if (tx.has_value()) {
-    settings.tx_ref() = tx.value();
-  }
-  return settings;
-}
-
-LaneConfig LaneConfig::fromLaneSettings(const LaneSettings& settings) {
-  LaneConfig config;
-  if (auto tx = settings.tx_ref()) {
-    config.tx = *tx;
-  }
-  config.polaritySwap = *settings.polaritySwap_ref();
-  return config;
-}
-
 bool PhySideConfig::operator==(const PhySideConfig& rhs) const {
   return std::equal(
       lanes.begin(), lanes.end(), rhs.lanes.begin(), rhs.lanes.end());
