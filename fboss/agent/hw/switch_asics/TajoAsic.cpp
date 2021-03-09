@@ -40,6 +40,8 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PENDING_L2_ENTRY:
     case HwAsic::Feature::COUNTER_REFRESH_INTERVAL:
     case HwAsic::Feature::MAC_AGING:
+    case HwAsic::Feature::SAI_MIRRORING:
+    case HwAsic::Feature::SAI_SAMPLING:
       return true;
     case HwAsic::Feature::HOT_SWAP:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
@@ -64,8 +66,6 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::NON_UNICAST_HASH:
     case HwAsic::Feature::DETAILED_L2_UPDATE:
     case HwAsic::Feature::WIDE_ECMP:
-    case HwAsic::Feature::SAI_MIRRORING:
-    case HwAsic::Feature::SAI_SAMPLING:
     case HwAsic::Feature::ALPM_ROUTE_PROJECTION:
     // TODO(pshaikh): once memory leaks are fixed move, it to true
     case HwAsic::Feature::TELEMETRY_AND_MONITORING:
