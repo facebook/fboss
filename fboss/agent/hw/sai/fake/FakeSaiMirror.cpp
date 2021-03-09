@@ -39,6 +39,7 @@ sai_status_t create_mirror_session_fn(
   std::optional<sai_erspan_encapsulation_type_t> erspanEncapType;
   std::optional<sai_uint16_t> greProtocolType;
   std::optional<sai_uint16_t> truncateSize;
+  std::optional<sai_uint8_t> ipHeaderVersion;
 
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
@@ -75,6 +76,9 @@ sai_status_t create_mirror_session_fn(
       case SAI_MIRROR_SESSION_ATTR_TRUNCATE_SIZE:
         truncateSize = attr_list[i].value.u16;
         break;
+      case SAI_MIRROR_SESSION_ATTR_IPHDR_VERSION:
+        ipHeaderVersion = attr_list[i].value.u8;
+        break;
       case SAI_MIRROR_SESSION_ATTR_GRE_PROTOCOL_TYPE:
         greProtocolType = attr_list[i].value.u16;
         break;
@@ -97,7 +101,7 @@ sai_status_t create_mirror_session_fn(
         fs->mirrorManager.create(type.value(), monitorPort.value());
   } else if (type == SAI_MIRROR_SESSION_TYPE_ENHANCED_REMOTE) {
     if (!srcIp || !dstIp || !srcMac || !dstMac || !tos || !erspanEncapType ||
-        !greProtocolType) {
+        !greProtocolType || !ipHeaderVersion) {
       return SAI_STATUS_INVALID_PARAMETER;
     }
     *mirror_session_id = fs->mirrorManager.create(
@@ -109,6 +113,7 @@ sai_status_t create_mirror_session_fn(
         dstIp.value(),
         srcMac.value(),
         dstMac.value(),
+        ipHeaderVersion.value(),
         greProtocolType.value(),
         ttl.has_value() ? ttl.value() : (uint8_t)0,
         truncateSize.has_value() ? truncateSize.value() : (uint16_t)0);
@@ -126,6 +131,7 @@ sai_status_t create_mirror_session_fn(
         dstIp.value(),
         srcMac.value(),
         dstMac.value(),
+        ipHeaderVersion.value(),
         udpSrcPort.value(),
         udpDstPort.value(),
         ttl.has_value() ? ttl.value() : (uint8_t)0);
@@ -169,6 +175,9 @@ sai_status_t set_mirror_session_attribute_fn(
     case SAI_MIRROR_SESSION_ATTR_DST_MAC_ADDRESS:
       mirrorSession.dstMac =
           facebook::fboss::fromSaiMacAddress(attr->value.mac);
+      break;
+    case SAI_MIRROR_SESSION_ATTR_IPHDR_VERSION:
+      mirrorSession.ipHeaderVersion = attr->value.u8;
       break;
 #if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
     case SAI_MIRROR_SESSION_ATTR_UDP_SRC_PORT:
@@ -227,6 +236,9 @@ sai_status_t get_mirror_session_attribute_fn(
       case SAI_MIRROR_SESSION_ATTR_DST_MAC_ADDRESS:
         facebook::fboss::toSaiMacAddress(
             mirrorSession.dstMac, attr_list[i].value.mac);
+        break;
+      case SAI_MIRROR_SESSION_ATTR_IPHDR_VERSION:
+        attr_list[i].value.u8 = mirrorSession.ipHeaderVersion;
         break;
 #if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
       case SAI_MIRROR_SESSION_ATTR_UDP_SRC_PORT:

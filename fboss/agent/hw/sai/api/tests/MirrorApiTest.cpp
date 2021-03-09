@@ -50,6 +50,7 @@ class MirrorApiTest : public ::testing::Test {
       folly::IPAddress& dstIp,
       folly::MacAddress& srcMac,
       folly::MacAddress& dstMac,
+      uint8_t ipHeaderVersion,
       uint16_t greProtocol) {
     return mirrorApi->create<SaiEnhancedRemoteMirrorTraits>(
         {SAI_MIRROR_SESSION_TYPE_ENHANCED_REMOTE,
@@ -61,6 +62,7 @@ class MirrorApiTest : public ::testing::Test {
          srcMac,
          dstMac,
          greProtocol,
+         ipHeaderVersion,
          ttl,
          truncateSize},
         0);
@@ -86,6 +88,7 @@ class MirrorApiTest : public ::testing::Test {
     SaiEnhancedRemoteMirrorTraits::Attributes::SrcMacAddress srcMac;
     SaiEnhancedRemoteMirrorTraits::Attributes::DstMacAddress dstMac;
     SaiEnhancedRemoteMirrorTraits::Attributes::GreProtocolType greProtocolType;
+    SaiEnhancedRemoteMirrorTraits::Attributes::IpHeaderVersion ipHeaderVersion;
     auto gotMonitorPort = mirrorApi->getAttribute(mirrorSaiId, monitorPort);
     auto gotTos = mirrorApi->getAttribute(mirrorSaiId, tos);
     auto gotTtl = mirrorApi->getAttribute(mirrorSaiId, ttl);
@@ -96,6 +99,8 @@ class MirrorApiTest : public ::testing::Test {
     auto gotDstMac = mirrorApi->getAttribute(mirrorSaiId, dstMac);
     auto gotGreProtocolType =
         mirrorApi->getAttribute(mirrorSaiId, greProtocolType);
+    auto gotIpHeaderVersion =
+        mirrorApi->getAttribute(mirrorSaiId, ipHeaderVersion);
     EXPECT_EQ(fs->mirrorManager.get(mirrorSaiId).monitorPort, gotMonitorPort);
     EXPECT_EQ(fs->mirrorManager.get(mirrorSaiId).tos, gotTos);
     EXPECT_EQ(fs->mirrorManager.get(mirrorSaiId).ttl, gotTtl);
@@ -106,6 +111,8 @@ class MirrorApiTest : public ::testing::Test {
     EXPECT_EQ(fs->mirrorManager.get(mirrorSaiId).dstMac, gotDstMac);
     EXPECT_EQ(
         fs->mirrorManager.get(mirrorSaiId).greProtocolType, gotGreProtocolType);
+    EXPECT_EQ(
+        fs->mirrorManager.get(mirrorSaiId).ipHeaderVersion, gotIpHeaderVersion);
   }
 
   std::shared_ptr<FakeSai> fs;
@@ -124,19 +131,19 @@ TEST_F(MirrorApiTest, removeLocalMirror) {
 
 TEST_F(MirrorApiTest, createEnhancedRemoteMirror) {
   auto mirrorSaiId = createEnhancedRemoteMirror(
-      1, 16, 240, 255, srcIp, dstIp, srcMac, dstMac, 2148);
+      1, 16, 240, 255, srcIp, dstIp, srcMac, dstMac, 4, 2148);
   checkEnhancedRemoteMirror(mirrorSaiId);
 }
 
 TEST_F(MirrorApiTest, removeEnhancedRemoteMirror) {
   auto mirrorSaiId = createEnhancedRemoteMirror(
-      2, 42, 238, 255, srcIp, dstIp, srcMac, dstMac, 220);
+      2, 42, 238, 255, srcIp, dstIp, srcMac, dstMac, 4, 220);
   mirrorApi->remove(mirrorSaiId);
 }
 
 TEST_F(MirrorApiTest, setMirrorAttributes) {
   auto mirrorSaiId = createEnhancedRemoteMirror(
-      1, 16, 240, 255, srcIp, dstIp, srcMac, dstMac, 2148);
+      1, 16, 240, 255, srcIp, dstIp, srcMac, dstMac, 4, 2148);
   checkEnhancedRemoteMirror(mirrorSaiId);
   SaiEnhancedRemoteMirrorTraits::Attributes::MonitorPort monitorPort{2};
   mirrorApi->setAttribute(mirrorSaiId, monitorPort);

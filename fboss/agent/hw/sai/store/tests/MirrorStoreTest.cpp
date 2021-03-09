@@ -57,6 +57,7 @@ class MirrorStoreTest : public SaiStoreTest {
       folly::IPAddress& dstIp,
       folly::MacAddress& srcMac,
       folly::MacAddress& dstMac,
+      uint8_t ipHeaderVersion,
       uint16_t greProtocol) {
     return saiApiTable->mirrorApi().create<SaiEnhancedRemoteMirrorTraits>(
         {SAI_MIRROR_SESSION_TYPE_ENHANCED_REMOTE,
@@ -67,6 +68,7 @@ class MirrorStoreTest : public SaiStoreTest {
          dstIp,
          srcMac,
          dstMac,
+         ipHeaderVersion,
          greProtocol,
          ttl,
          truncateSize},
@@ -77,7 +79,7 @@ class MirrorStoreTest : public SaiStoreTest {
 TEST_F(MirrorStoreTest, loadMirrorSessions) {
   auto mirrorId1 = createLocalMirror(0);
   auto mirrorId2 = createEnhancedRemoteMirror(
-      1, 16, 240, 255, srcIp, dstIp, srcMac, dstMac, 2148);
+      1, 16, 240, 255, srcIp, dstIp, srcMac, dstMac, 4, 2148);
 
   SaiStore s(0);
   s.reload();
@@ -118,7 +120,7 @@ TEST_F(MirrorStoreTest, localSpanSerDeser) {
 
 TEST_F(MirrorStoreTest, erSpanSerDeser) {
   auto mirrorId = createEnhancedRemoteMirror(
-      2, 16, 220, 255, srcIp, dstIp, srcMac, dstMac, 2200);
+      2, 16, 220, 255, srcIp, dstIp, srcMac, dstMac, 4, 2200);
   verifyAdapterKeySerDeser<SaiEnhancedRemoteMirrorTraits>({mirrorId});
 }
 
@@ -126,6 +128,6 @@ TEST_F(MirrorStoreTest, toStr) {
   std::ignore = createLocalMirror(0);
   verifyToStr<SaiLocalMirrorTraits>();
   std::ignore = createEnhancedRemoteMirror(
-      20, 16, 220, 180, srcIp, dstIp, srcMac, dstMac, 2200);
+      20, 16, 220, 180, srcIp, dstIp, srcMac, dstMac, 4, 2200);
   verifyToStr<SaiEnhancedRemoteMirrorTraits>();
 }

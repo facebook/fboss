@@ -33,6 +33,7 @@ struct FakeMirror {
       const folly::IPAddress& dstIp,
       const folly::MacAddress& srcMac,
       const folly::MacAddress& dstMac,
+      uint8_t ipHeaderVersion,
       sai_uint16_t greProtocolType,
       uint8_t ttl,
       sai_uint16_t truncateSize)
@@ -44,6 +45,7 @@ struct FakeMirror {
         dstIp(dstIp),
         srcMac(srcMac),
         dstMac(dstMac),
+        ipHeaderVersion(ipHeaderVersion),
         greProtocolType(greProtocolType),
         ttl(ttl),
         truncateSize(truncateSize) {}
@@ -56,6 +58,7 @@ struct FakeMirror {
       const folly::IPAddress& dstIp,
       const folly::MacAddress& srcMac,
       const folly::MacAddress& dstMac,
+      sai_uint8_t ipHeaderVersion,
       sai_uint16_t udpSrcPort,
       sai_uint16_t udpDstPort,
       uint8_t ttl)
@@ -66,6 +69,7 @@ struct FakeMirror {
         dstIp(dstIp),
         srcMac(srcMac),
         dstMac(dstMac),
+        ipHeaderVersion(ipHeaderVersion),
         udpSrcPort(udpSrcPort),
         udpDstPort(udpDstPort),
         ttl(ttl) {}
@@ -79,6 +83,7 @@ struct FakeMirror {
   folly::IPAddress dstIp;
   folly::MacAddress srcMac;
   folly::MacAddress dstMac;
+  sai_uint8_t ipHeaderVersion;
   sai_uint16_t greProtocolType;
   sai_uint16_t udpSrcPort;
   sai_uint16_t udpDstPort;

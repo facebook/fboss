@@ -88,6 +88,10 @@ struct SaiMirrorTraits<SAI_MIRROR_SESSION_TYPE_ENHANCED_REMOTE> {
         EnumType,
         SAI_MIRROR_SESSION_ATTR_GRE_PROTOCOL_TYPE,
         sai_uint16_t>;
+    using IpHeaderVersion = SaiAttribute<
+        EnumType,
+        SAI_MIRROR_SESSION_ATTR_IPHDR_VERSION,
+        sai_uint8_t>;
   };
   using CreateAttributes = std::tuple<
       Attributes::Type,
@@ -99,6 +103,7 @@ struct SaiMirrorTraits<SAI_MIRROR_SESSION_TYPE_ENHANCED_REMOTE> {
       Attributes::SrcMacAddress,
       Attributes::DstMacAddress,
       Attributes::GreProtocolType,
+      Attributes::IpHeaderVersion,
       std::optional<Attributes::Ttl>,
       std::optional<Attributes::TruncateSize>>;
   using AdapterHostKey = std::tuple<
@@ -150,6 +155,10 @@ struct SaiMirrorTraits<SAI_MIRROR_SESSION_TYPE_SFLOW> {
         EnumType,
         SAI_MIRROR_SESSION_ATTR_UDP_DST_PORT,
         sai_uint16_t>;
+    using IpHeaderVersion = SaiAttribute<
+        EnumType,
+        SAI_MIRROR_SESSION_ATTR_IPHDR_VERSION,
+        sai_uint8_t>;
   };
   using CreateAttributes = std::tuple<
       typename Attributes::Type,
@@ -161,6 +170,7 @@ struct SaiMirrorTraits<SAI_MIRROR_SESSION_TYPE_SFLOW> {
       typename Attributes::DstMacAddress,
       typename Attributes::UdpSrcPort,
       typename Attributes::UdpDstPort,
+      typename Attributes::IpHeaderVersion,
       std::optional<typename Attributes::Ttl>>;
   using AdapterHostKey = std::tuple<
       typename Attributes::Type,
@@ -232,6 +242,7 @@ SAI_ATTRIBUTE_NAME(EnhancedRemoteMirror, SrcIpAddress)
 SAI_ATTRIBUTE_NAME(EnhancedRemoteMirror, DstIpAddress)
 SAI_ATTRIBUTE_NAME(EnhancedRemoteMirror, SrcMacAddress)
 SAI_ATTRIBUTE_NAME(EnhancedRemoteMirror, DstMacAddress)
+SAI_ATTRIBUTE_NAME(EnhancedRemoteMirror, IpHeaderVersion)
 #if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
 SAI_ATTRIBUTE_NAME(SflowMirror, UdpSrcPort)
 SAI_ATTRIBUTE_NAME(SflowMirror, UdpDstPort)

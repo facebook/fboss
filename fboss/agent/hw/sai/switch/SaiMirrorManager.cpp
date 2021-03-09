@@ -35,6 +35,7 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addMirrorErSpan(
     const std::shared_ptr<Mirror>& mirror,
     PortSaiId monitorPort) {
   auto mirrorTunnel = mirror->getMirrorTunnel().value();
+  auto headerVersion = mirrorTunnel.srcIp.isV4() ? 4 : 6;
   SaiEnhancedRemoteMirrorTraits::CreateAttributes attributes{
       SAI_MIRROR_SESSION_TYPE_ENHANCED_REMOTE,
       monitorPort,
@@ -45,6 +46,7 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addMirrorErSpan(
       mirrorTunnel.srcMac,
       mirrorTunnel.dstMac,
       mirrorTunnel.greProtocol,
+      headerVersion,
       mirrorTunnel.ttl,
       0 // TODO: truncate size
   };
@@ -62,6 +64,7 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addMirrorSflow(
     const std::shared_ptr<Mirror>& mirror,
     PortSaiId monitorPort) {
   auto mirrorTunnel = mirror->getMirrorTunnel().value();
+  auto headerVersion = mirrorTunnel.srcIp.isV4() ? 4 : 6;
   SaiSflowMirrorTraits::CreateAttributes attributes{
       SAI_MIRROR_SESSION_TYPE_SFLOW,
       monitorPort,
@@ -72,8 +75,8 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addMirrorSflow(
       mirrorTunnel.dstMac,
       mirrorTunnel.udpPorts.value().udpSrcPort,
       mirrorTunnel.udpPorts.value().udpDstPort,
-      mirrorTunnel.ttl,
-  };
+      headerVersion,
+      mirrorTunnel.ttl};
   SaiSflowMirrorTraits::AdapterHostKey k{
       SAI_MIRROR_SESSION_TYPE_SFLOW,
       monitorPort,
