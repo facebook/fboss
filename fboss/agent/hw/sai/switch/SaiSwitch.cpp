@@ -1473,10 +1473,13 @@ void SaiSwitch::switchRunStateChangedImplLocked(
         initThread("fbossSaiFdbBH");
         fdbEventBottomHalfEventBase_.loopForever();
       });
-      auto& switchApi = SaiApiTable::getInstance()->switchApi();
-      switchApi.registerFdbEventCallback(switchId_, __gFdbEventCallback);
     } break;
     case SwitchRunState::CONFIGURED: {
+      // receive learn events after switch is configured to prevent
+      // fdb entries from being created against ports  which would
+      // become members of lags later on.
+      auto& switchApi = SaiApiTable::getInstance()->switchApi();
+      switchApi.registerFdbEventCallback(switchId_, __gFdbEventCallback);
       if (getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED) {
         /*
          * Post warmboot synchronize hw link state with switch state
