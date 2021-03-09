@@ -67,10 +67,15 @@ TEST_F(BcmPtpTcTest, VerifyPtpTcEnable) {
     setPtpTc(true);
   };
   auto verify = [&]() {
-    EXPECT_TRUE(getHwSwitch()->getBcmPtpTcMgr()->isPtpTcEnabled());
+    EXPECT_TRUE(getHwSwitch()->getPtpTcMgr()->isPtpTcEnabled());
+  };
+  auto verifyPostWarmboot = [&]() {
+    EXPECT_TRUE(getHwSwitch()->getPtpTcMgr()->isPtpTcEnabled());
+    EXPECT_TRUE(getHwSwitch()->getPtpTcMgr()->getPtpTcNoTransition());
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  verifyAcrossWarmBoots(
+      setup, verify, []() {}, verifyPostWarmboot);
 }
 
 TEST_F(BcmPtpTcTest, VerifyPtpTcToggle) {
@@ -82,7 +87,7 @@ TEST_F(BcmPtpTcTest, VerifyPtpTcToggle) {
 
   auto enabled = false;
   auto verify = [&]() {
-    EXPECT_EQ(enabled, getHwSwitch()->getBcmPtpTcMgr()->isPtpTcEnabled());
+    EXPECT_EQ(enabled, getHwSwitch()->getPtpTcMgr()->isPtpTcEnabled());
   };
 
   setup();

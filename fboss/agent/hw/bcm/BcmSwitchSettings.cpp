@@ -254,8 +254,8 @@ void BcmSwitchSettings::setPtpTc(
     return;
   }
 
-  const auto bcmPtpTcMgrPtr = hw_->getBcmPtpTcMgr();
-  (enable) ? bcmPtpTcMgrPtr->enablePtpTc() : bcmPtpTcMgrPtr->disablePtpTc();
+  const auto ptpTcMgr = hw_->getPtpTcMgr();
+  (enable) ? ptpTcMgr->enablePtpTc() : ptpTcMgr->disablePtpTc();
 
   ptpTcEnable_ = enable;
 }

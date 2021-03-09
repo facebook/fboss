@@ -137,6 +137,11 @@ void BcmPtpTcMgr::enablePtpTc() {
     XLOG(INFO) << "[PTP] Ignore configuration of unsupported feature";
     return;
   }
+  if (isPtpTcEnabled()) {
+    ptpTcNoTransition_ = true;
+    XLOG(INFO) << "Ignore PTP TC no-op transition: ON -> ON";
+    return;
+  }
 
   XLOG(INFO) << "[PTP] Start enable";
 
@@ -185,6 +190,11 @@ void BcmPtpTcMgr::enablePtpTc() {
 void BcmPtpTcMgr::disablePtpTc() {
   if (!isPtpTcSupported(hw_)) {
     XLOG(INFO) << "[PTP] Ignore configuration of unsupported feature";
+    return;
+  }
+  if (!isPtpTcEnabled()) {
+    ptpTcNoTransition_ = true;
+    XLOG(INFO) << "Ignore PTP TC no-op transition: OFF -> OFF";
     return;
   }
 

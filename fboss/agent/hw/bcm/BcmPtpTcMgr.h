@@ -23,6 +23,9 @@ class BcmPtpTcMgr {
 
   // utility routines used by tests
   bool isPtpTcEnabled();
+  bool getPtpTcNoTransition() const {
+    return ptpTcNoTransition_;
+  }
 
  private:
   int getTsBitModeArg(HwAsic::AsicType asicType);
@@ -39,6 +42,10 @@ class BcmPtpTcMgr {
   bool isTimeInterfaceEnabled();
 
   BcmSwitch* hw_;
+
+  // used by test to check that warmboot indeed
+  // results in a no-op transition that is detected and skipped
+  bool ptpTcNoTransition_{false};
 };
 
 } // namespace facebook::fboss

@@ -482,7 +482,7 @@ class BcmSwitch : public BcmSwitchIf {
     return qcmManager_.get();
   }
 
-  BcmPtpTcMgr* getBcmPtpTcMgr() const {
+  BcmPtpTcMgr* getPtpTcMgr() const {
     return ptpTcMgr_.get();
   }
 
