@@ -90,6 +90,9 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addMirrorSflow(
 #endif
 
 void SaiMirrorManager::addMirror(const std::shared_ptr<Mirror>& mirror) {
+  if (!mirror->isResolved()) {
+    return;
+  }
   auto mirrorHandleIter = mirrorHandles_.find(mirror->getID());
   if (mirrorHandleIter != mirrorHandles_.end()) {
     throw FbossError(
@@ -132,6 +135,9 @@ void SaiMirrorManager::addMirror(const std::shared_ptr<Mirror>& mirror) {
 void SaiMirrorManager::removeMirror(const std::shared_ptr<Mirror>& mirror) {
   auto mirrorHandleIter = mirrorHandles_.find(mirror->getID());
   if (mirrorHandleIter == mirrorHandles_.end()) {
+    if (!mirror->isResolved()) {
+      return;
+    }
     throw FbossError(
         "Attempted to remove non-existent mirror: ", mirror->getID());
   }
