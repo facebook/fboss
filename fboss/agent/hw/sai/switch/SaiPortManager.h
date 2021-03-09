@@ -64,6 +64,7 @@ struct SaiPortMirrorInfo {
 };
 
 struct SaiPortHandle {
+  ~SaiPortHandle();
   std::shared_ptr<SaiPort> port;
   std::shared_ptr<SaiPortSerdes> serdes;
   std::shared_ptr<SaiBridgePort> bridgePort;

@@ -118,6 +118,19 @@ SaiPortManager::SaiPortManager(
       platform_(platform),
       concurrentIndices_(concurrentIndices) {}
 
+SaiPortHandle::~SaiPortHandle() {
+  if (ingressSamplePacket) {
+    port->setOptionalAttribute(
+        SaiPortTraits::Attributes::IngressSamplePacketEnable{
+            SAI_NULL_OBJECT_ID});
+  }
+  if (egressSamplePacket) {
+    port->setOptionalAttribute(
+        SaiPortTraits::Attributes::EgressSamplePacketEnable{
+            SAI_NULL_OBJECT_ID});
+  }
+}
+
 SaiPortManager::~SaiPortManager() {}
 
 void SaiPortManager::loadPortQueues(SaiPortHandle* portHandle) {
