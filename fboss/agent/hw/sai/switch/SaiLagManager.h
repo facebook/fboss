@@ -55,8 +55,6 @@ class SaiLagManager {
 
   void disableMember(AggregatePortID aggPort, PortID subPort);
 
-  void setL2LearningMode(cfg::L2LearningMode l2LearningMode);
-
  private:
   std::pair<PortSaiId, std::shared_ptr<SaiLagMember>> addMember(
       const std::shared_ptr<SaiLag>& lag,
@@ -73,7 +71,6 @@ class SaiLagManager {
   SaiPlatform* platform_;
   ConcurrentIndices* concurrentIndices_;
   Handles handles_;
-  cfg::L2LearningMode l2LearningMode_{cfg::L2LearningMode::HARDWARE};
 };
 
 } // namespace facebook::fboss

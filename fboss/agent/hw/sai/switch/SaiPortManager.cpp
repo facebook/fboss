@@ -116,15 +116,7 @@ SaiPortManager::SaiPortManager(
     ConcurrentIndices* concurrentIndices)
     : managerTable_(managerTable),
       platform_(platform),
-      concurrentIndices_(concurrentIndices) {
-  /*
-   * FDB entries will be initially owned by SDK since learn mode is HW
-   * by default. Once the config is applied, object owned by adapter
-   * will be reset based on the learn mode.
-   */
-  auto& store = SaiStore::getInstance()->get<SaiFdbTraits>();
-  store.setObjectOwnedByAdapter(true);
-}
+      concurrentIndices_(concurrentIndices) {}
 
 SaiPortManager::~SaiPortManager() {}
 
@@ -251,12 +243,6 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   }
   managerTable_->queueManager().ensurePortQueueConfig(
       saiPort->adapterKey(), handle->queues, swPort->getPortQueues());
-  if (l2LearningMode_) {
-    auto fdbLearningMode = managerTable_->bridgeManager().getFdbLearningMode(
-        l2LearningMode_.value());
-    handle->bridgePort->setOptionalAttribute(
-        SaiBridgePortTraits::Attributes::FdbLearningMode{fdbLearningMode});
-  }
 
   bool samplingMirror = swPort->getSampleDestination().has_value() &&
       swPort->getSampleDestination() == cfg::SampleDestination::MIRROR;
@@ -922,20 +908,6 @@ void SaiPortManager::clearQosPolicy() {
       QosMapSaiId(SAI_NULL_OBJECT_ID), QosMapSaiId(SAI_NULL_OBJECT_ID));
   globalDscpToTcQosMap_.reset();
   globalTcToQueueQosMap_.reset();
-}
-
-void SaiPortManager::setL2LearningMode(cfg::L2LearningMode l2LearningMode) {
-  auto fdbLearningMode =
-      managerTable_->bridgeManager().getFdbLearningMode(l2LearningMode);
-  for (auto& portIdAndHandle : managerTable_->portManager()) {
-    auto& portHandle = portIdAndHandle.second;
-    portHandle->bridgePort->setOptionalAttribute(
-        SaiBridgePortTraits::Attributes::FdbLearningMode{fdbLearningMode});
-  }
-  l2LearningMode_ = l2LearningMode;
-  auto& store = SaiStore::getInstance()->get<SaiFdbTraits>();
-  store.setObjectOwnedByAdapter(
-      l2LearningMode_ == cfg::L2LearningMode::HARDWARE);
 }
 
 std::shared_ptr<SaiPortSerdes> SaiPortManager::programSerdes(

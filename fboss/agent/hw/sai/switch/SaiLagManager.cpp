@@ -53,11 +53,7 @@ void SaiLagManager::addLag(
   handle->bridgePort = managerTable_->bridgeManager().addBridgePort(
       SaiPortDescriptor(aggregatePort->getID()),
       PortDescriptorSaiId(lag->adapterKey()));
-  // set l2 learning mode
-  auto fdbLearningMode =
-      managerTable_->bridgeManager().getFdbLearningMode(l2LearningMode_);
-  handle->bridgePort->setOptionalAttribute(
-      SaiBridgePortTraits::Attributes::FdbLearningMode{fdbLearningMode});
+
   handle->members = std::move(members);
   handle->lag = std::move(lag);
   handle->minimumLinkCount = aggregatePort->getMinimumLinkCount();
@@ -274,16 +270,5 @@ void SaiLagManager::disableMember(AggregatePortID aggPort, PortID subPort) {
   auto& saiLagHandle = handleIter->second;
   auto member = getMember(saiLagHandle.get(), subPort);
   setMemberState(member, AggregatePort::Forwarding::DISABLED);
-}
-
-void SaiLagManager::setL2LearningMode(cfg::L2LearningMode l2LearningMode) {
-  auto fdbLearningMode =
-      managerTable_->bridgeManager().getFdbLearningMode(l2LearningMode);
-  for (auto& entry : handles_) {
-    auto& handle = entry.second;
-    handle->bridgePort->setOptionalAttribute(
-        SaiBridgePortTraits::Attributes::FdbLearningMode{fdbLearningMode});
-  }
-  l2LearningMode_ = l2LearningMode;
 }
 } // namespace facebook::fboss

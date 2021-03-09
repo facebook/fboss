@@ -42,10 +42,7 @@ std::shared_ptr<SaiBridgePort> SaiBridgeManager::addBridgePort(
       saiId.isPhysicalPort() ? saiId.phyPortID() : saiId.aggPortID();
   SaiBridgePortTraits::AdapterHostKey k{saiObjectId};
   SaiBridgePortTraits::CreateAttributes attributes{
-      SAI_BRIDGE_PORT_TYPE_PORT,
-      saiObjectId,
-      true,
-      SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW};
+      SAI_BRIDGE_PORT_TYPE_PORT, saiObjectId, true, fdbLearningMode_};
   return store.setObject(k, attributes, portDescriptor);
 }
 
@@ -69,6 +66,32 @@ sai_bridge_port_fdb_learning_mode_t SaiBridgeManager::getFdbLearningMode(
       break;
   }
   return fdbLearningMode;
+}
+
+void SaiBridgeManager::setL2LearningMode(
+    std::optional<cfg::L2LearningMode> l2LearningMode) {
+  if (l2LearningMode) {
+    fdbLearningMode_ = getFdbLearningMode(l2LearningMode.value());
+  }
+  XLOG(INFO) << "FDB learning mode set to "
+             << (getL2LearningMode() == cfg::L2LearningMode::HARDWARE
+                     ? "hardware"
+                     : "software");
+  auto& fdbStore = SaiStore::getInstance()->get<SaiFdbTraits>();
+  fdbStore.setObjectOwnedByAdapter(
+      fdbLearningMode_ == SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW);
+}
+
+cfg::L2LearningMode SaiBridgeManager::getL2LearningMode() const {
+  switch (fdbLearningMode_) {
+    case SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW:
+      return cfg::L2LearningMode::HARDWARE;
+    case SAI_BRIDGE_PORT_FDB_LEARNING_MODE_FDB_NOTIFICATION:
+      return cfg::L2LearningMode::SOFTWARE;
+    default:
+      break;
+  }
+  throw FbossError("unsupported fdb learning mode ", fdbLearningMode_);
 }
 
 } // namespace facebook::fboss

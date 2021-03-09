@@ -627,9 +627,7 @@ void SaiSwitch::processSwitchSettingsChangedLocked(
                << static_cast<int>(oldSwitchSettings->getL2LearningMode())
                << " new: "
                << static_cast<int>(newSwitchSettings->getL2LearningMode());
-    managerTable_->portManager().setL2LearningMode(
-        newSwitchSettings->getL2LearningMode());
-    managerTable_->lagManager().setL2LearningMode(
+    managerTable_->bridgeManager().setL2LearningMode(
         newSwitchSettings->getL2LearningMode());
   }
 
@@ -999,6 +997,10 @@ HwInitResult SaiSwitch::initLocked(
     }
     handleStandaloneRIBTransition(folly::dynamic::object(), ret);
   }
+  // for both cold and warm boot, recover l2 learning mode
+  managerTable_->bridgeManager().setL2LearningMode(
+      ret.switchState->getSwitchSettings()->getL2LearningMode());
+
   ret.switchState->publish();
   return ret;
 }
@@ -1555,7 +1557,7 @@ void SaiSwitch::fdbEventCallback(
 void SaiSwitch::fdbEventCallbackLockedBottomHalf(
     const std::lock_guard<std::mutex>& /*lock*/,
     std::vector<FdbEventNotificationData> fdbNotifications) {
-  if (managerTable_->portManager().getL2LearningMode() !=
+  if (managerTable_->bridgeManager().getL2LearningMode() !=
       cfg::L2LearningMode::SOFTWARE) {
     // Some platforms call fdb callback even when mode is set to HW. In
     // keeping with our native SDK approach, don't send these events up.

@@ -39,10 +39,16 @@ class SaiBridgeManager {
   sai_bridge_port_fdb_learning_mode_t getFdbLearningMode(
       cfg::L2LearningMode l2LearningMode) const;
 
+  void setL2LearningMode(std::optional<cfg::L2LearningMode> l2LearningMode);
+
+  cfg::L2LearningMode getL2LearningMode() const;
+
  private:
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   std::unique_ptr<SaiBridgeHandle> bridgeHandle_;
+  sai_bridge_port_fdb_learning_mode_t fdbLearningMode_{
+      SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW};
 };
 
 } // namespace facebook::fboss
