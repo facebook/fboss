@@ -361,15 +361,16 @@ class SaiSwitch : public HwSwitch {
 
   static PortSaiId getCPUPortSaiId(SwitchSaiId switchId);
 
-  void packetRxCallback(
+  void packetRxCallbackPort(
       sai_size_t buffer_size,
       const void* buffer,
       PortSaiId inPort);
 
-  void packetRxCallback(
+  void packetRxCallbackLag(
       sai_size_t buffer_size,
       const void* buffer,
-      LagSaiId inAggPort);
+      LagSaiId inAggPort,
+      PortSaiId inPort);
 
   /*
    * SaiSwitch must support a few varieties of concurrent access:

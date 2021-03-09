@@ -1099,15 +1099,37 @@ void SaiSwitch::packetRxCallback(
         XLOG(INFO) << "invalid attribute received";
     }
   }
-  if (portSaiIdOpt) {
-    packetRxCallback(buffer_size, buffer, portSaiIdOpt.value());
+  if (!portSaiIdOpt) {
+    XLOG(ERR)
+        << "discarded a packet with missing SAI_HOSTIF_PACKET_ATTR_INGRESS_PORT.";
+    return;
   }
-  if (lagSaiIdOpt) {
-    packetRxCallback(buffer_size, buffer, lagSaiIdOpt.value());
+  auto iter = concurrentIndices_->memberPort2AggregatePortIds.find(
+      portSaiIdOpt.value());
+
+  if (iter != concurrentIndices_->memberPort2AggregatePortIds.end()) {
+    // hack if SAI_HOSTIF_PACKET_ATTR_INGRESS_LAG is not set on packet on lag!
+    // if port belongs to some aggregate port, process packet as if coming
+    // from lag.
+    auto [portSaiId, aggregatePortId] = *iter;
+    for (auto entry : concurrentIndices_->aggregatePortIds) {
+      auto [lagSaiId, swLagId] = entry;
+      if (swLagId == aggregatePortId) {
+        lagSaiIdOpt = lagSaiId;
+        break;
+      }
+    }
+  }
+
+  if (!lagSaiIdOpt) {
+    packetRxCallbackPort(buffer_size, buffer, portSaiIdOpt.value());
+  } else {
+    packetRxCallbackLag(
+        buffer_size, buffer, lagSaiIdOpt.value(), portSaiIdOpt.value());
   }
 }
 
-void SaiSwitch::packetRxCallback(
+void SaiSwitch::packetRxCallbackPort(
     sai_size_t buffer_size,
     const void* buffer,
     PortSaiId portSaiId) {
@@ -1175,11 +1197,13 @@ void SaiSwitch::packetRxCallback(
   callback_->packetReceived(std::move(rxPacket));
 }
 
-void SaiSwitch::packetRxCallback(
+void SaiSwitch::packetRxCallbackLag(
     sai_size_t buffer_size,
     const void* buffer,
-    LagSaiId lagSaiId) {
+    LagSaiId lagSaiId,
+    PortSaiId portSaiId) {
   AggregatePortID swAggPortId(0);
+  PortID swPortId(0);
   VlanID swVlanId(0);
   auto rxPacket =
       std::make_unique<SaiRxPacket>(buffer_size, buffer, PortID(0), VlanID(0));
@@ -1204,7 +1228,15 @@ void SaiSwitch::packetRxCallback(
   rxPacket->setSrcAggregatePort(swAggPortId);
   rxPacket->setSrcVlan(swVlanId);
 
-  XLOG(INFO) << "Rx packet on lag: " << swAggPortId
+  auto swPortItr = concurrentIndices_->portIds.find(portSaiId);
+  if (swPortItr == concurrentIndices_->portIds.cend()) {
+    XLOG(ERR) << "RX packet for lag has invalid port : 0x" << std::hex
+              << portSaiId;
+    return;
+  }
+  swPortId = swPortItr->second;
+  rxPacket->setSrcPort(swPortId);
+  XLOG(DBG6) << "Rx packet on lag: " << swAggPortId << ", port: " << swPortId
              << " and vlan: " << swVlanId;
   folly::io::Cursor c0(rxPacket->buf());
   XLOG(DBG6) << PktUtil::hexDump(c0);
