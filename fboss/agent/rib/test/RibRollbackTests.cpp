@@ -307,3 +307,49 @@ TEST_F(RibRollbackTest, rollbackDifferentNexthops) {
   assertRouteCount(0, 1);
   EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));
 }
+
+TEST_F(RibRollbackTest, syncFibRollbackExistingClient) {
+  // Test rollback for sync fib
+  auto routeTableBeforeFailedUpdate = rib_.getRouteTableDetails(kRid);
+  FailSomeUpdates failFirstUpdate({1});
+  EXPECT_THROW(
+      rib_.update(
+          kRid,
+          kBgpClient,
+          kBgpDistance,
+          {
+              makeUnicastRoute(kPrefix1, RouteForwardAction::DROP),
+              makeUnicastRoute(kPrefix2, RouteForwardAction::DROP),
+          },
+          {},
+          true,
+          "fail syncFib",
+          failFirstUpdate,
+          nullptr),
+      FbossHwUpdateError);
+  assertRouteCount(0, 1);
+  EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));
+}
+
+TEST_F(RibRollbackTest, syncFibRollbackNewClient) {
+  // Test rollback for sync fib
+  auto routeTableBeforeFailedUpdate = rib_.getRouteTableDetails(kRid);
+  FailSomeUpdates failFirstUpdate({1});
+  EXPECT_THROW(
+      rib_.update(
+          kRid,
+          kOpenrClient,
+          kOpenrDistance,
+          {
+              makeUnicastRoute(kPrefix1, RouteForwardAction::DROP),
+              makeUnicastRoute(kPrefix2, RouteForwardAction::DROP),
+          },
+          {},
+          true,
+          "fail syncFib",
+          failFirstUpdate,
+          nullptr),
+      FbossHwUpdateError);
+  assertRouteCount(0, 1);
+  EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));
+}
