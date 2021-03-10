@@ -155,6 +155,26 @@ TEST_F(RibRollbackTest, rollbackAdd) {
   EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));
 }
 
+TEST_F(RibRollbackTest, rollbackAddExisting) {
+  // Fail route update. Rib should rollback to pre failed add state
+  auto routeTableBeforeFailedUpdate = rib_.getRouteTableDetails(kRid);
+  FailSomeUpdates failFirstUpdate({1});
+  EXPECT_THROW(
+      rib_.update(
+          kRid,
+          kBgpClient,
+          kBgpDistance,
+          {makeUnicastRoute(kPrefix1, RouteForwardAction::DROP)},
+          {},
+          false,
+          "fail add",
+          failFirstUpdate,
+          nullptr),
+      FbossHwUpdateError);
+  assertRouteCount(0, 1);
+  EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));
+}
+
 TEST_F(RibRollbackTest, rollbackDel) {
   // Fail route update. Rib should rollback to pre failed add state
   auto routeTableBeforeFailedUpdate = rib_.getRouteTableDetails(kRid);
