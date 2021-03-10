@@ -29,6 +29,8 @@ using folly::IPAddress;
 
 constexpr AdminDistance kBgpDistance = AdminDistance::EBGP;
 constexpr ClientID kBgpClient = ClientID::BGPD;
+constexpr AdminDistance kOpenrDistance = AdminDistance::OPENR;
+constexpr ClientID kOpenrClient = ClientID::OPENR;
 const RouterID kRid(0);
 auto kPrefix1 = IPAddress::createNetwork("1::1/64");
 auto kPrefix2 = IPAddress::createNetwork("2::2/64");
@@ -239,6 +241,45 @@ TEST_F(RibRollbackTest, rollbackAddAndDel) {
           kBgpDistance,
           {makeUnicastRoute(kPrefix2, RouteForwardAction::DROP)},
           {makePrefix(kPrefix1)},
+          false,
+          "fail add",
+          failFirstUpdate,
+          nullptr),
+      FbossHwUpdateError);
+  assertRouteCount(0, 1);
+  EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));
+}
+
+TEST_F(RibRollbackTest, rollbackDifferentClient) {
+  auto routeTableBeforeFailedUpdate = rib_.getRouteTableDetails(kRid);
+  FailSomeUpdates failFirstUpdate({1});
+  EXPECT_THROW(
+      rib_.update(
+          kRid,
+          kOpenrClient,
+          kOpenrDistance,
+          {makeUnicastRoute(kPrefix1, RouteForwardAction::DROP)},
+          {},
+          false,
+          "fail add",
+          failFirstUpdate,
+          nullptr),
+      FbossHwUpdateError);
+  assertRouteCount(0, 1);
+  EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));
+}
+
+TEST_F(RibRollbackTest, rollbackDifferentNexthops) {
+  // Test rollback for route replacement
+  auto routeTableBeforeFailedUpdate = rib_.getRouteTableDetails(kRid);
+  FailSomeUpdates failFirstUpdate({1});
+  EXPECT_THROW(
+      rib_.update(
+          kRid,
+          kBgpClient,
+          kBgpDistance,
+          {makeUnicastRoute(kPrefix1, RouteForwardAction::TO_CPU)},
+          {},
           false,
           "fail add",
           failFirstUpdate,

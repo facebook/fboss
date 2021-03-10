@@ -57,14 +57,18 @@ RibRouteUpdater::addOrReplaceRouteImpl(
     if (existingRouteForClient && *existingRouteForClient == entry) {
       return std::nullopt;
     }
-    route->update(clientID, entry);
     auto op = existingRouteForClient ? RouteEntry::Operation::REPLACE
                                      : RouteEntry::Operation::ADD;
-    return RouteEntry{
+    // Create this update record before updating the route. Since
+    // existingRouteForClient is a pointer, recording this after update will
+    // capture the updated value
+    auto updateLog = RouteEntry{
         {prefix.network, prefix.mask},
         clientID,
         op == RouteEntry::Operation::REPLACE ? *existingRouteForClient : entry,
         op};
+    route->update(clientID, entry);
+    return updateLog;
   }
 
   CHECK(it == routes->end());
