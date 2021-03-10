@@ -50,6 +50,15 @@ class RoutingInformationBase {
    * 1. Injects and removes routes in `toAdd` and `toDelete`, respectively.
    * 2. Triggers recursive (IP) resolution.
    * 3. Updates the FIB synchronously.
+   * NOTE : there is no order guarantee b/w toAdd and toDelete. We may do
+   * either first. This does not matter for non overlapping add/del, but
+   * can be meaningful for overlaps. If so, the caller is responsible for
+   * ensuring this order - e.g. by first calling update with only toAdd
+   * routes and then with toDel routes or vice versa. In our fboss agent
+   * applications we separate this out by making synchronous calls in
+   * response to add/del route thrift calls, which are distinct apis.
+   * TODO: Consider breaking down update into add, del, syncClient
+   * interfaces
    *
    * If a UnicastRoute does not specify its admin distance, then we derive its
    * admin distance via its clientID.  This is accomplished by a mapping from
