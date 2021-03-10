@@ -109,6 +109,25 @@ class RibRollbackTest : public ::testing::Test {
     EXPECT_EQ(1, switchState_->getGeneration());
     assertRouteCount(0, 1);
   }
+  void TearDown() override {
+    switchState_->publish();
+    auto curSwitchState = switchState_;
+    // Unless there is mismatched state in RIB (i.e.
+    // mismatched from FIB). A empty update should not
+    // change switchState. Assert that.
+    rib_.update(
+        kRid,
+        kBgpClient,
+        kBgpDistance,
+        {},
+        {},
+        false,
+        "empty update",
+        recordUpdates,
+        &switchState_);
+
+    EXPECT_EQ(curSwitchState, switchState_);
+  }
   void assertRouteCount(int v4Expected, int v6Expected) const {
     auto [numV4, numV6] = switchState_->getFibs()->getRouteCount();
     EXPECT_EQ(v6Expected, numV6);
