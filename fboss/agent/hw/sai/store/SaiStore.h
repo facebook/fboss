@@ -81,9 +81,6 @@ class SaiObjectStore {
    */
   std::shared_ptr<ObjectType> loadObjectOwnedByAdapter(
       const typename SaiObjectTraits::AdapterKey& adapterKey) {
-    static_assert(
-        IsSaiObjectOwnedByAdapter<SaiObjectTraits>::value,
-        "Only adapter owned SAI objects can be loaded");
     auto object = reloadObject(adapterKey);
     object->setOwnedByAdapter(true);
     return object;
