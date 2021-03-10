@@ -819,7 +819,8 @@ TYPED_TEST(ThriftTest, syncFibIsHwProtected) {
   newRoutes->push_back(nr2);
   // Fail HW update by returning current state
   EXPECT_HW_CALL(this->sw_, stateChanged(_))
-      .WillRepeatedly(Return(this->sw_->getState()));
+      .Times(::testing::AtLeast(1))
+      .WillOnce(Return(this->sw_->getState()));
   EXPECT_THROW(
       {
         try {

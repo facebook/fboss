@@ -148,7 +148,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
       throw FbossError("VRF ", routerID, " not configured");
     }
 
-    std::vector<RibRouteUpdater::RouteEntry> deletedRoutes;
+    std::vector<RibRouteUpdater::RouteEntry> updateLog;
     try {
       stats = updateImpl(
           &(it->second),
@@ -161,10 +161,10 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
           updateType,
           fibUpdateCallback,
           cookie,
-          &deletedRoutes);
+          &updateLog);
     } catch (const FbossHwUpdateError& /*ex*/) {
-      std::vector<IpPrefix> addsToRollback;
-      std::vector<UnicastRoute> deletesToRollback;
+      std::vector<IpPrefix> toDelForRollback;
+      std::vector<UnicastRoute> toAddForRollback;
       /* Rollback to pre update state.
        * 1) Non overlapping prefixes in add, del. Further only new prefixes
        * were being added. E.g.
@@ -173,15 +173,31 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
        * we will add back {B->X} and delete {A->X}
        */
       std::for_each(
-          toAdd.begin(), toAdd.end(), [&addsToRollback](const auto& route) {
-            addsToRollback.push_back(*route.dest_ref());
-          });
-      std::for_each(
-          deletedRoutes.begin(),
-          deletedRoutes.end(),
-          [&deletesToRollback](const auto& deletedRoute) {
-            deletesToRollback.push_back(util::toUnicastRoute(
-                deletedRoute.prefix, deletedRoute.nhopEntry));
+          updateLog.begin(),
+          updateLog.end(),
+          [&toDelForRollback, &toAddForRollback](const auto& updatedRoute) {
+            switch (updatedRoute.oper) {
+              case RibRouteUpdater::RouteEntry::Operation::ADD:
+                // Undo add (via del) for rollback
+                toDelForRollback.push_back(toIpPrefix(updatedRoute.prefix));
+                break;
+              case RibRouteUpdater::RouteEntry::Operation::DEL:
+                // Undo del (via add) for rollback
+                toAddForRollback.push_back(util::toUnicastRoute(
+                    updatedRoute.prefix, updatedRoute.nhopEntry));
+                break;
+              case RibRouteUpdater::RouteEntry::Operation::REPLACE:
+                // To undo replace
+                // 1. First delete the currently added route
+                // 2. Add back the replaced route
+                toDelForRollback.push_back(toIpPrefix(updatedRoute.prefix));
+                toAddForRollback.push_back(util::toUnicastRoute(
+                    updatedRoute.prefix, updatedRoute.nhopEntry));
+                break;
+              case RibRouteUpdater::RouteEntry::Operation::UNKNOWN:
+                XLOG(FATAL) << "Should never get here, unknown route op";
+                break;
+            }
           });
       std::vector<RibRouteUpdater::RouteEntry> dontCare;
       // Attempt rollback. Exception in rollback will cause
@@ -190,15 +206,35 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
         SCOPE_FAIL {
           XLOG(FATAL) << " RIB Rollback failed, aborting program";
         };
+        /* Now rollback in 2 steps
+         * Step 1:  delete all the prefixes we need to accomplish rollback.
+         * This includes all added routes and also replaced route entries
+         * Step 2: add back deleted routes and the replaced routes.
+         * Note that we need two steps for the replaced routes, since these
+         * produce a delete and add, which must be done in that sequence to
+         * restore the original route.
+         */
         updateImpl(
             &(it->second),
             routerID,
             clientID,
             adminDistanceFromClientID,
-            deletesToRollback,
-            addsToRollback,
-            resetClientsRoutes,
-            updateType,
+            {},
+            toDelForRollback,
+            false,
+            "Rollback: undo add/replace",
+            fibUpdateCallback,
+            cookie,
+            &dontCare);
+        updateImpl(
+            &(it->second),
+            routerID,
+            clientID,
+            adminDistanceFromClientID,
+            toAddForRollback,
+            {},
+            false,
+            "Rollback: undo del/replace",
             fibUpdateCallback,
             cookie,
             &dontCare);
@@ -222,7 +258,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::updateImpl(
     folly::StringPiece updateType,
     FibUpdateFunction& fibUpdateCallback,
     void* cookie,
-    std::vector<RibRouteUpdater::RouteEntry>* deletedRoutes) {
+    std::vector<RibRouteUpdater::RouteEntry>* updateLog) {
   UpdateStatistics stats;
 
   std::optional<FbossHwUpdateError> hwUpdateError;
@@ -230,7 +266,11 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::updateImpl(
     RibRouteUpdater updater(
         &(routeTables->v4NetworkToRoute), &(routeTables->v6NetworkToRoute));
     if (resetClientsRoutes) {
-      *deletedRoutes = updater.removeAllRoutesForClient(clientID);
+      auto removedRoutes = updater.removeAllRoutesForClient(clientID);
+      std::move(
+          removedRoutes.begin(),
+          removedRoutes.end(),
+          std::back_inserter(*updateLog));
     }
 
     for (const auto& route : toAdd) {
@@ -244,11 +284,14 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::updateImpl(
         ++stats.v6RoutesAdded;
       }
 
-      updater.addOrReplaceRoute(
+      auto addOrReplace = updater.addOrReplaceRoute(
           network,
           mask,
           clientID,
           RouteNextHopEntry::from(route, adminDistanceFromClientID));
+      if (addOrReplace) {
+        updateLog->push_back(std::move(*addOrReplace));
+      }
     }
 
     for (const auto& prefix : toDelete) {
@@ -263,7 +306,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::updateImpl(
 
       auto deleted = updater.delRoute(network, mask, clientID);
       if (deleted) {
-        deletedRoutes->push_back(std::move(*deleted));
+        updateLog->push_back(std::move(*deleted));
       }
     }
 
