@@ -291,6 +291,8 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
    * we don't create entries in unexpected states.
    */
   void enter(NeighborEntryState state) {
+    CHECK(evb_->inRunningEventBaseThread());
+
     state_ = state;
     switch (state) {
       case NeighborEntryState::INCOMPLETE:
@@ -313,7 +315,8 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
         // We should never enter in any of these states
         throw FbossError("Tried to create entry with invalid state");
     }
-    evb_->runInEventBaseThread([this]() { scheduleNextUpdate(); });
+
+    scheduleNextUpdate();
   }
 
   void probeIfProbesLeft() {

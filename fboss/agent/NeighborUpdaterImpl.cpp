@@ -42,9 +42,23 @@ namespace facebook::fboss {
 
 using facebook::fboss::DeltaFunctions::forEachChanged;
 
-NeighborUpdaterImpl::NeighborUpdaterImpl() {}
+NeighborUpdaterImpl::NeighborUpdaterImpl(SwSwitch* sw) : sw_(sw) {}
 
 NeighborUpdaterImpl::~NeighborUpdaterImpl() {}
+
+auto NeighborUpdaterImpl::createCaches(
+    const SwitchState* state,
+    const Vlan* vlan) -> std::shared_ptr<NeighborCaches> {
+  auto caches = std::make_shared<NeighborCaches>(
+      sw_, state, vlan->getID(), vlan->getName(), vlan->getInterfaceID());
+
+  // We need to populate the caches from the SwitchState when a vlan is added
+  // After this, we no longer process Arp or Ndp deltas for this vlan.
+  caches->arpCache->repopulate(vlan->getArpTable());
+  caches->ndpCache->repopulate(vlan->getNdpTable());
+
+  return caches;
+}
 
 shared_ptr<ArpCache> NeighborUpdaterImpl::getArpCacheFor(VlanID vlan) {
   return getArpCacheInternal(vlan);
@@ -186,8 +200,10 @@ uint32_t NeighborUpdaterImpl::flushEntry(VlanID vlan, IPAddress ip) {
 
 void NeighborUpdaterImpl::vlanAdded(
     VlanID vlanID,
-    std::shared_ptr<NeighborCaches> caches) {
-  caches_.emplace(vlanID, std::move(caches));
+    std::shared_ptr<SwitchState> state) {
+  auto vlans = state->getVlans();
+  auto vlan = vlans->getVlan(vlanID);
+  caches_.emplace(vlanID, createCaches(state.get(), vlan.get()));
 }
 
 void NeighborUpdaterImpl::vlanDeleted(VlanID vlanID) {

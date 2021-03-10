@@ -47,7 +47,12 @@ class ResolvedNexthopMonitorTest : public ::testing::Test {
 
   void TearDown() override {
     waitForStateUpdates(sw_);
+    waitForBackgroundAndNeighborCacheThreads();
+  }
+
+  void waitForBackgroundAndNeighborCacheThreads() {
     waitForBackgroundThread(sw_);
+    waitForNeighborCacheThread(sw_);
   }
 
   template <typename AddrT>
@@ -365,9 +370,7 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredV4) {
   RouteNextHopSet nhops{UnresolvedNextHop(folly::IPAddressV4("10.0.0.22"), 1)};
   this->addRoute(kPrefixV4, nhops);
   this->schedulePendingStateUpdates();
-  auto evb = this->sw_->getBackgroundEvb();
-  evb->runInEventBaseThreadAndWait([]() {}); // let probe scheduler finish
-
+  this->waitForBackgroundAndNeighborCacheThreads();
   this->schedulePendingStateUpdates();
   // pending entry must be created
   arpTable =
@@ -447,8 +450,7 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV4) {
       });
 
   this->schedulePendingStateUpdates();
-  auto evb = this->sw_->getBackgroundEvb();
-  evb->runInEventBaseThreadAndWait([]() {}); // let probe scheduler finish
+  this->waitForBackgroundAndNeighborCacheThreads();
   this->schedulePendingStateUpdates();
   // pending entry must be created
   entry = this->sw_->getState()
@@ -510,12 +512,7 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredV6) {
   this->addRoute(kPrefixV6, nhops);
 
   this->schedulePendingStateUpdates();
-  auto evb = this->sw_->getBackgroundEvb();
-  evb->runInEventBaseThreadAndWait([]() {});
-  // tickle the neighbor cache event which is responsible
-  // for adding the pending entry
-  evb = this->sw_->getNeighborCacheEvb();
-  evb->runInEventBaseThreadAndWait([]() {});
+  this->waitForBackgroundAndNeighborCacheThreads();
   this->schedulePendingStateUpdates();
   // pending entry must be created
   ndpTable =
@@ -609,8 +606,7 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV6) {
       });
 
   this->schedulePendingStateUpdates();
-  auto evb = this->sw_->getBackgroundEvb();
-  evb->runInEventBaseThreadAndWait([]() {}); // let probe scheduler finish
+  this->waitForBackgroundAndNeighborCacheThreads();
   this->schedulePendingStateUpdates();
   // pending entry must be created
   entry = this->sw_->getState()

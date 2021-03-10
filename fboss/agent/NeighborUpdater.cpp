@@ -44,7 +44,7 @@ using facebook::fboss::DeltaFunctions::forEachChanged;
 
 NeighborUpdater::NeighborUpdater(SwSwitch* sw)
     : AutoRegisterStateObserver(sw, "NeighborUpdater"),
-      impl_(std::make_shared<NeighborUpdaterImpl>()),
+      impl_(std::make_shared<NeighborUpdaterImpl>(sw)),
       sw_(sw) {}
 
 NeighborUpdater::~NeighborUpdater() {
@@ -59,19 +59,6 @@ void NeighborUpdater::waitForPendingUpdates() {
   folly::via(sw_->getNeighborCacheEvb(), [impl = this->impl_]() {}).get();
 }
 
-auto NeighborUpdater::createCaches(const SwitchState* state, const Vlan* vlan)
-    -> std::shared_ptr<NeighborCaches> {
-  auto caches = std::make_shared<NeighborCaches>(
-      sw_, state, vlan->getID(), vlan->getName(), vlan->getInterfaceID());
-
-  // We need to populate the caches from the SwitchState when a vlan is added
-  // After this, we no longer process Arp or Ndp deltas for this vlan.
-  caches->arpCache->repopulate(vlan->getArpTable());
-  caches->ndpCache->repopulate(vlan->getNdpTable());
-
-  return caches;
-}
-
 void NeighborUpdater::stateUpdated(const StateDelta& delta) {
   CHECK(sw_->getUpdateEvb()->inRunningEventBaseThread());
   for (const auto& entry : delta.getVlansDelta()) {
@@ -82,9 +69,7 @@ void NeighborUpdater::stateUpdated(const StateDelta& delta) {
     if (!newEntry) {
       vlanDeleted(oldEntry->getID());
     } else if (!oldEntry) {
-      vlanAdded(
-          newEntry->getID(),
-          createCaches(delta.newState().get(), newEntry.get()));
+      vlanAdded(newEntry->getID(), delta.newState());
     } else {
       if (newEntry->getInterfaceID() != oldEntry->getInterfaceID() ||
           newEntry->getName() != oldEntry->getName()) {

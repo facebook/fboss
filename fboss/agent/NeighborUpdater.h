@@ -44,8 +44,6 @@ class StateDelta;
  */
 class NeighborUpdater : public AutoRegisterStateObserver {
  private:
-  using NeighborCaches = NeighborUpdaterImpl::NeighborCaches;
-
   std::shared_ptr<NeighborUpdaterImpl> impl_;
   SwSwitch* sw_{nullptr};
 
@@ -95,9 +93,6 @@ class NeighborUpdater : public AutoRegisterStateObserver {
   }
 
  private:
-  std::shared_ptr<NeighborCaches> createCaches(
-      const SwitchState* state,
-      const Vlan* vlan);
   void portChanged(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);

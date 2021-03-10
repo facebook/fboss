@@ -296,6 +296,11 @@ void waitForBackgroundThread(SwSwitch* sw) {
   evb->runInEventBaseThreadAndWait([]() { return; });
 }
 
+void waitForNeighborCacheThread(SwSwitch* sw) {
+  auto* evb = sw->getNeighborCacheEvb();
+  evb->runInEventBaseThreadAndWait([]() { return; });
+}
+
 void waitForRibUpdates(SwSwitch* sw) {
   if (sw->isStandaloneRibEnabled()) {
     sw->getRib()->waitForRibUpdates();

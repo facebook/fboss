@@ -57,7 +57,7 @@ class NeighborUpdaterImpl {
   };
 
  public:
-  explicit NeighborUpdaterImpl();
+  explicit NeighborUpdaterImpl(SwSwitch* sw);
   ~NeighborUpdaterImpl();
 
   // All methods other than constructor/destructor of this class are private
@@ -71,6 +71,10 @@ class NeighborUpdaterImpl {
   RETURN_TYPE NAME(ARG_LIST(ARG_LIST_ENTRY, ##__VA_ARGS__));
 #include "fboss/agent/NeighborUpdater.def"
 #undef NEIGHBOR_UPDATER_METHOD
+
+  std::shared_ptr<NeighborCaches> createCaches(
+      const SwitchState* state,
+      const Vlan* vlan);
 
   template <typename NeighborCacheT>
   std::shared_ptr<NeighborCacheT> getNeighborCacheFor(VlanID vlan);
@@ -94,6 +98,8 @@ class NeighborUpdaterImpl {
   NeighborUpdaterImpl& operator=(NeighborUpdaterImpl const&) = delete;
 
   boost::container::flat_map<VlanID, std::shared_ptr<NeighborCaches>> caches_;
+
+  SwSwitch* sw_{nullptr};
 
   friend class NeighborUpdater;
 };

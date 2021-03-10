@@ -116,6 +116,12 @@ std::shared_ptr<SwitchState> waitForStateUpdates(SwSwitch* sw);
 void waitForBackgroundThread(SwSwitch* sw);
 
 /*
+ * Wait until all pending actions on the neighbor cache thread
+ * have been processed
+ */
+void waitForNeighborCacheThread(SwSwitch* sw);
+
+/*
  * Wait until all currently queued lambdas on ribUpdateThread are
  * done
  */
