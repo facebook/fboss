@@ -84,7 +84,9 @@ class SaiObjectStore {
     static_assert(
         IsSaiObjectOwnedByAdapter<SaiObjectTraits>::value,
         "Only adapter owned SAI objects can be loaded");
-    return reloadObject(adapterKey);
+    auto object = reloadObject(adapterKey);
+    object->setOwnedByAdapter(true);
+    return object;
   }
 
   std::shared_ptr<ObjectType> reloadObject(
@@ -295,7 +297,11 @@ class SaiObjectStore {
   }
 
   size_t warmBootHandlesCount() const {
-    return warmBootHandles_.size();
+    // ignore handles owned by adapter
+    return std::count_if(
+        std::begin(warmBootHandles_),
+        std::end(warmBootHandles_),
+        [](const auto& handle) { return !handle.second->isOwnedByAdapter(); });
   }
 
   bool hasUnexpectedUnclaimedWarmbootHandles() const {
@@ -380,6 +386,7 @@ class SaiObjectStore {
       warmBootHandles_.erase(iter);
       notify = true;
     }
+    ins.first->setOwnedByAdapter(objectOwnedByAdapter_);
     return std::make_pair(ins.first, notify);
   }
 
@@ -403,7 +410,7 @@ class SaiObjectStore {
   }
 
   std::optional<sai_object_id_t> switchId_;
-  bool objectOwnedByAdapter_{false};
+  bool objectOwnedByAdapter_{IsSaiObjectOwnedByAdapter<SaiObjectTraits>::value};
   UnorderedRefMap<typename SaiObjectTraits::AdapterHostKey, ObjectType>
       objects_;
   std::unordered_map<

@@ -367,6 +367,14 @@ class SaiObject {
     ignoreMissingInHwOnDelete_ = ignore;
   }
 
+  bool isOwnedByAdapter() const {
+    return ownedByAdapter_;
+  }
+
+  void setOwnedByAdapter(bool ownedByAdapter) {
+    ownedByAdapter_ = ownedByAdapter;
+  }
+
  protected:
   template <typename AttrT>
   void checkAndSetAttribute(AttrT&& newAttr) {
@@ -386,7 +394,9 @@ class SaiObject {
     if constexpr (IsObjectPublisher<SaiObjectTraits>::value) {
       notifyBeforeDestroy();
     }
-
+    if (isOwnedByAdapter()) {
+      return;
+    }
     if constexpr (not IsSaiObjectOwnedByAdapter<SaiObjectTraits>::value) {
       auto& api = SaiApiTable::getInstance()
                       ->getApi<typename SaiObjectTraits::SaiApiT>();
@@ -458,6 +468,7 @@ class SaiObject {
     }
   }
   bool live_{false};
+  bool ownedByAdapter_{IsSaiObjectOwnedByAdapter<SaiObjectTraits>::value};
   // For some object types we can ignore missing in HW errors
   // on when deleting.
   bool ignoreMissingInHwOnDelete_{false};
