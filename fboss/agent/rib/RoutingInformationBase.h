@@ -23,6 +23,7 @@
 #include <vector>
 
 namespace facebook::fboss {
+class SwitchState;
 
 class RoutingInformationBase {
  public:
@@ -30,7 +31,7 @@ class RoutingInformationBase {
   RoutingInformationBase& operator=(const RoutingInformationBase& o) = delete;
   RoutingInformationBase();
   ~RoutingInformationBase();
-  using FibUpdateFunction = std::function<void(
+  using FibUpdateFunction = std::function<std::shared_ptr<SwitchState>(
       RouterID vrf,
       const IPv4NetworkToRouteMap& v4NetworkToRoute,
       const IPv6NetworkToRouteMap& v6NetworkToRoute,

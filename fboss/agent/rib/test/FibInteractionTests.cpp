@@ -38,7 +38,7 @@ namespace {
 
 const AdminDistance kDefaultAdminDistance = AdminDistance::EBGP;
 
-void dynamicFibUpdate(
+std::shared_ptr<facebook::fboss::SwitchState> dynamicFibUpdate(
     facebook::fboss::RouterID vrf,
     const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
     const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
@@ -48,6 +48,7 @@ void dynamicFibUpdate(
 
   auto sw = static_cast<facebook::fboss::SwSwitch*>(cookie);
   sw->updateStateBlocking("", std::move(fibUpdater));
+  return sw->getState();
 }
 } // namespace
 

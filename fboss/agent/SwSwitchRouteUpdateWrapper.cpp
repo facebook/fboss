@@ -21,7 +21,7 @@
 
 namespace facebook::fboss {
 
-void swSwitchFibUpdate(
+std::shared_ptr<SwitchState> swSwitchFibUpdate(
     facebook::fboss::RouterID vrf,
     const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
     const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
@@ -31,6 +31,7 @@ void swSwitchFibUpdate(
 
   auto sw = static_cast<facebook::fboss::SwSwitch*>(cookie);
   sw->updateStateWithHwFailureProtection("", std::move(fibUpdater));
+  return sw->getState();
 }
 
 SwSwitchRouteUpdateWrapper::SwSwitchRouteUpdateWrapper(SwSwitch* sw)

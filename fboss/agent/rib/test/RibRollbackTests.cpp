@@ -35,7 +35,7 @@ const RouterID kRid(0);
 auto kPrefix1 = IPAddress::createNetwork("1::1/64");
 auto kPrefix2 = IPAddress::createNetwork("2::2/64");
 
-void recordUpdates(
+std::shared_ptr<SwitchState> recordUpdates(
     RouterID vrf,
     const IPv4NetworkToRouteMap& v4NetworkToRoute,
     const IPv6NetworkToRouteMap& v6NetworkToRoute,
@@ -49,20 +49,22 @@ void recordUpdates(
   // Update routes in switch state captured in cookie
   *nextStatePtr = fibUpdater(*nextStatePtr);
   (*nextStatePtr)->publish();
+  return *nextStatePtr;
 }
 
 class FailSomeUpdates {
  public:
   explicit FailSomeUpdates(std::unordered_set<int> toFail)
       : toFail_(std::move(toFail)) {}
-  void operator()(
-      RouterID /*vrf*/,
-      const IPv4NetworkToRouteMap& /*v4NetworkToRoute*/,
-      const IPv6NetworkToRouteMap& /*v6NetworkToRoute*/,
-      void* /*cookie*/) {
+  std::shared_ptr<SwitchState> operator()(
+      RouterID vrf,
+      const IPv4NetworkToRouteMap& v4NetworkToRoute,
+      const IPv6NetworkToRouteMap& v6NetworkToRoute,
+      void* cookie) {
     if (toFail_.find(++cnt_) != toFail_.end()) {
       throw FbossHwUpdateError(nullptr, nullptr);
     }
+    return recordUpdates(vrf, v4NetworkToRoute, v6NetworkToRoute, cookie);
   }
 
  private:
@@ -152,7 +154,7 @@ TEST_F(RibRollbackTest, rollbackFail) {
           false,
           "add only",
           failUpdateAndRollback,
-          nullptr),
+          &switchState_),
       ".*");
 }
 
@@ -170,7 +172,7 @@ TEST_F(RibRollbackTest, rollbackAdd) {
           false,
           "fail add",
           failFirstUpdate,
-          nullptr),
+          &switchState_),
       FbossHwUpdateError);
   assertRouteCount(0, 1);
   EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));
@@ -190,7 +192,7 @@ TEST_F(RibRollbackTest, rollbackAddExisting) {
           false,
           "fail add",
           failFirstUpdate,
-          nullptr),
+          &switchState_),
       FbossHwUpdateError);
   assertRouteCount(0, 1);
   EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));
@@ -210,7 +212,7 @@ TEST_F(RibRollbackTest, rollbackDel) {
           false,
           "fail del",
           failFirstUpdate,
-          nullptr),
+          &switchState_),
       FbossHwUpdateError);
   assertRouteCount(0, 1);
   EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));
@@ -243,7 +245,7 @@ TEST_F(RibRollbackTest, rollbackDelNonExistent) {
           false,
           "fail del",
           failFirstUpdate,
-          nullptr),
+          &switchState_),
       FbossHwUpdateError);
   assertRouteCount(0, 1);
   EXPECT_EQ(routeTableBeforeUpdate, rib_.getRouteTableDetails(kRid));
@@ -263,7 +265,7 @@ TEST_F(RibRollbackTest, rollbackAddAndDel) {
           false,
           "fail add",
           failFirstUpdate,
-          nullptr),
+          &switchState_),
       FbossHwUpdateError);
   assertRouteCount(0, 1);
   EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));
@@ -282,7 +284,7 @@ TEST_F(RibRollbackTest, rollbackDifferentClient) {
           false,
           "fail add",
           failFirstUpdate,
-          nullptr),
+          &switchState_),
       FbossHwUpdateError);
   assertRouteCount(0, 1);
   EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));
@@ -302,7 +304,7 @@ TEST_F(RibRollbackTest, rollbackDifferentNexthops) {
           false,
           "fail add",
           failFirstUpdate,
-          nullptr),
+          &switchState_),
       FbossHwUpdateError);
   assertRouteCount(0, 1);
   EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));
@@ -325,7 +327,7 @@ TEST_F(RibRollbackTest, syncFibRollbackExistingClient) {
           true,
           "fail syncFib",
           failFirstUpdate,
-          nullptr),
+          &switchState_),
       FbossHwUpdateError);
   assertRouteCount(0, 1);
   EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));
@@ -348,7 +350,7 @@ TEST_F(RibRollbackTest, syncFibRollbackNewClient) {
           true,
           "fail syncFib",
           failFirstUpdate,
-          nullptr),
+          &switchState_),
       FbossHwUpdateError);
   assertRouteCount(0, 1);
   EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));

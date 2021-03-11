@@ -76,6 +76,7 @@ std::shared_ptr<ForwardingInformationBaseMap> fibFromStandaloneRib(
         facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
             vrf, v4NetworkToRoute, v6NetworkToRoute);
         fibUpdater(state);
+        return state;
       };
 
   for (auto routerID : rib.getVrfList()) {

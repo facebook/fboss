@@ -23,7 +23,7 @@
 
 namespace facebook::fboss {
 
-void hwSwitchEnsembleFibUpdate(
+std::shared_ptr<SwitchState> hwSwitchEnsembleFibUpdate(
     facebook::fboss::RouterID vrf,
     const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
     const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
@@ -36,6 +36,7 @@ void hwSwitchEnsembleFibUpdate(
       ? hwEnsemble->applyNewStateTransaction(
             fibUpdater(hwEnsemble->getProgrammedState()))
       : hwEnsemble->applyNewState(fibUpdater(hwEnsemble->getProgrammedState()));
+  return hwEnsemble->getProgrammedState();
 }
 
 HwSwitchEnsembleRouteUpdateWrapper::HwSwitchEnsembleRouteUpdateWrapper(

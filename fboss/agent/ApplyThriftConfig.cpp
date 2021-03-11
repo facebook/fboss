@@ -79,7 +79,7 @@ const uint8_t kV6LinkLocalAddrMask{64};
 // Needed until CoPP is removed from code and put into config
 const int kAclStartPriority = 100000;
 
-void updateFibFromConfig(
+std::shared_ptr<facebook::fboss::SwitchState> updateFibFromConfig(
     facebook::fboss::RouterID vrf,
     const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
     const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
@@ -91,6 +91,7 @@ void updateFibFromConfig(
       static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);
 
   fibUpdater(*nextStatePtr);
+  return *nextStatePtr;
 }
 
 } // anonymous namespace

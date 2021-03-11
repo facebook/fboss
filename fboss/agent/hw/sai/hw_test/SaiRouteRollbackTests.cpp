@@ -112,7 +112,7 @@ class SaiRouteRollbackTest : public SaiRollbackTest {
         [](facebook::fboss::RouterID /*vrf*/,
            const facebook::fboss::IPv4NetworkToRouteMap& /*v4NetworkToRoute*/,
            const facebook::fboss::IPv6NetworkToRouteMap& /*v6NetworkToRoute*/,
-           void* /*cookie*/) { /* no op for HW update*/ };
+           void* /*cookie*/) { return nullptr; };
     std::vector<IpPrefix> ipPfxs;
     for (const auto& prefix : prefixes) {
       IpPrefix pfx;
