@@ -171,6 +171,7 @@ target_link_libraries(bcm_packet_trap_helper
 )
 
 add_executable(bcm_multinode_test
+  fboss/agent/hw/bcm/tests/BcmMultiNodeTest.cpp
 )
 
 target_link_libraries(bcm_multinode_test
