@@ -1232,6 +1232,41 @@ void CmisModule::setPowerOverrideIfSupported(PowerControlState currentState) {
              << std::hex << (int)currentModuleControl;
 }
 
+void CmisModule::ensureRxOutputSquelchEnabled(
+    const std::vector<HostLaneSettings>& hostLanesSettings) const {
+  bool allLanesRxOutputSquelchEnabled = true;
+  for (auto& hostLaneSettings : hostLanesSettings) {
+    if (hostLaneSettings.rxSquelch_ref().has_value() &&
+        *hostLaneSettings.rxSquelch_ref()) {
+      allLanesRxOutputSquelchEnabled = false;
+      break;
+    }
+  }
+
+  if (!allLanesRxOutputSquelchEnabled) {
+    int offset;
+    int length;
+    int dataAddress;
+    uint8_t enableAllLaneRxOutputSquelch = 0x0;
+
+    // Flip to page 0x10 to get prepared.
+    uint8_t page = 0x10;
+    qsfpImpl_->writeTransceiver(
+        TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+
+    getQsfpFieldAddress(
+        CmisField::RX_SQUELCH_DISABLE, dataAddress, offset, length);
+
+    qsfpImpl_->writeTransceiver(
+        TransceiverI2CApi::ADDR_QSFP,
+        offset,
+        length,
+        &enableAllLaneRxOutputSquelch);
+    XLOG(INFO) << "Transceiver " << folly::to<std::string>(qsfpImpl_->getName())
+               << ": Enabled Rx output squelch on all lanes.";
+  }
+}
+
 void CmisModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
   /*
    * This must be called with a lock held on qsfpModuleMutex_

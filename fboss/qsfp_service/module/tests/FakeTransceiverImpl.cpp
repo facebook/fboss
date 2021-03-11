@@ -57,6 +57,7 @@ int FakeTransceiverImpl::writeTransceiver(
     std::copy(fieldValue, fieldValue + len, pageLower_.begin() + offset);
   } else {
     EXPECT_LE(offset + len, 2 * QsfpModule::MAX_QSFP_PAGE_SIZE);
+    offset -= QsfpModule::MAX_QSFP_PAGE_SIZE;
     std::copy(
         fieldValue, fieldValue + len, upperPages_[page_].begin() + offset);
   }

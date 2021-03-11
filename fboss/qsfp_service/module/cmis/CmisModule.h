@@ -321,6 +321,14 @@ class CmisModule : public QsfpModule {
    */
   cfg::PortSpeed getPortSpeed() const;
 
+  /*
+   * We found that some module did not enable Rx output squelch by default,
+   * which introduced some difficulty to bring link back up when flapped.
+   * This function is to ensure that Rx output squelch is always enabled.
+   */
+  void ensureRxOutputSquelchEnabled(
+      const std::vector<HostLaneSettings>& hostLaneSettings) const override;
+
   std::map<uint32_t, PortStatus> ports_;
   unsigned int portsPerTransceiver_{0};
 
