@@ -113,11 +113,13 @@ std::shared_ptr<BcmCinter> BcmCinter::getInstance() {
 }
 
 void BcmCinter::setupGlobals() {
-  array<string, 32> globals = {
+  array<string, 34> globals = {
       "_shr_pbmp_t pbmp",
       "_shr_rx_reasons_t reasons",
       "bcm_cosq_gport_discard_t discard",
       "bcm_field_qset_t qset",
+      "bcm_field_aset_t aset",
+      "bcm_field_group_config_t group_config",
       "bcm_l3_ecmp_member_t member",
       "bcm_l3_ecmp_member_t member_array[64]",
       "bcm_if_t intf_array[64]",
@@ -187,6 +189,39 @@ vector<string> BcmCinter::cintForQset(const bcm_field_qset_t& qset) const {
           to<string>("BCM_FIELD_QSET_ADD(qset, ", qual, ")"));
     }
   }
+  return cintLines;
+}
+
+vector<string> BcmCinter::cintForAset(const bcm_field_aset_t& aset) const {
+  vector<string> cintLines = {"BCM_FIELD_ASET_INIT(aset)"};
+  for (auto act = 0; act < bcmFieldActionCount; ++act) {
+    if (BCM_FIELD_ASET_TEST(aset, act)) {
+      cintLines.emplace_back(to<string>("BCM_FIELD_ASET_ADD(set, ", act, ")"));
+    }
+  }
+  return cintLines;
+}
+
+vector<string> BcmCinter::cintForFpGroupConfig(
+    const bcm_field_group_config_t* group_config) const {
+  vector<string> cintLines = {
+      "bcm_field_group_config_t_init(&group_config)",
+      to<string>("group_config.flags=", group_config->flags),
+      to<string>("group_config.priority=", group_config->priority),
+      to<string>("group_config.group=", group_config->group),
+      to<string>("group_config.mode=", group_config->mode)};
+  auto cintForFn = cintForQset(group_config->qset);
+  cintLines.insert(
+      cintLines.end(),
+      make_move_iterator(cintForFn.begin()),
+      make_move_iterator(cintForFn.end()));
+  cintLines.emplace_back(to<string>("group_config.qset=qset"));
+  cintForFn = cintForAset(group_config->aset);
+  cintLines.insert(
+      cintLines.end(),
+      make_move_iterator(cintForFn.begin()),
+      make_move_iterator(cintForFn.end()));
+  cintLines.emplace_back(to<string>("group_config.aset=aset"));
   return cintLines;
 }
 
@@ -651,6 +686,22 @@ int BcmCinter::bcm_field_group_create_id(
   auto cintForFn = wrapFunc(to<string>(
       "bcm_field_group_create_id(",
       makeParamStr(unit, "qset", pri, group),
+      ")"));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(cintForFn.begin()),
+      make_move_iterator(cintForFn.end()));
+  writeCintLines(std::move(cint));
+  return 0;
+}
+
+int BcmCinter::bcm_field_group_config_create(
+    int unit,
+    bcm_field_group_config_t* group_config) {
+  auto cint = cintForFpGroupConfig(group_config);
+  auto cintForFn = wrapFunc(to<string>(
+      "bcm_field_group_config_create(",
+      makeParamStr(unit, "group_config"),
       ")"));
   cint.insert(
       cint.end(),

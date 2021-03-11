@@ -387,6 +387,10 @@ int __real_bcm_field_group_create_id(
     int pri,
     bcm_field_group_t group);
 
+int __real_bcm_field_group_config_create(
+    int unit,
+    bcm_field_group_config_t* group_config);
+
 int __real_bcm_field_entry_create(
     int unit,
     bcm_field_group_t group,
@@ -2149,6 +2153,12 @@ int __wrap_bcm_field_group_create_id(
     int pri,
     bcm_field_group_t group) {
   CALL_WRAPPERS_RV(bcm_field_group_create_id(unit, qset, pri, group));
+}
+
+int __wrap_bcm_field_group_config_create(
+    int unit,
+    bcm_field_group_config_t* group_config) {
+  CALL_WRAPPERS_RV(bcm_field_group_config_create(unit, group_config));
 }
 
 int __wrap_bcm_field_entry_create(

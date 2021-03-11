@@ -385,6 +385,9 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       bcm_field_qset_t groupQset,
       bcm_field_group_t group,
       bcm_field_entry_t entry) override;
+  int bcm_field_group_config_create(
+      int unit,
+      bcm_field_group_config_t* group_config) override;
   int bcm_field_entry_create(
       int unit,
       bcm_field_group_t group,
@@ -1618,6 +1621,9 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   template <typename C>
   void writeCintLines(C&& lines);
   std::vector<std::string> cintForQset(const bcm_field_qset_t& qset) const;
+  std::vector<std::string> cintForAset(const bcm_field_aset_t& aset) const;
+  std::vector<std::string> cintForFpGroupConfig(
+      const bcm_field_group_config_t* group_config) const;
   /*
    * Create a ipv6 variable initialized from in
    * Return cint for initialization and the variable name

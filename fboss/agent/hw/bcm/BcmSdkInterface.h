@@ -392,6 +392,10 @@ class BcmSdkInterface {
       int pri,
       bcm_field_group_t group) = 0;
 
+  virtual int bcm_field_group_config_create(
+      int unit,
+      bcm_field_group_config_t* group_config) = 0;
+
   virtual int bcm_port_pause_sym_set(int unit, bcm_port_t port, int pause) = 0;
 
   virtual int bcm_switch_object_count_multi_get(
