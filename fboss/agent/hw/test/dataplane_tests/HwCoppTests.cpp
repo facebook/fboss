@@ -9,12 +9,16 @@
  */
 #include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/hw/test/HwTestTrunkUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/TrunkUtils.h"
+#include "fboss/agent/types.h"
 #include "folly/Utility.h"
 
 #include <folly/IPAddress.h>
@@ -39,7 +43,8 @@ static time_t getCurrentTime() {
   return std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 }
 
-using TestTypes = ::testing::Types<facebook::fboss::PortID>;
+using TestTypes =
+    ::testing::Types<facebook::fboss::PortID, facebook::fboss::AggregatePortID>;
 } // unnamed namespace
 
 namespace facebook::fboss {
@@ -47,12 +52,51 @@ namespace facebook::fboss {
 template <typename TestType>
 class HwCoppTest : public HwLinkStateDependentTest {
  protected:
+  static constexpr auto isTrunk = std::is_same_v<TestType, AggregatePortID>;
+
   cfg::SwitchConfig initialConfig() const override {
+    if (isTrunk) {
+      return getTrunkInitialConfig();
+    }
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
     utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
     utility::addCpuQueueConfig(cfg, getAsic());
     return cfg;
+  }
+
+  cfg::SwitchConfig getTrunkInitialConfig() const {
+    auto cfg = utility::oneL3IntfTwoPortConfig(
+        getHwSwitch(),
+        masterLogicalPortIds()[0],
+        masterLogicalPortIds()[1],
+        cfg::PortLoopbackMode::MAC);
+    utility::setDefaultCpuTrafficPolicyConfig(cfg, this->getAsic());
+    utility::addCpuQueueConfig(cfg, this->getAsic());
+    utility::addAggPort(
+        1, {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}, &cfg);
+    return cfg;
+  }
+
+  void setup() {
+    // COPP is part of initial config already
+    if constexpr (isTrunk) {
+      applyNewState(utility::enableTrunkPorts(getProgrammedState()));
+    }
+  }
+
+  void setupEcmp() {
+    if constexpr (!isTrunk) {
+      utility::EcmpSetupAnyNPorts6 ecmpHelper(
+          getProgrammedState(), getPlatform()->getLocalMac());
+      resolveNeigborAndProgramRoutes(ecmpHelper, 1);
+    } else {
+      utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
+      flat_set<PortDescriptor> ports;
+      ports.insert(PortDescriptor(AggregatePortID(1)));
+      applyNewState(ecmpHelper.resolveNextHops(getProgrammedState(), ports));
+      ecmpHelper.programRoutes(getRouteUpdateWrapper(), ports);
+    }
   }
 
   void sendUdpPkts(
@@ -272,9 +316,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
 TYPED_TEST_SUITE(HwCoppTest, TestTypes);
 
 TYPED_TEST(HwCoppTest, VerifyCoppPpsLowPri) {
-  auto setup = [=]() {
-    // COPP is part of initial config already
-  };
+  auto setup = [=]() { this->setup(); };
 
   auto verify = [=]() {
     auto kNumPktsToSend = 60000;
@@ -334,9 +376,7 @@ TYPED_TEST(HwCoppTest, VerifyCoppPpsLowPri) {
 }
 
 TYPED_TEST(HwCoppTest, LocalDstIpBgpPortToHighPriQ) {
-  auto setup = [=]() {
-    // COPP is part of initial config already
-  };
+  auto setup = [=]() { this->setup(); };
 
   auto verify = [=]() {
     /*
@@ -364,9 +404,7 @@ TYPED_TEST(HwCoppTest, LocalDstIpBgpPortToHighPriQ) {
 }
 
 TYPED_TEST(HwCoppTest, LocalDstIpNonBgpPortToMidPriQ) {
-  auto setup = [=]() {
-    // COPP is part of initial config already
-  };
+  auto setup = [=]() { this->setup(); };
 
   auto verify = [=]() {
     for (const auto& configIntf :
@@ -393,9 +431,7 @@ TYPED_TEST(HwCoppTest, LocalDstIpNonBgpPortToMidPriQ) {
 }
 
 TYPED_TEST(HwCoppTest, Ipv6LinkLocalMcastToMidPriQ) {
-  auto setup = [=]() {
-    // COPP is part of initial config already
-  };
+  auto setup = [=]() { this->setup(); };
 
   auto verify = [=]() {
     const auto addresses = folly::make_array(
@@ -421,9 +457,7 @@ TYPED_TEST(HwCoppTest, Ipv6LinkLocalMcastToMidPriQ) {
 }
 
 TYPED_TEST(HwCoppTest, Ipv6LinkLocalMcastTxFromCpu) {
-  auto setup = [=]() {
-    // COPP is part of initial config already
-  };
+  auto setup = [=]() { this->setup(); };
 
   auto verify = [=]() {
     // Intent of this test is to verify that
@@ -440,9 +474,7 @@ TYPED_TEST(HwCoppTest, Ipv6LinkLocalMcastTxFromCpu) {
 }
 
 TYPED_TEST(HwCoppTest, Ipv6LinkLocalUcastToMidPriQ) {
-  auto setup = [=]() {
-    // COPP is part of initial config already
-  };
+  auto setup = [=]() { this->setup(); };
 
   auto verify = [=]() {
     // Device link local unicast address should use mid-pri queue
@@ -485,9 +517,7 @@ TYPED_TEST(HwCoppTest, Ipv6LinkLocalUcastToMidPriQ) {
 }
 
 TYPED_TEST(HwCoppTest, SlowProtocolsMacToHighPriQ) {
-  auto setup = [=]() {
-    // COPP is part of initial config already
-  };
+  auto setup = [=]() { this->setup(); };
 
   auto verify = [=]() {
     this->sendPktAndVerifyEthPacketsCpuQueue(
@@ -500,9 +530,7 @@ TYPED_TEST(HwCoppTest, SlowProtocolsMacToHighPriQ) {
 }
 
 TYPED_TEST(HwCoppTest, DstIpNetworkControlDscpToHighPriQ) {
-  auto setup = [=]() {
-    // COPP is part of initial config already
-  };
+  auto setup = [=]() { this->setup(); };
 
   auto verify = [=]() {
     for (const auto& configIntf :
@@ -534,9 +562,7 @@ TYPED_TEST(HwCoppTest, DstIpNetworkControlDscpToHighPriQ) {
 }
 
 TYPED_TEST(HwCoppTest, Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ) {
-  auto setup = [=]() {
-    // COPP is part of initial config already
-  };
+  auto setup = [=]() { this->setup(); };
 
   auto verify = [=]() {
     // Device link local unicast address + kNetworkControlDscp should use
@@ -570,9 +596,7 @@ TYPED_TEST(HwCoppTest, Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ) {
 }
 
 TYPED_TEST(HwCoppTest, Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ) {
-  auto setup = [=]() {
-    // COPP is part of initial config already
-  };
+  auto setup = [=]() { this->setup(); };
 
   auto verify = [=]() {
     const auto addresses = folly::make_array(
@@ -592,10 +616,8 @@ TYPED_TEST(HwCoppTest, Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ) {
 
 TYPED_TEST(HwCoppTest, L3MTUErrorToLowPriQ) {
   auto setup = [=]() {
-    // COPP is part of initial config already
-    utility::EcmpSetupAnyNPorts6 ecmpHelper(
-        this->getProgrammedState(), this->getPlatform()->getLocalMac());
-    this->resolveNeigborAndProgramRoutes(ecmpHelper, 1);
+    this->setup();
+    this->setupEcmp();
   };
   auto verify = [=]() {
     // Make sure all packets packet with large payload (> MTU)
@@ -618,7 +640,7 @@ TYPED_TEST(HwCoppTest, L3MTUErrorToLowPriQ) {
 }
 
 TYPED_TEST(HwCoppTest, ArpRequestAndReplyToHighPriQ) {
-  auto setup = [=]() {};
+  auto setup = [=]() { this->setup(); };
   auto verify = [=]() {
     this->sendPktAndVerifyArpPacketsCpuQueue(
         utility::getCoppHighPriQueueId(this->getAsic()),
@@ -633,9 +655,7 @@ TYPED_TEST(HwCoppTest, ArpRequestAndReplyToHighPriQ) {
 }
 
 TYPED_TEST(HwCoppTest, JumboFramesToQueues) {
-  auto setup = [=]() {
-    // COPP is part of initial config already
-  };
+  auto setup = [=]() { this->setup(); };
 
   auto verify = [=]() {
     std::vector<uint8_t> jumboPayload(7000, 0xff);
