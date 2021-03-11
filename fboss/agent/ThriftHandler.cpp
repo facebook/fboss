@@ -480,9 +480,11 @@ void translateToFibError(
   forEachChangedRoute(
       isStandaloneRibEnabled,
       delta,
-      [&](RouterID rid, const auto& /*removed*/, const auto& added) {
-        fibError.vrf2failedAddUpdatePrefixes_ref()[rid].push_back(
-            getIpPrefix(*added));
+      [&](RouterID rid, const auto& removed, const auto& added) {
+        if (!removed->isSame(added.get())) {
+          fibError.vrf2failedAddUpdatePrefixes_ref()[rid].push_back(
+              getIpPrefix(*added));
+        }
       },
       [&](RouterID rid, const auto& added) {
         fibError.vrf2failedAddUpdatePrefixes_ref()[rid].push_back(
@@ -495,8 +497,10 @@ void translateToFibError(
 
   DeltaFunctions::forEachChanged(
       delta.getLabelForwardingInformationBaseDelta(),
-      [&](const auto& /*removed*/, const auto& added) {
-        fibError.failedAddUpdateMplsLabels_ref()->push_back(added->getID());
+      [&](const auto& removed, const auto& added) {
+        if (!(*added == *removed)) {
+          fibError.failedAddUpdateMplsLabels_ref()->push_back(added->getID());
+        }
       },
       [&](const auto& added) {
         fibError.failedAddUpdateMplsLabels_ref()->push_back(added->getID());

@@ -923,3 +923,48 @@ TYPED_TEST(ThriftTest, addMplsRoutesIsHwProtected) {
       },
       FbossFibUpdateError);
 }
+
+TYPED_TEST(ThriftTest, hwUpdateErrorAfterPartialUpdate) {
+  this->sw_->fibSynced();
+  ThriftHandler handler(this->sw_);
+  std::vector<UnicastRoute>();
+  UnicastRoute nr1 =
+      *makeUnicastRoute("aaaa::/64", "2401:db00:2110:3001::1").get();
+  std::vector<UnicastRoute> routes;
+  routes.push_back(nr1);
+  EXPECT_HW_CALL(this->sw_, stateChanged(_)).Times(2);
+  handler.addUnicastRoutes(
+      10, std::make_unique<std::vector<UnicastRoute>>(routes));
+  auto oneRouteAddedState = this->sw_->getState();
+  std::vector<IpPrefix> delRoutes = {
+      ipPrefix(IPAddress::createNetwork("aaaa::/64")),
+  };
+  // Delete added route so we revert back to starting state
+  handler.deleteUnicastRoutes(
+      10, std::make_unique<std::vector<IpPrefix>>(delRoutes));
+  // Now try to add 2 routes, have the HwSwitch fail after adding one route
+  UnicastRoute nr2 =
+      *makeUnicastRoute("bbbb::/64", "2401:db00:2110:3001::1").get();
+  routes.push_back(nr2);
+  // Fail HW update by returning one route added state.
+  EXPECT_HW_CALL(this->sw_, stateChanged(_))
+      .Times(::testing::AtLeast(1))
+      .WillOnce(Return(oneRouteAddedState));
+  EXPECT_THROW(
+      {
+        try {
+          handler.addUnicastRoutes(
+              10, std::make_unique<std::vector<UnicastRoute>>(routes));
+        } catch (const FbossFibUpdateError& fibError) {
+          EXPECT_EQ(fibError.vrf2failedAddUpdatePrefixes_ref()->size(), 1);
+          auto itr = fibError.vrf2failedAddUpdatePrefixes_ref()->find(0);
+          // Standalone RIB will rollback the entire update while legacy
+          // RIB will stick with whatever HwSwitch returned
+          EXPECT_EQ(itr->second.size(), TypeParam::hasStandAloneRib ? 2 : 1);
+          itr = fibError.vrf2failedDeletePrefixes_ref()->find(0);
+          EXPECT_EQ(itr->second.size(), 0);
+          throw;
+        }
+      },
+      FbossFibUpdateError);
+}
