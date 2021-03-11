@@ -64,6 +64,7 @@ class HwAsic {
     SAI_SAMPLING,
     ALPM_ROUTE_PROJECTION,
     MAC_AGING,
+    SAI_PORT_SPEED_CHANGE,
   };
 
   enum class AsicType {

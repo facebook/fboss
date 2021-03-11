@@ -64,6 +64,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_MIRRORING:
     case HwAsic::Feature::SAI_SAMPLING:
     case HwAsic::Feature::ALPM_ROUTE_PROJECTION:
+    case HwAsic::Feature::SAI_PORT_SPEED_CHANGE:
       return false;
   }
   return false;

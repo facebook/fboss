@@ -69,6 +69,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::ALPM_ROUTE_PROJECTION:
     // TODO(pshaikh): once memory leaks are fixed move, it to true
     case HwAsic::Feature::TELEMETRY_AND_MONITORING:
+    case HwAsic::Feature::SAI_PORT_SPEED_CHANGE:
       return false;
   }
   return false;

@@ -55,6 +55,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::TELEMETRY_AND_MONITORING:
     case HwAsic::Feature::ALPM_ROUTE_PROJECTION:
     case HwAsic::Feature::MAC_AGING:
+    case HwAsic::Feature::SAI_PORT_SPEED_CHANGE: // CS00011784917
       return true;
     case HwAsic::Feature::NON_UNICAST_HASH:
     case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
