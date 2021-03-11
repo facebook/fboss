@@ -73,11 +73,6 @@ void configureAllIpQualifiers(
   configureQualifier(acl->ttl_ref(), enable, ttl);
 }
 
-void configureAllHwQualifiers(cfg::AclEntry* acl, bool enable) {
-  configureQualifier(acl->srcPort_ref(), enable, 5);
-  configureQualifier(acl->dstPort_ref(), enable, 8);
-}
-
 void configureAllTcpQualifiers(cfg::AclEntry* acl, bool enable) {
   configureQualifier(acl->l4SrcPort_ref(), enable, 10);
   configureQualifier(acl->l4DstPort_ref(), enable, 20);
@@ -113,6 +108,11 @@ class HwAclQualifierTest : public HwTest {
     LOOKUPCLASS_NEIGHBOR,
     LOOKUPCLASS_ROUTE,
   };
+
+  void configureAllHwQualifiers(cfg::AclEntry* acl, bool enable) {
+    configureQualifier(acl->srcPort_ref(), enable, masterLogicalPortIds()[0]);
+    configureQualifier(acl->dstPort_ref(), enable, masterLogicalPortIds()[1]);
+  }
 
   void configureAllL2QualifiersHelper(cfg::AclEntry* acl) {
     configureQualifier(acl->dstMac_ref(), true, "00:11:22:33:44:55");
