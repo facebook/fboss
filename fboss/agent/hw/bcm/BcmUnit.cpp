@@ -324,6 +324,7 @@ void BcmUnit::attach(bool warmBoot) {
       usePKTIO_ = true;
     }
   }
+  XLOG(INFO) << "usePKTIO = " << usePKTIO_;
 
   if (usePKTIO_) {
 #ifdef INCLUDE_PKTIO
