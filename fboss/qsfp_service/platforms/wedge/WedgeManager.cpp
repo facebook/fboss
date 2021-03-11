@@ -128,14 +128,7 @@ void WedgeManager::getTransceiversInfo(
                   << ": Error calling getTransceiverInfo(): " << ex.what();
       }
     } else {
-      try {
-        trans.present_ref() =
-            WedgeQsfp(i, wedgeI2cBus_.get()).detectTransceiver();
-      } catch (const std::exception& ex) {
-        trans.present_ref() = false;
-      }
-      trans.transceiver_ref() = TransceiverType::QSFP;
-      trans.port_ref() = i;
+      trans.present_ref() = false;
     }
     info[i] = trans;
   }
@@ -381,7 +374,6 @@ std::unique_ptr<TransceiverI2CApi> WedgeManager::getI2CBus() {
 }
 
 void WedgeManager::updateTransceiverMap() {
-  auto lockedTransceivers = transceivers_.wlock();
   auto lockedPorts = ports_.rlock();
   std::vector<folly::Future<TransceiverManagementInterface>> futInterfaces;
   std::vector<std::unique_ptr<WedgeQsfp>> qsfpImpls;
@@ -391,6 +383,9 @@ void WedgeManager::updateTransceiverMap() {
         qsfpImpls[idx]->futureGetTransceiverManagementInterface());
   }
   folly::collectAllUnsafe(futInterfaces.begin(), futInterfaces.end()).wait();
+  // After we have collected all transceivers, get the write lock on
+  // transceivers_ before updating it
+  auto lockedTransceivers = transceivers_.wlock();
   for (int idx = 0; idx < getNumQsfpModules(); idx++) {
     if (!futInterfaces[idx].isReady()) {
       XLOG(ERR) << "failed getting TransceiverManagementInterface at " << idx;
