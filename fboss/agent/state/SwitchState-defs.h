@@ -43,6 +43,7 @@ void SwitchState::revertNewNeighborEntry(
 
 template <typename AddressT>
 void SwitchState::revertNewRouteEntry(
+    bool /*isStandAloneRib*/,
     const RouterID& id,
     const std::shared_ptr<Route<AddressT>>& newRoute,
     const std::shared_ptr<Route<AddressT>>& oldRoute,

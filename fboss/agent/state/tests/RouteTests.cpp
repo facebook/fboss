@@ -419,7 +419,7 @@ TEST(Route, PruneAddedRoutes) {
   ASSERT_TRUE(newRouteEntry->isPublished());
 
   SwitchState::revertNewRouteEntry<IPAddressV4>(
-      rid0, newRouteEntry, nullptr, &state3);
+      false, rid0, newRouteEntry, nullptr, &state3);
   // Make sure that state3 changes as a result of pruning
   ASSERT_NE(state2, state3);
   auto remainingRouteEntry =
@@ -526,7 +526,7 @@ TEST(Route, PruneChangedRoutes) {
   //  ... revert route for prefix42
   // state4
   ASSERT_EQ(state3, state4);
-  SwitchState::revertNewRouteEntry(rid0, newEntry, oldEntry, &state4);
+  SwitchState::revertNewRouteEntry(false, rid0, newEntry, oldEntry, &state4);
   ASSERT_NE(state3, state4);
 
   auto revertedEntry =

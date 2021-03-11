@@ -2345,7 +2345,8 @@ void BcmSwitch::processRouteTableDelta(
                                 ->template getRib<AddrT>()
                                 ->routes()
                                 ->getRouteIf(prefix);
-      SwitchState::revertNewRouteEntry(id, newRoute, oldRoute, appliedState);
+      SwitchState::revertNewRouteEntry(
+          false, id, newRoute, oldRoute, appliedState);
     }
   }
 }
