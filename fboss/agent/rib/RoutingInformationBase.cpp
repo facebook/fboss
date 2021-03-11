@@ -136,9 +136,9 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
     FibUpdateFunction fibUpdateCallback,
     void* cookie) {
   UpdateStatistics stats;
-
   std::chrono::microseconds duration;
   {
+    std::shared_ptr<SwitchState> appliedState;
     Timer updateTimer(&duration);
 
     auto lockedRouteTables = synchronizedRouteTables_.wlock();
@@ -150,7 +150,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
 
     std::vector<RibRouteUpdater::RouteEntry> updateLog;
     try {
-      stats = updateImpl(
+      std::tie(appliedState, stats) = updateImpl(
           &(it->second),
           routerID,
           clientID,
@@ -162,7 +162,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
           fibUpdateCallback,
           cookie,
           &updateLog);
-    } catch (const FbossHwUpdateError& /*ex*/) {
+    } catch (const FbossHwUpdateError& hwUpdateError) {
       std::vector<IpPrefix> toDelForRollback;
       std::vector<UnicastRoute> toAddForRollback;
       /* Rollback to pre update state.
@@ -226,7 +226,8 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
             fibUpdateCallback,
             cookie,
             &dontCare);
-        updateImpl(
+        // Figure out new applied state after rollback
+        std::tie(appliedState, std::ignore) = updateImpl(
             &(it->second),
             routerID,
             clientID,
@@ -239,27 +240,29 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
             cookie,
             &dontCare);
       }
-      // TODO: Fix HwUpdateError to reflect the correct state of HW
-      throw;
+      throw FbossHwUpdateError(hwUpdateError.desiredState, appliedState);
     }
   }
   stats.duration = duration;
   return stats;
 }
 
-RoutingInformationBase::UpdateStatistics RoutingInformationBase::updateImpl(
-    RouteTable* routeTables,
-    RouterID routerID,
-    ClientID clientID,
-    AdminDistance adminDistanceFromClientID,
-    const std::vector<UnicastRoute>& toAdd,
-    const std::vector<IpPrefix>& toDelete,
-    bool resetClientsRoutes,
-    folly::StringPiece updateType,
-    FibUpdateFunction& fibUpdateCallback,
-    void* cookie,
-    std::vector<RibRouteUpdater::RouteEntry>* updateLog) {
+std::
+    pair<std::shared_ptr<SwitchState>, RoutingInformationBase::UpdateStatistics>
+    RoutingInformationBase::updateImpl(
+        RouteTable* routeTables,
+        RouterID routerID,
+        ClientID clientID,
+        AdminDistance adminDistanceFromClientID,
+        const std::vector<UnicastRoute>& toAdd,
+        const std::vector<IpPrefix>& toDelete,
+        bool resetClientsRoutes,
+        folly::StringPiece updateType,
+        FibUpdateFunction& fibUpdateCallback,
+        void* cookie,
+        std::vector<RibRouteUpdater::RouteEntry>* updateLog) {
   UpdateStatistics stats;
+  std::shared_ptr<SwitchState> appliedState;
 
   std::optional<FbossHwUpdateError> hwUpdateError;
   auto updateFn = [&]() {
@@ -312,7 +315,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::updateImpl(
 
     updater.updateDone();
     try {
-      fibUpdateCallback(
+      appliedState = fibUpdateCallback(
           routerID,
           routeTables->v4NetworkToRoute,
           routeTables->v6NetworkToRoute,
@@ -325,7 +328,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::updateImpl(
   if (hwUpdateError) {
     throw *hwUpdateError;
   }
-  return stats;
+  return std::make_pair(appliedState, stats);
 }
 
 void RoutingInformationBase::setClassIDImpl(

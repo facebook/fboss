@@ -160,7 +160,7 @@ class RoutingInformationBase {
     }
   };
 
-  UpdateStatistics updateImpl(
+  std::pair<std::shared_ptr<SwitchState>, UpdateStatistics> updateImpl(
       RouteTable* routeTables,
       RouterID routerID,
       ClientID clientID,
