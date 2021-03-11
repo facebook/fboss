@@ -531,6 +531,17 @@ void SaiPortManager::changeMirror(
   portHandle->mirrorInfo = mirrorInfo;
 }
 
+bool SaiPortManager::createOnlyAttributeChanged(
+    const SaiPortTraits::CreateAttributes& oldAttributes,
+    const SaiPortTraits::CreateAttributes& newAttributes) {
+  return (std::get<SaiPortTraits::Attributes::HwLaneList>(oldAttributes) !=
+          std::get<SaiPortTraits::Attributes::HwLaneList>(newAttributes)) ||
+      (platform_->getAsic()->isSupported(
+           HwAsic::Feature::SAI_PORT_SPEED_CHANGE) &&
+       (std::get<SaiPortTraits::Attributes::Speed>(oldAttributes) !=
+        std::get<SaiPortTraits::Attributes::Speed>(newAttributes)));
+}
+
 void SaiPortManager::changePort(
     const std::shared_ptr<Port>& oldPort,
     const std::shared_ptr<Port>& newPort) {
@@ -540,11 +551,10 @@ void SaiPortManager::changePort(
   }
   SaiPortTraits::CreateAttributes oldAttributes = attributesFromSwPort(oldPort);
   SaiPortTraits::CreateAttributes newAttributes = attributesFromSwPort(newPort);
-  if (std::get<SaiPortTraits::Attributes::HwLaneList>(oldAttributes) !=
-      std::get<SaiPortTraits::Attributes::HwLaneList>(newAttributes)) {
-    // create only attribute has changed, this means delete old one and recreate
-    // new one.
-    XLOG(INFO) << "lanes changed for " << oldPort->getID();
+
+  if (createOnlyAttributeChanged(oldAttributes, newAttributes)) {
+    XLOG(INFO) << "CREATE_ONLY attribute (e.g. lane, speed etc.) changed for "
+               << oldPort->getID();
     removePort(oldPort);
     addPort(newPort);
     return;
