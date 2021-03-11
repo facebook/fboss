@@ -98,8 +98,12 @@ void SaiQueueHandle::resetQueue() {
    * defaults. For long term, this will be removed and resetting the
    * objects will be part of SaiObject.
    */
+
+  // CS00011784749
+#if !defined(SAI_VERSION_4_3_3_2_ODP)
   queue->setOptionalAttribute(
       SaiQueueTraits::Attributes::SchedulerProfileId{SAI_NULL_OBJECT_ID});
+#endif
   if (wredProfile) {
     queue->setOptionalAttribute(
         SaiQueueTraits::Attributes::WredProfileId{SAI_NULL_OBJECT_ID});
