@@ -20,6 +20,8 @@
 #include <folly/IPAddress.h>
 #include <folly/container/Array.h>
 
+#include <gtest/gtest.h>
+
 namespace {
 constexpr auto kGetQueueOutPktsRetryTimes = 5;
 /**
@@ -36,10 +38,13 @@ const auto kMcastMacAddress = folly::MacAddress("01:05:0E:01:02:03");
 static time_t getCurrentTime() {
   return std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 }
+
+using TestTypes = ::testing::Types<facebook::fboss::PortID>;
 } // unnamed namespace
 
 namespace facebook::fboss {
 
+template <typename TestType>
 class HwCoppTest : public HwLinkStateDependentTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
@@ -264,7 +269,9 @@ class HwCoppTest : public HwLinkStateDependentTest {
   }
 };
 
-TEST_F(HwCoppTest, VerifyCoppPpsLowPri) {
+TYPED_TEST_SUITE(HwCoppTest, TestTypes);
+
+TYPED_TEST(HwCoppTest, VerifyCoppPpsLowPri) {
   auto setup = [=]() {
     // COPP is part of initial config already
   };
@@ -275,12 +282,12 @@ TEST_F(HwCoppTest, VerifyCoppPpsLowPri) {
     const double kVariance = 0.30; // i.e. + or -30%
 
     auto beforeSecs = getCurrentTime();
-    auto beforeOutPkts = getQueueOutPacketsWithRetry(
+    auto beforeOutPkts = this->getQueueOutPacketsWithRetry(
         utility::kCoppLowPriQueueId,
         0 /* retryTimes */,
         0 /* expectedNumPkts */);
 
-    auto dstIP = getInSubnetNonSwitchIP();
+    auto dstIP = this->getInSubnetNonSwitchIP();
     uint64_t afterSecs;
     /*
      * To avoid noise, the send traffic for at least kMinDurationInSecs.
@@ -289,7 +296,7 @@ TEST_F(HwCoppTest, VerifyCoppPpsLowPri) {
      * at least kMinDurationInSecs.
      */
     do {
-      sendTcpPkts(
+      this->sendTcpPkts(
           kNumPktsToSend,
           dstIP,
           utility::kNonSpecialPort1,
@@ -297,7 +304,7 @@ TEST_F(HwCoppTest, VerifyCoppPpsLowPri) {
       afterSecs = getCurrentTime();
     } while (afterSecs - beforeSecs < kMinDurationInSecs);
 
-    auto afterOutPkts = getQueueOutPacketsWithRetry(
+    auto afterOutPkts = this->getQueueOutPacketsWithRetry(
         utility::kCoppLowPriQueueId,
         0 /* retryTimes */,
         0 /* expectedNumPkts */);
@@ -323,10 +330,10 @@ TEST_F(HwCoppTest, VerifyCoppPpsLowPri) {
         lowPktsPerSec <= currPktsPerSec && currPktsPerSec <= highPktsPerSec);
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwCoppTest, LocalDstIpBgpPortToHighPriQ) {
+TYPED_TEST(HwCoppTest, LocalDstIpBgpPortToHighPriQ) {
   auto setup = [=]() {
     // COPP is part of initial config already
   };
@@ -340,11 +347,11 @@ TEST_F(HwCoppTest, LocalDstIpBgpPortToHighPriQ) {
     // cpu high priority queue
     enum SRC_DST { SRC, DST };
     for (const auto& configIntf :
-         folly::copy(*initialConfig().interfaces_ref())) {
+         folly::copy(*(this->initialConfig()).interfaces_ref())) {
       for (const auto& ipAddress : *configIntf.ipAddresses_ref()) {
         for (int dir = 0; dir <= DST; dir++) {
-          sendPktAndVerifyCpuQueue(
-              utility::getCoppHighPriQueueId(getAsic()),
+          this->sendPktAndVerifyCpuQueue(
+              utility::getCoppHighPriQueueId(this->getAsic()),
               folly::IPAddress::createNetwork(ipAddress, -1, false).first,
               dir == SRC ? utility::kBgpPort : utility::kNonSpecialPort1,
               dir == DST ? utility::kBgpPort : utility::kNonSpecialPort1);
@@ -353,19 +360,19 @@ TEST_F(HwCoppTest, LocalDstIpBgpPortToHighPriQ) {
     }
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwCoppTest, LocalDstIpNonBgpPortToMidPriQ) {
+TYPED_TEST(HwCoppTest, LocalDstIpNonBgpPortToMidPriQ) {
   auto setup = [=]() {
     // COPP is part of initial config already
   };
 
   auto verify = [=]() {
     for (const auto& configIntf :
-         folly::copy(*initialConfig().interfaces_ref())) {
+         folly::copy(*(this->initialConfig()).interfaces_ref())) {
       for (const auto& ipAddress : *configIntf.ipAddresses_ref()) {
-        sendPktAndVerifyCpuQueue(
+        this->sendPktAndVerifyCpuQueue(
             utility::kCoppMidPriQueueId,
             folly::IPAddress::createNetwork(ipAddress, -1, false).first,
             utility::kNonSpecialPort1,
@@ -374,18 +381,18 @@ TEST_F(HwCoppTest, LocalDstIpNonBgpPortToMidPriQ) {
         // Also high-pri queue should always be 0
         EXPECT_EQ(
             0,
-            getQueueOutPacketsWithRetry(
-                utility::getCoppHighPriQueueId(getAsic()),
+            this->getQueueOutPacketsWithRetry(
+                utility::getCoppHighPriQueueId(this->getAsic()),
                 kGetQueueOutPktsRetryTimes,
                 0));
       }
     }
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwCoppTest, Ipv6LinkLocalMcastToMidPriQ) {
+TYPED_TEST(HwCoppTest, Ipv6LinkLocalMcastToMidPriQ) {
   auto setup = [=]() {
     // COPP is part of initial config already
   };
@@ -394,7 +401,7 @@ TEST_F(HwCoppTest, Ipv6LinkLocalMcastToMidPriQ) {
     const auto addresses = folly::make_array(
         kIPv6LinkLocalMcastAbsoluteAddress, kIPv6LinkLocalMcastAddress);
     for (const auto& address : addresses) {
-      sendPktAndVerifyCpuQueue(
+      this->sendPktAndVerifyCpuQueue(
           utility::kCoppMidPriQueueId,
           address,
           utility::kNonSpecialPort1,
@@ -404,16 +411,16 @@ TEST_F(HwCoppTest, Ipv6LinkLocalMcastToMidPriQ) {
       // Also high-pri queue should always be 0
       EXPECT_EQ(
           0,
-          getQueueOutPacketsWithRetry(
-              utility::getCoppHighPriQueueId(getAsic()),
+          this->getQueueOutPacketsWithRetry(
+              utility::getCoppHighPriQueueId(this->getAsic()),
               kGetQueueOutPktsRetryTimes,
               0));
     }
   };
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwCoppTest, Ipv6LinkLocalMcastTxFromCpu) {
+TYPED_TEST(HwCoppTest, Ipv6LinkLocalMcastTxFromCpu) {
   auto setup = [=]() {
     // COPP is part of initial config already
   };
@@ -421,7 +428,7 @@ TEST_F(HwCoppTest, Ipv6LinkLocalMcastTxFromCpu) {
   auto verify = [=]() {
     // Intent of this test is to verify that
     // link local ipv6 address is not looped back when sent from CPU
-    sendUdpPktAndVerify(
+    this->sendUdpPktAndVerify(
         utility::kCoppMidPriQueueId,
         folly::IPAddressV6("ff02::1"),
         utility::kNonSpecialPort1,
@@ -429,10 +436,10 @@ TEST_F(HwCoppTest, Ipv6LinkLocalMcastTxFromCpu) {
         1 /* send pkt count */,
         0 /* expected rx count */);
   };
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwCoppTest, Ipv6LinkLocalUcastToMidPriQ) {
+TYPED_TEST(HwCoppTest, Ipv6LinkLocalUcastToMidPriQ) {
   auto setup = [=]() {
     // COPP is part of initial config already
   };
@@ -441,9 +448,9 @@ TEST_F(HwCoppTest, Ipv6LinkLocalUcastToMidPriQ) {
     // Device link local unicast address should use mid-pri queue
     {
       const folly::IPAddressV6 linkLocalAddr = folly::IPAddressV6(
-          folly::IPAddressV6::LINK_LOCAL, getPlatform()->getLocalMac());
+          folly::IPAddressV6::LINK_LOCAL, this->getPlatform()->getLocalMac());
 
-      sendPktAndVerifyCpuQueue(
+      this->sendPktAndVerifyCpuQueue(
           utility::kCoppMidPriQueueId,
           linkLocalAddr,
           utility::kNonSpecialPort1,
@@ -452,14 +459,14 @@ TEST_F(HwCoppTest, Ipv6LinkLocalUcastToMidPriQ) {
       // Also high-pri queue should always be 0
       EXPECT_EQ(
           0,
-          getQueueOutPacketsWithRetry(
-              utility::getCoppHighPriQueueId(getAsic()),
+          this->getQueueOutPacketsWithRetry(
+              utility::getCoppHighPriQueueId(this->getAsic()),
               kGetQueueOutPktsRetryTimes,
               0));
     }
     // Non device link local unicast address should also use mid-pri queue
     {
-      sendPktAndVerifyCpuQueue(
+      this->sendPktAndVerifyCpuQueue(
           utility::kCoppMidPriQueueId,
           kIPv6LinkLocalUcastAddress,
           utility::kNonSpecialPort1,
@@ -468,41 +475,41 @@ TEST_F(HwCoppTest, Ipv6LinkLocalUcastToMidPriQ) {
       // Also high-pri queue should always be 0
       EXPECT_EQ(
           0,
-          getQueueOutPacketsWithRetry(
-              utility::getCoppHighPriQueueId(getAsic()),
+          this->getQueueOutPacketsWithRetry(
+              utility::getCoppHighPriQueueId(this->getAsic()),
               kGetQueueOutPktsRetryTimes,
               0));
     }
   };
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwCoppTest, SlowProtocolsMacToHighPriQ) {
+TYPED_TEST(HwCoppTest, SlowProtocolsMacToHighPriQ) {
   auto setup = [=]() {
     // COPP is part of initial config already
   };
 
   auto verify = [=]() {
-    sendPktAndVerifyEthPacketsCpuQueue(
-        utility::getCoppHighPriQueueId(getAsic()),
+    this->sendPktAndVerifyEthPacketsCpuQueue(
+        utility::getCoppHighPriQueueId(this->getAsic()),
         facebook::fboss::ETHERTYPE::ETHERTYPE_SLOW_PROTOCOLS,
         LACPDU::kSlowProtocolsDstMac());
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwCoppTest, DstIpNetworkControlDscpToHighPriQ) {
+TYPED_TEST(HwCoppTest, DstIpNetworkControlDscpToHighPriQ) {
   auto setup = [=]() {
     // COPP is part of initial config already
   };
 
   auto verify = [=]() {
     for (const auto& configIntf :
-         folly::copy(*initialConfig().interfaces_ref())) {
+         folly::copy(*(this->initialConfig()).interfaces_ref())) {
       for (const auto& ipAddress : *configIntf.ipAddresses_ref()) {
-        sendPktAndVerifyCpuQueue(
-            utility::getCoppHighPriQueueId(getAsic()),
+        this->sendPktAndVerifyCpuQueue(
+            utility::getCoppHighPriQueueId(this->getAsic()),
             folly::IPAddress::createNetwork(ipAddress, -1, false).first,
             utility::kNonSpecialPort1,
             utility::kNonSpecialPort2,
@@ -511,8 +518,8 @@ TEST_F(HwCoppTest, DstIpNetworkControlDscpToHighPriQ) {
       }
       // Non local dst ip with kNetworkControlDscp should not hit high pri queue
       // (since it won't even trap to cpu)
-      sendPktAndVerifyCpuQueue(
-          utility::getCoppHighPriQueueId(getAsic()),
+      this->sendPktAndVerifyCpuQueue(
+          utility::getCoppHighPriQueueId(this->getAsic()),
           folly::IPAddress("2::2"),
           utility::kNonSpecialPort1,
           utility::kNonSpecialPort2,
@@ -523,10 +530,10 @@ TEST_F(HwCoppTest, DstIpNetworkControlDscpToHighPriQ) {
     }
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwCoppTest, Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ) {
+TYPED_TEST(HwCoppTest, Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ) {
   auto setup = [=]() {
     // COPP is part of initial config already
   };
@@ -536,10 +543,10 @@ TEST_F(HwCoppTest, Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ) {
     // high-pri queue
     {
       const folly::IPAddressV6 linkLocalAddr = folly::IPAddressV6(
-          folly::IPAddressV6::LINK_LOCAL, getPlatform()->getLocalMac());
+          folly::IPAddressV6::LINK_LOCAL, this->getPlatform()->getLocalMac());
 
-      sendPktAndVerifyCpuQueue(
-          utility::getCoppHighPriQueueId(getAsic()),
+      this->sendPktAndVerifyCpuQueue(
+          utility::getCoppHighPriQueueId(this->getAsic()),
           linkLocalAddr,
           utility::kNonSpecialPort1,
           utility::kNonSpecialPort2,
@@ -549,8 +556,8 @@ TEST_F(HwCoppTest, Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ) {
     // Non device link local unicast address + kNetworkControlDscp dscp should
     // also use high-pri queue
     {
-      sendPktAndVerifyCpuQueue(
-          utility::getCoppHighPriQueueId(getAsic()),
+      this->sendPktAndVerifyCpuQueue(
+          utility::getCoppHighPriQueueId(this->getAsic()),
           kIPv6LinkLocalUcastAddress,
           utility::kNonSpecialPort1,
           utility::kNonSpecialPort2,
@@ -559,10 +566,10 @@ TEST_F(HwCoppTest, Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ) {
     }
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwCoppTest, Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ) {
+TYPED_TEST(HwCoppTest, Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ) {
   auto setup = [=]() {
     // COPP is part of initial config already
   };
@@ -571,8 +578,8 @@ TEST_F(HwCoppTest, Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ) {
     const auto addresses = folly::make_array(
         kIPv6LinkLocalMcastAbsoluteAddress, kIPv6LinkLocalMcastAddress);
     for (const auto& address : addresses) {
-      sendPktAndVerifyCpuQueue(
-          utility::getCoppHighPriQueueId(getAsic()),
+      this->sendPktAndVerifyCpuQueue(
+          utility::getCoppHighPriQueueId(this->getAsic()),
           address,
           utility::kNonSpecialPort1,
           utility::kNonSpecialPort2,
@@ -580,15 +587,15 @@ TEST_F(HwCoppTest, Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ) {
           kNetworkControlDscp);
     }
   };
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwCoppTest, L3MTUErrorToLowPriQ) {
+TYPED_TEST(HwCoppTest, L3MTUErrorToLowPriQ) {
   auto setup = [=]() {
     // COPP is part of initial config already
     utility::EcmpSetupAnyNPorts6 ecmpHelper(
-        getProgrammedState(), getPlatform()->getLocalMac());
-    resolveNeigborAndProgramRoutes(ecmpHelper, 1);
+        this->getProgrammedState(), this->getPlatform()->getLocalMac());
+    this->resolveNeigborAndProgramRoutes(ecmpHelper, 1);
   };
   auto verify = [=]() {
     // Make sure all packets packet with large payload (> MTU)
@@ -596,7 +603,7 @@ TEST_F(HwCoppTest, L3MTUErrorToLowPriQ) {
     // Port Max Frame size is set to 9412 and L3 MTU is set as 9000
     // Thus sending a packet sized between 9000 and 9412 to cause the trap.
     auto randomIP = folly::IPAddressV6("2::2");
-    sendPktAndVerifyCpuQueue(
+    this->sendPktAndVerifyCpuQueue(
         utility::kCoppLowPriQueueId,
         randomIP,
         utility::kNonSpecialPort1,
@@ -607,25 +614,25 @@ TEST_F(HwCoppTest, L3MTUErrorToLowPriQ) {
         1, /* num pkts to excepted to be captured */
         std::vector<uint8_t>(9200, 0xff));
   };
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwCoppTest, ArpRequestAndReplyToHighPriQ) {
+TYPED_TEST(HwCoppTest, ArpRequestAndReplyToHighPriQ) {
   auto setup = [=]() {};
   auto verify = [=]() {
-    sendPktAndVerifyArpPacketsCpuQueue(
-        utility::getCoppHighPriQueueId(getAsic()),
+    this->sendPktAndVerifyArpPacketsCpuQueue(
+        utility::getCoppHighPriQueueId(this->getAsic()),
         folly::IPAddressV4("1.1.1.5"),
         ARP_OPER::ARP_OPER_REQUEST);
-    sendPktAndVerifyArpPacketsCpuQueue(
-        utility::getCoppHighPriQueueId(getAsic()),
+    this->sendPktAndVerifyArpPacketsCpuQueue(
+        utility::getCoppHighPriQueueId(this->getAsic()),
         folly::IPAddressV4("1.1.1.5"),
         ARP_OPER::ARP_OPER_REPLY);
   };
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwCoppTest, JumboFramesToQueues) {
+TYPED_TEST(HwCoppTest, JumboFramesToQueues) {
   auto setup = [=]() {
     // COPP is part of initial config already
   };
@@ -633,11 +640,11 @@ TEST_F(HwCoppTest, JumboFramesToQueues) {
   auto verify = [=]() {
     std::vector<uint8_t> jumboPayload(7000, 0xff);
     for (const auto& configIntf :
-         folly::copy(*initialConfig().interfaces_ref())) {
+         folly::copy(*(this->initialConfig()).interfaces_ref())) {
       for (const auto& ipAddress : *configIntf.ipAddresses_ref()) {
         // High pri queue
-        sendPktAndVerifyCpuQueue(
-            utility::getCoppHighPriQueueId(getAsic()),
+        this->sendPktAndVerifyCpuQueue(
+            utility::getCoppHighPriQueueId(this->getAsic()),
             folly::IPAddress::createNetwork(ipAddress, -1, false).first,
             utility::kBgpPort,
             utility::kNonSpecialPort2,
@@ -647,7 +654,7 @@ TEST_F(HwCoppTest, JumboFramesToQueues) {
             1, /* expected delta*/
             jumboPayload);
         // Mid pri queue
-        sendPktAndVerifyCpuQueue(
+        this->sendPktAndVerifyCpuQueue(
             utility::kCoppMidPriQueueId,
             folly::IPAddress::createNetwork(ipAddress, -1, false).first,
             utility::kNonSpecialPort1,
@@ -659,9 +666,9 @@ TEST_F(HwCoppTest, JumboFramesToQueues) {
             jumboPayload);
       }
     }
-    sendPktAndVerifyCpuQueue(
+    this->sendPktAndVerifyCpuQueue(
         utility::kCoppLowPriQueueId,
-        getInSubnetNonSwitchIP(),
+        this->getInSubnetNonSwitchIP(),
         utility::kNonSpecialPort1,
         utility::kNonSpecialPort2,
         std::nullopt, /*mac*/
@@ -671,7 +678,7 @@ TEST_F(HwCoppTest, JumboFramesToQueues) {
         jumboPayload);
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss
