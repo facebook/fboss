@@ -1112,6 +1112,7 @@ void SaiSwitch::packetRxCallback(
     // if port belongs to some aggregate port, process packet as if coming
     // from lag.
     auto [portSaiId, aggregatePortId] = *iter;
+    std::ignore = portSaiId;
     for (auto entry : concurrentIndices_->aggregatePortIds) {
       auto [lagSaiId, swLagId] = entry;
       if (swLagId == aggregatePortId) {
