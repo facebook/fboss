@@ -191,6 +191,12 @@ void BcmSwitchEnsemble::init(
           item.first.c_str(), item.second.c_str(), gflags::SET_FLAG_IF_DEFAULT);
     }
   }
+  // when in lossless mode on support platforms, use a different BCM knob
+  if (FLAGS_mmu_lossless_mode &&
+      platform->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+    XLOG(INFO) << "Modify the bcm cfg as mmu_lossless mode is enabled";
+    cfg["mmu_lossless"] = "0x2";
+  }
   if (FLAGS_load_qcm_fw &&
       platform->getAsic()->isSupported(HwAsic::Feature::QCM)) {
     XLOG(INFO) << "Modify bcm cfg as load_qcm_fw is enabled";

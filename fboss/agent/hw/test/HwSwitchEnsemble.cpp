@@ -40,6 +40,8 @@ DEFINE_int32(
     5909,
     "Port for thrift server to use (use with --setup_thrift");
 
+DEFINE_bool(mmu_lossless_mode, false, "Enable mmu lossless mode");
+
 DECLARE_bool(enable_standalone_rib);
 
 using namespace std::chrono_literals;

@@ -23,6 +23,8 @@
 #include <set>
 #include <thread>
 
+DECLARE_bool(mmu_lossless_mode);
+
 namespace folly {
 class FunctionScheduler;
 }

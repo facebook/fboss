@@ -182,6 +182,7 @@ add_library(hw_switch_test
   fboss/agent/hw/test/dataplane_tests/HwOlympicQosTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwOlympicQosSchedulerTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwOverflowTest.cpp
+  fboss/agent/hw/test/dataplane_tests/HwPfcTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwProdInvariantHelper.cpp
   fboss/agent/hw/test/dataplane_tests/HwProdInvariantTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwPacketSendTests.cpp
