@@ -32,5 +32,5 @@ class MultiNodeTest : public ::testing::Test, public AgentInitializer {
   std::unique_ptr<std::thread> asyncInitThread_{nullptr};
   void setupConfigFlag();
 };
-
+int mulitNodeTestMain(int argc, char** argv, PlatformInitFn initPlatformFn);
 } // namespace facebook::fboss

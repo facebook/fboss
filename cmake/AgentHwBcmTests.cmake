@@ -169,3 +169,11 @@ add_library(bcm_packet_trap_helper
 target_link_libraries(bcm_packet_trap_helper
   bcm
 )
+
+add_executable(bcm_multinode_test
+)
+
+target_link_libraries(bcm_multinode_test
+  multinode_tests
+  platform
+)

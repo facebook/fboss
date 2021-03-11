@@ -71,20 +71,17 @@ target_link_libraries(async_logger_test
 
 gtest_discover_tests(async_logger_test)
 
-if (NOT SAI_ONLY)
-add_executable(multi_node_test
+add_library(multinode_tests
   fboss/agent/test/MultiNodeTest.cpp
   fboss/agent/test/MultiNodeLacpTests.cpp
 )
 
-target_link_libraries(multi_node_test
+target_link_libraries(multinode_tests
   main
   fboss_agent
   config_factory
   trunk_utils
-  platform
   fboss_config_utils
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
-endif()

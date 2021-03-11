@@ -31,6 +31,7 @@ DEFINE_string(
 namespace {
 int argCount{0};
 char** argVec{nullptr};
+PlatformInitFn initPlatform{nullptr};
 } // unnamed namespace
 
 namespace facebook::fboss {
@@ -66,7 +67,7 @@ void MultiNodeTest::SetUp() {
       argVec,
       (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
        HwSwitch::FeaturesDesired::LINKSCAN_DESIRED),
-      initWedgePlatform);
+      initPlatform);
   setupConfigFlag();
   asyncInitThread_.reset(
       new std::thread([this] { AgentInitializer::initAgent(); }));
@@ -115,11 +116,12 @@ void MultiNodeTest::setPortStatus(PortID portId, bool up) {
   sw()->updateStateBlocking("set port state", configFnLinkDown);
 }
 
-} // namespace facebook::fboss
-
-int main(int argc, char** argv) {
+int mulitNodeTestMain(int argc, char** argv, PlatformInitFn initPlatformFn) {
   ::testing::InitGoogleTest(&argc, argv);
   argCount = argc;
   argVec = argv;
+  initPlatform = initPlatformFn;
   return RUN_ALL_TESTS();
 }
+
+} // namespace facebook::fboss
