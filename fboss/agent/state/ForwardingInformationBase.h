@@ -43,6 +43,9 @@ class ForwardingInformationBase
   }
 
   std::shared_ptr<Route<AddressT>> longestMatch(const AddressT& address) const;
+  ForwardingInformationBase* modify(
+      RouterID rid,
+      std::shared_ptr<SwitchState>* state);
 
  private:
   // Inherit the constructors required for clone()

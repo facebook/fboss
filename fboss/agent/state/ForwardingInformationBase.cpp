@@ -9,7 +9,9 @@
  */
 #include "ForwardingInformationBase.h"
 
+#include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/NodeMap-defs.h"
+#include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
 
@@ -56,6 +58,19 @@ ForwardingInformationBase<AddressT>::longestMatch(
   }
 
   return longestMatchRoute;
+}
+
+template <typename AddressT>
+ForwardingInformationBase<AddressT>* ForwardingInformationBase<
+    AddressT>::modify(RouterID rid, std::shared_ptr<SwitchState>* state) {
+  if (!this->isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return this;
+  }
+  auto fibContainer = (*state)->getFibs()->getFibContainer(rid)->modify(state);
+  auto clonedFib = this->clone();
+  fibContainer->setFib<AddressT>(clonedFib);
+  return clonedFib.get();
 }
 
 FBOSS_INSTANTIATE_NODE_MAP(

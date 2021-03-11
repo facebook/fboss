@@ -46,6 +46,14 @@ class ForwardingInformationBaseContainer
 
   template <typename AddressT>
   const std::shared_ptr<ForwardingInformationBase<AddressT>>& getFib() const;
+  template <typename AddressT>
+  void setFib(const std::shared_ptr<ForwardingInformationBase<AddressT>>& fib) {
+    if constexpr (std::is_same_v<folly::IPAddressV6, AddressT>) {
+      writableFields()->fibV6 = fib;
+    } else {
+      writableFields()->fibV4 = fib;
+    }
+  }
 
   ForwardingInformationBaseContainer* modify(
       std::shared_ptr<SwitchState>* state);
