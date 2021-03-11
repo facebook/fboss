@@ -566,7 +566,7 @@ void SaiPortManager::changePort(
   SaiPortTraits::CreateAttributes newAttributes = attributesFromSwPort(newPort);
 
   if (createOnlyAttributeChanged(oldAttributes, newAttributes)) {
-    XLOG(INFO) << "CREATE_ONLY attribute (e.g. lane, speed etc.) changed for "
+    XLOG(INFO) << "Create only attribute (e.g. lane, speed etc.) changed for "
                << oldPort->getID();
     removePort(oldPort);
     addPort(newPort);
