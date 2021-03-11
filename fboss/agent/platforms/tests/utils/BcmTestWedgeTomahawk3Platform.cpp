@@ -10,6 +10,7 @@
 #include "fboss/agent/platforms/tests/utils/BcmTestWedgeTomahawk3Platform.h"
 #include "fboss/agent/hw/bcm/BcmCosQueueManagerUtils.h"
 #include "fboss/agent/hw/bcm/BcmPortIngressBufferManager.h"
+#include "fboss/agent/hw/bcm/BcmPortUtils.h"
 
 namespace facebook::fboss {
 
@@ -37,4 +38,9 @@ BcmTestWedgeTomahawk3Platform::getDefaultPortIngressPoolSettings() const {
   return BcmPortIngressBufferManager::getDefaultChipIngressPoolSettings(
       utility::BcmChip::TOMAHAWK3);
 }
+
+int BcmTestWedgeTomahawk3Platform::getPortItm(BcmPort* bcmPort) const {
+  return utility::getPortItm(utility::BcmChip::TOMAHAWK3, bcmPort);
+}
+
 } // namespace facebook::fboss

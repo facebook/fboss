@@ -62,6 +62,7 @@ class BcmTestWedgeTomahawk3Platform : public BcmTestWedgePlatform {
   bool supportsAddRemovePort() const override {
     return true;
   }
+  int getPortItm(BcmPort* bcmPort) const override;
 
  private:
   // Forbidden copy constructor and assignment operator
