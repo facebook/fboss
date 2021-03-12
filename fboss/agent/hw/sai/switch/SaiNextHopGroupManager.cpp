@@ -93,8 +93,7 @@ NextHopGroupMember::NextHopGroupMember(
     SaiNextHopGroupManager* manager,
     SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
     ManagedSaiNextHop managedSaiNextHop,
-    NextHopWeight nextHopWeight)
-    : managedSaiNextHop_(managedSaiNextHop) {
+    NextHopWeight nextHopWeight) {
   std::visit(
       [=](auto managedNextHop) {
         using ObjectTraits = typename std::decay_t<decltype(
@@ -102,7 +101,7 @@ NextHopGroupMember::NextHopGroupMember(
         auto key = managedNextHop->adapterHostKey();
         using ManagedMemberType = ManagedSaiNextHopGroupMember<ObjectTraits>;
         auto managedMember = std::make_shared<ManagedMemberType>(
-            manager, nexthopGroupId, nextHopWeight, key);
+            manager, managedNextHop, nexthopGroupId, nextHopWeight);
         SaiObjectEventPublisher::getInstance()->get<ObjectTraits>().subscribe(
             managedMember);
         managedNextHopGroupMember_ = managedMember;

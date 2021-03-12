@@ -60,13 +60,18 @@ class ManagedSaiNextHopGroupMember
       typename SaiNextHopGroupMemberTraits::Attributes::Weight;
   ManagedSaiNextHopGroupMember(
       SaiNextHopGroupManager* manager,
+      std::shared_ptr<ManagedNextHop<NextHopTraits>> managedNextHop,
       SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
-      NextHopWeight weight,
-      typename PublisherKey<NextHopTraits>::type attrs)
-      : Base(attrs),
+      NextHopWeight weight)
+      : Base(managedNextHop->adapterHostKey()),
         manager_(manager),
+        managedNextHop_(managedNextHop),
         nexthopGroupId_(nexthopGroupId),
         weight_(weight) {}
+
+  ~ManagedSaiNextHopGroupMember() {
+    this->resetObject();
+  }
 
   void createObject(PublisherObjects added);
 
@@ -77,6 +82,7 @@ class ManagedSaiNextHopGroupMember
 
  private:
   SaiNextHopGroupManager* manager_;
+  std::shared_ptr<ManagedNextHop<NextHopTraits>> managedNextHop_;
   SaiNextHopGroupTraits::AdapterKey nexthopGroupId_;
   NextHopWeight weight_;
 };
@@ -101,7 +107,6 @@ class NextHopGroupMember {
   }
 
  private:
-  ManagedSaiNextHop managedSaiNextHop_;
   std::variant<
       std::shared_ptr<ManagedIpNextHopGroupMember>,
       std::shared_ptr<ManagedMplsNextHopGroupMember>>
