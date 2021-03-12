@@ -69,9 +69,14 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
 
   for (const auto& swNextHop : swNextHops) {
     auto resolvedNextHop = folly::poly_cast<ResolvedNextHop>(swNextHop);
+    auto managedNextHop =
+        managerTable_->nextHopManager().addManagedSaiNextHop(resolvedNextHop);
     auto key = std::make_pair(nextHopGroupId, resolvedNextHop);
+    auto weight = (resolvedNextHop.weight() == ECMP_WEIGHT)
+        ? 1
+        : resolvedNextHop.weight();
     auto result = nextHopGroupMembers_.refOrEmplace(
-        key, managerTable_, nextHopGroupId, resolvedNextHop);
+        key, this, nextHopGroupId, managedNextHop, weight);
     nextHopGroupHandle->members_.push_back(result.first);
   }
   return nextHopGroupHandle;
@@ -85,36 +90,24 @@ std::shared_ptr<SaiNextHopGroupMember> SaiNextHopGroupManager::createSaiObject(
 }
 
 NextHopGroupMember::NextHopGroupMember(
-    SaiManagerTable* managerTable,
+    SaiNextHopGroupManager* manager,
     SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
-    const ResolvedNextHop& nexthop) {
-  managedNextHop_ =
-      managerTable->nextHopManager().addManagedSaiNextHop(nexthop);
-
-  auto& nextHopGroupManager = managerTable->nextHopGroupManager();
-  auto nextHopKey = managerTable->nextHopManager().getAdapterHostKey(nexthop);
-  auto nextHopWeight = (nexthop.weight() == ECMP_WEIGHT ? 1 : nexthop.weight());
-  if (auto* ipKey =
-          std::get_if<SaiIpNextHopTraits::AdapterHostKey>(&nextHopKey)) {
-    // make an IP subscriber
-    auto managedNextHopGroupMember =
-        std::make_shared<ManagedIpNextHopGroupMember>(
-            &nextHopGroupManager, nexthopGroupId, nextHopWeight, *ipKey);
-    SaiObjectEventPublisher::getInstance()->get<SaiIpNextHopTraits>().subscribe(
-        managedNextHopGroupMember);
-    managedNextHopGroupMember_ = managedNextHopGroupMember;
-  } else if (
-      auto* mplsKey =
-          std::get_if<SaiMplsNextHopTraits::AdapterHostKey>(&nextHopKey)) {
-    // make an MPLS subscriber
-    auto managedNextHopGroupMember =
-        std::make_shared<ManagedMplsNextHopGroupMember>(
-            &nextHopGroupManager, nexthopGroupId, nextHopWeight, *mplsKey);
-    SaiObjectEventPublisher::getInstance()
-        ->get<SaiMplsNextHopTraits>()
-        .subscribe(managedNextHopGroupMember);
-    managedNextHopGroupMember_ = managedNextHopGroupMember;
-  }
+    ManagedSaiNextHop managedSaiNextHop,
+    NextHopWeight nextHopWeight)
+    : managedSaiNextHop_(managedSaiNextHop) {
+  std::visit(
+      [=](auto managedNextHop) {
+        using ObjectTraits = typename std::decay_t<decltype(
+            managedNextHop)>::element_type::ObjectTraits;
+        auto key = managedNextHop->adapterHostKey();
+        using ManagedMemberType = ManagedSaiNextHopGroupMember<ObjectTraits>;
+        auto managedMember = std::make_shared<ManagedMemberType>(
+            manager, nexthopGroupId, nextHopWeight, key);
+        SaiObjectEventPublisher::getInstance()->get<ObjectTraits>().subscribe(
+            managedMember);
+        managedNextHopGroupMember_ = managedMember;
+      },
+      managedSaiNextHop);
 }
 
 template <typename NextHopTraits>

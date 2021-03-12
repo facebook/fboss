@@ -14,6 +14,7 @@
 
 #include "fboss/agent/hw/sai/api/NextHopApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/types.h"
@@ -88,9 +89,10 @@ class NextHopGroupMember {
       ManagedSaiNextHopGroupMember<SaiMplsNextHopTraits>;
 
   NextHopGroupMember(
-      SaiManagerTable* managerTable,
+      SaiNextHopGroupManager* manager,
       SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
-      const ResolvedNextHop& nexthop);
+      ManagedSaiNextHop managedSaiNextHop,
+      NextHopWeight nextHopWeight);
 
   bool isAlive() const {
     return std::visit(
@@ -99,11 +101,7 @@ class NextHopGroupMember {
   }
 
  private:
-  std::variant<
-      std::shared_ptr<ManagedNextHop<SaiIpNextHopTraits>>,
-      std::shared_ptr<ManagedNextHop<SaiMplsNextHopTraits>>>
-      managedNextHop_;
-
+  ManagedSaiNextHop managedSaiNextHop_;
   std::variant<
       std::shared_ptr<ManagedIpNextHopGroupMember>,
       std::shared_ptr<ManagedMplsNextHopGroupMember>>

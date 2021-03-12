@@ -41,6 +41,7 @@ class ManagedNextHop : public SaiObjectEventAggregateSubscriber<
                            NextHopTraits,
                            SaiNeighborTraits> {
  public:
+  using ObjectTraits = NextHopTraits;
   using AdapterHostKey = typename NextHopTraits::AdapterHostKey;
   using NeighborWeakPtr = std::weak_ptr<const SaiObject<SaiNeighborTraits>>;
   using PublishedObjects = std::tuple<NeighborWeakPtr>;
