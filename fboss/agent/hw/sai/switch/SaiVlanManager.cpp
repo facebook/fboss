@@ -80,8 +80,8 @@ void SaiVlanManager::createVlanMember(
 
   SaiVlanMemberTraits::Attributes::VlanId vlanIdAttribute{
       vlanHandle->vlan->adapterKey()};
-  auto vlanMember =
-      std::make_shared<ManagedVlanMember>(portDesc, swVlanId, vlanIdAttribute);
+  auto vlanMember = std::make_shared<ManagedVlanMember>(
+      this, portDesc, swVlanId, vlanIdAttribute);
   SaiObjectEventPublisher::getInstance()->get<SaiBridgePortTraits>().subscribe(
       vlanMember);
   vlanHandle->vlanMembers.emplace(portDesc, std::move(vlanMember));
@@ -183,6 +183,13 @@ SaiVlanHandle* SaiVlanManager::getVlanHandleImpl(VlanID swVlanId) const {
   return itr->second.get();
 }
 
+std::shared_ptr<SaiVlanMember> SaiVlanManager::createSaiObject(
+    const typename SaiVlanMemberTraits::AdapterHostKey& key,
+    const typename SaiVlanMemberTraits::CreateAttributes& attributes) {
+  auto& store = SaiStore::getInstance()->get<SaiVlanMemberTraits>();
+  return store.setObject(key, attributes);
+}
+
 void ManagedVlanMember::createObject(PublisherObjects objects) {
   auto bridgePort = std::get<BridgePortWeakPtr>(objects).lock();
   CHECK(bridgePort);
@@ -194,7 +201,8 @@ void ManagedVlanMember::createObject(PublisherObjects objects) {
   SaiVlanMemberTraits::CreateAttributes memberAttributes{
       vlanIdAttribute, bridgePortIdAttribute};
 
-  this->setObject(memberAttributes, memberAttributes);
+  auto object = manager_->createSaiObject(memberAttributes, memberAttributes);
+  this->setObject(object);
 }
 
 void ManagedVlanMember::removeObject(size_t, PublisherObjects) {

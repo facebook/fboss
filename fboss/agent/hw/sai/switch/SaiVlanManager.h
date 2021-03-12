@@ -31,6 +31,7 @@ namespace facebook::fboss {
 class ConcurrentIndices;
 class SaiManagerTable;
 class SaiPlatform;
+class SaiVlanManager;
 
 using SaiVlan = SaiObject<SaiVlanTraits>;
 using SaiVlanMember = SaiObject<SaiVlanMemberTraits>;
@@ -48,16 +49,21 @@ class ManagedVlanMember : public SaiObjectEventAggregateSubscriber<
   using PublisherObjects = std::tuple<BridgePortWeakPtr>;
 
   ManagedVlanMember(
+      SaiVlanManager* manager,
       SaiPortDescriptor portDesc,
       VlanID vlanId,
       SaiVlanMemberTraits::Attributes::VlanId saiVlanId)
-      : Base(portDesc), vlanId_(vlanId), saiVlanId_(saiVlanId) {}
+      : Base(portDesc),
+        manager_(manager),
+        vlanId_(vlanId),
+        saiVlanId_(saiVlanId) {}
 
   void createObject(PublisherObjects added);
 
   void removeObject(size_t index, PublisherObjects removed);
 
  private:
+  SaiVlanManager* manager_;
   VlanID vlanId_;
   SaiVlanMemberTraits::Attributes::VlanId saiVlanId_;
 };
@@ -92,6 +98,10 @@ class SaiVlanManager {
 
   void createVlanMember(VlanID swVlanId, SaiPortDescriptor portDesc);
   void removeVlanMember(VlanID swVlanId, SaiPortDescriptor portDesc);
+
+  std::shared_ptr<SaiVlanMember> createSaiObject(
+      const typename SaiVlanMemberTraits::AdapterHostKey& key,
+      const typename SaiVlanMemberTraits::CreateAttributes& attributes);
 
  private:
   SaiVlanHandle* getVlanHandleImpl(VlanID swVlanId) const;
