@@ -30,7 +30,7 @@ SaiInSegEntryHandle::NextHopHandle getNextHopHandle(
     SaiInSegTraits::InSegEntry inSegEntry{
         managerTable->switchManager().getSwitchSaiId(),
         static_cast<sai_label_id_t>(swLabelFibEntry->getID())};
-    auto managedNextHop = managerTable->nextHopManager().refOrEmplaceNextHop(
+    auto managedNextHop = managerTable->nextHopManager().addManagedSaiNextHop(
         folly::poly_cast<ResolvedNextHop>(*nexthops.begin()));
     if (auto* ipNextHop =
             std::get_if<std::shared_ptr<ManagedIpNextHop>>(&managedNextHop)) {

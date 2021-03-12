@@ -104,7 +104,7 @@ SaiNextHopTraits::AdapterHostKey SaiNextHopManager::getAdapterHostKey(
   return SaiMplsNextHopTraits::AdapterHostKey{rifId, ip, labels};
 }
 
-ManagedSaiNextHop SaiNextHopManager::refOrEmplaceNextHop(
+ManagedSaiNextHop SaiNextHopManager::addManagedSaiNextHop(
     const ResolvedNextHop& swNextHop) {
   auto switchId = managerTable_->switchManager().getSwitchSaiId();
   auto nexthopKey = getAdapterHostKey(swNextHop);

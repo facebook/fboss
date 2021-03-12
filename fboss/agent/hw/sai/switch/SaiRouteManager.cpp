@@ -195,7 +195,7 @@ void SaiRouteManager::addOrUpdateRoute(
       auto swNextHop =
           folly::poly_cast<ResolvedNextHop>(*(fwd.getNextHopSet().begin()));
       auto managedNextHop =
-          managerTable_->nextHopManager().refOrEmplaceNextHop(swNextHop);
+          managerTable_->nextHopManager().addManagedSaiNextHop(swNextHop);
 
       SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
       sai_object_id_t nextHopId{

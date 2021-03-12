@@ -117,7 +117,7 @@ class SaiNextHopManager {
   SaiNextHopTraits::AdapterHostKey getAdapterHostKey(
       const ResolvedNextHop& swNextHop);
 
-  ManagedSaiNextHop refOrEmplaceNextHop(const ResolvedNextHop& swNextHop);
+  ManagedSaiNextHop addManagedSaiNextHop(const ResolvedNextHop& swNextHop);
   const ManagedIpNextHop* getNextHop(
       const ManagedIpNextHop::AdapterHostKey& key) const {
     return managedIpNextHops_.get(key);
