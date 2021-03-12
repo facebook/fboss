@@ -39,7 +39,11 @@ class NextHopManagerTest : public ManagerTestBase {
 TEST_F(NextHopManagerTest, testAddNextHop) {
   RouterInterfaceSaiId rifId{42};
   folly::IPAddress ip4{"42.42.42.42"};
+  SaiIpNextHopTraits::AdapterHostKey ahk{rifId, ip4};
+  SaiIpNextHopTraits::CreateAttributes attributes{
+      SAI_NEXT_HOP_TYPE_IP, rifId, ip4, std::nullopt};
   std::shared_ptr<SaiIpNextHop> nextHop =
-      saiManagerTable->nextHopManager().addNextHop(rifId, ip4);
+      saiManagerTable->nextHopManager().createSaiObject<SaiIpNextHopTraits>(
+          ahk, attributes);
   checkNextHop(nextHop->adapterKey(), rifId, ip4);
 }

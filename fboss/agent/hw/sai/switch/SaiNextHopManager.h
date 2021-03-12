@@ -80,15 +80,6 @@ using ManagedSaiNextHop = std::variant<
 class SaiNextHopManager {
  public:
   SaiNextHopManager(SaiManagerTable* managerTable, const SaiPlatform* platform);
-  std::shared_ptr<SaiIpNextHop> addNextHop(
-      RouterInterfaceSaiId routerInterfaceId,
-      const folly::IPAddress& ip);
-
-  /* return next hop handle here, based on resolved next hop. resulting next hop
-   * handle will be either ip next hop or mpls next hop depending on properties
-   * of resolved next hop */
-  // TODO: remove below function
-  SaiNextHop refOrEmplace(const ResolvedNextHop& swNextHop);
 
   SaiNextHopTraits::AdapterHostKey getAdapterHostKey(
       const ResolvedNextHop& swNextHop);
