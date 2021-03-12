@@ -80,14 +80,14 @@ class ManagedSaiNextHopGroupMember
   NextHopWeight weight_;
 };
 
-class ManagedNextHopGroupMember {
+class NextHopGroupMember {
  public:
   using ManagedIpNextHopGroupMember =
       ManagedSaiNextHopGroupMember<SaiIpNextHopTraits>;
   using ManagedMplsNextHopGroupMember =
       ManagedSaiNextHopGroupMember<SaiMplsNextHopTraits>;
 
-  ManagedNextHopGroupMember(
+  NextHopGroupMember(
       SaiManagerTable* managerTable,
       SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
       const ResolvedNextHop& nexthop);
@@ -112,7 +112,7 @@ class ManagedNextHopGroupMember {
 
 struct SaiNextHopGroupHandle {
   std::shared_ptr<SaiNextHopGroup> nextHopGroup;
-  std::vector<std::shared_ptr<ManagedNextHopGroupMember>> members_;
+  std::vector<std::shared_ptr<NextHopGroupMember>> members_;
   sai_object_id_t adapterKey() const {
     if (!nextHopGroup) {
       return SAI_NULL_OBJECT_ID;
@@ -143,8 +143,8 @@ class SaiNextHopGroupManager {
   FlatRefMap<RouteNextHopEntry::NextHopSet, SaiNextHopGroupHandle> handles_;
   FlatRefMap<
       std::pair<typename SaiNextHopGroupTraits::AdapterKey, ResolvedNextHop>,
-      ManagedNextHopGroupMember>
-      managedNextHopGroupMembers_;
+      NextHopGroupMember>
+      nextHopGroupMembers_;
 };
 
 } // namespace facebook::fboss

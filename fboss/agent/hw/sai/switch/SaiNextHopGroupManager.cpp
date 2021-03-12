@@ -70,7 +70,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
   for (const auto& swNextHop : swNextHops) {
     auto resolvedNextHop = folly::poly_cast<ResolvedNextHop>(swNextHop);
     auto key = std::make_pair(nextHopGroupId, resolvedNextHop);
-    auto result = managedNextHopGroupMembers_.refOrEmplace(
+    auto result = nextHopGroupMembers_.refOrEmplace(
         key, managerTable_, nextHopGroupId, resolvedNextHop);
     nextHopGroupHandle->members_.push_back(result.first);
   }
@@ -84,7 +84,7 @@ std::shared_ptr<SaiNextHopGroupMember> SaiNextHopGroupManager::createSaiObject(
   return store.setObject(key, attributes);
 }
 
-ManagedNextHopGroupMember::ManagedNextHopGroupMember(
+NextHopGroupMember::NextHopGroupMember(
     SaiManagerTable* managerTable,
     SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
     const ResolvedNextHop& nexthop) {
