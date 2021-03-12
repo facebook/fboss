@@ -142,8 +142,9 @@ static void runNewRibTest() {
            void* cookie) {
           ForwardingInformationBaseUpdater fibUpdater(
               vrf, v4NetworkToRoute, v6NetworkToRoute);
-          static_cast<SwSwitch*>(cookie)->updateStateBlocking(
-              "", std::move(fibUpdater));
+          auto sw2 = static_cast<facebook::fboss::SwSwitch*>(cookie);
+          sw2->updateStateBlocking("", std::move(fibUpdater));
+          return sw2->getState();
         },
         sw);
   }
