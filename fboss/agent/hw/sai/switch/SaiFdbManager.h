@@ -33,6 +33,7 @@ class ConcurrentIndices;
 class SaiManagerTable;
 class SaiPlatform;
 class MacEntry;
+class SaiFdbManager;
 
 using SaiFdbEntry = SaiObject<SaiFdbTraits>;
 
@@ -55,6 +56,7 @@ class ManagedFdbEntry : public SaiObjectEventAggregateSubscriber<
       std::tuple<BridgePortWeakPtr, RouterInterfaceWeakPtr>;
 
   ManagedFdbEntry(
+      SaiFdbManager* manager,
       SwitchSaiId switchId,
       SaiPortDescriptor portId,
       InterfaceID interfaceId,
@@ -62,6 +64,7 @@ class ManagedFdbEntry : public SaiObjectEventAggregateSubscriber<
       sai_fdb_entry_type_t type,
       std::optional<sai_uint32_t> metadata)
       : Base(portId, interfaceId),
+        manager_(manager),
         switchId_(switchId),
         portId_(portId),
         interfaceId_(interfaceId),
@@ -92,6 +95,7 @@ class ManagedFdbEntry : public SaiObjectEventAggregateSubscriber<
   void update(const std::shared_ptr<MacEntry>& updated);
 
  private:
+  SaiFdbManager* manager_;
   SwitchSaiId switchId_;
   SaiPortDescriptor portId_;
   InterfaceID interfaceId_;
@@ -122,6 +126,11 @@ class SaiFdbManager {
       const std::shared_ptr<MacEntry>& newEntry);
   void handleLinkDown(SaiPortDescriptor portId);
   std::vector<L2EntryThrift> getL2Entries() const;
+
+  std::shared_ptr<SaiFdbEntry> createSaiObject(
+      const typename SaiFdbTraits::AdapterHostKey& key,
+      const typename SaiFdbTraits::CreateAttributes& attributes,
+      const PublisherKey<SaiFdbTraits>::custom_type& publisherKey);
 
  private:
   PortDescriptorSaiId getPortDescriptorSaiId(

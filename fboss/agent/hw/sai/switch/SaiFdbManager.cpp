@@ -47,9 +47,8 @@ void ManagedFdbEntry::createObject(PublisherObjects objects) {
   auto bridgePortId = bridgePort->adapterKey();
   SaiFdbTraits::CreateAttributes attributes{type_, bridgePortId, metadata_};
 
-  auto& store = SaiStore::getInstance()->get<SaiFdbTraits>();
-  auto fdbEntry =
-      store.setObject(entry, attributes, std::make_tuple(interfaceId_, mac_));
+  auto fdbEntry = manager_->createSaiObject(
+      entry, attributes, std::make_tuple(interfaceId_, mac_));
   // For FDB entry, on delete, Ignore error if entry was already removed from
   // HW. One scenario where this can occur is the following
   // - We learn a MAC and install it in HW
@@ -130,7 +129,7 @@ void SaiFdbManager::addFdbEntry(
     return;
   }
   auto managedFdbEntry = std::make_shared<ManagedFdbEntry>(
-      switchId, port, interfaceId, mac, type, metadata);
+      this, switchId, port, interfaceId, mac, type, metadata);
 
   SaiObjectEventPublisher::getInstance()->get<SaiBridgePortTraits>().subscribe(
       managedFdbEntry);
@@ -328,5 +327,13 @@ std::vector<L2EntryThrift> SaiFdbManager::getL2Entries() const {
         fdbToL2Entry(publisherAndFdbEntry.second->makeFdbEntry(managerTable_)));
   }
   return entries;
+}
+
+std::shared_ptr<SaiFdbEntry> SaiFdbManager::createSaiObject(
+    const typename SaiFdbTraits::AdapterHostKey& key,
+    const typename SaiFdbTraits::CreateAttributes& attributes,
+    const PublisherKey<SaiFdbTraits>::custom_type& publisherKey) {
+  auto& store = SaiStore::getInstance()->get<SaiFdbTraits>();
+  return store.setObject(key, attributes, publisherKey);
 }
 } // namespace facebook::fboss
