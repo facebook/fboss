@@ -15,11 +15,21 @@ namespace fboss {
 phy::ExternalPhy*
 PhyManager::getExternalPhy(int slotId, int mdioId, int phyId) {
   // Check if the slot id is valid
-  if (slotId >= numOfSlot_ || slotId >= externalPhyMap_.size()) {
+  if (slotId >= numOfSlot_) {
     throw FbossError(folly::sformat(
-        "getExternalPhy: Invalid Slot Id {:d}, externalPhyMap_.size={:d}",
+        "getExternalPhy: Invalid Slot Id {:d} >= {:d}", slotId, numOfSlot_));
+  }
+  if (externalPhyMap_.find(slotId) == externalPhyMap_.end()) {
+    throw FbossError(
+        "getExternalPhy: Invalid Slot Id ",
         slotId,
-        externalPhyMap_.size()));
+        " is not in externalPhyMap_");
+  }
+  if (numMdioController_.find(slotId) == numMdioController_.end()) {
+    throw FbossError(
+        "getExternalPhy: Invalid Slot Id ",
+        slotId,
+        " is not in numMdioController_");
   }
   // Check if within the slot, the MDIO based phy list is populated
   if (mdioId >= numMdioController_[slotId] ||
