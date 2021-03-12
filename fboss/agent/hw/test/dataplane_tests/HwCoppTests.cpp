@@ -353,8 +353,10 @@ TYPED_TEST(HwCoppTest, VerifyCoppPpsLowPri) {
     auto totalRecvdPkts = afterOutPkts - beforeOutPkts;
     auto duration = afterSecs - beforeSecs;
     auto currPktsPerSec = totalRecvdPkts / duration;
-    auto lowPktsPerSec = utility::kCoppLowPriPktsPerSec * (1 - kVariance);
-    auto highPktsPerSec = utility::kCoppLowPriPktsPerSec * (1 + kVariance);
+    uint32_t lowPriorityPps =
+        utility::getCoppQueuePps(this->getAsic(), utility::kCoppLowPriQueueId);
+    auto lowPktsPerSec = lowPriorityPps * (1 - kVariance);
+    auto highPktsPerSec = lowPriorityPps * (1 + kVariance);
 
     XLOG(DBG0) << "Before pkts: " << beforeOutPkts
                << " after pkts: " << afterOutPkts

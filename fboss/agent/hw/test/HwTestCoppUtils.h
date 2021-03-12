@@ -42,6 +42,11 @@ constexpr uint32_t kAveragePacketSize = 300;
 constexpr uint32_t kCoppLowPriPktsPerSec = 100;
 constexpr uint32_t kCoppDefaultPriPktsPerSec = 200;
 
+// Tajo supports higher PPS to CPU
+constexpr uint32_t kCpuPacketOverheadBytes = 52;
+constexpr uint32_t kCoppTajoLowPriPktsPerSec = 10000;
+constexpr uint32_t kCoppTajoDefaultPriPktsPerSec = 20000;
+
 constexpr uint16_t kBgpPort = 179;
 
 // There should be no ACL/rxreasons matching this port
@@ -83,6 +88,8 @@ void setDefaultCpuTrafficPolicyConfig(
 cfg::Range getRange(uint32_t minimum, uint32_t maximum);
 
 uint16_t getCoppHighPriQueueId(const HwAsic* hwAsic);
+
+uint32_t getCoppQueuePps(const HwAsic* hwAsic, uint16_t queueId);
 
 cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic);
 

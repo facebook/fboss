@@ -83,22 +83,48 @@ cfg::StreamType getCpuDefaultStreamType(const HwAsic* hwAsic) {
   return defaultStreamType;
 }
 
-cfg::PortQueueRate setPortQueueRate(const HwAsic* hwAsic, uint16_t queueId) {
-  uint32_t pps, bps;
-  if (queueId == kCoppLowPriQueueId) {
-    pps = kCoppLowPriPktsPerSec;
-  } else if (queueId == kCoppDefaultPriQueueId) {
-    pps = kCoppDefaultPriPktsPerSec;
+uint32_t getCoppQueuePps(const HwAsic* hwAsic, uint16_t queueId) {
+  uint32_t pps;
+  if (hwAsic->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TAJO) {
+    if (queueId == kCoppLowPriQueueId) {
+      pps = kCoppTajoLowPriPktsPerSec;
+    } else if (queueId == kCoppDefaultPriQueueId) {
+      pps = kCoppTajoDefaultPriPktsPerSec;
+    } else {
+      throw FbossError("Unexpected queue id ", queueId);
+    }
   } else {
-    throw FbossError("Unexpected queue id ", queueId);
+    if (queueId == kCoppLowPriQueueId) {
+      pps = kCoppLowPriPktsPerSec;
+    } else if (queueId == kCoppDefaultPriQueueId) {
+      pps = kCoppDefaultPriPktsPerSec;
+    } else {
+      throw FbossError("Unexpected queue id ", queueId);
+    }
   }
+  return pps;
+}
 
+uint32_t getCoppQueueKbpsFromPps(const HwAsic* hwAsic, uint32_t pps) {
+  uint32_t kbps;
+  if (hwAsic->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TAJO) {
+    kbps = (round(pps / 60) * 60) *
+        (kAveragePacketSize + kCpuPacketOverheadBytes) * 8 / 1000;
+  } else {
+    throw FbossError("Copp queue pps to kbps unsupported for platform");
+  }
+  return kbps;
+}
+
+cfg::PortQueueRate setPortQueueRate(const HwAsic* hwAsic, uint16_t queueId) {
+  uint32_t pps = getCoppQueuePps(hwAsic, queueId);
   auto portQueueRate = cfg::PortQueueRate();
+
   if (hwAsic->isSupported(HwAsic::Feature::SCHEDULER_PPS)) {
     portQueueRate.set_pktsPerSec(getRange(0, pps));
   } else {
-    bps = pps * kAveragePacketSize * 8 / 1000;
-    portQueueRate.set_kbitsPerSec(getRange(0, bps));
+    uint32_t kbps = getCoppQueueKbpsFromPps(hwAsic, pps);
+    portQueueRate.set_kbitsPerSec(getRange(0, kbps));
   }
 
   return portQueueRate;
