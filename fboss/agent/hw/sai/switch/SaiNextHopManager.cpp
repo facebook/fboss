@@ -115,6 +115,7 @@ ManagedSaiNextHop SaiNextHopManager::addManagedSaiNextHop(
               &nexthopKey)) {
     auto [entry, emplaced] = managedIpNextHops_.refOrEmplace(
         *ipNextHopKey,
+        this,
         SaiNeighborTraits::NeighborEntry{
             switchId, std::get<0>(*ipNextHopKey).value(), ip},
         *ipNextHopKey);
@@ -132,6 +133,7 @@ ManagedSaiNextHop SaiNextHopManager::addManagedSaiNextHop(
               &nexthopKey)) {
     auto [entry, emplaced] = managedMplsNextHops_.refOrEmplace(
         *mplsNextHopKey,
+        this,
         SaiNeighborTraits::NeighborEntry{
             switchId, std::get<0>(*mplsNextHopKey).value(), ip},
         *mplsNextHopKey);
@@ -146,6 +148,40 @@ ManagedSaiNextHop SaiNextHopManager::addManagedSaiNextHop(
   }
 
   throw FbossError("next hop key not found for a given next hop subscriber");
+}
+
+template <typename NextHopTraits>
+std::shared_ptr<SaiObject<NextHopTraits>> SaiNextHopManager::createSaiObject(
+    typename NextHopTraits::AdapterHostKey adapterHostKey,
+    typename NextHopTraits::CreateAttributes attributes) {
+  auto& store = SaiStore::getInstance()->get<NextHopTraits>();
+  return store.setObject(adapterHostKey, attributes);
+}
+
+template <typename NextHopTraits>
+void ManagedNextHop<NextHopTraits>::createObject(PublishedObjects /*added*/) {
+  CHECK(this->allPublishedObjectsAlive()) << "neighbors are not ready";
+
+  std::shared_ptr<SaiObject<NextHopTraits>> object{};
+  /* when neighbor is created setup next hop */
+  if constexpr (std::is_same_v<NextHopTraits, SaiIpNextHopTraits>) {
+    object = manager_->createSaiObject<NextHopTraits>(
+        key_,
+        {SAI_NEXT_HOP_TYPE_IP,
+         std::get<typename NextHopTraits::Attributes::RouterInterfaceId>(key_),
+         std::get<typename NextHopTraits::Attributes::Ip>(key_),
+         std::nullopt});
+
+  } else {
+    object = manager_->createSaiObject<NextHopTraits>(
+        key_,
+        {SAI_NEXT_HOP_TYPE_MPLS,
+         std::get<typename NextHopTraits::Attributes::RouterInterfaceId>(key_),
+         std::get<typename NextHopTraits::Attributes::Ip>(key_),
+         std::get<typename NextHopTraits::Attributes::LabelStack>(key_),
+         std::nullopt});
+  }
+  this->setObject(object);
 }
 
 } // namespace facebook::fboss

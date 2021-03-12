@@ -178,6 +178,8 @@ TEST_F(NeighborManagerTest, linkDown) {
 }
 
 TEST_F(NeighborManagerTest, linkDownReResolve) {
+  saiManagerTable->bridgeManager().setL2LearningMode(
+      cfg::L2LearningMode::SOFTWARE);
   auto arpEntry = resolveArp(intf0.id, h0);
   checkEntry(arpEntry, h0.mac);
   saiManagerTable->fdbManager().handleLinkDown(

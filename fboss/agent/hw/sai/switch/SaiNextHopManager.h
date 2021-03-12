@@ -29,6 +29,7 @@ namespace facebook::fboss {
 class SaiManagerTable;
 class SaiPlatform;
 class ResolvedNextHop;
+class SaiNextHopManager;
 
 using SaiIpNextHop = SaiObject<SaiIpNextHopTraits>;
 using SaiMplsNextHop = SaiObject<SaiMplsNextHopTraits>;
@@ -48,38 +49,12 @@ class ManagedNextHop : public SaiObjectEventAggregateSubscriber<
       NextHopTraits,
       SaiNeighborTraits>;
   ManagedNextHop(
+      SaiNextHopManager* manager,
       SaiNeighborTraits::NeighborEntry entry,
       const typename NextHopTraits::AdapterHostKey& key)
-      : Base(entry), key_(key) {}
+      : Base(entry), manager_(manager), key_(key) {}
 
-  void createObject(PublishedObjects /*added*/) {
-    CHECK(this->allPublishedObjectsAlive()) << "neighbors are not ready";
-
-    /* when neighbor is created setup next hop */
-    if constexpr (std::is_same_v<NextHopTraits, SaiIpNextHopTraits>) {
-      this->setObject(
-          key_,
-          {SAI_NEXT_HOP_TYPE_IP,
-           std::get<typename NextHopTraits::Attributes::RouterInterfaceId>(
-               key_),
-           std::get<typename NextHopTraits::Attributes::Ip>(key_)
-
-               ,
-           std::nullopt});
-
-    } else {
-      this->setObject(
-          key_,
-          {SAI_NEXT_HOP_TYPE_MPLS,
-           std::get<typename NextHopTraits::Attributes::RouterInterfaceId>(
-               key_),
-           std::get<typename NextHopTraits::Attributes::Ip>(key_),
-           std::get<typename NextHopTraits::Attributes::LabelStack>(key_)
-
-               ,
-           std::nullopt});
-    }
-  }
+  void createObject(PublishedObjects /*added*/);
 
   void removeObject(size_t index, PublishedObjects removed) {
     /* when neighbor is removed remove next hop */
@@ -91,6 +66,7 @@ class ManagedNextHop : public SaiObjectEventAggregateSubscriber<
   }
 
  private:
+  SaiNextHopManager* manager_;
   typename NextHopTraits::AdapterHostKey key_;
 };
 
@@ -126,6 +102,11 @@ class SaiNextHopManager {
       const ManagedMplsNextHop::AdapterHostKey& key) const {
     return managedMplsNextHops_.get(key);
   }
+
+  template <typename NextHopTraits>
+  std::shared_ptr<SaiObject<NextHopTraits>> createSaiObject(
+      typename NextHopTraits::AdapterHostKey adapterHostKey,
+      typename NextHopTraits::CreateAttributes attributes);
 
  private:
   SaiManagerTable* managerTable_;
