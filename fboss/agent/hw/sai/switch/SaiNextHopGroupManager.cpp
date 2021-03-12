@@ -77,6 +77,13 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
   return nextHopGroupHandle;
 }
 
+std::shared_ptr<SaiNextHopGroupMember> SaiNextHopGroupManager::createSaiObject(
+    const typename SaiNextHopGroupMemberTraits::AdapterHostKey& key,
+    const typename SaiNextHopGroupMemberTraits::CreateAttributes& attributes) {
+  auto& store = SaiStore::getInstance()->get<SaiNextHopGroupMemberTraits>();
+  return store.setObject(key, attributes);
+}
+
 ManagedNextHopGroupMember::ManagedNextHopGroupMember(
     SaiManagerTable* managerTable,
     SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
@@ -84,6 +91,7 @@ ManagedNextHopGroupMember::ManagedNextHopGroupMember(
   managedNextHop_ =
       managerTable->nextHopManager().addManagedSaiNextHop(nexthop);
 
+  auto& nextHopGroupManager = managerTable->nextHopGroupManager();
   auto nextHopKey = managerTable->nextHopManager().getAdapterHostKey(nexthop);
   auto nextHopWeight = (nexthop.weight() == ECMP_WEIGHT ? 1 : nexthop.weight());
   if (auto* ipKey =
@@ -91,7 +99,7 @@ ManagedNextHopGroupMember::ManagedNextHopGroupMember(
     // make an IP subscriber
     auto managedNextHopGroupMember =
         std::make_shared<ManagedIpNextHopGroupMember>(
-            nexthopGroupId, nextHopWeight, *ipKey);
+            &nextHopGroupManager, nexthopGroupId, nextHopWeight, *ipKey);
     SaiObjectEventPublisher::getInstance()->get<SaiIpNextHopTraits>().subscribe(
         managedNextHopGroupMember);
     managedNextHopGroupMember_ = managedNextHopGroupMember;
@@ -101,11 +109,28 @@ ManagedNextHopGroupMember::ManagedNextHopGroupMember(
     // make an MPLS subscriber
     auto managedNextHopGroupMember =
         std::make_shared<ManagedMplsNextHopGroupMember>(
-            nexthopGroupId, nextHopWeight, *mplsKey);
+            &nextHopGroupManager, nexthopGroupId, nextHopWeight, *mplsKey);
     SaiObjectEventPublisher::getInstance()
         ->get<SaiMplsNextHopTraits>()
         .subscribe(managedNextHopGroupMember);
     managedNextHopGroupMember_ = managedNextHopGroupMember;
   }
+}
+
+template <typename NextHopTraits>
+void ManagedSaiNextHopGroupMember<NextHopTraits>::createObject(
+    typename ManagedSaiNextHopGroupMember<NextHopTraits>::PublisherObjects
+        added) {
+  CHECK(this->allPublishedObjectsAlive()) << "next hops are not ready";
+
+  auto nexthopId = std::get<NextHopWeakPtr>(added).lock()->adapterKey();
+
+  SaiNextHopGroupMemberTraits::AdapterHostKey adapterHostKey{
+      nexthopGroupId_, nexthopId};
+  SaiNextHopGroupMemberTraits::CreateAttributes createAttributes{
+      nexthopGroupId_, nexthopId, weight_};
+
+  auto object = manager_->createSaiObject(adapterHostKey, createAttributes);
+  this->setObject(object);
 }
 } // namespace facebook::fboss

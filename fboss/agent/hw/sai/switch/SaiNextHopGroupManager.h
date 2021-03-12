@@ -32,6 +32,7 @@ namespace facebook::fboss {
 
 class SaiManagerTable;
 class SaiPlatform;
+class SaiNextHopGroupManager;
 
 using SaiNextHopGroup = SaiObject<SaiNextHopGroupTraits>;
 using SaiNextHopGroupMember = SaiObject<SaiNextHopGroupMemberTraits>;
@@ -57,23 +58,16 @@ class ManagedSaiNextHopGroupMember
   using NextHopWeight =
       typename SaiNextHopGroupMemberTraits::Attributes::Weight;
   ManagedSaiNextHopGroupMember(
+      SaiNextHopGroupManager* manager,
       SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
       NextHopWeight weight,
       typename PublisherKey<NextHopTraits>::type attrs)
-      : Base(attrs), nexthopGroupId_(nexthopGroupId), weight_(weight) {}
+      : Base(attrs),
+        manager_(manager),
+        nexthopGroupId_(nexthopGroupId),
+        weight_(weight) {}
 
-  void createObject(PublisherObjects added) {
-    CHECK(this->allPublishedObjectsAlive()) << "next hops are not ready";
-
-    auto nexthopId = std::get<NextHopWeakPtr>(added).lock()->adapterKey();
-
-    SaiNextHopGroupMemberTraits::AdapterHostKey adapterHostKey{
-        nexthopGroupId_, nexthopId};
-    SaiNextHopGroupMemberTraits::CreateAttributes createAttributes{
-        nexthopGroupId_, nexthopId, weight_};
-
-    this->setObject(adapterHostKey, createAttributes);
-  }
+  void createObject(PublisherObjects added);
 
   void removeObject(size_t /*index*/, PublisherObjects /*removed*/) {
     /* remove nexthop group member if next hop is removed */
@@ -81,6 +75,7 @@ class ManagedSaiNextHopGroupMember
   }
 
  private:
+  SaiNextHopGroupManager* manager_;
   SaiNextHopGroupTraits::AdapterKey nexthopGroupId_;
   NextHopWeight weight_;
 };
@@ -134,6 +129,10 @@ class SaiNextHopGroupManager {
 
   std::shared_ptr<SaiNextHopGroupHandle> incRefOrAddNextHopGroup(
       const RouteNextHopEntry::NextHopSet& swNextHops);
+
+  std::shared_ptr<SaiNextHopGroupMember> createSaiObject(
+      const typename SaiNextHopGroupMemberTraits::AdapterHostKey& key,
+      const typename SaiNextHopGroupMemberTraits::CreateAttributes& attributes);
 
  private:
   SaiManagerTable* managerTable_;
