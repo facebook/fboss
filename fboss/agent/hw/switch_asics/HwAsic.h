@@ -65,6 +65,7 @@ class HwAsic {
     ALPM_ROUTE_PROJECTION,
     MAC_AGING,
     SAI_PORT_SPEED_CHANGE,
+    SFLOW_SHIM_VERSION_FIELD,
   };
 
   enum class AsicType {

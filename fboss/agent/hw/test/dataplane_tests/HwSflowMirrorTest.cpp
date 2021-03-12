@@ -42,6 +42,31 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
     getHwSwitchEnsemble()->ensureSendPacketOutOfPort(std::move(pkt), port);
   }
 
+  PortID getSlfowPacketSrcPort(const std::vector<uint8_t>& sflowPayloud) {
+    // sflow shim format:
+    //    version field (if applicable): 32, sport : 8, smod : 8, dport : 8,
+    //    dmod : 8, source_sample : 1, dest_sample : 1, flex_sample : 1
+    //    multicast : 1, discarded : 1, truncated : 1,
+    //    dest_port_encoding : 3, reserved : 23
+    auto sourcePortOffset = 0;
+    if (getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::SFLOW_SHIM_VERSION_FIELD)) {
+      sourcePortOffset += 4;
+    }
+    return static_cast<PortID>(sflowPayloud[sourcePortOffset]);
+  }
+
+  int getSflowPacketHeaderLength(bool isV6 = false) {
+    auto ipHeader = isV6 ? 40 : 20;
+    auto slfowShimHeaderLength = 8;
+    if (getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::SFLOW_SHIM_VERSION_FIELD)) {
+      slfowShimHeaderLength += 4;
+    }
+    return 18 /* ethernet header */ + ipHeader + 8 /* udp header */ +
+        slfowShimHeaderLength;
+  }
+
   void generateTraffic(size_t payloadSize = 1400) {
     auto ports = masterLogicalPortIds();
     for (auto i = 1; i < ports.size(); i++) {
@@ -258,24 +283,16 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacket) {
 
     // captured packet has encap header on top
     ASSERT_GE(capturedPkt->length(), pkt.length());
-    EXPECT_GE(
-        capturedPkt->length(),
-        18 /* ethernet */ + 20 /* v4 */ + 8 /* udp */ + 8 /* shim */);
+    EXPECT_GE(capturedPkt->length(), getSflowPacketHeaderLength());
 
     auto delta = capturedPkt->length() - pkt.length();
     EXPECT_EQ(
         delta,
-        18 /* ethernet header */ + 20 /* ipv4 header */ + 8 /* udp header */ +
-            8 /* sflow header */ -
+        getSflowPacketHeaderLength() -
             4 /* vlan tag is absent in mirrored packet */);
     auto payload = capturedPkt->v4PayLoad()->payload()->payload();
 
-    // sflow shim format:
-    //    sport : 8, smod : 8, dport : 8, dmod : 8
-    //    source_sample : 1, dest_sample : 1, flex_sample : 1
-    //    multicast : 1, discarded : 1, truncated : 1,
-    //    dest_port_encoding : 3, reserved : 23
-    EXPECT_EQ(static_cast<PortID>(payload[0]), masterLogicalPortIds()[1]);
+    EXPECT_EQ(getSlfowPacketSrcPort(payload), masterLogicalPortIds()[1]);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -310,12 +327,11 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithTruncateV4) {
 
     // packet's payload is truncated before it was mirrored
     EXPECT_LE(capturedPkt->length(), pkt.length());
-    auto capturedHdrSize =
-        18 /* ethernet */ + 20 /* ipv4 */ + 8 /* udp */ + 8 /* sflow */;
+    auto capturedHdrSize = getSflowPacketHeaderLength();
     EXPECT_GE(capturedPkt->length(), capturedHdrSize);
     EXPECT_EQ(capturedPkt->length() - capturedHdrSize, 210); /* TODO: why? */
     auto payload = capturedPkt->v4PayLoad()->payload()->payload();
-    EXPECT_EQ(static_cast<PortID>(payload[0]), masterLogicalPortIds()[1]);
+    EXPECT_EQ(getSlfowPacketSrcPort(payload), masterLogicalPortIds()[1]);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -352,12 +368,11 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithTruncateV6) {
 
     // packet's payload is truncated before it was mirrored
     EXPECT_LE(capturedPkt->length(), pkt.length());
-    auto capturedHdrSize =
-        18 /* ethernet */ + 40 /* ipv6 */ + 8 /* udp */ + 8 /* sflow */;
+    auto capturedHdrSize = getSflowPacketHeaderLength(true);
     EXPECT_GE(capturedPkt->length(), capturedHdrSize);
     EXPECT_EQ(capturedPkt->length() - capturedHdrSize, 210); /* TODO: why? */
     auto payload = capturedPkt->v6PayLoad()->payload()->payload();
-    EXPECT_EQ(static_cast<PortID>(payload[0]), masterLogicalPortIds()[1]);
+    EXPECT_EQ(getSlfowPacketSrcPort(payload), masterLogicalPortIds()[1]);
   };
   verifyAcrossWarmBoots(setup, verify);
 }

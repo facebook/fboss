@@ -65,6 +65,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::SAI_MIRRORING:
     case HwAsic::Feature::SAI_SAMPLING:
+    case HwAsic::Feature::SFLOW_SHIM_VERSION_FIELD:
       return false;
   }
   return false;

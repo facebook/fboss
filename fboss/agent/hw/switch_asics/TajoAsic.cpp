@@ -70,6 +70,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     // TODO(pshaikh): once memory leaks are fixed move, it to true
     case HwAsic::Feature::TELEMETRY_AND_MONITORING:
     case HwAsic::Feature::SAI_PORT_SPEED_CHANGE:
+    case HwAsic::Feature::SFLOW_SHIM_VERSION_FIELD:
       return false;
   }
   return false;
