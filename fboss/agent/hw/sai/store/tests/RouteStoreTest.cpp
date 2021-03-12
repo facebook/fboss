@@ -29,10 +29,9 @@ TEST_F(SaiStoreTest, loadRoute) {
   routeApi.create<SaiRouteTraits>(
       r, {packetActionAttribute, nextHopIdAttribute, metadata});
 
-  std::shared_ptr<SaiStore> s = SaiStore::getInstance();
-  s->setSwitchId(0);
-  s->reload();
-  auto& store = s->get<SaiRouteTraits>();
+  saiStore->setSwitchId(0);
+  saiStore->reload();
+  auto& store = saiStore->get<SaiRouteTraits>();
 
   auto got = store.get(r);
   EXPECT_EQ(got->adapterKey(), r);

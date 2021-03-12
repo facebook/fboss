@@ -18,10 +18,9 @@ TEST_F(SaiStoreTest, createInSegEntry) {
       SAI_PACKET_ACTION_FORWARD, 1, nextHopIdAttribute};
   mplsApi.create<SaiInSegTraits>(entry, attributes);
 
-  std::shared_ptr<SaiStore> s = SaiStore::getInstance();
-  s->setSwitchId(0);
-  s->reload();
-  auto& store = s->get<SaiInSegTraits>();
+  saiStore->setSwitchId(0);
+  saiStore->reload();
+  auto& store = saiStore->get<SaiInSegTraits>();
 
   auto got = store.get(entry);
   EXPECT_EQ(got->adapterKey(), entry);
@@ -41,10 +40,9 @@ TEST_F(SaiStoreTest, modifyInSegEntry) {
   mplsApi.create<SaiInSegTraits>(entry, attributes);
   mplsApi.setAttribute(entry, SaiInSegTraits::Attributes::NextHopId{1011});
 
-  std::shared_ptr<SaiStore> s = SaiStore::getInstance();
-  s->setSwitchId(0);
-  s->reload();
-  auto& store = s->get<SaiInSegTraits>();
+  saiStore->setSwitchId(0);
+  saiStore->reload();
+  auto& store = saiStore->get<SaiInSegTraits>();
 
   auto got = store.get(entry);
   EXPECT_EQ(got->adapterKey(), entry);

@@ -25,6 +25,7 @@ class SaiStoreTest : public ::testing::Test {
     sai_api_initialize(0, nullptr);
     saiApiTable = SaiApiTable::getInstance();
     saiApiTable->queryApis(saiApiTable->getFullApiList());
+    saiStore = std::make_unique<SaiStore>();
   }
   template <typename Traits, typename... Args>
   SaiObject<Traits> createObj(Args&&... args) {
@@ -32,6 +33,7 @@ class SaiStoreTest : public ::testing::Test {
   }
   std::shared_ptr<FakeSai> fs;
   std::shared_ptr<SaiApiTable> saiApiTable;
+  std::unique_ptr<SaiStore> saiStore;
 };
 
 template <typename SaiObjectTraits>

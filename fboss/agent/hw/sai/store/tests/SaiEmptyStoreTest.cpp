@@ -20,7 +20,6 @@ TEST_F(SaiStoreTest, loadEmpty) {
 }
 
 TEST_F(SaiStoreTest, singletonLoadEmpty) {
-  auto store = SaiStore::getInstance();
-  store->setSwitchId(0);
-  store->reload();
+  saiStore->setSwitchId(0);
+  saiStore->reload();
 }
