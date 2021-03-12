@@ -125,4 +125,11 @@ void ManagedSaiNextHopGroupMember<NextHopTraits>::createObject(
   auto object = manager_->createSaiObject(adapterHostKey, createAttributes);
   this->setObject(object);
 }
+
+size_t SaiNextHopGroupHandle::nextHopGroupSize() const {
+  return std::count_if(
+      std::begin(members_), std::end(members_), [](auto member) {
+        return member->isProgrammed();
+      });
+}
 } // namespace facebook::fboss

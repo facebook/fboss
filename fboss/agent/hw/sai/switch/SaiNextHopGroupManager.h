@@ -100,7 +100,7 @@ class NextHopGroupMember {
       ManagedSaiNextHop managedSaiNextHop,
       NextHopWeight nextHopWeight);
 
-  bool isAlive() const {
+  bool isProgrammed() const {
     return std::visit(
         [](auto arg) { return arg && arg->isAlive(); },
         managedNextHopGroupMember_);
@@ -122,6 +122,7 @@ struct SaiNextHopGroupHandle {
     }
     return nextHopGroup->adapterKey();
   }
+  size_t nextHopGroupSize() const;
 };
 
 class SaiNextHopGroupManager {

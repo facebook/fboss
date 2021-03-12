@@ -191,10 +191,7 @@ TEST_F(RouteManagerTest, updateNexthopToNexthopRoute) {
   SaiRouteHandle* saiRouteHandle =
       saiManagerTable->routeManager().getRouteHandle(entry);
   auto nexthopGroupHandle1 = saiRouteHandle->nextHopGroupHandle();
-  auto count = std::count_if(
-      nexthopGroupHandle1->members_.begin(),
-      nexthopGroupHandle1->members_.end(),
-      [](const auto& member) { return member->isAlive(); });
+  auto count = nexthopGroupHandle1->nextHopGroupSize();
   EXPECT_EQ(count, 4);
   tr1.nextHopInterfaces.clear();
   tr1.nextHopInterfaces.push_back(testInterfaces.at(4));
@@ -203,10 +200,7 @@ TEST_F(RouteManagerTest, updateNexthopToNexthopRoute) {
   saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
       r1, r2, RouterID(0));
   auto nexthopGroupHandle2 = saiRouteHandle->nextHopGroupHandle();
-  count = std::count_if(
-      nexthopGroupHandle2->members_.begin(),
-      nexthopGroupHandle2->members_.end(),
-      [](const auto& member) { return member->isAlive(); });
+  count = nexthopGroupHandle2->nextHopGroupSize();
   EXPECT_EQ(count, 2);
   EXPECT_NE(nexthopGroupHandle1, nexthopGroupHandle2);
 }
@@ -229,10 +223,7 @@ TEST_F(RouteManagerTest, updateDropRouteToNextHopRoute) {
   saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
       r1, r2, RouterID(0));
   auto nexthopGroupHandle2 = saiRouteHandle->nextHopGroupHandle();
-  auto count = std::count_if(
-      nexthopGroupHandle2->members_.begin(),
-      nexthopGroupHandle2->members_.end(),
-      [](const auto& member) { return member->isAlive(); });
+  auto count = nexthopGroupHandle2->nextHopGroupSize();
   EXPECT_EQ(count, 4);
   saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
       r2, r1, RouterID(0));
@@ -255,20 +246,14 @@ TEST_F(RouteManagerTest, updateRouteDifferentNextHops) {
   SaiRouteHandle* saiRouteHandle1 =
       saiManagerTable->routeManager().getRouteHandle(routeEntry1);
   auto nexthopGroupHandle1 = saiRouteHandle1->nextHopGroupHandle();
-  auto count = std::count_if(
-      nexthopGroupHandle1->members_.begin(),
-      nexthopGroupHandle1->members_.end(),
-      [](const auto& member) { return member->isAlive(); });
+  auto count = nexthopGroupHandle1->nextHopGroupSize();
   EXPECT_EQ(count, 6);
   auto routeEntry2 =
       saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r2);
   SaiRouteHandle* saiRouteHandle2 =
       saiManagerTable->routeManager().getRouteHandle(routeEntry2);
   auto nexthopGroupHandle2 = saiRouteHandle2->nextHopGroupHandle();
-  count = std::count_if(
-      nexthopGroupHandle2->members_.begin(),
-      nexthopGroupHandle2->members_.end(),
-      [](const auto& member) { return member->isAlive(); });
+  count = nexthopGroupHandle2->nextHopGroupSize();
   EXPECT_EQ(count, 4);
 }
 
@@ -291,10 +276,7 @@ TEST_F(RouteManagerTest, updateCpuRoutetoNextHopRoute) {
       r1, r2, RouterID(0));
   auto nexthopGroupHandle2 = saiRouteHandle->nextHopGroupHandle();
 
-  auto count = std::count_if(
-      nexthopGroupHandle2->members_.begin(),
-      nexthopGroupHandle2->members_.end(),
-      [](const auto& member) { return member->isAlive(); });
+  auto count = nexthopGroupHandle2->nextHopGroupSize();
   EXPECT_EQ(count, 4);
   saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
       r2, r1, RouterID(0));
