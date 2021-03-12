@@ -26,6 +26,7 @@ namespace facebook::fboss {
 
 class SaiManagerTable;
 class SaiPlatform;
+class SaiNeighborManager;
 
 using SaiNeighbor = SaiObject<SaiNeighborTraits>;
 
@@ -50,16 +51,15 @@ class ManagedNeighbor : public SaiObjectEventAggregateSubscriber<
   using FdbWeakptr = std::weak_ptr<const SaiObject<SaiFdbTraits>>;
   using PublisherObjects = std::tuple<RouterInterfaceWeakPtr, FdbWeakptr>;
 
-  // TODO(AGGPORT): support aggregate port ID
   ManagedNeighbor(
-      const SaiManagerTable* managerTable,
+      SaiNeighborManager* manager,
       SaiPortDescriptor port,
       InterfaceID interfaceId,
       folly::IPAddress ip,
       folly::MacAddress mac,
       std::optional<sai_uint32_t> metadata)
       : Base(interfaceId, std::make_tuple(interfaceId, mac)),
-        managerTable_(managerTable),
+        manager_(manager),
         port_(port),
         ip_(ip),
         handle_(std::make_unique<SaiNeighborHandle>()),
@@ -73,7 +73,7 @@ class ManagedNeighbor : public SaiObjectEventAggregateSubscriber<
   }
 
  private:
-  const SaiManagerTable* managerTable_;
+  SaiNeighborManager* manager_;
   SaiPortDescriptor port_;
   folly::IPAddress ip_;
   std::unique_ptr<SaiNeighborHandle> handle_;
@@ -109,6 +109,13 @@ class SaiNeighborManager {
       const SaiNeighborTraits::NeighborEntry& entry) const;
 
   void clear();
+
+  std::shared_ptr<SaiNeighbor> createSaiObject(
+      const SaiNeighborTraits::AdapterHostKey& key,
+      const SaiNeighborTraits::CreateAttributes& attributes,
+      bool notify);
+
+  bool isLinkUp(SaiPortDescriptor port);
 
  private:
   SaiNeighborHandle* getNeighborHandleImpl(
