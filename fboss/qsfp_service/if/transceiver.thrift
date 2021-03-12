@@ -156,6 +156,7 @@ enum RateSelectSetting {
 enum ExtendedSpecComplianceCode {
   UNKNOWN = 0,
   CWDM4_100G = 6,
+  CR4_100G = 11,
   FR1_100G = 38,
 }
 

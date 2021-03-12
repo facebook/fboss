@@ -28,8 +28,8 @@ namespace {
 // Tests that the transceiverInfo object is correctly populated
 TEST(SffTest, transceiverInfoTest) {
   int idx = 1;
-  std::unique_ptr<SffTransceiver> qsfpImpl =
-      std::make_unique<SffTransceiver>(idx);
+  std::unique_ptr<SffCwdm4Transceiver> qsfpImpl =
+      std::make_unique<SffCwdm4Transceiver>(idx);
 
   std::unique_ptr<SffModule> qsfp =
       std::make_unique<SffModule>(nullptr, std::move(qsfpImpl), 4);
@@ -39,6 +39,9 @@ TEST(SffTest, transceiverInfoTest) {
   TransceiverTestsHelper tests(info);
 
   tests.verifyVendorName("FACETEST");
+  EXPECT_EQ(
+      *info.extendedSpecificationComplianceCode_ref(),
+      ExtendedSpecComplianceCode::CWDM4_100G);
   tests.verifyTemp(31.015625);
   tests.verifyVcc(3.2989);
   std::map<std::string, std::vector<double>> laneDom = {
@@ -106,11 +109,29 @@ TEST(SffTest, transceiverInfoTest) {
   EXPECT_EQ(true, info.status_ref().value_or({}).interruptL_ref().value_or({}));
 }
 
+// Tests that a SFF DAC module can properly refresh
+TEST(SffDacTest, transceiverInfoTest) {
+  int idx = 1;
+  std::unique_ptr<SffDacTransceiver> qsfpImpl =
+      std::make_unique<SffDacTransceiver>(idx);
+  std::unique_ptr<SffModule> qsfp =
+      std::make_unique<SffModule>(nullptr, std::move(qsfpImpl), 4);
+
+  qsfp->refresh();
+  TransceiverInfo info = qsfp->getTransceiverInfo();
+  TransceiverTestsHelper tests(info);
+
+  tests.verifyVendorName("FACETEST");
+  EXPECT_EQ(
+      *info.extendedSpecificationComplianceCode_ref(),
+      ExtendedSpecComplianceCode::CR4_100G);
+}
+
 // Tests that a badly programmed module throws an exception
 TEST(BadSffTest, simpleRead) {
   int idx = 1;
-  std::unique_ptr<BadSffTransceiver> qsfpImpl =
-      std::make_unique<BadSffTransceiver>(idx);
+  std::unique_ptr<BadSffCwdm4Transceiver> qsfpImpl =
+      std::make_unique<BadSffCwdm4Transceiver>(idx);
   std::unique_ptr<SffModule> qsfp =
       std::make_unique<SffModule>(nullptr, std::move(qsfpImpl), 4);
 

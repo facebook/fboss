@@ -44,14 +44,19 @@ class FakeTransceiverImpl : public TransceiverImpl {
   std::array<uint8_t, 128> pageLower_;
 };
 
-class SffTransceiver : public FakeTransceiverImpl {
+class SffDacTransceiver : public FakeTransceiverImpl {
  public:
-  explicit SffTransceiver(int module);
+  explicit SffDacTransceiver(int module);
 };
 
-class BadSffTransceiver : public FakeTransceiverImpl {
+class SffCwdm4Transceiver : public FakeTransceiverImpl {
  public:
-  explicit BadSffTransceiver(int module);
+  explicit SffCwdm4Transceiver(int module);
+};
+
+class BadSffCwdm4Transceiver : public FakeTransceiverImpl {
+ public:
+  explicit BadSffCwdm4Transceiver(int module);
 };
 
 class Cmis200GTransceiver : public FakeTransceiverImpl {
