@@ -93,7 +93,7 @@ class WedgeManager : public TransceiverManager {
   // This function will bring all the transceivers out of reset, making use
   // of the specific implementation from each platform. Platforms that bring
   // transceiver out of reset by default will stay no op.
-  void clearAllTransceiverReset();
+  virtual void clearAllTransceiverReset();
 
   /*
    * This function takes the portId, port profile id and creates phy port

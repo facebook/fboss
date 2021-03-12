@@ -26,29 +26,113 @@ namespace {
 class WedgeManagerTest : public ::testing::Test {
  public:
   void SetUp() override {
-    wedgeManager_ = std::make_unique<NiceMock<MockWedgeManager>>();
-    wedgeManager_->makeTransceiverMap();
+    // Create a wedge manager for 16 modules and 4 ports per module
+    wedgeManager_ = std::make_unique<NiceMock<MockWedgeManager>>(16, 4);
+    wedgeManager_->initTransceiverMap();
+    gflags::SetCommandLineOptionWithMode(
+        "qsfp_data_refresh_interval", "0", gflags::SET_FLAGS_DEFAULT);
   }
   std::unique_ptr<NiceMock<MockWedgeManager>> wedgeManager_;
 };
 
-TEST_F(WedgeManagerTest, getTransceiverInfo) {
+TEST_F(WedgeManagerTest, getTransceiverInfoBasic) {
   // If no ids are passed in, info for all should be returned
-  for (const auto& trans : wedgeManager_->mockTransceivers_) {
-    EXPECT_CALL(*trans.second, getTransceiverInfo()).Times(1);
-  }
   std::map<int32_t, TransceiverInfo> transInfo;
   wedgeManager_->getTransceiversInfo(
       transInfo, std::make_unique<std::vector<int32_t>>());
+  {
+    auto synchronizedTransceivers =
+        wedgeManager_->getSynchronizedTransceivers().rlock();
+    EXPECT_EQ((*synchronizedTransceivers).size(), transInfo.size());
+  }
+  for (const auto& info : transInfo) {
+    EXPECT_EQ(info.second.present_ref(), true);
+  }
+  auto cachedTransInfo = transInfo;
+
+  // Refresh transceivers again and make sure the collected time increments
+  /* sleep override */
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+  wedgeManager_->refreshTransceivers();
+  wedgeManager_->getTransceiversInfo(
+      transInfo, std::make_unique<std::vector<int32_t>>());
+
+  for (const auto& info : transInfo) {
+    EXPECT_GT(
+        *info.second.timeCollected_ref(),
+        *cachedTransInfo[info.first].timeCollected_ref());
+  }
 
   // Otherwise, just return the ids requested
   std::vector<int32_t> data = {1, 3, 7};
-  for (const auto& i : data) {
-    MockSffModule* qsfp = wedgeManager_->mockTransceivers_[TransceiverID(i)];
-    EXPECT_CALL(*qsfp, getTransceiverInfo()).Times(1);
-  }
+  transInfo.clear();
   wedgeManager_->getTransceiversInfo(
       transInfo, std::make_unique<std::vector<int32_t>>(data));
+  {
+    auto synchronizedTransceivers =
+        wedgeManager_->getSynchronizedTransceivers().rlock();
+    for (const auto& trans : *synchronizedTransceivers) {
+      if (std::find(data.begin(), data.end(), (int)trans.first) == data.end()) {
+        EXPECT_EQ(transInfo.find(trans.first), transInfo.end());
+      } else {
+        EXPECT_NE(transInfo.find(trans.first), transInfo.end());
+      }
+    }
+  }
+
+  // Remove a transceiver and make sure that port's transceiverInfo says
+  // transceiver is absent
+  wedgeManager_->overridePresence(5, false);
+  wedgeManager_->refreshTransceivers();
+  transInfo.clear();
+  wedgeManager_->getTransceiversInfo(
+      transInfo, std::make_unique<std::vector<int32_t>>());
+  for (auto i = 0; i < wedgeManager_->getNumQsfpModules(); i++) {
+    EXPECT_EQ(*transInfo[i].present_ref(), i != 4); // ID 5 was marked as absent
+  }
+}
+
+TEST_F(WedgeManagerTest, getTransceiverInfoWithReadExceptions) {
+  // Cause read exceptions while refreshing transceivers and confirm that
+  // transceiverInfo still has the old data (this is verified by comparing
+  // timestamps)
+  std::map<int32_t, TransceiverInfo> transInfo;
+  wedgeManager_->getTransceiversInfo(
+      transInfo, std::make_unique<std::vector<int32_t>>());
+  auto cachedTransInfo = transInfo;
+  wedgeManager_->setReadException(
+      false, true); // Read exception only while doing DOM reads
+  wedgeManager_->refreshTransceivers();
+  /* sleep override */
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+  transInfo.clear();
+
+  wedgeManager_->getTransceiversInfo(
+      transInfo, std::make_unique<std::vector<int32_t>>());
+  for (const auto& info : transInfo) {
+    EXPECT_EQ(
+        *info.second.timeCollected_ref(),
+        *cachedTransInfo[info.first].timeCollected_ref());
+    EXPECT_EQ(*info.second.present_ref(), true);
+  }
+  wedgeManager_->setReadException(false, false);
+
+  // Cause read exceptions while reading the management interface. In this case,
+  // the qsfp_service should handle the exception gracefully and still mark
+  // presence for the transceivers but not adding any other data like the
+  // timeCollected timestamp to the transceiverInfo
+  wedgeManager_->setReadException(
+      true, false); // Read exception only while reading mgmt interface
+  wedgeManager_->refreshTransceivers();
+  /* sleep override */
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+  transInfo.clear();
+  wedgeManager_->getTransceiversInfo(
+      transInfo, std::make_unique<std::vector<int32_t>>());
+  for (const auto& info : transInfo) {
+    EXPECT_EQ(*info.second.present_ref(), true);
+    EXPECT_EQ(info.second.timeCollected_ref().has_value(), false);
+  }
 }
 
 TEST_F(WedgeManagerTest, readTransceiver) {
@@ -80,6 +164,103 @@ TEST_F(WedgeManagerTest, writeTransceiver) {
   wedgeManager_->writeTransceiverRegister(response, std::move(request));
   for (const auto& i : data) {
     EXPECT_NE(response.find(i), response.end());
+  }
+}
+
+TEST_F(WedgeManagerTest, modulePresenceTest) {
+  // Tests that the module insertion is handled smoothly
+  auto currentModules = wedgeManager_->mgmtInterfaces();
+  EXPECT_EQ(currentModules.size(), 16);
+  for (auto module : currentModules) {
+    EXPECT_EQ(module.second, TransceiverManagementInterface::SFF);
+  }
+  EXPECT_EQ(
+      wedgeManager_->scanTransceiverPresence(
+          std::make_unique<std::vector<int32_t>>()),
+      16);
+  {
+    auto synchronizedTransceivers =
+        wedgeManager_->getSynchronizedTransceivers().rlock();
+    for (const auto& trans : *synchronizedTransceivers) {
+      QsfpModule* qsfp = dynamic_cast<QsfpModule*>(trans.second.get());
+      // Expected state is MODULE_STATE_DISCOVERED
+      EXPECT_EQ(qsfp->opticsModuleStateMachine_.current_state()[0], 2);
+    }
+  }
+}
+
+TEST_F(WedgeManagerTest, moduleNotPresentTest) {
+  // Tests that the module removal is handled smoothly
+  wedgeManager_->overridePresence(1, false);
+  wedgeManager_->refreshTransceivers();
+  auto currentModules = wedgeManager_->mgmtInterfaces();
+  EXPECT_EQ(currentModules.size(), 15);
+  EXPECT_EQ(
+      wedgeManager_->scanTransceiverPresence(
+          std::make_unique<std::vector<int32_t>>()),
+      15);
+  {
+    auto synchronizedTransceivers =
+        wedgeManager_->getSynchronizedTransceivers().rlock();
+    for (const auto& trans : *synchronizedTransceivers) {
+      QsfpModule* qsfp = dynamic_cast<QsfpModule*>(trans.second.get());
+      if (trans.first == 0) { // id is 0 based here
+        // Expected state is MODULE_STATE_NOT_PRESENT
+        EXPECT_EQ(qsfp->opticsModuleStateMachine_.current_state()[0], 0);
+      } else {
+        // Expected state is MODULE_STATE_DISCOVERED
+        EXPECT_EQ(qsfp->opticsModuleStateMachine_.current_state()[0], 2);
+      }
+    }
+  }
+}
+
+TEST_F(WedgeManagerTest, mgmtInterfaceChangedTest) {
+  // Simulate the case where a SFF module is swapped with a CMIS module
+  wedgeManager_->overridePresence(1, false);
+  wedgeManager_->refreshTransceivers();
+  wedgeManager_->overrideMgmtInterface(
+      1, uint8_t(TransceiverModuleIdentifier::QSFP_PLUS_CMIS));
+  wedgeManager_->overridePresence(1, true);
+  wedgeManager_->refreshTransceivers();
+  auto currentModules = wedgeManager_->mgmtInterfaces();
+  EXPECT_EQ(currentModules.size(), 16);
+  for (auto module : currentModules) {
+    if (module.first == 0) {
+      EXPECT_EQ(module.second, TransceiverManagementInterface::CMIS);
+    } else {
+      EXPECT_EQ(module.second, TransceiverManagementInterface::SFF);
+    }
+  }
+}
+
+TEST_F(WedgeManagerTest, syncPorts) {
+  // Sync the port status for a few ports and confirm that the returned
+  // response is expected
+  std::map<int32_t, TransceiverInfo> info;
+  std::map<int32_t, std::vector<int32_t>> transceiverAndPortsToSync = {
+      {1, std::vector{1, 2}},
+      {2, std::vector{5}},
+      {6, std::vector{9, 10, 11, 12}}};
+  std::map<int32_t, PortStatus> portMap = {};
+
+  for (const auto& sync : transceiverAndPortsToSync) {
+    PortStatus dummyPortStatus;
+    TransceiverIdxThrift idx;
+    idx.transceiverId_ref() = sync.first;
+    dummyPortStatus.transceiverIdx_ref() = idx;
+    for (const auto& port : sync.second) {
+      portMap[port] = dummyPortStatus;
+    }
+  }
+
+  std::unique_ptr<std::map<int32_t, PortStatus>> ports =
+      std::make_unique<std::map<int32_t, PortStatus>>(portMap);
+  wedgeManager_->syncPorts(info, std::move(ports));
+
+  EXPECT_EQ(info.size(), transceiverAndPortsToSync.size());
+  for (const auto& sync : transceiverAndPortsToSync) {
+    EXPECT_NE(info.find(sync.first), info.end());
   }
 }
 } // namespace
