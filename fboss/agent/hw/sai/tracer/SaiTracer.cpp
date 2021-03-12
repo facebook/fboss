@@ -52,7 +52,7 @@ extern "C" {
 
 DEFINE_bool(
     enable_replayer,
-    true,
+    false,
     "Flag to indicate whether function wrapper and logger is enabled.");
 
 DEFINE_bool(
