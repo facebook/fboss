@@ -16,19 +16,26 @@
 
 sai_status_t credo_library_initialize(void);
 
+namespace facebook::fboss {
+
+const std::string& SaiElbert8DDPhyPlatform::getFirmwareDirectory() {
+  static const std::string kFirmwareDir = "/lib/firmware/fboss/credo/f104/";
+  return kFirmwareDir;
+}
+
 namespace {
 static auto constexpr kSaiBootType = "SAI_KEY_BOOT_TYPE";
 static auto constexpr kSaiConfigFile = "SAI_KEY_INIT_CONFIG_FILE";
-const std::string kSaiProfileDir = "/lib/firmware/fboss/credo/gearbox/";
+
 const std::array<std::string, 8> kPhyConfigProfiles = {
-    kSaiProfileDir + "Elbert_16Q_0.xml",
-    kSaiProfileDir + "Elbert_16Q_1.xml",
-    kSaiProfileDir + "Elbert_16Q_2.xml",
-    kSaiProfileDir + "Elbert_16Q_3.xml",
-    kSaiProfileDir + "Elbert_16Q_4.xml",
-    kSaiProfileDir + "Elbert_16Q_5.xml",
-    kSaiProfileDir + "Elbert_16Q_6.xml",
-    kSaiProfileDir + "Elbert_16Q_7.xml"};
+    SaiElbert8DDPhyPlatform::getFirmwareDirectory() + "Elbert_16Q_0.xml",
+    SaiElbert8DDPhyPlatform::getFirmwareDirectory() + "Elbert_16Q_1.xml",
+    SaiElbert8DDPhyPlatform::getFirmwareDirectory() + "Elbert_16Q_2.xml",
+    SaiElbert8DDPhyPlatform::getFirmwareDirectory() + "Elbert_16Q_3.xml",
+    SaiElbert8DDPhyPlatform::getFirmwareDirectory() + "Elbert_16Q_4.xml",
+    SaiElbert8DDPhyPlatform::getFirmwareDirectory() + "Elbert_16Q_5.xml",
+    SaiElbert8DDPhyPlatform::getFirmwareDirectory() + "Elbert_16Q_6.xml",
+    SaiElbert8DDPhyPlatform::getFirmwareDirectory() + "Elbert_16Q_7.xml"};
 
 /*
  * saiProfileGetValue
@@ -71,7 +78,6 @@ sai_service_method_table_t kSaiServiceMethodTable = {
 };
 } // namespace
 
-namespace facebook::fboss {
 SaiElbert8DDPhyPlatform::SaiElbert8DDPhyPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
     uint8_t pimId,

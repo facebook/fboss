@@ -17,6 +17,8 @@ class Elbert8DDAsic;
 
 class SaiElbert8DDPhyPlatform : public SaiHwPlatform {
  public:
+  static const std::string& getFirmwareDirectory();
+
   SaiElbert8DDPhyPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
       uint8_t pimId,
