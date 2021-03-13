@@ -472,8 +472,9 @@ void QsfpModule::refreshLocked() {
   // We found that some module did not enable Rx output squelch by default,
   // which introduced some difficulty to bring link back up when flapped.
   // Here we ensure that Rx output squelch is always enabled.
-  ensureRxOutputSquelchEnabled(
-      apache::thrift::can_throw(*settings.hostLaneSettings_ref()));
+  if (auto hostLaneSettings = settings.hostLaneSettings_ref()) {
+    ensureRxOutputSquelchEnabled(*hostLaneSettings);
+  }
 
   if (customizeWanted || willRefresh) {
     // update either if data is stale or if we customized this
