@@ -1068,28 +1068,102 @@ TYPED_TEST(RouteTest, PruneAddedRoutes) {
       RouteNextHopEntry(r1nexthops, DISTANCE));
 
   updater.program();
-  auto state2 = this->sw_->getState();
   RouteV4::Prefix prefix1{IPAddressV4("20.0.1.51"), 24};
 
   auto newRouteEntry = findLongestMatchRoute<IPAddressV4>(
-      TypeParam::hasStandAloneRib, rid0, prefix1.network, state2);
+      TypeParam::hasStandAloneRib,
+      rid0,
+      prefix1.network,
+      this->sw_->getState());
   EXPECT_NE(nullptr, newRouteEntry);
   EXPECT_EQ(
       newRouteEntry->prefix(), (RouteV4::Prefix{IPAddressV4("20.0.1.0"), 24}));
 
   EXPECT_TRUE(newRouteEntry->isPublished());
-  auto state3{state2};
+  auto revertState = this->sw_->getState();
   SwitchState::revertNewRouteEntry<IPAddressV4>(
-      TypeParam::hasStandAloneRib, rid0, newRouteEntry, nullptr, &state3);
+      TypeParam::hasStandAloneRib, rid0, newRouteEntry, nullptr, &revertState);
   // Make sure that state3 changes as a result of pruning
-  EXPECT_NE(state2, state3);
   auto remainingRouteEntry = findLongestMatchRoute<IPAddressV4>(
-      TypeParam::hasStandAloneRib, rid0, prefix1.network, state3);
+      TypeParam::hasStandAloneRib, rid0, prefix1.network, revertState);
   // Will match default route after delete
   EXPECT_EQ(
       remainingRouteEntry->prefix(),
       (RouteV4::Prefix{IPAddressV4("0.0.0.0"), 0}));
 }
+
+// Test that pruning of changed routes happens correctly.
+TYPED_TEST(RouteTest, PruneChangedRoutes) {
+  // Add routes
+  // Change one of them
+  // Prune the changed one
+  // Check that the pruning happened correctly
+  // state1
+  //  ... Add route for prefix41
+  //  ... Add route for prefix42 (RouteForwardAction::TO_CPU)
+  // state2
+  auto rid0 = RouterID(0);
+  SwSwitchRouteUpdateWrapper updater(this->sw_);
+
+  RouteV4::Prefix prefix41{IPAddressV4("20.0.21.41"), 32};
+  auto nexthops41 = makeNextHops({"10.0.0.1", "face:b00c:0:21::41"});
+  updater.addRoute(
+      rid0,
+      prefix41.network,
+      prefix41.mask,
+      kClientA,
+      RouteNextHopEntry(nexthops41, DISTANCE));
+
+  RouteV6::Prefix prefix42{IPAddressV6("facf:b00c:0:21::42"), 96};
+  updater.addRoute(
+      rid0,
+      prefix42.network,
+      prefix42.mask,
+      kClientA,
+      RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
+
+  updater.program();
+
+  auto oldEntry = findLongestMatchRoute<IPAddressV6>(
+      TypeParam::hasStandAloneRib,
+      rid0,
+      prefix42.network,
+      this->sw_->getState());
+  EXPECT_NE(nullptr, oldEntry);
+  EXPECT_TRUE(oldEntry->isToCPU());
+
+  // state2
+  //  ... Make route for prefix42 resolve to actual nexthops
+  // state3
+
+  auto nexthops42 = makeNextHops({"10.0.0.1", "face:b00c:0:21::42"});
+  updater.addRoute(
+      rid0,
+      prefix42.network,
+      prefix42.mask,
+      kClientA,
+      RouteNextHopEntry(nexthops42, DISTANCE));
+  updater.program();
+
+  auto newEntry = findLongestMatchRoute<IPAddressV6>(
+      TypeParam::hasStandAloneRib,
+      rid0,
+      prefix42.network,
+      this->sw_->getState());
+
+  EXPECT_FALSE(newEntry->isToCPU());
+  // state3
+  //  ... revert route for prefix42
+  // state4
+  auto revertState = this->sw_->getState();
+  SwitchState::revertNewRouteEntry(
+      TypeParam::hasStandAloneRib, rid0, newEntry, oldEntry, &revertState);
+
+  auto revertedEntry = findLongestMatchRoute<IPAddressV6>(
+      TypeParam::hasStandAloneRib, rid0, prefix42.network, revertState);
+  EXPECT_TRUE(revertedEntry->isToCPU());
+}
+
 // Test interface routes when we have more than one address per
 // address family in an interface
 template <typename StandAloneRib>
