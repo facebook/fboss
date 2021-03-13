@@ -553,14 +553,11 @@ class LookupClassRouteUpdaterWarmbootTest
   using AddrT = typename LookupClassRouteUpdaterWarmbootTypeT::AddrT;
   static constexpr auto hasRouteFix =
       LookupClassRouteUpdaterWarmbootTypeT::hasRouteFix;
+  static constexpr auto hasStandAloneRib =
+      LookupClassRouteUpdaterWarmbootTypeT::hasStandAloneRib;
 
  public:
   void SetUp() override {
-    using NeighborTableT = std::conditional_t<
-        std::is_same<AddrT, folly::IPAddressV4>::value,
-        ArpTable,
-        NdpTable>;
-
     if (hasRouteFix) {
       gflags::SetCommandLineOptionWithMode(
           "queue_per_host_route_fix", "true", gflags::SET_FLAGS_VALUE);
@@ -568,29 +565,13 @@ class LookupClassRouteUpdaterWarmbootTest
       gflags::SetCommandLineOptionWithMode(
           "queue_per_host_route_fix", "false", gflags::SET_FLAGS_VALUE);
     }
-
-    auto newState = testStateAWithLookupClasses();
-
-    auto vlan = newState->getVlans()->getVlanIf(this->kVlan());
-    auto neighborTable = vlan->template getNeighborTable<NeighborTableT>();
-
-    neighborTable->addEntry(NeighborEntryFields(
-        this->kIpAddressA(),
-        this->kMacAddressA(),
-        PortDescriptor(this->kPortID()),
-        this->kInterfaceID(),
-        NeighborState::PENDING));
-
-    neighborTable->updateEntry(
-        this->kIpAddressA(),
-        this->kMacAddressA(),
-        PortDescriptor(this->kPortID()),
-        this->kInterfaceID(),
-        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
-
-    RouteUpdater updater(newState->getRouteTables());
-    updater.addInterfaceAndLinkLocalRoutes(newState->getInterfaces());
-
+    auto config = testConfigAWithLookupClasses();
+    auto flags = hasStandAloneRib ? SwitchFlags::ENABLE_STANDALONE_RIB
+                                  : SwitchFlags::DEFAULT;
+    this->handle_ = createTestHandle(&config, flags);
+    this->sw_ = this->handle_->getSw();
+    this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+    SwSwitchRouteUpdateWrapper updater(this->sw_);
     RouteNextHopSet nexthops;
     // resolved by intf 1
     nexthops.emplace(
@@ -604,18 +585,8 @@ class LookupClassRouteUpdaterWarmbootTest
         this->kroutePrefix1().mask,
         this->kClientID(),
         RouteNextHopEntry(nexthops, AdminDistance::MAX_ADMIN_DISTANCE));
-
-    auto newRt = updater.updateDone();
-    newState->resetRouteTables(newRt);
-
-    auto routeTableRib = newState->getRouteTables()
-                             ->getRouteTable(this->kRid())
-                             ->template getRib<AddrT>();
-    auto route = routeTableRib->routes()->getRouteIf(this->kroutePrefix1());
-    route->updateClassID(cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
-
-    this->handle_ = createTestHandle(newState);
-    this->sw_ = this->handle_->getSw();
+    updater.program();
+    waitForStateUpdates(this->sw_);
   }
 };
 
