@@ -45,7 +45,13 @@ class ForwardingInformationBaseContainer
   const std::shared_ptr<ForwardingInformationBaseV6>& getFibV6() const;
 
   template <typename AddressT>
-  const std::shared_ptr<ForwardingInformationBase<AddressT>>& getFib() const;
+  const std::shared_ptr<ForwardingInformationBase<AddressT>>& getFib() const {
+    if constexpr (std::is_same_v<folly::IPAddressV6, AddressT>) {
+      return getFibV6();
+    } else {
+      return getFibV4();
+    }
+  }
   template <typename AddressT>
   void setFib(const std::shared_ptr<ForwardingInformationBase<AddressT>>& fib) {
     if constexpr (std::is_same_v<folly::IPAddressV6, AddressT>) {
@@ -67,17 +73,5 @@ class ForwardingInformationBaseContainer
   using NodeBaseT::NodeBaseT;
   friend class CloneAllocator;
 };
-
-template <>
-inline const std::shared_ptr<ForwardingInformationBase<folly::IPAddressV4>>&
-ForwardingInformationBaseContainer::getFib() const {
-  return getFibV4();
-}
-
-template <>
-inline const std::shared_ptr<ForwardingInformationBase<folly::IPAddressV6>>&
-ForwardingInformationBaseContainer::getFib() const {
-  return getFibV6();
-}
 
 } // namespace facebook::fboss
