@@ -24,6 +24,7 @@
 
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/StandaloneRibConversions.h"
 #include "fboss/agent/SwSwitch.h"
@@ -1619,28 +1620,24 @@ bool BcmSwitch::isRouteUpdateValid(const StateDelta& delta) const {
   };
 
   bool isValid = true;
-  for (const auto& rDelta : delta.getRouteTablesDelta()) {
-    forEachChanged(
-        rDelta.template getRoutesDelta<AddrT>(),
-        [&isValid, validateLabeledRoute](
-            const std::shared_ptr<RouteT>& /*oldRoute*/,
-            const std::shared_ptr<RouteT>& newRoute) {
-          if (!validateLabeledRoute(newRoute)) {
-            isValid = false;
-            return LoopAction::BREAK;
-          }
-          return LoopAction::CONTINUE;
-        },
-        [&isValid,
-         validateLabeledRoute](const std::shared_ptr<RouteT>& addedRoute) {
-          if (!validateLabeledRoute(addedRoute)) {
-            isValid = false;
-            return LoopAction::BREAK;
-          }
-          return LoopAction::CONTINUE;
-        },
-        [](const std::shared_ptr<RouteT>& /*removedRoute*/) {});
-  }
+  forEachChangedRoute<AddrT>(
+      FLAGS_enable_standalone_rib,
+      delta,
+      [&isValid, validateLabeledRoute](
+          RouterID /*rid*/,
+          const std::shared_ptr<RouteT>& /*oldRoute*/,
+          const std::shared_ptr<RouteT>& newRoute) {
+        if (isValid && !validateLabeledRoute(newRoute)) {
+          isValid = false;
+        }
+      },
+      [&isValid, validateLabeledRoute](
+          RouterID /*rid*/, const std::shared_ptr<RouteT>& addedRoute) {
+        if (isValid && !validateLabeledRoute(addedRoute)) {
+          isValid = false;
+        }
+      },
+      [](RouterID /*rid*/, const std::shared_ptr<RouteT>& /*removedRoute*/) {});
   return isValid;
 }
 
