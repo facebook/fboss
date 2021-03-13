@@ -1110,7 +1110,6 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
 
   // remove all routes to be deleted
   processRemovedRoutes(delta);
-  processRemovedFibRoutes(delta);
 
   // Any neighbor removals, and modify appliedState if some changes fail to
   // apply
@@ -1189,7 +1188,6 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
 
   // Process any new routes or route changes
   processAddedChangedRoutes(delta, &appliedState);
-  processAddedChangedFibRoutes(delta, &appliedState);
 
   processAddedPorts(delta);
   processChangedPorts(delta);
@@ -2233,49 +2231,15 @@ void BcmSwitch::processRemovedRoute(
 }
 
 void BcmSwitch::processRemovedRoutes(const StateDelta& delta) {
-  for (auto const& rtDelta : delta.getRouteTablesDelta()) {
-    if (!rtDelta.getOld()) {
-      // no old route table, must not removed route, skip
-      continue;
-    }
-    RouterID id = rtDelta.getOld()->getID();
-    forEachRemoved(
-        rtDelta.getRoutesV4Delta(),
-        &BcmSwitch::processRemovedRoute<RouteV4>,
-        this,
-        id);
-    forEachRemoved(
-        rtDelta.getRoutesV6Delta(),
-        &BcmSwitch::processRemovedRoute<RouteV6>,
-        this,
-        id);
-  }
-}
-
-void BcmSwitch::processRemovedFibRoutes(const StateDelta& delta) {
-  for (const auto& fibDelta : delta.getFibsDelta()) {
-    auto oldFib = fibDelta.getOld();
-
-    if (!oldFib) {
-      // This FIB did not exist in the previous state. Thus, all routes in it
-      // must necessarily have been _added_.
-      continue;
-    }
-
-    CHECK(oldFib);
-    RouterID vrf = oldFib->getID();
-
-    forEachRemoved(
-        fibDelta.getV4FibDelta(),
-        &BcmSwitch::processRemovedRoute<RouteV4>,
-        this,
-        vrf);
-    forEachRemoved(
-        fibDelta.getV6FibDelta(),
-        &BcmSwitch::processRemovedRoute<RouteV6>,
-        this,
-        vrf);
-  }
+  forEachChangedRoute(
+      FLAGS_enable_standalone_rib,
+      delta,
+      [](RouterID /*id*/, const auto& /*oldRoute*/, const auto& /*newRoute*/) {
+      },
+      [](RouterID /*id*/, const auto& /*addedRoute*/) {},
+      [this](RouterID rid, const auto& deleted) {
+        processRemovedRoute(rid, deleted);
+      });
 }
 
 void BcmSwitch::processAddedChangedRoutes(
@@ -2296,88 +2260,48 @@ void BcmSwitch::processRouteTableDelta(
     // typically indicate label stack depth exceeded.
     throw FbossError("invalid route update");
   }
-  for (auto const& rtDelta : delta.getRouteTablesDelta()) {
-    if (!rtDelta.getNew()) {
-      // no new route table, must not have added or changed route, skip
-      continue;
-    }
-    RouterID id = rtDelta.getNew()->getID();
-    forEachChanged(
-        rtDelta.template getRoutesDelta<AddrT>(),
-        [&](const shared_ptr<RouteT>& oldRoute,
-            const shared_ptr<RouteT>& newRoute) {
-          try {
-            processChangedRoute(id, oldRoute, newRoute);
-          } catch (const BcmError& e) {
-            rethrowIfHwNotFull(e);
-            discardedPrefixes[id].push_back(oldRoute->prefix());
-          }
-        },
-        [&](const shared_ptr<RouteT>& addedRoute) {
-          try {
-            processAddedRoute(id, addedRoute);
-          } catch (const BcmError& e) {
-            rethrowIfHwNotFull(e);
-            discardedPrefixes[id].push_back(addedRoute->prefix());
-          }
-        },
-        [](const shared_ptr<RouteT>& /*deletedRoute*/) {
-          // do nothing
-        });
-  }
+  forEachChangedRoute<AddrT>(
+      FLAGS_enable_standalone_rib,
+      delta,
+      [&](RouterID id,
+          const shared_ptr<RouteT>& oldRoute,
+          const shared_ptr<RouteT>& newRoute) {
+        try {
+          processChangedRoute(id, oldRoute, newRoute);
+        } catch (const BcmError& e) {
+          rethrowIfHwNotFull(e);
+          discardedPrefixes[id].push_back(oldRoute->prefix());
+        }
+      },
+      [&](RouterID id, const shared_ptr<RouteT>& addedRoute) {
+        try {
+          processAddedRoute(id, addedRoute);
+        } catch (const BcmError& e) {
+          rethrowIfHwNotFull(e);
+          discardedPrefixes[id].push_back(addedRoute->prefix());
+        }
+      },
+      [](RouterID /*rid*/, const shared_ptr<RouteT>& /*deletedRoute*/) {
+        // do nothing
+      });
 
   // discard  routes
   for (const auto& entry : discardedPrefixes) {
     const auto id = entry.first;
     for (const auto& prefix : entry.second) {
-      const auto newRoute = delta.newState()
-                                ->getRouteTables()
-                                ->getRouteTable(id)
-                                ->template getRib<AddrT>()
-                                ->routes()
-                                ->getRouteIf(prefix);
-      const auto oldRoute = delta.oldState()
-                                ->getRouteTables()
-                                ->getRouteTable(id)
-                                ->template getRib<AddrT>()
-                                ->routes()
-                                ->getRouteIf(prefix);
+      const auto newRoute = findRoute<AddrT>(
+          FLAGS_enable_standalone_rib,
+          id,
+          prefix.toCidrNetwork(),
+          delta.newState());
+      const auto oldRoute = findRoute<AddrT>(
+          FLAGS_enable_standalone_rib,
+          id,
+          prefix.toCidrNetwork(),
+          delta.oldState());
       SwitchState::revertNewRouteEntry(
-          false, id, newRoute, oldRoute, appliedState);
+          FLAGS_enable_standalone_rib, id, newRoute, oldRoute, appliedState);
     }
-  }
-}
-
-void BcmSwitch::processAddedChangedFibRoutes(
-    const StateDelta& delta,
-    std::shared_ptr<SwitchState>* /* appliedState */) {
-  for (auto const& fibDelta : delta.getFibsDelta()) {
-    auto newFib = fibDelta.getNew();
-
-    if (!newFib) {
-      // This FIB does not exist in the new tate. Thus, all routes in it
-      // must necessarily have been deleted.
-      continue;
-    }
-
-    CHECK(newFib);
-    RouterID vrf = newFib->getID();
-
-    forEachChanged(
-        fibDelta.getV4FibDelta(),
-        &BcmSwitch::processChangedRoute<RouteV4>,
-        &BcmSwitch::processAddedRoute<RouteV4>,
-        [&](BcmSwitch*, const RouterID&, const shared_ptr<RouteV4>&) {},
-        this,
-        vrf);
-
-    forEachChanged(
-        fibDelta.getV6FibDelta(),
-        &BcmSwitch::processChangedRoute<RouteV6>,
-        &BcmSwitch::processAddedRoute<RouteV6>,
-        [&](BcmSwitch*, const RouterID&, const shared_ptr<RouteV6>&) {},
-        this,
-        vrf);
   }
 }
 
