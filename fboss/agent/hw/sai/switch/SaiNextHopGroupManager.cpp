@@ -99,6 +99,7 @@ NextHopGroupMember::NextHopGroupMember(
         using ObjectTraits = typename std::decay_t<decltype(
             managedNextHop)>::element_type::ObjectTraits;
         auto key = managedNextHop->adapterHostKey();
+        std::ignore = key;
         using ManagedMemberType = ManagedSaiNextHopGroupMember<ObjectTraits>;
         auto managedMember = std::make_shared<ManagedMemberType>(
             manager, managedNextHop, nexthopGroupId, nextHopWeight);
