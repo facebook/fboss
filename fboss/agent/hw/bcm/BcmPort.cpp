@@ -1081,6 +1081,11 @@ void BcmPort::updateStats() {
     toSubtractFromInDiscardsRaw.emplace_back(
         *lastPortStats.inPause__ref(), *curPortStats.inPause__ref());
   }
+  // as with pause, remove incoming PFC frames from the discards
+  // as well
+  toSubtractFromInDiscardsRaw.emplace_back(
+      *lastPortStats.inPfcCtrl__ref(), *curPortStats.inPfcCtrl__ref());
+
   *curPortStats.inDiscards__ref() += utility::subtractIncrements(
       {*lastPortStats.inDiscardsRaw__ref(), *curPortStats.inDiscardsRaw__ref()},
       toSubtractFromInDiscardsRaw);
