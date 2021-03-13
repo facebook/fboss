@@ -86,17 +86,17 @@ class HwMPLSTest : public HwLinkStateDependentTest {
       uint8_t mask,
       PortDescriptor port,
       LabelForwardingAction::LabelStack stack) {
-    auto state = ecmpHelper_->resolveNextHops(
+    applyNewState(ecmpHelper_->resolveNextHops(
         getProgrammedState(),
         {
             port,
-        });
+        }));
 
-    applyNewState(ecmpHelper_->setupIp2MplsECMPForwarding(
-        state,
+    ecmpHelper_->programIp2MplsRoutes(
+        getRouteUpdateWrapper(),
         {port},
         {{port, std::move(stack)}},
-        {RoutePrefixV6{prefix, mask}}));
+        {RoutePrefixV6{prefix, mask}});
   }
 
   LabelForwardingEntry::Label programLabelSwap(PortDescriptor port) {
