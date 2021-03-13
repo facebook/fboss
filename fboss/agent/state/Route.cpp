@@ -42,9 +42,8 @@ RouteFields<AddrT>::RouteFields(
 
 template <typename AddrT>
 bool RouteFields<AddrT>::operator==(const RouteFields& rf) const {
-  return (
-      flags == rf.flags && prefix == rf.prefix &&
-      nexthopsmulti == rf.nexthopsmulti && fwd == rf.fwd);
+  return std::tie(flags, prefix, nexthopsmulti, fwd, classID) ==
+      std::tie(rf.flags, rf.prefix, rf.nexthopsmulti, rf.fwd, rf.classID);
 }
 
 template <typename AddrT>
