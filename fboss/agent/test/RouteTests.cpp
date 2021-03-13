@@ -12,6 +12,7 @@
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/state/SwitchState-defs.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -1053,6 +1054,42 @@ TYPED_TEST(RouteTest, changedRoutesPostUpdate) {
       {});
 }
 
+TYPED_TEST(RouteTest, PruneAddedRoutes) {
+  auto rid0 = RouterID(0);
+  SwSwitchRouteUpdateWrapper updater(this->sw_);
+  auto r1prefix = IPAddressV4("20.0.1.51");
+  auto r1prefixLen = 24;
+  auto r1nexthops = makeNextHops({"10.0.0.1", "30.0.21.51" /* unresolved */});
+  updater.addRoute(
+      rid0,
+      r1prefix,
+      r1prefixLen,
+      kClientA,
+      RouteNextHopEntry(r1nexthops, DISTANCE));
+
+  updater.program();
+  auto state2 = this->sw_->getState();
+  RouteV4::Prefix prefix1{IPAddressV4("20.0.1.51"), 24};
+
+  auto newRouteEntry = findLongestMatchRoute<IPAddressV4>(
+      TypeParam::hasStandAloneRib, rid0, prefix1.network, state2);
+  EXPECT_NE(nullptr, newRouteEntry);
+  EXPECT_EQ(
+      newRouteEntry->prefix(), (RouteV4::Prefix{IPAddressV4("20.0.1.0"), 24}));
+
+  EXPECT_TRUE(newRouteEntry->isPublished());
+  auto state3{state2};
+  SwitchState::revertNewRouteEntry<IPAddressV4>(
+      TypeParam::hasStandAloneRib, rid0, newRouteEntry, nullptr, &state3);
+  // Make sure that state3 changes as a result of pruning
+  EXPECT_NE(state2, state3);
+  auto remainingRouteEntry = findLongestMatchRoute<IPAddressV4>(
+      TypeParam::hasStandAloneRib, rid0, prefix1.network, state3);
+  // Will match default route after delete
+  EXPECT_EQ(
+      remainingRouteEntry->prefix(),
+      (RouteV4::Prefix{IPAddressV4("0.0.0.0"), 0}));
+}
 // Test interface routes when we have more than one address per
 // address family in an interface
 template <typename StandAloneRib>
