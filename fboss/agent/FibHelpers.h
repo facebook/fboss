@@ -51,7 +51,7 @@ template <typename Func>
 void forAllRoutes(
     bool isStandaloneRib,
     const std::shared_ptr<SwitchState>& state,
-    Func& func) {
+    Func func) {
   if (isStandaloneRib) {
     for (const auto& fibContainer : *state->getFibs()) {
       auto rid = fibContainer->getID();

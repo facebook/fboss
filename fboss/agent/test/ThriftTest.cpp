@@ -854,6 +854,18 @@ TYPED_TEST(ThriftTest, addUnicastRoutesIsHwProtected) {
       FbossFibUpdateError);
 }
 
+TYPED_TEST(ThriftTest, getRouteTable) {
+  this->sw_->fibSynced();
+  ThriftHandler handler(this->sw_);
+  auto [v4Routes, v6Routes] =
+      getRouteCount(TypeParam::hasStandAloneRib, this->sw_->getState());
+  std::vector<UnicastRoute> routeTable;
+  handler.getRouteTable(routeTable);
+  // 6 intf routes + 2 default routes + 1 link local route
+  EXPECT_EQ(9, v4Routes + v6Routes);
+  EXPECT_EQ(9, routeTable.size());
+}
+
 std::unique_ptr<MplsRoute> makeMplsRoute(
     int32_t mplsLabel,
     std::string nxtHop,

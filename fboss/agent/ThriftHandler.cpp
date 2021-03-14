@@ -1185,39 +1185,26 @@ void ThriftHandler::setPortState(int32_t portNum, bool enable) {
 void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  auto appliedState = sw_->getState();
-  for (const auto& routeTable : (*appliedState->getRouteTables())) {
-    for (const auto& ipv4 : *(routeTable->getRibV4()->routes())) {
-      UnicastRoute tempRoute;
-      if (!ipv4->isResolved()) {
-        XLOG(INFO) << "Skipping unresolved route: " << ipv4->toFollyDynamic();
-        continue;
-      }
-      auto fwdInfo = ipv4->getForwardInfo();
-      tempRoute.dest.ip = toBinaryAddress(ipv4->prefix().network);
-      tempRoute.dest.prefixLength = ipv4->prefix().mask;
-      *tempRoute.nextHopAddrs_ref() =
-          util::fromFwdNextHops(fwdInfo.getNextHopSet());
-      *tempRoute.nextHops_ref() =
-          util::fromRouteNextHopSet(fwdInfo.getNextHopSet());
-      routes.emplace_back(std::move(tempRoute));
-    }
-    for (const auto& ipv6 : *(routeTable->getRibV6()->routes())) {
-      UnicastRoute tempRoute;
-      if (!ipv6->isResolved()) {
-        XLOG(INFO) << "Skipping unresolved route: " << ipv6->toFollyDynamic();
-        continue;
-      }
-      auto fwdInfo = ipv6->getForwardInfo();
-      tempRoute.dest.ip = toBinaryAddress(ipv6->prefix().network);
-      tempRoute.dest.prefixLength = ipv6->prefix().mask;
-      *tempRoute.nextHopAddrs_ref() =
-          util::fromFwdNextHops(fwdInfo.getNextHopSet());
-      *tempRoute.nextHops_ref() =
-          util::fromRouteNextHopSet(fwdInfo.getNextHopSet());
-      routes.emplace_back(std::move(tempRoute));
-    }
-  }
+  forAllRoutes(
+      sw_->isStandaloneRibEnabled(),
+      sw_->getState(),
+      [&routes](RouterID /*rid*/, const auto& route) {
+        UnicastRoute tempRoute;
+        if (!route->isResolved()) {
+          XLOG(INFO) << "Skipping unresolved route: "
+                     << route->toFollyDynamic();
+          return;
+        }
+        auto fwdInfo = route->getForwardInfo();
+        tempRoute.dest_ref()->ip_ref() =
+            toBinaryAddress(route->prefix().network);
+        tempRoute.dest_ref()->prefixLength_ref() = route->prefix().mask;
+        tempRoute.nextHopAddrs_ref() =
+            util::fromFwdNextHops(fwdInfo.getNextHopSet());
+        tempRoute.nextHops_ref() =
+            util::fromRouteNextHopSet(fwdInfo.getNextHopSet());
+        routes.emplace_back(std::move(tempRoute));
+      });
 }
 
 void ThriftHandler::getRouteTableByClient(
