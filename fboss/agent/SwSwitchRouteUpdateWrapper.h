@@ -32,7 +32,7 @@ class SwSwitchRouteUpdateWrapper : public RouteUpdateWrapper {
   AdminDistance clientIdToAdminDistance(ClientID clientID) const override;
   void updateStats(
       const RoutingInformationBase::UpdateStatistics& stats) override;
-  void programLegacyRib() override;
+  void programLegacyRib(const SyncFibFor& syncFibFor) override;
   void programClassIDLegacyRib(
       RouterID rid,
       const std::vector<folly::CIDRNetwork>& prefixes,

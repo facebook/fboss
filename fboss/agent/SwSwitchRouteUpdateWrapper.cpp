@@ -54,9 +54,10 @@ RoutingInformationBase* SwSwitchRouteUpdateWrapper::getRib() {
   return sw_->getRib();
 }
 
-void SwSwitchRouteUpdateWrapper::programLegacyRib() {
-  auto updateFn = [this](const std::shared_ptr<SwitchState>& in) {
-    auto [newState, stats] = programLegacyRibHelper(in);
+void SwSwitchRouteUpdateWrapper::programLegacyRib(
+    const SyncFibFor& syncFibFor) {
+  auto updateFn = [this, &syncFibFor](const std::shared_ptr<SwitchState>& in) {
+    auto [newState, stats] = programLegacyRibHelper(in, syncFibFor);
     updateStats(stats);
     return newState;
   };

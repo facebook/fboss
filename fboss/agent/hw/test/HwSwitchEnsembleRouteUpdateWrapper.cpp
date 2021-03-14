@@ -53,9 +53,10 @@ RoutingInformationBase* HwSwitchEnsembleRouteUpdateWrapper::getRib() {
   return hwEnsemble_->getRib();
 }
 
-void HwSwitchEnsembleRouteUpdateWrapper::programLegacyRib() {
+void HwSwitchEnsembleRouteUpdateWrapper::programLegacyRib(
+    const SyncFibFor& syncFibFor) {
   auto [newState, stats] =
-      programLegacyRibHelper(hwEnsemble_->getProgrammedState());
+      programLegacyRibHelper(hwEnsemble_->getProgrammedState(), syncFibFor);
   updateStats(stats);
   hwEnsemble_->getHwSwitch()->transactionsSupported()
       ? hwEnsemble_->applyNewStateTransaction(newState)

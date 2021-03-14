@@ -39,7 +39,7 @@ class HwSwitchEnsembleRouteUpdateWrapper : public RouteUpdateWrapper {
       const RoutingInformationBase::UpdateStatistics& /*stats*/) override {}
   AdminDistance clientIdToAdminDistance(ClientID clientId) const override;
   RoutingInformationBase* getRib() override;
-  void programLegacyRib() override;
+  void programLegacyRib(const SyncFibFor& syncFibFor) override;
   void programClassIDLegacyRib(
       RouterID rid,
       const std::vector<folly::CIDRNetwork>& prefixes,

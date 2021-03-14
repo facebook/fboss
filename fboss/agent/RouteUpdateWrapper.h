@@ -60,9 +60,9 @@ class RouteUpdateWrapper {
 
  private:
   virtual RoutingInformationBase* getRib() = 0;
-  virtual void programLegacyRib() = 0;
+  virtual void programLegacyRib(const SyncFibFor& syncFibFor) = 0;
   void printStats(const UpdateStatistics& stats) const;
-  void programStandAloneRib();
+  void programStandAloneRib(const SyncFibFor& syncFibFor);
   virtual void updateStats(const UpdateStatistics& stats) = 0;
   virtual AdminDistance clientIdToAdminDistance(ClientID clientID) const = 0;
   virtual void programClassIDLegacyRib(
@@ -83,7 +83,9 @@ class RouteUpdateWrapper {
       const std::vector<folly::CIDRNetwork>& prefixes,
       std::optional<cfg::AclLookupClass> classId);
   std::pair<std::shared_ptr<SwitchState>, UpdateStatistics>
-  programLegacyRibHelper(const std::shared_ptr<SwitchState>& in) const;
+  programLegacyRibHelper(
+      const std::shared_ptr<SwitchState>& in,
+      const SyncFibFor& syncFibFor) const;
   RouteUpdateWrapper(
       bool isStandaloneRibEnabled,
       std::optional<FibUpdateFunction> fibUpdateFn,
@@ -94,7 +96,6 @@ class RouteUpdateWrapper {
 
   std::unordered_map<std::pair<RouterID, ClientID>, AddDelRoutes>
       ribRoutesToAddDel_;
-  std::unordered_set<RouterIDAndClient> syncFibFor_;
   bool isStandaloneRibEnabled_{false};
   std::optional<FibUpdateFunction> fibUpdateFn_;
   void* fibUpdateCookie_{nullptr};

@@ -70,14 +70,12 @@ void RouteUpdateWrapper::delRoute(
 }
 
 void RouteUpdateWrapper::program(const SyncFibFor& syncFibFor) {
-  syncFibFor_ = syncFibFor;
   if (isStandaloneRibEnabled_) {
-    programStandAloneRib();
+    programStandAloneRib(syncFibFor);
   } else {
-    programLegacyRib();
+    programLegacyRib(syncFibFor);
   }
   ribRoutesToAddDel_.clear();
-  syncFibFor_.clear();
 }
 
 void RouteUpdateWrapper::programMinAlpmState() {
@@ -103,7 +101,8 @@ void RouteUpdateWrapper::programMinAlpmState() {
 
 std::pair<std::shared_ptr<SwitchState>, RouteUpdateWrapper::UpdateStatistics>
 RouteUpdateWrapper::programLegacyRibHelper(
-    const std::shared_ptr<SwitchState>& in) const {
+    const std::shared_ptr<SwitchState>& in,
+    const SyncFibFor& syncFibFor) const {
   UpdateStatistics stats;
   auto state = in->clone();
   RouteUpdater updater(state->getRouteTables());
@@ -116,7 +115,7 @@ RouteUpdateWrapper::programLegacyRibHelper(
     auto& toDel = addDelRoutes.toDel;
     RouterID routerId = ridClientId.first;
     ClientID clientId = ridClientId.second;
-    if (syncFibFor_.find(ridClientId) != syncFibFor_.end()) {
+    if (syncFibFor.find(ridClientId) != syncFibFor.end()) {
       updater.removeAllRoutesForClient(routerId, clientId);
     }
     for (auto& route : toAdd) {
@@ -187,7 +186,7 @@ void RouteUpdateWrapper::printStats(const UpdateStatistics& stats) const {
              << stats.duration.count() << " us ";
 }
 
-void RouteUpdateWrapper::programStandAloneRib() {
+void RouteUpdateWrapper::programStandAloneRib(const SyncFibFor& syncFibFor) {
   for (auto [ridClientId, addDelRoutes] : ribRoutesToAddDel_) {
     auto stats = getRib()->update(
         ridClientId.first,
@@ -195,7 +194,7 @@ void RouteUpdateWrapper::programStandAloneRib() {
         clientIdToAdminDistance(ridClientId.second),
         addDelRoutes.toAdd,
         addDelRoutes.toDel,
-        syncFibFor_.find(ridClientId) != syncFibFor_.end(),
+        syncFibFor.find(ridClientId) != syncFibFor.end(),
         "RIB update",
         *fibUpdateFn_,
         fibUpdateCookie_);
