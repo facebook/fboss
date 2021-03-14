@@ -349,50 +349,6 @@ RouteNextHopSet newNextHops(int n, std::string prefix) {
   return h;
 }
 
-// Test deleting routes
-TEST(Route, delRoutes) {
-  auto stateV1 = make_shared<SwitchState>();
-  stateV1->publish();
-  auto tables1 = stateV1->getRouteTables();
-  auto rid = RouterID(0);
-  RouteUpdater u1(tables1);
-
-  RouteV4::Prefix prefix10{IPAddressV4("10.10.10.10"), 32};
-  RouteV4::Prefix prefix22{IPAddressV4("22.22.22.22"), 32};
-
-  u1.addRoute(
-      rid,
-      IPAddress("10.10.10.10"),
-      32,
-      CLIENT_A,
-      RouteNextHopEntry(newNextHops(3, "1.1.1."), DISTANCE));
-  u1.addRoute(
-      rid,
-      IPAddress("22.22.22.22"),
-      32,
-      CLIENT_B,
-      RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
-  tables1 = u1.updateDone();
-  EXPECT_NODEMAP_MATCH(tables1);
-
-  // Both routes should be present
-  auto ribV4 = tables1->getRouteTable(rid)->getRibV4();
-  EXPECT_TRUE(nullptr != ribV4->exactMatch(prefix10));
-  EXPECT_TRUE(nullptr != ribV4->exactMatch(prefix22));
-
-  // delRoute() should work for the route with RouteForwardAction::TO_CPU.
-  RouteUpdater u2(tables1);
-  u2.delRoute(rid, IPAddress("22.22.22.22"), 32, CLIENT_B);
-  auto tables2 = u2.updateDone();
-  EXPECT_NODEMAP_MATCH(tables2);
-
-  // Route for 10.10.10.10 should still be there,
-  // but route for 22.22.22.22 should be gone
-  ribV4 = tables2->getRouteTable(rid)->getRibV4();
-  EXPECT_TRUE(nullptr != ribV4->exactMatch(prefix10));
-  EXPECT_TRUE(nullptr == ribV4->exactMatch(prefix22));
-}
-
 // Test equality of RouteNextHopsMulti.
 TEST(Route, equality) {
   // Create two identical RouteNextHopsMulti, and compare

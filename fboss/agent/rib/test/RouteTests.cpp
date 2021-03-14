@@ -168,51 +168,6 @@ RouteNextHopSet newNextHops(int n, std::string prefix) {
   return h;
 }
 
-TEST(Route, delRoutes) {
-  IPv4NetworkToRouteMap v4Routes;
-  IPv6NetworkToRouteMap v6Routes;
-
-  RibRouteUpdater u1(&v4Routes, &v6Routes);
-
-  RibRouteV4::Prefix prefix10{IPAddressV4("10.10.10.10"), 32};
-  RibRouteV4::Prefix prefix22{IPAddressV4("22.22.22.22"), 32};
-
-  u1.addOrReplaceRoute(
-      IPAddress("10.10.10.10"),
-      32,
-      kClientA,
-      RouteNextHopEntry(newNextHops(3, "1.1.1."), kDistance));
-  u1.addOrReplaceRoute(
-      IPAddress("22.22.22.22"),
-      32,
-      kClientB,
-      RouteNextHopEntry(RouteForwardAction::TO_CPU, kDistance));
-  u1.updateDone();
-
-  // Both routes should be present
-  EXPECT_NE(
-      v4Routes.end(), v4Routes.exactMatch(prefix10.network, prefix10.mask));
-  EXPECT_NE(
-      v4Routes.end(), v4Routes.exactMatch(prefix22.network, prefix22.mask));
-
-  // delRoute() should work for the route with RouteForwardAction::TO_CPU.
-  RibRouteUpdater u2(&v4Routes, &v6Routes);
-  // Deleting a with wrong client ID should fail
-  EXPECT_FALSE(u2.delRoute(IPAddress("22.22.22.22"), 32, kClientA).has_value());
-  // Deleting a existing route should succeed
-  EXPECT_TRUE(u2.delRoute(IPAddress("22.22.22.22"), 32, kClientB).has_value());
-  // Deleting already deleted route should return null
-  EXPECT_FALSE(u2.delRoute(IPAddress("22.22.22.22"), 32, kClientB).has_value());
-  u2.updateDone();
-
-  // Route for 10.10.10.10 should still be there,
-  // but route for 22.22.22.22 should be gone
-  EXPECT_NE(
-      v4Routes.end(), v4Routes.exactMatch(prefix10.network, prefix10.mask));
-  EXPECT_EQ(
-      v4Routes.end(), v4Routes.exactMatch(prefix22.network, prefix22.mask));
-}
-
 TEST(Route, removeRoutesForClient) {
   IPv4NetworkToRouteMap v4Routes;
   IPv6NetworkToRouteMap v6Routes;
