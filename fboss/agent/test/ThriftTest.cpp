@@ -866,6 +866,18 @@ TYPED_TEST(ThriftTest, getRouteTable) {
   EXPECT_EQ(9, routeTable.size());
 }
 
+TYPED_TEST(ThriftTest, getRouteDetails) {
+  this->sw_->fibSynced();
+  ThriftHandler handler(this->sw_);
+  auto [v4Routes, v6Routes] =
+      getRouteCount(TypeParam::hasStandAloneRib, this->sw_->getState());
+  std::vector<RouteDetails> routeDetails;
+  handler.getRouteTableDetails(routeDetails);
+  // 6 intf routes + 2 default routes + 1 link local route
+  EXPECT_EQ(9, v4Routes + v6Routes);
+  EXPECT_EQ(9, routeDetails.size());
+}
+
 std::unique_ptr<MplsRoute> makeMplsRoute(
     int32_t mplsLabel,
     std::string nxtHop,

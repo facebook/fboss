@@ -1253,17 +1253,12 @@ void ThriftHandler::getRouteTableByClient(
 void ThriftHandler::getRouteTableDetails(std::vector<RouteDetails>& routes) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  auto state = sw_->getState();
-  for (const auto& routeTable : *(state->getRouteTables())) {
-    for (const auto& ipv4 : *(routeTable->getRibV4()->routes())) {
-      RouteDetails rd = ipv4->toRouteDetails();
-      routes.emplace_back(std::move(rd));
-    }
-    for (const auto& ipv6 : *(routeTable->getRibV6()->routes())) {
-      RouteDetails rd = ipv6->toRouteDetails();
-      routes.emplace_back(std::move(rd));
-    }
-  }
+  forAllRoutes(
+      sw_->isStandaloneRibEnabled(),
+      sw_->getState(),
+      [&routes](RouterID /*rid*/, const auto& route) {
+        routes.emplace_back(route->toRouteDetails());
+      });
 }
 
 void ThriftHandler::getIpRoute(
