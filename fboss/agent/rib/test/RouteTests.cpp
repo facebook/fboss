@@ -168,39 +168,6 @@ RouteNextHopSet newNextHops(int n, std::string prefix) {
   return h;
 }
 
-// Test adding empty nextHops lists
-TEST(Route, disallowEmptyNexthops) {
-  IPv4NetworkToRouteMap v4Routes;
-  IPv6NetworkToRouteMap v6Routes;
-
-  RibRouteUpdater u1(&v4Routes, &v6Routes);
-
-  // It's illegal to add an empty nextHops list to a route
-
-  // Test the case where the empty list is the first to be added to the Route
-  ASSERT_THROW(
-      u1.addOrReplaceRoute(
-          IPAddress("5.5.5.5"),
-          32,
-          kClientA,
-          RouteNextHopEntry(newNextHops(0, "20.20.20."), kDistance)),
-      FbossError);
-
-  // Test the case where the empty list is the second to be added to the Route
-  u1.addOrReplaceRoute(
-      IPAddress("10.10.10.10"),
-      32,
-      kClientA,
-      RouteNextHopEntry(newNextHops(3, "10.10.10."), kDistance));
-  ASSERT_THROW(
-      u1.addOrReplaceRoute(
-          IPAddress("10.10.10.10"),
-          32,
-          kClientB,
-          RouteNextHopEntry(newNextHops(0, "20.20.20."), kDistance)),
-      FbossError);
-}
-
 TEST(Route, delRoutes) {
   IPv4NetworkToRouteMap v4Routes;
   IPv6NetworkToRouteMap v6Routes;

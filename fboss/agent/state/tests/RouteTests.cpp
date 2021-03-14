@@ -349,43 +349,6 @@ RouteNextHopSet newNextHops(int n, std::string prefix) {
   return h;
 }
 
-// Test adding empty nextHops lists
-TEST(Route, disallowEmptyNexthops) {
-  auto stateV1 = make_shared<SwitchState>();
-  stateV1->publish();
-  auto tables1 = stateV1->getRouteTables();
-  auto rid = RouterID(0);
-  RouteUpdater u1(tables1);
-
-  // It's illegal to add an empty nextHops list to a route
-
-  // Test the case where the empty list is the first to be added to the Route
-  ASSERT_THROW(
-      u1.addRoute(
-          rid,
-          IPAddress("5.5.5.5"),
-          32,
-          CLIENT_A,
-          RouteNextHopEntry(newNextHops(0, "20.20.20."), DISTANCE)),
-      FbossError);
-
-  // Test the case where the empty list is the second to be added to the Route
-  u1.addRoute(
-      rid,
-      IPAddress("10.10.10.10"),
-      32,
-      CLIENT_A,
-      RouteNextHopEntry(newNextHops(3, "10.10.10."), DISTANCE));
-  ASSERT_THROW(
-      u1.addRoute(
-          rid,
-          IPAddress("10.10.10.10"),
-          32,
-          CLIENT_B,
-          RouteNextHopEntry(newNextHops(0, "20.20.20."), DISTANCE)),
-      FbossError);
-}
-
 // Test deleting routes
 TEST(Route, delRoutes) {
   auto stateV1 = make_shared<SwitchState>();

@@ -1232,6 +1232,40 @@ TYPED_TEST(RouteTest, modRoutes) {
   EXPECT_EQ(rt10, nullptr);
   EXPECT_EQ(rt99->getForwardInfo().getNextHopSet(), nexthops3);
 }
+
+// Test adding empty nextHops lists
+TYPED_TEST(RouteTest, disallowEmptyNexthops) {
+  SwSwitchRouteUpdateWrapper u1(this->sw_);
+
+  // It's illegal to add an empty nextHops list to a route
+
+  // Test the case where the empty list is the first to be added to the Route
+  EXPECT_THROW(
+      u1.addRoute(
+          kRid0,
+          IPAddress("5.5.5.5"),
+          32,
+          kClientA,
+          RouteNextHopEntry(newNextHops(0, "20.20.20."), DISTANCE)),
+      FbossError);
+
+  // Test the case where the empty list is the second to be added to the Route
+  u1.addRoute(
+      kRid0,
+      IPAddress("10.10.10.10"),
+      32,
+      kClientA,
+      RouteNextHopEntry(newNextHops(3, "10.10.10."), DISTANCE));
+  EXPECT_THROW(
+      u1.addRoute(
+          kRid0,
+          IPAddress("10.10.10.10"),
+          32,
+          kClientB,
+          RouteNextHopEntry(newNextHops(0, "20.20.20."), DISTANCE)),
+      FbossError);
+}
+
 // Test interface routes when we have more than one address per
 // address family in an interface
 template <typename StandAloneRib>
