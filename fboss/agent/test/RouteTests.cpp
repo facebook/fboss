@@ -68,6 +68,7 @@ const ClientID kClientB = ClientID(2001);
 
 constexpr AdminDistance DISTANCE = AdminDistance::MAX_ADMIN_DISTANCE;
 constexpr AdminDistance EBGP_DISTANCE = AdminDistance::EBGP;
+const RouterID kRid0 = RouterID(0);
 
 //
 // Helper functions
@@ -126,6 +127,15 @@ void EXPECT_NODEMAP_MATCH(const SwSwitch* sw) {
     EXPECT_NODEMAP_MATCH_LEGACY_RIB(sw->getState()->getRouteTables());
   }
 }
+RouteNextHopSet newNextHops(int n, std::string prefix) {
+  RouteNextHopSet h;
+  for (int i = 0; i < n; i++) {
+    auto ipStr = prefix + std::to_string(i + 10);
+    h.emplace(UnresolvedNextHop(IPAddress(ipStr), UCMP_DEFAULT_WEIGHT));
+  }
+  return h;
+}
+
 } // namespace
 
 template <typename StandAloneRib>
@@ -1164,6 +1174,64 @@ TYPED_TEST(RouteTest, PruneChangedRoutes) {
   EXPECT_TRUE(revertedEntry->isToCPU());
 }
 
+// Test adding and deleting per-client nexthops lists
+TYPED_TEST(RouteTest, modRoutes) {
+  SwSwitchRouteUpdateWrapper u1(this->sw_);
+
+  RouteV4::Prefix prefix10{IPAddressV4("10.10.10.10"), 32};
+  RouteV4::Prefix prefix99{IPAddressV4("99.99.99.99"), 32};
+
+  RouteNextHopSet nexthops1 =
+      makeResolvedNextHops({{InterfaceID(1), "1.1.1.1"}});
+  RouteNextHopSet nexthops2 =
+      makeResolvedNextHops({{InterfaceID(2), "2.2.2.2"}});
+  RouteNextHopSet nexthops3 =
+      makeResolvedNextHops({{InterfaceID(3), "3.3.3.3"}});
+
+  u1.addRoute(
+      kRid0,
+      IPAddress("10.10.10.10"),
+      32,
+      kClientB,
+      RouteNextHopEntry(nexthops2, DISTANCE));
+  u1.addRoute(
+      kRid0,
+      IPAddress("10.10.10.10"),
+      32,
+      kClientA,
+      RouteNextHopEntry(nexthops1, DISTANCE));
+  u1.addRoute(
+      kRid0,
+      IPAddress("99.99.99.99"),
+      32,
+      kClientA,
+      RouteNextHopEntry(nexthops3, DISTANCE));
+  u1.program();
+
+  auto rt10 = this->findRoute4(this->sw_->getState(), kRid0, prefix10);
+  auto rt99 = this->findRoute4(this->sw_->getState(), kRid0, prefix99);
+  EXPECT_EQ(rt10->getForwardInfo().getNextHopSet(), nexthops1);
+  EXPECT_EQ(rt99->getForwardInfo().getNextHopSet(), nexthops3);
+
+  SwSwitchRouteUpdateWrapper u2(this->sw_);
+  u2.delRoute(kRid0, IPAddress("10.10.10.10"), 32, kClientA);
+  u2.program();
+  // 10.10.10.10 should now get clientBs nhops
+  rt10 = this->findRoute4(this->sw_->getState(), kRid0, prefix10);
+  rt99 = this->findRoute4(this->sw_->getState(), kRid0, prefix99);
+  EXPECT_EQ(rt10->getForwardInfo().getNextHopSet(), nexthops2);
+  EXPECT_EQ(rt99->getForwardInfo().getNextHopSet(), nexthops3);
+  // Delete the second client/nexthop pair
+  // The route & prefix should disappear altogether.
+
+  SwSwitchRouteUpdateWrapper u3(this->sw_);
+  u3.delRoute(kRid0, IPAddress("10.10.10.10"), 32, kClientB);
+  u3.program();
+  rt10 = this->findRoute4(this->sw_->getState(), kRid0, prefix10);
+  rt99 = this->findRoute4(this->sw_->getState(), kRid0, prefix99);
+  EXPECT_EQ(rt10, nullptr);
+  EXPECT_EQ(rt99->getForwardInfo().getNextHopSet(), nexthops3);
+}
 // Test interface routes when we have more than one address per
 // address family in an interface
 template <typename StandAloneRib>
