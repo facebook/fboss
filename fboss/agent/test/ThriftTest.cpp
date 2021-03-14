@@ -43,13 +43,6 @@ using testing::UnorderedElementsAreArray;
 
 namespace {
 
-unique_ptr<HwTestHandle> setupTestHandle() {
-  auto state = testStateA();
-  auto handle = createTestHandle(state);
-  handle->getSw()->initialConfigApplied(std::chrono::steady_clock::now());
-  return handle;
-}
-
 IpPrefix ipPrefix(StringPiece ip, int length) {
   IpPrefix result;
   result.ip_ref() = toBinaryAddress(IPAddress(ip));
@@ -837,17 +830,15 @@ TYPED_TEST(ThriftTest, syncFibIsHwProtected) {
       FbossFibUpdateError);
 }
 
-TEST(ThriftRouteTest, addUnicastRoutesIsHwProtected) {
-  // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
-  auto handle = setupTestHandle();
-  auto sw = handle->getSw();
-  sw->fibSynced();
-  ThriftHandler handler(sw);
+TYPED_TEST(ThriftTest, addUnicastRoutesIsHwProtected) {
+  this->sw_->fibSynced();
+  ThriftHandler handler(this->sw_);
   auto newRoutes = std::make_unique<std::vector<UnicastRoute>>();
   UnicastRoute nr1 = *makeUnicastRoute("aaaa::/64", "42::42").get();
   newRoutes->push_back(nr1);
   // Fail HW update by returning current state
-  EXPECT_HW_CALL(sw, stateChanged(_)).WillRepeatedly(Return(sw->getState()));
+  EXPECT_HW_CALL(this->sw_, stateChanged(_))
+      .WillOnce(Return(this->sw_->getState()));
   EXPECT_THROW(
       {
         try {
