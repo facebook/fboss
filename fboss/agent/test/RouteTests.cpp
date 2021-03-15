@@ -1266,6 +1266,120 @@ TYPED_TEST(RouteTest, disallowEmptyNexthops) {
       FbossError);
 }
 
+bool stringStartsWith(std::string s1, std::string prefix) {
+  return s1.compare(0, prefix.size(), prefix) == 0;
+}
+
+void expectFwdInfo(
+    const SwSwitch* sw,
+    RouteV4::Prefix prefix,
+    std::string ipPrefix) {
+  const auto& fwd = findRoute<IPAddressV4>(
+                        sw->isStandaloneRibEnabled(),
+                        kRid0,
+                        prefix.toCidrNetwork(),
+                        sw->getState())
+                        ->getForwardInfo();
+  const auto& nhops = fwd.getNextHopSet();
+  // Expect the fwd'ing info to be 3 IPs all starting with 'ipPrefix'
+  EXPECT_EQ(3, nhops.size());
+  for (auto const& it : nhops) {
+    EXPECT_TRUE(stringStartsWith(it.addr().str(), ipPrefix));
+  }
+}
+
+void addNextHopsForClient(
+    SwSwitch* sw,
+    RouteV4::Prefix prefix,
+    ClientID clientId,
+    std::string ipPrefix,
+    AdminDistance adminDistance = AdminDistance::MAX_ADMIN_DISTANCE) {
+  SwSwitchRouteUpdateWrapper u(sw);
+  u.addRoute(
+      kRid0,
+      prefix.network,
+      prefix.mask,
+      clientId,
+      RouteNextHopEntry(newNextHops(3, ipPrefix), adminDistance));
+  u.program();
+}
+
+void deleteNextHopsForClient(
+    SwSwitch* sw,
+    RouteV4::Prefix prefix,
+    ClientID clientId) {
+  SwSwitchRouteUpdateWrapper u(sw);
+  u.delRoute(kRid0, prefix.network, prefix.mask, clientId);
+  u.program();
+}
+// Add and remove per-client NextHop lists to the same route, and make sure
+// the lowest admin distance is the one that determines the forwarding info
+TYPED_TEST(RouteTest, fwdInfoRanking) {
+  // We'll be adding and removing a bunch of nexthops for this Network & Mask
+  auto network = IPAddressV4("22.22.22.22");
+  uint8_t mask = 32;
+  RouteV4::Prefix prefix{network, mask};
+
+  // Add client 30, plus an interface for resolution.
+  SwSwitchRouteUpdateWrapper u1(this->sw_);
+  // This is the route all the others will resolve to.
+  u1.addRoute(
+      kRid0,
+      IPAddress("10.10.0.0"),
+      16,
+      ClientID::INTERFACE_ROUTE,
+      RouteNextHopEntry(
+          ResolvedNextHop(
+              IPAddress("1.1.1.1"), InterfaceID(1), UCMP_DEFAULT_WEIGHT),
+          AdminDistance::DIRECTLY_CONNECTED));
+  u1.addRoute(
+      kRid0,
+      network,
+      mask,
+      ClientID(30),
+      RouteNextHopEntry(newNextHops(3, "10.10.30."), DISTANCE));
+  u1.program();
+
+  // Expect fwdInfo based on client 30
+  expectFwdInfo(this->sw_, prefix, "10.10.30.");
+  // Add client BGP
+  addNextHopsForClient(
+      this->sw_, prefix, ClientID::BGPD, "10.10.20.", AdminDistance::EBGP);
+
+  // Expect fwdInfo based on client BGP
+  expectFwdInfo(this->sw_, prefix, "10.10.20.");
+  // Add client 40
+  addNextHopsForClient(this->sw_, prefix, ClientID(40), "10.10.40.");
+
+  // Expect fwdInfo still based on client BGP
+  expectFwdInfo(this->sw_, prefix, "10.10.20.");
+  // Add client STATIC_ROUTE
+  addNextHopsForClient(
+      this->sw_,
+      prefix,
+      ClientID::STATIC_ROUTE,
+      "10.10.10.",
+      AdminDistance::STATIC_ROUTE);
+
+  // Expect fwdInfo based on client STATIC_ROUTE
+  expectFwdInfo(this->sw_, prefix, "10.10.10.");
+  // Remove client BGP
+  deleteNextHopsForClient(this->sw_, prefix, ClientID::BGPD);
+
+  // Winner should still be STATIC_ROUTE
+  expectFwdInfo(this->sw_, prefix, "10.10.10.");
+
+  // Remove client STATIC_ROUTE
+  deleteNextHopsForClient(this->sw_, prefix, ClientID::STATIC_ROUTE);
+
+  // Winner should now be 30
+  expectFwdInfo(this->sw_, prefix, "10.10.30.");
+  // Remove client 30
+  deleteNextHopsForClient(this->sw_, prefix, ClientID(30));
+
+  // Winner should now be 40
+  expectFwdInfo(this->sw_, prefix, "10.10.40.");
+}
 // Test interface routes when we have more than one address per
 // address family in an interface
 template <typename StandAloneRib>
