@@ -19,6 +19,7 @@
 
 #include "fboss/agent/rib/RouteUpdater.h"
 
+#include <exception>
 #include <memory>
 #include <utility>
 
@@ -264,7 +265,7 @@ std::
   UpdateStatistics stats;
   std::shared_ptr<SwitchState> appliedState;
 
-  std::optional<FbossHwUpdateError> hwUpdateError;
+  std::exception_ptr updateException;
   auto updateFn = [&]() {
     RibRouteUpdater updater(
         &(routeTables->v4NetworkToRoute), &(routeTables->v6NetworkToRoute));
@@ -320,13 +321,13 @@ std::
           routeTables->v4NetworkToRoute,
           routeTables->v6NetworkToRoute,
           cookie);
-    } catch (const FbossHwUpdateError& ex) {
-      hwUpdateError = ex;
+    } catch (const std::exception& ex) {
+      updateException = std::current_exception();
     }
   };
   ribUpdateEventBase_.runInEventBaseThreadAndWait(updateFn);
-  if (hwUpdateError) {
-    throw *hwUpdateError;
+  if (updateException) {
+    std::rethrow_exception(updateException);
   }
   return std::make_pair(appliedState, stats);
 }
