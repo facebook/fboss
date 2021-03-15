@@ -32,6 +32,7 @@ DECLARE_int32(offset);
 DECLARE_int32(data);
 DECLARE_int32(length);
 DECLARE_int32(pause_remediation);
+DECLARE_bool(get_remediation_until_time);
 DECLARE_bool(update_module_firmware);
 DECLARE_string(firmware_filename);
 DECLARE_uint32(msa_password);
@@ -94,6 +95,8 @@ void printThresholds(
     std::function<double(uint16_t)> conversionCb);
 
 std::string getLocalTime(std::time_t t);
+
+void doGetRemediationUntilTime(folly::EventBase& evb);
 
 void printChannelMonitor(unsigned int index,
                          const uint8_t* buf,

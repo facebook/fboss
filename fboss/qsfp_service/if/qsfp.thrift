@@ -55,6 +55,14 @@ service QsfpService extends fb303.FacebookService {
   void pauseRemediation(1: i32 timeout)
 
   /*
+   * Qsfp service has an internal remediation loop and may potentially perform
+   * interruptive operation to modules that carry no active(up) link. However
+   * it may cause some confusion for debugging. This function is to tell
+   * what is the currently pause remediation expiration time set to.
+   */
+  i32 getRemediationUntilTime()
+
+  /*
   * Perform a raw register read for the specified transceivers
   */
   map<i32, transceiver.ReadResponse> readTransceiverRegister(

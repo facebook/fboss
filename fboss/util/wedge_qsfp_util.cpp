@@ -124,6 +124,8 @@ DEFINE_int32(data, 0, "The byte to write to the register, use with --offset");
 DEFINE_int32(length, 1, "The number of bytes to read from the register (1..128), use with --offset");
 DEFINE_int32(pause_remediation, 0,
     "Number of seconds to prevent qsfp_service from doing remediation to modules");
+DEFINE_bool(get_remediation_until_time, false,
+    "Get the local time that current remediationUntil time sets to");
 DEFINE_bool(update_module_firmware, false,
             "Update firmware for module, use with --firmware_filename");
 DEFINE_string(firmware_filename, "",
@@ -553,6 +555,14 @@ std::string getLocalTime(std::time_t t) {
   localtime_r(&t, &localtime_result);
   std::array<char, 26> buf;
   return asctime_r(&localtime_result,buf.data());
+}
+
+void doGetRemediationUntilTime(folly::EventBase& evb) {
+  auto client = getQsfpClient(evb);
+  auto remediationUntilEpoch = client->sync_getRemediationUntilTime();
+  printf(
+      "RemediationUntil time is set to : %s",
+      getLocalTime(remediationUntilEpoch).c_str());
 }
 
 void printChannelMonitor(unsigned int index,

@@ -41,6 +41,16 @@ int main(int argc, char* argv[]) {
     }
   }
 
+  if (FLAGS_get_remediation_until_time) {
+    try {
+      doGetRemediationUntilTime(evb);
+      return EX_OK;
+    } catch (const std::exception& ex) {
+      fprintf(stderr, "error getting remediationUntil time from qsfp_service: %s\n", ex.what());
+      return EX_SOFTWARE;
+    }
+  }
+
   std::vector<unsigned int> ports;
   bool good = true;
   for (int n = 1; n < argc; ++n) {

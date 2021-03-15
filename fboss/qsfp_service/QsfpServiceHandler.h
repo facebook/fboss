@@ -64,6 +64,8 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
 
   void pauseRemediation(int32_t timeout) override;
 
+  int32_t getRemediationUntilTime() override;
+
   void readTransceiverRegister(
       std::map<int32_t, ReadResponse>& response,
       std::unique_ptr<ReadRequest> request) override;

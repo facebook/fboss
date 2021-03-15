@@ -71,6 +71,11 @@ void QsfpServiceHandler::pauseRemediation(int32_t timeout) {
   manager_->setPauseRemediation(timeout);
 }
 
+int32_t QsfpServiceHandler::getRemediationUntilTime() {
+  auto log = LOG_THRIFT_CALL(INFO);
+  return manager_->getPauseRemediationUntil();
+}
+
 void QsfpServiceHandler::readTransceiverRegister(
     std::map<int32_t, ReadResponse>& response,
     std::unique_ptr<ReadRequest> request) {
