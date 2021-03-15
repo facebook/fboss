@@ -11,6 +11,7 @@
 #pragma once
 
 #include "fboss/agent/FibHelpers.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/platforms/common/PlatformMode.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
@@ -57,6 +58,8 @@ class RouteDistributionGenerator {
   };
   using RouteChunk = std::vector<Route>;
   using RouteChunks = std::vector<RouteChunk>;
+  using ThriftRouteChunk = std::vector<UnicastRoute>;
+  using ThriftRouteChunks = std::vector<ThriftRouteChunk>;
 
   RouteDistributionGenerator(
       const std::shared_ptr<SwitchState>& startingState,
@@ -70,6 +73,7 @@ class RouteDistributionGenerator {
    * Compute, cache and return route distribution
    */
   const RouteChunks& get() const;
+  const ThriftRouteChunks& getThriftRoutes() const;
 
   std::shared_ptr<SwitchState> startingState() const {
     return startingState_;
@@ -113,6 +117,7 @@ class RouteDistributionGenerator {
    * methods.
    */
   mutable std::optional<RouteChunks> generatedRouteChunks_;
+  mutable std::optional<ThriftRouteChunks> generatedThriftRoutes_;
 };
 
 } // namespace facebook::fboss::utility

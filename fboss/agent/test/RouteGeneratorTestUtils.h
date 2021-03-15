@@ -47,6 +47,8 @@ uint64_t getNewRouteCount(const StateDelta& delta) {
 uint64_t getNewRouteCount(const StateDelta& delta);
 uint64_t getRouteCount(
     const utility::RouteDistributionGenerator::RouteChunks& routeChunks);
+uint64_t getRouteCount(
+    const utility::RouteDistributionGenerator::ThriftRouteChunks& routeChunks);
 
 void verifyRouteCount(
     const utility::RouteDistributionGenerator& routeDistributionGen,

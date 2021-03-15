@@ -17,6 +17,19 @@
 
 using std::string;
 
+namespace {
+template <typename Chunks>
+uint64_t getRouteCountImpl(const Chunks& routeChunks) {
+  uint64_t routeCount = 0;
+  std::for_each(
+      routeChunks.begin(),
+      routeChunks.end(),
+      [&routeCount](const auto& routeChunk) {
+        routeCount += routeChunk.size();
+      });
+  return routeCount;
+}
+} // namespace
 namespace facebook::fboss {
 
 // Random test state with 2 ports and 2 vlans
@@ -63,14 +76,12 @@ uint64_t getNewRouteCount(const StateDelta& delta) {
 
 uint64_t getRouteCount(
     const utility::RouteDistributionGenerator::RouteChunks& routeChunks) {
-  uint64_t routeCount = 0;
-  std::for_each(
-      routeChunks.begin(),
-      routeChunks.end(),
-      [&routeCount](const auto& routeChunk) {
-        routeCount += routeChunk.size();
-      });
-  return routeCount;
+  return getRouteCountImpl(routeChunks);
+}
+
+uint64_t getRouteCount(
+    const utility::RouteDistributionGenerator::ThriftRouteChunks& routeChunks) {
+  return getRouteCountImpl(routeChunks);
 }
 
 void verifyRouteCount(
@@ -78,8 +89,10 @@ void verifyRouteCount(
     uint64_t alreadyExistingRoutes,
     uint64_t expectedNewRoutes) {
   const auto& routeChunks = routeDistributionGen.get();
+  const auto& thriftRouteChunks = routeDistributionGen.getThriftRoutes();
 
   EXPECT_EQ(getRouteCount(routeChunks), expectedNewRoutes);
+  EXPECT_EQ(getRouteCount(thriftRouteChunks), expectedNewRoutes);
 }
 
 void verifyChunking(

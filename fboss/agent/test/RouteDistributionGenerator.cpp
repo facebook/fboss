@@ -53,6 +53,27 @@ const RouteDistributionGenerator::RouteChunks& RouteDistributionGenerator::get()
   return *generatedRouteChunks_;
 }
 
+const RouteDistributionGenerator::ThriftRouteChunks&
+RouteDistributionGenerator::getThriftRoutes() const {
+  if (generatedThriftRoutes_) {
+    return *generatedThriftRoutes_;
+  }
+  generatedThriftRoutes_ = ThriftRouteChunks();
+  for (const auto& routeChunk : get()) {
+    ThriftRouteChunk thriftRoutes;
+    std::for_each(
+        routeChunk.begin(),
+        routeChunk.end(),
+        [&thriftRoutes](const auto& route) {
+          thriftRoutes.emplace_back(
+              makeUnicastRoute(route.prefix, route.nhops));
+        });
+    generatedThriftRoutes_->push_back(std::move(thriftRoutes));
+  }
+
+  return *generatedThriftRoutes_;
+}
+
 template <typename AddrT>
 const std::vector<folly::IPAddress>& RouteDistributionGenerator::getNhops()
     const {
