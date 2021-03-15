@@ -23,6 +23,7 @@ namespace facebook::fboss {
 
 class SaiManagerTable;
 class SaiPlatform;
+class SaiStore;
 
 using SaiVirtualRouter = SaiObject<SaiVirtualRouterTraits>;
 struct SaiVirtualRouterHandle {
@@ -32,6 +33,7 @@ struct SaiVirtualRouterHandle {
 class SaiVirtualRouterManager {
  public:
   SaiVirtualRouterManager(
+      SaiStore* saiStore,
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
   VirtualRouterSaiId addVirtualRouter(const RouterID& routerId);
@@ -42,6 +44,8 @@ class SaiVirtualRouterManager {
  private:
   SaiVirtualRouterHandle* getVirtualRouterHandleImpl(
       const RouterID& routerId) const;
+
+  SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   folly::F14FastMap<RouterID, std::unique_ptr<SaiVirtualRouterHandle>> handles_;

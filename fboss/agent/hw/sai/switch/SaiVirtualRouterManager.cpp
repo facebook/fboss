@@ -23,10 +23,11 @@
 namespace facebook::fboss {
 
 SaiVirtualRouterManager::SaiVirtualRouterManager(
+    SaiStore* saiStore,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : managerTable_(managerTable), platform_(platform) {
-  auto& store = SaiStore::getInstance()->get<SaiVirtualRouterTraits>();
+    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {
+  auto& store = saiStore_->get<SaiVirtualRouterTraits>();
   store.setObjectOwnedByAdapter(true);
   auto virtualRouterHandle = std::make_unique<SaiVirtualRouterHandle>();
   SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();

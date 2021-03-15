@@ -28,6 +28,8 @@ namespace facebook::fboss {
 class SaiManagerTable;
 class SaiPlatform;
 class SaiNextHopGroupHandle;
+class SaiStore;
+class SaiRouteManager;
 
 using SaiRoute = SaiObject<SaiRouteTraits>;
 
@@ -40,8 +42,8 @@ class ManagedRouteNextHop
  public:
   using PublisherObject = std::shared_ptr<const SaiObject<NextHopTraitsT>>;
   ManagedRouteNextHop(
-      SaiManagerTable* managerTable,
-      const SaiPlatform* platform,
+      SwitchSaiId switchId,
+      SaiRouteManager* routeManager,
       SaiRouteTraits::AdapterHostKey routeKey,
       std::shared_ptr<ManagedNextHop<NextHopTraitsT>> managedNextHop);
   void afterCreate(PublisherObject nexthop) override;
@@ -51,8 +53,9 @@ class ManagedRouteNextHop
 
  private:
   void updateMetadata() const;
-  SaiManagerTable* managerTable_;
-  const SaiPlatform* platform_;
+
+  SwitchSaiId switchId_;
+  SaiRouteManager* routeManager_;
   typename SaiRouteTraits::AdapterHostKey routeKey_;
   std::shared_ptr<ManagedNextHop<NextHopTraitsT>> managedNextHop_;
 };
@@ -73,7 +76,10 @@ struct SaiRouteHandle {
 
 class SaiRouteManager {
  public:
-  SaiRouteManager(SaiManagerTable* managerTable, const SaiPlatform* platform);
+  SaiRouteManager(
+      SaiStore* saiStore,
+      SaiManagerTable* managerTable,
+      const SaiPlatform* platform);
   // Helper function to create a SAI RouteEntry from an FBOSS SwitchState
   // Route (e.g., Route<IPAddressV6>)
   template <typename AddrT>
@@ -106,6 +112,9 @@ class SaiRouteManager {
 
   void clear();
 
+  std::shared_ptr<SaiObject<SaiRouteTraits>> getRouteObject(
+      SaiRouteTraits::AdapterHostKey routeKey);
+
  private:
   SaiRouteHandle* getRouteHandleImpl(
       const SaiRouteTraits::RouteEntry& entry) const;
@@ -119,6 +128,7 @@ class SaiRouteManager {
   template <typename AddrT>
   bool validRoute(const std::shared_ptr<Route<AddrT>>& swRoute);
 
+  SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   folly::F14FastMap<SaiRouteTraits::RouteEntry, std::unique_ptr<SaiRouteHandle>>
