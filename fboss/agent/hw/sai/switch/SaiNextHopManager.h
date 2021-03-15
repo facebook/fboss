@@ -93,11 +93,11 @@ class SaiNextHopManager {
       const ResolvedNextHop& swNextHop);
 
   ManagedSaiNextHop addManagedSaiNextHop(const ResolvedNextHop& swNextHop);
-  const ManagedIpNextHop* getNextHop(
+  const ManagedIpNextHop* getManagedNextHop(
       const ManagedIpNextHop::AdapterHostKey& key) const {
     return managedIpNextHops_.get(key);
   }
-  const ManagedMplsNextHop* getNextHop(
+  const ManagedMplsNextHop* getManagedNextHop(
       const ManagedMplsNextHop::AdapterHostKey& key) const {
     return managedMplsNextHops_.get(key);
   }
