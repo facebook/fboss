@@ -22,7 +22,7 @@ void SaiLagManager::addLag(
   for (auto i = 0; i < 32 && i < name.length(); i++) {
     labelValue[i] = name[i];
   }
-  auto& lagStore = SaiStore::getInstance()->get<SaiLagTraits>();
+  auto& lagStore = saiStore_->get<SaiLagTraits>();
   auto lag = lagStore.setObject(
       SaiLagTraits::Attributes::Label{labelValue}, std::tuple<>());
   std::map<PortSaiId, std::shared_ptr<SaiLagMember>> members;
@@ -135,7 +135,7 @@ std::pair<PortSaiId, std::shared_ptr<SaiLagMember>> SaiLagManager::addMember(
   SaiLagMemberTraits::AdapterHostKey adapterHostKey{saiLagId, saiPortId};
   SaiLagMemberTraits::CreateAttributes attrs{
       saiLagId, saiPortId, SaiLagMemberTraits::Attributes::EgressDisable{true}};
-  auto& lagMemberStore = SaiStore::getInstance()->get<SaiLagMemberTraits>();
+  auto& lagMemberStore = saiStore_->get<SaiLagMemberTraits>();
   auto member = lagMemberStore.setObject(adapterHostKey, attrs);
   concurrentIndices_->memberPort2AggregatePortIds.emplace(
       saiPortId, aggregatePortID);

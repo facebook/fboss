@@ -19,17 +19,23 @@ namespace facebook::fboss {
 class SaiManagerTable;
 class StateDelta;
 class SaiPlatform;
+class SaiStore;
 
 using SaiHash = SaiObject<SaiHashTraits>;
 
 class SaiHashManager {
  public:
-  explicit SaiHashManager(SaiManagerTable* managerTable, SaiPlatform* platform);
+  explicit SaiHashManager(
+      SaiStore* saiStore,
+      SaiManagerTable* managerTable,
+      SaiPlatform* platform);
   std::shared_ptr<SaiHash> getOrCreate(const cfg::Fields& hashFields);
 
  private:
   SaiHashTraits::AdapterHostKey toAdapterHostKey(
       const cfg::Fields& hashFields) const;
+
+  SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
 };

@@ -24,16 +24,19 @@ struct SaiLagHandle {
 
 class SaiManagerTable;
 class SaiPlatform;
+class SaiStore;
 
 class SaiLagManager {
  public:
   using Handles =
       folly::F14FastMap<AggregatePortID, std::unique_ptr<SaiLagHandle>>;
   SaiLagManager(
+      SaiStore* saiStore,
       SaiManagerTable* managerTable,
       SaiPlatform* platform,
       ConcurrentIndices* concurrentIndices)
-      : managerTable_(managerTable),
+      : saiStore_(saiStore),
+        managerTable_(managerTable),
         platform_(platform),
         concurrentIndices_(concurrentIndices) {}
   ~SaiLagManager();
@@ -67,6 +70,7 @@ class SaiLagManager {
   void setMemberState(SaiLagMember* member, AggregatePort::Forwarding fwdState);
   SaiLagMember* getMember(SaiLagHandle* handle, PortID port);
 
+  SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
   ConcurrentIndices* concurrentIndices_;

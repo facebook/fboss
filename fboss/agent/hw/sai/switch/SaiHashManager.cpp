@@ -67,18 +67,19 @@ std::shared_ptr<SaiHash> SaiHashManager::getOrCreate(
   auto nativeHashFields = toNativeHashFieldList(hashFields);
   SaiHashTraits::AdapterHostKey adapterHostKey{nativeHashFields, std::nullopt};
   SaiHashTraits::CreateAttributes createAttrs{nativeHashFields, std::nullopt};
-  auto& store = SaiStore::getInstance()->get<SaiHashTraits>();
+  auto& store = saiStore_->get<SaiHashTraits>();
 
   return store.setObject(adapterHostKey, createAttrs);
 }
 
 SaiHashManager::SaiHashManager(
+    SaiStore* saiStore,
     SaiManagerTable* managerTable,
     SaiPlatform* platform)
-    : managerTable_(managerTable), platform_(platform) {
+    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {
   if (!platform_->getAsic()->isSupported(
           HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
-    auto& store = SaiStore::getInstance()->get<SaiHashTraits>();
+    auto& store = saiStore_->get<SaiHashTraits>();
     store.setObjectOwnedByAdapter(true);
   }
 }

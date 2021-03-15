@@ -19,13 +19,16 @@ namespace facebook::fboss {
 
 class SaiManagerTable;
 class StateDelta;
+class SaiStore;
 
 using SaiDebugCounter = SaiObject<SaiDebugCounterTraits>;
 
 class SaiDebugCounterManager {
  public:
-  explicit SaiDebugCounterManager(SaiManagerTable* managerTable)
-      : managerTable_(managerTable) {}
+  explicit SaiDebugCounterManager(
+      SaiStore* saiStore,
+      SaiManagerTable* managerTable)
+      : saiStore_(saiStore), managerTable_(managerTable) {}
 
   void setupDebugCounters();
   sai_stat_id_t getPortL3BlackHoleCounterStatId() const {
@@ -36,6 +39,7 @@ class SaiDebugCounterManager {
  private:
   std::shared_ptr<SaiDebugCounter> portL3BlackHoleCounter_;
   sai_stat_id_t portL3BlackHoleCounterStatId_{0};
+  SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
 };
 

@@ -58,10 +58,11 @@ void SaiManagerTable::createSaiTableManagers(
       std::make_unique<SaiAclTableManager>(saiStore, this, platform);
   bridgeManager_ = std::make_unique<SaiBridgeManager>(saiStore, this, platform);
   bufferManager_ = std::make_unique<SaiBufferManager>(saiStore, this, platform);
-  debugCounterManager_ = std::make_unique<SaiDebugCounterManager>(this);
+  debugCounterManager_ =
+      std::make_unique<SaiDebugCounterManager>(saiStore, this);
   fdbManager_ = std::make_unique<SaiFdbManager>(
       saiStore, this, platform, concurrentIndices);
-  hashManager_ = std::make_unique<SaiHashManager>(this, platform);
+  hashManager_ = std::make_unique<SaiHashManager>(saiStore, this, platform);
   queueManager_ = std::make_unique<SaiQueueManager>(saiStore, this, platform);
   hostifManager_ = std::make_unique<SaiHostifManager>(saiStore, this, platform);
   mirrorManager_ = std::make_unique<SaiMirrorManager>(saiStore, this, platform);
@@ -86,8 +87,8 @@ void SaiManagerTable::createSaiTableManagers(
       std::make_unique<SaiNeighborManager>(saiStore, this, platform);
   inSegEntryManager_ =
       std::make_unique<SaiInSegEntryManager>(saiStore, this, platform);
-  lagManager_ =
-      std::make_unique<SaiLagManager>(this, platform, concurrentIndices);
+  lagManager_ = std::make_unique<SaiLagManager>(
+      saiStore, this, platform, concurrentIndices);
   wredManager_ = std::make_unique<SaiWredManager>(saiStore, this, platform);
 
   // CSP CS00011823810

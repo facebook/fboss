@@ -30,8 +30,7 @@ void SaiDebugCounterManager::setupDebugCounters() {
 #endif
       }};
 
-  auto& debugCounterStore =
-      SaiStore::getInstance()->get<SaiDebugCounterTraits>();
+  auto& debugCounterStore = saiStore_->get<SaiDebugCounterTraits>();
   portL3BlackHoleCounter_ = debugCounterStore.setObject(attrs, attrs);
   portL3BlackHoleCounterStatId_ = SAI_PORT_STAT_IN_DROP_REASON_RANGE_BASE +
       SaiApiTable::getInstance()->debugCounterApi().getAttribute(
