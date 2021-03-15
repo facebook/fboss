@@ -27,7 +27,7 @@ std::shared_ptr<SaiBridgePort> SaiBridgeManager::addBridgePort(
     PortDescriptorSaiId saiId) {
   // Lazily re-load or create the default bridge if it is missing
   if (UNLIKELY(!bridgeHandle_)) {
-    auto& store = SaiStore::getInstance()->get<SaiBridgeTraits>();
+    auto& store = saiStore_->get<SaiBridgeTraits>();
     bridgeHandle_ = std::make_unique<SaiBridgeHandle>();
     SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
     BridgeSaiId default1QBridgeId{
@@ -37,7 +37,7 @@ std::shared_ptr<SaiBridgePort> SaiBridgeManager::addBridgePort(
         SaiBridgeTraits::AdapterKey{default1QBridgeId});
     CHECK(bridgeHandle_->bridge);
   }
-  auto& store = SaiStore::getInstance()->get<SaiBridgePortTraits>();
+  auto& store = saiStore_->get<SaiBridgePortTraits>();
   auto saiObjectId =
       saiId.isPhysicalPort() ? saiId.phyPortID() : saiId.aggPortID();
   SaiBridgePortTraits::AdapterHostKey k{saiObjectId};
@@ -47,10 +47,11 @@ std::shared_ptr<SaiBridgePort> SaiBridgeManager::addBridgePort(
 }
 
 SaiBridgeManager::SaiBridgeManager(
+    SaiStore* saiStore,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : managerTable_(managerTable), platform_(platform) {
-  auto& store = SaiStore::getInstance()->get<SaiBridgeTraits>();
+    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {
+  auto& store = saiStore_->get<SaiBridgeTraits>();
   store.setObjectOwnedByAdapter(true);
 }
 
@@ -77,7 +78,7 @@ void SaiBridgeManager::setL2LearningMode(
              << (getL2LearningMode() == cfg::L2LearningMode::HARDWARE
                      ? "hardware"
                      : "software");
-  auto& fdbStore = SaiStore::getInstance()->get<SaiFdbTraits>();
+  auto& fdbStore = saiStore_->get<SaiFdbTraits>();
   fdbStore.setObjectOwnedByAdapter(
       fdbLearningMode_ == SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW);
 }

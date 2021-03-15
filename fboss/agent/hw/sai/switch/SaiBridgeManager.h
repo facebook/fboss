@@ -21,6 +21,7 @@ namespace facebook::fboss {
 
 class SaiManagerTable;
 class SaiPlatform;
+class SaiStore;
 
 using SaiBridge = SaiObject<SaiBridgeTraits>;
 using SaiBridgePort = SaiObject<SaiBridgePortTraits>;
@@ -31,7 +32,10 @@ struct SaiBridgeHandle {
 
 class SaiBridgeManager {
  public:
-  SaiBridgeManager(SaiManagerTable* managerTable, const SaiPlatform* platform);
+  SaiBridgeManager(
+      SaiStore* saiStore,
+      SaiManagerTable* managerTable,
+      const SaiPlatform* platform);
   std::shared_ptr<SaiBridgePort> addBridgePort(
       SaiPortDescriptor portDescriptor,
       PortDescriptorSaiId saiId);
@@ -44,6 +48,7 @@ class SaiBridgeManager {
   cfg::L2LearningMode getL2LearningMode() const;
 
  private:
+  SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   std::unique_ptr<SaiBridgeHandle> bridgeHandle_;
