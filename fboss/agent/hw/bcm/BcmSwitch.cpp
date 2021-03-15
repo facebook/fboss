@@ -1106,7 +1106,7 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
 
   processLoadBalancerChanges(delta);
 
-  CHECK(!bothStandAloneRibOrRouteTableRibUsed(delta));
+  CHECK(FLAGS_enable_standalone_rib ? !legacyRibUsed(delta) : !fibUsed(delta));
 
   // remove all routes to be deleted
   processRemovedRoutes(delta);

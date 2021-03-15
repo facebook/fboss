@@ -86,6 +86,8 @@ DEFINE_bool(
     false,
     "Fail if any warm boot handles are left unclaimed.");
 
+DECLARE_bool(enable_standalone_rib);
+
 namespace {
 /*
  * For the devices/SDK we use, the only events we should get (and process)
@@ -507,7 +509,9 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
         &SaiRouteManager::removeRoute<folly::IPAddressV6>,
         rid);
   };
-  CHECK(!bothStandAloneRibOrRouteTableRibUsed(delta));
+
+  CHECK(FLAGS_enable_standalone_rib ? !legacyRibUsed(delta) : !fibUsed(delta));
+
   for (const auto& routeDelta : delta.getFibsDelta()) {
     auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
                                         : routeDelta.getNew()->getID();
