@@ -193,7 +193,10 @@ void initandExitBenchmarkHelper(
      * transition from INIT TO CONFIGURED.
      */
     auto newState = applyThriftConfig(
-        ensemble->getProgrammedState(), &config, hwSwitch->getPlatform());
+        ensemble->getProgrammedState(),
+        &config,
+        hwSwitch->getPlatform(),
+        ensemble->getRib());
     ensemble->applyNewState(newState);
     ensemble->switchRunStateChanged(SwitchRunState::CONFIGURED);
   }
