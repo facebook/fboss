@@ -210,7 +210,7 @@ void HwPortFb303Stats::updateStats(
     updateQueueStat(
         kOutCongestionDiscards(),
         queueIdAndName.first,
-        *curPortStats.queueOutDiscardBytes__ref());
+        *curPortStats.queueOutDiscardPackets__ref());
     updateQueueStat(
         kOutBytes(), queueIdAndName.first, *curPortStats.queueOutBytes__ref());
     updateQueueStat(

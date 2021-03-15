@@ -53,7 +53,7 @@ HwPortStats getInitedStats() {
       {{1, 2}, {2, 2}}, // queueOutBytes
       21, // outEcnCounter
       {{1, 3}, {2, 3}}, // queueOutPackets
-      {{0, 0}, {0, 0}}, // queueOutDiscardPackets
+      {{1, 1}, {2, 1}}, // queueOutDiscardPackets
       {{1, 0}, {2, 10}}, // queueWatermarkBytes
       22, // fecCorrectableErrors
       23, // fecUncorrectableErrors
@@ -73,7 +73,7 @@ void updateStats(HwPortFb303Stats& portStats) {
   HwPortStats empty{};
   // Need to populate queue stats, since by default these
   // maps are empty
-  *empty.queueOutDiscardBytes__ref() = *empty.queueOutBytes__ref() =
+  *empty.queueOutDiscardPackets__ref() = *empty.queueOutBytes__ref() =
       *empty.queueOutPackets__ref() =
           *empty.queueWatermarkBytes__ref() = {{1, 0}, {2, 0}};
   portStats.updateStats(empty, now);
