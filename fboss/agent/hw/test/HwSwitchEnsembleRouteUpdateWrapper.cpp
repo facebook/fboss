@@ -85,16 +85,21 @@ void HwSwitchEnsembleRouteUpdateWrapper::programClassIDLegacyRib(
       hwEnsemble_->getProgrammedState(), rid, prefixes, classId));
 }
 
-void HwSwitchEnsembleRouteUpdateWrapper::programRoutes(
+void HwSwitchEnsembleRouteUpdateWrapper::programRoutesImpl(
     RouterID rid,
     ClientID client,
-    const utility::RouteDistributionGenerator::ThriftRouteChunks& routeChunks) {
+    const utility::RouteDistributionGenerator::ThriftRouteChunks& routeChunks,
+    bool add) {
   for (const auto& routeChunk : routeChunks) {
     std::for_each(
         routeChunk.begin(),
         routeChunk.end(),
-        [this, client, rid](const auto& route) {
-          addRoute(rid, client, route);
+        [this, client, rid, add](const auto& route) {
+          if (add) {
+            addRoute(rid, client, route);
+          } else {
+            delRoute(rid, *route.dest_ref(), client);
+          }
         });
     program();
   }

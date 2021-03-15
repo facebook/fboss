@@ -32,9 +32,24 @@ class HwSwitchEnsembleRouteUpdateWrapper : public RouteUpdateWrapper {
       RouterID rid,
       ClientID client,
       const utility::RouteDistributionGenerator::ThriftRouteChunks&
-          routeChunks);
+          routeChunks) {
+    programRoutesImpl(rid, client, routeChunks, true /* add*/);
+  }
+
+  void unprogramRoutes(
+      RouterID rid,
+      ClientID client,
+      const utility::RouteDistributionGenerator::ThriftRouteChunks&
+          routeChunks) {
+    programRoutesImpl(rid, client, routeChunks, false /* del*/);
+  }
 
  private:
+  void programRoutesImpl(
+      RouterID rid,
+      ClientID client,
+      const utility::RouteDistributionGenerator::ThriftRouteChunks& routeChunks,
+      bool add);
   void updateStats(
       const RoutingInformationBase::UpdateStatistics& /*stats*/) override {}
   AdminDistance clientIdToAdminDistance(ClientID clientId) const override;
