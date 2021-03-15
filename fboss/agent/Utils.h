@@ -25,6 +25,8 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/types.h"
 
+#include <chrono>
+
 namespace folly {
 struct dynamic;
 }
@@ -140,4 +142,15 @@ UnicastRoute makeUnicastRoute(
     const folly::CIDRNetwork& nw,
     const std::vector<folly::IPAddress>& nhops,
     AdminDistance admin = AdminDistance::EBGP);
+
+class StopWatch {
+ public:
+  StopWatch(const std::string& name, bool json);
+  ~StopWatch();
+
+ private:
+  const std::string name_;
+  bool json_;
+  std::chrono::time_point<std::chrono::steady_clock> startTime_;
+};
 } // namespace facebook::fboss

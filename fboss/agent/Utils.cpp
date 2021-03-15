@@ -27,6 +27,8 @@
 #include <boost/filesystem/operations.hpp>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
+#include <iostream>
+
 using folly::IPAddressV4;
 using folly::IPAddressV6;
 
@@ -203,5 +205,20 @@ UnicastRoute makeUnicastRoute(
       });
   route.nextHops_ref() = thriftNextHopsFromAddresses(addrs);
   return route;
+}
+
+StopWatch::StopWatch(const std::string& name, bool json)
+    : name_(name), json_(json), startTime_(std::chrono::steady_clock::now()) {}
+
+StopWatch::~StopWatch() {
+  std::chrono::duration<double, std::milli> durationMillseconds =
+      std::chrono::steady_clock::now() - startTime_;
+  if (json_) {
+    folly::dynamic time = folly::dynamic::object;
+    time[name_] = durationMillseconds.count();
+    std::cout << time << std::endl;
+  } else {
+    XLOG(INFO) << name_ << " : " << durationMillseconds.count();
+  }
 }
 } // namespace facebook::fboss

@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
@@ -32,26 +33,6 @@ DEFINE_bool(
     false,
     "Set to true will prepare the device for warmboot");
 
-namespace {
-class StopWatch {
- public:
-  StopWatch() : startTime_(std::chrono::steady_clock::now()) {}
-  ~StopWatch() {
-    std::chrono::duration<double, std::milli> durationMillseconds =
-        std::chrono::steady_clock::now() - startTime_;
-    if (FLAGS_json) {
-      folly::dynamic warmBootTime = folly::dynamic::object;
-      warmBootTime["warm_boot_msecs"] = durationMillseconds.count();
-      std::cout << warmBootTime << std::endl;
-    } else {
-      XLOG(INFO) << " warm boot msecs: " << durationMillseconds.count();
-    }
-  }
-
- private:
-  std::chrono::time_point<std::chrono::steady_clock> startTime_;
-};
-} // namespace
 namespace facebook::fboss {
 
 void runBenchmark() {
@@ -104,7 +85,7 @@ void runBenchmark() {
   // Static such that the object destructor runs as late as possible. In
   // particular in this case, destructor (and thus the duration calculation)
   // will run at the time of program exit when static variable destructors run
-  static StopWatch timer;
+  static StopWatch timer("warm_boot_msecs", FLAGS_json);
   ensemble->gracefulExit();
   // Leak HwSwitchEnsemble for warmboot, so that
   // we don't run destructors and unprogram h/w. We are
