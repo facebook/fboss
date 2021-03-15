@@ -88,28 +88,6 @@ void HwSwitchEnsembleRouteUpdateWrapper::programClassIDLegacyRib(
 void HwSwitchEnsembleRouteUpdateWrapper::programRoutes(
     RouterID rid,
     ClientID client,
-    AdminDistance admin,
-    const utility::RouteDistributionGenerator::RouteChunks& routeChunks) {
-  for (const auto& routeChunk : routeChunks) {
-    for (const auto& route : routeChunk) {
-      RouteNextHopSet nhops;
-      for (const auto& ip : route.nhops) {
-        nhops.emplace(UnresolvedNextHop(ip, ECMP_WEIGHT));
-      }
-      addRoute(
-          rid,
-          route.prefix.first,
-          route.prefix.second,
-          client,
-          RouteNextHopEntry(nhops, admin));
-    }
-  }
-  program();
-}
-
-void HwSwitchEnsembleRouteUpdateWrapper::programRoutes(
-    RouterID rid,
-    ClientID client,
     const utility::RouteDistributionGenerator::ThriftRouteChunks& routeChunks) {
   for (const auto& routeChunk : routeChunks) {
     std::for_each(
@@ -118,7 +96,7 @@ void HwSwitchEnsembleRouteUpdateWrapper::programRoutes(
         [this, client, rid](const auto& route) {
           addRoute(rid, client, route);
         });
+    program();
   }
-  program();
 }
 } // namespace facebook::fboss

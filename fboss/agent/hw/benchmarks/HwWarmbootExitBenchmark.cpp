@@ -42,7 +42,7 @@ void runBenchmark() {
       utility::onePortPerVlanConfig(hwSwitch, ensemble->masterLogicalPortIds());
   ensemble->applyInitialConfig(config);
 
-  utility::RouteDistributionGenerator::RouteChunks routeChunks;
+  utility::RouteDistributionGenerator::ThriftRouteChunks routeChunks;
   if (ensemble->getPlatform()->getMode() == PlatformMode::WEDGE) {
     routeChunks = utility::RouteDistributionGenerator(
                       ensemble->getProgrammedState(),
@@ -71,16 +71,15 @@ void runBenchmark() {
                       ensemble->isStandaloneRibEnabled(),
                       4000,
                       4)
-                      .get();
+                      .getThriftRoutes();
   } else {
     routeChunks =
         utility::FSWRouteScaleGenerator(
             ensemble->getProgrammedState(), ensemble->isStandaloneRibEnabled())
-            .get();
+            .getThriftRoutes();
   }
   HwSwitchEnsembleRouteUpdateWrapper updater(ensemble.get());
-  updater.programRoutes(
-      RouterID(0), ClientID::BGPD, AdminDistance::EBGP, routeChunks);
+  updater.programRoutes(RouterID(0), ClientID::BGPD, routeChunks);
   // Static such that the object destructor runs as late as possible. In
   // Static such that the object destructor runs as late as possible. In
   // particular in this case, destructor (and thus the duration calculation)

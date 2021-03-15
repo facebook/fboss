@@ -102,7 +102,7 @@ std::optional<uint16_t> getUplinksCount(
   return iter->second;
 }
 
-utility::RouteDistributionGenerator::RouteChunks getRoutes(
+utility::RouteDistributionGenerator::ThriftRouteChunks getRoutes(
     const HwSwitchEnsemble* ensemble) {
   /*
    * |  Platform   |  Role  |
@@ -123,7 +123,7 @@ utility::RouteDistributionGenerator::RouteChunks getRoutes(
     return utility::RSWRouteScaleGenerator(
                ensemble->getProgrammedState(),
                ensemble->isStandaloneRibEnabled())
-        .get();
+        .getThriftRoutes();
   } else if (
       asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3 ||
       asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4 ||
@@ -131,12 +131,12 @@ utility::RouteDistributionGenerator::RouteChunks getRoutes(
     return utility::HgridUuRouteScaleGenerator(
                ensemble->getProgrammedState(),
                ensemble->isStandaloneRibEnabled())
-        .get();
+        .getThriftRoutes();
   } else if (asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK) {
     return utility::FSWRouteScaleGenerator(
                ensemble->getProgrammedState(),
                ensemble->isStandaloneRibEnabled())
-        .get();
+        .getThriftRoutes();
   } else {
     CHECK(false) << "Invalid asic type for route scale";
   }
@@ -200,8 +200,7 @@ void initandExitBenchmarkHelper(
   suspender.rehire();
   auto routeChunks = getRoutes(ensemble.get());
   HwSwitchEnsembleRouteUpdateWrapper updater(ensemble.get());
-  updater.programRoutes(
-      RouterID(0), ClientID::BGPD, AdminDistance::EBGP, routeChunks);
+  updater.programRoutes(RouterID(0), ClientID::BGPD, routeChunks);
   if (FLAGS_setup_for_warmboot) {
     ScopedCallTimer timeIt;
     // Static such that the object destructor runs as late as possible. In

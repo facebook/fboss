@@ -44,10 +44,9 @@ class HwRouteScaleTest : public HwTest {
       auto routeChunks = RouteScaleGeneratorT(
                              getProgrammedState(),
                              getHwSwitchEnsemble()->isStandaloneRibEnabled())
-                             .get();
+                             .getThriftRoutes();
       HwSwitchEnsembleRouteUpdateWrapper updater(getHwSwitchEnsemble());
-      updater.programRoutes(
-          RouterID(0), ClientID::BGPD, AdminDistance::EBGP, routeChunks);
+      updater.programRoutes(RouterID(0), ClientID::BGPD, routeChunks);
     };
     auto verify = [] {};
     verifyAcrossWarmBoots(setup, verify);

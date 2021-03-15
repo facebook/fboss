@@ -61,12 +61,11 @@ BENCHMARK(HwEcmpGroupShrinkWithCompetingRouteUpdates) {
                          10'000,
                          4,
                          RouterID(0))
-                         .get();
+                         .getThriftRoutes();
 
   std::thread t([&ensemble, &routeChunks]() {
     HwSwitchEnsembleRouteUpdateWrapper updater(ensemble.get());
-    updater.programRoutes(
-        RouterID(0), ClientID::BGPD, AdminDistance::EBGP, routeChunks);
+    updater.programRoutes(RouterID(0), ClientID::BGPD, routeChunks);
   });
 
   // Toggle loopback mode via direct SDK calls rathe than going through
