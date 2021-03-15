@@ -142,6 +142,16 @@ target_link_libraries(hw_hgrid_uu_scale_route_del_speed
   Folly::folly
 )
 
+add_library(hw_rib_resolution_speed
+  fboss/agent/hw/benchmarks/HwRibResolutionBenchmark.cpp
+)
+
+target_link_libraries(hw_rib_resolution_speed
+  config_factory
+  hw_benchmark_main
+  Folly::folly
+)
+
 add_library(hw_ecmp_shrink_speed
   fboss/agent/hw/benchmarks/HwEcmpShrinkSpeedBenchmark.cpp
 )

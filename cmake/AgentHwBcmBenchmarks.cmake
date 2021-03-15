@@ -269,6 +269,23 @@ target_link_libraries(bcm_init_and_exit_100Gx100G
   -Wl,--no-whole-archive
 )
 
+add_executable(bcm_rib_resolution_speed /dev/null)
+
+target_link_libraries(bcm_rib_resolution_speed
+  -Wl,--whole-archive
+  bcm
+  config
+  bcm_switch_ensemble
+  config_factory
+  hw_rib_resolution_speed
+  route_scale_gen
+  -Wl,--no-whole-archive
+  hw_benchmark_main
+  Folly::folly
+  ${OPENNSA}
+  Folly::follybenchmark
+)
+
 if (BENCHMARK_INSTALL)
   install(TARGETS bcm_ecmp_shrink_speed)
   install(TARGETS bcm_ecmp_shrink_with_competing_route_updates_speed)
@@ -289,4 +306,5 @@ if (BENCHMARK_INSTALL)
   install(TARGETS bcm_init_and_exit_100Gx25G)
   install(TARGETS bcm_init_and_exit_100Gx50G)
   install(TARGETS bcm_init_and_exit_100Gx100G)
+  install(TARGETS bcm_rib_resolution_speed)
 endif()
