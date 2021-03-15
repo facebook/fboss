@@ -297,14 +297,16 @@ void SwSwitch::onSwitchRunStateChange(SwitchRunState newState) {
     restart_time::mark(RestartEvent::INITIALIZED);
   } else if (newState == SwitchRunState::CONFIGURED) {
     restart_time::mark(RestartEvent::CONFIGURED);
-  } else if (newState == SwitchRunState::FIB_SYNCED) {
-    restart_time::mark(RestartEvent::FIB_SYNCED);
   }
   getHw()->switchRunStateChanged(newState);
 }
 
 SwitchRunState SwSwitch::getSwitchRunState() const {
   return runState_.load(std::memory_order_acquire);
+}
+
+void SwSwitch::setRestartTime(RestartEvent event) {
+  restart_time::mark(event);
 }
 
 void SwSwitch::gracefulExit() {
@@ -586,6 +588,10 @@ void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
         duration_cast<duration<float>>(steady_clock::now() - startTime)
             .count());
   }
+
+  // Transition to FIB_SYNCED state to allow protocols to add/update routes.
+  // TODO - Remove this once FIB_SYNCED SwitchRunstate is depreciated
+  fibSynced();
 }
 
 void SwSwitch::logRouteUpdates(
@@ -597,6 +603,10 @@ void SwSwitch::logRouteUpdates(
       identifier,
       false};
   routeUpdateLogger_->startLoggingForPrefix(r);
+}
+
+void SwSwitch::stopLoggingRouteUpdates(const std::string& identifier) {
+  routeUpdateLogger_->stopLoggingForIdentifier(identifier);
 }
 
 void SwSwitch::fibSynced() {

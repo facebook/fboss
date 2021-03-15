@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/RestartTimeTracker.h"
 #include "fboss/agent/ThreadHeartbeat.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -617,6 +618,8 @@ class SwSwitch : public HwSwitch::Callback {
       uint8_t mask,
       const std::string& identifier);
 
+  void stopLoggingRouteUpdates(const std::string& identifier);
+
   /*
    * Register a function that will send notifications about the port status.
    * Only one port status listener is supported, and calling this multiple
@@ -669,6 +672,8 @@ class SwSwitch : public HwSwitch::Callback {
   ResolvedNexthopProbeScheduler* getResolvedNexthopProbeScheduler() {
     return resolvedNexthopProbeScheduler_.get();
   }
+
+  void setRestartTime(RestartEvent event);
 
  private:
   void updateStateBlockingImpl(

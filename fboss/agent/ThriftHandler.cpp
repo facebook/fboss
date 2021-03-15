@@ -627,7 +627,6 @@ void ThriftHandler::addUnicastRoutesInVrf(
     int32_t vrf) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  ensureFibSynced(__func__);
   updateUnicastRoutesImpl(vrf, client, routes, "addUnicastRoutesInVrf", false);
 }
 
@@ -636,7 +635,6 @@ void ThriftHandler::addUnicastRoutes(
     std::unique_ptr<std::vector<UnicastRoute>> routes) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  ensureFibSynced(__func__);
   addUnicastRoutesInVrf(client, std::move(routes), 0);
 }
 
@@ -652,7 +650,6 @@ void ThriftHandler::deleteUnicastRoutesInVrf(
     int32_t vrf) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  ensureFibSynced(__func__);
 
   SwSwitchRouteUpdateWrapper updater(sw_);
   auto routerID = RouterID(vrf);
@@ -668,7 +665,6 @@ void ThriftHandler::deleteUnicastRoutes(
     std::unique_ptr<std::vector<IpPrefix>> prefixes) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  ensureFibSynced(__func__);
   deleteUnicastRoutesInVrf(client, std::move(prefixes), 0);
 }
 
@@ -678,10 +674,32 @@ void ThriftHandler::syncFibInVrf(
     int32_t vrf) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  updateUnicastRoutesImpl(vrf, client, routes, "syncFibInVrf", true);
-  if (!sw_->isFibSynced()) {
-    sw_->fibSynced();
+
+  // Only route updates in first syncFib for each client are logged
+  auto logRoutes = (sw_->getBootType() == BootType::WARM_BOOT) &&
+      (syncedFibClients.find(client) == syncedFibClients.end());
+  auto clientId = static_cast<ClientID>(client);
+  auto clientName = apache::thrift::TEnumTraits<ClientID>::findName(clientId);
+  auto clientIdentifier =
+      "fboss-agent-warmboot-" + (clientName ? string(clientName) : "DEFAULT");
+  if (logRoutes) {
+    sw_->logRouteUpdates("::", 0, clientIdentifier);
+    sw_->logRouteUpdates("0.0.0.0", 0, clientIdentifier);
   }
+  SCOPE_EXIT {
+    if (logRoutes) {
+      sw_->stopLoggingRouteUpdates(clientIdentifier);
+    }
+  };
+  updateUnicastRoutesImpl(vrf, client, routes, "syncFibInVrf", true);
+
+  // If this is the first update, set sync time.
+  // TODO - record time per client instead
+  if (!syncedFibClients.size()) {
+    sw_->setRestartTime(RestartEvent::FIB_SYNCED);
+  }
+
+  syncedFibClients.emplace(client);
 }
 
 void ThriftHandler::syncFib(
@@ -1633,18 +1651,6 @@ void ThriftHandler::ensureConfigured(StringPiece function) const {
       "fully configured yet");
 }
 
-void ThriftHandler::ensureFibSynced(StringPiece function) {
-  if (sw_->isFibSynced()) {
-    return;
-  }
-
-  if (!function.empty()) {
-    XLOG_EVERY_MS(DBG1, 1000)
-        << "failing thrift prior to FIB Sync: " << function;
-  }
-  throw FbossError("switch is still initializing, FIB not synced yet");
-}
-
 // If this is a premature client disconnect from a duplex connection, we need to
 // clean up state.  Failure to do so may allow the server's duplex clients to
 // use the destroyed context => segfaults.
@@ -1739,7 +1745,6 @@ void ThriftHandler::addMplsRoutes(
     std::unique_ptr<std::vector<MplsRoute>> mplsRoutes) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  ensureFibSynced(__func__);
   auto updateFn = [=, routes = std::move(*mplsRoutes)](
                       const std::shared_ptr<SwitchState>& state) {
     auto newState = state->clone();
@@ -1852,7 +1857,6 @@ void ThriftHandler::deleteMplsRoutes(
     std::unique_ptr<std::vector<int32_t>> topLabels) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  ensureFibSynced(__func__);
   auto updateFn = [=, topLabels = std::move(*topLabels)](
                       const std::shared_ptr<SwitchState>& state) {
     auto newState = state->clone();

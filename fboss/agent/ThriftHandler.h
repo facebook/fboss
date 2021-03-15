@@ -331,21 +331,6 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
     // This version of ensureConfigured() won't log
     ensureConfigured(folly::StringPiece(nullptr, nullptr));
   }
-  /*
-   * On a warm boot we need to prevent route updates
-   * before a full FIB sync event. Otherwise if we get a
-   * add and delete for a route that might lead us to believe
-   * that the reference count for this route's egress object has
-   * dropped to 0 but in reality we just haven't heard about all
-   * the routes that may also point to this egress. This causes
-   * errors when we try to delete the egress objects. t4155406
-   * should fix this.
-   */
-  void ensureFibSynced(folly::StringPiece function);
-  void ensureFibSynced() {
-    // This version of ensureFibSynced() won't log
-    ensureFibSynced(folly::StringPiece(nullptr, nullptr));
-  }
 
  private:
   struct ThreadLocalListener {
@@ -399,6 +384,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   std::vector<const TConnectionContext*> brokenClients_;
 
   apache::thrift::SSLPolicy sslPolicy_;
+
+  std::unordered_set<uint16_t> syncedFibClients;
 };
 
 } // namespace facebook::fboss
