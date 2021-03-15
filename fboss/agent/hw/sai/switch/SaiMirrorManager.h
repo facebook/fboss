@@ -22,6 +22,7 @@ namespace facebook::fboss {
 
 class SaiManagerTable;
 class SaiPlatform;
+class SaiStore;
 
 using SaiMirror2Port = SaiObject<SaiLocalMirrorTraits>;
 using SaiMirror2GreTunnel = SaiObject<SaiEnhancedRemoteMirrorTraits>;
@@ -47,7 +48,10 @@ struct SaiMirrorHandle {
 
 class SaiMirrorManager {
  public:
-  SaiMirrorManager(SaiManagerTable* managerTable, const SaiPlatform* platform);
+  SaiMirrorManager(
+      SaiStore* saiStore,
+      SaiManagerTable* managerTable,
+      const SaiPlatform* platform);
   void addMirror(const std::shared_ptr<Mirror>& mirror);
   void removeMirror(const std::shared_ptr<Mirror>& mirror);
   void changeMirror(
@@ -60,9 +64,6 @@ class SaiMirrorManager {
  private:
   SaiMirrorHandle* FOLLY_NULLABLE
   getMirrorHandleImpl(const std::string& mirrorId) const;
-  SaiManagerTable* managerTable_;
-  folly::F14FastMap<std::string, std::unique_ptr<SaiMirrorHandle>>
-      mirrorHandles_;
   SaiMirrorHandle::SaiMirror addMirrorSpan(PortSaiId monitorPort);
   SaiMirrorHandle::SaiMirror addMirrorErSpan(
       const std::shared_ptr<Mirror>& mirror,
@@ -70,6 +71,11 @@ class SaiMirrorManager {
   SaiMirrorHandle::SaiMirror addMirrorSflow(
       const std::shared_ptr<Mirror>& mirror,
       PortSaiId monitorPort);
+
+  SaiStore* saiStore_;
+  SaiManagerTable* managerTable_;
+  folly::F14FastMap<std::string, std::unique_ptr<SaiMirrorHandle>>
+      mirrorHandles_;
 };
 
 } // namespace facebook::fboss

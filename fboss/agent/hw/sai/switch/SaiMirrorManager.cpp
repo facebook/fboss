@@ -27,7 +27,7 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addMirrorSpan(
   SaiLocalMirrorTraits::AdapterHostKey k{
       SAI_MIRROR_SESSION_TYPE_LOCAL, monitorPort};
   SaiLocalMirrorTraits::CreateAttributes attributes = k;
-  auto& store = SaiStore::getInstance()->get<SaiLocalMirrorTraits>();
+  auto& store = saiStore_->get<SaiLocalMirrorTraits>();
   return store.setObject(k, attributes);
 }
 
@@ -55,7 +55,7 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addMirrorErSpan(
       monitorPort,
       mirrorTunnel.srcIp,
       mirrorTunnel.dstIp};
-  auto& store = SaiStore::getInstance()->get<SaiEnhancedRemoteMirrorTraits>();
+  auto& store = saiStore_->get<SaiEnhancedRemoteMirrorTraits>();
   return store.setObject(k, attributes);
 }
 
@@ -84,7 +84,7 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addMirrorSflow(
       mirrorTunnel.dstIp,
       mirrorTunnel.udpPorts.value().udpSrcPort,
       mirrorTunnel.udpPorts.value().udpDstPort};
-  auto& store = SaiStore::getInstance()->get<SaiSflowMirrorTraits>();
+  auto& store = saiStore_->get<SaiSflowMirrorTraits>();
   return store.setObject(k, attributes);
 }
 #endif
@@ -178,8 +178,9 @@ SaiMirrorManager::getMirrorHandle(const std::string& mirrorId) {
 }
 
 SaiMirrorManager::SaiMirrorManager(
+    SaiStore* saiStore,
     SaiManagerTable* managerTable,
     const SaiPlatform* /*platform*/)
-    : managerTable_(managerTable) {}
+    : saiStore_(saiStore), managerTable_(managerTable) {}
 
 } // namespace facebook::fboss

@@ -46,13 +46,14 @@ SaiSamplePacketManager::getOrCreateSamplePacket(
       SAI_SAMPLEPACKET_MODE_SHARED // TODO: Decide by asic support
   };
   SaiSamplePacketTraits::CreateAttributes attributes = k;
-  auto& store = SaiStore::getInstance()->get<SaiSamplePacketTraits>();
+  auto& store = saiStore_->get<SaiSamplePacketTraits>();
   return store.setObject(k, attributes);
 }
 
 SaiSamplePacketManager::SaiSamplePacketManager(
+    SaiStore* saiStore,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : managerTable_(managerTable), platform_(platform) {}
+    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
 } // namespace facebook::fboss

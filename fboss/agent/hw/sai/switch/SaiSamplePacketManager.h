@@ -25,12 +25,14 @@ enum class SamplePacketAction { START = 1, STOP = 2 };
 
 class SaiManagerTable;
 class SaiPlatform;
+class SaiStore;
 
 using SaiSamplePacket = SaiObject<SaiSamplePacketTraits>;
 
 class SaiSamplePacketManager {
  public:
   SaiSamplePacketManager(
+      SaiStore* saiStore,
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
   std::shared_ptr<SaiSamplePacket> getOrCreateSamplePacket(
@@ -38,6 +40,7 @@ class SaiSamplePacketManager {
       cfg::SampleDestination sampleDestination);
 
  private:
+  SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
 };

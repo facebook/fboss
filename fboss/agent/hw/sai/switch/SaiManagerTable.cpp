@@ -64,7 +64,7 @@ void SaiManagerTable::createSaiTableManagers(
   hashManager_ = std::make_unique<SaiHashManager>(this, platform);
   queueManager_ = std::make_unique<SaiQueueManager>(saiStore, this, platform);
   hostifManager_ = std::make_unique<SaiHostifManager>(this, platform);
-  mirrorManager_ = std::make_unique<SaiMirrorManager>(this, platform);
+  mirrorManager_ = std::make_unique<SaiMirrorManager>(saiStore, this, platform);
   portManager_ = std::make_unique<SaiPortManager>(
       saiStore, this, platform, concurrentIndices);
   qosMapManager_ = std::make_unique<SaiQosMapManager>(saiStore, this, platform);
@@ -75,7 +75,7 @@ void SaiManagerTable::createSaiTableManagers(
   routerInterfaceManager_ =
       std::make_unique<SaiRouterInterfaceManager>(saiStore, this, platform);
   samplePacketManager_ =
-      std::make_unique<SaiSamplePacketManager>(this, platform);
+      std::make_unique<SaiSamplePacketManager>(saiStore, this, platform);
   schedulerManager_ =
       std::make_unique<SaiSchedulerManager>(saiStore, this, platform);
   nextHopManager_ =
