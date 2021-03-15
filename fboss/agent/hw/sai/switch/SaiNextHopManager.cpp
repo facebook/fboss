@@ -28,8 +28,7 @@ std::shared_ptr<SaiIpNextHop> SaiNextHopManager::addNextHop(
   SaiIpNextHopTraits::AdapterHostKey k{routerInterfaceId, ip};
   SaiIpNextHopTraits::CreateAttributes attributes{
       SAI_NEXT_HOP_TYPE_IP, routerInterfaceId, ip, std::nullopt};
-  auto& store = saiStore_->get<SaiIpNextHopTraits>();
-  return store.setObject(k, attributes);
+  return createSaiObject<SaiIpNextHopTraits>(k, attributes);
 }
 
 SaiNextHopManager::SaiNextHopManager(
@@ -37,36 +36,6 @@ SaiNextHopManager::SaiNextHopManager(
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
     : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
-
-SaiNextHop SaiNextHopManager::refOrEmplace(const ResolvedNextHop& swNextHop) {
-  auto nexthopKey = getAdapterHostKey(swNextHop);
-
-  if (auto ipNextHopKey =
-          std::get_if<typename SaiIpNextHopTraits::AdapterHostKey>(
-              &nexthopKey)) {
-    return saiStore_->get<SaiIpNextHopTraits>().setObject(
-        *ipNextHopKey,
-        SaiIpNextHopTraits::CreateAttributes{
-            SAI_NEXT_HOP_TYPE_IP,
-            std::get<0>(*ipNextHopKey),
-            std::get<1>(*ipNextHopKey),
-            std::nullopt});
-  } else if (
-      auto mplsNextHopKey =
-          std::get_if<typename SaiMplsNextHopTraits::AdapterHostKey>(
-              &nexthopKey)) {
-    return saiStore_->get<SaiMplsNextHopTraits>().setObject(
-        *mplsNextHopKey,
-        SaiMplsNextHopTraits::CreateAttributes{
-            SAI_NEXT_HOP_TYPE_MPLS,
-            std::get<0>(*mplsNextHopKey),
-            std::get<1>(*mplsNextHopKey),
-            std::get<2>(*mplsNextHopKey),
-            std::nullopt});
-  }
-
-  throw FbossError("next hop key not found for a given next hop");
-}
 
 SaiNextHopTraits::AdapterHostKey SaiNextHopManager::getAdapterHostKey(
     const ResolvedNextHop& swNextHop) {
