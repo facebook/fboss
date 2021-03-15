@@ -25,9 +25,11 @@
 namespace facebook::fboss {
 
 SaiAclTableManager::SaiAclTableManager(
+    SaiStore* saiStore,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : managerTable_(managerTable),
+    : saiStore_(saiStore),
+      managerTable_(managerTable),
       platform_(platform),
       aclEntryMinimumPriority_(
           SaiApiTable::getInstance()->switchApi().getAttribute(
@@ -199,8 +201,7 @@ AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
 
   std::tie(adapterHostKey, attributes) = createAclTableHelper();
 
-  std::shared_ptr<SaiStore> s = SaiStore::getInstance();
-  auto& aclTableStore = s->get<SaiAclTableTraits>();
+  auto& aclTableStore = saiStore_->get<SaiAclTableTraits>();
 
   auto saiAclTable = aclTableStore.setObject(adapterHostKey, attributes);
   auto aclTableHandle = std::make_unique<SaiAclTableHandle>();
@@ -428,8 +429,7 @@ std::shared_ptr<SaiAclCounter> SaiAclTableManager::addAclCounter(
       std::nullopt, // counterBytes
   };
 
-  std::shared_ptr<SaiStore> s = SaiStore::getInstance();
-  auto& aclCounterStore = s->get<SaiAclCounterTraits>();
+  auto& aclCounterStore = saiStore_->get<SaiAclCounterTraits>();
 
   auto saiAclCounter = aclCounterStore.setObject(adapterHostKey, attributes);
 
@@ -455,8 +455,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
         "attempted to add a duplicate aclEntry: ", addedAclEntry->getID());
   }
 
-  std::shared_ptr<SaiStore> s = SaiStore::getInstance();
-  auto& aclEntryStore = s->get<SaiAclEntryTraits>();
+  auto& aclEntryStore = saiStore_->get<SaiAclEntryTraits>();
 
   SaiAclEntryTraits::Attributes::TableId aclTableId{
       aclTableHandle->aclTable->adapterKey()};

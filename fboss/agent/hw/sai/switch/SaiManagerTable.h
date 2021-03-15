@@ -50,11 +50,13 @@ class SaiVirtualRouterManager;
 class SaiVlanManager;
 class SaiUnsupportedFeatureManager;
 class SaiWredManager;
+class SaiStore;
 
 class SaiManagerTable {
  public:
   SaiManagerTable(SaiPlatform* platform, BootType bootType);
   void createSaiTableManagers(
+      SaiStore* saiStore,
       SaiPlatform* platform,
       ConcurrentIndices* concurrentIndices);
   ~SaiManagerTable();

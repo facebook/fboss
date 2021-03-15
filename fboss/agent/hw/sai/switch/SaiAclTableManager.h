@@ -25,6 +25,7 @@ namespace facebook::fboss {
 
 class SaiManagerTable;
 class SaiPlatform;
+class SaiStore;
 
 using SaiAclTable = SaiObject<SaiAclTableTraits>;
 using SaiAclEntry = SaiObject<SaiAclEntryTraits>;
@@ -62,6 +63,7 @@ struct SaiAclTableHandle {
 class SaiAclTableManager {
  public:
   SaiAclTableManager(
+      SaiStore* saiStore,
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
 
@@ -172,6 +174,7 @@ class SaiAclTableManager {
       MirrorAction action,
       const std::optional<std::string>& mirrorId);
 
+  SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
 

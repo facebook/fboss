@@ -49,11 +49,13 @@ SaiManagerTable::SaiManagerTable(SaiPlatform* platform, BootType bootType) {
 }
 
 void SaiManagerTable::createSaiTableManagers(
+    SaiStore* saiStore,
     SaiPlatform* platform,
     ConcurrentIndices* concurrentIndices) {
   aclTableGroupManager_ =
-      std::make_unique<SaiAclTableGroupManager>(this, platform);
-  aclTableManager_ = std::make_unique<SaiAclTableManager>(this, platform);
+      std::make_unique<SaiAclTableGroupManager>(saiStore, this, platform);
+  aclTableManager_ =
+      std::make_unique<SaiAclTableManager>(saiStore, this, platform);
   bridgeManager_ = std::make_unique<SaiBridgeManager>(this, platform);
   bufferManager_ = std::make_unique<SaiBufferManager>(this, platform);
   debugCounterManager_ = std::make_unique<SaiDebugCounterManager>(this);

@@ -1017,7 +1017,8 @@ void SaiSwitch::initStoreAndManagersLocked(
     const folly::dynamic* adapterKeys2AdapterHostKeys) {
   saiStore_->setSwitchId(switchId_);
   saiStore_->reload(adapterKeys, adapterKeys2AdapterHostKeys);
-  managerTable_->createSaiTableManagers(platform_, concurrentIndices_.get());
+  managerTable_->createSaiTableManagers(
+      saiStore_, platform_, concurrentIndices_.get());
   /*
    * SwitchState does not have notion of AclTableGroup or AclTable today.
    * Thus, stateChanged() can not process aclTableGroupChanges or

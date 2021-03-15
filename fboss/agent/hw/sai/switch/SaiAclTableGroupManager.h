@@ -22,6 +22,7 @@ namespace facebook::fboss {
 
 class SaiManagerTable;
 class SaiPlatform;
+class SaiStore;
 
 using SaiAclTableGroup = SaiObject<SaiAclTableGroupTraits>;
 using SaiAclTableGroupMember = SaiObject<SaiAclTableGroupMemberTraits>;
@@ -40,6 +41,7 @@ struct SaiAclTableGroupHandle {
 class SaiAclTableGroupManager {
  public:
   SaiAclTableGroupManager(
+      SaiStore* saiStore,
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
 
@@ -68,6 +70,7 @@ class SaiAclTableGroupManager {
   SaiAclTableGroupHandle* FOLLY_NULLABLE
   getAclTableGroupHandleImpl(sai_acl_stage_t aclStage) const;
 
+  SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
 

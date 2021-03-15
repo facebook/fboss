@@ -19,9 +19,10 @@
 namespace facebook::fboss {
 
 SaiAclTableGroupManager::SaiAclTableGroupManager(
+    SaiStore* saiStore,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : managerTable_(managerTable), platform_(platform) {}
+    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
 AclTableGroupSaiId SaiAclTableGroupManager::addAclTableGroup(
     sai_acl_stage_t aclStage) {
@@ -32,8 +33,7 @@ AclTableGroupSaiId SaiAclTableGroupManager::addAclTableGroup(
     throw FbossError("attempted to add a duplicate aclTableGroup: ", aclStage);
   }
 
-  std::shared_ptr<SaiStore> s = SaiStore::getInstance();
-  auto& aclTableGroupStore = s->get<SaiAclTableGroupTraits>();
+  auto& aclTableGroupStore = saiStore_->get<SaiAclTableGroupTraits>();
   std::vector<sai_int32_t> bindPointList{SAI_ACL_BIND_POINT_TYPE_SWITCH};
   sai_int32_t type = SAI_ACL_TABLE_GROUP_TYPE_PARALLEL;
 
@@ -102,8 +102,8 @@ AclTableGroupMemberSaiId SaiAclTableGroupManager::addAclTableGroupMember(
         "attempted to add a duplicate aclTableGroup member: ", aclTableName);
   }
 
-  std::shared_ptr<SaiStore> s = SaiStore::getInstance();
-  auto& aclTableGroupMemberStore = s->get<SaiAclTableGroupMemberTraits>();
+  auto& aclTableGroupMemberStore =
+      saiStore_->get<SaiAclTableGroupMemberTraits>();
 
   SaiAclTableGroupMemberTraits::Attributes::TableGroupId
       aclTableGroupIdAttribute{
