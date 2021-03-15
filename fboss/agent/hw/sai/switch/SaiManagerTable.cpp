@@ -70,8 +70,7 @@ void SaiManagerTable::createSaiTableManagers(
   qosMapManager_ = std::make_unique<SaiQosMapManager>(saiStore, this, platform);
   virtualRouterManager_ =
       std::make_unique<SaiVirtualRouterManager>(saiStore, this, platform);
-  vlanManager_ =
-      std::make_unique<SaiVlanManager>(this, platform, concurrentIndices);
+  vlanManager_ = std::make_unique<SaiVlanManager>(saiStore, this, platform);
   routeManager_ = std::make_unique<SaiRouteManager>(saiStore, this, platform);
   routerInterfaceManager_ =
       std::make_unique<SaiRouterInterfaceManager>(saiStore, this, platform);

@@ -28,10 +28,10 @@
 
 namespace facebook::fboss {
 
-class ConcurrentIndices;
 class SaiManagerTable;
 class SaiPlatform;
 class SaiVlanManager;
+class SaiStore;
 
 using SaiVlan = SaiObject<SaiVlanTraits>;
 using SaiVlanMember = SaiObject<SaiVlanMemberTraits>;
@@ -77,9 +77,9 @@ struct SaiVlanHandle {
 class SaiVlanManager {
  public:
   SaiVlanManager(
+      SaiStore* saiStore,
       SaiManagerTable* managerTable,
-      const SaiPlatform* platform,
-      ConcurrentIndices* concurrentIndices);
+      const SaiPlatform* platform);
   using SaiVlanHandles =
       folly::F14FastMap<VlanID, std::unique_ptr<SaiVlanHandle>>;
 
@@ -105,6 +105,8 @@ class SaiVlanManager {
 
  private:
   SaiVlanHandle* getVlanHandleImpl(VlanID swVlanId) const;
+
+  SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
 

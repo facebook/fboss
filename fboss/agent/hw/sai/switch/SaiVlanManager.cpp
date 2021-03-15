@@ -12,7 +12,6 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
-#include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
@@ -26,20 +25,19 @@
 namespace facebook::fboss {
 
 SaiVlanManager::SaiVlanManager(
+    SaiStore* saiStore,
     SaiManagerTable* managerTable,
-    const SaiPlatform* platform,
-    ConcurrentIndices* concurrentIndices)
-    : managerTable_(managerTable), platform_(platform) {
+    const SaiPlatform* platform)
+    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {
   // default vlan
   // TODO(pshaikh): manage default vlan more graciously
   auto key = managerTable_->switchManager().getDefaultVlanAdapterKey();
-  auto defaultVlan = SaiStore::getInstance()->get<SaiVlanTraits>().reloadObject(
-      VlanSaiId(key));
+  auto defaultVlan =
+      saiStore_->get<SaiVlanTraits>().reloadObject(VlanSaiId(key));
   defaultVlan->release();
 }
 
 VlanSaiId SaiVlanManager::addVlan(const std::shared_ptr<Vlan>& swVlan) {
-  std::shared_ptr<SaiStore> s = SaiStore::getInstance();
   VlanID swVlanId = swVlan->getID();
 
   // If we already store a handle to this VLAN, fail to add a new one
@@ -50,7 +48,7 @@ VlanSaiId SaiVlanManager::addVlan(const std::shared_ptr<Vlan>& swVlan) {
   }
 
   // Create the VLAN
-  auto& vlanStore = s->get<SaiVlanTraits>();
+  auto& vlanStore = saiStore_->get<SaiVlanTraits>();
   SaiVlanTraits::AdapterHostKey adapterHostKey{swVlanId};
   SaiVlanTraits::CreateAttributes attributes{swVlanId};
   auto saiVlan = vlanStore.setObject(adapterHostKey, attributes);
@@ -186,7 +184,7 @@ SaiVlanHandle* SaiVlanManager::getVlanHandleImpl(VlanID swVlanId) const {
 std::shared_ptr<SaiVlanMember> SaiVlanManager::createSaiObject(
     const typename SaiVlanMemberTraits::AdapterHostKey& key,
     const typename SaiVlanMemberTraits::CreateAttributes& attributes) {
-  auto& store = SaiStore::getInstance()->get<SaiVlanMemberTraits>();
+  auto& store = saiStore_->get<SaiVlanMemberTraits>();
   return store.setObject(key, attributes);
 }
 
