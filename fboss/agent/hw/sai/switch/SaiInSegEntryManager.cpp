@@ -16,7 +16,6 @@ namespace {
 using namespace facebook::fboss;
 SaiInSegEntryHandle::NextHopHandle getNextHopHandle(
     SaiManagerTable* managerTable,
-    const SaiPlatform* platform,
     const std::shared_ptr<LabelForwardingEntry>& swLabelFibEntry) {
   const auto& nexthops = swLabelFibEntry->getLabelNextHop().getNextHopSet();
   if (nexthops.size() > 0 &&
@@ -35,7 +34,7 @@ SaiInSegEntryHandle::NextHopHandle getNextHopHandle(
     if (auto* ipNextHop =
             std::get_if<std::shared_ptr<ManagedIpNextHop>>(&managedNextHop)) {
       auto nexthop = std::make_shared<ManagedInSegIpNextHop>(
-          managerTable, platform, inSegEntry, *ipNextHop);
+          &managerTable->inSegEntryManager(), inSegEntry, *ipNextHop);
       SaiObjectEventPublisher::getInstance()
           ->get<SaiIpNextHopTraits>()
           .subscribe(nexthop);
@@ -44,7 +43,7 @@ SaiInSegEntryHandle::NextHopHandle getNextHopHandle(
         auto* mplsNextHop =
             std::get_if<std::shared_ptr<ManagedMplsNextHop>>(&managedNextHop)) {
       auto nexthop = std::make_shared<ManagedInSegMplsNextHop>(
-          managerTable, platform, inSegEntry, *mplsNextHop);
+          &managerTable->inSegEntryManager(), inSegEntry, *mplsNextHop);
       SaiObjectEventPublisher::getInstance()
           ->get<SaiMplsNextHopTraits>()
           .subscribe(nexthop);
@@ -60,7 +59,7 @@ void SaiInSegEntryManager::processAddedInSegEntry(
     const std::shared_ptr<LabelForwardingEntry>& addedEntry) {
   SaiInSegEntryHandle handle;
 
-  handle.nexthopHandle = getNextHopHandle(managerTable_, platform_, addedEntry);
+  handle.nexthopHandle = getNextHopHandle(managerTable_, addedEntry);
 
   SaiInSegTraits::CreateAttributes createAttributes{
       SAI_PACKET_ACTION_FORWARD, // not supporting any other action now except
@@ -93,8 +92,7 @@ void SaiInSegEntryManager::processChangedInSegEntry(
         "label fib entry already does not exist for ", newEntry->getID());
   }
 
-  itr->second.nexthopHandle =
-      getNextHopHandle(managerTable_, platform_, newEntry);
+  itr->second.nexthopHandle = getNextHopHandle(managerTable_, newEntry);
 
   SaiInSegTraits::CreateAttributes newAttributes{
       SAI_PACKET_ACTION_FORWARD, 1, itr->second.nextHopAdapterKey()};
@@ -125,16 +123,19 @@ const SaiInSegEntryHandle* SaiInSegEntryManager::getInSegEntryHandle(
   return &(itr->second);
 }
 
+std::shared_ptr<SaiObject<SaiInSegTraits>> SaiInSegEntryManager::getInSegObject(
+    SaiInSegTraits::AdapterHostKey inSegKey) {
+  return saiStore_->get<SaiInSegTraits>().get(inSegKey);
+}
+
 template <typename NextHopTraitsT>
 ManagedInSegNextHop<NextHopTraitsT>::ManagedInSegNextHop(
-    SaiManagerTable* managerTable,
-    const SaiPlatform* platform,
+    SaiInSegEntryManager* inSegEntryManager,
     SaiInSegTraits::AdapterHostKey inSegKey,
     std::shared_ptr<ManagedNextHop<NextHopTraitsT>> managedNextHop)
     : detail::SaiObjectEventSubscriber<NextHopTraitsT>(
           managedNextHop->adapterHostKey()),
-      managerTable_(managerTable),
-      platform_(platform),
+      inSegEntryManager_(inSegEntryManager),
       inSegKey_(std::move(inSegKey)),
       managedNextHop_(managedNextHop) {}
 
@@ -143,7 +144,7 @@ void ManagedInSegNextHop<NextHopTraitsT>::afterCreate(
     ManagedInSegNextHop<NextHopTraitsT>::PublisherObject nexthop) {
   this->setPublisherObject(nexthop);
   // set entry to next hop
-  auto entry = SaiStore::getInstance()->get<SaiInSegTraits>().get(inSegKey_);
+  auto entry = inSegEntryManager_->getInSegObject(inSegKey_);
   if (!entry) {
     // entry is not yet created.
     return;
@@ -158,7 +159,7 @@ void ManagedInSegNextHop<NextHopTraitsT>::afterCreate(
 template <typename NextHopTraitsT>
 void ManagedInSegNextHop<NextHopTraitsT>::beforeRemove() {
   // set entry to NULL
-  auto entry = SaiStore::getInstance()->get<SaiInSegTraits>().get(inSegKey_);
+  auto entry = inSegEntryManager_->getInSegObject(inSegKey_);
   auto attributes = entry->attributes();
 
   std::get<std::optional<SaiInSegTraits::Attributes::NextHopId>>(attributes) =

@@ -19,6 +19,7 @@ class LabelForwardingEntry;
 class SaiManagerTable;
 class SaiPlatform;
 class SaiStore;
+class SaiInSegEntryManager;
 struct SaiNextHopGroupHandle;
 
 using SaiInSegEntry = SaiObject<SaiInSegTraits>;
@@ -32,8 +33,7 @@ class ManagedInSegNextHop
  public:
   using PublisherObject = std::shared_ptr<const SaiObject<NextHopTraitsT>>;
   ManagedInSegNextHop(
-      SaiManagerTable* managerTable,
-      const SaiPlatform* platform,
+      SaiInSegEntryManager* inSegEntryManager,
       SaiInSegTraits::AdapterHostKey inSegKey,
       std::shared_ptr<ManagedNextHop<NextHopTraitsT>> managedNextHop);
   void afterCreate(PublisherObject nexthop) override;
@@ -42,7 +42,7 @@ class ManagedInSegNextHop
   using detail::SaiObjectEventSubscriber<NextHopTraitsT>::isReady;
 
  private:
-  SaiManagerTable* managerTable_;
+  SaiInSegEntryManager* inSegEntryManager_;
   const SaiPlatform* platform_;
   typename SaiInSegTraits::AdapterHostKey inSegKey_;
   std::shared_ptr<ManagedNextHop<NextHopTraitsT>> managedNextHop_;
@@ -81,6 +81,9 @@ class SaiInSegEntryManager {
       const std::shared_ptr<LabelForwardingEntry>& newEntry);
   void processRemovedInSegEntry(
       const std::shared_ptr<LabelForwardingEntry>& removedEntry);
+
+  std::shared_ptr<SaiObject<SaiInSegTraits>> getInSegObject(
+      SaiInSegTraits::AdapterHostKey inSegKey);
 
  private:
   SaiStore* saiStore_;
