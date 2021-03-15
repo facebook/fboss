@@ -12,16 +12,18 @@ using namespace ::testing;
 
 namespace facebook::fboss {
 
+template <typename StandaloneRib>
 class LabelForwardingTest : public ::testing::Test {
  public:
   void SetUp() override {
     // Setup a default state object
-    auto state = testStateA();
-    handle = createTestHandle(state);
+    auto config = testConfigA();
+    auto flags = StandaloneRib::hasStandAloneRib
+        ? SwitchFlags::ENABLE_STANDALONE_RIB
+        : SwitchFlags::DEFAULT;
+    handle = createTestHandle(&config, flags);
     sw = handle->getSw();
     thriftHandler = std::make_unique<ThriftHandler>(sw);
-    sw->initialConfigApplied(std::chrono::steady_clock::now());
-    waitForStateUpdates(sw);
     ON_CALL(*getMockHw(sw), isValidStateUpdate(_))
         .WillByDefault(testing::Return(true));
   }
@@ -36,14 +38,17 @@ class LabelForwardingTest : public ::testing::Test {
   }
 
   void TearDown() override {
-    waitForStateUpdates(sw);
+    waitForStateUpdates(this->sw);
   }
   std::unique_ptr<ThriftHandler> thriftHandler{nullptr};
   SwSwitch* sw{nullptr};
   std::unique_ptr<HwTestHandle> handle{nullptr};
 };
 
-TEST_F(LabelForwardingTest, addMplsRoutes) {
+using LabelForwardingTestTypes = ::testing::Types<NoRib, Rib>;
+TYPED_TEST_CASE(LabelForwardingTest, LabelForwardingTestTypes);
+
+TYPED_TEST(LabelForwardingTest, addMplsRoutes) {
   std::array<ClientID, 2> clients{
       ClientID::OPENR,
       ClientID::BGPD,
@@ -53,16 +58,16 @@ TEST_F(LabelForwardingTest, addMplsRoutes) {
       util::getTestRoutes(4, 4),
   };
 
-  sw->fibSynced();
+  this->sw->fibSynced();
 
   for (auto i = 0; i < 2; i++) {
-    thriftHandler->addMplsRoutes(
+    this->thriftHandler->addMplsRoutes(
         static_cast<int>(clients[i]),
         std::make_unique<std::vector<MplsRoute>>(routes[i]));
   }
 
-  waitForStateUpdates(sw);
-  auto labelFib = sw->getState()->getLabelForwardingInformationBase();
+  waitForStateUpdates(this->sw);
+  auto labelFib = this->sw->getState()->getLabelForwardingInformationBase();
 
   for (auto i = 0; i < 2; i++) {
     for (const auto& route : routes[i]) {
@@ -79,7 +84,7 @@ TEST_F(LabelForwardingTest, addMplsRoutes) {
   }
 }
 
-TEST_F(LabelForwardingTest, deleteMplsRoutes) {
+TYPED_TEST(LabelForwardingTest, deleteMplsRoutes) {
   std::array<ClientID, 2> clients{
       ClientID::OPENR,
       ClientID::BGPD,
@@ -89,15 +94,16 @@ TEST_F(LabelForwardingTest, deleteMplsRoutes) {
       util::getTestRoutes(4, 4),
   };
 
-  sw->fibSynced();
+  this->sw->fibSynced();
 
   for (auto i = 0; i < 2; i++) {
-    thriftHandler->addMplsRoutes(
+    this->thriftHandler->addMplsRoutes(
         static_cast<int>(clients[i]),
         std::make_unique<std::vector<MplsRoute>>(routes[i]));
   }
 
-  waitForStateUpdates(sw);
+  waitForStateUpdates(this->sw);
+  ;
 
   std::array<std::vector<MplsLabel>, 2> routesToRemove;
   std::array<std::vector<MplsRoute>, 2> routesToRetain;
@@ -110,12 +116,12 @@ TEST_F(LabelForwardingTest, deleteMplsRoutes) {
     }
   }
   for (auto i = 0; i < 2; i++) {
-    thriftHandler->deleteMplsRoutes(
+    this->thriftHandler->deleteMplsRoutes(
         static_cast<int>(clients[i]),
         std::make_unique<std::vector<MplsLabel>>(routesToRemove[i]));
   }
 
-  auto labelFib = sw->getState()->getLabelForwardingInformationBase();
+  auto labelFib = this->sw->getState()->getLabelForwardingInformationBase();
 
   for (auto i = 0; i < 2; i++) {
     for (const auto& label : routesToRemove[i]) {
@@ -135,7 +141,7 @@ TEST_F(LabelForwardingTest, deleteMplsRoutes) {
   }
 }
 
-TEST_F(LabelForwardingTest, syncMplsFib) {
+TYPED_TEST(LabelForwardingTest, syncMplsFib) {
   std::array<ClientID, 2> clients{
       ClientID::OPENR,
       ClientID::BGPD,
@@ -145,29 +151,29 @@ TEST_F(LabelForwardingTest, syncMplsFib) {
       util::getTestRoutes(4, 4),
   };
 
-  sw->fibSynced();
+  this->sw->fibSynced();
 
   for (auto i = 0; i < 2; i++) {
-    thriftHandler->addMplsRoutes(
+    this->thriftHandler->addMplsRoutes(
         static_cast<int>(clients[i]),
         std::make_unique<std::vector<MplsRoute>>(routes[i]));
   }
 
-  waitForStateUpdates(sw);
+  waitForStateUpdates(this->sw);
 
   auto moreOpenrRoutes = util::getTestRoutes(8, 4);
-  thriftHandler->addMplsRoutes(
+  this->thriftHandler->addMplsRoutes(
       static_cast<int>(clients[0]),
       std::make_unique<std::vector<MplsRoute>>(moreOpenrRoutes));
 
-  waitForStateUpdates(sw);
+  waitForStateUpdates(this->sw);
 
   routes[0].insert(
       std::end(routes[0]),
       std::begin(moreOpenrRoutes),
       std::end(moreOpenrRoutes));
 
-  auto labelFib = sw->getState()->getLabelForwardingInformationBase();
+  auto labelFib = this->sw->getState()->getLabelForwardingInformationBase();
 
   for (auto i = 0; i < 2; i++) {
     for (const auto& route : routes[i]) {
@@ -183,14 +189,14 @@ TEST_F(LabelForwardingTest, syncMplsFib) {
     }
   }
 
-  thriftHandler->syncMplsFib(
+  this->thriftHandler->syncMplsFib(
       static_cast<int>(clients[0]),
       std::make_unique<std::vector<MplsRoute>>(
           std::begin(routes[0]), std::begin(routes[0]) + 4));
 
-  waitForStateUpdates(sw);
+  waitForStateUpdates(this->sw);
 
-  labelFib = sw->getState()->getLabelForwardingInformationBase();
+  labelFib = this->sw->getState()->getLabelForwardingInformationBase();
 
   for (auto i = 0; i < 8; i++) {
     if (i < 4) {
@@ -211,7 +217,7 @@ TEST_F(LabelForwardingTest, syncMplsFib) {
   }
 }
 
-TEST_F(LabelForwardingTest, getMplsRouteTableByClient) {
+TYPED_TEST(LabelForwardingTest, getMplsRouteTableByClient) {
   std::array<ClientID, 2> clients{
       ClientID::OPENR,
       ClientID::BGPD,
@@ -221,7 +227,7 @@ TEST_F(LabelForwardingTest, getMplsRouteTableByClient) {
       util::getTestRoutes(4, 4),
   };
 
-  sw->fibSynced();
+  this->sw->fibSynced();
 
   auto sortByLabel = [](const MplsRoute& route1, const MplsRoute& route2) {
     return route1.topLabel < route2.topLabel;
@@ -230,7 +236,7 @@ TEST_F(LabelForwardingTest, getMplsRouteTableByClient) {
   for (auto i = 0; i < 2; i++) {
     std::sort(inRoutes[i].begin(), inRoutes[i].end(), sortByLabel);
 
-    thriftHandler->addMplsRoutes(
+    this->thriftHandler->addMplsRoutes(
         static_cast<int>(clients[i]),
         std::make_unique<std::vector<MplsRoute>>(inRoutes[i]));
   }
@@ -238,7 +244,7 @@ TEST_F(LabelForwardingTest, getMplsRouteTableByClient) {
   std::array<std::vector<MplsRoute>, 2> outRoutes;
 
   for (auto i = 0; i < 2; i++) {
-    thriftHandler->getMplsRouteTableByClient(
+    this->thriftHandler->getMplsRouteTableByClient(
         outRoutes[i], static_cast<int>(clients[i]));
     std::sort(outRoutes[i].begin(), outRoutes[i].end(), sortByLabel);
   }
@@ -258,7 +264,7 @@ TEST_F(LabelForwardingTest, getMplsRouteTableByClient) {
   }
 }
 
-TEST_F(LabelForwardingTest, unresolvedNextHops) {
+TYPED_TEST(LabelForwardingTest, unresolvedNextHops) {
   std::vector<MplsRoute> mplsRoutes;
   std::vector<MplsActionCode> actions{
       MplsActionCode::SWAP,
@@ -269,7 +275,7 @@ TEST_F(LabelForwardingTest, unresolvedNextHops) {
   mplsRoutes.resize(3);
   for (auto i = 0; i < 3; i++) {
     mplsRoutes[i].topLabel = labels[i];
-    auto ips = getDirectlyConnectedNexthops();
+    auto ips = this->getDirectlyConnectedNexthops();
     for (auto ip : ips) {
       NextHopThrift nexthop;
       if (ip.isV4()) {
@@ -293,13 +299,13 @@ TEST_F(LabelForwardingTest, unresolvedNextHops) {
     }
   }
 
-  sw->fibSynced();
-  thriftHandler->addMplsRoutes(
+  this->sw->fibSynced();
+  this->thriftHandler->addMplsRoutes(
       static_cast<int>(ClientID::OPENR),
       std::make_unique<std::vector<MplsRoute>>(mplsRoutes));
 
-  waitForStateUpdates(sw);
-  auto labelFib = sw->getState()->getLabelForwardingInformationBase();
+  waitForStateUpdates(this->sw);
+  auto labelFib = this->sw->getState()->getLabelForwardingInformationBase();
 
   for (auto i = 0; i < 3; i++) {
     const auto& labelFibEntry = labelFib->getLabelForwardingEntry(labels[i]);
@@ -340,7 +346,7 @@ TEST_F(LabelForwardingTest, unresolvedNextHops) {
   }
 }
 
-TEST_F(LabelForwardingTest, invalidUnresolvedNextHops) {
+TYPED_TEST(LabelForwardingTest, invalidUnresolvedNextHops) {
   MplsRoute mplsRoute;
   mplsRoute.topLabel = 10010;
   std::vector<folly::IPAddress> ips{
@@ -359,16 +365,16 @@ TEST_F(LabelForwardingTest, invalidUnresolvedNextHops) {
     mplsRoute.nextHops_ref()->emplace_back(nexthop);
   }
 
-  sw->fibSynced();
+  this->sw->fibSynced();
   auto routes = std::make_unique<std::vector<MplsRoute>>();
   routes->push_back(mplsRoute);
   EXPECT_THROW(
-      thriftHandler->addMplsRoutes(
+      this->thriftHandler->addMplsRoutes(
           static_cast<int>(ClientID::OPENR), std::move(routes)),
       FbossError);
 }
 
-TEST_F(LabelForwardingTest, nextHopWithInterfaceAddress) {
+TYPED_TEST(LabelForwardingTest, nextHopWithInterfaceAddress) {
   MplsRoute mplsRoute0;
   mplsRoute0.topLabel = 10010;
   std::vector<folly::IPAddress> ips0{
@@ -387,11 +393,11 @@ TEST_F(LabelForwardingTest, nextHopWithInterfaceAddress) {
     mplsRoute0.nextHops_ref()->emplace_back(nexthop);
   }
 
-  sw->fibSynced();
+  this->sw->fibSynced();
   auto routes0 = std::make_unique<std::vector<MplsRoute>>();
   routes0->push_back(mplsRoute0);
   EXPECT_THROW(
-      thriftHandler->addMplsRoutes(
+      this->thriftHandler->addMplsRoutes(
           static_cast<int>(ClientID::OPENR), std::move(routes0)),
       FbossError);
 
@@ -413,16 +419,16 @@ TEST_F(LabelForwardingTest, nextHopWithInterfaceAddress) {
     mplsRoute1.nextHops_ref()->emplace_back(nexthop);
   }
 
-  sw->fibSynced();
+  this->sw->fibSynced();
   auto routes1 = std::make_unique<std::vector<MplsRoute>>();
   routes1->push_back(mplsRoute1);
   EXPECT_THROW(
-      thriftHandler->addMplsRoutes(
+      this->thriftHandler->addMplsRoutes(
           static_cast<int>(ClientID::OPENR), std::move(routes1)),
       FbossError);
 }
 
-TEST_F(LabelForwardingTest, popAndLookUp) {
+TYPED_TEST(LabelForwardingTest, popAndLookUp) {
   MplsRoute mplsRoute0;
   mplsRoute0.topLabel = 10010;
   folly::IPAddress ips0{"::"};
@@ -435,15 +441,14 @@ TEST_F(LabelForwardingTest, popAndLookUp) {
       folly::IPAddressV6::byteCount());
 
   mplsRoute0.nextHops_ref()->emplace_back(nexthop);
-  sw->fibSynced();
-  sw->fibSynced();
+  this->sw->fibSynced();
   auto routes0 = std::make_unique<std::vector<MplsRoute>>();
   routes0->push_back(mplsRoute0);
-  EXPECT_NO_THROW(thriftHandler->addMplsRoutes(
+  EXPECT_NO_THROW(this->thriftHandler->addMplsRoutes(
       static_cast<int>(ClientID::OPENR), std::move(routes0)));
 }
 
-TEST_F(LabelForwardingTest, popAndLookUpInvalid) {
+TYPED_TEST(LabelForwardingTest, popAndLookUpInvalid) {
   MplsRoute mplsRoute0;
   mplsRoute0.topLabel = 10010;
 
@@ -465,11 +470,11 @@ TEST_F(LabelForwardingTest, popAndLookUpInvalid) {
       folly::IPAddressV6::byteCount());
   mplsRoute0.nextHops_ref()->emplace_back(nexthop1);
 
-  sw->fibSynced();
+  this->sw->fibSynced();
   auto routes0 = std::make_unique<std::vector<MplsRoute>>();
   routes0->push_back(mplsRoute0);
   EXPECT_THROW(
-      thriftHandler->addMplsRoutes(
+      this->thriftHandler->addMplsRoutes(
           static_cast<int>(ClientID::OPENR), std::move(routes0)),
       FbossError);
 }
