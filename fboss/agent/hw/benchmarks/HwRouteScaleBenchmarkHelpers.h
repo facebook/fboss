@@ -15,7 +15,13 @@
 #include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 
 #include <folly/Benchmark.h>
+#include <iostream>
+#include "fboss/agent/FibHelpers.h"
+#include "fboss/agent/Utils.h"
+#include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/lib/FunctionCallTimeReporter.h"
+
+DECLARE_bool(json);
 
 namespace facebook::fboss {
 
@@ -38,19 +44,58 @@ void routeAddDelBenchmarker(bool measureAdd) {
     // skip if this is not supported for a platform
     return;
   }
-  static const auto routeChunks = routeGenerator.getThriftRoutes();
-
   const RouterID kRid(0);
+  auto routeChunks = routeGenerator.getThriftRoutes();
+  std::vector<folly::IPAddressV6> addrsToLookup1, addrsToLookup2;
+  utility::IPAddressGenerator<folly::IPAddressV6> ipAddrGen;
+  auto fillAddrsForLookup = [&ipAddrGen](auto& addrsToLookup) {
+    for (auto i = 0; i < 100; ++i) {
+      addrsToLookup.emplace_back(ipAddrGen.getNext());
+    }
+  };
+  fillAddrsForLookup(addrsToLookup1);
+  fillAddrsForLookup(addrsToLookup2);
+
+  auto doLookups = [&ensemble, kRid](
+                       const std::string& lookupName,
+                       const auto& addrsToLookup) {
+    auto programmedState = ensemble->getProgrammedState();
+    StopWatch lookupTimer(lookupName, FLAGS_json);
+    for (auto i = 0; i < 10; ++i) {
+      std::for_each(
+          addrsToLookup.begin(),
+          addrsToLookup.end(),
+          [&ensemble, &programmedState, kRid](const auto& addr) {
+            findLongestMatchRoute(
+                ensemble->isStandaloneRibEnabled(),
+                kRid,
+                addr,
+                programmedState);
+          });
+    }
+  };
   HwSwitchEnsembleRouteUpdateWrapper updater(ensemble.get());
   if (measureAdd) {
+    auto firstRouteChunk = routeChunks[0];
+    routeChunks.erase(routeChunks.begin());
     ScopedCallTimer timeIt;
     // Activate benchmarker before applying switch states
     // for adding routes to h/w
     suspender.dismiss();
-    updater.programRoutes(kRid, ClientID::BGPD, routeChunks);
+    // Program 1 chunk to seed ~4k routes
+    updater.programRoutes(RouterID(0), ClientID::BGPD, {firstRouteChunk});
+    // Start parallel lookup thread
+    std::thread lookupThread([&doLookups, &addrsToLookup1]() {
+      doLookups("route_lookup_msecs", addrsToLookup1);
+    });
+    // program remaining chunks
+    updater.programRoutes(RouterID(0), ClientID::BGPD, routeChunks);
     // We are about to blow away all routes, before that
     // deactivate benchmark measurement.
     suspender.rehire();
+    // Lookup with all routes installaed
+    doLookups("route_lookup_post_route_program_msecs", addrsToLookup2);
+    lookupThread.join();
   } else {
     updater.programRoutes(kRid, ClientID::BGPD, routeChunks);
     ScopedCallTimer timeIt;
