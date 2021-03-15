@@ -823,11 +823,6 @@ class BcmSwitch : public BcmSwitchIf {
    */
   bool handleSflowPacket(BcmPacketT& bcmPacket) noexcept;
 
-  /**
-   * Exports the sdk version we build against.
-   */
-  void exportSdkVersion() const;
-
   void initFieldProcessor() const;
 
   void initMirrorModule() const;

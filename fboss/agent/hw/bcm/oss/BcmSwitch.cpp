@@ -14,7 +14,5 @@
  */
 namespace facebook::fboss {
 
-void BcmSwitch::exportSdkVersion() const {}
-
 void BcmSwitch::printDiagCmd(const std::string& /*cmd*/) const {}
 } // namespace facebook::fboss

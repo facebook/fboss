@@ -357,9 +357,7 @@ BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
       switchSettings_(new BcmSwitchSettings(this)),
       macTable_(new BcmMacTable(this)),
       qcmManager_(new BcmQcmManager(this)),
-      ptpTcMgr_(new BcmPtpTcMgr(this)) {
-  exportSdkVersion();
-}
+      ptpTcMgr_(new BcmPtpTcMgr(this)) {}
 
 BcmSwitch::~BcmSwitch() {
   XLOG(INFO) << "Destroying BcmSwitch";
