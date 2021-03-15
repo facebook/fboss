@@ -87,8 +87,14 @@ void ConfigApplier::updateRibAndFib() {
   updater.removeAllRoutesForClient(ClientID::INTERFACE_ROUTE);
   addInterfaceRoutes(&updater, directlyConnectedRouteRange_);
 
-  // Add link-local routes
-  updater.addLinkLocalRoutes();
+  if (directlyConnectedRouteRange_.empty()) {
+    // If no intf routes exist in this VRF prun link local routes
+    // as well
+    updater.delLinkLocalRoutes();
+  } else {
+    // Add link-local routes
+    updater.addLinkLocalRoutes();
+  }
 
   // Trigger recrusive resolution
   updater.updateDone();

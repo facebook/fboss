@@ -69,6 +69,7 @@ class RibRouteUpdater {
   // link local route. So there is no replacing of
   // routes here
   void addLinkLocalRoutes();
+  std::optional<RouteEntry> delLinkLocalRoutes();
   std::optional<RouteEntry> addOrReplaceInterfaceRoute(
       const folly::IPAddress& network,
       uint8_t mask,
