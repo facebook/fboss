@@ -40,6 +40,12 @@ void fillHwQueueStats(
         break;
       case SAI_QUEUE_STAT_DROPPED_PACKETS:
         hwPortStats.queueOutDiscardPackets__ref()[queueId] = value;
+        /*
+         * Out congestion packets on a port is a sum of all queue
+         * out discards on a port
+         */
+        hwPortStats.outCongestionDiscardPkts__ref() =
+            *hwPortStats.outCongestionDiscardPkts__ref() + value;
         break;
       case SAI_QUEUE_STAT_WATERMARK_BYTES:
         hwPortStats.queueWatermarkBytes__ref()[queueId] = value;
