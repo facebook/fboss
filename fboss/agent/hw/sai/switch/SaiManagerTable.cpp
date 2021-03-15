@@ -63,7 +63,7 @@ void SaiManagerTable::createSaiTableManagers(
       saiStore, this, platform, concurrentIndices);
   hashManager_ = std::make_unique<SaiHashManager>(this, platform);
   queueManager_ = std::make_unique<SaiQueueManager>(saiStore, this, platform);
-  hostifManager_ = std::make_unique<SaiHostifManager>(this, platform);
+  hostifManager_ = std::make_unique<SaiHostifManager>(saiStore, this, platform);
   mirrorManager_ = std::make_unique<SaiMirrorManager>(saiStore, this, platform);
   portManager_ = std::make_unique<SaiPortManager>(
       saiStore, this, platform, concurrentIndices);

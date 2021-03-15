@@ -126,7 +126,7 @@ SaiHostifManager::makeHostifTrapAttributes(
 
 std::shared_ptr<SaiHostifTrapGroup> SaiHostifManager::ensureHostifTrapGroup(
     uint32_t queueId) {
-  auto& store = SaiStore::getInstance()->get<SaiHostifTrapGroupTraits>();
+  auto& store = saiStore_->get<SaiHostifTrapGroupTraits>();
   SaiHostifTrapGroupTraits::AdapterHostKey k{queueId};
   SaiHostifTrapGroupTraits::CreateAttributes attributes{queueId, std::nullopt};
   return store.setObject(k, attributes);
@@ -152,7 +152,7 @@ HostifTrapSaiId SaiHostifManager::addHostifTrap(
       trapId, hostifTrapGroup->adapterKey(), priority, platform_);
   SaiHostifTrapTraits::AdapterHostKey k =
       GET_ATTR(HostifTrap, TrapType, attributes);
-  auto& store = SaiStore::getInstance()->get<SaiHostifTrapTraits>();
+  auto& store = saiStore_->get<SaiHostifTrapTraits>();
   auto hostifTrap = store.setObject(k, attributes);
   auto handle = std::make_unique<SaiHostifTrapHandle>();
   handle->trap = hostifTrap;
@@ -185,7 +185,7 @@ void SaiHostifManager::changeHostifTrap(
       trapId, hostifTrapGroup->adapterKey(), priority, platform_);
   SaiHostifTrapTraits::AdapterHostKey k =
       GET_ATTR(HostifTrap, TrapType, attributes);
-  auto& store = SaiStore::getInstance()->get<SaiHostifTrapTraits>();
+  auto& store = saiStore_->get<SaiHostifTrapTraits>();
   auto hostifTrap = store.setObject(k, attributes);
 
   handleItr->second->trap = hostifTrap;
@@ -397,9 +397,10 @@ void SaiHostifManager::loadCpuPort() {
 }
 
 SaiHostifManager::SaiHostifManager(
+    SaiStore* saiStore,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : managerTable_(managerTable), platform_(platform) {
+    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {
   loadCpuPort();
 }
 
