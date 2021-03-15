@@ -1228,10 +1228,30 @@ struct SwitchSettings {
   4: i32 l2AgeTimerSeconds = 300
 }
 
+enum PfcWatchdogRecoveryAction {
+  /**
+   * This option intends to recover from PFC deadlock by ignoring
+   * PFC and continuing with packet transmit, most common.
+   */
+  NO_DROP = 0,
+
+  /**
+   * Drop the packets when in deadlock mode to help recover.
+   */
+  DROP = 1,
+}
+
+struct PfcWatchdog {
+  1: i32 detectionTimeMsecs
+  2: i32 recoveryTimeMsecs
+  3: PfcWatchdogRecoveryAction recoveryAction = NO_DROP
+}
+
 struct PortPfc {
   1: bool tx = false
   2: bool rx = false
   3: PortPgConfigName portPgConfigName
+  4: optional PfcWatchdog watchdog
 }
 
 // Global buffer pool shared by {port, pgs}
