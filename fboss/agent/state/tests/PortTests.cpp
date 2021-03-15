@@ -192,7 +192,12 @@ TEST(Port, ToFromWithPgConfigs) {
           "pfc": {
             "tx": false,
             "rx": false,
-            "portPgConfigName": "foo"
+            "portPgConfigName": "foo",
+            "watchdog": {
+              "detectionTimeMsecs": 15,
+              "recoveryTimeMsecs": 16,
+              "recoveryAction": 1
+            }
           }
        }
   )";
@@ -272,7 +277,12 @@ TEST(Port, ToFromJSON) {
           "pfc": {
             "tx": false,
             "rx": false,
-            "portPgConfigName": "foo"
+            "portPgConfigName": "foo",
+            "watchdog": {
+              "detectionTimeMsecs": 15,
+              "recoveryTimeMsecs": 16,
+              "recoveryAction": 1
+            }
           }
        }
   )";
@@ -347,6 +357,12 @@ TEST(Port, ToFromJSON) {
   EXPECT_TRUE(port->getPfc().has_value());
   EXPECT_FALSE(*port->getPfc()->rx_ref());
   EXPECT_FALSE(*port->getPfc()->tx_ref());
+  EXPECT_TRUE(port->getPfc()->watchdog_ref().has_value());
+  auto pfcWatchdog = port->getPfc()->watchdog_ref().value();
+  EXPECT_EQ(15, *pfcWatchdog.detectionTimeMsecs_ref());
+  EXPECT_EQ(16, *pfcWatchdog.recoveryTimeMsecs_ref());
+  EXPECT_EQ(
+      cfg::PfcWatchdogRecoveryAction::DROP, *pfcWatchdog.recoveryAction_ref());
   auto dyn1 = port->toFollyDynamic();
   auto dyn2 = folly::parseJson(jsonStr);
 
@@ -682,10 +698,18 @@ TEST(Port, verifyPfcConfig) {
   EXPECT_FALSE(*port->getPfc().value().tx_ref());
   EXPECT_FALSE(*port->getPfc().value().rx_ref());
   EXPECT_EQ(port->getPfc().value().portPgConfigName_ref(), "");
+  EXPECT_FALSE(port->getPfc().value().watchdog_ref().has_value());
 
   pfc.tx_ref() = true;
   pfc.rx_ref() = true;
   pfc.portPgConfigName_ref() = "foo";
+
+  cfg::PfcWatchdog watchdog;
+  watchdog.detectionTimeMsecs_ref() = 15;
+  watchdog.recoveryTimeMsecs_ref() = 16;
+  watchdog.recoveryAction_ref() = cfg::PfcWatchdogRecoveryAction::DROP;
+  pfc.watchdog_ref() = watchdog;
+
   config.ports_ref()[0].pfc_ref() = pfc;
   // pgConfigName exists, but can't be found in cfg, throw exception
   EXPECT_THROW(
@@ -703,6 +727,33 @@ TEST(Port, verifyPfcConfig) {
   EXPECT_TRUE(*port->getPfc().value().tx_ref());
   EXPECT_TRUE(*port->getPfc().value().rx_ref());
   EXPECT_EQ(port->getPfc().value().portPgConfigName_ref(), "foo");
+
+  EXPECT_TRUE(port->getPfc()->watchdog_ref().has_value());
+  auto pfcWatchdog = port->getPfc()->watchdog_ref().value();
+  EXPECT_EQ(15, *pfcWatchdog.detectionTimeMsecs_ref());
+  EXPECT_EQ(16, *pfcWatchdog.recoveryTimeMsecs_ref());
+  EXPECT_EQ(
+      cfg::PfcWatchdogRecoveryAction::DROP, *pfcWatchdog.recoveryAction_ref());
+
+  // Modify watchdog config and make sure it gets saved
+  port = newState2->getPort(PortID(1));
+  auto pfc2 = port->getPfc().value();
+  cfg::PfcWatchdog watchdog2 = pfc2.watchdog_ref().value();
+  // Change the recoveryAction to NO_DROP
+  watchdog2.recoveryAction_ref() = cfg::PfcWatchdogRecoveryAction::NO_DROP;
+  pfc2.watchdog_ref() = watchdog2;
+  config.ports_ref()[0].pfc_ref() = pfc2;
+
+  auto newState3 = publishAndApplyConfig(newState2, &config, platform.get());
+  port = newState3->getPort(PortID(1));
+  EXPECT_TRUE(port->getPfc()->watchdog_ref().has_value());
+  auto pfcWatchdog2 = port->getPfc()->watchdog_ref().value();
+  EXPECT_EQ(15, *pfcWatchdog2.detectionTimeMsecs_ref());
+  EXPECT_EQ(16, *pfcWatchdog2.recoveryTimeMsecs_ref());
+  // Verify that the recoveryAction is NO_DROP as expected
+  EXPECT_EQ(
+      cfg::PfcWatchdogRecoveryAction::NO_DROP,
+      *pfcWatchdog2.recoveryAction_ref());
 }
 
 TEST(Port, pauseConfig) {
