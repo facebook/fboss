@@ -34,6 +34,7 @@ namespace facebook::fboss {
 class SaiManagerTable;
 class SaiPlatform;
 class SaiNextHopGroupManager;
+class SaiStore;
 
 using SaiNextHopGroup = SaiObject<SaiNextHopGroupTraits>;
 using SaiNextHopGroupMember = SaiObject<SaiNextHopGroupMemberTraits>;
@@ -128,6 +129,7 @@ struct SaiNextHopGroupHandle {
 class SaiNextHopGroupManager {
  public:
   SaiNextHopGroupManager(
+      SaiStore* saiStore,
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
 
@@ -139,6 +141,7 @@ class SaiNextHopGroupManager {
       const typename SaiNextHopGroupMemberTraits::CreateAttributes& attributes);
 
  private:
+  SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   // TODO(borisb): improve SaiObject/SaiStore to the point where they

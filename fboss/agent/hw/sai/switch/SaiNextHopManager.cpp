@@ -28,14 +28,15 @@ std::shared_ptr<SaiIpNextHop> SaiNextHopManager::addNextHop(
   SaiIpNextHopTraits::AdapterHostKey k{routerInterfaceId, ip};
   SaiIpNextHopTraits::CreateAttributes attributes{
       SAI_NEXT_HOP_TYPE_IP, routerInterfaceId, ip, std::nullopt};
-  auto& store = SaiStore::getInstance()->get<SaiIpNextHopTraits>();
+  auto& store = saiStore_->get<SaiIpNextHopTraits>();
   return store.setObject(k, attributes);
 }
 
 SaiNextHopManager::SaiNextHopManager(
+    SaiStore* saiStore,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : managerTable_(managerTable), platform_(platform) {}
+    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
 SaiNextHop SaiNextHopManager::refOrEmplace(const ResolvedNextHop& swNextHop) {
   auto nexthopKey = getAdapterHostKey(swNextHop);
@@ -43,7 +44,7 @@ SaiNextHop SaiNextHopManager::refOrEmplace(const ResolvedNextHop& swNextHop) {
   if (auto ipNextHopKey =
           std::get_if<typename SaiIpNextHopTraits::AdapterHostKey>(
               &nexthopKey)) {
-    return SaiStore::getInstance()->get<SaiIpNextHopTraits>().setObject(
+    return saiStore_->get<SaiIpNextHopTraits>().setObject(
         *ipNextHopKey,
         SaiIpNextHopTraits::CreateAttributes{
             SAI_NEXT_HOP_TYPE_IP,
@@ -54,7 +55,7 @@ SaiNextHop SaiNextHopManager::refOrEmplace(const ResolvedNextHop& swNextHop) {
       auto mplsNextHopKey =
           std::get_if<typename SaiMplsNextHopTraits::AdapterHostKey>(
               &nexthopKey)) {
-    return SaiStore::getInstance()->get<SaiMplsNextHopTraits>().setObject(
+    return saiStore_->get<SaiMplsNextHopTraits>().setObject(
         *mplsNextHopKey,
         SaiMplsNextHopTraits::CreateAttributes{
             SAI_NEXT_HOP_TYPE_MPLS,
@@ -154,7 +155,7 @@ template <typename NextHopTraits>
 std::shared_ptr<SaiObject<NextHopTraits>> SaiNextHopManager::createSaiObject(
     typename NextHopTraits::AdapterHostKey adapterHostKey,
     typename NextHopTraits::CreateAttributes attributes) {
-  auto& store = SaiStore::getInstance()->get<NextHopTraits>();
+  auto& store = saiStore_->get<NextHopTraits>();
   return store.setObject(adapterHostKey, attributes);
 }
 

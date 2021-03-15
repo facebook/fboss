@@ -24,9 +24,10 @@
 namespace facebook::fboss {
 
 SaiNeighborManager::SaiNeighborManager(
+    SaiStore* saiStore,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : managerTable_(managerTable), platform_(platform) {}
+    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
 // Helper function to create a SAI NeighborEntry from an FBOSS SwitchState
 // NeighborEntry (e.g., NeighborEntry<IPAddressV6, NDPTable>)
@@ -143,7 +144,7 @@ std::shared_ptr<SaiNeighbor> SaiNeighborManager::createSaiObject(
     const SaiNeighborTraits::AdapterHostKey& key,
     const SaiNeighborTraits::CreateAttributes& attributes,
     bool notify) {
-  auto& store = SaiStore::getInstance()->get<SaiNeighborTraits>();
+  auto& store = saiStore_->get<SaiNeighborTraits>();
   return store.setObject(key, attributes, notify);
 }
 

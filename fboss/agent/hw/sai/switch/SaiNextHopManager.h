@@ -30,6 +30,7 @@ class SaiManagerTable;
 class SaiPlatform;
 class ResolvedNextHop;
 class SaiNextHopManager;
+class SaiStore;
 
 using SaiIpNextHop = SaiObject<SaiIpNextHopTraits>;
 using SaiMplsNextHop = SaiObject<SaiMplsNextHopTraits>;
@@ -80,7 +81,10 @@ using ManagedSaiNextHop = std::variant<
 
 class SaiNextHopManager {
  public:
-  SaiNextHopManager(SaiManagerTable* managerTable, const SaiPlatform* platform);
+  SaiNextHopManager(
+      SaiStore* saiStore,
+      SaiManagerTable* managerTable,
+      const SaiPlatform* platform);
   std::shared_ptr<SaiIpNextHop> addNextHop(
       RouterInterfaceSaiId routerInterfaceId,
       const folly::IPAddress& ip);
@@ -110,6 +114,7 @@ class SaiNextHopManager {
       typename NextHopTraits::CreateAttributes attributes);
 
  private:
+  SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
 

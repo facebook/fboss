@@ -27,6 +27,7 @@ namespace facebook::fboss {
 class SaiManagerTable;
 class SaiPlatform;
 class SaiNeighborManager;
+class SaiStore;
 
 using SaiNeighbor = SaiObject<SaiNeighborTraits>;
 
@@ -83,6 +84,7 @@ class ManagedNeighbor : public SaiObjectEventAggregateSubscriber<
 class SaiNeighborManager {
  public:
   SaiNeighborManager(
+      SaiStore* saiStore,
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
 
@@ -120,6 +122,8 @@ class SaiNeighborManager {
  private:
   SaiNeighborHandle* getNeighborHandleImpl(
       const SaiNeighborTraits::NeighborEntry& entry) const;
+
+  SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   folly::F14FastMap<

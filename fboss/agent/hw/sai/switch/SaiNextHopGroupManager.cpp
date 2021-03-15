@@ -25,9 +25,10 @@
 namespace facebook::fboss {
 
 SaiNextHopGroupManager::SaiNextHopGroupManager(
+    SaiStore* saiStore,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : managerTable_(managerTable), platform_(platform) {}
+    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
 std::shared_ptr<SaiNextHopGroupHandle>
 SaiNextHopGroupManager::incRefOrAddNextHopGroup(
@@ -59,7 +60,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
   }
 
   // Create the NextHopGroup and NextHopGroupMembers
-  auto& store = SaiStore::getInstance()->get<SaiNextHopGroupTraits>();
+  auto& store = saiStore_->get<SaiNextHopGroupTraits>();
   SaiNextHopGroupTraits::CreateAttributes nextHopGroupAttributes{
       SAI_NEXT_HOP_GROUP_TYPE_ECMP};
   nextHopGroupHandle->nextHopGroup =
@@ -85,7 +86,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
 std::shared_ptr<SaiNextHopGroupMember> SaiNextHopGroupManager::createSaiObject(
     const typename SaiNextHopGroupMemberTraits::AdapterHostKey& key,
     const typename SaiNextHopGroupMemberTraits::CreateAttributes& attributes) {
-  auto& store = SaiStore::getInstance()->get<SaiNextHopGroupMemberTraits>();
+  auto& store = saiStore_->get<SaiNextHopGroupMemberTraits>();
   return store.setObject(key, attributes);
 }
 

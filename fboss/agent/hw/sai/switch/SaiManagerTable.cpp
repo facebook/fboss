@@ -79,10 +79,12 @@ void SaiManagerTable::createSaiTableManagers(
       std::make_unique<SaiSamplePacketManager>(this, platform);
   schedulerManager_ =
       std::make_unique<SaiSchedulerManager>(saiStore, this, platform);
-  nextHopManager_ = std::make_unique<SaiNextHopManager>(this, platform);
+  nextHopManager_ =
+      std::make_unique<SaiNextHopManager>(saiStore, this, platform);
   nextHopGroupManager_ =
-      std::make_unique<SaiNextHopGroupManager>(this, platform);
-  neighborManager_ = std::make_unique<SaiNeighborManager>(this, platform);
+      std::make_unique<SaiNextHopGroupManager>(saiStore, this, platform);
+  neighborManager_ =
+      std::make_unique<SaiNeighborManager>(saiStore, this, platform);
   inSegEntryManager_ =
       std::make_unique<SaiInSegEntryManager>(saiStore, this, platform);
   lagManager_ =
