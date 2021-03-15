@@ -155,13 +155,18 @@ std::ostream& operator<<(std::ostream& out, const StateDelta& stateDelta) {
   return out << diff;
 }
 
+bool legacyRibUsed(const StateDelta& delta) {
+  return delta.getRouteTablesDelta().begin() !=
+      delta.getRouteTablesDelta().end();
+}
+
+bool fibUsed(const StateDelta& delta) {
+  return delta.getFibsDelta().begin() != delta.getFibsDelta().end();
+}
+
 bool bothStandAloneRibOrRouteTableRibUsed(
     const facebook::fboss::StateDelta& delta) {
-  auto hasUpdates = [](const auto& routeDelta) {
-    return routeDelta.begin() != routeDelta.end();
-  };
-  return hasUpdates(delta.getFibsDelta()) &&
-      hasUpdates(delta.getRouteTablesDelta());
+  return legacyRibUsed(delta) && fibUsed(delta);
 }
 
 // Explicit instantiations of NodeMapDelta that are used by StateDelta.
