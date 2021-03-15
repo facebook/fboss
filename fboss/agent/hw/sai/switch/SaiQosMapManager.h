@@ -24,6 +24,7 @@ namespace facebook::fboss {
 
 class SaiManagerTable;
 class SaiPlatform;
+class SaiStore;
 
 using SaiQosMap = SaiObject<SaiQosMapTraits>;
 
@@ -34,7 +35,10 @@ struct SaiQosMapHandle {
 
 class SaiQosMapManager {
  public:
-  SaiQosMapManager(SaiManagerTable* managerTable, const SaiPlatform* platform);
+  SaiQosMapManager(
+      SaiStore* saiStore,
+      SaiManagerTable* managerTable,
+      const SaiPlatform* platform);
   void addQosMap(const std::shared_ptr<QosPolicy>& newQosPolicy);
   void removeQosMap();
   void changeQosMap(
@@ -49,6 +53,8 @@ class SaiQosMapManager {
   std::shared_ptr<SaiQosMap> setTcQosMap(
       const QosPolicy::TrafficClassToQueueId& newTcToQueueIdMap);
   void setQosMap(const std::shared_ptr<QosPolicy>& newQosPolicy);
+
+  SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   SaiQosMapHandle* getQosMapImpl() const;

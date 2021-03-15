@@ -114,20 +114,16 @@ void SaiQueueHandle::resetQueue() {
   }
 }
 
-SaiQueueHandle::SaiQueueHandle(QueueSaiId queueSaiId) {
-  auto& store = SaiStore::getInstance()->get<SaiQueueTraits>();
-  queue = store.loadObjectOwnedByAdapter(queueSaiId);
-}
-
 SaiQueueHandle::~SaiQueueHandle() {
   resetQueue();
 }
 
 SaiQueueManager::SaiQueueManager(
+    SaiStore* saiStore,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : managerTable_(managerTable), platform_(platform) {
-  auto& store = SaiStore::getInstance()->get<SaiQueueTraits>();
+    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {
+  auto& store = saiStore_->get<SaiQueueTraits>();
   store.setObjectOwnedByAdapter(true);
 }
 
@@ -181,7 +177,7 @@ void SaiQueueManager::ensurePortQueueConfig(
     SaiQueueTraits::AdapterHostKey adapterHostKey = tupleProjection<
         SaiQueueTraits::CreateAttributes,
         SaiQueueTraits::AdapterHostKey>(attributes);
-    auto& store = SaiStore::getInstance()->get<SaiQueueTraits>();
+    auto& store = saiStore_->get<SaiQueueTraits>();
     auto queue = store.get(adapterHostKey);
     if (!queue) {
       throw FbossError(
@@ -202,9 +198,10 @@ SaiQueueHandles SaiQueueManager::loadQueues(
     PortSaiId portSaiId,
     const std::vector<QueueSaiId>& queueSaiIds) {
   SaiQueueHandles queueHandles;
-  auto& store = SaiStore::getInstance()->get<SaiQueueTraits>();
+  auto& store = saiStore_->get<SaiQueueTraits>();
   for (auto queueSaiId : queueSaiIds) {
-    auto queueHandle = std::make_unique<SaiQueueHandle>(queueSaiId);
+    auto queueHandle = std::make_unique<SaiQueueHandle>(
+        store.loadObjectOwnedByAdapter(queueSaiId));
     store.loadObjectOwnedByAdapter(SaiQueueTraits::AdapterKey{queueSaiId});
     auto saiQueueConfig =
         detail::makeSaiQueueConfig(queueHandle->queue->adapterHostKey());

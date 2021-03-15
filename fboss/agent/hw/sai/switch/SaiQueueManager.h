@@ -30,12 +30,13 @@ namespace facebook::fboss {
 class SaiManagerTable;
 class SaiPlatform;
 class HwPortStats;
+class SaiStore;
 
 using SaiQueue = SaiObjectWithCounters<SaiQueueTraits>;
 using SaiQueueConfig = std::pair<uint8_t, cfg::StreamType>;
 
 struct SaiQueueHandle {
-  explicit SaiQueueHandle(QueueSaiId queueSaiId);
+  explicit SaiQueueHandle(std::shared_ptr<SaiQueue> queue) : queue(queue) {}
   ~SaiQueueHandle();
   void resetQueue();
   std::shared_ptr<SaiScheduler> scheduler;
@@ -49,7 +50,10 @@ using SaiQueueHandles =
 
 class SaiQueueManager {
  public:
-  SaiQueueManager(SaiManagerTable* managerTable, const SaiPlatform* platform);
+  SaiQueueManager(
+      SaiStore* saiStore,
+      SaiManagerTable* managerTable,
+      const SaiPlatform* platform);
   SaiQueueHandles loadQueues(
       PortSaiId portSaiId,
       const std::vector<QueueSaiId>& queueSaiIds);
@@ -65,6 +69,7 @@ class SaiQueueManager {
   QueueConfig getQueueSettings(const SaiQueueHandles& queueHandles) const;
 
  private:
+  SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
 };

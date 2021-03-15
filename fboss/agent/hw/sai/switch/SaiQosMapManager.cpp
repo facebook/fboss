@@ -19,9 +19,10 @@
 namespace facebook::fboss {
 
 SaiQosMapManager::SaiQosMapManager(
+    SaiStore* saiStore,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : managerTable_(managerTable), platform_(platform) {}
+    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
 std::shared_ptr<SaiQosMap> SaiQosMapManager::setDscpQosMap(
     const DscpMap& newDscpMap) {
@@ -38,7 +39,7 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setDscpQosMap(
   SaiQosMapTraits::Attributes::Type typeAttribute{SAI_QOS_MAP_TYPE_DSCP_TO_TC};
   SaiQosMapTraits::Attributes::MapToValueList mapToValueListAttribute{
       mapToValueList};
-  auto& store = SaiStore::getInstance()->get<SaiQosMapTraits>();
+  auto& store = saiStore_->get<SaiQosMapTraits>();
   SaiQosMapTraits::AdapterHostKey k{typeAttribute};
   SaiQosMapTraits::CreateAttributes c{typeAttribute, mapToValueListAttribute};
   return store.setObject(k, c);
@@ -59,7 +60,7 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcQosMap(
   SaiQosMapTraits::Attributes::Type typeAttribute{SAI_QOS_MAP_TYPE_TC_TO_QUEUE};
   SaiQosMapTraits::Attributes::MapToValueList mapToValueListAttribute{
       mapToValueList};
-  auto& store = SaiStore::getInstance()->get<SaiQosMapTraits>();
+  auto& store = saiStore_->get<SaiQosMapTraits>();
   SaiQosMapTraits::AdapterHostKey k{typeAttribute};
   SaiQosMapTraits::CreateAttributes c{typeAttribute, mapToValueListAttribute};
   return store.setObject(k, c);

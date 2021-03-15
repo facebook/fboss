@@ -23,7 +23,7 @@ std::shared_ptr<SaiWred> SaiWredManager::getOrCreateProfile(
     return nullptr;
   }
   auto attributes = profileCreateAttrs(queue);
-  auto& store = SaiStore::getInstance()->get<SaiWredTraits>();
+  auto& store = saiStore_->get<SaiWredTraits>();
   SaiWredTraits::AdapterHostKey k = tupleProjection<
       SaiWredTraits::CreateAttributes,
       SaiWredTraits::AdapterHostKey>(attributes);

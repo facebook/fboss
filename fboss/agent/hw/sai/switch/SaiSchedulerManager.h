@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/SchedulerApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/state/PortQueue.h"
@@ -24,12 +23,14 @@ namespace facebook::fboss {
 
 class SaiManagerTable;
 class SaiPlatform;
+class SaiStore;
 
 using SaiScheduler = SaiObject<SaiSchedulerTraits>;
 
 class SaiSchedulerManager {
  public:
   SaiSchedulerManager(
+      SaiStore* saiStore,
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
   std::shared_ptr<SaiScheduler> createScheduler(const PortQueue& portQueue);
@@ -38,7 +39,7 @@ class SaiSchedulerManager {
       PortQueue* portQueue) const;
 
  private:
-  SaiApiTable* apiTable_;
+  SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
 };

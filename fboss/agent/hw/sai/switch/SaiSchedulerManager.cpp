@@ -15,7 +15,6 @@
 #include "fboss/lib/TupleUtils.h"
 
 using facebook::fboss::PortQueue;
-using facebook::fboss::SaiApiTable;
 using facebook::fboss::SaiSchedulerTraits;
 using facebook::fboss::cfg::PortQueueRate;
 using facebook::fboss::cfg::QueueScheduling;
@@ -67,9 +66,10 @@ SaiSchedulerTraits::CreateAttributes makeSchedulerAttributes(
 namespace facebook::fboss {
 
 SaiSchedulerManager::SaiSchedulerManager(
+    SaiStore* saiStore,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : managerTable_(managerTable), platform_(platform) {}
+    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
 std::shared_ptr<SaiScheduler> SaiSchedulerManager::createScheduler(
     const PortQueue& portQueue) {
@@ -79,7 +79,7 @@ std::shared_ptr<SaiScheduler> SaiSchedulerManager::createScheduler(
   SaiSchedulerTraits::AdapterHostKey k = tupleProjection<
       SaiSchedulerTraits::CreateAttributes,
       SaiSchedulerTraits::AdapterHostKey>(attributes);
-  auto& store = SaiStore::getInstance()->get<SaiSchedulerTraits>();
+  auto& store = saiStore_->get<SaiSchedulerTraits>();
   return store.setObject(k, attributes);
 #else
   return nullptr;

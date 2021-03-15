@@ -94,9 +94,10 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
 
 } // namespace
 SaiBufferManager::SaiBufferManager(
+    SaiStore* saiStore,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : managerTable_(managerTable), platform_(platform) {}
+    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
 uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
   auto asic = platform->getAsic();
@@ -142,7 +143,7 @@ void SaiBufferManager::setupEgressBufferPool() {
   }
   assertMaxBufferPoolSize(platform_);
   egressBufferPoolHandle_ = std::make_unique<SaiBufferPoolHandle>();
-  auto& store = SaiStore::getInstance()->get<SaiBufferPoolTraits>();
+  auto& store = saiStore_->get<SaiBufferPoolTraits>();
   SaiBufferPoolTraits::CreateAttributes c{
       SAI_BUFFER_POOL_TYPE_EGRESS,
       getMaxEgressPoolBytes(platform_),
@@ -186,7 +187,7 @@ std::shared_ptr<SaiBufferProfile> SaiBufferManager::getOrCreateProfile(
   setupEgressBufferPool();
   // TODO throw error if shared bytes is set. We don't handle that in SAI
   auto attributes = profileCreateAttrs(queue);
-  auto& store = SaiStore::getInstance()->get<SaiBufferProfileTraits>();
+  auto& store = saiStore_->get<SaiBufferProfileTraits>();
   SaiBufferProfileTraits::AdapterHostKey k = tupleProjection<
       SaiBufferProfileTraits::CreateAttributes,
       SaiBufferProfileTraits::AdapterHostKey>(attributes);

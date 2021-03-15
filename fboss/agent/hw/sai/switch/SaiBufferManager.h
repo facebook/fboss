@@ -24,6 +24,7 @@ class SaiManagerTable;
 class SaiPlatform;
 class PortQueue;
 class HwAsic;
+class SaiStore;
 
 using SaiBufferPool = SaiObjectWithCounters<SaiBufferPoolTraits>;
 using SaiBufferProfile = SaiObject<SaiBufferProfileTraits>;
@@ -34,7 +35,10 @@ struct SaiBufferPoolHandle {
 
 class SaiBufferManager {
  public:
-  SaiBufferManager(SaiManagerTable* managerTable, const SaiPlatform* platform);
+  SaiBufferManager(
+      SaiStore* saiStore,
+      SaiManagerTable* managerTable,
+      const SaiPlatform* platform);
 
   std::shared_ptr<SaiBufferProfile> getOrCreateProfile(const PortQueue& queue);
 
@@ -50,6 +54,7 @@ class SaiBufferManager {
   SaiBufferProfileTraits::CreateAttributes profileCreateAttrs(
       const PortQueue& queue) const;
 
+  SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   std::unique_ptr<SaiBufferPoolHandle> egressBufferPoolHandle_;
