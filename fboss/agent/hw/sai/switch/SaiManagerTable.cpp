@@ -59,14 +59,14 @@ void SaiManagerTable::createSaiTableManagers(
   bridgeManager_ = std::make_unique<SaiBridgeManager>(this, platform);
   bufferManager_ = std::make_unique<SaiBufferManager>(this, platform);
   debugCounterManager_ = std::make_unique<SaiDebugCounterManager>(this);
-  fdbManager_ =
-      std::make_unique<SaiFdbManager>(this, platform, concurrentIndices);
+  fdbManager_ = std::make_unique<SaiFdbManager>(
+      saiStore, this, platform, concurrentIndices);
   hashManager_ = std::make_unique<SaiHashManager>(this, platform);
   queueManager_ = std::make_unique<SaiQueueManager>(this, platform);
   hostifManager_ = std::make_unique<SaiHostifManager>(this, platform);
   mirrorManager_ = std::make_unique<SaiMirrorManager>(this, platform);
-  portManager_ =
-      std::make_unique<SaiPortManager>(this, platform, concurrentIndices);
+  portManager_ = std::make_unique<SaiPortManager>(
+      saiStore, this, platform, concurrentIndices);
   qosMapManager_ = std::make_unique<SaiQosMapManager>(this, platform);
   virtualRouterManager_ =
       std::make_unique<SaiVirtualRouterManager>(this, platform);
@@ -74,7 +74,7 @@ void SaiManagerTable::createSaiTableManagers(
       std::make_unique<SaiVlanManager>(this, platform, concurrentIndices);
   routeManager_ = std::make_unique<SaiRouteManager>(this, platform);
   routerInterfaceManager_ =
-      std::make_unique<SaiRouterInterfaceManager>(this, platform);
+      std::make_unique<SaiRouterInterfaceManager>(saiStore, this, platform);
   samplePacketManager_ =
       std::make_unique<SaiSamplePacketManager>(this, platform);
   schedulerManager_ = std::make_unique<SaiSchedulerManager>(this, platform);
@@ -82,7 +82,8 @@ void SaiManagerTable::createSaiTableManagers(
   nextHopGroupManager_ =
       std::make_unique<SaiNextHopGroupManager>(this, platform);
   neighborManager_ = std::make_unique<SaiNeighborManager>(this, platform);
-  inSegEntryManager_ = std::make_unique<SaiInSegEntryManager>(this, platform);
+  inSegEntryManager_ =
+      std::make_unique<SaiInSegEntryManager>(saiStore, this, platform);
   lagManager_ =
       std::make_unique<SaiLagManager>(this, platform, concurrentIndices);
   wredManager_ = std::make_unique<SaiWredManager>(this, platform);

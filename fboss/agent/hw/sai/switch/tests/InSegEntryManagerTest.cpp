@@ -231,7 +231,7 @@ TEST_F(InSegEntryManagerTest, createInSegEntry) {
 
   // verify pre and post matches
   auto postStoreReloadHandle =
-      SaiStore::getInstance()->get<SaiInSegTraits>().get(preWarmBootAdapterKey);
+      saiStore->get<SaiInSegTraits>().get(preWarmBootAdapterKey);
   ASSERT_NE(postStoreReloadHandle, nullptr);
   auto postStoreReloadAttributes = postStoreReloadHandle->attributes();
   EXPECT_EQ(preWarmBootAttributes, postStoreReloadAttributes);
@@ -277,7 +277,7 @@ TEST_F(InSegEntryManagerTest, changeInSegEntry) {
 
   // verify pre and post matches
   auto postStoreReloadHandle =
-      SaiStore::getInstance()->get<SaiInSegTraits>().get(preWarmBootAdapterKey);
+      saiStore->get<SaiInSegTraits>().get(preWarmBootAdapterKey);
   ASSERT_NE(postStoreReloadHandle, nullptr);
   auto postStoreReloadAttributes = postStoreReloadHandle->attributes();
   EXPECT_EQ(preWarmBootAttributes, postStoreReloadAttributes);

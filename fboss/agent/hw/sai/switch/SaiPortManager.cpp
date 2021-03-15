@@ -111,10 +111,12 @@ void fillHwPortStats(
 } // namespace
 
 SaiPortManager::SaiPortManager(
+    SaiStore* saiStore,
     SaiManagerTable* managerTable,
     SaiPlatform* platform,
     ConcurrentIndices* concurrentIndices)
-    : managerTable_(managerTable),
+    : saiStore_(saiStore),
+      managerTable_(managerTable),
       platform_(platform),
       concurrentIndices_(concurrentIndices) {}
 
@@ -241,7 +243,7 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   SaiPortTraits::AdapterHostKey portKey{GET_ATTR(Port, HwLaneList, attributes)};
   auto handle = std::make_unique<SaiPortHandle>();
 
-  auto& portStore = SaiStore::getInstance()->get<SaiPortTraits>();
+  auto& portStore = saiStore_->get<SaiPortTraits>();
   auto saiPort = portStore.setObject(portKey, attributes, swPort->getID());
   handle->port = saiPort;
   handle->serdes = programSerdes(saiPort, swPort);
@@ -575,7 +577,7 @@ void SaiPortManager::changePort(
 
   SaiPortTraits::AdapterHostKey portKey{
       GET_ATTR(Port, HwLaneList, newAttributes)};
-  auto& portStore = SaiStore::getInstance()->get<SaiPortTraits>();
+  auto& portStore = saiStore_->get<SaiPortTraits>();
   auto saiPort = portStore.setObject(portKey, newAttributes, newPort->getID());
   existingPort->serdes = programSerdes(saiPort, newPort);
   // if vlan changed update it, this is important for rx processing
@@ -878,7 +880,7 @@ cfg::PortSpeed SaiPortManager::getMaxSpeed(PortID port) const {
 }
 
 std::shared_ptr<PortMap> SaiPortManager::reconstructPortsFromStore() const {
-  auto& portStore = SaiStore::getInstance()->get<SaiPortTraits>();
+  auto& portStore = saiStore_->get<SaiPortTraits>();
   auto portMap = std::make_shared<PortMap>();
   for (auto& iter : portStore.objects()) {
     auto saiPort = iter.second.lock();
@@ -945,7 +947,7 @@ std::shared_ptr<SaiPortSerdes> SaiPortManager::programSerdes(
 
   auto& portKey = saiPort->adapterHostKey();
   SaiPortSerdesTraits::AdapterHostKey serdesKey{saiPort->adapterKey()};
-  auto& store = SaiStore::getInstance()->get<SaiPortSerdesTraits>();
+  auto& store = saiStore_->get<SaiPortSerdesTraits>();
   // check if serdes object already exists for given port,
   // either already programmed or reloaded from adapter.
   std::shared_ptr<SaiPortSerdes> serdes = store.get(serdesKey);

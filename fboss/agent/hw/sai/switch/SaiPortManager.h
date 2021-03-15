@@ -33,6 +33,7 @@ class SaiManagerTable;
 class SaiPlatform;
 class HwPortFb303Stats;
 class QosPolicy;
+class SaiStore;
 
 using SaiPort = SaiObjectWithCounters<SaiPortTraits>;
 using SaiPortSerdes = SaiObject<SaiPortSerdesTraits>;
@@ -81,6 +82,7 @@ class SaiPortManager {
 
  public:
   SaiPortManager(
+      SaiStore* saiStore,
       SaiManagerTable* managerTable,
       SaiPlatform* platform,
       ConcurrentIndices* concurrentIndices_);
@@ -192,6 +194,8 @@ class SaiPortManager {
   void changeSamplePacket(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
+
+  SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
   ConcurrentIndices* concurrentIndices_;

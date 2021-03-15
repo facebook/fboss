@@ -258,8 +258,8 @@ TEST_F(PortManagerTest, portConsolidationAddPort) {
   // adds a port "behind the back of" PortManager
   auto saiId0 = addPort(portId, cfg::PortSpeed::TWENTYFIVEG);
   // loads the added port into SaiStore
-  SaiStore::getInstance()->release();
-  SaiStore::getInstance()->reload();
+  saiStore->release();
+  saiStore->reload();
 
   // add a port with the same lanes through PortManager
   std::shared_ptr<Port> swPort = makePort(p0);

@@ -18,6 +18,7 @@ namespace facebook::fboss {
 class LabelForwardingEntry;
 class SaiManagerTable;
 class SaiPlatform;
+class SaiStore;
 struct SaiNextHopGroupHandle;
 
 using SaiInSegEntry = SaiObject<SaiInSegTraits>;
@@ -64,9 +65,10 @@ struct SaiInSegEntryHandle {
 class SaiInSegEntryManager {
  public:
   SaiInSegEntryManager(
+      SaiStore* saiStore,
       SaiManagerTable* managerTable,
       const SaiPlatform* platform)
-      : managerTable_(managerTable), platform_(platform) {}
+      : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
   // for tests only
   const SaiInSegEntryHandle* getInSegEntryHandle(
@@ -81,6 +83,7 @@ class SaiInSegEntryManager {
       const std::shared_ptr<LabelForwardingEntry>& removedEntry);
 
  private:
+  SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   folly::

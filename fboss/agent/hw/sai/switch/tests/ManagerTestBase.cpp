@@ -70,6 +70,7 @@ void ManagerTestBase::setupSaiPlatform() {
   saiPlatform->initPorts();
   saiSwitch->switchRunStateChanged(SwitchRunState::INITIALIZED);
   saiApiTable = SaiApiTable::getInstance();
+  saiStore = saiSwitch->getSaiStore();
   saiManagerTable = saiSwitch->managerTable();
   SwitchSaiId switchId = saiManagerTable->switchManager().getSwitchSaiId();
 
@@ -133,20 +134,20 @@ void ManagerTestBase::TearDown() {
     saiPlatform->getHwSwitch()->unregisterCallbacks();
   }
   saiPlatform.reset();
-  SaiStore::getInstance()->release();
+  saiStore->release();
   FakeSai::clear();
   programmedState.reset();
 }
 
 void ManagerTestBase::pseudoWarmBootExitAndStoreReload() {
-  SaiStore::getInstance()->exitForWarmBoot();
+  saiStore->exitForWarmBoot();
 #if !defined(IS_OSS) && __has_feature(address_sanitizer)
   auto* leakedPlatform = saiPlatform.release();
   __lsan_ignore_object(leakedPlatform);
 #else
   saiPlatform.release();
 #endif
-  SaiStore::getInstance()->reload();
+  saiStore->reload();
 }
 
 std::shared_ptr<Port> ManagerTestBase::makePort(

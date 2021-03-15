@@ -190,6 +190,7 @@ class ManagerTestBase : public ::testing::Test {
   std::unique_ptr<SaiPlatform> saiPlatform;
   std::shared_ptr<SaiApiTable> saiApiTable;
   std::unique_ptr<ConcurrentIndices> concurrentIndices;
+  SaiStore* saiStore{nullptr};
   SaiManagerTable* saiManagerTable{nullptr};
 
   std::array<TestInterface, 10> testInterfaces;

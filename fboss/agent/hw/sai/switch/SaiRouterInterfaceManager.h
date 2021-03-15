@@ -29,6 +29,7 @@ namespace facebook::fboss {
 
 class SaiManagerTable;
 class SaiPlatform;
+class SaiStore;
 
 using SaiRouterInterface = SaiObject<SaiRouterInterfaceTraits>;
 
@@ -40,6 +41,7 @@ struct SaiRouterInterfaceHandle {
 class SaiRouterInterfaceManager {
  public:
   SaiRouterInterfaceManager(
+      SaiStore* saiStore,
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
   RouterInterfaceSaiId addRouterInterface(
@@ -59,6 +61,8 @@ class SaiRouterInterfaceManager {
       const std::shared_ptr<Interface>& swInterface);
   SaiRouterInterfaceHandle* getRouterInterfaceHandleImpl(
       const InterfaceID& swId) const;
+
+  SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   folly::F14FastMap<InterfaceID, std::unique_ptr<SaiRouterInterfaceHandle>>

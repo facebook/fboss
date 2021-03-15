@@ -34,6 +34,7 @@ class SaiManagerTable;
 class SaiPlatform;
 class MacEntry;
 class SaiFdbManager;
+class SaiStore;
 
 using SaiFdbEntry = SaiObject<SaiFdbTraits>;
 
@@ -107,6 +108,7 @@ class ManagedFdbEntry : public SaiObjectEventAggregateSubscriber<
 class SaiFdbManager {
  public:
   SaiFdbManager(
+      SaiStore* saiStore,
       SaiManagerTable* managerTable,
       const SaiPlatform* platform,
       const ConcurrentIndices* concurrentIndices);
@@ -137,6 +139,8 @@ class SaiFdbManager {
       const PortDescriptor& portDesc) const;
   L2EntryThrift fdbToL2Entry(const SaiFdbTraits::FdbEntry& fdbEntry) const;
   InterfaceID getInterfaceId(const std::shared_ptr<MacEntry>& macEntry) const;
+
+  SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   const ConcurrentIndices* concurrentIndices_;

@@ -29,10 +29,12 @@
 namespace facebook::fboss {
 
 SaiFdbManager::SaiFdbManager(
+    SaiStore* saiStore,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform,
     const ConcurrentIndices* concurrentIndices)
-    : managerTable_(managerTable),
+    : saiStore_(saiStore),
+      managerTable_(managerTable),
       platform_(platform),
       concurrentIndices_(concurrentIndices) {}
 
@@ -333,7 +335,7 @@ std::shared_ptr<SaiFdbEntry> SaiFdbManager::createSaiObject(
     const typename SaiFdbTraits::AdapterHostKey& key,
     const typename SaiFdbTraits::CreateAttributes& attributes,
     const PublisherKey<SaiFdbTraits>::custom_type& publisherKey) {
-  auto& store = SaiStore::getInstance()->get<SaiFdbTraits>();
+  auto& store = saiStore_->get<SaiFdbTraits>();
   return store.setObject(key, attributes, publisherKey);
 }
 } // namespace facebook::fboss

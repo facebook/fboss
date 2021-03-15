@@ -145,7 +145,7 @@ TEST_F(FdbManagerTest, checkFdbEntryOwnership) {
         newSwitchSettings->setL2LearningMode(learningMode);
         newState->resetSwitchSettings(newSwitchSettings);
         applyNewState(newState);
-        auto& store = SaiStore::getInstance()->get<SaiFdbTraits>();
+        auto& store = saiStore->get<SaiFdbTraits>();
         EXPECT_EQ(store.isObjectOwnedByAdapter(), ownedByAdapter);
       };
   checkFdbEntryOwnerShip(cfg::L2LearningMode::HARDWARE, true);

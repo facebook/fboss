@@ -57,7 +57,7 @@ class RouterInterfaceManagerTest : public ManagerTestBase {
       const std::vector<SaiRouteTraits::RouteEntry>& subnetRoutes,
       bool shouldExist) {
     for (const auto& route : subnetRoutes) {
-      auto& store = SaiStore::getInstance()->get<SaiRouteTraits>();
+      auto& store = saiStore->get<SaiRouteTraits>();
       auto routeObj = store.get(route);
       if (shouldExist) {
         EXPECT_NE(routeObj, nullptr);

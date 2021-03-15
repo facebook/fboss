@@ -76,7 +76,7 @@ void SaiInSegEntryManager::processAddedInSegEntry(
         "label fib entry already exists for ", addedEntry->getID());
   }
 
-  auto& store = SaiStore::getInstance()->get<SaiInSegTraits>();
+  auto& store = saiStore_->get<SaiInSegTraits>();
   handle.inSegEntry = store.setObject(inSegEntry, createAttributes);
   saiInSegEntryTable_.emplace(inSegEntry, handle);
 }
@@ -98,7 +98,7 @@ void SaiInSegEntryManager::processChangedInSegEntry(
 
   SaiInSegTraits::CreateAttributes newAttributes{
       SAI_PACKET_ACTION_FORWARD, 1, itr->second.nextHopAdapterKey()};
-  auto& store = SaiStore::getInstance()->get<SaiInSegTraits>();
+  auto& store = saiStore_->get<SaiInSegTraits>();
   itr->second.inSegEntry = store.setObject(inSegEntry, newAttributes);
 }
 

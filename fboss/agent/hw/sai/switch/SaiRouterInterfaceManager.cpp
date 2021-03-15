@@ -22,9 +22,10 @@
 namespace facebook::fboss {
 
 SaiRouterInterfaceManager::SaiRouterInterfaceManager(
+    SaiStore* saiStore,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : managerTable_(managerTable), platform_(platform) {}
+    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
 RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateRouterInterface(
     const std::shared_ptr<Interface>& swInterface) {
@@ -74,7 +75,7 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateRouterInterface(
       virtualRouterIdAttribute,
       vlanIdAttribute,
   };
-  auto& store = SaiStore::getInstance()->get<SaiRouterInterfaceTraits>();
+  auto& store = saiStore_->get<SaiRouterInterfaceTraits>();
   std::shared_ptr<SaiRouterInterface> routerInterface =
       store.setObject(k, attributes, swInterface->getID());
   auto routerInterfaceHandle = std::make_unique<SaiRouterInterfaceHandle>();
