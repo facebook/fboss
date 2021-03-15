@@ -162,6 +162,7 @@ SaiSwitch::SaiSwitch(SaiPlatform* platform, uint32_t featuresDesired)
     : HwSwitch(featuresDesired), platform_(platform) {
   utilCreateDir(platform_->getVolatileStateDir());
   utilCreateDir(platform_->getPersistentStateDir());
+  saiStore_ = SaiStore::getInstance().get();
 }
 
 SaiSwitch::~SaiSwitch() {}
@@ -188,11 +189,11 @@ HwInitResult SaiSwitch::init(
     HwWriteBehvaiorRAII writeBehavior{behavior};
     stateChanged(StateDelta(std::make_shared<SwitchState>(), ret.switchState));
     if (bootType_ == BootType::WARM_BOOT) {
-      SaiStore::getInstance()->printWarmbootHandles();
+      saiStore_->printWarmbootHandles();
       if (FLAGS_check_wb_handles == true) {
-        SaiStore::getInstance()->checkUnexpectedUnclaimedWarmbootHandles();
+        saiStore_->checkUnexpectedUnclaimedWarmbootHandles();
       } else {
-        SaiStore::getInstance()->removeUnexpectedUnclaimedWarmbootHandles();
+        saiStore_->removeUnexpectedUnclaimedWarmbootHandles();
       }
     }
   }
@@ -343,8 +344,8 @@ void SaiSwitch::rollback(
     stateChangedImpl(
         StateDelta(std::make_shared<SwitchState>(), knownGoodState),
         lockPolicy);
-    SaiStore::getInstance()->printWarmbootHandles();
-    SaiStore::getInstance()->removeUnexpectedUnclaimedWarmbootHandles();
+    saiStore_->printWarmbootHandles();
+    saiStore_->removeUnexpectedUnclaimedWarmbootHandles();
     bootType_ = curBootType;
   } catch (const std::exception& ex) {
     // Rollback failed. Fail hard.
@@ -1014,9 +1015,8 @@ void SaiSwitch::initStoreAndManagersLocked(
     HwWriteBehavior behavior,
     const folly::dynamic* adapterKeys,
     const folly::dynamic* adapterKeys2AdapterHostKeys) {
-  auto saiStore = SaiStore::getInstance();
-  saiStore->setSwitchId(switchId_);
-  saiStore->reload(adapterKeys, adapterKeys2AdapterHostKeys);
+  saiStore_->setSwitchId(switchId_);
+  saiStore_->reload(adapterKeys, adapterKeys2AdapterHostKeys);
   managerTable_->createSaiTableManagers(platform_, concurrentIndices_.get());
   /*
    * SwitchState does not have notion of AclTableGroup or AclTable today.
@@ -1446,7 +1446,7 @@ void SaiSwitch::fetchL2TableLocked(
 
 folly::dynamic SaiSwitch::toFollyDynamicLocked(
     const std::lock_guard<std::mutex>& /* lock */) const {
-  auto adapterKeys = SaiStore::getInstance()->adapterKeysFollyDynamic();
+  auto adapterKeys = saiStore_->adapterKeysFollyDynamic();
   // Need to provide full namespace scope for toFollyDynamic to disambiguate
   // from member SaiSwitch::toFollyDynamic
   auto switchKeys = folly::dynamic::array(
@@ -1456,7 +1456,7 @@ folly::dynamic SaiSwitch::toFollyDynamicLocked(
   folly::dynamic hwSwitch = folly::dynamic::object;
   hwSwitch[kAdapterKeys] = adapterKeys;
   hwSwitch[kAdapterKey2AdapterHostKey] =
-      SaiStore::getInstance()->adapterKeys2AdapterHostKeysFollyDynamic();
+      saiStore_->adapterKeys2AdapterHostKeysFollyDynamic();
   return hwSwitch;
 }
 
@@ -1769,7 +1769,7 @@ std::string SaiSwitch::listObjectsLocked(
     const std::vector<sai_object_type_t>& objects,
     bool cached,
     const std::lock_guard<std::mutex>& lock) const {
-  const SaiStore* store = nullptr;
+  const SaiStore* store = saiStore_;
   SaiStore directToHwStore;
   if (!cached) {
     directToHwStore.setSwitchId(getSwitchId());
@@ -1784,8 +1784,6 @@ std::string SaiSwitch::listObjectsLocked(
     directToHwStore.reload(
         adapterKeysJson.get(), adapterKeys2AdapterHostKeysJson.get());
     store = &directToHwStore;
-  } else {
-    store = SaiStore::getInstance().get();
   }
   std::string output;
   std::for_each(objects.begin(), objects.end(), [&output, store](auto objType) {

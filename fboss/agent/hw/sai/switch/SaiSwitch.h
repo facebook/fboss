@@ -27,6 +27,8 @@
 namespace facebook::fboss {
 
 class ConcurrentIndices;
+class SaiStore;
+
 /*
  * This is equivalent to sai_fdb_event_notification_data_t. Copy only the
  * necessary FDB event attributes from sai_fdb_event_notification_data_t.
@@ -152,6 +154,10 @@ class SaiSwitch : public HwSwitch {
   }
   SaiPlatform* getPlatform() const override {
     return platform_;
+  }
+
+  SaiStore* getSaiStore() const {
+    return saiStore_;
   }
 
   const ConcurrentIndices& concurrentIndices() const {
@@ -403,6 +409,15 @@ class SaiSwitch : public HwSwitch {
   std::optional<L2Entry> getL2Entry(
       const FdbEventNotificationData& fdbEvent) const;
 
+  // TODO(joseph5wu) Instead of using singleton for SaiStore, we assign one
+  // SaiStore to one SaiSwitch to support multiple SaiSwitch in one single
+  // service.
+  // Right now, there're too many places are using SaiStore::getInstance(),
+  // we need to make all the users to switch to use SaiSwitch::getSaiStore()
+  // gradually. For now, we also use SaiStore::getInstance() to assign the
+  // saiStore_. But once we deprecate the getInstance() way everywhere, we
+  // can change this back to a unique_ptr.
+  SaiStore* saiStore_;
   std::unique_ptr<SaiManagerTable> managerTable_;
   std::atomic<BootType> bootType_{BootType::UNINITIALIZED};
   SaiPlatform* platform_;
