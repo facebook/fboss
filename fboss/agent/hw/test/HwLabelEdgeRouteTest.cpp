@@ -36,6 +36,8 @@ const LabelForwardingAction::LabelStack kStack1{
     209,
     210,
 };
+} // namespace
+
 template <typename AddrT>
 struct TestParameters {
   using PrefixT = typename Route<AddrT>::Prefix;
@@ -45,7 +47,6 @@ struct TestParameters {
   LabelForwardingEntry::Label
       label; // labels advertised by "LDP" peer (OpenR adjacency)
 };
-} // namespace
 
 template <typename AddrT>
 class HwLabelEdgeRouteTest : public HwLinkStateDependentTest {
