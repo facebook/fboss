@@ -10,7 +10,6 @@
 
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/Utils.h"
-
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
@@ -27,6 +26,7 @@ using namespace facebook::fboss;
 using facebook::network::toBinaryAddress;
 using folly::IPAddress;
 
+namespace {
 constexpr AdminDistance kBgpDistance = AdminDistance::EBGP;
 constexpr ClientID kBgpClient = ClientID::BGPD;
 constexpr AdminDistance kOpenrDistance = AdminDistance::OPENR;
@@ -35,6 +35,7 @@ const RouterID kRid(0);
 auto kPrefix1 = IPAddress::createNetwork("1::1/64");
 auto kPrefix2 = IPAddress::createNetwork("2::2/64");
 
+} // namespace
 std::shared_ptr<SwitchState> recordUpdates(
     RouterID vrf,
     const IPv4NetworkToRouteMap& v4NetworkToRoute,
@@ -72,19 +73,12 @@ class FailSomeUpdates {
   std::unordered_set<int> toFail_;
 };
 
-IpPrefix makePrefix(const folly::CIDRNetwork& nw) {
-  IpPrefix pfx;
-  pfx.ip_ref() = toBinaryAddress(nw.first);
-  pfx.prefixLength_ref() = nw.second;
-  return pfx;
-}
-
 UnicastRoute makeUnicastRoute(
     const folly::CIDRNetwork& nw,
     RouteForwardAction action,
     AdminDistance distance = kBgpDistance) {
   UnicastRoute nr;
-  nr.dest_ref() = makePrefix(nw);
+  nr.dest_ref() = toIpPrefix(nw);
   nr.action_ref() = action;
   nr.adminDistance_ref() = distance;
   return nr;
@@ -208,7 +202,7 @@ TEST_F(RibRollbackTest, rollbackDel) {
           kBgpClient,
           kBgpDistance,
           {},
-          {makePrefix(kPrefix1)},
+          {toIpPrefix(kPrefix1)},
           false,
           "fail del",
           failFirstUpdate,
@@ -226,7 +220,7 @@ TEST_F(RibRollbackTest, rollbackDelNonExistent) {
       kBgpClient,
       kBgpDistance,
       {},
-      {makePrefix(kPrefix2)}, // kPrefix2 does not exist in RIB
+      {toIpPrefix(kPrefix2)}, // kPrefix2 does not exist in RIB
       false,
       "nonexistent prefix del",
       recordUpdates,
@@ -241,7 +235,7 @@ TEST_F(RibRollbackTest, rollbackDelNonExistent) {
           kBgpClient,
           kBgpDistance,
           {},
-          {makePrefix(kPrefix2)}, // kPrefix2 does not exist in RIB
+          {toIpPrefix(kPrefix2)}, // kPrefix2 does not exist in RIB
           false,
           "fail del",
           failFirstUpdate,
@@ -261,7 +255,7 @@ TEST_F(RibRollbackTest, rollbackAddAndDel) {
           kBgpClient,
           kBgpDistance,
           {makeUnicastRoute(kPrefix2, RouteForwardAction::DROP)},
-          {makePrefix(kPrefix1)},
+          {toIpPrefix(kPrefix1)},
           false,
           "fail add",
           failFirstUpdate,
