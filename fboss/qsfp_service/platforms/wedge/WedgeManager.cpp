@@ -374,7 +374,6 @@ std::unique_ptr<TransceiverI2CApi> WedgeManager::getI2CBus() {
 }
 
 void WedgeManager::updateTransceiverMap() {
-  auto lockedPorts = ports_.rlock();
   std::vector<folly::Future<TransceiverManagementInterface>> futInterfaces;
   std::vector<std::unique_ptr<WedgeQsfp>> qsfpImpls;
   for (int idx = 0; idx < getNumQsfpModules(); idx++) {
@@ -386,6 +385,7 @@ void WedgeManager::updateTransceiverMap() {
   // After we have collected all transceivers, get the write lock on
   // transceivers_ before updating it
   auto lockedTransceivers = transceivers_.wlock();
+  auto lockedPorts = ports_.rlock();
   for (int idx = 0; idx < getNumQsfpModules(); idx++) {
     if (!futInterfaces[idx].isReady()) {
       XLOG(ERR) << "failed getting TransceiverManagementInterface at " << idx;
