@@ -6,6 +6,7 @@ namespace facebook::fboss {
 SaiTamHandle::~SaiTamHandle() {}
 
 SaiTamManager::SaiTamManager(
+    SaiStore* /* saiStore */,
     SaiManagerTable* /*managerTable*/,
     SaiPlatform* /*platform*/) {}
 

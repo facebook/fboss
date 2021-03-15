@@ -9,6 +9,7 @@ namespace facebook::fboss {
 
 class SaiManagerTable;
 class SaiPlatform;
+class SaiStore;
 
 using SaiTamReport = SaiObject<SaiTamReportTraits>;
 using SaiTamEventAction = SaiObject<SaiTamEventActionTraits>;
@@ -25,7 +26,10 @@ struct SaiTamHandle {
 };
 class SaiTamManager {
  public:
-  SaiTamManager(SaiManagerTable* managerTable, SaiPlatform* platform);
+  SaiTamManager(
+      SaiStore* saiStore,
+      SaiManagerTable* managerTable,
+      SaiPlatform* platform);
   const SaiTamHandle* getTamHandle() const {
     return tamHandle_.get();
   }
@@ -38,6 +42,7 @@ class SaiTamManager {
   }
 
  private:
+  SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
   std::unique_ptr<SaiTamHandle> tamHandle_;

@@ -90,7 +90,7 @@ void SaiManagerTable::createSaiTableManagers(
 
   // CSP CS00011823810
 #if !defined(SAI_VERSION_4_3_3_2_ODP)
-  tamManager_ = std::make_unique<SaiTamManager>(this, platform);
+  tamManager_ = std::make_unique<SaiTamManager>(saiStore, this, platform);
 #endif
 }
 

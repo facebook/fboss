@@ -18,9 +18,11 @@ namespace facebook::fboss {
 SaiTamHandle::~SaiTamHandle() {}
 
 SaiTamManager::SaiTamManager(
+    SaiStore* saiStore,
     SaiManagerTable* managerTable,
     SaiPlatform* platform)
-    : managerTable_(managerTable),
+    : saiStore_(saiStore),
+      managerTable_(managerTable),
       platform_(platform),
       tamHandle_(std::make_unique<SaiTamHandle>()) {
   if (!platform_->getAsic()->isSupported(
@@ -28,13 +30,13 @@ SaiTamManager::SaiTamManager(
     return;
   }
   // create report
-  auto& reportStore = SaiStore::getInstance()->get<SaiTamReportTraits>();
+  auto& reportStore = saiStore_->get<SaiTamReportTraits>();
   auto reportTraits =
       SaiTamReportTraits::CreateAttributes{SAI_TAM_REPORT_TYPE_VENDOR_EXTN};
   auto report = reportStore.setObject(reportTraits, reportTraits);
 
   // create action
-  auto& actionStore = SaiStore::getInstance()->get<SaiTamEventActionTraits>();
+  auto& actionStore = saiStore_->get<SaiTamEventActionTraits>();
   auto actionTraits =
       SaiTamEventActionTraits::CreateAttributes{report->adapterKey()};
   auto action = actionStore.setObject(actionTraits, actionTraits);
@@ -51,7 +53,7 @@ SaiTamManager::SaiTamManager(
       collectors;
   std::get<SaiTamEventTraits::Attributes::SwitchEventType>(eventTraits) =
       eventTypes;
-  auto& eventStore = SaiStore::getInstance()->get<SaiTamEventTraits>();
+  auto& eventStore = saiStore_->get<SaiTamEventTraits>();
   auto event = eventStore.setObject(eventTraits, eventTraits);
 
   // create tam
@@ -60,7 +62,7 @@ SaiTamManager::SaiTamManager(
   SaiTamTraits::CreateAttributes tamTraits;
   std::get<SaiTamTraits::Attributes::EventObjectList>(tamTraits) = events;
   std::get<SaiTamTraits::Attributes::TamBindPointList>(tamTraits) = bindpoints;
-  auto& tamStore = SaiStore::getInstance()->get<SaiTamTraits>();
+  auto& tamStore = saiStore_->get<SaiTamTraits>();
   auto tam = tamStore.setObject(tamTraits, tamTraits);
 
   tamHandle_->report = report;
