@@ -1083,8 +1083,11 @@ void BcmPort::updateStats() {
   }
   // as with pause, remove incoming PFC frames from the discards
   // as well
-  toSubtractFromInDiscardsRaw.emplace_back(
-      *lastPortStats.inPfcCtrl__ref(), *curPortStats.inPfcCtrl__ref());
+  if (curPortStats.inPfcCtrl__ref() !=
+      hardware_stats_constants::STAT_UNINITIALIZED()) {
+    toSubtractFromInDiscardsRaw.emplace_back(
+        *lastPortStats.inPfcCtrl__ref(), *curPortStats.inPfcCtrl__ref());
+  }
 
   *curPortStats.inDiscards__ref() += utility::subtractIncrements(
       {*lastPortStats.inDiscardsRaw__ref(), *curPortStats.inDiscardsRaw__ref()},
