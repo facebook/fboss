@@ -315,6 +315,16 @@ void HwSwitchEnsemble::setupEnsemble(
 
   thriftThread_ = std::move(thriftThread);
   switchRunStateChanged(SwitchRunState::INITIALIZED);
+  if (routingInformationBase_) {
+    auto curProgrammedState = programmedState_;
+    // Unless there is mismatched state in RIB (i.e.
+    // mismatched from FIB). A empty update should not
+    // change switchState. Assert that post init. Most
+    // interesting case here is of state diverging post WB
+    HwSwitchEnsembleRouteUpdateWrapper u(this);
+    u.program();
+    CHECK_EQ(curProgrammedState, getProgrammedState());
+  }
 }
 
 void HwSwitchEnsemble::switchRunStateChanged(SwitchRunState switchState) {
