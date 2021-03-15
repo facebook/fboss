@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
+#include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/test/RouteGeneratorTestUtils.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 
@@ -26,7 +27,12 @@ std::shared_ptr<facebook::fboss::SwitchState> noopFibUpdate(
     const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
     const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
     void* cookie) {
-  return nullptr;
+  facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
+      vrf, v4NetworkToRoute, v6NetworkToRoute);
+
+  auto hwEnsemble = static_cast<facebook::fboss::HwSwitchEnsemble*>(cookie);
+  fibUpdater(hwEnsemble->getProgrammedState());
+  return hwEnsemble->getProgrammedState();
 }
 } // namespace
 namespace facebook::fboss {
@@ -42,7 +48,9 @@ BENCHMARK(RibResolutionBenchmark) {
   auto rib = ensemble->getRib();
   suspender.dismiss();
   std::for_each(
-      routeChunks.begin(), routeChunks.end(), [rib](const auto& routeChunk) {
+      routeChunks.begin(),
+      routeChunks.end(),
+      [&ensemble, rib](const auto& routeChunk) {
         rib->update(
             RouterID(0),
             ClientID::BGPD,
@@ -52,7 +60,7 @@ BENCHMARK(RibResolutionBenchmark) {
             false,
             "resolution only",
             noopFibUpdate,
-            nullptr);
+            static_cast<void*>(ensemble.get()));
       });
   suspender.rehire();
 }
