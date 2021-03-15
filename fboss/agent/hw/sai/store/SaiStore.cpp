@@ -10,18 +10,6 @@
 
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 
-#include <folly/Singleton.h>
-
-namespace {
-struct singleton_tag_type {};
-} // namespace
-
-using facebook::fboss::SaiStore;
-static folly::Singleton<SaiStore, singleton_tag_type> saiStoreSingleton{};
-std::shared_ptr<SaiStore> SaiStore::getInstance() {
-  return saiStoreSingleton.try_get();
-}
-
 namespace facebook::fboss {
 
 SaiStore::SaiStore() {}

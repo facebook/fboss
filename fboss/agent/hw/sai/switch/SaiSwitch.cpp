@@ -159,10 +159,11 @@ PortSaiId SaiSwitch::getCPUPortSaiId(SwitchSaiId switchId) {
 }
 
 SaiSwitch::SaiSwitch(SaiPlatform* platform, uint32_t featuresDesired)
-    : HwSwitch(featuresDesired), platform_(platform) {
+    : HwSwitch(featuresDesired),
+      platform_(platform),
+      saiStore_(std::make_unique<SaiStore>()) {
   utilCreateDir(platform_->getVolatileStateDir());
   utilCreateDir(platform_->getPersistentStateDir());
-  saiStore_ = SaiStore::getInstance().get();
 }
 
 SaiSwitch::~SaiSwitch() {}
@@ -1018,7 +1019,7 @@ void SaiSwitch::initStoreAndManagersLocked(
   saiStore_->setSwitchId(switchId_);
   saiStore_->reload(adapterKeys, adapterKeys2AdapterHostKeys);
   managerTable_->createSaiTableManagers(
-      saiStore_, platform_, concurrentIndices_.get());
+      saiStore_.get(), platform_, concurrentIndices_.get());
   /*
    * SwitchState does not have notion of AclTableGroup or AclTable today.
    * Thus, stateChanged() can not process aclTableGroupChanges or
@@ -1770,7 +1771,7 @@ std::string SaiSwitch::listObjectsLocked(
     const std::vector<sai_object_type_t>& objects,
     bool cached,
     const std::lock_guard<std::mutex>& lock) const {
-  const SaiStore* store = saiStore_;
+  const SaiStore* store = saiStore_.get();
   SaiStore directToHwStore;
   if (!cached) {
     directToHwStore.setSwitchId(getSwitchId());

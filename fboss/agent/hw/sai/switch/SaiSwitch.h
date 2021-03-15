@@ -157,7 +157,7 @@ class SaiSwitch : public HwSwitch {
   }
 
   SaiStore* getSaiStore() const {
-    return saiStore_;
+    return saiStore_.get();
   }
 
   const ConcurrentIndices& concurrentIndices() const {
@@ -378,6 +378,11 @@ class SaiSwitch : public HwSwitch {
       LagSaiId inAggPort,
       PortSaiId inPort);
 
+  std::shared_ptr<SwitchState> getColdBootSwitchState();
+
+  std::optional<L2Entry> getL2Entry(
+      const FdbEventNotificationData& fdbEvent) const;
+
   /*
    * SaiSwitch must support a few varieties of concurrent access:
    * 1. state updates on the SwSwitch update thread calling stateChanged
@@ -404,23 +409,12 @@ class SaiSwitch : public HwSwitch {
   mutable std::mutex saiSwitchMutex_;
   std::unique_ptr<ConcurrentIndices> concurrentIndices_;
 
-  std::shared_ptr<SwitchState> getColdBootSwitchState();
-
-  std::optional<L2Entry> getL2Entry(
-      const FdbEventNotificationData& fdbEvent) const;
-
-  // TODO(joseph5wu) Instead of using singleton for SaiStore, we assign one
-  // SaiStore to one SaiSwitch to support multiple SaiSwitch in one single
-  // service.
-  // Right now, there're too many places are using SaiStore::getInstance(),
-  // we need to make all the users to switch to use SaiSwitch::getSaiStore()
-  // gradually. For now, we also use SaiStore::getInstance() to assign the
-  // saiStore_. But once we deprecate the getInstance() way everywhere, we
-  // can change this back to a unique_ptr.
-  SaiStore* saiStore_;
+  SaiPlatform* platform_;
+  // Instead of using singleton for SaiStore, we assign one SaiStore to one
+  // SaiSwitch to support multiple SaiSwitch in one single service.
+  std::unique_ptr<SaiStore> saiStore_;
   std::unique_ptr<SaiManagerTable> managerTable_;
   std::atomic<BootType> bootType_{BootType::UNINITIALIZED};
-  SaiPlatform* platform_;
   Callback* callback_{nullptr};
 
   SwitchSaiId switchId_;

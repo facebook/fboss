@@ -433,9 +433,6 @@ class SaiSwitchObj : public SaiObject<SaiSwitchTraits> {
  */
 class SaiStore {
  public:
-  // Static function for getting the SaiStore folly::Singleton
-  static std::shared_ptr<SaiStore> getInstance();
-
   SaiStore();
   explicit SaiStore(sai_object_id_t switchId);
 

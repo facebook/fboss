@@ -12,13 +12,13 @@ The SaiStore class itself doesn't provide much independent functionality. Its
 primary role is providing access to the underlying SaiObjectStores as well as
 dispatching calls to all of them.
 
-SaiStore is exposed as a folly::Singleton, so a typical use is to grab a
-`shared_ptr` to an instance and then to use the templated `get` method to
-extract a particular SaiObjectStore from the internal `std::tuple` of
+SaiStore is stored as a unique_ptr in SaiSwitch, so a typical use is to grab a
+pointer to an instance from a SaiSwitch and then to use the templated `get`
+method to extract a particular SaiObjectStore from the internal `std::tuple` of
 SaiObjectStores to do something useful with it.
 e.g.,
 ```c++
-auto& fooStore = SaiStore::getInstance()->get<SaiFooTraits>();
+auto& fooStore = saiSwitch_->getSaiStore()->get<SaiFooTraits>();
 fooStore.setObject(...);
 ...
 ```
@@ -79,7 +79,7 @@ is the most interesting. Specifically, we expect a developer to be able to
 * change internal SaiSwitch Manager class data structures
 * change attribute values (or even which attributes we care about)
 * add/remove objects
-across Warm Boots without special backwards-compatibility code. 
+across Warm Boots without special backwards-compatibility code.
 
 To emphasize what this requirement implies, consider the Warm Boot approach of
 serializing the state of the SaiSwitch, then reloading that state after the

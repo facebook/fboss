@@ -133,8 +133,8 @@ void ManagerTestBase::TearDown() {
     // do nothing.
     saiPlatform->getHwSwitch()->unregisterCallbacks();
   }
-  saiPlatform.reset();
   saiStore->release();
+  saiPlatform.reset();
   FakeSai::clear();
   programmedState.reset();
 }
