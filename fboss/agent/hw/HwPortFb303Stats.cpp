@@ -44,8 +44,12 @@ std::array<folly::StringPiece, 23> HwPortFb303Stats::kPortStatKeys() {
   };
 }
 
-std::array<folly::StringPiece, 3> HwPortFb303Stats::kQueueStatKeys() {
-  return {kOutCongestionDiscards(), kOutBytes(), kOutPkts()};
+std::array<folly::StringPiece, 4> HwPortFb303Stats::kQueueStatKeys() {
+  return {
+      kOutCongestionDiscardsBytes(),
+      kOutCongestionDiscards(),
+      kOutBytes(),
+      kOutPkts()};
 }
 
 std::string HwPortFb303Stats::statName(
@@ -207,6 +211,10 @@ void HwPortFb303Stats::updateStats(
     updateStat(timeRetrieved_, statKey, queueId, qitr->second);
   };
   for (const auto& queueIdAndName : queueId2Name_) {
+    updateQueueStat(
+        kOutCongestionDiscardsBytes(),
+        queueIdAndName.first,
+        *curPortStats.queueOutDiscardBytes__ref());
     updateQueueStat(
         kOutCongestionDiscards(),
         queueIdAndName.first,

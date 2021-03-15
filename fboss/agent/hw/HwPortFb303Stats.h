@@ -71,7 +71,7 @@ class HwPortFb303Stats {
       folly::StringPiece queueName);
 
   static std::array<folly::StringPiece, 23> kPortStatKeys();
-  static std::array<folly::StringPiece, 3> kQueueStatKeys();
+  static std::array<folly::StringPiece, 4> kQueueStatKeys();
   int64_t getCounterLastIncrement(folly::StringPiece statKey) const;
 
  private:
