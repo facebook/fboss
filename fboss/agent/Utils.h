@@ -130,4 +130,14 @@ std::vector<NextHopThrift> thriftNextHopsFromAddresses(
 
 IpPrefix toIpPrefix(const folly::CIDRNetwork& nw);
 
+UnicastRoute makeDropUnicastRoute(
+    const folly::CIDRNetwork& nw,
+    AdminDistance admin = AdminDistance::EBGP);
+UnicastRoute makeToCpuUnicastRoute(
+    const folly::CIDRNetwork& nw,
+    AdminDistance admin = AdminDistance::EBGP);
+UnicastRoute makeUnicastRoute(
+    const folly::CIDRNetwork& nw,
+    const std::vector<folly::IPAddress>& nhops,
+    AdminDistance admin = AdminDistance::EBGP);
 } // namespace facebook::fboss

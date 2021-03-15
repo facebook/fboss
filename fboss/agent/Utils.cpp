@@ -35,6 +35,19 @@ DEFINE_string(mgmt_if, "eth0", "name of management interface");
 
 namespace facebook::fboss {
 
+namespace {
+
+UnicastRoute makeUnicastRouteHelper(
+    const folly::CIDRNetwork& nw,
+    RouteForwardAction action,
+    AdminDistance admin) {
+  UnicastRoute nr;
+  nr.dest_ref() = toIpPrefix(nw);
+  nr.action_ref() = action;
+  nr.adminDistance_ref() = admin;
+  return nr;
+}
+} // namespace
 void utilCreateDir(folly::StringPiece path) {
   try {
     boost::filesystem::create_directories(path.str());
@@ -165,5 +178,30 @@ IpPrefix toIpPrefix(const folly::CIDRNetwork& nw) {
   pfx.ip_ref() = network::toBinaryAddress(nw.first);
   pfx.prefixLength_ref() = nw.second;
   return pfx;
+}
+
+UnicastRoute makeDropUnicastRoute(
+    const folly::CIDRNetwork& nw,
+    AdminDistance admin) {
+  return makeUnicastRouteHelper(nw, RouteForwardAction::DROP, admin);
+}
+UnicastRoute makeToCpuUnicastRoute(
+    const folly::CIDRNetwork& nw,
+    AdminDistance admin) {
+  return makeUnicastRouteHelper(nw, RouteForwardAction::TO_CPU, admin);
+}
+UnicastRoute makeUnicastRoute(
+    const folly::CIDRNetwork& nw,
+    const std::vector<folly::IPAddress>& nhops,
+    AdminDistance admin) {
+  auto route = makeUnicastRouteHelper(nw, RouteForwardAction::NEXTHOPS, admin);
+  std::vector<network::thrift::BinaryAddress> addrs;
+  addrs.reserve(nhops.size());
+  std::for_each(
+      nhops.begin(), nhops.end(), [&addrs](const folly::IPAddress& ip) {
+        addrs.emplace_back(facebook::network::toBinaryAddress(ip));
+      });
+  route.nextHops_ref() = thriftNextHopsFromAddresses(addrs);
+  return route;
 }
 } // namespace facebook::fboss

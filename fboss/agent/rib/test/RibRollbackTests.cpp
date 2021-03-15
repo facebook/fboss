@@ -73,17 +73,6 @@ class FailSomeUpdates {
   std::unordered_set<int> toFail_;
 };
 
-UnicastRoute makeUnicastRoute(
-    const folly::CIDRNetwork& nw,
-    RouteForwardAction action,
-    AdminDistance distance = kBgpDistance) {
-  UnicastRoute nr;
-  nr.dest_ref() = toIpPrefix(nw);
-  nr.action_ref() = action;
-  nr.adminDistance_ref() = distance;
-  return nr;
-}
-
 class RibRollbackTest : public ::testing::Test {
  public:
   void SetUp() override {
@@ -95,7 +84,7 @@ class RibRollbackTest : public ::testing::Test {
         kRid,
         kBgpClient,
         kBgpDistance,
-        {makeUnicastRoute(kPrefix1, RouteForwardAction::DROP)},
+        {makeDropUnicastRoute(kPrefix1)},
         {},
         false,
         "add only",
@@ -143,7 +132,7 @@ TEST_F(RibRollbackTest, rollbackFail) {
           kRid,
           kBgpClient,
           kBgpDistance,
-          {makeUnicastRoute(kPrefix2, RouteForwardAction::DROP)},
+          {makeDropUnicastRoute(kPrefix2)},
           {},
           false,
           "add only",
@@ -161,7 +150,7 @@ TEST_F(RibRollbackTest, rollbackAdd) {
           kRid,
           kBgpClient,
           kBgpDistance,
-          {makeUnicastRoute(kPrefix2, RouteForwardAction::DROP)},
+          {makeDropUnicastRoute(kPrefix2)},
           {},
           false,
           "fail add",
@@ -181,7 +170,7 @@ TEST_F(RibRollbackTest, rollbackAddExisting) {
           kRid,
           kBgpClient,
           kBgpDistance,
-          {makeUnicastRoute(kPrefix1, RouteForwardAction::DROP)},
+          {makeDropUnicastRoute(kPrefix1)},
           {},
           false,
           "fail add",
@@ -254,7 +243,7 @@ TEST_F(RibRollbackTest, rollbackAddAndDel) {
           kRid,
           kBgpClient,
           kBgpDistance,
-          {makeUnicastRoute(kPrefix2, RouteForwardAction::DROP)},
+          {makeDropUnicastRoute(kPrefix2)},
           {toIpPrefix(kPrefix1)},
           false,
           "fail add",
@@ -273,7 +262,7 @@ TEST_F(RibRollbackTest, rollbackDifferentClient) {
           kRid,
           kOpenrClient,
           kOpenrDistance,
-          {makeUnicastRoute(kPrefix1, RouteForwardAction::DROP)},
+          {makeDropUnicastRoute(kPrefix1)},
           {},
           false,
           "fail add",
@@ -293,7 +282,7 @@ TEST_F(RibRollbackTest, rollbackDifferentNexthops) {
           kRid,
           kBgpClient,
           kBgpDistance,
-          {makeUnicastRoute(kPrefix1, RouteForwardAction::TO_CPU)},
+          {makeToCpuUnicastRoute(kPrefix1)},
           {},
           false,
           "fail add",
@@ -314,8 +303,8 @@ TEST_F(RibRollbackTest, syncFibRollbackExistingClient) {
           kBgpClient,
           kBgpDistance,
           {
-              makeUnicastRoute(kPrefix1, RouteForwardAction::DROP),
-              makeUnicastRoute(kPrefix2, RouteForwardAction::DROP),
+              makeDropUnicastRoute(kPrefix1),
+              makeDropUnicastRoute(kPrefix2),
           },
           {},
           true,
@@ -337,8 +326,8 @@ TEST_F(RibRollbackTest, syncFibRollbackNewClient) {
           kOpenrClient,
           kOpenrDistance,
           {
-              makeUnicastRoute(kPrefix1, RouteForwardAction::DROP),
-              makeUnicastRoute(kPrefix2, RouteForwardAction::DROP),
+              makeDropUnicastRoute(kPrefix1),
+              makeDropUnicastRoute(kPrefix2),
           },
           {},
           true,
