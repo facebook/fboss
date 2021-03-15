@@ -1353,7 +1353,7 @@ struct SwitchConfig {
   // Static MPLS routes with next hops
   36: list<StaticMplsRouteWithNextHops> staticMplsRoutesWithNhops = []
   // MPLS labels for which to drop traffic
-  37: list<StaticMplsRouteNoNextHops> staticMplsoutesToNull = []
+  37: list<StaticMplsRouteNoNextHops> staticMplsRoutesToNull = []
   // MPLS labels for which to send traffic to CPU
   38: list<StaticMplsRouteNoNextHops> staticMplsRoutesToCPU = []
   // ingress LER routes
