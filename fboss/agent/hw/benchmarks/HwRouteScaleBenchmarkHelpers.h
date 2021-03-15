@@ -38,7 +38,7 @@ void routeAddDelBenchmarker(bool measureAdd) {
     // skip if this is not supported for a platform
     return;
   }
-  static const auto routeChunks = routeGenerator.get();
+  static const auto routeChunks = routeGenerator.getThriftRoutes();
 
   HwSwitchEnsembleRouteUpdateWrapper updater(ensemble.get());
   if (measureAdd) {
@@ -46,14 +46,12 @@ void routeAddDelBenchmarker(bool measureAdd) {
     // Activate benchmarker before applying switch states
     // for adding routes to h/w
     suspender.dismiss();
-    updater.programRoutes(
-        RouterID(0), ClientID::BGPD, AdminDistance::EBGP, routeChunks);
+    updater.programRoutes(RouterID(0), ClientID::BGPD, routeChunks);
     // We are about to blow away all routes, before that
     // deactivate benchmark measurement.
     suspender.rehire();
   } else {
-    updater.programRoutes(
-        RouterID(0), ClientID::BGPD, AdminDistance::EBGP, routeChunks);
+    updater.programRoutes(RouterID(0), ClientID::BGPD, routeChunks);
     ScopedCallTimer timeIt;
     // We are about to blow away all routes, before that
     // activate benchmark measurement.

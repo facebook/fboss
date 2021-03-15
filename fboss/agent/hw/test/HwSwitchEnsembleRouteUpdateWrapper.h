@@ -33,6 +33,11 @@ class HwSwitchEnsembleRouteUpdateWrapper : public RouteUpdateWrapper {
       ClientID client,
       AdminDistance admin,
       const utility::RouteDistributionGenerator::RouteChunks& routeChunks);
+  void programRoutes(
+      RouterID rid,
+      ClientID client,
+      const utility::RouteDistributionGenerator::ThriftRouteChunks&
+          routeChunks);
 
  private:
   void updateStats(

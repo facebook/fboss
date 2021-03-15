@@ -107,4 +107,18 @@ void HwSwitchEnsembleRouteUpdateWrapper::programRoutes(
   program();
 }
 
+void HwSwitchEnsembleRouteUpdateWrapper::programRoutes(
+    RouterID rid,
+    ClientID client,
+    const utility::RouteDistributionGenerator::ThriftRouteChunks& routeChunks) {
+  for (const auto& routeChunk : routeChunks) {
+    std::for_each(
+        routeChunk.begin(),
+        routeChunk.end(),
+        [this, client, rid](const auto& route) {
+          addRoute(rid, client, route);
+        });
+  }
+  program();
+}
 } // namespace facebook::fboss
