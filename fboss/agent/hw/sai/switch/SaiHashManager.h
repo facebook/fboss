@@ -31,6 +31,8 @@ class SaiHashManager {
       SaiPlatform* platform);
   std::shared_ptr<SaiHash> getOrCreate(const cfg::Fields& hashFields);
 
+  void removeUnclaimedDefaultHash();
+
  private:
   SaiHashTraits::AdapterHostKey toAdapterHostKey(
       const cfg::Fields& hashFields) const;

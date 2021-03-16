@@ -190,6 +190,7 @@ HwInitResult SaiSwitch::init(
     HwWriteBehvaiorRAII writeBehavior{behavior};
     stateChanged(StateDelta(std::make_shared<SwitchState>(), ret.switchState));
     managerTable_->fdbManager().removeUnclaimedDynanicEntries();
+    managerTable_->hashManager().removeUnclaimedDefaultHash();
     if (bootType_ == BootType::WARM_BOOT) {
       saiStore_->printWarmbootHandles();
       if (FLAGS_check_wb_handles == true) {
