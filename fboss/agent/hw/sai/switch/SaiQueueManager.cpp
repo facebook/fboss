@@ -128,10 +128,7 @@ SaiQueueManager::SaiQueueManager(
     SaiStore* saiStore,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {
-  auto& store = saiStore_->get<SaiQueueTraits>();
-  store.setObjectOwnedByAdapter(true);
-}
+    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
 void SaiQueueManager::changeQueue(
     SaiQueueHandle* queueHandle,

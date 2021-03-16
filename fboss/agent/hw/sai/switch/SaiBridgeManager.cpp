@@ -50,10 +50,7 @@ SaiBridgeManager::SaiBridgeManager(
     SaiStore* saiStore,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {
-  auto& store = saiStore_->get<SaiBridgeTraits>();
-  store.setObjectOwnedByAdapter(true);
-}
+    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
 sai_bridge_port_fdb_learning_mode_t SaiBridgeManager::getFdbLearningMode(
     cfg::L2LearningMode l2LearningMode) const {
