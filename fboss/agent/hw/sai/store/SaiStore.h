@@ -322,12 +322,24 @@ class SaiObjectStore {
     }
   }
 
-  void removeUnexpectedUnclaimedWarmbootHandles() {
+  void removeUnclaimedWarmbootHandlesIf(
+      std::function<bool(const std::shared_ptr<ObjectType>&)> condition) {
     if (!hasUnexpectedUnclaimedWarmbootHandles()) {
       return;
     }
-    // remove unclaimed objects
-    warmBootHandles_.clear();
+    auto iter = std::begin(warmBootHandles_);
+    while (iter != std::end(warmBootHandles_)) {
+      if (!condition(iter->second)) {
+        iter++;
+        continue;
+      }
+      iter = warmBootHandles_.erase(iter);
+    }
+  }
+
+  void removeUnexpectedUnclaimedWarmbootHandles() {
+    // delete all unclaimed handles
+    removeUnclaimedWarmbootHandlesIf([](const auto&) { return true; });
   }
 
  private:

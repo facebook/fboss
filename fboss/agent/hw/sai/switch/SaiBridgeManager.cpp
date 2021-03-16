@@ -78,9 +78,6 @@ void SaiBridgeManager::setL2LearningMode(
              << (getL2LearningMode() == cfg::L2LearningMode::HARDWARE
                      ? "hardware"
                      : "software");
-  auto& fdbStore = saiStore_->get<SaiFdbTraits>();
-  fdbStore.setObjectOwnedByAdapter(
-      fdbLearningMode_ == SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW);
 }
 
 cfg::L2LearningMode SaiBridgeManager::getL2LearningMode() const {

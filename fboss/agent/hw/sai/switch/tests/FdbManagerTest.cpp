@@ -136,18 +136,3 @@ TEST_F(FdbManagerTest, doubleRemoveFdbEntry) {
   removeMacEntry();
   EXPECT_THROW(removeMacEntry(), FbossError);
 }
-
-TEST_F(FdbManagerTest, checkFdbEntryOwnership) {
-  auto checkFdbEntryOwnerShip =
-      [this](cfg::L2LearningMode learningMode, bool ownedByAdapter) {
-        auto newState = programmedState->clone();
-        auto newSwitchSettings = newState->getSwitchSettings()->clone();
-        newSwitchSettings->setL2LearningMode(learningMode);
-        newState->resetSwitchSettings(newSwitchSettings);
-        applyNewState(newState);
-        auto& store = saiStore->get<SaiFdbTraits>();
-        EXPECT_EQ(store.isObjectOwnedByAdapter(), ownedByAdapter);
-      };
-  checkFdbEntryOwnerShip(cfg::L2LearningMode::HARDWARE, true);
-  checkFdbEntryOwnerShip(cfg::L2LearningMode::SOFTWARE, false);
-}

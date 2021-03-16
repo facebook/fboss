@@ -134,6 +134,8 @@ class SaiFdbManager {
       const typename SaiFdbTraits::CreateAttributes& attributes,
       const PublisherKey<SaiFdbTraits>::custom_type& publisherKey);
 
+  void removeUnclaimedDynanicEntries();
+
  private:
   PortDescriptorSaiId getPortDescriptorSaiId(
       const PortDescriptor& portDesc) const;

@@ -189,6 +189,7 @@ HwInitResult SaiSwitch::init(
   {
     HwWriteBehvaiorRAII writeBehavior{behavior};
     stateChanged(StateDelta(std::make_shared<SwitchState>(), ret.switchState));
+    managerTable_->fdbManager().removeUnclaimedDynanicEntries();
     if (bootType_ == BootType::WARM_BOOT) {
       saiStore_->printWarmbootHandles();
       if (FLAGS_check_wb_handles == true) {
@@ -221,8 +222,10 @@ void SaiSwitch::unregisterCallbacks() noexcept {
     // link scan is completely shut-off
   }
 
-  fdbEventBottomHalfEventBase_.terminateLoopSoon();
-  fdbEventBottomHalfThread_->join();
+  if (runState_ >= SwitchRunState::CONFIGURED) {
+    fdbEventBottomHalfEventBase_.terminateLoopSoon();
+    fdbEventBottomHalfThread_->join();
+  }
 }
 
 template <typename ManagerT, typename LockPolicyT>
@@ -1475,16 +1478,16 @@ void SaiSwitch::switchRunStateChangedImplLocked(
     const std::lock_guard<std::mutex>& lock,
     SwitchRunState newState) {
   switch (newState) {
-    case SwitchRunState::INITIALIZED: {
-      fdbEventBottomHalfThread_ = std::make_unique<std::thread>([this]() {
-        initThread("fbossSaiFdbBH");
-        fdbEventBottomHalfEventBase_.loopForever();
-      });
-    } break;
+    case SwitchRunState::INITIALIZED:
+      break;
     case SwitchRunState::CONFIGURED: {
       // receive learn events after switch is configured to prevent
       // fdb entries from being created against ports  which would
       // become members of lags later on.
+      fdbEventBottomHalfThread_ = std::make_unique<std::thread>([this]() {
+        initThread("fbossSaiFdbBH");
+        fdbEventBottomHalfEventBase_.loopForever();
+      });
       auto& switchApi = SaiApiTable::getInstance()->switchApi();
       switchApi.registerFdbEventCallback(switchId_, __gFdbEventCallback);
       if (getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED) {
