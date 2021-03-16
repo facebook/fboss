@@ -239,7 +239,6 @@ TYPED_TEST(ThriftTest, syncFib) {
   RouterID rid = RouterID(0);
 
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
-  this->sw_->fibSynced();
   ThriftHandler handler(this->sw_);
 
   auto randomClient = 500;
@@ -466,7 +465,6 @@ TYPED_TEST(ThriftTest, addDelUnicastRoutes) {
   RouterID rid = RouterID(0);
 
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
-  this->sw_->fibSynced();
   ThriftHandler handler(this->sw_);
 
   auto randomClient = 500;
@@ -695,7 +693,6 @@ TYPED_TEST(ThriftTest, delUnicastRoutes) {
   RouterID rid = RouterID(0);
 
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
-  this->sw_->fibSynced();
   ThriftHandler handler(this->sw_);
 
   auto randomClient = 500;
@@ -799,7 +796,6 @@ TYPED_TEST(ThriftTest, delUnicastRoutes) {
 
 TYPED_TEST(ThriftTest, syncFibIsHwProtected) {
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
-  this->sw_->fibSynced();
   ThriftHandler handler(this->sw_);
   auto addRoutes = std::make_unique<std::vector<UnicastRoute>>();
   UnicastRoute nr1 =
@@ -831,7 +827,6 @@ TYPED_TEST(ThriftTest, syncFibIsHwProtected) {
 }
 
 TYPED_TEST(ThriftTest, addUnicastRoutesIsHwProtected) {
-  this->sw_->fibSynced();
   ThriftHandler handler(this->sw_);
   auto newRoutes = std::make_unique<std::vector<UnicastRoute>>();
   UnicastRoute nr1 = *makeUnicastRoute("aaaa::/64", "42::42").get();
@@ -855,7 +850,6 @@ TYPED_TEST(ThriftTest, addUnicastRoutesIsHwProtected) {
 }
 
 TYPED_TEST(ThriftTest, getRouteTable) {
-  this->sw_->fibSynced();
   ThriftHandler handler(this->sw_);
   auto [v4Routes, v6Routes] =
       getRouteCount(TypeParam::hasStandAloneRib, this->sw_->getState());
@@ -867,7 +861,6 @@ TYPED_TEST(ThriftTest, getRouteTable) {
 }
 
 TYPED_TEST(ThriftTest, getRouteDetails) {
-  this->sw_->fibSynced();
   ThriftHandler handler(this->sw_);
   auto [v4Routes, v6Routes] =
       getRouteCount(TypeParam::hasStandAloneRib, this->sw_->getState());
@@ -918,7 +911,6 @@ TYPED_TEST(ThriftTest, syncMplsFibIsHwProtected) {
 
 TYPED_TEST(ThriftTest, addMplsRoutesIsHwProtected) {
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
-  this->sw_->fibSynced();
   ThriftHandler handler(this->sw_);
   auto newRoutes = std::make_unique<std::vector<MplsRoute>>();
   MplsRoute nr1 = *makeMplsRoute(101, "10.0.0.2").get();
@@ -940,7 +932,6 @@ TYPED_TEST(ThriftTest, addMplsRoutesIsHwProtected) {
 }
 
 TYPED_TEST(ThriftTest, hwUpdateErrorAfterPartialUpdate) {
-  this->sw_->fibSynced();
   ThriftHandler handler(this->sw_);
   std::vector<UnicastRoute>();
   UnicastRoute nr1 =

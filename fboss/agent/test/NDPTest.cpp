@@ -1433,10 +1433,6 @@ TYPED_TEST(NdpTest, PortFlapRecover) {
 
   this->addRoutes();
 
-  // We only have special port down handling after the fib is
-  // synced, so we set that here.
-  sw->fibSynced();
-
   // ensure port is up
   sw->linkStateChanged(PortID(1), true);
 

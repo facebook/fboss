@@ -1132,10 +1132,6 @@ TEST(ArpTest, PortFlapRecover) {
   auto handle = setupTestHandle();
   auto sw = handle->getSw();
 
-  // We only have special port down handling after the fib is
-  // synced, so we set that here.
-  sw->fibSynced();
-
   // ensure port is up
   sw->linkStateChanged(PortID(1), true);
 
