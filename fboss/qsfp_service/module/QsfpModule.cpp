@@ -201,6 +201,7 @@ bool QsfpModule::detectPresenceLocked() {
 
 TransceiverInfo QsfpModule::parseDataLocked() {
   TransceiverInfo info;
+  auto channel_count = numMediaLanes();
   info.present_ref() = present_;
   info.transceiver_ref() = type();
   info.port_ref() = qsfpImpl_->getNum();
@@ -215,10 +216,10 @@ TransceiverInfo QsfpModule::parseDataLocked() {
     info.thresholds_ref() = *threshold;
   }
   info.settings_ref() = getTransceiverSettingsInfo();
-
-  info.mediaLaneSignals_ref() = std::vector<MediaLaneSignals>(numMediaLanes());
+  info.mediaLaneSignals_ref() = std::vector<MediaLaneSignals>(channel_count);
   info.hostLaneSignals_ref() = std::vector<HostLaneSignals>(numHostLanes());
-  for (int i = 0; i < CHANNEL_COUNT; i++) {
+
+  for (int i = 0; i < channel_count; i++) {
     Channel chan;
     chan.channel_ref() = i;
     info.channels_ref()->push_back(chan);

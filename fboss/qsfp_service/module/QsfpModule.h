@@ -373,8 +373,8 @@ class QsfpModule : public Transceiver {
    * This is the field of Byte 192 on page00 and following table 4-4
    * of SFF-8024.
    */
-  virtual ExtendedSpecComplianceCode
-  getExtendedSpecificationComplianceCode() = 0;
+  virtual ExtendedSpecComplianceCode getExtendedSpecificationComplianceCode()
+      const = 0;
 
   double mwToDb(double value);
 

@@ -305,7 +305,7 @@ std::optional<AlarmThreshold> SffModule::getThresholdInfo() {
   return threshold;
 }
 
-uint8_t SffModule::getSettingsValue(SffField field, uint8_t mask) {
+uint8_t SffModule::getSettingsValue(SffField field, uint8_t mask) const {
   int offset;
   int length;
   int dataAddress;
@@ -360,9 +360,19 @@ unsigned int SffModule::numHostLanes() const {
 }
 
 unsigned int SffModule::numMediaLanes() const {
-  // Always returns 4. This should return the number of
-  // lanes based on the media type instead
-  return 4;
+  // This should return the number of lanes based on the media type
+  // Return 4 for all media types except FR1. When other media type support
+  // is added that have channel count different than 4, we need to
+  // change this function to reflect that.
+
+  ExtendedSpecComplianceCode ext_comp_code =
+      getExtendedSpecificationComplianceCode();
+
+  if (ext_comp_code == ExtendedSpecComplianceCode::FR1_100G) {
+    return 1;
+  } else {
+    return 4;
+  }
 }
 
 RateSelectSetting SffModule::getRateSelectSettingValue(RateSelectState state) {
@@ -478,13 +488,13 @@ bool SffModule::getSignalsPerMediaLane(std::vector<MediaLaneSignals>& signals) {
 
 /*
  * Iterate through the four channels collecting appropriate data;
- * always assumes CHANNEL_COUNT channels is four.
  */
 
 bool SffModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   int offset;
   int length;
   int dataAddress;
+  auto channel_count = numMediaLanes();
 
   /*
    * Interestingly enough, the QSFP stores the four alarm flags
@@ -499,13 +509,13 @@ bool SffModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   std::array<uint8_t, 4> bitOffset{{4, 0, 4, 0}};
   std::array<uint8_t, 4> byteOffset{{0, 0, 1, 1}};
 
-  assert(channels.size() == CHANNEL_COUNT);
+  assert(channels.size() == channel_count);
 
   getQsfpFieldAddress(
       SffField::CHANNEL_RX_PWR_ALARMS, dataAddress, offset, length);
   const uint8_t* data = getQsfpValuePtr(dataAddress, offset, length);
 
-  for (int channel = 0; channel < CHANNEL_COUNT; channel++) {
+  for (int channel = 0; channel < channel_count; channel++) {
     channels[channel].sensors_ref()->rxPwr_ref()->flags_ref() =
         getQsfpFlags(data + byteOffset[channel], bitOffset[channel]);
   }
@@ -514,7 +524,7 @@ bool SffModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
       SffField::CHANNEL_TX_BIAS_ALARMS, dataAddress, offset, length);
   data = getQsfpValuePtr(dataAddress, offset, length);
 
-  for (int channel = 0; channel < CHANNEL_COUNT; channel++) {
+  for (int channel = 0; channel < channel_count; channel++) {
     channels[channel].sensors_ref()->txBias_ref()->flags_ref() =
         getQsfpFlags(data + byteOffset[channel], bitOffset[channel]);
   }
@@ -523,7 +533,7 @@ bool SffModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
       SffField::CHANNEL_TX_PWR_ALARMS, dataAddress, offset, length);
   data = getQsfpValuePtr(dataAddress, offset, length);
 
-  for (int channel = 0; channel < CHANNEL_COUNT; channel++) {
+  for (int channel = 0; channel < channel_count; channel++) {
     channels[channel].sensors_ref()->txPwr_ref()->flags_ref() =
         getQsfpFlags(data + byteOffset[channel], bitOffset[channel]);
   }
@@ -649,7 +659,8 @@ SignalFlags SffModule::getSignalFlagInfo() {
   return signalFlags;
 }
 
-ExtendedSpecComplianceCode SffModule::getExtendedSpecificationComplianceCode() {
+ExtendedSpecComplianceCode SffModule::getExtendedSpecificationComplianceCode()
+    const {
   return (ExtendedSpecComplianceCode)getSettingsValue(
       SffField::EXTENDED_SPECIFICATION_COMPLIANCE);
 }

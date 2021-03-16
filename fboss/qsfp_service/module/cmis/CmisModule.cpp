@@ -401,7 +401,7 @@ std::optional<AlarmThreshold> CmisModule::getThresholdInfo() {
   return threshold;
 }
 
-uint8_t CmisModule::getSettingsValue(CmisField field, uint8_t mask) {
+uint8_t CmisModule::getSettingsValue(CmisField field, uint8_t mask) const {
   int offset;
   int length;
   int dataAddress;
@@ -813,8 +813,8 @@ SignalFlags CmisModule::getSignalFlagInfo() {
   return signalFlags;
 }
 
-ExtendedSpecComplianceCode
-CmisModule::getExtendedSpecificationComplianceCode() {
+ExtendedSpecComplianceCode CmisModule::getExtendedSpecificationComplianceCode()
+    const {
   return (ExtendedSpecComplianceCode)getSettingsValue(
       CmisField::EXTENDED_SPECIFICATION_COMPLIANCE);
 }

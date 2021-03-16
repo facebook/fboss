@@ -46,7 +46,7 @@ class MockSffModule : public SffModule {
   MOCK_METHOD1(setPowerOverrideIfSupported, void(PowerControlState));
   MOCK_CONST_METHOD0(cacheIsValid, bool());
   MOCK_METHOD1(updateQsfpData, void(bool));
-  MOCK_METHOD2(getSettingsValue, uint8_t(SffField, uint8_t));
+  MOCK_CONST_METHOD2(getSettingsValue, uint8_t(SffField, uint8_t));
   MOCK_METHOD0(getTransceiverInfo, TransceiverInfo());
 
   MOCK_METHOD3(

@@ -184,7 +184,7 @@ class SffModule : public QsfpModule {
    * Retrieves the values of settings based on field name and bit placement
    * Default mask is a noop
    */
-  virtual uint8_t getSettingsValue(SffField field, uint8_t mask = 0xff);
+  virtual uint8_t getSettingsValue(SffField field, uint8_t mask = 0xff) const;
   /*
    * Gather info on what features are enabled and supported
    */
@@ -214,7 +214,8 @@ class SffModule : public QsfpModule {
    * This is the field of Byte 192 on page00 and following table 4-4
    * of SFF-8024.
    */
-  ExtendedSpecComplianceCode getExtendedSpecificationComplianceCode() override;
+  ExtendedSpecComplianceCode getExtendedSpecificationComplianceCode()
+      const override;
   /*
    * Return information in the identifier byte 0
    */
