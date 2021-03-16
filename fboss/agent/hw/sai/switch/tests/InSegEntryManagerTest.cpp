@@ -1,8 +1,4 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
-
-#include "fboss/agent/FbossError.h"
-#include "fboss/agent/hw/sai/api/SaiApiTable.h"
-#include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiInSegEntryManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
