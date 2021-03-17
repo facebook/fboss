@@ -125,12 +125,35 @@ extern std::atomic<BcmUnit*> bcmUnits[];
 
 std::atomic<bool> BcmAPI::bcmInitialized_ = false;
 
+void BcmAPI::updateUsingOverrideMap(HwConfigMap& hwConfig) {
+  static std::map<StringPiece, std::string> overrideConfMap = {
+      // This is to add or override the bcm conf pktio setting to ensure it is
+      // consistent with the agent command line use_pktio setting.
+      // Broadcom requires pktio_driver_type=1 in bcm conf before making PKTIO
+      // calls. bcm conf changes are generally considered disruptive, so they
+      // will not be rolled out till the next disruptive upgrade. Make this
+      // change here programmatically allows warm-boot into pktio setting
+      // without waiting for the external bcm config file change.
+      {"pktio_driver_type", std::to_string(static_cast<int>(FLAGS_use_pktio))},
+  };
+
+  for (const auto& entry : overrideConfMap) {
+    hwConfig[std::string(entry.first)] = entry.second;
+  }
+}
+
 void BcmAPI::initConfig(const std::map<std::string, std::string>& config) {
   // Store the configuration settings
-  getHwConfig().clear();
+  HwConfigMap& hwConfig = getHwConfig();
+  hwConfig.clear();
   for (const auto& entry : config) {
-    getHwConfig().emplace(entry.first, entry.second);
+    hwConfig.emplace(entry.first, entry.second);
   }
+
+  updateUsingOverrideMap(hwConfig);
+
+  // TODO (skhare)
+  // Will move l2xmsg_mode handling here, as in P312843539
 }
 
 const char* FOLLY_NULLABLE BcmAPI::getConfigValue(StringPiece name) {

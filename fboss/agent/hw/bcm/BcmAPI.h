@@ -19,6 +19,9 @@
 #include <folly/experimental/StringKeyedUnorderedMap.h>
 #include <yaml-cpp/yaml.h>
 
+// defined in fboss/agent/hw/bcm/BcmUnit.cpp
+DECLARE_bool(use_pktio);
+
 namespace facebook::fboss {
 
 class BcmUnit;
@@ -181,6 +184,8 @@ class BcmAPI {
   static void initConfig(const std::map<std::string, std::string>& config);
 
   static void initYamlConfig(const std::string& yamlConfig);
+
+  static void updateUsingOverrideMap(HwConfigMap& hwConfig);
 
   /*
    * Get a configuration property.
