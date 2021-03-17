@@ -28,6 +28,9 @@ constexpr uint8_t kCommonModuleBasePage = 0;
 constexpr uint8_t kCmisModulePartNoReg = 148;
 constexpr uint8_t kSffModulePartNoReg = 168;
 constexpr uint8_t kCommonModuleFwVerReg = 39;
+
+constexpr auto kNumInterfaceDetectionRetries = 5;
+constexpr auto kInterfaceDetectionRetryMillis = 10;
 } // namespace
 
 namespace facebook {
@@ -127,19 +130,34 @@ folly::EventBase* WedgeQsfp::getI2cEventBase() {
 
 TransceiverManagementInterface WedgeQsfp::getTransceiverManagementInterface() {
   std::array<uint8_t, 1> buf;
+
   if (!threadSafeI2CBus_->isPresent(module_ + 1)) {
     return TransceiverManagementInterface::NONE;
   }
 
-  threadSafeI2CBus_->moduleRead(
-      module_ + 1, TransceiverI2CApi::ADDR_QSFP, 0, 1, buf.data());
-  XLOG(DBG3) << "Transceiver " << module_ << " identifier: " << buf[0];
-  return ((buf[0] ==
+  for (int i = 0; i < kNumInterfaceDetectionRetries; ++i) {
+    try {
+      threadSafeI2CBus_->moduleRead(
+          module_ + 1, TransceiverI2CApi::ADDR_QSFP, 0, 1, buf.data());
+      XLOG(DBG3) << "Transceiver " << module_ << " identifier: " << buf[0];
+      if ((buf[0] ==
            static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_PLUS_CMIS)) ||
           (buf[0] ==
-           static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_DD)))
-      ? TransceiverManagementInterface::CMIS
-      : TransceiverManagementInterface::SFF;
+           static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_DD))) {
+        return TransceiverManagementInterface::CMIS;
+      } else if (
+          (buf[0] ==
+           static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_PLUS)) ||
+          (buf[0] ==
+           static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP28))) {
+        return TransceiverManagementInterface::SFF;
+      }
+    } catch (const std::exception& ex) {
+      /* sleep override */
+      usleep(kInterfaceDetectionRetryMillis * 1000);
+    }
+  }
+  return TransceiverManagementInterface::NONE;
 }
 
 folly::Future<TransceiverManagementInterface>
