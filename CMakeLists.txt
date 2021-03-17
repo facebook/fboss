@@ -30,6 +30,17 @@ if (BENCHMARK_INSTALL)
   message(STATUS "Configured to install benchmark binaries")
 endif()
 
+option(BUILD_SAI_FAKE_BENCHMARKS "Build benchmarks binaries for fake_sai" OFF)
+if ($ENV{BUILD_SAI_FAKE_BENCHMARKS})
+  message(STATUS "ENV BUILD_SAI_FAKE_BENCHMARKS is set")
+  set (BUILD_SAI_FAKE_BENCHMARKS ON)
+endif()
+
+if (BUILD_SAI_FAKE_BENCHMARKS)
+  message(STATUS "Building benchmarks binaries for fake_sai")
+endif()
+
+
 option(SAI_TAJO_IMPL "Build SAI api with tajo extensions" OFF)
 if ($ENV{SAI_TAJO_IMPL})
   message(STATUS "ENV SAI_TAJO_IMPL is set")

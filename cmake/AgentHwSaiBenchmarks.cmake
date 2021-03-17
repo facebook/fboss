@@ -374,7 +374,9 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
 
 endfunction()
 
-BUILD_SAI_BENCHMARKS("fake" fake_sai)
+if(BUILD_SAI_FAKE_BENCHMARKS)
+  BUILD_SAI_BENCHMARKS("fake" fake_sai)
+endif()
 
 # If libsai_impl is provided, build sai tests linking with it
 find_library(SAI_IMPL sai_impl)
