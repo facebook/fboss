@@ -24,8 +24,7 @@ struct NodeMapFields {
   using KeyType = typename TraitsT::KeyType;
   using Node = typename TraitsT::Node;
   using ExtraFields = typename TraitsT::ExtraFields;
-  using NodeContainer =
-      boost::container::flat_map<KeyType, std::shared_ptr<Node>>;
+  using NodeContainer = typename TraitsT::NodeContainer;
 
   NodeMapFields() {}
   NodeMapFields(NodeContainer nodes) : nodes(std::move(nodes)) {}
@@ -57,11 +56,22 @@ struct NodeMapNoExtraFields {
   }
 };
 
-template <typename KeyT, typename NodeT, typename ExtraT = NodeMapNoExtraFields>
+/* Traits provide flexibility on customizing NodeMap. While there
+ * is a fair amount of flexibility in most fields, for NodeContainer
+ * we are restricted to sorted map containers - boost::flat_map,
+ * std::map etc. The sorted property is leveraged in delta calculation
+ */
+template <
+    typename KeyT,
+    typename NodeT,
+    typename ExtraT = NodeMapNoExtraFields,
+    typename NodeContainerT =
+        boost::container::flat_map<KeyT, std::shared_ptr<NodeT>>>
 struct NodeMapTraits {
   using KeyType = KeyT;
   using Node = NodeT;
   using ExtraFields = ExtraT;
+  using NodeContainer = NodeContainerT;
 
   static KeyType getKey(const std::shared_ptr<Node>& node) {
     return node->getID();

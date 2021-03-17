@@ -27,9 +27,11 @@ class Vlan;
 
 template <typename IPADDR, typename ENTRY>
 struct NeighborTableTraits {
-  typedef IPADDR KeyType;
-  typedef ENTRY Node;
-  typedef NodeMapNoExtraFields ExtraFields;
+  using KeyType = IPADDR;
+  using Node = ENTRY;
+  using ExtraFields = NodeMapNoExtraFields;
+  using NodeContainer =
+      boost::container::flat_map<KeyType, std::shared_ptr<Node>>;
 
   static KeyType getKey(const std::shared_ptr<Node>& entry) {
     return entry->getIP();
