@@ -16,6 +16,7 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/rib/ConfigApplier.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
+#include "fboss/agent/state/NodeMap-defs.h"
 
 #include "fboss/agent/rib/RouteUpdater.h"
 

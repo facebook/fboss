@@ -49,6 +49,16 @@ class NetworkToRouteMap
 
     return networkToRouteMap;
   }
+  template <typename Fn>
+  void forAll(const Fn& fn) {
+    std::for_each(this->begin(), this->end(), fn);
+  }
+  void cloneAll() {
+    forAll([](auto& ritr) { ritr.value() = ritr.value()->clone(); });
+  }
+  void publishAll() {
+    forAll([](auto& ritr) { ritr.value()->publish(); });
+  }
 };
 
 using IPv4NetworkToRouteMap = NetworkToRouteMap<folly::IPAddressV4>;
