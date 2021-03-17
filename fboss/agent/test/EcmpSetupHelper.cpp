@@ -17,6 +17,7 @@
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortDescriptor.h"
+#include "fboss/agent/state/RouteTable.h"
 #include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
