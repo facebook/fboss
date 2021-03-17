@@ -54,6 +54,11 @@ class SffCwdm4Transceiver : public FakeTransceiverImpl {
   explicit SffCwdm4Transceiver(int module);
 };
 
+class SffFr1Transceiver : public FakeTransceiverImpl {
+ public:
+  explicit SffFr1Transceiver(int module);
+};
+
 class BadSffCwdm4Transceiver : public FakeTransceiverImpl {
  public:
   explicit BadSffCwdm4Transceiver(int module);

@@ -107,6 +107,8 @@ TEST(SffTest, transceiverInfoTest) {
   tests.verifyThresholds("txBias", 0.034, 17.51, 34.986, 52.462);
 
   EXPECT_EQ(true, info.status_ref().value_or({}).interruptL_ref().value_or({}));
+  EXPECT_EQ(qsfp->numHostLanes(), 4);
+  EXPECT_EQ(qsfp->numMediaLanes(), 4);
 }
 
 // Tests that a SFF DAC module can properly refresh
@@ -125,6 +127,28 @@ TEST(SffDacTest, transceiverInfoTest) {
   EXPECT_EQ(
       *info.extendedSpecificationComplianceCode_ref(),
       ExtendedSpecComplianceCode::CR4_100G);
+  EXPECT_EQ(qsfp->numHostLanes(), 4);
+  EXPECT_EQ(qsfp->numMediaLanes(), 4);
+}
+
+// Tests that a SFF Fr1 module can properly refresh
+TEST(SffFr1Test, transceiverInfoTest) {
+  int idx = 1;
+  std::unique_ptr<SffFr1Transceiver> qsfpImpl =
+      std::make_unique<SffFr1Transceiver>(idx);
+  std::unique_ptr<SffModule> qsfp =
+      std::make_unique<SffModule>(nullptr, std::move(qsfpImpl), 4);
+
+  qsfp->refresh();
+  TransceiverInfo info = qsfp->getTransceiverInfo();
+  TransceiverTestsHelper tests(info);
+
+  tests.verifyVendorName("FACETEST");
+  EXPECT_EQ(
+      *info.extendedSpecificationComplianceCode_ref(),
+      ExtendedSpecComplianceCode::FR1_100G);
+  EXPECT_EQ(qsfp->numHostLanes(), 4);
+  EXPECT_EQ(qsfp->numMediaLanes(), 1);
 }
 
 // Tests that a badly programmed module throws an exception
