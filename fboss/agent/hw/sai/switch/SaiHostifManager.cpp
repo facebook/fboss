@@ -396,14 +396,6 @@ void SaiHostifManager::loadCpuPort() {
   loadCpuPortQueues();
 }
 
-SaiHostifManager::SaiHostifManager(
-    SaiStore* saiStore,
-    SaiManagerTable* managerTable,
-    const SaiPlatform* platform)
-    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {
-  loadCpuPort();
-}
-
 void SaiHostifManager::updateStats() {
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   HwPortStats cpuQueueStats;
