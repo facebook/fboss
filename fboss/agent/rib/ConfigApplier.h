@@ -49,11 +49,9 @@ class ConfigApplier {
       folly::Range<DirectlyConnectedRouteIterator> directlyConnectedRouteRange,
       folly::Range<StaticRouteNoNextHopsIterator> staticCpuRouteRange,
       folly::Range<StaticRouteNoNextHopsIterator> staticDropRouteRange,
-      folly::Range<StaticRouteWithNextHopsIterator> staticRouteRange,
-      RoutingInformationBase::FibUpdateFunction fibUpdateCallback,
-      void* cookie);
+      folly::Range<StaticRouteWithNextHopsIterator> staticRouteRange);
 
-  void updateRibAndFib();
+  void apply();
 
  private:
   void addInterfaceRoutes(
@@ -68,8 +66,6 @@ class ConfigApplier {
   folly::Range<StaticRouteNoNextHopsIterator> staticCpuRouteRange_;
   folly::Range<StaticRouteNoNextHopsIterator> staticDropRouteRange_;
   folly::Range<StaticRouteWithNextHopsIterator> staticRouteRange_;
-  RoutingInformationBase::FibUpdateFunction fibUpdateCallback_;
-  void* cookie_;
 };
 
 } // namespace facebook::fboss

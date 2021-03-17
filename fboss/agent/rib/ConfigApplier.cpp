@@ -24,23 +24,19 @@ ConfigApplier::ConfigApplier(
     folly::Range<DirectlyConnectedRouteIterator> directlyConnectedRouteRange,
     folly::Range<StaticRouteNoNextHopsIterator> staticCpuRouteRange,
     folly::Range<StaticRouteNoNextHopsIterator> staticDropRouteRange,
-    folly::Range<StaticRouteWithNextHopsIterator> staticRouteRange,
-    RoutingInformationBase::FibUpdateFunction fibUpdateCallback,
-    void* cookie)
+    folly::Range<StaticRouteWithNextHopsIterator> staticRouteRange)
     : vrf_(vrf),
       v4NetworkToRoute_(v4NetworkToRoute),
       v6NetworkToRoute_(v6NetworkToRoute),
       directlyConnectedRouteRange_(directlyConnectedRouteRange),
       staticCpuRouteRange_(staticCpuRouteRange),
       staticDropRouteRange_(staticDropRouteRange),
-      staticRouteRange_(staticRouteRange),
-      fibUpdateCallback_(fibUpdateCallback),
-      cookie_(cookie) {
+      staticRouteRange_(staticRouteRange) {
   CHECK_NOTNULL(v4NetworkToRoute_);
   CHECK_NOTNULL(v6NetworkToRoute_);
 }
 
-void ConfigApplier::updateRibAndFib() {
+void ConfigApplier::apply() {
   RibRouteUpdater updater(v4NetworkToRoute_, v6NetworkToRoute_);
 
   // Update static routes
@@ -98,8 +94,6 @@ void ConfigApplier::updateRibAndFib() {
 
   // Trigger recrusive resolution
   updater.updateDone();
-
-  fibUpdateCallback_(vrf_, *v4NetworkToRoute_, *v6NetworkToRoute_, cookie_);
 }
 
 void ConfigApplier::addInterfaceRoutes(

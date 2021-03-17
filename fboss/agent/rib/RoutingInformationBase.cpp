@@ -119,10 +119,13 @@ void RoutingInformationBase::reconfigure(
                   staticRoutesToNull.cbegin(), staticRoutesToNull.cend()),
               folly::range(
                   staticRoutesWithNextHops.cbegin(),
-                  staticRoutesWithNextHops.cend()),
-              updateFibCallback,
+                  staticRoutesWithNextHops.cend()));
+          configApplier.apply();
+          updateFibCallback(
+              vrf,
+              routeTable.v4NetworkToRoute,
+              routeTable.v6NetworkToRoute,
               cookie);
-          configApplier.updateRibAndFib();
         };
     // Because of this sequential loop over each VRF, config application scales
     // linearly with the number of VRFs. If FBOSS is run in a multi-VRF routing
