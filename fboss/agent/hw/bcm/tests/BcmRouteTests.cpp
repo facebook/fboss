@@ -854,6 +854,11 @@ TEST_F(BcmRouteTest, LpmRouteV6Stat128b) {
     HwResourceStats postUpdateStat;
     postUpdateStat = getHwSwitch()->getStatUpdater()->getHwTableStats();
     EXPECT_EQ(
+        *postUpdateStat.lpm_ipv4_max_ref(), *preUpdateStat.lpm_ipv4_max_ref());
+    EXPECT_EQ(
+        *postUpdateStat.lpm_ipv6_mask_65_127_max_ref(),
+        *preUpdateStat.lpm_ipv6_mask_65_127_max_ref());
+    EXPECT_EQ(
         *postUpdateStat.lpm_ipv4_used_ref(),
         *preUpdateStat.lpm_ipv4_used_ref());
     EXPECT_EQ(

@@ -97,11 +97,8 @@ bool BcmHwTableStatManager::refreshHwStatusStats(HwResourceStats* stats) const {
 
 bool BcmHwTableStatManager::refreshLPMStats(HwResourceStats* stats) const {
   // IPv6 LPM table info
-  std::array<int, 6> routeSlots = {0, 0, 0, 0, 0, 0};
-  std::array<bcm_switch_object_t, routeSlots.size()> bcmFreeEntryTypes = {
-      bcmSwitchObjectL3RouteV4RoutesMax,
-      bcmSwitchObjectL3RouteV6Routes64bMax,
-      bcmSwitchObjectL3RouteV6Routes128bMax,
+  std::array<int, 3> routeSlots = {0, 0, 0};
+  std::array<bcm_switch_object_t, routeSlots.size()> bcmUsedEntryTypes = {
       bcmSwitchObjectL3RouteV4RoutesUsed,
       bcmSwitchObjectL3RouteV6Routes64bUsed,
       bcmSwitchObjectL3RouteV6Routes128bUsed,
@@ -110,21 +107,38 @@ bool BcmHwTableStatManager::refreshLPMStats(HwResourceStats* stats) const {
   auto ret = bcm_switch_object_count_multi_get(
       hw_->getUnit(),
       routeSlots.size(),
-      bcmFreeEntryTypes.data(),
+      bcmUsedEntryTypes.data(),
       routeSlots.data());
   if (ret) {
     XLOG(ERR) << "Unable to get LPM table usage, LPM table "
                  "stats will be stale";
     return false;
   }
-  // Max
-  stats->lpm_ipv4_max_ref() = routeSlots[0];
-  stats->lpm_ipv6_mask_0_64_max_ref() = routeSlots[1];
-  stats->lpm_ipv6_mask_65_127_max_ref() = routeSlots[2];
   // Used
-  stats->lpm_ipv4_used_ref() = routeSlots[3];
-  stats->lpm_ipv6_mask_0_64_used_ref() = routeSlots[4];
-  stats->lpm_ipv6_mask_65_127_used_ref() = routeSlots[5];
+  stats->lpm_ipv4_used_ref() = routeSlots[0];
+  stats->lpm_ipv6_mask_0_64_used_ref() = routeSlots[1];
+  stats->lpm_ipv6_mask_65_127_used_ref() = routeSlots[2];
+
+  // Max
+  int v4Max, v6Max;
+  ret = getAlpmMaxRouteCount(v4Max, false);
+  if (ret) {
+    XLOG(ERR) << "Unable to get v4 LPM table max";
+    return false;
+  }
+  stats->lpm_ipv4_max_ref() = v4Max;
+  ret = getAlpmMaxRouteCount(v6Max, true);
+  if (ret) {
+    XLOG(ERR) << "Unable to get v6 LPM table max";
+    return false;
+  }
+  if (is128ByteIpv6Enabled_) {
+    stats->lpm_ipv6_mask_0_64_max_ref() = 0;
+    stats->lpm_ipv6_mask_65_127_max_ref() = v6Max;
+  } else {
+    stats->lpm_ipv6_mask_0_64_max_ref() = v6Max;
+    stats->lpm_ipv6_mask_65_127_max_ref() = 0;
+  }
 
   // Ideally lpm slots max and used should come from SDK.
   // However SDK always has these set to 0 in bcm_l3_info_t.
