@@ -114,7 +114,7 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
   // and have now been removed
   for (const auto& fibEntry : *fib) {
     const auto& prefix = fibEntry->prefix();
-    if (rib.exactMatch(prefix.network, prefix.mask) == rib.end()) {
+    if (updatedFib.find(prefix) == updatedFib.end()) {
       updated = true;
       break;
     }
