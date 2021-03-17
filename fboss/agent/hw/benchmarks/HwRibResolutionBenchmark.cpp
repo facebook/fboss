@@ -30,9 +30,11 @@ std::shared_ptr<facebook::fboss::SwitchState> noopFibUpdate(
   facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
       vrf, v4NetworkToRoute, v6NetworkToRoute);
 
-  auto hwEnsemble = static_cast<facebook::fboss::HwSwitchEnsemble*>(cookie);
-  fibUpdater(hwEnsemble->getProgrammedState());
-  return hwEnsemble->getProgrammedState();
+  auto switchState =
+      static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);
+  *switchState = fibUpdater(*switchState);
+  (*switchState)->publish();
+  return *switchState;
 }
 } // namespace
 namespace facebook::fboss {
@@ -46,11 +48,12 @@ BENCHMARK(RibResolutionBenchmark) {
   utility::THAlpmRouteScaleGenerator gen(ensemble->getProgrammedState(), true);
   const auto& routeChunks = gen.getThriftRoutes();
   auto rib = ensemble->getRib();
+  auto switchState = ensemble->getProgrammedState();
   suspender.dismiss();
   std::for_each(
       routeChunks.begin(),
       routeChunks.end(),
-      [&ensemble, rib](const auto& routeChunk) {
+      [&switchState, rib](const auto& routeChunk) {
         rib->update(
             RouterID(0),
             ClientID::BGPD,
@@ -60,7 +63,7 @@ BENCHMARK(RibResolutionBenchmark) {
             false,
             "resolution only",
             noopFibUpdate,
-            static_cast<void*>(ensemble.get()));
+            static_cast<void*>(&switchState));
       });
   suspender.rehire();
 }
