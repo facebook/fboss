@@ -89,14 +89,7 @@ class ResolvedNexthopMonitor : public AutoRegisterStateObserver {
 
   template <typename RouteT>
   bool isMonitored(const std::shared_ptr<RouteT>& route) const {
-    if (sw_->getFlags() & SwitchFlags::ENABLE_STANDALONE_RIB) {
-      // TODO : either lookup in standalone RIB, to get best entry OR
-      // ForwardingInformationBaseUpdater::toFibRoute should also pass client
-      // ID info to FibRoute.
-      return false;
-    }
-    auto bestPair = route->getBestEntry();
-    return isClientMonitored(bestPair.first);
+    return isClientMonitored(route->getBestEntry().first);
   }
 
   bool isClientMonitored(ClientID clientId) const {
