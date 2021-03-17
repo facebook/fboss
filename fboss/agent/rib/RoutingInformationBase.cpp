@@ -87,40 +87,64 @@ void RoutingInformationBase::reconfigure(
     //
     // Steps 2-5 take place in ConfigApplier.
 
-    *lockedRouteTables = constructRouteTables(
-        lockedRouteTables, configRouterIDToInterfaceRoutes);
+    std::vector<RouterID> existingVrfs;
+    std::for_each(
+        lockedRouteTables->begin(),
+        lockedRouteTables->end(),
+        [&existingVrfs](const auto& vrfAndRouteTable) {
+          existingVrfs.push_back(vrfAndRouteTable.first);
+        });
 
+    auto configureRoutesForVrf =
+        [&](RouterID vrf,
+            RouteTable& routeTable,
+            const PrefixToInterfaceIDAndIP& interfaceRoutes) {
+          // A ConfigApplier object should be independent of the VRF whose
+          // routes it is processing. However, because interface and static
+          // routes for _all_ VRFs are passed to ConfigApplier, the vrf argument
+          // is needed to identify the subset of those routes which should be
+          // processed.
+
+          // ConfigApplier can be made independent of the VRF whose routes it is
+          // processing by the use of boost::filter_iterator.
+          ConfigApplier configApplier(
+              vrf,
+              &(routeTable.v4NetworkToRoute),
+              &(routeTable.v6NetworkToRoute),
+              folly::range(interfaceRoutes.cbegin(), interfaceRoutes.cend()),
+              folly::range(
+                  staticRoutesToCpu.cbegin(), staticRoutesToCpu.cend()),
+              folly::range(
+                  staticRoutesToNull.cbegin(), staticRoutesToNull.cend()),
+              folly::range(
+                  staticRoutesWithNextHops.cbegin(),
+                  staticRoutesWithNextHops.cend()),
+              updateFibCallback,
+              cookie);
+          configApplier.updateRibAndFib();
+        };
     // Because of this sequential loop over each VRF, config application scales
     // linearly with the number of VRFs. If FBOSS is run in a multi-VRF routing
     // architecture in the future, this slow-down can be avoided by
     // parallelizing this loop. Converting this loop to use task-level
     // parallelism should be straightfoward because it has been written to avoid
     // dependencies across different iterations of the loop.
+    for (auto vrf : existingVrfs) {
+      // First handle the VRFs for which no interface routes exist
+      if (configRouterIDToInterfaceRoutes.find(vrf) !=
+          configRouterIDToInterfaceRoutes.end()) {
+        continue;
+      }
+      configureRoutesForVrf(
+          vrf, lockedRouteTables->find(vrf)->second, {} /* No interface routes*/
+      );
+    }
+    *lockedRouteTables = constructRouteTables(
+        lockedRouteTables, configRouterIDToInterfaceRoutes);
     for (auto& vrfAndRouteTable : *lockedRouteTables) {
       auto vrf = vrfAndRouteTable.first;
       const auto& interfaceRoutes = configRouterIDToInterfaceRoutes.at(vrf);
-
-      // A ConfigApplier object should be independent of the VRF whose routes it
-      // is processing. However, because interface and static routes for _all_
-      // VRFs are passed to ConfigApplier, the vrf argument is needed to
-      // identify the subset of those routes which should be processed.
-
-      // ConfigApplier can be made independent of the VRF whose routes it is
-      // processing by the use of boost::filter_iterator.
-      ConfigApplier configApplier(
-          vrf,
-          &(vrfAndRouteTable.second.v4NetworkToRoute),
-          &(vrfAndRouteTable.second.v6NetworkToRoute),
-          folly::range(interfaceRoutes.cbegin(), interfaceRoutes.cend()),
-          folly::range(staticRoutesToCpu.cbegin(), staticRoutesToCpu.cend()),
-          folly::range(staticRoutesToNull.cbegin(), staticRoutesToNull.cend()),
-          folly::range(
-              staticRoutesWithNextHops.cbegin(),
-              staticRoutesWithNextHops.cend()),
-          updateFibCallback,
-          cookie);
-
-      configApplier.updateRibAndFib();
+      configureRoutesForVrf(vrf, vrfAndRouteTable.second, interfaceRoutes);
     }
   };
   ribUpdateEventBase_.runInEventBaseThreadAndWait(updateFn);

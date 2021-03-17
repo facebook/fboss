@@ -88,11 +88,10 @@ class RoutingInformationBase {
    * an address of 169.254.0.1. in that subnet. Note that the IP address in the
    * key has its mask applied to it while the IP address value doesn't.
    */
-  using RouterIDAndNetworkToInterfaceRoutes = boost::container::flat_map<
-      RouterID,
-      boost::container::flat_map<
-          folly::CIDRNetwork,
-          std::pair<InterfaceID, folly::IPAddress>>>;
+  using PrefixToInterfaceIDAndIP = boost::container::
+      flat_map<folly::CIDRNetwork, std::pair<InterfaceID, folly::IPAddress>>;
+  using RouterIDAndNetworkToInterfaceRoutes =
+      boost::container::flat_map<RouterID, PrefixToInterfaceIDAndIP>;
 
   void reconfigure(
       const RouterIDAndNetworkToInterfaceRoutes&
