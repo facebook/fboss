@@ -172,6 +172,40 @@ class HwCoppTest : public HwLinkStateDependentTest {
     }
   }
 
+  void sendNdpPkts(
+      int numPktsToSend,
+      const folly::IPAddressV6& neighborIp,
+      ICMPv6Type type,
+      bool outOfPort) {
+    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+
+    for (int i = 0; i < numPktsToSend; i++) {
+      auto txPacket =
+          (type == ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION)
+          ? utility::makeNeighborSolicitation(
+                getHwSwitch(),
+                vlanId,
+                neighborMac, // sender mac
+                neighborIp, // sender ip
+                folly::IPAddressV6("1::1")) // my solicited address
+          : utility::makeNeighborAdvertisement(
+                getHwSwitch(),
+                vlanId,
+                neighborMac, // sender mac
+                intfMac, // my mac
+                neighborIp, // sender ip
+                folly::IPAddressV6("1::1")); // sent to me
+      if (outOfPort) {
+        getHwSwitch()->sendPacketOutOfPortSync(
+            std::move(txPacket), PortID(masterLogicalPortIds()[0]));
+      } else {
+        getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
+      }
+    }
+  }
+
   uint64_t getQueueOutPacketsWithRetry(
       int queueId,
       int retryTimes,
@@ -296,6 +330,24 @@ class HwCoppTest : public HwLinkStateDependentTest {
     auto afterOutPkts = getQueueOutPacketsWithRetry(
         queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + 1);
     XLOG(DBG0) << "Packet of DstIp=" << dstIpAddress.str() << ", dstMac="
+               << ". Queue=" << queueId << ", before pkts:" << beforeOutPkts
+               << ", after pkts:" << afterOutPkts;
+    EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
+  }
+
+  void sendPktAndVerifyNdpPacketsCpuQueue(
+      int queueId,
+      const folly::IPAddressV6& neighborIp,
+      ICMPv6Type ndpType,
+      bool outOfPort = true,
+      const int numPktsToSend = 1,
+      const int expectedPktDelta = 1) {
+    auto beforeOutPkts = getQueueOutPacketsWithRetry(
+        queueId, 0 /* retryTimes */, 0 /* expectedNumPkts */);
+    sendNdpPkts(numPktsToSend, neighborIp, ndpType, outOfPort);
+    auto afterOutPkts = getQueueOutPacketsWithRetry(
+        queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + 1);
+    XLOG(DBG0) << "Packet of neighbor=" << neighborIp.str()
                << ". Queue=" << queueId << ", before pkts:" << beforeOutPkts
                << ", after pkts:" << afterOutPkts;
     EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
@@ -652,6 +704,30 @@ TYPED_TEST(HwCoppTest, ArpRequestAndReplyToHighPriQ) {
         utility::getCoppHighPriQueueId(this->getAsic()),
         folly::IPAddressV4("1.1.1.5"),
         ARP_OPER::ARP_OPER_REPLY);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(HwCoppTest, NdpSolicitationToHighPriQ) {
+  auto setup = [=]() { this->setup(); };
+  auto verify = [=]() {
+    XLOG(INFO) << "verifying solicitation";
+    this->sendPktAndVerifyNdpPacketsCpuQueue(
+        utility::getCoppHighPriQueueId(this->getAsic()),
+        folly::IPAddressV6("1::2"), // sender of solicitation
+        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(HwCoppTest, NdpAdvertisementToHighPriQ) {
+  auto setup = [=]() { this->setup(); };
+  auto verify = [=]() {
+    XLOG(INFO) << "verifying advertisement";
+    this->sendPktAndVerifyNdpPacketsCpuQueue(
+        utility::getCoppHighPriQueueId(this->getAsic()),
+        folly::IPAddressV6("1::2"), // sender of advertisement
+        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }

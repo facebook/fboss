@@ -77,6 +77,8 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
       ControlPlane::makeRxReasonToQueueEntry(
           cfg::PacketRxReason::ARP_RESPONSE, coppHighPriQueueId),
       ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::NDP, coppHighPriQueueId),
+      ControlPlane::makeRxReasonToQueueEntry(
           cfg::PacketRxReason::BGP, coppHighPriQueueId),
       ControlPlane::makeRxReasonToQueueEntry(
           cfg::PacketRxReason::BGPV6, coppHighPriQueueId),

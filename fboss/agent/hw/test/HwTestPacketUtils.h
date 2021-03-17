@@ -22,6 +22,8 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/ArpHdr.h"
 #include "fboss/agent/packet/Ethertype.h"
+#include "fboss/agent/packet/ICMPHdr.h"
+#include "fboss/agent/packet/NDP.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
@@ -206,4 +208,18 @@ std::unique_ptr<facebook::fboss::TxPacket> makeARPTxPacket(
     ARP_OPER type,
     std::optional<folly::MacAddress> targetMac = std::nullopt);
 
+std::unique_ptr<facebook::fboss::TxPacket> makeNeighborSolicitation(
+    const HwSwitch* hw,
+    VlanID vlan,
+    folly::MacAddress srcMac,
+    const folly::IPAddressV6& srcIp,
+    const folly::IPAddressV6& neighborIp);
+
+std::unique_ptr<facebook::fboss::TxPacket> makeNeighborAdvertisement(
+    const HwSwitch* hw,
+    VlanID vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddressV6& srcIp,
+    folly::IPAddressV6 dstIp);
 } // namespace facebook::fboss::utility

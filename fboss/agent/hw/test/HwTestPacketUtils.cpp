@@ -539,4 +539,98 @@ std::unique_ptr<facebook::fboss::TxPacket> makeARPTxPacket(
   rwCursor.push(kDefaultPayload.data(), kDefaultPayload.size());
   return txPacket;
 }
+
+std::unique_ptr<facebook::fboss::TxPacket> makeNeighborSolicitation(
+    const HwSwitch* hw,
+    VlanID vlan,
+    folly::MacAddress srcMac,
+    const folly::IPAddressV6& srcIp,
+    const folly::IPAddressV6& neighborIp) {
+  folly::IPAddressV6 solicitedNodeAddr = neighborIp.getSolicitedNodeAddress();
+  MacAddress dstMac = MacAddress::createMulticast(solicitedNodeAddr);
+
+  NDPOptions ndpOptions;
+  ndpOptions.sourceLinkLayerAddress.emplace(srcMac);
+
+  uint32_t bodyLength = ICMPHdr::ICMPV6_UNUSED_LEN +
+      folly::IPAddressV6::byteCount() + ndpOptions.computeTotalLength();
+
+  IPv6Hdr ipv6(srcIp, solicitedNodeAddr);
+  ipv6.trafficClass = 0xe0; // CS7 precedence (network control)
+  ipv6.payloadLength = ICMPHdr::SIZE + bodyLength;
+  ipv6.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
+  ipv6.hopLimit = 255;
+
+  ICMPHdr icmp6(
+      static_cast<uint8_t>(ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION),
+      static_cast<uint8_t>(ICMPv6Code::ICMPV6_CODE_NDP_MESSAGE_CODE),
+      0);
+
+  uint32_t pktLen = icmp6.computeTotalLengthV6(bodyLength);
+  auto pkt = hw->allocatePacket(pktLen);
+  RWPrivateCursor cursor(pkt->buf());
+  icmp6.serializeFullPacket(
+      &cursor,
+      dstMac,
+      srcMac,
+      vlan,
+      ipv6,
+      bodyLength,
+      [neighborIp, ndpOptions](RWPrivateCursor* cursor) {
+        cursor->writeBE<uint32_t>(0); // reserved
+        cursor->push(neighborIp.bytes(), folly::IPAddressV6::byteCount());
+        ndpOptions.serialize(cursor);
+      });
+  return pkt;
+}
+
+std::unique_ptr<facebook::fboss::TxPacket> makeNeighborAdvertisement(
+    const HwSwitch* hw,
+    VlanID vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddressV6& srcIp,
+    folly::IPAddressV6 dstIp) {
+  uint32_t flags =
+      NeighborAdvertisementFlags::ROUTER | NeighborAdvertisementFlags::OVERRIDE;
+  if (dstIp.isZero()) {
+    dstIp = folly::IPAddressV6("ff01::1");
+  } else {
+    flags |= NeighborAdvertisementFlags::SOLICITED;
+  }
+  NDPOptions ndpOptions;
+  ndpOptions.targetLinkLayerAddress.emplace(srcMac);
+
+  uint32_t bodyLength = ICMPHdr::ICMPV6_UNUSED_LEN +
+      folly::IPAddressV6::byteCount() + ndpOptions.computeTotalLength();
+
+  IPv6Hdr ipv6(srcIp, dstIp);
+  ipv6.trafficClass = 0xe0; // CS7 precedence (network control)
+  ipv6.payloadLength = ICMPHdr::SIZE + bodyLength;
+  ipv6.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
+  ipv6.hopLimit = 255;
+
+  ICMPHdr icmp6(
+      static_cast<uint8_t>(ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT),
+      static_cast<uint8_t>(ICMPv6Code::ICMPV6_CODE_NDP_MESSAGE_CODE),
+      0);
+
+  uint32_t pktLen = icmp6.computeTotalLengthV6(bodyLength);
+  auto pkt = hw->allocatePacket(pktLen);
+  RWPrivateCursor cursor(pkt->buf());
+
+  icmp6.serializeFullPacket(
+      &cursor,
+      dstMac,
+      srcMac,
+      vlan,
+      ipv6,
+      bodyLength,
+      [srcIp, ndpOptions, flags](RWPrivateCursor* cursor) {
+        cursor->writeBE<uint32_t>(flags);
+        cursor->push(srcIp.bytes(), folly::IPAddressV6::byteCount());
+        ndpOptions.serialize(cursor);
+      });
+  return pkt;
+}
 } // namespace facebook::fboss::utility
