@@ -989,6 +989,14 @@ TYPED_TEST(ThriftTest, getRouteDetails) {
   EXPECT_EQ(9, routeDetails.size());
 }
 
+TYPED_TEST(ThriftTest, getRouteTableByClient) {
+  ThriftHandler handler(this->sw_);
+  std::vector<UnicastRoute> routeTable;
+  handler.getRouteTableByClient(
+      routeTable, static_cast<int16_t>(ClientID::INTERFACE_ROUTE));
+  // 6 intf routes + 2 default routes + 1 link local route
+  EXPECT_EQ(6, routeTable.size());
+}
 std::unique_ptr<MplsRoute> makeMplsRoute(
     int32_t mplsLabel,
     std::string nxtHop,
