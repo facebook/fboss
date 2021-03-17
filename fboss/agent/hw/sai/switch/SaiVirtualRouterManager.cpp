@@ -9,35 +9,12 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
-#include "fboss/agent/hw/sai/store/SaiStore.h"
-#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/hw/sai/api/SwitchApi.h"
-#include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 
 #include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
-
-SaiVirtualRouterManager::SaiVirtualRouterManager(
-    SaiStore* saiStore,
-    SaiManagerTable* managerTable,
-    const SaiPlatform* platform)
-    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {
-  auto& store = saiStore_->get<SaiVirtualRouterTraits>();
-  auto virtualRouterHandle = std::make_unique<SaiVirtualRouterHandle>();
-  SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
-  VirtualRouterSaiId defaultVrfId{
-      SaiApiTable::getInstance()->switchApi().getAttribute(
-          switchId, SaiSwitchTraits::Attributes::DefaultVirtualRouterId{})};
-  virtualRouterHandle->virtualRouter = store.loadObjectOwnedByAdapter(
-      SaiVirtualRouterTraits::AdapterKey{defaultVrfId});
-  CHECK(virtualRouterHandle->virtualRouter);
-  handles_.emplace(std::make_pair(RouterID(0), std::move(virtualRouterHandle)));
-}
 
 VirtualRouterSaiId SaiVirtualRouterManager::addVirtualRouter(
     const RouterID& /* routerId */) {
