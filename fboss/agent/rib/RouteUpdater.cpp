@@ -19,7 +19,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
-#include "fboss/agent/rib/Route.h"
+#include "fboss/agent/state/Route.h"
 
 #include "fboss/agent/Utils.h"
 
@@ -52,7 +52,7 @@ RibRouteUpdater::addOrReplaceRouteImpl(
   auto it = routes->exactMatch(prefix.network, prefix.mask);
 
   if (it != routes->end()) {
-    RibRoute<AddressT>* route = &(it->value());
+    auto& route = it->value();
     auto existingRouteForClient = route->getEntryForClient(clientID);
     if (existingRouteForClient && *existingRouteForClient == entry) {
       return std::nullopt;
@@ -73,7 +73,9 @@ RibRouteUpdater::addOrReplaceRouteImpl(
 
   CHECK(it == routes->end());
   routes->insert(
-      prefix.network, prefix.mask, RibRoute<AddressT>(prefix, clientID, entry));
+      prefix.network,
+      prefix.mask,
+      std::make_shared<Route<AddressT>>(prefix, clientID, entry));
   // added entry
   return RouteEntry{
       {prefix.network, prefix.mask},
@@ -147,19 +149,19 @@ std::optional<RouteNextHopEntry> RibRouteUpdater::delRouteImpl(
     return std::nullopt;
   }
 
-  RibRoute<AddressT>& route = it->value();
-  auto clientNhopEntry = route.getEntryForClient(clientID);
+  auto& route = it->value();
+  auto clientNhopEntry = route->getEntryForClient(clientID);
   if (!clientNhopEntry) {
     return std::nullopt;
   }
   std::optional<RouteNextHopEntry> nhopEntry{*clientNhopEntry};
-  route.delEntryForClient(clientID);
+  route->delEntryForClient(clientID);
 
   XLOG(DBG3) << "Deleted next-hops for prefix " << prefix.str()
              << "from client " << folly::to<std::string>(clientID);
 
-  if (route.hasNoEntry()) {
-    XLOG(DBG3) << "...and then deleted route " << route.str();
+  if (route->hasNoEntry()) {
+    XLOG(DBG3) << "...and then deleted route " << route->str();
     routes->erase(it);
   }
   return nhopEntry;
@@ -194,18 +196,18 @@ void RibRouteUpdater::removeAllRoutesFromClientImpl(
 
   for (auto it = routes->begin(); it != routes->end(); ++it) {
     auto& route = it->value();
-    auto nhopEntry = route.getEntryForClient(clientID);
+    auto nhopEntry = route->getEntryForClient(clientID);
     if (!nhopEntry) {
       continue;
     }
     deleted->push_back(
-        {{folly::IPAddress(route.prefix().network), route.prefix().mask},
+        {{folly::IPAddress(route->prefix().network), route->prefix().mask},
          clientID,
          *nhopEntry,
          RouteEntry::Operation::DEL});
-    route.delEntryForClient(clientID);
-    if (route.hasNoEntry()) {
-      // The nexthops we removed was the only one.  Delete the route.
+    route->delEntryForClient(clientID);
+    if (route->hasNoEntry()) {
+      // The nexthops we removed was the only one.  Delete the route->
       toDelete.push_back(it);
     }
   }
@@ -448,7 +450,7 @@ void RibRouteUpdater::getFwdInfoFromNhop(
     return;
   }
 
-  RibRoute<AddressT>* route = &(it->value());
+  auto& route = it->value();
   CHECK(route);
 
   if (route->needResolve()) {
@@ -490,7 +492,7 @@ void RibRouteUpdater::getFwdInfoFromNhop(
 }
 
 template <typename AddressT>
-void RibRouteUpdater::resolveOne(RibRoute<AddressT>* route) {
+void RibRouteUpdater::resolveOne(std::shared_ptr<Route<AddressT>>& route) {
   // mark this route is in processing. This processing bit shall be cleared
   // in setUnresolvable() or setResolved()
   route->setProcessing();
@@ -572,7 +574,7 @@ void RibRouteUpdater::resolveOne(RibRoute<AddressT>* route) {
 template <typename AddressT>
 void RibRouteUpdater::resolve(NetworkToRouteMap<AddressT>* routes) {
   for (auto& entry : *routes) {
-    RibRoute<AddressT>* route = &(entry.value());
+    auto& route = entry.value();
     if (route->needResolve()) {
       resolveOne(route);
     }
@@ -582,8 +584,8 @@ void RibRouteUpdater::resolve(NetworkToRouteMap<AddressT>* routes) {
 template <typename AddressT>
 void RibRouteUpdater::updateDoneImpl(NetworkToRouteMap<AddressT>* routes) {
   for (auto& entry : *routes) {
-    RibRoute<AddressT>& route = entry.value();
-    route.clearForward();
+    auto& route = entry.value();
+    route->clearForward();
   }
   resolve(routes);
 }

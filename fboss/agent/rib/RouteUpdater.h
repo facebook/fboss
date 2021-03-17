@@ -108,7 +108,7 @@ class RibRouteUpdater {
   template <typename AddressT>
   void resolve(NetworkToRouteMap<AddressT>* routes);
   template <typename AddressT>
-  void resolveOne(RibRoute<AddressT>* route);
+  void resolveOne(std::shared_ptr<Route<AddressT>>& route);
 
   template <typename AddressT>
   void getFwdInfoFromNhop(

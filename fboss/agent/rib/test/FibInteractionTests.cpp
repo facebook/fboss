@@ -128,9 +128,9 @@ TEST(Route, RibRouteToFibRoute) {
           nextHopAddress, nextHopInterfaceID, facebook::fboss::ECMP_WEIGHT),
       kDefaultAdminDistance);
 
-  facebook::fboss::RibRouteV6 ribRoute(
+  auto ribRoute = std::make_shared<facebook::fboss::RouteV6>(
       prefix, facebook::fboss::ClientID(1), ribResolvedNextHop);
-  ribRoute.setResolved(ribResolvedNextHop);
+  ribRoute->setResolved(ribResolvedNextHop);
 
   auto fibRoute =
       facebook::fboss::ForwardingInformationBaseUpdater::toFibRoute(ribRoute);
@@ -155,10 +155,10 @@ TEST(Route, DirectlyConnectedRibRouteToFibRoute) {
           nextHopAddress, nextHopInterfaceID, facebook::fboss::ECMP_WEIGHT),
       kDefaultAdminDistance);
 
-  facebook::fboss::RibRouteV6 ribRoute(
+  auto ribRoute = std::make_shared<facebook::fboss::RouteV6>(
       prefix, facebook::fboss::ClientID(1), ribResolvedNextHop);
-  ribRoute.setResolved(ribResolvedNextHop);
-  ribRoute.setConnected();
+  ribRoute->setResolved(ribResolvedNextHop);
+  ribRoute->setConnected();
 
   auto fibRoute =
       facebook::fboss::ForwardingInformationBaseUpdater::toFibRoute(ribRoute);

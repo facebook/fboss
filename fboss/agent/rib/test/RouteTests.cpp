@@ -41,13 +41,13 @@ constexpr AdminDistance kDistance = AdminDistance::MAX_ADMIN_DISTANCE;
 namespace {
 // TODO(samank): move helpers into test fixture
 template <typename AddressT>
-RibRoute<AddressT>* getRoute(
+std::shared_ptr<Route<AddressT>> getRoute(
     NetworkToRouteMap<AddressT>& routes,
     std::string prefixAsString) {
   auto prefix = RoutePrefix<AddressT>::fromString(prefixAsString);
   auto it = routes.exactMatch(prefix.network, prefix.mask);
 
-  return &(it->value());
+  return it->value();
 }
 
 RouteNextHopSet makeNextHops(std::vector<std::string> ipsAsStrings) {
@@ -60,7 +60,7 @@ RouteNextHopSet makeNextHops(std::vector<std::string> ipsAsStrings) {
 
 template <typename AddrT>
 void EXPECT_FWD_INFO(
-    const RibRoute<AddrT>* route,
+    const std::shared_ptr<Route<AddrT>>& route,
     InterfaceID interfaceID,
     std::string ipAsString) {
   const auto& fwds = route->getForwardInfo().getNextHopSet();
@@ -71,7 +71,7 @@ void EXPECT_FWD_INFO(
 }
 
 template <typename AddrT>
-void EXPECT_RESOLVED(const RibRoute<AddrT>* route) {
+void EXPECT_RESOLVED(const std::shared_ptr<Route<AddrT>>& route) {
   EXPECT_TRUE(route->isResolved());
   EXPECT_FALSE(route->isUnresolvable());
   EXPECT_FALSE(route->needResolve());
@@ -84,23 +84,23 @@ void EXPECT_ROUTES_MATCH(
   EXPECT_EQ(routesA->size(), routesB->size());
   for (const auto& entryA : *routesA) {
     auto routeA = entryA.value();
-    auto prefixA = routeA.prefix();
+    auto prefixA = routeA->prefix();
 
     auto iterB = routesB->exactMatch(prefixA.network, prefixA.mask);
     ASSERT_NE(routesB->end(), iterB);
     auto routeB = iterB->value();
 
-    EXPECT_TRUE(routeB.isSame(&routeA));
+    EXPECT_TRUE(routeB->isSame(routeA.get()));
   }
 }
 
 template <typename AddressT>
-RibRoute<AddressT>* longestMatch(
+std::shared_ptr<Route<AddressT>> longestMatch(
     NetworkToRouteMap<AddressT>& routes,
     AddressT address) {
   auto it = routes.longestMatch(address, address.bitCount());
   CHECK(it != routes.end());
-  return &(it->value());
+  return it->value();
 }
 
 } // namespace
@@ -361,7 +361,7 @@ void assertClientsNotPresent(
     CHECK(it != routes.end());
     auto route = it->value();
 
-    auto entry = route.getEntryForClient(ClientID(clientId));
+    auto entry = route->getEntryForClient(ClientID(clientId));
     EXPECT_EQ(nullptr, entry);
   }
 }
@@ -377,7 +377,7 @@ void assertClientsPresent(
     CHECK(it != routes.end());
     auto route = it->value();
 
-    auto entry = route.getEntryForClient(ClientID(clientId));
+    auto entry = route->getEntryForClient(ClientID(clientId));
     EXPECT_NE(nullptr, entry);
   }
 }
@@ -518,11 +518,12 @@ TEST(Route, toCPURoutes) {
 TEST(Route, serializeRoute) {
   ClientID clientId = ClientID(1);
   auto nxtHops = makeNextHops({"10.10.10.10", "11.11.11.11"});
-  RibRoute<IPAddressV4> rt(RoutePrefixV4::fromString("1.2.3.4/32"));
-  rt.update(clientId, RouteNextHopEntry(nxtHops, kDistance));
+  auto rt = std::make_shared<Route<IPAddressV4>>(
+      RoutePrefixV4::fromString("1.2.3.4/32"));
+  rt->update(clientId, RouteNextHopEntry(nxtHops, kDistance));
 
   // to folly dynamic
-  folly::dynamic obj = rt.toFollyDynamic();
+  folly::dynamic obj = rt->toFollyDynamic();
   // to string
   folly::json::serialization_opts serOpts;
   serOpts.allow_non_string_keys = true;
@@ -530,8 +531,8 @@ TEST(Route, serializeRoute) {
   // back to folly dynamic
   folly::dynamic obj2 = folly::parseJson(json, serOpts);
   // back to Route object
-  auto rt2 = RibRoute<IPAddressV4>::fromFollyDynamic(obj2);
-  ASSERT_TRUE(rt2.has(clientId, RouteNextHopEntry(nxtHops, kDistance)));
+  auto rt2 = Route<IPAddressV4>::fromFollyDynamic(obj2);
+  ASSERT_TRUE(rt2->has(clientId, RouteNextHopEntry(nxtHops, kDistance)));
 }
 
 TEST(Route, serializeRouteTable) {
@@ -741,7 +742,7 @@ TEST(Route, withLabelForwardingAction) {
   EXPECT_EQ(1, v4Routes.size());
   EXPECT_EQ(0, v6Routes.size());
 
-  const auto* route = longestMatch(v4Routes, folly::IPAddressV4("1.1.2.2"));
+  const auto route = longestMatch(v4Routes, folly::IPAddressV4("1.1.2.2"));
 
   EXPECT_EQ(true, route->has(kClientA, RouteNextHopEntry(nexthops, kDistance)));
 
@@ -776,7 +777,7 @@ TEST(Route, withNoLabelForwardingAction) {
   EXPECT_EQ(1, v4Routes.size());
   EXPECT_EQ(0, v6Routes.size());
 
-  const auto* route = longestMatch(v4Routes, folly::IPAddressV4("1.1.2.2"));
+  const auto route = longestMatch(v4Routes, folly::IPAddressV4("1.1.2.2"));
 
   EXPECT_EQ(route->has(kClientA, routeNextHopEntry), true);
   auto entry = route->getBestEntry();
@@ -861,7 +862,7 @@ class UcmpTest : public ::testing::Test {
       auto r = getRoute(v4Routes_, pfx);
       EXPECT_RESOLVED(r);
       EXPECT_FALSE(r->isConnected());
-      resolvedRoutes.push_back(*r);
+      resolvedRoutes.push_back(r);
     }
   }
 
@@ -883,7 +884,7 @@ class UcmpTest : public ::testing::Test {
       expFwd1.emplace(ResolvedNextHop(intfIps[i], InterfaceID(i + 1), w));
       ++i;
     }
-    EXPECT_EQ(expFwd1, resolvedRoutes[0].getForwardInfo().getNextHopSet());
+    EXPECT_EQ(expFwd1, resolvedRoutes[0]->getForwardInfo().getNextHopSet());
   }
 
   void runTwoDeepRecursiveTest(
@@ -915,7 +916,7 @@ class UcmpTest : public ::testing::Test {
         resolvedWeights);
   }
 
-  std::vector<RibRoute<folly::IPAddressV4>> resolvedRoutes;
+  std::vector<std::shared_ptr<Route<folly::IPAddressV4>>> resolvedRoutes;
   const folly::IPAddress intfIp1{"1.1.1.10"};
   const folly::IPAddress intfIp2{"2.2.2.20"};
   const folly::IPAddress intfIp3{"3.3.3.30"};
@@ -1054,7 +1055,7 @@ TEST_F(UcmpTest, separateEcmpUcmp) {
       ResolvedNextHop(IPAddress("1.1.1.10"), InterfaceID(1), 2));
   route2ExpFwd.emplace(
       ResolvedNextHop(IPAddress("2.2.2.20"), InterfaceID(2), 1));
-  EXPECT_EQ(route2ExpFwd, resolvedRoutes[1].getForwardInfo().getNextHopSet());
+  EXPECT_EQ(route2ExpFwd, resolvedRoutes[1]->getForwardInfo().getNextHopSet());
 }
 
 // The following set of tests will start with 4 next hops all weight 100

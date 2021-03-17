@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "fboss/agent/rib/Route.h"
+#include "fboss/agent/state/Route.h"
 #include "fboss/lib/RadixTree.h"
 
 #include <folly/IPAddress.h>
@@ -21,14 +21,15 @@ namespace facebook::fboss {
 
 template <typename AddressT>
 class NetworkToRouteMap
-    : public facebook::network::RadixTree<AddressT, RibRoute<AddressT>> {
+    : public facebook::network::
+          RadixTree<AddressT, std::shared_ptr<Route<AddressT>>> {
   static constexpr auto kRoutes = "routes";
 
  public:
   folly::dynamic toFollyDynamic() const {
     folly::dynamic routesJson = folly::dynamic::array;
     for (const auto& route : *this) {
-      routesJson.push_back(route.value().toFollyDynamic());
+      routesJson.push_back(route.value()->toFollyDynamic());
     }
     folly::dynamic routesObject = folly::dynamic::object;
     routesObject[kRoutes] = std::move(routesJson);
@@ -41,8 +42,8 @@ class NetworkToRouteMap
 
     auto routesJson = routes[kRoutes];
     for (const auto& routeJson : routesJson) {
-      auto route = RibRoute<AddressT>::fromFollyDynamic(routeJson);
-      RoutePrefix<AddressT> prefix = route.prefix();
+      auto route = Route<AddressT>::fromFollyDynamic(routeJson);
+      RoutePrefix<AddressT> prefix = route->prefix();
       networkToRouteMap.insert(prefix.network, prefix.mask, std::move(route));
     }
 

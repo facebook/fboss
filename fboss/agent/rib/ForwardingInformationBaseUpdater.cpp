@@ -82,9 +82,9 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
 
   bool updated = false;
   for (const auto& entry : rib) {
-    const facebook::fboss::RibRoute<AddressT>& ribRoute = entry.value();
+    const auto& ribRoute = entry.value();
 
-    if (!ribRoute.isResolved()) {
+    if (!ribRoute->isResolved()) {
       // The recursive resolution algorithm considers a next-hop TO_CPU or
       // DROP to be resolved.
       continue;
@@ -92,12 +92,12 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
 
     // TODO(samank): optimize to linear time intersection algorithm
     facebook::fboss::RoutePrefix<AddressT> fibPrefix{
-        ribRoute.prefix().network, ribRoute.prefix().mask};
+        ribRoute->prefix().network, ribRoute->prefix().mask};
     std::shared_ptr<facebook::fboss::Route<AddressT>> fibRoute =
         fib->getNodeIf(fibPrefix);
     if (fibRoute) {
-      if (fibRoute->getClassID() == ribRoute.getClassID() &&
-          toFibNextHop(ribRoute.getForwardInfo()) ==
+      if (fibRoute->getClassID() == ribRoute->getClassID() &&
+          toFibNextHop(ribRoute->getForwardInfo()) ==
               fibRoute->getForwardInfo()) {
         // Reuse prior FIB route
       } else {
@@ -129,7 +129,7 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
           rib.end(),
           [](const typename std::remove_reference_t<decltype(
                  rib)>::ConstIterator::TreeNode& entry) {
-            return entry.value().isResolved();
+            return entry.value()->isResolved();
           }));
 
   return updated ? std::make_shared<ForwardingInformationBase<AddressT>>(
@@ -169,34 +169,34 @@ ForwardingInformationBaseUpdater::toFibNextHop(
 template <typename AddrT>
 std::shared_ptr<facebook::fboss::Route<AddrT>>
 ForwardingInformationBaseUpdater::toFibRoute(
-    const RibRoute<AddrT>& ribRoute,
+    const std::shared_ptr<Route<AddrT>>& ribRoute,
     const std::shared_ptr<facebook::fboss::Route<AddrT>>& curFibRoute) {
-  CHECK(ribRoute.isResolved());
+  CHECK(ribRoute->isResolved());
 
   facebook::fboss::RoutePrefix<AddrT> fibPrefix;
-  fibPrefix.network = ribRoute.prefix().network;
-  fibPrefix.mask = ribRoute.prefix().mask;
+  fibPrefix.network = ribRoute->prefix().network;
+  fibPrefix.mask = ribRoute->prefix().mask;
 
   auto fibRoute = curFibRoute
       ? curFibRoute->clone()
       : std::make_shared<facebook::fboss::Route<AddrT>>(fibPrefix);
 
-  fibRoute->setResolved(toFibNextHop(ribRoute.getForwardInfo()));
-  if (ribRoute.isConnected()) {
+  fibRoute->setResolved(toFibNextHop(ribRoute->getForwardInfo()));
+  if (ribRoute->isConnected()) {
     fibRoute->setConnected();
   }
 
-  fibRoute->updateClassID(ribRoute.getClassID());
+  fibRoute->updateClassID(ribRoute->getClassID());
   return fibRoute;
 }
 
 template std::shared_ptr<facebook::fboss::Route<folly::IPAddressV4>>
 ForwardingInformationBaseUpdater::toFibRoute<folly::IPAddressV4>(
-    const RibRoute<folly::IPAddressV4>&,
+    const std::shared_ptr<Route<folly::IPAddressV4>>&,
     const std::shared_ptr<facebook::fboss::Route<folly::IPAddressV4>>&);
 template std::shared_ptr<facebook::fboss::Route<folly::IPAddressV6>>
 ForwardingInformationBaseUpdater::toFibRoute<folly::IPAddressV6>(
-    const RibRoute<folly::IPAddressV6>&,
+    const std::shared_ptr<Route<folly::IPAddressV6>>&,
     const std::shared_ptr<facebook::fboss::Route<folly::IPAddressV6>>&);
 
 } // namespace facebook::fboss
