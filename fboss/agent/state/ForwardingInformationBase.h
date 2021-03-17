@@ -19,8 +19,11 @@
 namespace facebook::fboss {
 
 template <typename AddressT>
-using ForwardingInformationBaseTraits =
-    NodeMapTraits<RoutePrefix<AddressT>, Route<AddressT>>;
+using ForwardingInformationBaseTraits = NodeMapTraits<
+    RoutePrefix<AddressT>,
+    Route<AddressT>,
+    NodeMapNoExtraFields,
+    std::map<RoutePrefix<AddressT>, std::shared_ptr<Route<AddressT>>>>;
 
 template <typename AddressT>
 class ForwardingInformationBase
