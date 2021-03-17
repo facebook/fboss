@@ -234,6 +234,124 @@ std::unique_ptr<UnicastRoute> makeUnicastRoute(
   nr->adminDistance_ref() = distance;
   return nr;
 }
+
+// Test for the ThriftHandler::syncFib method
+TYPED_TEST(ThriftTest, multipleClientSyncFib) {
+  RouterID rid = RouterID(0);
+
+  // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
+  ThriftHandler handler(this->sw_);
+
+  auto hasStandAloneRib = TypeParam::hasStandAloneRib;
+  auto kIntf1 = InterfaceID(1);
+
+  // Two clients - BGP and OPENR
+  auto bgpClient = static_cast<int16_t>(ClientID::BGPD);
+  auto openrClient = static_cast<int16_t>(ClientID::OPENR);
+  auto bgpClientAdmin = this->sw_->clientIdToAdminDistance(bgpClient);
+  auto openrClientAdmin = this->sw_->clientIdToAdminDistance(openrClient);
+
+  // nhops to use
+  auto nhop4 = "10.0.0.2";
+  auto nhop6 = "2401:db00:2110:3001::0002";
+
+  // resolve the nexthops
+  auto nh1 = makeResolvedNextHops({{kIntf1, nhop4}});
+  auto nh2 = makeResolvedNextHops({{kIntf1, nhop6}});
+
+  // prefixes to add
+  auto prefixA4 = "7.1.0.0/16";
+  auto prefixA6 = "aaaa:1::0/64";
+  auto prefixB4 = "7.2.0.0/16";
+  auto prefixB6 = "aaaa:2::0/64";
+  auto prefixC4 = "7.3.0.0/16";
+  auto prefixC6 = "aaaa:3::0/64";
+  auto prefixD4 = "7.4.0.0/16";
+  auto prefixD6 = "aaaa:4::0/64";
+
+  auto addRoutesForClient = [&](const auto& prefix4,
+                                const auto& prefix6,
+                                const auto& client,
+                                const auto& clientAdmin) {
+    handler.addUnicastRoute(
+        client, makeUnicastRoute(prefix4, nhop4, clientAdmin));
+    handler.addUnicastRoute(
+        client, makeUnicastRoute(prefix6, nhop6, clientAdmin));
+  };
+
+  addRoutesForClient(prefixA4, prefixA6, bgpClient, bgpClientAdmin);
+  addRoutesForClient(prefixB4, prefixB6, openrClient, openrClientAdmin);
+
+  auto verifyPrefixesPresent = [&](const auto& prefix4, const auto& prefix6) {
+    auto state = this->sw_->getState();
+    auto rtA4 = findRoute<folly::IPAddressV4>(
+        hasStandAloneRib, rid, IPAddress::createNetwork(prefix4), state);
+    EXPECT_NE(nullptr, rtA4);
+    EXPECT_EQ(
+        rtA4->getForwardInfo(),
+        RouteNextHopEntry(
+            makeResolvedNextHops({{kIntf1, nhop4}}),
+            AdminDistance::MAX_ADMIN_DISTANCE));
+
+    auto rtA6 = findRoute<folly::IPAddressV6>(
+        hasStandAloneRib, rid, IPAddress::createNetwork(prefix6), state);
+    EXPECT_NE(nullptr, rtA6);
+    EXPECT_EQ(
+        rtA6->getForwardInfo(),
+        RouteNextHopEntry(
+            makeResolvedNextHops({{kIntf1, nhop6}}),
+            AdminDistance::MAX_ADMIN_DISTANCE));
+  };
+  verifyPrefixesPresent(prefixA4, prefixA6);
+  verifyPrefixesPresent(prefixB4, prefixB6);
+
+  auto verifyPrefixesRemoved = [&](const auto& prefix4, const auto& prefix6) {
+    auto state = this->sw_->getState();
+    auto rtA4 = findRoute<folly::IPAddressV4>(
+        hasStandAloneRib, rid, IPAddress::createNetwork(prefix4), state);
+    EXPECT_EQ(nullptr, rtA4);
+    auto rtA6 = findRoute<folly::IPAddressV6>(
+        hasStandAloneRib, rid, IPAddress::createNetwork(prefix6), state);
+    EXPECT_EQ(nullptr, rtA6);
+  };
+
+  // Call syncFib for BGP. Remove all BGP routes and add some new routes
+  auto newBgpRoutes = std::make_unique<std::vector<UnicastRoute>>();
+  newBgpRoutes->push_back(
+      *makeUnicastRoute(prefixC6, nhop6, bgpClientAdmin).get());
+  newBgpRoutes->push_back(
+      *makeUnicastRoute(prefixC4, nhop4, bgpClientAdmin).get());
+  handler.syncFib(bgpClient, std::move(newBgpRoutes));
+
+  // verify that old BGP prefixes are removed
+  verifyPrefixesRemoved(prefixA4, prefixA6);
+  // verify that OPENR prefixes exist
+  verifyPrefixesPresent(prefixB4, prefixB6);
+  // verify new BGP prefixes are added
+  verifyPrefixesPresent(prefixC4, prefixC6);
+
+  // Call syncFib for OPENR. Remove all OPENR routes and add some new routes
+  auto newOpenrRoutes = std::make_unique<std::vector<UnicastRoute>>();
+  newOpenrRoutes->push_back(
+      *makeUnicastRoute(prefixD4, nhop4, openrClientAdmin).get());
+  newOpenrRoutes->push_back(
+      *makeUnicastRoute(prefixD6, nhop6, openrClientAdmin).get());
+  handler.syncFib(openrClient, std::move(newOpenrRoutes));
+
+  // verify that old OPENR prefixes are removed
+  verifyPrefixesRemoved(prefixB4, prefixB6);
+  // verify that new OPENR prefixes are added
+  verifyPrefixesPresent(prefixD4, prefixD6);
+
+  // Add back BGP and OPENR routes
+  addRoutesForClient(prefixA4, prefixA6, bgpClient, bgpClientAdmin);
+  addRoutesForClient(prefixB4, prefixB6, openrClient, openrClientAdmin);
+
+  // verify routes added
+  verifyPrefixesPresent(prefixA4, prefixA6);
+  verifyPrefixesPresent(prefixB4, prefixB6);
+}
+
 // Test for the ThriftHandler::syncFib method
 TYPED_TEST(ThriftTest, syncFib) {
   RouterID rid = RouterID(0);
