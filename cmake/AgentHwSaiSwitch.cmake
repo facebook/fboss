@@ -35,6 +35,7 @@ set(SAI_SWITCH_SRC
   fboss/agent/hw/sai/switch/SaiVirtualRouterManager.cpp
   fboss/agent/hw/sai/switch/SaiWredManager.cpp
   fboss/agent/hw/sai/switch/npu/SaiAclTableManager.cpp
+  fboss/agent/hw/sai/switch/npu/SaiBridgeManager.cpp
 )
 
 # TODO Support SAI_PHY_IMPL(T86789543)

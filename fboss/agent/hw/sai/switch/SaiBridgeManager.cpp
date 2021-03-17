@@ -18,8 +18,6 @@
 
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
-#include <folly/logging/xlog.h>
-
 namespace facebook::fboss {
 
 std::shared_ptr<SaiBridgePort> SaiBridgeManager::addBridgePort(
@@ -64,17 +62,6 @@ sai_bridge_port_fdb_learning_mode_t SaiBridgeManager::getFdbLearningMode(
       break;
   }
   return fdbLearningMode;
-}
-
-void SaiBridgeManager::setL2LearningMode(
-    std::optional<cfg::L2LearningMode> l2LearningMode) {
-  if (l2LearningMode) {
-    fdbLearningMode_ = getFdbLearningMode(l2LearningMode.value());
-  }
-  XLOG(INFO) << "FDB learning mode set to "
-             << (getL2LearningMode() == cfg::L2LearningMode::HARDWARE
-                     ? "hardware"
-                     : "software");
 }
 
 cfg::L2LearningMode SaiBridgeManager::getL2LearningMode() const {
