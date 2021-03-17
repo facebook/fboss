@@ -353,9 +353,13 @@ TYPED_TEST(RouteTest, dedup) {
   auto stateV4r3 = this->findRoute6(stateV4, rid, r3);
   auto stateV4r4 = this->findRoute6(stateV4, rid, r4);
 
+  // With StandaloneRib we clone RIB immediately before starting a
+  // update so there is a additional generation number increment.
+  auto generationInc = this->sw_->isStandaloneRibEnabled() ? 2 : 1;
   EXPECT_EQ(stateV2r1, stateV4r1);
   EXPECT_NE(stateV2r2, stateV4r2); // different routes
-  EXPECT_EQ(stateV2r2->getGeneration() + 1, stateV4r2->getGeneration());
+  EXPECT_EQ(
+      stateV2r2->getGeneration() + generationInc, stateV4r2->getGeneration());
   EXPECT_EQ(stateV2r3, stateV4r3);
   EXPECT_EQ(stateV2r4, stateV4r4);
 }
@@ -782,16 +786,20 @@ TYPED_TEST(RouteTest, InterfaceRoutes) {
   this->sw_->updateStateBlocking("New config", updateFn);
   auto stateV2 = this->sw_->getState();
   EXPECT_NE(stateV1, stateV2);
+  // With standalone rib config application will cause us to first
+  // blow away all the interface and static routes and then add them
+  // back based on new config. So generation will set back to 0
+  auto expectedGen = this->sw_->isStandaloneRibEnabled() ? 0 : 1;
   // verify the ipv4 route
   {
     auto rt = this->findRoute4(stateV2, rid, "1.1.1.0/24");
-    EXPECT_EQ(1, rt->getGeneration());
+    EXPECT_EQ(expectedGen, rt->getGeneration());
     EXPECT_FWD_INFO(rt, InterfaceID(2), "1.1.1.1");
   }
   // verify the ipv6 route
   {
     auto rt = this->findRoute6(stateV2, rid, "2::0/48");
-    EXPECT_EQ(1, rt->getGeneration());
+    EXPECT_EQ(expectedGen, rt->getGeneration());
     EXPECT_FWD_INFO(rt, InterfaceID(1), "2::1");
   }
 }

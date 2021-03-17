@@ -149,6 +149,7 @@ class RoutingInformationBase {
   struct RouteTable {
     IPv4NetworkToRouteMap v4NetworkToRoute;
     IPv6NetworkToRouteMap v6NetworkToRoute;
+    bool writable{true};
 
     bool operator==(const RouteTable& other) const {
       return v4NetworkToRoute == other.v4NetworkToRoute &&
@@ -157,6 +158,7 @@ class RoutingInformationBase {
     bool operator!=(const RouteTable& other) const {
       return !(*this == other);
     }
+    void makeWritable(bool setWritable);
   };
 
   std::pair<std::shared_ptr<SwitchState>, UpdateStatistics> updateImpl(

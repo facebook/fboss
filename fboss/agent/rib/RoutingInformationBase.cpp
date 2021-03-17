@@ -100,6 +100,10 @@ void RoutingInformationBase::reconfigure(
         [&](RouterID vrf,
             RouteTable& routeTable,
             const PrefixToInterfaceIDAndIP& interfaceRoutes) {
+          routeTable.makeWritable(true);
+          SCOPE_EXIT {
+            routeTable.makeWritable(false);
+          };
           // A ConfigApplier object should be independent of the VRF whose
           // routes it is processing. However, because interface and static
           // routes for _all_ VRFs are passed to ConfigApplier, the vrf argument
@@ -121,6 +125,7 @@ void RoutingInformationBase::reconfigure(
                   staticRoutesWithNextHops.cbegin(),
                   staticRoutesWithNextHops.cend()));
           configApplier.apply();
+          routeTable.makeWritable(false);
           updateFibCallback(
               vrf,
               routeTable.v4NetworkToRoute,
@@ -295,6 +300,10 @@ std::
 
   std::exception_ptr updateException;
   auto updateFn = [&]() {
+    routeTables->makeWritable(true);
+    SCOPE_EXIT {
+      routeTables->makeWritable(false);
+    };
     RibRouteUpdater updater(
         &(routeTables->v4NetworkToRoute), &(routeTables->v6NetworkToRoute));
     if (resetClientsRoutes) {
@@ -344,6 +353,8 @@ std::
 
     updater.updateDone();
     try {
+      // Publish routes before sending to FIB
+      routeTables->makeWritable(false);
       appliedState = fibUpdateCallback(
           routerID,
           routeTables->v4NetworkToRoute,
@@ -379,7 +390,9 @@ void RoutingInformationBase::setClassIDImpl(
       if (ritr == rib.end()) {
         return;
       }
+      ritr->value() = ritr->value()->clone();
       ritr->value()->updateClassID(classId);
+      ritr->value()->publish();
     };
     auto& v4Rib = it->second.v4NetworkToRoute;
     auto& v6Rib = it->second.v6NetworkToRoute;
@@ -428,11 +441,25 @@ RoutingInformationBase::fromFollyDynamic(const folly::dynamic& ribJson) {
         RouterID(routeTable.first.asInt()),
         RouteTable{
             IPv4NetworkToRouteMap::fromFollyDynamic(routeTable.second[kRibV4]),
-            IPv6NetworkToRouteMap::fromFollyDynamic(
-                routeTable.second[kRibV6])}));
+            IPv6NetworkToRouteMap::fromFollyDynamic(routeTable.second[kRibV6]),
+            true}));
   }
 
   return rib;
+}
+
+void RoutingInformationBase::RouteTable::makeWritable(bool _writable) {
+  if (_writable == writable) {
+    return;
+  }
+  if (_writable) {
+    v4NetworkToRoute.cloneAll();
+    v6NetworkToRoute.cloneAll();
+  } else {
+    v4NetworkToRoute.publishAll();
+    v6NetworkToRoute.publishAll();
+  }
+  writable = _writable;
 }
 
 void RoutingInformationBase::ensureVrf(RouterID rid) {

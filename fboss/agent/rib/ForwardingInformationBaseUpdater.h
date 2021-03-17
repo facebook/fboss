@@ -31,12 +31,6 @@ class ForwardingInformationBaseUpdater {
   std::shared_ptr<SwitchState> operator()(
       const std::shared_ptr<SwitchState>& state);
 
-  template <typename AddrT>
-  static std::shared_ptr<facebook::fboss::Route<AddrT>> toFibRoute(
-      const std::shared_ptr<Route<AddrT>>& ribRoute,
-      const std::shared_ptr<facebook::fboss::Route<AddrT>>& curFibRoute =
-          nullptr);
-
  private:
   /*
    * Return updated FIB on change, null otherwise

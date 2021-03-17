@@ -51,62 +51,6 @@ std::shared_ptr<facebook::fboss::SwitchState> dynamicFibUpdate(
 }
 } // namespace
 
-TEST(Route, RibRouteToFibRoute) {
-  folly::IPAddressV6 prefixAddress("::0");
-  uint8_t prefixMask = 0;
-
-  facebook::fboss::RoutePrefixV6 prefix;
-  prefix.network = prefixAddress;
-  prefix.mask = prefixMask;
-
-  folly::IPAddress nextHopAddress("2401:db00:e112:9103:1028::1b");
-  InterfaceID nextHopInterfaceID(1);
-
-  facebook::fboss::RouteNextHopEntry ribResolvedNextHop(
-      facebook::fboss::ResolvedNextHop(
-          nextHopAddress, nextHopInterfaceID, facebook::fboss::ECMP_WEIGHT),
-      kDefaultAdminDistance);
-
-  auto ribRoute = std::make_shared<facebook::fboss::RouteV6>(
-      prefix, facebook::fboss::ClientID(1), ribResolvedNextHop);
-  ribRoute->setResolved(ribResolvedNextHop);
-
-  auto fibRoute =
-      facebook::fboss::ForwardingInformationBaseUpdater::toFibRoute(ribRoute);
-
-  ASSERT_EQ(fibRoute->prefix().network, prefixAddress);
-  ASSERT_EQ(fibRoute->prefix().mask, prefixMask);
-}
-
-TEST(Route, DirectlyConnectedRibRouteToFibRoute) {
-  folly::IPAddressV6 prefixAddress("1::");
-  uint8_t prefixMask = 127;
-
-  facebook::fboss::RoutePrefixV6 prefix;
-  prefix.network = prefixAddress;
-  prefix.mask = prefixMask;
-
-  folly::IPAddress nextHopAddress("2401:db00:e112:9103:1028::1b");
-  InterfaceID nextHopInterfaceID(1);
-
-  facebook::fboss::RouteNextHopEntry ribResolvedNextHop(
-      facebook::fboss::ResolvedNextHop(
-          nextHopAddress, nextHopInterfaceID, facebook::fboss::ECMP_WEIGHT),
-      kDefaultAdminDistance);
-
-  auto ribRoute = std::make_shared<facebook::fboss::RouteV6>(
-      prefix, facebook::fboss::ClientID(1), ribResolvedNextHop);
-  ribRoute->setResolved(ribResolvedNextHop);
-  ribRoute->setConnected();
-
-  auto fibRoute =
-      facebook::fboss::ForwardingInformationBaseUpdater::toFibRoute(ribRoute);
-
-  ASSERT_EQ(fibRoute->prefix().network, prefixAddress);
-  ASSERT_EQ(fibRoute->prefix().mask, prefixMask);
-  ASSERT_TRUE(fibRoute->isConnected());
-}
-
 TEST(ForwardingInformationBaseUpdater, ModifyUnpublishedSwitchState) {
   using namespace facebook::fboss;
 
