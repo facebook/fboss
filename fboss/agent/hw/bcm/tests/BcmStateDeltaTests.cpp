@@ -204,10 +204,7 @@ TEST_F(BcmTest, validInterfaceConfig) {
   cfg.interfaces_ref()[1].ipAddresses_ref()->resize(2);
   cfg.interfaces_ref()[1].ipAddresses_ref()[0] = "2.2.2.2/24";
   cfg.interfaces_ref()[1].ipAddresses_ref()[1] = "2::1/64";
-  auto newState = applyThriftConfig(oldState, &cfg, getPlatform());
-  StateDelta delta(oldState, newState);
-  EXPECT_FALSE(getHwSwitch()->isValidStateUpdate(delta));
-  EXPECT_THROW(getHwSwitch()->stateChanged(delta), FbossError);
+  EXPECT_THROW(applyNewConfig(cfg), FbossError);
 }
 
 } // namespace facebook::fboss
