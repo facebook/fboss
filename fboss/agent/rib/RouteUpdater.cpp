@@ -276,22 +276,23 @@ bool hasEcmpNextHop(const NextHopForwardInfos& nhToFwds) {
  * In the case that any next hop has weight 0, go through the next hop set
  * of each resolved next hop and bring its next hop set in with weight 0.
  */
+template <typename AddressT>
 RouteNextHopSet mergeForwardInfosEcmp(
     const NextHopForwardInfos& nhToFwds,
-    const std::string& routeStr) {
+    const std::shared_ptr<Route<AddressT>>& route) {
   RouteNextHopSet fwd;
   for (const auto& nhToFwd : nhToFwds) {
     const NextHop& nh = nhToFwd.first;
     const RouteNextHopSet& fw = nhToFwd.second;
     if (nh.weight()) {
-      XLOG(WARNING) << "While resolving " << routeStr
+      XLOG(WARNING) << "While resolving " << route->str()
                     << " defaulting resolution of weighted next hop " << nh
                     << " to ECMP because another next hop has weight 0";
     }
     for (const auto& fnh : fw) {
       if (fnh.weight()) {
         XLOG(DBG4)
-            << "While resolving " << routeStr
+            << "While resolving " << route->str()
             << " defaulting weighted recursively resolved next hop " << fnh
             << " to ECMP because the next hop being resolved has weight 0: "
             << nh;
@@ -310,9 +311,10 @@ RouteNextHopSet mergeForwardInfosEcmp(
  * representation is needed to combine weights for different instances of
  * the same next hop coming from different recursively resolved next hop sets.
  */
+template <typename AddressT>
 NextHopCombinedWeights combineWeights(
     const NextHopForwardInfos& nhToFwds,
-    const std::string& routeStr) {
+    const std::shared_ptr<Route<AddressT>>& route) {
   NextHopCombinedWeights cws;
   NextHopWeight l = totalWeightsLcm(nhToFwds);
   for (const auto& nhToFwd : nhToFwds) {
@@ -337,7 +339,7 @@ NextHopCombinedWeights combineWeights(
       // We only want to log this once per recursively resolved next hop
       // to prevent a large ecmp group from spamming pointless logs
       if (!loggedEcmpDefault && !w && unh.weight()) {
-        XLOG(WARNING) << "While resolving " << routeStr
+        XLOG(WARNING) << "While resolving " << route->str()
                       << " defaulting resolution of weighted next hop " << unh
                       << " to ECMP because another next hop in the resolution"
                       << " tree uses ECMP.";
@@ -421,14 +423,15 @@ RouteNextHopSet optimizeWeights(const NextHopCombinedWeights& cws) {
  * GCD(75, 60, 54, 36) = 3 so we reach a final next hop set of:
  * {I1x25, I2x20, I3x18, I4x12}
  */
+template <typename AddressT>
 RouteNextHopSet mergeForwardInfos(
     const NextHopForwardInfos& nhToFwds,
-    const std::string& routeStr) {
+    const std::shared_ptr<Route<AddressT>>& route) {
   RouteNextHopSet fwd;
   if (hasEcmpNextHop(nhToFwds)) {
-    fwd = mergeForwardInfosEcmp(nhToFwds, routeStr);
+    fwd = mergeForwardInfosEcmp(nhToFwds, route);
   } else {
-    NextHopCombinedWeights cws = combineWeights(nhToFwds, routeStr);
+    NextHopCombinedWeights cws = combineWeights(nhToFwds, route);
     fwd = optimizeWeights(cws);
   }
   return fwd;
@@ -548,7 +551,7 @@ void RibRouteUpdater::resolveOne(std::shared_ptr<Route<AddressT>>& route) {
       }
     }
 
-    fwd = mergeForwardInfos(nhToFwds, route->str());
+    fwd = mergeForwardInfos(nhToFwds, route);
   }
 
   if (!fwd.empty()) {
