@@ -24,32 +24,6 @@
 
 namespace facebook::fboss {
 
-SaiAclTableManager::SaiAclTableManager(
-    SaiStore* saiStore,
-    SaiManagerTable* managerTable,
-    const SaiPlatform* platform)
-    : saiStore_(saiStore),
-      managerTable_(managerTable),
-      platform_(platform),
-      aclEntryMinimumPriority_(
-          SaiApiTable::getInstance()->switchApi().getAttribute(
-              managerTable_->switchManager().getSwitchSaiId(),
-              SaiSwitchTraits::Attributes::AclEntryMinimumPriority())),
-      aclEntryMaximumPriority_(
-          SaiApiTable::getInstance()->switchApi().getAttribute(
-              managerTable_->switchManager().getSwitchSaiId(),
-              SaiSwitchTraits::Attributes::AclEntryMaximumPriority())),
-      fdbDstUserMetaDataRangeMin_(getFdbDstUserMetaDataRange().min),
-      fdbDstUserMetaDataRangeMax_(getFdbDstUserMetaDataRange().max),
-      fdbDstUserMetaDataMask_(getMetaDataMask(fdbDstUserMetaDataRangeMax_)),
-      routeDstUserMetaDataRangeMin_(getRouteDstUserMetaDataRange().min),
-      routeDstUserMetaDataRangeMax_(getRouteDstUserMetaDataRange().max),
-      routeDstUserMetaDataMask_(getMetaDataMask(routeDstUserMetaDataRangeMax_)),
-      neighborDstUserMetaDataRangeMin_(getNeighborDstUserMetaDataRange().min),
-      neighborDstUserMetaDataRangeMax_(getNeighborDstUserMetaDataRange().max),
-      neighborDstUserMetaDataMask_(
-          getMetaDataMask(neighborDstUserMetaDataRangeMax_)) {}
-
 sai_u32_range_t SaiAclTableManager::getFdbDstUserMetaDataRange() const {
   std::optional<SaiSwitchTraits::Attributes::FdbDstUserMetaDataRange> range =
       SaiSwitchTraits::Attributes::FdbDstUserMetaDataRange();
