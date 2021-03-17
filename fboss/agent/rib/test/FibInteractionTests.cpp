@@ -51,66 +51,6 @@ std::shared_ptr<facebook::fboss::SwitchState> dynamicFibUpdate(
 }
 } // namespace
 
-TEST(RouteNextHopEntry, ConvertRibDropToFibDrop) {
-  facebook::fboss::RouteNextHopEntry ribDrop(
-      facebook::fboss::RouteNextHopEntry::Action::DROP, kDefaultAdminDistance);
-
-  facebook::fboss::RouteNextHopEntry fibDrop =
-      facebook::fboss::ForwardingInformationBaseUpdater::toFibNextHop(ribDrop);
-
-  ASSERT_TRUE(fibDrop.isDrop());
-  ASSERT_EQ(fibDrop.getAdminDistance(), kDefaultAdminDistance);
-}
-
-TEST(RouteNextHopEntry, ConvertRibCpuToFibCpu) {
-  facebook::fboss::RouteNextHopEntry ribToCpu(
-      facebook::fboss::RouteNextHopEntry::Action::TO_CPU,
-      kDefaultAdminDistance);
-
-  facebook::fboss::RouteNextHopEntry fibToCpu =
-      facebook::fboss::ForwardingInformationBaseUpdater::toFibNextHop(ribToCpu);
-
-  ASSERT_TRUE(fibToCpu.isToCPU());
-  ASSERT_EQ(fibToCpu.getAdminDistance(), kDefaultAdminDistance);
-}
-
-TEST(RouteNextHopEntry, ConvertRibResolvedNextHopToFibResolvedNextHop) {
-  auto address = folly::IPAddress("2401:db00:e112:9103:1028::1b");
-  auto interfaceID = InterfaceID(1);
-
-  facebook::fboss::RouteNextHopEntry ribResolvedNextHop(
-      facebook::fboss::ResolvedNextHop(
-          address, interfaceID, facebook::fboss::ECMP_WEIGHT),
-      kDefaultAdminDistance);
-
-  facebook::fboss::RouteNextHopEntry fibResolvedNextHop =
-      facebook::fboss::ForwardingInformationBaseUpdater::toFibNextHop(
-          ribResolvedNextHop);
-
-  ASSERT_EQ(
-      fibResolvedNextHop.getAction(),
-      facebook::fboss::RouteNextHopEntry::Action::NEXTHOPS);
-  ASSERT_EQ(fibResolvedNextHop.getNextHopSet().size(), 1);
-  ASSERT_EQ(
-      *(fibResolvedNextHop.getNextHopSet().nth(0)),
-      facebook::fboss::ResolvedNextHop(
-          address, interfaceID, facebook::fboss::ECMP_WEIGHT));
-  ASSERT_EQ(fibResolvedNextHop.getAdminDistance(), kDefaultAdminDistance);
-}
-
-TEST(RouteNextHopEntry, AttemptToConvertRibUnresolvedNextHopToFibNextHop) {
-  facebook::fboss::RouteNextHopEntry ribUnresolvedNextHop(
-      facebook::fboss::UnresolvedNextHop(
-          folly::IPAddress("2401:db00:e112:9103:1028::1b"),
-          facebook::fboss::ECMP_WEIGHT),
-      kDefaultAdminDistance);
-
-  EXPECT_THROW(
-      facebook::fboss::ForwardingInformationBaseUpdater::toFibNextHop(
-          ribUnresolvedNextHop),
-      std::bad_optional_access);
-}
-
 TEST(Route, RibRouteToFibRoute) {
   folly::IPAddressV6 prefixAddress("::0");
   uint8_t prefixMask = 0;

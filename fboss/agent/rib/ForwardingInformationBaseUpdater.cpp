@@ -97,9 +97,7 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
         fib->getNodeIf(fibPrefix);
     if (fibRoute) {
       if (fibRoute->getClassID() == ribRoute->getClassID() &&
-          toFibNextHop(ribRoute->getForwardInfo()) ==
-              fibRoute->getForwardInfo()) {
-        // Reuse prior FIB route
+          ribRoute->getForwardInfo() == fibRoute->getForwardInfo()) {
       } else {
         updated = true;
         fibRoute = toFibRoute(ribRoute, fibRoute);
@@ -137,35 +135,6 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
                  : nullptr;
 }
 
-facebook::fboss::RouteNextHopEntry
-ForwardingInformationBaseUpdater::toFibNextHop(
-    const RouteNextHopEntry& ribNextHopEntry) {
-  switch (ribNextHopEntry.getAction()) {
-    case facebook::fboss::RouteNextHopEntry::Action::DROP:
-      return facebook::fboss::RouteNextHopEntry(
-          facebook::fboss::RouteNextHopEntry::Action::DROP,
-          ribNextHopEntry.getAdminDistance());
-    case facebook::fboss::RouteNextHopEntry::Action::TO_CPU:
-      return facebook::fboss::RouteNextHopEntry(
-          facebook::fboss::RouteNextHopEntry::Action::TO_CPU,
-          ribNextHopEntry.getAdminDistance());
-    case facebook::fboss::RouteNextHopEntry::Action::NEXTHOPS: {
-      facebook::fboss::RouteNextHopEntry::NextHopSet fibNextHopSet;
-      for (const auto& ribNextHop : ribNextHopEntry.getNextHopSet()) {
-        fibNextHopSet.insert(facebook::fboss::ResolvedNextHop(
-            ribNextHop.addr(),
-            ribNextHop.intfID().value(),
-            ribNextHop.weight(),
-            ribNextHop.labelForwardingAction()));
-      }
-      return facebook::fboss::RouteNextHopEntry(
-          fibNextHopSet, ribNextHopEntry.getAdminDistance());
-    }
-  }
-
-  XLOG(FATAL) << "Unknown RouteNextHopEntry::Action value";
-}
-
 template <typename AddrT>
 std::shared_ptr<facebook::fboss::Route<AddrT>>
 ForwardingInformationBaseUpdater::toFibRoute(
@@ -181,7 +150,7 @@ ForwardingInformationBaseUpdater::toFibRoute(
       ? curFibRoute->clone()
       : std::make_shared<facebook::fboss::Route<AddrT>>(fibPrefix);
 
-  fibRoute->setResolved(toFibNextHop(ribRoute->getForwardInfo()));
+  fibRoute->setResolved(ribRoute->getForwardInfo());
   if (ribRoute->isConnected()) {
     fibRoute->setConnected();
   }

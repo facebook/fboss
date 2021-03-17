@@ -31,8 +31,6 @@ class ForwardingInformationBaseUpdater {
   std::shared_ptr<SwitchState> operator()(
       const std::shared_ptr<SwitchState>& state);
 
-  static facebook::fboss::RouteNextHopEntry toFibNextHop(
-      const RouteNextHopEntry& ribNextHopEntry);
   template <typename AddrT>
   static std::shared_ptr<facebook::fboss::Route<AddrT>> toFibRoute(
       const std::shared_ptr<Route<AddrT>>& ribRoute,
