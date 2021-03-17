@@ -39,8 +39,8 @@ set(SAI_SWITCH_SRC
 if (SAI_TAJO_IMPL)
   list(APPEND SAI_SWITCH_SRC
     fboss/agent/hw/sai/switch/oss/SaiBufferManager.cpp
-    fboss/agent/hw/sai/switch/tajo/SaiSwitch.cpp
-    fboss/agent/hw/sai/switch/tajo/SaiTamManager.cpp
+    fboss/agent/hw/sai/switch/npu/tajo/SaiSwitch.cpp
+    fboss/agent/hw/sai/switch/npu/tajo/SaiTamManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiPortManager.cpp
   )
 else()
