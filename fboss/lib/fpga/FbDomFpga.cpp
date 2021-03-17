@@ -74,7 +74,7 @@ void FbDomFpga::ensureQsfpOutOfReset(int qsfp) {
 }
 
 /* This function triggers a hard reset to the QSFP module by toggling
- * bit in FPGA. This function is applicable to minipack16Q, minipack4dd
+ * bit in FPGA. This function is applicable to minipack16Q
  * which call it through Minipack.*Manager class
  */
 void FbDomFpga::triggerQsfpHardReset(int qsfp) {
