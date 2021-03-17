@@ -242,13 +242,7 @@ TYPED_TEST(RouteTest, routeApi) {
   RouteNextHopSet nhops = makeNextHops({"2::10"});
   RouteNextHopEntry nhopEntry(nhops, DISTANCE);
   auto testRouteApi = [&](auto route) {
-    if constexpr (TypeParam::hasStandAloneRib) {
-      EXPECT_TRUE(
-          route.fromFollyDynamic(route.toFollyDynamic()).isSame(&route));
-    } else {
-      EXPECT_TRUE(
-          route.fromFollyDynamic(route.toFollyDynamic())->isSame(&route));
-    }
+    EXPECT_TRUE(route.fromFollyDynamic(route.toFollyDynamic())->isSame(&route));
     EXPECT_EQ(pfx6, route.prefix());
     EXPECT_EQ(route.toRouteDetails(), route.getFields()->toRouteDetails());
     EXPECT_EQ(route.str(), route.getFields()->str());
@@ -288,11 +282,7 @@ TYPED_TEST(RouteTest, routeApi) {
     EXPECT_EQ(
         cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1, route.getClassID());
   };
-  if constexpr (TypeParam::hasStandAloneRib) {
-    testRouteApi(RibRouteV6(pfx6, kClientA, nhopEntry));
-  } else {
-    testRouteApi(RouteV6(pfx6, kClientA, nhopEntry));
-  }
+  testRouteApi(RouteV6(pfx6, kClientA, nhopEntry));
 }
 
 TYPED_TEST(RouteTest, dedup) {

@@ -5,7 +5,6 @@
 
 add_library(standalone_rib
   fboss/agent/rib/ConfigApplier.cpp
-  fboss/agent/rib/Route.cpp
   fboss/agent/rib/RouteUpdater.cpp
   fboss/agent/rib/RoutingInformationBase.cpp
 )

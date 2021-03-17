@@ -176,10 +176,10 @@ TEST(Route, removeRoutesForClient) {
   RouteNextHopSet nhop1 = makeNextHops({"1.1.1.10"}); // resolved by intf 1
   RouteNextHopSet nhop2 = makeNextHops({"2.2.2.10"}); // resolved by intf 2
   // 4 prefixes
-  RibRouteV4::Prefix r1{IPAddressV4("10.1.1.0"), 24};
-  RibRouteV4::Prefix r2{IPAddressV4("20.1.1.0"), 24};
-  RibRouteV6::Prefix r3{IPAddressV6("1001::0"), 48};
-  RibRouteV6::Prefix r4{IPAddressV6("2001::0"), 48};
+  RouteV4::Prefix r1{IPAddressV4("10.1.1.0"), 24};
+  RouteV4::Prefix r2{IPAddressV4("20.1.1.0"), 24};
+  RouteV6::Prefix r3{IPAddressV6("1001::0"), 48};
+  RouteV6::Prefix r4{IPAddressV6("2001::0"), 48};
 
   RibRouteUpdater u2(&v4Routes, &v6Routes);
   u2.addOrReplaceRoute(
@@ -352,7 +352,7 @@ bool stringStartsWith(std::string s1, std::string prefix) {
 
 void assertClientsNotPresent(
     IPv4NetworkToRouteMap& routes,
-    RibRouteV4::Prefix prefix,
+    RouteV4::Prefix prefix,
     std::vector<int16_t> clientIds) {
   IPv4NetworkToRouteMap::Iterator it;
 
@@ -368,7 +368,7 @@ void assertClientsNotPresent(
 
 void assertClientsPresent(
     IPv4NetworkToRouteMap& routes,
-    RibRouteV4::Prefix prefix,
+    RouteV4::Prefix prefix,
     std::vector<int16_t> clientIds) {
   IPv4NetworkToRouteMap::Iterator it;
 
@@ -543,10 +543,10 @@ TEST(Route, serializeRouteTable) {
   RouteNextHopSet nhop1 = makeNextHops({"1.1.1.10"}); // resolved by intf 1
   RouteNextHopSet nhop2 = makeNextHops({"2.2.2.10"}); // resolved by intf 2
   // 4 prefixes
-  RibRouteV4::Prefix r1{IPAddressV4("10.1.1.0"), 24};
-  RibRouteV4::Prefix r2{IPAddressV4("20.1.1.0"), 24};
-  RibRouteV6::Prefix r3{IPAddressV6("1001::0"), 48};
-  RibRouteV6::Prefix r4{IPAddressV6("2001::0"), 48};
+  RouteV4::Prefix r1{IPAddressV4("10.1.1.0"), 24};
+  RouteV4::Prefix r2{IPAddressV4("20.1.1.0"), 24};
+  RouteV6::Prefix r3{IPAddressV6("1001::0"), 48};
+  RouteV6::Prefix r4{IPAddressV6("2001::0"), 48};
 
   RibRouteUpdater u2(&v4Routes, &v6Routes);
   u2.addOrReplaceRoute(

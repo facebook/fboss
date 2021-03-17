@@ -10,10 +10,8 @@
 #pragma once
 
 #include "fboss/agent/rib/NetworkToRouteMap.h"
-#include "fboss/agent/rib/Route.h"
 
 #include "fboss/agent/state/ForwardingInformationBase.h"
-#include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/types.h"
 
@@ -22,10 +20,6 @@
 namespace facebook::fboss {
 
 class SwitchState;
-
-} // namespace facebook::fboss
-
-namespace facebook::fboss {
 
 class ForwardingInformationBaseUpdater {
  public:
