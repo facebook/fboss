@@ -42,17 +42,17 @@ class ManagedFdbEntry : public SaiObjectEventAggregateSubscriber<
                             ManagedFdbEntry,
                             SaiFdbTraits,
                             SaiBridgePortTraits,
-                            SaiRouterInterfaceTraits> {
+                            SaiVlanRouterInterfaceTraits> {
  public:
   using Base = SaiObjectEventAggregateSubscriber<
       ManagedFdbEntry,
       SaiFdbTraits,
       SaiBridgePortTraits,
-      SaiRouterInterfaceTraits>;
+      SaiVlanRouterInterfaceTraits>;
 
   using BridgePortWeakPtr = std::weak_ptr<const SaiObject<SaiBridgePortTraits>>;
   using RouterInterfaceWeakPtr =
-      std::weak_ptr<const SaiObject<SaiRouterInterfaceTraits>>;
+      std::weak_ptr<const SaiObject<SaiVlanRouterInterfaceTraits>>;
   using PublisherObjects =
       std::tuple<BridgePortWeakPtr, RouterInterfaceWeakPtr>;
 

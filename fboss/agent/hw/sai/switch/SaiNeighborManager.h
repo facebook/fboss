@@ -39,16 +39,16 @@ struct SaiNeighborHandle {
 class ManagedNeighbor : public SaiObjectEventAggregateSubscriber<
                             ManagedNeighbor,
                             SaiNeighborTraits,
-                            SaiRouterInterfaceTraits,
+                            SaiVlanRouterInterfaceTraits,
                             SaiFdbTraits> {
  public:
   using Base = SaiObjectEventAggregateSubscriber<
       ManagedNeighbor,
       SaiNeighborTraits,
-      SaiRouterInterfaceTraits,
+      SaiVlanRouterInterfaceTraits,
       SaiFdbTraits>;
   using RouterInterfaceWeakPtr =
-      std::weak_ptr<const SaiObject<SaiRouterInterfaceTraits>>;
+      std::weak_ptr<const SaiObject<SaiVlanRouterInterfaceTraits>>;
   using FdbWeakptr = std::weak_ptr<const SaiObject<SaiFdbTraits>>;
   using PublisherObjects = std::tuple<RouterInterfaceWeakPtr, FdbWeakptr>;
 

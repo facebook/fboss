@@ -26,12 +26,12 @@ class RouterInterfaceApiTest : public ::testing::Test {
   RouterInterfaceSaiId createRouterInterface(
       sai_object_id_t vr = 42,
       sai_object_id_t vlan = 43) {
-    SaiRouterInterfaceTraits::Attributes::Type typeAttribute(
+    SaiVlanRouterInterfaceTraits::Attributes::Type typeAttribute(
         SAI_ROUTER_INTERFACE_TYPE_VLAN);
-    SaiRouterInterfaceTraits::Attributes::VirtualRouterId
+    SaiVlanRouterInterfaceTraits::Attributes::VirtualRouterId
         virtualRouterIdAttribute(vr);
-    SaiRouterInterfaceTraits::Attributes::VlanId vlanIdAttribute(vlan);
-    auto rifId = routerInterfaceApi->create<SaiRouterInterfaceTraits>(
+    SaiVlanRouterInterfaceTraits::Attributes::VlanId vlanIdAttribute(vlan);
+    auto rifId = routerInterfaceApi->create<SaiVlanRouterInterfaceTraits>(
         {virtualRouterIdAttribute,
          typeAttribute,
          vlanIdAttribute,
@@ -55,8 +55,8 @@ TEST_F(RouterInterfaceApiTest, create) {
 TEST_F(RouterInterfaceApiTest, setSrcMac) {
   auto rifId = createRouterInterface();
   folly::MacAddress mac("42:42:42:42:42:42");
-  SaiRouterInterfaceTraits::Attributes::SrcMac ma(mac);
-  SaiRouterInterfaceTraits::Attributes::SrcMac ma2;
+  SaiVlanRouterInterfaceTraits::Attributes::SrcMac ma(mac);
+  SaiVlanRouterInterfaceTraits::Attributes::SrcMac ma2;
   EXPECT_NE(mac, routerInterfaceApi->getAttribute(rifId, ma2));
   routerInterfaceApi->setAttribute(rifId, ma);
   EXPECT_EQ(mac, routerInterfaceApi->getAttribute(rifId, ma2));
@@ -64,9 +64,9 @@ TEST_F(RouterInterfaceApiTest, setSrcMac) {
 
 TEST_F(RouterInterfaceApiTest, setVrId) {
   auto rifId = createRouterInterface();
-  SaiRouterInterfaceTraits::Attributes::VirtualRouterId
+  SaiVlanRouterInterfaceTraits::Attributes::VirtualRouterId
       virtualRouterIdAttribute(10);
-  SaiRouterInterfaceTraits::Attributes::VirtualRouterId
+  SaiVlanRouterInterfaceTraits::Attributes::VirtualRouterId
       virtualRouterIdAttribute2;
   EXPECT_EQ(
       42, routerInterfaceApi->getAttribute(rifId, virtualRouterIdAttribute2));
@@ -84,8 +84,8 @@ TEST_F(RouterInterfaceApiTest, setVrId) {
 
 TEST_F(RouterInterfaceApiTest, setVlanId) {
   auto rifId = createRouterInterface();
-  SaiRouterInterfaceTraits::Attributes::VlanId vlanIdAttribute(10);
-  SaiRouterInterfaceTraits::Attributes::VlanId vlanIdAttribute2;
+  SaiVlanRouterInterfaceTraits::Attributes::VlanId vlanIdAttribute(10);
+  SaiVlanRouterInterfaceTraits::Attributes::VlanId vlanIdAttribute2;
   EXPECT_EQ(43, routerInterfaceApi->getAttribute(rifId, vlanIdAttribute2));
   EXPECT_THROW(
       try {
@@ -102,8 +102,8 @@ TEST_F(RouterInterfaceApiTest, setVlanId) {
 TEST_F(RouterInterfaceApiTest, setMtu) {
   auto rifId = createRouterInterface();
   sai_uint32_t mtu{9000};
-  SaiRouterInterfaceTraits::Attributes::Mtu mtu1{mtu};
-  SaiRouterInterfaceTraits::Attributes::Mtu mtu2;
+  SaiVlanRouterInterfaceTraits::Attributes::Mtu mtu1{mtu};
+  SaiVlanRouterInterfaceTraits::Attributes::Mtu mtu2;
   EXPECT_NE(mtu, routerInterfaceApi->getAttribute(rifId, mtu2));
   EXPECT_EQ(1514 /*default*/, routerInterfaceApi->getAttribute(rifId, mtu2));
   routerInterfaceApi->setAttribute(rifId, mtu1);
@@ -112,14 +112,16 @@ TEST_F(RouterInterfaceApiTest, setMtu) {
 
 TEST_F(RouterInterfaceApiTest, formatRouterInterfaceAttributes) {
   std::string macStr{"42:42:42:42:42:42"};
-  SaiRouterInterfaceTraits::Attributes::SrcMac sm{folly::MacAddress{macStr}};
+  SaiVlanRouterInterfaceTraits::Attributes::SrcMac sm{
+      folly::MacAddress{macStr}};
   EXPECT_EQ(fmt::format("SrcMac: {}", macStr), fmt::format("{}", sm));
-  SaiRouterInterfaceTraits::Attributes::Type t{SAI_ROUTER_INTERFACE_TYPE_VLAN};
+  SaiVlanRouterInterfaceTraits::Attributes::Type t{
+      SAI_ROUTER_INTERFACE_TYPE_VLAN};
   EXPECT_EQ("Type: 1", fmt::format("{}", t));
-  SaiRouterInterfaceTraits::Attributes::VirtualRouterId vrid{0};
+  SaiVlanRouterInterfaceTraits::Attributes::VirtualRouterId vrid{0};
   EXPECT_EQ("VirtualRouterId: 0", fmt::format("{}", vrid));
-  SaiRouterInterfaceTraits::Attributes::VlanId vid{42};
+  SaiVlanRouterInterfaceTraits::Attributes::VlanId vid{42};
   EXPECT_EQ("VlanId: 42", fmt::format("{}", vid));
-  SaiRouterInterfaceTraits::Attributes::Mtu m{9000};
+  SaiVlanRouterInterfaceTraits::Attributes::Mtu m{9000};
   EXPECT_EQ("Mtu: 9000", fmt::format("{}", m));
 }

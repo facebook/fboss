@@ -29,13 +29,17 @@ TEST(LoggingUtilTest, variant) {
 }
 
 TEST(LoggingUtilTest, variantRecursive) {
-  SaiRouterInterfaceTraits::AdapterKey rifKey{42};
+  SaiVlanRouterInterfaceTraits::AdapterKey rifKey{42};
   folly::CIDRNetwork prefix("42.42.42.0", 24);
   SaiRouteTraits::AdapterKey routeKey{0, 0, prefix};
-  std::variant<SaiRouterInterfaceTraits::AdapterKey, SaiRouteTraits::AdapterKey>
+  std::variant<
+      SaiVlanRouterInterfaceTraits::AdapterKey,
+      SaiRouteTraits::AdapterKey>
       vRif{rifKey};
   EXPECT_EQ("RouterInterfaceSaiId(42)", fmt::format("{}", vRif));
-  std::variant<SaiRouterInterfaceTraits::AdapterKey, SaiRouteTraits::AdapterKey>
+  std::variant<
+      SaiVlanRouterInterfaceTraits::AdapterKey,
+      SaiRouteTraits::AdapterKey>
       vRoute{routeKey};
   EXPECT_EQ(
       "RouteEntry(switch: 0, vrf: 0, prefix: 42.42.42.0/24)",

@@ -38,11 +38,11 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateRouterInterface(
   }
   VirtualRouterSaiId saiVirtualRouterId{
       virtualRouterHandle->virtualRouter->adapterKey()};
-  SaiRouterInterfaceTraits::Attributes::VirtualRouterId
+  SaiVlanRouterInterfaceTraits::Attributes::VirtualRouterId
       virtualRouterIdAttribute{saiVirtualRouterId};
 
   // we only use VLAN based router interfaces
-  SaiRouterInterfaceTraits::Attributes::Type typeAttribute{
+  SaiVlanRouterInterfaceTraits::Attributes::Type typeAttribute{
       SAI_ROUTER_INTERFACE_TYPE_VLAN};
 
   // compute the VLAN sai id for this router interface
@@ -53,29 +53,29 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateRouterInterface(
     throw FbossError(
         "Failed to add router interface: no sai vlan for VlanID ", swVlanId);
   }
-  SaiRouterInterfaceTraits::Attributes::VlanId vlanIdAttribute{
+  SaiVlanRouterInterfaceTraits::Attributes::VlanId vlanIdAttribute{
       saiVlanHandle->vlan->adapterKey()};
 
   // get the src mac for this router interface
   folly::MacAddress srcMac = swInterface->getMac();
-  SaiRouterInterfaceTraits::Attributes::SrcMac srcMacAttribute{srcMac};
+  SaiVlanRouterInterfaceTraits::Attributes::SrcMac srcMacAttribute{srcMac};
 
   // get MTU
-  SaiRouterInterfaceTraits::Attributes::Mtu mtuAttribute{
+  SaiVlanRouterInterfaceTraits::Attributes::Mtu mtuAttribute{
       static_cast<uint32_t>(swInterface->getMtu())};
 
   // create the router interface
-  SaiRouterInterfaceTraits::CreateAttributes attributes{
+  SaiVlanRouterInterfaceTraits::CreateAttributes attributes{
       virtualRouterIdAttribute,
       typeAttribute,
       vlanIdAttribute,
       srcMacAttribute,
       mtuAttribute};
-  SaiRouterInterfaceTraits::AdapterHostKey k{
+  SaiVlanRouterInterfaceTraits::AdapterHostKey k{
       virtualRouterIdAttribute,
       vlanIdAttribute,
   };
-  auto& store = saiStore_->get<SaiRouterInterfaceTraits>();
+  auto& store = saiStore_->get<SaiVlanRouterInterfaceTraits>();
   std::shared_ptr<SaiRouterInterface> routerInterface =
       store.setObject(k, attributes, swInterface->getID());
   auto routerInterfaceHandle = std::make_unique<SaiRouterInterfaceHandle>();

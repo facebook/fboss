@@ -114,43 +114,17 @@ template <>
 struct SaiObjectHasConditionalAttributes<SaiMplsRouterInterfaceTraits>
     : public std::true_type {};
 
-struct SaiRouterInterfaceTraits {
-  static constexpr sai_object_type_t ObjectType =
-      SAI_OBJECT_TYPE_ROUTER_INTERFACE;
-  using SaiApiT = RouterInterfaceApi;
-  struct Attributes {
-    using EnumType = sai_router_interface_attr_t;
-    using SrcMac = SaiAttribute<
-        EnumType,
-        SAI_ROUTER_INTERFACE_ATTR_SRC_MAC_ADDRESS,
-        folly::MacAddress>;
-    using Type =
-        SaiAttribute<EnumType, SAI_ROUTER_INTERFACE_ATTR_TYPE, sai_int32_t>;
-    using VirtualRouterId = SaiAttribute<
-        EnumType,
-        SAI_ROUTER_INTERFACE_ATTR_VIRTUAL_ROUTER_ID,
-        SaiObjectIdT>;
-    using VlanId =
-        SaiAttribute<EnumType, SAI_ROUTER_INTERFACE_ATTR_VLAN_ID, SaiObjectIdT>;
-    using Mtu =
-        SaiAttribute<EnumType, SAI_ROUTER_INTERFACE_ATTR_MTU, sai_uint32_t>;
-  };
-  using CreateAttributes = std::tuple<
-      Attributes::VirtualRouterId,
-      Attributes::Type,
-      Attributes::VlanId,
-      std::optional<Attributes::SrcMac>,
-      std::optional<Attributes::Mtu>>;
-  using AdapterKey = RouterInterfaceSaiId;
-  using AdapterHostKey =
-      std::tuple<Attributes::VirtualRouterId, Attributes::VlanId>;
-};
+using SaiRouterInterfaceTraits = ConditionObjectTraits<
+    SaiVlanRouterInterfaceTraits,
+    SaiMplsRouterInterfaceTraits>;
+using SaiRouterInterfaceAdaptertKey =
+    typename SaiRouterInterfaceTraits::AdapterKey<RouterInterfaceSaiId>;
 
-SAI_ATTRIBUTE_NAME(RouterInterface, SrcMac)
-SAI_ATTRIBUTE_NAME(RouterInterface, Type)
-SAI_ATTRIBUTE_NAME(RouterInterface, VirtualRouterId)
-SAI_ATTRIBUTE_NAME(RouterInterface, VlanId)
-SAI_ATTRIBUTE_NAME(RouterInterface, Mtu)
+SAI_ATTRIBUTE_NAME(VlanRouterInterface, SrcMac)
+SAI_ATTRIBUTE_NAME(VlanRouterInterface, Type)
+SAI_ATTRIBUTE_NAME(VlanRouterInterface, VirtualRouterId)
+SAI_ATTRIBUTE_NAME(VlanRouterInterface, VlanId)
+SAI_ATTRIBUTE_NAME(VlanRouterInterface, Mtu)
 
 class RouterInterfaceApi : public SaiApi<RouterInterfaceApi> {
  public:

@@ -42,7 +42,8 @@ void ManagedFdbEntry::createObject(PublisherObjects objects) {
   /* both interface and  bridge port exist, create fdb entry */
   auto interface = std::get<RouterInterfaceWeakPtr>(objects).lock();
   auto vlan = SaiApiTable::getInstance()->routerInterfaceApi().getAttribute(
-      interface->adapterKey(), SaiRouterInterfaceTraits::Attributes::VlanId{});
+      interface->adapterKey(),
+      SaiVlanRouterInterfaceTraits::Attributes::VlanId{});
   SaiFdbTraits::FdbEntry entry{switchId_, vlan, mac_};
 
   auto bridgePort = std::get<BridgePortWeakPtr>(objects).lock();
@@ -95,7 +96,7 @@ SaiFdbTraits::FdbEntry ManagedFdbEntry::makeFdbEntry(
       managerTable->routerInterfaceManager().getRouterInterfaceHandle(
           interfaceId_);
   auto vlan = GET_ATTR(
-      RouterInterface, VlanId, rifHandle->routerInterface->attributes());
+      VlanRouterInterface, VlanId, rifHandle->routerInterface->attributes());
   return SaiFdbTraits::FdbEntry{switchId_, vlan, mac_};
 }
 
@@ -136,7 +137,7 @@ void SaiFdbManager::addFdbEntry(
   SaiObjectEventPublisher::getInstance()->get<SaiBridgePortTraits>().subscribe(
       managedFdbEntry);
   SaiObjectEventPublisher::getInstance()
-      ->get<SaiRouterInterfaceTraits>()
+      ->get<SaiVlanRouterInterfaceTraits>()
       .subscribe(managedFdbEntry);
 
   portToKeys_[port].emplace(key);

@@ -490,10 +490,11 @@ class SaiObject {
  *
  * or even worse:
  *
- * auto mac = GET_OPT_ATTR(RouterInterface, SrcMac, object.attributes());
+ * auto mac = GET_OPT_ATTR(VlanRouterInterfaceface, SrcMac,
+ *    object.attributes());
  * to
  * auto mac =
- *   std::get<std::optional<SaiRouterInterfaceTraits::Attributes::SrcMac>>(
+ *   std::get<std::optional<SaiVlanRouterInterfaceTraits::Attributes::SrcMac>>(
  *     object.attributes()).value().value();
  */
 #define GET_ATTR(obj, attr, tuple) \

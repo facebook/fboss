@@ -108,7 +108,7 @@ void SaiNeighborManager::addNeighbor(
       metadata);
 
   SaiObjectEventPublisher::getInstance()
-      ->get<SaiRouterInterfaceTraits>()
+      ->get<SaiVlanRouterInterfaceTraits>()
       .subscribe(subscriber);
   SaiObjectEventPublisher::getInstance()->get<SaiFdbTraits>().subscribe(
       subscriber);

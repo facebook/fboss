@@ -31,7 +31,7 @@ class SaiManagerTable;
 class SaiPlatform;
 class SaiStore;
 
-using SaiRouterInterface = SaiObject<SaiRouterInterfaceTraits>;
+using SaiRouterInterface = SaiObject<SaiVlanRouterInterfaceTraits>;
 
 struct SaiRouterInterfaceHandle {
   std::shared_ptr<SaiRouterInterface> routerInterface;

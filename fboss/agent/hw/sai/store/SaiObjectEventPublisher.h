@@ -47,14 +47,16 @@ struct PublisherKey<SaiBridgePortTraits>
     : detail::PublisherKeyInternal<SaiBridgePortTraits, SaiPortDescriptor> {};
 
 template <>
-struct IsObjectPublisher<SaiRouterInterfaceTraits> : std::true_type {};
+struct IsObjectPublisher<SaiVlanRouterInterfaceTraits> : std::true_type {};
 
 template <>
-struct IsPublisherKeyCustomType<SaiRouterInterfaceTraits> : std::true_type {};
+struct IsPublisherKeyCustomType<SaiVlanRouterInterfaceTraits> : std::true_type {
+};
 
 template <>
-struct PublisherKey<SaiRouterInterfaceTraits>
-    : detail::PublisherKeyInternal<SaiRouterInterfaceTraits, InterfaceID> {};
+struct PublisherKey<SaiVlanRouterInterfaceTraits>
+    : detail::PublisherKeyInternal<SaiVlanRouterInterfaceTraits, InterfaceID> {
+};
 
 template <>
 struct IsObjectPublisher<SaiFdbTraits> : std::true_type {};
@@ -213,7 +215,7 @@ class SaiObjectEventPublisher {
       detail::SaiObjectEventPublisher<SaiNeighborTraits>,
       detail::SaiObjectEventPublisher<SaiIpNextHopTraits>,
       detail::SaiObjectEventPublisher<SaiMplsNextHopTraits>,
-      detail::SaiObjectEventPublisher<SaiRouterInterfaceTraits>,
+      detail::SaiObjectEventPublisher<SaiVlanRouterInterfaceTraits>,
       detail::SaiObjectEventPublisher<SaiPortTraits>>
       publishers_;
 };
