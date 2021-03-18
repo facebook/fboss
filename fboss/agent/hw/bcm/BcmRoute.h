@@ -21,7 +21,7 @@ extern "C" {
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/types.h"
 
-#include <boost/container/flat_map.hpp>
+#include <map>
 
 namespace facebook::fboss {
 
@@ -149,7 +149,7 @@ class BcmRouteTable : public BcmHostTableIf {
   BcmSwitch* hw_;
 
   // routes programmed from addRoute()
-  boost::container::flat_map<Key, std::unique_ptr<BcmRoute>> fib_;
+  std::map<Key, std::unique_ptr<BcmRoute>> fib_;
   // host routes programmed from programHostRoutes*()
   FlatRefMap<BcmHostKey, BcmHostRoute> hostRoutes_;
 };
