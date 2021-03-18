@@ -27,6 +27,93 @@ namespace facebook::fboss {
 
 class RouterInterfaceApi;
 
+namespace detail {
+template <sai_router_interface_type_t type>
+struct RouterInterfaceAttributesTypes;
+
+template <>
+struct RouterInterfaceAttributesTypes<SAI_ROUTER_INTERFACE_TYPE_VLAN> {
+  using VlanId = SaiAttribute<
+      sai_router_interface_attr_t,
+      SAI_ROUTER_INTERFACE_ATTR_VLAN_ID,
+      SaiObjectIdT>;
+};
+
+template <>
+struct RouterInterfaceAttributesTypes<SAI_ROUTER_INTERFACE_TYPE_MPLS_ROUTER> {
+  using VlanId = void;
+};
+
+template <typename Attributes, sai_router_interface_type_t type>
+struct RouterInterfaceTraitsAttributes;
+
+template <typename Attributes>
+struct RouterInterfaceTraitsAttributes<
+    Attributes,
+    SAI_ROUTER_INTERFACE_TYPE_VLAN> {
+  using CreateAttributes = std::tuple<
+      typename Attributes::VirtualRouterId,
+      typename Attributes::Type,
+      typename Attributes::VlanId,
+      std::optional<typename Attributes::SrcMac>,
+      std::optional<typename Attributes::Mtu>>;
+  using AdapterHostKey = std::
+      tuple<typename Attributes::VirtualRouterId, typename Attributes::VlanId>;
+};
+
+template <typename Attributes>
+struct RouterInterfaceTraitsAttributes<
+    Attributes,
+    SAI_ROUTER_INTERFACE_TYPE_MPLS_ROUTER> {
+  using CreateAttributes = std::
+      tuple<typename Attributes::VirtualRouterId, typename Attributes::Type>;
+  using AdapterHostKey = std::tuple<typename Attributes::VirtualRouterId>;
+};
+} // namespace detail
+
+template <sai_router_interface_type_t type>
+struct SaiRouterInterfaceTraitsT {
+  static constexpr sai_object_type_t ObjectType =
+      SAI_OBJECT_TYPE_ROUTER_INTERFACE;
+  using SaiApiT = RouterInterfaceApi;
+  struct Attributes {
+    using EnumType = sai_router_interface_attr_t;
+    using SrcMac = SaiAttribute<
+        EnumType,
+        SAI_ROUTER_INTERFACE_ATTR_SRC_MAC_ADDRESS,
+        folly::MacAddress>;
+    using Type =
+        SaiAttribute<EnumType, SAI_ROUTER_INTERFACE_ATTR_TYPE, sai_int32_t>;
+    using VirtualRouterId = SaiAttribute<
+        EnumType,
+        SAI_ROUTER_INTERFACE_ATTR_VIRTUAL_ROUTER_ID,
+        SaiObjectIdT>;
+    using VlanId =
+        typename detail::RouterInterfaceAttributesTypes<type>::VlanId;
+    using Mtu =
+        SaiAttribute<EnumType, SAI_ROUTER_INTERFACE_ATTR_MTU, sai_uint32_t>;
+  };
+  using AdapterKey = RouterInterfaceSaiId;
+  using AdapterHostKey = typename detail::
+      RouterInterfaceTraitsAttributes<Attributes, type>::AdapterHostKey;
+  using CreateAttributes = typename detail::
+      RouterInterfaceTraitsAttributes<Attributes, type>::CreateAttributes;
+  using ConditionAttributes = std::tuple<typename Attributes::Type>;
+  inline const static ConditionAttributes kConditionAttributes{type};
+};
+
+using SaiVlanRouterInterfaceTraits =
+    SaiRouterInterfaceTraitsT<SAI_ROUTER_INTERFACE_TYPE_VLAN>;
+using SaiMplsRouterInterfaceTraits =
+    SaiRouterInterfaceTraitsT<SAI_ROUTER_INTERFACE_TYPE_MPLS_ROUTER>;
+
+template <>
+struct SaiObjectHasConditionalAttributes<SaiVlanRouterInterfaceTraits>
+    : public std::true_type {};
+template <>
+struct SaiObjectHasConditionalAttributes<SaiMplsRouterInterfaceTraits>
+    : public std::true_type {};
+
 struct SaiRouterInterfaceTraits {
   static constexpr sai_object_type_t ObjectType =
       SAI_OBJECT_TYPE_ROUTER_INTERFACE;
