@@ -51,12 +51,22 @@ sai_status_t create_router_interface_fn(
         return SAI_STATUS_INVALID_PARAMETER;
     }
   }
-  if (vrId && type && vlanId) {
-    *router_interface_id = fs->routeInterfaceManager.create(
-        FakeRouterInterface(vrId.value(), type.value(), vlanId.value()));
-  } else {
+  if (!vrId || !type) {
     return SAI_STATUS_INVALID_PARAMETER;
   }
+  switch (type.value()) {
+    case SAI_ROUTER_INTERFACE_TYPE_VLAN:
+      *router_interface_id = fs->routeInterfaceManager.create(
+          FakeRouterInterface(vrId.value(), vlanId.value()));
+      break;
+    case SAI_ROUTER_INTERFACE_TYPE_MPLS_ROUTER:
+      *router_interface_id =
+          fs->routeInterfaceManager.create(FakeRouterInterface(vrId.value()));
+      break;
+    default:
+      return SAI_STATUS_NOT_SUPPORTED;
+  }
+
   if (mac) {
     auto& ri = fs->routeInterfaceManager.get(*router_interface_id);
     ri.setSrcMac(mac.value());
@@ -110,6 +120,9 @@ sai_status_t get_router_interface_attribute_fn(
         attr[i].value.oid = ri.virtualRouterId;
         break;
       case SAI_ROUTER_INTERFACE_ATTR_VLAN_ID:
+        if (ri.type != SAI_ROUTER_INTERFACE_TYPE_VLAN) {
+          return SAI_STATUS_IS_ATTR_NOT_SUPPORTED(i);
+        }
         attr[i].value.oid = ri.vlanId;
         break;
       case SAI_ROUTER_INTERFACE_ATTR_MTU:

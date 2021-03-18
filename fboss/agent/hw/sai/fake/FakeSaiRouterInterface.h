@@ -23,9 +23,14 @@ class FakeRouterInterface {
  public:
   FakeRouterInterface(
       const sai_object_id_t& virtualRouterId,
-      int32_t type,
       const sai_object_id_t vlanId)
-      : virtualRouterId(virtualRouterId), type(type), vlanId(vlanId) {}
+      : virtualRouterId(virtualRouterId),
+        type(SAI_ROUTER_INTERFACE_TYPE_VLAN),
+        vlanId(vlanId) {}
+  explicit FakeRouterInterface(const sai_object_id_t& virtualRouterId)
+      : virtualRouterId(virtualRouterId),
+        type(SAI_ROUTER_INTERFACE_TYPE_MPLS_ROUTER) {}
+
   void setSrcMac(const sai_mac_t& mac) {
     folly::ByteRange r(std::begin(mac), std::end(mac));
     srcMac_ = folly::MacAddress::fromBinary(r);
@@ -38,7 +43,7 @@ class FakeRouterInterface {
   }
   sai_object_id_t virtualRouterId;
   int32_t type;
-  sai_object_id_t vlanId;
+  sai_object_id_t vlanId{0};
   sai_object_id_t id;
   sai_uint32_t mtu{1514};
 
