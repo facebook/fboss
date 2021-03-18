@@ -17,6 +17,13 @@
 using folly::MutableByteRange;
 using std::lock_guard;
 
+namespace {
+
+constexpr auto kNumPresenceDetectionRetries = 5;
+constexpr auto kPresenceDetectionRetryMillis = 10;
+
+} // namespace
+
 namespace facebook::fboss {
 void BaseWedgeI2CBus::open() {
   dev_->open();
@@ -162,18 +169,22 @@ void BaseWedgeI2CBus::moduleWrite(
 
 bool BaseWedgeI2CBus::isPresent(unsigned int module) {
   uint8_t buf = 0;
-  try {
-    moduleRead(module, TransceiverI2CApi::ADDR_QSFP, 0, sizeof(buf), &buf);
-  } catch (const I2cError& ex) {
-    /*
-     * This can either mean that we failed to open the USB device
-     * because it was already in use, or that the I2C read failed.
-     * At some point we might want to return more a more accurate
-     * status value to higher-level functions.
-     */
-    return false;
+  for (int i = 0; i < kNumPresenceDetectionRetries; ++i) {
+    try {
+      moduleRead(module, TransceiverI2CApi::ADDR_QSFP, 0, sizeof(buf), &buf);
+      return true;
+    } catch (const I2cError& ex) {
+      /*
+       * This can either mean that we failed to open the USB device
+       * because it was already in use, or that the I2C read failed.
+       * At some point we might want to return more a more accurate
+       * status value to higher-level functions.
+       */
+      /* sleep override */
+      usleep(kPresenceDetectionRetryMillis * 1000);
+    }
   }
-  return true;
+  return false;
 }
 
 void BaseWedgeI2CBus::scanPresence(
