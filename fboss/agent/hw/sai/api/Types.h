@@ -52,10 +52,28 @@ FBOSS_STRONG_TYPE(sai_object_id_t, TamReportSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, TamEventActionSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, TamEventSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, TamSaiId);
+FBOSS_STRONG_TYPE(sai_object_id_t, MacsecSaiId);
+FBOSS_STRONG_TYPE(sai_object_id_t, MacsecPortSaiId);
+FBOSS_STRONG_TYPE(sai_object_id_t, MacsecSASaiId);
+FBOSS_STRONG_TYPE(sai_object_id_t, MacsecSCSaiId);
+FBOSS_STRONG_TYPE(sai_object_id_t, MacsecFlowSaiId);
 
 namespace facebook::fboss {
 
 using SaiCharArray32 = std::array<char, 32>;
+
+// Converts a sai type alias of T[x] to std::array<T, x>
+template <
+    typename ArrayT,
+    typename MemberT = typename std::remove_extent<ArrayT>::type,
+    size_t MemberCount = std::extent<ArrayT>::value>
+struct SaiArrayType {
+  using type = std::array<MemberT, MemberCount>;
+};
+
+using SaiMacsecAuthKey = SaiArrayType<sai_macsec_auth_key_t>::type;
+using SaiMacsecSak = SaiArrayType<sai_macsec_sak_t>::type;
+using SaiMacsecSalt = SaiArrayType<sai_macsec_salt_t>::type;
 
 template <typename SaiId>
 sai_object_id_t* rawSaiId(SaiId* id) {

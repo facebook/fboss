@@ -128,10 +128,16 @@ namespace {
   }
 
 using facebook::fboss::SaiCharArray32;
+using facebook::fboss::SaiMacsecAuthKey;
+using facebook::fboss::SaiMacsecSak;
+using facebook::fboss::SaiMacsecSalt;
 using facebook::fboss::SaiObjectIdT;
 
 DEFINE_extract(bool, booldata);
 DEFINE_extract(SaiCharArray32, chardata);
+DEFINE_extract(SaiMacsecAuthKey, macsecauthkey);
+DEFINE_extract(SaiMacsecSak, macsecsak);
+DEFINE_extract(SaiMacsecSalt, macsecsalt);
 DEFINE_extract(sai_uint8_t, u8);
 DEFINE_extract(sai_uint16_t, u16);
 DEFINE_extract(sai_uint32_t, u32);
@@ -193,14 +199,16 @@ _fill(const SrcT& src, DstT& dst) {
   dst = src;
 }
 
-inline void _fill(const std::array<char, 32>& src, char dst[32]) {
-  for (auto i = 0; i < 32; i++) {
+template <typename T, size_t size>
+inline void _fill(const std::array<T, size>& src, T (&dst)[size]) {
+  for (auto i = 0; i < size; i++) {
     dst[i] = src[i];
   }
 }
 
-inline void _fill(const char src[32], std::array<char, 32>& dst) {
-  for (auto i = 0; i < 32; i++) {
+template <typename T, size_t size>
+inline void _fill(const T src[size], std::array<T, size>& dst) {
+  for (auto i = 0; i < size; i++) {
     dst[i] = src[i];
   }
 }

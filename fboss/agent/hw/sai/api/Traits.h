@@ -113,6 +113,11 @@ struct WrappedSaiType<std::array<char, 32>> {
   using value = char[32];
 };
 
+template <size_t size>
+struct WrappedSaiType<std::array<uint8_t, size>> {
+  using value = uint8_t[size];
+};
+
 template <typename T>
 class AclEntryField {
  public:
