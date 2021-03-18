@@ -27,6 +27,12 @@ class RouterInterfaceStoreTest : public SaiStoreTest {
         .create<SaiVlanRouterInterfaceTraits>(
             {0, SAI_ROUTER_INTERFACE_TYPE_VLAN, vlanId, mac, mtu}, 0);
   }
+
+  RouterInterfaceSaiId createMplsRouterInterface() {
+    return saiApiTable->routerInterfaceApi()
+        .create<SaiMplsRouterInterfaceTraits>(
+            {0, SAI_ROUTER_INTERFACE_TYPE_MPLS_ROUTER}, 0);
+  }
 };
 
 TEST_F(RouterInterfaceStoreTest, loadRouterInterfaces) {
@@ -34,6 +40,7 @@ TEST_F(RouterInterfaceStoreTest, loadRouterInterfaces) {
   auto srcMac2 = folly::MacAddress{"42:42:42:42:42:42"};
   auto routerInterfaceSaiId1 = createRouterInterface(41, srcMac1, 1514);
   auto routerInterfaceSaiId2 = createRouterInterface(42, srcMac2, 9000);
+  auto mplsRouterInterfaceSaiId = createMplsRouterInterface();
 
   SaiStore s(0);
   s.reload();
@@ -45,6 +52,10 @@ TEST_F(RouterInterfaceStoreTest, loadRouterInterfaces) {
   EXPECT_EQ(got->adapterKey(), routerInterfaceSaiId1);
   got = store.get(k2);
   EXPECT_EQ(got->adapterKey(), routerInterfaceSaiId2);
+
+  auto& store1 = s.get<SaiMplsRouterInterfaceTraits>();
+  auto got1 = store1.get(SaiMplsRouterInterfaceTraits::AdapterHostKey{0});
+  EXPECT_EQ(got1->adapterKey(), mplsRouterInterfaceSaiId);
 }
 
 TEST_F(RouterInterfaceStoreTest, routerInterfaceLoadCtor) {
@@ -57,6 +68,16 @@ TEST_F(RouterInterfaceStoreTest, routerInterfaceLoadCtor) {
   EXPECT_EQ(
       GET_OPT_ATTR(VlanRouterInterface, SrcMac, obj.attributes()), srcMac);
   EXPECT_EQ(GET_OPT_ATTR(VlanRouterInterface, Mtu, obj.attributes()), 9000);
+
+  auto mplsRouterInterfaceSaiId = createMplsRouterInterface();
+  auto mplsObj =
+      createObj<SaiMplsRouterInterfaceTraits>(mplsRouterInterfaceSaiId);
+  EXPECT_EQ(mplsObj.adapterKey(), mplsRouterInterfaceSaiId);
+  EXPECT_EQ(
+      GET_ATTR(MplsRouterInterface, Type, mplsObj.attributes()),
+      SAI_ROUTER_INTERFACE_TYPE_MPLS_ROUTER);
+  EXPECT_EQ(
+      GET_ATTR(MplsRouterInterface, VirtualRouterId, mplsObj.attributes()), 0);
 }
 
 TEST_F(RouterInterfaceStoreTest, routerInterfaceCreateCtor) {
@@ -70,6 +91,17 @@ TEST_F(RouterInterfaceStoreTest, routerInterfaceCreateCtor) {
   EXPECT_EQ(
       GET_OPT_ATTR(VlanRouterInterface, SrcMac, obj.attributes()), srcMac);
   EXPECT_EQ(GET_OPT_ATTR(VlanRouterInterface, Mtu, obj.attributes()), 9000);
+
+  SaiMplsRouterInterfaceTraits::AdapterHostKey mplsIntfAhk{0};
+  SaiMplsRouterInterfaceTraits::CreateAttributes mplsIntfCreateAttr{
+      0, SAI_ROUTER_INTERFACE_TYPE_MPLS_ROUTER};
+  auto mplsObj = createObj<SaiMplsRouterInterfaceTraits>(
+      mplsIntfAhk, mplsIntfCreateAttr, 0);
+  EXPECT_EQ(
+      GET_ATTR(MplsRouterInterface, Type, mplsObj.attributes()),
+      SAI_ROUTER_INTERFACE_TYPE_MPLS_ROUTER);
+  EXPECT_EQ(
+      GET_ATTR(MplsRouterInterface, VirtualRouterId, mplsObj.attributes()), 0);
 }
 
 TEST_F(RouterInterfaceStoreTest, routerInterfaceSetSrcMac) {
@@ -100,6 +132,10 @@ TEST_F(RouterInterfaceStoreTest, serDeserTest) {
 
   verifyAdapterKeySerDeser<SaiVlanRouterInterfaceTraits>(
       {routerInterfaceSaiId});
+
+  auto mplsRouterInterfaceSaiId = createMplsRouterInterface();
+  verifyAdapterKeySerDeser<SaiMplsRouterInterfaceTraits>(
+      {mplsRouterInterfaceSaiId}, true);
 }
 
 TEST_F(RouterInterfaceStoreTest, routerFormatTest) {
@@ -113,6 +149,17 @@ TEST_F(RouterInterfaceStoreTest, routerFormatTest) {
       "(VirtualRouterId: 0, Type: 1, VlanId: 41, "
       "SrcMac: 41:41:41:41:41:41, Mtu: 9000)";
   EXPECT_EQ(expected, fmt::format("{}", obj));
+
+  SaiMplsRouterInterfaceTraits::AdapterHostKey mplsIntfAhk{0};
+  SaiMplsRouterInterfaceTraits::CreateAttributes mplsIntfCreateAttr{
+      0, SAI_ROUTER_INTERFACE_TYPE_MPLS_ROUTER};
+  auto mplsObj = createObj<SaiMplsRouterInterfaceTraits>(
+      mplsIntfAhk, mplsIntfCreateAttr, 0);
+
+  auto expected1 =
+      "RouterInterfaceSaiId(1): "
+      "(VirtualRouterId: 0, Type: 3)";
+  EXPECT_EQ(expected1, fmt::format("{}", mplsObj));
 }
 
 TEST_F(RouterInterfaceStoreTest, toStrTest) {

@@ -43,6 +43,18 @@ class RouterInterfaceApiTest : public ::testing::Test {
     EXPECT_EQ(vlan, fs->routeInterfaceManager.get(rifId).vlanId);
     return rifId;
   }
+
+  RouterInterfaceSaiId createMplsRouterInterface(sai_object_id_t vr = 42) {
+    SaiMplsRouterInterfaceTraits::Attributes::Type typeAttribute(
+        SAI_ROUTER_INTERFACE_TYPE_MPLS_ROUTER);
+    SaiMplsRouterInterfaceTraits::Attributes::VirtualRouterId
+        virtualRouterIdAttribute(vr);
+    auto rifId = routerInterfaceApi->create<SaiMplsRouterInterfaceTraits>(
+        {virtualRouterIdAttribute, typeAttribute}, 0);
+    EXPECT_EQ(rifId, fs->routeInterfaceManager.get(rifId).id);
+    EXPECT_EQ(vr, fs->routeInterfaceManager.get(rifId).virtualRouterId);
+    return rifId;
+  }
   std::shared_ptr<FakeSai> fs;
   std::unique_ptr<RouterInterfaceApi> routerInterfaceApi;
   sai_object_id_t switchId;
@@ -124,4 +136,10 @@ TEST_F(RouterInterfaceApiTest, formatRouterInterfaceAttributes) {
   EXPECT_EQ("VlanId: 42", fmt::format("{}", vid));
   SaiVlanRouterInterfaceTraits::Attributes::Mtu m{9000};
   EXPECT_EQ("Mtu: 9000", fmt::format("{}", m));
+}
+
+TEST_F(RouterInterfaceApiTest, mplsRouterInterface) {
+  auto rifId = createMplsRouterInterface();
+  auto intf = fs->routeInterfaceManager.get(rifId);
+  EXPECT_EQ(intf.type, SAI_ROUTER_INTERFACE_TYPE_MPLS_ROUTER);
 }
