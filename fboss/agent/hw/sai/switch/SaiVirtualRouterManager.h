@@ -26,8 +26,11 @@ class SaiPlatform;
 class SaiStore;
 
 using SaiVirtualRouter = SaiObject<SaiVirtualRouterTraits>;
+using SaiMplsRouterInterface = SaiObject<SaiMplsRouterInterfaceTraits>;
+
 struct SaiVirtualRouterHandle {
   std::shared_ptr<SaiVirtualRouter> virtualRouter;
+  std::shared_ptr<SaiMplsRouterInterface> mplsRouterInterface;
 };
 
 class SaiVirtualRouterManager {
@@ -44,6 +47,9 @@ class SaiVirtualRouterManager {
  private:
   SaiVirtualRouterHandle* getVirtualRouterHandleImpl(
       const RouterID& routerId) const;
+
+  std::shared_ptr<SaiMplsRouterInterface> createMplsRouterInterface(
+      VirtualRouterSaiId vrId);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;

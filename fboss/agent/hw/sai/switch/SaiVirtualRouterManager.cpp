@@ -11,6 +11,9 @@
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include <folly/logging/xlog.h>
 
@@ -44,4 +47,27 @@ SaiVirtualRouterHandle* SaiVirtualRouterManager::getVirtualRouterHandleImpl(
   return itr->second.get();
 }
 
+std::shared_ptr<SaiMplsRouterInterface>
+SaiVirtualRouterManager::createMplsRouterInterface(VirtualRouterSaiId vrId) {
+  auto asicType = platform_->getAsic()->getAsicType();
+
+  switch (asicType) {
+    case HwAsic::AsicType::ASIC_TYPE_TAJO:
+    case HwAsic::AsicType::ASIC_TYPE_FAKE:
+    case HwAsic::AsicType::ASIC_TYPE_MOCK:
+      return saiStore_->get<SaiMplsRouterInterfaceTraits>().setObject(
+          SaiMplsRouterInterfaceTraits::AdapterHostKey{vrId},
+          SaiMplsRouterInterfaceTraits::CreateAttributes{
+              vrId, SAI_ROUTER_INTERFACE_TYPE_MPLS_ROUTER});
+
+    case HwAsic::AsicType::ASIC_TYPE_TRIDENT2:
+    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK:
+    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
+    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
+    case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
+      // TODO(pshaikh): mpls support required
+      break;
+  }
+  return nullptr;
+}
 } // namespace facebook::fboss

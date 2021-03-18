@@ -31,6 +31,9 @@ SaiVirtualRouterManager::SaiVirtualRouterManager(
           switchId, SaiSwitchTraits::Attributes::DefaultVirtualRouterId{})};
   virtualRouterHandle->virtualRouter = store.loadObjectOwnedByAdapter(
       SaiVirtualRouterTraits::AdapterKey{defaultVrfId});
+  virtualRouterHandle->mplsRouterInterface =
+      createMplsRouterInterface(defaultVrfId);
+
   CHECK(virtualRouterHandle->virtualRouter);
   handles_.emplace(std::make_pair(RouterID(0), std::move(virtualRouterHandle)));
 }

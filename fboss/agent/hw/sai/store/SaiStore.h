@@ -497,6 +497,7 @@ class SaiStore {
       SaiObjectStore<SaiVlanMemberTraits>,
       SaiObjectStore<SaiRouteTraits>,
       SaiObjectStore<SaiVlanRouterInterfaceTraits>,
+      SaiObjectStore<SaiMplsRouterInterfaceTraits>,
       SaiObjectStore<SaiFdbTraits>,
       SaiObjectStore<SaiVirtualRouterTraits>,
       SaiObjectStore<SaiNextHopGroupMemberTraits>,
