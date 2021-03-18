@@ -94,6 +94,19 @@ class PlatformMappingTest : public ::testing::Test {
     EXPECT_EQ(expectedNumTcvr_, numTcvr);
   }
 
+  void verifyTxSettings(
+      phy::TxSettings tx,
+      std::array<int, 6> expected,
+      bool hasDriveCurrent = false) {
+    EXPECT_EQ(*tx.pre2_ref(), expected[0]);
+    EXPECT_EQ(*tx.pre_ref(), expected[1]);
+    EXPECT_EQ(*tx.main_ref(), expected[2]);
+    EXPECT_EQ(*tx.post_ref(), expected[3]);
+    EXPECT_EQ(*tx.post2_ref(), expected[4]);
+    EXPECT_EQ(*tx.post3_ref(), expected[5]);
+    EXPECT_EQ(tx.driveCurrent_ref().has_value(), hasDriveCurrent);
+  }
+
  private:
   int expectedNumPort_{0};
   int expectedNumIphy_{0};

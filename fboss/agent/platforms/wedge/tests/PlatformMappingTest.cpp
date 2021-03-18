@@ -95,24 +95,14 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
         if (*itProfileCfg->iphy_ref()->modulation_ref() ==
             phy::IpModulation::NRZ) {
           EXPECT_TRUE(tx.has_value());
-          EXPECT_EQ(*tx->pre2_ref(), 0);
-          EXPECT_EQ(*tx->pre_ref(), -8);
-          EXPECT_EQ(*tx->main_ref(), 89);
-          EXPECT_EQ(*tx->post_ref(), 0);
-          EXPECT_EQ(*tx->post2_ref(), 0);
-          EXPECT_EQ(*tx->post3_ref(), 0);
+          verifyTxSettings(*tx, {0, -8, 89, 0, 0, 0});
         } else if (
             *itProfileCfg->iphy_ref()->modulation_ref() ==
             phy::IpModulation::PAM4) {
           if (profile.first ==
               cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_COPPER) {
             EXPECT_TRUE(tx.has_value());
-            EXPECT_EQ(*tx->pre2_ref(), 4);
-            EXPECT_EQ(*tx->pre_ref(), -20);
-            EXPECT_EQ(*tx->main_ref(), 140);
-            EXPECT_EQ(*tx->post_ref(), 0);
-            EXPECT_EQ(*tx->post2_ref(), 0);
-            EXPECT_EQ(*tx->post3_ref(), 0);
+            verifyTxSettings(*tx, {4, -20, 140, 0, 0, 0});
           } else {
             EXPECT_FALSE(tx.has_value());
           }
@@ -124,7 +114,7 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
   }
 
   // Not override case will read directly from PlatformPortConfig
-  std::unordered_map<PortID, std::vector<int>> uplinkTxMapForProfile23 = {
+  std::unordered_map<PortID, std::array<int, 6>> uplinkTxMapForProfile23 = {
       {PortID(36), {0, -6, 92, -24, 0, 0}},
       {PortID(37), {0, -2, 90, -18, 0, 0}},
       {PortID(56), {0, -2, 90, -18, 0, 0}},
@@ -151,20 +141,15 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
             uplinkTx.first));
     EXPECT_EQ(pinCfgs.size(), 4);
     for (auto pinCfg : pinCfgs) {
-      if (auto tx = pinCfg.tx_ref()) {
-        EXPECT_EQ(*tx->pre2_ref(), uplinkTx.second[0]);
-        EXPECT_EQ(*tx->pre_ref(), uplinkTx.second[1]);
-        EXPECT_EQ(*tx->main_ref(), uplinkTx.second[2]);
-        EXPECT_EQ(*tx->post_ref(), uplinkTx.second[3]);
-        EXPECT_EQ(*tx->post2_ref(), uplinkTx.second[4]);
-        EXPECT_EQ(*tx->post3_ref(), uplinkTx.second[5]);
-      }
+      auto tx = pinCfg.tx_ref();
+      EXPECT_TRUE(tx.has_value());
+      verifyTxSettings(*tx, uplinkTx.second);
     }
   }
 
   // profile25 has different tx settings per lane
   //  {portID: { laneId1: {txSettings1}, laneId2: {txSettings2} .... }}
-  std::unordered_map<PortID, std::unordered_map<int, std::vector<int>>>
+  std::unordered_map<PortID, std::unordered_map<int, std::array<int, 6>>>
       uplinkTxMapForProfile25 = {
           {
               PortID(17),
@@ -322,16 +307,11 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
     for (auto pinCfg : pinCfgs) {
       auto pinId = *pinCfg.id_ref();
       auto laneId = *pinId.lane_ref();
-      if (auto tx = pinCfg.tx_ref()) {
-        auto laneToUplinkTxSettinsMap = laneToUplinkTxSettingsToPortMap.second;
-        auto uplinkTxSettings = laneToUplinkTxSettinsMap[laneId];
-        EXPECT_EQ(*tx->pre2_ref(), uplinkTxSettings[0]);
-        EXPECT_EQ(*tx->pre_ref(), uplinkTxSettings[1]);
-        EXPECT_EQ(*tx->main_ref(), uplinkTxSettings[2]);
-        EXPECT_EQ(*tx->post_ref(), uplinkTxSettings[3]);
-        EXPECT_EQ(*tx->post2_ref(), uplinkTxSettings[4]);
-        EXPECT_EQ(*tx->post3_ref(), uplinkTxSettings[5]);
-      }
+      auto tx = pinCfg.tx_ref();
+      EXPECT_TRUE(tx.has_value());
+      auto laneToUplinkTxSettinsMap = laneToUplinkTxSettingsToPortMap.second;
+      auto uplinkTxSettings = laneToUplinkTxSettinsMap[laneId];
+      verifyTxSettings(*tx, uplinkTxSettings);
     }
   }
 }
@@ -373,8 +353,8 @@ TEST_F(PlatformMappingTest, VerifyYampPortXphyLinePinConfigOverride) {
   auto mapping = std::make_unique<YampPlatformMapping>();
   TransceiverInfo transceiverInfo = TransceiverInfo();
 
-  std::vector<int> YampPort100GSffXphyLinePinConfig = {0, -4, 23, -12, 0, 0, 0};
-  std::vector<int> YampPort100GCmisXphyLinePinConfig = {0, -2, 15, -7, 0, 0, 0};
+  std::array<int, 6> YampPort100GSffXphyLinePinConfig = {0, -4, 23, -12, 0, 0};
+  std::array<int, 6> YampPort100GCmisXphyLinePinConfig = {0, -2, 15, -7, 0, 0};
 
   for (auto port : mapping->getPlatformPorts()) {
     transceiverInfo.transceiverManagementInterface_ref() =
@@ -390,12 +370,7 @@ TEST_F(PlatformMappingTest, VerifyYampPortXphyLinePinConfigOverride) {
     for (auto portXphyLinePinConfig : portXphyLinePinConfigs) {
       auto pinId = *portXphyLinePinConfig.id_ref();
       if (auto tx = portXphyLinePinConfig.tx_ref()) {
-        EXPECT_EQ(*tx->pre2_ref(), YampPort100GSffXphyLinePinConfig[0]);
-        EXPECT_EQ(*tx->pre_ref(), YampPort100GSffXphyLinePinConfig[1]);
-        EXPECT_EQ(*tx->main_ref(), YampPort100GSffXphyLinePinConfig[2]);
-        EXPECT_EQ(*tx->post_ref(), YampPort100GSffXphyLinePinConfig[3]);
-        EXPECT_EQ(*tx->post2_ref(), YampPort100GSffXphyLinePinConfig[4]);
-        EXPECT_EQ(*tx->post3_ref(), YampPort100GSffXphyLinePinConfig[5]);
+        verifyTxSettings(*tx, YampPort100GSffXphyLinePinConfig);
       }
     }
 
@@ -413,12 +388,7 @@ TEST_F(PlatformMappingTest, VerifyYampPortXphyLinePinConfigOverride) {
     for (auto portXphyLinePinConfig : portXphyLinePinConfigs) {
       auto pinId = *portXphyLinePinConfig.id_ref();
       if (auto tx = portXphyLinePinConfig.tx_ref()) {
-        EXPECT_EQ(*tx->pre2_ref(), YampPort100GSffXphyLinePinConfig[0]);
-        EXPECT_EQ(*tx->pre_ref(), YampPort100GSffXphyLinePinConfig[1]);
-        EXPECT_EQ(*tx->main_ref(), YampPort100GSffXphyLinePinConfig[2]);
-        EXPECT_EQ(*tx->post_ref(), YampPort100GSffXphyLinePinConfig[3]);
-        EXPECT_EQ(*tx->post2_ref(), YampPort100GSffXphyLinePinConfig[4]);
-        EXPECT_EQ(*tx->post3_ref(), YampPort100GSffXphyLinePinConfig[5]);
+        verifyTxSettings(*tx, YampPort100GSffXphyLinePinConfig);
       }
     }
 
@@ -434,12 +404,7 @@ TEST_F(PlatformMappingTest, VerifyYampPortXphyLinePinConfigOverride) {
     for (auto portXphyLinePinConfig : portXphyLinePinConfigs) {
       auto pinId = *portXphyLinePinConfig.id_ref();
       if (auto tx = portXphyLinePinConfig.tx_ref()) {
-        EXPECT_EQ(*tx->pre2_ref(), YampPort100GCmisXphyLinePinConfig[0]);
-        EXPECT_EQ(*tx->pre_ref(), YampPort100GCmisXphyLinePinConfig[1]);
-        EXPECT_EQ(*tx->main_ref(), YampPort100GCmisXphyLinePinConfig[2]);
-        EXPECT_EQ(*tx->post_ref(), YampPort100GCmisXphyLinePinConfig[3]);
-        EXPECT_EQ(*tx->post2_ref(), YampPort100GCmisXphyLinePinConfig[4]);
-        EXPECT_EQ(*tx->post3_ref(), YampPort100GCmisXphyLinePinConfig[5]);
+        verifyTxSettings(*tx, YampPort100GCmisXphyLinePinConfig);
       }
     }
   }
@@ -516,12 +481,7 @@ TEST_F(PlatformMappingTest, VerifyOverrideMerge) {
       for (auto pinCfg : pinCfgs) {
         auto tx = pinCfg.tx_ref();
         EXPECT_TRUE(tx.has_value());
-        EXPECT_EQ(*tx->pre2_ref(), 0);
-        EXPECT_EQ(*tx->pre_ref(), 0);
-        EXPECT_EQ(*tx->main_ref(), 128);
-        EXPECT_EQ(*tx->post_ref(), 0);
-        EXPECT_EQ(*tx->post2_ref(), 0);
-        EXPECT_EQ(*tx->post3_ref(), 0);
+        verifyTxSettings(*tx, {0, 0, 128, 0, 0, 0});
       }
     }
   }
@@ -626,56 +586,56 @@ TEST_F(PlatformMappingTest, VerifyGalaxyLCPlatformMapping) {
 // Array of tx setting override groups for wedge100
 // Each group is a mapping of cableLength => {driveCurrent_ref().value(),
 // pre, main, post}
-static const std::vector<std::map<double, std::array<int, 4>>>
+static const std::vector<std::map<double, std::pair<std::array<int, 6>, int>>>
     kWedge100DownlinkTxGroups = {
         {
-            {1.0, {0xa, 0x4, 0x3c, 0x30}},
-            {1.5, {0xa, 0x4, 0x3c, 0x30}},
-            {2.0, {0xa, 0x4, 0x3c, 0x30}},
-            {2.5, {0xc, 0x6, 0x3e, 0x32}},
-            {3.0, {0xc, 0x6, 0x3e, 0x32}},
+            {1.0, {{0, 0x4, 0x3c, 0x30, 0, 0}, 0xa}},
+            {1.5, {{0, 0x4, 0x3c, 0x30, 0, 0}, 0xa}},
+            {2.0, {{0, 0x4, 0x3c, 0x30, 0, 0}, 0xa}},
+            {2.5, {{0, 0x6, 0x3e, 0x32, 0, 0}, 0xc}},
+            {3.0, {{0, 0x6, 0x3e, 0x32, 0, 0}, 0xc}},
         },
         {
-            {1.0, {0xa, 0x6, 0x40, 0x2a}},
-            {1.5, {0xa, 0x7, 0x3e, 0x2b}},
-            {2.0, {0xb, 0x8, 0x3c, 0x2c}},
-            {2.5, {0xc, 0x7, 0x3d, 0x2c}},
-            {3.0, {0xc, 0x6, 0x3c, 0x2e}},
+            {1.0, {{0, 0x6, 0x40, 0x2a, 0, 0}, 0xa}},
+            {1.5, {{0, 0x7, 0x3e, 0x2b, 0, 0}, 0xa}},
+            {2.0, {{0, 0x8, 0x3c, 0x2c, 0, 0}, 0xb}},
+            {2.5, {{0, 0x7, 0x3d, 0x2c, 0, 0}, 0xc}},
+            {3.0, {{0, 0x6, 0x3c, 0x2e, 0, 0}, 0xc}},
         },
         {
-            {1.0, {0x9, 0x8, 0x42, 0x26}},
-            {1.5, {0x9, 0x9, 0x41, 0x26}},
-            {2.0, {0x9, 0x9, 0x40, 0x27}},
-            {2.5, {0x9, 0x9, 0x3f, 0x28}},
-            {3.0, {0xa, 0x8, 0x40, 0x28}},
+            {1.0, {{0, 0x8, 0x42, 0x26, 0, 0}, 0x9}},
+            {1.5, {{0, 0x9, 0x41, 0x26, 0, 0}, 0x9}},
+            {2.0, {{0, 0x9, 0x40, 0x27, 0, 0}, 0x9}},
+            {2.5, {{0, 0x9, 0x3f, 0x28, 0, 0}, 0x9}},
+            {3.0, {{0, 0x8, 0x40, 0x28, 0, 0}, 0xa}},
         },
         {
-            {1.0, {0x8, 0x6, 0x46, 0x24}},
-            {1.5, {0x9, 0x6, 0x46, 0x24}},
-            {2.0, {0x9, 0x7, 0x45, 0x24}},
-            {2.5, {0x9, 0x8, 0x43, 0x25}},
-            {3.0, {0xa, 0x8, 0x43, 0x25}},
+            {1.0, {{0, 0x6, 0x46, 0x24, 0, 0}, 0x8}},
+            {1.5, {{0, 0x6, 0x46, 0x24, 0, 0}, 0x9}},
+            {2.0, {{0, 0x7, 0x45, 0x24, 0, 0}, 0x9}},
+            {2.5, {{0, 0x8, 0x43, 0x25, 0, 0}, 0x9}},
+            {3.0, {{0, 0x8, 0x43, 0x25, 0, 0}, 0xa}},
         },
         {
-            {1.0, {0x8, 0x6, 0x4c, 0x1e}},
-            {1.5, {0x9, 0x7, 0x4b, 0x1e}},
-            {2.0, {0x9, 0x7, 0x4b, 0x1e}},
-            {2.5, {0x9, 0x8, 0x49, 0x1f}},
-            {3.0, {0xa, 0x8, 0x48, 0x20}},
+            {1.0, {{0, 0x6, 0x4c, 0x1e, 0, 0}, 0x8}},
+            {1.5, {{0, 0x7, 0x4b, 0x1e, 0, 0}, 0x9}},
+            {2.0, {{0, 0x7, 0x4b, 0x1e, 0, 0}, 0x9}},
+            {2.5, {{0, 0x8, 0x49, 0x1f, 0, 0}, 0x9}},
+            {3.0, {{0, 0x8, 0x48, 0x20, 0, 0}, 0xa}},
         },
         {
-            {1.0, {0x8, 0x6, 0x4e, 0x1c}},
-            {1.5, {0x9, 0x6, 0x4d, 0x1d}},
-            {2.0, {0xa, 0x7, 0x4b, 0x1e}},
-            {2.5, {0xa, 0x8, 0x49, 0x1f}},
-            {3.0, {0xa, 0x8, 0x48, 0x20}},
+            {1.0, {{0, 0x6, 0x4e, 0x1c, 0, 0}, 0x8}},
+            {1.5, {{0, 0x6, 0x4d, 0x1d, 0, 0}, 0x9}},
+            {2.0, {{0, 0x7, 0x4b, 0x1e, 0, 0}, 0xa}},
+            {2.5, {{0, 0x8, 0x49, 0x1f, 0, 0}, 0xa}},
+            {3.0, {{0, 0x8, 0x48, 0x20, 0, 0}, 0xa}},
         },
         {
-            {1.0, {0x8, 0x6, 0x50, 0x1a}},
-            {1.5, {0x9, 0x6, 0x4e, 0x1c}},
-            {2.0, {0x9, 0x6, 0x4e, 0x1c}},
-            {2.5, {0x9, 0x7, 0x4b, 0x1e}},
-            {3.0, {0x9, 0x8, 0x4a, 0x1e}},
+            {1.0, {{0, 0x6, 0x50, 0x1a, 0, 0}, 0x8}},
+            {1.5, {{0, 0x6, 0x4e, 0x1c, 0, 0}, 0x9}},
+            {2.0, {{0, 0x6, 0x4e, 0x1c, 0, 0}, 0x9}},
+            {2.5, {{0, 0x7, 0x4b, 0x1e, 0, 0}, 0x9}},
+            {3.0, {{0, 0x8, 0x4a, 0x1e, 0, 0}, 0x9}},
         },
 };
 
@@ -726,21 +686,16 @@ TEST_F(PlatformMappingTest, VerifyWedge100DownlinkPortIphyPinConfigs) {
         Cable cable = Cable();
         cable.length_ref() = setting.first;
         transceiverInfo.cable_ref() = cable;
-        auto expectedTx = setting.second;
+        auto expectedTx = setting.second.first;
+        auto expectedDriveCurrent = setting.second.second;
         auto pinCfgs =
             mapping->getPortIphyPinConfigs(PlatformPortProfileConfigMatcher(
                 profile.first, PortID(port.first), transceiverInfo));
         auto pinCfg = pinCfgs.at(0);
         auto tx = pinCfg.tx_ref();
-
         EXPECT_TRUE(tx.has_value());
-        EXPECT_EQ(*tx->pre2_ref(), 0);
-        EXPECT_EQ(*tx->pre_ref(), expectedTx[1]);
-        EXPECT_EQ(*tx->main_ref(), expectedTx[2]);
-        EXPECT_EQ(*tx->post_ref(), expectedTx[3]);
-        EXPECT_EQ(*tx->post2_ref(), 0);
-        EXPECT_EQ(*tx->post3_ref(), 0);
-        EXPECT_EQ(*tx->driveCurrent_ref(), expectedTx[0]);
+        verifyTxSettings(*tx, expectedTx, true);
+        EXPECT_EQ(*tx->driveCurrent_ref(), expectedDriveCurrent);
       }
     }
   }
@@ -749,15 +704,16 @@ TEST_F(PlatformMappingTest, VerifyWedge100DownlinkPortIphyPinConfigs) {
 // Array of expected tx settings for wedge100 uplinks for 100G Optical
 // Index is transciever Id - 24 (i.e first element is tcvr 24, the first
 // uplink) value is {driveCurrent, pre, main, post}
-static const std::vector<std::array<int, 4>> kWedge100UplinkTxSettings = {
-    {0x8, 2, 72, 38},
-    {0x8, 2, 66, 44},
-    {0x8, 4, 68, 40},
-    {0x8, 2, 68, 42},
-    {0x8, 4, 64, 44},
-    {0x8, 2, 64, 46},
-    {0x8, 2, 62, 48},
-    {0x8, 2, 62, 48}};
+const std::vector<std::array<int, 6>> kWedge100UplinkTxSettings = {
+    {0, 2, 72, 38, 0, 0},
+    {0, 2, 66, 44, 0, 0},
+    {0, 4, 68, 40, 0, 0},
+    {0, 2, 68, 42, 0, 0},
+    {0, 4, 64, 44, 0, 0},
+    {0, 2, 64, 46, 0, 0},
+    {0, 2, 62, 48, 0, 0},
+    {0, 2, 62, 48, 0, 0}};
+const auto kWedge100UplinkDriveCurrent = 0x8;
 
 TEST_F(PlatformMappingTest, VerifyWedge100UplinkPortIphyPinConfigs) {
   auto mapping = std::make_unique<Wedge100PlatformMapping>();
@@ -781,13 +737,8 @@ TEST_F(PlatformMappingTest, VerifyWedge100UplinkPortIphyPinConfigs) {
             cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL) {
           auto expectedTx = kWedge100UplinkTxSettings[transID - 24];
           EXPECT_TRUE(tx.has_value());
-          EXPECT_EQ(*tx->pre2_ref(), 0);
-          EXPECT_EQ(*tx->pre_ref(), expectedTx[1]);
-          EXPECT_EQ(*tx->main_ref(), expectedTx[2]);
-          EXPECT_EQ(*tx->post_ref(), expectedTx[3]);
-          EXPECT_EQ(*tx->post2_ref(), 0);
-          EXPECT_EQ(*tx->post3_ref(), 0);
-          EXPECT_EQ(*tx->driveCurrent_ref(), expectedTx[0]);
+          verifyTxSettings(*tx, expectedTx, true);
+          EXPECT_EQ(*tx->driveCurrent_ref(), kWedge100UplinkDriveCurrent);
         } else {
           EXPECT_FALSE(tx.has_value());
         }
@@ -800,7 +751,8 @@ TEST_F(PlatformMappingTest, VerifyElbert16QPlatformMapping) {
   // supported profiles
   std::vector<cfg::PortProfileID> expectedProfiles = {
       cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL,
-      cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL};
+      cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL,
+      cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL};
 
   // Elbert16Q has 128 ports
   // 64 TH3 Blackhawk cores + 128 transceivers + no xphy
