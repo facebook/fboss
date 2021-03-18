@@ -7,6 +7,7 @@
 
 #include "fboss/agent/hw/sai/api/MplsApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 
 #include "folly/container/F14Map.h"
 
@@ -55,7 +56,8 @@ struct SaiInSegEntryHandle {
   using NextHopHandle = std::variant<
       std::shared_ptr<SaiNextHopGroupHandle>,
       std::shared_ptr<ManagedInSegIpNextHop>,
-      std::shared_ptr<ManagedInSegMplsNextHop>>;
+      std::shared_ptr<ManagedInSegMplsNextHop>,
+      std::shared_ptr<SaiMplsRouterInterface>>;
   NextHopHandle nexthopHandle;
   std::shared_ptr<SaiInSegEntry> inSegEntry;
   sai_object_id_t nextHopAdapterKey() const;

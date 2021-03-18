@@ -14,6 +14,7 @@
 
 namespace {
 using namespace facebook::fboss;
+RouterID kDefaultRouterID = RouterID(0);
 SaiInSegEntryHandle::NextHopHandle getNextHopHandle(
     SaiManagerTable* managerTable,
     const std::shared_ptr<LabelForwardingEntry>& swLabelFibEntry) {
@@ -21,8 +22,19 @@ SaiInSegEntryHandle::NextHopHandle getNextHopHandle(
   if (nexthops.size() > 0 &&
       nexthops.begin()->labelForwardingAction()->type() ==
           LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP) {
-    // TODO(pshaikh): use "mpls router interface" for this
-    throw FbossError("pop and look up is not supported");
+    // MPLS next hops or label fib entry for POP doesn't mention which VRF to
+    // look at for POP. Following alternatives are possible.
+    // 1. either label itself could be RouterID
+    // 2. separate mapping can be provided between label to RouterID,
+    // 3. RouterID can be computed from label using some
+    // bitwise/logical/arithmatic operations.
+    // 4. router ID can be part of MPLS route (ignored for all except
+    // POP_AND_LOOKUP)
+    // 5. POP_AND_LOOKUP next hop can carry router ID to look at.
+    auto virtualRouterHandle =
+        managerTable->virtualRouterManager().getVirtualRouterHandle(
+            RouterID(kDefaultRouterID));
+    return virtualRouterHandle->mplsRouterInterface;
   }
 
   if (nexthops.size() == 1) {
@@ -178,7 +190,10 @@ sai_object_id_t ManagedInSegNextHop<NextHopTraitsT>::adapterKey() const {
 
 sai_object_id_t SaiInSegEntryHandle::nextHopAdapterKey() const {
   return std::visit(
-      [](auto& handle) { return handle->adapterKey(); }, nexthopHandle);
+      [](const auto& handle) -> sai_object_id_t {
+        return handle->adapterKey();
+      },
+      nexthopHandle);
 }
 
 std::shared_ptr<SaiNextHopGroupHandle> SaiInSegEntryHandle::nextHopGroupHandle()
