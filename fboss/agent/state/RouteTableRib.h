@@ -159,7 +159,7 @@ class RouteTableRib : public NodeBase {
     for (const auto& node : nodeMap_->getAllNodes()) {
       auto route = node.second;
       if (route->isPublished()) {
-        route = route->clone(RouteType::Fields::COPY_PREFIX_AND_NEXTHOPS);
+        route = route->cloneForReresolve();
       }
       route->clearForward();
       radixTree_.insert(node.first.network, node.first.mask, route);

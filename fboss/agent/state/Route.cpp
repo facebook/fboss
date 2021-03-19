@@ -27,20 +27,6 @@ template <typename AddrT>
 RouteFields<AddrT>::RouteFields(const Prefix& prefix) : prefix(prefix) {}
 
 template <typename AddrT>
-RouteFields<AddrT>::RouteFields(
-    const RouteFields& rf,
-    CopyBehavior copyBehavior)
-    : prefix(rf.prefix) {
-  switch (copyBehavior) {
-    case COPY_PREFIX_AND_NEXTHOPS:
-      nexthopsmulti = rf.nexthopsmulti;
-      break;
-    default:
-      throw FbossError("Unknown CopyBehavior passed to RouteFields ctor");
-  }
-}
-
-template <typename AddrT>
 bool RouteFields<AddrT>::operator==(const RouteFields& rf) const {
   return std::tie(flags, prefix, nexthopsmulti, fwd, classID) ==
       std::tie(rf.flags, rf.prefix, rf.nexthopsmulti, rf.fwd, rf.classID);
@@ -158,6 +144,14 @@ std::shared_ptr<Route<AddrT>> Route<AddrT>::fromFollyDynamic(
     const folly::dynamic& routeJson) {
   return std::make_shared<Route<AddrT>>(
       RouteFields<AddrT>::fromFollyDynamic(routeJson));
+}
+
+template <typename AddrT>
+std::shared_ptr<Route<AddrT>> Route<AddrT>::cloneForReresolve() const {
+  auto unresolvedRoute = this->clone();
+  unresolvedRoute->writableFields()->flags = 0;
+  unresolvedRoute->clearForward();
+  return unresolvedRoute;
 }
 
 template class Route<folly::IPAddressV4>;

@@ -30,12 +30,8 @@ namespace facebook::fboss {
  */
 template <typename AddrT>
 struct RouteFields {
-  enum CopyBehavior {
-    COPY_PREFIX_AND_NEXTHOPS,
-  };
   typedef RoutePrefix<AddrT> Prefix;
   explicit RouteFields(const Prefix& prefix);
-  RouteFields(const RouteFields& rf, CopyBehavior copyBehavior);
   RouteFields(const Prefix& prefix, ClientID clientId, RouteNextHopEntry entry)
       : RouteFields(prefix) {
     if (!entry.isValid(false)) {
@@ -216,6 +212,12 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
   RouteDetails toRouteDetails() const {
     return RouteBase::getFields()->toRouteDetails();
   }
+
+  /*
+   * clone and clear all forwarding info. Forwarding info will be recomputed
+   * via route resolution
+   */
+  std::shared_ptr<Route<AddrT>> cloneForReresolve() const;
 
   static void modify(std::shared_ptr<SwitchState>* state);
 

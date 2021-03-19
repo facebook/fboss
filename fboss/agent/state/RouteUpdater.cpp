@@ -121,8 +121,7 @@ void RouteUpdater::addRouteImpl(
     // access to the node. Therefore, we can do the modification in-place
     // directly.
     if (old->isPublished()) {
-      newRoute = old->clone(
-          RouteFields<typename PrefixT::AddressT>::COPY_PREFIX_AND_NEXTHOPS);
+      newRoute = old->cloneForReresolve();
       rib->updateRoute(newRoute);
     } else {
       newRoute = old;
