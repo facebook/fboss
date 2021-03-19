@@ -594,7 +594,7 @@ void MplsEcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
   auto vlan2Subnet =
       computeVlan2Subnet(inputState, BaseEcmpSetupHelperT::kIsV6);
   int offset = 0;
-  auto baseMac = folly::MacAddress("01:00:00:00:00:00").u64HBO();
+  auto baseMac = folly::MacAddress("06:00:00:00:00:00").u64HBO();
   for (const auto& portDescAndVlan : BaseEcmpSetupHelperT::portDesc2Vlan_) {
     auto vlan = portDescAndVlan.second;
     auto subnetIp = IPAddrT(vlan2Subnet[vlan].first.str());
