@@ -133,20 +133,7 @@ SaiPortHandle::~SaiPortHandle() {
   }
 }
 
-SaiPortManager::~SaiPortManager() {
-  // CS00011785888
-#if defined(SAI_VERSION_4_3_3_3_ODP)
-  for (const auto& handle : handles_) {
-    const auto& saiPortHandle = handle.second;
-
-    XLOG(INFO) << "Disable port before removing. PortID: "
-               << saiPortHandle->port->adapterKey();
-
-    saiPortHandle->port->setOptionalAttribute(
-        SaiPortTraits::Attributes::AdminState{false});
-  }
-#endif
-}
+SaiPortManager::~SaiPortManager() {}
 
 void SaiPortManager::loadPortQueues(SaiPortHandle* portHandle) {
   std::vector<sai_object_id_t> queueList;
