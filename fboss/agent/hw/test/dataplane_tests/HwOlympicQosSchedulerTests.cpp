@@ -157,12 +157,26 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
+  void _verifyDscpQueueMappingHelper(
+      const std::map<int, std::vector<uint8_t>>& queueToDscp) {
+    auto portId = masterLogicalPortIds()[0];
+    auto portStatsBefore = getLatestPortStats(portId);
+    for (const auto& q2dscps : queueToDscp) {
+      for (auto dscp : q2dscps.second) {
+        sendUdpPkt(dscp);
+      }
+    }
+    EXPECT_TRUE(utility::verifyQueueMappings(
+        portStatsBefore, queueToDscp, getHwSwitchEnsemble(), portId));
+  }
+
  protected:
   void verifyWRR();
   void verifySP();
   void verifyWRRAndICP();
   void verifyWRRAndNC();
 
+  void verifyWRRToAllSPDscpToQueue();
   void verifyWRRToAllSPTraffic();
 
  private:
@@ -328,6 +342,38 @@ void HwOlympicQosSchedulerTest::verifyWRRAndNC() {
       utility::kOlympicNCQueueId); // SP should starve WRR queues altogether
 }
 
+void HwOlympicQosSchedulerTest::verifyWRRToAllSPDscpToQueue() {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
+    return;
+  }
+
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
+
+  auto setup = [=]() {
+    auto kEcmpWidthForTest = 1;
+    resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
+  };
+
+  auto verify = [=]() {
+    _verifyDscpQueueMappingHelper(utility::kOlympicQueueToDscp());
+  };
+
+  auto setupPostWarmboot = [=]() {
+    auto newCfg{initialConfig()};
+    auto streamType =
+        *(getPlatform()->getAsic()->getQueueStreamTypes(false).begin());
+    utility::addOlympicAllSPQueueConfig(&newCfg, streamType);
+    utility::addOlympicAllSPQosMaps(newCfg);
+    applyNewConfig(newCfg);
+  };
+
+  auto verifyPostWarmboot = [=]() {
+    _verifyDscpQueueMappingHelper(utility::kOlympicAllSPQueueToDscp());
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+}
+
 void HwOlympicQosSchedulerTest::verifyWRRToAllSPTraffic() {
   if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
@@ -375,6 +421,10 @@ TEST_F(HwOlympicQosSchedulerTest, VerifyWRRAndICP) {
 
 TEST_F(HwOlympicQosSchedulerTest, VerifyWRRAndNC) {
   verifyWRRAndNC();
+}
+
+TEST_F(HwOlympicQosSchedulerTest, VerifyWRRToAllSPDscpToQueue) {
+  verifyWRRToAllSPDscpToQueue();
 }
 
 TEST_F(HwOlympicQosSchedulerTest, VerifyWRRToAllSPTraffic) {
