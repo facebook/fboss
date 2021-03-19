@@ -106,7 +106,7 @@ void SaiQueueHandle::resetQueue() {
    */
 
   // CS00011784749
-#if !defined(SAI_VERSION_4_3_3_2_ODP)
+#if !defined(SAI_VERSION_4_3_3_3_ODP)
   queue->setOptionalAttribute(
       SaiQueueTraits::Attributes::SchedulerProfileId{SAI_NULL_OBJECT_ID});
 #endif

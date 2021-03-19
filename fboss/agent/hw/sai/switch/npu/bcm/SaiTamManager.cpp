@@ -8,7 +8,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
 extern "C" {
-#if !defined(SAI_VERSION_4_3_3_2_ODP)
+#if !defined(SAI_VERSION_4_3_3_3_ODP)
 #include <experimental/saiexperimentalswitch.h>
 #else
 #include <experimental/saiswitchextensions.h>

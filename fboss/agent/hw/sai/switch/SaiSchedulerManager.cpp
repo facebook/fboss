@@ -74,7 +74,7 @@ SaiSchedulerManager::SaiSchedulerManager(
 std::shared_ptr<SaiScheduler> SaiSchedulerManager::createScheduler(
     const PortQueue& portQueue) {
   // CS00011784749
-#if !defined(SAI_VERSION_4_3_3_2_ODP)
+#if !defined(SAI_VERSION_4_3_3_3_ODP)
   auto attributes = makeSchedulerAttributes(portQueue);
   SaiSchedulerTraits::AdapterHostKey k = tupleProjection<
       SaiSchedulerTraits::CreateAttributes,

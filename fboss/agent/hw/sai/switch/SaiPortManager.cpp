@@ -135,7 +135,7 @@ SaiPortHandle::~SaiPortHandle() {
 
 SaiPortManager::~SaiPortManager() {
   // CS00011785888
-#if defined(SAI_VERSION_4_3_3_2_ODP)
+#if defined(SAI_VERSION_4_3_3_3_ODP)
   for (const auto& handle : handles_) {
     const auto& saiPortHandle = handle.second;
 
