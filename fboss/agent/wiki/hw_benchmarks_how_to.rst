@@ -49,7 +49,7 @@ Typically, we only want to track such timing over a subset of the benchmark life
   I0929 10:37:05.089034 1257292 FunctionCallTimeReporter.cpp:80] Total time, msecs: 1.42458
   I0929 10:37:05.127463 1257475 FunctionCallTimeReporter.cpp:60]  Thread: fbossSaiLnkScnB (139974116505344) function (SDK) time msecs: 1.14111
   I0929 10:37:09.296592 1257292 FunctionCallTimeReporter.cpp:60]  Thread: sai_ecmp_shrink (139975089503488) function (SDK) time msecs: 0.094921
-  [root@fsw003-lc401.p007.f01.prn3.tfbnw.net ~]# 
+  [switch ~]# 
 
 
 
