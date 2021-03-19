@@ -119,12 +119,13 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
    * BcmOlympicTrafficTests already verify that for each possible dscp
    * value, packets go through appropriate Olympic queue.
    */
-  void sendUdpPktsForAllQueues(const std::vector<int>& queueIds) {
+  void sendUdpPktsForAllQueues(
+      const std::vector<int>& queueIds,
+      const std::map<int, std::vector<uint8_t>>& queueToDscp) {
     // Higher speed ports need more packets to reach line rate
     auto pktsToSend = getPortSpeed() > cfg::PortSpeed::HUNDREDG ? 1000 : 100;
     for (const auto& queueId : queueIds) {
-      sendUdpPkts(
-          utility::kOlympicQueueToDscp().at(queueId).front(), pktsToSend);
+      sendUdpPkts(queueToDscp.at(queueId).front(), pktsToSend);
     }
   }
 
@@ -149,7 +150,7 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
     auto setup = [=]() { _setup(ecmpHelper6, queueIds); };
 
     auto verify = [=]() {
-      sendUdpPktsForAllQueues(queueIds);
+      sendUdpPktsForAllQueues(queueIds, utility::kOlympicQueueToDscp());
       EXPECT_TRUE(verifySPHelper(trafficQueueId));
     };
 
@@ -161,6 +162,8 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
   void verifySP();
   void verifyWRRAndICP();
   void verifyWRRAndNC();
+
+  void verifyWRRToAllSPTraffic();
 
  private:
   cfg::PortSpeed getPortSpeed() const {
@@ -269,6 +272,7 @@ bool HwOlympicQosSchedulerTest::verifySPHelper(int trafficQueueId) {
   }
   return false;
 }
+
 void HwOlympicQosSchedulerTest::verifyWRR() {
   if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
@@ -279,7 +283,8 @@ void HwOlympicQosSchedulerTest::verifyWRR() {
   auto setup = [=]() { _setup(ecmpHelper6, utility::kOlympicWRRQueueIds()); };
 
   auto verify = [=]() {
-    sendUdpPktsForAllQueues(utility::kOlympicWRRQueueIds());
+    sendUdpPktsForAllQueues(
+        utility::kOlympicWRRQueueIds(), utility::kOlympicQueueToDscp());
     EXPECT_TRUE(verifyWRRHelper(
         utility::getMaxWeightWRRQueue(utility::kOlympicWRRQueueToWeight()),
         utility::kOlympicWRRQueueToWeight()));
@@ -298,7 +303,8 @@ void HwOlympicQosSchedulerTest::verifySP() {
   auto setup = [=]() { _setup(ecmpHelper6, utility::kOlympicSPQueueIds()); };
 
   auto verify = [=]() {
-    sendUdpPktsForAllQueues(utility::kOlympicSPQueueIds());
+    sendUdpPktsForAllQueues(
+        utility::kOlympicSPQueueIds(), utility::kOlympicQueueToDscp());
     EXPECT_TRUE(verifySPHelper(
         // SP queue with highest queueId
         // should starve other SP queues
@@ -322,6 +328,39 @@ void HwOlympicQosSchedulerTest::verifyWRRAndNC() {
       utility::kOlympicNCQueueId); // SP should starve WRR queues altogether
 }
 
+void HwOlympicQosSchedulerTest::verifyWRRToAllSPTraffic() {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
+    return;
+  }
+
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
+
+  auto setup = [=]() { _setup(ecmpHelper6, utility::kOlympicWRRQueueIds()); };
+
+  auto verify = [=]() {};
+
+  auto setupPostWarmboot = [=]() {
+    auto newCfg{initialConfig()};
+    auto streamType =
+        *(getPlatform()->getAsic()->getQueueStreamTypes(false).begin());
+    utility::addOlympicAllSPQueueConfig(&newCfg, streamType);
+    utility::addOlympicAllSPQosMaps(newCfg);
+    applyNewConfig(newCfg);
+  };
+
+  auto verifyPostWarmboot = [=]() {
+    sendUdpPktsForAllQueues(
+        utility::kOlympicAllSPQueueIds(), utility::kOlympicAllSPQueueToDscp());
+    EXPECT_TRUE(verifySPHelper(
+        // SP queue with highest queueId
+        // should starve other SP queues
+        // altogether
+        utility::kOlympicAllSPHighestSPQueueId));
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+}
+
 TEST_F(HwOlympicQosSchedulerTest, VerifyWRR) {
   verifyWRR();
 }
@@ -336,6 +375,10 @@ TEST_F(HwOlympicQosSchedulerTest, VerifyWRRAndICP) {
 
 TEST_F(HwOlympicQosSchedulerTest, VerifyWRRAndNC) {
   verifyWRRAndNC();
+}
+
+TEST_F(HwOlympicQosSchedulerTest, VerifyWRRToAllSPTraffic) {
+  verifyWRRToAllSPTraffic();
 }
 
 } // namespace facebook::fboss
