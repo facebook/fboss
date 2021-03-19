@@ -72,7 +72,9 @@ struct TCPHeader {
   uint16_t dstPort{0};
   uint32_t sequenceNumber{0};
   uint32_t ackNumber{0};
-  uint16_t dataOffsetAndFlags{5 << 12};
+  // header length or data offset is leading 4 bits
+  // remaining 4 bits are
+  uint8_t dataOffsetAndReserved{5 << 4};
   uint8_t flags{0};
   uint16_t windowSize{0};
   uint16_t csum{0};
@@ -105,7 +107,7 @@ void TCPHeader::write(CursorType* cursor) const {
   cursor->template writeBE<uint16_t>(dstPort);
   cursor->template writeBE<uint32_t>(sequenceNumber);
   cursor->template writeBE<uint32_t>(ackNumber);
-  cursor->template writeBE<uint16_t>(dataOffsetAndFlags);
+  cursor->template writeBE<uint16_t>(dataOffsetAndReserved);
   cursor->template writeBE<uint16_t>(windowSize);
   cursor->template writeBE<uint16_t>(csum);
   cursor->template writeBE<uint16_t>(urgentPointer);

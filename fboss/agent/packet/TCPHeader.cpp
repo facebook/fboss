@@ -34,7 +34,7 @@ uint16_t TCPHeader::computeChecksumImpl(const IPHDR& ip, const Cursor& cursor)
   sum += dstPort;
   sum += (sequenceNumber >> 16) + (sequenceNumber & 0xffff);
   sum += (ackNumber >> 16) + (ackNumber & 0xffff);
-  sum += dataOffsetAndFlags;
+  sum += dataOffsetAndReserved;
   sum += windowSize;
   sum += urgentPointer;
   // Now the payload
@@ -55,7 +55,7 @@ bool TCPHeader::operator==(const TCPHeader& r) const {
              dstPort,
              sequenceNumber,
              ackNumber,
-             dataOffsetAndFlags,
+             dataOffsetAndReserved,
              windowSize,
              csum,
              urgentPointer) ==
@@ -64,7 +64,7 @@ bool TCPHeader::operator==(const TCPHeader& r) const {
              r.dstPort,
              r.sequenceNumber,
              r.ackNumber,
-             dataOffsetAndFlags,
+             dataOffsetAndReserved,
              r.windowSize,
              r.csum,
              r.urgentPointer);
@@ -94,8 +94,9 @@ string TCPHeader::toString() const {
   stringstream ss;
   ss << " Source port: " << srcPort << " Destination port: " << dstPort
      << " Seq Num: " << sequenceNumber << " Ack Num: " << ackNumber
-     << " Data offset and flags: " << dataOffsetAndFlags
-     << " Checksum: " << csum << " Urgent pointer: " << urgentPointer;
+     << " Data offset and reserved: " << dataOffsetAndReserved
+     << " flags: " << flags << " Checksum: " << csum
+     << " Urgent pointer: " << urgentPointer;
   return ss.str();
 }
 } // namespace facebook::fboss

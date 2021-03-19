@@ -372,7 +372,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
   rwCursor.writeBE<uint16_t>(tcpHdr.dstPort);
   rwCursor.writeBE<uint32_t>(tcpHdr.sequenceNumber);
   rwCursor.writeBE<uint32_t>(tcpHdr.ackNumber);
-  rwCursor.writeBE<uint8_t>(tcpHdr.dataOffsetAndFlags);
+  rwCursor.writeBE<uint8_t>(tcpHdr.dataOffsetAndReserved);
   rwCursor.writeBE<uint8_t>(tcpHdr.flags);
   rwCursor.writeBE<uint16_t>(tcpHdr.windowSize);
   folly::io::RWPrivateCursor csumCursor(rwCursor);
