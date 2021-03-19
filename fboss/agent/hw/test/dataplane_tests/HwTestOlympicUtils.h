@@ -23,6 +23,7 @@ class HwAsic;
 
 namespace facebook::fboss::utility {
 
+/* Olympic QoS queues */
 constexpr int kOlympicSilverQueueId = 0;
 constexpr int kOlympicGoldQueueId = 1;
 constexpr int kOlympicEcn1QueueId = 2;
@@ -38,6 +39,18 @@ constexpr uint32_t kOlympicBronzeWeight = 5;
 constexpr int kOlympicDefaultQueueId = kOlympicSilverQueueId;
 constexpr int kOlympicHighestSPQueueId = kOlympicNCQueueId;
 constexpr int kOlympicHighestQueueId = kOlympicNCQueueId;
+
+/* Olympic ALL SP QoS queues */
+constexpr int kOlympicAllSPNCNFQueueId = 0;
+constexpr int kOlympicAllSPBronzeQueueId = 1;
+constexpr int kOlympicAllSPSilverQueueId = 2;
+constexpr int kOlympicAllSPGoldQueueId = 3;
+constexpr int kOlympicAllSPICPQueueId = 6;
+constexpr int kOlympicAllSPNCQueueId = 7;
+
+constexpr int kOlympicAllSPDefaultQueueId = kOlympicAllSPSilverQueueId;
+constexpr int kOlympicAllSPHighestSPQueueId = kOlympicAllSPNCQueueId;
+constexpr int kOlympicAllSPHighestQueueId = kOlympicAllSPNCQueueId;
 
 void addOlympicQueueConfig(
     cfg::SwitchConfig* config,
@@ -59,5 +72,13 @@ const std::vector<int>& kOlympicWRRAndNCQueueIds();
 bool isOlympicWRRQueueId(int queueId);
 
 int getMaxWeightWRRQueue(const std::map<int, uint8_t>& queueToWeight);
+
+void addOlympicAllSPQueueConfig(
+    cfg::SwitchConfig* config,
+    cfg::StreamType streamType);
+void addOlympicAllSPQosMaps(cfg::SwitchConfig& cfg);
+
+const std::map<int, std::vector<uint8_t>>& kOlympicAllSPQueueToDscp();
+const std::vector<int>& kOlympicAllSPQueueIds();
 
 } // namespace facebook::fboss::utility

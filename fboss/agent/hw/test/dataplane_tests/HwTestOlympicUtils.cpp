@@ -111,6 +111,39 @@ void addOlympicQueueConfig(
   }
 }
 
+const std::map<int, std::string>& kOlympicAllSPQueueIdToQueueName() {
+  static const std::map<int, std::string> queueIdToQueueName = {
+      {kOlympicAllSPNCNFQueueId, "queue0.ncnf"},
+      {kOlympicAllSPBronzeQueueId, "queue1.bronze"},
+      {kOlympicAllSPSilverQueueId, "queue2.silver"},
+      {kOlympicAllSPGoldQueueId, "queue3.gold"},
+      {kOlympicAllSPICPQueueId, "queeu6.icp"},
+      {kOlympicAllSPNCQueueId, "queue7.nc"},
+  };
+
+  return queueIdToQueueName;
+}
+
+void addOlympicAllSPQueueConfig(
+    cfg::SwitchConfig* config,
+    cfg::StreamType streamType) {
+  std::vector<cfg::PortQueue> portQueues;
+
+  for (const auto& [queueId, queueName] : kOlympicAllSPQueueIdToQueueName()) {
+    cfg::PortQueue queue;
+    queue.id_ref() = queueId;
+    queue.name_ref() = queueName;
+    queue.streamType_ref() = streamType;
+    queue.scheduling_ref() = cfg::QueueScheduling::STRICT_PRIORITY;
+    portQueues.push_back(queue);
+  }
+
+  config->portQueueConfigs_ref()["queue_config"] = portQueues;
+  for (auto& port : *config->ports_ref()) {
+    port.portQueueConfigName_ref() = "queue_config";
+  }
+}
+
 std::string getOlympicAclNameForDscp(uint8_t dscp) {
   return folly::to<std::string>("olympic_acl_dscp", dscp);
 }
@@ -130,6 +163,20 @@ const std::map<int, std::vector<uint8_t>>& kOlympicQueueToDscp() {
                                52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63}},
       {kOlympicICPQueueId, {26, 27, 28, 29, 30, 32, 35}},
       {kOlympicNCQueueId, {48}}};
+  return queueToDscp;
+}
+
+const std::map<int, std::vector<uint8_t>>& kOlympicAllSPQueueToDscp() {
+  static const std::map<int, std::vector<uint8_t>> queueToDscp = {
+      {kOlympicAllSPNCNFQueueId, {50, 51, 52, 53, 54, 55, 56, 57, 58, 59}},
+      {kOlympicAllSPBronzeQueueId,
+       {10, 11, 16, 17, 19, 20, 21, 22, 23, 25, 60, 61, 62, 63}},
+      {kOlympicAllSPSilverQueueId,
+       {0,  1,  2,  3,  4,  6,  7,  8,  9,  12, 13,
+        14, 15, 40, 41, 42, 43, 44, 45, 46, 47, 49}},
+      {kOlympicAllSPGoldQueueId, {18, 24, 31, 33, 34, 36, 37, 38, 39}},
+      {kOlympicAllSPICPQueueId, {26, 27, 28, 29, 30, 32, 35}},
+      {kOlympicAllSPNCQueueId, {48}}};
   return queueToDscp;
 }
 
@@ -186,9 +233,22 @@ bool isOlympicWRRQueueId(int queueId) {
       kOlympicWRRQueueToWeight().end();
 }
 
-void addOlympicQosMaps(cfg::SwitchConfig& cfg) {
+const std::vector<int>& kOlympicAllSPQueueIds() {
+  static const std::vector<int> queueIds = {
+      kOlympicAllSPNCNFQueueId,
+      kOlympicAllSPBronzeQueueId,
+      kOlympicAllSPSilverQueueId,
+      kOlympicAllSPGoldQueueId,
+      kOlympicAllSPICPQueueId,
+      kOlympicAllSPNCQueueId};
+
+  return queueIds;
+}
+
+void addOlympicQosMapsHelper(
+    cfg::SwitchConfig& cfg,
+    const std::map<int, std::vector<uint8_t>>& queueToDscpMap) {
   cfg::QosMap qosMap;
-  auto queueToDscpMap = kOlympicQueueToDscp();
   qosMap.dscpMaps_ref()->resize(queueToDscpMap.size());
   ssize_t qosMapIdx = 0;
   for (const auto& q2dscps : queueToDscpMap) {
@@ -213,6 +273,14 @@ void addOlympicQosMaps(cfg::SwitchConfig& cfg) {
   cpuTrafficPolicy.defaultQosPolicy_ref() = "olympic";
   cpuConfig.trafficPolicy_ref() = cpuTrafficPolicy;
   cfg.cpuTrafficPolicy_ref() = cpuConfig;
+}
+
+void addOlympicQosMaps(cfg::SwitchConfig& cfg) {
+  addOlympicQosMapsHelper(cfg, kOlympicQueueToDscp());
+}
+
+void addOlympicAllSPQosMaps(cfg::SwitchConfig& cfg) {
+  addOlympicQosMapsHelper(cfg, kOlympicAllSPQueueToDscp());
 }
 
 int getMaxWeightWRRQueue(const std::map<int, uint8_t>& queueToWeight) {
