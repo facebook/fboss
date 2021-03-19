@@ -118,6 +118,8 @@ SaiPortManager::SaiPortManager(
     : saiStore_(saiStore),
       managerTable_(managerTable),
       platform_(platform),
+      dontRemovePortsAtExit_(platform_->getAsic()->isSupported(
+          HwAsic::Feature::DONT_REMOVE_PORTS_FOR_COLDBOOT)),
       concurrentIndices_(concurrentIndices) {}
 
 SaiPortHandle::~SaiPortHandle() {
@@ -133,7 +135,22 @@ SaiPortHandle::~SaiPortHandle() {
   }
 }
 
-SaiPortManager::~SaiPortManager() {}
+SaiPortManager::~SaiPortManager() {
+  releasePorts();
+}
+
+void SaiPortManager::releasePorts() {
+  if (dontRemovePortsAtExit_) {
+    for (const auto& handle : handles_) {
+      const auto& saiPortHandle = handle.second;
+      saiPortHandle->port->release();
+    }
+    for (const auto& handle : removedHandles_) {
+      const auto& saiPortHandle = handle.second;
+      saiPortHandle->port->release();
+    }
+  }
+}
 
 void SaiPortManager::loadPortQueues(SaiPortHandle* portHandle) {
   std::vector<sai_object_id_t> queueList;

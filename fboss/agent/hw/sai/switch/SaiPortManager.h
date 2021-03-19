@@ -152,6 +152,7 @@ class SaiPortManager {
  private:
   void addRemovedHandle(PortID portID);
   void removeRemovedHandleIf(PortID portID);
+  void releasePorts();
 
   void setQosMaps(
       QosMapSaiId dscpToTc,
@@ -198,6 +199,8 @@ class SaiPortManager {
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
+  // Pure virtual function cannot be called in destructor. Thus, cache it.
+  bool dontRemovePortsAtExit_;
   ConcurrentIndices* concurrentIndices_;
   Handles handles_;
   // on some platforms port can not be removed freely. on such platforms retain
