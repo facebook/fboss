@@ -10,10 +10,8 @@
 extern "C" {
 #if !defined(SAI_VERSION_4_3_3_3_ODP)
 #include <experimental/saiexperimentalswitch.h>
-#else
-#include <experimental/saiswitchextensions.h>
-#endif
 #include <experimental/saitamextensions.h>
+#endif
 }
 namespace facebook::fboss {
 
@@ -29,6 +27,7 @@ SaiTamManager::SaiTamManager(
       managerTable_(managerTable),
       platform_(platform),
       tamHandle_(std::make_unique<SaiTamHandle>()) {
+#if !defined(SAI_VERSION_4_3_3_3_ODP)
   // create report
   auto& reportStore = saiStore_->get<SaiTamReportTraits>();
   auto reportTraits =
@@ -77,6 +76,7 @@ SaiTamManager::SaiTamManager(
   tamHandle_->managerTable = managerTable_;
   // associate TAM with switch
   managerTable_->switchManager().setTamObject({tamHandle_->tam->adapterKey()});
+#endif
 }
 
 } // namespace facebook::fboss

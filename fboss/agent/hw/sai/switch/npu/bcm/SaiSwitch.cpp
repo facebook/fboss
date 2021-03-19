@@ -9,10 +9,10 @@
 extern "C" {
 #if !defined(SAI_VERSION_4_3_3_3_ODP)
 #include <experimental/saiexperimentalswitch.h>
+#include <experimental/saitamextensions.h>
 #else
 #include <experimental/saiswitchextensions.h>
 #endif
-#include <experimental/saitamextensions.h>
 }
 
 namespace {
