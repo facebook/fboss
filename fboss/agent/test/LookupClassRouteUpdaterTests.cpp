@@ -197,23 +197,12 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
   }
 
   void addRoute(RoutePrefix<AddrT> routePrefix, std::vector<AddrT> nextHops) {
-    SwSwitchRouteUpdateWrapper routeUpdater(sw_);
-    RouteNextHopSet nexthops;
-    for (const auto& nextHop : nextHops) {
-      nexthops.emplace(UnresolvedNextHop(nextHop, UCMP_DEFAULT_WEIGHT));
-    }
-    routeUpdater.addRoute(
-        this->kRid(),
-        routePrefix.network,
-        routePrefix.mask,
-        this->kClientID(),
-        RouteNextHopEntry(nexthops, AdminDistance::MAX_ADMIN_DISTANCE));
-    routeUpdater.program();
-    waitForStateUpdates(this->sw_);
-    this->sw_->getNeighborUpdater()->waitForPendingUpdates();
-    waitForRibUpdates(sw_);
-    waitForBackgroundThread(this->sw_);
-    waitForStateUpdates(this->sw_);
+    CHECK(nextHops.size());
+    addDelRouteImpl(routePrefix, nextHops);
+  }
+
+  void removeRoute(RoutePrefix<AddrT> routePrefix) {
+    addDelRouteImpl(routePrefix, {});
   }
 
   void removeNeighbor(const AddrT& ip) {
@@ -259,6 +248,37 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     waitForBackgroundThread(this->sw_);
     waitForStateUpdates(this->sw_);
     waitForRibUpdates(sw_);
+    waitForStateUpdates(this->sw_);
+  }
+
+ private:
+  void addDelRouteImpl(
+      RoutePrefix<AddrT> routePrefix,
+      std::vector<AddrT> nextHops) {
+    SwSwitchRouteUpdateWrapper routeUpdater(sw_);
+    if (nextHops.size()) {
+      RouteNextHopSet nexthops;
+      for (const auto& nextHop : nextHops) {
+        nexthops.emplace(UnresolvedNextHop(nextHop, UCMP_DEFAULT_WEIGHT));
+      }
+      routeUpdater.addRoute(
+          this->kRid(),
+          routePrefix.network,
+          routePrefix.mask,
+          this->kClientID(),
+          RouteNextHopEntry(nexthops, AdminDistance::MAX_ADMIN_DISTANCE));
+    } else {
+      routeUpdater.delRoute(
+          this->kRid(),
+          routePrefix.network,
+          routePrefix.mask,
+          this->kClientID());
+    }
+    routeUpdater.program();
+    waitForStateUpdates(this->sw_);
+    this->sw_->getNeighborUpdater()->waitForPendingUpdates();
+    waitForRibUpdates(sw_);
+    waitForBackgroundThread(this->sw_);
     waitForStateUpdates(this->sw_);
   }
 
@@ -464,6 +484,59 @@ TYPED_TEST(LookupClassRouteUpdaterTest, VerifyNeighborAddAndRemove) {
   this->unresolveNeighbor(this->kIpAddressB());
   this->verifyClassIDHelper(this->kroutePrefix1(), std::nullopt);
   this->verifyClassIDHelper(this->kroutePrefix2(), std::nullopt);
+}
+
+TYPED_TEST(LookupClassRouteUpdaterTest, VerifyInteractionWithSyncFib) {
+  this->addRoute(this->kroutePrefix1(), {this->kIpAddressA()});
+  this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+
+  SwSwitchRouteUpdateWrapper updater(this->sw_);
+  RouteNextHopSet nexthops;
+  nexthops.emplace(UnresolvedNextHop(this->kIpAddressB(), UCMP_DEFAULT_WEIGHT));
+
+  updater.addRoute(
+      this->kRid(),
+      this->kroutePrefix2().network,
+      this->kroutePrefix2().mask,
+      ClientID::BGPD,
+      RouteNextHopEntry(nexthops, AdminDistance::EBGP));
+  // SyncFib for BGP
+  updater.program({{this->kRid(), ClientID::BGPD}});
+  waitForStateUpdates(this->sw_);
+  // ClassID should be unchanged
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+}
+
+TYPED_TEST(LookupClassRouteUpdaterTest, VerifyInteractionWithAddRoute) {
+  this->addRoute(this->kroutePrefix1(), {this->kIpAddressA()});
+  this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+
+  // Add another route
+  this->addRoute(this->kroutePrefix2(), {this->kIpAddressB()});
+  waitForStateUpdates(this->sw_);
+  // ClassID should be unchanged
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+}
+
+TYPED_TEST(LookupClassRouteUpdaterTest, VerifyInteractionWithDelRoute) {
+  this->addRoute(this->kroutePrefix1(), {this->kIpAddressA()});
+  this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+
+  // Add, remove another route
+  this->addRoute(this->kroutePrefix2(), {this->kIpAddressB()});
+  this->removeRoute(this->kroutePrefix2());
+  waitForStateUpdates(this->sw_);
+  // ClassID should be unchanged
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
 }
 
 // Test cases verifying Port changes
