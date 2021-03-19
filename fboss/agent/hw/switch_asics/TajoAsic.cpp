@@ -42,6 +42,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::MAC_AGING:
     case HwAsic::Feature::SAI_MIRRORING:
     case HwAsic::Feature::SAI_SAMPLING:
+    case HwAsic::Feature::TELEMETRY_AND_MONITORING:
       return true;
     case HwAsic::Feature::HOT_SWAP:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
@@ -67,8 +68,6 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::DETAILED_L2_UPDATE:
     case HwAsic::Feature::WIDE_ECMP:
     case HwAsic::Feature::ALPM_ROUTE_PROJECTION:
-    // TODO(pshaikh): once memory leaks are fixed move, it to true
-    case HwAsic::Feature::TELEMETRY_AND_MONITORING:
     case HwAsic::Feature::SAI_PORT_SPEED_CHANGE:
     case HwAsic::Feature::SFLOW_SHIM_VERSION_FIELD:
       return false;
