@@ -387,7 +387,7 @@ void RoutingInformationBase::setClassIDImpl(
     }
     auto updateRoute = [&classId](auto& rib, auto ip, uint8_t mask) {
       auto ritr = rib.exactMatch(ip, mask);
-      if (ritr == rib.end()) {
+      if (ritr == rib.end() || ritr->value()->getClassID() == classId) {
         return;
       }
       ritr->value() = ritr->value()->clone();

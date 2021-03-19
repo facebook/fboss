@@ -79,9 +79,9 @@ void SwSwitchRouteUpdateWrapper::programClassIDLegacyRib(
         return updateClassIdLegacyRibHelper(in, rid, prefixes, classId);
       };
   if (async) {
-    sw_->updateState("Update classsId routes", updateFn);
+    sw_->updateState("Update classId routes, async", updateFn);
   } else {
-    sw_->updateStateBlocking("Update classsId routes", updateFn);
+    sw_->updateStateBlocking("Update classId routes", updateFn);
   }
 }
 } // namespace facebook::fboss

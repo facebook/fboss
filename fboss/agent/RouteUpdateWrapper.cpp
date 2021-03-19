@@ -238,7 +238,7 @@ std::shared_ptr<SwitchState> RouteUpdateWrapper::updateClassIdLegacyRibHelper(
 
   auto updateClassId = [classId](auto rib, auto& prefix) {
     auto route = rib->routes()->getRouteIf(prefix);
-    if (route) {
+    if (route && route->getClassID() != classId) {
       route = route->clone();
       route->updateClassID(classId);
       rib->updateRoute(route);

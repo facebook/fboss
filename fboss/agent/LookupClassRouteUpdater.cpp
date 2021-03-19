@@ -600,13 +600,17 @@ LookupClassRouteUpdater::addRouteAndFindClassID(
     if (!routeClassID.has_value() && neighborClassID.has_value()) {
       routeClassID = neighborClassID;
       withClassIDPrefixes.insert(ridAndCidr);
+      withoutClassIDPrefixes.erase(ridAndCidr);
     } else {
       withoutClassIDPrefixes.insert(ridAndCidr);
+      withClassIDPrefixes.erase(ridAndCidr);
     }
   }
 
   if (routeClassID.has_value()) {
     allPrefixesWithClassID_.insert(ridAndCidr);
+  } else {
+    allPrefixesWithClassID_.erase(ridAndCidr);
   }
 
   return routeClassID;
@@ -708,7 +712,12 @@ void LookupClassRouteUpdater::processRouteRemoved(
 
   if (routeClassID.has_value()) {
     auto numErasedFromAllPrefixes = allPrefixesWithClassID_.erase(ridAndCidr);
-    CHECK_EQ(numErasedFromAllPrefixes, 1);
+    // LE because this maybe and an update due to neighbor going away. In which
+    // case we would clear inherited class ID on route due to neighbor and prune
+    // from allPrefixesWithClassID_ during neighbor removal. Then we would get
+    // another update due to change route (some classId->none). Which should be
+    // a noop.
+    CHECK_LE(numErasedFromAllPrefixes, 1);
   }
 }
 
@@ -738,8 +747,9 @@ void LookupClassRouteUpdater::processRouteChanged(
      * processRouteRemoved does not schedule state update, so the only
      * additional overhead of this approach is some local computation.
      */
-    if (oldRoute->getForwardInfo().getNextHopSet() !=
-        newRoute->getForwardInfo().getNextHopSet()) {
+    if ((oldRoute->getForwardInfo().getNextHopSet() !=
+         newRoute->getForwardInfo().getNextHopSet()) ||
+        (oldRoute->getClassID() != newRoute->getClassID())) {
       processRouteRemoved(stateDelta, rid, oldRoute);
       processRouteAdded(stateDelta, rid, newRoute);
     }
