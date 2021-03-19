@@ -136,6 +136,13 @@ std::vector<NextHopSaiId> getNextHops(sai_object_id_t id) {
   return getNextHopMembers(static_cast<NextHopGroupSaiId>(id));
 }
 
+void verifyMPLSRouterInterface(sai_object_id_t intfId) {
+  auto type = SaiApiTable::getInstance()->routerInterfaceApi().getAttribute(
+      RouterInterfaceSaiId(intfId),
+      SaiMplsRouterInterfaceTraits::Attributes::Type{});
+  EXPECT_EQ(type, SAI_ROUTER_INTERFACE_TYPE_MPLS_ROUTER);
+}
+
 template <typename AddrT>
 void verifyLabeledNextHop(
     const HwSwitch* hwSwitch,
@@ -386,9 +393,6 @@ void verifyLabelSwitchAction(
     const LabelForwardingEntry::Label label,
     const LabelForwardingAction::LabelForwardingType action,
     const EcmpMplsNextHop<AddrT>& nexthop) {
-  if (action == LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP) {
-    throw FbossError("pop and look up is not supported");
-  }
   auto entry = getInSegEntryAdapterKey(hwSwitch, label);
   auto attrs = getInSegEntryAttributes(entry);
   auto pktAction = std::get<SaiInSegTraits::Attributes::PacketAction>(attrs);
@@ -398,6 +402,10 @@ void verifyLabelSwitchAction(
   auto nhop =
       std::get<std::optional<SaiInSegTraits::Attributes::NextHopId>>(attrs);
   EXPECT_TRUE(nhop.has_value());
+  if (action == LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP) {
+    verifyMPLSRouterInterface(nhop.value().value());
+    return;
+  }
   auto nexthopId = static_cast<NextHopSaiId>(nhop.value().value());
   verifyMplsNexthop(nexthopId, action, nexthop);
 }
@@ -418,9 +426,7 @@ void verifyMultiPathLabelSwitchAction(
     const LabelForwardingEntry::Label label,
     const LabelForwardingAction::LabelForwardingType action,
     const std::vector<EcmpMplsNextHop<AddrT>>& nexthops) {
-  if (action == LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP) {
-    throw FbossError("pop and look up is not supported");
-  }
+  EXPECT_NE(action, LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP);
   auto entry = getInSegEntryAdapterKey(hwSwitch, label);
   auto attrs = getInSegEntryAttributes(entry);
   auto pktAction = std::get<SaiInSegTraits::Attributes::PacketAction>(attrs);
