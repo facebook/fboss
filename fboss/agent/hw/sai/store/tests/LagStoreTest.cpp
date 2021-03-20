@@ -22,8 +22,8 @@ class LagStoreTest : public SaiStoreTest {
     return false;
   }
 
-  LagSaiId createLag(std::string label) {
-    auto lagId = saiApiTable->lagApi().create<SaiLagTraits>({}, 0);
+  LagSaiId createLag(std::string label, uint16_t vlan) {
+    auto lagId = saiApiTable->lagApi().create<SaiLagTraits>({{vlan}}, 0);
     std::array<char, 32> data{};
     std::copy(std::begin(label), std::end(label), std::begin(data));
     saiApiTable->lagApi().setAttribute(
@@ -42,7 +42,7 @@ TEST_F(LagStoreTest, setObject) {
   s.reload();
   std::array<char, 32> labelValue{"lag0"};
   SaiLagTraits::Attributes::Label label{labelValue};
-  auto lag = s.get<SaiLagTraits>().setObject(label, {});
+  auto lag = s.get<SaiLagTraits>().setObject(label, {1});
   std::vector<std::shared_ptr<SaiObject<SaiLagMemberTraits>>> members;
   for (auto i : {1, 2, 3, 4}) {
     SaiLagMemberTraits::AdapterHostKey adapterHostLey{lag->adapterKey(), i};
@@ -63,7 +63,7 @@ TEST_F(LagStoreTest, updateObject) {
   s.reload();
   std::array<char, 32> labelValue{"lag0"};
   SaiLagTraits::Attributes::Label label{labelValue};
-  auto lag = s.get<SaiLagTraits>().setObject(label, {});
+  auto lag = s.get<SaiLagTraits>().setObject(label, {1});
   std::vector<std::shared_ptr<SaiObject<SaiLagMemberTraits>>> members;
   std::vector<LagMemberSaiId> memberIds;
   for (auto i : {1, 2, 3, 4}) {
@@ -92,8 +92,8 @@ TEST_F(LagStoreTest, updateObject) {
 }
 
 TEST_F(LagStoreTest, loadLags) {
-  auto id0 = createLag("a");
-  auto id1 = createLag("b");
+  auto id0 = createLag("a", 1000);
+  auto id1 = createLag("b", 1001);
 
   SaiStore s(0);
   s.reload();
@@ -102,12 +102,14 @@ TEST_F(LagStoreTest, loadLags) {
   auto got =
       store.get(SaiLagTraits::Attributes::Label{std::array<char, 32>({"a"})});
   EXPECT_EQ(got->adapterKey(), id0);
+  EXPECT_EQ(GET_OPT_ATTR(Lag, PortVlanId, got->attributes()), 1000);
   got = store.get(SaiLagTraits::Attributes::Label{std::array<char, 32>({"b"})});
   EXPECT_EQ(got->adapterKey(), id1);
+  EXPECT_EQ(GET_OPT_ATTR(Lag, PortVlanId, got->attributes()), 1001);
 }
 
 TEST_F(LagStoreTest, loadLagMembers) {
-  auto id0 = createLag("a");
+  auto id0 = createLag("a", 4001);
   auto member0 = createLagMember(id0, 1);
   auto member1 = createLagMember(id0, 2);
   SaiStore s(0);
@@ -124,7 +126,7 @@ TEST_F(LagStoreTest, loadLagMembers) {
 }
 
 TEST_F(LagStoreTest, toAndFromDynamic) {
-  auto id0 = createLag("a");
+  auto id0 = createLag("a", 4001);
   createLagMember(id0, 1);
   createLagMember(id0, 2);
   SaiStore s(0);

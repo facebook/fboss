@@ -22,16 +22,7 @@ void SaiLagManager::addLag(
   for (auto i = 0; i < 32 && i < name.length(); i++) {
     labelValue[i] = name[i];
   }
-  auto& lagStore = saiStore_->get<SaiLagTraits>();
-  auto lag = lagStore.setObject(
-      SaiLagTraits::Attributes::Label{labelValue}, std::tuple<>());
-  std::map<PortSaiId, std::shared_ptr<SaiLagMember>> members;
-  for (auto iter : folly::enumerate(aggregatePort->subportAndFwdState())) {
-    auto [subPort, fwdState] = *iter;
-    auto member = addMember(lag, aggregatePort->getID(), subPort);
-    setMemberState(member.second.get(), fwdState);
-    members.emplace(std::move(member));
-  }
+  // TODO(pshaikh): support LAG without ports?
   auto& subPort = aggregatePort->sortedSubports().front();
   auto portSaiIdsIter = concurrentIndices_->portSaiIds.find(subPort.portID);
   // port must exist before LAG
@@ -44,6 +35,20 @@ void SaiLagManager::addLag(
   CHECK(vlanSaiIdsIter != concurrentIndices_->vlanIds.end());
 
   auto vlanID = vlanSaiIdsIter->second;
+
+  SaiLagTraits::CreateAttributes createAttributes{vlanID};
+
+  auto& lagStore = saiStore_->get<SaiLagTraits>();
+  auto lag = lagStore.setObject(
+      SaiLagTraits::Attributes::Label{labelValue}, createAttributes);
+  std::map<PortSaiId, std::shared_ptr<SaiLagMember>> members;
+  for (auto iter : folly::enumerate(aggregatePort->subportAndFwdState())) {
+    auto [subPort, fwdState] = *iter;
+    auto member = addMember(lag, aggregatePort->getID(), subPort);
+    setMemberState(member.second.get(), fwdState);
+    members.emplace(std::move(member));
+  }
+
   concurrentIndices_->vlanIds.emplace(
       PortDescriptorSaiId(lag->adapterKey()), vlanID);
   concurrentIndices_->aggregatePortIds.emplace(

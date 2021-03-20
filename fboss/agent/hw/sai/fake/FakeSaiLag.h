@@ -29,6 +29,7 @@ struct FakeLagMember {
 struct FakeLag {
   sai_object_id_t id;
   std::array<char, 32> label;
+  uint16_t vlan;
   FakeManager<sai_object_id_t, FakeLagMember>& fm() {
     return fm_;
   }

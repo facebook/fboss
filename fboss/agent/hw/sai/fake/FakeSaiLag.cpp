@@ -18,6 +18,7 @@ sai_status_t set_lag_attribute_fn(
     sai_object_id_t lag_id,
     const sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
+  auto& lag = fs->lagManager.get(lag_id);
   switch (attr->id) {
     // TODO: upgrade OSS to 1.7.1
 #ifdef IS_OSS
@@ -26,12 +27,14 @@ sai_status_t set_lag_attribute_fn(
     case SAI_LAG_ATTR_LABEL:
 #endif
     {
-      auto& lag = fs->lagManager.get(lag_id);
       std::copy(
           attr->value.chardata,
           attr->value.chardata + lag.label.size(),
           std::begin(lag.label));
     } break;
+    case SAI_LAG_ATTR_PORT_VLAN_ID:
+      lag.vlan = attr->value.u16;
+      break;
     default:
       return SAI_STATUS_NOT_SUPPORTED;
   }
@@ -43,10 +46,11 @@ sai_status_t get_lag_attribute_fn(
     uint32_t attr_count,
     sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
+  auto& lag = fs->lagManager.get(lag_id);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_LAG_ATTR_PORT_LIST: {
-        const auto& lagMemberMap = fs->lagManager.get(lag_id).fm().map();
+        const auto& lagMemberMap = lag.fm().map();
         if (lagMemberMap.size() > attr_list[i].value.objlist.count) {
           attr_list[i].value.objlist.count = lagMemberMap.size();
           return SAI_STATUS_BUFFER_OVERFLOW;
@@ -58,13 +62,17 @@ sai_status_t get_lag_attribute_fn(
         }
       } break;
 
+      case SAI_LAG_ATTR_PORT_VLAN_ID:
+        attr_list[i].value.u16 = lag.vlan;
+        break;
+
 #ifdef IS_OSS
       case SAI_LAG_ATTR_END:
 #else
       case SAI_LAG_ATTR_LABEL:
 #endif
       {
-        const auto& label = fs->lagManager.get(lag_id).label;
+        const auto& label = lag.label;
         std::copy(
             std::begin(label), std::end(label), attr_list[i].value.chardata);
       } break;

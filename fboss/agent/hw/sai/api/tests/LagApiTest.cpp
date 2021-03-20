@@ -18,8 +18,9 @@ class LagApiTest : public ::testing::Test {
     lagApi = std::make_unique<LagApi>();
   }
 
-  LagSaiId createLag() {
-    return lagApi->create<SaiLagTraits>({}, switchid);
+  LagSaiId createLag(uint16_t vlan) {
+    SaiLagTraits::CreateAttributes attributes{vlan};
+    return lagApi->create<SaiLagTraits>(attributes, switchid);
   }
 
   void removeLag(LagSaiId lag) {
@@ -64,6 +65,12 @@ class LagApiTest : public ::testing::Test {
     EXPECT_EQ(label, value);
   }
 
+  void checkVlan(LagSaiId lag, uint16_t vlan) {
+    auto vlanAttr =
+        lagApi->getAttribute(lag, SaiLagTraits::Attributes::PortVlanId{});
+    EXPECT_EQ(vlanAttr, vlan);
+  }
+
   sai_object_id_t switchid{0};
   std::shared_ptr<FakeSai> fs;
   std::unique_ptr<LagApi> lagApi;
@@ -71,8 +78,8 @@ class LagApiTest : public ::testing::Test {
 
 TEST_F(LagApiTest, TestApi) {
   /* create */
-  auto id0 = createLag();
-  auto id1 = createLag();
+  auto id0 = createLag(1000);
+  auto id1 = createLag(1001);
   EXPECT_NE(id0, id1);
   EXPECT_TRUE(hasLag(id0));
   EXPECT_TRUE(hasLag(id1));
@@ -100,9 +107,11 @@ TEST_F(LagApiTest, TestApi) {
   /* set attribute */
   setLabel(id0, "id0");
   checkLabel(id0, "id0");
+  checkVlan(id0, 1000);
 
   setLabel(id1, "id1");
   checkLabel(id1, "id1");
+  checkVlan(id1, 1001);
 
   /* delete member */
   removeLagMember(mem00);

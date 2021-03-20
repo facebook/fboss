@@ -36,6 +36,8 @@ struct SaiLagTraits {
     using Label =
         SaiAttribute<EnumType, SAI_LAG_ATTR_END, std::array<char, 32>>;
 #endif
+    using PortVlanId =
+        SaiAttribute<EnumType, SAI_LAG_ATTR_PORT_VLAN_ID, uint16_t>;
     using PortList = SaiAttribute<
         EnumType,
         SAI_LAG_ATTR_PORT_LIST,
@@ -43,11 +45,12 @@ struct SaiLagTraits {
   };
   using AdapterKey = LagSaiId;
   using AdapterHostKey = Attributes::Label;
-  using CreateAttributes = std::tuple<>;
+  using CreateAttributes = std::tuple<std::optional<Attributes::PortVlanId>>;
 };
 
 SAI_ATTRIBUTE_NAME(Lag, PortList);
 SAI_ATTRIBUTE_NAME(Lag, Label);
+SAI_ATTRIBUTE_NAME(Lag, PortVlanId);
 
 struct SaiLagMemberTraits {
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_LAG_MEMBER;
