@@ -55,9 +55,23 @@ RoutingInformationBase::RoutingInformationBase() {
 }
 
 RoutingInformationBase::~RoutingInformationBase() {
-  ribUpdateEventBase_.runInEventBaseThread(
-      [this] { ribUpdateEventBase_.terminateLoopSoon(); });
-  ribUpdateThread_->join();
+  stop();
+}
+
+void RoutingInformationBase::stop() {
+  if (ribUpdateThread_) {
+    ribUpdateEventBase_.runInEventBaseThread(
+        [this] { ribUpdateEventBase_.terminateLoopSoon(); });
+    ribUpdateThread_->join();
+    ribUpdateThread_.reset();
+  }
+}
+
+void RoutingInformationBase::ensureRunning() const {
+  if (!ribUpdateThread_) {
+    throw FbossError(
+        "RIB thread is not yet running or is in the process of exiting");
+  }
 }
 
 void RoutingInformationBase::reconfigure(
@@ -67,6 +81,7 @@ void RoutingInformationBase::reconfigure(
     const std::vector<cfg::StaticRouteNoNextHops>& staticRoutesToCpu,
     FibUpdateFunction updateFibCallback,
     void* cookie) {
+  ensureRunning();
   auto updateFn = [&] {
     auto lockedRouteTables = synchronizedRouteTables_.wlock();
 
@@ -169,6 +184,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
     folly::StringPiece updateType,
     FibUpdateFunction fibUpdateCallback,
     void* cookie) {
+  ensureRunning();
   UpdateStatistics stats;
   std::chrono::microseconds duration;
   {
@@ -378,6 +394,7 @@ void RoutingInformationBase::setClassIDImpl(
     std::optional<cfg::AclLookupClass> classId,
     void* cookie,
     bool async) {
+  ensureRunning();
   auto updateFn = [=]() {
     auto lockedRouteTables = synchronizedRouteTables_.wlock();
 

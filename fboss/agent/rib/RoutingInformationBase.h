@@ -134,10 +134,14 @@ class RoutingInformationBase {
   }
 
   void waitForRibUpdates() {
+    ensureRunning();
     ribUpdateEventBase_.runInEventBaseThreadAndWait([] { return; });
   }
 
+  void stop();
+
  private:
+  void ensureRunning() const;
   void setClassIDImpl(
       RouterID rid,
       const std::vector<folly::CIDRNetwork>& prefixes,

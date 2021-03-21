@@ -245,7 +245,9 @@ void SwSwitch::stop() {
   packetTxThreadHeartbeat_.reset();
   lacpThreadHeartbeat_.reset();
   neighborCacheThreadHeartbeat_.reset();
-  rib_.reset();
+  if (rib_) {
+    rib_->stop();
+  }
 
   lookupClassUpdater_.reset();
   lookupClassRouteUpdater_.reset();
