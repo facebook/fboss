@@ -107,6 +107,28 @@ class PlatformMappingTest : public ::testing::Test {
     EXPECT_EQ(tx.driveCurrent_ref().has_value(), hasDriveCurrent);
   }
 
+  void verifyTxSettingsByProfile(
+      PlatformMapping* platformMapping,
+      std::map<int32_t, cfg::PlatformPortEntry> platformPorts,
+      std::map<cfg::PortProfileID, std::array<int, 6>> txSettingsMap) {
+    for (auto& [portID, portEntry] : platformPorts) {
+      const auto& profiles = *portEntry.supportedProfiles_ref();
+      for (auto [profileID, profileConfig] : profiles) {
+        auto pinCfgs = platformMapping->getPortIphyPinConfigs(
+            PlatformPortProfileConfigMatcher(profileID, PortID(portID)));
+        for (auto pinCfg : pinCfgs) {
+          auto tx = pinCfg.tx_ref();
+          if (txSettingsMap.find(profileID) != txSettingsMap.end()) {
+            EXPECT_TRUE(tx.has_value());
+            verifyTxSettings(*tx, txSettingsMap[profileID]);
+          } else {
+            EXPECT_FALSE(tx.has_value());
+          }
+        }
+      }
+    }
+  }
+
  private:
   int expectedNumPort_{0};
   int expectedNumIphy_{0};
