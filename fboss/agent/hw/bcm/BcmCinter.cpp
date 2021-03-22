@@ -296,6 +296,14 @@ string BcmCinter::getNextMirrorDestIdVar() {
   return to<string>("mirrorDestId_", ++mirrorDestIdCreated_);
 }
 
+string BcmCinter::getNextRangeVar() {
+  return to<string>("range_", ++rangeCreated_);
+}
+
+string BcmCinter::getNextStgVar() {
+  return to<string>("stg_", ++stgCreated_);
+}
+
 pair<string, string> BcmCinter::cintForIp6(const bcm_ip6_t in) {
   array<string, 16> bytes;
   for (auto i = 0; i < 16; ++i) {
@@ -857,6 +865,19 @@ int BcmCinter::bcm_field_action_delete(
   return 0;
 }
 
+int BcmCinter::bcm_field_qualify_DstIp(
+    int unit,
+    bcm_field_entry_t entry,
+    bcm_ip_t data,
+    bcm_ip_t mask) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_field_qualify_DstIp",
+      "(",
+      makeParamStr(unit, getCintVar(fieldEntryVars, entry), data, mask),
+      ")")));
+  return 0;
+}
+
 int BcmCinter::bcm_field_qualify_DstIp6(
     int unit,
     bcm_field_entry_t entry,
@@ -1121,7 +1142,11 @@ int BcmCinter::bcm_field_qualify_RangeCheck(
     int invert) {
   writeCintLines(wrapFunc(to<string>(
       "bcm_field_qualify_RangeCheck(",
-      makeParamStr(unit, getCintVar(fieldEntryVars, entry), range, invert),
+      makeParamStr(
+          unit,
+          getCintVar(fieldEntryVars, entry),
+          getCintVar(rangeIdVars, range),
+          invert),
       ")")));
   return 0;
 }
@@ -1262,6 +1287,32 @@ int BcmCinter::bcm_port_loopback_set(int unit, bcm_port_t port, uint32 value) {
   return 0;
 }
 
+int BcmCinter::bcm_port_autoneg_set(int unit, bcm_port_t port, int autoneg) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_port_autoneg_set(", makeParamStr(unit, port, autoneg), ")")));
+  return 0;
+}
+
+int BcmCinter::bcm_port_phy_modify(
+    int unit,
+    bcm_port_t port,
+    uint32 flags,
+    uint32 phy_reg_addr,
+    uint32 phy_data,
+    uint32 phy_mask) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_port_phy_modify(",
+      makeParamStr(unit, port, flags, phy_reg_addr, phy_data, phy_mask),
+      ")")));
+  return 0;
+}
+
+int BcmCinter::bcm_port_dtag_mode_set(int unit, bcm_port_t port, int mode) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_port_dtag_mode_set(", makeParamStr(unit, port, mode), ")")));
+  return 0;
+}
+
 int BcmCinter::bcm_mirror_init(int unit) {
   writeCintLines(
       wrapFunc(to<string>("bcm_mirror_init(", makeParamStr(unit), ")")));
@@ -1326,6 +1377,17 @@ int BcmCinter::bcm_mirror_port_dest_delete(
       "bcm_mirror_port_dest_delete(",
       makeParamStr(
           unit, port, flags, getCintVar(mirrorDestIdVars, mirror_dest_id)),
+      ")")));
+  return 0;
+}
+
+int BcmCinter::bcm_mirror_port_dest_delete_all(
+    int unit,
+    bcm_port_t port,
+    uint32 flags) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_mirror_port_dest_delete_all(",
+      makeParamStr(unit, port, flags),
       ")")));
   return 0;
 }
@@ -1503,6 +1565,24 @@ int BcmCinter::bcm_l3_route_add(int unit, bcm_l3_route_t* l3_route) {
   return 0;
 }
 
+int BcmCinter::bcm_l3_route_delete_all(int unit, bcm_l3_route_t* info) {
+  auto cint = cintForL3Route(*info);
+  auto cintForFn = wrapFunc(to<string>(
+      "bcm_l3_route_delete_all(", makeParamStr(unit, "&l3_route"), ")"));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(cintForFn.begin()),
+      make_move_iterator(cintForFn.end()));
+  writeCintLines(std::move(cint));
+  return 0;
+}
+
+int BcmCinter::bcm_l3_route_max_ecmp_set(int unit, int max) {
+  writeCintLine(
+      to<string>("bcm_l3_route_max_ecmp_set(", makeParamStr(unit, max), ")"));
+  return 0;
+}
+
 int BcmCinter::bcm_l3_host_delete_by_interface(
     int unit,
     bcm_l3_host_t* l3_host) {
@@ -1533,6 +1613,18 @@ int BcmCinter::bcm_l3_host_delete(int unit, bcm_l3_host_t* l3_host) {
   auto cint = cintForL3Host(*l3_host);
   auto cintForFn = wrapFunc(
       to<string>("bcm_l3_host_delete(", makeParamStr(unit, "&l3_host"), ")"));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(cintForFn.begin()),
+      make_move_iterator(cintForFn.end()));
+  writeCintLines(std::move(cint));
+  return 0;
+}
+
+int BcmCinter::bcm_l3_host_delete_all(int unit, bcm_l3_host_t* info) {
+  auto cint = cintForL3Host(*info);
+  auto cintForFn = wrapFunc(to<string>(
+      "bcm_l3_host_delete_all(", makeParamStr(unit, "&l3_host"), ")"));
   cint.insert(
       cint.end(),
       make_move_iterator(cintForFn.begin()),
@@ -1749,6 +1841,12 @@ int BcmCinter::bcm_port_untagged_vlan_set(
   return 0;
 }
 
+int BcmCinter::bcm_port_frame_max_set(int unit, bcm_port_t port, int size) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_port_frame_max_set(", makeParamStr(unit, port, size), ")")));
+  return 0;
+}
+
 int BcmCinter::bcm_port_enable_set(int unit, bcm_port_t port, int enable) {
   writeCintLines(wrapFunc(to<string>(
       "bcm_port_enable_set(", makeParamStr(unit, port, enable), ")")));
@@ -1780,6 +1878,36 @@ int BcmCinter::bcm_l3_egress_destroy(int unit, bcm_if_t intf) {
       makeParamStr(unit, getCintVar(l3IntfIdVars, intf)),
       ")")));
   { l3IntfIdVars.wlock()->erase(intf); }
+  return 0;
+}
+
+int BcmCinter::bcm_field_range_create(
+    int unit,
+    bcm_field_range_t* range,
+    uint32 flags,
+    bcm_l4_port_t min,
+    bcm_l4_port_t max) {
+  string rangeVar = getNextRangeVar();
+  { rangeIdVars.wlock()->emplace(*range, rangeVar); }
+  vector<string> cint = {to<string>("bcm_field_range_t ", rangeVar)};
+  auto funcCint = wrapFunc(to<string>(
+      "bcm_field_range_create(",
+      makeParamStr(unit, to<string>("&", rangeVar), flags, min, max),
+      ")"));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(funcCint.begin()),
+      make_move_iterator(funcCint.end()));
+  writeCintLines(std::move(cint));
+  return 0;
+}
+
+int BcmCinter::bcm_field_range_destroy(int unit, bcm_field_range_t range) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_field_range_destroy(",
+      makeParamStr(unit, getCintVar(rangeIdVars, range)),
+      ")")));
+  { rangeIdVars.wlock()->erase(range); }
   return 0;
 }
 
@@ -2312,6 +2440,37 @@ int BcmCinter::bcm_l3_egress_ecmp_destroy(
       make_move_iterator(funcCint.end()));
   writeCintLines(std::move(cint));
   { l3IntfIdVars.wlock()->erase(ecmp->ecmp_intf); }
+  return 0;
+}
+
+int BcmCinter::bcm_stg_create(int unit, bcm_stg_t* stg_ptr) {
+  string stgVar = getNextStgVar();
+  { stgIdVars.wlock()->emplace(*stg_ptr, stgVar); }
+  vector<string> cint = {to<string>("bcm_stg_t ", stgVar)};
+  auto funcCint = wrapFunc(to<string>(
+      "bcm_stg_create(", makeParamStr(unit, to<string>("&", stgVar)), ")"));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(funcCint.begin()),
+      make_move_iterator(funcCint.end()));
+  writeCintLines(std::move(cint));
+  return 0;
+}
+
+int BcmCinter::bcm_stg_default_set(int unit, bcm_stg_t stg) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_stg_default_set(",
+      makeParamStr(unit, getCintVar(stgIdVars, stg)),
+      ")")));
+  return 0;
+}
+
+int BcmCinter::bcm_stg_destroy(int unit, bcm_stg_t stg) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_stg_destroy(",
+      makeParamStr(unit, getCintVar(stgIdVars, stg)),
+      ")")));
+  { stgIdVars.wlock()->erase(stg); }
   return 0;
 }
 

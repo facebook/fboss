@@ -79,46 +79,8 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
     DCHECK(0) << __func__ << " unimplemented";
     return 0;
   }
-  int bcm_port_autoneg_set(int /*unit*/, bcm_port_t /*port*/, int /*autoneg*/)
-      override {
-    DCHECK(0) << __func__ << " unimplemented";
-    return 0;
-  }
-  int bcm_field_qualify_DstIp(
-      int /*unit*/,
-      bcm_field_entry_t /*entry*/,
-      bcm_ip_t /*data*/,
-      bcm_ip_t /*mask*/) override {
-    DCHECK(0) << __func__ << " unimplemented";
-    return 0;
-  }
-  int bcm_field_range_create(
-      int /*unit*/,
-      bcm_field_range_t* /*range*/,
-      uint32 /*flags*/,
-      bcm_l4_port_t /*min*/,
-      bcm_l4_port_t /*max*/) override {
-    DCHECK(0) << __func__ << " unimplemented";
-    return 0;
-  }
-  int bcm_field_range_destroy(int /*unit*/, bcm_field_range_t /*range*/)
-      override {
-    DCHECK(0) << __func__ << " unimplemented";
-    return 0;
-  }
-  int bcm_mirror_port_dest_delete_all(
-      int /*unit*/,
-      bcm_port_t /*port*/,
-      uint32 /*flags*/) override {
-    DCHECK(0) << __func__ << " unimplemented";
-    return 0;
-  }
   int bcm_knet_filter_create(int /*unit*/, bcm_knet_filter_t* /*filter*/)
       override {
-    DCHECK(0) << __func__ << " unimplemented";
-    return 0;
-  }
-  int bcm_stg_destroy(int /*unit*/, bcm_stg_t /*stg*/) override {
     DCHECK(0) << __func__ << " unimplemented";
     return 0;
   }
@@ -131,33 +93,7 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
     DCHECK(0) << __func__ << " unimplemented";
     return 0;
   }
-  int bcm_stg_create(int /*unit*/, bcm_stg_t* /*stg_ptr*/) override {
-    DCHECK(0) << __func__ << " unimplemented";
-    return 0;
-  }
-  int bcm_stg_default_set(int /*unit*/, bcm_stg_t /*stg*/) override {
-    DCHECK(0) << __func__ << " unimplemented";
-    return 0;
-  }
-  int bcm_switch_control_port_set(
-      int unit,
-      bcm_port_t port,
-      bcm_switch_control_t type,
-      int arg) override;
   int bcm_knet_filter_destroy(int /*unit*/, int /*filter_id*/) override {
-    DCHECK(0) << __func__ << " unimplemented";
-    return 0;
-  }
-  int bcm_port_frame_max_set(int /*unit*/, bcm_port_t /*port*/, int /*size*/)
-      override {
-    DCHECK(0) << __func__ << " unimplemented";
-    return 0;
-  }
-  int bcm_l3_route_delete_all(int /*unit*/, bcm_l3_route_t* /*info*/) override {
-    DCHECK(0) << __func__ << " unimplemented";
-    return 0;
-  }
-  int bcm_l3_route_max_ecmp_set(int /*unit*/, int /*max*/) override {
     DCHECK(0) << __func__ << " unimplemented";
     return 0;
   }
@@ -166,29 +102,10 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
     DCHECK(0) << __func__ << " unimplemented";
     return 0;
   }
-  int bcm_port_phy_modify(
-      int /*unit*/,
-      bcm_port_t /*port*/,
-      uint32 /*flags*/,
-      uint32 /*phy_reg_addr*/,
-      uint32 /*phy_data*/,
-      uint32 /*phy_mask*/) override {
-    DCHECK(0) << __func__ << " unimplemented";
-    return 0;
-  }
-  int bcm_l3_host_delete_all(int /*unit*/, bcm_l3_host_t* /*info*/) override {
-    DCHECK(0) << __func__ << " unimplemented";
-    return 0;
-  }
   int bcm_port_selective_set(
       int /*unit*/,
       bcm_port_t /*port*/,
       bcm_port_info_t* /*info*/) override {
-    DCHECK(0) << __func__ << " unimplemented";
-    return 0;
-  }
-  int bcm_port_dtag_mode_set(int /*unit*/, bcm_port_t /*port*/, int /*mode*/)
-      override {
     DCHECK(0) << __func__ << " unimplemented";
     return 0;
   }
@@ -227,6 +144,15 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       uint32 param0,
       uint32 param1) override;
   int bcm_port_loopback_set(int unit, bcm_port_t port, uint32 value) override;
+  int bcm_port_autoneg_set(int unit, bcm_port_t port, int autoneg) override;
+  int bcm_port_phy_modify(
+      int unit,
+      bcm_port_t port,
+      uint32 flags,
+      uint32 phy_reg_addr,
+      uint32 phy_data,
+      uint32 phy_mask) override;
+  int bcm_port_dtag_mode_set(int unit, bcm_port_t port, int mode) override;
   int bcm_cosq_bst_stat_clear(
       int unit,
       bcm_gport_t gport,
@@ -254,6 +180,13 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       uint32_t flags,
       bcm_gport_t gport,
       bcm_cos_queue_t cosq) override;
+  int bcm_field_range_create(
+      int unit,
+      bcm_field_range_t* range,
+      uint32 flags,
+      bcm_l4_port_t min,
+      bcm_l4_port_t max) override;
+  int bcm_field_range_destroy(int unit, bcm_field_range_t range) override;
   int bcm_qos_map_create(int unit, uint32 flags, int* map_id) override;
   int bcm_qos_map_destroy(int unit, int map_id) override;
   int bcm_qos_map_add(int unit, uint32 flags, bcm_qos_map_t* map, int map_id)
@@ -273,6 +206,11 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       uint16 mask) override;
   int bcm_switch_control_set(int unit, bcm_switch_control_t type, int arg)
       override;
+  int bcm_switch_control_port_set(
+      int unit,
+      bcm_port_t port,
+      bcm_switch_control_t type,
+      int arg) override;
   int bcm_field_qualify_SrcPort(
       int unit,
       bcm_field_entry_t entry,
@@ -417,6 +355,11 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       bcm_field_entry_t entry,
       int stat_id) override;
   int bcm_field_entry_reinstall(int unit, bcm_field_entry_t entry) override;
+  int bcm_field_qualify_DstIp(
+      int unit,
+      bcm_field_entry_t entry,
+      bcm_ip_t data,
+      bcm_ip_t mask) override;
   int bcm_field_qualify_DstIp6(
       int unit,
       bcm_field_entry_t entry,
@@ -464,6 +407,8 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       bcm_port_t port,
       uint32 flags,
       bcm_gport_t mirror_dest_id) override;
+  int bcm_mirror_port_dest_delete_all(int unit, bcm_port_t port, uint32 flags)
+      override;
   int bcm_l3_egress_create(
       int unit,
       uint32 flags,
@@ -532,10 +477,13 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       bcm_port_resource_t* resource) override;
   int bcm_l3_route_delete(int unit, bcm_l3_route_t* l3_route) override;
   int bcm_l3_route_add(int unit, bcm_l3_route_t* l3_route) override;
+  int bcm_l3_route_delete_all(int unit, bcm_l3_route_t* info) override;
+  int bcm_l3_route_max_ecmp_set(int unit, int max) override;
   int bcm_l3_host_delete_by_interface(int unit, bcm_l3_host_t* l3_host)
       override;
   int bcm_l3_host_add(int unit, bcm_l3_host_t* l3_host) override;
   int bcm_l3_host_delete(int unit, bcm_l3_host_t* l3_host) override;
+  int bcm_l3_host_delete_all(int unit, bcm_l3_host_t* info) override;
   int bcm_l3_intf_create(int unit, bcm_l3_intf_t* l3_intf) override;
   int bcm_l3_intf_delete(int unit, bcm_l3_intf_t* l3_intf) override;
   int bcm_port_vlan_member_set(int unit, bcm_port_t port, uint32 flags)
@@ -551,6 +499,7 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       bcm_pbmp_t pbmp,
       bcm_pbmp_t ubmp) override;
   int bcm_vlan_create(int unit, bcm_vlan_t vid) override;
+  int bcm_port_frame_max_set(int unit, bcm_port_t port, int size) override;
   int bcm_port_enable_set(int unit, bcm_port_t port, int enable) override;
   int bcm_l3_egress_multipath_create(
       int unit,
@@ -582,6 +531,9 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   int bcm_l3_egress_destroy(int unit, bcm_if_t intf) override;
   int bcm_l3_egress_multipath_add(int unit, bcm_if_t mpintf, bcm_if_t intf)
       override;
+  int bcm_stg_create(int unit, bcm_stg_t* stg_ptr) override;
+  int bcm_stg_default_set(int unit, bcm_stg_t stg) override;
+  int bcm_stg_destroy(int unit, bcm_stg_t stg) override;
   int bcm_stg_stp_set(int unit, bcm_stg_t stg, bcm_port_t port, int stp_state)
       override;
   int bcm_vlan_default_set(int unit, bcm_vlan_t vid) override;
@@ -1604,6 +1556,8 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   std::string getNextL3IntfIdVar();
   std::string getNextStatVar();
   std::string getNextMirrorDestIdVar();
+  std::string getNextRangeVar();
+  std::string getNextStgVar();
   std::string getNextPriorityToPgVar();
   std::string getNextPfcPriToPgVar();
   std::string getNextPfcPriToQueueVar();
@@ -1719,6 +1673,8 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   std::atomic<uint> l3IntfCreated_{0};
   std::atomic<uint> statCreated_{0};
   std::atomic<uint> mirrorDestIdCreated_{0};
+  std::atomic<uint> rangeCreated_{0};
+  std::atomic<uint> stgCreated_{0};
   std::atomic<uint> tmpProrityToPgCreated_{0};
   std::atomic<uint> tmpPfcPriToPgCreated_{0};
   std::atomic<uint> tmpPfcPriToQueueCreated_{0};
@@ -1736,6 +1692,8 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   folly::Synchronized<std::map<int, std::string>> statIdVars;
   folly::Synchronized<std::map<int, std::string>> l2StationIdVars;
   folly::Synchronized<std::map<bcm_gport_t, std::string>> mirrorDestIdVars;
+  folly::Synchronized<std::map<bcm_field_range_t, std::string>> rangeIdVars;
+  folly::Synchronized<std::map<bcm_stg_t, std::string>> stgIdVars;
 };
 
 } // namespace facebook::fboss
