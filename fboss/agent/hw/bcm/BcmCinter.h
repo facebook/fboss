@@ -18,6 +18,7 @@
 
 #include <folly/File.h>
 #include <folly/Synchronized.h>
+#include <folly/logging/xlog.h>
 
 #include "fboss/agent/AsyncLogger.h"
 #include "fboss/agent/hw/bcm/BcmInterface.h"
@@ -69,44 +70,43 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   }
 
   /*
-   * Unimplemeted - Our application does not use these APIs currently
-   * so just assert if they are called. We will fill these in as needed
+   * Unimplemeted - Our application does not use these APIs currently.
    */
   int bcm_port_ability_advert_set(
       int /*unit*/,
       bcm_port_t /*port*/,
       bcm_port_ability_t* /*ability_mask*/) override {
-    DCHECK(0) << __func__ << " unimplemented";
+    XLOG(WARN) << __func__ << " unimplemented in Bcm Cinter";
     return 0;
   }
   int bcm_knet_filter_create(int /*unit*/, bcm_knet_filter_t* /*filter*/)
       override {
-    DCHECK(0) << __func__ << " unimplemented";
+    XLOG(WARN) << __func__ << " unimplemented in Bcm Cinter";
     return 0;
   }
   int bcm_knet_netif_create(int /*unit*/, bcm_knet_netif_t* /*netif*/)
       override {
-    DCHECK(0) << __func__ << " unimplemented";
+    XLOG(WARN) << __func__ << " unimplemented in Bcm Cinter";
     return 0;
   }
   int bcm_knet_netif_destroy(int /*unit*/, int /*netif_id*/) override {
-    DCHECK(0) << __func__ << " unimplemented";
+    XLOG(WARN) << __func__ << " unimplemented in Bcm Cinter";
     return 0;
   }
   int bcm_knet_filter_destroy(int /*unit*/, int /*filter_id*/) override {
-    DCHECK(0) << __func__ << " unimplemented";
+    XLOG(WARN) << __func__ << " unimplemented in Bcm Cinter";
     return 0;
   }
   int bcm_stg_list_destroy(int /*unit*/, bcm_stg_t* /*list*/, int /*count*/)
       override {
-    DCHECK(0) << __func__ << " unimplemented";
+    XLOG(WARN) << __func__ << " unimplemented in Bcm Cinter";
     return 0;
   }
   int bcm_port_selective_set(
       int /*unit*/,
       bcm_port_t /*port*/,
       bcm_port_info_t* /*info*/) override {
-    DCHECK(0) << __func__ << " unimplemented";
+    XLOG(WARN) << __func__ << " unimplemented in Bcm Cinter";
     return 0;
   }
 
