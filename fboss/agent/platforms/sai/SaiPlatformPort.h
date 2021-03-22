@@ -17,6 +17,7 @@
 #include <optional>
 
 DECLARE_bool(skip_transceiver_programming);
+DECLARE_bool(skip_led_programming);
 
 namespace facebook::fboss {
 
