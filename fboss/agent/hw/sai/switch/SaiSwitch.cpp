@@ -18,6 +18,7 @@
 #include "fboss/agent/hw/HwResourceStatsPublisher.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/sai/api/AdapterKeySerializers.h"
+#include "fboss/agent/hw/sai/api/BridgeApi.h"
 #include "fboss/agent/hw/sai/api/FdbApi.h"
 #include "fboss/agent/hw/sai/api/HostifApi.h"
 #include "fboss/agent/hw/sai/api/LoggingUtil.h"
@@ -1634,7 +1635,7 @@ std::optional<L2Entry> SaiSwitch::getL2Entry(
     XLOG(ERR) << "Missing bridge port attribute in FDB event";
     return std::nullopt;
   }
-  auto portSaiId = SaiApiTable::getInstance()->bridgeApi().getAttribute(
+  auto portOrLagSaiId = SaiApiTable::getInstance()->bridgeApi().getAttribute(
       fdbEvent.bridgePortSaiId, SaiBridgePortTraits::Attributes::PortId{});
 
   L2Entry::L2EntryType entryType{L2Entry::L2EntryType::L2_ENTRY_TYPE_PENDING};
@@ -1654,24 +1655,48 @@ std::optional<L2Entry> SaiSwitch::getL2Entry(
                 << " for " << mac;
       return std::nullopt;
   }
-  auto portItr = concurrentIndices_->portIds.find(PortSaiId(portSaiId));
-  if (portItr == concurrentIndices_->portIds.end()) {
-    XLOG(ERR) << " FDB event for " << mac
-              << ", got non existent port id : " << portSaiId;
+
+  // fdb learn event can happen over bridge port of lag or port
+  auto portType = sai_object_type_query(portOrLagSaiId);
+  if (portType != SAI_OBJECT_TYPE_PORT && portType != SAI_OBJECT_TYPE_LAG) {
+    XLOG(ERR) << "FDB event for unexpected object type "
+              << saiObjectTypeToString(portType);
     return std::nullopt;
   }
-  auto vlanItr = concurrentIndices_->vlanIds.find(
-      PortDescriptorSaiId(PortSaiId(portSaiId)));
+  PortDescriptorSaiId portDescSaiId = (portType == SAI_OBJECT_TYPE_PORT)
+      ? PortDescriptorSaiId(PortSaiId(portOrLagSaiId))
+      : PortDescriptorSaiId(LagSaiId(portOrLagSaiId));
+  std::optional<PortDescriptor> portDesc{};
+  if (portDescSaiId.isPhysicalPort()) {
+    auto portItr = concurrentIndices_->portIds.find(portDescSaiId.phyPortID());
+    if (portItr != concurrentIndices_->portIds.end()) {
+      portDesc = PortDescriptor(portItr->second);
+    }
+  } else {
+    auto aggregatePortItr =
+        concurrentIndices_->aggregatePortIds.find(portDescSaiId.aggPortID());
+    if (aggregatePortItr != concurrentIndices_->aggregatePortIds.end()) {
+      portDesc = PortDescriptor(aggregatePortItr->second);
+    }
+  }
+
+  if (!portDesc) {
+    XLOG(ERR) << " FDB event for " << mac
+              << ", got non existent port id : " << portDescSaiId.str();
+    return std::nullopt;
+  }
+
+  auto vlanItr = concurrentIndices_->vlanIds.find(portDescSaiId);
   if (vlanItr == concurrentIndices_->vlanIds.end()) {
     XLOG(ERR) << " FDB event for " << mac
-              << " could not look up VLAN for : " << portItr->second;
+              << " could not look up VLAN for : " << portDescSaiId.str();
     return std::nullopt;
   }
 
   return L2Entry{
       fromSaiMacAddress(fdbEvent.fdbEntry.mac_address),
       vlanItr->second,
-      PortDescriptor(portItr->second),
+      portDesc.value(),
       entryType};
 }
 
