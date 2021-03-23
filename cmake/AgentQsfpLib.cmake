@@ -5,6 +5,7 @@
 
 add_library(qsfp_service_client
     fboss/qsfp_service/lib/QsfpClient.cpp
+    fboss/qsfp_service/lib/oss/QsfpClient.cpp
 )
 
 target_link_libraries(qsfp_service_client

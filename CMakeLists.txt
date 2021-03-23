@@ -710,6 +710,7 @@ if (NOT SAI_ONLY)
       fboss/qsfp_service/oss/StatsPublisher.cpp
       fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.cpp
       fboss/qsfp_service/lib/QsfpClient.cpp
+      fboss/qsfp_service/lib/oss/QsfpClient.cpp
       fboss/qsfp_service/lib/QsfpCache.cpp
 
   )

@@ -10,10 +10,6 @@
 
 #include "fboss/qsfp_service/lib/QsfpClient.h"
 
-#include <folly/io/async/AsyncSocket.h>
-
-DEFINE_string(qsfp_service_host, "::1", "Host running qsfp service");
-DEFINE_int32(qsfp_service_port, 5910, "Port running qsfp service");
 DEFINE_int32(
     qsfp_service_recv_timeout,
     5000,
@@ -21,25 +17,6 @@ DEFINE_int32(
 
 namespace facebook {
 namespace fboss {
-
-static constexpr int kQsfpConnTimeoutMs = 2000;
-static constexpr int kQsfpSendTimeoutMs = 5000;
-
-// static
-folly::Future<std::unique_ptr<QsfpServiceAsyncClient>> QsfpClient::createClient(
-    folly::EventBase* eb) {
-  // SR relies on both configerator and smcc being up
-  // use raw thrift instead
-  auto createClient = [eb]() {
-    folly::SocketAddress addr(FLAGS_qsfp_service_host, FLAGS_qsfp_service_port);
-    auto socket = folly::AsyncSocket::newSocket(eb, addr, kQsfpConnTimeoutMs);
-    socket->setSendTimeout(kQsfpSendTimeoutMs);
-    auto channel =
-        apache::thrift::HeaderClientChannel::newChannel(std::move(socket));
-    return std::make_unique<QsfpServiceAsyncClient>(std::move(channel));
-  };
-  return folly::via(eb, createClient);
-}
 
 // static
 apache::thrift::RpcOptions QsfpClient::getRpcOptions() {
