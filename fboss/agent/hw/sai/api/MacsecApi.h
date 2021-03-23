@@ -147,6 +147,75 @@ SAI_ATTRIBUTE_NAME(MacsecSA, SCID)
 template <>
 struct SaiObjectHasStats<SaiMacsecSATraits> : public std::true_type {};
 
+struct SaiMacsecSCTraits {
+  static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_MACSEC_SC;
+  using SaiApiT = MacsecApi;
+  struct Attributes {
+    using EnumType = sai_macsec_sc_attr_t;
+    using SCI =
+        SaiAttribute<EnumType, SAI_MACSEC_SC_ATTR_MACSEC_SCI, sai_uint64_t>;
+    using MacsecDirection = SaiAttribute<
+        EnumType,
+        SAI_MACSEC_SC_ATTR_MACSEC_DIRECTION,
+        sai_int32_t>;
+    using ActiveEgressSAID = SaiAttribute<
+        EnumType,
+        SAI_MACSEC_SC_ATTR_ACTIVE_EGRESS_SA_ID,
+        sai_object_id_t>;
+    using FlowID =
+        SaiAttribute<EnumType, SAI_MACSEC_SC_ATTR_FLOW_ID, sai_object_id_t>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 1)
+    using CipherSuite = SaiAttribute<
+        EnumType,
+        SAI_MACSEC_SC_ATTR_MACSEC_CIPHER_SUITE,
+        sai_int32_t>;
+#endif
+    using SCIEnable = SaiAttribute<
+        EnumType,
+        SAI_MACSEC_SC_ATTR_MACSEC_EXPLICIT_SCI_ENABLE,
+        bool>;
+    using ReplayProtectionEnable = SaiAttribute<
+        EnumType,
+        SAI_MACSEC_SC_ATTR_MACSEC_REPLAY_PROTECTION_ENABLE,
+        bool>;
+    using ReplayProtectionWindow = SaiAttribute<
+        EnumType,
+        SAI_MACSEC_SC_ATTR_MACSEC_REPLAY_PROTECTION_WINDOW,
+        sai_int32_t>;
+    using SectagOffset = SaiAttribute<
+        EnumType,
+        SAI_MACSEC_SC_ATTR_MACSEC_SECTAG_OFFSET,
+        sai_uint8_t>;
+  };
+
+  using AdapterKey = MacsecSCSaiId;
+  using AdapterHostKey =
+      std::tuple<Attributes::SCI, Attributes::MacsecDirection>;
+  using CreateAttributes = std::tuple<
+      Attributes::SCI,
+      Attributes::MacsecDirection,
+      Attributes::FlowID,
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 1)
+      Attributes::CipherSuite,
+#endif
+      std::optional<Attributes::SCIEnable>,
+      std::optional<Attributes::ReplayProtectionEnable>,
+      std::optional<Attributes::ReplayProtectionWindow>,
+      std::optional<Attributes::SectagOffset>>;
+};
+
+SAI_ATTRIBUTE_NAME(MacsecSC, SCI)
+SAI_ATTRIBUTE_NAME(MacsecSC, MacsecDirection)
+SAI_ATTRIBUTE_NAME(MacsecSC, ActiveEgressSAID)
+SAI_ATTRIBUTE_NAME(MacsecSC, FlowID)
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 1)
+SAI_ATTRIBUTE_NAME(MacsecSC, CipherSuite)
+#endif
+SAI_ATTRIBUTE_NAME(MacsecSC, SCIEnable)
+SAI_ATTRIBUTE_NAME(MacsecSC, ReplayProtectionEnable)
+SAI_ATTRIBUTE_NAME(MacsecSC, ReplayProtectionWindow)
+SAI_ATTRIBUTE_NAME(MacsecSC, SectagOffset)
+
 class MacsecApi : public SaiApi<MacsecApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_MACSEC;
@@ -181,6 +250,14 @@ class MacsecApi : public SaiApi<MacsecApi> {
     return api_->create_macsec_sa(rawSaiId(id), switch_id, count, attr_list);
   }
 
+  sai_status_t _create(
+      MacsecSCSaiId* id,
+      sai_object_id_t switch_id,
+      size_t count,
+      sai_attribute_t* attr_list) const {
+    return api_->create_macsec_sc(rawSaiId(id), switch_id, count, attr_list);
+  }
+
   sai_status_t _remove(MacsecSaiId key) {
     return api_->remove_macsec(key);
   }
@@ -191,6 +268,10 @@ class MacsecApi : public SaiApi<MacsecApi> {
 
   sai_status_t _remove(MacsecSASaiId key) {
     return api_->remove_macsec_sa(key);
+  }
+
+  sai_status_t _remove(MacsecSCSaiId key) {
+    return api_->remove_macsec_sc(key);
   }
 
   sai_status_t _getAttribute(MacsecSaiId key, sai_attribute_t* attr) const {
@@ -205,6 +286,10 @@ class MacsecApi : public SaiApi<MacsecApi> {
     return api_->get_macsec_sa_attribute(key, 1, attr);
   }
 
+  sai_status_t _getAttribute(MacsecSCSaiId key, sai_attribute_t* attr) const {
+    return api_->get_macsec_sc_attribute(key, 1, attr);
+  }
+
   sai_status_t _setAttribute(MacsecSaiId key, const sai_attribute_t* attr) {
     return api_->set_macsec_attribute(key, attr);
   }
@@ -215,6 +300,10 @@ class MacsecApi : public SaiApi<MacsecApi> {
 
   sai_status_t _setAttribute(MacsecSASaiId key, const sai_attribute_t* attr) {
     return api_->set_macsec_sa_attribute(key, attr);
+  }
+
+  sai_status_t _setAttribute(MacsecSCSaiId key, const sai_attribute_t* attr) {
+    return api_->set_macsec_sc_attribute(key, attr);
   }
 
   sai_status_t _getStats(
