@@ -1391,6 +1391,18 @@ int __real_bcm_field_qualify_DstClassL3(
     uint32 data,
     uint32 mask);
 
+int __real_bcm_field_qualify_PacketRes(
+    int unit,
+    bcm_field_entry_t entry,
+    uint32 data,
+    uint32 mask);
+
+int __real_bcm_field_qualify_PacketRes_get(
+    int unit,
+    bcm_field_entry_t entry,
+    uint32* data,
+    uint32* mask);
+
 int __real_bcm_mirror_init(int unit);
 
 int __real_bcm_mirror_mode_set(int unit, int mode);
@@ -3483,6 +3495,22 @@ int __wrap_bcm_field_qualify_DstClassL3_get(
     uint32* data,
     uint32* mask) {
   CALL_WRAPPERS_RV(bcm_field_qualify_DstClassL3_get(unit, entry, data, mask));
+}
+
+int __wrap_bcm_field_qualify_PacketRes_get(
+    int unit,
+    bcm_field_entry_t entry,
+    uint32* data,
+    uint32* mask) {
+  CALL_WRAPPERS_RV(bcm_field_qualify_PacketRes_get(unit, entry, data, mask));
+}
+
+int __wrap_bcm_field_qualify_PacketRes(
+    int unit,
+    bcm_field_entry_t entry,
+    uint32 data,
+    uint32 mask) {
+  CALL_WRAPPERS_RV(bcm_field_qualify_PacketRes(unit, entry, data, mask));
 }
 
 int __wrap_bcm_field_qualify_DstClassL2(

@@ -43,6 +43,7 @@ constexpr auto kLookupClassL2 = "lookupClassL2";
 constexpr auto kLookupClass = "lookupClass";
 constexpr auto kLookupClassNeighbor = "lookupClassNeighbor";
 constexpr auto kLookupClassRoute = "lookupClassRoute";
+constexpr auto kPacketLookupResult = "packetLookupResult";
 constexpr auto kAclAction = "aclAction";
 } // namespace
 
@@ -146,6 +147,10 @@ folly::dynamic AclEntryFields::toFollyDynamic() const {
     }
     aclEntry[kLookupClassRoute] = lookupClassNameRoute;
   }
+  if (packetLookupResult) {
+    aclEntry[kPacketLookupResult] =
+        static_cast<uint32_t>(packetLookupResult.value());
+  }
   auto actionTypeName = apache::thrift::util::enumName(actionType);
   if (actionTypeName == nullptr) {
     throw FbossError("invalid actionType");
@@ -243,6 +248,10 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
     TEnumTraits<cfg::AclLookupClass>::findValue(
         aclEntryJson[kLookupClassRoute].asString().c_str(), &lookupClassRoute);
     aclEntry.lookupClassRoute = lookupClassRoute;
+  }
+  if (aclEntryJson.find(kPacketLookupResult) != aclEntryJson.items().end()) {
+    aclEntry.packetLookupResult = static_cast<cfg::PacketLookupResultType>(
+        aclEntryJson[kPacketLookupResult].asInt());
   }
   TEnumTraits<cfg::AclActionType>::findValue(
       aclEntryJson[kActionType].asString().c_str(), &aclEntry.actionType);

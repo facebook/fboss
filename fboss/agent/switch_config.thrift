@@ -312,6 +312,10 @@ enum AclLookupClass {
   CLASS_QUEUE_PER_HOST_QUEUE_9 = 19
 }
 
+enum PacketLookupResultType {
+  PACKET_LOOKUP_RESULT_MPLS_NO_MATCH = 1
+}
+
 /**
  * An access control entry
  */
@@ -408,6 +412,8 @@ struct AclEntry {
   26: optional AclLookupClass lookupClassNeighbor
 
   27: optional AclLookupClass lookupClassRoute
+
+  28: optional PacketLookupResultType packetLookupResult
 }
 
 /*

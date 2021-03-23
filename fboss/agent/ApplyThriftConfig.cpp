@@ -2021,7 +2021,9 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   if (auto lookupClassRoute = config->lookupClassRoute_ref()) {
     newAcl->setLookupClassRoute(*lookupClassRoute);
   }
-
+  if (auto packetLookupResult = config->packetLookupResult_ref()) {
+    newAcl->setPacketLookupResult(*packetLookupResult);
+  }
   return newAcl;
 }
 

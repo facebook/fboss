@@ -137,6 +137,11 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       bcm_field_entry_t entry,
       uint32 data,
       uint32 mask) override;
+  int bcm_field_qualify_PacketRes(
+      int unit,
+      bcm_field_entry_t entry,
+      uint32 data,
+      uint32 mask) override;
   int bcm_field_action_delete(
       int unit,
       bcm_field_entry_t entry,
@@ -882,6 +887,13 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
     return 0;
   }
   int bcm_field_qualify_DstClassL3_get(
+      int /*unit*/,
+      bcm_field_entry_t /*entry*/,
+      uint32* /*data*/,
+      uint32* /*mask*/) override {
+    return 0;
+  }
+  int bcm_field_qualify_PacketRes_get(
       int /*unit*/,
       bcm_field_entry_t /*entry*/,
       uint32* /*data*/,

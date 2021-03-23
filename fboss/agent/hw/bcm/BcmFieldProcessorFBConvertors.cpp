@@ -181,4 +181,24 @@ cfg::CounterType bcmCounterTypeToCfgCounterType(bcm_field_stat_t bcmType) {
   throw FbossError("Unsupported Counter Type option");
 }
 
+uint32_t cfgPacketLookupResultToBcmPktResult(
+    cfg::PacketLookupResultType cfgPktLookupResult) {
+  switch (cfgPktLookupResult) {
+    case cfg::PacketLookupResultType::PACKET_LOOKUP_RESULT_MPLS_NO_MATCH:
+      return BCM_FIELD_PKT_RES_MPLSUNKNOWN;
+  }
+  // should return in one of the cases
+  throw FbossError("Unsupported PacketLookupResult Type option");
+}
+
+cfg::PacketLookupResultType bcmPktResultToCfgPacketLookupResult(
+    uint32_t bcmPktLookupResult) {
+  switch (bcmPktLookupResult) {
+    case BCM_FIELD_PKT_RES_MPLSUNKNOWN:
+      return cfg::PacketLookupResultType::PACKET_LOOKUP_RESULT_MPLS_NO_MATCH;
+  }
+  // should return in one of the cases
+  throw FbossError("Unsupported BcmPacketLookupResult Type option");
+}
+
 } // namespace facebook::fboss::utility

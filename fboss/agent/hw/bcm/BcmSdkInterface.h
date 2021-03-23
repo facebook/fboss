@@ -654,6 +654,18 @@ class BcmSdkInterface {
       uint32 data,
       uint32 mask) = 0;
 
+  virtual int bcm_field_qualify_PacketRes_get(
+      int unit,
+      bcm_field_entry_t entry,
+      uint32* data,
+      uint32* mask) = 0;
+
+  virtual int bcm_field_qualify_PacketRes(
+      int unit,
+      bcm_field_entry_t entry,
+      uint32 data,
+      uint32 mask) = 0;
+
   virtual int bcm_field_group_destroy(int unit, bcm_field_group_t) = 0;
 
   virtual int bcm_cosq_control_get(

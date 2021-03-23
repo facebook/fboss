@@ -53,4 +53,9 @@ cfg::IpType bcmIpTypeToCfgIpType(bcm_field_IpType_t bcmIpType);
 bcm_field_stat_t cfgCounterTypeToBcmCounterType(cfg::CounterType cfgType);
 cfg::CounterType bcmCounterTypeToCfgCounterType(bcm_field_stat_t bcmType);
 
+uint32_t cfgPacketLookupResultToBcmPktResult(
+    cfg::PacketLookupResultType cfgPktLookupResult);
+cfg::PacketLookupResultType bcmPktResultToCfgPacketLookupResult(
+    uint32_t bcmPktLookupResult);
+
 } // namespace facebook::fboss::utility

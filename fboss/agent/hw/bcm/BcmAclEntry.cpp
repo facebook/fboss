@@ -265,6 +265,16 @@ void BcmAclEntry::createAclQualifiers() {
         hw_->getUnit(), handle_, classId, 0xFFFFFFFF);
     bcmCheckError(rv, "failed to qualify DstClassL2:", classId);
   }
+
+  if (acl_->getPacketLookupResult()) {
+    auto packetLookupResultValue = acl_->getPacketLookupResult().value();
+    auto packetLookupResult =
+        cfgPacketLookupResultToBcmPktResult(packetLookupResultValue);
+    rv = bcm_field_qualify_PacketRes(
+        hw_->getUnit(), handle_, packetLookupResult, 0xFFFFFFFF);
+    bcmCheckError(
+        rv, "failed to qualify PacketLookupResult:", packetLookupResult);
+  }
 }
 
 void BcmAclEntry::createAclActions() {
@@ -670,6 +680,23 @@ bool BcmAclEntry::isStateSame(
         lookupClassL2,
         aclMsg,
         "LookupClassL2");
+  }
+
+  if (BCM_FIELD_QSET_TEST(
+          getAclQset(hw->getPlatform()->getAsic()->getAsicType()),
+          bcmFieldQualifyPacketRes)) {
+    std::optional<uint32> packetLookupResult;
+    if (acl->getPacketLookupResult()) {
+      packetLookupResult = cfgPacketLookupResultToBcmPktResult(
+          acl->getPacketLookupResult().value());
+    }
+    isSame &= isBcmQualFieldStateSame(
+        bcm_field_qualify_PacketRes_get,
+        hw->getUnit(),
+        handle,
+        packetLookupResult,
+        aclMsg,
+        "PacketRes");
   }
 
   // check acl stat

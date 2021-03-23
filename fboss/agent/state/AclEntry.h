@@ -116,6 +116,7 @@ struct AclEntryFields {
   std::optional<cfg::AclLookupClass> lookupClass{std::nullopt};
   std::optional<cfg::AclLookupClass> lookupClassNeighbor{std::nullopt};
   std::optional<cfg::AclLookupClass> lookupClassRoute{std::nullopt};
+  std::optional<cfg::PacketLookupResultType> packetLookupResult{std::nullopt};
 
   cfg::AclActionType actionType{cfg::AclActionType::PERMIT};
   std::optional<MatchAction> aclAction{std::nullopt};
@@ -164,7 +165,8 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
         getFields()->l4DstPort == acl.getL4DstPort() &&
         getFields()->lookupClassL2 == acl.getLookupClassL2() &&
         getFields()->lookupClassNeighbor == acl.getLookupClassNeighbor() &&
-        getFields()->lookupClassRoute == acl.getLookupClassRoute();
+        getFields()->lookupClassRoute == acl.getLookupClassRoute() &&
+        getFields()->packetLookupResult == acl.getPacketLookupResult();
   }
 
   int getPriority() const {
@@ -332,13 +334,23 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
     writableFields()->lookupClassRoute = lookupClassRoute;
   }
 
+  std::optional<cfg::PacketLookupResultType> getPacketLookupResult() const {
+    return getFields()->packetLookupResult;
+  }
+
+  void setPacketLookupResult(
+      const cfg::PacketLookupResultType packetLookupResult) {
+    writableFields()->packetLookupResult = packetLookupResult;
+  }
+
   bool hasMatcher() const {
     // at least one qualifier must be specified
     return getSrcIp().first || getDstIp().first || getProto() ||
         getTcpFlagsBitMap() || getSrcPort() || getDstPort() || getIpFrag() ||
         getIcmpType() || getDscp() || getIpType() || getTtl() || getDstMac() ||
         getL4SrcPort() || getL4DstPort() || getLookupClassL2() ||
-        getLookupClassNeighbor() || getLookupClassRoute();
+        getLookupClassNeighbor() || getLookupClassRoute() ||
+        getPacketLookupResult();
   }
 
  private:

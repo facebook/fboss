@@ -1013,6 +1013,19 @@ int BcmCinter::bcm_field_qualify_DstClassL3(
   return 0;
 }
 
+int BcmCinter::bcm_field_qualify_PacketRes(
+    int unit,
+    bcm_field_entry_t entry,
+    uint32 data,
+    uint32 mask) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_field_qualify_PacketRes",
+      "(",
+      makeParamStr(unit, getCintVar(fieldEntryVars, entry), data, mask),
+      ")")));
+  return 0;
+}
+
 int BcmCinter::bcm_field_qualify_Ttl(
     int unit,
     bcm_field_entry_t entry,
