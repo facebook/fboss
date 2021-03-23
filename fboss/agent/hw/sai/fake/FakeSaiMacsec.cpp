@@ -149,6 +149,117 @@ sai_status_t get_macsec_port_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
+sai_status_t create_macsec_sa_fn(
+    sai_object_id_t* macsec_sa_id,
+    sai_object_id_t /* switch_id */,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+  sai_object_id_t scid;
+  sai_uint8_t an;
+  sai_macsec_auth_key_t authKey;
+  sai_macsec_direction_t macsecDirection;
+  sai_uint32_t ssci;
+  sai_macsec_sak_t sak;
+  sai_macsec_salt_t salt;
+  std::optional<sai_uint64_t> minimumXpn;
+
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_MACSEC_SA_ATTR_SC_ID:
+        scid = attr_list[i].value.oid;
+        break;
+      case SAI_MACSEC_SA_ATTR_AN:
+        an = attr_list[i].value.u8;
+        break;
+      case SAI_MACSEC_SA_ATTR_AUTH_KEY:
+        std::copy(
+            std::begin(attr_list[i].value.macsecauthkey),
+            std::end(attr_list[i].value.macsecauthkey),
+            authKey);
+        break;
+      case SAI_MACSEC_SA_ATTR_MACSEC_DIRECTION:
+        macsecDirection =
+            static_cast<sai_macsec_direction_t>(attr_list[i].value.s32);
+        break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 1)
+      case SAI_MACSEC_SA_ATTR_MACSEC_SSCI:
+        ssci = attr_list[i].value.s32;
+        break;
+#endif
+      case SAI_MACSEC_SA_ATTR_SAK:
+        std::copy(
+            std::begin(attr_list[i].value.macsecsak),
+            std::end(attr_list[i].value.macsecsak),
+            sak);
+        break;
+      case SAI_MACSEC_SA_ATTR_SALT:
+        std::copy(
+            std::begin(attr_list[i].value.macsecsalt),
+            std::end(attr_list[i].value.macsecsalt),
+            salt);
+        break;
+      case SAI_MACSEC_SA_ATTR_MINIMUM_XPN:
+        minimumXpn = attr_list[i].value.u64;
+        break;
+      default:
+        return SAI_STATUS_INVALID_PARAMETER;
+    }
+  }
+
+  *macsec_sa_id = fs->macsecSAManager.create(
+      scid, an, authKey, macsecDirection, ssci, sak, salt);
+  auto& macsecSA = fs->macsecSAManager.get(*macsec_sa_id);
+  if (minimumXpn) {
+    macsecSA.minimumXpn = minimumXpn.value();
+  }
+
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t remove_macsec_sa_fn(sai_object_id_t macsec_sa_id) {
+  FakeSai::getInstance()->macsecSAManager.remove(macsec_sa_id);
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t set_macsec_sa_attribute_fn(
+    sai_object_id_t macsec_sa_id,
+    const sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  auto& macsecSA = fs->macsecSAManager.get(macsec_sa_id);
+  sai_status_t res = SAI_STATUS_SUCCESS;
+  if (!attr) {
+    return SAI_STATUS_INVALID_PARAMETER;
+  }
+  switch (attr->id) {
+    case SAI_MACSEC_SA_ATTR_MINIMUM_XPN:
+      macsecSA.minimumXpn = attr->value.u64;
+      break;
+    default:
+      res = SAI_STATUS_INVALID_PARAMETER;
+      break;
+  }
+  return res;
+}
+
+sai_status_t get_macsec_sa_attribute_fn(
+    sai_object_id_t macsec_sa_id,
+    uint32_t attr_count,
+    sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  const auto& macsecSA = fs->macsecSAManager.get(macsec_sa_id);
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr[i].id) {
+      case SAI_MACSEC_SA_ATTR_MINIMUM_XPN:
+        attr[i].value.u64 = macsecSA.minimumXpn;
+        break;
+      default:
+        return SAI_STATUS_INVALID_PARAMETER;
+    }
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
 namespace facebook::fboss {
 
 static sai_macsec_api_t _macsec_api;
@@ -163,6 +274,11 @@ void populate_macsec_api(sai_macsec_api_t** macsec_api) {
   _macsec_api.remove_macsec_port = &remove_macsec_port_fn;
   _macsec_api.set_macsec_port_attribute = &set_macsec_port_attribute_fn;
   _macsec_api.get_macsec_port_attribute = &get_macsec_port_attribute_fn;
+
+  _macsec_api.create_macsec_sa = &create_macsec_sa_fn;
+  _macsec_api.remove_macsec_sa = &remove_macsec_sa_fn;
+  _macsec_api.set_macsec_sa_attribute = &set_macsec_sa_attribute_fn;
+  _macsec_api.get_macsec_sa_attribute = &get_macsec_sa_attribute_fn;
 
   // TODO(ccpowers): add stats apis (get/ext/clear)
 
