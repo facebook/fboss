@@ -41,7 +41,8 @@ std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
 }
 
 std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
-    const HwAsic* hwAsic) {
+    const HwAsic* hwAsic,
+    cfg::SwitchConfig& /* unused */) {
   std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> acls;
 
   // multicast link local dst ip
@@ -96,6 +97,12 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
 
 // Setting Shared Bytes for SAI is a no-op
 void setPortQueueSharedBytes(cfg::PortQueue& /* unused */) {}
+
+// Not yet implemented in SAI
+std::string getMplsDestNoMatchCounterName(void) {
+  throw FbossError(
+      "Mpls destination no match counter is not yet supported for SAI");
+}
 
 } // namespace utility
 } // namespace facebook::fboss

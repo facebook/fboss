@@ -181,7 +181,7 @@ void addCpuQueueConfig(cfg::SwitchConfig& config, const HwAsic* hwAsic) {
 void setDefaultCpuTrafficPolicyConfig(
     cfg::SwitchConfig& config,
     const HwAsic* hwAsic) {
-  auto cpuAcls = utility::defaultCpuAcls(hwAsic);
+  auto cpuAcls = utility::defaultCpuAcls(hwAsic, config);
   // insert cpu acls into global acl field
   int curNumAcls = config.acls_ref()->size();
   config.acls_ref()->resize(curNumAcls + cpuAcls.size());

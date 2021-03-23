@@ -12,17 +12,21 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
+#include "fboss/agent/hw/test/HwTestAclUtils.h"
+#include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestMplsUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketSnooper.h"
 #include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/hw/test/TrafficPolicyUtils.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 namespace {
 const facebook::fboss::LabelForwardingEntry::Label kTopLabel{1101};
-}
+constexpr auto kGetQueueOutPktsRetryTimes = 5;
+} // namespace
 
 namespace facebook::fboss {
 
@@ -73,6 +77,9 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     cfg::TrafficPolicyConfig policy;
     policy.defaultQosPolicy_ref() = "qp";
     config.dataPlaneTrafficPolicy_ref() = policy;
+
+    utility::setDefaultCpuTrafficPolicyConfig(config, getAsic());
+    utility::addCpuQueueConfig(config, getAsic());
 
     return config;
   }
@@ -167,6 +174,27 @@ class HwMPLSTest : public HwLinkStateDependentTest {
   bool skipTest() {
     return !getPlatform()->getAsic()->isSupported(HwAsic::Feature::MPLS);
   }
+
+  void sendMplsPktAndVerifyTrappedCpuQueue(
+      int queueId,
+      int label = 1101,
+      const int numPktsToSend = 1,
+      const int expectedPktDelta = 1) {
+    auto beforeOutPkts = utility::getQueueOutPacketsWithRetry(
+        getHwSwitch(), queueId, 0 /* retryTimes */, 0 /* expectedNumPkts */);
+    for (int i = 0; i < numPktsToSend; i++) {
+      sendMplsPacket(label, masterLogicalPortIds()[1], EXP(5));
+    }
+    auto afterOutPkts = utility::getQueueOutPacketsWithRetry(
+        getHwSwitch(),
+        queueId,
+        kGetQueueOutPktsRetryTimes,
+        beforeOutPkts + numPktsToSend);
+    XLOG(DBG0) << ". Queue=" << queueId << ", before pkts:" << beforeOutPkts
+               << ", after pkts:" << afterOutPkts;
+    EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
+  }
+
   std::unique_ptr<utility::EcmpSetupTargetedPorts6> ecmpHelper_;
 };
 
@@ -243,4 +271,48 @@ TEST_F(HwMPLSTest, Swap) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(HwMPLSTest, MplsNoMatchPktsToLowPriQ) {
+  if (skipTest()) {
+    return;
+  }
+  auto setup = [=]() {};
+
+  auto verify = [=]() {
+    const auto& mplsNoMatchCounter = utility::getMplsDestNoMatchCounterName();
+    auto statBefore = utility::getAclInOutPackets(
+        getHwSwitch(), getProgrammedState(), "", mplsNoMatchCounter);
+
+    sendMplsPktAndVerifyTrappedCpuQueue(utility::kCoppLowPriQueueId);
+
+    auto statAfter = utility::getAclInOutPackets(
+        getHwSwitch(), getProgrammedState(), "", mplsNoMatchCounter);
+    EXPECT_EQ(statBefore + 1, statAfter);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwMPLSTest, MplsMatchPktsNottrapped) {
+  if (skipTest()) {
+    return;
+  }
+  auto setup = [=]() {
+    programLabelSwap(PortDescriptor(masterLogicalPortIds()[0]));
+  };
+
+  auto verify = [=]() {
+    const auto& mplsNoMatchCounter = utility::getMplsDestNoMatchCounterName();
+    auto statBefore = utility::getAclInOutPackets(
+        getHwSwitch(), getProgrammedState(), "", mplsNoMatchCounter);
+
+    sendMplsPktAndVerifyTrappedCpuQueue(
+        utility::kCoppLowPriQueueId, 1101, 1 /* To send*/, 0 /* expected*/);
+
+    auto statAfter = utility::getAclInOutPackets(
+        getHwSwitch(), getProgrammedState(), "", mplsNoMatchCounter);
+    EXPECT_EQ(statBefore, statAfter);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss

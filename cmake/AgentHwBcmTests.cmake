@@ -160,6 +160,7 @@ add_library(bcm_copp_utils
 target_link_libraries(bcm_copp_utils
   bcm
   hw_copp_utils
+  traffic_policy_utils
 )
 
 add_library(bcm_packet_trap_helper

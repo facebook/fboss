@@ -64,7 +64,10 @@ cfg::MatchAction createQueueMatchAction(
     cfg::ToCpuAction toCpuAction);
 
 std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
-    const HwAsic* hwAsic);
+    const HwAsic* hwAsic,
+    cfg::SwitchConfig& config);
+
+std::string getMplsDestNoMatchCounterName(void);
 
 void addNoActionAclForNw(
     const folly::CIDRNetwork& nw,

@@ -198,6 +198,25 @@ TEST(Acl, applyConfig) {
   EXPECT_NE(nullptr, aclV7);
 
   EXPECT_FALSE(aclV7->getDstMac());
+
+  // set packet lookup result matching
+  configV2.acls_ref()[0].packetLookupResult_ref() =
+      cfg::PacketLookupResultType::PACKET_LOOKUP_RESULT_MPLS_NO_MATCH;
+  auto stateV8 = publishAndApplyConfig(stateV7, &configV2, platform.get());
+  EXPECT_NE(nullptr, stateV5);
+  auto aclV8 = stateV8->getAcl("acl3");
+  EXPECT_NE(nullptr, aclV8);
+  EXPECT_EQ(
+      aclV8->getPacketLookupResult().value(),
+      cfg::PacketLookupResultType::PACKET_LOOKUP_RESULT_MPLS_NO_MATCH);
+
+  // remove packet lookup result matching
+  configV2.acls_ref()[0].packetLookupResult_ref().reset();
+  auto stateV9 = publishAndApplyConfig(stateV8, &configV2, platform.get());
+  EXPECT_NE(nullptr, stateV9);
+  auto aclV9 = stateV9->getAcl("acl3");
+  EXPECT_NE(nullptr, aclV9);
+  EXPECT_FALSE(aclV9->getPacketLookupResult());
 }
 
 TEST(Acl, stateDelta) {
@@ -581,6 +600,26 @@ TEST(Acl, TtlSerialization) {
   EXPECT_THROW(ttl.setValue(-1), FbossError);
   EXPECT_THROW(ttl.setMask(256), FbossError);
   EXPECT_THROW(ttl.setMask(-1), FbossError);
+}
+
+TEST(Acl, PacketLookupResultSerialization) {
+  auto entry = std::make_unique<AclEntry>(0, "stat0");
+  entry->setPacketLookupResult(
+      cfg::PacketLookupResultType::PACKET_LOOKUP_RESULT_MPLS_NO_MATCH);
+  auto action = MatchAction();
+  auto counter = cfg::TrafficCounter();
+  counter.name_ref() = "stat0.c";
+  action.setTrafficCounter(counter);
+  entry->setAclAction(action);
+
+  auto serialized = entry->toFollyDynamic();
+  auto entryBack = AclEntry::fromFollyDynamic(serialized);
+
+  EXPECT_TRUE(*entry == *entryBack);
+  EXPECT_TRUE(entryBack->getPacketLookupResult());
+  EXPECT_EQ(
+      entryBack->getPacketLookupResult().value(),
+      cfg::PacketLookupResultType::PACKET_LOOKUP_RESULT_MPLS_NO_MATCH);
 }
 
 TEST(Acl, IpType) {

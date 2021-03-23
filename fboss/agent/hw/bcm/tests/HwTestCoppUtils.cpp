@@ -10,9 +10,11 @@
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 
 #include "fboss/agent/hw/bcm/BcmControlPlane.h"
+#include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/types.h"
+#include "fboss/agent/hw/test/TrafficPolicyUtils.h"
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/LacpTypes.h"
@@ -20,6 +22,8 @@
 namespace {
 constexpr uint32_t kCoppLowPriSharedBytes = 10192;
 constexpr uint32_t kCoppDefaultPriSharedBytes = 10192;
+const std::string kMplsDestNoMatchAclName = "cpuPolicing-mpls-dest-nomatch";
+const std::string kMplsDestNoMatchCounterName = "mpls-dest-nomatch-counter";
 } // unnamed namespace
 
 namespace facebook::fboss::utility {
@@ -38,7 +42,8 @@ std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
 }
 
 std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
-    const HwAsic* hwAsic) {
+    const HwAsic* hwAsic,
+    cfg::SwitchConfig& config) {
   std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> acls;
 
   // multicast link local dst ip
@@ -150,7 +155,26 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
   addMidPriAclForNw(
       kIPv6LinkLocalUcastNetwork(), getCpuActionType(hwAsic), acls);
 
+  // mpls no match
+  {
+    if (BCM_FIELD_QSET_TEST(
+            getAclQset(hwAsic->getAsicType()), bcmFieldQualifyPacketRes)) {
+      cfg::AclEntry acl;
+      acl.name_ref() = kMplsDestNoMatchAclName;
+      acl.packetLookupResult_ref() =
+          cfg::PacketLookupResultType::PACKET_LOOKUP_RESULT_MPLS_NO_MATCH;
+      utility::addTrafficCounter(&config, kMplsDestNoMatchCounterName);
+      auto action = createQueueMatchAction(
+          utility::kCoppLowPriQueueId, getCpuActionType(hwAsic));
+      action.counter_ref() = kMplsDestNoMatchCounterName;
+      acls.push_back(std::make_pair(acl, action));
+    }
+  }
   return acls;
+}
+
+std::string getMplsDestNoMatchCounterName(void) {
+  return kMplsDestNoMatchCounterName;
 }
 
 std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
