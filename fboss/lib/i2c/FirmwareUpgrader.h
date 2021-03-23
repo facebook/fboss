@@ -24,8 +24,8 @@ class CmisFirmwareUpgrader {
   static inline std::map<std::string, std::string> partNoMap{
       {"finisar-200g", "FTCC1112E1PLL-FB"},
       {"finisar-400g", "FTCD4313E2PCL   "},
-      {"innolight-200g", "T-FX4FNT-HFB"},
-      {"innolight-400g", "T-DQ4CNT-NFB"},
+      {"innolight-200g", "T-FX4FNT-HFB    "},
+      {"innolight-400g", "T-DQ4CNT-NFB    "},
   };
 
   // Constructor. The caller is responsible for interfacing with Firmware
