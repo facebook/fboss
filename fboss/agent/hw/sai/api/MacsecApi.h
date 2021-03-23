@@ -216,6 +216,48 @@ SAI_ATTRIBUTE_NAME(MacsecSC, ReplayProtectionEnable)
 SAI_ATTRIBUTE_NAME(MacsecSC, ReplayProtectionWindow)
 SAI_ATTRIBUTE_NAME(MacsecSC, SectagOffset)
 
+struct SaiMacsecFlowTraits {
+  static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_MACSEC_FLOW;
+  using SaiApiT = MacsecApi;
+  struct Attributes {
+    using EnumType = sai_macsec_flow_attr_t;
+    using MacsecDirection = SaiAttribute<
+        EnumType,
+        SAI_MACSEC_FLOW_ATTR_MACSEC_DIRECTION,
+        sai_int32_t>;
+  };
+  using AdapterKey = MacsecFlowSaiId;
+  using AdapterHostKey = Attributes::MacsecDirection;
+  using CreateAttributes = std::tuple<Attributes::MacsecDirection>;
+
+  static constexpr std::array<sai_stat_id_t, 19> CounterIdsToRead = {
+      SAI_MACSEC_FLOW_STAT_UCAST_PKTS_UNCONTROLLED,
+      SAI_MACSEC_FLOW_STAT_UCAST_PKTS_CONTROLLED,
+      SAI_MACSEC_FLOW_STAT_MULTICAST_PKTS_UNCONTROLLED,
+      SAI_MACSEC_FLOW_STAT_MULTICAST_PKTS_CONTROLLED,
+      SAI_MACSEC_FLOW_STAT_BROADCAST_PKTS_UNCONTROLLED,
+      SAI_MACSEC_FLOW_STAT_BROADCAST_PKTS_CONTROLLED,
+      SAI_MACSEC_FLOW_STAT_CONTROL_PKTS,
+      SAI_MACSEC_FLOW_STAT_PKTS_UNTAGGED,
+      SAI_MACSEC_FLOW_STAT_OTHER_ERR,
+      SAI_MACSEC_FLOW_STAT_OCTETS_UNCONTROLLED,
+      SAI_MACSEC_FLOW_STAT_OCTETS_CONTROLLED,
+      SAI_MACSEC_FLOW_STAT_OUT_OCTETS_COMMON,
+      SAI_MACSEC_FLOW_STAT_OUT_PKTS_TOO_LONG,
+      SAI_MACSEC_FLOW_STAT_IN_TAGGED_CONTROL_PKTS,
+      SAI_MACSEC_FLOW_STAT_IN_PKTS_NO_TAG,
+      SAI_MACSEC_FLOW_STAT_IN_PKTS_BAD_TAG,
+      SAI_MACSEC_FLOW_STAT_IN_PKTS_NO_SCI,
+      SAI_MACSEC_FLOW_STAT_IN_PKTS_UNKNOWN_SCI,
+      SAI_MACSEC_FLOW_STAT_IN_PKTS_OVERRUN,
+  };
+};
+
+SAI_ATTRIBUTE_NAME(MacsecFlow, MacsecDirection)
+
+template <>
+struct SaiObjectHasStats<SaiMacsecFlowTraits> : public std::true_type {};
+
 class MacsecApi : public SaiApi<MacsecApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_MACSEC;
@@ -258,6 +300,14 @@ class MacsecApi : public SaiApi<MacsecApi> {
     return api_->create_macsec_sc(rawSaiId(id), switch_id, count, attr_list);
   }
 
+  sai_status_t _create(
+      MacsecFlowSaiId* id,
+      sai_object_id_t switch_id,
+      size_t count,
+      sai_attribute_t* attr_list) const {
+    return api_->create_macsec_flow(rawSaiId(id), switch_id, count, attr_list);
+  }
+
   sai_status_t _remove(MacsecSaiId key) {
     return api_->remove_macsec(key);
   }
@@ -272,6 +322,10 @@ class MacsecApi : public SaiApi<MacsecApi> {
 
   sai_status_t _remove(MacsecSCSaiId key) {
     return api_->remove_macsec_sc(key);
+  }
+
+  sai_status_t _remove(MacsecFlowSaiId key) {
+    return api_->remove_macsec_flow(key);
   }
 
   sai_status_t _getAttribute(MacsecSaiId key, sai_attribute_t* attr) const {
@@ -290,6 +344,10 @@ class MacsecApi : public SaiApi<MacsecApi> {
     return api_->get_macsec_sc_attribute(key, 1, attr);
   }
 
+  sai_status_t _getAttribute(MacsecFlowSaiId key, sai_attribute_t* attr) const {
+    return api_->get_macsec_flow_attribute(key, 1, attr);
+  }
+
   sai_status_t _setAttribute(MacsecSaiId key, const sai_attribute_t* attr) {
     return api_->set_macsec_attribute(key, attr);
   }
@@ -306,6 +364,10 @@ class MacsecApi : public SaiApi<MacsecApi> {
     return api_->set_macsec_sc_attribute(key, attr);
   }
 
+  sai_status_t _setAttribute(MacsecFlowSaiId key, const sai_attribute_t* attr) {
+    return api_->set_macsec_flow_attribute(key, attr);
+  }
+
   sai_status_t _getStats(
       MacsecSASaiId key,
       uint32_t num_of_counters,
@@ -313,6 +375,16 @@ class MacsecApi : public SaiApi<MacsecApi> {
       sai_stats_mode_t mode,
       uint64_t* counters) const {
     return api_->get_macsec_sa_stats(
+        key, num_of_counters, counter_ids, counters);
+  }
+
+  sai_status_t _getStats(
+      MacsecFlowSaiId key,
+      uint32_t num_of_counters,
+      const sai_stat_id_t* counter_ids,
+      sai_stats_mode_t mode,
+      uint64_t* counters) const {
+    return api_->get_macsec_flow_stats(
         key, num_of_counters, counter_ids, counters);
   }
 
