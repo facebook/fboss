@@ -1094,11 +1094,22 @@ bool cliModulefirmwareUpgrade(
     return false;
   }
 
+  auto domData = fetchDataFromLocalI2CBus (bus, port);
+  CmisData cmisData = domData.get_cmis();
+  auto dataUpper = cmisData.page0_ref()->data();
+
   // Confirm module type is CMIS
   auto moduleType = getModuleType(bus, port);
   if (moduleType != TransceiverManagementInterface::CMIS) {
-    fprintf(stderr, "This command is applicable to CMIS module only\n");
-    return false;
+    // If device can't be determined as cmis then check page 0 register 128 also to identify its
+    // type as in some case corrupted image wipes out all lower page registers
+    if (dataUpper[0] == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_PLUS_CMIS) ||
+        dataUpper[0] == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_DD)) {
+          printf("Optics current firmware seems to  be corrupted, proceeding with f/w upgrade\n");
+    } else {
+      printf("This command is applicable to CMIS module only\n");
+      printf("This module does not appears to be CMIS module, exiting...\n");
+    }
   }
 
   // Get the image header length
@@ -1108,10 +1119,6 @@ bool cliModulefirmwareUpgrade(
   } else {
     // Image header length is not provided by user. Try to get it from known
     // module info
-    auto domData = fetchDataFromLocalI2CBus (bus, port);
-    CmisData cmisData = domData.get_cmis();
-    auto dataUpper = cmisData.page0_ref()->data();
-
     std::array<uint8_t, 16> modPartNo;
     for (int i=0; i<16; i++) {
       modPartNo[i] = dataUpper[20+i];
