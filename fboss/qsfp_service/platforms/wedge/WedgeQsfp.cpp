@@ -205,30 +205,35 @@ std::array<uint8_t, 16> WedgeQsfp::getModulePartNo() {
       kCommonModulePageReg,
       1,
       &savedPage);
-  threadSafeI2CBus_->moduleWrite(
-      module_ + 1,
-      TransceiverI2CApi::ADDR_QSFP,
-      kCommonModulePageReg,
-      1,
-      &page);
+  if (savedPage != page) {
+    threadSafeI2CBus_->moduleWrite(
+        module_ + 1,
+        TransceiverI2CApi::ADDR_QSFP,
+        kCommonModulePageReg,
+        1,
+        &page);
+  }
+
   threadSafeI2CBus_->moduleRead(
       module_ + 1,
       TransceiverI2CApi::ADDR_QSFP,
       partNoRegOffset,
       16,
       partNo.data());
-  threadSafeI2CBus_->moduleWrite(
-      module_ + 1,
-      TransceiverI2CApi::ADDR_QSFP,
-      kCommonModulePageReg,
-      1,
-      &savedPage);
+  if (savedPage != page) {
+    threadSafeI2CBus_->moduleWrite(
+        module_ + 1,
+        TransceiverI2CApi::ADDR_QSFP,
+        kCommonModulePageReg,
+        1,
+        &savedPage);
+  }
+
   return partNo;
 }
 
 std::array<uint8_t, 2> WedgeQsfp::getFirmwareVer() {
   std::array<uint8_t, 2> fwVer{0, 0};
-  uint8_t page = kCommonModuleBasePage, savedPage;
 
   if (getTransceiverManagementInterface() !=
       TransceiverManagementInterface::CMIS) {
@@ -236,32 +241,13 @@ std::array<uint8_t, 2> WedgeQsfp::getFirmwareVer() {
     return fwVer;
   }
 
-  // Read 2 byte part no from base page reg 39 for  CMIS module. Restore the
-  // page in the end
-  threadSafeI2CBus_->moduleRead(
-      module_ + 1,
-      TransceiverI2CApi::ADDR_QSFP,
-      kCommonModulePageReg,
-      1,
-      &savedPage);
-  threadSafeI2CBus_->moduleWrite(
-      module_ + 1,
-      TransceiverI2CApi::ADDR_QSFP,
-      kCommonModulePageReg,
-      1,
-      &page);
+  // Read 2 byte firmware version from base page reg 39-40 for CMIS module
   threadSafeI2CBus_->moduleRead(
       module_ + 1,
       TransceiverI2CApi::ADDR_QSFP,
       kCommonModuleFwVerReg,
       2,
       fwVer.data());
-  threadSafeI2CBus_->moduleWrite(
-      module_ + 1,
-      TransceiverI2CApi::ADDR_QSFP,
-      kCommonModulePageReg,
-      1,
-      &savedPage);
   return fwVer;
 }
 
