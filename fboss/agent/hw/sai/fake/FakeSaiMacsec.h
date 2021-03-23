@@ -28,7 +28,18 @@ struct FakeMacsec {
   bool physicalBypass{false};
 };
 
+struct FakeMacsecPort {
+  explicit FakeMacsecPort(
+      sai_object_id_t _portID,
+      sai_macsec_direction_t _macsecDirection)
+      : portID(_portID), macsecDirection(_macsecDirection) {}
+  sai_object_id_t id;
+  sai_object_id_t portID;
+  sai_macsec_direction_t macsecDirection;
+};
+
 using FakeMacsecManager = FakeManager<sai_object_id_t, FakeMacsec>;
+using FakeMacsecPortManager = FakeManager<sai_object_id_t, FakeMacsecPort>;
 
 void populate_macsec_api(sai_macsec_api_t** macsec_api);
 
