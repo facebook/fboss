@@ -148,8 +148,6 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
   void updateClassIDsForRoutes(
       const std::vector<RouteAndClassID>& routesAndClassIDs) const;
 
-  void clearClassIDsForRoutes(const std::shared_ptr<SwitchState>& state) const;
-
   /*
    * We need to maintain nexthop to route mapping so that when a nexthop is
    * resolved (gets classID), the same classID could be associated with

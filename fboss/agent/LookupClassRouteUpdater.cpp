@@ -17,17 +17,8 @@
 #include "fboss/agent/state/SwitchState.h"
 
 /*
- * TODO(skhare)
- *
- * Current prod queue-per-host implementation includes L2 and L3 host entry
- * portion of the fix. As we roll out, queue-per-host for L3 route entry,
- * the below flag provides us with a mechanism to disable L3 route entry
- * portion of the fix without having to disable L2 and L3 host entry
- * queue-per-host fix.
- *
- * Set this flag to false to disable route entry portion of queue-per-host fix.
- * Once the queue-per-host for L3 route entry is rolled out across the fleet
- * and is stable, remove this flag.
+ * TODO get rid of this flag once configs have been updated to
+ * not pass in this cmdline flag
  */
 DEFINE_bool(
     queue_per_host_route_fix,
@@ -44,7 +35,10 @@ void LookupClassRouteUpdater::reAddAllRoutes(const StateDelta& stateDelta) {
       processRouteAdded(stateDelta, rid, route);
     }
   };
-  forAllRoutes(sw_->isStandaloneRibEnabled(), stateDelta.newState(), addRoute);
+  if (!vlan2SubnetsCache_.empty()) {
+    forAllRoutes(
+        sw_->isStandaloneRibEnabled(), stateDelta.newState(), addRoute);
+  }
 }
 
 bool LookupClassRouteUpdater::vlanHasOtherPortsWithClassIDs(
@@ -793,24 +787,6 @@ void LookupClassRouteUpdater::updateClassIDsForRoutes(
   }
 }
 
-void LookupClassRouteUpdater::clearClassIDsForRoutes(
-    const std::shared_ptr<SwitchState>& state) const {
-  CHECK(!FLAGS_queue_per_host_route_fix);
-
-  std::vector<RouteAndClassID> toClear;
-  auto routesToClear = [&toClear](RouterID rid, auto& route) {
-    std::optional<cfg::AclLookupClass> nullClassId;
-    if (route->getClassID()) {
-      auto& prefix = route->prefix();
-      toClear.emplace_back(std::make_pair(
-          std::make_pair(rid, folly::CIDRNetwork{prefix.network, prefix.mask}),
-          nullClassId));
-    }
-  };
-  forAllRoutes(sw_->isStandaloneRibEnabled(), state, routesToClear);
-  updateClassIDsForRoutes(toClear);
-}
-
 void LookupClassRouteUpdater::stateUpdated(const StateDelta& stateDelta) {
   /*
    * If FLAGS_queue_per_host_route_fix is false:
@@ -820,14 +796,6 @@ void LookupClassRouteUpdater::stateUpdated(const StateDelta& stateDelta) {
    */
   if (!inited_) {
     inited_ = true;
-    if (!FLAGS_queue_per_host_route_fix) {
-      clearClassIDsForRoutes(stateDelta.newState());
-      return;
-    }
-  } else {
-    if (!FLAGS_queue_per_host_route_fix) {
-      return;
-    }
   }
 
   /*
