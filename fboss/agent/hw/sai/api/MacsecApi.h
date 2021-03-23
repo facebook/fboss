@@ -45,6 +45,29 @@ struct SaiMacsecTraits {
 SAI_ATTRIBUTE_NAME(Macsec, Direction)
 SAI_ATTRIBUTE_NAME(Macsec, PhysicalBypass)
 
+struct SaiMacsecPortTraits {
+  static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_MACSEC;
+  using SaiApiT = MacsecApi;
+  struct Attributes {
+    using EnumType = sai_macsec_port_attr_t;
+    using PortID =
+        SaiAttribute<EnumType, SAI_MACSEC_PORT_ATTR_PORT_ID, sai_object_id_t>;
+    using MacsecDirection = SaiAttribute<
+        EnumType,
+        SAI_MACSEC_PORT_ATTR_MACSEC_DIRECTION,
+        sai_int32_t>;
+  };
+
+  using AdapterKey = MacsecPortSaiId;
+  using AdapterHostKey =
+      std::tuple<Attributes::PortID, Attributes::MacsecDirection>;
+  using CreateAttributes =
+      std::tuple<Attributes::PortID, Attributes::MacsecDirection>;
+};
+
+SAI_ATTRIBUTE_NAME(MacsecPort, PortID)
+SAI_ATTRIBUTE_NAME(MacsecPort, MacsecDirection)
+
 class MacsecApi : public SaiApi<MacsecApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_MACSEC;
@@ -63,16 +86,36 @@ class MacsecApi : public SaiApi<MacsecApi> {
     return api_->create_macsec(rawSaiId(id), switch_id, count, attr_list);
   }
 
+  sai_status_t _create(
+      MacsecPortSaiId* id,
+      sai_object_id_t switch_id,
+      size_t count,
+      sai_attribute_t* attr_list) const {
+    return api_->create_macsec_port(rawSaiId(id), switch_id, count, attr_list);
+  }
+
   sai_status_t _remove(MacsecSaiId key) {
     return api_->remove_macsec(key);
+  }
+
+  sai_status_t _remove(MacsecPortSaiId key) {
+    return api_->remove_macsec_port(key);
   }
 
   sai_status_t _getAttribute(MacsecSaiId key, sai_attribute_t* attr) const {
     return api_->get_macsec_attribute(key, 1, attr);
   }
 
+  sai_status_t _getAttribute(MacsecPortSaiId key, sai_attribute_t* attr) const {
+    return api_->get_macsec_port_attribute(key, 1, attr);
+  }
+
   sai_status_t _setAttribute(MacsecSaiId key, const sai_attribute_t* attr) {
     return api_->set_macsec_attribute(key, attr);
+  }
+
+  sai_status_t _setAttribute(MacsecPortSaiId key, const sai_attribute_t* attr) {
+    return api_->set_macsec_port_attribute(key, attr);
   }
 
   sai_macsec_api_t* api_;
