@@ -18,6 +18,7 @@
 #include "fboss/agent/hw/sai/fake/FakeSaiHostif.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiInSegEntryManager.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiLag.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiMacsec.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiMirror.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiNeighbor.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiNextHop.h"
@@ -82,6 +83,7 @@ struct FakeSai {
   FakeTamEventManager tamEventManager;
   FakeTamEventActionManager tamEventActionManager;
   FakeTamReportManager tamReportManager;
+  FakeMacsecManager macsecManager;
   bool initialized = false;
   sai_object_id_t cpuPortId;
   sai_object_id_t getCpuPort();

@@ -220,6 +220,11 @@ sai_status_t sai_api_query(sai_api_t sai_api_id, void** api_method_table) {
       facebook::fboss::populate_tam_api((sai_tam_api_t**)api_method_table);
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_API_MACSEC:
+      facebook::fboss::populate_macsec_api(
+          (sai_macsec_api_t**)api_method_table);
+      res = SAI_STATUS_SUCCESS;
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
