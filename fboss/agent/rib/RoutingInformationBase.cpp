@@ -501,10 +501,15 @@ RoutingInformationBase::constructRouteTables(
 
 bool RoutingInformationBase::operator==(
     const RoutingInformationBase& other) const {
-  const auto& routeTables = synchronizedRouteTables_.rlock();
-  const auto& otherTables = other.synchronizedRouteTables_.rlock();
-
-  return *routeTables == *otherTables;
+  auto cmpTables = [](const auto& mine, const auto& other) {
+    const auto& routeTables = mine.rlock();
+    const auto& otherTables = other.rlock();
+    return *routeTables == *otherTables;
+  };
+  return cmpTables(synchronizedRouteTables_, other.synchronizedRouteTables_) &&
+      cmpTables(
+             synchronizedShadowRouteTables_,
+             other.synchronizedShadowRouteTables_);
 }
 
 } // namespace facebook::fboss
