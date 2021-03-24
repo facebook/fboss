@@ -28,14 +28,12 @@ class PhyInterfaceHandler {
    * then that should called PhyManager function otherwise it should  be
    * a thrift call to port service process
    *
-   * Note: portProfileId needs to be removed once all Phy code is moved to
+   * Note: PhyPortConfig needs to be removed once all Phy code is moved to
    * qsfp_service as based on portId, profileID the qsfp_service can construct
    * the phyPortConfig
    */
   virtual void programOnePort(
-      int /* slotId */,
-      int /* mdioId */,
-      int /* phyId */,
+      int /* phyPortIdentifier */,
       int32_t /* portId */,
       cfg::PortProfileID /* portProfileId */,
       phy::PhyPortConfig /* config */) = 0;
@@ -47,14 +45,12 @@ class PhyInterfaceHandler {
    * then that should called PhyManager function otherwise it should  be
    * a thrift call to port service process
    *
-   * Note: portProfileId needs to be removed once all Phy code is moved to
+   * Note: PhyPortConfig needs to be removed once all Phy code is moved to
    * qsfp_service as based on portId, profileID the qsfp_service can construct
    * the phyPortConfig
    */
   virtual void setPortPrbs(
-      int /* slotId */,
-      int /* mdioId */,
-      int /* phyId */,
+      int /* phyPortIdentifier */,
       int32_t /* portId */,
       cfg::PortProfileID /* portProfileId */,
       phy::PhyPortConfig /* config */,
@@ -69,14 +65,12 @@ class PhyInterfaceHandler {
    * then that should called PhyManager function otherwise it should  be
    * a thrift call to port service process
    *
-   * Note: portProfileId needs to be removed once all Phy code is moved to
+   * Note: PhyPortConfig needs to be removed once all Phy code is moved to
    * qsfp_service as based on portId, profileID the qsfp_service can construct
    * the phyPortConfig
    */
   virtual phy::ExternalPhyPortStats getPortStats(
-      int /* slotId */,
-      int /* mdioId */,
-      int /* phyId */,
+      int /* phyPortIdentifier */,
       int32_t /* portId */,
       cfg::PortProfileID /* portProfileId */,
       phy::PhyPortConfig /* config */) = 0;
@@ -88,14 +82,12 @@ class PhyInterfaceHandler {
    * then that should called PhyManager function otherwise it should  be
    * a thrift call to port service process
    *
-   * Note: portProfileId needs to be removed once all Phy code is moved to
+   * Note: PhyPortConfig needs to be removed once all Phy code is moved to
    * qsfp_service as based on portId, profileID the qsfp_service can construct
    * the phyPortConfig
    */
   virtual phy::ExternalPhyPortStats getPortPrbsStats(
-      int /* slotId */,
-      int /* mdioId */,
-      int /* phyId */,
+      int /* phyPortIdentifier */,
       int32_t /* portId */,
       cfg::PortProfileID /* portProfileId */,
       phy::PhyPortConfig /* config */) = 0;
@@ -107,14 +99,12 @@ class PhyInterfaceHandler {
    * then that should called PhyManager function otherwise it should  be
    * a thrift call to port service process
    *
-   * Note: portProfileId needs to be removed once all Phy code is moved to
+   * Note: PhyPortConfig needs to be removed once all Phy code is moved to
    * qsfp_service as based on portId, profileID the qsfp_service can construct
    * the phyPortConfig
    */
   virtual float_t getLaneSpeed(
-      int /* slotId */,
-      int /* mdioId */,
-      int /* phyId */,
+      int /* phyPortIdentifier */,
       int32_t /* portId */,
       cfg::PortProfileID /* portProfileId */,
       phy::PhyPortConfig /* config */,
@@ -129,6 +119,11 @@ class PhyInterfaceHandler {
    * service process
    */
   virtual void initializeSlotPhys(int /* slotId */, bool /* warmboot */) = 0;
+
+  /*
+   * This function provides the slot id, mdio id, phy id for a given port id
+   */
+  virtual std::tuple<int, int, int> getPhyIdInfo(uint16_t id) = 0;
 
  protected:
 };
