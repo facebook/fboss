@@ -216,6 +216,7 @@ SaiQueueHandles SaiQueueManager::loadQueues(
 void SaiQueueManager::updateStats(
     const std::vector<SaiQueueHandle*>& queueHandles,
     HwPortStats& hwPortStats) {
+  hwPortStats.outCongestionDiscardPkts__ref() = 0;
   for (auto queueHandle : queueHandles) {
     queueHandle->queue->updateStats();
     const auto& counters = queueHandle->queue->getStats();
