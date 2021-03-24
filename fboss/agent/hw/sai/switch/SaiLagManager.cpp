@@ -1,7 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/sai/switch/SaiLagManager.h"
-
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
@@ -13,7 +12,7 @@
 
 namespace facebook::fboss {
 
-void SaiLagManager::addLag(
+LagSaiId SaiLagManager::addLag(
     const std::shared_ptr<AggregatePort>& aggregatePort) {
   XLOG(INFO) << "adding aggregate port : " << aggregatePort->getID();
 
@@ -23,6 +22,7 @@ void SaiLagManager::addLag(
     labelValue[i] = name[i];
   }
   // TODO(pshaikh): support LAG without ports?
+
   auto& subPort = aggregatePort->sortedSubports().front();
   auto portSaiIdsIter = concurrentIndices_->portSaiIds.find(subPort.portID);
   // port must exist before LAG
@@ -36,11 +36,12 @@ void SaiLagManager::addLag(
 
   auto vlanID = vlanSaiIdsIter->second;
 
-  SaiLagTraits::CreateAttributes createAttributes{vlanID};
+  SaiLagTraits::CreateAttributes createAttributes{labelValue, vlanID};
 
   auto& lagStore = saiStore_->get<SaiLagTraits>();
   auto lag = lagStore.setObject(
       SaiLagTraits::Attributes::Label{labelValue}, createAttributes);
+  LagSaiId lagSaiId = lag->adapterKey();
   std::map<PortSaiId, std::shared_ptr<SaiLagMember>> members;
   for (auto iter : folly::enumerate(aggregatePort->subportAndFwdState())) {
     auto [subPort, fwdState] = *iter;
@@ -66,6 +67,8 @@ void SaiLagManager::addLag(
   handles_.emplace(aggregatePort->getID(), std::move(handle));
   managerTable_->vlanManager().createVlanMember(
       vlanID, SaiPortDescriptor(aggregatePort->getID()));
+
+  return lagSaiId;
 }
 
 void SaiLagManager::removeLag(

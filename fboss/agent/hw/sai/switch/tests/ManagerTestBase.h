@@ -50,6 +50,7 @@ class ManagerTestBase : public ::testing::Test {
     INTERFACE = 4,
     NEIGHBOR = 8,
     QUEUE = 16,
+    LAG = 32,
   };
   ~ManagerTestBase() override;
   void setupSaiPlatform();
@@ -161,6 +162,9 @@ class ManagerTestBase : public ::testing::Test {
       const TestRoute& route) const;
 
   std::shared_ptr<Vlan> makeVlan(const TestInterface& testInterface) const;
+
+  std::shared_ptr<AggregatePort> makeAggregatePort(
+      const TestInterface& testInterface) const;
 
   std::vector<QueueSaiId> getPortQueueSaiIds(const SaiPortHandle* portHandle);
 

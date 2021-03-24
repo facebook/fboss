@@ -19,6 +19,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 #include "fboss/agent/platforms/sai/SaiFakePlatform.h"
+#include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/MacEntry.h"
 #include "fboss/agent/state/MacTable.h"
@@ -212,6 +213,34 @@ std::shared_ptr<Vlan> ManagerTestBase::makeVlan(
   }
   swVlan->setPorts(mps);
   return swVlan;
+}
+
+std::shared_ptr<AggregatePort> ManagerTestBase::makeAggregatePort(
+    const TestInterface& testInterface) const {
+  using SystemPriority = uint16_t;
+  using SystemID = folly::MacAddress;
+
+  SystemPriority systemPriority{0};
+  SystemID systemID("00:00:00:00:00:00");
+
+  std::vector<AggregatePort::Subport> subports;
+  subports.resize(testInterface.remoteHosts.size());
+
+  for (const auto& remoteHost : testInterface.remoteHosts) {
+    PortID portId(remoteHost.port.id);
+    subports.push_back(AggregatePort::Subport(
+        portId, 0, cfg::LacpPortRate::SLOW, cfg::LacpPortActivity::PASSIVE, 0));
+  }
+  std::string name = folly::sformat("lag{}", testInterface.id);
+
+  return AggregatePort::fromSubportRange(
+      AggregatePortID(testInterface.id),
+      name,
+      name,
+      systemPriority,
+      systemID,
+      0,
+      folly::range(subports.begin(), subports.end()));
 }
 
 std::shared_ptr<Interface> ManagerTestBase::makeInterface(

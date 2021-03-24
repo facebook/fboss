@@ -85,6 +85,9 @@ class SaiManagerTable {
   SaiHostifManager& hostifManager();
   const SaiHostifManager& hostifManager() const;
 
+  SaiLagManager& lagManager();
+  const SaiLagManager& lagManager() const;
+
   SaiMirrorManager& mirrorManager();
   const SaiMirrorManager& mirrorManager() const;
 
@@ -129,9 +132,6 @@ class SaiManagerTable {
 
   SaiInSegEntryManager& inSegEntryManager();
   const SaiInSegEntryManager& inSegEntryManager() const;
-
-  SaiLagManager& lagManager();
-  const SaiLagManager& lagManager() const;
 
   SaiWredManager& wredManager();
   const SaiWredManager& wredManager() const;

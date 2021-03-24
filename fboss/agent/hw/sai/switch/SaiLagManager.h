@@ -40,7 +40,7 @@ class SaiLagManager {
         platform_(platform),
         concurrentIndices_(concurrentIndices) {}
   ~SaiLagManager();
-  void addLag(const std::shared_ptr<AggregatePort>& aggregatePort);
+  LagSaiId addLag(const std::shared_ptr<AggregatePort>& aggregatePort);
   void removeLag(const std::shared_ptr<AggregatePort>& aggregatePort);
   void changeLag(
       const std::shared_ptr<AggregatePort>& oldAggregatePort,

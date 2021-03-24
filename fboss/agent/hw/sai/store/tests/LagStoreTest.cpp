@@ -23,9 +23,11 @@ class LagStoreTest : public SaiStoreTest {
   }
 
   LagSaiId createLag(std::string label, uint16_t vlan) {
-    auto lagId = saiApiTable->lagApi().create<SaiLagTraits>({{vlan}}, 0);
     std::array<char, 32> data{};
     std::copy(std::begin(label), std::end(label), std::begin(data));
+    SaiLagTraits::CreateAttributes c{data, vlan};
+    auto lagId = saiApiTable->lagApi().create<SaiLagTraits>(c, 0);
+
     saiApiTable->lagApi().setAttribute(
         lagId, SaiLagTraits::Attributes::Label(data));
     return lagId;
@@ -42,7 +44,7 @@ TEST_F(LagStoreTest, setObject) {
   s.reload();
   std::array<char, 32> labelValue{"lag0"};
   SaiLagTraits::Attributes::Label label{labelValue};
-  auto lag = s.get<SaiLagTraits>().setObject(label, {1});
+  auto lag = s.get<SaiLagTraits>().setObject(label, {label, 1});
   std::vector<std::shared_ptr<SaiObject<SaiLagMemberTraits>>> members;
   for (auto i : {1, 2, 3, 4}) {
     SaiLagMemberTraits::AdapterHostKey adapterHostLey{lag->adapterKey(), i};
@@ -63,7 +65,7 @@ TEST_F(LagStoreTest, updateObject) {
   s.reload();
   std::array<char, 32> labelValue{"lag0"};
   SaiLagTraits::Attributes::Label label{labelValue};
-  auto lag = s.get<SaiLagTraits>().setObject(label, {1});
+  auto lag = s.get<SaiLagTraits>().setObject(label, {label, 1});
   std::vector<std::shared_ptr<SaiObject<SaiLagMemberTraits>>> members;
   std::vector<LagMemberSaiId> memberIds;
   for (auto i : {1, 2, 3, 4}) {
@@ -109,7 +111,7 @@ TEST_F(LagStoreTest, loadLags) {
 }
 
 TEST_F(LagStoreTest, loadLagMembers) {
-  auto id0 = createLag("a", 4001);
+  auto id0 = createLag("c", 4001);
   auto member0 = createLagMember(id0, 1);
   auto member1 = createLagMember(id0, 2);
   SaiStore s(0);
@@ -126,7 +128,7 @@ TEST_F(LagStoreTest, loadLagMembers) {
 }
 
 TEST_F(LagStoreTest, toAndFromDynamic) {
-  auto id0 = createLag("a", 4001);
+  auto id0 = createLag("d", 4001);
   createLagMember(id0, 1);
   createLagMember(id0, 2);
   SaiStore s(0);
@@ -134,7 +136,7 @@ TEST_F(LagStoreTest, toAndFromDynamic) {
   auto& lagStore = s.get<SaiLagTraits>();
 
   auto lagAdapterHostKey =
-      SaiLagTraits::Attributes::Label{std::array<char, 32>({"a"})};
+      SaiLagTraits::Attributes::Label{std::array<char, 32>({"d"})};
   auto got = lagStore.get(lagAdapterHostKey);
 
   auto k0 = got->adapterHostKeyToFollyDynamic();
