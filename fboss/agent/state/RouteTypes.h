@@ -33,7 +33,7 @@ struct RoutePrefix {
   }
 
   folly::CIDRNetwork toCidrNetwork() const {
-    return folly::CIDRNetwork{network, mask};
+    return folly::CIDRNetwork{network.mask(mask), mask};
   }
   /*
    * Serialize to folly::dynamic
