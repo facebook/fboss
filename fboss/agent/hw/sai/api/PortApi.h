@@ -144,6 +144,14 @@ struct SaiPortTraits {
         std::vector<sai_object_id_t>,
         SaiObjectIdListDefault>;
 #endif
+    using PrbsPolynomial =
+        SaiAttribute<EnumType, SAI_PORT_ATTR_PRBS_POLYNOMIAL, sai_uint32_t>;
+    using PrbsConfig =
+        SaiAttribute<EnumType, SAI_PORT_ATTR_PRBS_CONFIG, sai_int32_t>;
+    using IngressMacSecAcl =
+        SaiAttribute<EnumType, SAI_PORT_ATTR_INGRESS_MACSEC_ACL, SaiObjectIdT>;
+    using EgressMacSecAcl =
+        SaiAttribute<EnumType, SAI_PORT_ATTR_EGRESS_MACSEC_ACL, SaiObjectIdT>;
   };
   using AdapterKey = PortSaiId;
   using AdapterHostKey = Attributes::HwLaneList;
@@ -223,6 +231,11 @@ SAI_ATTRIBUTE_NAME(Port, EgressSamplePacketEnable)
 SAI_ATTRIBUTE_NAME(Port, IngressSampleMirrorSession)
 SAI_ATTRIBUTE_NAME(Port, EgressSampleMirrorSession)
 #endif
+
+SAI_ATTRIBUTE_NAME(Port, PrbsPolynomial)
+SAI_ATTRIBUTE_NAME(Port, PrbsConfig)
+SAI_ATTRIBUTE_NAME(Port, IngressMacSecAcl)
+SAI_ATTRIBUTE_NAME(Port, EgressMacSecAcl)
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};
@@ -333,6 +346,32 @@ SAI_ATTRIBUTE_NAME(PortSerdes, RxDspMode);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxAfeTrim);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxAcCouplingByPass);
 
+struct SaiPortConnectorTraits {
+  static constexpr sai_object_type_t ObjectType =
+      SAI_OBJECT_TYPE_PORT_CONNECTOR;
+  using SaiApiT = PortApi;
+  struct Attributes {
+    using EnumType = sai_port_connector_attr_t;
+    using LineSidePortId = SaiAttribute<
+        EnumType,
+        SAI_PORT_CONNECTOR_ATTR_LINE_SIDE_PORT_ID,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
+    using SystemSidePortId = SaiAttribute<
+        EnumType,
+        SAI_PORT_CONNECTOR_ATTR_SYSTEM_SIDE_PORT_ID,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
+  };
+  using AdapterKey = PortConnectorSaiId;
+  using AdapterHostKey = Attributes::LineSidePortId;
+  using CreateAttributes =
+      std::tuple<Attributes::LineSidePortId, Attributes::SystemSidePortId>;
+};
+
+SAI_ATTRIBUTE_NAME(PortConnector, LineSidePortId);
+SAI_ATTRIBUTE_NAME(PortConnector, SystemSidePortId);
+
 class PortApi : public SaiApi<PortApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_PORT;
@@ -378,6 +417,30 @@ class PortApi : public SaiApi<PortApi> {
 
   sai_status_t _setAttribute(PortSerdesSaiId key, const sai_attribute_t* attr) {
     return api_->set_port_serdes_attribute(key, attr);
+  }
+
+  sai_status_t _create(
+      PortConnectorSaiId* id,
+      sai_object_id_t switch_id,
+      size_t count,
+      sai_attribute_t* attr_list) {
+    return api_->create_port_connector(
+        rawSaiId(id), switch_id, count, attr_list);
+  }
+
+  sai_status_t _remove(PortConnectorSaiId id) {
+    return api_->remove_port_connector(id);
+  }
+
+  sai_status_t _getAttribute(PortConnectorSaiId key, sai_attribute_t* attr)
+      const {
+    return api_->get_port_connector_attribute(key, 1, attr);
+  }
+
+  sai_status_t _setAttribute(
+      PortConnectorSaiId key,
+      const sai_attribute_t* attr) {
+    return api_->set_port_connector_attribute(key, attr);
   }
 
   sai_status_t _getStats(
