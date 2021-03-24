@@ -168,7 +168,7 @@ class RoutingInformationBase {
   void updateFib(
       RouterID vrf,
       RouteTable* routeTable,
-      FibUpdateFunction& fibUpdateCallback,
+      const FibUpdateFunction& fibUpdateCallback,
       void* cookie);
 
   std::pair<std::shared_ptr<SwitchState>, UpdateStatistics> updateImpl(

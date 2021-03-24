@@ -328,8 +328,8 @@ void RoutingInformationBase::setClassIDImpl(
         updateRoute(v6Rib, prefix.first.asV6(), prefix.second);
       }
     }
-    fibUpdateCallback(
-        rid, it->second.v4NetworkToRoute, it->second.v6NetworkToRoute, cookie);
+
+    updateFib(rid, &(it->second), fibUpdateCallback, cookie);
   };
   if (async) {
     ribUpdateEventBase_.runInEventBaseThread(updateFn);
@@ -391,7 +391,7 @@ RoutingInformationBase::fromFollyDynamic(const folly::dynamic& ribJson) {
 void RoutingInformationBase::updateFib(
     RouterID vrf,
     RouteTable* routeTable,
-    FibUpdateFunction& fibUpdateCallback,
+    const FibUpdateFunction& fibUpdateCallback,
     void* cookie) {
   std::shared_ptr<SwitchState> appliedState;
   try {
