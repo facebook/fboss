@@ -234,7 +234,7 @@ std::
     RibRouteUpdater updater(
         &(routeTables->v4NetworkToRoute), &(routeTables->v6NetworkToRoute));
     if (resetClientsRoutes) {
-      auto removedRoutes = updater.removeAllRoutesForClient(clientID);
+      updater.removeAllRoutesForClient(clientID);
     }
 
     for (const auto& route : toAdd) {

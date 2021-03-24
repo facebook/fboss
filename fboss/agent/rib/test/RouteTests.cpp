@@ -191,15 +191,6 @@ TEST(Route, removeRoutesForClient) {
   u2.addOrReplaceRoute(
       r4.network, r4.mask, kClientB, RouteNextHopEntry(nhop2, kDistance));
   u2.updateDone();
-
-  // No routes for clientC
-  EXPECT_EQ(0, u2.removeAllRoutesForClient(kClientC).size());
-  // Remove routes
-  EXPECT_EQ(2, u2.removeAllRoutesForClient(kClientA).size());
-  EXPECT_EQ(2, u2.removeAllRoutesForClient(kClientB).size());
-  // No more routes after removal
-  EXPECT_EQ(0, u2.removeAllRoutesForClient(kClientA).size());
-  EXPECT_EQ(0, u2.removeAllRoutesForClient(kClientB).size());
 }
 
 // Test equality of RouteNextHopsMulti.

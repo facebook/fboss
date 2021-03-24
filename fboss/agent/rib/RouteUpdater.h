@@ -48,35 +48,21 @@ class RibRouteUpdater {
       IPv4NetworkToRouteMap* v4Routes,
       IPv6NetworkToRouteMap* v6Routes);
 
-  struct RouteEntry {
-    enum class Operation { UNKNOWN, ADD, REPLACE, DEL };
-    folly::CIDRNetwork prefix;
-    ClientID client;
-    RouteNextHopEntry nhopEntry;
-    Operation oper{Operation::UNKNOWN};
-  };
-  /*
-   * Will return previous route on replacement, nullopt
-   * otherwise
-   */
-  std::optional<RouteEntry> addOrReplaceRoute(
+  void addOrReplaceRoute(
       const folly::IPAddress& network,
       uint8_t mask,
       ClientID clientID,
       RouteNextHopEntry entry);
-  // No return value, since we always add the same
-  // link local route. So there is no replacing of
-  // routes here
   void addLinkLocalRoutes();
-  std::optional<RouteEntry> delLinkLocalRoutes();
-  std::optional<RouteEntry> addOrReplaceInterfaceRoute(
+  void delLinkLocalRoutes();
+  void addOrReplaceInterfaceRoute(
       const folly::IPAddress& network,
       uint8_t mask,
       const folly::IPAddress& address,
       InterfaceID interface);
-  std::optional<RouteEntry>
+  void
   delRoute(const folly::IPAddress& network, uint8_t mask, ClientID clientID);
-  std::vector<RouteEntry> removeAllRoutesForClient(ClientID clientID);
+  void removeAllRoutesForClient(ClientID clientID);
 
   void updateDone();
 
@@ -85,21 +71,20 @@ class RibRouteUpdater {
   using Prefix = RoutePrefix<AddressT>;
 
   template <typename AddressT>
-  static std::optional<RouteEntry> addOrReplaceRouteImpl(
+  static void addOrReplaceRouteImpl(
       const Prefix<AddressT>& prefix,
       NetworkToRouteMap<AddressT>* routes,
       ClientID clientID,
       RouteNextHopEntry entry);
   template <typename AddressT>
-  static std::optional<RouteNextHopEntry> delRouteImpl(
+  static void delRouteImpl(
       const Prefix<AddressT>& prefix,
       NetworkToRouteMap<AddressT>* routes,
       ClientID clientID);
   template <typename AddressT>
   static void removeAllRoutesFromClientImpl(
       NetworkToRouteMap<AddressT>* routes,
-      ClientID clientID,
-      std::vector<RouteEntry>* deleted);
+      ClientID clientID);
 
   template <typename AddressT>
   void updateDoneImpl(NetworkToRouteMap<AddressT>* routes);
