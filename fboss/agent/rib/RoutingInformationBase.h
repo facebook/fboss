@@ -165,6 +165,12 @@ class RoutingInformationBase {
     void makeWritable(bool setWritable);
   };
 
+  void updateFib(
+      RouterID vrf,
+      RouteTable* routeTable,
+      FibUpdateFunction& fibUpdateCallback,
+      void* cookie);
+
   std::pair<std::shared_ptr<SwitchState>, UpdateStatistics> updateImpl(
       RouteTable* routeTables,
       RouterID routerID,

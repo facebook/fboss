@@ -140,12 +140,7 @@ void RoutingInformationBase::reconfigure(
                   staticRoutesWithNextHops.cbegin(),
                   staticRoutesWithNextHops.cend()));
           configApplier.apply();
-          routeTable.makeWritable(false);
-          updateFibCallback(
-              vrf,
-              routeTable.v4NetworkToRoute,
-              routeTable.v6NetworkToRoute,
-              cookie);
+          updateFib(vrf, &routeTable, updateFibCallback, cookie);
         };
     // Because of this sequential loop over each VRF, config application scales
     // linearly with the number of VRFs. If FBOSS is run in a multi-VRF routing
@@ -199,99 +194,18 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
     }
 
     std::vector<RibRouteUpdater::RouteEntry> updateLog;
-    try {
-      std::tie(appliedState, stats) = updateImpl(
-          &(it->second),
-          routerID,
-          clientID,
-          adminDistanceFromClientID,
-          toAdd,
-          toDelete,
-          resetClientsRoutes,
-          updateType,
-          fibUpdateCallback,
-          cookie,
-          &updateLog);
-    } catch (const FbossHwUpdateError& hwUpdateError) {
-      std::vector<IpPrefix> toDelForRollback;
-      std::vector<UnicastRoute> toAddForRollback;
-      /* Rollback to pre update state.
-       * 1) Non overlapping prefixes in add, del. Further only new prefixes
-       * were being added. E.g.
-       * (Notation: X->Y, means prefix X with nhops Y)
-       * preupdateRib = {B->X}, Update {add: {A->X}, del: {B}. On rollback
-       * we will add back {B->X} and delete {A->X}
-       */
-      std::for_each(
-          updateLog.begin(),
-          updateLog.end(),
-          [&toDelForRollback, &toAddForRollback](const auto& updatedRoute) {
-            switch (updatedRoute.oper) {
-              case RibRouteUpdater::RouteEntry::Operation::ADD:
-                // Undo add (via del) for rollback
-                toDelForRollback.push_back(toIpPrefix(updatedRoute.prefix));
-                break;
-              case RibRouteUpdater::RouteEntry::Operation::DEL:
-                // Undo del (via add) for rollback
-                toAddForRollback.push_back(util::toUnicastRoute(
-                    updatedRoute.prefix, updatedRoute.nhopEntry));
-                break;
-              case RibRouteUpdater::RouteEntry::Operation::REPLACE:
-                // To undo replace
-                // 1. First delete the currently added route
-                // 2. Add back the replaced route
-                toDelForRollback.push_back(toIpPrefix(updatedRoute.prefix));
-                toAddForRollback.push_back(util::toUnicastRoute(
-                    updatedRoute.prefix, updatedRoute.nhopEntry));
-                break;
-              case RibRouteUpdater::RouteEntry::Operation::UNKNOWN:
-                XLOG(FATAL) << "Should never get here, unknown route op";
-                break;
-            }
-          });
-      std::vector<RibRouteUpdater::RouteEntry> dontCare;
-      // Attempt rollback. Exception in rollback will cause
-      // immediate termination.
-      {
-        SCOPE_FAIL {
-          XLOG(FATAL) << " RIB Rollback failed, aborting program";
-        };
-        /* Now rollback in 2 steps
-         * Step 1:  delete all the prefixes we need to accomplish rollback.
-         * This includes all added routes and also replaced route entries
-         * Step 2: add back deleted routes and the replaced routes.
-         * Note that we need two steps for the replaced routes, since these
-         * produce a delete and add, which must be done in that sequence to
-         * restore the original route.
-         */
-        updateImpl(
-            &(it->second),
-            routerID,
-            clientID,
-            adminDistanceFromClientID,
-            {},
-            toDelForRollback,
-            false,
-            "Rollback: undo add/replace",
-            fibUpdateCallback,
-            cookie,
-            &dontCare);
-        // Figure out new applied state after rollback
-        std::tie(appliedState, std::ignore) = updateImpl(
-            &(it->second),
-            routerID,
-            clientID,
-            adminDistanceFromClientID,
-            toAddForRollback,
-            {},
-            false,
-            "Rollback: undo del/replace",
-            fibUpdateCallback,
-            cookie,
-            &dontCare);
-      }
-      throw FbossHwUpdateError(hwUpdateError.desiredState, appliedState);
-    }
+    std::tie(appliedState, stats) = updateImpl(
+        &(it->second),
+        routerID,
+        clientID,
+        adminDistanceFromClientID,
+        toAdd,
+        toDelete,
+        resetClientsRoutes,
+        updateType,
+        fibUpdateCallback,
+        cookie,
+        &updateLog);
   }
   stats.duration = duration;
   return stats;
@@ -369,13 +283,7 @@ std::
 
     updater.updateDone();
     try {
-      // Publish routes before sending to FIB
-      routeTables->makeWritable(false);
-      appliedState = fibUpdateCallback(
-          routerID,
-          routeTables->v4NetworkToRoute,
-          routeTables->v6NetworkToRoute,
-          cookie);
+      updateFib(routerID, routeTables, fibUpdateCallback, cookie);
     } catch (const std::exception& ex) {
       updateException = std::current_exception();
     }
@@ -478,6 +386,51 @@ RoutingInformationBase::fromFollyDynamic(const folly::dynamic& ribJson) {
   }
 
   return rib;
+}
+
+void RoutingInformationBase::updateFib(
+    RouterID vrf,
+    RouteTable* routeTable,
+    FibUpdateFunction& fibUpdateCallback,
+    void* cookie) {
+  std::shared_ptr<SwitchState> appliedState;
+  try {
+    // Publish routes before sending to FIB
+    routeTable->makeWritable(false);
+    appliedState = fibUpdateCallback(
+        vrf,
+        routeTable->v4NetworkToRoute,
+        routeTable->v6NetworkToRoute,
+        cookie);
+  } catch (const FbossHwUpdateError& hwUpdateError) {
+    {
+      SCOPE_FAIL {
+        XLOG(FATAL) << " RIB Rollback failed, aborting program";
+      };
+      auto lockedShadowRouteTables = synchronizedShadowRouteTables_.rlock();
+      // Rollback route tables back to state prior to update failure
+      *routeTable = RouteTable{
+          {lockedShadowRouteTables->find(vrf)->second.v4NetworkToRoute.clone()},
+          {lockedShadowRouteTables->find(vrf)->second.v6NetworkToRoute.clone()},
+          false};
+      // Attempt to rollback HW
+      appliedState = fibUpdateCallback(
+          vrf,
+          routeTable->v4NetworkToRoute,
+          routeTable->v6NetworkToRoute,
+          cookie);
+    }
+    throw FbossHwUpdateError(hwUpdateError.desiredState, appliedState);
+  }
+  // Get shadow rib to mirror new route tables
+  auto lockedShadowRouteTables = synchronizedShadowRouteTables_.wlock();
+  auto& shadowRouteTable = (*lockedShadowRouteTables)[vrf];
+  // Update shadow rib to new routes
+  // TODO: optimize and assert equivalence here
+  shadowRouteTable = RouteTable{
+      {routeTable->v4NetworkToRoute.clone()},
+      {routeTable->v6NetworkToRoute.clone()},
+      false};
 }
 
 void RoutingInformationBase::RouteTable::makeWritable(bool _writable) {

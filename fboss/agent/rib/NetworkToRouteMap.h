@@ -26,6 +26,11 @@ class NetworkToRouteMap
   static constexpr auto kRoutes = "routes";
 
  public:
+  using Base =
+      facebook::network::RadixTree<AddressT, std::shared_ptr<Route<AddressT>>>;
+  using Base::Base;
+  /* implicit */ NetworkToRouteMap(Base&& radixTree)
+      : Base(std::move(radixTree)) {}
   folly::dynamic toFollyDynamic() const {
     folly::dynamic routesJson = folly::dynamic::array;
     for (const auto& route : *this) {
