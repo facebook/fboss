@@ -1078,10 +1078,10 @@ TYPED_TEST(RouteTest, PruneAddedRoutes) {
   updater.program();
   RouteV4::Prefix prefix1{IPAddressV4("20.0.1.51"), 24};
 
-  auto newRouteEntry = findLongestMatchRoute<IPAddressV4>(
+  auto newRouteEntry = findRoute<IPAddressV4>(
       TypeParam::hasStandAloneRib,
       rid0,
-      prefix1.network,
+      prefix1.toCidrNetwork(),
       this->sw_->getState());
   EXPECT_NE(nullptr, newRouteEntry);
   EXPECT_EQ(
@@ -1092,12 +1092,10 @@ TYPED_TEST(RouteTest, PruneAddedRoutes) {
   SwitchState::revertNewRouteEntry<IPAddressV4>(
       TypeParam::hasStandAloneRib, rid0, newRouteEntry, nullptr, &revertState);
   // Make sure that state3 changes as a result of pruning
-  auto remainingRouteEntry = findLongestMatchRoute<IPAddressV4>(
-      TypeParam::hasStandAloneRib, rid0, prefix1.network, revertState);
-  // Will match default route after delete
-  EXPECT_EQ(
-      remainingRouteEntry->prefix(),
-      (RouteV4::Prefix{IPAddressV4("0.0.0.0"), 0}));
+  auto remainingRouteEntry = findRoute<IPAddressV4>(
+      TypeParam::hasStandAloneRib, rid0, prefix1.toCidrNetwork(), revertState);
+  // Route removed after delete
+  EXPECT_EQ(nullptr, remainingRouteEntry);
 }
 
 // Test that pruning of changed routes happens correctly.
@@ -1132,10 +1130,10 @@ TYPED_TEST(RouteTest, PruneChangedRoutes) {
 
   updater.program();
 
-  auto oldEntry = findLongestMatchRoute<IPAddressV6>(
+  auto oldEntry = findRoute<IPAddressV6>(
       TypeParam::hasStandAloneRib,
       rid0,
-      prefix42.network,
+      prefix42.toCidrNetwork(),
       this->sw_->getState());
   EXPECT_NE(nullptr, oldEntry);
   EXPECT_TRUE(oldEntry->isToCPU());
@@ -1153,10 +1151,10 @@ TYPED_TEST(RouteTest, PruneChangedRoutes) {
       RouteNextHopEntry(nexthops42, DISTANCE));
   updater.program();
 
-  auto newEntry = findLongestMatchRoute<IPAddressV6>(
+  auto newEntry = findRoute<IPAddressV6>(
       TypeParam::hasStandAloneRib,
       rid0,
-      prefix42.network,
+      prefix42.toCidrNetwork(),
       this->sw_->getState());
 
   EXPECT_FALSE(newEntry->isToCPU());
@@ -1167,8 +1165,8 @@ TYPED_TEST(RouteTest, PruneChangedRoutes) {
   SwitchState::revertNewRouteEntry(
       TypeParam::hasStandAloneRib, rid0, newEntry, oldEntry, &revertState);
 
-  auto revertedEntry = findLongestMatchRoute<IPAddressV6>(
-      TypeParam::hasStandAloneRib, rid0, prefix42.network, revertState);
+  auto revertedEntry = findRoute<IPAddressV6>(
+      TypeParam::hasStandAloneRib, rid0, prefix42.toCidrNetwork(), revertState);
   EXPECT_TRUE(revertedEntry->isToCPU());
 }
 
