@@ -453,13 +453,28 @@ RoutingInformationBase::fromFollyDynamic(const folly::dynamic& ribJson) {
   auto rib = std::make_unique<RoutingInformationBase>();
 
   auto lockedRouteTables = rib->synchronizedRouteTables_.wlock();
+  auto lockedShadowRouteTables = rib->synchronizedShadowRouteTables_.wlock();
   for (const auto& routeTable : ribJson.items()) {
+    auto vrf = RouterID(routeTable.first.asInt());
     lockedRouteTables->insert(std::make_pair(
-        RouterID(routeTable.first.asInt()),
+        vrf,
         RouteTable{
             IPv4NetworkToRouteMap::fromFollyDynamic(routeTable.second[kRibV4]),
             IPv6NetworkToRouteMap::fromFollyDynamic(routeTable.second[kRibV6]),
             true}));
+
+    lockedShadowRouteTables->insert(std::make_pair(
+        vrf,
+        RouteTable{
+            {lockedRouteTables->find(vrf)->second.v4NetworkToRoute.clone()},
+            {lockedRouteTables->find(vrf)->second.v6NetworkToRoute.clone()},
+            true}));
+    CHECK_EQ(
+        (*lockedShadowRouteTables)[vrf].v4NetworkToRoute.size(),
+        (*lockedRouteTables)[vrf].v4NetworkToRoute.size());
+    CHECK_EQ(
+        (*lockedShadowRouteTables)[vrf].v6NetworkToRoute.size(),
+        (*lockedRouteTables)[vrf].v6NetworkToRoute.size());
   }
 
   return rib;
