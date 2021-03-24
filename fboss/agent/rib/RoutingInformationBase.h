@@ -181,8 +181,7 @@ class RoutingInformationBase {
       bool resetClientsRoutes,
       folly::StringPiece updateType,
       FibUpdateFunction& fibUpdateCallback,
-      void* cookie,
-      std::vector<RibRouteUpdater::RouteEntry>* updateLog);
+      void* cookie);
   /*
    * Currently, route updates to separate VRFs are made to be sequential. In the
    * event FBOSS has to operate in a routing architecture with numerous VRFs,

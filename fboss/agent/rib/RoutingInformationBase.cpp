@@ -193,7 +193,6 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
       throw FbossError("VRF ", routerID, " not configured");
     }
 
-    std::vector<RibRouteUpdater::RouteEntry> updateLog;
     std::tie(appliedState, stats) = updateImpl(
         &(it->second),
         routerID,
@@ -204,8 +203,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
         resetClientsRoutes,
         updateType,
         fibUpdateCallback,
-        cookie,
-        &updateLog);
+        cookie);
   }
   stats.duration = duration;
   return stats;
@@ -223,8 +221,7 @@ std::
         bool resetClientsRoutes,
         folly::StringPiece updateType,
         FibUpdateFunction& fibUpdateCallback,
-        void* cookie,
-        std::vector<RibRouteUpdater::RouteEntry>* updateLog) {
+        void* cookie) {
   UpdateStatistics stats;
   std::shared_ptr<SwitchState> appliedState;
 
@@ -238,10 +235,6 @@ std::
         &(routeTables->v4NetworkToRoute), &(routeTables->v6NetworkToRoute));
     if (resetClientsRoutes) {
       auto removedRoutes = updater.removeAllRoutesForClient(clientID);
-      std::move(
-          removedRoutes.begin(),
-          removedRoutes.end(),
-          std::back_inserter(*updateLog));
     }
 
     for (const auto& route : toAdd) {
@@ -255,14 +248,11 @@ std::
         ++stats.v6RoutesAdded;
       }
 
-      auto addOrReplace = updater.addOrReplaceRoute(
+      updater.addOrReplaceRoute(
           network,
           mask,
           clientID,
           RouteNextHopEntry::from(route, adminDistanceFromClientID));
-      if (addOrReplace) {
-        updateLog->push_back(std::move(*addOrReplace));
-      }
     }
 
     for (const auto& prefix : toDelete) {
@@ -275,10 +265,7 @@ std::
         ++stats.v6RoutesDeleted;
       }
 
-      auto deleted = updater.delRoute(network, mask, clientID);
-      if (deleted) {
-        updateLog->push_back(std::move(*deleted));
-      }
+      updater.delRoute(network, mask, clientID);
     }
 
     updater.updateDone();
