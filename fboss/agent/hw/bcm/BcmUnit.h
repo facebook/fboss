@@ -11,6 +11,7 @@
 
 #include <folly/Range.h>
 #include <atomic>
+#include "fboss/agent/hw/bcm/BcmHALVector.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 
@@ -25,7 +26,6 @@ struct dynamic;
 namespace facebook::fboss {
 
 class BcmWarmBootHelper;
-class BcmHALVector;
 
 class BcmUnit {
  public:
@@ -118,9 +118,7 @@ class BcmUnit {
   void* cookie_{nullptr};
   bool usePKTIO_{false};
 
-#ifndef IS_OSS
   std::unique_ptr<BcmHALVector> halVector_;
-#endif
 };
 
 } // namespace facebook::fboss
