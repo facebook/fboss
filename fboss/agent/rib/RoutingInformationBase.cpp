@@ -16,7 +16,11 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/rib/ConfigApplier.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
+#include "fboss/agent/state/ForwardingInformationBase.h"
+#include "fboss/agent/state/ForwardingInformationBaseContainer.h"
+#include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/NodeMap-defs.h"
+#include "fboss/agent/state/SwitchState.h"
 
 #include "fboss/agent/rib/RouteUpdater.h"
 
@@ -27,7 +31,10 @@
 #include <folly/ScopeGuard.h>
 #include <folly/logging/xlog.h>
 
+namespace facebook::fboss {
+
 namespace {
+
 class Timer {
  public:
   explicit Timer(std::chrono::microseconds* duration)
@@ -43,10 +50,36 @@ class Timer {
   std::chrono::microseconds* duration_;
   std::chrono::time_point<std::chrono::steady_clock> start_;
 };
+
+template <typename AddressT>
+void reconstructRibFromFib(
+    const std::shared_ptr<ForwardingInformationBase<AddressT>>& fib,
+    NetworkToRouteMap<AddressT>* addrToRoute) {
+  // FIB has all but unresolved routes from RIB
+  std::vector<std::shared_ptr<Route<AddressT>>> unresolvedRoutes;
+  std::for_each(
+      addrToRoute->begin(),
+      addrToRoute->end(),
+      [&unresolvedRoutes](auto& node) {
+        auto& route = node.value();
+        if (!route->isResolved()) {
+          unresolvedRoutes.push_back(route);
+        }
+      });
+  addrToRoute->clear();
+  for (auto& route : *fib) {
+    addrToRoute->insert(route->prefix().network, route->prefix().mask, route);
+  }
+  // Copy unresolved routes
+  std::for_each(
+      unresolvedRoutes.begin(),
+      unresolvedRoutes.end(),
+      [addrToRoute](const auto& route) {
+        addrToRoute->insert(
+            route->prefix().network, route->prefix().mask, route);
+      });
+}
 } // namespace
-
-namespace facebook::fboss {
-
 RoutingInformationBase::RoutingInformationBase() {
   ribUpdateThread_ = std::make_unique<std::thread>([this] {
     initThread("ribUpdateThread");
@@ -380,11 +413,10 @@ void RoutingInformationBase::updateFib(
     RouteTable* routeTable,
     const FibUpdateFunction& fibUpdateCallback,
     void* cookie) {
-  std::shared_ptr<SwitchState> appliedState;
   try {
     // Publish routes before sending to FIB
     routeTable->makeWritable(false);
-    appliedState = fibUpdateCallback(
+    fibUpdateCallback(
         vrf,
         routeTable->v4NetworkToRoute,
         routeTable->v6NetworkToRoute,
@@ -394,20 +426,13 @@ void RoutingInformationBase::updateFib(
       SCOPE_FAIL {
         XLOG(FATAL) << " RIB Rollback failed, aborting program";
       };
-      auto lockedShadowRouteTables = synchronizedShadowRouteTables_.rlock();
-      // Rollback route tables back to state prior to update failure
-      *routeTable = RouteTable{
-          {lockedShadowRouteTables->find(vrf)->second.v4NetworkToRoute.clone()},
-          {lockedShadowRouteTables->find(vrf)->second.v6NetworkToRoute.clone()},
-          false};
-      // Attempt to rollback HW
-      appliedState = fibUpdateCallback(
-          vrf,
-          routeTable->v4NetworkToRoute,
-          routeTable->v6NetworkToRoute,
-          cookie);
+      auto fib = hwUpdateError.appliedState->getFibs()->getFibContainer(vrf);
+      reconstructRibFromFib<folly::IPAddressV4>(
+          fib->getFibV4(), &routeTable->v4NetworkToRoute);
+      reconstructRibFromFib<folly::IPAddressV6>(
+          fib->getFibV6(), &routeTable->v6NetworkToRoute);
     }
-    throw FbossHwUpdateError(hwUpdateError.desiredState, appliedState);
+    throw;
   }
   // Get shadow rib to mirror new route tables
   auto lockedShadowRouteTables = synchronizedShadowRouteTables_.wlock();

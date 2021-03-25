@@ -1090,9 +1090,7 @@ TYPED_TEST(ThriftTest, hwUpdateErrorAfterPartialUpdate) {
         } catch (const FbossFibUpdateError& fibError) {
           EXPECT_EQ(fibError.vrf2failedAddUpdatePrefixes_ref()->size(), 1);
           auto itr = fibError.vrf2failedAddUpdatePrefixes_ref()->find(0);
-          // Standalone RIB will rollback the entire update while legacy
-          // RIB will stick with whatever HwSwitch returned
-          EXPECT_EQ(itr->second.size(), TypeParam::hasStandAloneRib ? 2 : 1);
+          EXPECT_EQ(itr->second.size(), 1);
           itr = fibError.vrf2failedDeletePrefixes_ref()->find(0);
           EXPECT_EQ(itr->second.size(), 0);
           throw;
