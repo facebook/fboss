@@ -47,9 +47,13 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::programLabel(
 
   auto* writableLabelFib = modify(state);
   auto entry = writableLabelFib->getLabelForwardingEntryIf(label);
+  auto nexthopCount = nexthops.size();
+  std::string nextHopsStr{};
+  toAppend(nexthops, &nextHopsStr);
 
   if (!entry) {
-    XLOG(DBG3) << "programmed label:" << label
+    XLOG(DBG2) << "programmed label:" << label << " nhops: " << nextHopsStr
+               << " nhop count:" << nexthopCount
                << " in label forwarding information base for client:"
                << static_cast<int>(client);
 
@@ -59,7 +63,8 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::programLabel(
     auto* entryToUpdate = entry->modify(state);
     entryToUpdate->update(
         client, LabelNextHopEntry(std::move(nexthops), distance));
-    XLOG(DBG3) << "updated label:" << label
+    XLOG(DBG2) << "updated label:" << label << " nhops: " << nextHopsStr
+               << "nhop count:" << nexthopCount
                << " in label forwarding information base for client:"
                << static_cast<int>(client);
   }
@@ -80,12 +85,12 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::unprogramLabel(
   }
   auto* entryToUpdate = entry->modify(state);
   entryToUpdate->delEntryForClient(client);
-  XLOG(DBG3) << "removed label:" << label
+  XLOG(DBG2) << "removed label:" << label
              << " from label forwarding information base for client:"
              << static_cast<int>(client);
 
   if (entryToUpdate->isEmpty()) {
-    XLOG(DBG3) << "Purging empty forwarding entry for label:" << label;
+    XLOG(DBG2) << "Purging empty forwarding entry for label:" << label;
     writableLabelFib->removeNode(entry);
   }
   return writableLabelFib;
