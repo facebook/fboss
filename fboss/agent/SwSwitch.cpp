@@ -1632,7 +1632,7 @@ std::shared_ptr<Route<AddressT>> SwSwitch::longestMatch(
     std::shared_ptr<SwitchState> state,
     const AddressT& address,
     RouterID vrf) {
-  return findLongestMatchRoute(isStandaloneRibEnabled(), vrf, address, state);
+  return findLongestMatchRoute(getRib(), vrf, address, state);
 }
 
 template std::shared_ptr<Route<folly::IPAddressV4>> SwSwitch::longestMatch(

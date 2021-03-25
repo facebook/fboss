@@ -198,7 +198,7 @@ TYPED_TEST(FibHelperTest, findLongestMatchRoute) {
       this->sw_->getState());
   EXPECT_NE(route, nullptr);
   auto route2 = findLongestMatchRoute<typename TestFixture::AddrT>(
-      this->sw_->isStandaloneRibEnabled(),
+      this->sw_->getRib(),
       this->kRid(),
       this->kInSubnetIp(),
       this->sw_->getState());
@@ -206,7 +206,7 @@ TYPED_TEST(FibHelperTest, findLongestMatchRoute) {
   EXPECT_EQ(route, route2);
 
   auto route3 = findLongestMatchRoute<typename TestFixture::AddrT>(
-      this->sw_->isStandaloneRibEnabled(),
+      this->sw_->getRib(),
       this->kRid(),
       this->kNotInSubnetIp(),
       this->sw_->getState());

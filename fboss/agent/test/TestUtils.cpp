@@ -35,6 +35,7 @@
 
 #include <folly/Memory.h>
 #include <folly/json.h>
+#include <folly/logging/Init.h>
 #include <chrono>
 #include <optional>
 
@@ -58,6 +59,7 @@ using ::testing::Return;
 
 using namespace facebook::fboss;
 
+FOLLY_INIT_LOGGING_CONFIG("fboss=DBG6; default:async=false");
 namespace {
 
 void initSwSwitchWithFlags(SwSwitch* sw, SwitchFlags flags) {

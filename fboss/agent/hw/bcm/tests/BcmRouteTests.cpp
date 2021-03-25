@@ -716,7 +716,7 @@ void BcmRouteTest::verifyNextHopReferences(
   for (auto& nexthop : nexthops) {
     if (nexthop.isV6()) {
       const auto& route = findLongestMatchRoute(
-          getHwSwitchEnsemble()->isStandaloneRibEnabled(),
+          getHwSwitchEnsemble()->getRib(),
           RouterID(0),
           nexthop.asV6(),
           getProgrammedState());
@@ -726,7 +726,7 @@ void BcmRouteTest::verifyNextHopReferences(
 
     } else {
       const auto& route = findLongestMatchRoute(
-          getHwSwitchEnsemble()->isStandaloneRibEnabled(),
+          getHwSwitchEnsemble()->getRib(),
           RouterID(0),
           nexthop.asV4(),
           getProgrammedState());

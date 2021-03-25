@@ -67,10 +67,7 @@ void routeAddDelBenchmarker(bool measureAdd) {
           addrsToLookup.end(),
           [&ensemble, &programmedState, kRid](const auto& addr) {
             findLongestMatchRoute(
-                ensemble->isStandaloneRibEnabled(),
-                kRid,
-                addr,
-                programmedState);
+                ensemble->getRib(), kRid, addr, programmedState);
           });
     }
   };

@@ -499,10 +499,7 @@ TYPED_TEST(RouteTest, resolve) {
     auto r31NextHops = r31->getForwardInfo().getNextHopSet();
     EXPECT_EQ(1, r31NextHops.size());
     auto r32 = findLongestMatchRoute(
-        this->sw_->isStandaloneRibEnabled(),
-        rid,
-        r31NextHops.begin()->addr().asV4(),
-        stateV3);
+        this->sw_->getRib(), rid, r31NextHops.begin()->addr().asV4(), stateV3);
     EXPECT_RESOLVED(r32);
     EXPECT_TRUE(r32->isConnected());
 

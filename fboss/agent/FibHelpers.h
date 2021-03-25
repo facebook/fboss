@@ -28,6 +28,7 @@
 namespace facebook::fboss {
 
 class SwitchState;
+class RoutingInformationBase;
 
 template <typename AddrT>
 std::shared_ptr<Route<AddrT>> findRoute(
@@ -38,7 +39,7 @@ std::shared_ptr<Route<AddrT>> findRoute(
 
 template <typename AddrT>
 std::shared_ptr<Route<AddrT>> findLongestMatchRoute(
-    bool isStandaloneRib,
+    const RoutingInformationBase* rib,
     RouterID rid,
     const AddrT& addr,
     const std::shared_ptr<SwitchState>& state);

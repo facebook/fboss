@@ -413,9 +413,19 @@ void RoutingInformationBase::updateFib(
     RouteTable* routeTable,
     const FibUpdateFunction& fibUpdateCallback,
     void* cookie) {
+  auto syncShadowRib = [this, vrf, routeTable]() {
+    // Update shadow rib to new routes
+    // TODO: optimize and assert equivalence here
+    auto lockedShadowRouteTables = synchronizedShadowRouteTables_.wlock();
+    (*lockedShadowRouteTables)[vrf] = RouteTable{
+        {routeTable->v4NetworkToRoute.clone()},
+        {routeTable->v6NetworkToRoute.clone()},
+        false};
+  };
   try {
     // Publish routes before sending to FIB
     routeTable->makeWritable(false);
+    syncShadowRib();
     fibUpdateCallback(
         vrf,
         routeTable->v4NetworkToRoute,
@@ -431,18 +441,10 @@ void RoutingInformationBase::updateFib(
           fib->getFibV4(), &routeTable->v4NetworkToRoute);
       reconstructRibFromFib<folly::IPAddressV6>(
           fib->getFibV6(), &routeTable->v6NetworkToRoute);
+      syncShadowRib();
     }
     throw;
   }
-  // Get shadow rib to mirror new route tables
-  auto lockedShadowRouteTables = synchronizedShadowRouteTables_.wlock();
-  auto& shadowRouteTable = (*lockedShadowRouteTables)[vrf];
-  // Update shadow rib to new routes
-  // TODO: optimize and assert equivalence here
-  shadowRouteTable = RouteTable{
-      {routeTable->v4NetworkToRoute.clone()},
-      {routeTable->v6NetworkToRoute.clone()},
-      false};
 }
 
 void RoutingInformationBase::RouteTable::makeWritable(bool _writable) {

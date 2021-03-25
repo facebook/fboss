@@ -176,7 +176,7 @@ TYPED_TEST(ThriftTest, LinkLocalRoutes) {
   auto ip = IPAddressV6("fe80::");
   // Find longest match to link local addr.
   auto longestMatchRoute = findLongestMatchRoute(
-      TypeParam::hasStandAloneRib, RouterID(0), ip, this->sw_->getState());
+      this->sw_->getRib(), RouterID(0), ip, this->sw_->getState());
   // Verify that a route is found. Link local route should always
   // be present
   ASSERT_NE(nullptr, longestMatchRoute);
