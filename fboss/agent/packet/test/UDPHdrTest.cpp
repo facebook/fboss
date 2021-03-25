@@ -42,7 +42,7 @@ TEST(UDP, IPv4Checksum) {
   udp.dstPort = 123;
   udp.length = bodyLength;
 
-  IOBuf bodyBuf(IOBuf::WRAP_BUFFER, body, bodyLength);
+  IOBuf bodyBuf(IOBuf::WRAP_BUFFER, body, sizeof(body));
   Cursor cursor(&bodyBuf);
 
   EXPECT_EQ(0x9001, ip.csum);
@@ -75,7 +75,7 @@ TEST(UDP, IPv4ChecksumZero) {
   udp.dstPort = 1234;
   udp.length = bodyLength;
 
-  IOBuf bodyBuf(IOBuf::WRAP_BUFFER, body, bodyLength);
+  IOBuf bodyBuf(IOBuf::WRAP_BUFFER, body, sizeof(body));
   Cursor cursor(&bodyBuf);
 
   EXPECT_EQ(0x791e, ip.csum);
@@ -108,7 +108,7 @@ TEST(UDP, IPv6Checksum) {
   udp.dstPort = 1234;
   udp.length = bodyLength;
 
-  IOBuf bodyBuf(IOBuf::WRAP_BUFFER, body, bodyLength);
+  IOBuf bodyBuf(IOBuf::WRAP_BUFFER, body, sizeof(body));
   Cursor cursor(&bodyBuf);
 
   EXPECT_EQ(0x3d76, udp.computeChecksum(ip, cursor));
@@ -140,7 +140,7 @@ TEST(UDP, IPv6ChecksumZero) {
   udp.dstPort = 1234;
   udp.length = bodyLength;
 
-  IOBuf bodyBuf(IOBuf::WRAP_BUFFER, body, bodyLength);
+  IOBuf bodyBuf(IOBuf::WRAP_BUFFER, body, sizeof(body));
   Cursor cursor(&bodyBuf);
 
   EXPECT_EQ(0xffff, udp.computeChecksum(ip, cursor));
