@@ -200,7 +200,7 @@ class SaiPortManager {
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
   // Pure virtual function cannot be called in destructor. Thus, cache it.
-  bool dontRemovePortsAtExit_;
+  bool removePortsAtExit_;
   ConcurrentIndices* concurrentIndices_;
   Handles handles_;
   // on some platforms port can not be removed freely. on such platforms retain

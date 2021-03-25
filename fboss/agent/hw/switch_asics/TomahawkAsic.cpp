@@ -34,6 +34,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_ECN_WRED:
     case HwAsic::Feature::TELEMETRY_AND_MONITORING:
     case HwAsic::Feature::MAC_AGING:
+    case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
@@ -66,7 +67,6 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::ALPM_ROUTE_PROJECTION:
     case HwAsic::Feature::SAI_PORT_SPEED_CHANGE:
     case HwAsic::Feature::SFLOW_SHIM_VERSION_FIELD:
-    case HwAsic::Feature::DONT_REMOVE_PORTS_FOR_COLDBOOT:
       return false;
   }
   return false;

@@ -66,7 +66,7 @@ class HwAsic {
     MAC_AGING,
     SAI_PORT_SPEED_CHANGE,
     SFLOW_SHIM_VERSION_FIELD,
-    DONT_REMOVE_PORTS_FOR_COLDBOOT,
+    REMOVE_PORTS_FOR_COLDBOOT,
   };
 
   enum class AsicType {

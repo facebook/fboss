@@ -118,8 +118,8 @@ SaiPortManager::SaiPortManager(
     : saiStore_(saiStore),
       managerTable_(managerTable),
       platform_(platform),
-      dontRemovePortsAtExit_(platform_->getAsic()->isSupported(
-          HwAsic::Feature::DONT_REMOVE_PORTS_FOR_COLDBOOT)),
+      removePortsAtExit_(platform_->getAsic()->isSupported(
+          HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT)),
       concurrentIndices_(concurrentIndices) {}
 
 SaiPortHandle::~SaiPortHandle() {
@@ -140,7 +140,7 @@ SaiPortManager::~SaiPortManager() {
 }
 
 void SaiPortManager::releasePorts() {
-  if (dontRemovePortsAtExit_) {
+  if (!removePortsAtExit_) {
     for (const auto& handle : handles_) {
       const auto& saiPortHandle = handle.second;
       saiPortHandle->port->release();

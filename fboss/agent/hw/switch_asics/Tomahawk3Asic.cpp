@@ -39,7 +39,6 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ALPM_ROUTE_PROJECTION:
     case HwAsic::Feature::MAC_AGING:
     case HwAsic::Feature::SAI_PORT_SPEED_CHANGE: // CS00011784917
-    case HwAsic::Feature::DONT_REMOVE_PORTS_FOR_COLDBOOT: // CS00012066057
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
@@ -67,6 +66,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_MIRRORING:
     case HwAsic::Feature::SAI_SAMPLING:
     case HwAsic::Feature::SFLOW_SHIM_VERSION_FIELD:
+    case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT: // CS00012066057
       return false;
   }
   return false;
