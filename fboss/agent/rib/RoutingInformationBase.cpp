@@ -512,4 +512,23 @@ bool RoutingInformationBase::operator==(
              other.synchronizedShadowRouteTables_);
 }
 
+template <typename AddressT>
+std::shared_ptr<Route<AddressT>> RoutingInformationBase::longestMatch(
+    const AddressT& address,
+    RouterID vrf) const {
+  auto shadowRibTables = synchronizedShadowRouteTables_.rlock();
+  auto vrfIt = shadowRibTables->find(vrf);
+  return vrfIt == shadowRibTables->end() ? nullptr
+                                         : vrfIt->second.longestMatch(address);
+}
+
+template std::shared_ptr<Route<folly::IPAddressV4>>
+RoutingInformationBase::longestMatch(
+    const folly::IPAddressV4& address,
+    RouterID vrf) const;
+template std::shared_ptr<Route<folly::IPAddressV6>>
+RoutingInformationBase::longestMatch(
+    const folly::IPAddressV6& address,
+    RouterID vrf) const;
+
 } // namespace facebook::fboss

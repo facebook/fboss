@@ -140,6 +140,11 @@ class RoutingInformationBase {
 
   void stop();
 
+  template <typename AddressT>
+  std::shared_ptr<Route<AddressT>> longestMatch(
+      const AddressT& address,
+      RouterID vrf) const;
+
  private:
   void ensureRunning() const;
   void setClassIDImpl(
@@ -162,6 +167,17 @@ class RoutingInformationBase {
     bool operator!=(const RouteTable& other) const {
       return !(*this == other);
     }
+    std::shared_ptr<Route<folly::IPAddressV4>> longestMatch(
+        const folly::IPAddressV4& addr) const {
+      auto it = v4NetworkToRoute.longestMatch(addr, addr.bitCount());
+      return it == v4NetworkToRoute.end() ? nullptr : it->value();
+    }
+    std::shared_ptr<Route<folly::IPAddressV6>> longestMatch(
+        const folly::IPAddressV6& addr) const {
+      auto it = v6NetworkToRoute.longestMatch(addr, addr.bitCount());
+      return it == v6NetworkToRoute.end() ? nullptr : it->value();
+    }
+
     void makeWritable(bool setWritable);
   };
 
