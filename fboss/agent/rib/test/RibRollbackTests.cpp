@@ -63,7 +63,16 @@ class FailSomeUpdates {
       const IPv6NetworkToRouteMap& v6NetworkToRoute,
       void* cookie) {
     if (toFail_.find(++cnt_) != toFail_.end()) {
-      throw FbossHwUpdateError(nullptr, nullptr);
+      auto curSwitchStatePtr =
+          static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);
+      (*curSwitchStatePtr)->publish();
+      auto desiredState = *curSwitchStatePtr;
+      recordUpdates(
+          vrf,
+          v4NetworkToRoute,
+          v6NetworkToRoute,
+          static_cast<void*>(&desiredState));
+      throw FbossHwUpdateError(desiredState, *curSwitchStatePtr);
     }
     return recordUpdates(vrf, v4NetworkToRoute, v6NetworkToRoute, cookie);
   }
