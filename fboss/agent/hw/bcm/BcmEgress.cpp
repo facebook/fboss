@@ -59,41 +59,58 @@ void BcmEgress::program(
     bcm_port_t port,
     RouteForwardAction action) {
   bcm_l3_egress_t eObj;
-  auto failedToProgramMsg = folly::to<std::string>(
-      "failed to program L3 egress object ",
-      id_,
-      " ",
-      (mac) ? mac->toString() : "ToCPU",
-      " on port ",
-      port,
-      " on unit ",
-      hw_->getUnit());
-  auto succeededToProgramMsg = folly::to<std::string>(
-      "programmed L3 egress object ",
-      id_,
-      " for ",
-      ((mac) ? mac->toString() : "to CPU"),
-      " on unit ",
-      hw_->getUnit(),
-      " for ip: ",
-      ip,
-      " @ brcmif ",
-      intfId);
-  auto alreadyExistsMsg = folly::to<std::string>(
-      "Identical egress object for : ",
-      ip,
-      " @ brcmif ",
-      intfId,
-      " pointing to ",
-      (mac ? mac->toString() : "CPU "),
-      " skipping egress programming");
-
-  if (hasLabel()) {
-    auto withLabelMsg = folly::to<std::string>(" with label ", getLabel(), " ");
-    failedToProgramMsg.append(withLabelMsg);
-    succeededToProgramMsg.append(withLabelMsg);
-    alreadyExistsMsg.append(withLabelMsg);
-  }
+  auto failedToProgramMsg = [=]() {
+    auto msg = folly::to<std::string>(
+        "failed to program L3 egress object ",
+        id_,
+        " ",
+        (mac) ? mac->toString() : "ToCPU",
+        " on port ",
+        port,
+        " on unit ",
+        hw_->getUnit());
+    if (hasLabel()) {
+      auto withLabelMsg =
+          folly::to<std::string>(" with label ", getLabel(), " ");
+      msg.append(withLabelMsg);
+    }
+    return msg;
+  };
+  auto succeededToProgramMsg = [=]() {
+    auto msg = folly::to<std::string>(
+        "programmed L3 egress object ",
+        id_,
+        " for ",
+        ((mac) ? mac->toString() : "to CPU"),
+        " on unit ",
+        hw_->getUnit(),
+        " for ip: ",
+        ip,
+        " @ brcmif ",
+        intfId);
+    if (hasLabel()) {
+      auto withLabelMsg =
+          folly::to<std::string>(" with label ", getLabel(), " ");
+      msg.append(withLabelMsg);
+    }
+    return msg;
+  };
+  auto alreadyExistsMsg = [=]() {
+    auto msg = folly::to<std::string>(
+        "Identical egress object for : ",
+        ip,
+        " @ brcmif ",
+        intfId,
+        " pointing to ",
+        (mac ? mac->toString() : "CPU "),
+        " skipping egress programming");
+    if (hasLabel()) {
+      auto withLabelMsg =
+          folly::to<std::string>(" with label ", getLabel(), " ");
+      msg.append(withLabelMsg);
+    }
+    return msg;
+  };
 
   prepareEgressObject(
       intfId,
@@ -171,14 +188,14 @@ void BcmEgress::program(
        *  tracked in t4324084
        */
       auto rc = bcm_l3_egress_create(hw_->getUnit(), flags, &eObj, &id_);
-      bcmCheckError(rc, failedToProgramMsg);
-      XLOG(DBG2) << succeededToProgramMsg << " flags " << eObj.flags
+      bcmCheckError(rc, failedToProgramMsg());
+      XLOG(DBG2) << succeededToProgramMsg() << " flags " << eObj.flags
                  << " towards port " << eObj.port;
     } else {
       // This could happen when neighbor entry is confirmed with the same MAC
       // after warmboot, as it will trigger another egress programming with the
       // same MAC.
-      XLOG(DBG1) << alreadyExistsMsg;
+      XLOG(DBG1) << alreadyExistsMsg();
     }
   }
   // update our internal fields
