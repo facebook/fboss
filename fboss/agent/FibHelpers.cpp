@@ -22,7 +22,7 @@ namespace facebook::fboss {
 
 namespace {
 template <typename AddrT>
-std::shared_ptr<Route<AddrT>> findRouteImpl(
+std::shared_ptr<Route<AddrT>> findRouteInSwitchState(
     bool isStandaloneRib,
     RouterID rid,
     const folly::CIDRNetwork& prefix,
@@ -55,47 +55,7 @@ std::shared_ptr<Route<AddrT>> findRouteImpl(
   CHECK(false) << " Should never get here, route lookup failed";
   return nullptr;
 }
-template <typename AddrT>
-std::shared_ptr<Route<AddrT>> findRouteImpl(
-    const RoutingInformationBase* rib,
-    RouterID rid,
-    const folly::CIDRNetwork& prefix,
-    const std::shared_ptr<SwitchState>& state,
-    bool exactMatch) {
-  if (!exactMatch) {
-    CHECK_EQ(prefix.second, prefix.first.bitCount())
-        << " Longest match must pass in a IPAddress";
-  }
-  auto findInFib = [&prefix, exactMatch](const auto& fibRoutes) {
-    if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
-      return exactMatch
-          ? fibRoutes->exactMatch({prefix.first.asV6(), prefix.second})
-          : fibRoutes->longestMatch(prefix.first.asV6());
-    } else {
-      return exactMatch
-          ? fibRoutes->exactMatch({prefix.first.asV4(), prefix.second})
-          : fibRoutes->longestMatch(prefix.first.asV4());
-    }
-  };
-  if (rib) {
-    if (exactMatch) {
-      auto& fib = state->getFibs()->getFibContainer(rid)->getFib<AddrT>();
-      return findInFib(fib);
-    } else {
-      if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
-        return rib->longestMatch(prefix.first.asV6(), rid);
-      } else {
-        return rib->longestMatch(prefix.first.asV4(), rid);
-      }
-    }
-  } else {
-    auto& routeTableRib =
-        state->getRouteTables()->getRouteTable(rid)->template getRib<AddrT>();
-    return findInFib(routeTableRib);
-  }
-  CHECK(false) << " Should never get here, route lookup failed";
-  return nullptr;
-}
+
 } // namespace
 
 template <typename AddrT>
@@ -104,8 +64,8 @@ std::shared_ptr<Route<AddrT>> findRoute(
     RouterID rid,
     const folly::CIDRNetwork& prefix,
     const std::shared_ptr<SwitchState>& state) {
-  return findRouteImpl<AddrT>(
-      isStandaloneRib, rid, prefix, state, true /*exact match*/);
+  return findRouteInSwitchState<AddrT>(
+      isStandaloneRib, rid, prefix, state, true);
 }
 
 template <typename AddrT>
@@ -114,8 +74,15 @@ std::shared_ptr<Route<AddrT>> findLongestMatchRoute(
     RouterID rid,
     const AddrT& addr,
     const std::shared_ptr<SwitchState>& state) {
-  return findRouteImpl<AddrT>(
-      rib, rid, {addr, addr.bitCount()}, state, false /*longest match*/);
+  if (rib) {
+    return rib->longestMatch(addr, rid);
+  }
+  return findRouteInSwitchState<AddrT>(
+      rib ? true : false,
+      rid,
+      {addr, addr.bitCount()},
+      state,
+      false /*longest match*/);
 }
 
 std::pair<uint64_t, uint64_t> getRouteCount(
