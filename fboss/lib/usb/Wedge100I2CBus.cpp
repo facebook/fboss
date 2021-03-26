@@ -46,7 +46,10 @@ void extractPresenceBits(
       if (upperQsfps) {
         tcvrIdx += 16;
       }
-      ((buf[byte] >> bit) & 1)
+      // Presence bits for adjacent modules are swapped between each other.
+      // For example, bit0 indicates presence of QSFP1, bit1 for QSFP0, bit2 for
+      // QSFP3, bit3 for QSFP2 and so on
+      ((buf[byte] >> (bit ^ 1)) & 1)
           ? presences[tcvrIdx] = facebook::fboss::ModulePresence::ABSENT
           : presences[tcvrIdx] = facebook::fboss::ModulePresence::PRESENT;
     }
