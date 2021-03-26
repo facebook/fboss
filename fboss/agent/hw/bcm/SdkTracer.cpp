@@ -1586,6 +1586,29 @@ int __real_bcm_cosq_port_priority_group_property_set(
     bcm_cosq_port_prigroup_control_t type,
     int arg);
 
+int __real_bcm_collector_create(
+    int unit,
+    uint32 options,
+    bcm_collector_t* collector_id,
+    bcm_collector_info_t* collector_info);
+
+int __real_bcm_collector_destroy(int unit, bcm_collector_t id);
+
+int __real_bcm_collector_export_profile_create(
+    int unit,
+    uint32 options,
+    int* export_profile_id,
+    bcm_collector_export_profile_t* export_profile_info);
+
+int __real_bcm_collector_export_profile_destroy(
+    int unit,
+    int export_profile_id);
+
+void __real_bcm_collector_export_profile_t_init(
+    bcm_collector_export_profile_t* export_profile_info);
+
+void __real_bcm_collector_info_t_init(bcm_collector_info_t* collector_info);
+
 } // extern "C"
 
 using namespace facebook::fboss;
@@ -3807,6 +3830,43 @@ int __wrap_bcm_cosq_port_priority_group_property_set(
     int arg) {
   CALL_WRAPPERS_RV(bcm_cosq_port_priority_group_property_set(
       unit, gport, priority_group_id, type, arg));
+}
+
+int __wrap_bcm_collector_create(
+    int unit,
+    uint32 options,
+    bcm_collector_t* collector_id,
+    bcm_collector_info_t* collector_info) {
+  CALL_WRAPPERS_RV(
+      bcm_collector_create(unit, options, collector_id, collector_info));
+}
+
+int __wrap_bcm_collector_destroy(int unit, bcm_collector_t id) {
+  CALL_WRAPPERS_RV(bcm_collector_destroy(unit, id));
+}
+
+int __wrap_bcm_collector_export_profile_create(
+    int unit,
+    uint32 options,
+    int* export_profile_id,
+    bcm_collector_export_profile_t* export_profile_info) {
+  CALL_WRAPPERS_RV(bcm_collector_export_profile_create(
+      unit, options, export_profile_id, export_profile_info));
+}
+
+int __wrap_bcm_collector_export_profile_destroy(
+    int unit,
+    int export_profile_id) {
+  CALL_WRAPPERS_RV(
+      bcm_collector_export_profile_destroy(unit, export_profile_id));
+}
+void __wrap_bcm_collector_export_profile_t_init(
+    bcm_collector_export_profile_t* export_profile_info) {
+  CALL_WRAPPERS_NO_RV(bcm_collector_export_profile_t_init(export_profile_info));
+}
+
+void __wrap_bcm_collector_info_t_init(bcm_collector_info_t* collector_info) {
+  CALL_WRAPPERS_NO_RV(bcm_collector_info_t_init(collector_info));
 }
 
 } // extern "C"

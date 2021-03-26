@@ -1524,6 +1524,34 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       bcm_trunk_t* /* tid */) override {
     return 0;
   }
+  // Since QCM is not supported after 6.5.16, we no longer need to log these
+  // functions.
+  void bcm_collector_export_profile_t_init(
+      bcm_collector_export_profile_t* /* export_profile_info */) override {}
+  void bcm_collector_info_t_init(
+      bcm_collector_info_t* /* collector_info */) override {}
+  int bcm_collector_create(
+      int /*unit*/,
+      uint32 /*options*/,
+      bcm_collector_t* /*collector_id*/,
+      bcm_collector_info_t* /*collector_info*/) override {
+    return 0;
+  }
+  int bcm_collector_destroy(int /*unit*/, bcm_collector_t /*id*/) override {
+    return 0;
+  }
+  int bcm_collector_export_profile_create(
+      int /*unit*/,
+      uint32 /*options*/,
+      int* /*export_profile_id*/,
+      bcm_collector_export_profile_t* /*export_profile_info*/) override {
+    return 0;
+  }
+  int bcm_collector_export_profile_destroy(
+      int /*unit*/,
+      int /*export_profile_id*/) override {
+    return 0;
+  }
 
  private:
   enum class Dir { SRC, DST };

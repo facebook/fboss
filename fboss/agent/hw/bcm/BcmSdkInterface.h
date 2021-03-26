@@ -14,6 +14,7 @@ extern "C" {
 //
 // BCM
 //
+#include <bcm/collector.h>
 #include <bcm/cosq.h>
 #include <bcm/error.h>
 #include <bcm/field.h>
@@ -944,6 +945,30 @@ class BcmSdkInterface {
       int priority_group_id,
       bcm_cosq_port_prigroup_control_t type,
       int arg) = 0;
+
+  virtual int bcm_collector_create(
+      int unit,
+      uint32 options,
+      bcm_collector_t* collector_id,
+      bcm_collector_info_t* collector_info) = 0;
+
+  virtual int bcm_collector_destroy(int unit, bcm_collector_t id) = 0;
+
+  virtual int bcm_collector_export_profile_create(
+      int unit,
+      uint32 options,
+      int* export_profile_id,
+      bcm_collector_export_profile_t* export_profile_info) = 0;
+
+  virtual int bcm_collector_export_profile_destroy(
+      int unit,
+      int export_profile_id) = 0;
+
+  virtual void bcm_collector_export_profile_t_init(
+      bcm_collector_export_profile_t* export_profile_info) = 0;
+
+  virtual void bcm_collector_info_t_init(
+      bcm_collector_info_t* collector_info) = 0;
 };
 
 } // namespace facebook::fboss
