@@ -329,7 +329,9 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithTruncateV4) {
     EXPECT_LE(capturedPkt->length(), pkt.length());
     auto capturedHdrSize = getSflowPacketHeaderLength();
     EXPECT_GE(capturedPkt->length(), capturedHdrSize);
-    EXPECT_EQ(capturedPkt->length() - capturedHdrSize, 210); /* TODO: why? */
+    EXPECT_LE(
+        capturedPkt->length() - capturedHdrSize,
+        210); /* TODO: confirm length in CS00010399535 and CS00012130950  */
     auto payload = capturedPkt->v4PayLoad()->payload()->payload();
     EXPECT_EQ(getSlfowPacketSrcPort(payload), masterLogicalPortIds()[1]);
   };
@@ -370,7 +372,9 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithTruncateV6) {
     EXPECT_LE(capturedPkt->length(), pkt.length());
     auto capturedHdrSize = getSflowPacketHeaderLength(true);
     EXPECT_GE(capturedPkt->length(), capturedHdrSize);
-    EXPECT_EQ(capturedPkt->length() - capturedHdrSize, 210); /* TODO: why? */
+    EXPECT_LE(
+        capturedPkt->length() - capturedHdrSize,
+        210); /* TODO: confirm length in CS00010399535 and CS00012130950 */
     auto payload = capturedPkt->v6PayLoad()->payload()->payload();
     EXPECT_EQ(getSlfowPacketSrcPort(payload), masterLogicalPortIds()[1]);
   };
