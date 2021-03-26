@@ -1114,6 +1114,12 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
       }
     }
       return;
+    case (uint16_t)ETHERTYPE::ETHERTYPE_MPLS: {
+      auto label = c.readBE<uint32_t>();
+      XLOG_EVERY_MS(DBG2, 1000) << "Received Mpls packet with label:" << label;
+      // TODO - Decode the label stack and payload underneath
+      break;
+    }
     default:
       break;
   }
