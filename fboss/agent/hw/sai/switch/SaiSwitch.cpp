@@ -1182,7 +1182,7 @@ void SaiSwitch::packetRxCallbackPort(
     }
   } else if (portItr == concurrentIndices_->portIds.cend()) {
     // TODO: add counter to keep track of spurious rx packet
-    XLOG(ERR) << "RX packet had port with unknown sai id: 0x" << std::hex
+    XLOG(DBG) << "RX packet had port with unknown sai id: 0x" << std::hex
               << portSaiId;
     return;
   } else {
