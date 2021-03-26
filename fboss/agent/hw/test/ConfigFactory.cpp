@@ -27,17 +27,23 @@ namespace {
 // TODO(ccpowers): remove this once we've made platformPortEntry a required
 // field
 cfg::PortSpeed maxPortSpeed(const HwSwitch* hwSwitch, PortID port) {
-  // If Hardware can't decide the max speed, we use Platform(PlatformMapping) to
-  // decide the max speed.
-  try {
-    if (auto maxSpeed = hwSwitch->getPortMaxSpeed(port);
-        maxSpeed != cfg::PortSpeed::DEFAULT) {
-      return maxSpeed;
+  // CS00012110063
+  if (!hwSwitch->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::SAI_PORT_SPEED_CHANGE)) {
+    // If Hardware can't decide the max speed, we use Platform(PlatformMapping)
+    // to decide the max speed.
+    try {
+      if (auto maxSpeed = hwSwitch->getPortMaxSpeed(port);
+          maxSpeed != cfg::PortSpeed::DEFAULT) {
+        return maxSpeed;
+      }
+    } catch (const FbossError& e) {
+      XLOG(DBG5) << "cannot access port in hwSwitch " << folly::exceptionStr(e);
     }
-  } catch (const FbossError& e) {
-    XLOG(DBG5) << "cannot access port in hwSwitch " << folly::exceptionStr(e);
+    return hwSwitch->getPlatform()->getPortMaxSpeed(port);
+  } else {
+    return cfg::PortSpeed::HUNDREDG;
   }
-  return hwSwitch->getPlatform()->getPortMaxSpeed(port);
 }
 
 // Return the ID for a profile that doesn't subsume any other ports.

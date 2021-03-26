@@ -24,6 +24,8 @@ class FakeAsic : public HwAsic {
       case Feature::EGRESS_QUEUE_FLEX_COUNTER:
       case Feature::NON_UNICAST_HASH:
       case Feature::WIDE_ECMP:
+      // Can be removed once CS00012110063 is resolved
+      case Feature::SAI_PORT_SPEED_CHANGE:
         return false;
 
       default:
