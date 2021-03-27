@@ -75,6 +75,8 @@ constexpr uint8_t kCMISOffsetStageCtrlSet0 = 143;
 // 0x04 is an LR4-specific bit that is otherwise reserved
 
 constexpr uint8_t kCmisPowerModeMask = (0b101 << 4);
+
+constexpr int numRetryGetModuleType = 5;
 }
 
 using folly::MutableByteRange;
@@ -189,18 +191,23 @@ TransceiverManagementInterface getModuleType(
   uint8_t moduleId;
 
   // Get the module id to differentiate between CMIS (0x1e) and SFF
-  try {
-    bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 0, 1, &moduleId);
-  } catch (const I2cError& ex) {
-    fprintf(stderr, "QSFP %d: not present or read error\n", port);
-    return TransceiverManagementInterface::NONE;
+  for (auto retry = 0; retry < numRetryGetModuleType; retry++) {
+    try {
+      bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 0, 1, &moduleId);
+    } catch (const I2cError& ex) {
+      fprintf(stderr, "QSFP %d: not present or read error, retrying...\n", port);
+    }
   }
 
   if (moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_PLUS_CMIS) ||
       moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_DD)) {
     return TransceiverManagementInterface::CMIS;
-  } else {
+  } else if (moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_PLUS) ||
+      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP) ||
+      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP28)) {
     return TransceiverManagementInterface::SFF;
+  } else {
+    return TransceiverManagementInterface::NONE;
   }
 }
 
@@ -360,7 +367,7 @@ bool setTxDisable(TransceiverI2CApi* bus, unsigned int port, bool disable) {
   // Get module type CMIS or SFF
   auto moduleType = getModuleType(bus, port);
 
-  if (moduleType != TransceiverManagementInterface::CMIS) {
+  if (moduleType == TransceiverManagementInterface::SFF) {
     // For SFF the value 0xf disables all 4 lanes and 0x0 enables it back
     buf[0] = disable ? 0xf : 0x0;
 
@@ -371,7 +378,7 @@ bool setTxDisable(TransceiverI2CApi* bus, unsigned int port, bool disable) {
       fprintf(stderr, "QSFP %d: unwritable or write error\n", port);
       return false;
     }
-  } else {
+  } else if (moduleType == TransceiverManagementInterface::CMIS) {
     // For CMIS module, the page 0x10 reg 130 controls TX_DISABLE for 8 lanes
     uint8_t savedPage, moduleControlPage=0x10;
 
@@ -390,6 +397,9 @@ bool setTxDisable(TransceiverI2CApi* bus, unsigned int port, bool disable) {
       fprintf(stderr, "QSFP %d: read/write error\n", port);
       return false;
     }
+  } else {
+    fprintf(stderr, "QSFP %d: Unrecognized transceiver management interface.\n", port);
+    return false;
   }
 
   return true;
@@ -918,8 +928,11 @@ void printPortDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
   }
   if (domDataUnion.getType() == DOMDataUnion::Type::sff8636) {
     printSffDetail(domDataUnion, port);
-  } else {
+  } else if (domDataUnion.getType() == DOMDataUnion::Type::cmis) {
     printCmisDetail(domDataUnion, port);
+  } else {
+    fprintf(stderr, "Unrecognizable DOMDataUnion format.\n");
+    return;
   }
 }
 
