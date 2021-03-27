@@ -23,6 +23,11 @@ WRAP_REMOVE_FUNC(port_serdes, SAI_OBJECT_TYPE_PORT_SERDES, port);
 WRAP_SET_ATTR_FUNC(port_serdes, SAI_OBJECT_TYPE_PORT_SERDES, port);
 WRAP_GET_ATTR_FUNC(port_serdes, SAI_OBJECT_TYPE_PORT_SERDES, port);
 
+WRAP_CREATE_FUNC(port_connector, SAI_OBJECT_TYPE_PORT_CONNECTOR, port);
+WRAP_REMOVE_FUNC(port_connector, SAI_OBJECT_TYPE_PORT_CONNECTOR, port);
+WRAP_SET_ATTR_FUNC(port_connector, SAI_OBJECT_TYPE_PORT_CONNECTOR, port);
+WRAP_GET_ATTR_FUNC(port_connector, SAI_OBJECT_TYPE_PORT_CONNECTOR, port);
+
 sai_status_t wrap_get_port_stats(
     sai_object_id_t port_id,
     uint32_t number_of_counters,
@@ -124,6 +129,12 @@ sai_port_api_t* wrappedPortApi() {
   portWrappers.remove_port_serdes = &wrap_remove_port_serdes;
   portWrappers.set_port_serdes_attribute = &wrap_set_port_serdes_attribute;
   portWrappers.get_port_serdes_attribute = &wrap_get_port_serdes_attribute;
+  portWrappers.create_port_connector = &wrap_create_port_connector;
+  portWrappers.remove_port_connector = &wrap_remove_port_connector;
+  portWrappers.set_port_connector_attribute =
+      &wrap_set_port_connector_attribute;
+  portWrappers.get_port_connector_attribute =
+      &wrap_get_port_connector_attribute;
   return &portWrappers;
 }
 
@@ -197,6 +208,22 @@ void setPortSerdesAttributes(
         break;
       default:
         // TODO(zecheng): Better check for newly added attributes (T69350100)
+        break;
+    }
+  }
+}
+
+void setPortConnectorAttributes(
+    const sai_attribute_t* attr_list,
+    uint32_t attr_count,
+    std::vector<std::string>& attrLines) {
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_PORT_CONNECTOR_ATTR_LINE_SIDE_PORT_ID:
+      case SAI_PORT_CONNECTOR_ATTR_SYSTEM_SIDE_PORT_ID:
+        attrLines.push_back(oidAttr(attr_list, i));
+        break;
+      default:
         break;
     }
   }

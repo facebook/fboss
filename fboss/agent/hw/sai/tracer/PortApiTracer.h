@@ -17,5 +17,6 @@ sai_port_api_t* wrappedPortApi();
 
 SET_ATTRIBUTE_FUNC_DECLARATION(Port);
 SET_ATTRIBUTE_FUNC_DECLARATION(PortSerdes);
+SET_ATTRIBUTE_FUNC_DECLARATION(PortConnector);
 
 } // namespace facebook::fboss

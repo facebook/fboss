@@ -1092,6 +1092,9 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_PORT_SERDES:
       setPortSerdesAttributes(attr_list, attr_count, attrLines);
       break;
+    case SAI_OBJECT_TYPE_PORT_CONNECTOR:
+      setPortConnectorAttributes(attr_list, attr_count, attrLines);
+      break;
     case SAI_OBJECT_TYPE_QOS_MAP:
       setQosMapAttributes(attr_list, attr_count, attrLines);
       break;
