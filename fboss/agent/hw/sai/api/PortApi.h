@@ -364,9 +364,9 @@ struct SaiPortConnectorTraits {
         SaiObjectIdDefault>;
   };
   using AdapterKey = PortConnectorSaiId;
-  using AdapterHostKey = Attributes::LineSidePortId;
-  using CreateAttributes =
+  using AdapterHostKey =
       std::tuple<Attributes::LineSidePortId, Attributes::SystemSidePortId>;
+  using CreateAttributes = AdapterHostKey;
 };
 
 SAI_ATTRIBUTE_NAME(PortConnector, LineSidePortId);
