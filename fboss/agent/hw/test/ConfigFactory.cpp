@@ -28,7 +28,8 @@ namespace {
 // field
 cfg::PortSpeed maxPortSpeed(const HwSwitch* hwSwitch, PortID port) {
   // CS00012110063
-  if (!hwSwitch->getPlatform()->getAsic()->isSupported(
+  if (hwSwitch->getPlatform()->isProductInfoExist() &&
+      !hwSwitch->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::SAI_PORT_SPEED_CHANGE)) {
     // If Hardware can't decide the max speed, we use Platform(PlatformMapping)
     // to decide the max speed.
