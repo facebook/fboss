@@ -202,7 +202,6 @@ void SaiRouteManager::addOrUpdateRoute(
       sai_object_id_t nextHopId{
           SaiApiTable::getInstance()->switchApi().getAttribute(
               switchId, SaiSwitchTraits::Attributes::CpuPort{})};
-      ;
       /* claim the next hop first */
       if (auto* ipNextHop =
               std::get_if<std::shared_ptr<ManagedIpNextHop>>(&managedNextHop)) {
@@ -360,8 +359,10 @@ void ManagedRouteNextHop<NextHopTraitsT>::afterCreate(
   }
   auto attributes = route->attributes();
   sai_object_id_t nextHopId = nexthop->adapterKey();
-  std::get<std::optional<SaiRouteTraits::Attributes::NextHopId>>(attributes) =
-      nextHopId;
+  auto& currentNextHop =
+      std::get<std::optional<SaiRouteTraits::Attributes::NextHopId>>(
+          attributes);
+  currentNextHop = nextHopId;
   route->setAttributes(attributes);
   updateMetadata();
 }
@@ -397,17 +398,15 @@ void ManagedRouteNextHop<NextHopTraitsT>::updateMetadata() const {
   auto expectedMetadata =
       std::get<std::optional<SaiRouteTraits::Attributes::Metadata>>(
           route->attributes());
+  if (!expectedMetadata) {
+    expectedMetadata = SaiRouteTraits::Attributes::Metadata::defaultValue();
+  }
 
   auto& api = SaiApiTable::getInstance()->routeApi();
-  std::optional<SaiRouteTraits::Attributes::Metadata> actualMetadata =
-      api.getAttribute(
-          route->adapterKey(), SaiRouteTraits::Attributes::Metadata{});
+  SaiRouteTraits::Attributes::Metadata actualMetadata = api.getAttribute(
+      route->adapterKey(), SaiRouteTraits::Attributes::Metadata{});
 
-  if (!expectedMetadata.has_value()) {
-    SaiRouteTraits::Attributes::Metadata resetMetadata =
-        SaiRouteTraits::Attributes::Metadata::defaultValue();
-    api.setAttribute(route->adapterKey(), resetMetadata);
-  } else if (expectedMetadata != actualMetadata) {
+  if (expectedMetadata.value() != actualMetadata) {
     api.setAttribute(route->adapterKey(), expectedMetadata.value());
   }
 }
