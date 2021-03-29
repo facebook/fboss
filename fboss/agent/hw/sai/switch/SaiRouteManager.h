@@ -50,6 +50,7 @@ class ManagedRouteNextHop
   void beforeRemove() override;
   sai_object_id_t adapterKey() const;
   using detail::SaiObjectEventSubscriber<NextHopTraitsT>::isReady;
+  typename NextHopTraitsT::AdapterHostKey adapterHostKey() const;
 
  private:
   void updateMetadata() const;

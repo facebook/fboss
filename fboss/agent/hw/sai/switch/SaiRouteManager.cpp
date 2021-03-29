@@ -413,6 +413,12 @@ void ManagedRouteNextHop<NextHopTraitsT>::updateMetadata() const {
   }
 }
 
+template <typename NextHopTraitsT>
+typename NextHopTraitsT::AdapterHostKey
+ManagedRouteNextHop<NextHopTraitsT>::adapterHostKey() const {
+  return this->managedNextHop_->adapterHostKey();
+}
+
 template class ManagedRouteNextHop<SaiIpNextHopTraits>;
 template class ManagedRouteNextHop<SaiMplsNextHopTraits>;
 
