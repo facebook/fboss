@@ -40,6 +40,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MAC_AGING:
     case HwAsic::Feature::SAI_PORT_SPEED_CHANGE: // CS00011784917
     case HwAsic::Feature::EGRESS_MIRRORING:
+    case HwAsic::Feature::EGRESS_SFLOW:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:

@@ -72,6 +72,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_SPEED_CHANGE:
     case HwAsic::Feature::SFLOW_SHIM_VERSION_FIELD:
     case HwAsic::Feature::EGRESS_MIRRORING:
+    case HwAsic::Feature::EGRESS_SFLOW:
       return false;
   }
   return false;

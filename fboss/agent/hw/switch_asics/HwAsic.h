@@ -68,6 +68,7 @@ class HwAsic {
     SFLOW_SHIM_VERSION_FIELD,
     REMOVE_PORTS_FOR_COLDBOOT,
     EGRESS_MIRRORING,
+    EGRESS_SFLOW,
   };
 
   enum class AsicType {
