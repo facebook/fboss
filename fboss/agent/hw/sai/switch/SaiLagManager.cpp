@@ -109,24 +109,27 @@ void SaiLagManager::changeLag(
       setMemberState(member.second.get(), newIter->second);
       saiLagHandle->members.emplace(std::move(member));
       newIter++;
-    } else if (oldIter->second != newIter->second) {
-      // forwarding state changed
-      auto member = getMember(saiLagHandle.get(), newIter->first);
-      setMemberState(member, newIter->second);
+    } else {
+      if (oldIter->second != newIter->second) {
+        // forwarding state changed
+        auto member = getMember(saiLagHandle.get(), newIter->first);
+        setMemberState(member, newIter->second);
+      }
       newIter++;
       oldIter++;
     }
-    while (oldIter != oldPortAndFwdState.end()) {
-      removeMember(oldAggregatePort->getID(), oldIter->first);
-      oldIter++;
-    }
-    while (newIter != newPortAndFwdState.end()) {
-      auto member = addMember(
-          saiLagHandle->lag, newAggregatePort->getID(), newIter->first);
-      setMemberState(member.second.get(), newIter->second);
-      saiLagHandle->members.emplace(std::move(member));
-      newIter++;
-    }
+  }
+
+  while (oldIter != oldPortAndFwdState.end()) {
+    removeMember(oldAggregatePort->getID(), oldIter->first);
+    oldIter++;
+  }
+  while (newIter != newPortAndFwdState.end()) {
+    auto member =
+        addMember(saiLagHandle->lag, newAggregatePort->getID(), newIter->first);
+    setMemberState(member.second.get(), newIter->second);
+    saiLagHandle->members.emplace(std::move(member));
+    newIter++;
   }
 }
 

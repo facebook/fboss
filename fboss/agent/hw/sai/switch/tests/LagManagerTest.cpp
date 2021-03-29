@@ -22,8 +22,34 @@ class LagManagerTest : public ManagerTestBase {
     setupStage = SetupStage::PORT | SetupStage::VLAN;
     ManagerTestBase::SetUp();
     intf0 = testInterfaces[0];
+    intf1 = testInterfaces[1];
   }
+
+  /*
+   * This assumes one lane ports where the HwLaneList attribute
+   * has the port id in "expectedPorts"
+   */
+  void checkLagMembers(
+      LagSaiId saiLagId,
+      const std::unordered_set<uint32_t>& expectedPorts) const {
+    XLOG(INFO) << "check LAG members " << saiLagId;
+    std::unordered_set<uint32_t> observedPorts;
+    auto& lagApi = saiApiTable->lagApi();
+    auto& portApi = saiApiTable->portApi();
+    auto lagMembers =
+        lagApi.getAttribute(saiLagId, SaiLagTraits::Attributes::PortList{});
+    for (const auto& lm : lagMembers) {
+      PortSaiId portId{lagApi.getAttribute(
+          LagMemberSaiId{lm}, SaiLagMemberTraits::Attributes::PortId{})};
+      auto lanes =
+          portApi.getAttribute(portId, SaiPortTraits::Attributes::HwLaneList{});
+      observedPorts.insert(lanes[0]);
+    }
+    EXPECT_EQ(observedPorts, expectedPorts);
+  }
+
   TestInterface intf0;
+  TestInterface intf1;
 };
 
 TEST_F(LagManagerTest, addLag) {
@@ -33,4 +59,63 @@ TEST_F(LagManagerTest, addLag) {
       saiId, SaiLagTraits::Attributes::Label{});
   std::string value(label.data());
   EXPECT_EQ("lag0", value);
+}
+
+TEST_F(LagManagerTest, removeLag) {
+  std::shared_ptr<AggregatePort> swAggregatePort = makeAggregatePort(intf0);
+  LagSaiId saiId = saiManagerTable->lagManager().addLag(swAggregatePort);
+  auto label = saiApiTable->lagApi().getAttribute(
+      saiId, SaiLagTraits::Attributes::Label{});
+  std::string value(label.data());
+  EXPECT_EQ("lag0", value);
+
+  EXPECT_NO_THROW(saiManagerTable->lagManager().removeLag(swAggregatePort));
+}
+
+TEST_F(LagManagerTest, removeLagWithoutAdd) {
+  std::shared_ptr<AggregatePort> swAggregatePort = makeAggregatePort(intf0);
+  EXPECT_THROW(
+      saiManagerTable->lagManager().removeLag(swAggregatePort), FbossError);
+}
+
+TEST_F(LagManagerTest, addTwoLags) {
+  std::shared_ptr<AggregatePort> swAggregatePort0 = makeAggregatePort(intf0);
+  std::shared_ptr<AggregatePort> swAggregatePort1 = makeAggregatePort(intf1);
+  LagSaiId saiId0 = saiManagerTable->lagManager().addLag(swAggregatePort0);
+  LagSaiId saiId1 = saiManagerTable->lagManager().addLag(swAggregatePort1);
+
+  auto label0 = saiApiTable->lagApi().getAttribute(
+      saiId0, SaiLagTraits::Attributes::Label{});
+  std::string value0(label0.data());
+  EXPECT_EQ("lag0", value0);
+
+  auto label1 = saiApiTable->lagApi().getAttribute(
+      saiId1, SaiLagTraits::Attributes::Label{});
+  std::string value1(label1.data());
+  EXPECT_EQ("lag1", value1);
+}
+
+TEST_F(LagManagerTest, addMembers) {
+  TestInterface intf{0, 2};
+  std::shared_ptr<AggregatePort> swAggregatePort = makeAggregatePort(intf);
+  auto saiId = saiManagerTable->lagManager().addLag(swAggregatePort);
+  checkLagMembers(saiId, {0, 1});
+}
+
+TEST_F(LagManagerTest, updateMembers) {
+  TestInterface intf{0, 3};
+  intf.remoteHosts[2].port.id = 3;
+  std::shared_ptr<AggregatePort> swAggregatePort = makeAggregatePort(intf);
+  intf.remoteHosts[0].port.id = 1;
+  intf.remoteHosts[1].port.id = 2;
+  intf.remoteHosts[2].port.id = 3;
+  std::shared_ptr<AggregatePort> newSwAggregatePort = makeAggregatePort(intf);
+
+  // Create LAG and verify members
+  auto saiId = saiManagerTable->lagManager().addLag(swAggregatePort);
+  checkLagMembers(saiId, {0, 1, 3});
+
+  // Update LAG and verify members
+  saiManagerTable->lagManager().changeLag(swAggregatePort, newSwAggregatePort);
+  checkLagMembers(saiId, {1, 2, 3});
 }

@@ -224,7 +224,6 @@ std::shared_ptr<AggregatePort> ManagerTestBase::makeAggregatePort(
   SystemID systemID("00:00:00:00:00:00");
 
   std::vector<AggregatePort::Subport> subports;
-  subports.resize(testInterface.remoteHosts.size());
 
   for (const auto& remoteHost : testInterface.remoteHosts) {
     PortID portId(remoteHost.port.id);
