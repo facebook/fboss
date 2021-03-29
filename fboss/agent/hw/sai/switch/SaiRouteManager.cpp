@@ -324,9 +324,21 @@ template <
     typename ManagedRouteNextHopT>
 std::shared_ptr<ManagedRouteNextHopT>
 SaiRouteManager::refOrCreateManagedRouteNextHop(
-    SaiRouteHandle* /*routeHandle*/,
+    SaiRouteHandle* routeHandle,
     SaiRouteTraits::RouteEntry entry,
     std::shared_ptr<ManagedNextHopT> nexthop) {
+  auto routeNexthopHandle = routeHandle->nexthopHandle_;
+  using ManagedNextHopSharedPtr = std::shared_ptr<ManagedRouteNextHopT>;
+  if (std::holds_alternative<ManagedNextHopSharedPtr>(routeNexthopHandle)) {
+    auto existingManagedRouteNextHop =
+        std::get<ManagedNextHopSharedPtr>(routeNexthopHandle);
+    CHECK(existingManagedRouteNextHop) << "null managed route next hop";
+    if (existingManagedRouteNextHop->adapterHostKey() ==
+        nexthop->adapterHostKey()) {
+      return existingManagedRouteNextHop;
+    }
+  }
+
   SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
   auto managedRouteNextHop =
       std::make_shared<ManagedRouteNextHopT>(switchId, this, entry, nexthop);

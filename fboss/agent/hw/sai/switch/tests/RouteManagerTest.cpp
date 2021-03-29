@@ -11,9 +11,12 @@
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/types.h"
+
+#include <optional>
 
 using namespace facebook::fboss;
 class RouteManagerTest : public ManagerTestBase {
@@ -66,6 +69,29 @@ TEST_F(RouteManagerTest, addRouteOneNextHop) {
   saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r, RouterID(0));
 }
 
+TEST_F(RouteManagerTest, updateRouteOneNextHopNoUpdate) {
+  tr1.nextHopInterfaces = {testInterfaces.at(1)};
+  auto r = makeRoute(tr1);
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r, RouterID(0));
+  auto switchId = saiManagerTable->switchManager().getSwitchSaiId();
+  auto vrfId = saiManagerTable->virtualRouterManager()
+                   .getVirtualRouterHandle(RouterID(0))
+                   ->virtualRouter->adapterKey();
+  folly::CIDRNetwork network{
+      folly::IPAddress(r->prefix().network), r->prefix().mask};
+  SaiRouteTraits::RouteEntry entry(switchId, vrfId, network);
+  auto handle = saiManagerTable->routeManager().getRouteHandle(entry);
+  auto nexthopHandle = handle->nexthopHandle_;
+  auto r1 = makeRoute(tr1);
+  r1->updateClassID(std::make_optional<cfg::AclLookupClass>(
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0));
+  saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
+      r, r1, RouterID(0));
+  auto handle1 = saiManagerTable->routeManager().getRouteHandle(entry);
+  auto nexthopHandle1 = handle1->nexthopHandle_;
+  EXPECT_EQ(nexthopHandle, nexthopHandle1);
+}
+
 TEST_F(RouteManagerTest, addToCpuRoute) {
   TestInterface intf = testInterfaces.at(1);
   RouteFields<folly::IPAddressV4>::Prefix destination;
@@ -87,6 +113,33 @@ TEST_F(RouteManagerTest, addToCpuRoute) {
       GET_ATTR(Route, PacketAction, saiRoute->attributes()),
       SAI_PACKET_ACTION_FORWARD);
   EXPECT_EQ(GET_OPT_ATTR(Route, NextHopId, saiRoute->attributes()), 0);
+}
+
+TEST_F(RouteManagerTest, updateRouteOneNextHopUpdate) {
+  tr1.nextHopInterfaces = {testInterfaces.at(1)};
+  auto r = makeRoute(tr1);
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r, RouterID(0));
+  auto switchId = saiManagerTable->switchManager().getSwitchSaiId();
+  auto vrfId = saiManagerTable->virtualRouterManager()
+                   .getVirtualRouterHandle(RouterID(0))
+                   ->virtualRouter->adapterKey();
+  folly::CIDRNetwork network{
+      folly::IPAddress(r->prefix().network), r->prefix().mask};
+  SaiRouteTraits::RouteEntry entry(switchId, vrfId, network);
+  auto handle = saiManagerTable->routeManager().getRouteHandle(entry);
+  auto nexthopHandle = handle->nexthopHandle_;
+
+  RouteNextHopEntry routeNextHopEntry(
+      RouteForwardAction::TO_CPU, AdminDistance::STATIC_ROUTE);
+
+  auto r1 = makeRoute(tr1);
+  r1->setResolved(routeNextHopEntry);
+  saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
+      r, r1, RouterID(0));
+
+  auto handle1 = saiManagerTable->routeManager().getRouteHandle(entry);
+  auto nexthopHandle1 = handle1->nexthopHandle_;
+  EXPECT_NE(nexthopHandle, nexthopHandle1);
 }
 
 TEST_F(RouteManagerTest, addDropRoute) {
