@@ -206,11 +206,8 @@ void SaiRouteManager::addOrUpdateRoute(
       if (auto* ipNextHop =
               std::get_if<std::shared_ptr<ManagedIpNextHop>>(&managedNextHop)) {
         auto managedRouteNextHop =
-            std::make_shared<ManagedRouteNextHop<SaiIpNextHopTraits>>(
-                switchId, this, entry, *ipNextHop);
-        SaiObjectEventPublisher::getInstance()
-            ->get<SaiIpNextHopTraits>()
-            .subscribe(managedRouteNextHop);
+            refOrCreateManagedRouteNextHop<SaiIpNextHopTraits>(
+                routeHandle, entry, *ipNextHop);
         if (managedRouteNextHop->isReady()) {
           nextHopId =
               managedRouteNextHop->getPublisherObject().lock()->adapterKey();
@@ -220,11 +217,9 @@ void SaiRouteManager::addOrUpdateRoute(
           auto* mplsNextHop = std::get_if<std::shared_ptr<ManagedMplsNextHop>>(
               &managedNextHop)) {
         auto managedRouteNextHop =
-            std::make_shared<ManagedRouteNextHop<SaiMplsNextHopTraits>>(
-                switchId, this, entry, *mplsNextHop);
-        SaiObjectEventPublisher::getInstance()
-            ->get<SaiMplsNextHopTraits>()
-            .subscribe(managedRouteNextHop);
+            refOrCreateManagedRouteNextHop<SaiMplsNextHopTraits>(
+                routeHandle, entry, *mplsNextHop);
+
         if (managedRouteNextHop->isReady()) {
           nextHopId =
               managedRouteNextHop->getPublisherObject().lock()->adapterKey();
@@ -332,6 +327,23 @@ void SaiRouteManager::clear() {
 std::shared_ptr<SaiObject<SaiRouteTraits>> SaiRouteManager::getRouteObject(
     SaiRouteTraits::AdapterHostKey routeKey) {
   return saiStore_->get<SaiRouteTraits>().get(routeKey);
+}
+
+template <
+    typename NextHopTraitsT,
+    typename ManagedNextHopT,
+    typename ManagedRouteNextHopT>
+std::shared_ptr<ManagedRouteNextHopT>
+SaiRouteManager::refOrCreateManagedRouteNextHop(
+    SaiRouteHandle* /*routeHandle*/,
+    SaiRouteTraits::RouteEntry entry,
+    std::shared_ptr<ManagedNextHopT> nexthop) {
+  SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
+  auto managedRouteNextHop =
+      std::make_shared<ManagedRouteNextHopT>(switchId, this, entry, nexthop);
+  SaiObjectEventPublisher::getInstance()->get<NextHopTraitsT>().subscribe(
+      managedRouteNextHop);
+  return managedRouteNextHop;
 }
 
 template <typename NextHopTraitsT>

@@ -128,6 +128,15 @@ class SaiRouteManager {
   template <typename AddrT>
   bool validRoute(const std::shared_ptr<Route<AddrT>>& swRoute);
 
+  template <
+      typename NextHopTraitsT,
+      typename ManagedNextHopT = ManagedNextHop<NextHopTraitsT>,
+      typename ManagedRouteNextHopT = ManagedRouteNextHop<NextHopTraitsT>>
+  std::shared_ptr<ManagedRouteNextHopT> refOrCreateManagedRouteNextHop(
+      SaiRouteHandle* routeHandle,
+      SaiRouteTraits::RouteEntry entry,
+      std::shared_ptr<ManagedNextHopT> nexthop);
+
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
