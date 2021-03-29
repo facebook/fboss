@@ -26,6 +26,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::TELEMETRY_AND_MONITORING:
     case HwAsic::Feature::MAC_AGING:
     case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT:
+    case HwAsic::Feature::EGRESS_MIRRORING:
       return true;
 
     case HwAsic::Feature::TRUNCATE_MIRROR_PACKET:

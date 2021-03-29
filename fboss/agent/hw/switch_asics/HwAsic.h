@@ -67,6 +67,7 @@ class HwAsic {
     SAI_PORT_SPEED_CHANGE,
     SFLOW_SHIM_VERSION_FIELD,
     REMOVE_PORTS_FOR_COLDBOOT,
+    EGRESS_MIRRORING,
   };
 
   enum class AsicType {
