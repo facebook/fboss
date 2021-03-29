@@ -8,6 +8,7 @@
  *
  */
 
+#include <fboss/agent/rib/FibUpdateHelpers.h>
 #include <fboss/agent/rib/RoutingInformationBase.h>
 #include <folly/Benchmark.h>
 #include <folly/logging/xlog.h>
@@ -21,22 +22,6 @@
 
 DECLARE_bool(enable_standalone_rib);
 
-namespace {
-std::shared_ptr<facebook::fboss::SwitchState> noopFibUpdate(
-    facebook::fboss::RouterID vrf,
-    const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
-    const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
-    void* cookie) {
-  facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
-      vrf, v4NetworkToRoute, v6NetworkToRoute);
-
-  auto switchState =
-      static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);
-  *switchState = fibUpdater(*switchState);
-  (*switchState)->publish();
-  return *switchState;
-}
-} // namespace
 namespace facebook::fboss {
 BENCHMARK(RibResolutionBenchmark) {
   folly::BenchmarkSuspender suspender;
@@ -62,7 +47,7 @@ BENCHMARK(RibResolutionBenchmark) {
             {},
             false,
             "resolution only",
-            noopFibUpdate,
+            ribToSwitchStateUpdate,
             static_cast<void*>(&switchState));
       });
   suspender.rehire();

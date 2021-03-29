@@ -11,7 +11,9 @@
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
+#include "fboss/agent/rib/FibUpdateHelpers.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
+
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -36,22 +38,6 @@ auto kPrefix1 = IPAddress::createNetwork("1::1/64");
 auto kPrefix2 = IPAddress::createNetwork("2::2/64");
 
 } // namespace
-std::shared_ptr<SwitchState> recordUpdates(
-    RouterID vrf,
-    const IPv4NetworkToRouteMap& v4NetworkToRoute,
-    const IPv6NetworkToRouteMap& v6NetworkToRoute,
-    void* cookie) {
-  facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
-      vrf, v4NetworkToRoute, v6NetworkToRoute);
-
-  auto nextStatePtr =
-      static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);
-
-  // Update routes in switch state captured in cookie
-  *nextStatePtr = fibUpdater(*nextStatePtr);
-  (*nextStatePtr)->publish();
-  return *nextStatePtr;
-}
 
 class FailSomeUpdates {
  public:
@@ -67,14 +53,15 @@ class FailSomeUpdates {
           static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);
       (*curSwitchStatePtr)->publish();
       auto desiredState = *curSwitchStatePtr;
-      recordUpdates(
+      ribToSwitchStateUpdate(
           vrf,
           v4NetworkToRoute,
           v6NetworkToRoute,
           static_cast<void*>(&desiredState));
       throw FbossHwUpdateError(desiredState, *curSwitchStatePtr);
     }
-    return recordUpdates(vrf, v4NetworkToRoute, v6NetworkToRoute, cookie);
+    return ribToSwitchStateUpdate(
+        vrf, v4NetworkToRoute, v6NetworkToRoute, cookie);
   }
 
  private:
@@ -97,7 +84,7 @@ class RibRollbackTest : public ::testing::Test {
         {},
         false,
         "add only",
-        recordUpdates,
+        ribToSwitchStateUpdate,
         &switchState_);
     EXPECT_NE(switchState_, origSwitchState);
     EXPECT_EQ(1, switchState_->getGeneration());
@@ -117,7 +104,7 @@ class RibRollbackTest : public ::testing::Test {
         {},
         false,
         "empty update",
-        recordUpdates,
+        ribToSwitchStateUpdate,
         &switchState_);
 
     EXPECT_EQ(curSwitchState, switchState_);
@@ -221,7 +208,7 @@ TEST_F(RibRollbackTest, rollbackDelNonExistent) {
       {toIpPrefix(kPrefix2)}, // kPrefix2 does not exist in RIB
       false,
       "nonexistent prefix del",
-      recordUpdates,
+      ribToSwitchStateUpdate,
       &switchState_);
   assertRouteCount(0, 1);
   EXPECT_EQ(routeTableBeforeUpdate, rib_.getRouteTableDetails(kRid));

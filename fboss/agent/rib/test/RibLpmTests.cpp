@@ -8,8 +8,10 @@
  *
  */
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/rib/FibUpdateHelpers.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
+
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteTypes.h"
 
@@ -45,14 +47,6 @@ void addRoute(
   rib.insert(route->prefix().network, route->prefix().mask, route);
 }
 
-std::shared_ptr<SwitchState> noopUpdate(
-    RouterID /*vrf*/,
-    const IPv4NetworkToRouteMap& /*v4NetworkToRoute*/,
-    const IPv6NetworkToRouteMap& /*v6NetworkToRoute*/,
-    void* /*cookie*/) {
-  return nullptr;
-}
-
 void addRoute(RoutingInformationBase& rib, const UnicastRoute& route) {
   rib.update(
       kRid0,
@@ -62,7 +56,7 @@ void addRoute(RoutingInformationBase& rib, const UnicastRoute& route) {
       {},
       false,
       "Rib only update",
-      noopUpdate,
+      noopFibUpdate,
       nullptr);
 }
 
