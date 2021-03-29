@@ -197,21 +197,14 @@ void SaiRouteManager::addOrUpdateRoute(
           folly::poly_cast<ResolvedNextHop>(*(fwd.getNextHopSet().begin()));
       auto managedNextHop =
           managerTable_->nextHopManager().addManagedSaiNextHop(swNextHop);
-
-      SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
-      sai_object_id_t nextHopId{
-          SaiApiTable::getInstance()->switchApi().getAttribute(
-              switchId, SaiSwitchTraits::Attributes::CpuPort{})};
+      sai_object_id_t nextHopId{};
       /* claim the next hop first */
       if (auto* ipNextHop =
               std::get_if<std::shared_ptr<ManagedIpNextHop>>(&managedNextHop)) {
         auto managedRouteNextHop =
             refOrCreateManagedRouteNextHop<SaiIpNextHopTraits>(
                 routeHandle, entry, *ipNextHop);
-        if (managedRouteNextHop->isReady()) {
-          nextHopId =
-              managedRouteNextHop->getPublisherObject().lock()->adapterKey();
-        }
+        nextHopId = managedRouteNextHop->adapterKey();
         nextHopHandle = managedRouteNextHop;
       } else if (
           auto* mplsNextHop = std::get_if<std::shared_ptr<ManagedMplsNextHop>>(
@@ -219,11 +212,7 @@ void SaiRouteManager::addOrUpdateRoute(
         auto managedRouteNextHop =
             refOrCreateManagedRouteNextHop<SaiMplsNextHopTraits>(
                 routeHandle, entry, *mplsNextHop);
-
-        if (managedRouteNextHop->isReady()) {
-          nextHopId =
-              managedRouteNextHop->getPublisherObject().lock()->adapterKey();
-        }
+        nextHopId = managedRouteNextHop->adapterKey();
         nextHopHandle = managedRouteNextHop;
       }
       attributes =
@@ -396,10 +385,11 @@ void ManagedRouteNextHop<NextHopTraitsT>::beforeRemove() {
 
 template <typename NextHopTraitsT>
 sai_object_id_t ManagedRouteNextHop<NextHopTraitsT>::adapterKey() const {
-  auto route = routeManager_->getRouteObject(routeKey_);
-  CHECK(route);
-  auto attributes = route->attributes();
-  return GET_OPT_ATTR(Route, NextHopId, attributes);
+  if (!this->isReady()) {
+    return SaiApiTable::getInstance()->switchApi().getAttribute(
+        switchId_, SaiSwitchTraits::Attributes::CpuPort{});
+  }
+  return this->getPublisherObject().lock()->adapterKey();
 }
 
 template <typename NextHopTraitsT>

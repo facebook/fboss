@@ -35,7 +35,7 @@ struct SaiObjectEventSubscriber {
     return publisherAttrs_;
   }
 
-  bool isReady() {
+  bool isReady() const {
     return publisherObject_.lock() != nullptr;
   }
 
