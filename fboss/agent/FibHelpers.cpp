@@ -21,6 +21,34 @@
 namespace facebook::fboss {
 
 namespace {
+
+template <typename AddrT>
+std::shared_ptr<Route<AddrT>> findInFib(
+    const folly::CIDRNetwork& prefix,
+    const std::shared_ptr<RouteTableRib<AddrT>>& fibRoutes,
+    bool exactMatch) {
+  if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
+    return exactMatch
+        ? fibRoutes->exactMatch({prefix.first.asV6(), prefix.second})
+        : fibRoutes->longestMatch(prefix.first.asV6());
+  } else {
+    return exactMatch
+        ? fibRoutes->exactMatch({prefix.first.asV4(), prefix.second})
+        : fibRoutes->longestMatch(prefix.first.asV4());
+  }
+}
+
+template <typename AddrT>
+std::shared_ptr<Route<AddrT>> findInFib(
+    const folly::CIDRNetwork& prefix,
+    const std::shared_ptr<ForwardingInformationBase<AddrT>>& fibRoutes) {
+  if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
+    return fibRoutes->exactMatch({prefix.first.asV6(), prefix.second});
+  } else {
+    return fibRoutes->exactMatch({prefix.first.asV4(), prefix.second});
+  }
+}
+
 template <typename AddrT>
 std::shared_ptr<Route<AddrT>> findRouteInSwitchState(
     bool isStandaloneRib,
@@ -32,30 +60,19 @@ std::shared_ptr<Route<AddrT>> findRouteInSwitchState(
     CHECK_EQ(prefix.second, prefix.first.bitCount())
         << " Longest match must pass in a IPAddress";
   }
-  auto findInFib = [&prefix, exactMatch](const auto& fibRoutes) {
-    if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
-      return exactMatch
-          ? fibRoutes->exactMatch({prefix.first.asV6(), prefix.second})
-          : fibRoutes->longestMatch(prefix.first.asV6());
-    } else {
-      return exactMatch
-          ? fibRoutes->exactMatch({prefix.first.asV4(), prefix.second})
-          : fibRoutes->longestMatch(prefix.first.asV4());
-    }
-  };
   if (isStandaloneRib) {
+    CHECK(exactMatch)
+        << "Switch state api should only be called for exact match lookups";
     auto& fib = state->getFibs()->getFibContainer(rid)->getFib<AddrT>();
-    return findInFib(fib);
-
+    return findInFib(prefix, fib);
   } else {
     auto& rib =
         state->getRouteTables()->getRouteTable(rid)->template getRib<AddrT>();
-    return findInFib(rib);
+    return findInFib(prefix, rib, exactMatch);
   }
   CHECK(false) << " Should never get here, route lookup failed";
   return nullptr;
 }
-
 } // namespace
 
 template <typename AddrT>

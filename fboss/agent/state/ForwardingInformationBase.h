@@ -45,7 +45,6 @@ class ForwardingInformationBase
     return exactMatch(prefix);
   }
 
-  std::shared_ptr<Route<AddressT>> longestMatch(const AddressT& address) const;
   ForwardingInformationBase* modify(
       RouterID rid,
       std::shared_ptr<SwitchState>* state);
