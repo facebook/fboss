@@ -40,7 +40,8 @@ struct FakeNextHop {
   bool disableTtlDecrement{false};
 };
 
-using FakeNextHopManager = FakeManager<sai_object_id_t, FakeNextHop>;
+// first next hop begins with 1
+using FakeNextHopManager = FakeManager<sai_object_id_t, FakeNextHop, 1>;
 
 void populate_next_hop_api(sai_next_hop_api_t** next_hop_api);
 

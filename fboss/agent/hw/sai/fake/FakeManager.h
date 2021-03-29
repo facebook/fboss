@@ -22,7 +22,7 @@ extern "C" {
 
 namespace facebook::fboss {
 
-template <typename K, typename T>
+template <typename K, typename T, size_t count = 0>
 class FakeManager {
  public:
   template <typename E = K, typename... Args>
@@ -64,7 +64,7 @@ class FakeManager {
   }
 
   void clear() {
-    count_ = 0;
+    count_ = count;
     map_.clear();
   }
 
@@ -77,9 +77,8 @@ class FakeManager {
   std::unordered_map<K, T> map_;
 };
 
-template <typename K, typename T>
-size_t FakeManager<K, T>::count_ = 0;
-
+template <typename K, typename T, size_t count>
+size_t FakeManager<K, T, count>::count_ = count;
 /*
  * For managing fakes of sai apis that have a membership concept, we will
  * nest fake managers. In this class template, GroupT denotes an owning "group"

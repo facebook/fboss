@@ -363,6 +363,8 @@ ManagedRouteNextHop<NextHopTraitsT>::ManagedRouteNextHop(
 template <typename NextHopTraitsT>
 void ManagedRouteNextHop<NextHopTraitsT>::afterCreate(
     ManagedRouteNextHop<NextHopTraitsT>::PublisherObject nexthop) {
+  CHECK(adapterKey() != nexthop->adapterKey())
+      << "attempting to reset to the same next hop";
   this->setPublisherObject(nexthop);
   // set route to next hop
   auto route = routeManager_->getRouteObject(routeKey_);
