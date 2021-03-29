@@ -7,7 +7,9 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteTypes.h"
 
@@ -34,21 +36,7 @@ folly::IPAddressV6 ip6_80("5000::");
 folly::IPAddressV6 ip6_128("8000::");
 folly::IPAddressV6 ip6_160("A000::");
 
-template <typename AddressT>
-std::shared_ptr<facebook::fboss::Route<AddressT>> createRouteFromPrefix(
-    facebook::fboss::RoutePrefix<AddressT> prefix) {
-  facebook::fboss::RouteFields fields(prefix);
-
-  return std::make_shared<facebook::fboss::Route<AddressT>>(fields);
-}
-
-template <typename AddressT>
-std::shared_ptr<facebook::fboss::Route<AddressT>> createRouteFromPrefix(
-    AddressT address,
-    uint8_t mask) {
-  facebook::fboss::RoutePrefix<AddressT> routePrefix{address, mask};
-  return createRouteFromPrefix(routePrefix);
-}
+const auto kRid0 = RouterID(0);
 
 template <typename AddressT>
 void addRoute(
@@ -57,9 +45,31 @@ void addRoute(
   rib.insert(route->prefix().network, route->prefix().mask, route);
 }
 
-class V4RouteMapTest : public ::testing::Test {
+std::shared_ptr<SwitchState> noopUpdate(
+    RouterID /*vrf*/,
+    const IPv4NetworkToRouteMap& /*v4NetworkToRoute*/,
+    const IPv6NetworkToRouteMap& /*v6NetworkToRoute*/,
+    void* /*cookie*/) {
+  return nullptr;
+}
+
+void addRoute(RoutingInformationBase& rib, const UnicastRoute& route) {
+  rib.update(
+      kRid0,
+      ClientID::BGPD,
+      AdminDistance::EBGP,
+      {route},
+      {},
+      false,
+      "Rib only update",
+      noopUpdate,
+      nullptr);
+}
+
+class V4LpmTest : public ::testing::Test {
  protected:
   void SetUp() override {
+    rib.ensureVrf(kRid0);
     // The following prefixes are inserted into the FIB:
     // 0
     // 0000
@@ -69,28 +79,28 @@ class V4RouteMapTest : public ::testing::Test {
     // 0101
     // 10
     // 101
-    addRoute(rib, createRouteFromPrefix(ip4_0, 1));
-    addRoute(rib, createRouteFromPrefix(ip4_128, 2));
-    addRoute(rib, createRouteFromPrefix(ip4_64, 3));
-    addRoute(rib, createRouteFromPrefix(ip4_160, 3));
-    addRoute(rib, createRouteFromPrefix(ip4_80, 4));
-    addRoute(rib, createRouteFromPrefix(ip4_0, 4));
-    addRoute(rib, createRouteFromPrefix(ip4_48, 5));
-    addRoute(rib, createRouteFromPrefix(ip4_72, 6));
+    addRoute(rib, makeDropUnicastRoute({ip4_0, 1}));
+    addRoute(rib, makeDropUnicastRoute({ip4_128, 2}));
+    addRoute(rib, makeDropUnicastRoute({ip4_64, 3}));
+    addRoute(rib, makeDropUnicastRoute({ip4_160, 3}));
+    addRoute(rib, makeDropUnicastRoute({ip4_80, 4}));
+    addRoute(rib, makeDropUnicastRoute({ip4_0, 4}));
+    addRoute(rib, makeDropUnicastRoute({ip4_48, 5}));
+    addRoute(rib, makeDropUnicastRoute({ip4_72, 6}));
   }
 
   std::shared_ptr<Route<folly::IPAddressV4>> longestMatch(
       folly::IPAddressV4 addr) {
-    auto itr = rib.longestMatch(addr, addr.bitCount());
-    return itr != rib.end() ? itr->value() : nullptr;
+    return rib.longestMatch(addr, kRid0);
   }
 
-  IPv4NetworkToRouteMap rib;
+  RoutingInformationBase rib;
 };
 
-class V6RouteMapTest : public ::testing::Test {
+class V6LpmTest : public ::testing::Test {
  protected:
   void SetUp() override {
+    rib.ensureVrf(kRid0);
     // The following prefixes are inserted into the FIB:
     // 0
     // 0000
@@ -100,22 +110,21 @@ class V6RouteMapTest : public ::testing::Test {
     // 0101
     // 10
     // 101
-    addRoute(rib, createRouteFromPrefix(ip6_0, 1));
-    addRoute(rib, createRouteFromPrefix(ip6_128, 2));
-    addRoute(rib, createRouteFromPrefix(ip6_64, 3));
-    addRoute(rib, createRouteFromPrefix(ip6_160, 3));
-    addRoute(rib, createRouteFromPrefix(ip6_80, 4));
-    addRoute(rib, createRouteFromPrefix(ip6_0, 4));
-    addRoute(rib, createRouteFromPrefix(ip6_48, 5));
-    addRoute(rib, createRouteFromPrefix(ip6_72, 6));
+    addRoute(rib, makeDropUnicastRoute({ip6_0, 1}));
+    addRoute(rib, makeDropUnicastRoute({ip6_128, 2}));
+    addRoute(rib, makeDropUnicastRoute({ip6_64, 3}));
+    addRoute(rib, makeDropUnicastRoute({ip6_160, 3}));
+    addRoute(rib, makeDropUnicastRoute({ip6_80, 4}));
+    addRoute(rib, makeDropUnicastRoute({ip6_0, 4}));
+    addRoute(rib, makeDropUnicastRoute({ip6_48, 5}));
+    addRoute(rib, makeDropUnicastRoute({ip6_72, 6}));
   }
   std::shared_ptr<Route<folly::IPAddressV6>> longestMatch(
       folly::IPAddressV6 addr) {
-    auto itr = rib.longestMatch(addr, addr.bitCount());
-    return itr != rib.end() ? itr->value() : nullptr;
+    return rib.longestMatch(addr, kRid0);
   }
 
-  IPv6NetworkToRouteMap rib;
+  RoutingInformationBase rib;
 };
 
 template <typename AddressT>
@@ -130,7 +139,7 @@ void CHECK_LPM(
   EXPECT_EQ(route->prefix().mask, mask);
 }
 
-TEST_F(V4RouteMapTest, SparseLPM) {
+TEST_F(V4LpmTest, SparseLPM) {
   // Candidate prefixes: 0/1, 0/4
   CHECK_LPM(longestMatch(folly::IPAddressV4("0.0.0.0")), ip4_0, 4);
 
@@ -141,7 +150,7 @@ TEST_F(V4RouteMapTest, SparseLPM) {
   CHECK_LPM(longestMatch(folly::IPAddressV4("161.16.8.1")), ip4_160, 3);
 }
 
-TEST_F(V6RouteMapTest, SparseLPM) {
+TEST_F(V6LpmTest, SparseLPM) {
   // Candidate prefixes: ::/1, ::/4
   CHECK_LPM(longestMatch(folly::IPAddressV6("::")), ip6_0, 4);
 
@@ -152,50 +161,50 @@ TEST_F(V6RouteMapTest, SparseLPM) {
   CHECK_LPM(longestMatch(folly::IPAddressV6("A110:801::")), ip6_160, 3);
 }
 
-TEST_F(V4RouteMapTest, LPMDoesNotExist) {
+TEST_F(V4LpmTest, LPMDoesNotExist) {
   folly::IPAddressV4 address("192.0.0.0");
 
   EXPECT_EQ(nullptr, longestMatch(address));
 }
 
-TEST_F(V6RouteMapTest, LPMDoesNotExist) {
+TEST_F(V6LpmTest, LPMDoesNotExist) {
   folly::IPAddressV6 address("C000::");
 
   EXPECT_EQ(nullptr, longestMatch(address));
 }
 
-TEST_F(V4RouteMapTest, IncreasingLPMSequence) {
+TEST_F(V4LpmTest, IncreasingLPMSequence) {
   folly::IPAddressV4 address("255.255.255.255");
   for (uint8_t mask = 0; mask <= address.bitCount(); ++mask) {
     auto addressWithCurrentMask = address.mask(mask);
-    addRoute(rib, createRouteFromPrefix(addressWithCurrentMask, mask));
+    addRoute(rib, makeDropUnicastRoute({addressWithCurrentMask, mask}));
     CHECK_LPM(longestMatch(address), addressWithCurrentMask, mask);
   }
 }
 
-TEST_F(V6RouteMapTest, IncreasingLPMSequence) {
+TEST_F(V6LpmTest, IncreasingLPMSequence) {
   folly::IPAddressV6 address("FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF");
   for (uint16_t mask = 0; mask <= address.bitCount(); ++mask) {
     auto addressWithCurrentMask = address.mask(mask);
-    addRoute(rib, createRouteFromPrefix(addressWithCurrentMask, mask));
+    addRoute(rib, makeDropUnicastRoute({addressWithCurrentMask, mask}));
     CHECK_LPM(longestMatch(address), addressWithCurrentMask, mask);
   }
 }
 
-TEST_F(V4RouteMapTest, DecreasingLPMSequence) {
+TEST_F(V4LpmTest, DecreasingLPMSequence) {
   folly::IPAddressV4 address("255.255.255.255");
   for (int8_t mask = address.bitCount(); mask >= 0; --mask) {
     auto addressWithCurrentMask = address.mask(mask);
-    addRoute(rib, createRouteFromPrefix(addressWithCurrentMask, mask));
+    addRoute(rib, makeDropUnicastRoute({addressWithCurrentMask, mask}));
     CHECK_LPM(longestMatch(address), address, address.bitCount());
   }
 }
 
-TEST_F(V6RouteMapTest, DecreasingLPMSequence) {
+TEST_F(V6LpmTest, DecreasingLPMSequence) {
   folly::IPAddressV6 address("FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF");
   for (int16_t mask = address.bitCount(); mask >= 0; --mask) {
     auto addressWithCurrentMask = address.mask(mask);
-    addRoute(rib, createRouteFromPrefix(addressWithCurrentMask, mask));
+    addRoute(rib, makeDropUnicastRoute({addressWithCurrentMask, mask}));
     CHECK_LPM(longestMatch(address), address, address.bitCount());
   }
 }
