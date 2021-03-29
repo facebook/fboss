@@ -149,7 +149,8 @@ class SaiObjectEventPublisher {
     // check if publisher is already live
     auto publisher = livePublishers_.find(subscriber->getPublisherKey());
     if (publisher != livePublishers_.end()) {
-      notifyCreate(publisher->first, publisher->second.lock());
+      // notify only the subscriber who is subscribing
+      subscriber->afterCreate(publisher->second.lock());
     }
   }
 
