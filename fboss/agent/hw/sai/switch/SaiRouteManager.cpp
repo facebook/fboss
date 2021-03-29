@@ -195,26 +195,26 @@ void SaiRouteManager::addOrUpdateRoute(
        */
       auto swNextHop =
           folly::poly_cast<ResolvedNextHop>(*(fwd.getNextHopSet().begin()));
-      auto managedNextHop =
+      auto managedSaiNextHop =
           managerTable_->nextHopManager().addManagedSaiNextHop(swNextHop);
       sai_object_id_t nextHopId{};
+
       /* claim the next hop first */
-      if (auto* ipNextHop =
-              std::get_if<std::shared_ptr<ManagedIpNextHop>>(&managedNextHop)) {
-        auto managedRouteNextHop =
-            refOrCreateManagedRouteNextHop<SaiIpNextHopTraits>(
-                routeHandle, entry, *ipNextHop);
-        nextHopId = managedRouteNextHop->adapterKey();
-        nextHopHandle = managedRouteNextHop;
-      } else if (
-          auto* mplsNextHop = std::get_if<std::shared_ptr<ManagedMplsNextHop>>(
-              &managedNextHop)) {
-        auto managedRouteNextHop =
-            refOrCreateManagedRouteNextHop<SaiMplsNextHopTraits>(
-                routeHandle, entry, *mplsNextHop);
-        nextHopId = managedRouteNextHop->adapterKey();
-        nextHopHandle = managedRouteNextHop;
-      }
+      std::visit(
+          [&](auto& managedNextHop) {
+            using SharedPtrType = std::decay_t<decltype(managedNextHop)>;
+            using NextHopTraits =
+                typename SharedPtrType::element_type::ObjectTraits;
+
+            auto managedRouteNextHop =
+                refOrCreateManagedRouteNextHop<NextHopTraits>(
+                    routeHandle, entry, managedNextHop);
+
+            nextHopId = managedRouteNextHop->adapterKey();
+            nextHopHandle = managedRouteNextHop;
+          },
+          managedSaiNextHop);
+
       attributes =
           SaiRouteTraits::CreateAttributes{packetAction, nextHopId, metadata};
     }
