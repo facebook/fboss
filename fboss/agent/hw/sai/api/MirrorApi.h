@@ -124,7 +124,10 @@ struct SaiMirrorTraits<SAI_MIRROR_SESSION_TYPE_SFLOW> {
         EnumType,
         SAI_MIRROR_SESSION_ATTR_MONITOR_PORT,
         SaiObjectIdT>;
-    using TruncateSize = void;
+    using TruncateSize = SaiAttribute<
+        EnumType,
+        SAI_MIRROR_SESSION_ATTR_TRUNCATE_SIZE,
+        sai_uint16_t>;
     using Tos =
         SaiAttribute<EnumType, SAI_MIRROR_SESSION_ATTR_TOS, sai_uint8_t>;
     using ErspanEncapsulationType = void;
@@ -171,7 +174,8 @@ struct SaiMirrorTraits<SAI_MIRROR_SESSION_TYPE_SFLOW> {
       typename Attributes::UdpSrcPort,
       typename Attributes::UdpDstPort,
       typename Attributes::IpHeaderVersion,
-      std::optional<typename Attributes::Ttl>>;
+      std::optional<typename Attributes::Ttl>,
+      std::optional<typename Attributes::TruncateSize>>;
   using AdapterHostKey = std::tuple<
       typename Attributes::Type,
       typename Attributes::MonitorPort,

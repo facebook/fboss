@@ -76,7 +76,9 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addMirrorSflow(
       mirrorTunnel.udpPorts.value().udpSrcPort,
       mirrorTunnel.udpPorts.value().udpDstPort,
       headerVersion,
-      mirrorTunnel.ttl};
+      mirrorTunnel.ttl,
+      0 // TODO: truncate size
+  };
   SaiSflowMirrorTraits::AdapterHostKey k{
       SAI_MIRROR_SESSION_TYPE_SFLOW,
       monitorPort,
