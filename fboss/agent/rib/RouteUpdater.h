@@ -48,6 +48,16 @@ class RibRouteUpdater {
       IPv4NetworkToRouteMap* v4Routes,
       IPv6NetworkToRouteMap* v6Routes);
 
+  struct RouteEntry {
+    folly::CIDRNetwork prefix;
+    RouteNextHopEntry nhopEntry;
+  };
+  void update(
+      ClientID client,
+      const std::vector<RouteEntry>& toAdd,
+      const std::vector<folly::CIDRNetwork>& toDel,
+      bool resetClientsRoutes);
+
   void addOrReplaceRoute(
       const folly::IPAddress& network,
       uint8_t mask,

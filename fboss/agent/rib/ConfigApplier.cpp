@@ -84,7 +84,7 @@ void ConfigApplier::apply() {
   addInterfaceRoutes(&updater, directlyConnectedRouteRange_);
 
   if (directlyConnectedRouteRange_.empty()) {
-    // If no intf routes exist in this VRF prun link local routes
+    // If no intf routes exist in this VRF prune link local routes
     // as well
     updater.delLinkLocalRoutes();
   } else {

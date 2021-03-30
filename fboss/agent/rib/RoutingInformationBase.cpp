@@ -264,44 +264,47 @@ std::
     SCOPE_EXIT {
       routeTables->makeWritable(false);
     };
+    std::vector<RibRouteUpdater::RouteEntry> toAddRoutes;
+    toAddRoutes.reserve(toAdd.size());
+
+    std::for_each(
+        toAdd.begin(),
+        toAdd.end(),
+        [clientID, adminDistanceFromClientID, &stats, &toAddRoutes](
+            const auto& route) {
+          auto network =
+              facebook::network::toIPAddress(*route.dest_ref()->ip_ref());
+          auto mask =
+              static_cast<uint8_t>(*route.dest_ref()->prefixLength_ref());
+          if (network.isV4()) {
+            ++stats.v4RoutesAdded;
+          } else {
+            ++stats.v6RoutesAdded;
+          }
+          toAddRoutes.push_back(
+              {{network, mask},
+               RouteNextHopEntry::from(route, adminDistanceFromClientID)});
+        });
+    std::vector<folly::CIDRNetwork> toDelPrefixes;
+    toDelPrefixes.reserve(toDelete.size());
+    std::for_each(
+        toDelete.begin(),
+        toDelete.end(),
+        [&stats, &toDelPrefixes](const auto& prefix) {
+          auto network = facebook::network::toIPAddress(*prefix.ip_ref());
+          auto mask = static_cast<uint8_t>(*prefix.prefixLength_ref());
+
+          if (network.isV4()) {
+            ++stats.v4RoutesDeleted;
+          } else {
+            ++stats.v6RoutesDeleted;
+          }
+          toDelPrefixes.push_back({network, mask});
+        });
+
     RibRouteUpdater updater(
         &(routeTables->v4NetworkToRoute), &(routeTables->v6NetworkToRoute));
-    if (resetClientsRoutes) {
-      updater.removeAllRoutesForClient(clientID);
-    }
-
-    for (const auto& route : toAdd) {
-      auto network =
-          facebook::network::toIPAddress(*route.dest_ref()->ip_ref());
-      auto mask = static_cast<uint8_t>(*route.dest_ref()->prefixLength_ref());
-
-      if (network.isV4()) {
-        ++stats.v4RoutesAdded;
-      } else {
-        ++stats.v6RoutesAdded;
-      }
-
-      updater.addOrReplaceRoute(
-          network,
-          mask,
-          clientID,
-          RouteNextHopEntry::from(route, adminDistanceFromClientID));
-    }
-
-    for (const auto& prefix : toDelete) {
-      auto network = facebook::network::toIPAddress(*prefix.ip_ref());
-      auto mask = static_cast<uint8_t>(*prefix.prefixLength_ref());
-
-      if (network.isV4()) {
-        ++stats.v4RoutesDeleted;
-      } else {
-        ++stats.v6RoutesDeleted;
-      }
-
-      updater.delRoute(network, mask, clientID);
-    }
-
-    updater.updateDone();
+    updater.update(clientID, toAddRoutes, toDelPrefixes, resetClientsRoutes);
     try {
       updateFib(routerID, routeTables, fibUpdateCallback, cookie);
     } catch (const std::exception& ex) {

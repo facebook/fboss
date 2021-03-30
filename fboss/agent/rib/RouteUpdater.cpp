@@ -42,6 +42,28 @@ RibRouteUpdater::RibRouteUpdater(
     IPv6NetworkToRouteMap* v6Routes)
     : v4Routes_(v4Routes), v6Routes_(v6Routes) {}
 
+void RibRouteUpdater::update(
+    ClientID client,
+    const std::vector<RouteEntry>& toAdd,
+    const std::vector<folly::CIDRNetwork>& toDel,
+    bool resetClientsRoutes) {
+  if (resetClientsRoutes) {
+    removeAllRoutesForClient(client);
+  }
+  std::for_each(
+      toAdd.begin(), toAdd.end(), [this, client](const auto& routeEntry) {
+        addOrReplaceRoute(
+            routeEntry.prefix.first,
+            routeEntry.prefix.second,
+            client,
+            routeEntry.nhopEntry);
+      });
+  std::for_each(toDel.begin(), toDel.end(), [this, client](const auto& prefix) {
+    delRoute(prefix.first, prefix.second, client);
+  });
+  updateDone();
+}
+
 template <typename AddressT>
 void RibRouteUpdater::addOrReplaceRouteImpl(
     const Prefix<AddressT>& prefix,
