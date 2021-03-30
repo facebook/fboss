@@ -389,10 +389,7 @@ void SaiHostifManager::loadCpuPortQueues() {
 
 void SaiHostifManager::loadCpuPort() {
   cpuPortHandle_ = std::make_unique<SaiCpuPortHandle>();
-  SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
-  PortSaiId cpuPortId{SaiApiTable::getInstance()->switchApi().getAttribute(
-      switchId, SaiSwitchTraits::Attributes::CpuPort{})};
-  cpuPortHandle_->cpuPortId = cpuPortId;
+  cpuPortHandle_->cpuPortId = managerTable_->switchManager().getCpuPort();
   loadCpuPortQueues();
 }
 
