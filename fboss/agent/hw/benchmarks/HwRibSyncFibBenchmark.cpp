@@ -18,39 +18,46 @@
 
 #include <folly/Benchmark.h>
 #include <folly/logging/xlog.h>
-
 DECLARE_bool(enable_standalone_rib);
 
 namespace facebook::fboss {
 
-BENCHMARK(RibResolutionBenchmark) {
+BENCHMARK(RibSyncFibBenchmark) {
   folly::BenchmarkSuspender suspender;
   FLAGS_enable_standalone_rib = true;
   auto ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
   auto config = utility::onePortPerVlanConfig(
       ensemble->getHwSwitch(), ensemble->masterLogicalPortIds());
   ensemble->applyInitialConfig(config);
-  utility::THAlpmRouteScaleGenerator gen(ensemble->getProgrammedState(), true);
+  utility::THAlpmRouteScaleGenerator gen(
+      ensemble->getProgrammedState(), true, 50000);
   const auto& routeChunks = gen.getThriftRoutes();
+  CHECK_EQ(1, routeChunks.size());
   auto rib = ensemble->getRib();
   auto switchState = ensemble->getProgrammedState();
+  rib->update(
+      RouterID(0),
+      ClientID::BGPD,
+      AdminDistance::EBGP,
+      routeChunks[0],
+      {},
+      false,
+      "resolution only",
+      ribToSwitchStateUpdate,
+      static_cast<void*>(&switchState));
+  switchState = ensemble->getProgrammedState();
   suspender.dismiss();
-  std::for_each(
-      routeChunks.begin(),
-      routeChunks.end(),
-      [&switchState, rib](const auto& routeChunk) {
-        rib->update(
-            RouterID(0),
-            ClientID::BGPD,
-            AdminDistance::EBGP,
-            routeChunk,
-            {},
-            false,
-            "resolution only",
-            ribToSwitchStateUpdate,
-            static_cast<void*>(&switchState));
-      });
+  // Sync fib with the same routes
+  rib->update(
+      RouterID(0),
+      ClientID::BGPD,
+      AdminDistance::EBGP,
+      routeChunks[0],
+      {},
+      true,
+      "sync fib",
+      ribToSwitchStateUpdate,
+      static_cast<void*>(&switchState));
   suspender.rehire();
 }
-
 } // namespace facebook::fboss

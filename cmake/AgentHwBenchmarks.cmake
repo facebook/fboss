@@ -152,6 +152,16 @@ target_link_libraries(hw_rib_resolution_speed
   Folly::folly
 )
 
+add_library(hw_rib_sync_fib_speed
+  fboss/agent/hw/benchmarks/HwRibSyncFibBenchmark.cpp
+)
+
+target_link_libraries(hw_rib_sync_fib_speed
+  config_factory
+  hw_benchmark_main
+  Folly::folly
+)
+
 add_library(hw_ecmp_shrink_speed
   fboss/agent/hw/benchmarks/HwEcmpShrinkSpeedBenchmark.cpp
 )
