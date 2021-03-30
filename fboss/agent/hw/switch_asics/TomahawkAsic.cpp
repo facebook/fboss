@@ -40,7 +40,6 @@ bool TomahawkAsic::isSupported(Feature feature) const {
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
-    case HwAsic::Feature::TRUNCATE_MIRROR_PACKET:
     case HwAsic::Feature::ERSPANv6:
     case HwAsic::Feature::SFLOWv6:
     case HwAsic::Feature::TX_VLAN_STRIPPING_ON_PORT:

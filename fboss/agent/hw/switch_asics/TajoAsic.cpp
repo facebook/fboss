@@ -16,7 +16,6 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SFLOWv4:
     case HwAsic::Feature::MPLS:
     case HwAsic::Feature::MPLS_ECMP:
-    case HwAsic::Feature::TRUNCATE_MIRROR_PACKET:
     case HwAsic::Feature::ERSPANv6:
     case HwAsic::Feature::SFLOWv6:
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
