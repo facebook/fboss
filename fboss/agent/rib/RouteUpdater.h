@@ -64,19 +64,18 @@ class RibRouteUpdater {
       ClientID clientID,
       RouteNextHopEntry entry);
   void addLinkLocalRoutes();
-  void delLinkLocalRoutes();
   void addOrReplaceInterfaceRoute(
       const folly::IPAddress& network,
       uint8_t mask,
       const folly::IPAddress& address,
       InterfaceID interface);
+  void updateDone();
+
+ private:
   void
   delRoute(const folly::IPAddress& network, uint8_t mask, ClientID clientID);
   void removeAllRoutesForClient(ClientID clientID);
 
-  void updateDone();
-
- private:
   template <typename AddressT>
   using Prefix = RoutePrefix<AddressT>;
 
