@@ -52,13 +52,34 @@ class RibRouteUpdater {
     folly::CIDRNetwork prefix;
     RouteNextHopEntry nhopEntry;
   };
+  /*
+   * Update routes for a clients and trigger
+   * resolution
+   */
   void update(
       ClientID client,
       const std::vector<RouteEntry>& toAdd,
       const std::vector<folly::CIDRNetwork>& toDel,
-      bool resetClientsRoutes);
+      bool resetClientsRoutes) {
+    updateImpl(client, toAdd, toDel, resetClientsRoutes);
+    updateDone();
+  }
+  /*
+   * Update routes for multiple clients and trigger
+   * resolution
+   */
+
+  void update(
+      const std::map<ClientID, std::vector<RouteEntry>>& toAdd,
+      const std::map<ClientID, std::vector<folly::CIDRNetwork>>& toDel,
+      const std::set<ClientID>& resetClientsRoutesFor);
 
  private:
+  void updateImpl(
+      ClientID client,
+      const std::vector<RouteEntry>& toAdd,
+      const std::vector<folly::CIDRNetwork>& toDel,
+      bool resetClientsRoutes);
   void addOrReplaceRoute(
       const folly::IPAddress& network,
       uint8_t mask,

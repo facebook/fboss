@@ -43,6 +43,31 @@ RibRouteUpdater::RibRouteUpdater(
     : v4Routes_(v4Routes), v6Routes_(v6Routes) {}
 
 void RibRouteUpdater::update(
+    const std::map<ClientID, std::vector<RouteEntry>>& toAdd,
+    const std::map<ClientID, std::vector<folly::CIDRNetwork>>& toDel,
+    const std::set<ClientID>& resetClientsRoutesFor) {
+  std::set<ClientID> clients;
+  std::for_each(toAdd.begin(), toAdd.end(), [&clients](const auto& entry) {
+    clients.insert(entry.first);
+  });
+  std::for_each(toDel.begin(), toDel.end(), [&clients](const auto& entry) {
+    clients.insert(entry.first);
+  });
+  clients.insert(resetClientsRoutesFor.begin(), resetClientsRoutesFor.end());
+  for (auto client : clients) {
+    auto addItr = toAdd.find(client);
+    auto delItr = toDel.find(client);
+    updateImpl(
+        client,
+        (addItr == toAdd.end() ? std::vector<RouteEntry>() : addItr->second),
+        (delItr == toDel.end() ? std::vector<folly::CIDRNetwork>()
+                               : delItr->second),
+        resetClientsRoutesFor.find(client) != resetClientsRoutesFor.end());
+  }
+  updateDone();
+}
+
+void RibRouteUpdater::updateImpl(
     ClientID client,
     const std::vector<RouteEntry>& toAdd,
     const std::vector<folly::CIDRNetwork>& toDel,
@@ -61,7 +86,6 @@ void RibRouteUpdater::update(
   std::for_each(toDel.begin(), toDel.end(), [this, client](const auto& prefix) {
     delRoute(prefix.first, prefix.second, client);
   });
-  updateDone();
 }
 
 template <typename AddressT>

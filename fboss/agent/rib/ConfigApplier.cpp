@@ -63,8 +63,6 @@ void ConfigApplier::apply() {
   fillInStaticRoutes(staticRouteRange_, [](const auto& route) {
     return RouteNextHopEntry::fromStaticRoute(route);
   });
-  updater.update(ClientID::STATIC_ROUTE, staticRoutes, {}, true);
-
   // Update link local routes
   std::vector<RibRouteUpdater::RouteEntry> linkLocalRoutes;
   if (!directlyConnectedRouteRange_.empty()) {
@@ -73,7 +71,6 @@ void ConfigApplier::apply() {
         RouteForwardAction::TO_CPU, AdminDistance::DIRECTLY_CONNECTED);
     linkLocalRoutes.push_back({{folly::IPAddress{"fe80::"}, 64}, nextHop});
   }
-  updater.update(ClientID::LINKLOCAL_ROUTE, linkLocalRoutes, {}, true);
 
   // Update interface routes
   std::vector<RibRouteUpdater::RouteEntry> interfaceRoutes;
@@ -86,7 +83,14 @@ void ConfigApplier::apply() {
         resolvedNextHop, AdminDistance::DIRECTLY_CONNECTED);
     interfaceRoutes.push_back({network, nextHop});
   }
-  updater.update(ClientID::INTERFACE_ROUTE, interfaceRoutes, {}, true);
+  updater.update(
+      {{ClientID::STATIC_ROUTE, staticRoutes},
+       {ClientID::LINKLOCAL_ROUTE, linkLocalRoutes},
+       {ClientID::INTERFACE_ROUTE, interfaceRoutes}},
+      {},
+      {ClientID::STATIC_ROUTE,
+       ClientID::LINKLOCAL_ROUTE,
+       ClientID::INTERFACE_ROUTE});
 }
 
 } // namespace facebook::fboss
