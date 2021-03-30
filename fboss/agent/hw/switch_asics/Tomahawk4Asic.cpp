@@ -82,8 +82,6 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PFC:
     case HwAsic::Feature::COUNTER_REFRESH_INTERVAL:
     case HwAsic::Feature::WIDE_ECMP:
-    case HwAsic::Feature::SAI_MIRRORING:
-    case HwAsic::Feature::SAI_SAMPLING:
     case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT: // CS00012066057
       return false;
   }

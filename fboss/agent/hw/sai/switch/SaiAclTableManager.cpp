@@ -891,9 +891,6 @@ void SaiAclTableManager::programMirror(
     MirrorDirection direction,
     MirrorAction action,
     const std::optional<std::string>& mirrorId) {
-  if (!platform_->getAsic()->isSupported(HwAsic::Feature::SAI_MIRRORING)) {
-    return;
-  }
   if (!mirrorId.has_value()) {
     XLOG(DBG) << "mirror session not configured: ";
     return;

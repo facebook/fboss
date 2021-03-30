@@ -40,8 +40,6 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PENDING_L2_ENTRY:
     case HwAsic::Feature::COUNTER_REFRESH_INTERVAL:
     case HwAsic::Feature::MAC_AGING:
-    case HwAsic::Feature::SAI_MIRRORING:
-    case HwAsic::Feature::SAI_SAMPLING:
     case HwAsic::Feature::TELEMETRY_AND_MONITORING:
     case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT:
       return true;

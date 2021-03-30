@@ -1066,9 +1066,6 @@ void SaiPortManager::programSampling(
     SamplePacketAction action,
     uint64_t sampleRate,
     std::optional<cfg::SampleDestination> sampleDestination) {
-  if (!platform_->getAsic()->isSupported(HwAsic::Feature::SAI_SAMPLING)) {
-    return;
-  }
   auto destination = sampleDestination.has_value()
       ? sampleDestination.value()
       : cfg::SampleDestination::CPU;
@@ -1110,9 +1107,6 @@ void SaiPortManager::programMirror(
     MirrorDirection direction,
     MirrorAction action,
     std::optional<std::string> mirrorId) {
-  if (!platform_->getAsic()->isSupported(HwAsic::Feature::SAI_MIRRORING)) {
-    return;
-  }
   auto portHandle = getPortHandle(portId);
   std::vector<sai_object_id_t> mirrorOidList{};
   if (action == MirrorAction::START) {
@@ -1144,9 +1138,6 @@ void SaiPortManager::programSamplingMirror(
     MirrorDirection direction,
     MirrorAction action,
     std::optional<std::string> mirrorId) {
-  if (!platform_->getAsic()->isSupported(HwAsic::Feature::SAI_MIRRORING)) {
-    return;
-  }
   auto portHandle = getPortHandle(portId);
   std::vector<sai_object_id_t> mirrorOidList{};
   if (action == MirrorAction::START) {

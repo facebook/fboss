@@ -64,8 +64,6 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::DETAILED_L2_UPDATE:
     case HwAsic::Feature::COUNTER_REFRESH_INTERVAL:
     case HwAsic::Feature::WIDE_ECMP:
-    case HwAsic::Feature::SAI_MIRRORING:
-    case HwAsic::Feature::SAI_SAMPLING:
     case HwAsic::Feature::ALPM_ROUTE_PROJECTION:
     case HwAsic::Feature::SAI_PORT_SPEED_CHANGE:
     case HwAsic::Feature::SFLOW_SHIM_VERSION_FIELD:
