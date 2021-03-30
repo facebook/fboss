@@ -61,7 +61,8 @@ struct FakeMirror {
       sai_uint8_t ipHeaderVersion,
       sai_uint16_t udpSrcPort,
       sai_uint16_t udpDstPort,
-      uint8_t ttl)
+      uint8_t ttl,
+      sai_uint16_t truncateSize)
       : type(type),
         monitorPort(monitorPort),
         tos(tos),
@@ -72,7 +73,8 @@ struct FakeMirror {
         ipHeaderVersion(ipHeaderVersion),
         udpSrcPort(udpSrcPort),
         udpDstPort(udpDstPort),
-        ttl(ttl) {}
+        ttl(ttl),
+        truncateSize(truncateSize) {}
 #endif
   sai_object_id_t id;
   sai_int32_t type;

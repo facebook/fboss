@@ -134,7 +134,8 @@ sai_status_t create_mirror_session_fn(
         ipHeaderVersion.value(),
         udpSrcPort.value(),
         udpDstPort.value(),
-        ttl.has_value() ? ttl.value() : (uint8_t)0);
+        ttl.has_value() ? ttl.value() : (uint8_t)0,
+        truncateSize.has_value() ? truncateSize.value() : (uint16_t)0);
 #endif
   } else {
     return SAI_STATUS_INVALID_PARAMETER;
