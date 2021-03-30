@@ -127,6 +127,13 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   bridgeManager_.reset();
   vlanManager_.reset();
   debugCounterManager_.reset();
+  // Mirroring and port has a circular dependency. Monitor port
+  // is an attribute of mirror and mirror oid is an attribute of
+  // Port. The right sequence here is to reset mirror first
+  // which will set all port mirror oids to NULL OID followed by
+  // removing all mirror sessions. Ports no longer has any
+  // dependency with mirror and can be removed.
+  mirrorManager_.reset();
   portManager_.reset();
   // Hash manager is going away, reset hashes
   switchManager_->resetHashes();
@@ -135,7 +142,6 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   switchManager_->resetQosMaps();
   qosMapManager_.reset();
   hostifManager_.reset();
-  mirrorManager_.reset();
   samplePacketManager_.reset();
 
   // ACL Table Group is going away, reset ingressACL pointing to it

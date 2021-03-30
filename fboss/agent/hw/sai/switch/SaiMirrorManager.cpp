@@ -89,6 +89,13 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addMirrorSflow(
 }
 #endif
 
+SaiMirrorHandle::~SaiMirrorHandle() {
+  managerTable->portManager().programMirrorOnAllPorts(
+      mirrorId, MirrorAction::STOP);
+  managerTable->aclTableManager().programMirrorOnAllAcls(
+      mirrorId, MirrorAction::STOP);
+}
+
 void SaiMirrorManager::addMirror(const std::shared_ptr<Mirror>& mirror) {
   if (!mirror->isResolved()) {
     return;
@@ -101,7 +108,8 @@ void SaiMirrorManager::addMirror(const std::shared_ptr<Mirror>& mirror) {
 
   // TODO: Check for hw asic truncation support
 
-  auto mirrorHandle = std::make_unique<SaiMirrorHandle>();
+  auto mirrorHandle =
+      std::make_unique<SaiMirrorHandle>(mirror->getID(), managerTable_);
   auto monitorPortHandle = managerTable_->portManager().getPortHandle(
       mirror->getEgressPort().value());
   if (!monitorPortHandle) {

@@ -895,11 +895,14 @@ void SaiAclTableManager::programMirror(
     XLOG(DBG) << "mirror session not configured: ";
     return;
   }
-  auto mirrorHandle =
-      managerTable_->mirrorManager().getMirrorHandle(mirrorId.value());
-  std::vector<sai_object_id_t> mirrorOidList;
-  if (mirrorHandle && action == MirrorAction::START) {
-    mirrorOidList.push_back(mirrorHandle->adapterKey());
+
+  std::vector<sai_object_id_t> mirrorOidList{};
+  if (action == MirrorAction::START) {
+    auto mirrorHandle =
+        managerTable_->mirrorManager().getMirrorHandle(mirrorId.value());
+    if (mirrorHandle) {
+      mirrorOidList.push_back(mirrorHandle->adapterKey());
+    }
   }
 
   if (direction == MirrorDirection::INGRESS) {

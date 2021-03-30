@@ -31,6 +31,9 @@ using SaiMirrorSflowTunnel = SaiObject<SaiSflowMirrorTraits>;
 #endif
 
 struct SaiMirrorHandle {
+  SaiMirrorHandle(std::string mirrorId, SaiManagerTable* managerTable)
+      : mirrorId(mirrorId), managerTable(managerTable) {}
+  ~SaiMirrorHandle();
   using SaiMirror = std::variant<
       std::shared_ptr<SaiMirror2Port>,
       std::shared_ptr<SaiMirror2GreTunnel>
@@ -39,6 +42,8 @@ struct SaiMirrorHandle {
       std::shared_ptr<SaiMirrorSflowTunnel>
 #endif
       >;
+  std::string mirrorId;
+  SaiManagerTable* managerTable;
   SaiMirror mirror;
   MirrorSaiId adapterKey() {
     return std::visit(
