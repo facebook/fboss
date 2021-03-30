@@ -212,15 +212,22 @@ TEST(Route, removeRoutesForClient) {
   RouteV6::Prefix r4{IPAddressV6("2001::0"), 48};
 
   RibRouteUpdater u2(&v4Routes, &v6Routes);
-  u2.addOrReplaceRoute(
-      r1.network, r1.mask, kClientA, RouteNextHopEntry(nhop1, kDistance));
-  u2.addOrReplaceRoute(
-      r2.network, r2.mask, kClientB, RouteNextHopEntry(nhop2, kDistance));
-  u2.addOrReplaceRoute(
-      r3.network, r3.mask, kClientA, RouteNextHopEntry(nhop1, kDistance));
-  u2.addOrReplaceRoute(
-      r4.network, r4.mask, kClientB, RouteNextHopEntry(nhop2, kDistance));
-  u2.updateDone();
+  u2.update(
+      kClientA,
+      {
+          {{r1.network, r1.mask}, RouteNextHopEntry(nhop1, kDistance)},
+          {{r3.network, r3.mask}, RouteNextHopEntry(nhop1, kDistance)},
+      },
+      {},
+      false);
+  u2.update(
+      kClientB,
+      {
+          {{r2.network, r2.mask}, RouteNextHopEntry(nhop2, kDistance)},
+          {{r4.network, r4.mask}, RouteNextHopEntry(nhop2, kDistance)},
+      },
+      {},
+      false);
 }
 
 // Test equality of RouteNextHopsMulti.
@@ -408,31 +415,22 @@ TEST(Route, dropRoutes) {
   IPv6NetworkToRouteMap v6Routes;
 
   RibRouteUpdater u1(&v4Routes, &v6Routes);
-  u1.addOrReplaceRoute(
-      IPAddress("10.10.10.10"),
-      32,
-      kClientA,
-      RouteNextHopEntry(RouteForwardAction::DROP, kDistance));
-  u1.addOrReplaceRoute(
-      IPAddress("2001::0"),
-      128,
-      kClientA,
-      RouteNextHopEntry(RouteForwardAction::DROP, kDistance));
-  // Check recursive resolution for drop routes
   RouteNextHopSet v4nexthops = makeNextHops({"10.10.10.10"});
-  u1.addOrReplaceRoute(
-      IPAddress("20.20.20.0"),
-      24,
-      kClientA,
-      RouteNextHopEntry(v4nexthops, kDistance));
   RouteNextHopSet v6nexthops = makeNextHops({"2001::0"});
-  u1.addOrReplaceRoute(
-      IPAddress("2001:1::"),
-      64,
+  u1.update(
       kClientA,
-      RouteNextHopEntry(v6nexthops, kDistance));
-
-  u1.updateDone();
+      {
+          {{IPAddress("10.10.10.10"), 32},
+           RouteNextHopEntry(RouteForwardAction::DROP, kDistance)},
+          {{IPAddress("2001::0"), 128},
+           RouteNextHopEntry(RouteForwardAction::DROP, kDistance)},
+          {{IPAddress("20.20.20.0"), 24},
+           RouteNextHopEntry(v4nexthops, kDistance)},
+          {{IPAddress("2001:1::"), 64},
+           RouteNextHopEntry(v6nexthops, kDistance)},
+      },
+      {},
+      false);
 
   // Check routes
   auto r1 = getRoute(v4Routes, "10.10.10.10/32");
@@ -474,32 +472,23 @@ TEST(Route, toCPURoutes) {
   IPv4NetworkToRouteMap v4Routes;
   IPv6NetworkToRouteMap v6Routes;
 
-  RibRouteUpdater u1(&v4Routes, &v6Routes);
-  u1.addOrReplaceRoute(
-      IPAddress("10.10.10.10"),
-      32,
-      kClientA,
-      RouteNextHopEntry(RouteForwardAction::TO_CPU, kDistance));
-  u1.addOrReplaceRoute(
-      IPAddress("2001::0"),
-      128,
-      kClientA,
-      RouteNextHopEntry(RouteForwardAction::TO_CPU, kDistance));
-  // Check recursive resolution for to_cpu routes
   RouteNextHopSet v4nexthops = makeNextHops({"10.10.10.10"});
-  u1.addOrReplaceRoute(
-      IPAddress("20.20.20.0"),
-      24,
-      kClientA,
-      RouteNextHopEntry(v4nexthops, kDistance));
   RouteNextHopSet v6nexthops = makeNextHops({"2001::0"});
-  u1.addOrReplaceRoute(
-      IPAddress("2001:1::"),
-      64,
+  RibRouteUpdater u1(&v4Routes, &v6Routes);
+  u1.update(
       kClientA,
-      RouteNextHopEntry(v6nexthops, kDistance));
-
-  u1.updateDone();
+      {
+          {{IPAddress("10.10.10.10"), 32},
+           RouteNextHopEntry(RouteForwardAction::TO_CPU, kDistance)},
+          {{IPAddress("2001::0"), 128},
+           RouteNextHopEntry(RouteForwardAction::TO_CPU, kDistance)},
+          {{IPAddress("20.20.20.0"), 24},
+           RouteNextHopEntry(v4nexthops, kDistance)},
+          {{IPAddress("2001:1::"), 64},
+           RouteNextHopEntry(v6nexthops, kDistance)},
+      },
+      {},
+      false);
 
   // Check routes
   auto r1 = getRoute(v4Routes, "10.10.10.10/32");
@@ -570,15 +559,16 @@ TEST(Route, serializeRouteTable) {
   RouteV6::Prefix r4{IPAddressV6("2001::0"), 48};
 
   RibRouteUpdater u2(&v4Routes, &v6Routes);
-  u2.addOrReplaceRoute(
-      r1.network, r1.mask, kClientA, RouteNextHopEntry(nhop1, kDistance));
-  u2.addOrReplaceRoute(
-      r2.network, r2.mask, kClientA, RouteNextHopEntry(nhop2, kDistance));
-  u2.addOrReplaceRoute(
-      r3.network, r3.mask, kClientA, RouteNextHopEntry(nhop1, kDistance));
-  u2.addOrReplaceRoute(
-      r4.network, r4.mask, kClientA, RouteNextHopEntry(nhop2, kDistance));
-  u2.updateDone();
+  u2.update(
+      kClientA,
+      {
+          {{r1.network, r1.mask}, RouteNextHopEntry(nhop1, kDistance)},
+          {{r2.network, r2.mask}, RouteNextHopEntry(nhop2, kDistance)},
+          {{r3.network, r3.mask}, RouteNextHopEntry(nhop1, kDistance)},
+          {{r4.network, r4.mask}, RouteNextHopEntry(nhop2, kDistance)},
+      },
+      {},
+      false);
 
   folly::json::serialization_opts serOpts;
   serOpts.allow_non_string_keys = true;
@@ -752,13 +742,14 @@ TEST(Route, withLabelForwardingAction) {
   IPv6NetworkToRouteMap v6Routes;
 
   RibRouteUpdater updater(&v4Routes, &v6Routes);
-  updater.addOrReplaceRoute(
-      folly::IPAddressV4("1.1.0.0"),
-      16,
+  updater.update(
       kClientA,
-      RouteNextHopEntry(nexthops, kDistance));
-
-  updater.updateDone();
+      {
+          {{folly::IPAddressV4("1.1.0.0"), 16},
+           RouteNextHopEntry(nexthops, kDistance)},
+      },
+      {},
+      false);
 
   EXPECT_EQ(1, v4Routes.size());
   EXPECT_EQ(0, v6Routes.size());
@@ -790,10 +781,11 @@ TEST(Route, withNoLabelForwardingAction) {
 
   RibRouteUpdater updater(&v4Routes, &v6Routes);
 
-  updater.addOrReplaceRoute(
-      folly::IPAddressV4("1.1.0.0"), 16, kClientA, routeNextHopEntry);
-
-  updater.updateDone();
+  updater.update(
+      kClientA,
+      {{{folly::IPAddressV4("1.1.0.0"), 16}, routeNextHopEntry}},
+      {},
+      false);
 
   EXPECT_EQ(1, v4Routes.size());
   EXPECT_EQ(0, v6Routes.size());
@@ -846,11 +838,12 @@ TEST(Route, withInvalidLabelForwardingAction) {
 
   EXPECT_THROW(
       {
-        updater.addOrReplaceRoute(
-            folly::IPAddressV4("1.1.0.0"),
-            16,
+        updater.update(
             kClientA,
-            RouteNextHopEntry(nexthops, kDistance));
+            {{{folly::IPAddressV4("1.1.0.0"), 16},
+              RouteNextHopEntry(nexthops, kDistance)}},
+            {},
+            false);
       },
       FbossError);
 }
@@ -872,10 +865,12 @@ class UcmpTest : public ::testing::Test {
     for (const auto& nnhs : networkAndNextHops) {
       folly::IPAddress net = nnhs.first;
       RouteNextHopSet nhs = nnhs.second;
-      ru.addOrReplaceRoute(
-          net, mask, kClientA, RouteNextHopEntry(nhs, kDistance));
+      ru.update(
+          kClientA,
+          {{{net, mask}, RouteNextHopEntry(nhs, kDistance)}},
+          {},
+          false);
     }
-    ru.updateDone();
 
     for (const auto& nnhs : networkAndNextHops) {
       folly::IPAddress net = nnhs.first;

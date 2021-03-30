@@ -58,15 +58,14 @@ class RibRouteUpdater {
       const std::vector<folly::CIDRNetwork>& toDel,
       bool resetClientsRoutes);
 
+ private:
   void addOrReplaceRoute(
       const folly::IPAddress& network,
       uint8_t mask,
       ClientID clientID,
       RouteNextHopEntry entry);
-  void addLinkLocalRoutes();
   void updateDone();
 
- private:
   void
   delRoute(const folly::IPAddress& network, uint8_t mask, ClientID clientID);
   void removeAllRoutesForClient(ClientID clientID);
