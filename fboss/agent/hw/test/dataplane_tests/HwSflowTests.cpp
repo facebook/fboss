@@ -67,7 +67,10 @@ class HwSflowTest : public HwLinkStateDependentTest {
       // 10 packets will be sampled.
       auto portCfg = utility::findCfgPort(cfg, masterLogicalPortIds()[0]);
       portCfg->sFlowIngressRate_ref() = enableSflow ? 1 : 0;
-      portCfg->sFlowEgressRate_ref() = enableSflow ? 1 : 0;
+      if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
+              HwAsic::Feature::EGRESS_SFLOW)) {
+        portCfg->sFlowEgressRate_ref() = enableSflow ? 1 : 0;
+      }
       applyNewConfig(cfg);
       utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
       resolveNeigborAndProgramRoutes(ecmpHelper, 1);
@@ -79,7 +82,11 @@ class HwSflowTest : public HwLinkStateDependentTest {
       // Since we use loopback ports, each packet should be sampled twice,
       // once on egress, when we send packet out and then on ingress, when
       // the packet loops back in.
-      auto expectedSampledPackets = enableSflow ? 10 * 2 : 0;
+      auto expectedSampledPackets = enableSflow ? 10 : 0;
+      if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
+              HwAsic::Feature::EGRESS_SFLOW)) {
+        expectedSampledPackets += enableSflow ? 10 : 0;
+      }
       auto sampledPackets = sampledPktsBefore;
       // Post warm boot there is lag in packets getting sampled
       // and counters getting updated. So add retries to avoid flakiness
