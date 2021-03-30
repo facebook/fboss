@@ -101,28 +101,6 @@ void RibRouteUpdater::addOrReplaceRoute(
   }
 }
 
-void RibRouteUpdater::addOrReplaceInterfaceRoute(
-    const folly::IPAddress& network,
-    uint8_t mask,
-    const folly::IPAddress& address,
-    InterfaceID interface) {
-  ResolvedNextHop resolvedNextHop(address, interface, UCMP_DEFAULT_WEIGHT);
-  RouteNextHopEntry nextHop(resolvedNextHop, AdminDistance::DIRECTLY_CONNECTED);
-
-  addOrReplaceRoute(network, mask, ClientID::INTERFACE_ROUTE, nextHop);
-}
-
-void RibRouteUpdater::addLinkLocalRoutes() {
-  // 169.254/16 is treated as link-local only by convention. Like other vendors,
-  // we choose to route 169.254/16.
-  addOrReplaceRouteImpl(
-      kIPv6LinkLocalPrefix,
-      v6Routes_,
-      ClientID::LINKLOCAL_ROUTE,
-      RouteNextHopEntry(
-          RouteForwardAction::TO_CPU, AdminDistance::DIRECTLY_CONNECTED));
-}
-
 template <typename AddressT>
 void RibRouteUpdater::delRouteImpl(
     const Prefix<AddressT>& prefix,

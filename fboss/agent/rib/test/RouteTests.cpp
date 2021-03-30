@@ -114,46 +114,76 @@ namespace facebook::fboss {
  * 3.3.3.3/24 and 3::1/48 on Interface 3
  * 4.4.4.4/24 and 4::1/48 on Interface 4
  */
+RibRouteUpdater::RouteEntry makeIntfRoute(
+    const folly::IPAddress& nw,
+    uint8_t mask,
+    const folly::IPAddress& nhop,
+    InterfaceID intf) {
+  ResolvedNextHop resolvedNextHop(nhop, intf, UCMP_DEFAULT_WEIGHT);
+  return {{nw, mask}, {resolvedNextHop, AdminDistance::DIRECTLY_CONNECTED}};
+}
+
 void configRoutes(
     IPv4NetworkToRouteMap* v4Routes,
     IPv6NetworkToRouteMap* v6Routes) {
   RibRouteUpdater updater(v4Routes, v6Routes);
 
-  updater.addOrReplaceInterfaceRoute(
-      folly::IPAddress("1.1.1.1"),
-      24,
-      folly::IPAddress("1.1.1.1"),
-      InterfaceID(1));
-  updater.addOrReplaceInterfaceRoute(
-      folly::IPAddress("1::1"), 48, folly::IPAddress("1::1"), InterfaceID(1));
+  updater.update(
+      ClientID::INTERFACE_ROUTE,
+      {
+          makeIntfRoute(
+              folly::IPAddress("1.1.1.1"),
+              24,
+              folly::IPAddress("1.1.1.1"),
+              InterfaceID(1)),
+          makeIntfRoute(
+              folly::IPAddress("1::1"),
+              48,
+              folly::IPAddress("1::1"),
+              InterfaceID(1)),
 
-  updater.addOrReplaceInterfaceRoute(
-      folly::IPAddress("2.2.2.2"),
-      24,
-      folly::IPAddress("2.2.2.2"),
-      InterfaceID(2));
-  updater.addOrReplaceInterfaceRoute(
-      folly::IPAddress("2::1"), 48, folly::IPAddress("2::1"), InterfaceID(2));
+          makeIntfRoute(
+              folly::IPAddress("2.2.2.2"),
+              24,
+              folly::IPAddress("2.2.2.2"),
+              InterfaceID(2)),
+          makeIntfRoute(
+              folly::IPAddress("2::1"),
+              48,
+              folly::IPAddress("2::1"),
+              InterfaceID(2)),
 
-  updater.addOrReplaceInterfaceRoute(
-      folly::IPAddress("3.3.3.3"),
-      24,
-      folly::IPAddress("3.3.3.3"),
-      InterfaceID(3));
-  updater.addOrReplaceInterfaceRoute(
-      folly::IPAddress("3::1"), 48, folly::IPAddress("3::1"), InterfaceID(3));
+          makeIntfRoute(
+              folly::IPAddress("3.3.3.3"),
+              24,
+              folly::IPAddress("3.3.3.3"),
+              InterfaceID(3)),
+          makeIntfRoute(
+              folly::IPAddress("3::1"),
+              48,
+              folly::IPAddress("3::1"),
+              InterfaceID(3)),
 
-  updater.addOrReplaceInterfaceRoute(
-      folly::IPAddress("4.4.4.4"),
-      24,
-      folly::IPAddress("4.4.4.4"),
-      InterfaceID(4));
-  updater.addOrReplaceInterfaceRoute(
-      folly::IPAddress("4::1"), 48, folly::IPAddress("4::1"), InterfaceID(4));
+          makeIntfRoute(
+              folly::IPAddress("4.4.4.4"),
+              24,
+              folly::IPAddress("4.4.4.4"),
+              InterfaceID(4)),
+          makeIntfRoute(
+              folly::IPAddress("4::1"),
+              48,
+              folly::IPAddress("4::1"),
+              InterfaceID(4)),
+      },
+      {},
+      true);
 
-  updater.addLinkLocalRoutes();
-
-  updater.updateDone();
+  updater.update(
+      ClientID::LINKLOCAL_ROUTE,
+      {{{folly::IPAddress("fe80::"), 64},
+        {RouteForwardAction::TO_CPU, AdminDistance::DIRECTLY_CONNECTED}}},
+      {},
+      true);
 }
 
 // Utility function for creating a nexthops list of size n,

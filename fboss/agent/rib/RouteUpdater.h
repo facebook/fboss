@@ -64,11 +64,6 @@ class RibRouteUpdater {
       ClientID clientID,
       RouteNextHopEntry entry);
   void addLinkLocalRoutes();
-  void addOrReplaceInterfaceRoute(
-      const folly::IPAddress& network,
-      uint8_t mask,
-      const folly::IPAddress& address,
-      InterfaceID interface);
   void updateDone();
 
  private:
