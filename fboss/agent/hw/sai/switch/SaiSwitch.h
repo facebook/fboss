@@ -365,7 +365,7 @@ class SaiSwitch : public HwSwitch {
       const StateDelta& delta,
       const LockPolicyT& lockPolicy);
 
-  static PortSaiId getCPUPortSaiId(SwitchSaiId switchId);
+  PortSaiId getCPUPortSaiId() const;
 
   void packetRxCallbackPort(
       sai_size_t buffer_size,

@@ -150,13 +150,8 @@ void __gTamEventCallback(
       tam_event_id, buffer_size, buffer, attr_count, attr_list);
 }
 
-PortSaiId SaiSwitch::getCPUPortSaiId(SwitchSaiId switchId) {
-  static std::optional<PortSaiId> kCpuPortId;
-  if (!kCpuPortId) {
-    kCpuPortId = SaiApiTable::getInstance()->switchApi().getAttribute(
-        switchId, SaiSwitchTraits::Attributes::CpuPort{});
-  }
-  return kCpuPortId.value();
+PortSaiId SaiSwitch::getCPUPortSaiId() const {
+  return managerTable_->switchManager().getCpuPort();
 }
 
 SaiSwitch::SaiSwitch(SaiPlatform* platform, uint32_t featuresDesired)
@@ -1167,7 +1162,7 @@ void SaiSwitch::packetRxCallbackPort(
    * We use the cached cpu port id to avoid holding manager table locks in
    * the Rx path.
    */
-  if (portSaiId == getCPUPortSaiId(switchId_)) {
+  if (portSaiId == getCPUPortSaiId()) {
     folly::io::Cursor cursor(rxPacket->buf());
     EthHdr ethHdr{cursor};
     auto vlanTags = ethHdr.getVlanTags();

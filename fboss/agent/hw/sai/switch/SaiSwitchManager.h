@@ -68,6 +68,8 @@ class SaiSwitchManager {
 
   sai_object_id_t getDefaultVlanAdapterKey() const;
 
+  PortSaiId getCpuPort() const;
+
  private:
   void programLoadBalancerParams(
       cfg::LoadBalancerID id,
@@ -77,6 +79,7 @@ class SaiSwitchManager {
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   std::unique_ptr<SaiSwitchObj> switch_;
+  PortSaiId cpuPort_;
   std::shared_ptr<SaiHash> ecmpV4Hash_;
   std::shared_ptr<SaiHash> ecmpV6Hash_;
   std::shared_ptr<SaiQosMap> globalDscpToTcQosMap_;
