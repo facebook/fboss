@@ -79,8 +79,7 @@ std::vector<std::shared_ptr<SaiRoute>> SaiRouteManager::makeInterfaceToMeRoutes(
   // packet action
   sai_packet_action_t packetAction = SAI_PACKET_ACTION_FORWARD;
   SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
-  PortSaiId cpuPortId{SaiApiTable::getInstance()->switchApi().getAttribute(
-      switchId, SaiSwitchTraits::Attributes::CpuPort{})};
+  PortSaiId cpuPortId = managerTable_->switchManager().getCpuPort();
 
   toMeRoutes.reserve(swInterface->getAddresses().size());
   // Compute per-address information
@@ -220,9 +219,7 @@ void SaiRouteManager::addOrUpdateRoute(
     }
   } else if (fwd.getAction() == RouteForwardAction::TO_CPU) {
     packetAction = SAI_PACKET_ACTION_FORWARD;
-    SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
-    PortSaiId cpuPortId{SaiApiTable::getInstance()->switchApi().getAttribute(
-        switchId, SaiSwitchTraits::Attributes::CpuPort{})};
+    PortSaiId cpuPortId = managerTable_->switchManager().getCpuPort();
     attributes = SaiRouteTraits::CreateAttributes{
         packetAction, std::move(cpuPortId), metadata};
   } else if (fwd.getAction() == RouteForwardAction::DROP) {
@@ -339,9 +336,9 @@ SaiRouteManager::refOrCreateManagedRouteNextHop(
     }
   }
 
-  SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
+  PortSaiId cpuPort = managerTable_->switchManager().getCpuPort();
   auto managedRouteNextHop =
-      std::make_shared<ManagedRouteNextHopT>(switchId, this, entry, nexthop);
+      std::make_shared<ManagedRouteNextHopT>(cpuPort, this, entry, nexthop);
   SaiObjectEventPublisher::getInstance()->get<NextHopTraitsT>().subscribe(
       managedRouteNextHop);
   return managedRouteNextHop;
@@ -349,13 +346,13 @@ SaiRouteManager::refOrCreateManagedRouteNextHop(
 
 template <typename NextHopTraitsT>
 ManagedRouteNextHop<NextHopTraitsT>::ManagedRouteNextHop(
-    SwitchSaiId switchId,
+    PortSaiId cpuPort,
     SaiRouteManager* routeManager,
     SaiRouteTraits::AdapterHostKey routeKey,
     std::shared_ptr<ManagedNextHop<NextHopTraitsT>> managedNextHop)
     : detail::SaiObjectEventSubscriber<NextHopTraitsT>(
           managedNextHop->adapterHostKey()),
-      switchId_(switchId),
+      cpuPort_(cpuPort),
       routeManager_(routeManager),
       routeKey_(std::move(routeKey)),
       managedNextHop_(managedNextHop) {}
@@ -388,11 +385,8 @@ void ManagedRouteNextHop<NextHopTraitsT>::beforeRemove() {
   auto route = routeManager_->getRouteObject(routeKey_);
   auto attributes = route->attributes();
 
-  sai_object_id_t cpuPortId{
-      SaiApiTable::getInstance()->switchApi().getAttribute(
-          switchId_, SaiSwitchTraits::Attributes::CpuPort{})};
   std::get<std::optional<SaiRouteTraits::Attributes::NextHopId>>(attributes) =
-      cpuPortId;
+      static_cast<sai_object_id_t>(cpuPort_);
   route->setAttributes(attributes);
   this->setPublisherObject(nullptr);
 }
@@ -400,8 +394,7 @@ void ManagedRouteNextHop<NextHopTraitsT>::beforeRemove() {
 template <typename NextHopTraitsT>
 sai_object_id_t ManagedRouteNextHop<NextHopTraitsT>::adapterKey() const {
   if (!this->isReady()) {
-    return SaiApiTable::getInstance()->switchApi().getAttribute(
-        switchId_, SaiSwitchTraits::Attributes::CpuPort{});
+    return static_cast<sai_object_id_t>(cpuPort_);
   }
   return this->getPublisherObject().lock()->adapterKey();
 }

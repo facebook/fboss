@@ -42,7 +42,7 @@ class ManagedRouteNextHop
  public:
   using PublisherObject = std::shared_ptr<const SaiObject<NextHopTraitsT>>;
   ManagedRouteNextHop(
-      SwitchSaiId switchId,
+      PortSaiId cpuPort,
       SaiRouteManager* routeManager,
       SaiRouteTraits::AdapterHostKey routeKey,
       std::shared_ptr<ManagedNextHop<NextHopTraitsT>> managedNextHop);
@@ -55,7 +55,7 @@ class ManagedRouteNextHop
  private:
   void updateMetadata() const;
 
-  SwitchSaiId switchId_;
+  PortSaiId cpuPort_;
   SaiRouteManager* routeManager_;
   typename SaiRouteTraits::AdapterHostKey routeKey_;
   std::shared_ptr<ManagedNextHop<NextHopTraitsT>> managedNextHop_;
