@@ -54,11 +54,6 @@ class ConfigApplier {
   void apply();
 
  private:
-  void addInterfaceRoutes(
-      RibRouteUpdater* updater,
-      folly::Range<DirectlyConnectedRouteIterator>
-          directlyConnectedRoutesRange);
-
   RouterID vrf_;
   IPv4NetworkToRouteMap* v4NetworkToRoute_;
   IPv6NetworkToRouteMap* v6NetworkToRoute_;

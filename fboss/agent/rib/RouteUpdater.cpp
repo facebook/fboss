@@ -97,10 +97,6 @@ void RibRouteUpdater::addOrReplaceRoute(
     addOrReplaceRouteImpl(prefix, v4Routes_, clientID, std::move(entry));
   } else {
     RoutePrefixV6 prefix{network.asV6().mask(mask), mask};
-    if (prefix.network.isLinkLocal()) {
-      XLOG(DBG2) << "Ignoring v6 link-local interface route: " << prefix.str();
-      return;
-    }
     addOrReplaceRouteImpl(prefix, v6Routes_, clientID, std::move(entry));
   }
 }

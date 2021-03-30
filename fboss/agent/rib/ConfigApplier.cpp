@@ -40,72 +40,53 @@ void ConfigApplier::apply() {
   RibRouteUpdater updater(v4NetworkToRoute_, v6NetworkToRoute_);
 
   // Update static routes
-  updater.removeAllRoutesForClient(ClientID::STATIC_ROUTE);
-
-  for (const auto& staticRoute : staticCpuRouteRange_) {
-    if (RouterID(*staticRoute.routerID_ref()) != vrf_) {
-      continue;
+  std::vector<RibRouteUpdater::RouteEntry> staticRoutes;
+  staticRoutes.reserve(
+      staticCpuRouteRange_.size() + staticDropRouteRange_.size() +
+      staticRouteRange_.size());
+  auto fillInStaticRoutes = [this, &staticRoutes](
+                                const auto& routeRange, const auto& nhopFn) {
+    for (const auto& staticRoute : routeRange) {
+      if (RouterID(*staticRoute.routerID_ref()) != vrf_) {
+        continue;
+      }
+      auto prefix = folly::IPAddress::createNetwork(*staticRoute.prefix_ref());
+      staticRoutes.push_back({prefix, nhopFn(staticRoute)});
     }
+  };
+  fillInStaticRoutes(staticCpuRouteRange_, [](const auto& /*route*/) {
+    return RouteNextHopEntry::createToCpu();
+  });
+  fillInStaticRoutes(staticDropRouteRange_, [](const auto& /*route*/) {
+    return RouteNextHopEntry::createDrop();
+  });
+  fillInStaticRoutes(staticRouteRange_, [](const auto& route) {
+    return RouteNextHopEntry::fromStaticRoute(route);
+  });
+  updater.update(ClientID::STATIC_ROUTE, staticRoutes, {}, true);
 
-    auto prefix = folly::IPAddress::createNetwork(*staticRoute.prefix_ref());
-    updater.addOrReplaceRoute(
-        prefix.first,
-        prefix.second,
-        ClientID::STATIC_ROUTE,
-        RouteNextHopEntry::createToCpu());
+  // Update link local routes
+  std::vector<RibRouteUpdater::RouteEntry> linkLocalRoutes;
+  if (!directlyConnectedRouteRange_.empty()) {
+    // Add link-local routes
+    RouteNextHopEntry nextHop(
+        RouteForwardAction::TO_CPU, AdminDistance::DIRECTLY_CONNECTED);
+    linkLocalRoutes.push_back({{folly::IPAddress{"fe80::"}, 64}, nextHop});
   }
-  for (const auto& staticRoute : staticDropRouteRange_) {
-    if (RouterID(*staticRoute.routerID_ref()) != vrf_) {
-      continue;
-    }
-
-    auto prefix = folly::IPAddress::createNetwork(*staticRoute.prefix_ref());
-    updater.addOrReplaceRoute(
-        prefix.first,
-        prefix.second,
-        ClientID::STATIC_ROUTE,
-        RouteNextHopEntry::createDrop());
-  }
-  for (const auto& staticRoute : staticRouteRange_) {
-    if (RouterID(*staticRoute.routerID_ref()) != vrf_) {
-      continue;
-    }
-
-    auto prefix = folly::IPAddress::createNetwork(*staticRoute.prefix_ref());
-    updater.addOrReplaceRoute(
-        prefix.first,
-        prefix.second,
-        ClientID::STATIC_ROUTE,
-        RouteNextHopEntry::fromStaticRoute(staticRoute));
-  }
+  updater.update(ClientID::LINKLOCAL_ROUTE, linkLocalRoutes, {}, true);
 
   // Update interface routes
-  updater.removeAllRoutesForClient(ClientID::INTERFACE_ROUTE);
-  addInterfaceRoutes(&updater, directlyConnectedRouteRange_);
-
-  if (directlyConnectedRouteRange_.empty()) {
-    // If no intf routes exist in this VRF prune link local routes
-    // as well
-    updater.delLinkLocalRoutes();
-  } else {
-    // Add link-local routes
-    updater.addLinkLocalRoutes();
-  }
-
-  // Trigger recrusive resolution
-  updater.updateDone();
-}
-
-void ConfigApplier::addInterfaceRoutes(
-    RibRouteUpdater* updater,
-    folly::Range<DirectlyConnectedRouteIterator> directlyConnectedRoutesRange) {
-  for (const auto& directlyConnectedRoute : directlyConnectedRoutesRange) {
+  std::vector<RibRouteUpdater::RouteEntry> interfaceRoutes;
+  for (const auto& directlyConnectedRoute : directlyConnectedRouteRange_) {
     auto network = directlyConnectedRoute.first;
     auto interfaceID = directlyConnectedRoute.second.first;
-    auto endpoint = directlyConnectedRoute.second.second;
-    updater->addOrReplaceInterfaceRoute(
-        network.first, network.second, endpoint, interfaceID);
+    auto address = directlyConnectedRoute.second.second;
+    ResolvedNextHop resolvedNextHop(address, interfaceID, UCMP_DEFAULT_WEIGHT);
+    RouteNextHopEntry nextHop(
+        resolvedNextHop, AdminDistance::DIRECTLY_CONNECTED);
+    interfaceRoutes.push_back({network, nextHop});
   }
+  updater.update(ClientID::INTERFACE_ROUTE, interfaceRoutes, {}, true);
 }
 
 } // namespace facebook::fboss
