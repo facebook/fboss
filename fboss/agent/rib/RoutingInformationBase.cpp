@@ -116,8 +116,6 @@ void RoutingInformationBase::reconfigure(
     void* cookie) {
   ensureRunning();
   auto updateFn = [&] {
-    auto lockedRouteTables = synchronizedRouteTables_.wlock();
-
     // Config application is accomplished in the following sequence of steps:
     // 1. Update the VRFs held in RoutingInformationBase's
     // SynchronizedRouteTables data-structure
@@ -136,30 +134,20 @@ void RoutingInformationBase::reconfigure(
     //
     // Steps 2-5 take place in ConfigApplier.
 
-    std::vector<RouterID> existingVrfs;
-    std::for_each(
-        lockedRouteTables->begin(),
-        lockedRouteTables->end(),
-        [&existingVrfs](const auto& vrfAndRouteTable) {
-          existingVrfs.push_back(vrfAndRouteTable.first);
-        });
+    std::vector<RouterID> existingVrfs = getVrfList();
 
     auto configureRoutesForVrf =
         [&](RouterID vrf,
             RouteTable& routeTable,
             const PrefixToInterfaceIDAndIP& interfaceRoutes) {
-          routeTable.makeWritable(true);
-          SCOPE_EXIT {
-            routeTable.makeWritable(false);
-          };
           // A ConfigApplier object should be independent of the VRF whose
           // routes it is processing. However, because interface and static
-          // routes for _all_ VRFs are passed to ConfigApplier, the vrf argument
-          // is needed to identify the subset of those routes which should be
-          // processed.
+          // routes for _all_ VRFs are passed to ConfigApplier, the vrf
+          // argument is needed to identify the subset of those routes which
+          // should be processed.
 
-          // ConfigApplier can be made independent of the VRF whose routes it is
-          // processing by the use of boost::filter_iterator.
+          // ConfigApplier can be made independent of the VRF whose routes it
+          // is processing by the use of boost::filter_iterator.
           ConfigApplier configApplier(
               vrf,
               &(routeTable.v4NetworkToRoute),
@@ -172,9 +160,17 @@ void RoutingInformationBase::reconfigure(
               folly::range(
                   staticRoutesWithNextHops.cbegin(),
                   staticRoutesWithNextHops.cend()));
-          configApplier.apply();
+          {
+            // Apply config
+            routeTable.makeWritable(true);
+            SCOPE_EXIT {
+              routeTable.makeWritable(false);
+            };
+            configApplier.apply();
+          }
           updateFib(vrf, &routeTable, updateFibCallback, cookie);
         };
+    auto lockedRouteTables = synchronizedRouteTables_.wlock();
     // Because of this sequential loop over each VRF, config application scales
     // linearly with the number of VRFs. If FBOSS is run in a multi-VRF routing
     // architecture in the future, this slow-down can be avoided by
@@ -260,10 +256,6 @@ std::
 
   std::exception_ptr updateException;
   auto updateFn = [&]() {
-    routeTables->makeWritable(true);
-    SCOPE_EXIT {
-      routeTables->makeWritable(false);
-    };
     std::vector<RibRouteUpdater::RouteEntry> toAddRoutes;
     toAddRoutes.reserve(toAdd.size());
 
@@ -301,10 +293,17 @@ std::
           }
           toDelPrefixes.push_back({network, mask});
         });
+    {
+      // Update RIB
+      routeTables->makeWritable(true);
+      SCOPE_EXIT {
+        routeTables->makeWritable(false);
+      };
 
-    RibRouteUpdater updater(
-        &(routeTables->v4NetworkToRoute), &(routeTables->v6NetworkToRoute));
-    updater.update(clientID, toAddRoutes, toDelPrefixes, resetClientsRoutes);
+      RibRouteUpdater updater(
+          &(routeTables->v4NetworkToRoute), &(routeTables->v6NetworkToRoute));
+      updater.update(clientID, toAddRoutes, toDelPrefixes, resetClientsRoutes);
+    }
     try {
       updateFib(routerID, routeTables, fibUpdateCallback, cookie);
     } catch (const std::exception& ex) {
@@ -426,8 +425,6 @@ void RoutingInformationBase::updateFib(
         false};
   };
   try {
-    // Publish routes before sending to FIB
-    routeTable->makeWritable(false);
     syncShadowRib();
     fibUpdateCallback(
         vrf,
