@@ -54,7 +54,12 @@ class HwSflowTest : public HwLinkStateDependentTest {
 
   uint64_t getSampledPackets() {
     return std::get<0>(utility::getCpuQueueOutPacketsAndBytes(
-        getHwSwitch(), utility::kCoppDefaultPriQueueId));
+        getHwSwitch(),
+        // TODO: Configure queue through hostif trap samplepacket
+        getHwSwitch()->getPlatform()->getAsic()->getAsicType() ==
+                HwAsic::AsicType::ASIC_TYPE_TAJO
+            ? utility::kCoppLowPriQueueId
+            : utility::kCoppDefaultPriQueueId));
   }
 
   void runTest(bool enableSflow) {
