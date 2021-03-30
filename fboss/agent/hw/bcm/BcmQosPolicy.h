@@ -37,6 +37,8 @@ class BcmQosPolicy {
   const BcmQosMap* getIngressExpQosMap() const;
   const BcmQosMap* getEgressExpQosMap() const;
   void remove();
+  static std::vector<bcm_cosq_pfc_class_map_config_t>
+  initializeBcmPfcPriToQueueMapping();
 
  private:
   void updateIngressDscpQosMap(

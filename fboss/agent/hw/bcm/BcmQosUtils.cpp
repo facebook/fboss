@@ -17,8 +17,6 @@ const std::vector<int>
 // array with index representing pfc priority and value is priority group (PG)
 // defaults from HW
 const std::vector<int> kDefaultPfcPriorityToPg{0, 1, 2, 3, 4, 5, 6, 7};
-// array index representing pfc priority and value is corresponding queue id
-const std::vector<int> kDefaultPfcPriorityToQueue = {0, 1, 2, 3, 4, 5, 6, 7};
 constexpr int kDefaultProfileId = 0;
 const std::vector<int> kDefaultPfcEnableForPriToQueue =
     {1, 1, 1, 1, 1, 1, 1, 1};
@@ -72,10 +70,6 @@ const std::vector<int>& getDefaultPfcPriorityToPg() {
 
 int getDefaultProfileId() {
   return kDefaultProfileId;
-}
-
-const std::vector<int>& getDefaultPfcPriorityToQueue() {
-  return kDefaultPfcPriorityToQueue;
 }
 
 const std::vector<int>& getDefaultPfcEnablePriorityToQueue() {

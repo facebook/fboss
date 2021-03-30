@@ -73,7 +73,7 @@ void BcmQosPolicy::update(
 void BcmQosPolicy::remove() {
   programTrafficClassToPg(getDefaultTrafficClassToPg());
   programPfcPriorityToPg(getDefaultPfcPriorityToPg());
-  programPfcPriorityToQueue(getDefaultPfcPriorityToQueue());
+  programPfcPriorityToQueue({});
 }
 
 void BcmQosPolicy::updateIngressDscpQosMap(
@@ -133,6 +133,24 @@ void BcmQosPolicy::programPfcPriorityToPg(
       pfcPriorityPg.size());
 }
 
+std::vector<bcm_cosq_pfc_class_map_config_t>
+BcmQosPolicy::initializeBcmPfcPriToQueueMapping() {
+  std::vector<bcm_cosq_pfc_class_map_config_t> cosq_pfc_map;
+  // default this struct is all 0
+  for (int pfcPri = 0;
+       pfcPri <= cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX();
+       ++pfcPri) {
+    bcm_cosq_pfc_class_map_config_t config;
+#ifdef IS_OSS /* TODO: remove once OSS support added */
+    memset(&config, 0, sizeof(bcm_cosq_pfc_class_map_config_t));
+#else
+    bcm_cosq_pfc_class_map_config_t_init(&config);
+#endif
+    cosq_pfc_map.emplace_back(config);
+  }
+  return cosq_pfc_map;
+}
+
 void BcmQosPolicy::programPfcPriorityToQueue(
     const std::vector<int>& pfcPriorityToQueue) {
   if (!hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
@@ -140,18 +158,16 @@ void BcmQosPolicy::programPfcPriorityToQueue(
   }
 
   XLOG(DBG2) << "Start to program pfcPriorityToQueue";
-  std::vector<bcm_cosq_pfc_class_map_config_t> cosq_pfc_map;
-  for (const auto& queueId : pfcPriorityToQueue) {
-    bcm_cosq_pfc_class_map_config_t config;
-#ifdef IS_OSS /* TODO: remove once OSS support added */
-    memset(&config, 0, sizeof(bcm_cosq_pfc_class_map_config_t));
-#else
-    bcm_cosq_pfc_class_map_config_t_init(&config);
-#endif
-    config.pfc_enable = 1;
-    config.pfc_optimized = 0;
-    config.cos_list_bmp |= (1 << queueId);
-    cosq_pfc_map.emplace_back(config);
+  auto cosq_pfc_map = BcmQosPolicy::initializeBcmPfcPriToQueueMapping();
+
+  CHECK_GE(cosq_pfc_map.size(), pfcPriorityToQueue.size())
+      << "Default pfc pri to queue mapping size : " << cosq_pfc_map.size()
+      << " is smaller than pfc priority to queue size : "
+      << pfcPriorityToQueue.size();
+  for (auto i = 0; i < pfcPriorityToQueue.size(); ++i) {
+    cosq_pfc_map.at(i).pfc_enable = 1;
+    cosq_pfc_map.at(i).pfc_optimized = 0;
+    cosq_pfc_map.at(i).cos_list_bmp |= (1 << pfcPriorityToQueue[i]);
   }
 
   auto rv = bcm_cosq_pfc_class_config_profile_set(
@@ -495,11 +511,11 @@ void BcmQosPolicy::programTrafficClassToPgMap(
 
 void BcmQosPolicy::programPfcPriorityToQueueMap(
     const std::shared_ptr<QosPolicy>& qosPolicy) {
-  // init the array with HW defaults
-  std::vector<int> pfcPriorityToQueue = getDefaultPfcPriorityToQueue();
+  std::vector<int> pfcPriorityToQueue = {};
   if (const auto& pfcPriorityToQueueMap =
           qosPolicy->getPfcPriorityToQueueId()) {
-    // override with what user configures
+    pfcPriorityToQueue.assign(
+        cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX() + 1, 0);
     for (const auto& entry : *pfcPriorityToQueueMap) {
       CHECK_GT(pfcPriorityToQueue.size(), static_cast<int>(entry.first))
           << " Policy: " << qosPolicy->getName()

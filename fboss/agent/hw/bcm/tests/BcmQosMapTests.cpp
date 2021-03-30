@@ -7,6 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/hw/bcm/BcmQosPolicy.h"
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
 
@@ -123,21 +124,12 @@ class BcmQosMapTest : public BcmTest {
       const std::vector<int>& pfcPri2QueueId,
       const std::vector<int>& pfcEnable,
       const std::vector<int>& pfcOptimized) {
-    std::vector<bcm_cosq_pfc_class_map_config_t> pfcClassQueue;
-    // all these arrays are supposed to me equal
-    EXPECT_EQ(pfcPri2QueueId.size(), pfcEnable.size());
-    EXPECT_EQ(pfcPri2QueueId.size(), pfcOptimized.size());
+    EXPECT_EQ(pfcOptimized.size(), pfcEnable.size());
+    auto pfcClassQueue = BcmQosPolicy::initializeBcmPfcPriToQueueMapping();
     for (auto i = 0; i < pfcPri2QueueId.size(); ++i) {
-      bcm_cosq_pfc_class_map_config_t tmp;
-#ifdef IS_OSS /* TODO: remove this once supported by OSS */
-      memset(&tmp, 0, sizeof(bcm_cosq_pfc_class_map_config_t));
-#else
-      bcm_cosq_pfc_class_map_config_t_init(&tmp);
-#endif
-      tmp.pfc_enable = pfcEnable[i];
-      tmp.pfc_optimized = pfcOptimized[i];
-      tmp.cos_list_bmp = (1 << pfcPri2QueueId[i]);
-      pfcClassQueue.emplace_back(std::move(tmp));
+      pfcClassQueue[i].pfc_enable = pfcEnable[i];
+      pfcClassQueue[i].pfc_optimized = pfcOptimized[i];
+      pfcClassQueue[i].cos_list_bmp = (1 << pfcPri2QueueId[i]);
     }
     return pfcClassQueue;
   }
@@ -146,7 +138,8 @@ class BcmQosMapTest : public BcmTest {
       const std::vector<bcm_cosq_pfc_class_map_config_t>&
           expectedPfcPri2Queue) {
     std::vector<bcm_cosq_pfc_class_map_config_t> pfcPri2QueueId;
-    const int maxStructSize = getDefaultPfcPriorityToQueue().size();
+    const int maxStructSize =
+        cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX() + 1;
     pfcPri2QueueId.resize(maxStructSize);
     int arrayCount = 0;
     auto rv = bcm_cosq_pfc_class_config_profile_get(
@@ -251,9 +244,7 @@ TEST_F(BcmQosMapTest, PfcMapsRemovePolicy) {
 
   auto verify = [this]() {
     validateAllPfcMaps(
-        getDefaultTrafficClassToPg(),
-        getDefaultPfcPriorityToPg(),
-        getDefaultPfcPriorityToQueue());
+        getDefaultTrafficClassToPg(), getDefaultPfcPriorityToPg(), {});
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -281,9 +272,7 @@ TEST_F(BcmQosMapTest, PfcMapsReset) {
 
   auto verify = [this]() {
     validateAllPfcMaps(
-        getDefaultTrafficClassToPg(),
-        getDefaultPfcPriorityToPg(),
-        getDefaultPfcPriorityToQueue());
+        getDefaultTrafficClassToPg(), getDefaultPfcPriorityToPg(), {});
   };
   verifyAcrossWarmBoots(setup, verify);
 }
