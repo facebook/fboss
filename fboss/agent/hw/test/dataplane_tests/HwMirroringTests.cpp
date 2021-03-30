@@ -136,7 +136,10 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
     auto ports = this->getProgrammedState()->getPorts()->clone();
     auto port = ports->getPort(trafficPort_)->clone();
     port->setIngressMirror(mirrorName);
-    port->setEgressMirror(mirrorName);
+    if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::EGRESS_MIRRORING)) {
+      port->setEgressMirror(mirrorName);
+    }
     ports->updateNode(port);
     auto state = this->getProgrammedState()->clone();
     state->resetPorts(ports);
@@ -152,7 +155,10 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
     acl->setActionType(cfg::AclActionType::PERMIT);
     MatchAction action;
     action.setIngressMirror(mirrorName);
-    action.setEgressMirror(mirrorName);
+    if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::EGRESS_MIRRORING)) {
+      action.setEgressMirror(mirrorName);
+    }
     acl->setAclAction(action);
 
     auto state = this->getProgrammedState()->clone();
@@ -187,7 +193,13 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
      * Acl mirror:
      * 2 packets are mirrored one ingressing IFP and other egressing IFP
      */
-    EXPECT_EQ(mirroredPortPktsAfter - mirroredPortPktsBefore, 2);
+    auto expectedMirrorPackets = 1;
+    if (this->getHwSwitch()->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::EGRESS_MIRRORING)) {
+      expectedMirrorPackets += 1;
+    }
+    EXPECT_EQ(
+        mirroredPortPktsAfter - mirroredPortPktsBefore, expectedMirrorPackets);
   }
 
   void testPortMirror(const std::string& mirrorName) {
