@@ -58,20 +58,31 @@ void routeAddDelBenchmarker(bool measureAdd) {
       addrsToLookup.emplace_back(ipAddrGen.getNext());
     }
     double worstCaseLookupMsecs = 0;
+    double worstCaseBulkLookupMsecs = 0;
+    auto recordMaxLookupTime = [](const StopWatch& timer,
+                                  double& curMaxTimeMsecs) {
+      auto msecsElapsed = timer.msecsElapsed().count();
+      curMaxTimeMsecs =
+          msecsElapsed > curMaxTimeMsecs ? msecsElapsed : curMaxTimeMsecs;
+    };
     while (!done) {
-      std::for_each(
-          addrsToLookup.begin(),
-          addrsToLookup.end(),
-          [&ensemble, &programmedState, kRid, &worstCaseLookupMsecs](
-              const auto& addr) {
-            StopWatch lookupTimer(std::nullopt, FLAGS_json);
-            findLongestMatchRoute(
-                ensemble->getRib(), kRid, addr, programmedState);
-            auto msecsElapsed = lookupTimer.msecsElapsed().count();
-            worstCaseLookupMsecs = msecsElapsed > worstCaseLookupMsecs
-                ? msecsElapsed
-                : worstCaseLookupMsecs;
-          });
+      {
+        StopWatch bulkLookupTimer(std::nullopt, FLAGS_json);
+        std::for_each(
+            addrsToLookup.begin(),
+            addrsToLookup.end(),
+            [&ensemble,
+             &programmedState,
+             kRid,
+             &worstCaseLookupMsecs,
+             &recordMaxLookupTime](const auto& addr) {
+              StopWatch lookupTimer(std::nullopt, FLAGS_json);
+              findLongestMatchRoute(
+                  ensemble->getRib(), kRid, addr, programmedState);
+              recordMaxLookupTime(lookupTimer, worstCaseLookupMsecs);
+            });
+        recordMaxLookupTime(bulkLookupTimer, worstCaseBulkLookupMsecs);
+      }
       // Give some breathing room so the thread doesn't  eat all its quantum
       // of ticks and gets scheduled out in middle of loookups
       usleep(1000);
@@ -79,10 +90,12 @@ void routeAddDelBenchmarker(bool measureAdd) {
     if (FLAGS_json) {
       folly::dynamic time = folly::dynamic::object;
       time["worst_case_lookup_msescs"] = worstCaseLookupMsecs;
-      std::cout << time << std::endl;
+      time["worst_case_bulk_lookup_msescs"] = worstCaseBulkLookupMsecs;
+      std::cout << toPrettyJson(time) << std::endl;
     } else {
-      XLOG(INFO) << "worst_case_lookup_msescs"
-                 << " : " << worstCaseLookupMsecs;
+      XLOG(INFO) << "worst_case_lookup_msescs : " << worstCaseLookupMsecs
+                 << " worst_case_bulk_lookup_msescs : "
+                 << worstCaseBulkLookupMsecs;
     }
   };
   // Start parallel lookup thread
