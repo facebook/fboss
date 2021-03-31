@@ -1609,6 +1609,29 @@ void __real_bcm_collector_export_profile_t_init(
 
 void __real_bcm_collector_info_t_init(bcm_collector_info_t* collector_info);
 
+int __real_bcm_port_phy_timesync_config_set(
+    int unit,
+    bcm_port_t port,
+    bcm_port_phy_timesync_config_t* conf);
+
+void __real_bcm_port_phy_timesync_config_t_init(
+    bcm_port_phy_timesync_config_t* conf);
+
+int __real_bcm_port_timesync_config_set(
+    int unit,
+    bcm_port_t port,
+    int config_count,
+    bcm_port_timesync_config_t* config_array);
+
+void __real_bcm_port_timesync_config_t_init(
+    bcm_port_timesync_config_t* port_timesync_config);
+
+int __real_bcm_time_interface_add(int unit, bcm_time_interface_t* intf);
+
+int __real_bcm_time_interface_delete_all(int unit);
+
+void __real_bcm_time_interface_t_init(bcm_time_interface_t* intf);
+
 } // extern "C"
 
 using namespace facebook::fboss;
@@ -3867,6 +3890,44 @@ void __wrap_bcm_collector_export_profile_t_init(
 
 void __wrap_bcm_collector_info_t_init(bcm_collector_info_t* collector_info) {
   CALL_WRAPPERS_NO_RV(bcm_collector_info_t_init(collector_info));
+}
+
+int __wrap_bcm_port_phy_timesync_config_set(
+    int unit,
+    bcm_port_t port,
+    bcm_port_phy_timesync_config_t* conf) {
+  CALL_WRAPPERS_RV(bcm_port_phy_timesync_config_set(unit, port, conf));
+}
+
+void __wrap_bcm_port_phy_timesync_config_t_init(
+    bcm_port_phy_timesync_config_t* conf) {
+  CALL_WRAPPERS_NO_RV(bcm_port_phy_timesync_config_t_init(conf));
+}
+
+int __wrap_bcm_port_timesync_config_set(
+    int unit,
+    bcm_port_t port,
+    int config_count,
+    bcm_port_timesync_config_t* config_array) {
+  CALL_WRAPPERS_RV(
+      bcm_port_timesync_config_set(unit, port, config_count, config_array));
+}
+
+void __wrap_bcm_port_timesync_config_t_init(
+    bcm_port_timesync_config_t* port_timesync_config) {
+  CALL_WRAPPERS_NO_RV(bcm_port_timesync_config_t_init(port_timesync_config));
+}
+
+int __wrap_bcm_time_interface_add(int unit, bcm_time_interface_t* intf) {
+  CALL_WRAPPERS_RV(bcm_time_interface_add(unit, intf));
+}
+
+int __wrap_bcm_time_interface_delete_all(int unit) {
+  CALL_WRAPPERS_RV(bcm_time_interface_delete_all(unit));
+}
+
+void __wrap_bcm_time_interface_t_init(bcm_time_interface_t* intf) {
+  CALL_WRAPPERS_NO_RV(bcm_time_interface_t_init(intf));
 }
 
 } // extern "C"

@@ -27,6 +27,7 @@ extern "C" {
 #include <bcm/rx.h>
 #include <bcm/stat.h>
 #include <bcm/switch.h>
+#include <bcm/time.h>
 #include <bcm/trunk.h>
 
 // Opennsl
@@ -969,6 +970,29 @@ class BcmSdkInterface {
 
   virtual void bcm_collector_info_t_init(
       bcm_collector_info_t* collector_info) = 0;
+
+  virtual int bcm_port_phy_timesync_config_set(
+      int unit,
+      bcm_port_t port,
+      bcm_port_phy_timesync_config_t* conf) = 0;
+
+  virtual void bcm_port_phy_timesync_config_t_init(
+      bcm_port_phy_timesync_config_t* conf) = 0;
+
+  virtual int bcm_port_timesync_config_set(
+      int unit,
+      bcm_port_t port,
+      int config_count,
+      bcm_port_timesync_config_t* config_array) = 0;
+
+  virtual void bcm_port_timesync_config_t_init(
+      bcm_port_timesync_config_t* port_timesync_config) = 0;
+
+  virtual int bcm_time_interface_add(int unit, bcm_time_interface_t* intf) = 0;
+
+  virtual int bcm_time_interface_delete_all(int unit) = 0;
+
+  virtual void bcm_time_interface_t_init(bcm_time_interface_t* intf) = 0;
 };
 
 } // namespace facebook::fboss

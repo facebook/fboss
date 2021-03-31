@@ -600,6 +600,17 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       int unit,
       bcm_vlan_t vlan,
       bcm_vlan_control_vlan_t* control) override;
+  int bcm_port_phy_timesync_config_set(
+      int unit,
+      bcm_port_t port,
+      bcm_port_phy_timesync_config_t* conf) override;
+  int bcm_port_timesync_config_set(
+      int unit,
+      bcm_port_t port,
+      int config_count,
+      bcm_port_timesync_config_t* config_array) override;
+  int bcm_time_interface_add(int unit, bcm_time_interface_t* intf) override;
+  int bcm_time_interface_delete_all(int unit) override;
 
   /*
    * Getters, traversal functions - Do nothing.
@@ -1552,6 +1563,11 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       int /*export_profile_id*/) override {
     return 0;
   }
+  void bcm_port_phy_timesync_config_t_init(
+      bcm_port_phy_timesync_config_t* /*conf*/) override {}
+  void bcm_port_timesync_config_t_init(
+      bcm_port_timesync_config_t* /*port_timesync_config*/) override {}
+  void bcm_time_interface_t_init(bcm_time_interface_t* /*intf*/) override {}
 
  private:
   enum class Dir { SRC, DST };
@@ -1602,6 +1618,11 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   std::string getNextPfcPriToPgVar();
   std::string getNextPfcPriToQueueVar();
   std::string getNextPgConfigVar();
+  std::string getNextPptConfigVar();
+  std::string getNextPtConfigVar();
+  std::string getNextPtConfigArrayVar();
+  std::string getNextTimeInterfaceVar();
+  std::string getNextTimeSpecVar();
 
   /*
    * Wrap a generated cint function call with return error code
@@ -1697,6 +1718,27 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
 
   std::vector<std::string> cintForL3Ingress(const bcm_l3_ingress_t* l3_ingress);
 
+  std::vector<std::string> cintForPortPhyTimesyncConfig(
+      bcm_port_phy_timesync_config_t* conf,
+      const std::string& pptConfigVar);
+
+  std::vector<std::string> cintForPortTimesyncConfig(
+      const bcm_port_timesync_config_t& conf,
+      const std::string& ppConfigVar);
+
+  std::vector<std::string> cintForPortTimesyncConfigArray(
+      int config_count,
+      bcm_port_timesync_config_t* config_array,
+      const std::string& ppConfigArrayVar);
+
+  std::vector<std::string> cintForTimeSpec(
+      const bcm_time_spec_s& timeSpec,
+      const std::string& timeSpecVar);
+
+  std::vector<std::string> cintForTimeInterface(
+      bcm_time_interface_t* intf,
+      const std::string& timeInterfaceVar);
+
   /*
    * Synchronize access to data structures for access from multiple
    * threads.
@@ -1719,6 +1761,11 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   std::atomic<uint> tmpPfcPriToPgCreated_{0};
   std::atomic<uint> tmpPfcPriToQueueCreated_{0};
   std::atomic<uint> tmpPgConfigCreated_{0};
+  std::atomic<uint> tmpPptConfigCreated_{0};
+  std::atomic<uint> tmpPtConfigCreated_{0};
+  std::atomic<uint> tmpPtConfigArrayCreated_{0};
+  std::atomic<uint> tmpTimeInterfaceCreated_{0};
+  std::atomic<uint> tmpTimeSpecCreated_{0};
 
   std::unique_ptr<AsyncLogger> asyncLogger_;
 

@@ -292,6 +292,18 @@ string BcmCinter::getNextPgConfigVar() {
   return to<string>("pgConfig_", ++tmpPgConfigCreated_);
 }
 
+string BcmCinter::getNextPptConfigVar() {
+  return to<string>("pptConfig_", ++tmpPptConfigCreated_);
+}
+
+string BcmCinter::getNextPtConfigVar() {
+  return to<string>("ptConfig_", ++tmpPtConfigCreated_);
+}
+
+string BcmCinter::getNextPtConfigArrayVar() {
+  return to<string>("ptConfigArray_", ++tmpPtConfigArrayCreated_);
+}
+
 string BcmCinter::getNextMirrorDestIdVar() {
   return to<string>("mirrorDestId_", ++mirrorDestIdCreated_);
 }
@@ -302,6 +314,14 @@ string BcmCinter::getNextRangeVar() {
 
 string BcmCinter::getNextStgVar() {
   return to<string>("stg_", ++stgCreated_);
+}
+
+string BcmCinter::getNextTimeInterfaceVar() {
+  return to<string>("timeInterface_", ++tmpTimeInterfaceCreated_);
+}
+
+string BcmCinter::getNextTimeSpecVar() {
+  return to<string>("timeSpec_", ++tmpTimeSpecCreated_);
 }
 
 pair<string, string> BcmCinter::cintForIp6(const bcm_ip6_t in) {
@@ -513,6 +533,238 @@ std::vector<std::string> BcmCinter::cintForMplsTunnelSwitch(
   cintLines.push_back(to<string>(
       "switch_info.egress_if = ",
       getCintVar(l3IntfIdVars, switch_info.egress_if)));
+  return cintLines;
+}
+
+vector<string> BcmCinter::cintForPortPhyTimesyncConfig(
+    bcm_port_phy_timesync_config_t* conf,
+    const string& pptConfigVar) {
+  string timecodeVar = getNextTimeSpecVar();
+  auto cintLines = cintForTimeSpec(conf->original_timecode, timecodeVar);
+
+  vector<string> structCint = {
+      to<string>("bcm_port_phy_timesync_config_t ", pptConfigVar),
+      to<string>("bcm_port_phy_timesync_config_t_init(&", pptConfigVar, ")"),
+      to<string>(pptConfigVar + ".capabilities=", conf->capabilities),
+      to<string>(pptConfigVar + ".validity_mask=", conf->validity_mask),
+      to<string>(pptConfigVar + ".flags=", conf->flags),
+      to<string>(pptConfigVar + ".itpid=", conf->itpid),
+      to<string>(pptConfigVar + ".otpid=", conf->otpid),
+      to<string>(pptConfigVar + ".otpid2=", conf->otpid),
+      to<string>(pptConfigVar + ".timer_adjust.mode=", conf->timer_adjust.mode),
+      to<string>(
+          pptConfigVar + ".timer_adjust.delta=", conf->timer_adjust.delta),
+      // Inband control
+      to<string>(
+          pptConfigVar + ".inband_control.flags=", conf->inband_control.flags),
+      to<string>(
+          pptConfigVar + ".inband_control.resv0_id=",
+          conf->inband_control.resv0_id),
+      to<string>(
+          pptConfigVar + ".inband_control.timer_mode=",
+          conf->inband_control.timer_mode),
+      to<string>(pptConfigVar + ".gmode=", conf->gmode),
+      // Framesync
+      to<string>(pptConfigVar + ".framesync.mode=", conf->framesync.mode),
+      to<string>(
+          pptConfigVar + ".framesync.length_threshold=",
+          conf->framesync.length_threshold),
+      to<string>(
+          pptConfigVar + ".framesync.event_offset=",
+          conf->framesync.event_offset),
+      // syncout
+      to<string>(pptConfigVar + ".syncout.mode=", conf->syncout.mode),
+      to<string>(
+          pptConfigVar + ".syncout.pulse_1_length=",
+          conf->syncout.pulse_1_length),
+      to<string>(
+          pptConfigVar + ".syncout.pulse_2_length=",
+          conf->syncout.pulse_2_length),
+      to<string>(pptConfigVar + ".syncout.interval=", conf->syncout.interval),
+      to<string>(
+          pptConfigVar + ".syncout.syncout_ts=", conf->syncout.syncout_ts),
+      to<string>(pptConfigVar + ".ts_divider=", conf->ts_divider),
+      to<string>(pptConfigVar + ".original_timecode=", timecodeVar),
+      to<string>(
+          pptConfigVar + ".tx_timestamp_offset=", conf->tx_timestamp_offset),
+      to<string>(
+          pptConfigVar + ".rx_timestamp_offset=", conf->rx_timestamp_offset),
+      to<string>(pptConfigVar + ".rx_link_delay=", conf->rx_link_delay),
+      to<string>(pptConfigVar + ".tx_sync_mode=", conf->tx_sync_mode),
+      to<string>(
+          pptConfigVar + ".tx_delay_request_mode=",
+          conf->tx_delay_request_mode),
+      to<string>(
+          pptConfigVar + ".tx_pdelay_request_mode=",
+          conf->tx_pdelay_request_mode),
+      to<string>(
+          pptConfigVar + ".tx_pdelay_response_mode=",
+          conf->tx_pdelay_response_mode),
+      to<string>(pptConfigVar + ".rx_sync_mode=", conf->rx_sync_mode),
+      to<string>(
+          pptConfigVar + ".rx_delay_request_mode=",
+          conf->rx_delay_request_mode),
+      to<string>(
+          pptConfigVar + ".rx_pdelay_request_mode=",
+          conf->rx_pdelay_request_mode),
+      to<string>(
+          pptConfigVar + ".rx_pdelay_response_mode=",
+          conf->rx_pdelay_response_mode),
+      // mpls control
+      to<string>(
+          pptConfigVar + ".mpls_control.flags=", conf->mpls_control.flags),
+      to<string>(
+          pptConfigVar + ".mpls_control.special_label=",
+          conf->mpls_control.special_label),
+      to<string>(pptConfigVar + ".mpls_control.size=", conf->mpls_control.size),
+      to<string>(pptConfigVar + ".sync_freq=", conf->sync_freq),
+      to<string>(pptConfigVar + ".phy_1588_dpll_k1=", conf->phy_1588_dpll_k1),
+      to<string>(pptConfigVar + ".phy_1588_dpll_k2=", conf->phy_1588_dpll_k2),
+      to<string>(pptConfigVar + ".phy_1588_dpll_k3=", conf->phy_1588_dpll_k3),
+      to<string>(
+          pptConfigVar + ".phy_1588_dpll_loop_filter=0x",
+          conf->phy_1588_dpll_loop_filter),
+      to<string>(
+          pptConfigVar + ".phy_1588_dpll_ref_phase=0x",
+          conf->phy_1588_dpll_ref_phase),
+      to<string>(
+          pptConfigVar + ".phy_1588_dpll_ref_phase_delta=",
+          conf->phy_1588_dpll_ref_phase_delta)};
+  cintLines.insert(
+      cintLines.end(),
+      make_move_iterator(structCint.begin()),
+      make_move_iterator(structCint.end()));
+  // Mpls control labels
+  for (int i = 0; i < conf->mpls_control.size; i++) {
+    string labelHeader =
+        to<string>(pptConfigVar, ".mpls_control.labels[", i, "].");
+    vector<string> additionalCint = {
+        to<string>(labelHeader, "value=", conf->mpls_control.labels[i].value),
+        to<string>(labelHeader, "mask=", conf->mpls_control.labels[i].mask),
+        to<string>(labelHeader, "flags=", conf->mpls_control.labels[i].flags)};
+    cintLines.insert(
+        cintLines.end(),
+        make_move_iterator(additionalCint.begin()),
+        make_move_iterator(additionalCint.end()));
+  }
+  return cintLines;
+} // namespace facebook::fboss
+
+vector<string> BcmCinter::cintForPortTimesyncConfig(
+    const bcm_port_timesync_config_t& conf,
+    const string& ppConfigVar) {
+  string cintMac, macVar;
+  tie(cintMac, macVar) = cintForMac(conf.src_mac_addr);
+  vector<string> cintLines = {
+      cintMac,
+      to<string>("bcm_port_timesync_config_t ", ppConfigVar),
+      to<string>("bcm_port_timesync_config_t_init(&", ppConfigVar, ")"),
+      to<string>(ppConfigVar + ".flags=", conf.flags),
+      to<string>(ppConfigVar + ".pkt_drop=", conf.pkt_drop),
+      to<string>(ppConfigVar + ".pkt_tocpu=", conf.pkt_tocpu),
+      to<string>(ppConfigVar + ".mpls_min_label=", conf.mpls_min_label),
+      to<string>(ppConfigVar + ".mpls_max_label=", conf.mpls_max_label),
+      to<string>(ppConfigVar + ".src_mac_addr=", macVar),
+      to<string>(ppConfigVar + ".user_trap_id=", conf.user_trap_id)};
+  return cintLines;
+}
+
+vector<string> BcmCinter::cintForPortTimesyncConfigArray(
+    int config_count,
+    bcm_port_timesync_config_t* config_array,
+    const string& ppConfigArrayVar) {
+  vector<string> configNames;
+  vector<string> cintLines;
+  for (int i = 0; i < config_count; ++i) {
+    string ppConfigVar = getNextPtConfigVar();
+    configNames.push_back(ppConfigVar);
+    auto structCint = cintForPortTimesyncConfig(config_array[i], ppConfigVar);
+    cintLines.insert(
+        cintLines.end(),
+        make_move_iterator(structCint.begin()),
+        make_move_iterator(structCint.end()));
+  }
+  // Define the config array
+  cintLines.push_back(to<string>(
+      "bcm_port_timesync_config_t ",
+      ppConfigArrayVar,
+      "[] =",
+      " {",
+      join(", ", configNames),
+      "}"));
+  return cintLines;
+}
+
+vector<string> BcmCinter::cintForTimeSpec(
+    const bcm_time_spec_s& timeSpec,
+    const string& timeSpecVar) {
+  vector<string> cintLines = {
+      to<string>("bcm_time_spec_t ", timeSpecVar),
+      to<string>(timeSpecVar + ".isnegative=", timeSpec.isnegative),
+      to<string>(timeSpecVar + ".seconds=0x", timeSpec.seconds),
+      to<string>(timeSpecVar + ".nanoseconds=", timeSpec.nanoseconds)};
+  return cintLines;
+}
+
+vector<string> BcmCinter::cintForTimeInterface(
+    bcm_time_interface_t* intf,
+    const string& timeInterfaceVar) {
+  vector<string> cintLines;
+  // drift
+  string driftVar = getNextTimeSpecVar();
+  auto driftCint = cintForTimeSpec(intf->drift, driftVar);
+  cintLines.insert(
+      cintLines.end(),
+      make_move_iterator(driftCint.begin()),
+      make_move_iterator(driftCint.end()));
+  // offset
+  string offsetVar = getNextTimeSpecVar();
+  auto offsetCint = cintForTimeSpec(intf->offset, offsetVar);
+  cintLines.insert(
+      cintLines.end(),
+      make_move_iterator(offsetCint.begin()),
+      make_move_iterator(offsetCint.end()));
+  // accuracy
+  string accuracyVar = getNextTimeSpecVar();
+  auto accuracyCint = cintForTimeSpec(intf->accuracy, accuracyVar);
+  cintLines.insert(
+      cintLines.end(),
+      make_move_iterator(accuracyCint.begin()),
+      make_move_iterator(accuracyCint.end()));
+  // ntpOffset
+  string ntpOffsetVar = getNextTimeSpecVar();
+  auto ntpOffsetCint = cintForTimeSpec(intf->ntp_offset, ntpOffsetVar);
+  cintLines.insert(
+      cintLines.end(),
+      make_move_iterator(ntpOffsetCint.begin()),
+      make_move_iterator(ntpOffsetCint.end()));
+  // bsTime
+  string bsTimeVar = getNextTimeSpecVar();
+  auto bsTimeCint = cintForTimeSpec(intf->bs_time, bsTimeVar);
+  cintLines.insert(
+      cintLines.end(),
+      make_move_iterator(bsTimeCint.begin()),
+      make_move_iterator(bsTimeCint.end()));
+
+  vector<string> structLines = {
+      to<string>("bcm_time_interface_t ", timeInterfaceVar),
+      to<string>("bcm_time_interface_t_init(&", timeInterfaceVar, ")"),
+      to<string>(timeInterfaceVar + ".flags=", intf->flags),
+      to<string>(timeInterfaceVar + ".id=", intf->id),
+      to<string>(timeInterfaceVar + ".drift=", driftVar),
+      to<string>(timeInterfaceVar + ".offset=", offsetVar),
+      to<string>(timeInterfaceVar + ".accuracy=", accuracyVar),
+      to<string>(timeInterfaceVar + ".heartbeat_hz=", intf->heartbeat_hz),
+      to<string>(timeInterfaceVar + ".clk_resolution=", intf->clk_resolution),
+      to<string>(timeInterfaceVar + ".bitclock_hz=", intf->bitclock_hz),
+      to<string>(timeInterfaceVar + ".status=", intf->status),
+      to<string>(timeInterfaceVar + ".ntp_offset=", ntpOffsetVar),
+      to<string>(timeInterfaceVar + ".bs_time=", bsTimeVar),
+  };
+  cintLines.insert(
+      cintLines.end(),
+      make_move_iterator(structLines.begin()),
+      make_move_iterator(structLines.end()));
   return cintLines;
 }
 
@@ -2881,4 +3133,62 @@ int BcmCinter::bcm_port_priority_group_config_set(
   return 0;
 }
 
+int BcmCinter::bcm_port_phy_timesync_config_set(
+    int unit,
+    bcm_port_t port,
+    bcm_port_phy_timesync_config_t* conf) {
+  string pptConfigVar = getNextPptConfigVar();
+  vector<string> cint = cintForPortPhyTimesyncConfig(conf, pptConfigVar);
+  auto funcCint = wrapFunc(to<string>(
+      "bcm_port_phy_timesync_config_set(",
+      makeParamStr(unit, port, to<string>("&", pptConfigVar)),
+      ")"));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(funcCint.begin()),
+      make_move_iterator(funcCint.end()));
+  writeCintLines(std::move(cint));
+  return 0;
+}
+
+int BcmCinter::bcm_port_timesync_config_set(
+    int unit,
+    bcm_port_t port,
+    int config_count,
+    bcm_port_timesync_config_t* config_array) {
+  auto ppConfigArrayVar = getNextPtConfigArrayVar();
+  auto cint = cintForPortTimesyncConfigArray(
+      config_count, config_array, ppConfigArrayVar);
+  auto funcCint = wrapFunc(to<string>(
+      "bcm_port_timesync_config_set(",
+      makeParamStr(unit, port, config_count, to<string>("&", ppConfigArrayVar)),
+      ")"));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(funcCint.begin()),
+      make_move_iterator(funcCint.end()));
+  writeCintLines(std::move(cint));
+  return 0;
+}
+
+int BcmCinter::bcm_time_interface_add(int unit, bcm_time_interface_t* intf) {
+  auto timeInterfaceVar = getNextTimeInterfaceVar();
+  auto cint = cintForTimeInterface(intf, timeInterfaceVar);
+  auto funcCint = wrapFunc(to<string>(
+      "bcm_time_interface_add(",
+      makeParamStr(unit, to<string>("&", timeInterfaceVar)),
+      ")"));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(funcCint.begin()),
+      make_move_iterator(funcCint.end()));
+  writeCintLines(std::move(cint));
+  return 0;
+}
+
+int BcmCinter::bcm_time_interface_delete_all(int unit) {
+  writeCintLines(wrapFunc(
+      to<string>("bcm_time_interface_delete_all(", makeParamStr(unit), ")")));
+  return 0;
+}
 } // namespace facebook::fboss
