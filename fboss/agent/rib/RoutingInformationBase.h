@@ -136,20 +136,6 @@ class RibRouteTables {
           configRouterIDToInterfaceRoutes) const;
 
   SynchronizedRouteTables synchronizedRouteTables_;
-  /*
-   * Shadow route tables for lookup. During route updates and later
-   * resolution, we make updates to RouteTables and then trigger a
-   * reresolution. During this stage the RouteTable is not in
-   * a state where we can use it for lookup. E.g. any of the new
-   * routes added don't have any forwarding info (which comes after
-   * resolution) so we can't use this data structure for both
-   * resolution and lookups. Hence a shadow route table to
-   * facilitate lookups. Regular and shadow route table will
-   * share routes via pointers, but shadow tables will be updated
-   * only after resolution and will always present a sane state for
-   * lookup.
-   */
-  SynchronizedRouteTables synchronizedShadowRouteTables_;
 };
 
 class RoutingInformationBase {

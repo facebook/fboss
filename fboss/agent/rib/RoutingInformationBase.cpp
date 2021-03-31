@@ -196,18 +196,9 @@ void RibRouteTables::updateFib(
     RouterID vrf,
     const FibUpdateFunction& fibUpdateCallback,
     void* cookie) {
-  auto syncShadowRib = [this, vrf](const auto& routeTable) {
-    // Update shadow rib to new routes
-    // TODO: optimize and assert equivalence here
-    auto lockedShadowRouteTables = synchronizedShadowRouteTables_.wlock();
-    (*lockedShadowRouteTables)[vrf] = RouteTable{
-        {routeTable.v4NetworkToRoute.clone()},
-        {routeTable.v6NetworkToRoute.clone()}};
-  };
   try {
     auto lockedRouteTables = synchronizedRouteTables_.rlock();
     auto& routeTable = lockedRouteTables->find(vrf)->second;
-    syncShadowRib(routeTable);
     fibUpdateCallback(
         vrf, routeTable.v4NetworkToRoute, routeTable.v6NetworkToRoute, cookie);
   } catch (const FbossHwUpdateError& hwUpdateError) {
@@ -222,7 +213,6 @@ void RibRouteTables::updateFib(
           fib->getFibV4(), &routeTable.v4NetworkToRoute);
       reconstructRibFromFib<folly::IPAddressV6>(
           fib->getFibV6(), &routeTable.v6NetworkToRoute);
-      syncShadowRib(routeTable);
     }
     throw;
   }
@@ -276,10 +266,10 @@ template <typename AddressT>
 std::shared_ptr<Route<AddressT>> RibRouteTables::longestMatch(
     const AddressT& address,
     RouterID vrf) const {
-  auto shadowRibTables = synchronizedShadowRouteTables_.rlock();
-  auto vrfIt = shadowRibTables->find(vrf);
-  return vrfIt == shadowRibTables->end() ? nullptr
-                                         : vrfIt->second.longestMatch(address);
+  auto ribTables = synchronizedRouteTables_.rlock();
+  auto vrfIt = ribTables->find(vrf);
+  return vrfIt == ribTables->end() ? nullptr
+                                   : vrfIt->second.longestMatch(address);
 }
 
 RibRouteTables::RouterIDToRouteTable RibRouteTables::constructRouteTables(
@@ -482,7 +472,6 @@ RoutingInformationBase::fromFollyDynamic(const folly::dynamic& ribJson) {
 RibRouteTables RibRouteTables::fromFollyDynamic(const folly::dynamic& ribJson) {
   RibRouteTables rib;
   auto lockedRouteTables = rib.synchronizedRouteTables_.wlock();
-  auto lockedShadowRouteTables = rib.synchronizedShadowRouteTables_.wlock();
   for (const auto& routeTable : ribJson.items()) {
     auto vrf = RouterID(routeTable.first.asInt());
     lockedRouteTables->insert(std::make_pair(
@@ -491,18 +480,6 @@ RibRouteTables RibRouteTables::fromFollyDynamic(const folly::dynamic& ribJson) {
             IPv4NetworkToRouteMap::fromFollyDynamic(routeTable.second[kRibV4]),
             IPv6NetworkToRouteMap::fromFollyDynamic(
                 routeTable.second[kRibV6])}));
-
-    lockedShadowRouteTables->insert(std::make_pair(
-        vrf,
-        RouteTable{
-            {lockedRouteTables->find(vrf)->second.v4NetworkToRoute.clone()},
-            {lockedRouteTables->find(vrf)->second.v6NetworkToRoute.clone()}}));
-    CHECK_EQ(
-        (*lockedShadowRouteTables)[vrf].v4NetworkToRoute.size(),
-        (*lockedRouteTables)[vrf].v4NetworkToRoute.size());
-    CHECK_EQ(
-        (*lockedShadowRouteTables)[vrf].v6NetworkToRoute.size(),
-        (*lockedRouteTables)[vrf].v6NetworkToRoute.size());
   }
   return rib;
 }
