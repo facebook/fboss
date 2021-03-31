@@ -81,6 +81,21 @@ void reconstructRibFromFib(
 }
 } // namespace
 
+template <typename RibUpdateFn>
+void RibRouteTables::updateRib(RouterID vrf, const RibUpdateFn& updateRibFn) {
+  auto lockedRouteTables = synchronizedRouteTables_.wlock();
+  auto it = lockedRouteTables->find(vrf);
+  if (it == lockedRouteTables->end()) {
+    throw FbossError("VRF ", vrf, " not configured");
+  }
+  auto& routeTable = it->second;
+  routeTable.makeWritable(true);
+  SCOPE_EXIT {
+    routeTable.makeWritable(false);
+  };
+  updateRibFn(routeTable);
+}
+
 void RibRouteTables::reconfigure(
     const RouterIDAndNetworkToInterfaceRoutes& configRouterIDToInterfaceRoutes,
     const std::vector<cfg::StaticRouteWithNextHops>& staticRoutesWithNextHops,
@@ -118,9 +133,7 @@ void RibRouteTables::reconfigure(
 
         // ConfigApplier can be made independent of the VRF whose routes it
         // is processing by the use of boost::filter_iterator.
-        {
-          auto lockedRouteTables = synchronizedRouteTables_.wlock();
-          auto& routeTable = lockedRouteTables->find(vrf)->second;
+        updateRib(vrf, [&](auto& routeTable) {
           ConfigApplier configApplier(
               vrf,
               &(routeTable.v4NetworkToRoute),
@@ -134,12 +147,8 @@ void RibRouteTables::reconfigure(
                   staticRoutesWithNextHops.cbegin(),
                   staticRoutesWithNextHops.cend()));
           // Apply config
-          routeTable.makeWritable(true);
-          SCOPE_EXIT {
-            routeTable.makeWritable(false);
-          };
           configApplier.apply();
-        }
+        });
         updateFib(vrf, updateFibCallback, cookie);
       };
   // Because of this sequential loop over each VRF, config application scales
@@ -179,25 +188,11 @@ void RibRouteTables::update(
     folly::StringPiece updateType,
     const FibUpdateFunction& fibUpdateCallback,
     void* cookie) {
-  {
-    // Update RIB
-    auto lockedRouteTables = synchronizedRouteTables_.wlock();
-
-    auto it = lockedRouteTables->find(routerID);
-    if (it == lockedRouteTables->end()) {
-      throw FbossError("VRF ", routerID, " not configured");
-    }
-
-    auto& routeTables = it->second;
-    routeTables.makeWritable(true);
-    SCOPE_EXIT {
-      routeTables.makeWritable(false);
-    };
-
+  updateRib(routerID, [&](auto& routeTables) {
     RibRouteUpdater updater(
         &(routeTables.v4NetworkToRoute), &(routeTables.v6NetworkToRoute));
     updater.update(clientID, toAddRoutes, toDelPrefixes, resetClientsRoutes);
-  }
+  });
   updateFib(routerID, fibUpdateCallback, cookie);
 }
 

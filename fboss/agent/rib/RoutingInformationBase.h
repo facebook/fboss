@@ -121,6 +121,8 @@ class RibRouteTables {
       RouterID vrf,
       const FibUpdateFunction& fibUpdateCallback,
       void* cookie);
+  template <typename RibUpdateFn>
+  void updateRib(RouterID vrf, const RibUpdateFn& updateRib);
   /*
    * Currently, route updates to separate VRFs are made to be sequential. In the
    * event FBOSS has to operate in a routing architecture with numerous VRFs,
