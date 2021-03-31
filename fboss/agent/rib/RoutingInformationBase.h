@@ -117,6 +117,18 @@ class RibRouteTables {
     void makeWritable(bool setWritable);
   };
 
+  struct RouteTableUpdateWrapper {
+    explicit RouteTableUpdateWrapper(RouteTable& table) : routeTable_(table) {
+      routeTable_.makeWritable(true);
+    };
+    ~RouteTableUpdateWrapper() {
+      routeTable_.makeWritable(false);
+    }
+
+   private:
+    RouteTable& routeTable_;
+  };
+
   void updateFib(
       RouterID vrf,
       const FibUpdateFunction& fibUpdateCallback,

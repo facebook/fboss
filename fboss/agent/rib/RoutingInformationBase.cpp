@@ -89,10 +89,6 @@ void RibRouteTables::updateRib(RouterID vrf, const RibUpdateFn& updateRibFn) {
     throw FbossError("VRF ", vrf, " not configured");
   }
   auto& routeTable = it->second;
-  routeTable.makeWritable(true);
-  SCOPE_EXIT {
-    routeTable.makeWritable(false);
-  };
   updateRibFn(routeTable);
 }
 
@@ -134,6 +130,7 @@ void RibRouteTables::reconfigure(
         // ConfigApplier can be made independent of the VRF whose routes it
         // is processing by the use of boost::filter_iterator.
         updateRib(vrf, [&](auto& routeTable) {
+          RouteTableUpdateWrapper wrap{routeTable};
           ConfigApplier configApplier(
               vrf,
               &(routeTable.v4NetworkToRoute),
@@ -188,9 +185,10 @@ void RibRouteTables::update(
     folly::StringPiece updateType,
     const FibUpdateFunction& fibUpdateCallback,
     void* cookie) {
-  updateRib(routerID, [&](auto& routeTables) {
+  updateRib(routerID, [&](auto& routeTable) {
+    RouteTableUpdateWrapper wrap{routeTable};
     RibRouteUpdater updater(
-        &(routeTables.v4NetworkToRoute), &(routeTables.v6NetworkToRoute));
+        &(routeTable.v4NetworkToRoute), &(routeTable.v6NetworkToRoute));
     updater.update(clientID, toAddRoutes, toDelPrefixes, resetClientsRoutes);
   });
   updateFib(routerID, fibUpdateCallback, cookie);
@@ -267,14 +265,8 @@ void RibRouteTables::setClassID(
     FibUpdateFunction fibUpdateCallback,
     std::optional<cfg::AclLookupClass> classId,
     void* cookie) {
-  {
+  updateRib(rid, [&](auto& routeTable) {
     // Update rib
-    auto lockedRouteTables = synchronizedRouteTables_.wlock();
-
-    auto it = lockedRouteTables->find(rid);
-    if (it == lockedRouteTables->end()) {
-      throw FbossError("VRF ", rid, " not configured");
-    }
     auto updateRoute = [&classId](auto& rib, auto ip, uint8_t mask) {
       auto ritr = rib.exactMatch(ip, mask);
       if (ritr == rib.end() || ritr->value()->getClassID() == classId) {
@@ -284,8 +276,8 @@ void RibRouteTables::setClassID(
       ritr->value()->updateClassID(classId);
       ritr->value()->publish();
     };
-    auto& v4Rib = it->second.v4NetworkToRoute;
-    auto& v6Rib = it->second.v6NetworkToRoute;
+    auto& v4Rib = routeTable.v4NetworkToRoute;
+    auto& v6Rib = routeTable.v6NetworkToRoute;
     for (auto& prefix : prefixes) {
       if (prefix.first.isV4()) {
         updateRoute(v4Rib, prefix.first.asV4(), prefix.second);
@@ -293,7 +285,7 @@ void RibRouteTables::setClassID(
         updateRoute(v6Rib, prefix.first.asV6(), prefix.second);
       }
     }
-  }
+  });
   updateFib(rid, fibUpdateCallback, cookie);
 }
 
