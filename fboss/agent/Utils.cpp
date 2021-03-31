@@ -207,18 +207,20 @@ UnicastRoute makeUnicastRoute(
   return route;
 }
 
-StopWatch::StopWatch(const std::string& name, bool json)
+StopWatch::StopWatch(std::optional<std::string> name, bool json)
     : name_(name), json_(json), startTime_(std::chrono::steady_clock::now()) {}
 
 StopWatch::~StopWatch() {
-  std::chrono::duration<double, std::milli> durationMillseconds =
-      std::chrono::steady_clock::now() - startTime_;
+  if (!name_) {
+    return;
+  }
+  auto durationMillseconds = msecsElapsed().count();
   if (json_) {
     folly::dynamic time = folly::dynamic::object;
-    time[name_] = durationMillseconds.count();
+    time[*name_] = durationMillseconds;
     std::cout << time << std::endl;
   } else {
-    XLOG(INFO) << name_ << " : " << durationMillseconds.count();
+    XLOG(INFO) << *name_ << " : " << durationMillseconds;
   }
 }
 } // namespace facebook::fboss

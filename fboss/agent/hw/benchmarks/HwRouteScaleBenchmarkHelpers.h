@@ -46,53 +46,61 @@ void routeAddDelBenchmarker(bool measureAdd) {
   }
   const RouterID kRid(0);
   auto routeChunks = routeGenerator.getThriftRoutes();
-  std::vector<folly::IPAddressV6> addrsToLookup1, addrsToLookup2;
-  utility::IPAddressGenerator<folly::IPAddressV6> ipAddrGen;
-  auto fillAddrsForLookup = [&ipAddrGen](auto& addrsToLookup) {
+
+  std::atomic<bool> done{false};
+
+  auto doLookups = [&ensemble, kRid, &done]() {
+    auto programmedState = ensemble->getProgrammedState();
+    std::vector<folly::IPAddressV6> addrsToLookup;
+    utility::IPAddressGenerator<folly::IPAddressV6> ipAddrGen;
     for (auto i = 0; i < 100; ++i) {
       addrsToLookup.emplace_back(ipAddrGen.getNext());
     }
-  };
-  fillAddrsForLookup(addrsToLookup1);
-  fillAddrsForLookup(addrsToLookup2);
-
-  auto doLookups = [&ensemble, kRid](
-                       const std::string& lookupName,
-                       const auto& addrsToLookup) {
-    auto programmedState = ensemble->getProgrammedState();
-    StopWatch lookupTimer(lookupName, FLAGS_json);
-    for (auto i = 0; i < 10; ++i) {
-      std::for_each(
-          addrsToLookup.begin(),
-          addrsToLookup.end(),
-          [&ensemble, &programmedState, kRid](const auto& addr) {
-            findLongestMatchRoute(
-                ensemble->getRib(), kRid, addr, programmedState);
-          });
+    double worstCaseLookupMsecs = 0;
+    while (!done) {
+      {
+        StopWatch lookupTimer(std::nullopt, FLAGS_json);
+        for (auto i = 0; i < 10; ++i) {
+          std::for_each(
+              addrsToLookup.begin(),
+              addrsToLookup.end(),
+              [&ensemble, &programmedState, kRid](const auto& addr) {
+                findLongestMatchRoute(
+                    ensemble->getRib(), kRid, addr, programmedState);
+              });
+        }
+        auto msecsElapsed = lookupTimer.msecsElapsed().count();
+        worstCaseLookupMsecs = msecsElapsed > worstCaseLookupMsecs
+            ? msecsElapsed
+            : worstCaseLookupMsecs;
+      }
+      // Give some breathing room so the thread doesn't  eat all its quantum
+      // of ticks and gets scheduled out in middle of loookups
+      usleep(1000);
+    }
+    if (FLAGS_json) {
+      folly::dynamic time = folly::dynamic::object;
+      time["worst_case_lookup_msescs"] = worstCaseLookupMsecs;
+      std::cout << time << std::endl;
+    } else {
+      XLOG(INFO) << "worst_case_lookup_msescs"
+                 << " : " << worstCaseLookupMsecs;
     }
   };
+  // Start parallel lookup thread
+  std::thread lookupThread([&doLookups]() { doLookups(); });
   HwSwitchEnsembleRouteUpdateWrapper updater(ensemble.get());
   if (measureAdd) {
-    auto firstRouteChunk = routeChunks[0];
-    routeChunks.erase(routeChunks.begin());
     ScopedCallTimer timeIt;
     // Activate benchmarker before applying switch states
     // for adding routes to h/w
     suspender.dismiss();
     // Program 1 chunk to seed ~4k routes
-    updater.programRoutes(RouterID(0), ClientID::BGPD, {firstRouteChunk});
-    // Start parallel lookup thread
-    std::thread lookupThread([&doLookups, &addrsToLookup1]() {
-      doLookups("route_lookup_msecs", addrsToLookup1);
-    });
     // program remaining chunks
     updater.programRoutes(RouterID(0), ClientID::BGPD, routeChunks);
     // We are about to blow away all routes, before that
     // deactivate benchmark measurement.
     suspender.rehire();
-    // Lookup with all routes installaed
-    doLookups("route_lookup_post_route_program_msecs", addrsToLookup2);
-    lookupThread.join();
   } else {
     updater.programRoutes(kRid, ClientID::BGPD, routeChunks);
     ScopedCallTimer timeIt;
@@ -102,6 +110,9 @@ void routeAddDelBenchmarker(bool measureAdd) {
     updater.unprogramRoutes(kRid, ClientID::BGPD, routeChunks);
     suspender.rehire();
   }
+  done = true;
+  // Lookup with all routes installaed
+  lookupThread.join();
 }
 
 #define ROUTE_ADD_BENCHMARK(name, RouteScaleGeneratorT) \

@@ -145,11 +145,15 @@ UnicastRoute makeUnicastRoute(
 
 class StopWatch {
  public:
-  StopWatch(const std::string& name, bool json);
+  StopWatch(std::optional<std::string> name, bool json);
   ~StopWatch();
 
+  std::chrono::duration<double, std::milli> msecsElapsed() const {
+    return std::chrono::steady_clock::now() - startTime_;
+  }
+
  private:
-  const std::string name_;
+  const std::optional<std::string> name_;
   bool json_;
   std::chrono::time_point<std::chrono::steady_clock> startTime_;
 };
