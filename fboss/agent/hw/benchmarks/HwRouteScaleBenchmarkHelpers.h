@@ -46,6 +46,7 @@ void routeAddDelBenchmarker(bool measureAdd) {
   }
   const RouterID kRid(0);
   auto routeChunks = routeGenerator.getThriftRoutes();
+  auto allThriftRoutes = routeGenerator.allThriftRoutes();
 
   std::atomic<bool> done{false};
 
@@ -101,6 +102,14 @@ void routeAddDelBenchmarker(bool measureAdd) {
     // We are about to blow away all routes, before that
     // deactivate benchmark measurement.
     suspender.rehire();
+    // Do a sync fib and have it compete with route lookups
+    std::for_each(
+        allThriftRoutes.begin(),
+        allThriftRoutes.end(),
+        [&updater, kRid](const auto& route) {
+          updater.addRoute(kRid, ClientID::BGPD, route);
+        });
+    updater.program({{kRid, ClientID::BGPD}});
   } else {
     updater.programRoutes(kRid, ClientID::BGPD, routeChunks);
     ScopedCallTimer timeIt;
@@ -111,7 +120,6 @@ void routeAddDelBenchmarker(bool measureAdd) {
     suspender.rehire();
   }
   done = true;
-  // Lookup with all routes installaed
   lookupThread.join();
 }
 
