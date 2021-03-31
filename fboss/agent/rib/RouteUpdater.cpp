@@ -432,8 +432,7 @@ void RibRouteUpdater::getFwdInfoFromNhop(
   CHECK(route);
 
   if (needResolve(route)) {
-    resolveOne(route);
-    route = routes->longestMatch(nh, nh.bitCount())->value();
+    route = resolveOne(route);
     CHECK(route);
   }
 
@@ -473,7 +472,8 @@ void RibRouteUpdater::getFwdInfoFromNhop(
 }
 
 template <typename AddressT>
-void RibRouteUpdater::resolveOne(std::shared_ptr<Route<AddressT>>& route) {
+std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
+    std::shared_ptr<Route<AddressT>>& route) {
   // Starting resolution for this route, remove from resolution queue
   needsResolution_.erase(route.get());
 
@@ -579,6 +579,7 @@ void RibRouteUpdater::resolveOne(std::shared_ptr<Route<AddressT>>& route) {
                << (route->isResolved() ? "Resolved" : "Cannot resolve")
                << " route " << route->str();
   }
+  return updatedRoute ? updatedRoute : route;
 }
 
 template <typename AddressT>

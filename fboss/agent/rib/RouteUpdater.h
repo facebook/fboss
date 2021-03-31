@@ -113,7 +113,8 @@ class RibRouteUpdater {
   template <typename AddressT>
   void resolve(NetworkToRouteMap<AddressT>* routes);
   template <typename AddressT>
-  void resolveOne(std::shared_ptr<Route<AddressT>>& route);
+  std::shared_ptr<Route<AddressT>> resolveOne(
+      std::shared_ptr<Route<AddressT>>& route);
 
   template <typename AddressT>
   std::shared_ptr<Route<AddressT>> writableRoute(
