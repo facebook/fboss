@@ -92,7 +92,9 @@ void verifyRouteCount(
   const auto& thriftRouteChunks = routeDistributionGen.getThriftRoutes();
 
   EXPECT_EQ(getRouteCount(routeChunks), expectedNewRoutes);
+  EXPECT_EQ(routeDistributionGen.allRoutes().size(), expectedNewRoutes);
   EXPECT_EQ(getRouteCount(thriftRouteChunks), expectedNewRoutes);
+  EXPECT_EQ(routeDistributionGen.allThriftRoutes().size(), expectedNewRoutes);
 }
 
 void verifyChunking(

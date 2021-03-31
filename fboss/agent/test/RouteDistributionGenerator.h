@@ -75,6 +75,12 @@ class RouteDistributionGenerator {
   const RouteChunks& get() const;
   const ThriftRouteChunks& getThriftRoutes() const;
 
+  /*
+   * All routes as a single chunk
+   */
+  RouteChunk allRoutes() const;
+  ThriftRouteChunk allThriftRoutes() const;
+
   std::shared_ptr<SwitchState> startingState() const {
     return startingState_;
   }
