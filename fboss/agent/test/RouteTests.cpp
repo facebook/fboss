@@ -353,13 +353,9 @@ TYPED_TEST(RouteTest, dedup) {
   auto stateV4r3 = this->findRoute6(stateV4, rid, r3);
   auto stateV4r4 = this->findRoute6(stateV4, rid, r4);
 
-  // With StandaloneRib we clone RIB immediately before starting a
-  // update so there is a additional generation number increment.
-  auto generationInc = this->sw_->isStandaloneRibEnabled() ? 2 : 1;
   EXPECT_EQ(stateV2r1, stateV4r1);
   EXPECT_NE(stateV2r2, stateV4r2); // different routes
-  EXPECT_EQ(
-      stateV2r2->getGeneration() + generationInc, stateV4r2->getGeneration());
+  EXPECT_EQ(stateV2r2->getGeneration() + 1, stateV4r2->getGeneration());
   EXPECT_EQ(stateV2r3, stateV4r3);
   EXPECT_EQ(stateV2r4, stateV4r4);
 }

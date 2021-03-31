@@ -94,7 +94,6 @@ class RibRouteTables {
   struct RouteTable {
     IPv4NetworkToRouteMap v4NetworkToRoute;
     IPv6NetworkToRouteMap v6NetworkToRoute;
-    bool writable{true};
 
     bool operator==(const RouteTable& other) const {
       return v4NetworkToRoute == other.v4NetworkToRoute &&
@@ -113,20 +112,6 @@ class RibRouteTables {
       auto it = v6NetworkToRoute.longestMatch(addr, addr.bitCount());
       return it == v6NetworkToRoute.end() ? nullptr : it->value();
     }
-
-    void makeWritable(bool setWritable);
-  };
-
-  struct RouteTableUpdateWrapper {
-    explicit RouteTableUpdateWrapper(RouteTable& table) : routeTable_(table) {
-      routeTable_.makeWritable(true);
-    };
-    ~RouteTableUpdateWrapper() {
-      routeTable_.makeWritable(false);
-    }
-
-   private:
-    RouteTable& routeTable_;
   };
 
   void updateFib(

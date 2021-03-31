@@ -19,8 +19,10 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/Route.h"
 
+#include <algorithm>
 #include "fboss/agent/Utils.h"
 
 using boost::container::flat_map;
@@ -97,9 +99,10 @@ void RibRouteUpdater::addOrReplaceRouteImpl(
   auto it = routes->exactMatch(prefix.network, prefix.mask);
 
   if (it != routes->end()) {
-    auto& route = it->value();
+    auto route = it->value();
     auto existingRouteForClient = route->getEntryForClient(clientID);
     if (!existingRouteForClient || !(*existingRouteForClient == entry)) {
+      route = writableRoute(route);
       route->update(clientID, entry);
     }
     return;
@@ -142,6 +145,7 @@ void RibRouteUpdater::delRouteImpl(
   if (!clientNhopEntry) {
     return;
   }
+  route = writableRoute(route);
   route->delEntryForClient(clientID);
 
   XLOG(DBG3) << "Deleted next-hops for prefix " << prefix.str()
@@ -174,11 +178,12 @@ void RibRouteUpdater::removeAllRoutesFromClientImpl(
   std::vector<typename NetworkToRouteMap<AddressT>::Iterator> toDelete;
 
   for (auto it = routes->begin(); it != routes->end(); ++it) {
-    auto& route = it->value();
+    auto route = it->value();
     auto nhopEntry = route->getEntryForClient(clientID);
     if (!nhopEntry) {
       continue;
     }
+    route = writableRoute(route);
     route->delEntryForClient(clientID);
     if (route->hasNoEntry()) {
       // The nexthops we removed was the only one.  Delete the route->
@@ -201,8 +206,7 @@ void RibRouteUpdater::removeAllRoutesForClient(ClientID clientID) {
 // These aren't really usefully reusable, but structuring them
 // this way helps with clarifying their meaning.
 namespace {
-using NextHopForwardInfos =
-    boost::container::flat_map<NextHop, RouteNextHopSet>;
+using NextHopForwardInfos = std::map<NextHop, RouteNextHopSet>;
 
 struct NextHopCombinedWeightsKey {
   explicit NextHopCombinedWeightsKey(NextHop nhop)
@@ -424,12 +428,15 @@ void RibRouteUpdater::getFwdInfoFromNhop(
     return;
   }
 
-  auto& route = it->value();
+  auto route = it->value();
   CHECK(route);
 
-  if (route->needResolve()) {
+  if (needResolve(route)) {
     resolveOne(route);
+    route = routes->longestMatch(nh, nh.bitCount())->value();
+    CHECK(route);
   }
+
   if (route->isResolved()) {
     const auto& fwdInfo = route->getForwardInfo();
     if (fwdInfo.isDrop()) {
@@ -467,9 +474,8 @@ void RibRouteUpdater::getFwdInfoFromNhop(
 
 template <typename AddressT>
 void RibRouteUpdater::resolveOne(std::shared_ptr<Route<AddressT>>& route) {
-  // mark this route is in processing. This processing bit shall be cleared
-  // in setUnresolvable() or setResolved()
-  route->setProcessing();
+  // Starting resolution for this route, remove from resolution queue
+  needsResolution_.erase(route.get());
 
   bool hasToCpu{false};
   bool hasDrop{false};
@@ -525,48 +531,103 @@ void RibRouteUpdater::resolveOne(std::shared_ptr<Route<AddressT>>& route) {
     fwd = mergeForwardInfos(nhToFwds, route);
   }
 
+  std::shared_ptr<Route<AddressT>> updatedRoute;
+  ;
+  auto updateRoute = [this, clientId, &updatedRoute](
+                         const std::shared_ptr<Route<AddressT>>& route,
+                         std::optional<RouteNextHopEntry> nhop) {
+    updatedRoute = writableRoute(route);
+    if (nhop) {
+      updatedRoute->setResolved(*nhop);
+      if (clientId == kInterfaceRouteClientId &&
+          !nhop->getNextHopSet().empty()) {
+        updatedRoute->setConnected();
+      }
+    } else {
+      updatedRoute->setUnresolvable();
+    }
+    updatedRoute->publish();
+    XLOG(DBG3) << (updatedRoute->isResolved() ? "Resolved" : "Cannot resolve")
+               << " route " << updatedRoute->str();
+  };
   if (!fwd.empty()) {
-    route->setResolved(
-        RouteNextHopEntry(std::move(fwd), AdminDistance::MAX_ADMIN_DISTANCE));
-    if (clientId == kInterfaceRouteClientId) {
-      route->setConnected();
+    if (route->getForwardInfo().getNextHopSet() != fwd) {
+      updateRoute(
+          route,
+          RouteNextHopEntry(std::move(fwd), AdminDistance::MAX_ADMIN_DISTANCE));
     }
   } else if (hasToCpu) {
-    route->setResolved(RouteNextHopEntry(
-        RouteForwardAction::TO_CPU, AdminDistance::MAX_ADMIN_DISTANCE));
+    if (!route->isToCPU()) {
+      updateRoute(
+          route,
+          RouteNextHopEntry(
+              RouteForwardAction::TO_CPU, AdminDistance::MAX_ADMIN_DISTANCE));
+    }
   } else if (hasDrop) {
-    route->setResolved(RouteNextHopEntry(
-        RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
+    if (!route->isDrop()) {
+      updateRoute(
+          route,
+          RouteNextHopEntry(
+              RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
+    }
   } else {
-    route->setUnresolvable();
+    updateRoute(route, std::nullopt);
   }
-
-  XLOG(DBG3) << (route->isResolved() ? "Resolved" : "Cannot resolve")
-             << " route " << route->str();
+  if (!updatedRoute) {
+    route->publish();
+    XLOG(DBG3) << " Retained resolution :"
+               << (route->isResolved() ? "Resolved" : "Cannot resolve")
+               << " route " << route->str();
+  }
 }
 
+template <typename AddressT>
+std::shared_ptr<Route<AddressT>> RibRouteUpdater::writableRoute(
+    const std::shared_ptr<Route<AddressT>>& orig) {
+  auto cloneRoute = [](auto& rib, auto ip, uint8_t mask) {
+    auto ritr = rib->exactMatch(ip, mask);
+    CHECK(ritr != rib->end());
+    if (ritr->value()->isPublished()) {
+      ritr->value() = ritr->value()->clone();
+    }
+    return ritr->value();
+  };
+  if constexpr (std::is_same_v<AddressT, folly::IPAddressV6>) {
+    return cloneRoute(v6Routes_, orig->prefix().network, orig->prefix().mask);
+  } else {
+    return cloneRoute(v4Routes_, orig->prefix().network, orig->prefix().mask);
+  }
+}
 template <typename AddressT>
 void RibRouteUpdater::resolve(NetworkToRouteMap<AddressT>* routes) {
   for (auto& entry : *routes) {
     auto& route = entry.value();
-    if (route->needResolve()) {
+    if (needResolve(route)) {
       resolveOne(route);
     }
   }
 }
 
 template <typename AddressT>
-void RibRouteUpdater::updateDoneImpl(NetworkToRouteMap<AddressT>* routes) {
-  for (auto& entry : *routes) {
-    auto& route = entry.value();
-    route->clearForward();
-  }
-  resolve(routes);
+bool RibRouteUpdater::needResolve(
+    const std::shared_ptr<Route<AddressT>>& route) const {
+  return needsResolution_.find(route.get()) != needsResolution_.end();
 }
 
 void RibRouteUpdater::updateDone() {
-  updateDoneImpl(v4Routes_);
-  updateDoneImpl(v6Routes_);
+  // Record all routes as needing resolution
+  auto markForResolution = [this](const auto& routes) {
+    std::for_each(routes->begin(), routes->end(), [this](const auto& route) {
+      needsResolution_.insert(route.value().get());
+    });
+  };
+  markForResolution(v4Routes_);
+  markForResolution(v6Routes_);
+  SCOPE_EXIT {
+    needsResolution_.clear();
+  };
+  resolve(v4Routes_);
+  resolve(v6Routes_);
 }
 
 } // namespace facebook::fboss

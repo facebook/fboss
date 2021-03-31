@@ -130,7 +130,6 @@ void RibRouteTables::reconfigure(
         // ConfigApplier can be made independent of the VRF whose routes it
         // is processing by the use of boost::filter_iterator.
         updateRib(vrf, [&](auto& routeTable) {
-          RouteTableUpdateWrapper wrap{routeTable};
           ConfigApplier configApplier(
               vrf,
               &(routeTable.v4NetworkToRoute),
@@ -186,7 +185,6 @@ void RibRouteTables::update(
     const FibUpdateFunction& fibUpdateCallback,
     void* cookie) {
   updateRib(routerID, [&](auto& routeTable) {
-    RouteTableUpdateWrapper wrap{routeTable};
     RibRouteUpdater updater(
         &(routeTable.v4NetworkToRoute), &(routeTable.v6NetworkToRoute));
     updater.update(clientID, toAddRoutes, toDelPrefixes, resetClientsRoutes);
@@ -204,8 +202,7 @@ void RibRouteTables::updateFib(
     auto lockedShadowRouteTables = synchronizedShadowRouteTables_.wlock();
     (*lockedShadowRouteTables)[vrf] = RouteTable{
         {routeTable.v4NetworkToRoute.clone()},
-        {routeTable.v6NetworkToRoute.clone()},
-        false};
+        {routeTable.v6NetworkToRoute.clone()}};
   };
   try {
     auto lockedRouteTables = synchronizedRouteTables_.rlock();
@@ -243,20 +240,6 @@ std::vector<RouterID> RibRouteTables::getVrfList() const {
     res.push_back(entry.first);
   }
   return res;
-}
-
-void RibRouteTables::RouteTable::makeWritable(bool _writable) {
-  if (_writable == writable) {
-    return;
-  }
-  if (_writable) {
-    v4NetworkToRoute.cloneAll();
-    v6NetworkToRoute.cloneAll();
-  } else {
-    v4NetworkToRoute.publishAll();
-    v6NetworkToRoute.publishAll();
-  }
-  writable = _writable;
 }
 
 void RibRouteTables::setClassID(
@@ -506,15 +489,14 @@ RibRouteTables RibRouteTables::fromFollyDynamic(const folly::dynamic& ribJson) {
         vrf,
         RouteTable{
             IPv4NetworkToRouteMap::fromFollyDynamic(routeTable.second[kRibV4]),
-            IPv6NetworkToRouteMap::fromFollyDynamic(routeTable.second[kRibV6]),
-            true}));
+            IPv6NetworkToRouteMap::fromFollyDynamic(
+                routeTable.second[kRibV6])}));
 
     lockedShadowRouteTables->insert(std::make_pair(
         vrf,
         RouteTable{
             {lockedRouteTables->find(vrf)->second.v4NetworkToRoute.clone()},
-            {lockedRouteTables->find(vrf)->second.v6NetworkToRoute.clone()},
-            true}));
+            {lockedRouteTables->find(vrf)->second.v6NetworkToRoute.clone()}}));
     CHECK_EQ(
         (*lockedShadowRouteTables)[vrf].v4NetworkToRoute.size(),
         (*lockedRouteTables)[vrf].v4NetworkToRoute.size());

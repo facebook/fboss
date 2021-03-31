@@ -95,28 +95,29 @@ class RibRouteUpdater {
   using Prefix = RoutePrefix<AddressT>;
 
   template <typename AddressT>
-  static void addOrReplaceRouteImpl(
+  void addOrReplaceRouteImpl(
       const Prefix<AddressT>& prefix,
       NetworkToRouteMap<AddressT>* routes,
       ClientID clientID,
       RouteNextHopEntry entry);
   template <typename AddressT>
-  static void delRouteImpl(
+  void delRouteImpl(
       const Prefix<AddressT>& prefix,
       NetworkToRouteMap<AddressT>* routes,
       ClientID clientID);
   template <typename AddressT>
-  static void removeAllRoutesFromClientImpl(
+  void removeAllRoutesFromClientImpl(
       NetworkToRouteMap<AddressT>* routes,
       ClientID clientID);
-
-  template <typename AddressT>
-  void updateDoneImpl(NetworkToRouteMap<AddressT>* routes);
 
   template <typename AddressT>
   void resolve(NetworkToRouteMap<AddressT>* routes);
   template <typename AddressT>
   void resolveOne(std::shared_ptr<Route<AddressT>>& route);
+
+  template <typename AddressT>
+  std::shared_ptr<Route<AddressT>> writableRoute(
+      const std::shared_ptr<Route<AddressT>>& orig);
 
   template <typename AddressT>
   void getFwdInfoFromNhop(
@@ -127,8 +128,12 @@ class RibRouteUpdater {
       bool* hasDrop,
       RouteNextHopSet& fwd);
 
+  template <typename AddressT>
+  bool needResolve(const std::shared_ptr<Route<AddressT>>& route) const;
+
   IPv4NetworkToRouteMap* v4Routes_{nullptr};
   IPv6NetworkToRouteMap* v6Routes_{nullptr};
+  std::unordered_set<void*> needsResolution_;
 };
 
 } // namespace facebook::fboss
