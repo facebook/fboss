@@ -487,7 +487,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
 
   bool hasToCpu{false};
   bool hasDrop{false};
-  RouteNextHopSet fwd;
+  RouteNextHopSet* fwd{nullptr};
 
   auto bestPair = route->getBestEntry();
   const auto clientId = bestPair.first;
@@ -498,45 +498,53 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
   } else if (action == RouteForwardAction::TO_CPU) {
     hasToCpu = true;
   } else {
-    NextHopForwardInfos nhToFwds;
-    // loop through all nexthops to find out the forward info
-    for (const auto& nh : bestEntry->getNextHopSet()) {
-      const auto& addr = nh.addr();
-      // There are two reasons why InterfaceID is specified in the next hop.
-      // 1) The nexthop was generated for interface route.
-      //    In this case, the clientId is INTERFACE_ROUTE
-      // 2) The nexthop was for v6 link-local address.
-      // In both cases, this nexthop is resolved.
-      if (nh.intfID().has_value()) {
-        // It is either an interface route or v6 link-local
-        CHECK(
-            clientId == kInterfaceRouteClientId or
-            (addr.isV6() and addr.isLinkLocal()));
-        nhToFwds[nh].emplace(nh);
-        continue;
+    auto fwItr = unresolvedToResolvedNhops_.find(bestEntry->getNextHopSet());
+    if (fwItr == unresolvedToResolvedNhops_.end()) {
+      NextHopForwardInfos nhToFwds;
+      // loop through all nexthops to find out the forward info
+      for (const auto& nh : bestEntry->getNextHopSet()) {
+        const auto& addr = nh.addr();
+        // There are two reasons why InterfaceID is specified in the next hop.
+        // 1) The nexthop was generated for interface route.
+        //    In this case, the clientId is INTERFACE_ROUTE
+        // 2) The nexthop was for v6 link-local address.
+        // In both cases, this nexthop is resolved.
+        if (nh.intfID().has_value()) {
+          // It is either an interface route or v6 link-local
+          CHECK(
+              clientId == kInterfaceRouteClientId or
+              (addr.isV6() and addr.isLinkLocal()));
+          nhToFwds[nh].emplace(nh);
+          continue;
+        }
+
+        if (addr.isV4()) {
+          getFwdInfoFromNhop(
+              v4Routes_,
+              nh.addr().asV4(),
+              nh.labelForwardingAction(),
+              &hasToCpu,
+              &hasDrop,
+              nhToFwds[nh]);
+        } else {
+          CHECK(addr.isV6());
+          getFwdInfoFromNhop(
+              v6Routes_,
+              nh.addr().asV6(),
+              nh.labelForwardingAction(),
+              &hasToCpu,
+              &hasDrop,
+              nhToFwds[nh]);
+        }
       }
 
-      if (addr.isV4()) {
-        getFwdInfoFromNhop(
-            v4Routes_,
-            nh.addr().asV4(),
-            nh.labelForwardingAction(),
-            &hasToCpu,
-            &hasDrop,
-            nhToFwds[nh]);
-      } else {
-        CHECK(addr.isV6());
-        getFwdInfoFromNhop(
-            v6Routes_,
-            nh.addr().asV6(),
-            nh.labelForwardingAction(),
-            &hasToCpu,
-            &hasDrop,
-            nhToFwds[nh]);
-      }
+      fwItr = unresolvedToResolvedNhops_
+                  .insert(
+                      {bestEntry->getNextHopSet(),
+                       mergeForwardInfos(nhToFwds, route)})
+                  .first;
     }
-
-    fwd = mergeForwardInfos(nhToFwds, route);
+    fwd = &(fwItr->second);
   }
 
   std::shared_ptr<Route<AddressT>> updatedRoute;
@@ -557,11 +565,10 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
     XLOG(DBG3) << (updatedRoute->isResolved() ? "Resolved" : "Cannot resolve")
                << " route " << updatedRoute->str();
   };
-  if (!fwd.empty()) {
-    if (route->getForwardInfo().getNextHopSet() != fwd) {
+  if (fwd && !fwd->empty()) {
+    if (route->getForwardInfo().getNextHopSet() != *fwd) {
       updateRoute(
-          ritr,
-          RouteNextHopEntry(std::move(fwd), AdminDistance::MAX_ADMIN_DISTANCE));
+          ritr, RouteNextHopEntry(*fwd, AdminDistance::MAX_ADMIN_DISTANCE));
     }
   } else if (hasToCpu) {
     if (!route->isToCPU()) {
@@ -624,6 +631,7 @@ void RibRouteUpdater::updateDone() {
   markForResolution(v6Routes_);
   SCOPE_EXIT {
     needsResolution_.clear();
+    unresolvedToResolvedNhops_.clear();
   };
   resolve(v4Routes_);
   resolve(v6Routes_);

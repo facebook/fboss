@@ -133,9 +133,18 @@ class RibRouteUpdater {
   template <typename AddressT>
   bool needResolve(const std::shared_ptr<Route<AddressT>>& route) const;
 
+  using NextHopIpToForwardInfo =
+      std::unordered_map<folly::IPAddress, RouteNextHopSet>;
+
   IPv4NetworkToRouteMap* v4Routes_{nullptr};
   IPv6NetworkToRouteMap* v6Routes_{nullptr};
   std::unordered_set<void*> needsResolution_;
+  /*
+   * Cache for next hop to FWD informatio. For our use case
+   * its pretty common for the same next hops to repeat, so
+   * cache resolution
+   */
+  std::map<RouteNextHopSet, RouteNextHopSet> unresolvedToResolvedNhops_;
 };
 
 } // namespace facebook::fboss
