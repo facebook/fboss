@@ -1466,8 +1466,8 @@ TYPED_TEST(NdpTest, FlushEntryWithConcurrentUpdate) {
     }
   });
 
-  // flush all ndp entries for 100 times
-  for (uint32_t i = 0; i < 100; i++) {
+  // flush all ndp entries for 10 times
+  for (uint32_t i = 0; i < 10; i++) {
     int numFlushed = 0;
     for (auto& ip : targetIPs) {
       numFlushed += thriftHandler.flushNeighborEntry(
