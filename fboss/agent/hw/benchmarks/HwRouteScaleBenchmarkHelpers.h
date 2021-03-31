@@ -54,27 +54,24 @@ void routeAddDelBenchmarker(bool measureAdd) {
     auto programmedState = ensemble->getProgrammedState();
     std::vector<folly::IPAddressV6> addrsToLookup;
     utility::IPAddressGenerator<folly::IPAddressV6> ipAddrGen;
-    for (auto i = 0; i < 100; ++i) {
+    for (auto i = 0; i < 1000; ++i) {
       addrsToLookup.emplace_back(ipAddrGen.getNext());
     }
     double worstCaseLookupMsecs = 0;
     while (!done) {
-      {
-        StopWatch lookupTimer(std::nullopt, FLAGS_json);
-        for (auto i = 0; i < 10; ++i) {
-          std::for_each(
-              addrsToLookup.begin(),
-              addrsToLookup.end(),
-              [&ensemble, &programmedState, kRid](const auto& addr) {
-                findLongestMatchRoute(
-                    ensemble->getRib(), kRid, addr, programmedState);
-              });
-        }
-        auto msecsElapsed = lookupTimer.msecsElapsed().count();
-        worstCaseLookupMsecs = msecsElapsed > worstCaseLookupMsecs
-            ? msecsElapsed
-            : worstCaseLookupMsecs;
-      }
+      std::for_each(
+          addrsToLookup.begin(),
+          addrsToLookup.end(),
+          [&ensemble, &programmedState, kRid, &worstCaseLookupMsecs](
+              const auto& addr) {
+            StopWatch lookupTimer(std::nullopt, FLAGS_json);
+            findLongestMatchRoute(
+                ensemble->getRib(), kRid, addr, programmedState);
+            auto msecsElapsed = lookupTimer.msecsElapsed().count();
+            worstCaseLookupMsecs = msecsElapsed > worstCaseLookupMsecs
+                ? msecsElapsed
+                : worstCaseLookupMsecs;
+          });
       // Give some breathing room so the thread doesn't  eat all its quantum
       // of ticks and gets scheduled out in middle of loookups
       usleep(1000);
@@ -103,13 +100,24 @@ void routeAddDelBenchmarker(bool measureAdd) {
     // deactivate benchmark measurement.
     suspender.rehire();
     // Do a sync fib and have it compete with route lookups
-    std::for_each(
-        allThriftRoutes.begin(),
-        allThriftRoutes.end(),
-        [&updater, kRid](const auto& route) {
-          updater.addRoute(kRid, ClientID::BGPD, route);
-        });
-    updater.program({{kRid, ClientID::BGPD}});
+    auto syncFib =
+        [&updater,
+         kRid](const utility::RouteDistributionGenerator::ThriftRouteChunk&
+                   routes) {
+          std::for_each(
+              routes.begin(),
+              routes.end(),
+              [&updater, kRid](const auto& route) {
+                updater.addRoute(kRid, ClientID::BGPD, route);
+              });
+          updater.program({{kRid, ClientID::BGPD}});
+        };
+    // Sync fib with same set of routes
+    syncFib(allThriftRoutes);
+    // Sync fib with no routes - del all
+    syncFib({});
+    // Sync fib with all routes
+    syncFib(allThriftRoutes);
   } else {
     updater.programRoutes(kRid, ClientID::BGPD, routeChunks);
     ScopedCallTimer timeIt;
