@@ -179,10 +179,13 @@ TEST_F(BcmPortQueueManagerTest, DefaultPortQueuesCheckWithoutConfig) {
   auto setup = [=]() { applyNewConfig(initialConfig()); };
 
   auto verify = [&]() {
+    auto defaultUCQueueSize =
+        getAsic()->getDefaultNumPortQueues(cfg::StreamType::UNICAST, false);
+    EXPECT_EQ(getHwQueues().size(), defaultUCQueueSize);
     // if we've never set cosq configs to any queue. The system should come up
     // with all default values.
     const auto& queues = getSwQueues();
-    EXPECT_TRUE(queues.size() > 0);
+    EXPECT_EQ(queues.size(), defaultUCQueueSize);
     // default queue settings
     for (const auto& queue : queues) {
       checkDefaultCosqMatch(queue);

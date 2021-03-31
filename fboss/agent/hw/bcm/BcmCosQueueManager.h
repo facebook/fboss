@@ -111,6 +111,10 @@ class BcmCosQueueManager {
     return portGport_;
   }
 
+  const BcmSwitch* getBcmSwitch() const {
+    return hw_;
+  }
+
  protected:
   void getSchedulingAndWeight(
       bcm_gport_t gport,

@@ -10,6 +10,8 @@
 #include "fboss/agent/hw/bcm/tests/BcmCosQueueManagerTest.h"
 
 #include "fboss/agent/hw/bcm/BcmControlPlane.h"
+#include "fboss/agent/hw/bcm/BcmControlPlaneQueueManager.h"
+#include "fboss/agent/hw/bcm/BcmCosQueueManagerUtils.h"
 #include "fboss/agent/hw/bcm/RxUtils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
@@ -125,11 +127,23 @@ TEST_F(BcmControlPlaneTest, DefaultCPUQueuesCheckWithoutConfig) {
   if (getHwSwitch()->getBootType() == BootType::WARM_BOOT) {
     return;
   }
+
+  // The following check will verify BcmControlPlaneQueueManager::getNumQueues()
+  int expectedQueueSize;
+  if (!getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
+    expectedQueueSize = utility::getMaxCPUQueueSize(getHwSwitch()->getUnit());
+  } else {
+    // HW queue size should match to max cpu queue size.
+    expectedQueueSize = BcmControlPlaneQueueManager::kMaxMCQueueSize;
+  }
+
+  EXPECT_EQ(getHwQueues().size(), expectedQueueSize);
+
   // if we've never set cosq configs to any queue. The system should come up
   // with all default values.
   const auto& queues =
       getHwSwitch()->getControlPlane()->getMulticastQueueSettings();
-
+  EXPECT_EQ(queues.size(), expectedQueueSize);
   // default queue settings
   for (const auto& queue : queues) {
     checkDefaultCosqMatch(queue);

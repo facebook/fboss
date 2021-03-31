@@ -27,13 +27,6 @@ extern "C" {
 
 namespace {
 constexpr auto kCPUName = "cpu";
-// HACK: there seems to be some bugs in some queue apis related to
-// the number of queues. Specifically, if you use the cpu gport +
-// queue id to access cpu cosq, it rejects ids above 32. Also the
-// calls to get scheduling mode are inconsistent above queue id
-// 10. Since we don't use queues above 9, cap the number of
-// queues while we work through the issue + upgrade sdk.
-constexpr auto kMaxMCQueueSize = 10;
 } // namespace
 
 namespace facebook::fboss {

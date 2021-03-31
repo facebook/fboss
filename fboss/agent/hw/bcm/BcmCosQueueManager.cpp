@@ -84,9 +84,19 @@ int cosqGportTraverseCallback(
     info->scheduler = queueGport;
   } else if (flags & BCM_COSQ_GPORT_UCAST_QUEUE_GROUP) {
     bcm_cos_queue_t cosQ = BCM_GPORT_UCAST_QUEUE_GROUP_QID_GET(queueGport);
-    // T75758668 some platforms don't support NUM_COS any more.
-    // And we can just use queueGport from this callback directly
-    if (NUM_COS(unit) == 0 || BCM_COSQ_QUEUE_VALID(unit, cosQ)) {
+    // In Tomahawk, there're two more ucast queues created for each port but
+    // they are not satisfied BCM_COSQ_QUEUE_VALID check. While in all the other
+    // platforms, like TH3 and TH4, this callback returns only valid ucast
+    // queues.
+    auto asicType = cosQueueManager->getBcmSwitch()
+                        ->getPlatform()
+                        ->getAsic()
+                        ->getAsicType();
+    if ((asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK ||
+         asicType == HwAsic::AsicType::ASIC_TYPE_FAKE) &&
+        !BCM_COSQ_QUEUE_VALID(unit, cosQ)) {
+      // skip this queue
+    } else {
       info->unicast[cosQ] = queueGport;
     }
   } else if (flags & BCM_COSQ_GPORT_MCAST_QUEUE_GROUP) {
