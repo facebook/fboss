@@ -47,6 +47,14 @@ void routeAddDelBenchmarker(bool measureAdd) {
   const RouterID kRid(0);
   auto routeChunks = routeGenerator.getThriftRoutes();
   auto allThriftRoutes = routeGenerator.allThriftRoutes();
+  // Get routes with one greater ecmp width to capture a peering
+  // flap and following route updates
+  auto allThriftRoutesWiderEcmp = RouteScaleGeneratorT(
+                                      ensemble->getProgrammedState(),
+                                      ensemble->isStandaloneRibEnabled(),
+                                      allThriftRoutes.size(),
+                                      routeGenerator.ecmpWidth() + 1)
+                                      .allThriftRoutes();
 
   std::atomic<bool> done{false};
 
@@ -127,6 +135,8 @@ void routeAddDelBenchmarker(bool measureAdd) {
         };
     // Sync fib with same set of routes
     syncFib(allThriftRoutes);
+    // Sync fib with same set of routes, but ecmp nhops changed
+    syncFib(allThriftRoutesWiderEcmp);
     // Sync fib with no routes - del all
     syncFib({});
     // Sync fib with all routes
