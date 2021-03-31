@@ -146,6 +146,9 @@ void BcmSwitchEnsemble::init(
       platform->setOverrideTransceiverInfo(
           info->overrideTransceiverInfo.value());
     }
+    if (info->overrideWatermarkStatsInterval) {
+      FLAGS_update_bststats_interval_s = *info->overrideWatermarkStatsInterval;
+    }
   }
   auto bcmTestPlatform = static_cast<BcmTestPlatform*>(platform.get());
   std::unique_ptr<AgentConfig> agentConfig;
@@ -222,9 +225,6 @@ void BcmSwitchEnsemble::init(
   }
   setupEnsemble(
       std::move(platform), std::move(linkToggler), std::move(thriftThread));
-  // Set bst stats update interval to 0 so we always refresh BST stats
-  // in each updateStats call
-  FLAGS_update_bststats_interval_s = 0;
   getPlatform()->initLEDs(getHwSwitch()->getUnit());
 }
 } // namespace facebook::fboss

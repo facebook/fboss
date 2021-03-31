@@ -83,6 +83,9 @@ void HwTest::SetUp() {
   folly::SingletonVault::singleton()->reenableInstances();
   HwSwitchEnsemble::HwSwitchEnsembleInitInfo initInfo;
   initInfo.overrideTransceiverInfo = overrideTransceiverInfo();
+  // Set watermark stats update interval to 0 so we always refresh BST stats
+  // in each updateStats call
+  initInfo.overrideWatermarkStatsInterval = 0;
   hwSwitchEnsemble_ = createHwEnsemble(featuresDesired(), &initInfo);
   hwSwitchEnsemble_->addHwEventObserver(this);
   if (getHwSwitch()->getBootType() == BootType::WARM_BOOT) {
