@@ -70,6 +70,11 @@ void RouteUpdateWrapper::delRoute(
 }
 
 void RouteUpdateWrapper::program(const SyncFibFor& syncFibFor) {
+  for (const auto& ridAndClient : syncFibFor) {
+    if (ribRoutesToAddDel_.find(ridAndClient) == ribRoutesToAddDel_.end()) {
+      ribRoutesToAddDel_[ridAndClient] = AddDelRoutes{};
+    }
+  }
   if (isStandaloneRibEnabled_) {
     programStandAloneRib(syncFibFor);
   } else {
