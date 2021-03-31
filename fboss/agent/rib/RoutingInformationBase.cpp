@@ -80,6 +80,267 @@ void reconstructRibFromFib(
       });
 }
 } // namespace
+
+void RibRouteTables::reconfigure(
+    const RouterIDAndNetworkToInterfaceRoutes& configRouterIDToInterfaceRoutes,
+    const std::vector<cfg::StaticRouteWithNextHops>& staticRoutesWithNextHops,
+    const std::vector<cfg::StaticRouteNoNextHops>& staticRoutesToNull,
+    const std::vector<cfg::StaticRouteNoNextHops>& staticRoutesToCpu,
+    FibUpdateFunction updateFibCallback,
+    void* cookie) {
+  // Config application is accomplished in the following sequence of steps:
+  // 1. Update the VRFs held in RoutingInformationBase's
+  // SynchronizedRouteTables data-structure
+  //
+  // For each VRF specified in config:
+  //
+  // 2. Update all of RIB's static routes to be only those specified in
+  // config
+  //
+  // 3. Update all of RIB's interface routes to be only those specified in
+  // config
+  //
+  // 4. Re-resolve routes
+  //
+  // 5. Update FIB
+  //
+  // Steps 2-5 take place in ConfigApplier.
+
+  std::vector<RouterID> existingVrfs = getVrfList();
+
+  auto configureRoutesForVrf =
+      [&](RouterID vrf, const PrefixToInterfaceIDAndIP& interfaceRoutes) {
+        // A ConfigApplier object should be independent of the VRF whose
+        // routes it is processing. However, because interface and static
+        // routes for _all_ VRFs are passed to ConfigApplier, the vrf
+        // argument is needed to identify the subset of those routes which
+        // should be processed.
+
+        // ConfigApplier can be made independent of the VRF whose routes it
+        // is processing by the use of boost::filter_iterator.
+        {
+          auto lockedRouteTables = synchronizedRouteTables_.wlock();
+          auto& routeTable = lockedRouteTables->find(vrf)->second;
+          ConfigApplier configApplier(
+              vrf,
+              &(routeTable.v4NetworkToRoute),
+              &(routeTable.v6NetworkToRoute),
+              folly::range(interfaceRoutes.cbegin(), interfaceRoutes.cend()),
+              folly::range(
+                  staticRoutesToCpu.cbegin(), staticRoutesToCpu.cend()),
+              folly::range(
+                  staticRoutesToNull.cbegin(), staticRoutesToNull.cend()),
+              folly::range(
+                  staticRoutesWithNextHops.cbegin(),
+                  staticRoutesWithNextHops.cend()));
+          // Apply config
+          routeTable.makeWritable(true);
+          SCOPE_EXIT {
+            routeTable.makeWritable(false);
+          };
+          configApplier.apply();
+        }
+        updateFib(vrf, updateFibCallback, cookie);
+      };
+  // Because of this sequential loop over each VRF, config application scales
+  // linearly with the number of VRFs. If FBOSS is run in a multi-VRF routing
+  // architecture in the future, this slow-down can be avoided by
+  // parallelizing this loop. Converting this loop to use task-level
+  // parallelism should be straightfoward because it has been written to avoid
+  // dependencies across different iterations of the loop.
+  for (auto vrf : existingVrfs) {
+    // First handle the VRFs for which no interface routes exist
+    if (configRouterIDToInterfaceRoutes.find(vrf) !=
+        configRouterIDToInterfaceRoutes.end()) {
+      continue;
+    }
+    configureRoutesForVrf(
+        vrf, {} /* No interface routes*/
+    );
+  }
+  {
+    auto lockedRouteTables = synchronizedRouteTables_.wlock();
+    *lockedRouteTables = constructRouteTables(
+        lockedRouteTables, configRouterIDToInterfaceRoutes);
+  }
+  for (auto& vrf : getVrfList()) {
+    const auto& interfaceRoutes = configRouterIDToInterfaceRoutes.at(vrf);
+    configureRoutesForVrf(vrf, interfaceRoutes);
+  }
+}
+
+void RibRouteTables::update(
+    RouterID routerID,
+    ClientID clientID,
+    AdminDistance adminDistanceFromClientID,
+    const std::vector<RibRouteUpdater::RouteEntry>& toAddRoutes,
+    const std::vector<folly::CIDRNetwork>& toDelPrefixes,
+    bool resetClientsRoutes,
+    folly::StringPiece updateType,
+    const FibUpdateFunction& fibUpdateCallback,
+    void* cookie) {
+  {
+    // Update RIB
+    auto lockedRouteTables = synchronizedRouteTables_.wlock();
+
+    auto it = lockedRouteTables->find(routerID);
+    if (it == lockedRouteTables->end()) {
+      throw FbossError("VRF ", routerID, " not configured");
+    }
+
+    auto& routeTables = it->second;
+    routeTables.makeWritable(true);
+    SCOPE_EXIT {
+      routeTables.makeWritable(false);
+    };
+
+    RibRouteUpdater updater(
+        &(routeTables.v4NetworkToRoute), &(routeTables.v6NetworkToRoute));
+    updater.update(clientID, toAddRoutes, toDelPrefixes, resetClientsRoutes);
+  }
+  updateFib(routerID, fibUpdateCallback, cookie);
+}
+
+void RibRouteTables::updateFib(
+    RouterID vrf,
+    const FibUpdateFunction& fibUpdateCallback,
+    void* cookie) {
+  auto syncShadowRib = [this, vrf](const auto& routeTable) {
+    // Update shadow rib to new routes
+    // TODO: optimize and assert equivalence here
+    auto lockedShadowRouteTables = synchronizedShadowRouteTables_.wlock();
+    (*lockedShadowRouteTables)[vrf] = RouteTable{
+        {routeTable.v4NetworkToRoute.clone()},
+        {routeTable.v6NetworkToRoute.clone()},
+        false};
+  };
+  try {
+    auto lockedRouteTables = synchronizedRouteTables_.rlock();
+    auto& routeTable = lockedRouteTables->find(vrf)->second;
+    syncShadowRib(routeTable);
+    fibUpdateCallback(
+        vrf, routeTable.v4NetworkToRoute, routeTable.v6NetworkToRoute, cookie);
+  } catch (const FbossHwUpdateError& hwUpdateError) {
+    {
+      SCOPE_FAIL {
+        XLOG(FATAL) << " RIB Rollback failed, aborting program";
+      };
+      auto fib = hwUpdateError.appliedState->getFibs()->getFibContainer(vrf);
+      auto lockedRouteTables = synchronizedRouteTables_.wlock();
+      auto& routeTable = lockedRouteTables->find(vrf)->second;
+      reconstructRibFromFib<folly::IPAddressV4>(
+          fib->getFibV4(), &routeTable.v4NetworkToRoute);
+      reconstructRibFromFib<folly::IPAddressV6>(
+          fib->getFibV6(), &routeTable.v6NetworkToRoute);
+      syncShadowRib(routeTable);
+    }
+    throw;
+  }
+}
+
+void RibRouteTables::ensureVrf(RouterID rid) {
+  auto lockedRouteTables = synchronizedRouteTables_.wlock();
+  lockedRouteTables->insert(std::make_pair(rid, RouteTable()));
+}
+
+std::vector<RouterID> RibRouteTables::getVrfList() const {
+  auto lockedRouteTables = synchronizedRouteTables_.rlock();
+  std::vector<RouterID> res(lockedRouteTables->size());
+  for (const auto& entry : *lockedRouteTables) {
+    res.push_back(entry.first);
+  }
+  return res;
+}
+
+void RibRouteTables::RouteTable::makeWritable(bool _writable) {
+  if (_writable == writable) {
+    return;
+  }
+  if (_writable) {
+    v4NetworkToRoute.cloneAll();
+    v6NetworkToRoute.cloneAll();
+  } else {
+    v4NetworkToRoute.publishAll();
+    v6NetworkToRoute.publishAll();
+  }
+  writable = _writable;
+}
+
+void RibRouteTables::setClassID(
+    RouterID rid,
+    const std::vector<folly::CIDRNetwork>& prefixes,
+    FibUpdateFunction fibUpdateCallback,
+    std::optional<cfg::AclLookupClass> classId,
+    void* cookie) {
+  {
+    // Update rib
+    auto lockedRouteTables = synchronizedRouteTables_.wlock();
+
+    auto it = lockedRouteTables->find(rid);
+    if (it == lockedRouteTables->end()) {
+      throw FbossError("VRF ", rid, " not configured");
+    }
+    auto updateRoute = [&classId](auto& rib, auto ip, uint8_t mask) {
+      auto ritr = rib.exactMatch(ip, mask);
+      if (ritr == rib.end() || ritr->value()->getClassID() == classId) {
+        return;
+      }
+      ritr->value() = ritr->value()->clone();
+      ritr->value()->updateClassID(classId);
+      ritr->value()->publish();
+    };
+    auto& v4Rib = it->second.v4NetworkToRoute;
+    auto& v6Rib = it->second.v6NetworkToRoute;
+    for (auto& prefix : prefixes) {
+      if (prefix.first.isV4()) {
+        updateRoute(v4Rib, prefix.first.asV4(), prefix.second);
+      } else {
+        updateRoute(v6Rib, prefix.first.asV6(), prefix.second);
+      }
+    }
+  }
+  updateFib(rid, fibUpdateCallback, cookie);
+}
+
+template <typename AddressT>
+std::shared_ptr<Route<AddressT>> RibRouteTables::longestMatch(
+    const AddressT& address,
+    RouterID vrf) const {
+  auto shadowRibTables = synchronizedShadowRouteTables_.rlock();
+  auto vrfIt = shadowRibTables->find(vrf);
+  return vrfIt == shadowRibTables->end() ? nullptr
+                                         : vrfIt->second.longestMatch(address);
+}
+
+RibRouteTables::RouterIDToRouteTable RibRouteTables::constructRouteTables(
+    const SynchronizedRouteTables::WLockedPtr& lockedRouteTables,
+    const RouterIDAndNetworkToInterfaceRoutes& configRouterIDToInterfaceRoutes)
+    const {
+  RouterIDToRouteTable newRouteTables;
+
+  RouterIDToRouteTable::iterator newRouteTablesIter;
+  for (const auto& routerIDAndInterfaceRoutes :
+       configRouterIDToInterfaceRoutes) {
+    const RouterID configVrf = routerIDAndInterfaceRoutes.first;
+
+    newRouteTablesIter = newRouteTables.emplace_hint(
+        newRouteTables.cend(), configVrf, RouteTable());
+
+    auto oldRouteTablesIter = lockedRouteTables->find(configVrf);
+    if (oldRouteTablesIter == lockedRouteTables->end()) {
+      // configVrf did not exist in the RIB, so it has been added to
+      // newRouteTables with an empty set of routes
+      continue;
+    }
+
+    // configVrf exists in the RIB, so it will be shallow copied into
+    // newRouteTables.
+    newRouteTablesIter->second = std::move(oldRouteTablesIter->second);
+  }
+
+  return newRouteTables;
+}
+
 RoutingInformationBase::RoutingInformationBase() {
   ribUpdateThread_ = std::make_unique<std::thread>([this] {
     initThread("ribUpdateThread");
@@ -116,85 +377,13 @@ void RoutingInformationBase::reconfigure(
     void* cookie) {
   ensureRunning();
   auto updateFn = [&] {
-    // Config application is accomplished in the following sequence of steps:
-    // 1. Update the VRFs held in RoutingInformationBase's
-    // SynchronizedRouteTables data-structure
-    //
-    // For each VRF specified in config:
-    //
-    // 2. Update all of RIB's static routes to be only those specified in
-    // config
-    //
-    // 3. Update all of RIB's interface routes to be only those specified in
-    // config
-    //
-    // 4. Re-resolve routes
-    //
-    // 5. Update FIB
-    //
-    // Steps 2-5 take place in ConfigApplier.
-
-    std::vector<RouterID> existingVrfs = getVrfList();
-
-    auto configureRoutesForVrf =
-        [&](RouterID vrf, const PrefixToInterfaceIDAndIP& interfaceRoutes) {
-          // A ConfigApplier object should be independent of the VRF whose
-          // routes it is processing. However, because interface and static
-          // routes for _all_ VRFs are passed to ConfigApplier, the vrf
-          // argument is needed to identify the subset of those routes which
-          // should be processed.
-
-          // ConfigApplier can be made independent of the VRF whose routes it
-          // is processing by the use of boost::filter_iterator.
-          {
-            auto lockedRouteTables = synchronizedRouteTables_.wlock();
-            auto& routeTable = lockedRouteTables->find(vrf)->second;
-            ConfigApplier configApplier(
-                vrf,
-                &(routeTable.v4NetworkToRoute),
-                &(routeTable.v6NetworkToRoute),
-                folly::range(interfaceRoutes.cbegin(), interfaceRoutes.cend()),
-                folly::range(
-                    staticRoutesToCpu.cbegin(), staticRoutesToCpu.cend()),
-                folly::range(
-                    staticRoutesToNull.cbegin(), staticRoutesToNull.cend()),
-                folly::range(
-                    staticRoutesWithNextHops.cbegin(),
-                    staticRoutesWithNextHops.cend()));
-            // Apply config
-            routeTable.makeWritable(true);
-            SCOPE_EXIT {
-              routeTable.makeWritable(false);
-            };
-            configApplier.apply();
-          }
-          updateFib(vrf, updateFibCallback, cookie);
-        };
-    // Because of this sequential loop over each VRF, config application scales
-    // linearly with the number of VRFs. If FBOSS is run in a multi-VRF routing
-    // architecture in the future, this slow-down can be avoided by
-    // parallelizing this loop. Converting this loop to use task-level
-    // parallelism should be straightfoward because it has been written to avoid
-    // dependencies across different iterations of the loop.
-    for (auto vrf : existingVrfs) {
-      // First handle the VRFs for which no interface routes exist
-      if (configRouterIDToInterfaceRoutes.find(vrf) !=
-          configRouterIDToInterfaceRoutes.end()) {
-        continue;
-      }
-      configureRoutesForVrf(
-          vrf, {} /* No interface routes*/
-      );
-    }
-    {
-      auto lockedRouteTables = synchronizedRouteTables_.wlock();
-      *lockedRouteTables = constructRouteTables(
-          lockedRouteTables, configRouterIDToInterfaceRoutes);
-    }
-    for (auto& vrf : getVrfList()) {
-      const auto& interfaceRoutes = configRouterIDToInterfaceRoutes.at(vrf);
-      configureRoutesForVrf(vrf, interfaceRoutes);
-    }
+    ribTables_.reconfigure(
+        configRouterIDToInterfaceRoutes,
+        staticRoutesWithNextHops,
+        staticRoutesToNull,
+        staticRoutesToCpu,
+        updateFibCallback,
+        cookie);
   };
   ribUpdateEventBase_.runInEventBaseThreadAndWait(updateFn);
 }
@@ -214,36 +403,6 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
   std::chrono::microseconds duration;
   std::shared_ptr<SwitchState> appliedState;
   Timer updateTimer(&duration);
-
-  std::tie(std::ignore, stats) = updateImpl(
-      routerID,
-      clientID,
-      adminDistanceFromClientID,
-      toAdd,
-      toDelete,
-      resetClientsRoutes,
-      updateType,
-      fibUpdateCallback,
-      cookie);
-  stats.duration = duration;
-  return stats;
-}
-
-std::
-    pair<std::shared_ptr<SwitchState>, RoutingInformationBase::UpdateStatistics>
-    RoutingInformationBase::updateImpl(
-        RouterID routerID,
-        ClientID clientID,
-        AdminDistance adminDistanceFromClientID,
-        const std::vector<UnicastRoute>& toAdd,
-        const std::vector<IpPrefix>& toDelete,
-        bool resetClientsRoutes,
-        folly::StringPiece updateType,
-        FibUpdateFunction& fibUpdateCallback,
-        void* cookie) {
-  UpdateStatistics stats;
-  std::shared_ptr<SwitchState> appliedState;
-
   std::exception_ptr updateException;
   auto updateFn = [&]() {
     std::vector<RibRouteUpdater::RouteEntry> toAddRoutes;
@@ -283,28 +442,19 @@ std::
           }
           toDelPrefixes.push_back({network, mask});
         });
-    {
-      // Update RIB
-      auto lockedRouteTables = synchronizedRouteTables_.wlock();
 
-      auto it = lockedRouteTables->find(routerID);
-      if (it == lockedRouteTables->end()) {
-        throw FbossError("VRF ", routerID, " not configured");
-      }
-
-      auto& routeTables = it->second;
-      routeTables.makeWritable(true);
-      SCOPE_EXIT {
-        routeTables.makeWritable(false);
-      };
-
-      RibRouteUpdater updater(
-          &(routeTables.v4NetworkToRoute), &(routeTables.v6NetworkToRoute));
-      updater.update(clientID, toAddRoutes, toDelPrefixes, resetClientsRoutes);
-    }
     try {
-      updateFib(routerID, fibUpdateCallback, cookie);
-    } catch (const std::exception& ex) {
+      ribTables_.update(
+          routerID,
+          clientID,
+          adminDistanceFromClientID,
+          toAddRoutes,
+          toDelPrefixes,
+          resetClientsRoutes,
+          updateType,
+          fibUpdateCallback,
+          cookie);
+    } catch (const std::exception& e) {
       updateException = std::current_exception();
     }
   };
@@ -312,7 +462,8 @@ std::
   if (updateException) {
     std::rethrow_exception(updateException);
   }
-  return std::make_pair(appliedState, stats);
+  stats.duration = duration;
+  return stats;
 }
 
 void RoutingInformationBase::setClassIDImpl(
@@ -324,34 +475,7 @@ void RoutingInformationBase::setClassIDImpl(
     bool async) {
   ensureRunning();
   auto updateFn = [=]() {
-    {
-      // Update rib
-      auto lockedRouteTables = synchronizedRouteTables_.wlock();
-
-      auto it = lockedRouteTables->find(rid);
-      if (it == lockedRouteTables->end()) {
-        throw FbossError("VRF ", rid, " not configured");
-      }
-      auto updateRoute = [&classId](auto& rib, auto ip, uint8_t mask) {
-        auto ritr = rib.exactMatch(ip, mask);
-        if (ritr == rib.end() || ritr->value()->getClassID() == classId) {
-          return;
-        }
-        ritr->value() = ritr->value()->clone();
-        ritr->value()->updateClassID(classId);
-        ritr->value()->publish();
-      };
-      auto& v4Rib = it->second.v4NetworkToRoute;
-      auto& v6Rib = it->second.v6NetworkToRoute;
-      for (auto& prefix : prefixes) {
-        if (prefix.first.isV4()) {
-          updateRoute(v4Rib, prefix.first.asV4(), prefix.second);
-        } else {
-          updateRoute(v6Rib, prefix.first.asV6(), prefix.second);
-        }
-      }
-    }
-    updateFib(rid, fibUpdateCallback, cookie);
+    ribTables_.setClassID(rid, prefixes, fibUpdateCallback, classId, cookie);
   };
   if (async) {
     ribUpdateEventBase_.runInEventBaseThread(updateFn);
@@ -360,7 +484,7 @@ void RoutingInformationBase::setClassIDImpl(
   }
 }
 
-folly::dynamic RoutingInformationBase::toFollyDynamic() const {
+folly::dynamic RibRouteTables::toFollyDynamic() const {
   folly::dynamic rib = folly::dynamic::object;
 
   auto lockedRouteTables = synchronizedRouteTables_.rlock();
@@ -381,9 +505,14 @@ folly::dynamic RoutingInformationBase::toFollyDynamic() const {
 std::unique_ptr<RoutingInformationBase>
 RoutingInformationBase::fromFollyDynamic(const folly::dynamic& ribJson) {
   auto rib = std::make_unique<RoutingInformationBase>();
+  rib->ribTables_ = RibRouteTables::fromFollyDynamic(ribJson);
+  return rib;
+}
 
-  auto lockedRouteTables = rib->synchronizedRouteTables_.wlock();
-  auto lockedShadowRouteTables = rib->synchronizedShadowRouteTables_.wlock();
+RibRouteTables RibRouteTables::fromFollyDynamic(const folly::dynamic& ribJson) {
+  RibRouteTables rib;
+  auto lockedRouteTables = rib.synchronizedRouteTables_.wlock();
+  auto lockedShadowRouteTables = rib.synchronizedShadowRouteTables_.wlock();
   for (const auto& routeTable : ribJson.items()) {
     auto vrf = RouterID(routeTable.first.asInt());
     lockedRouteTables->insert(std::make_pair(
@@ -406,76 +535,10 @@ RoutingInformationBase::fromFollyDynamic(const folly::dynamic& ribJson) {
         (*lockedShadowRouteTables)[vrf].v6NetworkToRoute.size(),
         (*lockedRouteTables)[vrf].v6NetworkToRoute.size());
   }
-
   return rib;
 }
 
-void RoutingInformationBase::updateFib(
-    RouterID vrf,
-    const FibUpdateFunction& fibUpdateCallback,
-    void* cookie) {
-  auto syncShadowRib = [this, vrf](const auto& routeTable) {
-    // Update shadow rib to new routes
-    // TODO: optimize and assert equivalence here
-    auto lockedShadowRouteTables = synchronizedShadowRouteTables_.wlock();
-    (*lockedShadowRouteTables)[vrf] = RouteTable{
-        {routeTable.v4NetworkToRoute.clone()},
-        {routeTable.v6NetworkToRoute.clone()},
-        false};
-  };
-  try {
-    auto lockedRouteTables = synchronizedRouteTables_.rlock();
-    auto& routeTable = lockedRouteTables->find(vrf)->second;
-    syncShadowRib(routeTable);
-    fibUpdateCallback(
-        vrf, routeTable.v4NetworkToRoute, routeTable.v6NetworkToRoute, cookie);
-  } catch (const FbossHwUpdateError& hwUpdateError) {
-    {
-      SCOPE_FAIL {
-        XLOG(FATAL) << " RIB Rollback failed, aborting program";
-      };
-      auto fib = hwUpdateError.appliedState->getFibs()->getFibContainer(vrf);
-      auto lockedRouteTables = synchronizedRouteTables_.wlock();
-      auto& routeTable = lockedRouteTables->find(vrf)->second;
-      reconstructRibFromFib<folly::IPAddressV4>(
-          fib->getFibV4(), &routeTable.v4NetworkToRoute);
-      reconstructRibFromFib<folly::IPAddressV6>(
-          fib->getFibV6(), &routeTable.v6NetworkToRoute);
-      syncShadowRib(routeTable);
-    }
-    throw;
-  }
-}
-
-void RoutingInformationBase::RouteTable::makeWritable(bool _writable) {
-  if (_writable == writable) {
-    return;
-  }
-  if (_writable) {
-    v4NetworkToRoute.cloneAll();
-    v6NetworkToRoute.cloneAll();
-  } else {
-    v4NetworkToRoute.publishAll();
-    v6NetworkToRoute.publishAll();
-  }
-  writable = _writable;
-}
-
-void RoutingInformationBase::ensureVrf(RouterID rid) {
-  auto lockedRouteTables = synchronizedRouteTables_.wlock();
-  lockedRouteTables->insert(std::make_pair(rid, RouteTable()));
-}
-
-std::vector<RouterID> RoutingInformationBase::getVrfList() const {
-  auto lockedRouteTables = synchronizedRouteTables_.rlock();
-  std::vector<RouterID> res(lockedRouteTables->size());
-  for (const auto& entry : *lockedRouteTables) {
-    res.push_back(entry.first);
-  }
-  return res;
-}
-
-std::vector<RouteDetails> RoutingInformationBase::getRouteTableDetails(
+std::vector<RouteDetails> RibRouteTables::getRouteTableDetails(
     RouterID rid) const {
   std::vector<RouteDetails> routeDetails;
   SYNCHRONIZED_CONST(synchronizedRouteTables_) {
@@ -496,66 +559,11 @@ std::vector<RouteDetails> RoutingInformationBase::getRouteTableDetails(
   return routeDetails;
 }
 
-RoutingInformationBase::RouterIDToRouteTable
-RoutingInformationBase::constructRouteTables(
-    const SynchronizedRouteTables::WLockedPtr& lockedRouteTables,
-    const RouterIDAndNetworkToInterfaceRoutes& configRouterIDToInterfaceRoutes)
-    const {
-  RouterIDToRouteTable newRouteTables;
-
-  RouterIDToRouteTable::iterator newRouteTablesIter;
-  for (const auto& routerIDAndInterfaceRoutes :
-       configRouterIDToInterfaceRoutes) {
-    const RouterID configVrf = routerIDAndInterfaceRoutes.first;
-
-    newRouteTablesIter = newRouteTables.emplace_hint(
-        newRouteTables.cend(), configVrf, RouteTable());
-
-    auto oldRouteTablesIter = lockedRouteTables->find(configVrf);
-    if (oldRouteTablesIter == lockedRouteTables->end()) {
-      // configVrf did not exist in the RIB, so it has been added to
-      // newRouteTables with an empty set of routes
-      continue;
-    }
-
-    // configVrf exists in the RIB, so it will be shallow copied into
-    // newRouteTables.
-    newRouteTablesIter->second = std::move(oldRouteTablesIter->second);
-  }
-
-  return newRouteTables;
-}
-
-bool RoutingInformationBase::operator==(
-    const RoutingInformationBase& other) const {
-  auto cmpTables = [](const auto& mine, const auto& other) {
-    const auto& routeTables = mine.rlock();
-    const auto& otherTables = other.rlock();
-    return *routeTables == *otherTables;
-  };
-  return cmpTables(synchronizedRouteTables_, other.synchronizedRouteTables_) &&
-      cmpTables(
-             synchronizedShadowRouteTables_,
-             other.synchronizedShadowRouteTables_);
-}
-
-template <typename AddressT>
-std::shared_ptr<Route<AddressT>> RoutingInformationBase::longestMatch(
-    const AddressT& address,
-    RouterID vrf) const {
-  auto shadowRibTables = synchronizedShadowRouteTables_.rlock();
-  auto vrfIt = shadowRibTables->find(vrf);
-  return vrfIt == shadowRibTables->end() ? nullptr
-                                         : vrfIt->second.longestMatch(address);
-}
-
 template std::shared_ptr<Route<folly::IPAddressV4>>
-RoutingInformationBase::longestMatch(
-    const folly::IPAddressV4& address,
-    RouterID vrf) const;
+RibRouteTables::longestMatch(const folly::IPAddressV4& address, RouterID vrf)
+    const;
 template std::shared_ptr<Route<folly::IPAddressV6>>
-RoutingInformationBase::longestMatch(
-    const folly::IPAddressV6& address,
-    RouterID vrf) const;
+RibRouteTables::longestMatch(const folly::IPAddressV6& address, RouterID vrf)
+    const;
 
 } // namespace facebook::fboss

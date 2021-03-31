@@ -31,6 +31,128 @@ using FibUpdateFunction = std::function<std::shared_ptr<SwitchState>(
     const IPv6NetworkToRouteMap& v6NetworkToRoute,
     void* cookie)>;
 
+/*
+ * RibRouteTables provides a thread safe abstraction for maintaining Rib data
+ * structures and programming them down to the FIB. Its designed to abstract
+ * away granular locking logic over RIB data structures to allow for fast
+ * lookups that are not encumbered by long HW write cycles
+ */
+class RibRouteTables {
+ public:
+  void update(
+      RouterID routerID,
+      ClientID clientID,
+      AdminDistance adminDistanceFromClientID,
+      const std::vector<RibRouteUpdater::RouteEntry>& toAddRoutes,
+      const std::vector<folly::CIDRNetwork>& toDelPrefixes,
+      bool resetClientsRoutes,
+      folly::StringPiece updateType,
+      const FibUpdateFunction& fibUpdateCallback,
+      void* cookie);
+
+  void setClassID(
+      RouterID rid,
+      const std::vector<folly::CIDRNetwork>& prefixes,
+      FibUpdateFunction fibUpdateCallback,
+      std::optional<cfg::AclLookupClass> classId,
+      void* cookie);
+  /*
+   * VrfAndNetworkToInterfaceRoute is conceptually a mapping from the pair
+   * (RouterID, folly::CIDRNetwork) to the pair (Interface(1),
+   * folly::IPAddress). An example of an element in this map is: (RouterID(0),
+   * 169.254.0.0/16) --> (Interface(1), 169.254.0.1) This specifies that the
+   * network 169.254.0.0/16 in VRF 0 can be reached via Interface 1, which has
+   * an address of 169.254.0.1. in that subnet. Note that the IP address in the
+   * key has its mask applied to it while the IP address value doesn't.
+   */
+  using PrefixToInterfaceIDAndIP = boost::container::
+      flat_map<folly::CIDRNetwork, std::pair<InterfaceID, folly::IPAddress>>;
+  using RouterIDAndNetworkToInterfaceRoutes =
+      boost::container::flat_map<RouterID, PrefixToInterfaceIDAndIP>;
+
+  void reconfigure(
+      const RouterIDAndNetworkToInterfaceRoutes&
+          configRouterIDToInterfaceRoutes,
+      const std::vector<cfg::StaticRouteWithNextHops>& staticRoutesWithNextHops,
+      const std::vector<cfg::StaticRouteNoNextHops>& staticRoutesToNull,
+      const std::vector<cfg::StaticRouteNoNextHops>& staticRoutesToCpu,
+      FibUpdateFunction fibUpdateCallback,
+      void* cookie);
+  folly::dynamic toFollyDynamic() const;
+  static RibRouteTables fromFollyDynamic(const folly::dynamic& ribJson);
+
+  void ensureVrf(RouterID rid);
+  std::vector<RouterID> getVrfList() const;
+  std::vector<RouteDetails> getRouteTableDetails(RouterID rid) const;
+
+  template <typename AddressT>
+  std::shared_ptr<Route<AddressT>> longestMatch(
+      const AddressT& address,
+      RouterID vrf) const;
+
+ private:
+  struct RouteTable {
+    IPv4NetworkToRouteMap v4NetworkToRoute;
+    IPv6NetworkToRouteMap v6NetworkToRoute;
+    bool writable{true};
+
+    bool operator==(const RouteTable& other) const {
+      return v4NetworkToRoute == other.v4NetworkToRoute &&
+          v6NetworkToRoute == other.v6NetworkToRoute;
+    }
+    bool operator!=(const RouteTable& other) const {
+      return !(*this == other);
+    }
+    std::shared_ptr<Route<folly::IPAddressV4>> longestMatch(
+        const folly::IPAddressV4& addr) const {
+      auto it = v4NetworkToRoute.longestMatch(addr, addr.bitCount());
+      return it == v4NetworkToRoute.end() ? nullptr : it->value();
+    }
+    std::shared_ptr<Route<folly::IPAddressV6>> longestMatch(
+        const folly::IPAddressV6& addr) const {
+      auto it = v6NetworkToRoute.longestMatch(addr, addr.bitCount());
+      return it == v6NetworkToRoute.end() ? nullptr : it->value();
+    }
+
+    void makeWritable(bool setWritable);
+  };
+
+  void updateFib(
+      RouterID vrf,
+      const FibUpdateFunction& fibUpdateCallback,
+      void* cookie);
+  /*
+   * Currently, route updates to separate VRFs are made to be sequential. In the
+   * event FBOSS has to operate in a routing architecture with numerous VRFs,
+   * we can avoid a slow down by a factor of number of VRFs by parallelizing
+   * route updates across VRFs. This can be accomplished simply by associating
+   * the mutex implicit in folly::Synchronized with an individual RouteTable.
+   */
+  using RouterIDToRouteTable = boost::container::flat_map<RouterID, RouteTable>;
+  using SynchronizedRouteTables = folly::Synchronized<RouterIDToRouteTable>;
+
+  RouterIDToRouteTable constructRouteTables(
+      const SynchronizedRouteTables::WLockedPtr& lockedRouteTables,
+      const RouterIDAndNetworkToInterfaceRoutes&
+          configRouterIDToInterfaceRoutes) const;
+
+  SynchronizedRouteTables synchronizedRouteTables_;
+  /*
+   * Shadow route tables for lookup. During route updates and later
+   * resolution, we make updates to RouteTables and then trigger a
+   * reresolution. During this stage the RouteTable is not in
+   * a state where we can use it for lookup. E.g. any of the new
+   * routes added don't have any forwarding info (which comes after
+   * resolution) so we can't use this data structure for both
+   * resolution and lookups. Hence a shadow route table to
+   * facilitate lookups. Regular and shadow route table will
+   * share routes via pointers, but shadow tables will be updated
+   * only after resolution and will always present a sane state for
+   * lookup.
+   */
+  SynchronizedRouteTables synchronizedShadowRouteTables_;
+};
+
 class RoutingInformationBase {
  public:
   RoutingInformationBase(const RoutingInformationBase& o) = delete;
@@ -89,10 +211,8 @@ class RoutingInformationBase {
    * an address of 169.254.0.1. in that subnet. Note that the IP address in the
    * key has its mask applied to it while the IP address value doesn't.
    */
-  using PrefixToInterfaceIDAndIP = boost::container::
-      flat_map<folly::CIDRNetwork, std::pair<InterfaceID, folly::IPAddress>>;
   using RouterIDAndNetworkToInterfaceRoutes =
-      boost::container::flat_map<RouterID, PrefixToInterfaceIDAndIP>;
+      RibRouteTables::RouterIDAndNetworkToInterfaceRoutes;
 
   void reconfigure(
       const RouterIDAndNetworkToInterfaceRoutes&
@@ -121,17 +241,20 @@ class RoutingInformationBase {
     setClassIDImpl(rid, prefixes, fibUpdateCallback, classId, cookie, true);
   }
 
-  folly::dynamic toFollyDynamic() const;
+  folly::dynamic toFollyDynamic() const {
+    return ribTables_.toFollyDynamic();
+  }
   static std::unique_ptr<RoutingInformationBase> fromFollyDynamic(
       const folly::dynamic& ribJson);
 
-  void ensureVrf(RouterID rid);
-  std::vector<RouterID> getVrfList() const;
-  std::vector<RouteDetails> getRouteTableDetails(RouterID rid) const;
-
-  bool operator==(const RoutingInformationBase& other) const;
-  bool operator!=(const RoutingInformationBase& other) const {
-    return !(*this == other);
+  void ensureVrf(RouterID rid) {
+    ribTables_.ensureVrf(rid);
+  }
+  std::vector<RouterID> getVrfList() const {
+    return ribTables_.getVrfList();
+  }
+  std::vector<RouteDetails> getRouteTableDetails(RouterID rid) const {
+    return ribTables_.getRouteTableDetails(rid);
   }
 
   void waitForRibUpdates() {
@@ -144,7 +267,9 @@ class RoutingInformationBase {
   template <typename AddressT>
   std::shared_ptr<Route<AddressT>> longestMatch(
       const AddressT& address,
-      RouterID vrf) const;
+      RouterID vrf) const {
+    return ribTables_.longestMatch(address, vrf);
+  }
 
  private:
   void ensureRunning() const;
@@ -156,79 +281,9 @@ class RoutingInformationBase {
       void* cookie,
       bool async);
 
-  struct RouteTable {
-    IPv4NetworkToRouteMap v4NetworkToRoute;
-    IPv6NetworkToRouteMap v6NetworkToRoute;
-    bool writable{true};
-
-    bool operator==(const RouteTable& other) const {
-      return v4NetworkToRoute == other.v4NetworkToRoute &&
-          v6NetworkToRoute == other.v6NetworkToRoute;
-    }
-    bool operator!=(const RouteTable& other) const {
-      return !(*this == other);
-    }
-    std::shared_ptr<Route<folly::IPAddressV4>> longestMatch(
-        const folly::IPAddressV4& addr) const {
-      auto it = v4NetworkToRoute.longestMatch(addr, addr.bitCount());
-      return it == v4NetworkToRoute.end() ? nullptr : it->value();
-    }
-    std::shared_ptr<Route<folly::IPAddressV6>> longestMatch(
-        const folly::IPAddressV6& addr) const {
-      auto it = v6NetworkToRoute.longestMatch(addr, addr.bitCount());
-      return it == v6NetworkToRoute.end() ? nullptr : it->value();
-    }
-
-    void makeWritable(bool setWritable);
-  };
-
-  void updateFib(
-      RouterID vrf,
-      const FibUpdateFunction& fibUpdateCallback,
-      void* cookie);
-
-  std::pair<std::shared_ptr<SwitchState>, UpdateStatistics> updateImpl(
-      RouterID routerID,
-      ClientID clientID,
-      AdminDistance adminDistanceFromClientID,
-      const std::vector<UnicastRoute>& toAdd,
-      const std::vector<IpPrefix>& toDelete,
-      bool resetClientsRoutes,
-      folly::StringPiece updateType,
-      FibUpdateFunction& fibUpdateCallback,
-      void* cookie);
-  /*
-   * Currently, route updates to separate VRFs are made to be sequential. In the
-   * event FBOSS has to operate in a routing architecture with numerous VRFs,
-   * we can avoid a slow down by a factor of number of VRFs by parallelizing
-   * route updates across VRFs. This can be accomplished simply by associating
-   * the mutex implicit in folly::Synchronized with an individual RouteTable.
-   */
-  using RouterIDToRouteTable = boost::container::flat_map<RouterID, RouteTable>;
-  using SynchronizedRouteTables = folly::Synchronized<RouterIDToRouteTable>;
-
-  RouterIDToRouteTable constructRouteTables(
-      const SynchronizedRouteTables::WLockedPtr& lockedRouteTables,
-      const RouterIDAndNetworkToInterfaceRoutes&
-          configRouterIDToInterfaceRoutes) const;
-
-  SynchronizedRouteTables synchronizedRouteTables_;
-  /*
-   * Shadow route tables for lookup. During route updates and later
-   * resolution, we make updates to RouteTables and then trigger a
-   * reresolution. During this stage the RouteTable is not in
-   * a state where we can use it for lookup. E.g. any of the new
-   * routes added don't have any forwarding info (which comes after
-   * resolution) so we can't use this data structure for both
-   * resolution and lookups. Hence a shadow route table to
-   * facilitate lookups. Regular and shadow route table will
-   * share routes via pointers, but shadow tables will be updated
-   * only after resolution and will always present a sane state for
-   * lookup.
-   */
-  SynchronizedRouteTables synchronizedShadowRouteTables_;
   std::unique_ptr<std::thread> ribUpdateThread_;
   folly::EventBase ribUpdateEventBase_;
+  RibRouteTables ribTables_;
 };
 
 } // namespace facebook::fboss
