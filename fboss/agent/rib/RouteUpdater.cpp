@@ -432,7 +432,7 @@ void RibRouteUpdater::getFwdInfoFromNhop(
   CHECK(route);
 
   if (needResolve(route)) {
-    route = resolveOne(route);
+    route = resolveOne<AddressT>(it);
     CHECK(route);
   }
 
@@ -473,7 +473,8 @@ void RibRouteUpdater::getFwdInfoFromNhop(
 
 template <typename AddressT>
 std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
-    std::shared_ptr<Route<AddressT>>& route) {
+    typename NetworkToRouteMap<AddressT>::Iterator ritr) {
+  auto& route = ritr->value();
   // Starting resolution for this route, remove from resolution queue
   needsResolution_.erase(route.get());
 
@@ -533,9 +534,9 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
 
   std::shared_ptr<Route<AddressT>> updatedRoute;
   auto updateRoute = [this, clientId, &updatedRoute](
-                         const std::shared_ptr<Route<AddressT>>& route,
+                         typename NetworkToRouteMap<AddressT>::Iterator ritr,
                          std::optional<RouteNextHopEntry> nhop) {
-    updatedRoute = writableRoute(route);
+    updatedRoute = writableRoute<AddressT>(ritr);
     if (nhop) {
       updatedRoute->setResolved(*nhop);
       if (clientId == kInterfaceRouteClientId &&
@@ -552,25 +553,25 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
   if (!fwd.empty()) {
     if (route->getForwardInfo().getNextHopSet() != fwd) {
       updateRoute(
-          route,
+          ritr,
           RouteNextHopEntry(std::move(fwd), AdminDistance::MAX_ADMIN_DISTANCE));
     }
   } else if (hasToCpu) {
     if (!route->isToCPU()) {
       updateRoute(
-          route,
+          ritr,
           RouteNextHopEntry(
               RouteForwardAction::TO_CPU, AdminDistance::MAX_ADMIN_DISTANCE));
     }
   } else if (hasDrop) {
     if (!route->isDrop()) {
       updateRoute(
-          route,
+          ritr,
           RouteNextHopEntry(
               RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
     }
   } else {
-    updateRoute(route, std::nullopt);
+    updateRoute(ritr, std::nullopt);
   }
   if (!updatedRoute) {
     route->publish();
@@ -579,24 +580,6 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
                << " route " << route->str();
   }
   return updatedRoute ? updatedRoute : route;
-}
-
-template <typename AddressT>
-std::shared_ptr<Route<AddressT>> RibRouteUpdater::writableRoute(
-    const std::shared_ptr<Route<AddressT>>& orig) {
-  auto cloneRoute = [this](auto& rib, auto ip, uint8_t mask) {
-    auto ritr = rib->exactMatch(ip, mask);
-    CHECK(ritr != rib->end());
-    if (ritr->value()->isPublished()) {
-      ritr->value() = ritr->value()->clone();
-    }
-    return ritr->value();
-  };
-  if constexpr (std::is_same_v<AddressT, folly::IPAddressV6>) {
-    return cloneRoute(v6Routes_, orig->prefix().network, orig->prefix().mask);
-  } else {
-    return cloneRoute(v4Routes_, orig->prefix().network, orig->prefix().mask);
-  }
 }
 
 template <typename AddressT>
@@ -610,10 +593,9 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::writableRoute(
 
 template <typename AddressT>
 void RibRouteUpdater::resolve(NetworkToRouteMap<AddressT>* routes) {
-  for (auto& entry : *routes) {
-    auto& route = entry.value();
-    if (needResolve(route)) {
-      resolveOne(route);
+  for (auto ritr = routes->begin(); ritr != routes->end(); ++ritr) {
+    if (needResolve(ritr->value())) {
+      resolveOne<AddressT>(ritr);
     }
   }
 }
