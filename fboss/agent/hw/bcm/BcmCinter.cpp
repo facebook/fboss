@@ -94,7 +94,7 @@ namespace facebook::fboss {
 BcmCinter::BcmCinter() {
   if (FLAGS_enable_bcm_cinter) {
     asyncLogger_ = std::make_unique<AsyncLogger>(
-        FLAGS_cint_file, FLAGS_cinter_log_timeout);
+        FLAGS_cint_file, FLAGS_cinter_log_timeout, AsyncLogger::BCMCINTER);
 
     asyncLogger_->startFlushThread();
     setupGlobals();

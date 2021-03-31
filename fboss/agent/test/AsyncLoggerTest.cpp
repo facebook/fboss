@@ -26,7 +26,8 @@ using namespace facebook::fboss;
 class AsyncLoggerTest : public ::testing::Test {
  public:
   void SetUp() override {
-    asyncLogger = std::make_unique<AsyncLogger>(TEST_LOG, logTimeout);
+    asyncLogger = std::make_unique<AsyncLogger>(
+        TEST_LOG, logTimeout, AsyncLogger::SAIREPLAYER);
     asyncLogger->startFlushThread();
   }
 

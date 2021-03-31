@@ -66,9 +66,12 @@ void terminateHandler() {
 } // namespace
 
 namespace facebook::fboss {
-AsyncLogger::AsyncLogger(std::string filePath, uint32_t logTimeout)
+AsyncLogger::AsyncLogger(
+    std::string filePath,
+    uint32_t logTimeout,
+    LoggerSrcType srcType)
     : bufferSize_(AsyncLogger::kBufferSize) {
-  openLogFile(filePath);
+  openLogFile(filePath, srcType);
 
   if (!FLAGS_disable_async_logger) {
     logBuffer_ = buffer0.data();
@@ -206,30 +209,36 @@ void AsyncLogger::appendLog(const char* logRecord, size_t logSize) {
   }
 }
 
-void AsyncLogger::openLogFile(std::string& file_path) {
+void AsyncLogger::openLogFile(std::string& filePath, LoggerSrcType srcType) {
   // By default, async logger opens log file under /var/facebook/logs/fboss/
   // However, the directory /var/facebook/logs/fboss/ might not exist for test
   // switches not running chef. When that happens, we fall back to /tmp/ and
   // write generated code there.
+  std::string srcTypeStr = srcType == BCMCINTER ? "Bcm Cinter" : "Sai Replayer";
   try {
-    if (file_path.find("/var/facebook/logs/fboss/") == 0) {
+    if (filePath.find("/var/facebook/logs/fboss/") == 0) {
       // Writes to default log location - append to log
-      logFile_ = folly::File(file_path, O_RDWR | O_CREAT | O_APPEND);
+      logFile_ = folly::File(filePath, O_RDWR | O_CREAT | O_APPEND);
     } else {
       // Testing purpose - override the old log
-      logFile_ = folly::File(file_path, O_RDWR | O_CREAT | O_TRUNC);
+      logFile_ = folly::File(filePath, O_RDWR | O_CREAT | O_TRUNC);
     }
   } catch (const std::system_error& e) {
-    auto last_slash = file_path.find_last_of("/");
+    auto last_slash = filePath.find_last_of("/");
 
-    std::string directory = file_path.substr(0, last_slash);
-    std::string file_name = file_path.substr(last_slash + 1);
+    std::string directory = filePath.substr(0, last_slash);
+    std::string file_name = filePath.substr(last_slash + 1);
 
-    XLOG(WARN) << "Failed to create " << file_name << " under " << directory
-               << ". Falling back to /tmp/" << file_name;
+    XLOG(WARN) << "[Async Logger] Failed to create " << file_name << " under "
+               << directory << ". Logging " << srcTypeStr << " log at /tmp/"
+               << file_name;
 
     logFile_ = folly::File("/tmp/" + file_name, O_RDWR | O_CREAT | O_TRUNC);
+    return;
   }
+
+  XLOG(INFO) << "[Async Logger] Logging " << srcTypeStr << " log at "
+             << filePath;
 }
 
 } // namespace facebook::fboss
