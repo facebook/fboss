@@ -71,6 +71,9 @@ class RouteNextHopsMulti {
     return map_.empty();
   }
 
+  size_t size() const {
+    return map_.size();
+  }
   void delEntryForClient(ClientID clientId);
 
   const RouteNextHopEntry* FOLLY_NULLABLE

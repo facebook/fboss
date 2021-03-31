@@ -145,15 +145,16 @@ void RibRouteUpdater::delRouteImpl(
   if (!clientNhopEntry) {
     return;
   }
-  route = writableRoute<AddressT>(it);
-  route->delEntryForClient(clientID);
-
-  XLOG(DBG3) << "Deleted next-hops for prefix " << prefix.str()
-             << "from client " << folly::to<std::string>(clientID);
-
-  if (route->hasNoEntry()) {
-    XLOG(DBG3) << "...and then deleted route " << route->str();
+  if (route->numClientEntries() == 1) {
+    // If this client's the only entry, simply erase
+    XLOG(DBG3) << "Deleting route: " << route->str();
     routes->erase(it);
+  } else {
+    route = writableRoute<AddressT>(it);
+    route->delEntryForClient(clientID);
+
+    XLOG(DBG3) << "Deleted next-hops for prefix " << prefix.str()
+               << "from client " << folly::to<std::string>(clientID);
   }
 }
 
@@ -183,11 +184,17 @@ void RibRouteUpdater::removeAllRoutesFromClientImpl(
     if (!nhopEntry) {
       continue;
     }
-    route = writableRoute<AddressT>(it);
-    route->delEntryForClient(clientID);
-    if (route->hasNoEntry()) {
-      // The nexthops we removed was the only one.  Delete the route->
+    if (route->numClientEntries() == 1) {
+      // This client's is the only entry avoid unnecessary cloning
+      // we are going to prune the route anyways
       toDelete.push_back(it);
+    } else {
+      route = writableRoute<AddressT>(it);
+      route->delEntryForClient(clientID);
+      if (route->hasNoEntry()) {
+        // The nexthops we removed was the only one.  Delete the route->
+        toDelete.push_back(it);
+      }
     }
   }
 

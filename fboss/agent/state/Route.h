@@ -63,6 +63,9 @@ struct RouteFields {
   std::pair<ClientID, const RouteNextHopEntry*> getBestEntry() const {
     return nexthopsmulti.getBestEntry();
   }
+  size_t numClientEntries() const {
+    return nexthopsmulti.size();
+  }
   std::optional<cfg::AclLookupClass> getClassID() const {
     return classID;
   }
@@ -268,6 +271,10 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
   }
   bool hasNoEntry() const {
     return RouteBase::getFields()->hasNoEntry();
+  }
+
+  size_t numClientEntries() const {
+    return RouteBase::getFields()->numClientEntries();
   }
 
   bool has(ClientID clientId, const RouteNextHopEntry& entry) const {
