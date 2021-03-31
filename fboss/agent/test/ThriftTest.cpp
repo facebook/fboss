@@ -20,6 +20,7 @@
 #include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/HwTestHandle.h"
+#include "fboss/agent/test/RouteScaleGenerators.h"
 #include "fboss/agent/test/TestUtils.h"
 
 #include <folly/IPAddress.h>
@@ -1097,4 +1098,36 @@ TYPED_TEST(ThriftTest, hwUpdateErrorAfterPartialUpdate) {
         }
       },
       FbossFibUpdateError);
+}
+
+TYPED_TEST(ThriftTest, routeUpdatesWithConcurrentReads) {
+  auto thriftHgridRoutes =
+      utility::HgridDuRouteScaleGenerator(
+          this->sw_->getState(), this->sw_->isStandaloneRibEnabled(), 100000)
+          .getThriftRoutes()[0];
+  auto thriftRswRoutes =
+      utility::RSWRouteScaleGenerator(
+          this->sw_->getState(), this->sw_->isStandaloneRibEnabled(), 10000)
+          .getThriftRoutes()[0];
+  std::atomic<bool> done{false};
+
+  ThriftHandler handler(this->sw_);
+  std::thread routeReads([&handler, &done]() {
+    while (!done) {
+      std::vector<RouteDetails> details;
+      handler.getRouteTableDetails(details);
+      UnicastRoute route;
+      handler.getIpRoute(
+          route,
+          std::make_unique<facebook::network::thrift::Address>(
+              facebook::network::toAddress(folly::IPAddress("2001::"))),
+          RouterID(0));
+    }
+  });
+  handler.addUnicastRoutes(
+      10, std::make_unique<std::vector<UnicastRoute>>(thriftHgridRoutes));
+  handler.addUnicastRoutes(
+      11, std::make_unique<std::vector<UnicastRoute>>(thriftRswRoutes));
+  done = true;
+  routeReads.join();
 }
