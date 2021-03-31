@@ -34,7 +34,6 @@ class RouteUpdateWrapper {
   using SyncFibFor = std::unordered_set<RouterIDAndClient>;
   virtual ~RouteUpdateWrapper() = default;
   using UpdateStatistics = RoutingInformationBase::UpdateStatistics;
-  using FibUpdateFunction = RoutingInformationBase::FibUpdateFunction;
   void addRoute(
       RouterID id,
       const folly::IPAddress& network,

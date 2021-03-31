@@ -25,17 +25,18 @@
 namespace facebook::fboss {
 class SwitchState;
 
+using FibUpdateFunction = std::function<std::shared_ptr<SwitchState>(
+    RouterID vrf,
+    const IPv4NetworkToRouteMap& v4NetworkToRoute,
+    const IPv6NetworkToRouteMap& v6NetworkToRoute,
+    void* cookie)>;
+
 class RoutingInformationBase {
  public:
   RoutingInformationBase(const RoutingInformationBase& o) = delete;
   RoutingInformationBase& operator=(const RoutingInformationBase& o) = delete;
   RoutingInformationBase();
   ~RoutingInformationBase();
-  using FibUpdateFunction = std::function<std::shared_ptr<SwitchState>(
-      RouterID vrf,
-      const IPv4NetworkToRouteMap& v4NetworkToRoute,
-      const IPv6NetworkToRouteMap& v6NetworkToRoute,
-      void* cookie)>;
 
   struct UpdateStatistics {
     std::size_t v4RoutesAdded{0};
