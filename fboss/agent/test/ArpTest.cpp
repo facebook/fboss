@@ -1128,6 +1128,52 @@ TEST(ArpTest, ArpExpiration) {
   EXPECT_TRUE(arpExpirations[0]->wait());
 }
 
+TEST(ArpTest, FlushEntryWithConcurrentUpdate) {
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+  ThriftHandler thriftHandler(sw);
+
+  PortID portID(1);
+  // ensure port is up
+  sw->linkStateChanged(portID, true);
+
+  VlanID vlanID(1);
+  std::vector<IPAddressV4> targetIPs;
+  for (uint32_t i = 1; i <= 255; i++) {
+    targetIPs.push_back(IPAddressV4("10.0.0." + std::to_string(i)));
+  }
+
+  // populate arp entries first before flush
+  for (auto& ip : targetIPs) {
+    WaitForArpEntryReachable arpReachable(sw, ip);
+    sendArpReply(handle.get(), ip.str(), "02:10:20:30:40:22", portID);
+    EXPECT_TRUE(arpReachable.wait());
+  }
+
+  std::atomic<bool> done{false};
+  std::thread arpReplies([&handle, &targetIPs, &portID, &done]() {
+    int index = 0;
+    while (!done) {
+      sendArpReply(
+          handle.get(), targetIPs[index].str(), "02:10:20:30:40:22", portID);
+      index = (index + 1) % targetIPs.size();
+    }
+  });
+
+  // flush all arp entries for 100 times
+  for (uint32_t i = 0; i < 100; i++) {
+    int numFlushed = 0;
+    for (auto& ip : targetIPs) {
+      numFlushed += thriftHandler.flushNeighborEntry(
+          make_unique<BinaryAddress>(toBinaryAddress(ip)), vlanID);
+    }
+    XLOG(DBG) << "iter" << i << " flushed " << numFlushed << " entries";
+  }
+  // let TSAN/ASAN catch any racing issues
+  done = true;
+  arpReplies.join();
+}
+
 TEST(ArpTest, PortFlapRecover) {
   auto handle = setupTestHandle();
   auto sw = handle->getSw();

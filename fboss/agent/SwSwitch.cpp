@@ -386,7 +386,7 @@ void SwSwitch::invokeNeighborListener(
     const std::vector<std::string>& added,
     const std::vector<std::string>& removed) {
   lock_guard<mutex> g(neighborListenerMutex_);
-  if (neighborListener_) {
+  if (neighborListener_ && !isExiting()) {
     neighborListener_(added, removed);
   }
 }

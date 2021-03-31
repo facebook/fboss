@@ -1427,6 +1427,59 @@ TYPED_TEST(NdpTest, NdpExpiration) {
   EXPECT_EQ(entry, nullptr);
 }
 
+TYPED_TEST(NdpTest, FlushEntryWithConcurrentUpdate) {
+  auto handle = this->setupTestHandle();
+  auto sw = handle->getSw();
+  ThriftHandler thriftHandler(sw);
+
+  PortID portID(1);
+  // ensure port is up
+  sw->linkStateChanged(portID, true);
+
+  VlanID vlanID(5);
+  std::vector<IPAddressV6> targetIPs;
+  for (uint32_t i = 1; i <= 255; i++) {
+    targetIPs.push_back(
+        IPAddressV6("2401:db00:2110:3004::" + std::to_string(i)));
+  }
+
+  // populate ndp entries first before flush
+  for (auto& ip : targetIPs) {
+    WaitForNdpEntryReachable ndpReachable(sw, ip, vlanID);
+    sendNeighborAdvertisement(
+        handle.get(), ip.str(), "02:05:73:f9:46:fb", portID, vlanID, false);
+    EXPECT_TRUE(ndpReachable.wait());
+  }
+
+  std::atomic<bool> done{false};
+  std::thread ndpReplies([&handle, &targetIPs, &portID, &vlanID, &done]() {
+    int index = 0;
+    while (!done) {
+      sendNeighborAdvertisement(
+          handle.get(),
+          targetIPs[index].str(),
+          "02:05:73:f9:46:fb",
+          portID,
+          vlanID,
+          false);
+      index = (index + 1) % targetIPs.size();
+    }
+  });
+
+  // flush all ndp entries for 100 times
+  for (uint32_t i = 0; i < 100; i++) {
+    int numFlushed = 0;
+    for (auto& ip : targetIPs) {
+      numFlushed += thriftHandler.flushNeighborEntry(
+          make_unique<BinaryAddress>(toBinaryAddress(ip)), vlanID);
+    }
+    XLOG(DBG) << "iter" << i << " flushed " << numFlushed << " entries";
+  }
+  // let TSAN/ASAN catch any racing issues
+  done = true;
+  ndpReplies.join();
+}
+
 TYPED_TEST(NdpTest, PortFlapRecover) {
   auto handle = this->setupTestHandleWithNdpTimeout(seconds(0));
   auto sw = handle->getSw();
