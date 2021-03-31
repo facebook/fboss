@@ -102,7 +102,7 @@ void RibRouteUpdater::addOrReplaceRouteImpl(
     auto route = it->value();
     auto existingRouteForClient = route->getEntryForClient(clientID);
     if (!existingRouteForClient || !(*existingRouteForClient == entry)) {
-      route = writableRoute(route);
+      route = writableRoute<AddressT>(it);
       route->update(clientID, entry);
     }
     return;
@@ -145,7 +145,7 @@ void RibRouteUpdater::delRouteImpl(
   if (!clientNhopEntry) {
     return;
   }
-  route = writableRoute(route);
+  route = writableRoute<AddressT>(it);
   route->delEntryForClient(clientID);
 
   XLOG(DBG3) << "Deleted next-hops for prefix " << prefix.str()
@@ -183,7 +183,7 @@ void RibRouteUpdater::removeAllRoutesFromClientImpl(
     if (!nhopEntry) {
       continue;
     }
-    route = writableRoute(route);
+    route = writableRoute<AddressT>(it);
     route->delEntryForClient(clientID);
     if (route->hasNoEntry()) {
       // The nexthops we removed was the only one.  Delete the route->
@@ -532,7 +532,6 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
   }
 
   std::shared_ptr<Route<AddressT>> updatedRoute;
-  ;
   auto updateRoute = [this, clientId, &updatedRoute](
                          const std::shared_ptr<Route<AddressT>>& route,
                          std::optional<RouteNextHopEntry> nhop) {
@@ -585,7 +584,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
 template <typename AddressT>
 std::shared_ptr<Route<AddressT>> RibRouteUpdater::writableRoute(
     const std::shared_ptr<Route<AddressT>>& orig) {
-  auto cloneRoute = [](auto& rib, auto ip, uint8_t mask) {
+  auto cloneRoute = [this](auto& rib, auto ip, uint8_t mask) {
     auto ritr = rib->exactMatch(ip, mask);
     CHECK(ritr != rib->end());
     if (ritr->value()->isPublished()) {
@@ -599,6 +598,16 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::writableRoute(
     return cloneRoute(v4Routes_, orig->prefix().network, orig->prefix().mask);
   }
 }
+
+template <typename AddressT>
+std::shared_ptr<Route<AddressT>> RibRouteUpdater::writableRoute(
+    typename NetworkToRouteMap<AddressT>::Iterator ritr) {
+  if (ritr->value()->isPublished()) {
+    ritr->value() = ritr->value()->clone();
+  }
+  return ritr->value();
+}
+
 template <typename AddressT>
 void RibRouteUpdater::resolve(NetworkToRouteMap<AddressT>* routes) {
   for (auto& entry : *routes) {
