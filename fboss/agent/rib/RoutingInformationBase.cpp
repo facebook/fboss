@@ -468,6 +468,16 @@ void RoutingInformationBase::setClassIDImpl(
 }
 
 folly::dynamic RibRouteTables::toFollyDynamic() const {
+  return toFollyDynamicImpl([](const auto& /*route*/) { return true; });
+}
+
+folly::dynamic RibRouteTables::unresolvedRoutesFollyDynamic() const {
+  return toFollyDynamicImpl(
+      [](const auto& route) { return !route->isResolved(); });
+}
+
+template <typename Filter>
+folly::dynamic RibRouteTables::toFollyDynamicImpl(const Filter& filter) const {
   folly::dynamic rib = folly::dynamic::object;
 
   auto lockedRouteTables = synchronizedRouteTables_.rlock();
@@ -477,9 +487,9 @@ folly::dynamic RibRouteTables::toFollyDynamic() const {
     rib[routerIdStr] = folly::dynamic::object;
     rib[routerIdStr][kRouterId] = static_cast<uint32_t>(routeTable.first);
     rib[routerIdStr][kRibV4] =
-        routeTable.second.v4NetworkToRoute.toFollyDynamic();
+        routeTable.second.v4NetworkToRoute.toFollyDynamic(filter);
     rib[routerIdStr][kRibV6] =
-        routeTable.second.v6NetworkToRoute.toFollyDynamic();
+        routeTable.second.v6NetworkToRoute.toFollyDynamic(filter);
   }
 
   return rib;

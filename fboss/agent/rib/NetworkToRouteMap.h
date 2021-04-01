@@ -31,10 +31,18 @@ class NetworkToRouteMap
   using Base::Base;
   /* implicit */ NetworkToRouteMap(Base&& radixTree)
       : Base(std::move(radixTree)) {}
+  using RouteT = Route<AddressT>;
+  using FilterFn = std::function<bool(const std::shared_ptr<RouteT>)>;
+
   folly::dynamic toFollyDynamic() const {
+    return toFollyDynamic([](const std::shared_ptr<RouteT>&) { return true; });
+  }
+  folly::dynamic toFollyDynamic(const FilterFn& fn) const {
     folly::dynamic routesJson = folly::dynamic::array;
-    for (const auto& route : *this) {
-      routesJson.push_back(route.value()->toFollyDynamic());
+    for (const auto& routeNode : *this) {
+      if (fn(routeNode.value())) {
+        routesJson.push_back(routeNode.value()->toFollyDynamic());
+      }
     }
     folly::dynamic routesObject = folly::dynamic::object;
     routesObject[kRoutes] = std::move(routesJson);

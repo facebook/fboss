@@ -81,6 +81,7 @@ class RibRouteTables {
       FibUpdateFunction fibUpdateCallback,
       void* cookie);
   folly::dynamic toFollyDynamic() const;
+  folly::dynamic unresolvedRoutesFollyDynamic() const;
   static RibRouteTables fromFollyDynamic(const folly::dynamic& ribJson);
   /*
    * API to import routes from FIB. With shared data structure of routes
@@ -101,6 +102,8 @@ class RibRouteTables {
       RouterID vrf) const;
 
  private:
+  template <typename Filter>
+  folly::dynamic toFollyDynamicImpl(const Filter& filter) const;
   struct RouteTable {
     IPv4NetworkToRouteMap v4NetworkToRoute;
     IPv6NetworkToRouteMap v6NetworkToRoute;
@@ -243,6 +246,9 @@ class RoutingInformationBase {
   }
   folly::dynamic toFollyDynamic() const {
     return ribTables_.toFollyDynamic();
+  }
+  folly::dynamic unresolvedRoutesFollyDynamic() const {
+    return ribTables_.unresolvedRoutesFollyDynamic();
   }
   static std::unique_ptr<RoutingInformationBase> fromFollyDynamic(
       const folly::dynamic& ribJson);
