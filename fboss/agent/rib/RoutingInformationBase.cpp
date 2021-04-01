@@ -498,8 +498,20 @@ RibRouteTables RibRouteTables::fromFollyDynamic(
   if (fibs) {
     auto importRoutes = [](const auto& fib, auto* addrToRoute) {
       for (auto& route : *fib) {
-        addrToRoute->insert(
+        auto [itr, inserted] = addrToRoute->insert(
             route->prefix().network, route->prefix().mask, route);
+        if (!inserted) {
+          // If RIB already had a route, replace it with FIB route so we
+          // share the same objects. The only case where this can occur is
+          // when we WB from old style RIB ser (all routes ser) to FIB assisted
+          // ser/deser
+          itr->value() = route;
+        }
+        DCHECK_EQ(
+            addrToRoute
+                ->exactMatch(route->prefix().network, route->prefix().mask)
+                ->value(),
+            route);
       }
     };
     for (auto& fib : *fibs) {

@@ -36,7 +36,7 @@ std::unique_ptr<RoutingInformationBase> switchStateToStandaloneRib(
   }
   return RoutingInformationBase::fromFollyDynamic(
       serialized,
-      // Empty FIB all information is in serialized legacy RIB
+      // Empty FIB, all information is in serialized legacy RIB
       std::make_shared<ForwardingInformationBaseMap>());
 }
 
