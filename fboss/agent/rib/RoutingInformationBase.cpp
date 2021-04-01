@@ -93,21 +93,6 @@ void RibRouteTables::updateRib(RouterID vrf, const RibUpdateFn& updateRibFn) {
   updateRibFn(routeTable);
 }
 
-void RibRouteTables::importRoutesFromFib(
-    const std::shared_ptr<ForwardingInformationBaseMap>& fibs) {
-  auto importRoutes = [](const auto& fib, auto* addrToRoute) {
-    for (auto& route : *fib) {
-      addrToRoute->insert(route->prefix().network, route->prefix().mask, route);
-    }
-  };
-  auto lockedRouteTables = synchronizedRouteTables_.wlock();
-  for (auto& fib : *fibs) {
-    auto& routeTables = (*lockedRouteTables)[fib->getID()];
-    importRoutes(fib->getFibV6(), &routeTables.v6NetworkToRoute);
-    importRoutes(fib->getFibV4(), &routeTables.v4NetworkToRoute);
-  }
-}
-
 void RibRouteTables::reconfigure(
     const RouterIDAndNetworkToInterfaceRoutes& configRouterIDToInterfaceRoutes,
     const std::vector<cfg::StaticRouteWithNextHops>& staticRoutesWithNextHops,
@@ -495,14 +480,9 @@ folly::dynamic RibRouteTables::toFollyDynamicImpl(const Filter& filter) const {
   return rib;
 }
 
-std::unique_ptr<RoutingInformationBase>
-RoutingInformationBase::fromFollyDynamic(const folly::dynamic& ribJson) {
-  auto rib = std::make_unique<RoutingInformationBase>();
-  rib->ribTables_ = RibRouteTables::fromFollyDynamic(ribJson);
-  return rib;
-}
-
-RibRouteTables RibRouteTables::fromFollyDynamic(const folly::dynamic& ribJson) {
+RibRouteTables RibRouteTables::fromFollyDynamic(
+    const folly::dynamic& ribJson,
+    const std::shared_ptr<ForwardingInformationBaseMap>& fibs) {
   RibRouteTables rib;
   auto lockedRouteTables = rib.synchronizedRouteTables_.wlock();
   for (const auto& routeTable : ribJson.items()) {
@@ -514,6 +494,29 @@ RibRouteTables RibRouteTables::fromFollyDynamic(const folly::dynamic& ribJson) {
             IPv6NetworkToRouteMap::fromFollyDynamic(
                 routeTable.second[kRibV6])}));
   }
+
+  if (fibs) {
+    auto importRoutes = [](const auto& fib, auto* addrToRoute) {
+      for (auto& route : *fib) {
+        addrToRoute->insert(
+            route->prefix().network, route->prefix().mask, route);
+      }
+    };
+    for (auto& fib : *fibs) {
+      auto& routeTables = (*lockedRouteTables)[fib->getID()];
+      importRoutes(fib->getFibV6(), &routeTables.v6NetworkToRoute);
+      importRoutes(fib->getFibV4(), &routeTables.v4NetworkToRoute);
+    }
+  }
+  return rib;
+}
+
+std::unique_ptr<RoutingInformationBase>
+RoutingInformationBase::fromFollyDynamic(
+    const folly::dynamic& ribJson,
+    const std::shared_ptr<ForwardingInformationBaseMap>& fibs) {
+  auto rib = std::make_unique<RoutingInformationBase>();
+  rib->ribTables_ = RibRouteTables::fromFollyDynamic(ribJson, fibs);
   return rib;
 }
 

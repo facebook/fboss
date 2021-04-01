@@ -66,7 +66,7 @@ TEST(WarmBoot, Serialization) {
 
   auto serializedRib = rib.toFollyDynamic();
   auto deserializedRib =
-      RoutingInformationBase::fromFollyDynamic(serializedRib);
+      RoutingInformationBase::fromFollyDynamic(serializedRib, state->getFibs());
 
   ASSERT_EQ(rib, deserializedRib);
 }

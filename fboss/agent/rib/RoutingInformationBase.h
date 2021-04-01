@@ -82,14 +82,14 @@ class RibRouteTables {
       void* cookie);
   folly::dynamic toFollyDynamic() const;
   folly::dynamic unresolvedRoutesFollyDynamic() const;
-  static RibRouteTables fromFollyDynamic(const folly::dynamic& ribJson);
   /*
-   * API to import routes from FIB. With shared data structure of routes
+   * FIB assisted fromFollyDynamicB. With shared data structure of routes
    * all except the unresolved routes are shared b/w rib and FIB, so
    * we can simply reconstruct RIB by ser/deser unresolved routes
    * and importing FIB
    */
-  void importRoutesFromFib(
+  static RibRouteTables fromFollyDynamic(
+      const folly::dynamic& ribJson,
       const std::shared_ptr<ForwardingInformationBaseMap>& fibs);
 
   void ensureVrf(RouterID rid);
@@ -240,18 +240,21 @@ class RoutingInformationBase {
     setClassIDImpl(rid, prefixes, fibUpdateCallback, classId, cookie, true);
   }
 
-  void importRoutesFromFib(
-      const std::shared_ptr<ForwardingInformationBaseMap>& fibs) {
-    ribTables_.importRoutesFromFib(fibs);
-  }
   folly::dynamic toFollyDynamic() const {
     return ribTables_.toFollyDynamic();
   }
   folly::dynamic unresolvedRoutesFollyDynamic() const {
     return ribTables_.unresolvedRoutesFollyDynamic();
   }
+  /*
+   * FIB assisted fromFollyDynamicB. With shared data structure of routes
+   * all except the unresolved routes are shared b/w rib and FIB, so
+   * we can simply reconstruct RIB by ser/deser unresolved routes
+   * and importing FIB
+   */
   static std::unique_ptr<RoutingInformationBase> fromFollyDynamic(
-      const folly::dynamic& ribJson);
+      const folly::dynamic& ribJson,
+      const std::shared_ptr<ForwardingInformationBaseMap>& fibs);
 
   void ensureVrf(RouterID rid) {
     ribTables_.ensureVrf(rid);

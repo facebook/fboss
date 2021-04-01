@@ -34,7 +34,10 @@ std::unique_ptr<RoutingInformationBase> switchStateToStandaloneRib(
   for (const auto& entry : serializedSwState[kEntries]) {
     serialized[folly::to<std::string>(entry[kRouterId].asInt())] = entry;
   }
-  return RoutingInformationBase::fromFollyDynamic(serialized);
+  return RoutingInformationBase::fromFollyDynamic(
+      serialized,
+      // Empty FIB all information is in serialized legacy RIB
+      std::make_shared<ForwardingInformationBaseMap>());
 }
 
 std::shared_ptr<RouteTableMap> standaloneToSwitchStateRib(
@@ -99,15 +102,12 @@ void handleStandaloneRIBTransition(
     HwInitResult& ret) {
   std::unique_ptr<RoutingInformationBase> deserializedRIB;
   if (switchStateJson.find(kRib) != switchStateJson.items().end()) {
-    deserializedRIB =
-        RoutingInformationBase::fromFollyDynamic(switchStateJson[kRib]);
+    deserializedRIB = RoutingInformationBase::fromFollyDynamic(
+        switchStateJson[kRib], ret.switchState->getFibs());
   }
   ret.switchState = ret.switchState->clone();
   if (FLAGS_enable_standalone_rib) {
     if (deserializedRIB) {
-      // For RIB we employ a optmization to serialize only unresolved routes
-      // and recover others from FIB
-      deserializedRIB->importRoutesFromFib(ret.switchState->getFibs());
       // Common case - deser rib was successful
       ret.rib = std::move(deserializedRIB);
 
