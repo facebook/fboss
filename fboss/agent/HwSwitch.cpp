@@ -21,6 +21,10 @@
 #include <folly/logging/xlog.h>
 
 DEFINE_bool(flexports, false, "Load the agent with flexport support enabled");
+DEFINE_int32(
+    update_watermark_stats_interval_s,
+    60,
+    "Update watermark stats interval in seconds");
 
 namespace facebook::fboss {
 

@@ -152,10 +152,6 @@ using namespace std::chrono;
 using namespace facebook::fboss::utility;
 
 DEFINE_int32(linkscan_interval_us, 250000, "The Broadcom linkscan interval");
-DEFINE_int32(
-    update_bststats_interval_s,
-    60,
-    "Update BST stats for ODS interval in seconds");
 DEFINE_bool(force_init_fp, true, "Force full field processor initialization");
 DEFINE_string(
     script_pre_asic_init,
@@ -176,6 +172,7 @@ DEFINE_int32(
 DEFINE_int32(qcm_ifp_pri, -1, "Group priority for ACL field group");
 
 DECLARE_bool(enable_standalone_rib);
+DECLARE_int32(update_watermark_stats_interval_s);
 
 enum : uint8_t {
   kRxCallbackPriority = 1,
@@ -2497,7 +2494,7 @@ void BcmSwitch::updateGlobalStats() {
 
   auto now =
       std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-  if ((now - bstStatsUpdateTime_ >= FLAGS_update_bststats_interval_s) ||
+  if ((now - bstStatsUpdateTime_ >= FLAGS_update_watermark_stats_interval_s) ||
       bstStatsMgr_->isFineGrainedBufferStatLoggingEnabled()) {
     bstStatsUpdateTime_ = now;
     bstStatsMgr_->updateStats();
