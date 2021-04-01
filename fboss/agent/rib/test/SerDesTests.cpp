@@ -21,6 +21,8 @@
 
 using namespace facebook::fboss;
 
+const RouterID kRid0(0);
+
 cfg::SwitchConfig interfaceAndStaticRoutesWithNextHopsConfig() {
   cfg::SwitchConfig config;
   config.vlans_ref()->resize(2);
@@ -43,36 +45,72 @@ cfg::SwitchConfig interfaceAndStaticRoutesWithNextHopsConfig() {
   config.interfaces_ref()[1].ipAddresses_ref()[0] = "2.2.2.2/24";
   config.interfaces_ref()[1].ipAddresses_ref()[1] = "2::1/48";
 
-  config.staticRoutesWithNhops_ref()->resize(2);
+  config.staticRoutesWithNhops_ref()->resize(4);
   config.staticRoutesWithNhops_ref()[0].nexthops_ref()->resize(1);
   config.staticRoutesWithNhops_ref()[0].prefix_ref() = "2001::/64";
   config.staticRoutesWithNhops_ref()[0].nexthops_ref()[0] = "2::2";
   config.staticRoutesWithNhops_ref()[1].nexthops_ref()->resize(1);
   config.staticRoutesWithNhops_ref()[1].prefix_ref() = "20.20.20.0/24";
   config.staticRoutesWithNhops_ref()[1].nexthops_ref()[0] = "2.2.2.3";
+  // Unresolved routes - circular reference via nhops
+  config.staticRoutesWithNhops_ref()[2].nexthops_ref()->resize(1);
+  config.staticRoutesWithNhops_ref()[2].prefix_ref() = "3::1/64";
+  config.staticRoutesWithNhops_ref()[2].nexthops_ref()[0] = "2001::1";
+  config.staticRoutesWithNhops_ref()[3].nexthops_ref()->resize(1);
+  config.staticRoutesWithNhops_ref()[3].prefix_ref() = "2001::1/64";
+  config.staticRoutesWithNhops_ref()[3].nexthops_ref()[0] = "3::1";
 
   return config;
 }
 bool ribEqual(
     const RoutingInformationBase& l,
     const RoutingInformationBase& r) {
-  RouterID kRid0(0);
   return l.getRouteTableDetails(kRid0) == r.getRouteTableDetails(kRid0);
 }
 
-TEST(WarmBoot, Serialization) {
+class RibSerializationTest : public ::testing::Test {
+ public:
+  void SetUp() override {
+    auto emptyState = std::make_shared<SwitchState>();
+    auto platform = createMockPlatform();
+    auto config = interfaceAndStaticRoutesWithNextHopsConfig();
+
+    curState = publishAndApplyConfig(emptyState, &config, platform.get(), &rib);
+    EXPECT_NE(nullptr, curState);
+  }
   RoutingInformationBase rib;
+  std::shared_ptr<SwitchState> curState;
+};
 
-  auto emptyState = std::make_shared<SwitchState>();
-  auto platform = createMockPlatform();
-  auto config = interfaceAndStaticRoutesWithNextHopsConfig();
-
-  auto state = publishAndApplyConfig(emptyState, &config, platform.get(), &rib);
-  ASSERT_NE(nullptr, state);
-
-  auto serializedRib = rib.toFollyDynamic();
+TEST_F(RibSerializationTest, fullRibSerDeser) {
   auto deserializedRib =
-      RoutingInformationBase::fromFollyDynamic(serializedRib, state->getFibs());
+      RoutingInformationBase::fromFollyDynamic(rib.toFollyDynamic(), nullptr);
 
   EXPECT_TRUE(ribEqual(rib, *deserializedRib));
+}
+
+TEST_F(RibSerializationTest, serializeOnlyUnresolvedRoutes) {
+  auto deserializedRib = RoutingInformationBase::fromFollyDynamic(
+      rib.unresolvedRoutesFollyDynamic(), curState->getFibs());
+
+  EXPECT_TRUE(ribEqual(rib, *deserializedRib));
+}
+
+TEST_F(RibSerializationTest, deserializeOnlyUnresolvedRoutes) {
+  auto deserializedRibEmptyFib = RoutingInformationBase::fromFollyDynamic(
+      rib.unresolvedRoutesFollyDynamic(),
+      std::make_shared<ForwardingInformationBaseMap>());
+
+  auto deserializedRibNoFib = RoutingInformationBase::fromFollyDynamic(
+      rib.unresolvedRoutesFollyDynamic(), nullptr);
+
+  EXPECT_FALSE(ribEqual(rib, *deserializedRibEmptyFib));
+  EXPECT_FALSE(ribEqual(rib, *deserializedRibNoFib));
+  EXPECT_TRUE(ribEqual(*deserializedRibEmptyFib, *deserializedRibNoFib));
+  EXPECT_EQ(2, deserializedRibEmptyFib->getRouteTableDetails(kRid0).size());
+
+  auto deserializedRibWithFib = RoutingInformationBase::fromFollyDynamic(
+      rib.unresolvedRoutesFollyDynamic(), curState->getFibs());
+  EXPECT_TRUE(ribEqual(rib, *deserializedRibWithFib));
+  EXPECT_EQ(8, deserializedRibWithFib->getRouteTableDetails(kRid0).size());
 }
