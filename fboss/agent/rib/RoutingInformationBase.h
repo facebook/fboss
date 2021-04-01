@@ -76,6 +76,7 @@ class RibRouteTables {
       const std::vector<cfg::StaticRouteWithNextHops>& staticRoutesWithNextHops,
       const std::vector<cfg::StaticRouteNoNextHops>& staticRoutesToNull,
       const std::vector<cfg::StaticRouteNoNextHops>& staticRoutesToCpu,
+      const std::vector<cfg::StaticIp2MplsRoute>& staticIp2MplsRoutes,
       FibUpdateFunction fibUpdateCallback,
       void* cookie);
   folly::dynamic toFollyDynamic() const;

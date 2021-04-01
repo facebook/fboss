@@ -13,6 +13,7 @@
 
 #include <folly/dynamic.h>
 
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteTypes.h"
 
@@ -94,6 +95,8 @@ class RouteNextHopEntry {
       AdminDistance adminDistance = AdminDistance::STATIC_ROUTE);
   static facebook::fboss::RouteNextHopEntry fromStaticRoute(
       const cfg::StaticRouteWithNextHops& route);
+  static facebook::fboss::RouteNextHopEntry fromStaticIp2MplsRoute(
+      const cfg::StaticIp2MplsRoute& route);
 
  private:
   AdminDistance adminDistance_;

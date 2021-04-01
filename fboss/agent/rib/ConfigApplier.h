@@ -41,6 +41,8 @@ class ConfigApplier {
       std::vector<cfg::StaticRouteNoNextHops>::const_iterator;
   using StaticRouteWithNextHopsIterator =
       std::vector<cfg::StaticRouteWithNextHops>::const_iterator;
+  using StaticIp2MplsRouteIterator =
+      std::vector<cfg::StaticIp2MplsRoute>::const_iterator;
 
   ConfigApplier(
       RouterID vrf,
@@ -49,7 +51,8 @@ class ConfigApplier {
       folly::Range<DirectlyConnectedRouteIterator> directlyConnectedRouteRange,
       folly::Range<StaticRouteNoNextHopsIterator> staticCpuRouteRange,
       folly::Range<StaticRouteNoNextHopsIterator> staticDropRouteRange,
-      folly::Range<StaticRouteWithNextHopsIterator> staticRouteRange);
+      folly::Range<StaticRouteWithNextHopsIterator> staticRouteRange,
+      folly::Range<StaticIp2MplsRouteIterator> staticIp2MplsRouteRange);
 
   void apply();
 
@@ -61,6 +64,7 @@ class ConfigApplier {
   folly::Range<StaticRouteNoNextHopsIterator> staticCpuRouteRange_;
   folly::Range<StaticRouteNoNextHopsIterator> staticDropRouteRange_;
   folly::Range<StaticRouteWithNextHopsIterator> staticRouteRange_;
+  folly::Range<StaticIp2MplsRouteIterator> staticIp2MplsRouteRange_;
 };
 
 } // namespace facebook::fboss

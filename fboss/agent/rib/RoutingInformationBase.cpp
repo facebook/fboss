@@ -98,6 +98,7 @@ void RibRouteTables::reconfigure(
     const std::vector<cfg::StaticRouteWithNextHops>& staticRoutesWithNextHops,
     const std::vector<cfg::StaticRouteNoNextHops>& staticRoutesToNull,
     const std::vector<cfg::StaticRouteNoNextHops>& staticRoutesToCpu,
+    const std::vector<cfg::StaticIp2MplsRoute>& staticIp2MplsRoutes,
     FibUpdateFunction updateFibCallback,
     void* cookie) {
   // Config application is accomplished in the following sequence of steps:
@@ -142,7 +143,9 @@ void RibRouteTables::reconfigure(
                   staticRoutesToNull.cbegin(), staticRoutesToNull.cend()),
               folly::range(
                   staticRoutesWithNextHops.cbegin(),
-                  staticRoutesWithNextHops.cend()));
+                  staticRoutesWithNextHops.cend()),
+              folly::range(
+                  staticIp2MplsRoutes.cbegin(), staticIp2MplsRoutes.cend()));
           // Apply config
           configApplier.apply();
         });
@@ -334,7 +337,7 @@ void RoutingInformationBase::reconfigure(
     const std::vector<cfg::StaticRouteWithNextHops>& staticRoutesWithNextHops,
     const std::vector<cfg::StaticRouteNoNextHops>& staticRoutesToNull,
     const std::vector<cfg::StaticRouteNoNextHops>& staticRoutesToCpu,
-    const std::vector<cfg::StaticIp2MplsRoute>& /*staticIp2MplsRoutes*/,
+    const std::vector<cfg::StaticIp2MplsRoute>& staticIp2MplsRoutes,
     FibUpdateFunction updateFibCallback,
     void* cookie) {
   ensureRunning();
@@ -344,6 +347,7 @@ void RoutingInformationBase::reconfigure(
         staticRoutesWithNextHops,
         staticRoutesToNull,
         staticRoutesToCpu,
+        staticIp2MplsRoutes,
         updateFibCallback,
         cookie);
   };

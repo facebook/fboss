@@ -24,14 +24,16 @@ ConfigApplier::ConfigApplier(
     folly::Range<DirectlyConnectedRouteIterator> directlyConnectedRouteRange,
     folly::Range<StaticRouteNoNextHopsIterator> staticCpuRouteRange,
     folly::Range<StaticRouteNoNextHopsIterator> staticDropRouteRange,
-    folly::Range<StaticRouteWithNextHopsIterator> staticRouteRange)
+    folly::Range<StaticRouteWithNextHopsIterator> staticRouteRange,
+    folly::Range<StaticIp2MplsRouteIterator> staticIp2MplsRouteRange)
     : vrf_(vrf),
       v4NetworkToRoute_(v4NetworkToRoute),
       v6NetworkToRoute_(v6NetworkToRoute),
       directlyConnectedRouteRange_(directlyConnectedRouteRange),
       staticCpuRouteRange_(staticCpuRouteRange),
       staticDropRouteRange_(staticDropRouteRange),
-      staticRouteRange_(staticRouteRange) {
+      staticRouteRange_(staticRouteRange),
+      staticIp2MplsRouteRange_(staticIp2MplsRouteRange) {
   CHECK_NOTNULL(v4NetworkToRoute_);
   CHECK_NOTNULL(v6NetworkToRoute_);
 }
@@ -62,6 +64,9 @@ void ConfigApplier::apply() {
   });
   fillInStaticRoutes(staticRouteRange_, [](const auto& route) {
     return RouteNextHopEntry::fromStaticRoute(route);
+  });
+  fillInStaticRoutes(staticIp2MplsRouteRange_, [](const auto& route) {
+    return RouteNextHopEntry::fromStaticIp2MplsRoute(route);
   });
   // Update link local routes
   std::vector<RibRouteUpdater::RouteEntry> linkLocalRoutes;

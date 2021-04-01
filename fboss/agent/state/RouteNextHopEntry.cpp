@@ -339,4 +339,27 @@ RouteNextHopEntry RouteNextHopEntry::fromStaticRoute(
   return RouteNextHopEntry(std::move(nhops), AdminDistance::STATIC_ROUTE);
 }
 
+RouteNextHopEntry RouteNextHopEntry::fromStaticIp2MplsRoute(
+    const cfg::StaticIp2MplsRoute& route) {
+  RouteNextHopSet nhops;
+
+  for (auto& mplsNextHop : *route.nexthops_ref()) {
+    auto ip = folly::IPAddress(*mplsNextHop.nexthop_ref());
+    auto& labelForwardingAction = *mplsNextHop.labelForwardingAction_ref();
+    if (!labelForwardingAction.action_ref().is_set()) {
+      throw FbossError("ingress mpls route has no mpls action");
+    }
+    if (*(labelForwardingAction.action_ref()) != MplsActionCode::PUSH) {
+      throw FbossError("ingress mpls route has invalid mpls action");
+    }
+    LabelForwardingAction action(
+        *(labelForwardingAction.action_ref()),
+        *(labelForwardingAction.pushLabels_ref()));
+
+    nhops.emplace(UnresolvedNextHop(ip, UCMP_DEFAULT_WEIGHT, action));
+  }
+
+  return RouteNextHopEntry(std::move(nhops), AdminDistance::STATIC_ROUTE);
+}
+
 } // namespace facebook::fboss
