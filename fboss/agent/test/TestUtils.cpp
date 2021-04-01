@@ -501,15 +501,16 @@ TxPacketMatcher::TxPacketMatcher(StringPiece name, TxMatchFn fn)
   return ::testing::MakeMatcher(new TxPacketMatcher(name, std::move(fn)));
 }
 
-#ifndef IS_OSS
-bool TxPacketMatcher::MatchAndExplain(
-    const TxPacketPtr& pkt,
-    ::testing::MatchResultListener* l) const {
+// TODO(T69712535): Remove old googletest code
+#if defined(MOCK_METHOD)
+using GMTxPacketPtr = TxPacketPtr;
 #else
-bool TxPacketMatcher::MatchAndExplain(
-    TxPacketPtr pkt,
-    ::testing::MatchResultListener* l) const {
+using GMTxPacketPtr = const TxPacketPtr&;
 #endif
+
+bool TxPacketMatcher::MatchAndExplain(
+    GMTxPacketPtr pkt,
+    ::testing::MatchResultListener* l) const {
   try {
     fn_(pkt);
     return true;
@@ -541,15 +542,15 @@ RxPacketMatcher::RxPacketMatcher(
       new RxPacketMatcher(name, dstIfID, std::move(fn)));
 }
 
-#ifndef IS_OSS
-bool RxPacketMatcher::MatchAndExplain(
-    const RxMatchFnArgs& args,
-    ::testing::MatchResultListener* l) const {
+// TODO(T69712535): Remove old googletest code
+#if defined(MOCK_METHOD)
+using GMRxMatchFnArgs = RxMatchFnArgs;
 #else
-bool RxPacketMatcher::MatchAndExplain(
-    RxMatchFnArgs args,
-    ::testing::MatchResultListener* l) const {
+using GMRxMatchFnArgs = RxMatchFnArgs const&;
 #endif
+bool RxPacketMatcher::MatchAndExplain(
+    GMRxMatchFnArgs args,
+    ::testing::MatchResultListener* l) const {
   auto dstIfID = std::get<0>(args);
   auto pkt = std::get<1>(args);
 
