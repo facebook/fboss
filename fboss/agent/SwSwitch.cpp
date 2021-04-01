@@ -332,7 +332,9 @@ void SwSwitch::gracefulExit() {
     folly::dynamic switchState = folly::dynamic::object;
     switchState[kSwSwitch] = getAppliedState()->toFollyDynamic();
     if (rib_) {
-      switchState[kRib] = rib_->toFollyDynamic();
+      // For RIB we employ a optmization to serialize only unresolved routes
+      // and recover others from FIB
+      switchState[kRib] = rib_->unresolvedRoutesFollyDynamic();
     }
 
     steady_clock::time_point switchStateToFollyDone = steady_clock::now();

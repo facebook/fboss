@@ -105,6 +105,9 @@ void handleStandaloneRIBTransition(
   ret.switchState = ret.switchState->clone();
   if (FLAGS_enable_standalone_rib) {
     if (deserializedRIB) {
+      // For RIB we employ a optmization to serialize only unresolved routes
+      // and recover others from FIB
+      deserializedRIB->importRoutesFromFib(ret.switchState->getFibs());
       // Common case - deser rib was successful
       ret.rib = std::move(deserializedRIB);
 

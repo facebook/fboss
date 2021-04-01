@@ -355,9 +355,11 @@ void HwSwitchEnsemble::gracefulExit() {
   // Initiate warm boot
   folly::dynamic switchState = folly::dynamic::object;
   getHwSwitch()->unregisterCallbacks();
+  // For RIB we employ a optmization to serialize only unresolved routes
+  // and recover others from FIB
   switchState[kSwSwitch] = getProgrammedState()->toFollyDynamic();
   if (routingInformationBase_) {
-    switchState[kRib] = routingInformationBase_->toFollyDynamic();
+    switchState[kRib] = routingInformationBase_->unresolvedRoutesFollyDynamic();
   }
   getHwSwitch()->gracefulExit(switchState);
 }
