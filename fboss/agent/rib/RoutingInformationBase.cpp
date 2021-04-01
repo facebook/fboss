@@ -14,6 +14,7 @@
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/rib/ConfigApplier.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
@@ -333,6 +334,7 @@ void RoutingInformationBase::reconfigure(
     const std::vector<cfg::StaticRouteWithNextHops>& staticRoutesWithNextHops,
     const std::vector<cfg::StaticRouteNoNextHops>& staticRoutesToNull,
     const std::vector<cfg::StaticRouteNoNextHops>& staticRoutesToCpu,
+    const std::vector<cfg::StaticIp2MplsRoute>& /*staticIp2MplsRoutes*/,
     FibUpdateFunction updateFibCallback,
     void* cookie) {
   ensureRunning();

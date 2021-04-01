@@ -437,6 +437,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
         *cfg_->staticRoutesWithNhops_ref(),
         *cfg_->staticRoutesToNull_ref(),
         *cfg_->staticRoutesToCPU_ref(),
+        *cfg_->staticIp2MplsRoutes_ref(),
         &updateFibFromConfig,
         static_cast<void*>(&new_));
   } else {
