@@ -12,6 +12,7 @@
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/if/gen-cpp2/mpls_types.h"
 #include "fboss/agent/state/SwitchState-defs.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/HwTestHandle.h"
@@ -1369,6 +1370,82 @@ TYPED_TEST(RouteTest, fwdInfoRanking) {
   // Winner should now be 40
   expectFwdInfo(this->sw_, prefix, "10.10.40.");
 }
+
+TYPED_TEST(RouteTest, StaticIp2MplsRoutes) {
+  auto config = this->initialConfig();
+
+  config.staticIp2MplsRoutes_ref()->resize(2);
+  config.staticIp2MplsRoutes_ref()[0].prefix_ref() = "10.0.0.0/24";
+  config.staticIp2MplsRoutes_ref()[0].nexthops_ref()->resize(1);
+  config.staticIp2MplsRoutes_ref()[0].nexthops_ref()[0].nexthop_ref() =
+      "1.1.1.10";
+  config.staticIp2MplsRoutes_ref()[0]
+      .nexthops_ref()[0]
+      .labelForwardingAction_ref()
+      ->action_ref() = MplsActionCode::PUSH;
+  config.staticIp2MplsRoutes_ref()[0]
+      .nexthops_ref()[0]
+      .labelForwardingAction_ref()
+      ->pushLabels_ref() = {101, 102};
+
+  config.staticIp2MplsRoutes_ref()[1].prefix_ref() = "1:1::/64";
+  config.staticIp2MplsRoutes_ref()[1].nexthops_ref()->resize(1);
+  config.staticIp2MplsRoutes_ref()[1].nexthops_ref()[0].nexthop_ref() = "1::10";
+  config.staticIp2MplsRoutes_ref()[1]
+      .nexthops_ref()[0]
+      .labelForwardingAction_ref()
+      ->action_ref() = MplsActionCode::PUSH;
+  config.staticIp2MplsRoutes_ref()[1]
+      .nexthops_ref()[0]
+      .labelForwardingAction_ref()
+      ->pushLabels_ref() = {101, 102};
+
+  auto updateFn = [&config, this](const std::shared_ptr<SwitchState>& in) {
+    return applyThriftConfig(
+        in,
+        &config,
+        this->sw_->getPlatform(),
+        TypeParam::hasStandAloneRib ? this->sw_->getRib() : nullptr);
+  };
+
+  this->sw_->updateStateBlocking("New config", updateFn);
+
+  auto state = this->sw_->getState();
+  auto v4Route = this->findRoute4(state, RouterID(0), "10.0.0.0/24");
+  EXPECT_RESOLVED(v4Route);
+  EXPECT_FALSE(v4Route->isDrop());
+  EXPECT_FALSE(v4Route->isToCPU());
+  EXPECT_FALSE(v4Route->isConnected());
+
+  auto& v4Fwd = v4Route->getForwardInfo();
+  EXPECT_EQ(RouteForwardAction::NEXTHOPS, v4Fwd.getAction());
+  EXPECT_EQ(1, v4Fwd.getNextHopSet().size());
+  for (auto& nexthop : v4Fwd.getNextHopSet()) {
+    auto action = nexthop.labelForwardingAction();
+    EXPECT_TRUE(action.has_value());
+    EXPECT_EQ(action->type(), MplsActionCode::PUSH);
+    EXPECT_EQ(action->pushStack(), MplsLabelStack({101, 102}));
+  }
+
+  // v6 route
+  auto v6Route = this->findRoute6(state, RouterID(0), "1:1::/64");
+  EXPECT_RESOLVED(v6Route);
+  EXPECT_FALSE(v6Route->isDrop());
+  EXPECT_FALSE(v6Route->isToCPU());
+  EXPECT_FALSE(v6Route->isConnected());
+
+  auto& v6Fwd = v4Route->getForwardInfo();
+  EXPECT_EQ(RouteForwardAction::NEXTHOPS, v6Fwd.getAction());
+  EXPECT_EQ(1, v6Fwd.getNextHopSet().size());
+
+  for (auto& nexthop : v6Fwd.getNextHopSet()) {
+    auto action = nexthop.labelForwardingAction();
+    EXPECT_TRUE(action.has_value());
+    EXPECT_EQ(action->type(), MplsActionCode::PUSH);
+    EXPECT_EQ(action->pushStack(), MplsLabelStack({101, 102}));
+  }
+}
+
 // Test interface routes when we have more than one address per
 // address family in an interface
 template <typename StandAloneRib>

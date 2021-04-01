@@ -2247,6 +2247,37 @@ std::shared_ptr<RouteTableMap> ThriftConfigApplier::syncStaticRoutes(
         staticClientId,
         RouteNextHopEntry(std::move(nhops), staticAdminDistance));
   }
+  for (const auto& route : *cfg_->staticIp2MplsRoutes_ref()) {
+    auto prefix = folly::IPAddress::createNetwork(*route.prefix_ref());
+    RouteNextHopSet nhops;
+    // NOTE: Static routes use the default UCMP weight so that they can be
+    // compatible with UCMP, i.e., so that we can do ucmp where the next
+    // hops resolve to a static route.  If we define recursive static
+    // routes, that may lead to unexpected behavior where some interface
+    // gets more traffic.  If necessary, in the future, we can make it
+    // possible to configure strictly ECMP static routes
+    for (auto& mplsNextHop : *route.nexthops_ref()) {
+      auto ip = folly::IPAddress(*mplsNextHop.nexthop_ref());
+      auto& labelForwardingAction = *mplsNextHop.labelForwardingAction_ref();
+      if (!labelForwardingAction.action_ref().is_set()) {
+        throw FbossError("ingress mpls route has no mpls action");
+      }
+      if (*(labelForwardingAction.action_ref()) != MplsActionCode::PUSH) {
+        throw FbossError("ingress mpls route has invalid mpls action");
+      }
+      LabelForwardingAction action(
+          *(labelForwardingAction.action_ref()),
+          *(labelForwardingAction.pushLabels_ref()));
+
+      nhops.emplace(UnresolvedNextHop(ip, UCMP_DEFAULT_WEIGHT, action));
+    }
+    updater.addRoute(
+        RouterID(*route.routerID_ref()),
+        prefix.first,
+        prefix.second,
+        staticClientId,
+        RouteNextHopEntry(std::move(nhops), staticAdminDistance));
+  }
   return updater.updateDone();
 }
 

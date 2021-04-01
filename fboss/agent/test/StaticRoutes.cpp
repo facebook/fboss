@@ -10,6 +10,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
+#include "fboss/agent/if/gen-cpp2/mpls_types.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -56,6 +57,21 @@ TEST(StaticRoutes, configureUnconfigure) {
   config.staticRoutesWithNhops_ref()[3].nexthops_ref()->resize(1);
   config.staticRoutesWithNhops_ref()[3].nexthops_ref()[0] = "2001::2";
 
+  // Now add v6 route with stack
+  config.staticIp2MplsRoutes_ref()->resize(1);
+  config.staticIp2MplsRoutes_ref()[0].prefix_ref() = "2001::5/128";
+  config.staticIp2MplsRoutes_ref()[0].nexthops_ref()->resize(1);
+  config.staticIp2MplsRoutes_ref()[0].nexthops_ref()[0].nexthop_ref() =
+      "2001::1";
+  config.staticIp2MplsRoutes_ref()[0]
+      .nexthops_ref()[0]
+      .labelForwardingAction_ref()
+      ->action_ref() = MplsActionCode::PUSH;
+  config.staticIp2MplsRoutes_ref()[0]
+      .nexthops_ref()[0]
+      .labelForwardingAction_ref()
+      ->pushLabels_ref() = {101, 102};
+
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
   RouterID rid0(0);
@@ -69,6 +85,8 @@ TEST(StaticRoutes, configureUnconfigure) {
   RouteV6::Prefix prefix2v6{IPAddressV6("2001::2"), 128};
   RouteV6::Prefix prefix3v6{IPAddressV6("2001::3"), 128};
   RouteV6::Prefix prefix4v6{IPAddressV6("2001::4"), 128};
+
+  RouteV6::Prefix prefix1v6ToMpls{IPAddressV6("2001::5"), 128};
 
   auto rib1v4 = t1->getRibV4();
   auto r1v4 = rib1v4->exactMatch(prefix1v4);
@@ -159,6 +177,19 @@ TEST(StaticRoutes, configureUnconfigure) {
   EXPECT_FALSE(r4v6->isUnresolvable());
   EXPECT_FALSE(r4v6->isConnected());
   EXPECT_FALSE(r4v6->needResolve());
+  EXPECT_EQ(
+      r4v6->getForwardInfo(),
+      RouteNextHopEntry(
+          RouteForwardAction::TO_CPU, AdminDistance::MAX_ADMIN_DISTANCE));
+
+  // Recursive resolution to CPU
+
+  auto r5v6ToMpls1 = rib1v6->exactMatch(prefix1v6ToMpls);
+  ASSERT_NE(nullptr, r5v6ToMpls1);
+  EXPECT_TRUE(r5v6ToMpls1->isResolved());
+  EXPECT_FALSE(r5v6ToMpls1->isUnresolvable());
+  EXPECT_FALSE(r5v6ToMpls1->isConnected());
+  EXPECT_FALSE(r5v6ToMpls1->needResolve());
   EXPECT_EQ(
       r4v6->getForwardInfo(),
       RouteNextHopEntry(
