@@ -110,16 +110,19 @@ void routeAddDelBenchmarker(bool measureAdd) {
   std::thread lookupThread([&doLookups]() { doLookups(); });
   HwSwitchEnsembleRouteUpdateWrapper updater(ensemble.get());
   if (measureAdd) {
-    ScopedCallTimer timeIt;
-    // Activate benchmarker before applying switch states
-    // for adding routes to h/w
-    suspender.dismiss();
-    // Program 1 chunk to seed ~4k routes
-    // program remaining chunks
-    updater.programRoutes(RouterID(0), ClientID::BGPD, routeChunks);
-    // We are about to blow away all routes, before that
-    // deactivate benchmark measurement.
-    suspender.rehire();
+    {
+      // Route add benchmark
+      ScopedCallTimer timeIt;
+      // Activate benchmarker before applying switch states
+      // for adding routes to h/w
+      suspender.dismiss();
+      // Program 1 chunk to seed ~4k routes
+      // program remaining chunks
+      updater.programRoutes(RouterID(0), ClientID::BGPD, routeChunks);
+      // We are about to blow away all routes, before that
+      // deactivate benchmark measurement.
+      suspender.rehire();
+    }
     // Do a sync fib and have it compete with route lookups
     auto syncFib =
         [&updater,
