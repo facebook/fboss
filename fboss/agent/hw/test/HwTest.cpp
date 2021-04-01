@@ -40,6 +40,8 @@ DEFINE_bool(
     false,
     "Set up thrift on demand upon encountering test failure");
 
+DECLARE_int32(update_watermark_stats_interval_s);
+
 namespace {
 
 auto kStageLogPrefix = "RUNNING STAGE: ";
@@ -85,7 +87,7 @@ void HwTest::SetUp() {
   initInfo.overrideTransceiverInfo = overrideTransceiverInfo();
   // Set watermark stats update interval to 0 so we always refresh BST stats
   // in each updateStats call
-  initInfo.overrideWatermarkStatsInterval = 0;
+  FLAGS_update_watermark_stats_interval_s = 0;
   hwSwitchEnsemble_ = createHwEnsemble(featuresDesired(), &initInfo);
   hwSwitchEnsemble_->addHwEventObserver(this);
   if (getHwSwitch()->getBootType() == BootType::WARM_BOOT) {

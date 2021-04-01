@@ -32,7 +32,6 @@
 DECLARE_int32(thrift_port);
 DECLARE_bool(setup_thrift);
 DECLARE_string(config);
-DECLARE_int32(update_watermark_stats_interval_s);
 
 namespace {
 void initFlagDefaults(const std::map<std::string, std::string>& defaults) {
@@ -130,10 +129,6 @@ void SaiSwitchEnsemble::init(
     if (info->overrideTransceiverInfo) {
       platform->setOverrideTransceiverInfo(
           info->overrideTransceiverInfo.value());
-    }
-    if (info->overrideWatermarkStatsInterval) {
-      FLAGS_update_watermark_stats_interval_s =
-          *info->overrideWatermarkStatsInterval;
     }
   }
   std::unique_ptr<HwLinkStateToggler> linkToggler;

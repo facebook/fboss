@@ -50,7 +50,6 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
     std::optional<std::map<PortID, TransceiverInfo>>
         port2OverrideTransceiverInfo{};
     std::optional<TransceiverInfo> overrideTransceiverInfo{};
-    std::optional<int32_t> overrideWatermarkStatsInterval;
   };
   enum Feature : uint32_t {
     PACKET_RX,

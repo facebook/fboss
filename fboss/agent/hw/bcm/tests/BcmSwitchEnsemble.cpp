@@ -26,7 +26,6 @@
 #include "fboss/agent/platforms/tests/utils/CreateTestPlatform.h"
 
 DECLARE_bool(setup_thrift);
-DECLARE_int32(update_watermark_stats_interval_s);
 
 using apache::thrift::can_throw;
 
@@ -145,10 +144,6 @@ void BcmSwitchEnsemble::init(
     if (info->overrideTransceiverInfo) {
       platform->setOverrideTransceiverInfo(
           info->overrideTransceiverInfo.value());
-    }
-    if (info->overrideWatermarkStatsInterval) {
-      FLAGS_update_watermark_stats_interval_s =
-          *info->overrideWatermarkStatsInterval;
     }
   }
   auto bcmTestPlatform = static_cast<BcmTestPlatform*>(platform.get());
