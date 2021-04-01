@@ -10,6 +10,7 @@
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwTestMplsUtils.h"
 #include "fboss/agent/hw/test/HwTestRouteUtils.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -60,6 +61,14 @@ class HwRouteTest : public HwLinkStateDependentTest {
               folly::IPAddressV6{"2803:6080:d038:3065::"}, 64}};
 
       return routePrefixes;
+    }
+  }
+
+  const AddrT kStaticIp2MplsNextHop() const {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      return folly::IPAddressV4{"10.10.1.1"};
+    } else {
+      return folly::IPAddressV6{"2803:6080:d038:3063::1"};
     }
   }
 
@@ -361,6 +370,61 @@ TYPED_TEST(HwRouteTest, ResolvedMultiNexthopToUnresolvedSingleNexthop) {
         this->getRouteUpdateWrapper(),
         {PortDescriptor(this->masterLogicalPortIds()[0])},
         {this->kGetRoutePrefix0()});
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(HwRouteTest, StaticIp2MplsRoutes) {
+  using AddrT = typename TestFixture::Type;
+
+  auto setup = [=]() {
+    auto config = this->initialConfig();
+
+    config.staticIp2MplsRoutes_ref()->resize(1);
+    config.staticIp2MplsRoutes_ref()[0].prefix_ref() =
+        this->kGetRoutePrefix1().str();
+
+    config.staticIp2MplsRoutes_ref()[0].nexthops_ref()->resize(1);
+    config.staticIp2MplsRoutes_ref()[0].nexthops_ref()[0].nexthop_ref() =
+        this->kStaticIp2MplsNextHop().str(); // in prefix 0 subnet
+    config.staticIp2MplsRoutes_ref()[0]
+        .nexthops_ref()[0]
+        .labelForwardingAction_ref()
+        ->action_ref() = MplsActionCode::PUSH;
+    config.staticIp2MplsRoutes_ref()[0]
+        .nexthops_ref()[0]
+        .labelForwardingAction_ref()
+        ->pushLabels_ref() = {1001, 1002};
+    this->applyNewConfig(config);
+
+    // resolve prefix 0 subnet
+    utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
+        this->getProgrammedState(), this->kRouterID());
+    ecmpHelper.programRoutes(
+        this->getRouteUpdateWrapper(),
+        {PortDescriptor(this->masterLogicalPortIds()[0]),
+         PortDescriptor(this->masterLogicalPortIds()[1])},
+        {this->kGetRoutePrefix0()});
+
+    this->applyNewState(ecmpHelper.resolveNextHops(
+        this->getProgrammedState(),
+        {PortDescriptor(this->masterLogicalPortIds()[0]),
+         PortDescriptor(this->masterLogicalPortIds()[1])}));
+  };
+  auto verify = [=]() {
+    // prefix 1 subnet reachable via prefix 0 with mpls stack over this stack
+    utility::verifyProgrammedStack<AddrT>(
+        this->getHwSwitch(),
+        this->kGetRoutePrefix1(),
+        InterfaceID(utility::kBaseVlanId),
+        {1001, 1002},
+        1);
+    utility::verifyProgrammedStack<AddrT>(
+        this->getHwSwitch(),
+        this->kGetRoutePrefix1(),
+        InterfaceID(utility::kBaseVlanId + 1),
+        {1001, 1002},
+        1);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
