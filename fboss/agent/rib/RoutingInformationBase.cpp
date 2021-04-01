@@ -93,6 +93,21 @@ void RibRouteTables::updateRib(RouterID vrf, const RibUpdateFn& updateRibFn) {
   updateRibFn(routeTable);
 }
 
+void RibRouteTables::importRoutesFromFib(
+    const std::shared_ptr<ForwardingInformationBaseMap>& fibs) {
+  auto importRoutes = [](const auto& fib, auto* addrToRoute) {
+    for (auto& route : *fib) {
+      addrToRoute->insert(route->prefix().network, route->prefix().mask, route);
+    }
+  };
+  auto lockedRouteTables = synchronizedRouteTables_.wlock();
+  for (auto& fib : *fibs) {
+    auto& routeTables = (*lockedRouteTables)[fib->getID()];
+    importRoutes(fib->getFibV6(), &routeTables.v6NetworkToRoute);
+    importRoutes(fib->getFibV4(), &routeTables.v4NetworkToRoute);
+  }
+}
+
 void RibRouteTables::reconfigure(
     const RouterIDAndNetworkToInterfaceRoutes& configRouterIDToInterfaceRoutes,
     const std::vector<cfg::StaticRouteWithNextHops>& staticRoutesWithNextHops,
@@ -224,7 +239,9 @@ void RibRouteTables::updateFib(
 
 void RibRouteTables::ensureVrf(RouterID rid) {
   auto lockedRouteTables = synchronizedRouteTables_.wlock();
-  lockedRouteTables->insert(std::make_pair(rid, RouteTable()));
+  if (lockedRouteTables->find(rid) == lockedRouteTables->end()) {
+    lockedRouteTables->insert(std::make_pair(rid, RouteTable()));
+  }
 }
 
 std::vector<RouterID> RibRouteTables::getVrfList() const {

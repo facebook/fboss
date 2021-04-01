@@ -24,6 +24,7 @@
 
 namespace facebook::fboss {
 class SwitchState;
+class ForwardingInformationBaseMap;
 
 using FibUpdateFunction = std::function<std::shared_ptr<SwitchState>(
     RouterID vrf,
@@ -81,6 +82,14 @@ class RibRouteTables {
       void* cookie);
   folly::dynamic toFollyDynamic() const;
   static RibRouteTables fromFollyDynamic(const folly::dynamic& ribJson);
+  /*
+   * API to import routes from FIB. With shared data structure of routes
+   * all except the unresolved routes are shared b/w rib and FIB, so
+   * we can simply reconstruct RIB by ser/deser unresolved routes
+   * and importing FIB
+   */
+  void importRoutesFromFib(
+      const std::shared_ptr<ForwardingInformationBaseMap>& fibs);
 
   void ensureVrf(RouterID rid);
   std::vector<RouterID> getVrfList() const;
@@ -228,6 +237,10 @@ class RoutingInformationBase {
     setClassIDImpl(rid, prefixes, fibUpdateCallback, classId, cookie, true);
   }
 
+  void importRoutesFromFib(
+      const std::shared_ptr<ForwardingInformationBaseMap>& fibs) {
+    ribTables_.importRoutesFromFib(fibs);
+  }
   folly::dynamic toFollyDynamic() const {
     return ribTables_.toFollyDynamic();
   }
