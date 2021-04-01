@@ -54,7 +54,7 @@ void BcmEgressManager::setPort2EgressIdsInternal(
   // portAndEgressIdsDontUseDirectly_.  (getPortAndEgressIdsMap() being the
   // other one.)
   CHECK(newMap->isPublished());
-  folly::SpinLockGuard guard(portAndEgressIdsLock_);
+  std::unique_lock guard(portAndEgressIdsLock_);
   portAndEgressIdsDontUseDirectly_.swap(newMap);
 }
 

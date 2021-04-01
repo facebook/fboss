@@ -84,7 +84,7 @@ class BcmEgressManager {
    * Get port -> egressIds map
    */
   std::shared_ptr<PortAndEgressIdsMap> getPortAndEgressIdsMap() const {
-    folly::SpinLockGuard guard(portAndEgressIdsLock_);
+    std::unique_lock guard(portAndEgressIdsLock_);
     return portAndEgressIdsDontUseDirectly_;
   }
 

@@ -686,7 +686,7 @@ class SwSwitch : public HwSwitch::Callback {
    * to h/w
    */
   std::shared_ptr<SwitchState> getAppliedState() const {
-    folly::SpinLockGuard guard(stateLock_);
+    std::unique_lock guard(stateLock_);
     return appliedStateDontUseDirectly_;
   }
 

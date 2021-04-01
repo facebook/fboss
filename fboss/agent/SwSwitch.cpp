@@ -677,7 +677,7 @@ bool SwSwitch::updateState(unique_ptr<StateUpdate> update) {
     return false;
   }
   {
-    folly::SpinLockGuard guard(pendingUpdatesLock_);
+    std::unique_lock guard(pendingUpdatesLock_);
     pendingUpdates_.push_back(*update.release());
   }
 
@@ -741,7 +741,7 @@ void SwSwitch::handlePendingUpdates() {
   // handlePendingUpdates() call processed multiple updates.
   StateUpdateList updates;
   {
-    folly::SpinLockGuard guard(pendingUpdatesLock_);
+    std::unique_lock guard(pendingUpdatesLock_);
     // When deciding how many elements to pull off the pendingUpdates_
     // list, we pull as many as we can, subject to the following conditions
     // - Non coalescing updates are executed by themselves
@@ -874,7 +874,7 @@ void SwSwitch::setStateInternal(std::shared_ptr<SwitchState> newAppliedState) {
   // stateDontUseDirectly_.  (getState() being the other one.)
   CHECK(bool(newAppliedState));
   CHECK(newAppliedState->isPublished());
-  folly::SpinLockGuard guard(stateLock_);
+  std::unique_lock guard(stateLock_);
   appliedStateDontUseDirectly_.swap(newAppliedState);
 }
 
@@ -1233,7 +1233,7 @@ void SwSwitch::stopThreads() {
   do {
     handlePendingUpdates();
     {
-      folly::SpinLockGuard guard(pendingUpdatesLock_);
+      std::unique_lock guard(pendingUpdatesLock_);
       updatesDrained = pendingUpdates_.empty();
     }
   } while (!updatesDrained);
