@@ -104,6 +104,8 @@ class LabelForwardingAction {
       const std::optional<LabelForwardingAction>& tunnelStack,
       const std::optional<LabelForwardingAction>& adjacencyLabels);
 
+  std::string str() const;
+
  private:
   LabelForwardingType type_{LabelForwardingType::NOOP};
   std::optional<Label> swapWith_;

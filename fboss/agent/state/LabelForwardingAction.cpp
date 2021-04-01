@@ -2,6 +2,9 @@
 
 #include "fboss/agent/state/LabelForwardingAction.h"
 
+#include <thrift/lib/cpp/util/EnumUtils.h>
+#include <sstream>
+
 namespace facebook::fboss {
 
 namespace {
@@ -120,6 +123,23 @@ LabelForwardingAction::combinePushLabelStack(
   }
   return LabelForwardingAction(
       LabelForwardingAction::LabelForwardingType::PUSH, std::move(stack));
+}
+
+std::string LabelForwardingAction::str() const {
+  std::stringstream stringstream;
+  stringstream << "MPLS: " << apache::thrift::util::enumNameSafe(type());
+  if (auto& label = swapWith()) {
+    stringstream << " -> " << label.value();
+  } else if (auto& stackOpt = pushStack()) {
+    auto& stack = stackOpt.value();
+    stringstream << " -> [ " << stack[0];
+    for (auto i = 1; i < stack.size(); i++) {
+      stringstream << ", " << stack[i];
+    }
+    stringstream << " ]";
+  }
+
+  return stringstream.str();
 }
 
 } // namespace facebook::fboss

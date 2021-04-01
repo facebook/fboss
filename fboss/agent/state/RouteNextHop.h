@@ -107,7 +107,12 @@ struct INextHop {
     std::string str() const {
       std::string intfStr =
           isResolved() ? folly::to<std::string>("@I", intf()) : "";
-      return folly::to<std::string>(addr(), intfStr, "x", weight());
+      std::string labelActionStr{};
+      if (auto action = labelForwardingAction()) {
+        labelActionStr = folly::to<std::string>(" ", action->str());
+      }
+      return folly::to<std::string>(
+          addr(), intfStr, "x", weight(), labelActionStr);
     }
   };
 

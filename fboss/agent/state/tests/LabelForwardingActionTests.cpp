@@ -20,6 +20,7 @@ TEST(LabelForwardingActionTests, SwapThriftDynamic) {
   LabelForwardingAction action(
       LabelForwardingAction::LabelForwardingType::SWAP, 1001);
   testFromAndTo(action);
+  EXPECT_EQ(action.str(), "MPLS: SWAP -> 1001");
 }
 
 TEST(LabelForwardingActionTests, PushThriftDynamic) {
@@ -27,23 +28,27 @@ TEST(LabelForwardingActionTests, PushThriftDynamic) {
   LabelForwardingAction action(
       LabelForwardingAction::LabelForwardingType::PUSH, std::move(stack));
   testFromAndTo(action);
+  EXPECT_EQ(action.str(), "MPLS: PUSH -> [ 1001, 1002, 1003 ]");
 }
 
 TEST(LabelForwardingActionTests, PopThriftDynamic) {
   LabelForwardingAction action(
       LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP);
   testFromAndTo(action);
+  EXPECT_EQ(action.str(), "MPLS: POP_AND_LOOKUP");
 }
 
 TEST(LabelForwardingActionTests, PhpThriftDynamic) {
   LabelForwardingAction action(LabelForwardingAction::LabelForwardingType::PHP);
   testFromAndTo(action);
+  EXPECT_EQ(action.str(), "MPLS: PHP");
 }
 
 TEST(LabelForwardingActionTests, NoopThriftDynamic) {
   LabelForwardingAction action(
       LabelForwardingAction::LabelForwardingType::NOOP);
   testFromAndTo(action);
+  EXPECT_EQ(action.str(), "MPLS: NOOP");
 }
 
 TEST(LabelForwardingActionTests, InvalidLabelForwardingAction) {
