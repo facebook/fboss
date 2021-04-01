@@ -72,6 +72,7 @@ class SaiQueueManager {
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
+  int64_t watermarkStatsUpdateTime_{0};
 };
 
 } // namespace facebook::fboss

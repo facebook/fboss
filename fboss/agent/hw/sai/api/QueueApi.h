@@ -72,9 +72,14 @@ struct SaiQueueTraits {
       SAI_QUEUE_STAT_DROPPED_PACKETS,
       SAI_QUEUE_STAT_DROPPED_BYTES,
   };
+
   static constexpr std::array<sai_stat_id_t, 1> CounterIdsToReadAndClear = {
       SAI_QUEUE_STAT_WATERMARK_BYTES,
   };
+  // Non watermark stats
+  static constexpr auto NonWatermarkCounterIdsToRead = CounterIdsToRead;
+  static constexpr std::array<sai_stat_id_t, 0>
+      NonWatermarkCounterIdsToReadAndClear = {};
 };
 
 SAI_ATTRIBUTE_NAME(Queue, Type)

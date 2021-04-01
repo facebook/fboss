@@ -224,7 +224,9 @@ void HwPortFb303Stats::updateStats(
     updateQueueStat(
         kOutPkts(), queueIdAndName.first, *curPortStats.queueOutPackets__ref());
   }
-  updateQueueWatermarkStats(*curPortStats.queueWatermarkBytes__ref());
+  if (curPortStats.queueWatermarkBytes__ref()->size()) {
+    updateQueueWatermarkStats(*curPortStats.queueWatermarkBytes__ref());
+  }
   portStats_ = curPortStats;
 }
 

@@ -18,6 +18,8 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/lib/TupleUtils.h"
 
+DECLARE_int32(update_watermark_stats_interval_s);
+
 namespace facebook::fboss {
 
 namespace {
@@ -214,8 +216,26 @@ void SaiQueueManager::updateStats(
     const std::vector<SaiQueueHandle*>& queueHandles,
     HwPortStats& hwPortStats) {
   hwPortStats.outCongestionDiscardPkts__ref() = 0;
+  auto now =
+      std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+  bool updateWatermarks = now - watermarkStatsUpdateTime_ >=
+      FLAGS_update_watermark_stats_interval_s;
+  static std::vector<sai_stat_id_t> nonWatermarkStatsRead(
+      SaiQueueTraits::NonWatermarkCounterIdsToRead.begin(),
+      SaiQueueTraits::NonWatermarkCounterIdsToRead.end());
+  static std::vector<sai_stat_id_t> nonWatermarkStatsReadAndClear(
+      SaiQueueTraits::NonWatermarkCounterIdsToReadAndClear.begin(),
+      SaiQueueTraits::NonWatermarkCounterIdsToReadAndClear.end());
   for (auto queueHandle : queueHandles) {
-    queueHandle->queue->updateStats();
+    if (updateWatermarks) {
+      queueHandle->queue->updateStats();
+      watermarkStatsUpdateTime_ = now;
+    } else {
+      queueHandle->queue->updateStats(
+          nonWatermarkStatsRead, SAI_STATS_MODE_READ);
+      queueHandle->queue->updateStats(
+          nonWatermarkStatsReadAndClear, SAI_STATS_MODE_READ_AND_CLEAR);
+    }
     const auto& counters = queueHandle->queue->getStats();
     auto queueId = SaiApiTable::getInstance()->queueApi().getAttribute(
         queueHandle->queue->adapterKey(), SaiQueueTraits::Attributes::Index{});
