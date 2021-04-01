@@ -229,10 +229,15 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
       auto statsBefore = getLatestPortStats(mirrorToPort_);
       this->verify(mirrorName, 8000);
       auto statsAfter = getLatestPortStats(mirrorToPort_);
+
+      auto outBytes =
+          (*statsAfter.outBytes__ref() - *statsBefore.outBytes__ref());
       // mirror is on both ingress and egress, packet loops back and gets
       // mirrored twice
-      auto outBytes =
-          (*statsAfter.outBytes__ref() - *statsBefore.outBytes__ref()) / 2;
+      if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
+              HwAsic::Feature::EGRESS_MIRRORING)) {
+        outBytes = outBytes / 2;
+      }
       // TODO: on TH3 for v6 packets, 254 bytes are mirrored which is a single
       // MMU cell. but for v4 packets, 234 bytes are mirrored. need to
       // investigate this behavior.
