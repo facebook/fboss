@@ -41,6 +41,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::MAC_AGING:
     case HwAsic::Feature::TELEMETRY_AND_MONITORING:
     case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT:
+    case HwAsic::Feature::MIRROR_V6_TUNNEL:
       return true;
     case HwAsic::Feature::HOT_SWAP:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
@@ -58,7 +59,6 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::OBM_COUNTERS:
     case HwAsic::Feature::PTP_TC:
     case HwAsic::Feature::PTP_TC_PCS:
-    case HwAsic::Feature::MIRROR_V6_TUNNEL:
     case HwAsic::Feature::EGRESS_QUEUE_FLEX_COUNTER:
     case HwAsic::Feature::PFC:
     case HwAsic::Feature::INGRESS_L3_INTERFACE:
