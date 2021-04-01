@@ -23,35 +23,41 @@ using namespace facebook::fboss;
 
 cfg::SwitchConfig interfaceAndStaticRoutesWithNextHopsConfig() {
   cfg::SwitchConfig config;
-  config.vlans.resize(2);
-  config.vlans[0].id = 1;
-  config.vlans[1].id = 2;
+  config.vlans_ref()->resize(2);
+  config.vlans_ref()[0].id_ref() = 1;
+  config.vlans_ref()[1].id_ref() = 2;
 
-  config.interfaces.resize(2);
-  config.interfaces[0].intfID = 1;
-  config.interfaces[0].vlanID = 1;
-  config.interfaces[0].routerID = 0;
-  config.interfaces[0].mac_ref() = "00:00:00:00:00:11";
-  config.interfaces[0].ipAddresses.resize(2);
-  config.interfaces[0].ipAddresses[0] = "1.1.1.1/24";
-  config.interfaces[0].ipAddresses[1] = "1::1/48";
-  config.interfaces[1].intfID = 2;
-  config.interfaces[1].vlanID = 2;
-  config.interfaces[1].routerID = 0;
-  config.interfaces[1].mac_ref() = "00:00:00:00:00:22";
-  config.interfaces[1].ipAddresses.resize(2);
-  config.interfaces[1].ipAddresses[0] = "2.2.2.2/24";
-  config.interfaces[1].ipAddresses[1] = "2::1/48";
+  config.interfaces_ref()->resize(2);
+  config.interfaces_ref()[0].intfID_ref() = 1;
+  config.interfaces_ref()[0].vlanID_ref() = 1;
+  config.interfaces_ref()[0].routerID_ref() = 0;
+  config.interfaces_ref()[0].mac_ref() = "00:00:00:00:00:11";
+  config.interfaces_ref()[0].ipAddresses_ref()->resize(2);
+  config.interfaces_ref()[0].ipAddresses_ref()[0] = "1.1.1.1/24";
+  config.interfaces_ref()[0].ipAddresses_ref()[1] = "1::1/48";
+  config.interfaces_ref()[1].intfID_ref() = 2;
+  config.interfaces_ref()[1].vlanID_ref() = 2;
+  config.interfaces_ref()[1].routerID_ref() = 0;
+  config.interfaces_ref()[1].mac_ref() = "00:00:00:00:00:22";
+  config.interfaces_ref()[1].ipAddresses_ref()->resize(2);
+  config.interfaces_ref()[1].ipAddresses_ref()[0] = "2.2.2.2/24";
+  config.interfaces_ref()[1].ipAddresses_ref()[1] = "2::1/48";
 
-  config.staticRoutesWithNhops.resize(2);
-  config.staticRoutesWithNhops[0].nexthops.resize(1);
-  config.staticRoutesWithNhops[0].prefix = "2001::/64";
-  config.staticRoutesWithNhops[0].nexthops[0] = "2::2";
-  config.staticRoutesWithNhops[1].nexthops.resize(1);
-  config.staticRoutesWithNhops[1].prefix = "20.20.20.0/24";
-  config.staticRoutesWithNhops[1].nexthops[0] = "2.2.2.3";
+  config.staticRoutesWithNhops_ref()->resize(2);
+  config.staticRoutesWithNhops_ref()[0].nexthops_ref()->resize(1);
+  config.staticRoutesWithNhops_ref()[0].prefix_ref() = "2001::/64";
+  config.staticRoutesWithNhops_ref()[0].nexthops_ref()[0] = "2::2";
+  config.staticRoutesWithNhops_ref()[1].nexthops_ref()->resize(1);
+  config.staticRoutesWithNhops_ref()[1].prefix_ref() = "20.20.20.0/24";
+  config.staticRoutesWithNhops_ref()[1].nexthops_ref()[0] = "2.2.2.3";
 
   return config;
+}
+bool ribEqual(
+    const RoutingInformationBase& l,
+    const RoutingInformationBase& r) {
+  RouterID kRid0(0);
+  return l.getRouteTableDetails(kRid0) == r.getRouteTableDetails(kRid0);
 }
 
 TEST(WarmBoot, Serialization) {
@@ -68,5 +74,5 @@ TEST(WarmBoot, Serialization) {
   auto deserializedRib =
       RoutingInformationBase::fromFollyDynamic(serializedRib, state->getFibs());
 
-  ASSERT_EQ(rib, deserializedRib);
+  EXPECT_TRUE(ribEqual(rib, *deserializedRib));
 }
