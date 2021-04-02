@@ -292,6 +292,34 @@ static_assert(
         sai_object_list_t>::value,
     "std::vector<sai_object_id_t> wraps sai_object_list_t");
 
+// Macsec SAK/Salt/Authkey types
+static_assert(
+    IsSaiTypeWrapper<SaiMacsecSak>::value,
+    "SaiMacsecSak is a wrapper for a SAI type");
+static_assert(
+    std::is_same<
+        typename WrappedSaiType<SaiMacsecSak>::value,
+        sai_macsec_sak_t>::value,
+    "SaiMacsecSak wraps uint8_t[32]");
+
+static_assert(
+    IsSaiTypeWrapper<SaiMacsecSalt>::value,
+    "SaiMacsecSalt is a wrapper for a SAI type");
+static_assert(
+    std::is_same<
+        typename WrappedSaiType<SaiMacsecSalt>::value,
+        sai_macsec_salt_t>::value,
+    "SaiMacsecSalt wraps uint8_t[12]");
+
+static_assert(
+    IsSaiTypeWrapper<SaiMacsecAuthKey>::value,
+    "SaiMacsecAuthKey is a wrapper for a SAI type");
+static_assert(
+    std::is_same<
+        typename WrappedSaiType<SaiMacsecAuthKey>::value,
+        sai_macsec_auth_key_t>::value,
+    "SaiMacsecAuthKey wraps uint8_t[16]");
+
 // int32_t
 static_assert(
     !IsDuplicateSaiType<int32_t>::value,
