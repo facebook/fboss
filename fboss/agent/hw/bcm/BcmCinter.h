@@ -452,7 +452,6 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       bcm_stat_val_t type,
       bcm_custom_stat_trigger_t trigger) override;
   int bcm_port_phy_tx_set(int unit, bcm_port_t port, bcm_port_phy_tx_t* tx);
-  int bcm_port_phy_tx_get(int unit, bcm_port_t port, bcm_port_phy_tx_t* tx);
   int bcm_port_phy_control_set(
       int unit,
       bcm_port_t port,
@@ -468,10 +467,6 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   std::vector<std::string> cintForPortResources(
       int nport,
       bcm_port_resource_t* resource);
-  int bcm_port_resource_speed_get(
-      int unit,
-      bcm_gport_t port,
-      bcm_port_resource_t* resource) override;
   int bcm_port_resource_speed_set(
       int unit,
       bcm_gport_t port,
@@ -596,10 +591,6 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       int unit,
       bcm_vlan_t vlan,
       bcm_vlan_control_vlan_t control) override;
-  int bcm_vlan_control_vlan_get(
-      int unit,
-      bcm_vlan_t vlan,
-      bcm_vlan_control_vlan_t* control) override;
   int bcm_port_phy_timesync_config_set(
       int unit,
       bcm_port_t port,
@@ -1568,6 +1559,29 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   void bcm_port_timesync_config_t_init(
       bcm_port_timesync_config_t* /*port_timesync_config*/) override {}
   void bcm_time_interface_t_init(bcm_time_interface_t* /*intf*/) override {}
+  // In general we don't need to log get calls because
+  // 1. they introduce logging overhead,
+  // 2. we never inspect the returned value, and
+  // 3. they don't change the ASIC state.
+  // Hence removing the following get calls that are previously logged.
+  int bcm_port_phy_tx_get(
+      int /*unit*/,
+      bcm_port_t /*port*/,
+      bcm_port_phy_tx_t* /*tx*/) {
+    return 0;
+  }
+  int bcm_port_resource_speed_get(
+      int /*unit*/,
+      bcm_gport_t /*port*/,
+      bcm_port_resource_t* /* resource */) override {
+    return 0;
+  }
+  int bcm_vlan_control_vlan_get(
+      int /*unit*/,
+      bcm_vlan_t /*vlan*/,
+      bcm_vlan_control_vlan_t* /*control*/) override {
+    return 0;
+  }
 
  private:
   enum class Dir { SRC, DST };

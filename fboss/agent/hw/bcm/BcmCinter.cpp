@@ -2656,15 +2656,6 @@ int BcmCinter::bcm_port_phy_tx_set(
   return 0;
 }
 
-int BcmCinter::bcm_port_phy_tx_get(
-    int unit,
-    bcm_port_t port,
-    [[maybe_unused]] bcm_port_phy_tx_t* tx) {
-  writeCintLines(wrapFunc(to<string>(
-      "bcm_port_phy_tx_get(", makeParamStr(unit, port, "&tx"), ")")));
-  return 0;
-}
-
 int BcmCinter::bcm_port_phy_control_set(
     int unit,
     bcm_port_t port,
@@ -2929,23 +2920,6 @@ vector<string> BcmCinter::cintForPortResources(
   return output;
 }
 
-int BcmCinter::bcm_port_resource_speed_get(
-    int unit,
-    bcm_gport_t port,
-    bcm_port_resource_t* /* resource */) {
-  auto cint = std::vector{cintForInitPortResource("resource")};
-  auto funcCint = wrapFunc(to<string>(
-      "bcm_port_resource_speed_get(",
-      makeParamStr(unit, port, "&resource"),
-      ")"));
-  cint.insert(
-      cint.end(),
-      make_move_iterator(funcCint.begin()),
-      make_move_iterator(funcCint.end()));
-  writeCintLines(std::move(cint));
-  return 0;
-}
-
 int BcmCinter::bcm_port_resource_speed_set(
     int unit,
     bcm_gport_t port,
@@ -3059,23 +3033,6 @@ int BcmCinter::bcm_vlan_control_vlan_set(
   auto funcCint = wrapFunc(to<string>(
       "bcm_vlan_control_vlan_set(",
       makeParamStr(unit, vlan, "vlan_ctrl"),
-      ")"));
-  cint.insert(
-      cint.end(),
-      make_move_iterator(funcCint.begin()),
-      make_move_iterator(funcCint.end()));
-  writeCintLines(std::move(cint));
-  return 0;
-}
-
-int BcmCinter::bcm_vlan_control_vlan_get(
-    int unit,
-    bcm_vlan_t vlan,
-    bcm_vlan_control_vlan_t* /*control*/) {
-  vector<string> cint = {"bcm_vlan_control_vlan_t_init(&vlan_ctrl)"};
-  auto funcCint = wrapFunc(to<string>(
-      "bcm_vlan_control_vlan_get(",
-      makeParamStr(unit, vlan, "&vlan_ctrl"),
       ")"));
   cint.insert(
       cint.end(),
