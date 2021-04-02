@@ -131,6 +131,7 @@ void handleStandaloneRIBTransition(
       ret.switchState->resetForwardingInformationBases(
           std::make_shared<ForwardingInformationBaseMap>());
     }
+    ret.rib = nullptr;
   }
   ret.switchState->publish();
 }
