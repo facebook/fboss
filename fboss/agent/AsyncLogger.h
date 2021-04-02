@@ -22,7 +22,7 @@ namespace facebook::fboss {
 
 class AsyncLogger {
  public:
-  enum LoggerSrcType { BCMCINTER, SAIREPLAYER };
+  enum LoggerSrcType { BCM_CINTER, SAI_REPLAYER };
   explicit AsyncLogger(
       std::string filePath,
       uint32_t logTimeout,
@@ -58,7 +58,8 @@ class AsyncLogger {
 
  private:
   void worker_thread();
-  void openLogFile(std::string& file_path, LoggerSrcType srcType);
+  void openLogFile(std::string& file_path);
+  void writeNewBootHeader();
 
   bool forceFlush_{false};
   bool fullFlush_{false};
@@ -68,6 +69,8 @@ class AsyncLogger {
 
   char* logBuffer_;
   char* flushBuffer_;
+
+  LoggerSrcType srcType_;
 
   std::promise<int> promise_;
   std::future<int> future_;

@@ -27,7 +27,7 @@ class AsyncLoggerTest : public ::testing::Test {
  public:
   void SetUp() override {
     asyncLogger = std::make_unique<AsyncLogger>(
-        TEST_LOG, logTimeout, AsyncLogger::SAIREPLAYER);
+        TEST_LOG, logTimeout, AsyncLogger::BCM_CINTER);
     asyncLogger->startFlushThread();
   }
 
@@ -88,19 +88,24 @@ TEST_F(AsyncLoggerTest, forceflushTest) {
 }
 
 TEST_F(AsyncLoggerTest, emptyBufferTest) {
+  // Force flush to flush out the new boot header - this should keep the buffer
+  // empty.
+  asyncLogger->forceFlush();
+  std::unique_lock<std::mutex> lock(latch);
+  cv.wait_for(lock, std::chrono::milliseconds(20));
+
   std::string str = "";
   asyncLogger->appendLog(str.c_str(), str.size());
-  EXPECT_EQ(asyncLogger->flushCount_, 0);
+  EXPECT_EQ(asyncLogger->flushCount_, 1);
 
   // Wait for one log timeout and then check empty buffer
   // Add 20ms of boundry to let background thread flush data
-  std::unique_lock<std::mutex> lock(latch);
   cv.wait_for(lock, std::chrono::milliseconds(logTimeout + 20));
-  EXPECT_EQ(asyncLogger->flushCount_, 0);
+  EXPECT_EQ(asyncLogger->flushCount_, 1);
 
   // Force flush and check
   asyncLogger->forceFlush();
-  EXPECT_EQ(asyncLogger->flushCount_, 0);
+  EXPECT_EQ(asyncLogger->flushCount_, 1);
 }
 
 TEST_F(AsyncLoggerTest, concurrentWaitTest) {

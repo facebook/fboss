@@ -310,7 +310,7 @@ namespace facebook::fboss {
 SaiTracer::SaiTracer() {
   if (FLAGS_enable_replayer) {
     asyncLogger_ = std::make_unique<AsyncLogger>(
-        FLAGS_sai_log, FLAGS_log_timeout, AsyncLogger::SAIREPLAYER);
+        FLAGS_sai_log, FLAGS_log_timeout, AsyncLogger::SAI_REPLAYER);
 
     asyncLogger_->startFlushThread();
     asyncLogger_->appendLog(cpp_header_, strlen(cpp_header_));

@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <exception>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 
 #include "fboss/agent/AsyncLogger.h"
@@ -70,8 +71,8 @@ AsyncLogger::AsyncLogger(
     std::string filePath,
     uint32_t logTimeout,
     LoggerSrcType srcType)
-    : bufferSize_(AsyncLogger::kBufferSize) {
-  openLogFile(filePath, srcType);
+    : bufferSize_(AsyncLogger::kBufferSize), srcType_(srcType) {
+  openLogFile(filePath);
 
   if (!FLAGS_disable_async_logger) {
     logBuffer_ = buffer0.data();
@@ -142,6 +143,9 @@ void AsyncLogger::startFlushThread() {
   if (!FLAGS_disable_async_logger) {
     flushThread_ = new std::thread(&AsyncLogger::worker_thread, this);
   }
+  // Write new boot header and the current time whenever a cold/warm boot
+  // happens
+  writeNewBootHeader();
 }
 
 void AsyncLogger::stopFlushThread() {
@@ -209,12 +213,20 @@ void AsyncLogger::appendLog(const char* logRecord, size_t logSize) {
   }
 }
 
-void AsyncLogger::openLogFile(std::string& filePath, LoggerSrcType srcType) {
+void AsyncLogger::openLogFile(std::string& filePath) {
   // By default, async logger opens log file under /var/facebook/logs/fboss/
   // However, the directory /var/facebook/logs/fboss/ might not exist for test
   // switches not running chef. When that happens, we fall back to /tmp/ and
   // write generated code there.
-  std::string srcTypeStr = srcType == BCMCINTER ? "Bcm Cinter" : "Sai Replayer";
+  std::string srcTypeStr;
+  switch (srcType_) {
+    case (BCM_CINTER):
+      srcTypeStr = "Bcm Cinter";
+      break;
+    case (SAI_REPLAYER):
+      srcTypeStr = "Sai Replayer";
+      break;
+  }
   try {
     if (filePath.find("/var/facebook/logs/fboss/") == 0) {
       // Writes to default log location - append to log
@@ -239,6 +251,19 @@ void AsyncLogger::openLogFile(std::string& filePath, LoggerSrcType srcType) {
 
   XLOG(INFO) << "[Async Logger] Logging " << srcTypeStr << " log at "
              << filePath;
+}
+
+void AsyncLogger::writeNewBootHeader() {
+  auto now = std::chrono::system_clock::now();
+  auto timer = std::chrono::system_clock::to_time_t(now);
+  std::tm tm;
+  localtime_r(&timer, &tm);
+
+  std::ostringstream oss;
+  oss << "// Start of a new boot " << std::put_time(&tm, "%Y-%m-%d %T")
+      << std::endl;
+  auto ossString = oss.str();
+  appendLog(ossString.c_str(), ossString.size());
 }
 
 } // namespace facebook::fboss
