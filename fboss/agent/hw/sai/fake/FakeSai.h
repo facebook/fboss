@@ -86,6 +86,7 @@ struct FakeSai {
   FakeMacsecManager macsecManager;
   FakeMacsecPortManager macsecPortManager;
   FakeMacsecSAManager macsecSAManager;
+  FakeMacsecSCManager macsecSCManager;
   bool initialized = false;
   sai_object_id_t cpuPortId;
   sai_object_id_t getCpuPort();

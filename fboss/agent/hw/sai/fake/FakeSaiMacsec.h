@@ -63,9 +63,43 @@ struct FakeMacsecSA {
   sai_uint64_t minimumXpn{0};
 };
 
+struct FakeMacsecSC {
+  explicit FakeMacsecSC(
+      sai_uint64_t _sci,
+      sai_macsec_direction_t _macsecDirection,
+      sai_object_id_t _flowId
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 1)
+      ,
+      sai_macsec_cipher_suite_t _cipherSuite
+#endif
+      )
+      : sci(_sci),
+        macsecDirection(_macsecDirection),
+        flowId(_flowId)
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 1)
+        ,
+        cipherSuite(_cipherSuite)
+#endif
+  {
+  }
+  sai_object_id_t id;
+  sai_uint64_t sci;
+  sai_macsec_direction_t macsecDirection;
+  sai_object_id_t activeEgressSAID{0};
+  sai_object_id_t flowId;
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 1)
+  sai_macsec_cipher_suite_t cipherSuite;
+#endif
+  bool sciEnable{false};
+  bool replayProtectionEnable{false};
+  sai_int32_t replayProtectionWindow{0};
+  sai_uint8_t sectagOffset{0};
+};
+
 using FakeMacsecManager = FakeManager<sai_object_id_t, FakeMacsec>;
 using FakeMacsecPortManager = FakeManager<sai_object_id_t, FakeMacsecPort>;
 using FakeMacsecSAManager = FakeManager<sai_object_id_t, FakeMacsecSA>;
+using FakeMacsecSCManager = FakeManager<sai_object_id_t, FakeMacsecSC>;
 
 void populate_macsec_api(sai_macsec_api_t** macsec_api);
 

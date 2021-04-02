@@ -260,6 +260,165 @@ sai_status_t get_macsec_sa_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
+sai_status_t create_macsec_sc_fn(
+    sai_object_id_t* macsec_sc_id,
+    sai_object_id_t /* switch_id */,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+  sai_uint64_t sci;
+  sai_macsec_direction_t macsecDirection;
+  sai_object_id_t flowId;
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 1)
+  sai_macsec_cipher_suite_t cipherSuite;
+#endif
+  std::optional<bool> sciEnable;
+  std::optional<bool> replayProtectionEnable;
+  std::optional<sai_int32_t> replayProtectionWindow;
+  std::optional<sai_uint8_t> sectagOffset;
+
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_MACSEC_SC_ATTR_MACSEC_SCI:
+        sci = attr_list[i].value.s64;
+        break;
+      case SAI_MACSEC_SC_ATTR_MACSEC_DIRECTION:
+        macsecDirection =
+            static_cast<sai_macsec_direction_t>(attr_list[i].value.s32);
+        break;
+      case SAI_MACSEC_SC_ATTR_FLOW_ID:
+        flowId = attr_list[i].value.s64;
+        break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 1)
+      case SAI_MACSEC_SC_ATTR_MACSEC_CIPHER_SUITE:
+        cipherSuite =
+            static_cast<sai_macsec_cipher_suite_t>(attr_list[i].value.s32);
+        break;
+#endif
+      case SAI_MACSEC_SC_ATTR_MACSEC_EXPLICIT_SCI_ENABLE:
+        sciEnable = attr_list[i].value.booldata;
+        break;
+      case SAI_MACSEC_SC_ATTR_MACSEC_REPLAY_PROTECTION_ENABLE:
+        replayProtectionEnable = attr_list[i].value.booldata;
+        break;
+      case SAI_MACSEC_SC_ATTR_MACSEC_SECTAG_OFFSET:
+        sectagOffset = attr_list[i].value.u8;
+        break;
+      default:
+        return SAI_STATUS_INVALID_PARAMETER;
+    }
+  }
+  *macsec_sc_id = fs->macsecSCManager.create(
+      sci,
+      macsecDirection,
+      flowId
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 1)
+      ,
+      cipherSuite
+#endif
+  );
+  auto& macsecSC = fs->macsecSCManager.get(*macsec_sc_id);
+
+  if (sciEnable) {
+    macsecSC.sciEnable = sciEnable.value();
+  }
+  if (replayProtectionEnable) {
+    macsecSC.replayProtectionEnable = replayProtectionEnable.value();
+  }
+  if (replayProtectionWindow) {
+    macsecSC.replayProtectionWindow = replayProtectionWindow.value();
+  }
+  if (sectagOffset) {
+    macsecSC.sectagOffset = sectagOffset.value();
+  }
+
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t remove_macsec_sc_fn(sai_object_id_t macsec_sc_id) {
+  FakeSai::getInstance()->macsecSCManager.remove(macsec_sc_id);
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t set_macsec_sc_attribute_fn(
+    sai_object_id_t macsec_sc_id,
+    const sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  auto& macsecSC = fs->macsecSCManager.get(macsec_sc_id);
+  sai_status_t res = SAI_STATUS_SUCCESS;
+  if (!attr) {
+    return SAI_STATUS_INVALID_PARAMETER;
+  }
+  switch (attr->id) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 1)
+    case SAI_MACSEC_SC_ATTR_MACSEC_CIPHER_SUITE:
+      macsecSC.cipherSuite =
+          static_cast<sai_macsec_cipher_suite_t>(attr->value.s32);
+      break;
+#endif
+    case SAI_MACSEC_SC_ATTR_MACSEC_EXPLICIT_SCI_ENABLE:
+      macsecSC.sciEnable = attr->value.booldata;
+      break;
+    case SAI_MACSEC_SC_ATTR_MACSEC_REPLAY_PROTECTION_ENABLE:
+      macsecSC.replayProtectionEnable = attr->value.booldata;
+      break;
+    case SAI_MACSEC_SC_ATTR_MACSEC_REPLAY_PROTECTION_WINDOW:
+      macsecSC.replayProtectionWindow = attr->value.s64;
+      break;
+    case SAI_MACSEC_SC_ATTR_MACSEC_SECTAG_OFFSET:
+      macsecSC.sectagOffset = attr->value.u8;
+      break;
+    default:
+      res = SAI_STATUS_INVALID_PARAMETER;
+      break;
+  }
+  return res;
+}
+
+sai_status_t get_macsec_sc_attribute_fn(
+    sai_object_id_t macsec_sc_id,
+    uint32_t attr_count,
+    sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  const auto& macsecSC = fs->macsecSCManager.get(macsec_sc_id);
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr[i].id) {
+      case SAI_MACSEC_SC_ATTR_MACSEC_SCI:
+        attr[i].value.s64 = macsecSC.sci;
+        break;
+      case SAI_MACSEC_SC_ATTR_MACSEC_DIRECTION:
+        attr[i].value.s32 = macsecSC.macsecDirection;
+        break;
+      case SAI_MACSEC_SC_ATTR_ACTIVE_EGRESS_SA_ID:
+        attr[i].value.oid = macsecSC.activeEgressSAID;
+        break;
+      case SAI_MACSEC_SC_ATTR_FLOW_ID:
+        attr[i].value.oid = macsecSC.flowId;
+        break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 1)
+      case SAI_MACSEC_SC_ATTR_MACSEC_CIPHER_SUITE:
+        attr[i].value.s32 = macsecSC.cipherSuite;
+        break;
+#endif
+      case SAI_MACSEC_SC_ATTR_MACSEC_EXPLICIT_SCI_ENABLE:
+        attr[i].value.booldata = macsecSC.sciEnable;
+        break;
+      case SAI_MACSEC_SC_ATTR_MACSEC_REPLAY_PROTECTION_ENABLE:
+        attr[i].value.booldata = macsecSC.replayProtectionEnable;
+        break;
+      case SAI_MACSEC_SC_ATTR_MACSEC_REPLAY_PROTECTION_WINDOW:
+        attr[i].value.s32 = macsecSC.replayProtectionWindow;
+        break;
+      case SAI_MACSEC_SC_ATTR_MACSEC_SECTAG_OFFSET:
+        attr[i].value.u8 = macsecSC.sectagOffset;
+        break;
+      default:
+        return SAI_STATUS_INVALID_PARAMETER;
+    }
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
 namespace facebook::fboss {
 
 static sai_macsec_api_t _macsec_api;
@@ -279,6 +438,11 @@ void populate_macsec_api(sai_macsec_api_t** macsec_api) {
   _macsec_api.remove_macsec_sa = &remove_macsec_sa_fn;
   _macsec_api.set_macsec_sa_attribute = &set_macsec_sa_attribute_fn;
   _macsec_api.get_macsec_sa_attribute = &get_macsec_sa_attribute_fn;
+
+  _macsec_api.create_macsec_sc = &create_macsec_sc_fn;
+  _macsec_api.remove_macsec_sc = &remove_macsec_sc_fn;
+  _macsec_api.set_macsec_sc_attribute = &set_macsec_sc_attribute_fn;
+  _macsec_api.get_macsec_sc_attribute = &get_macsec_sc_attribute_fn;
 
   // TODO(ccpowers): add stats apis (get/ext/clear)
 
