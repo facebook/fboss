@@ -343,6 +343,17 @@ void HwSwitchEnsemble::switchRunStateChanged(SwitchRunState switchState) {
   }
 }
 
+folly::dynamic HwSwitchEnsemble::gracefulExitState() const {
+  folly::dynamic switchState = folly::dynamic::object;
+  // For RIB we employ a optmization to serialize only unresolved routes
+  // and recover others from FIB
+  switchState[kSwSwitch] = getProgrammedState()->toFollyDynamic();
+  if (routingInformationBase_) {
+    switchState[kRib] = routingInformationBase_->unresolvedRoutesFollyDynamic();
+  }
+  return switchState;
+}
+
 void HwSwitchEnsemble::gracefulExit() {
   if (thriftThread_) {
     // Join thrif thread. Thrift calls will fail post
@@ -353,14 +364,8 @@ void HwSwitchEnsemble::gracefulExit() {
     fs_->shutdown();
   }
   // Initiate warm boot
-  folly::dynamic switchState = folly::dynamic::object;
   getHwSwitch()->unregisterCallbacks();
-  // For RIB we employ a optmization to serialize only unresolved routes
-  // and recover others from FIB
-  switchState[kSwSwitch] = getProgrammedState()->toFollyDynamic();
-  if (routingInformationBase_) {
-    switchState[kRib] = routingInformationBase_->unresolvedRoutesFollyDynamic();
-  }
+  auto switchState = gracefulExitState();
   getHwSwitch()->gracefulExit(switchState);
 }
 
