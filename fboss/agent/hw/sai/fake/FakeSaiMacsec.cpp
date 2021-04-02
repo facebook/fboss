@@ -419,6 +419,59 @@ sai_status_t get_macsec_sc_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
+sai_status_t create_macsec_flow_fn(
+    sai_object_id_t* macsec_flow_id,
+    sai_object_id_t /* switch_id */,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+  sai_macsec_direction_t direction;
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_MACSEC_ATTR_DIRECTION:
+        direction = static_cast<sai_macsec_direction_t>(attr_list[i].value.s32);
+        break;
+      default:
+        return SAI_STATUS_INVALID_PARAMETER;
+    }
+  }
+
+  *macsec_flow_id = fs->macsecFlowManager.create(direction);
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t remove_macsec_flow_fn(sai_object_id_t macsec_flow_id) {
+  FakeSai::getInstance()->macsecFlowManager.remove(macsec_flow_id);
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t set_macsec_flow_attribute_fn(
+    sai_object_id_t macsec_flow_id,
+    const sai_attribute_t* /* attr */) {
+  auto fs = FakeSai::getInstance();
+  fs->macsecFlowManager.get(macsec_flow_id);
+  // don't currently use any settable attributes
+  return SAI_STATUS_INVALID_PARAMETER;
+}
+
+sai_status_t get_macsec_flow_attribute_fn(
+    sai_object_id_t macsec_flow_id,
+    uint32_t attr_count,
+    sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  const auto& macsecFlow = fs->macsecFlowManager.get(macsec_flow_id);
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr[i].id) {
+      case SAI_MACSEC_FLOW_ATTR_MACSEC_DIRECTION:
+        attr[i].value.s32 = macsecFlow.macsecDirection;
+        break;
+      default:
+        return SAI_STATUS_INVALID_PARAMETER;
+    }
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
 namespace facebook::fboss {
 
 static sai_macsec_api_t _macsec_api;
@@ -443,6 +496,11 @@ void populate_macsec_api(sai_macsec_api_t** macsec_api) {
   _macsec_api.remove_macsec_sc = &remove_macsec_sc_fn;
   _macsec_api.set_macsec_sc_attribute = &set_macsec_sc_attribute_fn;
   _macsec_api.get_macsec_sc_attribute = &get_macsec_sc_attribute_fn;
+
+  _macsec_api.create_macsec_flow = &create_macsec_flow_fn;
+  _macsec_api.remove_macsec_flow = &remove_macsec_flow_fn;
+  _macsec_api.set_macsec_flow_attribute = &set_macsec_flow_attribute_fn;
+  _macsec_api.get_macsec_flow_attribute = &get_macsec_flow_attribute_fn;
 
   // TODO(ccpowers): add stats apis (get/ext/clear)
 

@@ -96,10 +96,18 @@ struct FakeMacsecSC {
   sai_uint8_t sectagOffset{0};
 };
 
+struct FakeMacsecFlow {
+  explicit FakeMacsecFlow(sai_macsec_direction_t _macsecDirection)
+      : macsecDirection(_macsecDirection) {}
+  sai_object_id_t id;
+  sai_macsec_direction_t macsecDirection;
+};
+
 using FakeMacsecManager = FakeManager<sai_object_id_t, FakeMacsec>;
 using FakeMacsecPortManager = FakeManager<sai_object_id_t, FakeMacsecPort>;
 using FakeMacsecSAManager = FakeManager<sai_object_id_t, FakeMacsecSA>;
 using FakeMacsecSCManager = FakeManager<sai_object_id_t, FakeMacsecSC>;
+using FakeMacsecFlowManager = FakeManager<sai_object_id_t, FakeMacsecFlow>;
 
 void populate_macsec_api(sai_macsec_api_t** macsec_api);
 
