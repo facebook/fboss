@@ -311,6 +311,17 @@ void SwSwitch::setRestartTime(RestartEvent event) {
   restart_time::mark(event);
 }
 
+folly::dynamic SwSwitch::gracefulExitState() const {
+  folly::dynamic switchState = folly::dynamic::object;
+  switchState[kSwSwitch] = getAppliedState()->toFollyDynamic();
+  if (rib_) {
+    // For RIB we employ a optmization to serialize only unresolved routes
+    // and recover others from FIB
+    switchState[kRib] = rib_->unresolvedRoutesFollyDynamic();
+  }
+  return switchState;
+}
+
 void SwSwitch::gracefulExit() {
   if (isFullyInitialized()) {
     steady_clock::time_point begin = steady_clock::now();
@@ -329,13 +340,7 @@ void SwSwitch::gracefulExit() {
                       stopThreadsAndHandlersDone - neighborFloodDone)
                       .count();
 
-    folly::dynamic switchState = folly::dynamic::object;
-    switchState[kSwSwitch] = getAppliedState()->toFollyDynamic();
-    if (rib_) {
-      // For RIB we employ a optmization to serialize only unresolved routes
-      // and recover others from FIB
-      switchState[kRib] = rib_->unresolvedRoutesFollyDynamic();
-    }
+    folly::dynamic switchState = gracefulExitState();
 
     steady_clock::time_point switchStateToFollyDone = steady_clock::now();
     XLOG(INFO) << "[Exit] Switch state to folly dynamic "

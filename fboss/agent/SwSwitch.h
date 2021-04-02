@@ -187,6 +187,8 @@ class SwSwitch : public HwSwitch::Callback {
 
   void updateStats();
 
+  folly::dynamic gracefulExitState() const;
+
   /*
    * Get a pointer to the current switch state.
    *
