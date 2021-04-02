@@ -163,12 +163,6 @@ enum DeviceTechnology : uint8_t {
   UNKNOWN_VALUE = 0b1000,
 };
 
-// We use the code from Table4-7 SM media interface codes in Sff-8024 here.
-enum ApplicationCode : uint8_t {
-  CWDM4_100G = 0x10,
-  FR4_200GBASE = 0x18,
-};
-
 class CmisFieldInfo {
  public:
   int dataAddress;
@@ -209,9 +203,12 @@ class CmisFieldInfo {
 
 typedef std::map<CmisField, std::uint32_t> CmisFieldMultiplier;
 
-// Store the mapping between port speed and ApplicationCode:
+// Store the mapping between port speed and ApplicationCode.
+// We use the module Media Interface ID, which is located at the second byte
+// of the APPLICATION_ADVERTISING field, as Application ID here, which is the
+// code from Table4-7 SM media interface codes in Sff-8024.
 
-typedef std::map<cfg::PortSpeed, ApplicationCode> SpeedApplicationMapping;
+using SpeedApplicationMapping = std::map<cfg::PortSpeed, SMFMediaInterfaceCode>;
 
 } // namespace fboss
 } // namespace facebook

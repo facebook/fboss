@@ -10,6 +10,7 @@
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 #include "fboss/qsfp_service/StatsPublisher.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
 #include "fboss/qsfp_service/module/cmis/CmisFieldInfo.h"
 
@@ -197,8 +198,9 @@ static CmisFieldMultiplier qsfpMultiplier = {
 };
 
 static SpeedApplicationMapping speedApplicationMapping = {
-    {cfg::PortSpeed::HUNDREDG, CWDM4_100G},
-    {cfg::PortSpeed::TWOHUNDREDG, FR4_200GBASE},
+    {cfg::PortSpeed::HUNDREDG, SMFMediaInterfaceCode::CWDM4_100G},
+    {cfg::PortSpeed::TWOHUNDREDG, SMFMediaInterfaceCode::FR4_200G},
+    {cfg::PortSpeed::FOURHUNDREDG, SMFMediaInterfaceCode::FR4_400G},
 };
 
 void getQsfpFieldAddress(
@@ -1075,7 +1077,7 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
 
   XLOG(INFO) << "currentApplication: " << std::hex << (int)currentApplication;
 
-  if (applicationIter->second == currentApplication) {
+  if (static_cast<uint8_t>(applicationIter->second) == currentApplication) {
     XLOG(INFO) << "speed matches. Doing nothing.";
     return;
   } else if (applicationIter == speedApplicationMapping.end()) {
@@ -1087,7 +1089,8 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
         apache::thrift::util::enumNameSafe(speed)));
   }
 
-  auto capabilityIter = moduleCapabilities_.find(applicationIter->second);
+  auto capabilityIter =
+      moduleCapabilities_.find(static_cast<uint8_t>(applicationIter->second));
 
   if (capabilityIter == moduleCapabilities_.end()) {
     XLOG(INFO) << "Unsupported Application";
