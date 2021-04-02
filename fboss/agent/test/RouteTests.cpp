@@ -798,6 +798,144 @@ TYPED_TEST(RouteTest, InterfaceRoutes) {
   }
 }
 
+TYPED_TEST(RouteTest, dropRoutes) {
+  auto rid = RouterID(0);
+  SwSwitchRouteUpdateWrapper u1(this->sw_);
+  u1.addRoute(
+      rid,
+      IPAddress("10.10.10.10"),
+      32,
+      kClientA,
+      RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE));
+  u1.addRoute(
+      rid,
+      IPAddress("2001::0"),
+      128,
+      kClientA,
+      RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE));
+  // Check recursive resolution for drop routes
+  RouteNextHopSet v4nexthops = makeNextHops({"10.10.10.10"});
+  u1.addRoute(
+      rid,
+      IPAddress("20.20.20.0"),
+      24,
+      kClientA,
+      RouteNextHopEntry(v4nexthops, DISTANCE));
+  RouteNextHopSet v6nexthops = makeNextHops({"2001::0"});
+  u1.addRoute(
+      rid,
+      IPAddress("2001:1::"),
+      64,
+      kClientA,
+      RouteNextHopEntry(v6nexthops, DISTANCE));
+
+  u1.program();
+  auto state2 = this->sw_->getState();
+
+  // Check routes
+  auto r1 = this->findRoute4(state2, rid, "10.10.10.10/32");
+  EXPECT_RESOLVED(r1);
+  EXPECT_FALSE(r1->isConnected());
+  EXPECT_TRUE(
+      r1->has(kClientA, RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE)));
+  EXPECT_EQ(
+      r1->getForwardInfo(),
+      RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE));
+
+  auto r2 = this->findRoute4(state2, rid, "20.20.20.0/24");
+  EXPECT_RESOLVED(r2);
+  EXPECT_FALSE(r2->isConnected());
+  EXPECT_FALSE(
+      r2->has(kClientA, RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE)));
+  EXPECT_EQ(
+      r2->getForwardInfo(),
+      RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE));
+
+  auto r3 = this->findRoute6(state2, rid, "2001::0/128");
+  EXPECT_RESOLVED(r3);
+  EXPECT_FALSE(r3->isConnected());
+  EXPECT_TRUE(
+      r3->has(kClientA, RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE)));
+  EXPECT_EQ(
+      r3->getForwardInfo(),
+      RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE));
+
+  auto r4 = this->findRoute6(state2, rid, "2001:1::/64");
+  EXPECT_RESOLVED(r4);
+  EXPECT_FALSE(r4->isConnected());
+  EXPECT_EQ(
+      r4->getForwardInfo(),
+      RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE));
+}
+
+TYPED_TEST(RouteTest, toCPURoutes) {
+  auto rid = RouterID(0);
+  SwSwitchRouteUpdateWrapper u1(this->sw_);
+  u1.addRoute(
+      rid,
+      IPAddress("10.10.10.10"),
+      32,
+      kClientA,
+      RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
+  u1.addRoute(
+      rid,
+      IPAddress("2001::0"),
+      128,
+      kClientA,
+      RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
+  // Check recursive resolution for to_cpu routes
+  RouteNextHopSet v4nexthops = makeNextHops({"10.10.10.10"});
+  u1.addRoute(
+      rid,
+      IPAddress("20.20.20.0"),
+      24,
+      kClientA,
+      RouteNextHopEntry(v4nexthops, DISTANCE));
+  RouteNextHopSet v6nexthops = makeNextHops({"2001::0"});
+  u1.addRoute(
+      rid,
+      IPAddress("2001:1::"),
+      64,
+      kClientA,
+      RouteNextHopEntry(v6nexthops, DISTANCE));
+
+  u1.program();
+  auto state2 = this->sw_->getState();
+
+  // Check routes
+  auto r1 = this->findRoute4(state2, rid, "10.10.10.10/32");
+  EXPECT_RESOLVED(r1);
+  EXPECT_FALSE(r1->isConnected());
+  EXPECT_TRUE(r1->has(
+      kClientA, RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE)));
+  EXPECT_EQ(
+      r1->getForwardInfo(),
+      RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
+
+  auto r2 = this->findRoute4(state2, rid, "20.20.20.0/24");
+  EXPECT_RESOLVED(r2);
+  EXPECT_FALSE(r2->isConnected());
+  EXPECT_EQ(
+      r2->getForwardInfo(),
+      RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
+
+  auto r3 = this->findRoute6(state2, rid, "2001::0/128");
+  EXPECT_RESOLVED(r3);
+  EXPECT_FALSE(r3->isConnected());
+  EXPECT_TRUE(r3->has(
+      kClientA, RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE)));
+  EXPECT_EQ(
+      r3->getForwardInfo(),
+      RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
+
+  auto r5 = this->findRoute6(state2, rid, "2001:1::/64");
+  EXPECT_RESOLVED(r5);
+  EXPECT_FALSE(r5->isConnected());
+  EXPECT_EQ(
+      r5->getForwardInfo(),
+      RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
+}
+
 namespace TEMP {
 struct Route {
   uint32_t vrf;
