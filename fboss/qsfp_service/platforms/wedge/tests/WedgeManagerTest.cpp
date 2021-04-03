@@ -19,6 +19,8 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <common/files/FileUtil.h>
+
 using namespace facebook::fboss;
 using namespace ::testing;
 namespace {
@@ -261,6 +263,36 @@ TEST_F(WedgeManagerTest, syncPorts) {
   EXPECT_EQ(info.size(), transceiverAndPortsToSync.size());
   for (const auto& sync : transceiverAndPortsToSync) {
     EXPECT_NE(info.find(sync.first), info.end());
+  }
+}
+
+TEST_F(WedgeManagerTest, coldBootTest) {
+  std::string kWarmBootDirPath = "/dev/shm/fboss/warm_boot";
+  std::string kColdBootFileName =
+      kWarmBootDirPath + "/cold_boot_once_qsfp_service";
+
+  // Create the cold boot file
+  facebook::files::FileUtil::create_directory_and_parents(kWarmBootDirPath);
+  EXPECT_EQ(facebook::files::FileUtil::touch(kColdBootFileName), true);
+  // Delete the existing wedge manager and create a new one
+  wedgeManager_.reset();
+  wedgeManager_ = std::make_unique<NiceMock<MockWedgeManager>>(16, 4);
+  // We expect a cold boot in this case and that should trigger hard resets of
+  // QSFP modules
+  for (int i = 0; i < wedgeManager_->getNumQsfpModules(); i++) {
+    EXPECT_CALL(*wedgeManager_, triggerQsfpHardReset(i)).Times(1);
+  }
+  wedgeManager_->initTransceiverMap();
+  // Confirm that the cold boot file was deleted
+  EXPECT_EQ(facebook::files::FileUtil::fileExists(kColdBootFileName), false);
+
+  // Test a warm boot
+  wedgeManager_.reset();
+  wedgeManager_ = std::make_unique<NiceMock<MockWedgeManager>>(16, 4);
+  // We expect a warm boot in this case and that should not trigger hard resets
+  // of QSFP modules
+  for (int i = 0; i < wedgeManager_->getNumQsfpModules(); i++) {
+    EXPECT_CALL(*wedgeManager_, triggerQsfpHardReset(i)).Times(0);
   }
 }
 } // namespace

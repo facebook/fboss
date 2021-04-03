@@ -13,6 +13,8 @@
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/Utils.h"
 
+#include "fboss/lib/CommonFileUtils.h"
+
 #include <folly/FileUtil.h>
 #include <folly/json.h>
 #include <folly/logging/xlog.h>
@@ -29,24 +31,6 @@ constexpr auto forceColdBootPrefix = "cold_boot_once_";
 constexpr auto shutdownDumpPrefix = "sdk_shutdown_dump_";
 constexpr auto startupDumpPrefix = "sdk_startup_dump_";
 
-/*
- * Remove the given file. Return true if file exists and
- * we were able to remove it, false otherwise
- */
-bool removeFile(const std::string& filename) {
-  int rv = unlink(filename.c_str());
-  if (rv == 0) {
-    // The file existed and we successfully removed it.
-    return true;
-  }
-  if (errno == ENOENT) {
-    // The file wasn't present.
-    return false;
-  }
-  // Some other unexpected error.
-  throw facebook::fboss::SysError(
-      errno, "error while trying to remove warm boot file ", filename);
-}
 } // namespace
 
 namespace facebook::fboss {

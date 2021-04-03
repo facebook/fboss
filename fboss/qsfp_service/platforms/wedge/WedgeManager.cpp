@@ -1,5 +1,6 @@
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 
+#include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/qsfp_service/module/QsfpModule.h"
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
@@ -15,8 +16,10 @@
 namespace {
 
 constexpr int kSecAfterModuleOutOfReset = 2;
+constexpr auto forceColdBootPath =
+    "/dev/shm/fboss/warm_boot/cold_boot_once_qsfp_service";
 
-}
+} // namespace
 
 namespace facebook {
 namespace fboss {
@@ -87,6 +90,23 @@ void WedgeManager::initTransceiverMap() {
   for (int idx = 0; idx < getNumQsfpModules(); idx++) {
     ports_.wlock()->emplace(
         TransceiverID(idx), std::map<uint32_t, PortStatus>());
+  }
+
+  // Check if a cold boot has been forced
+  if (removeFile(forceColdBootPath)) {
+    XLOG(INFO) << "Forced cold boot";
+    for (int idx = 0; idx < getNumQsfpModules(); idx++) {
+      try {
+        // Force hard resets on the transceivers which forces a cold boot of the
+        // modules.
+        triggerQsfpHardReset(idx);
+      } catch (const std::exception& ex) {
+        XLOG(ERR) << "failed to triggerQsfpHardReset at idx " << idx << ": "
+                  << ex.what();
+      }
+    }
+  } else {
+    XLOG(INFO) << "Attempting a warm boot";
   }
 
   // Also try to load the config file here so that we have transceiver to port
@@ -363,6 +383,12 @@ void WedgeManager::clearAllTransceiverReset() {
   sleep(kSecAfterModuleOutOfReset);
 }
 
+void WedgeManager::triggerQsfpHardReset(int idx) {
+  // This api accepts 1 based module id however the module id in
+  // WedgeManager is 0 based.
+  qsfpPlatApi_->triggerQsfpHardReset(idx + 1);
+}
+
 std::unique_ptr<TransceiverI2CApi> WedgeManager::getI2CBus() {
   return std::make_unique<WedgeI2CBusLock>(std::make_unique<WedgeI2CBus>());
 }
@@ -450,10 +476,8 @@ void WedgeManager::updateTransceiverMap() {
       if (safeToReset && (std::time(nullptr) > pauseRemediationUntil_)) {
         XLOG(INFO) << "A present transceiver with unknown interface at " << idx
                    << " Try reset.";
-        // This api accept 1 based module id however the module id in
-        // WedgeManager is 0 based.
         try {
-          qsfpPlatApi_->triggerQsfpHardReset(idx + 1);
+          triggerQsfpHardReset(idx);
         } catch (const std::exception& ex) {
           XLOG(ERR) << "failed to triggerQsfpHardReset at idx " << idx << ": "
                     << ex.what();

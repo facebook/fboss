@@ -95,6 +95,10 @@ class WedgeManager : public TransceiverManager {
   // transceiver out of reset by default will stay no op.
   virtual void clearAllTransceiverReset();
 
+  // This function will trigger a hard reset on the specific transceiver, making
+  // use of the specific implementation from each platform.
+  virtual void triggerQsfpHardReset(int idx);
+
   /*
    * This function takes the portId, port profile id and creates phy port
    * config using platform mapping.
