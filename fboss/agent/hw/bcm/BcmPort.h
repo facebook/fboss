@@ -117,6 +117,7 @@ class BcmPort {
   // Return whether the link status of the port is actually up.
   // Note: if it is not enabled, return false
   bool isUp();
+  bool isProgrammed();
 
   cfg::PortSpeed getSpeed() const;
   cfg::PortSpeed getMaxSpeed() const;

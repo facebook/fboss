@@ -35,8 +35,13 @@ BENCHMARK(HwStatsCollection) {
   folly::BenchmarkSuspender suspender;
   auto ensemble = createHwEnsemble({HwSwitchEnsemble::LINKSCAN});
   auto hwSwitch = ensemble->getHwSwitch();
-  auto config =
-      utility::onePortPerVlanConfig(hwSwitch, ensemble->masterLogicalPortIds());
+  std::vector<PortID> ports = ensemble->masterLogicalPortIds();
+  // maximum 48 master logical ports (taken from wedge400) to get
+  // consistent performance results across platforms with different
+  // number of ports but same ASIC, e.g. wedge400 and minipack
+  int numPortsToCollectStats = 48;
+  ports.resize(std::min((int)ports.size(), numPortsToCollectStats));
+  auto config = utility::onePortPerVlanConfig(hwSwitch, ports);
   ensemble->applyInitialConfig(config);
   SwitchStats dummy;
   suspender.dismiss();

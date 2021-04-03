@@ -361,7 +361,9 @@ void BcmPort::init(bool warmBoot) {
   getPlatformPort()->linkStatusChanged(isUp(), isEnabledInSDK());
   getPlatformPort()->externalState(PortLedExternalState::NONE);
 
-  enableLinkscan();
+  if (isEnabledInSDK()) {
+    enableLinkscan();
+  }
 }
 
 bool BcmPort::supportsSpeed(cfg::PortSpeed speed) {
@@ -439,6 +441,10 @@ bool BcmPort::isUp() {
   auto rv = bcm_port_link_status_get(hw_->getUnit(), port_, &linkStatus);
   bcmCheckError(rv, "could not find if the port ", port_, " is up or down...");
   return linkStatus == BCM_PORT_LINK_STATUS_UP;
+}
+
+bool BcmPort::isProgrammed() {
+  return *programmedSettings_.rlock() != nullptr;
 }
 
 void BcmPort::enable(const std::shared_ptr<Port>& swPort) {
@@ -547,6 +553,11 @@ void BcmPort::program(const shared_ptr<Port>& port) {
 
   setupStatsIfNeeded(port);
   setupPrbs(port);
+
+  if (!isProgrammed()) {
+    // enable linkscan when port is programmed for the first time
+    enableLinkscan();
+  }
 
   {
     XLOG(DBG3) << "Saving port settings for " << port->getName();
@@ -1312,6 +1323,10 @@ std::chrono::seconds BcmPort::BcmPortStats::timeRetrieved() const {
 }
 
 std::optional<HwPortStats> BcmPort::getPortStats() const {
+  // we currently only target on enabled port
+  if (!shouldReportStats()) {
+    return std::nullopt;
+  }
   auto bcmStats = lastPortStats_.rlock();
   if (!bcmStats->has_value()) {
     return std::nullopt;
