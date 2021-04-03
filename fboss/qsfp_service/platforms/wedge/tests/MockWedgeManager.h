@@ -74,6 +74,7 @@ class MockWedgeManager : public WedgeManager {
   }
 
  private:
+  MOCK_METHOD0(loadConfig, void());
   int numModules_;
   int numPortsPerModule_;
 };
