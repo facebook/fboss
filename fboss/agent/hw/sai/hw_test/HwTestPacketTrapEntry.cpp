@@ -13,10 +13,10 @@ using namespace facebook::fboss;
 std::shared_ptr<AclEntry> getTrapAclEntry(
     bool srcPort,
     std::optional<PortID> port,
-    std::optional<folly::IPAddress> dstIp) {
+    std::optional<folly::CIDRNetwork> dstPrefix) {
   auto aclEntry = std::make_shared<AclEntry>(1, "AclEntry1");
   srcPort ? aclEntry->setSrcPort(port.value())
-          : aclEntry->setDstIp(folly::CIDRNetwork(dstIp.value(), 128));
+          : aclEntry->setDstIp(dstPrefix.value());
   aclEntry->setActionType(cfg::AclActionType::PERMIT);
   MatchAction matchAction;
   cfg::QueueMatchAction queueAction = cfg::QueueMatchAction();
@@ -39,9 +39,9 @@ HwTestPacketTrapEntry::HwTestPacketTrapEntry(HwSwitch* hwSwitch, PortID port) {
 
 HwTestPacketTrapEntry::HwTestPacketTrapEntry(
     HwSwitch* hwSwitch,
-    folly::IPAddress& dstIp) {
+    folly::CIDRNetwork& dstPrefix) {
   auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch);
-  auto aclEntry = getTrapAclEntry(false, std::nullopt, dstIp);
+  auto aclEntry = getTrapAclEntry(false, std::nullopt, dstPrefix);
   saiSwitch->managerTable()->aclTableManager().addAclEntry(
       aclEntry, SaiSwitch::kAclTable1);
 }

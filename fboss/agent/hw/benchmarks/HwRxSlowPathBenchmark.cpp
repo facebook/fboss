@@ -21,7 +21,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 
-#include <folly/IPAddressV6.h>
+#include <folly/IPAddress.h>
 #include <folly/dynamic.h>
 #include <folly/init/Init.h>
 #include <folly/json.h>
@@ -37,16 +37,18 @@ DEFINE_bool(
 
 namespace facebook::fboss {
 
+const std::string kDstIp = "2620:0:1cfe:face:b00c::4";
+
 void runRxSlowPathBenchmark() {
   constexpr int kEcmpWidth = 1;
   auto ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
   auto hwSwitch = ensemble->getHwSwitch();
-  auto dstIp = folly::IPAddress("2620:0:1cfe:face:b00c::4");
   auto portUsed = ensemble->masterLogicalPortIds()[0];
   auto config = utility::oneL3IntfConfig(hwSwitch, portUsed);
   ensemble->applyInitialConfig(config);
   // capture packet exiting port 0 (entering due to loopback)
-  auto packetCapture = HwTestPacketTrapEntry(hwSwitch, dstIp);
+  auto trapDstIp = folly::CIDRNetwork{kDstIp, 128};
+  auto packetCapture = HwTestPacketTrapEntry(hwSwitch, trapDstIp);
   auto dstMac = utility::getInterfaceMac(
       ensemble->getProgrammedState(), utility::firstVlanID(config));
   auto ecmpHelper =
@@ -68,7 +70,7 @@ void runRxSlowPathBenchmark() {
       kSrcMac,
       dstMac,
       folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
-      dstIp,
+      folly::IPAddressV6(kDstIp),
       8000,
       8001);
   hwSwitch->sendPacketSwitchedSync(std::move(txPacket));
