@@ -113,7 +113,7 @@ std::shared_ptr<BcmCinter> BcmCinter::getInstance() {
 }
 
 void BcmCinter::setupGlobals() {
-  array<string, 34> globals = {
+  array<string, 35> globals = {
       "_shr_pbmp_t pbmp",
       "_shr_rx_reasons_t reasons",
       "bcm_cosq_gport_discard_t discard",
@@ -148,6 +148,7 @@ void BcmCinter::setupGlobals() {
       "bcm_port_resource_t resource",
       "bcm_port_resource_t resources[4]",
       "bcm_port_phy_tx_t tx",
+      "bcm_field_flexctr_config_t flexctr_config",
   };
   writeCintLines(std::move(globals));
 }
@@ -765,6 +766,15 @@ vector<string> BcmCinter::cintForTimeInterface(
       cintLines.end(),
       make_move_iterator(structLines.begin()),
       make_move_iterator(structLines.end()));
+  return cintLines;
+}
+
+vector<string> BcmCinter::cintForFlexctrConfig(
+    bcm_field_flexctr_config_t* flexctr_cfg) {
+  vector<string> cintLines = {
+      to<string>(
+          "flexctr_config.flexctr_action_id=", flexctr_cfg->flexctr_action_id),
+      to<string>("flexctr_config.counter_index=", flexctr_cfg->counter_index)};
   return cintLines;
 }
 
@@ -3146,6 +3156,47 @@ int BcmCinter::bcm_time_interface_add(int unit, bcm_time_interface_t* intf) {
 int BcmCinter::bcm_time_interface_delete_all(int unit) {
   writeCintLines(wrapFunc(
       to<string>("bcm_time_interface_delete_all(", makeParamStr(unit), ")")));
+  return 0;
+}
+
+int BcmCinter::bcm_field_entry_flexctr_attach(
+    int unit,
+    bcm_field_entry_t entry,
+    bcm_field_flexctr_config_t* flexctr_cfg) {
+  auto cint = cintForFlexctrConfig(flexctr_cfg);
+  auto funcCint = wrapFunc(to<string>(
+      "bcm_field_entry_flexctr_attach(",
+      makeParamStr(unit, entry, "&flexctr_cfg"),
+      ")"));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(funcCint.begin()),
+      make_move_iterator(funcCint.end()));
+  writeCintLines(std::move(cint));
+  return 0;
+}
+
+int BcmCinter::bcm_field_entry_flexctr_detach(
+    int unit,
+    bcm_field_entry_t entry,
+    bcm_field_flexctr_config_t* flexctr_cfg) {
+  auto cint = cintForFlexctrConfig(flexctr_cfg);
+  auto funcCint = wrapFunc(to<string>(
+      "bcm_field_entry_flexctr_detach(",
+      makeParamStr(unit, entry, "&flexctr_cfg"),
+      ")"));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(funcCint.begin()),
+      make_move_iterator(funcCint.end()));
+  writeCintLines(std::move(cint));
+  return 0;
+}
+
+int BcmCinter::bcm_field_entry_remove(int unit, bcm_field_entry_t entry) {
+  auto cint = wrapFunc(
+      to<string>("bcm_field_entry_remove(", makeParamStr(unit, entry), ")"));
+  writeCintLines(std::move(cint));
   return 0;
 }
 } // namespace facebook::fboss

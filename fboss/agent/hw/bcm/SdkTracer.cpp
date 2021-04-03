@@ -1632,6 +1632,18 @@ int __real_bcm_time_interface_delete_all(int unit);
 
 void __real_bcm_time_interface_t_init(bcm_time_interface_t* intf);
 
+int __real_bcm_field_entry_flexctr_attach(
+    int unit,
+    bcm_field_entry_t entry,
+    bcm_field_flexctr_config_t* flexctr_cfg);
+
+int __real_bcm_field_entry_flexctr_detach(
+    int unit,
+    bcm_field_entry_t entry,
+    bcm_field_flexctr_config_t* flexctr_cfg);
+
+int __real_bcm_field_entry_remove(int unit, bcm_field_entry_t entry);
+
 } // extern "C"
 
 using namespace facebook::fboss;
@@ -3928,6 +3940,24 @@ int __wrap_bcm_time_interface_delete_all(int unit) {
 
 void __wrap_bcm_time_interface_t_init(bcm_time_interface_t* intf) {
   CALL_WRAPPERS_NO_RV(bcm_time_interface_t_init(intf));
+}
+
+int __wrap_bcm_field_entry_flexctr_attach(
+    int unit,
+    bcm_field_entry_t entry,
+    bcm_field_flexctr_config_t* flexctr_cfg) {
+  CALL_WRAPPERS_RV(bcm_field_entry_flexctr_attach(unit, entry, flexctr_cfg));
+}
+
+int __wrap_bcm_field_entry_flexctr_detach(
+    int unit,
+    bcm_field_entry_t entry,
+    bcm_field_flexctr_config_t* flexctr_cfg) {
+  CALL_WRAPPERS_RV(bcm_field_entry_flexctr_detach(unit, entry, flexctr_cfg));
+}
+
+int __wrap_bcm_field_entry_remove(int unit, bcm_field_entry_t entry) {
+  CALL_WRAPPERS_RV(bcm_field_entry_remove(unit, entry));
 }
 
 } // extern "C"

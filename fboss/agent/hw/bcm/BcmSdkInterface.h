@@ -993,6 +993,18 @@ class BcmSdkInterface {
   virtual int bcm_time_interface_delete_all(int unit) = 0;
 
   virtual void bcm_time_interface_t_init(bcm_time_interface_t* intf) = 0;
+
+  virtual int bcm_field_entry_flexctr_attach(
+      int unit,
+      bcm_field_entry_t entry,
+      bcm_field_flexctr_config_t* flexctr_cfg) = 0;
+
+  virtual int bcm_field_entry_flexctr_detach(
+      int unit,
+      bcm_field_entry_t entry,
+      bcm_field_flexctr_config_t* flexctr_cfg) = 0;
+
+  virtual int bcm_field_entry_remove(int unit, bcm_field_entry_t entry) = 0;
 };
 
 } // namespace facebook::fboss

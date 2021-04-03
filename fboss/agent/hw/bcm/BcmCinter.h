@@ -602,6 +602,15 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       bcm_port_timesync_config_t* config_array) override;
   int bcm_time_interface_add(int unit, bcm_time_interface_t* intf) override;
   int bcm_time_interface_delete_all(int unit) override;
+  int bcm_field_entry_flexctr_attach(
+      int unit,
+      bcm_field_entry_t entry,
+      bcm_field_flexctr_config_t* flexctr_cfg) override;
+  int bcm_field_entry_flexctr_detach(
+      int unit,
+      bcm_field_entry_t entry,
+      bcm_field_flexctr_config_t* flexctr_cfg) override;
+  int bcm_field_entry_remove(int unit, bcm_field_entry_t entry) override;
 
   /*
    * Getters, traversal functions - Do nothing.
@@ -1752,6 +1761,9 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   std::vector<std::string> cintForTimeInterface(
       bcm_time_interface_t* intf,
       const std::string& timeInterfaceVar);
+
+  std::vector<std::string> cintForFlexctrConfig(
+      bcm_field_flexctr_config_t* flexctr_cfg);
 
   /*
    * Synchronize access to data structures for access from multiple
