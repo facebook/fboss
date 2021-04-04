@@ -52,6 +52,7 @@ add_library(hw_resource_stats_publisher
 
 target_link_libraries(hw_switch_warmboot_helper
   utils
+  common_file_utils
   Folly::folly
 )
 

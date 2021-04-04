@@ -728,6 +728,7 @@ if (NOT SAI_ONLY)
       i2c_controller_stats_cpp2
       mpls_cpp2
       qsfp_cpp2
+      common_file_utils
       Folly::folly
       wangle::wangle
       fb303::fb303

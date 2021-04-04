@@ -97,3 +97,11 @@ target_link_libraries(fboss_i2c_lib
   wedge100_platform_mapping
   galaxy_platform_mapping
 )
+
+add_library(common_file_utils
+  fboss/lib/CommonFileUtils.cpp
+)
+
+target_link_libraries(common_file_utils
+  fboss_error
+)
