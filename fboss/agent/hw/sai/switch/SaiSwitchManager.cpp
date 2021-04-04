@@ -80,8 +80,7 @@ SaiSwitchManager::SaiSwitchManager(
         platform->getSwitchAttributes(false),
         0 /* fake switch id; ignored */);
   }
-  cpuPort_ = SaiApiTable::getInstance()->switchApi().getAttribute(
-      switch_->adapterKey(), SaiSwitchTraits::Attributes::CpuPort{});
+  initCpuPort();
 }
 
 SwitchSaiId SaiSwitchManager::getSwitchSaiId() const {
@@ -245,7 +244,4 @@ sai_object_id_t SaiSwitchManager::getDefaultVlanAdapterKey() const {
       switch_->adapterKey(), SaiSwitchTraits::Attributes::DefaultVlanId{});
 }
 
-PortSaiId SaiSwitchManager::getCpuPort() const {
-  return cpuPort_;
-}
 } // namespace facebook::fboss

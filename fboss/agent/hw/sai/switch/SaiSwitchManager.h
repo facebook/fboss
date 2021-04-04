@@ -70,6 +70,8 @@ class SaiSwitchManager {
 
   PortSaiId getCpuPort() const;
 
+  void initCpuPort();
+
  private:
   void programLoadBalancerParams(
       cfg::LoadBalancerID id,
