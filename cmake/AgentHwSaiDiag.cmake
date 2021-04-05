@@ -56,6 +56,7 @@ set_target_properties(sai_repl PROPERTIES COMPILE_FLAGS
 
 add_executable(diag_shell_client
   fboss/agent/hw/sai/diag/DiagShellClient.cpp
+  fboss/agent/hw/sai/diag/oss/DiagShellClient.cpp
 )
 
 target_link_libraries(diag_shell_client

@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/switch/gen-cpp2/SaiCtrlAsyncClient.h"
+#include "folly/Memory.h"
 
 #include <folly/Exception.h>
 #include <folly/FileUtil.h>
@@ -19,10 +20,7 @@
 #include <folly/io/async/AsyncSignalHandler.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/EventBaseManager.h>
-
-#include <folly/io/async/AsyncSocket.h>
-#include <thrift/lib/cpp2/async/HeaderClientChannel.h>
-#include <thrift/lib/cpp2/async/RocketClientChannel.h>
+#include "fboss/agent/hw/sai/diag/DiagShellClient.h"
 
 #include <netdb.h>
 #include <sys/socket.h>
@@ -74,17 +72,8 @@ const IPAddress getIPFromHost(const std::string& hostname) {
   return IPAddress();
 }
 
-std::unique_ptr<facebook::fboss::SaiCtrlAsyncClient> getStreamingClient(
-    folly::EventBase* evb,
-    const IPAddress& ip) {
-  folly::SocketAddress addr(ip, FLAGS_port);
-  return std::make_unique<facebook::fboss::SaiCtrlAsyncClient>(
-      apache::thrift::RocketClientChannel::newChannel(
-          folly::AsyncSocket::UniquePtr(new folly::AsyncSocket(evb, addr))));
-}
-
 void subscribeToDiagShell(folly::EventBase* evb, const IPAddress& ip) {
-  auto client = getStreamingClient(evb, ip);
+  auto client = utility::getStreamingClient(evb, ip, FLAGS_port);
   auto responseAndStream = client->sync_startDiagShell();
   folly::writeFull(
       STDOUT_FILENO,
@@ -121,7 +110,7 @@ void handleStdin(
     folly::EventBase* evb,
     const IPAddress& ip,
     const bool* shouldStop) {
-  auto client = getStreamingClient(evb, ip);
+  auto client = utility::getStreamingClient(evb, ip, FLAGS_port);
   ssize_t nread;
   constexpr ssize_t bufSize = 512;
   std::array<char, bufSize> buf;
