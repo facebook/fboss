@@ -69,6 +69,7 @@ const std::array<LabelForwardingAction::LabelStack, 4> kLabelStacks{
     LabelForwardingAction::LabelStack({103, 203, 303}),
     LabelForwardingAction::LabelStack({104, 204, 304}),
 };
+
 const std::array<InterfaceID, 4> kInterfaces{
     InterfaceID(1),
     InterfaceID(2),
@@ -79,25 +80,6 @@ const std::array<InterfaceID, 4> kInterfaces{
 //
 // Helper functions
 //
-template <typename AddrT>
-void EXPECT_FWD_INFO(
-    std::shared_ptr<Route<AddrT>> rt,
-    InterfaceID intf,
-    std::string ipStr) {
-  const auto& fwds = rt->getForwardInfo().getNextHopSet();
-  EXPECT_EQ(1, fwds.size());
-  const auto& fwd = *fwds.begin();
-  EXPECT_EQ(intf, fwd.intf());
-  EXPECT_EQ(IPAddress(ipStr), fwd.addr());
-}
-
-template <typename AddrT>
-void EXPECT_RESOLVED(std::shared_ptr<Route<AddrT>> rt) {
-  ASSERT_NE(nullptr, rt);
-  EXPECT_TRUE(rt->isResolved());
-  EXPECT_FALSE(rt->isUnresolvable());
-  EXPECT_FALSE(rt->needResolve());
-}
 
 template <typename AddrT>
 void EXPECT_NODEMAP_MATCH(const std::shared_ptr<RouteTableRib<AddrT>>& rib) {
@@ -195,146 +177,6 @@ std::shared_ptr<SwitchState> applyInitConfig() {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   stateV1->publish();
   return stateV1;
-}
-
-namespace TEMP {
-struct Route {
-  uint32_t vrf;
-  IPAddress prefix;
-  uint8_t len;
-  Route(uint32_t vrf, IPAddress prefix, uint8_t len)
-      : vrf(vrf), prefix(prefix), len(len) {}
-  bool operator<(const Route& rt) const {
-    if (vrf < rt.vrf) {
-      return true;
-    } else if (vrf > rt.vrf) {
-      return false;
-    }
-    if (len < rt.len) {
-      return true;
-    } else if (len > rt.len) {
-      return false;
-    }
-    return prefix < rt.prefix;
-  }
-  bool operator==(const Route& rt) const {
-    return vrf == rt.vrf && len == rt.len && prefix == rt.prefix;
-  }
-};
-} // namespace TEMP
-
-void checkChangedRoute(
-    const shared_ptr<RouteTableMap>& oldTables,
-    const shared_ptr<RouteTableMap>& newTables,
-    const std::set<TEMP::Route> changedIDs,
-    const std::set<TEMP::Route> addedIDs,
-    const std::set<TEMP::Route> removedIDs) {
-  auto oldState = make_shared<SwitchState>();
-  oldState->resetRouteTables(oldTables);
-  auto newState = make_shared<SwitchState>();
-  newState->resetRouteTables(newTables);
-
-  std::set<TEMP::Route> foundChanged;
-  std::set<TEMP::Route> foundAdded;
-  std::set<TEMP::Route> foundRemoved;
-  StateDelta delta(oldState, newState);
-
-  for (auto const& rtDelta : delta.getRouteTablesDelta()) {
-    RouterID id;
-    if (!rtDelta.getOld()) {
-      id = rtDelta.getNew()->getID();
-    } else {
-      id = rtDelta.getOld()->getID();
-    }
-    DeltaFunctions::forEachChanged(
-        rtDelta.getRoutesV4Delta(),
-        [&](const shared_ptr<RouteV4>& oldRt,
-            const shared_ptr<RouteV4>& newRt) {
-          EXPECT_EQ(oldRt->prefix(), newRt->prefix());
-          EXPECT_NE(oldRt, newRt);
-          const auto prefix = newRt->prefix();
-          auto ret = foundChanged.insert(
-              TEMP::Route(id, IPAddress(prefix.network), prefix.mask));
-          EXPECT_TRUE(ret.second);
-        },
-        [&](const shared_ptr<RouteV4>& rt) {
-          const auto prefix = rt->prefix();
-          auto ret = foundAdded.insert(
-              TEMP::Route(id, IPAddress(prefix.network), prefix.mask));
-          EXPECT_TRUE(ret.second);
-        },
-        [&](const shared_ptr<RouteV4>& rt) {
-          const auto prefix = rt->prefix();
-          auto ret = foundRemoved.insert(
-              TEMP::Route(id, IPAddress(prefix.network), prefix.mask));
-          EXPECT_TRUE(ret.second);
-        });
-    DeltaFunctions::forEachChanged(
-        rtDelta.getRoutesV6Delta(),
-        [&](const shared_ptr<RouteV6>& oldRt,
-            const shared_ptr<RouteV6>& newRt) {
-          EXPECT_EQ(oldRt->prefix(), newRt->prefix());
-          EXPECT_NE(oldRt, newRt);
-          const auto prefix = newRt->prefix();
-          auto ret = foundChanged.insert(
-              TEMP::Route(id, IPAddress(prefix.network), prefix.mask));
-          EXPECT_TRUE(ret.second);
-        },
-        [&](const shared_ptr<RouteV6>& rt) {
-          const auto prefix = rt->prefix();
-          auto ret = foundAdded.insert(
-              TEMP::Route(id, IPAddress(prefix.network), prefix.mask));
-          EXPECT_TRUE(ret.second);
-        },
-        [&](const shared_ptr<RouteV6>& rt) {
-          const auto prefix = rt->prefix();
-          auto ret = foundRemoved.insert(
-              TEMP::Route(id, IPAddress(prefix.network), prefix.mask));
-          EXPECT_TRUE(ret.second);
-        });
-  }
-
-  EXPECT_EQ(changedIDs, foundChanged);
-  EXPECT_EQ(addedIDs, foundAdded);
-  EXPECT_EQ(removedIDs, foundRemoved);
-}
-
-void checkChangedRouteTable(
-    const shared_ptr<RouteTableMap>& oldTables,
-    const shared_ptr<RouteTableMap>& newTables,
-    const std::set<uint32_t> changedIDs,
-    const std::set<uint32_t> addedIDs,
-    const std::set<uint32_t> removedIDs) {
-  auto oldState = make_shared<SwitchState>();
-  oldState->resetRouteTables(oldTables);
-  auto newState = make_shared<SwitchState>();
-  newState->resetRouteTables(newTables);
-
-  std::set<uint32_t> foundChanged;
-  std::set<uint32_t> foundAdded;
-  std::set<uint32_t> foundRemoved;
-  StateDelta delta(oldState, newState);
-  DeltaFunctions::forEachChanged(
-      delta.getRouteTablesDelta(),
-      [&](const shared_ptr<RouteTable>& oldTable,
-          const shared_ptr<RouteTable>& newTable) {
-        EXPECT_EQ(oldTable->getID(), newTable->getID());
-        EXPECT_NE(oldTable, newTable);
-        auto ret = foundChanged.insert(oldTable->getID());
-        EXPECT_TRUE(ret.second);
-      },
-      [&](const shared_ptr<RouteTable>& table) {
-        auto ret = foundAdded.insert(table->getID());
-        EXPECT_TRUE(ret.second);
-      },
-      [&](const shared_ptr<RouteTable>& table) {
-        auto ret = foundRemoved.insert(table->getID());
-        EXPECT_TRUE(ret.second);
-      });
-
-  EXPECT_EQ(changedIDs, foundChanged);
-  EXPECT_EQ(addedIDs, foundAdded);
-  EXPECT_EQ(removedIDs, foundRemoved);
 }
 
 // Utility function for creating a nexthops list of size n,
@@ -471,36 +313,6 @@ TEST(Route, listRanking) {
 
   nhm.delEntryForClient(ClientID(20));
   EXPECT_THROW(nhm.getBestEntry().second->getNextHopSet(), FbossError);
-}
-
-bool stringStartsWith(std::string s1, std::string prefix) {
-  return s1.compare(0, prefix.size(), prefix) == 0;
-}
-
-void assertClientsNotPresent(
-    std::shared_ptr<RouteTableMap>& tables,
-    RouterID rid,
-    RouteV4::Prefix prefix,
-    std::vector<int16_t> clientIds) {
-  for (int16_t clientId : clientIds) {
-    const auto& route =
-        tables->getRouteTable(rid)->getRibV4()->exactMatch(prefix);
-    auto entry = route->getEntryForClient(ClientID(clientId));
-    EXPECT_EQ(nullptr, entry);
-  }
-}
-
-void assertClientsPresent(
-    std::shared_ptr<RouteTableMap>& tables,
-    RouterID rid,
-    RouteV4::Prefix prefix,
-    std::vector<int16_t> clientIds) {
-  for (int16_t clientId : clientIds) {
-    const auto& route =
-        tables->getRouteTable(rid)->getRibV4()->exactMatch(prefix);
-    auto entry = route->getEntryForClient(ClientID(clientId));
-    EXPECT_NE(nullptr, entry);
-  }
 }
 
 // Very basic test for serialization/deseralization of Routes
