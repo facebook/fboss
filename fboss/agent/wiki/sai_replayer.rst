@@ -77,7 +77,7 @@ Simply run the executable to replay the generated code. For example,
 
 .. code-block:: sh
 
-  export sdkVersion=brcm-08.08.2020_odp 
+  export sdkVersion=brcm-08.08.2020_odp
   root@$testSwitch ./sai_replayer-${sdkVersion}
 
 
@@ -300,21 +300,28 @@ Unlike buck targets where third-party libraries are updated automatically, pleas
 * librt
 * libstdc++
 * libdl
-* Directory containing all sai headers (e.g. sai/1.6.0/platform007/ca4da3d/include/)
-* libsai (e.g. brcm-sai/4.2.0.7_odp/platform007/331835f/lib/libsai.a)
-* libxgs_robo (e.g. broadcom-xgs-robo/6.5.18/platform007/1b1141c/lib/libxgs_robo.a)
+* Directory containing all sai headers (e.g. sai/1.6.3/platform007/ca4da3d/include/)
+* libsai (e.g. brcm-sai/4.2.2.7_odp/platform007/382c498/lib/libsai.a)
+* libxgs_robo (e.g. broadcom-xgs-robo/6.5.19/platform007/1b1141c/lib/libxgs_robo.a)
+* broadcom-plp-millenio (e.g. broadcom-plp-millenio/5.2/platform007/ca4da3d/lib/libphymodepil.a) or
+* broadcom-plp-estoque (e.g. broadcom-plp-estoque/1.8/platform007/ca4da3d/lib/libphymodepil.a)
+* broadcom-plp-epdm (e.g. broadcom-plp-epdm/2.0.5/platform007/9a33e61/lib/libepdm.a)
 * libprotobuf (e.g. protobuf/3.7.0/platform007/fbc192b/lib/libprotobuf.a)
+
+(Note that this is just an example of file paths to libraries. Please UPDATE the version and file path accordingly.)
 
 Use the following command to build the binary (and substitute correct library path):
 
 .. code-block:: sh
 
-  export sai_headers=sai/1.6.0/platform007/ca4da3d/include/
-  export sai_lib=brcm-sai/4.2.0.7_odp/platform007/331835f/lib/libsai.a
-  export brcm_lib=broadcom-xgs-robo/6.5.18/platform007/1b1141c/lib/libxgs_robo.a
+  export sai_headers=sai/1.6.3/platform007/ca4da3d/include/
+  export sai_lib=brcm-sai/4.2.2.7_odp/platform007/382c498/lib/libsai.a
+  export brcm_lib=broadcom-xgs-robo/6.5.19/platform007/1b1141c/lib/libxgs_robo.a
+  export brcm_phymode_lib=broadcom-plp-millenio/5.2/platform007/ca4da3d/lib/libphymodepil.a (choose the appropriate one)
+  export brcm_epdm_lib=broadcom-plp-epdm/2.0.5/platform007/9a33e61/lib/libepdm.a
   export protobuf_lib=protobuf/3.7.0/platform007/fbc192b/lib/libprotobuf.a
 
-  gcc sai_log.c -I $sai_headers -lm -lpthread -lrt -lstdc++ -ldl $sai_lib $brcm_lib $protobuf_lib
+  gcc sai_log.c -I $sai_headers -lm -lpthread -lrt -lstdc++ -ldl $sai_lib $brcm_lib $brcm_phymode_lib $brcm_epdm_lib $protobuf_lib
 
 Running the executable
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
