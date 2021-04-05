@@ -113,19 +113,6 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
     }
   }
 
-  void configIngressMirrorOnPort(cfg::SwitchConfig* config, PortID port) const {
-    for (auto i = 1; i < masterLogicalPortIds().size(); i++) {
-      auto portId = masterLogicalPortIds()[i];
-      auto portCfg = utility::findCfgPort(*config, portId);
-      if (static_cast<PortID>(*portCfg->logicalID_ref()) == port) {
-        portCfg->ingressMirror_ref() = "mirror";
-        portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
-        portCfg->sFlowIngressRate_ref() = 1;
-        break;
-      }
-    }
-  }
-
   void resolveMirror() {
     auto vlanId = utility::firstVlanID(initialConfig());
     auto mac = utility::getInterfaceMac(getProgrammedState(), vlanId);
