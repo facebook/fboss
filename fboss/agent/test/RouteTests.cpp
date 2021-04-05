@@ -1673,3 +1673,271 @@ TYPED_TEST(StaticRoutesTest, staticRoutesGetApplied) {
   EXPECT_EQ(8, numV4Routes);
   EXPECT_EQ(9, numV6Routes);
 }
+
+/*
+ * Class that makes it easy to run tests with the following
+ * configurable entities:
+ * Four interfaces: I1, I2, I3, I4
+ * Three routes which require resolution: R1, R2, R3
+ */
+template <typename StandAloneRib>
+class UcmpTest : public RouteTest<StandAloneRib> {
+ public:
+  void resolveRoutes(std::vector<std::pair<folly::IPAddress, RouteNextHopSet>>
+                         networkAndNextHops) {
+    SwSwitchRouteUpdateWrapper ru(this->sw_);
+    for (const auto& nnhs : networkAndNextHops) {
+      folly::IPAddress net = nnhs.first;
+      RouteNextHopSet nhs = nnhs.second;
+      ru.addRoute(rid_, net, mask, kClientA, RouteNextHopEntry(nhs, DISTANCE));
+    }
+    ru.program();
+    auto state = this->sw_->getState();
+    ASSERT_NE(nullptr, state);
+    for (const auto& nnhs : networkAndNextHops) {
+      folly::IPAddress net = nnhs.first;
+      auto pfx = folly::sformat("{}/{}", net.str(), mask);
+      auto r = this->findRoute4(state, rid_, pfx);
+      EXPECT_RESOLVED(r);
+      EXPECT_FALSE(r->isConnected());
+      resolvedRoutes.push_back(r);
+    }
+  }
+
+  void runRecursiveTest(
+      const std::vector<RouteNextHopSet>& routeUnresolvedNextHops,
+      const std::vector<NextHopWeight>& resolvedWeights) {
+    std::vector<std::pair<folly::IPAddress, RouteNextHopSet>>
+        networkAndNextHops;
+    auto netsIter = nets.begin();
+    for (const auto& nhs : routeUnresolvedNextHops) {
+      networkAndNextHops.push_back({*netsIter, nhs});
+      netsIter++;
+    }
+    resolveRoutes(networkAndNextHops);
+
+    RouteNextHopSet expFwd1;
+    uint8_t i = 0;
+    for (const auto& w : resolvedWeights) {
+      expFwd1.emplace(ResolvedNextHop(intfIps[i], InterfaceID(i + 1), w));
+      ++i;
+    }
+    EXPECT_EQ(expFwd1, resolvedRoutes[0]->getForwardInfo().getNextHopSet());
+  }
+
+  void runTwoDeepRecursiveTest(
+      const std::vector<std::vector<NextHopWeight>>& unresolvedWeights,
+      const std::vector<NextHopWeight>& resolvedWeights) {
+    std::vector<RouteNextHopSet> routeUnresolvedNextHops;
+    auto rsIter = rnhs.begin();
+    for (const auto& ws : unresolvedWeights) {
+      auto nhIter = rsIter->begin();
+      RouteNextHopSet nexthops;
+      for (const auto& w : ws) {
+        nexthops.insert(UnresolvedNextHop(*nhIter, w));
+        nhIter++;
+      }
+      routeUnresolvedNextHops.push_back(nexthops);
+      rsIter++;
+    }
+    runRecursiveTest(routeUnresolvedNextHops, resolvedWeights);
+  }
+
+  void runVaryFromHundredTest(
+      NextHopWeight w,
+      const std::vector<NextHopWeight>& resolvedWeights) {
+    runRecursiveTest(
+        {{UnresolvedNextHop(intfIp1, 100),
+          UnresolvedNextHop(intfIp2, 100),
+          UnresolvedNextHop(intfIp3, 100),
+          UnresolvedNextHop(intfIp4, w)}},
+        resolvedWeights);
+  }
+
+  std::vector<std::shared_ptr<Route<folly::IPAddressV4>>> resolvedRoutes;
+  const folly::IPAddress intfIp1{"1.1.1.10"};
+  const folly::IPAddress intfIp2{"2.2.2.20"};
+  const folly::IPAddress intfIp3{"3.3.3.30"};
+  const folly::IPAddress intfIp4{"4.4.4.40"};
+  const std::array<folly::IPAddress, 4> intfIps{
+      {intfIp1, intfIp2, intfIp3, intfIp4}};
+  const folly::IPAddress r2Nh{"42.42.42.42"};
+  const folly::IPAddress r3Nh{"43.43.43.43"};
+  std::array<folly::IPAddress, 2> r1Nhs{{r2Nh, r3Nh}};
+  std::array<folly::IPAddress, 2> r2Nhs{{intfIp1, intfIp2}};
+  std::array<folly::IPAddress, 2> r3Nhs{{intfIp3, intfIp4}};
+  const std::array<std::array<folly::IPAddress, 2>, 3> rnhs{
+      {r1Nhs, r2Nhs, r3Nhs}};
+  const folly::IPAddress r1Net{"41.41.41.0"};
+  const folly::IPAddress r2Net{"42.42.42.0"};
+  const folly::IPAddress r3Net{"43.43.43.0"};
+  const std::array<folly::IPAddress, 3> nets{{r1Net, r2Net, r3Net}};
+  const uint8_t mask{24};
+
+ private:
+  RouterID rid_{0};
+};
+
+TYPED_TEST_CASE(UcmpTest, RouteTestTypes);
+/*
+ * Four interfaces: I1, I2, I3, I4
+ * Three routes which require resolution: R1, R2, R3
+ * R1 has R2 and R3 as next hops with weights 3 and 2
+ * R2 has I1 and I2 as next hops with weights 5 and 4
+ * R3 has I3 and I4 as next hops with weights 3 and 2
+ * expect R1 to resolve to I1:25, I2:20, I3:18, I4:12
+ */
+TYPED_TEST(UcmpTest, recursiveUcmp) {
+  this->runTwoDeepRecursiveTest({{3, 2}, {5, 4}, {3, 2}}, {25, 20, 18, 12});
+}
+
+/*
+ * Two interfaces: I1, I2
+ * Three routes which require resolution: R1, R2, R3
+ * R1 has R2 and R3 as next hops with weights 2 and 1
+ * R2 has I1 and I2 as next hops with weights 1 and 1
+ * R3 has I1 as next hop with weight 1
+ * expect R1 to resolve to I1:2, I2:1
+ */
+TYPED_TEST(UcmpTest, recursiveUcmpDuplicateIntf) {
+  this->runRecursiveTest(
+      {{UnresolvedNextHop(this->r2Nh, 2), UnresolvedNextHop(this->r3Nh, 1)},
+       {UnresolvedNextHop(this->intfIp1, 1),
+        UnresolvedNextHop(this->intfIp2, 1)},
+       {UnresolvedNextHop(this->intfIp1, 1)}},
+      {2, 1});
+}
+
+/*
+ * Two interfaces: I1, I2
+ * Three routes which require resolution: R1, R2, R3
+ * R1 has R2 and R3 as next hops with ECMP
+ * R2 has I1 and I2 as next hops with ECMP
+ * R3 has I1 as next hop with weight 1
+ * expect R1 to resolve to ECMP
+ */
+TYPED_TEST(UcmpTest, recursiveEcmpDuplicateIntf) {
+  this->runRecursiveTest(
+      {{UnresolvedNextHop(this->r2Nh, ECMP_WEIGHT),
+        UnresolvedNextHop(this->r3Nh, ECMP_WEIGHT)},
+       {UnresolvedNextHop(this->intfIp1, ECMP_WEIGHT),
+        UnresolvedNextHop(this->intfIp2, ECMP_WEIGHT)},
+       {UnresolvedNextHop(this->intfIp1, 1)}},
+      {ECMP_WEIGHT, ECMP_WEIGHT});
+}
+
+/*
+ * Two interfaces: I1, I2
+ * One route which requires resolution: R1
+ * R1 has I1 and I2 as next hops with weights 0 (ECMP) and 1
+ * expect R1 to resolve to ECMP between I1, I2
+ */
+TYPED_TEST(UcmpTest, mixedUcmpVsEcmp_EcmpWins) {
+  this->runRecursiveTest(
+      {{UnresolvedNextHop(this->intfIp1, ECMP_WEIGHT),
+        UnresolvedNextHop(this->intfIp2, 1)}},
+      {ECMP_WEIGHT, ECMP_WEIGHT});
+}
+
+/*
+ * Four interfaces: I1, I2, I3, I4
+ * Three routes which require resolution: R1, R2, R3
+ * R1 has R2 and R3 as next hops with weights 3 and 2
+ * R2 has I1 and I2 as next hops with weights 5 and 4
+ * R3 has I3 and I4 as next hops with ECMP
+ * expect R1 to resolve to ECMP between I1, I2, I3, I4
+ */
+TYPED_TEST(UcmpTest, recursiveEcmpPropagatesUp) {
+  this->runTwoDeepRecursiveTest({{3, 2}, {5, 4}, {0, 0}}, {0, 0, 0, 0});
+}
+
+/*
+ * Four interfaces: I1, I2, I3, I4
+ * Three routes which require resolution: R1, R2, R3
+ * R1 has R2 and R3 as next hops with weights 3 and 2
+ * R2 has I1 and I2 as next hops with weights 5 and 4
+ * R3 has I3 and I4 as next hops with weights 0 (ECMP) and 1
+ * expect R1 to resolve to ECMP between I1, I2, I3, I4
+ */
+TYPED_TEST(UcmpTest, recursiveMixedEcmpPropagatesUp) {
+  this->runTwoDeepRecursiveTest({{3, 2}, {5, 4}, {0, 1}}, {0, 0, 0, 0});
+}
+
+/*
+ * Four interfaces: I1, I2, I3, I4
+ * Three routes which require resolution: R1, R2, R3
+ * R1 has R2 and R3 as next hops with ECMP
+ * R2 has I1 and I2 as next hops with weights 5 and 4
+ * R3 has I3 and I4 as next hops with weights 3 and 2
+ * expect R1 to resolve to ECMP between I1, I2, I3, I4
+ */
+TYPED_TEST(UcmpTest, recursiveEcmpPropagatesDown) {
+  this->runTwoDeepRecursiveTest({{0, 0}, {5, 4}, {3, 2}}, {0, 0, 0, 0});
+}
+
+/*
+ * Two interfaces: I1, I2
+ * Two routes which require resolution: R1, R2
+ * R1 has I1 and I2 as next hops with ECMP
+ * R2 has I1 and I2 as next hops with weights 2 and 1
+ * expect R1 to resolve to ECMP between I1, I2
+ * expect R2 to resolve to I1:2, I2: 1
+ */
+TYPED_TEST(UcmpTest, separateEcmpUcmp) {
+  this->runRecursiveTest(
+      {{UnresolvedNextHop(this->intfIp1, ECMP_WEIGHT),
+        UnresolvedNextHop(this->intfIp2, ECMP_WEIGHT)},
+       {UnresolvedNextHop(this->intfIp1, 2),
+        UnresolvedNextHop(this->intfIp2, 1)}},
+      {ECMP_WEIGHT, ECMP_WEIGHT});
+  RouteNextHopSet route2ExpFwd;
+  route2ExpFwd.emplace(
+      ResolvedNextHop(IPAddress("1.1.1.10"), InterfaceID(1), 2));
+  route2ExpFwd.emplace(
+      ResolvedNextHop(IPAddress("2.2.2.20"), InterfaceID(2), 1));
+  EXPECT_EQ(
+      route2ExpFwd, this->resolvedRoutes[1]->getForwardInfo().getNextHopSet());
+}
+
+// The following set of tests will start with 4 next hops all weight 100
+// then vary one next hop by 10 weight increments to 90, 80, ... , 10
+
+TYPED_TEST(UcmpTest, Hundred) {
+  this->runVaryFromHundredTest(100, {1, 1, 1, 1});
+}
+
+TYPED_TEST(UcmpTest, Ninety) {
+  this->runVaryFromHundredTest(90, {10, 10, 10, 9});
+}
+
+TYPED_TEST(UcmpTest, Eighty) {
+  this->runVaryFromHundredTest(80, {5, 5, 5, 4});
+}
+
+TYPED_TEST(UcmpTest, Seventy) {
+  this->runVaryFromHundredTest(70, {10, 10, 10, 7});
+}
+
+TYPED_TEST(UcmpTest, Sixty) {
+  this->runVaryFromHundredTest(60, {5, 5, 5, 3});
+}
+
+TYPED_TEST(UcmpTest, Fifty) {
+  this->runVaryFromHundredTest(50, {2, 2, 2, 1});
+}
+
+TYPED_TEST(UcmpTest, Forty) {
+  this->runVaryFromHundredTest(40, {5, 5, 5, 2});
+}
+
+TYPED_TEST(UcmpTest, Thirty) {
+  this->runVaryFromHundredTest(30, {10, 10, 10, 3});
+}
+
+TYPED_TEST(UcmpTest, Twenty) {
+  this->runVaryFromHundredTest(20, {5, 5, 5, 1});
+}
+
+TYPED_TEST(UcmpTest, Ten) {
+  this->runVaryFromHundredTest(10, {10, 10, 10, 1});
+}
