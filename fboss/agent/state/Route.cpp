@@ -10,6 +10,7 @@
 // Copyright 2004-present Facebook.  All rights reserved.
 #include "Route.h"
 
+#include <folly/logging/xlog.h>
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
