@@ -69,19 +69,6 @@ void EXPECT_NODEMAP_MATCH(const std::shared_ptr<RouteTableMap>& routeTables) {
   }
 }
 
-template <typename AddrT>
-void EXPECT_ROUTETABLERIB_MATCH(
-    const std::shared_ptr<RouteTableRib<AddrT>>& rib1,
-    const std::shared_ptr<RouteTableRib<AddrT>>& rib2) {
-  EXPECT_EQ(rib1->size(), rib2->size());
-  EXPECT_EQ(rib1->routesRadixTree().size(), rib2->routesRadixTree().size());
-  for (const auto& route : *(rib1->routes())) {
-    auto match = rib2->exactMatch(route->prefix());
-    ASSERT_NE(nullptr, match);
-    EXPECT_TRUE(match->isSame(route.get()));
-  }
-}
-
 //
 // Tests
 //
@@ -297,50 +284,6 @@ TEST(Route, serializeRoute) {
   // back to Route object
   auto rt2 = Route<IPAddressV4>::fromFollyDynamic(obj2);
   ASSERT_TRUE(rt2->has(clientId, RouteNextHopEntry(nxtHops, DISTANCE)));
-}
-
-TEST(Route, serializeRouteTable) {
-  auto stateV1 = make_shared<SwitchState>();
-  stateV1->publish();
-
-  auto rid = RouterID(0);
-  // 2 different nexthops
-  RouteNextHopSet nhop1 = makeNextHops({"1.1.1.10"}); // resolved by intf 1
-  RouteNextHopSet nhop2 = makeNextHops({"2.2.2.10"}); // resolved by intf 2
-  // 4 prefixes
-  RouteV4::Prefix r1{IPAddressV4("10.1.1.0"), 24};
-  RouteV4::Prefix r2{IPAddressV4("20.1.1.0"), 24};
-  RouteV6::Prefix r3{IPAddressV6("1001::0"), 48};
-  RouteV6::Prefix r4{IPAddressV6("2001::0"), 48};
-
-  RouteUpdater u2(stateV1->getRouteTables());
-  u2.addRoute(
-      rid, r1.network, r1.mask, CLIENT_A, RouteNextHopEntry(nhop1, DISTANCE));
-  u2.addRoute(
-      rid, r2.network, r2.mask, CLIENT_A, RouteNextHopEntry(nhop2, DISTANCE));
-  u2.addRoute(
-      rid, r3.network, r3.mask, CLIENT_A, RouteNextHopEntry(nhop1, DISTANCE));
-  u2.addRoute(
-      rid, r4.network, r4.mask, CLIENT_A, RouteNextHopEntry(nhop2, DISTANCE));
-  auto tables2 = u2.updateDone();
-  ASSERT_NE(nullptr, tables2);
-  EXPECT_NODEMAP_MATCH(tables2);
-
-  // to folly dynamic
-  folly::dynamic obj = tables2->toFollyDynamic();
-  // to string
-  folly::json::serialization_opts serOpts;
-  serOpts.allow_non_string_keys = true;
-  std::string json = folly::json::serialize(obj, serOpts);
-  // back to folly dynamic
-  folly::dynamic obj2 = folly::parseJson(json, serOpts);
-  // back to Route object
-  auto tables = RouteTableMap::fromFollyDynamic(obj2);
-  EXPECT_NODEMAP_MATCH(tables);
-  auto origRt = tables2->getRouteTable(rid);
-  auto desRt = tables->getRouteTable(rid);
-  EXPECT_ROUTETABLERIB_MATCH(origRt->getRibV4(), desRt->getRibV4());
-  EXPECT_ROUTETABLERIB_MATCH(origRt->getRibV6(), desRt->getRibV6());
 }
 
 // Test utility functions for converting RouteNextHopSet to thrift and back

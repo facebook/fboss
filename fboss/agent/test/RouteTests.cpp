@@ -35,6 +35,18 @@ const auto kDestPrefix =
     RouteV6::Prefix{folly::IPAddressV6("2401:bad:cad:dad::"), 64};
 const auto kDestAddress = folly::IPAddressV6("2401:bad:cad:dad::beef");
 
+template <typename AddrT>
+void EXPECT_ROUTETABLERIB_MATCH(
+    const std::shared_ptr<RouteTableRib<AddrT>>& rib1,
+    const std::shared_ptr<RouteTableRib<AddrT>>& rib2) {
+  EXPECT_EQ(rib1->size(), rib2->size());
+  EXPECT_EQ(rib1->routesRadixTree().size(), rib2->routesRadixTree().size());
+  for (const auto& route : *(rib1->routes())) {
+    auto match = rib2->exactMatch(route->prefix());
+    ASSERT_NE(nullptr, match);
+    EXPECT_TRUE(match->isSame(route.get()));
+  }
+}
 // bgp next hops
 const std::array<folly::IPAddressV6, 4> kBgpNextHopAddrs{
     folly::IPAddressV6("2801::1"),
@@ -1726,13 +1738,11 @@ TYPED_TEST(RouteTest, unresolvedWithRouteLabels) {
 
   // route to remote destination under kDestPrefix advertised by bgp
   const auto& route = findLongestMatchRoute(
-      this->sw_->getRib(),
-      rid,
-      kDestAddress,
-      this->sw_->getState());
+      this->sw_->getRib(), rid, kDestAddress, this->sw_->getState());
 
   EXPECT_EQ(
-      route->has(ClientID::BGPD, RouteNextHopEntry(bgpNextHops, AdminDistance::EBGP)),
+      route->has(
+          ClientID::BGPD, RouteNextHopEntry(bgpNextHops, AdminDistance::EBGP)),
       true);
 
   // Will resolve to DROP null routes
@@ -1790,13 +1800,11 @@ TYPED_TEST(RouteTest, withTunnelAndRouteLabels) {
   // route to remote destination under kDestPrefix advertised by bgp
 
   const auto& route = findLongestMatchRoute(
-      this->sw_->getRib(),
-      rid,
-      kDestAddress,
-      this->sw_->getState());
+      this->sw_->getRib(), rid, kDestAddress, this->sw_->getState());
 
   EXPECT_EQ(
-      route->has(ClientID::BGPD, RouteNextHopEntry(bgpNextHops, AdminDistance::EBGP)),
+      route->has(
+          ClientID::BGPD, RouteNextHopEntry(bgpNextHops, AdminDistance::EBGP)),
       true);
 
   EXPECT_TRUE(route->isResolved());
@@ -1872,13 +1880,11 @@ TYPED_TEST(RouteTest, withOnlyTunnelLabels) {
 
   // route to remote destination under kDestPrefix advertised by bgp
   const auto& route = findLongestMatchRoute(
-      this->sw_->getRib(),
-      rid,
-      kDestAddress,
-      this->sw_->getState());
+      this->sw_->getRib(), rid, kDestAddress, this->sw_->getState());
 
   EXPECT_EQ(
-      route->has(ClientID::BGPD, RouteNextHopEntry(bgpNextHops, AdminDistance::EBGP)),
+      route->has(
+          ClientID::BGPD, RouteNextHopEntry(bgpNextHops, AdminDistance::EBGP)),
       true);
 
   EXPECT_TRUE(route->isResolved());
@@ -1976,13 +1982,11 @@ TYPED_TEST(RouteTest, updateTunnelLabels) {
 
   // route to remote destination under kDestPrefix advertised by bgp
   const auto& route = findLongestMatchRoute(
-      this->sw_->getRib(),
-      rid,
-      kDestAddress,
-      this->sw_->getState());
+      this->sw_->getRib(), rid, kDestAddress, this->sw_->getState());
 
   EXPECT_EQ(
-      route->has(ClientID::BGPD, RouteNextHopEntry(bgpNextHops, AdminDistance::EBGP)),
+      route->has(
+          ClientID::BGPD, RouteNextHopEntry(bgpNextHops, AdminDistance::EBGP)),
       true);
 
   EXPECT_TRUE(route->isResolved());
@@ -1999,7 +2003,6 @@ TYPED_TEST(RouteTest, updateTunnelLabels) {
     EXPECT_EQ(nhop.labelForwardingAction()->pushStack().value(), updatedStack);
   }
 }
-
 
 TYPED_TEST(RouteTest, updateRouteLabels) {
   auto rid = RouterID(0);
@@ -2069,10 +2072,7 @@ TYPED_TEST(RouteTest, updateRouteLabels) {
 
   // route to remote destination under kDestPrefix advertised by bgp
   const auto& route = findLongestMatchRoute(
-      this->sw_->getRib(),
-      rid,
-      kDestAddress,
-      this->sw_->getState());
+      this->sw_->getRib(), rid, kDestAddress, this->sw_->getState());
 
   EXPECT_EQ(
       route->has(
@@ -2159,6 +2159,51 @@ TYPED_TEST(RouteTest, withInvalidLabelForwardingAction) {
       kClientA,
       RouteNextHopEntry(nexthops, DISTANCE));
   EXPECT_THROW(updater.program(), FbossError);
+}
+
+TYPED_TEST(RouteTest, serializeRouteTable) {
+  auto rid = RouterID(0);
+  // 2 different nexthops
+  RouteNextHopSet nhop1 = makeNextHops({"1.1.1.10"}); // resolved by intf 1
+  RouteNextHopSet nhop2 = makeNextHops({"2.2.2.10"}); // resolved by intf 2
+  // 4 prefixes
+  RouteV4::Prefix r1{IPAddressV4("10.1.1.0"), 24};
+  RouteV4::Prefix r2{IPAddressV4("20.1.1.0"), 24};
+  RouteV6::Prefix r3{IPAddressV6("1001::0"), 48};
+  RouteV6::Prefix r4{IPAddressV6("2001::0"), 48};
+
+  SwSwitchRouteUpdateWrapper u2(this->sw_);
+  u2.addRoute(
+      rid, r1.network, r1.mask, kClientA, RouteNextHopEntry(nhop1, DISTANCE));
+  u2.addRoute(
+      rid, r2.network, r2.mask, kClientA, RouteNextHopEntry(nhop2, DISTANCE));
+  u2.addRoute(
+      rid, r3.network, r3.mask, kClientA, RouteNextHopEntry(nhop1, DISTANCE));
+  u2.addRoute(
+      rid, r4.network, r4.mask, kClientA, RouteNextHopEntry(nhop2, DISTANCE));
+  u2.program();
+
+  // to folly dynamic
+  folly::dynamic obj = this->sw_->getState()->toFollyDynamic();
+  // to string
+  folly::json::serialization_opts serOpts;
+  serOpts.allow_non_string_keys = true;
+  std::string json = folly::json::serialize(obj, serOpts);
+  // back to folly dynamic
+  folly::dynamic obj2 = folly::parseJson(json, serOpts);
+  // back to Route object
+  auto deserState = SwitchState::fromFollyDynamic(obj2);
+  if (this->sw_->isStandaloneRibEnabled()) {
+    // In new rib  only FIB is part of the switch state
+    EXPECT_EQ(
+        this->sw_->getState()->getFibs()->toFollyDynamic(),
+        deserState->getFibs()->toFollyDynamic());
+  } else {
+    auto origRt = this->sw_->getState()->getRouteTables()->getRouteTable(rid);
+    auto desRt = deserState->getRouteTables()->getRouteTable(rid);
+    EXPECT_ROUTETABLERIB_MATCH(origRt->getRibV4(), desRt->getRibV4());
+    EXPECT_ROUTETABLERIB_MATCH(origRt->getRibV6(), desRt->getRibV6());
+  }
 }
 
 template <typename StandAloneRib>
