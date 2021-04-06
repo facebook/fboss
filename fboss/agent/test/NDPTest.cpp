@@ -1438,7 +1438,7 @@ TYPED_TEST(NdpTest, FlushEntryWithConcurrentUpdate) {
 
   VlanID vlanID(5);
   std::vector<IPAddressV6> targetIPs;
-  for (uint32_t i = 1; i <= 16; i++) {
+  for (uint32_t i = 1; i <= 255; i++) {
     targetIPs.push_back(
         IPAddressV6("2401:db00:2110:3004::" + std::to_string(i)));
   }
@@ -1463,6 +1463,7 @@ TYPED_TEST(NdpTest, FlushEntryWithConcurrentUpdate) {
           vlanID,
           false);
       index = (index + 1) % targetIPs.size();
+      usleep(1000);
     }
   });
 

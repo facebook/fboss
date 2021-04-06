@@ -1157,6 +1157,7 @@ TEST(ArpTest, FlushEntryWithConcurrentUpdate) {
       sendArpReply(
           handle.get(), targetIPs[index].str(), "02:10:20:30:40:22", portID);
       index = (index + 1) % targetIPs.size();
+      usleep(1000);
     }
   });
 
