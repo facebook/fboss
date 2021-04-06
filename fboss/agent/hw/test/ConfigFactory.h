@@ -17,6 +17,10 @@
 
 #include <vector>
 
+namespace facebook::fboss {
+class PortMap;
+}
+
 /*
  * This utility is to provide utils for test.
  */
@@ -116,4 +120,23 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
     cfg::PortSpeed downlinkPortSpeed,
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE,
     bool interfaceHasSubnet = true);
+
+/*
+ * Currently we rely on port max speed to set the PortProfileID in the default
+ * port config. This can be expensive as if the Hardware comes up with ports
+ * using speeds different than max speed, the system will try to reconfigure
+ * the port group or the port speed. But most of our tests don't really care
+ * about which speed we use.
+ * Therefore, introducing this static PortToDefaultProfileIDMap so that
+ * when HwTest::SetUp() finish initializng the HwSwitchEnsemble, we can use
+ * the SwState to collect the port and current profile id and then update
+ * this map. Using this SwState, which represents the state of the Hardware w/o
+ * any config applied yet, the port config can truely represent the default
+ * state of the Hardware.
+ */
+std::unordered_map<PortID, cfg::PortProfileID>& getPortToDefaultProfileIDMap();
+
+void setPortToDefaultProfileIDMap(
+    const std::shared_ptr<PortMap>& ports,
+    const Platform* platform);
 } // namespace facebook::fboss::utility

@@ -11,6 +11,8 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/common/PlatformMode.h"
+#include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/PortMap.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <folly/Format.h>
@@ -285,6 +287,32 @@ bool isRswPlatform(PlatformMode mode) {
 } // unnamed namespace
 
 namespace facebook::fboss::utility {
+
+std::unordered_map<PortID, cfg::PortProfileID>& getPortToDefaultProfileIDMap() {
+  static std::unordered_map<PortID, cfg::PortProfileID> portProfileIDMap;
+  return portProfileIDMap;
+}
+
+void setPortToDefaultProfileIDMap(
+    const std::shared_ptr<PortMap>& ports,
+    const Platform* platform) {
+  // Most of the platforms will have default ports created when the HW is
+  // initialized. But for those who don't have any default port, we'll fall
+  // back to use PlatformPort and the safe PortProfileID
+  if (ports->numPorts() > 0) {
+    for (const auto& port : *ports) {
+      getPortToDefaultProfileIDMap().emplace(
+          port->getID(), port->getProfileID());
+    }
+  } else {
+    for (const auto& [portID, platformPort] : platform->getPlatformPorts()) {
+      getPortToDefaultProfileIDMap().emplace(
+          PortID(portID), getSafeProfileID(platformPort));
+    }
+  }
+  XLOG(INFO) << "PortToDefaultProfileIDMap has "
+             << getPortToDefaultProfileIDMap().size() << " ports";
+}
 
 folly::MacAddress kLocalCpuMac() {
   static const folly::MacAddress kLocalMac(
