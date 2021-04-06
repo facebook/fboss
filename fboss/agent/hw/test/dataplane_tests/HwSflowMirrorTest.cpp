@@ -37,8 +37,21 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
         mac, mac, sip, dip, sport, dport, vlanId, payloadSize);
   }
 
+  std::vector<PortID> getPortsForSampling() const {
+    auto portIds = masterLogicalPortIds();
+    /*
+     * Tajo does not share sample packet session yet and creates
+     * one per port and the maximum is 29. Configure 24 ports
+     * for now on Tajo to enable sflow with mirroring.
+     */
+    return getPlatform()->getAsic()->getAsicType() ==
+            HwAsic::AsicType::ASIC_TYPE_TAJO
+        ? std::vector<PortID>(portIds.begin(), portIds.begin() + 24)
+        : portIds;
+  }
+
   void sendPkt(PortID port, std::unique_ptr<TxPacket> pkt) {
-    CHECK(port != masterLogicalPortIds()[0]);
+    CHECK(port != getPortsForSampling()[0]);
     getHwSwitchEnsemble()->ensureSendPacketOutOfPort(std::move(pkt), port);
   }
 
@@ -68,7 +81,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
   }
 
   void generateTraffic(size_t payloadSize = 1400) {
-    auto ports = masterLogicalPortIds();
+    auto ports = getPortsForSampling();
     for (auto i = 1; i < ports.size(); i++) {
       auto pkt = genPacket(i, payloadSize);
       sendPkt(ports[i], pkt.getTxPacket(getHwSwitch()));
@@ -77,7 +90,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
 
   cfg::SwitchConfig initialConfig() const override {
     return utility::onePortPerVlanConfig(
-        getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC);
+        getHwSwitch(), getPortsForSampling(), cfg::PortLoopbackMode::MAC);
   }
 
   HwSwitchEnsemble::Features featuresDesired() const override {
@@ -104,8 +117,8 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
   }
 
   void configSampling(cfg::SwitchConfig* config, int sampleRate) const {
-    for (auto i = 1; i < masterLogicalPortIds().size(); i++) {
-      auto portId = masterLogicalPortIds()[i];
+    for (auto i = 1; i < getPortsForSampling().size(); i++) {
+      auto portId = getPortsForSampling()[i];
       auto portCfg = utility::findCfgPort(*config, portId);
       portCfg->sFlowIngressRate_ref() = sampleRate;
       portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
@@ -138,14 +151,14 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
           mirror->getTunnelUdpPorts().value()));
     }
 
-    mirror->setEgressPort(masterLogicalPortIds()[0]);
+    mirror->setEgressPort(getPortsForSampling()[0]);
     mirrors->updateNode(mirror);
     state->resetMirrors(mirrors);
     applyNewState(state);
   }
 
   void setupRoutes(bool disableTTL = true) {
-    auto ports = masterLogicalPortIds();
+    auto ports = getPortsForSampling();
     auto size = ports.size();
     boost::container::flat_set<PortDescriptor> nhops;
     for (auto i = 1; i < size; i++) {
@@ -185,15 +198,15 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
   }
 
   uint64_t getSampleCount(const std::map<PortID, HwPortStats>& stats) {
-    auto portStats = stats.at(masterLogicalPortIds()[0]);
+    auto portStats = stats.at(getPortsForSampling()[0]);
     return *portStats.outUnicastPkts__ref();
   }
 
   uint64_t getExpectedSampleCount(const std::map<PortID, HwPortStats>& stats) {
     uint64_t expectedSampleCount = 0;
     uint64_t allPortRx = 0;
-    for (auto i = 1; i < masterLogicalPortIds().size(); i++) {
-      auto port = masterLogicalPortIds()[i];
+    for (auto i = 1; i < getPortsForSampling().size(); i++) {
+      auto port = getPortsForSampling()[i];
       auto portStats = stats.at(port);
       allPortRx += *portStats.inUnicastPkts__ref();
       expectedSampleCount +=
@@ -224,9 +237,9 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
     auto verify = [=]() {
       generateTraffic(payloadSize);
       std::this_thread::sleep_for(std::chrono::seconds(FLAGS_sflow_test_time));
-      auto ports = masterLogicalPortIds();
+      auto ports = getPortsForSampling();
       bringDownPorts(std::vector<PortID>(ports.begin() + 1, ports.end()));
-      auto stats = getLatestPortStats(masterLogicalPortIds());
+      auto stats = getLatestPortStats(getPortsForSampling());
       auto actualSampleCount = getSampleCount(stats);
       auto expectedSampleCount = getExpectedSampleCount(stats);
       EXPECT_NE(actualSampleCount, 0);
@@ -258,13 +271,13 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacket) {
     resolveMirror();
   };
   auto verify = [=]() {
-    auto ports = masterLogicalPortIds();
+    auto ports = getPortsForSampling();
     bringDownPorts(std::vector<PortID>(ports.begin() + 2, ports.end()));
     auto pkt = genPacket(1, 256);
     auto packetCapture =
-        HwTestPacketTrapEntry(getHwSwitch(), masterLogicalPortIds()[0]);
+        HwTestPacketTrapEntry(getHwSwitch(), getPortsForSampling()[0]);
     HwTestPacketSnooper snooper(getHwSwitchEnsemble());
-    sendPkt(masterLogicalPortIds()[1], pkt.getTxPacket(getHwSwitch()));
+    sendPkt(getPortsForSampling()[1], pkt.getTxPacket(getHwSwitch()));
     auto capturedPkt = snooper.waitForPacket(10);
     ASSERT_TRUE(capturedPkt.has_value());
 
@@ -279,7 +292,7 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacket) {
             4 /* vlan tag is absent in mirrored packet */);
     auto payload = capturedPkt->v4PayLoad()->payload()->payload();
 
-    EXPECT_EQ(getSlfowPacketSrcPort(payload), masterLogicalPortIds()[1]);
+    EXPECT_EQ(getSlfowPacketSrcPort(payload), getPortsForSampling()[1]);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -298,13 +311,13 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithTruncateV4) {
     resolveMirror();
   };
   auto verify = [=]() {
-    auto ports = masterLogicalPortIds();
+    auto ports = getPortsForSampling();
     bringDownPorts(std::vector<PortID>(ports.begin() + 2, ports.end()));
     auto pkt = genPacket(1, 8000);
     auto packetCapture =
-        HwTestPacketTrapEntry(getHwSwitch(), masterLogicalPortIds()[0]);
+        HwTestPacketTrapEntry(getHwSwitch(), getPortsForSampling()[0]);
     HwTestPacketSnooper snooper(getHwSwitchEnsemble());
-    sendPkt(masterLogicalPortIds()[1], pkt.getTxPacket(getHwSwitch()));
+    sendPkt(getPortsForSampling()[1], pkt.getTxPacket(getHwSwitch()));
     auto capturedPkt = snooper.waitForPacket(10);
     ASSERT_TRUE(capturedPkt.has_value());
 
@@ -320,7 +333,7 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithTruncateV4) {
         capturedPkt->length() - capturedHdrSize,
         210); /* TODO: confirm length in CS00010399535 and CS00012130950  */
     auto payload = capturedPkt->v4PayLoad()->payload()->payload();
-    EXPECT_EQ(getSlfowPacketSrcPort(payload), masterLogicalPortIds()[1]);
+    EXPECT_EQ(getSlfowPacketSrcPort(payload), getPortsForSampling()[1]);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -341,13 +354,13 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithTruncateV6) {
     resolveMirror();
   };
   auto verify = [=]() {
-    auto ports = masterLogicalPortIds();
+    auto ports = getPortsForSampling();
     bringDownPorts(std::vector<PortID>(ports.begin() + 2, ports.end()));
     auto pkt = genPacket(1, 8000);
     auto packetCapture =
-        HwTestPacketTrapEntry(getHwSwitch(), masterLogicalPortIds()[0]);
+        HwTestPacketTrapEntry(getHwSwitch(), getPortsForSampling()[0]);
     HwTestPacketSnooper snooper(getHwSwitchEnsemble());
-    sendPkt(masterLogicalPortIds()[1], pkt.getTxPacket(getHwSwitch()));
+    sendPkt(getPortsForSampling()[1], pkt.getTxPacket(getHwSwitch()));
     auto capturedPkt = snooper.waitForPacket(10);
     ASSERT_TRUE(capturedPkt.has_value());
 
@@ -363,7 +376,7 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithTruncateV6) {
         capturedPkt->length() - capturedHdrSize,
         210); /* TODO: confirm length in CS00010399535 and CS00012130950 */
     auto payload = capturedPkt->v6PayLoad()->payload()->payload();
-    EXPECT_EQ(getSlfowPacketSrcPort(payload), masterLogicalPortIds()[1]);
+    EXPECT_EQ(getSlfowPacketSrcPort(payload), getPortsForSampling()[1]);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
