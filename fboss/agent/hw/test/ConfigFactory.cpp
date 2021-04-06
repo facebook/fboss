@@ -28,19 +28,6 @@ using namespace facebook::fboss::utility;
 DEFINE_bool(nodeZ, false, "Setup test config as node Z");
 
 namespace {
-// Return the ID for a profile that doesn't subsume any other ports.
-cfg::PortProfileID getSafeProfileID(const cfg::PlatformPortEntry& portEntry) {
-  for (auto it : *portEntry.supportedProfiles_ref()) {
-    auto id = it.first;
-    auto cfg = it.second;
-    if (!cfg.subsumedPorts_ref() || cfg.subsumedPorts_ref()->empty()) {
-      return id;
-    }
-  }
-
-  throw FbossError(
-      "No safe profile found for port ", *portEntry.mapping_ref()->id_ref());
-}
 
 std::string getLocalCpuMacStr() {
   return kLocalCpuMac().toString();
@@ -96,31 +83,6 @@ std::unordered_map<PortID, cfg::PortProfileID>& getPortToDefaultProfileIDMap() {
   return portProfileIDMap;
 }
 
-void setPortToDefaultProfileIDMap(
-    const std::shared_ptr<PortMap>& ports,
-    const Platform* platform) {
-  // Most of the platforms will have default ports created when the HW is
-  // initialized. But for those who don't have any default port, we'll fall
-  // back to use PlatformPort and the safe PortProfileID
-  if (ports->numPorts() > 0) {
-    for (const auto& port : *ports) {
-      auto profileID = port->getProfileID();
-      if (profileID == cfg::PortProfileID::PROFILE_DEFAULT) {
-        const auto& entry = platform->getPlatformPorts().find(port->getID());
-        profileID = getSafeProfileID(entry->second);
-      }
-      getPortToDefaultProfileIDMap().emplace(port->getID(), profileID);
-    }
-  } else {
-    for (const auto& [portID, platformPort] : platform->getPlatformPorts()) {
-      getPortToDefaultProfileIDMap().emplace(
-          PortID(portID), getSafeProfileID(platformPort));
-    }
-  }
-  XLOG(INFO) << "PortToDefaultProfileIDMap has "
-             << getPortToDefaultProfileIDMap().size() << " ports";
-}
-
 namespace {
 
 cfg::Port createDefaultPortConfig(
@@ -142,39 +104,17 @@ cfg::Port createDefaultPortConfig(
   return defaultConfig;
 }
 
-void securePortsInConfig(
+std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
     const Platform* platform,
-    cfg::SwitchConfig& config,
-    const std::vector<PortID>& ports) {
-  // This function is to secure all ports in the input `ports` vector will be
-  // in the config. Usually there're two main cases:
-  // 1) all the ports in ports vector are from different group, so we don't need
-  // to worry about how to deal w/ the slave ports.
-  // 2) some ports in the ports vector are in the same group. In this case, we
-  // need to make sure these ports will be in the config, and what's the most
-  // important, we also need to make sure these ports using a safe PortProfileID
-  std::unordered_map<PortID, std::set<PortID>> groupPortsByControllingPort;
+    const std::map<PortID, std::vector<PortID>>&
+        controllingPortToSubsidaryPorts) {
+  std::unordered_map<PortID, cfg::PortProfileID> portToProfileIDs;
   const auto& plarformEntries = platform->getPlatformPorts();
-  for (const auto portID : ports) {
-    if (const auto& entry = plarformEntries.find(portID);
-        entry != plarformEntries.end()) {
-      auto controllingPort =
-          PortID(*entry->second.mapping_ref()->controllingPort_ref());
-      groupPortsByControllingPort[controllingPort].insert(portID);
-    } else {
-      throw FbossError("Port:", portID, " doesn't exist in PlatformMapping");
-    }
-  }
-
-  for (const auto& group : groupPortsByControllingPort) {
-    const auto& portSet = group.second;
-    if (portSet.size() == 1 &&
-        findCfgPortIf(config, *portSet.begin()) != config.ports_ref()->end()) {
-      continue;
-    }
+  for (const auto& group : controllingPortToSubsidaryPorts) {
+    const auto& ports = group.second;
     // Find the safe profile to satisfy all the ports in the group
     std::set<cfg::PortProfileID> safeProfiles;
-    for (const auto portID : portSet) {
+    for (const auto portID : ports) {
       for (const auto& profile :
            *plarformEntries.at(portID).supportedProfiles_ref()) {
         if (auto subsumedPorts = profile.second.subsumedPorts_ref();
@@ -183,8 +123,11 @@ void securePortsInConfig(
           if (std::none_of(
                   subsumedPorts->begin(),
                   subsumedPorts->end(),
-                  [portSet](auto subsumedPort) {
-                    return portSet.find(PortID(subsumedPort)) != portSet.end();
+                  [ports](auto subsumedPort) {
+                    return std::find(
+                               ports.begin(),
+                               ports.end(),
+                               PortID(subsumedPort)) != ports.end();
                   })) {
             safeProfiles.insert(profile.first);
           }
@@ -196,8 +139,8 @@ void securePortsInConfig(
     }
     if (safeProfiles.empty()) {
       std::string portSetStr = "";
-      for (auto portID : portSet) {
-        portSetStr = folly::to<std::string>(portSetStr, ", ", portID);
+      for (auto portID : ports) {
+        portSetStr = folly::to<std::string>(portSetStr, portID, ", ");
       }
       throw FbossError("Can't find safe profiles for ports:", portSetStr);
     }
@@ -211,16 +154,62 @@ void securePortsInConfig(
         bestProfile = profileID;
       }
     }
-    // Now make sure all the ports in this group in the config with the best
-    // profile
-    for (const auto portID : portSet) {
+
+    for (auto portID : ports) {
+      portToProfileIDs.emplace(portID, bestProfile);
+    }
+  }
+  return portToProfileIDs;
+}
+
+void securePortsInConfig(
+    const Platform* platform,
+    cfg::SwitchConfig& config,
+    const std::vector<PortID>& ports) {
+  // This function is to secure all ports in the input `ports` vector will be
+  // in the config. Usually there're two main cases:
+  // 1) all the ports in ports vector are from different group, so we don't need
+  // to worry about how to deal w/ the slave ports.
+  // 2) some ports in the ports vector are in the same group. In this case, we
+  // need to make sure these ports will be in the config, and what's the most
+  // important, we also need to make sure these ports using a safe PortProfileID
+  std::map<PortID, std::vector<PortID>> groupPortsByControllingPort;
+  const auto& plarformEntries = platform->getPlatformPorts();
+  for (const auto portID : ports) {
+    if (const auto& entry = plarformEntries.find(portID);
+        entry != plarformEntries.end()) {
+      auto controllingPort =
+          PortID(*entry->second.mapping_ref()->controllingPort_ref());
+      groupPortsByControllingPort[controllingPort].push_back(portID);
+    } else {
+      throw FbossError("Port:", portID, " doesn't exist in PlatformMapping");
+    }
+  }
+
+  // If the mandatory port from input `ports` is the only port from the same
+  // port group, and it already exists in the config, we don't need to adjust
+  // the profileID and speed for it.
+  std::map<PortID, std::vector<PortID>> portGroups;
+  for (auto group : groupPortsByControllingPort) {
+    auto portSet = group.second;
+    if (portSet.size() == 1 &&
+        findCfgPortIf(config, *portSet.begin()) != config.ports_ref()->end()) {
+      continue;
+    }
+    portGroups.emplace(group.first, std::move(group.second));
+  }
+
+  // Make sure all the ports in portGroups use the safe profile in the config
+  if (portGroups.size() > 0) {
+    for (const auto& [portID, profileID] :
+         getSafeProfileIDs(platform, portGroups)) {
       auto portCfg = findCfgPortIf(config, portID);
       if (portCfg != config.ports_ref()->end()) {
-        portCfg->profileID_ref() = bestProfile;
-        portCfg->speed_ref() = bestSpeed;
+        portCfg->profileID_ref() = profileID;
+        portCfg->speed_ref() = getSpeed(profileID);
       } else {
         config.ports_ref()->push_back(
-            createDefaultPortConfig(platform, portID, bestProfile));
+            createDefaultPortConfig(platform, portID, profileID));
       }
     }
   }
@@ -294,6 +283,33 @@ cfg::SwitchConfig genPortVlanCfg(
   return config;
 }
 } // namespace
+
+void setPortToDefaultProfileIDMap(
+    const std::shared_ptr<PortMap>& ports,
+    const Platform* platform) {
+  // Most of the platforms will have default ports created when the HW is
+  // initialized. But for those who don't have any default port, we'll fall
+  // back to use PlatformPort and the safe PortProfileID
+  if (ports->numPorts() > 0) {
+    for (const auto& port : *ports) {
+      auto profileID = port->getProfileID();
+      // In case the profileID learnt from HW is using default, then use speed
+      // to get the real profileID
+      if (profileID == cfg::PortProfileID::PROFILE_DEFAULT) {
+        auto platformPort = platform->getPlatformPort(port->getID());
+        profileID = platformPort->getProfileIDBySpeed(port->getSpeed());
+      }
+      getPortToDefaultProfileIDMap().emplace(port->getID(), profileID);
+    }
+  } else {
+    const auto& safeProfileIDs = getSafeProfileIDs(
+        platform, getSubsidiaryPortIDs(platform->getPlatformPorts()));
+    getPortToDefaultProfileIDMap().insert(
+        safeProfileIDs.begin(), safeProfileIDs.end());
+  }
+  XLOG(INFO) << "PortToDefaultProfileIDMap has "
+             << getPortToDefaultProfileIDMap().size() << " ports";
+}
 
 folly::MacAddress kLocalCpuMac() {
   static const folly::MacAddress kLocalMac(
