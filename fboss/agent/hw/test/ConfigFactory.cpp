@@ -168,76 +168,6 @@ cfg::SwitchConfig createDefaultConfig(
   return config;
 }
 
-cfg::SwitchConfig genPortVlanCfg(
-    const HwSwitch* hwSwitch,
-    const std::vector<PortID>& ports,
-    const std::map<PortID, VlanID>& port2vlan,
-    const std::vector<VlanID>& vlans,
-    cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE,
-    bool optimizePortProfile = true) {
-  auto config = createDefaultConfig(hwSwitch, optimizePortProfile);
-
-  // Port config
-  std::map<std::string, cfg::PortProfileID> chipToProfileID;
-  for (auto portID : ports) {
-    auto portCfg = findCfgPortIf(config, portID);
-    if (portCfg == config.ports_ref()->end()) {
-      config.ports_ref()->push_back(createDefaultPortConfig(hwSwitch, portID));
-      portCfg = findCfgPort(config, portID);
-    }
-    updatePortSpeed(*hwSwitch, config, portID, maxPortSpeed(hwSwitch, portID));
-    auto chip = getAsicChipFromPortID(hwSwitch, portID);
-    chipToProfileID[chip] = *portCfg->profileID_ref();
-    portCfg->maxFrameSize_ref() = 9412;
-    portCfg->state_ref() = cfg::PortState::ENABLED;
-    portCfg->loopbackMode_ref() = lbMode;
-    portCfg->ingressVlan_ref() = port2vlan.find(portID)->second;
-    portCfg->routable_ref() = true;
-    portCfg->parserType_ref() = cfg::ParserType::L3;
-  }
-
-  // make ports belonging to the same asic core use the same profileID
-  for (auto port : hwSwitch->getPlatform()->getPlatformPorts()) {
-    auto portID = PortID(port.first);
-    auto chip = getAsicChipFromPortID(hwSwitch, portID);
-    if (findCfgPortIf(config, portID) != config.ports_ref()->end() &&
-        chipToProfileID.find(chip) != chipToProfileID.end()) {
-      auto portCfg = findCfgPort(config, portID);
-      if (chipToProfileID[chip] != *portCfg->profileID_ref()) {
-        updatePortProfile(*hwSwitch, config, portID, chipToProfileID[chip]);
-      }
-    }
-  }
-
-  // Vlan config
-  for (auto vlanID : vlans) {
-    cfg::Vlan vlan;
-    vlan.id_ref() = vlanID;
-    vlan.name_ref() = "vlan" + std::to_string(vlanID);
-    vlan.routable_ref() = true;
-    config.vlans_ref()->push_back(vlan);
-  }
-
-  cfg::Vlan defaultVlan;
-  defaultVlan.id_ref() = kDefaultVlanId;
-  defaultVlan.name_ref() = folly::sformat("vlan{}", kDefaultVlanId);
-  defaultVlan.routable_ref() = true;
-  config.vlans_ref()->push_back(defaultVlan);
-  config.defaultVlan_ref() = kDefaultVlanId;
-
-  // Vlan port config
-  for (auto vlanPortPair : port2vlan) {
-    cfg::VlanPort vlanPort;
-    vlanPort.logicalPort_ref() = vlanPortPair.first;
-    vlanPort.vlanID_ref() = vlanPortPair.second;
-    vlanPort.spanningTreeState_ref() = cfg::SpanningTreeState::FORWARDING;
-    vlanPort.emitTags_ref() = false;
-    config.vlanPorts_ref()->push_back(vlanPort);
-  }
-
-  return config;
-}
-
 std::string getLocalCpuMacStr() {
   return kLocalCpuMac().toString();
 }
@@ -313,6 +243,169 @@ void setPortToDefaultProfileIDMap(
   XLOG(INFO) << "PortToDefaultProfileIDMap has "
              << getPortToDefaultProfileIDMap().size() << " ports";
 }
+
+namespace {
+void securePortsInConfig(
+    const Platform* platform,
+    cfg::SwitchConfig& config,
+    const std::vector<PortID>& ports) {
+  // This function is to secure all ports in the input `ports` vector will be
+  // in the config. Usually there're two main cases:
+  // 1) all the ports in ports vector are from different group, so we don't need
+  // to worry about how to deal w/ the slave ports.
+  // 2) some ports in the ports vector are in the same group. In this case, we
+  // need to make sure these ports will be in the config, and what's the most
+  // important, we also need to make sure these ports using a safe PortProfileID
+  std::unordered_map<PortID, std::set<PortID>> groupPortsByControllingPort;
+  const auto& plarformEntries = platform->getPlatformPorts();
+  for (const auto portID : ports) {
+    if (const auto& entry = plarformEntries.find(portID);
+        entry != plarformEntries.end()) {
+      auto controllingPort =
+          PortID(*entry->second.mapping_ref()->controllingPort_ref());
+      groupPortsByControllingPort[controllingPort].insert(portID);
+    } else {
+      throw FbossError("Port:", portID, " doesn't exist in PlatformMapping");
+    }
+  }
+
+  for (const auto& group : groupPortsByControllingPort) {
+    const auto& portSet = group.second;
+    if (portSet.size() == 1 &&
+        findCfgPortIf(config, *portSet.begin()) != config.ports_ref()->end()) {
+      continue;
+    }
+    // Find the safe profile to satisfy all the ports in the group
+    std::set<cfg::PortProfileID> safeProfiles;
+    for (const auto portID : portSet) {
+      for (const auto& profile :
+           *plarformEntries.at(portID).supportedProfiles_ref()) {
+        if (auto subsumedPorts = profile.second.subsumedPorts_ref();
+            subsumedPorts && !subsumedPorts->empty()) {
+          // as long as subsumedPorts doesn't overlap with portSet, also safe
+          if (std::none_of(
+                  subsumedPorts->begin(),
+                  subsumedPorts->end(),
+                  [portSet](auto subsumedPort) {
+                    return portSet.find(PortID(subsumedPort)) != portSet.end();
+                  })) {
+            safeProfiles.insert(profile.first);
+          }
+        } else {
+          // no subsumed ports for this profile, safe
+          safeProfiles.insert(profile.first);
+        }
+      }
+    }
+    if (safeProfiles.empty()) {
+      std::string portSetStr = "";
+      for (auto portID : portSet) {
+        portSetStr = folly::to<std::string>(portSetStr, ", ", portID);
+      }
+      throw FbossError("Can't find safe profiles for ports:", portSetStr);
+    }
+    // Always pick the largest speed from the safe profiles
+    auto bestSpeed = cfg::PortSpeed::DEFAULT;
+    auto bestProfile = cfg::PortProfileID::PROFILE_DEFAULT;
+    for (auto profileID : safeProfiles) {
+      auto speed = getPortSpeedFromProfile(platform, profileID, group.first);
+      if (static_cast<int>(bestSpeed) < static_cast<int>(speed)) {
+        bestSpeed = speed;
+        bestProfile = profileID;
+      }
+    }
+    // Now make sure all the ports in this group in the config with the best
+    // profile
+    for (const auto portID : portSet) {
+      auto portCfg = findCfgPortIf(config, portID);
+      if (portCfg != config.ports_ref()->end()) {
+        portCfg->profileID_ref() = bestProfile;
+        portCfg->speed_ref() = bestSpeed;
+      } else {
+        // TODO(joseph5wu) Will support add non-existent ports
+      }
+    }
+  }
+}
+
+cfg::SwitchConfig genPortVlanCfg(
+    const HwSwitch* hwSwitch,
+    const std::vector<PortID>& ports,
+    const std::map<PortID, VlanID>& port2vlan,
+    const std::vector<VlanID>& vlans,
+    cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE,
+    bool optimizePortProfile = true) {
+  // TODO(joseph5wu) Will replace createDefaultConfig() later to avoid using
+  // max speed to set port config.
+  auto config = createDefaultConfig(hwSwitch, optimizePortProfile);
+
+  // Secure all ports in `ports` vector in the config
+  securePortsInConfig(hwSwitch->getPlatform(), config, ports);
+
+  // Port config
+  std::map<std::string, cfg::PortProfileID> chipToProfileID;
+  for (auto portID : ports) {
+    // TODO(joseph5wu) Once securePortsInConfig() can make sure all ports in
+    // `ports` vector in the config, we don't need to create a default port
+    // config.
+    auto portCfg = findCfgPortIf(config, portID);
+    if (portCfg == config.ports_ref()->end()) {
+      config.ports_ref()->push_back(createDefaultPortConfig(hwSwitch, portID));
+      portCfg = findCfgPort(config, portID);
+    }
+    updatePortSpeed(*hwSwitch, config, portID, maxPortSpeed(hwSwitch, portID));
+    auto chip = getAsicChipFromPortID(hwSwitch, portID);
+    chipToProfileID[chip] = *portCfg->profileID_ref();
+    portCfg->maxFrameSize_ref() = 9412;
+    portCfg->state_ref() = cfg::PortState::ENABLED;
+    portCfg->loopbackMode_ref() = lbMode;
+    portCfg->ingressVlan_ref() = port2vlan.find(portID)->second;
+    portCfg->routable_ref() = true;
+    portCfg->parserType_ref() = cfg::ParserType::L3;
+  }
+
+  // make ports belonging to the same asic core use the same profileID
+  for (auto port : hwSwitch->getPlatform()->getPlatformPorts()) {
+    auto portID = PortID(port.first);
+    auto chip = getAsicChipFromPortID(hwSwitch, portID);
+    if (findCfgPortIf(config, portID) != config.ports_ref()->end() &&
+        chipToProfileID.find(chip) != chipToProfileID.end()) {
+      auto portCfg = findCfgPort(config, portID);
+      if (chipToProfileID[chip] != *portCfg->profileID_ref()) {
+        updatePortProfile(*hwSwitch, config, portID, chipToProfileID[chip]);
+      }
+    }
+  }
+
+  // Vlan config
+  for (auto vlanID : vlans) {
+    cfg::Vlan vlan;
+    vlan.id_ref() = vlanID;
+    vlan.name_ref() = "vlan" + std::to_string(vlanID);
+    vlan.routable_ref() = true;
+    config.vlans_ref()->push_back(vlan);
+  }
+
+  cfg::Vlan defaultVlan;
+  defaultVlan.id_ref() = kDefaultVlanId;
+  defaultVlan.name_ref() = folly::sformat("vlan{}", kDefaultVlanId);
+  defaultVlan.routable_ref() = true;
+  config.vlans_ref()->push_back(defaultVlan);
+  config.defaultVlan_ref() = kDefaultVlanId;
+
+  // Vlan port config
+  for (auto vlanPortPair : port2vlan) {
+    cfg::VlanPort vlanPort;
+    vlanPort.logicalPort_ref() = vlanPortPair.first;
+    vlanPort.vlanID_ref() = vlanPortPair.second;
+    vlanPort.spanningTreeState_ref() = cfg::SpanningTreeState::FORWARDING;
+    vlanPort.emitTags_ref() = false;
+    config.vlanPorts_ref()->push_back(vlanPort);
+  }
+
+  return config;
+}
+} // namespace
 
 folly::MacAddress kLocalCpuMac() {
   static const folly::MacAddress kLocalMac(
