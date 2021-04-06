@@ -1093,13 +1093,15 @@ void SaiPortManager::programSampling(
     portHandle->egressSamplePacket = samplePacketHandle;
   }
 
-  XLOG(DBG) << "Programming sample packet: "
-            << " action: "
+  XLOG(DBG) << "Programming sample packet on port: " << std::hex
+            << portHandle->port->adapterKey() << " action: "
             << (action == SamplePacketAction::START ? "start" : "stop")
             << " direction: "
             << (direction == SamplePacketDirection::INGRESS ? "ingress"
                                                             : "egress")
-            << " sample packet oid " << std::hex << samplePacketAdapterKey;
+            << " sample packet oid " << std::hex << samplePacketAdapterKey
+            << "destination: "
+            << (destination == cfg::SampleDestination::CPU ? "cpu" : "mirror");
 }
 
 void SaiPortManager::programMirror(
@@ -1127,7 +1129,8 @@ void SaiPortManager::programMirror(
         SaiPortTraits::Attributes::EgressMirrorSession{mirrorOidList});
   }
 
-  XLOG(DBG) << "Programming mirror: "
+  XLOG(DBG) << "Programming mirror on port: " << std::hex
+            << portHandle->port->adapterKey()
             << " action: " << (action == MirrorAction::START ? "start" : "stop")
             << " direction: "
             << (direction == MirrorDirection::INGRESS ? "ingress" : "egress");
@@ -1183,7 +1186,8 @@ void SaiPortManager::programSamplingMirror(
 #endif
   }
 
-  XLOG(DBG) << "Programming sampling mirror: "
+  XLOG(DBG) << "Programming sampling mirror on port: " << std::hex
+            << portHandle->port->adapterKey()
             << " action: " << (action == MirrorAction::START ? "start" : "stop")
             << " direction: "
             << (direction == MirrorDirection::INGRESS ? "ingress" : "egress");
