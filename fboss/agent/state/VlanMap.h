@@ -17,7 +17,12 @@ namespace facebook::fboss {
 
 class SwitchState;
 class Vlan;
-typedef NodeMapTraits<VlanID, Vlan> VlanMapTraits;
+typedef NodeMapTraits<
+    VlanID,
+    Vlan,
+    NodeMapNoExtraFields,
+    std::map<VlanID, std::shared_ptr<Vlan>>>
+    VlanMapTraits;
 
 /*
  * A container for the set of VLANs.
