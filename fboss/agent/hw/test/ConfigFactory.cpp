@@ -8,8 +8,11 @@
  *
  */
 #include "fboss/agent/hw/test/ConfigFactory.h"
+
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/hw/test/HwPortUtils.h"
 #include "fboss/agent/platforms/common/PlatformMode.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
@@ -25,30 +28,6 @@ using namespace facebook::fboss::utility;
 DEFINE_bool(nodeZ, false, "Setup test config as node Z");
 
 namespace {
-
-// TODO(ccpowers): remove this once we've made platformPortEntry a required
-// field
-cfg::PortSpeed maxPortSpeed(const HwSwitch* hwSwitch, PortID port) {
-  // CS00012110063
-  if (hwSwitch->getPlatform()->isProductInfoExist() &&
-      !hwSwitch->getPlatform()->getAsic()->isSupported(
-          HwAsic::Feature::SAI_PORT_SPEED_CHANGE)) {
-    // If Hardware can't decide the max speed, we use Platform(PlatformMapping)
-    // to decide the max speed.
-    try {
-      if (auto maxSpeed = hwSwitch->getPortMaxSpeed(port);
-          maxSpeed != cfg::PortSpeed::DEFAULT) {
-        return maxSpeed;
-      }
-    } catch (const FbossError& e) {
-      XLOG(DBG5) << "cannot access port in hwSwitch " << folly::exceptionStr(e);
-    }
-    return hwSwitch->getPlatform()->getPortMaxSpeed(port);
-  } else {
-    return cfg::PortSpeed::HUNDREDG;
-  }
-}
-
 // Return the ID for a profile that doesn't subsume any other ports.
 cfg::PortProfileID getSafeProfileID(const cfg::PlatformPortEntry& portEntry) {
   for (auto it : *portEntry.supportedProfiles_ref()) {
@@ -61,111 +40,6 @@ cfg::PortProfileID getSafeProfileID(const cfg::PlatformPortEntry& portEntry) {
 
   throw FbossError(
       "No safe profile found for port ", *portEntry.mapping_ref()->id_ref());
-}
-
-cfg::PortSpeed getPortSpeedFromProfile(
-    const Platform* platform,
-    cfg::PortProfileID profileID,
-    PortID portID) {
-  auto profile = platform->getPortProfileConfig(
-      PlatformPortProfileConfigMatcher(profileID, portID));
-  if (!profile.has_value()) {
-    throw FbossError("No profile ", profileID, " found for platform");
-  }
-  return *profile->speed_ref();
-}
-
-cfg::Port createDefaultPortConfig(const HwSwitch* hwSwitch, PortID id) {
-  cfg::Port defaultConfig;
-  auto platform = hwSwitch->getPlatform();
-  // Platforms that require the profile ID should all have platformPortEntries
-  // generated. Other platforms can just use their max port speed until
-  // we make it a required field.
-  // If the platform supports removing ports, then pick a speed profile that
-  // doesn't remove any ports. Otherwise just use the max speed available.
-  if (auto entry = platform->getPlatformPort(id)->getPlatformPortEntry();
-      entry && platform->supportsAddRemovePort()) {
-    defaultConfig.name_ref() = *entry->mapping_ref()->name_ref();
-    *defaultConfig.profileID_ref() = getSafeProfileID(entry.value());
-    if (*defaultConfig.profileID_ref() == cfg::PortProfileID::PROFILE_DEFAULT) {
-      throw FbossError(
-          *entry->mapping_ref()->name_ref(), " has DEFAULT safe profile");
-    }
-    defaultConfig.speed_ref() =
-        getPortSpeedFromProfile(platform, *defaultConfig.profileID_ref(), id);
-  } else {
-    XLOG(DBG5) << "No platformPortEntry for port " << id
-               << ", defaulting to max port speed instead of safe profile";
-    *defaultConfig.speed_ref() = maxPortSpeed(hwSwitch, id);
-    defaultConfig.name_ref() = "eth1/" + std::to_string(id) + "/1";
-  }
-
-  *defaultConfig.logicalID_ref() = id;
-  *defaultConfig.ingressVlan_ref() = kDefaultVlanId;
-  *defaultConfig.state_ref() = cfg::PortState::DISABLED;
-
-  return defaultConfig;
-}
-
-void optimizePortProfiles(cfg::SwitchConfig& config, const HwSwitch* hwSwitch) {
-  auto platform = hwSwitch->getPlatform();
-  for (auto iter = config.ports_ref()->begin();
-       iter != config.ports_ref()->end();
-       ++iter) {
-    auto cfgPort = *iter;
-    const auto portID = PortID(*cfgPort.logicalID_ref());
-
-    auto speed = maxPortSpeed(hwSwitch, portID);
-    auto platformPort = platform->getPlatformPort(portID);
-    if (auto platPortEntry = platformPort->getPlatformPortEntry()) {
-      auto profileID = platformPort->getProfileIDBySpeed(speed);
-      const auto& supportedProfiles = *platPortEntry->supportedProfiles_ref();
-      auto profile = supportedProfiles.find(profileID);
-      if (profile == supportedProfiles.end()) {
-        throw FbossError("No profile ", profileID, " found for port ", portID);
-      }
-      cfgPort.profileID_ref() = profileID;
-    }
-    cfgPort.speed_ref() = speed;
-    updatePortProfile(*hwSwitch, config, portID, *cfgPort.profileID_ref());
-  }
-}
-
-bool isTh3Platform(Platform* platform) {
-  if (!platform->isProductInfoExist()) {
-    // SIM platform
-    return false;
-  }
-  return platform->getAsic()->getAsicType() ==
-      HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3;
-}
-
-// Fill in configs for all remaining ports that exist in the default state
-cfg::SwitchConfig createDefaultConfig(
-    const HwSwitch* hwSwitch,
-    bool optimizePortProfile = true) {
-  cfg::SwitchConfig config;
-  auto platform = hwSwitch->getPlatform();
-
-  for (const auto& it : platform->getPlatformPorts()) {
-    auto mapping = it.second.get_mapping();
-    auto id = *mapping.id_ref();
-    if (findCfgPortIf(config, PortID(id)) != config.ports_ref()->end()) {
-      continue;
-    }
-    config.ports_ref()->push_back(
-        createDefaultPortConfig(hwSwitch, PortID(id)));
-  }
-  // this is a TH3 optimization to update port profiles for all ports
-  // genPortVlanCfg will do the same, but its not invoked always
-  // for all ports, remaining ports have to go through lane changes
-  // which is not needed and turns out to be expensive op.
-  // Approx 300 test cases today doesn't use genPortVlanCfg to convert
-  // all ports and benifit from this optimization
-  if (isTh3Platform(platform) && optimizePortProfile) {
-    optimizePortProfiles(config, hwSwitch);
-  }
-  return config;
 }
 
 std::string getLocalCpuMacStr() {
@@ -213,7 +87,6 @@ bool isRswPlatform(PlatformMode mode) {
       PlatformMode::WEDGE400C};
   return rswPlatforms.find(mode) == rswPlatforms.end();
 }
-
 } // unnamed namespace
 
 namespace facebook::fboss::utility {
@@ -231,8 +104,12 @@ void setPortToDefaultProfileIDMap(
   // back to use PlatformPort and the safe PortProfileID
   if (ports->numPorts() > 0) {
     for (const auto& port : *ports) {
-      getPortToDefaultProfileIDMap().emplace(
-          port->getID(), port->getProfileID());
+      auto profileID = port->getProfileID();
+      if (profileID == cfg::PortProfileID::PROFILE_DEFAULT) {
+        const auto& entry = platform->getPlatformPorts().find(port->getID());
+        profileID = getSafeProfileID(entry->second);
+      }
+      getPortToDefaultProfileIDMap().emplace(port->getID(), profileID);
     }
   } else {
     for (const auto& [portID, platformPort] : platform->getPlatformPorts()) {
@@ -245,6 +122,26 @@ void setPortToDefaultProfileIDMap(
 }
 
 namespace {
+
+cfg::Port createDefaultPortConfig(
+    const Platform* platform,
+    PortID id,
+    cfg::PortProfileID defaultProfileID) {
+  cfg::Port defaultConfig;
+  if (auto entry = platform->getPlatformPort(id)->getPlatformPortEntry()) {
+    defaultConfig.name_ref() = *entry->mapping_ref()->name_ref();
+    defaultConfig.speed_ref() = getSpeed(defaultProfileID);
+    defaultConfig.profileID_ref() = defaultProfileID;
+  } else {
+    throw FbossError("Can't find port:", id, " in PlatformMapping");
+  }
+
+  defaultConfig.logicalID_ref() = id;
+  defaultConfig.ingressVlan_ref() = kDefaultVlanId;
+  defaultConfig.state_ref() = cfg::PortState::DISABLED;
+  return defaultConfig;
+}
+
 void securePortsInConfig(
     const Platform* platform,
     cfg::SwitchConfig& config,
@@ -308,7 +205,7 @@ void securePortsInConfig(
     auto bestSpeed = cfg::PortSpeed::DEFAULT;
     auto bestProfile = cfg::PortProfileID::PROFILE_DEFAULT;
     for (auto profileID : safeProfiles) {
-      auto speed = getPortSpeedFromProfile(platform, profileID, group.first);
+      auto speed = getSpeed(profileID);
       if (static_cast<int>(bestSpeed) < static_cast<int>(speed)) {
         bestSpeed = speed;
         bestProfile = profileID;
@@ -322,7 +219,8 @@ void securePortsInConfig(
         portCfg->profileID_ref() = bestProfile;
         portCfg->speed_ref() = bestSpeed;
       } else {
-        // TODO(joseph5wu) Will support add non-existent ports
+        config.ports_ref()->push_back(
+            createDefaultPortConfig(platform, portID, bestProfile));
       }
     }
   }
@@ -335,9 +233,23 @@ cfg::SwitchConfig genPortVlanCfg(
     const std::vector<VlanID>& vlans,
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE,
     bool optimizePortProfile = true) {
-  // TODO(joseph5wu) Will replace createDefaultConfig() later to avoid using
-  // max speed to set port config.
-  auto config = createDefaultConfig(hwSwitch, optimizePortProfile);
+  cfg::SwitchConfig config;
+  // Use getPortToDefaultProfileIDMap() to genetate the default config instead
+  // of using PlatformMapping.
+  // The main reason is to avoid using PlatformMapping is because some of the
+  // platforms support adding and removing ports, and their ChipConfig might
+  // only has the controlling ports, which means when the chip is initialized
+  // the number of ports from the hardware might be different from the number
+  // of total platform ports from PlatformMapping.
+  // And if we try to use all ports from PlatformMapping to create default
+  // config, it will have to trigger an unncessary PortGroup re-program to add
+  // those new ports on the hardware.
+  const auto& portToDefaultProfileID = getPortToDefaultProfileIDMap();
+  CHECK_GT(portToDefaultProfileID.size(), 0);
+  for (auto const& [portID, profileID] : portToDefaultProfileID) {
+    config.ports_ref()->push_back(
+        createDefaultPortConfig(hwSwitch->getPlatform(), portID, profileID));
+  }
 
   // Secure all ports in `ports` vector in the config
   securePortsInConfig(hwSwitch->getPlatform(), config, ports);
@@ -345,15 +257,7 @@ cfg::SwitchConfig genPortVlanCfg(
   // Port config
   std::map<std::string, cfg::PortProfileID> chipToProfileID;
   for (auto portID : ports) {
-    // TODO(joseph5wu) Once securePortsInConfig() can make sure all ports in
-    // `ports` vector in the config, we don't need to create a default port
-    // config.
-    auto portCfg = findCfgPortIf(config, portID);
-    if (portCfg == config.ports_ref()->end()) {
-      config.ports_ref()->push_back(createDefaultPortConfig(hwSwitch, portID));
-      portCfg = findCfgPort(config, portID);
-    }
-    updatePortSpeed(*hwSwitch, config, portID, maxPortSpeed(hwSwitch, portID));
+    auto portCfg = findCfgPort(config, portID);
     auto chip = getAsicChipFromPortID(hwSwitch, portID);
     chipToProfileID[chip] = *portCfg->profileID_ref();
     portCfg->maxFrameSize_ref() = 9412;
@@ -706,9 +610,8 @@ void configurePortProfile(
       cfgPort->state_ref() = cfg::PortState::DISABLED;
       continue;
     }
-    auto speed = getPortSpeedFromProfile(platform, profileID, portID);
     cfgPort->profileID_ref() = profileID;
-    cfgPort->speed_ref() = speed;
+    cfgPort->speed_ref() = getSpeed(profileID);
     cfgPort->ingressVlan_ref() = *controllingPort->ingressVlan_ref();
     cfgPort->state_ref() = cfg::PortState::ENABLED;
     removeSubsumedPorts(config, profile->second, supportsAddRemovePort);

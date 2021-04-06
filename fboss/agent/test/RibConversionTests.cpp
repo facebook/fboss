@@ -22,6 +22,7 @@
 #include <folly/MacAddress.h>
 #include <folly/dynamic.h>
 #include <gtest/gtest.h>
+#include <memory>
 
 using namespace facebook::fboss;
 
@@ -37,6 +38,8 @@ class RibConversionTest : public ::testing::Test {
     for (int i = 0; i < 128; ++i) {
       ports.push_back(PortID(i));
     }
+    // Set up port to default profile id map before generating config
+    utility::setPortToDefaultProfileIDMap(std::make_shared<PortMap>(), &plat);
     cfg::SwitchConfig config =
         utility::onePortPerVlanConfig(plat.getHwSwitch(), ports);
     utility::RouteDistributionGenerator::RouteChunks routeChunks;

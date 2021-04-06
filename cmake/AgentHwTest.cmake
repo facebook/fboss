@@ -5,6 +5,7 @@
 
 add_library(config_factory
   fboss/agent/hw/test/ConfigFactory.cpp
+  fboss/agent/hw/test/HwPortUtils.cpp
 )
 
 target_link_libraries(config_factory
@@ -145,7 +146,6 @@ add_library(hw_switch_test
   fboss/agent/hw/test/HwAclQualifierTests.cpp
   fboss/agent/hw/test/HwAclStatTests.cpp
   fboss/agent/hw/test/HwDiagShellStressTest.cpp
-  fboss/agent/hw/test/HwPortUtils.cpp
   fboss/agent/hw/test/HwPortLedTests.cpp
   fboss/agent/hw/test/HwPortProfileTests.cpp
   fboss/agent/hw/test/HwPortStressTests.cpp

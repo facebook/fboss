@@ -189,7 +189,8 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     *newCfg.switchSettings_ref()->l2LearningMode_ref() = l2LearningMode;
 
     if (portDescr.isAggregatePort()) {
-      *newCfg.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+      utility::findCfgPort(newCfg, masterLogicalPortIds()[0])->state_ref() =
+          cfg::PortState::ENABLED;
       addAggPort(
           std::numeric_limits<AggregatePortID>::max(),
           {masterLogicalPortIds()[0]},
