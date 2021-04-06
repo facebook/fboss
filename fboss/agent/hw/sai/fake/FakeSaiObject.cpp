@@ -438,6 +438,36 @@ sai_status_t sai_get_object_key(
       }
       break;
     }
+    case SAI_OBJECT_TYPE_MACSEC: {
+      for (const auto& ob : fs->macsecManager.map()) {
+        object_list[i++].key.object_id = ob.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_MACSEC_PORT: {
+      for (const auto& ob : fs->macsecPortManager.map()) {
+        object_list[i++].key.object_id = ob.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_MACSEC_SA: {
+      for (const auto& ob : fs->macsecSAManager.map()) {
+        object_list[i++].key.object_id = ob.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_MACSEC_SC: {
+      for (const auto& ob : fs->macsecSCManager.map()) {
+        object_list[i++].key.object_id = ob.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_MACSEC_FLOW: {
+      for (const auto& ob : fs->macsecFlowManager.map()) {
+        object_list[i++].key.object_id = ob.second.id;
+      }
+      break;
+    }
     default:
       return SAI_STATUS_INVALID_PARAMETER;
   }
