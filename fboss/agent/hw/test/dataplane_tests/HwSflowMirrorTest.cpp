@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
+#include "folly/IPAddress.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestPacketSnooper.h"
@@ -274,8 +275,8 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacket) {
     auto ports = getPortsForSampling();
     bringDownPorts(std::vector<PortID>(ports.begin() + 2, ports.end()));
     auto pkt = genPacket(1, 256);
-    auto packetCapture =
-        HwTestPacketTrapEntry(getHwSwitch(), getPortsForSampling()[0]);
+    auto dstIp = folly::CIDRNetwork{"101.101.101.101", 32};
+    auto packetCapture = HwTestPacketTrapEntry(getHwSwitch(), dstIp);
     HwTestPacketSnooper snooper(getHwSwitchEnsemble());
     sendPkt(getPortsForSampling()[1], pkt.getTxPacket(getHwSwitch()));
     auto capturedPkt = snooper.waitForPacket(10);
@@ -314,8 +315,8 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithTruncateV4) {
     auto ports = getPortsForSampling();
     bringDownPorts(std::vector<PortID>(ports.begin() + 2, ports.end()));
     auto pkt = genPacket(1, 8000);
-    auto packetCapture =
-        HwTestPacketTrapEntry(getHwSwitch(), getPortsForSampling()[0]);
+    auto dstIp = folly::CIDRNetwork{"101.101.101.101", 32};
+    auto packetCapture = HwTestPacketTrapEntry(getHwSwitch(), dstIp);
     HwTestPacketSnooper snooper(getHwSwitchEnsemble());
     sendPkt(getPortsForSampling()[1], pkt.getTxPacket(getHwSwitch()));
     auto capturedPkt = snooper.waitForPacket(10);
@@ -357,8 +358,8 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithTruncateV6) {
     auto ports = getPortsForSampling();
     bringDownPorts(std::vector<PortID>(ports.begin() + 2, ports.end()));
     auto pkt = genPacket(1, 8000);
-    auto packetCapture =
-        HwTestPacketTrapEntry(getHwSwitch(), getPortsForSampling()[0]);
+    auto dstIp = folly::CIDRNetwork{"2401:101:101::101", 128};
+    auto packetCapture = HwTestPacketTrapEntry(getHwSwitch(), dstIp);
     HwTestPacketSnooper snooper(getHwSwitchEnsemble());
     sendPkt(getPortsForSampling()[1], pkt.getTxPacket(getHwSwitch()));
     auto capturedPkt = snooper.waitForPacket(10);
