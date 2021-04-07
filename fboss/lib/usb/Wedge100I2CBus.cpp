@@ -58,6 +58,33 @@ void extractPresenceBits(
 } // namespace
 
 namespace facebook::fboss {
+
+bool Wedge100I2CBus::isPresent(unsigned int module) {
+  if (selectedPort_) {
+    selectQsfpImpl(NO_PORT);
+  }
+  uint8_t buf;
+  try {
+    if (module <= 16) {
+      // Lower byte has presence indication for modules 1:8, higher has for
+      // 9:16. Pick the corresponding offset accordingly ( 2nd arg in read() )
+      read(ADDR_QSFP_PRSNT_LOWER, (module - 1) / 8, 1, &buf);
+    } else {
+      module -= 16;
+      // Lower byte has presence indication for modules 17:24, higher has for
+      // 25:32 Pick the corresponding offset accordingly ( 2nd arg in read() )
+      read(ADDR_QSFP_PRSNT_UPPER, (module - 1) / 8, 1, &buf);
+    }
+    // Presence bits for adjacent modules are swapped between each other.
+    // For example, bit0 indicates presence of QSFP1, bit1 for QSFP0, bit2 for
+    // QSFP3, bit3 for QSFP2 and so on
+    return !((buf >> (((module - 1) ^ 1) % 8)) & 1);
+  } catch (const I2cError& ex) {
+    XLOG(ERR) << "Error reading QSFP presence bits";
+  }
+  return false;
+}
+
 void Wedge100I2CBus::scanPresence(
     std::map<int32_t, ModulePresence>& presences) {
   // If selectedPort_ != NO_PORT, then unselectAll

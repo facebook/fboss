@@ -22,14 +22,102 @@ enum GalaxyMuxes {
 /* Galaxy: In each switching element (SWE) the port 1-16 represents the
  * front panel port and their QSFP reset is controlled by QSFP CPLD.
  * The QSFP CPLD register I2C address is 0x39. The two registers at 0x10
- * and 0x11 controls 8 ports QSFP reset each
+ * and 0x11 controls 8 ports QSFP reset each.
+ * QSFP presence is indicated by QSFP CPLD registers 0x16-0x17
+ * Each of these registers controls presence for 8 QSFP modules
  */
 enum : uint8_t { ADDR_QSFP_CPLD = 0x39 };
-enum GalaxyQsfpResetReg { QSFP_RESET_REG_0 = 0x10 };
+enum GalaxyQsfpCpldReg {
+  QSFP_RESET_REG_0 = 0x10,
+  QSFP_ABS_STA_0 = 0x16,
+  QSFP_ABS_STA_1 = 0x17
+};
 
+void extractPresenceBits(
+    uint8_t* buf,
+    std::map<int32_t, facebook::fboss::ModulePresence>& presences,
+    bool upperQsfps) {
+  for (int bit = 0; bit < 8; bit++) {
+    int tcvrIdx = bit;
+    if (upperQsfps) {
+      tcvrIdx += 8;
+    }
+    ((buf[0] >> bit) & 1)
+        ? presences[tcvrIdx] = facebook::fboss::ModulePresence::ABSENT
+        : presences[tcvrIdx] = facebook::fboss::ModulePresence::PRESENT;
+  }
+}
 } // namespace
 
 namespace facebook::fboss {
+bool GalaxyI2CBus::isPresent(unsigned int module) {
+  // Each Galaxy SWE takes care of 16 QSFP so check the QSFP module id first
+  if (module > 16 || module == 0) {
+    XLOG(DBG0) << "Presence for module " << module
+               << " can't be checked, the value needs to be in between 1..16";
+    return false; // TODO: Return unknown instead
+  }
+  // In Galaxy the QSFP CPLD sits behind the PCA9541 device. Before attempting
+  // to read/write to the QSFP CPLD we need to make sure the PCA9541 has
+  // provided the downstream device access to this CP2112 CPU.
+  // Check if the CP2112 have the I2C bus access towards thew QSFP CPLD. In
+  // case it does not have then try to get access by writing the control
+  // register of PCA device. If the bus control could not be obtained then
+  // we can't proceed so return from here
+  if (!pca9541Bus_->getBusControl()) {
+    XLOG(DBG0)
+        << "Bus control for PCA9541 could not be obtained, try again later";
+    return false; // TODO: Return unknown instead
+  }
+
+  uint8_t buf;
+  auto cpldReg = QSFP_ABS_STA_0 + (module - 1) / 8;
+  auto cpldRegBit = (module - 1) % 8;
+
+  try {
+    // Read QSFP CPLD for QSFP presence indications
+    read(ADDR_QSFP_CPLD, cpldReg, 1, &buf);
+
+    // Return the presence status (0-Present, 1-Absent)
+    return !((buf >> cpldRegBit) & 1);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Exception " << ex.what()
+              << " raised while reading QSFP presence for module " << module;
+    return false; // TODO: Return unknown instead
+  }
+}
+
+void GalaxyI2CBus::scanPresence(std::map<int32_t, ModulePresence>& presences) {
+  // In Galaxy the QSFP CPLD sits behind the PCA9541 device. Before attempting
+  // to read/write to the QSFP CPLD we need to make sure the PCA9541 has
+  // provided the downstream dvice access to this CP2112 CPU.
+  // Check if the CP2112 have the I2C bus access towards thew QSFP CPLD. In
+  // case it does not have then try to get access by writing the control
+  // register of PCA device. If the bus control could not be obtained then
+  // we can't proceed so return from here
+  if (!pca9541Bus_->getBusControl()) {
+    XLOG(DBG0)
+        << "Bus control for PCA9541 could not be obtained, try again later";
+    return;
+  }
+  uint8_t buf;
+  try {
+    read(ADDR_QSFP_CPLD, QSFP_ABS_STA_0, 1, &buf);
+    extractPresenceBits(&buf, presences, false);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Exception " << ex.what()
+              << " raised while reading QSFP presence of QSFPs 1-8";
+  }
+
+  try {
+    read(ADDR_QSFP_CPLD, QSFP_ABS_STA_1, 1, &buf);
+    extractPresenceBits(&buf, presences, true);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Exception " << ex.what()
+              << " raised while reading QSFP presence of QSFPs 9-16";
+  }
+}
+
 MuxLayer GalaxyI2CBus::createMuxes() {
   MuxLayer muxes;
   muxes.push_back(std::make_unique<QsfpMux>(dev_.get(), MUX_0_TO_7));

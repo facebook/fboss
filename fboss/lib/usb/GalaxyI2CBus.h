@@ -35,6 +35,8 @@ class GalaxyI2CBus : public PCA9548MuxedBus<16> {
    * trying to read/write that and this function takes care of that part as well
    */
   void triggerQsfpHardReset(unsigned int module) override;
+  bool isPresent(unsigned int module) override;
+  void scanPresence(std::map<int32_t, ModulePresence>& presences) override;
 
  private:
   MuxLayer createMuxes() override;

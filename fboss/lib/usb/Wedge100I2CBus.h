@@ -17,6 +17,7 @@ namespace facebook::fboss {
 
 class Wedge100I2CBus : public PCA9548MuxedBus<32> {
  public:
+  bool isPresent(unsigned int module) override;
   void scanPresence(std::map<int32_t, ModulePresence>& presences) override;
 
   /* Trigger the QSFP hard reset for a given QSFP module in the wedge100.
