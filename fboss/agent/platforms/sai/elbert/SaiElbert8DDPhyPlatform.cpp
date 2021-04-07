@@ -134,7 +134,14 @@ sai_service_method_table_t* SaiElbert8DDPhyPlatform::getServiceMethodTable()
 
 const std::set<sai_api_t>& SaiElbert8DDPhyPlatform::getSupportedApiList()
     const {
-  return getDefaultPhyAsicSupportedApis();
+  auto getApiList = [this]() {
+    std::set<sai_api_t> apis(getDefaultPhyAsicSupportedApis());
+    apis.insert(facebook::fboss::MacsecApi::ApiType);
+    return apis;
+  };
+
+  static const std::set<sai_api_t> kSupportedMacsecPhyApiList = getApiList();
+  return kSupportedMacsecPhyApiList;
 }
 
 void SaiElbert8DDPhyPlatform::preHwInitialized() {

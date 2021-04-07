@@ -376,10 +376,11 @@ const std::set<sai_api_t>& SaiPlatform::getDefaultSwitchAsicSupportedApis()
   // But in case in the future we have some special phy api which won't be
   // supported in the switch asic, we can also exclude those apis ad-hoc.
   static auto apis = SaiApiTable::getInstance()->getFullApiList();
+  // Macsec is not currently supported in the broadcom sai sdk
+  apis.erase(facebook::fboss::MacsecApi::ApiType);
   return apis;
 }
 const std::set<sai_api_t>& SaiPlatform::getDefaultPhyAsicSupportedApis() const {
-  // TODO(ccpowers) Add MacSecApi
   static const std::set<sai_api_t> kSupportedPhyApiList = {
       facebook::fboss::AclApi::ApiType,
       facebook::fboss::PortApi::ApiType,

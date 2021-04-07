@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/sai/api/HashApi.h"
 #include "fboss/agent/hw/sai/api/HostifApi.h"
 #include "fboss/agent/hw/sai/api/LagApi.h"
+#include "fboss/agent/hw/sai/api/MacsecApi.h"
 #include "fboss/agent/hw/sai/api/MirrorApi.h"
 #include "fboss/agent/hw/sai/api/MplsApi.h"
 #include "fboss/agent/hw/sai/api/NeighborApi.h"
@@ -131,6 +132,9 @@ class SaiApiTable {
   LagApi& lagApi();
   const LagApi& lagApi() const;
 
+  MacsecApi& macsecApi();
+  const MacsecApi& macsecApi() const;
+
   template <typename SaiApiT>
   SaiApiT& getApi() {
     return *std::get<std::unique_ptr<SaiApiT>>(apis_);
@@ -174,7 +178,8 @@ class SaiApiTable {
       std::unique_ptr<VlanApi>,
       std::unique_ptr<WredApi>,
       std::unique_ptr<TamApi>,
-      std::unique_ptr<LagApi>>
+      std::unique_ptr<LagApi>,
+      std::unique_ptr<MacsecApi>>
       apis_;
   bool apisQueried_{false};
 
