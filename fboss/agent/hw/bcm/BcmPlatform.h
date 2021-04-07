@@ -77,6 +77,10 @@ class BcmPlatform : public Platform {
    */
   virtual std::string getHwConfigDumpFile() const;
 
+  virtual bool supportsDynamicBcmConfig() const {
+    return false;
+  }
+
   /*
    * Based on the chip we may or may not be able to
    * use the host table for host routes (/128 or /32).
@@ -123,7 +127,6 @@ class BcmPlatform : public Platform {
   virtual phy::VCOFrequency getVCOFrequency(
       phy::VCOFrequencyFactor& factor) const;
 
- protected:
   /*
    * Dump map containing switch h/w config as a key, value pair
    * to a file. We dump in format that name, value pair format that

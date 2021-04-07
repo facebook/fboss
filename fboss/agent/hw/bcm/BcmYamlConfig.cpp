@@ -4,7 +4,6 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 #include <folly/Format.h>
@@ -17,10 +16,52 @@ constexpr auto kHSDKBcmDeviceGlobalKey = "global";
 constexpr auto kHSDKDeviceKey = "device";
 constexpr auto kHSDKTMTHDConfigKey = "TM_THD_CONFIG";
 
+constexpr auto kHSDKCoresMapKey = "PC_PM_CORE";
+constexpr auto kRxLaneMapKey = "RX_LANE_MAP";
+constexpr auto kTxLaneMapKey = "TX_LANE_MAP";
+constexpr auto kRxPolaritySwapKey = "RX_POLARITY_FLIP";
+constexpr auto kTxPolaritySwapKey = "TX_POLARITY_FLIP";
+
 constexpr auto kHSDKL3ALPMState = "l3_alpm_template";
 constexpr auto kHSDKIs128ByteIpv6Enabled = "ipv6_lpm_128b_enable";
 constexpr auto kHSDKThresholsModeKey = "THRESHOLD_MODE";
+
+struct CoreKey {
+  int pmId_, coreIndex_;
+
+  CoreKey(int pmId = 0, int coreIndex = 0)
+      : pmId_(pmId), coreIndex_(coreIndex) {}
+
+  bool operator==(const CoreKey& rhs) const {
+    return pmId_ == rhs.pmId_ && coreIndex_ == rhs.coreIndex_;
+  }
+};
 } // namespace
+
+namespace YAML {
+template <>
+struct convert<CoreKey> {
+  static constexpr auto pmIDKey = "PC_PM_ID";
+  static constexpr auto coreIndexKey = "CORE_INDEX";
+
+  static Node encode(const CoreKey& rhs) {
+    Node node;
+    node[pmIDKey] = rhs.pmId_;
+    node[coreIndexKey] = rhs.coreIndex_;
+    return node;
+  }
+
+  static bool decode(const Node& node, CoreKey& rhs) {
+    if (!node.IsMap() || node.size() != 2) {
+      return false;
+    }
+
+    rhs.pmId_ = node[pmIDKey].as<int>();
+    rhs.coreIndex_ = node[coreIndexKey].as<int>();
+    return true;
+  }
+};
+} // namespace YAML
 
 namespace facebook::fboss {
 
@@ -41,8 +82,41 @@ void BcmYamlConfig::setBaseConfig(const std::string& baseConfig) {
         if (auto thresholdNode = deviceNode[kHSDKTMTHDConfigKey]) {
           thresholdNode_ = thresholdNode;
         }
+        if (auto coresNode = deviceNode[kHSDKCoresMapKey]) {
+          coreMapNode_ = coresNode;
+        }
       }
     }
+  }
+}
+
+void BcmYamlConfig::modifyCoreMaps(
+    const std::map<phy::DataPlanePhyChip, std::vector<phy::PinConfig>>&
+        pinMapping) {
+  dirty_ = true;
+  for (auto& [chip, pins] : pinMapping) {
+    auto coreNum = chip.get_physicalID();
+    int rxMap = 0, txMap = 0, rxPolaritySwap = 0, txPolaritySwap = 0;
+    for (auto pin = pins.rbegin(); pin != pins.rend(); pin++) {
+      if (!pin->laneMap_ref().has_value() ||
+          !pin->polaritySwap_ref().has_value()) {
+        throw FbossError(
+            "LaneMap and PolaritySwap information is required for dynamic bcm config");
+      }
+      // for lane map, each hex digit represents 1 lane, hence bit shift by 4
+      rxMap = (rxMap << 4) + can_throw(*pin->laneMap_ref()->rx_ref());
+      txMap = (txMap << 4) + can_throw(*pin->laneMap_ref()->tx_ref());
+      // for pn swap, each bit represents 1 lane
+      rxPolaritySwap =
+          (rxPolaritySwap << 1) | can_throw(*pin->polaritySwap_ref()->rx_ref());
+      txPolaritySwap =
+          (txPolaritySwap << 1) | can_throw(*pin->polaritySwap_ref()->tx_ref());
+    }
+    auto node = coreMapNode_[CoreKey(coreNum + 1, 0)];
+    node[kRxLaneMapKey] = fmt::format("0x{:08X}", rxMap);
+    node[kTxLaneMapKey] = fmt::format("0x{:08X}", txMap);
+    node[kRxPolaritySwapKey] = fmt::format("0x{:02X}", rxPolaritySwap);
+    node[kTxPolaritySwapKey] = fmt::format("0x{:02X}", txPolaritySwap);
   }
 }
 
@@ -77,11 +151,23 @@ bool BcmYamlConfig::isAlpmEnabled() const {
   return true;
 }
 
+void BcmYamlConfig::reloadConfig() {
+  dirty_ = false;
+  YAML::Emitter out;
+  for (auto& yamlNode : nodes_) {
+    out << yamlNode;
+  }
+  configStr_ = out.c_str();
+}
+
 void BcmYamlConfig::dumpConfig(const std::string& dumpFile) {
   folly::writeFile(getConfig(), dumpFile.data());
 }
 
 std::string BcmYamlConfig::getConfig() {
+  if (dirty_) {
+    reloadConfig();
+  }
   return configStr_;
 }
 } // namespace facebook::fboss

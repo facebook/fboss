@@ -146,7 +146,6 @@ string WedgePlatform::getPersistentStateDir() const {
 
 void WedgePlatform::onUnitCreate(int unit) {
   warmBootHelper_ = std::make_unique<BcmWarmBootHelper>(unit, getWarmBootDir());
-  dumpHwConfig();
 }
 
 void WedgePlatform::onUnitAttach(int /*unit*/) {}

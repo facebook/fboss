@@ -12,6 +12,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/platforms/common/PlatformMapping.h"
 
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
@@ -227,4 +228,25 @@ bcm_port_loopback_t fbToBcmLoopbackMode(cfg::PortLoopbackMode inMode) {
   return BCM_PORT_LOOPBACK_NONE;
 }
 
+std::map<phy::DataPlanePhyChip, std::vector<phy::PinConfig>> getCorePinMapping(
+    const PlatformMapping* platformMapping,
+    const std::vector<cfg::Port>& ports) {
+  std::map<phy::DataPlanePhyChip, std::vector<phy::PinConfig>> corePinMapping;
+  const auto& platformPorts = platformMapping->getPlatformPorts();
+  for (auto& port : ports) {
+    auto portID = port.get_logicalID();
+    if (platformPorts.find(portID) == platformPorts.end()) {
+      throw FbossError("Could not find platform port with id ", portID);
+    }
+    auto& platformPortEntry = platformPorts.at(portID);
+    auto profileID = port.get_profileID();
+    if (portID != platformPortEntry.mapping_ref()->get_controllingPort()) {
+      continue;
+    }
+    const auto& chip = platformMapping->getPortIphyChip(PortID(portID));
+    corePinMapping[chip] = platformMapping->getPortIphyPinConfigs(
+        PlatformPortProfileConfigMatcher(profileID, chip));
+  }
+  return corePinMapping;
+}
 } // namespace facebook::fboss::utility

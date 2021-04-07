@@ -2,20 +2,27 @@
 
 #pragma once
 
+#include "fboss/agent/gen-cpp2/platform_config_types.h"
+#include "fboss/agent/types.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
+
 #include <folly/FileUtil.h>
 #include <yaml-cpp/yaml.h>
 #include <string>
+#include <vector>
 #include "fboss/agent/hw/bcm/types.h"
 
 namespace facebook::fboss {
-
-class PlatformMapping;
 
 class BcmYamlConfig {
  public:
   BcmYamlConfig() {}
 
   void setBaseConfig(const std::string& baseConfig);
+
+  void modifyCoreMaps(
+      const std::map<phy::DataPlanePhyChip, std::vector<phy::PinConfig>>&
+          pinMapping);
 
   std::string getConfig();
 
@@ -53,10 +60,14 @@ class BcmYamlConfig {
   std::vector<YAML::Node> nodes_;
 
   // node references
+  YAML::Node coreMapNode_;
   YAML::Node thresholdNode_;
   YAML::Node globalNode_;
 
   std::string configStr_;
+  // since we hold the YAML nodes and a string, we need a way to know if there's
+  // been modifications
+  bool dirty_ = false;
 };
 
 } // namespace facebook::fboss

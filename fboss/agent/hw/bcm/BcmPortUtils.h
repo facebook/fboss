@@ -22,6 +22,8 @@ extern "C" {
 
 namespace facebook::fboss {
 
+class PlatformMapping;
+
 using PortSpeed2TransmitterTechAndMode =
     std::map<cfg::PortSpeed, std::map<TransmitterTechnology, bcm_port_if_t>>;
 
@@ -46,4 +48,8 @@ bcm_gport_t getPortGport(int unit, int port);
 int getPortItm(utility::BcmChip chip, BcmPort* bcmPort);
 
 bcm_port_loopback_t fbToBcmLoopbackMode(cfg::PortLoopbackMode inMode);
+
+std::map<phy::DataPlanePhyChip, std::vector<phy::PinConfig>> getCorePinMapping(
+    const PlatformMapping* platformMapping,
+    const std::vector<cfg::Port>& ports);
 } // namespace facebook::fboss::utility

@@ -313,6 +313,8 @@ void BcmUnit::attach(bool warmBoot) {
   } else {
     attachSDK6(warmBoot);
   }
+  // dump hw config after attach in case there was any modifications
+  platform_->dumpHwConfig();
 
   int rv;
   auto asic = platform_->getAsic();
