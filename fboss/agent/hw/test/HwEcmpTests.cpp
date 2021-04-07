@@ -302,8 +302,42 @@ TEST_F(HwWideEcmpTest, WideUcmpUnderflow) {
   const std::vector<std::pair<int, int>> nhopsAndWeightsOriginal = {
       {5, 31}, {3, 1}};
   fillNhops(nhops, nhopsAndWeightsOriginal);
+  // normalized weights manually computed to compare against
   const std::vector<std::pair<int, int>> nhopsAndWeightsNormalized = {
-      {3, 100}, {2, 101}, {1, 4}, {2, 3}};
+      {3, 101}, {2, 100}, {3, 3}};
+  fillNhops(normalizedNhops, nhopsAndWeightsNormalized);
+  runSimpleUcmpTest(nhops, normalizedNhops);
+}
+
+TEST_F(HwWideEcmpTest, WideUcmpCheckMultipleSlotUnderflow) {
+  const int numSpineNhops = 4;
+  const int numMeshNhops = 4;
+  std::vector<uint64_t> nhops(numSpineNhops + numMeshNhops);
+  std::vector<uint64_t> normalizedNhops(numSpineNhops + numMeshNhops);
+
+  // skip unsupported platforms
+  if (!getHwSwitch()->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::WIDE_ECMP)) {
+    return;
+  }
+
+  auto fillNhops = [](auto& nhops, auto& countAndWeights) {
+    auto idx = 0;
+    for (const auto& nhopAndWeight : countAndWeights) {
+      std::fill(
+          nhops.begin() + idx,
+          nhops.begin() + idx + nhopAndWeight.first,
+          nhopAndWeight.second);
+      idx += nhopAndWeight.first;
+    }
+  };
+  // normalization should happen for two highest weight nexthops
+  // since the size of highest weight nexthop group(1) is less than underflow
+  const std::vector<std::pair<int, int>> nhopsAndWeightsOriginal = {
+      {1, 200}, {4, 50}, {1, 20}, {2, 1}};
+  fillNhops(nhops, nhopsAndWeightsOriginal);
+  const std::vector<std::pair<int, int>> nhopsAndWeightsNormalized = {
+      {1, 242}, {4, 61}, {1, 24}, {2, 1}};
   fillNhops(normalizedNhops, nhopsAndWeightsNormalized);
   runSimpleUcmpTest(nhops, normalizedNhops);
 }

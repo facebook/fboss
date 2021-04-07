@@ -807,40 +807,6 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
   }
   return true;
 }
-// Modify ucmp weight distribution such that total weight is equal to
-// a fixed value (normalizedPathCount). This is needed to support
-// wide ucmp on TH3 where the total member count in ECMP structure
-// programmed in hardware has be a power of 2. A high level description
-// of normalization steps with an example walk through is included below.
-//
-// Consider a turbo fabric with 36 spine nexthops and 33 mesh nexthops.
-// If spine NHs have weight 9 and mesh NHs have weight 1,
-// total weight becomes 357. Consider a normalized count of 512.
-//
-// 1. Compute a scale factor for weight so that weights can be adjusted
-//    to a number close to normalized count.
-//         factor = normalized count / total weight
-//    In this example factor = 512/357 = 1
-// 2. Scale weights by the factor computed
-//    In the example, spine weight stays 9 and mesh weight stays 1
-//    total weight = 357
-// 3. Compute underflow = normalized count - total weight.
-//    There are not enough free slots to evenly distribute the underflow.
-//    Instead try to distribute across the weight groups.
-//         underflow_factor = underflow/total scaled weight
-//    underflow_factor represents a fractional value that each currently
-//    occupied slot should get as an additional allocation to scale to
-//    normalized count.
-//    In the example, underflow_factor = 155/357
-// 4. For each weight value (9 and 1 in this example),
-//    count the number of slots allocated so far and calcuate
-//    extra allocations needed.
-//       underflowWeightAllocation[9] = 9 * 36 * 155 / 357 = 140
-//       underflowWeightAllocation[1] = 1 * 33 *  155 /357 = 14
-// 5. Walk through each weight group and distribute
-//    underflowWeightAllocation[weight] amongst it's members
-// 6. If there is still an underflow, allocate it to lowest weight members
-//    In the example, 155 - (140 + 14) = 1 extra slot get allocated to weight 1
 
 void BcmEcmpEgress::normalizeUcmpToMaxPath(
     const EgressId2Weight& egressId2Weight,
