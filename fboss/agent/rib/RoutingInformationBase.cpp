@@ -272,10 +272,16 @@ template <typename AddressT>
 std::shared_ptr<Route<AddressT>> RibRouteTables::longestMatch(
     const AddressT& address,
     RouterID vrf) const {
+  StopWatch lookupTimer(std::nullopt, false);
   auto ribTables = synchronizedRouteTables_.rlock();
   auto vrfIt = ribTables->find(vrf);
-  return vrfIt == ribTables->end() ? nullptr
-                                   : vrfIt->second.longestMatch(address);
+  auto rt =
+      vrfIt == ribTables->end() ? nullptr : vrfIt->second.longestMatch(address);
+  if (lookupTimer.msecsElapsed().count() > 1000) {
+    XLOG(WARNING) << " Lookup for : " << address
+                  << " took: " << lookupTimer.msecsElapsed().count() << " ms ";
+  }
+  return rt;
 }
 
 RibRouteTables::RouterIDToRouteTable RibRouteTables::constructRouteTables(
