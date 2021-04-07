@@ -155,6 +155,26 @@ sai_status_t sai_get_object_count(
       }
       break;
     }
+    case SAI_OBJECT_TYPE_MACSEC: {
+      *count = fs->macsecManager.map().size();
+      break;
+    }
+    case SAI_OBJECT_TYPE_MACSEC_PORT: {
+      *count = fs->macsecPortManager.map().size();
+      break;
+    }
+    case SAI_OBJECT_TYPE_MACSEC_SA: {
+      *count = fs->macsecSAManager.map().size();
+      break;
+    }
+    case SAI_OBJECT_TYPE_MACSEC_SC: {
+      *count = fs->macsecSCManager.map().size();
+      break;
+    }
+    case SAI_OBJECT_TYPE_MACSEC_FLOW: {
+      *count = fs->macsecFlowManager.map().size();
+      break;
+    }
     default:
       return SAI_STATUS_INVALID_PARAMETER;
   }
