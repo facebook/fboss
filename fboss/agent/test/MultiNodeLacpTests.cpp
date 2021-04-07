@@ -176,15 +176,9 @@ TEST_F(MultiNodeLacpTest, RemoteLinkDown) {
 }
 
 TEST_F(MultiNodeLacpTest, LacpSlowFastInterop) {
-  // Change Lacp to slow mode
-  auto addAggFastRateFn = [=](const std::shared_ptr<SwitchState>& state) {
-    auto newState = state->clone();
-    auto config = getConfigWithAggPort(cfg::LacpPortRate::FAST);
-    auto endState = applyThriftConfig(newState, &config, platform());
-    return endState;
-  };
-
-  sw()->updateStateBlocking("Add AggPort fast mode", addAggFastRateFn);
+  // Change Lacp to fast mode
+  sw()->applyConfig(
+      "Add AggPort fast mode", getConfigWithAggPort(cfg::LacpPortRate::FAST));
 
   // Wait for AggPort
   waitForAggPortStatus(true);
