@@ -122,6 +122,11 @@ struct RxSettings {
   4: optional i16 acCouplingBypass
 }
 
+struct LaneMap {
+  1: byte rx = 0
+  2: byte tx = 0
+}
+
 struct PolaritySwap {
   1: bool rx = 0
   2: bool tx = 0
@@ -227,6 +232,8 @@ struct PinConfig {
   1: PinID id
   2: optional TxSettings tx
   3: optional RxSettings rx
+  4: optional LaneMap laneMap
+  5: optional PolaritySwap polaritySwap
 }
 
 struct PortPinConfig {

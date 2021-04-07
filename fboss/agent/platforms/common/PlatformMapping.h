@@ -11,6 +11,7 @@
 
 #include "fboss/agent/gen-cpp2/platform_config_types.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 DECLARE_bool(override_cmis_tx_setting);
@@ -31,6 +32,11 @@ class PlatformPortProfileConfigMatcher {
 
   PlatformPortProfileConfigMatcher(
       cfg::PortProfileID profileID,
+      phy::DataPlanePhyChip chip)
+      : profileID_(profileID), chip_(chip) {}
+
+  PlatformPortProfileConfigMatcher(
+      cfg::PortProfileID profileID,
       PortID portID,
       TransceiverInfo transceiverInfo)
       : profileID_(profileID),
@@ -42,11 +48,15 @@ class PlatformPortProfileConfigMatcher {
       TransceiverInfo transceiverInfo)
       : profileID_(profileID), transceiverInfo_(transceiverInfo) {}
 
-  std::optional<PortID> getPortIDIf() {
+  std::optional<PortID> getPortIDIf() const {
     return portID_;
   }
 
-  cfg::PortProfileID getProfileID() {
+  std::optional<phy::DataPlanePhyChip> getChipIf() const {
+    return chip_;
+  }
+
+  cfg::PortProfileID getProfileID() const {
     return profileID_;
   }
 
@@ -64,6 +74,7 @@ class PlatformPortProfileConfigMatcher {
   std::optional<PimID> pimID_;
   std::optional<PortID> portID_;
   std::optional<TransceiverInfo> transceiverInfo_;
+  std::optional<phy::DataPlanePhyChip> chip_;
 };
 
 class PlatformMapping {
@@ -101,6 +112,8 @@ class PlatformMapping {
   int getPimID(PortID portID) const;
 
   int getPimID(const cfg::PlatformPortEntry& platformPort) const;
+
+  const phy::DataPlanePhyChip& getPortIphyChip(PortID port) const;
 
   void setPlatformPort(int32_t portID, cfg::PlatformPortEntry port) {
     platformPorts_.emplace(portID, port);

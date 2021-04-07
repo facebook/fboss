@@ -81,6 +81,13 @@ bool PlatformPortProfileConfigMatcher::matchOverrideWithFactor(
       return false;
     }
   }
+  if (auto overrideChips = factor.chips_ref()) {
+    if (!chip_.has_value() ||
+        std::find(overrideChips->begin(), overrideChips->end(), chip_) ==
+            overrideChips->end()) {
+      return false;
+    }
+  }
   return true;
 }
 
@@ -106,11 +113,13 @@ bool PlatformPortProfileConfigMatcher::matchProfileWithFactor(
 std::string PlatformPortProfileConfigMatcher::toString() const {
   auto pimID = pimID_.has_value() ? static_cast<int>(pimID_.value()) : -1;
   auto portID = portID_.has_value() ? static_cast<int>(portID_.value()) : -1;
+  auto chipName = chip_.has_value() ? chip_->get_name() : "";
   return folly::format(
-             "profileID={}, pimID={}, portID={}",
+             "profileID={}, pimID={}, portID={}, chip={}",
              apache::thrift::util::enumNameSafe(profileID_),
              pimID,
-             portID)
+             portID,
+             chipName)
       .str();
 }
 
@@ -225,6 +234,17 @@ int PlatformMapping::getPimID(
   return pimID;
 }
 
+const phy::DataPlanePhyChip& PlatformMapping::getPortIphyChip(
+    PortID portID) const {
+  auto itPlatformPort = platformPorts_.find(portID);
+  if (itPlatformPort == platformPorts_.end()) {
+    throw FbossError("Unrecoganized port:", portID);
+  }
+  const auto& coreName =
+      itPlatformPort->second.mapping_ref()->pins_ref()[0].a_ref()->get_chip();
+  return chips_.at(coreName);
+}
+
 cfg::PortSpeed PlatformMapping::getPortMaxSpeed(PortID portID) const {
   auto itPlatformPort = platformPorts_.find(portID);
   if (itPlatformPort == platformPorts_.end()) {
@@ -246,57 +266,74 @@ cfg::PortSpeed PlatformMapping::getPortMaxSpeed(PortID portID) const {
 
 std::vector<phy::PinConfig> PlatformMapping::getPortIphyPinConfigs(
     PlatformPortProfileConfigMatcher matcher) const {
+  auto chip = matcher.getChipIf();
   auto portID = matcher.getPortIDIf();
   auto profileID = matcher.getProfileID();
-  if (!portID.has_value()) {
-    throw FbossError("getPortIphyPinConfigs miss portID match factor");
-  }
-  const auto& platformPortConfig =
-      getPlatformPortConfig(portID.value(), profileID);
-  const auto& iphyCfg = *platformPortConfig.pins_ref()->iphy_ref();
-  // Check whether there's an override
-  for (const auto portConfigOverride : portConfigOverrides_) {
-    if (!portConfigOverride.pins_ref().has_value()) {
-      // The override is not about Iphy pin configs. Skip
-      continue;
-    }
-    if (matcher.matchOverrideWithFactor(*portConfigOverride.factor_ref())) {
-      auto overrideIphy = *portConfigOverride.pins_ref()->iphy_ref();
-      if (!overrideIphy.empty()) {
-        // make sure the override iphy config size == iphyCfg or override
-        // size == 1, in which case we use the same override for all lanes
-        if (overrideIphy.size() != iphyCfg.size() && overrideIphy.size() != 1) {
-          throw FbossError(
-              "Port ",
-              portID.value(),
-              ", profile ",
-              apache::thrift::util::enumNameSafe(profileID),
-              " has mismatched override iphy lane size:",
-              overrideIphy.size(),
-              ", expected size: ",
-              iphyCfg.size());
-        }
 
-        // We need to update the override with the correct PinID for such port
-        // Both default iphyCfg and override iphyCfg are in order by lanes.
-        std::vector<phy::PinConfig> newOverrideIphy;
-        for (int i = 0; i < iphyCfg.size(); i++) {
-          phy::PinConfig pinCfg;
-          *pinCfg.id_ref() = *iphyCfg.at(i).id_ref();
-          // Default to the first entry if we run out
-          const auto& override =
-              overrideIphy.at(i < overrideIphy.size() ? i : 0);
-          if (auto tx = override.tx_ref()) {
-            pinCfg.tx_ref() = *tx;
+  if (!portID.has_value() && !chip.has_value()) {
+    throw FbossError("getPortIphyPinConfigs missing portID/chip match factor");
+  }
+
+  if (portID.has_value()) {
+    const auto& platformPortConfig =
+        getPlatformPortConfig(portID.value(), profileID);
+    const auto& iphyCfg = *platformPortConfig.pins_ref()->iphy_ref();
+    // Check whether there's an override
+    for (const auto portConfigOverride : portConfigOverrides_) {
+      if (!portConfigOverride.pins_ref().has_value()) {
+        // The override is not about Iphy pin configs. Skip
+        continue;
+      }
+      if (matcher.matchOverrideWithFactor(*portConfigOverride.factor_ref())) {
+        auto overrideIphy = *portConfigOverride.pins_ref()->iphy_ref();
+        if (!overrideIphy.empty()) {
+          // make sure the override iphy config size == iphyCfg or override
+          // size == 1, in which case we use the same override for all lanes
+          if (overrideIphy.size() != iphyCfg.size() &&
+              overrideIphy.size() != 1) {
+            throw FbossError(
+                "Port ",
+                portID.value(),
+                ", profile ",
+                apache::thrift::util::enumNameSafe(profileID),
+                " has mismatched override iphy lane size:",
+                overrideIphy.size(),
+                ", expected size: ",
+                iphyCfg.size());
           }
-          newOverrideIphy.push_back(pinCfg);
+
+          // We need to update the override with the correct PinID for such port
+          // Both default iphyCfg and override iphyCfg are in order by lanes.
+          std::vector<phy::PinConfig> newOverrideIphy;
+          for (int i = 0; i < iphyCfg.size(); i++) {
+            phy::PinConfig pinCfg;
+            pinCfg.id_ref() = *iphyCfg.at(i).id_ref();
+            // Default to the first entry if we run out
+            const auto& override =
+                overrideIphy.at(i < overrideIphy.size() ? i : 0);
+            if (auto tx = override.tx_ref()) {
+              pinCfg.tx_ref() = *tx;
+            }
+            newOverrideIphy.push_back(pinCfg);
+          }
+          return newOverrideIphy;
         }
-        return newOverrideIphy;
+      }
+    }
+    // otherwise, we just need to return iphy config directly
+    return iphyCfg;
+  } else {
+    for (const auto portConfigOverride : portConfigOverrides_) {
+      if (!portConfigOverride.pins_ref().has_value()) {
+        // The override is not about Iphy pin configs. Skip
+        continue;
+      }
+      if (matcher.matchOverrideWithFactor(*portConfigOverride.factor_ref())) {
+        return *portConfigOverride.pins_ref()->iphy_ref();
       }
     }
   }
-  // otherwise, we just need to return iphy config directly
-  return iphyCfg;
+  throw FbossError("No iphy pins found for matcher", matcher.toString());
 }
 
 std::optional<std::vector<phy::PinConfig>>
@@ -434,6 +471,12 @@ PlatformMapping::getPortConfigOverrides(int32_t port) const {
           portList->end()) {
         overrides.push_back(portConfigOverride);
       }
+    } else if (auto chipList = portConfigOverride.factor_ref()->chips_ref()) {
+      auto chip = getPortIphyChip(PortID(port));
+      if (std::find(chipList->begin(), chipList->end(), chip) !=
+          chipList->end()) {
+        overrides.push_back(portConfigOverride);
+      }
     } else {
       // If factor.ports is empty, which means such override apply for all
       // ports
@@ -455,7 +498,9 @@ void PlatformMapping::mergePortConfigOverrides(
           portOverrides.factor_ref()->cableLengths_ref() !=
               curOverride.factor_ref()->cableLengths_ref() ||
           portOverrides.factor_ref()->transceiverSpecComplianceCode_ref() !=
-              curOverride.factor_ref()->transceiverSpecComplianceCode_ref()) {
+              curOverride.factor_ref()->transceiverSpecComplianceCode_ref() ||
+          portOverrides.factor_ref()->chips_ref() !=
+              curOverride.factor_ref()->chips_ref()) {
         numMismatch++;
         continue;
       }

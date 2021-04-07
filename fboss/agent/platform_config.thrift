@@ -79,6 +79,7 @@ struct PlatformPortConfigOverrideFactor {
   3: optional list<double> cableLengths;
   4: optional transceiver.ExtendedSpecComplianceCode transceiverSpecComplianceCode;
   5: optional transceiver.TransceiverManagementInterface transceiverManagementInterface;
+  6: optional list<phy.DataPlanePhyChip> chips;
 }
 
 struct PlatformPortConfigOverride {
