@@ -10,6 +10,7 @@
 #include "fboss/agent/hw/bcm/BcmEgress.h"
 
 #include "fboss/agent/Constants.h"
+#include "fboss/agent/NexthopUtils.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/bcm/BcmEgressManager.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
@@ -846,59 +847,16 @@ void BcmEcmpEgress::normalizeUcmpToMaxPath(
     const std::set<EgressId>& activeMembers,
     const uint32_t normalizedPathCount,
     EgressId2Weight& normalizedEgressId2Weight) {
-  NextHopWeight totalWeight = 0;
+  std::map<EgressId, uint64_t> EgressIdAndWeight;
+  for (const auto& member : activeMembers) {
+    EgressIdAndWeight[member] = egressId2Weight.at(member);
+  }
+  normalizeNextHopWeightsToMaxPaths<EgressId>(
+      EgressIdAndWeight, normalizedPathCount);
+
   for (const auto& member : activeMembers) {
     normalizedEgressId2Weight.insert(
-        std::make_pair(member, egressId2Weight.at(member)));
-    totalWeight += egressId2Weight.at(member);
-  }
-  // compute the scale factor
-  int factor = normalizedPathCount / totalWeight;
-  NextHopWeight scaledTotalWeight = 0;
-  std::map<NextHopWeight, uint32_t> WeightMap;
-  for (auto& egressidAndWeight : normalizedEgressId2Weight) {
-    NextHopWeight w = std::max(
-        static_cast<NextHopWeight>(egressidAndWeight.second * factor),
-        NextHopWeight(1));
-    egressidAndWeight.second = w;
-    WeightMap[w]++;
-    scaledTotalWeight += w;
-  }
-
-  if (scaledTotalWeight < normalizedPathCount) {
-    // compute the underflow weight and it's distribution
-    NextHopWeight underflow = normalizedPathCount - scaledTotalWeight;
-
-    std::map<NextHopWeight, NextHopWeight> underflowWeightAllocation;
-    double underflowFactor = underflow / static_cast<double>(scaledTotalWeight);
-    for (const auto& weightAndCount : WeightMap) {
-      underflowWeightAllocation[weightAndCount.first] =
-          weightAndCount.first * weightAndCount.second * underflowFactor;
-    }
-
-    // distribute the underflow evenly across the members in weight groups
-    for (auto& egressidAndWeight : normalizedEgressId2Weight) {
-      auto weight = egressidAndWeight.second;
-      if (underflow && underflowWeightAllocation[weight]) {
-        // Each member gets total for weight group/number of members slots
-        auto adjust = underflowWeightAllocation[weight] / WeightMap[weight]--;
-        underflowWeightAllocation[weight] -= adjust;
-        egressidAndWeight.second += adjust;
-        underflow -= adjust;
-      }
-    }
-
-    // distribute any remaining underflows to least weight nhops
-    while (underflow) {
-      auto minNhop = std::min_element(
-          normalizedEgressId2Weight.begin(),
-          normalizedEgressId2Weight.end(),
-          [](const auto& nhop1, const auto& nhop2) {
-            return nhop1.second < nhop2.second;
-          });
-      minNhop->second++;
-      underflow--;
-    }
+        std::make_pair(member, EgressIdAndWeight[member]));
   }
   XLOG(DBG2) << "Updated weights for WideECMP "
              << egressId2WeightToString(normalizedEgressId2Weight);
