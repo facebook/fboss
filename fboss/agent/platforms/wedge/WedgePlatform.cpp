@@ -41,10 +41,6 @@ using folly::MacAddress;
 using std::make_unique;
 using std::string;
 
-namespace {
-constexpr auto kNumWedge40Qsfps = 16;
-} // namespace
-
 namespace facebook::fboss {
 
 WedgePlatform::WedgePlatform(

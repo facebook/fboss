@@ -118,6 +118,7 @@ set_target_properties(bcm PROPERTIES COMPILE_FLAGS
 
 add_library(config
   fboss/agent/hw/bcm/BcmConfig.cpp
+  fboss/agent/hw/bcm/BcmYamlConfig.cpp
 )
 
 target_link_libraries(config

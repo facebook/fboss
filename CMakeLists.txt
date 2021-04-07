@@ -417,6 +417,7 @@ if (NOT SAI_ONLY)
       fboss/agent/hw/bcm/BcmBstStatsMgr.cpp
       fboss/agent/hw/bcm/BcmFacebookAPI.cpp
       fboss/agent/hw/bcm/BcmConfig.cpp
+      fboss/agent/hw/bcm/BcmYamlConfig.cpp
       fboss/agent/hw/bcm/BcmControlPlane.cpp
       fboss/agent/hw/bcm/BcmControlPlaneQueueManager.cpp
       fboss/agent/hw/bcm/BcmCosQueueManager.cpp
