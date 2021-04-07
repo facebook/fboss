@@ -32,8 +32,8 @@ uint64_t getRouteCountImpl(const Chunks& routeChunks) {
 } // namespace
 namespace facebook::fboss {
 
-// Random test state with 2 ports and 2 vlans
-std::shared_ptr<SwitchState> createTestState(Platform* platform) {
+// Random test config with 2 ports and 2 vlans
+cfg::SwitchConfig getTestConfig() {
   cfg::SwitchConfig cfg;
   cfg.ports_ref()->resize(64);
   cfg.vlans_ref()->resize(64);
@@ -66,7 +66,7 @@ std::shared_ptr<SwitchState> createTestState(Platform* platform) {
     cfg.interfaces_ref()[i].ipAddresses_ref()[1] =
         folly::to<std::string>("2400:", id, "::/64");
   }
-  return applyThriftConfig(std::make_shared<SwitchState>(), &cfg, platform);
+  return cfg;
 }
 
 uint64_t getNewRouteCount(const StateDelta& delta) {

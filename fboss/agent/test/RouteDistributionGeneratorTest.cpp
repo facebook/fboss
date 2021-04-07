@@ -11,8 +11,10 @@
 #include "fboss/agent/ApplyThriftConfig.h"
 
 #include "fboss/agent/hw/mock/MockPlatform.h"
+#include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 #include "fboss/agent/test/RouteGeneratorTestUtils.h"
+#include "fboss/agent/test/TestUtils.h"
 
 namespace {
 // TODO parameterize tests to run for both old and new RIBs
@@ -21,9 +23,10 @@ bool isStandaloneRibEnabled = false;
 namespace facebook::fboss {
 
 TEST(RouteDistributionGeneratorsTest, v4AndV6DistributionSingleChunk) {
-  auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
+  auto cfg = getTestConfig();
+  auto handle = createTestHandle(&cfg);
   auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
-      createTestState(mockPlatform.get()),
+      handle->getSw()->getState(),
       {
           {65, 5},
           {127, 5},
@@ -40,9 +43,10 @@ TEST(RouteDistributionGeneratorsTest, v4AndV6DistributionSingleChunk) {
 }
 
 TEST(RouteDistributionGeneratorsTest, v4AndV6DistributionMultipleChunks) {
-  auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
+  auto cfg = getTestConfig();
+  auto handle = createTestHandle(&cfg);
   auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
-      createTestState(mockPlatform.get()),
+      handle->getSw()->getState(),
       {
           {65, 5},
           {127, 5},
@@ -61,9 +65,10 @@ TEST(RouteDistributionGeneratorsTest, v4AndV6DistributionMultipleChunks) {
 TEST(
     RouteDistributionGeneratorsTest,
     v4AndV6DistributionChunksSpillOverMaskLens) {
-  auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
+  auto cfg = getTestConfig();
+  auto handle = createTestHandle(&cfg);
   auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
-      createTestState(mockPlatform.get()),
+      handle->getSw()->getState(),
       {
           {65, 3},
           {127, 5},
@@ -83,9 +88,10 @@ TEST(
 TEST(
     RouteDistributionGeneratorsTest,
     v4AndV6DistributionChunksSpillOverAddressFamilies) {
-  auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
+  auto cfg = getTestConfig();
+  auto handle = createTestHandle(&cfg);
   auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
-      createTestState(mockPlatform.get()),
+      handle->getSw()->getState(),
       {
           {65, 5},
           {127, 6},
@@ -103,9 +109,10 @@ TEST(
 }
 
 TEST(RouteDistributionGeneratorsTest, emptyV4Distribution) {
-  auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
+  auto cfg = getTestConfig();
+  auto handle = createTestHandle(&cfg);
   auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
-      createTestState(mockPlatform.get()),
+      handle->getSw()->getState(),
       {
           {65, 5},
       },
@@ -119,28 +126,20 @@ TEST(RouteDistributionGeneratorsTest, emptyV4Distribution) {
 }
 
 TEST(RouteDistributionGeneratorsTest, emptyV6Distribution) {
-  auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
+  auto cfg = getTestConfig();
+  auto handle = createTestHandle(&cfg);
   auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
-      createTestState(mockPlatform.get()),
-      {},
-      {{24, 5}},
-      isStandaloneRibEnabled,
-      5,
-      2);
+      handle->getSw()->getState(), {}, {{24, 5}}, isStandaloneRibEnabled, 5, 2);
 
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 5);
   verifyChunking(routeDistributionSwitchStatesGen, 5, 5);
 }
 
 TEST(RouteDistributionGeneratorsTest, emptyV4AndV6Distribution) {
-  auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
+  auto cfg = getTestConfig();
+  auto handle = createTestHandle(&cfg);
   auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
-      createTestState(mockPlatform.get()),
-      {},
-      {},
-      isStandaloneRibEnabled,
-      5,
-      2);
+      handle->getSw()->getState(), {}, {}, isStandaloneRibEnabled, 5, 2);
 
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 0);
   verifyChunking(routeDistributionSwitchStatesGen, 0, 5);
