@@ -10,15 +10,18 @@
 #include "RouteNextHopEntry.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/NexthopUtils.h"
 
 #include <folly/logging/xlog.h>
 #include <gflags/gflags.h>
 #include <numeric>
+#include "folly/IPAddress.h"
 
 namespace {
 constexpr auto kNexthops = "nexthops";
 constexpr auto kAction = "action";
 constexpr auto kAdminDistance = "adminDistance";
+static constexpr int kMinSizeForWideEcmp{128};
 
 std::vector<facebook::fboss::NextHopThrift> thriftNextHopsFromAddresses(
     const std::vector<facebook::network::thrift::BinaryAddress>& addrs) {
@@ -33,6 +36,8 @@ std::vector<facebook::fboss::NextHopThrift> thriftNextHopsFromAddresses(
   return nhs;
 }
 } // namespace
+
+DEFINE_bool(wide_ecmp, false, "Enable fixed width wide ECMP feature");
 
 namespace facebook::fboss {
 
@@ -279,6 +284,27 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHops() const {
     XLOG(DBG2) << "Scaled next hops from " << getNextHopSet() << " to "
                << scaledNextHops;
     normalizedNextHops = scaledNextHops;
+
+  } else {
+    if (FLAGS_wide_ecmp && totalWeight > kMinSizeForWideEcmp) {
+      std::map<folly::IPAddress, uint64_t> nhopAndWeights;
+      for (const auto& nhop : normalizedNextHops) {
+        nhopAndWeights.insert(std::make_pair(nhop.addr(), nhop.weight()));
+      }
+      normalizeNextHopWeightsToMaxPaths<folly::IPAddress>(
+          nhopAndWeights, FLAGS_ecmp_width);
+      NextHopSet normalizedToMaxPathNextHops;
+      for (const auto& nhop : normalizedNextHops) {
+        normalizedToMaxPathNextHops.insert(ResolvedNextHop(
+            nhop.addr(),
+            nhop.intf(),
+            nhopAndWeights[nhop.addr()],
+            nhop.labelForwardingAction()));
+      }
+      XLOG(DBG2) << "Scaled next hops from " << getNextHopSet() << " to "
+                 << normalizedToMaxPathNextHops;
+      return normalizedToMaxPathNextHops;
+    }
   }
   return normalizedNextHops;
 }
