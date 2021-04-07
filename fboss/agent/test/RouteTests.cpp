@@ -782,14 +782,7 @@ TYPED_TEST(RouteTest, InterfaceRoutes) {
   config.interfaces_ref()[1].ipAddresses_ref()[1] = "1::1/48";
   config.interfaces_ref()[0].ipAddresses_ref()[0] = "2.2.2.2/24";
   config.interfaces_ref()[0].ipAddresses_ref()[1] = "2::1/48";
-  auto updateFn = [&config, this](const std::shared_ptr<SwitchState>& in) {
-    return applyThriftConfig(
-        in,
-        &config,
-        this->sw_->getPlatform(),
-        TypeParam::hasStandAloneRib ? this->sw_->getRib() : nullptr);
-  };
-  this->sw_->updateStateBlocking("New config", updateFn);
+  this->sw_->applyConfig("New config", config);
   auto stateV2 = this->sw_->getState();
   EXPECT_NE(stateV1, stateV2);
   // With standalone rib config application will cause us to first
@@ -1550,15 +1543,7 @@ TYPED_TEST(RouteTest, StaticIp2MplsRoutes) {
       .labelForwardingAction_ref()
       ->pushLabels_ref() = {101, 102};
 
-  auto updateFn = [&config, this](const std::shared_ptr<SwitchState>& in) {
-    return applyThriftConfig(
-        in,
-        &config,
-        this->sw_->getPlatform(),
-        TypeParam::hasStandAloneRib ? this->sw_->getRib() : nullptr);
-  };
-
-  this->sw_->updateStateBlocking("New config", updateFn);
+  this->sw_->applyConfig("New config", config);
 
   auto state = this->sw_->getState();
   auto v4Route = this->findRoute4(state, RouterID(0), "10.0.0.0/24");

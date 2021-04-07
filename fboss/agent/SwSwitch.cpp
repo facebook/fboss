@@ -1540,13 +1540,19 @@ bool SwSwitch::sendPacketToHost(
 }
 
 void SwSwitch::applyConfig(const std::string& reason, bool reload) {
+  auto target = reload ? platform_->reloadConfig() : platform_->config();
+  const auto& newConfig = *target->thrift.sw_ref();
+  applyConfig(reason, newConfig);
+  target->dumpConfig(platform_->getRunningConfigDumpFile());
+}
+
+void SwSwitch::applyConfig(
+    const std::string& reason,
+    const cfg::SwitchConfig& newConfig) {
   // We don't need to hold a lock here. updateStateBlocking() does that for us.
   updateStateBlocking(
       reason,
       [&](const shared_ptr<SwitchState>& state) -> shared_ptr<SwitchState> {
-        auto target = reload ? platform_->reloadConfig() : platform_->config();
-
-        const auto& newConfig = *target->thrift.sw_ref();
         auto newState = applyThriftConfig(
             state,
             &newConfig,
@@ -1561,8 +1567,9 @@ void SwSwitch::applyConfig(const std::string& reason, bool reload) {
         // Update config cached in SwSwitch. Update this even if the config did
         // not change (as this might be during warmboot).
         curConfig_ = newConfig;
-        curConfigStr_ = target->swConfigRaw();
-        target->dumpConfig(platform_->getRunningConfigDumpFile());
+        curConfigStr_ =
+            apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+                newConfig);
 
         if (!newState) {
           // if config is not updated, the new state will return null

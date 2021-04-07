@@ -287,6 +287,16 @@ class SwSwitch : public HwSwitch::Callback {
    *          logging purposes.
    */
   void applyConfig(const std::string& reason, bool reload = false);
+  /**
+   * Apply passed in config - used primarily by tests.
+   *
+   *  @param  reason
+   *          What is the reson for applying config. This will be printed for
+   *          logging purposes.
+   */
+  void applyConfig(
+      const std::string& reason,
+      const cfg::SwitchConfig& newConfig);
 
   /*
    * Registers an observer of all state updates. An observer will be notified of
