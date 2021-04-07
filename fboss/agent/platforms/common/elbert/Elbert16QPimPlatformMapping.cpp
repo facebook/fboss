@@ -30360,6 +30360,16710 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         ]
       }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC1",
+            "type": 1,
+            "physicalID": 1
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC1",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC1",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC1",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC1",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC1",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC1",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC1",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC1",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC1",
+            "type": 1,
+            "physicalID": 1
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC1",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC1",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC1",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC1",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC1",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC1",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC1",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC1",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC5",
+            "type": 1,
+            "physicalID": 5
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC5",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC5",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC5",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC5",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC5",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC5",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC5",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC5",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC5",
+            "type": 1,
+            "physicalID": 5
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC5",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC5",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC5",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC5",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC5",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC5",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC5",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC5",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC9",
+            "type": 1,
+            "physicalID": 9
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC9",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC9",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC9",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC9",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC9",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC9",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC9",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC9",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC9",
+            "type": 1,
+            "physicalID": 9
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC9",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC9",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC9",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC9",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC9",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC9",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC9",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC9",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC13",
+            "type": 1,
+            "physicalID": 13
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC13",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC13",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC13",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC13",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC13",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC13",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC13",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC13",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC13",
+            "type": 1,
+            "physicalID": 13
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC13",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC13",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC13",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC13",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC13",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC13",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC13",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC13",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC16",
+            "type": 1,
+            "physicalID": 16
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC16",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC16",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC16",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC16",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC16",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC16",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC16",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC16",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC16",
+            "type": 1,
+            "physicalID": 16
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC16",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC16",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC16",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC16",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC16",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC16",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC16",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC16",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC21",
+            "type": 1,
+            "physicalID": 21
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC21",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC21",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC21",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC21",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC21",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC21",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC21",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC21",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC21",
+            "type": 1,
+            "physicalID": 21
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC21",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC21",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC21",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC21",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC21",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC21",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC21",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC21",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC27",
+            "type": 1,
+            "physicalID": 27
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC27",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC27",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC27",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC27",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC27",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC27",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC27",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC27",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC27",
+            "type": 1,
+            "physicalID": 27
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC27",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC27",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC27",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC27",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC27",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC27",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC27",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC27",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC31",
+            "type": 1,
+            "physicalID": 31
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC31",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC31",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC31",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC31",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC31",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC31",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC31",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC31",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC31",
+            "type": 1,
+            "physicalID": 31
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC31",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC31",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC31",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC31",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC31",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC31",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC31",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC31",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC20",
+            "type": 1,
+            "physicalID": 20
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC20",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC20",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC20",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC20",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC20",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC20",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC20",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC20",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC20",
+            "type": 1,
+            "physicalID": 20
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC20",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC20",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC20",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC20",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC20",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC20",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC20",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC20",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC17",
+            "type": 1,
+            "physicalID": 17
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC17",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC17",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC17",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC17",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC17",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC17",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC17",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC17",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC17",
+            "type": 1,
+            "physicalID": 17
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC17",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC17",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC17",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC17",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC17",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC17",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC17",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC17",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC28",
+            "type": 1,
+            "physicalID": 28
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC28",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC28",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC28",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC28",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC28",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC28",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC28",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC28",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC28",
+            "type": 1,
+            "physicalID": 28
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC28",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC28",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC28",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC28",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC28",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC28",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC28",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC28",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC24",
+            "type": 1,
+            "physicalID": 24
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC24",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC24",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC24",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC24",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC24",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC24",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC24",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC24",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC24",
+            "type": 1,
+            "physicalID": 24
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC24",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC24",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC24",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC24",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC24",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC24",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC24",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC24",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC7",
+            "type": 1,
+            "physicalID": 7
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC7",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC7",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC7",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC7",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC7",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC7",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC7",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC7",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC7",
+            "type": 1,
+            "physicalID": 7
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC7",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC7",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC7",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC7",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC7",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC7",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC7",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC7",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC3",
+            "type": 1,
+            "physicalID": 3
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC3",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC3",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC3",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC3",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC3",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC3",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC3",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC3",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC3",
+            "type": 1,
+            "physicalID": 3
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC3",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC3",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC3",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC3",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC3",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC3",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC3",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC3",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC15",
+            "type": 1,
+            "physicalID": 15
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC15",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC15",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC15",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC15",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC15",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC15",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC15",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC15",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC15",
+            "type": 1,
+            "physicalID": 15
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC15",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC15",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC15",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC15",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC15",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC15",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC15",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC15",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC11",
+            "type": 1,
+            "physicalID": 11
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC11",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC11",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC11",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC11",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC11",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC11",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC11",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC11",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC11",
+            "type": 1,
+            "physicalID": 11
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC11",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC11",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC11",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC11",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC11",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC11",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC11",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC11",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC4",
+            "type": 1,
+            "physicalID": 4
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC4",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC4",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC4",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC4",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC4",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC4",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC4",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC4",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC4",
+            "type": 1,
+            "physicalID": 4
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC4",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC4",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC4",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC4",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC4",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC4",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC4",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC4",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC0",
+            "type": 1,
+            "physicalID": 0
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC0",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC0",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC0",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC0",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC0",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC0",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC0",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC0",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC0",
+            "type": 1,
+            "physicalID": 0
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC0",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC0",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC0",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC0",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC0",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC0",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC0",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC0",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC12",
+            "type": 1,
+            "physicalID": 12
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC12",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC12",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC12",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC12",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC12",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC12",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC12",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC12",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC12",
+            "type": 1,
+            "physicalID": 12
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC12",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC12",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC12",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC12",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC12",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC12",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC12",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC12",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC8",
+            "type": 1,
+            "physicalID": 8
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC8",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC8",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC8",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC8",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC8",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC8",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC8",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC8",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC8",
+            "type": 1,
+            "physicalID": 8
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC8",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC8",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC8",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC8",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC8",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC8",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC8",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC8",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC22",
+            "type": 1,
+            "physicalID": 22
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC22",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC22",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC22",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC22",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC22",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC22",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC22",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC22",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC22",
+            "type": 1,
+            "physicalID": 22
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC22",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC22",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC22",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC22",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC22",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC22",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC22",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC22",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC19",
+            "type": 1,
+            "physicalID": 19
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC19",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC19",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC19",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC19",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC19",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC19",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC19",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC19",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC19",
+            "type": 1,
+            "physicalID": 19
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC19",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC19",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC19",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC19",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC19",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC19",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC19",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC19",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC29",
+            "type": 1,
+            "physicalID": 29
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC29",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC29",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC29",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC29",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC29",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC29",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC29",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC29",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC29",
+            "type": 1,
+            "physicalID": 29
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC29",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC29",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC29",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC29",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC29",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC29",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC29",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC29",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC25",
+            "type": 1,
+            "physicalID": 25
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC25",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC25",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC25",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC25",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC25",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC25",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC25",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC25",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC25",
+            "type": 1,
+            "physicalID": 25
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC25",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC25",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC25",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC25",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC25",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC25",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC25",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC25",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC18",
+            "type": 1,
+            "physicalID": 18
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC18",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC18",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC18",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC18",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC18",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC18",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC18",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC18",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC18",
+            "type": 1,
+            "physicalID": 18
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC18",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC18",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC18",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC18",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC18",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC18",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC18",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC18",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC23",
+            "type": 1,
+            "physicalID": 23
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC23",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC23",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC23",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC23",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC23",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC23",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC23",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC23",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC23",
+            "type": 1,
+            "physicalID": 23
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC23",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC23",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC23",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC23",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC23",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC23",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC23",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC23",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC26",
+            "type": 1,
+            "physicalID": 26
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC26",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC26",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC26",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC26",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC26",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC26",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC26",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC26",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC26",
+            "type": 1,
+            "physicalID": 26
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC26",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC26",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC26",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC26",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC26",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC26",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC26",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC26",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC30",
+            "type": 1,
+            "physicalID": 30
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC30",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC30",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC30",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC30",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC30",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC30",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC30",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC30",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC30",
+            "type": 1,
+            "physicalID": 30
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC30",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC30",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC30",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC30",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC30",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC30",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC30",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC30",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC2",
+            "type": 1,
+            "physicalID": 2
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC2",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC2",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC2",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC2",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC2",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC2",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC2",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC2",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC2",
+            "type": 1,
+            "physicalID": 2
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC2",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC2",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC2",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC2",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC2",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC2",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC2",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC2",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC6",
+            "type": 1,
+            "physicalID": 6
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC6",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC6",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC6",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC6",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC6",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC6",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC6",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC6",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC6",
+            "type": 1,
+            "physicalID": 6
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC6",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC6",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC6",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC6",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC6",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC6",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC6",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC6",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC10",
+            "type": 1,
+            "physicalID": 10
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC10",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC10",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC10",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC10",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC10",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC10",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC10",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC10",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC10",
+            "type": 1,
+            "physicalID": 10
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC10",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC10",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC10",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC10",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC10",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC10",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC10",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC10",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC14",
+            "type": 1,
+            "physicalID": 14
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC14",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC14",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC14",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC14",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC14",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC14",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC14",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC14",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC14",
+            "type": 1,
+            "physicalID": 14
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC14",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC14",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC14",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC14",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC14",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC14",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC14",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC14",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC45",
+            "type": 1,
+            "physicalID": 45
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC45",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC45",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC45",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC45",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC45",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC45",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC45",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC45",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC45",
+            "type": 1,
+            "physicalID": 45
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC45",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC45",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC45",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC45",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC45",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC45",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC45",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC45",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC40",
+            "type": 1,
+            "physicalID": 40
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC40",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC40",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC40",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC40",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC40",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC40",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC40",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC40",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC40",
+            "type": 1,
+            "physicalID": 40
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC40",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC40",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC40",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC40",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC40",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC40",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC40",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC40",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC37",
+            "type": 1,
+            "physicalID": 37
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC37",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC37",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC37",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC37",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC37",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC37",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC37",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC37",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC37",
+            "type": 1,
+            "physicalID": 37
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC37",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC37",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC37",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC37",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC37",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC37",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC37",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC37",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC32",
+            "type": 1,
+            "physicalID": 32
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC32",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC32",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC32",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC32",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC32",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC32",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC32",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC32",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC32",
+            "type": 1,
+            "physicalID": 32
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC32",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC32",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC32",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC32",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC32",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC32",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC32",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC32",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC61",
+            "type": 1,
+            "physicalID": 61
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC61",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC61",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC61",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC61",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC61",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC61",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC61",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC61",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC61",
+            "type": 1,
+            "physicalID": 61
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC61",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC61",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC61",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC61",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC61",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC61",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC61",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC61",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC57",
+            "type": 1,
+            "physicalID": 57
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC57",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC57",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC57",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC57",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC57",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC57",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC57",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC57",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC57",
+            "type": 1,
+            "physicalID": 57
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC57",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC57",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC57",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC57",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC57",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC57",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC57",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC57",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC53",
+            "type": 1,
+            "physicalID": 53
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC53",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC53",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC53",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC53",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC53",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC53",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC53",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC53",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC53",
+            "type": 1,
+            "physicalID": 53
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC53",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC53",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC53",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC53",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC53",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC53",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC53",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC53",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC49",
+            "type": 1,
+            "physicalID": 49
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC49",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC49",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC49",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC49",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC49",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC49",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC49",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC49",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC49",
+            "type": 1,
+            "physicalID": 49
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC49",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC49",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC49",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC49",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC49",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC49",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC49",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC49",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC59",
+            "type": 1,
+            "physicalID": 59
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC59",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC59",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC59",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC59",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC59",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC59",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC59",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC59",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC59",
+            "type": 1,
+            "physicalID": 59
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC59",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC59",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC59",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC59",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC59",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC59",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC59",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC59",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC63",
+            "type": 1,
+            "physicalID": 63
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC63",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC63",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC63",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC63",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC63",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC63",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC63",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC63",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC63",
+            "type": 1,
+            "physicalID": 63
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC63",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC63",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC63",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC63",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC63",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC63",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC63",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC63",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC51",
+            "type": 1,
+            "physicalID": 51
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC51",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC51",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC51",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC51",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC51",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC51",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC51",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC51",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC51",
+            "type": 1,
+            "physicalID": 51
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC51",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC51",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC51",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC51",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC51",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC51",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC51",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC51",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC55",
+            "type": 1,
+            "physicalID": 55
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC55",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC55",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC55",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC55",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC55",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC55",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC55",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC55",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC55",
+            "type": 1,
+            "physicalID": 55
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC55",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC55",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC55",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC55",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC55",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC55",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC55",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC55",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC41",
+            "type": 1,
+            "physicalID": 41
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC41",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC41",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC41",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC41",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC41",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC41",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC41",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC41",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC41",
+            "type": 1,
+            "physicalID": 41
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC41",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC41",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC41",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC41",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC41",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC41",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC41",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC41",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC44",
+            "type": 1,
+            "physicalID": 44
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC44",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC44",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC44",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC44",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC44",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC44",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC44",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC44",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC44",
+            "type": 1,
+            "physicalID": 44
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC44",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC44",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC44",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC44",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC44",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC44",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC44",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC44",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC34",
+            "type": 1,
+            "physicalID": 34
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC34",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC34",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC34",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC34",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC34",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC34",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC34",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC34",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC34",
+            "type": 1,
+            "physicalID": 34
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC34",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC34",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC34",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC34",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC34",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC34",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC34",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC34",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC38",
+            "type": 1,
+            "physicalID": 38
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC38",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC38",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC38",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC38",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC38",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC38",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC38",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC38",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC38",
+            "type": 1,
+            "physicalID": 38
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC38",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC38",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC38",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC38",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC38",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC38",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC38",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC38",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC43",
+            "type": 1,
+            "physicalID": 43
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC43",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC43",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC43",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC43",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC43",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC43",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC43",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC43",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC43",
+            "type": 1,
+            "physicalID": 43
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC43",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC43",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC43",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC43",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC43",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC43",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC43",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC43",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC46",
+            "type": 1,
+            "physicalID": 46
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC46",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC46",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC46",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC46",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC46",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC46",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC46",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC46",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC46",
+            "type": 1,
+            "physicalID": 46
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC46",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC46",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC46",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC46",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC46",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC46",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC46",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC46",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC35",
+            "type": 1,
+            "physicalID": 35
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC35",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC35",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC35",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC35",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC35",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC35",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC35",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC35",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC35",
+            "type": 1,
+            "physicalID": 35
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC35",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC35",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC35",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC35",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC35",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC35",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC35",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC35",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC39",
+            "type": 1,
+            "physicalID": 39
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC39",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC39",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC39",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC39",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC39",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC39",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC39",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC39",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC39",
+            "type": 1,
+            "physicalID": 39
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC39",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC39",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC39",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC39",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC39",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC39",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC39",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC39",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC56",
+            "type": 1,
+            "physicalID": 56
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC56",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC56",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC56",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC56",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC56",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC56",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC56",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC56",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC56",
+            "type": 1,
+            "physicalID": 56
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC56",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC56",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC56",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC56",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC56",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC56",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC56",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC56",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC60",
+            "type": 1,
+            "physicalID": 60
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC60",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC60",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC60",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC60",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC60",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC60",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC60",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC60",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC60",
+            "type": 1,
+            "physicalID": 60
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC60",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC60",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC60",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC60",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC60",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC60",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC60",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC60",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC48",
+            "type": 1,
+            "physicalID": 48
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC48",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC48",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC48",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC48",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC48",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC48",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC48",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC48",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC48",
+            "type": 1,
+            "physicalID": 48
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC48",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC48",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC48",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC48",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC48",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC48",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC48",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC48",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC52",
+            "type": 1,
+            "physicalID": 52
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC52",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC52",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC52",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC52",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC52",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC52",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC52",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC52",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC52",
+            "type": 1,
+            "physicalID": 52
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC52",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC52",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC52",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC52",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC52",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC52",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC52",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC52",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC62",
+            "type": 1,
+            "physicalID": 62
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC62",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC62",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC62",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC62",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC62",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC62",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC62",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC62",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC62",
+            "type": 1,
+            "physicalID": 62
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC62",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC62",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC62",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC62",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC62",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC62",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC62",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC62",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC58",
+            "type": 1,
+            "physicalID": 58
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC58",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC58",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC58",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC58",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC58",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC58",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC58",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC58",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC58",
+            "type": 1,
+            "physicalID": 58
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC58",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC58",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC58",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC58",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC58",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC58",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC58",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC58",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC54",
+            "type": 1,
+            "physicalID": 54
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC54",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC54",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC54",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC54",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC54",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC54",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC54",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC54",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC54",
+            "type": 1,
+            "physicalID": 54
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC54",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC54",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC54",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC54",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC54",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC54",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC54",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC54",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC50",
+            "type": 1,
+            "physicalID": 50
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC50",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC50",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC50",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC50",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC50",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC50",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC50",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC50",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC50",
+            "type": 1,
+            "physicalID": 50
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC50",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC50",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC50",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC50",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC50",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC50",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC50",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC50",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC47",
+            "type": 1,
+            "physicalID": 47
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC47",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC47",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC47",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC47",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC47",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC47",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC47",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC47",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC47",
+            "type": 1,
+            "physicalID": 47
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC47",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC47",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC47",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC47",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC47",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC47",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC47",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC47",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC42",
+            "type": 1,
+            "physicalID": 42
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC42",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC42",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC42",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC42",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC42",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC42",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC42",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC42",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC42",
+            "type": 1,
+            "physicalID": 42
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC42",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC42",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC42",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC42",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC42",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC42",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC42",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC42",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC36",
+            "type": 1,
+            "physicalID": 36
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC36",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC36",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC36",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC36",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC36",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC36",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC36",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC36",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC36",
+            "type": 1,
+            "physicalID": 36
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC36",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC36",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC36",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC36",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC36",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC36",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC36",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC36",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          23,
+          25
+        ],
+        "chips": [
+          {
+            "name": "BC33",
+            "type": 1,
+            "physicalID": 33
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC33",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC33",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC33",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC33",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC33",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC33",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC33",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC33",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "profiles": [
+          26
+        ],
+        "chips": [
+          {
+            "name": "BC33",
+            "type": 1,
+            "physicalID": 33
+          }
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "BC33",
+              "lane": 0
+            },
+            "laneMap": {
+              "rx": 3,
+              "tx": 1
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC33",
+              "lane": 1
+            },
+            "laneMap": {
+              "rx": 2,
+              "tx": 3
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC33",
+              "lane": 2
+            },
+            "laneMap": {
+              "rx": 5,
+              "tx": 5
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC33",
+              "lane": 3
+            },
+            "laneMap": {
+              "rx": 6,
+              "tx": 4
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC33",
+              "lane": 4
+            },
+            "laneMap": {
+              "rx": 1,
+              "tx": 7
+            },
+            "polaritySwap": {
+              "rx": false,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC33",
+              "lane": 5
+            },
+            "laneMap": {
+              "rx": 7,
+              "tx": 2
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          },
+          {
+            "id": {
+              "chip": "BC33",
+              "lane": 6
+            },
+            "laneMap": {
+              "rx": 4,
+              "tx": 6
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": false
+            }
+          },
+          {
+            "id": {
+              "chip": "BC33",
+              "lane": 7
+            },
+            "laneMap": {
+              "rx": 0,
+              "tx": 0
+            },
+            "polaritySwap": {
+              "rx": true,
+              "tx": true
+            }
+          }
+        ]
+      }
     }
   ],
   "platformSupportedProfiles": [
