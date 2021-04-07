@@ -16,6 +16,7 @@
 #include <folly/IPAddress.h>
 #include <gtest/gtest.h>
 #include <algorithm>
+#include <numeric>
 #include <vector>
 
 using namespace facebook::fboss;
@@ -27,6 +28,8 @@ using facebook::fboss::IpPrefix;
 using facebook::fboss::MplsAction;
 using facebook::fboss::NextHopThrift;
 using facebook::fboss::UnicastRoute;
+
+DECLARE_bool(wide_ecmp);
 
 namespace {
 
@@ -156,4 +159,52 @@ TEST(RouteNextHopEntry, EmptyListIsDrop) {
   ASSERT_EQ(nextHopEntry.getAction(), RouteForwardAction::DROP);
   ASSERT_EQ(nextHopEntry.getAdminDistance(), kDefaultAdminDistance);
   ASSERT_EQ(nextHopEntry.getNextHopSet().size(), 0);
+}
+
+TEST(RouteNextHopEntry, NormalizedFixedSizeWideNextHop) {
+  RouteNextHopSet nhops;
+
+  FLAGS_ecmp_width = 512;
+  FLAGS_wide_ecmp = true;
+
+  nhops.emplace(ResolvedNextHop(nextHopAddr1, InterfaceID(1), 55));
+  nhops.emplace(ResolvedNextHop(nextHopAddr2, InterfaceID(2), 56));
+  nhops.emplace(ResolvedNextHop(nextHopAddr3, InterfaceID(3), 57));
+
+  auto normalizedNextHops =
+      RouteNextHopEntry(nhops, kDefaultAdminDistance).normalizedNextHops();
+
+  NextHopWeight totalWeight = std::accumulate(
+      normalizedNextHops.begin(),
+      normalizedNextHops.end(),
+      0,
+      [](NextHopWeight w, const NextHop& nh) { return w + nh.weight(); });
+  EXPECT_EQ(totalWeight, FLAGS_ecmp_width);
+}
+
+TEST(RouteNextHopEntry, NotNormalizedWideECmpEnabled) {
+  RouteNextHopSet nhops;
+
+  FLAGS_ecmp_width = 512;
+  FLAGS_wide_ecmp = true;
+
+  nhops.emplace(ResolvedNextHop(nextHopAddr1, InterfaceID(1), 32));
+  nhops.emplace(ResolvedNextHop(nextHopAddr2, InterfaceID(2), 32));
+  nhops.emplace(ResolvedNextHop(nextHopAddr3, InterfaceID(3), 32));
+
+  auto normalizedNextHops =
+      RouteNextHopEntry(nhops, kDefaultAdminDistance).normalizedNextHops();
+
+  NextHopWeight totalWeight = std::accumulate(
+      normalizedNextHops.begin(),
+      normalizedNextHops.end(),
+      0,
+      [](NextHopWeight w, const NextHop& nh) { return w + nh.weight(); });
+
+  auto originalTotalWeight = std::accumulate(
+      nhops.begin(), nhops.end(), 0, [](NextHopWeight w, const NextHop& nh) {
+        return w + nh.weight();
+      });
+
+  EXPECT_EQ(totalWeight, originalTotalWeight);
 }
