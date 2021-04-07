@@ -9,7 +9,6 @@
  */
 #include "fboss/agent/hw/test/HwTest.h"
 
-#include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
 #include "fboss/agent/hw/test/HwTestPortUtils.h"
@@ -100,10 +99,6 @@ void HwTest::SetUp() {
     // CONFIGURED
     hwSwitchEnsemble_->switchRunStateChanged(SwitchRunState::CONFIGURED);
   }
-
-  // Set ConfigFactory port to default profile id map
-  utility::setPortToDefaultProfileIDMap(
-      getProgrammedState()->getPorts(), getPlatform());
 }
 
 void HwTest::TearDown() {

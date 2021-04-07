@@ -19,6 +19,7 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/hw/test/StaticL2ForNeighborHwSwitchUpdater.h"
@@ -325,6 +326,9 @@ void HwSwitchEnsemble::setupEnsemble(
     u.program();
     CHECK_EQ(curProgrammedState, getProgrammedState());
   }
+  // Set ConfigFactory port to default profile id map
+  utility::setPortToDefaultProfileIDMap(
+      getProgrammedState()->getPorts(), getPlatform());
 }
 
 void HwSwitchEnsemble::switchRunStateChanged(SwitchRunState switchState) {
