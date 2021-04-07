@@ -31,7 +31,7 @@ const std::vector<int> kPfcPriorityToQueue = {0, 1, 2, 2, 4, 7, 7, 6};
 // this one is an extenion of the kTrafficClassToPgId
 // in HW kTrafficClassToPgId is programmed as 16 entries
 const std::vector<int>
-    kTrafficClassToPgIdInHw{0, 1, 2, 3, 4, 5, 6, 7, 0, 0, 0, 0, 0, 0, 0, 0};
+    kTrafficClassToPgIdInHw{0, 1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7};
 } // namespace
 
 namespace facebook::fboss {
@@ -160,6 +160,9 @@ class BcmQosMapTest : public BcmTest {
       const std::vector<int>& tc2Pg,
       const std::vector<int>& pfcPri2Pg,
       const std::vector<int>& pfcPri2Queue) {
+    if (!isSupported(HwAsic::Feature::PFC)) {
+      return;
+    }
     validateTc2PgId(tc2Pg);
     validatePfcPri2PgId(pfcPri2Pg);
     // currently there is no interface exposed to program
@@ -446,6 +449,8 @@ TEST_F(BcmQosMapTest, BcmAllQosMaps) {
         EXPECT_EQ(array_count, 48);
       }
     }
+    validateAllPfcMaps(
+        getDefaultTrafficClassToPg(), getDefaultPfcPriorityToPg(), {});
   };
   verifyAcrossWarmBoots(setup, verify);
 }

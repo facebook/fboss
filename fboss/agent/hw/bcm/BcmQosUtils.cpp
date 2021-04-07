@@ -13,10 +13,28 @@ namespace {
 // group (PG) defaults from HW required for mapping incoming traffic to PG on
 // ingress for PFC purposes
 const std::vector<int>
-    kDefaultTrafficClassToPg{7, 1, 2, 3, 4, 5, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    kDefaultTrafficClassToPg{0, 1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7};
+// lossless mode has different defaults
+const std::vector<int> kDefaultTrafficClassToPgInLosslessMode{
+    7,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0};
 // array with index representing pfc priority and value is priority group (PG)
 // defaults from HW
-const std::vector<int> kDefaultPfcPriorityToPg{0, 1, 2, 3, 4, 5, 6, 7};
+const std::vector<int> kDefaultPfcPriorityToPg{0, 0, 0, 0, 0, 0, 0, 0};
 constexpr int kDefaultProfileId = 0;
 const std::vector<int> kDefaultPfcEnableForPriToQueue =
     {1, 1, 1, 1, 1, 1, 1, 1};
