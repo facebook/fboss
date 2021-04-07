@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/hw/bcm/BcmYamlConfig.h"
 #include "fboss/agent/hw/bcm/types.h"
 
 #include <map>
@@ -167,7 +168,7 @@ class BcmAPI {
 
   static bool isHwInSimMode();
 
-  static std::string& getHwYamlConfig();
+  static BcmYamlConfig& getHwYamlConfig();
 
   static bool isHwUsingHSDK();
 
@@ -186,24 +187,6 @@ class BcmAPI {
   static void initYamlConfig(const std::string& yamlConfig);
 
   static void updateUsingOverrideMap(HwConfigMap& hwConfig);
-
-  /*
-   * Get a configuration property.
-   * NOTE: This function should be only called for HSDK implementation
-   *
-   * Returns the configuration value, as specified in the Yaml::Node supplied
-   * to BcmAPI::initYamlConfig().
-   *
-   * The returned std::optional will point to nullopt data if no value
-   * is set for the specified property.
-   */
-  template <typename ValueT>
-  static std::optional<ValueT> getYamlConfigValue(
-      const YAML::Node& node,
-      const std::string& name);
-
-  static YAML::Node& getGlobalBcmDeviceYamlNode();
-  static YAML::Node& getTMThresholdYamlNode();
 
   static void initImpl();
 

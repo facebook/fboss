@@ -107,15 +107,6 @@ constexpr auto kSDK6MMUStateKey = "mmu_lossless";
 constexpr auto kSDK6L3ALPMState = "l3_alpm_enable";
 constexpr auto kSDK6Is128ByteIpv6Enabled = "ipv6_lpm_128b_enable";
 constexpr auto kSDK6ConfigStableSize = "stable_size";
-
-constexpr auto kHSDKBcmDeviceKey = "bcm_device";
-constexpr auto kHSDKDevice0Key = "0";
-constexpr auto kHSDKBcmDeviceGlobalKey = "global";
-constexpr auto kHSDKL3ALPMState = "l3_alpm_template";
-constexpr auto kHSDKIs128ByteIpv6Enabled = "ipv6_lpm_128b_enable";
-constexpr auto kHSDKDeviceKey = "device";
-constexpr auto kHSDKTMTHDConfigKey = "TM_THD_CONFIG";
-constexpr auto kHSDKThresholsModeKey = "THRESHOLD_MODE";
 } // namespace
 
 namespace facebook::fboss {
@@ -177,17 +168,7 @@ const char* FOLLY_NULLABLE BcmAPI::getConfigValue(StringPiece name) {
 
 BcmMmuState BcmAPI::getMmuState() {
   if (BcmAPI::isHwUsingHSDK()) {
-    auto mode = getYamlConfigValue<std::string>(
-        getTMThresholdYamlNode(), kHSDKThresholsModeKey);
-    if (mode) {
-      XLOG(INFO) << "MMU state is " << *mode;
-      if (*mode == "LOSSY") {
-        return BcmMmuState::MMU_LOSSY;
-      } else if (*mode == "LOSSLESS") {
-        return BcmMmuState::MMU_LOSSLESS;
-      }
-    }
-    return BcmMmuState::UNKNOWN;
+    return getHwYamlConfig().getMmuState();
   } else {
     auto lossless = BcmAPI::getConfigValue(kSDK6MMUStateKey);
     if (!lossless) {
@@ -200,12 +181,7 @@ BcmMmuState BcmAPI::getMmuState() {
 
 bool BcmAPI::is128ByteIpv6Enabled() {
   if (BcmAPI::isHwUsingHSDK()) {
-    auto state = BcmAPI::getYamlConfigValue<int>(
-        getGlobalBcmDeviceYamlNode(), kHSDKIs128ByteIpv6Enabled);
-    if (!state || *state != 1) {
-      return false;
-    }
-    return true;
+    return getHwYamlConfig().is128ByteIpv6Enabled();
   } else {
     auto state = BcmAPI::getConfigValue(kSDK6Is128ByteIpv6Enabled);
     if (!state) {
@@ -217,13 +193,7 @@ bool BcmAPI::is128ByteIpv6Enabled() {
 
 bool BcmAPI::isAlpmEnabled() {
   if (BcmAPI::isHwUsingHSDK()) {
-    auto state = BcmAPI::getYamlConfigValue<int>(
-        getGlobalBcmDeviceYamlNode(), kHSDKL3ALPMState);
-    if (!state || *state == 0) {
-      return false;
-    }
-    // 1: combined mode, 2: parallel mode. But both are alpm enabled
-    return true;
+    return getHwYamlConfig().isAlpmEnabled();
   } else {
     auto state = BcmAPI::getConfigValue(kSDK6L3ALPMState);
     if (!state) {
@@ -256,53 +226,14 @@ BcmAPI::HwConfigMap& BcmAPI::getHwConfig() {
 }
 
 void BcmAPI::initYamlConfig(const std::string& yamlConfig) {
-  // We usually keep some of the global settings in bcm_device:0:global node
-  auto yamlNodes = YAML::LoadAll(yamlConfig);
-  for (auto yamlNode : yamlNodes) {
-    // Only care about bcm_device:0:global node
-    if (auto node = yamlNode[kHSDKBcmDeviceKey]) {
-      if (auto deviceNode = node[kHSDKDevice0Key]) {
-        if (auto globalNode = deviceNode[kHSDKBcmDeviceGlobalKey]) {
-          XLOG(DBG1) << "Found bcm_device:0:global yaml node";
-          getGlobalBcmDeviceYamlNode().reset(globalNode);
-        }
-      }
-    } else if (auto node = yamlNode[kHSDKDeviceKey]) {
-      if (auto deviceNode = node[kHSDKDevice0Key]) {
-        if (auto thresholdNode = deviceNode[kHSDKTMTHDConfigKey]) {
-          XLOG(DBG1) << "Found device:0:TM_THD_CONFIG yaml node";
-          getTMThresholdYamlNode().reset(thresholdNode);
-        }
-      }
-    }
-  }
-  getHwYamlConfig().assign(yamlConfig);
+  getHwYamlConfig().setBaseConfig(yamlConfig);
 }
 
-std::string& BcmAPI::getHwYamlConfig() {
-  static string bcmYamlConfig;
+BcmYamlConfig& BcmAPI::getHwYamlConfig() {
+  // Avoid static initialization disaster
+  // (https://isocpp.org/wiki/faq/ctors#static-init-order)
+  static BcmYamlConfig bcmYamlConfig;
   return bcmYamlConfig;
-}
-
-YAML::Node& BcmAPI::getGlobalBcmDeviceYamlNode() {
-  static YAML::Node globalYamlNode;
-  return globalYamlNode;
-}
-
-YAML::Node& BcmAPI::getTMThresholdYamlNode() {
-  static YAML::Node thresholdNode;
-  return thresholdNode;
-}
-
-template <typename ValueT>
-std::optional<ValueT> BcmAPI::getYamlConfigValue(
-    const YAML::Node& node,
-    const std::string& name) {
-  auto valueNode = node[name];
-  if (valueNode) {
-    return valueNode.as<ValueT>();
-  }
-  return std::nullopt;
 }
 
 std::unique_ptr<BcmUnit> BcmAPI::createUnit(

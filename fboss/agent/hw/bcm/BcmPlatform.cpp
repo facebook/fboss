@@ -16,6 +16,7 @@
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmConfig.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 DEFINE_bool(
     enable_routes_in_host_table,
@@ -34,14 +35,19 @@ bool BcmPlatform::isBcmShellSupported() const {
 }
 
 void BcmPlatform::dumpHwConfig() const {
-  std::vector<std::string> nameValStrs;
-  for (const auto& kv : BcmAPI::getHwConfig()) {
-    nameValStrs.emplace_back(folly::to<std::string>(kv.first, '=', kv.second));
-  }
-  auto bcmConf = folly::join('\n', nameValStrs);
   auto hwConfigFile = getHwConfigDumpFile();
-  if (!folly::writeFile(bcmConf, hwConfigFile.c_str())) {
-    throw facebook::fboss::SysError(errno, "error writing bcm config ");
+  if (getAsic()->isSupported(HwAsic::Feature::HSDK)) {
+    BcmAPI::getHwYamlConfig().dumpConfig(hwConfigFile);
+  } else {
+    std::vector<std::string> nameValStrs;
+    for (const auto& kv : BcmAPI::getHwConfig()) {
+      nameValStrs.emplace_back(
+          folly::to<std::string>(kv.first, '=', kv.second));
+    }
+    auto bcmConf = folly::join('\n', nameValStrs);
+    if (!folly::writeFile(bcmConf, hwConfigFile.c_str())) {
+      throw facebook::fboss::SysError(errno, "error writing bcm config ");
+    }
   }
 }
 
