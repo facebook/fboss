@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import time
 from collections import defaultdict, namedtuple
-from typing import DefaultDict, Dict, NamedTuple, Union
+from typing import List, DefaultDict, Dict, NamedTuple, Union
 
 from fboss.fb_thrift_clients import FbossAgentClient, QsfpServiceClient
 from libfb.py.decorators import memoize_forever, retryable
@@ -14,6 +14,8 @@ class FbosslinkTestCase(LinkTestCase):
     """
     Fboss link test base class.
     """
+
+    _LINK_FLAP_COUNT_KEY = "link_state.flap.sum"
 
     def setUp(self) -> None:
         super().setUp()
@@ -66,6 +68,17 @@ class FbosslinkTestCase(LinkTestCase):
                 up_ports,
                 msg=f" Not all ports are down " f" Ports that are up:{up_ports}",
             )
+
+    @memoize_forever
+    def _get_all_interface_names(self) -> List[str]:
+        """
+        Used to fetch all the interface name on the switch.
+        """
+
+        with self._get_fboss_agent_client(self.hostname) as client:
+            port_info_result = client.getAllPortInfo()
+
+        return [port.name for port in port_info_result.values()]
 
     @memoize_forever
     def _get_all_interface_name_to_port_id_mapping(self) -> Dict[str, NamedTuple]:
@@ -181,3 +194,31 @@ class FbosslinkTestCase(LinkTestCase):
     def _get_qsfp_service_client(self, hostname: str) -> QsfpServiceClient:
         qsfp_client = QsfpServiceClient(hostname, None, timeout=DEFAULT_THRIFT_TIMEOUT)
         return qsfp_client
+
+    def _getOverallLinkFlapCount(self):
+        client = self._get_fboss_agent_client(self.hostname)
+        return client.getSelectedCounters([self._LINK_FLAP_COUNT_KEY])[
+            self._LINK_FLAP_COUNT_KEY
+        ]
+
+    def _getPortsLinkFlapCount(self, ports):
+        client = self._get_fboss_agent_client(self.hostname)
+        counterNames = []
+        for port in ports:
+            counterNames.append(port + "." + self._LINK_FLAP_COUNT_KEY)
+        return client.getSelectedCounters(counterNames)
+
+    def _check_port_flap_counts(self, oldCounts, newCounts, expectFlaps):
+        bad_ports = {}
+        if expectFlaps:
+            for port in newCounts:
+                if oldCounts.get(port, 0) == newCounts.get(port, 0):
+                    bad_ports[port] = " port was expected to flap but it didn't"
+        else:
+            for port in newCounts:
+                if oldCounts.get(port, 0) != newCounts.get(port, 0):
+                    bad_ports[
+                        port
+                    ] = f"expected_flap_count = {oldCounts.get(port, 0)}, actual_flap_count = {newCounts.get(port, 0)}"
+
+        self.assertFalse(bad_ports, msg=f"{bad_ports}")
