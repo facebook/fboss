@@ -38,7 +38,17 @@ class BcmQosPolicy {
   const BcmQosMap* getEgressExpQosMap() const;
   void remove();
   static std::vector<bcm_cosq_pfc_class_map_config_t>
-  initializeBcmPfcPriToQueueMapping();
+  getBcmHwDefaultsPfcPriToQueueMapping();
+  static bool comparePfcPriorityToQueue(
+      std::vector<bcm_cosq_pfc_class_map_config_t>& newPfcPriorityToQueue,
+      std::vector<bcm_cosq_pfc_class_map_config_t>& currPfcPriorityToQueue);
+  static std::vector<int> readPfcPriorityToPg(const BcmSwitch* hw);
+  static std::vector<int> readPriorityGroupMapping(
+      const BcmSwitch* hw,
+      const bcm_cosq_priority_group_mapping_profile_type_t profileType,
+      const std::string& profileTypeStr);
+  static std::vector<bcm_cosq_pfc_class_map_config_t> readPfcPriorityToQueue(
+      const BcmSwitch* hw);
 
  private:
   void updateIngressDscpQosMap(
@@ -65,7 +75,7 @@ class BcmQosPolicy {
       const bcm_cosq_priority_group_mapping_profile_type_t profileType,
       const std::vector<int>& trafficClassToPgId,
       const std::string& profileTypeStr);
-  void programTrafficClassToPg(const std::vector<int>& trafficClassPg);
+  void programTrafficClassToPgIfNeeded(const std::vector<int>& trafficClassPg);
   void updateTrafficClassToPgMap(
       const std::shared_ptr<QosPolicy>& oldQosPolicy,
       const std::shared_ptr<QosPolicy>& newQosPolicy);
@@ -76,14 +86,23 @@ class BcmQosPolicy {
   void updatePfcPriorityToPgMap(
       const std::shared_ptr<QosPolicy>& oldQosPolicy,
       const std::shared_ptr<QosPolicy>& newQosPolicy);
+  void programPfcPriorityToPgIfNeeded(const std::vector<int>& newPfcPriorityPg);
 
   // pfc pri <-> queue id functions
   void programPfcPriorityToQueueMap(
       const std::shared_ptr<QosPolicy>& qosPolicy);
-  void programPfcPriorityToQueue(const std::vector<int>& pfcPriorityQueue);
+  void programPfcPriorityToQueue(
+      const std::vector<bcm_cosq_pfc_class_map_config_t>& pfcPriorityToQueue);
   void updatePfcPriorityToQueueMap(
       const std::shared_ptr<QosPolicy>& oldQosPolicy,
       const std::shared_ptr<QosPolicy>& newQosPolicy);
+  void programPfcPriorityToQueueIfNeeded(
+      const std::vector<int>& newPfcPriorityToQueue);
+
+  void programPriorityGroupMappingIfNeeded(
+      const bcm_cosq_priority_group_mapping_profile_type_t profileType,
+      const std::vector<int>& newTrafficClassToPgId,
+      const std::string& profileTypeStr);
 
   BcmSwitch* hw_;
   std::unique_ptr<BcmQosMap> ingressDscpQosMap_;

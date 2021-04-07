@@ -78,18 +78,10 @@ class BcmQosMapTest : public BcmTest {
   }
 
   void validateTc2PgId(const std::vector<int>& expectedTc2Pg) {
-    std::vector<int> tc2PgId;
-    const int defaultTrafficClassToPgSize = getDefaultTrafficClassToPg().size();
-    tc2PgId.resize(defaultTrafficClassToPgSize);
-    int arrayCount = 0;
-    bcm_cosq_priority_group_mapping_profile_get(
-        getUnit(),
-        0,
+    auto tc2PgId = BcmQosPolicy::readPriorityGroupMapping(
+        getHwSwitch(),
         bcmCosqInputPriPriorityGroupMcMapping,
-        defaultTrafficClassToPgSize,
-        tc2PgId.data(),
-        &arrayCount);
-    EXPECT_EQ(arrayCount, expectedTc2Pg.size());
+        "bcmCosqInputPriPriorityGroupMcMapping");
     // all entries should be same
     EXPECT_TRUE(std::equal(
         expectedTc2Pg.begin(),
@@ -99,18 +91,8 @@ class BcmQosMapTest : public BcmTest {
   }
 
   void validatePfcPri2PgId(const std::vector<int>& expectedPfcPri2Pg) {
-    std::vector<int> pfcPri2PgId;
-    const int defaultPfcPriorityToPgSize = getDefaultPfcPriorityToPg().size();
-    pfcPri2PgId.resize(defaultPfcPriorityToPgSize);
-    int arrayCount = 0;
-    auto rv = bcm_cosq_priority_group_pfc_priority_mapping_profile_get(
-        getUnit(),
-        getDefaultProfileId(),
-        defaultPfcPriorityToPgSize,
-        pfcPri2PgId.data(),
-        &arrayCount);
-    EXPECT_TRUE(BCM_SUCCESS(rv));
-    EXPECT_EQ(arrayCount, expectedPfcPri2Pg.size());
+    auto pfcPri2PgId = BcmQosPolicy::readPfcPriorityToPg(getHwSwitch());
+    EXPECT_EQ(pfcPri2PgId.size(), expectedPfcPri2Pg.size());
     // all entries should be same
     EXPECT_TRUE(std::equal(
         expectedPfcPri2Pg.begin(),
@@ -125,7 +107,7 @@ class BcmQosMapTest : public BcmTest {
       const std::vector<int>& pfcEnable,
       const std::vector<int>& pfcOptimized) {
     EXPECT_EQ(pfcOptimized.size(), pfcEnable.size());
-    auto pfcClassQueue = BcmQosPolicy::initializeBcmPfcPriToQueueMapping();
+    auto pfcClassQueue = BcmQosPolicy::getBcmHwDefaultsPfcPriToQueueMapping();
     for (auto i = 0; i < pfcPri2QueueId.size(); ++i) {
       pfcClassQueue[i].pfc_enable = pfcEnable[i];
       pfcClassQueue[i].pfc_optimized = pfcOptimized[i];
@@ -137,20 +119,10 @@ class BcmQosMapTest : public BcmTest {
   void validatePfcPri2QueueId(
       const std::vector<bcm_cosq_pfc_class_map_config_t>&
           expectedPfcPri2Queue) {
-    std::vector<bcm_cosq_pfc_class_map_config_t> pfcPri2QueueId;
-    const int maxStructSize =
-        cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX() + 1;
-    pfcPri2QueueId.resize(maxStructSize);
-    int arrayCount = 0;
-    auto rv = bcm_cosq_pfc_class_config_profile_get(
-        getUnit(),
-        getDefaultProfileId(),
-        maxStructSize,
-        pfcPri2QueueId.data(),
-        &arrayCount);
-    EXPECT_TRUE(BCM_SUCCESS(rv));
-    EXPECT_EQ(arrayCount, expectedPfcPri2Queue.size());
-    for (int i = 0; i < arrayCount; ++i) {
+    auto pfcPri2QueueId = BcmQosPolicy::readPfcPriorityToQueue(getHwSwitch());
+    EXPECT_EQ(pfcPri2QueueId.size(), expectedPfcPri2Queue.size());
+    auto pfcPri2QueueIdSize = pfcPri2QueueId.size();
+    for (int i = 0; i < pfcPri2QueueIdSize; ++i) {
       EXPECT_EQ(
           pfcPri2QueueId[i].cos_list_bmp, expectedPfcPri2Queue[i].cos_list_bmp);
     }

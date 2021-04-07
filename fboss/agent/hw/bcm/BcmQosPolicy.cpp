@@ -71,9 +71,9 @@ void BcmQosPolicy::update(
 }
 
 void BcmQosPolicy::remove() {
-  programTrafficClassToPg(getDefaultTrafficClassToPg());
-  programPfcPriorityToPg(getDefaultPfcPriorityToPg());
-  programPfcPriorityToQueue({});
+  programTrafficClassToPgIfNeeded(getDefaultTrafficClassToPg());
+  programPfcPriorityToPgIfNeeded(getDefaultPfcPriorityToPg());
+  programPfcPriorityToQueueIfNeeded({});
 }
 
 void BcmQosPolicy::updateIngressDscpQosMap(
@@ -113,6 +113,27 @@ void BcmQosPolicy::updateIngressDscpQosMap(
   }
 }
 
+std::vector<int> BcmQosPolicy::readPfcPriorityToPg(const BcmSwitch* hw) {
+  std::vector<int> pfcPri2Pg = {};
+  if (!hw->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+    return pfcPri2Pg;
+  }
+  int maxSize = getDefaultPfcPriorityToPg().size();
+  pfcPri2Pg.resize(maxSize);
+  int arrayCount = 0;
+  auto rv = bcm_cosq_priority_group_pfc_priority_mapping_profile_get(
+      hw->getUnit(),
+      getDefaultProfileId(),
+      maxSize,
+      pfcPri2Pg.data(),
+      &arrayCount);
+  bcmCheckError(
+      rv,
+      "Failed bcm_cosq_priority_group_pfc_priority_mapping_profile_get, size: ",
+      maxSize);
+  return pfcPri2Pg;
+}
+
 void BcmQosPolicy::programPfcPriorityToPg(
     const std::vector<int>& pfcPriorityPg) {
   if (!hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
@@ -133,8 +154,17 @@ void BcmQosPolicy::programPfcPriorityToPg(
       pfcPriorityPg.size());
 }
 
+void BcmQosPolicy::programPfcPriorityToPgIfNeeded(
+    const std::vector<int>& newPfcPriorityPg) {
+  auto currPfcPriorityToPg = readPfcPriorityToPg(hw_);
+  if (currPfcPriorityToPg == newPfcPriorityPg) {
+    return;
+  }
+  programPfcPriorityToPg(newPfcPriorityPg);
+}
+
 std::vector<bcm_cosq_pfc_class_map_config_t>
-BcmQosPolicy::initializeBcmPfcPriToQueueMapping() {
+BcmQosPolicy::getBcmHwDefaultsPfcPriToQueueMapping() {
   std::vector<bcm_cosq_pfc_class_map_config_t> cosq_pfc_map;
   // default this struct is all 0
   for (int pfcPri = 0;
@@ -151,50 +181,98 @@ BcmQosPolicy::initializeBcmPfcPriToQueueMapping() {
   return cosq_pfc_map;
 }
 
+std::vector<bcm_cosq_pfc_class_map_config_t>
+BcmQosPolicy::readPfcPriorityToQueue(const BcmSwitch* hw) {
+  std::vector<bcm_cosq_pfc_class_map_config_t> pfcPri2QueueId = {};
+  if (!hw->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+    return pfcPri2QueueId;
+  }
+
+  int arrayCount = 0;
+  int maxSize = getDefaultPfcPriorityToPg().size();
+  pfcPri2QueueId.resize(maxSize);
+  auto rv = bcm_cosq_pfc_class_config_profile_get(
+      hw->getUnit(),
+      getDefaultProfileId(),
+      maxSize,
+      pfcPri2QueueId.data(),
+      &arrayCount);
+  bcmCheckError(
+      rv, "Failed bcm_cosq_pfc_class_config_profile_get, maxSize: ", maxSize);
+  return pfcPri2QueueId;
+}
+
 void BcmQosPolicy::programPfcPriorityToQueue(
-    const std::vector<int>& pfcPriorityToQueue) {
+    const std::vector<bcm_cosq_pfc_class_map_config_t>& pfcPriorityToQueue) {
   if (!hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
     return;
   }
 
   XLOG(DBG2) << "Start to program pfcPriorityToQueue";
-  auto cosq_pfc_map = BcmQosPolicy::initializeBcmPfcPriToQueueMapping();
-
-  CHECK_GE(cosq_pfc_map.size(), pfcPriorityToQueue.size())
-      << "Default pfc pri to queue mapping size : " << cosq_pfc_map.size()
-      << " is smaller than pfc priority to queue size : "
-      << pfcPriorityToQueue.size();
-  for (auto i = 0; i < pfcPriorityToQueue.size(); ++i) {
-    cosq_pfc_map.at(i).pfc_enable = 1;
-    cosq_pfc_map.at(i).pfc_optimized = 0;
-    cosq_pfc_map.at(i).cos_list_bmp |= (1 << pfcPriorityToQueue[i]);
-  }
-
+  auto tmpPfcPriorityToQueue =
+      const_cast<std::vector<bcm_cosq_pfc_class_map_config_t>&>(
+          pfcPriorityToQueue);
   auto rv = bcm_cosq_pfc_class_config_profile_set(
       hw_->getUnit(),
       getDefaultProfileId(),
-      cosq_pfc_map.size(),
-      cosq_pfc_map.data());
+      pfcPriorityToQueue.size(),
+      tmpPfcPriorityToQueue.data());
   bcmCheckError(
       rv,
       "Failed to program bcm_cosq_pfc_class_config_profile_set, size: ",
-      cosq_pfc_map.size());
+      tmpPfcPriorityToQueue.size());
 }
 
-void BcmQosPolicy::programTrafficClassToPg(
-    const std::vector<int>& trafficClassPg) {
-  if (!hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+bool BcmQosPolicy::comparePfcPriorityToQueue(
+    std::vector<bcm_cosq_pfc_class_map_config_t>& newPfcPriorityToQueue,
+    std::vector<bcm_cosq_pfc_class_map_config_t>& currPfcPriorityToQueue) {
+  // return false if both do not match
+  if (newPfcPriorityToQueue.size() != currPfcPriorityToQueue.size()) {
+    return false;
+  }
+  int arrSize = newPfcPriorityToQueue.size();
+  for (int i = 0; i < arrSize; ++i) {
+    if ((newPfcPriorityToQueue.at(i).cos_list_bmp !=
+         currPfcPriorityToQueue.at(i).cos_list_bmp) ||
+        (newPfcPriorityToQueue.at(i).pfc_optimized !=
+         currPfcPriorityToQueue.at(i).pfc_optimized) ||
+        (newPfcPriorityToQueue.at(i).pfc_enable !=
+         currPfcPriorityToQueue.at(i).pfc_enable)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+void BcmQosPolicy::programPfcPriorityToQueueIfNeeded(
+    const std::vector<int>& newPfcPriorityToQueue) {
+  auto currCosPfcMap = readPfcPriorityToQueue(hw_);
+  auto newCosPfcMap = BcmQosPolicy::getBcmHwDefaultsPfcPriToQueueMapping();
+  CHECK_GE(newCosPfcMap.size(), newPfcPriorityToQueue.size())
+      << "Default pfc pri to queue mapping size : " << newCosPfcMap.size()
+      << " is smaller than pfc priority to queue size : "
+      << newPfcPriorityToQueue.size();
+  for (auto i = 0; i < newPfcPriorityToQueue.size(); ++i) {
+    newCosPfcMap.at(i).pfc_enable = 1;
+    newCosPfcMap.at(i).pfc_optimized = 0;
+    newCosPfcMap.at(i).cos_list_bmp = (1 << newPfcPriorityToQueue[i]);
+  }
+  if (BcmQosPolicy::comparePfcPriorityToQueue(newCosPfcMap, currCosPfcMap)) {
     return;
   }
-  XLOG(DBG2) << "Start to program trafficClassToPg";
+  programPfcPriorityToQueue(newCosPfcMap);
+}
+
+void BcmQosPolicy::programTrafficClassToPgIfNeeded(
+    const std::vector<int>& trafficClassPg) {
   // program unicast mapping
-  programPriorityGroupMapping(
+  programPriorityGroupMappingIfNeeded(
       bcmCosqInputPriPriorityGroupUcMapping,
       trafficClassPg,
       "bcmCosqInputPriPriorityGroupUcMapping");
 
   // program mcast mapping
-  programPriorityGroupMapping(
+  programPriorityGroupMappingIfNeeded(
       bcmCosqInputPriPriorityGroupMcMapping,
       trafficClassPg,
       "bcmCosqInputPriPriorityGroupMcMapping");
@@ -430,10 +508,39 @@ const BcmQosMap* BcmQosPolicy::getEgressExpQosMap() const {
   return egressExpQosMap_.get();
 }
 
+std::vector<int> BcmQosPolicy::readPriorityGroupMapping(
+    const BcmSwitch* hw,
+    const bcm_cosq_priority_group_mapping_profile_type_t profileType,
+    const std::string& profileTypeStr) {
+  std::vector<int> tc2PgId;
+  int tcToPgSize = getDefaultTrafficClassToPg().size();
+  int arrayCount = 0;
+
+  if (!hw->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+    return tc2PgId;
+  }
+
+  tc2PgId.resize(tcToPgSize);
+  auto rv = bcm_cosq_priority_group_mapping_profile_get(
+      hw->getUnit(),
+      getDefaultProfileId(),
+      profileType,
+      tcToPgSize,
+      tc2PgId.data(),
+      &arrayCount);
+  bcmCheckError(rv, "failed to read ", profileTypeStr, " type: ", profileType);
+  return tc2PgId;
+}
+
 void BcmQosPolicy::programPriorityGroupMapping(
     const bcm_cosq_priority_group_mapping_profile_type_t profileType,
     const std::vector<int>& trafficClassToPgId,
     const std::string& profileTypeStr) {
+  if (!hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+    return;
+  }
+
+  XLOG(DBG2) << "Program trafficClassToPg";
   auto tmpTrafficClassToPgId =
       const_cast<std::vector<int>&>(trafficClassToPgId);
   auto rv = bcm_cosq_priority_group_mapping_profile_set(
@@ -452,6 +559,19 @@ void BcmQosPolicy::programPriorityGroupMapping(
       profileType);
 }
 
+void BcmQosPolicy::programPriorityGroupMappingIfNeeded(
+    const bcm_cosq_priority_group_mapping_profile_type_t profileType,
+    const std::vector<int>& newTrafficClassToPgId,
+    const std::string& profileTypeStr) {
+  auto currTrafficClassToPgId =
+      readPriorityGroupMapping(hw_, profileType, profileTypeStr);
+  if (currTrafficClassToPgId == newTrafficClassToPgId) {
+    return;
+  }
+  programPriorityGroupMapping(
+      profileType, newTrafficClassToPgId, profileTypeStr);
+}
+
 void BcmQosPolicy::programPfcPriorityToPgMap(
     const std::shared_ptr<QosPolicy>& qosPolicy) {
   std::vector<int> pfcPriorityToPg = getDefaultPfcPriorityToPg();
@@ -465,7 +585,7 @@ void BcmQosPolicy::programPfcPriorityToPgMap(
       pfcPriorityToPg[entry.first] = entry.second;
     }
   }
-  programPfcPriorityToPg(pfcPriorityToPg);
+  programPfcPriorityToPgIfNeeded(pfcPriorityToPg);
 }
 
 void BcmQosPolicy::initTrafficClassToPgMap(
@@ -506,7 +626,7 @@ void BcmQosPolicy::programTrafficClassToPgMap(
       trafficClassToPg[entry.first] = entry.second;
     }
   }
-  programTrafficClassToPg(trafficClassToPg);
+  programTrafficClassToPgIfNeeded(trafficClassToPg);
 }
 
 void BcmQosPolicy::programPfcPriorityToQueueMap(
@@ -524,7 +644,7 @@ void BcmQosPolicy::programPfcPriorityToQueueMap(
       pfcPriorityToQueue[entry.first] = entry.second;
     }
   }
-  programPfcPriorityToQueue(pfcPriorityToQueue);
+  programPfcPriorityToQueueIfNeeded(pfcPriorityToQueue);
 }
 
 } // namespace facebook::fboss
