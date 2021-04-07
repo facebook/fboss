@@ -10,6 +10,7 @@
 #pragma once
 
 extern "C" {
+#include <bcm/cosq.h>
 #include <bcm/port.h>
 #include <bcm/stat.h>
 #include <bcm/types.h>
@@ -199,6 +200,9 @@ class BcmPort {
   BufferPoolCfgPtr getCurrentIngressPoolSettings() const;
   int getProgrammedPgLosslessMode(const int pgId) const;
   int getProgrammedPfcStatusInPg(const int pgId) const;
+  void getProgrammedPfcWatchdogParams(
+      const int pri,
+      std::map<bcm_cosq_pfc_deadlock_control_t, int>& pfcWatchdogControls);
 
   const PortPgConfig& getDefaultPgSettings() const;
   const BufferPoolCfg& getDefaultIngressPoolSettings() const;
@@ -273,6 +277,12 @@ class BcmPort {
   void setPause(const std::shared_ptr<Port>& swPort);
   void setPfc(const std::shared_ptr<Port>& swPort);
   void programPfc(const int enableTxPfc, const int enableRxPfc);
+  bool pfcWatchdogNeedsReprogramming(const std::shared_ptr<Port>& port);
+  void getPfcCosqDeadlockControl(
+      const int pri,
+      const bcm_cosq_pfc_deadlock_control_t control,
+      int* value,
+      const std::string& controlStr);
 
   void setTxSetting(const std::shared_ptr<Port>& swPort);
   void setTxSettingViaPhyControl(

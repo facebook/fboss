@@ -17,6 +17,10 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
+namespace {
+constexpr int kPfcDeadlockDetectionTimerLimit = 15;
+}
+
 namespace facebook::fboss {
 
 const PortSpeed2TransmitterTechAndMode& getSpeedToTransmitterTechAndMode() {
@@ -249,4 +253,54 @@ std::map<phy::DataPlanePhyChip, std::vector<phy::PinConfig>> getCorePinMapping(
   }
   return corePinMapping;
 }
+
+int getPfcDeadlockDetectionTimerGranularity(int deadlockDetectionTimeMsec) {
+  /*
+   * BCM can configure a value 0-15 with a granularity of 1msec,
+   * 10msec, 100msec as the PfcDeadlockDetectionTime, selecting
+   * the granularity based on the attempted configuration.
+   */
+  int granularity{};
+
+  if (deadlockDetectionTimeMsec <= kPfcDeadlockDetectionTimerLimit) {
+    granularity = bcmCosqPFCDeadlockTimerInterval1MiliSecond;
+  } else if (
+      deadlockDetectionTimeMsec / 10 <= kPfcDeadlockDetectionTimerLimit) {
+    granularity = bcmCosqPFCDeadlockTimerInterval10MiliSecond;
+  } else {
+    granularity = bcmCosqPFCDeadlockTimerInterval100MiliSecond;
+  }
+  return granularity;
+}
+
+int getAdjustedPfcDeadlockDetectionTimerValue(int deadlockDetectionTimeMsec) {
+  /*
+   * BCM supports a deadlock detection timer granularity of 1msec,
+   * 10msec and 100msec for the DeadlockDetectionTime. With a
+   * value 0-15 possible in each granularity, the possible values
+   * for the timer are:
+   * 1msec  : 0, 1, 2, ... 15 msec
+   * 10msec : 0, 10, 20 ... 150 msec
+   * 100msec: 0, 100, 200 ... 1500 msec
+   */
+  int adjustedDeadlockDetectionTimer{};
+
+  if (deadlockDetectionTimeMsec <= kPfcDeadlockDetectionTimerLimit) {
+    // 0 <= timer <= 15
+    adjustedDeadlockDetectionTimer = deadlockDetectionTimeMsec;
+  } else if (
+      deadlockDetectionTimeMsec / 10 <= kPfcDeadlockDetectionTimerLimit) {
+    // 0 <= timer <= 159
+    adjustedDeadlockDetectionTimer = 10 * (deadlockDetectionTimeMsec / 10);
+  } else if (
+      deadlockDetectionTimeMsec / 100 <= kPfcDeadlockDetectionTimerLimit) {
+    // 0 <= timer <= 1599
+    adjustedDeadlockDetectionTimer = 100 * (deadlockDetectionTimeMsec / 100);
+  } else {
+    // timer > 1599
+    adjustedDeadlockDetectionTimer = 100 * kPfcDeadlockDetectionTimerLimit;
+  }
+  return adjustedDeadlockDetectionTimer;
+}
+
 } // namespace facebook::fboss::utility

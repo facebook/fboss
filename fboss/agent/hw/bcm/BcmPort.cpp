@@ -1882,6 +1882,106 @@ bool BcmPort::isValidLocalPort(bcm_gport_t gport) {
       BCM_GPORT_LOCAL_GET(gport) != static_cast<bcm_port_t>(0);
 }
 
+void BcmPort::getPfcCosqDeadlockControl(
+    const int pri,
+    const bcm_cosq_pfc_deadlock_control_t control,
+    int* value,
+    const std::string& controlStr) {
+  auto rv =
+      bcm_cosq_pfc_deadlock_control_get(unit_, port_, pri, control, value);
+  bcmCheckError(
+      rv, "Failed to get ", controlStr, " for port  ", port_, " cosq ", pri);
+}
+
+void BcmPort::getProgrammedPfcWatchdogParams(
+    const int pri,
+    std::map<bcm_cosq_pfc_deadlock_control_t, int>& pfcWatchdogControls) {
+  if (!hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+    return;
+  }
+
+  int value;
+  // Make sure the watchdog controls are cleared
+  pfcWatchdogControls.clear();
+  getPfcCosqDeadlockControl(
+      pri,
+      bcmCosqPFCDeadlockTimerGranularity,
+      &value,
+      "bcmCosqPFCDeadlockTimerGranularity");
+  pfcWatchdogControls[bcmCosqPFCDeadlockTimerGranularity] = value;
+
+  getPfcCosqDeadlockControl(
+      pri,
+      bcmCosqPFCDeadlockDetectionTimer,
+      &value,
+      "bcmCosqPFCDeadlockDetectionTimer");
+  pfcWatchdogControls[bcmCosqPFCDeadlockDetectionTimer] = value;
+
+  getPfcCosqDeadlockControl(
+      pri,
+      bcmCosqPFCDeadlockRecoveryTimer,
+      &value,
+      "bcmCosqPFCDeadlockRecoveryTimer");
+  pfcWatchdogControls[bcmCosqPFCDeadlockRecoveryTimer] = value;
+
+  getPfcCosqDeadlockControl(
+      pri,
+      bcmCosqPFCDeadlockDetectionAndRecoveryEnable,
+      &value,
+      "bcmCosqPFCDeadlockDetectionAndRecoveryEnable");
+  pfcWatchdogControls[bcmCosqPFCDeadlockDetectionAndRecoveryEnable] = value;
+}
+
+bool BcmPort::pfcWatchdogNeedsReprogramming(const std::shared_ptr<Port>& port) {
+  int pfcWatchdogEnabledInSw = 0;
+  int newPfcDeadlockRecoveryTimer{};
+  int newPfcDeadlockDetectionTimer{};
+  std::map<bcm_cosq_pfc_deadlock_control_t, int> programmedPfcWatchdogMap;
+
+  // Assuming the programmed PFC watchdog configs are the
+  // same for all enabled priorities
+  getProgrammedPfcWatchdogParams(
+      enabledPfcPriorities_[0], programmedPfcWatchdogMap);
+
+  if (port->getPfc().has_value() &&
+      port->getPfc()->watchdog_ref().has_value()) {
+    auto pfcWatchdog = port->getPfc()->watchdog_ref().value();
+    newPfcDeadlockDetectionTimer =
+        utility::getAdjustedPfcDeadlockDetectionTimerValue(
+            *pfcWatchdog.detectionTimeMsecs_ref());
+    newPfcDeadlockRecoveryTimer = *pfcWatchdog.recoveryTimeMsecs_ref();
+    pfcWatchdogEnabledInSw = 1;
+  }
+
+  if ((pfcWatchdogEnabledInSw !=
+       programmedPfcWatchdogMap
+           [bcmCosqPFCDeadlockDetectionAndRecoveryEnable]) ||
+      (newPfcDeadlockDetectionTimer !=
+       programmedPfcWatchdogMap[bcmCosqPFCDeadlockDetectionTimer]) ||
+      (newPfcDeadlockRecoveryTimer !=
+       programmedPfcWatchdogMap[bcmCosqPFCDeadlockRecoveryTimer])) {
+    XLOG(DBG2) << "Currently programmed PFC watchdog params: "
+               << " recoveryTimer: "
+               << programmedPfcWatchdogMap[bcmCosqPFCDeadlockRecoveryTimer]
+               << " detectionTimer: "
+               << programmedPfcWatchdogMap[bcmCosqPFCDeadlockDetectionTimer]
+               << " detectionTimerGranularity: "
+               << programmedPfcWatchdogMap[bcmCosqPFCDeadlockTimerGranularity]
+               << " detectionAndRecoveryEnable: "
+               << programmedPfcWatchdogMap
+                      [bcmCosqPFCDeadlockDetectionAndRecoveryEnable];
+    XLOG(DBG2) << "New PFC watchdog params: "
+               << " recoveryTimer: " << newPfcDeadlockRecoveryTimer
+               << " detectionTimer: " << newPfcDeadlockDetectionTimer
+               << " detectionAndRecoveryEnable: " << pfcWatchdogEnabledInSw;
+    // Mismatch between SW and HW configs, reprogram!
+    return true;
+  }
+
+  // XXX: Handle the case where PFC enabled priorities change once supported!
+  return false;
+}
+
 void BcmPort::programPfc(const int enableTxPfc, const int enableRxPfc) {
   int rv = 0;
   if (enableTxPfc || enableRxPfc) {
