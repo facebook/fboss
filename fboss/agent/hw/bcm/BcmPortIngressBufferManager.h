@@ -89,7 +89,14 @@ class BcmPortIngressBufferManager {
   int getIngressSharedBytes(bcm_cos_queue_t cosQ) const;
   void programLosslessMode(const std::shared_ptr<Port> port);
   void programPgLosslessMode(int pgId, int value);
-  void programPfcOnPg(const int cosq, const bool pfcEnable);
+  void programPfcOnPg(const int cosq, const int pfcEnable);
+  void programPfcOnPgIfNeeded(const int cosq, const bool pfcEnable);
+  void programPgLosslessModeIfNeeded(int pgId, int newPgLosslessMode);
+  void writeCosqTypeToHwIfNeeded(
+      const int cosq,
+      const bcm_cosq_control_t type,
+      const int value,
+      const std::string& typeStr);
 
   BcmSwitch* hw_;
   std::string portName_;

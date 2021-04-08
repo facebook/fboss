@@ -61,6 +61,8 @@ void BcmPortIngressBufferManager::writeCosqTypeToHw(
       cosq,
       " value ",
       value);
+  XLOG(DBG2) << "Program " << typeStr << " for port " << portName_ << ", pgId "
+             << cosq << " value " << value;
 }
 
 void BcmPortIngressBufferManager::readCosqTypeFromHw(
@@ -74,13 +76,40 @@ void BcmPortIngressBufferManager::readCosqTypeFromHw(
       rv, "failed to get ", typeStr, " for port ", portName_, " cosq ", cosq);
 }
 
-void BcmPortIngressBufferManager::programPfcOnPg(
+void BcmPortIngressBufferManager::writeCosqTypeToHwIfNeeded(
+    const int cosq,
+    const bcm_cosq_control_t type,
+    const int value,
+    const std::string& typeStr) {
+  int hwValue = 0;
+  readCosqTypeFromHw(cosq, type, &hwValue, typeStr);
+  // only program if needed - rewrites during warm boot can cause problem
+  if (hwValue != value) {
+    writeCosqTypeToHw(cosq, type, value, typeStr);
+  } else {
+    XLOG(INFO) << "Skip programming " << typeStr << "value : " << value;
+  }
+}
+
+void BcmPortIngressBufferManager::programPfcOnPgIfNeeded(
     const int cosq,
     const bool pfcEnable) {
+  int newPfcStatus = pfcEnable ? 1 : 0;
+  int currPfcStatus = getProgrammedPfcStatusInPg(cosq);
+  if (currPfcStatus != newPfcStatus) {
+    programPfcOnPg(cosq, newPfcStatus);
+  } else {
+    XLOG(INFO) << "Skip programming for programPfcOnPgIfNeeded";
+  }
+}
+
+void BcmPortIngressBufferManager::programPfcOnPg(
+    const int cosq,
+    const int pfcEnable) {
   bcm_port_priority_group_config_t pgConfig;
   bcm_port_priority_group_config_t_init(&pgConfig);
 
-  pgConfig.pfc_transmit_enable = pfcEnable ? 1 : 0;
+  pgConfig.pfc_transmit_enable = pfcEnable;
   auto localPort = BCM_GPORT_MODPORT_PORT_GET(gport_);
   auto rv =
       bcm_port_priority_group_config_set(unit_, localPort, cosq, &pgConfig);
@@ -92,6 +121,8 @@ void BcmPortIngressBufferManager::programPfcOnPg(
       cosq,
       " pfc_transmit_enable ",
       pfcEnable);
+  XLOG(DBG2) << "Program port " << portName_ << ", pg " << cosq
+             << "with pfcEnable " << pfcEnable;
 }
 
 int BcmPortIngressBufferManager::getProgrammedPgLosslessMode(
@@ -131,14 +162,11 @@ void BcmPortIngressBufferManager::programPg(
     const int cosq) {
   int sharedDynamicEnable = 1;
   const auto& scalingFactor = portPgCfg->getScalingFactor();
-  XLOG(DBG2) << "Program port PG config for cosq: " << cosq
-             << " on port: " << portName_;
-
   if (!scalingFactor) {
     sharedDynamicEnable = 0;
   }
 
-  writeCosqTypeToHw(
+  writeCosqTypeToHwIfNeeded(
       cosq,
       bcmCosqControlIngressPortPGSharedDynamicEnable,
       sharedDynamicEnable,
@@ -146,7 +174,7 @@ void BcmPortIngressBufferManager::programPg(
 
   if (sharedDynamicEnable) {
     auto alpha = utility::cfgAlphaToBcmAlpha(*scalingFactor);
-    writeCosqTypeToHw(
+    writeCosqTypeToHwIfNeeded(
         cosq,
         bcmCosqControlDropLimitAlpha,
         alpha,
@@ -154,7 +182,7 @@ void BcmPortIngressBufferManager::programPg(
   }
 
   int pgMinLimitBytes = portPgCfg->getMinLimitBytes();
-  writeCosqTypeToHw(
+  writeCosqTypeToHwIfNeeded(
       cosq,
       bcmCosqControlIngressPortPGMinLimitBytes,
       pgMinLimitBytes,
@@ -162,7 +190,7 @@ void BcmPortIngressBufferManager::programPg(
 
   auto hdrmBytes = portPgCfg->getHeadroomLimitBytes();
   int headroomBytes = hdrmBytes ? *hdrmBytes : 0;
-  writeCosqTypeToHw(
+  writeCosqTypeToHwIfNeeded(
       cosq,
       bcmCosqControlIngressPortPGHeadroomLimitBytes,
       headroomBytes,
@@ -170,7 +198,7 @@ void BcmPortIngressBufferManager::programPg(
 
   auto resumeBytes = portPgCfg->getResumeOffsetBytes();
   if (resumeBytes) {
-    writeCosqTypeToHw(
+    writeCosqTypeToHwIfNeeded(
         cosq,
         bcmCosqControlIngressPortPGResetOffsetBytes,
         *resumeBytes,
@@ -182,7 +210,7 @@ void BcmPortIngressBufferManager::resetPgToDefault(int pgId) {
   const auto& portPg = getDefaultPgSettings();
   programPg(&portPg, pgId);
   // disable pfc on default pgs
-  programPfcOnPg(pgId, false);
+  programPfcOnPgIfNeeded(pgId, false);
 }
 
 void BcmPortIngressBufferManager::resetIngressPoolsToDefault() {
@@ -193,17 +221,17 @@ void BcmPortIngressBufferManager::resetIngressPoolsToDefault() {
   // SDK API forces us to use port, PG
   // To prevent multiple sdk calls for all PGs just reset for kDefaultPgId only,
   // as all PGs refer to the same buffer pool only
-  writeCosqTypeToHw(
+  writeCosqTypeToHwIfNeeded(
       kDefaultPgId,
       bcmCosqControlIngressPoolLimitBytes,
       bufferPoolCfg.getSharedBytes(),
       "bcmCosqControlIngressPoolLimitBytes");
-  writeCosqTypeToHw(
+  writeCosqTypeToHwIfNeeded(
       kDefaultPgId,
       bcmCosqControlIngressHeadroomPoolLimitBytes,
       bufferPoolCfg.getHeadroomBytes(),
       "bcmCosqControlIngressHeadroomPoolLimitBytes");
-  writeCosqTypeToHw(
+  writeCosqTypeToHwIfNeeded(
       kDefaultPgId,
       bcmCosqControlEgressPoolSharedLimitBytes,
       bufferPoolCfg.getSharedBytes(),
@@ -224,8 +252,6 @@ void BcmPortIngressBufferManager::resetPgsToDefault(
 
 void BcmPortIngressBufferManager::programPgLosslessMode(int pgId, int value) {
   auto localPort = BCM_GPORT_MODPORT_PORT_GET(gport_);
-  XLOG(DBG2) << "Set lossless mode  " << value << "for pgId " << pgId
-             << " port " << portName_;
   auto rv = bcm_cosq_port_priority_group_property_set(
       unit_, localPort, pgId, bcmCosqPriorityGroupLossless, value);
   bcmCheckError(
@@ -236,6 +262,19 @@ void BcmPortIngressBufferManager::programPgLosslessMode(int pgId, int value) {
       pgId,
       " value: ",
       value);
+  XLOG(DBG2) << "Set lossless mode  " << value << "for pgId " << pgId
+             << " port " << portName_;
+}
+
+void BcmPortIngressBufferManager::programPgLosslessModeIfNeeded(
+    int pgId,
+    int newPgLosslessMode) {
+  int currPgLosslessMode = getProgrammedPgLosslessMode(pgId);
+  if (currPgLosslessMode != newPgLosslessMode) {
+    programPgLosslessMode(pgId, newPgLosslessMode);
+  } else {
+    XLOG(INFO) << "Skip programming for pgId: " << pgId;
+  }
 }
 
 void BcmPortIngressBufferManager::programLosslessMode(
@@ -258,7 +297,7 @@ void BcmPortIngressBufferManager::programLosslessMode(
     if (iter != losslessPgList.end()) {
       losslessMode = 1;
     }
-    programPgLosslessMode(pgId, losslessMode);
+    programPgLosslessModeIfNeeded(pgId, losslessMode);
   }
 }
 
@@ -277,7 +316,7 @@ void BcmPortIngressBufferManager::reprogramPgs(
     for (const auto& portPgCfg : *portPgCfgs) {
       programPg(portPgCfg.get(), portPgCfg->getID());
       // enable pfc on pg if so
-      programPfcOnPg(portPgCfg->getID(), isPfcEnabled);
+      programPfcOnPgIfNeeded(portPgCfg->getID(), isPfcEnabled);
       newPgList.insert(portPgCfg->getID());
     }
 
