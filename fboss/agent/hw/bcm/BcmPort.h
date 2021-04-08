@@ -203,6 +203,7 @@ class BcmPort {
   void getProgrammedPfcWatchdogParams(
       const int pri,
       std::map<bcm_cosq_pfc_deadlock_control_t, int>& pfcWatchdogControls);
+  void getProgrammedPfcState(int* pfcRx, int* pfcTx);
 
   const PortPgConfig& getDefaultPgSettings() const;
   const BufferPoolCfg& getDefaultIngressPoolSettings() const;
@@ -278,10 +279,16 @@ class BcmPort {
   void setPfc(const std::shared_ptr<Port>& swPort);
   void programPfc(const int enableTxPfc, const int enableRxPfc);
   bool pfcWatchdogNeedsReprogramming(const std::shared_ptr<Port>& port);
+  void programPfcWatchdog(const std::shared_ptr<Port>& swPort);
   void getPfcCosqDeadlockControl(
       const int pri,
       const bcm_cosq_pfc_deadlock_control_t control,
       int* value,
+      const std::string& controlStr);
+  void setPfcCosqDeadlockControl(
+      const int pri,
+      const bcm_cosq_pfc_deadlock_control_t control,
+      const int value,
       const std::string& controlStr);
 
   void setTxSetting(const std::shared_ptr<Port>& swPort);

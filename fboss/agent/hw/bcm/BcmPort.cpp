@@ -66,6 +66,7 @@ using std::chrono::system_clock;
 using facebook::stats::MonotonicCounter;
 
 namespace {
+constexpr int kPfcDeadlockDetectionTimeMsecMax = 1500;
 
 bool hasPortQueueChanges(
     const shared_ptr<facebook::fboss::Port>& oldPort,
@@ -1980,6 +1981,106 @@ bool BcmPort::pfcWatchdogNeedsReprogramming(const std::shared_ptr<Port>& port) {
 
   // XXX: Handle the case where PFC enabled priorities change once supported!
   return false;
+}
+
+void BcmPort::setPfcCosqDeadlockControl(
+    const int pri,
+    const bcm_cosq_pfc_deadlock_control_t control,
+    const int value,
+    const std::string& controlStr) {
+  auto rv =
+      bcm_cosq_pfc_deadlock_control_set(unit_, port_, pri, control, value);
+  bcmCheckError(
+      rv, "Failed to set ", controlStr, " for port  ", port_, " cosq ", pri);
+  XLOG(DBG2) << "Set PFC deadlock control " << controlStr << " with " << value
+             << " for port " << port_ << " cosq " << pri;
+}
+
+void BcmPort::programPfcWatchdog(const std::shared_ptr<Port>& swPort) {
+  // Initialize to default params which has PFC watchdog disabled
+  int pfcDeadlockRecoveryTimer{0};
+  int pfcDeadlockRecoveryAction{bcmSwitchPFCDeadlockActionTransmit};
+  int pfcDeadlockDetectionTimer{0};
+  int pfcDeadlockTimerGranularity{bcmCosqPFCDeadlockTimerInterval1MiliSecond};
+  int pfcDeadlockDetectionAndRecoveryEnable{0};
+
+  auto programPerPriorityPfcWatchdog = [&](int pri) {
+    // TimerGranularity needs to be set before DetectionTimer
+    setPfcCosqDeadlockControl(
+        pri,
+        bcmCosqPFCDeadlockTimerGranularity,
+        pfcDeadlockTimerGranularity,
+        "bcmCosqPFCDeadlockTimerGranularity");
+    setPfcCosqDeadlockControl(
+        pri,
+        bcmCosqPFCDeadlockDetectionTimer,
+        pfcDeadlockDetectionTimer,
+        "bcmCosqPFCDeadlockDetectionTimer");
+    setPfcCosqDeadlockControl(
+        pri,
+        bcmCosqPFCDeadlockRecoveryTimer,
+        pfcDeadlockRecoveryTimer,
+        "bcmCosqPFCDeadlockRecoveryTimer");
+    setPfcCosqDeadlockControl(
+        pri,
+        bcmCosqPFCDeadlockDetectionAndRecoveryEnable,
+        pfcDeadlockDetectionAndRecoveryEnable,
+        "bcmCosqPFCDeadlockDetectionAndRecoveryEnable");
+  };
+
+  auto populatePfcWatchdogParams = [&](const cfg::PfcWatchdog& pfcWd) {
+    pfcDeadlockDetectionAndRecoveryEnable = 1;
+    pfcDeadlockDetectionTimer = *pfcWd.detectionTimeMsecs_ref();
+    if (pfcDeadlockDetectionTimer > kPfcDeadlockDetectionTimeMsecMax) {
+      XLOG(WARNING) << "Unsupported PFC deadlock detection timer value "
+                    << pfcDeadlockDetectionTimer
+                    << " configured, truncating to maximum possible value "
+                    << kPfcDeadlockDetectionTimeMsecMax;
+      pfcDeadlockDetectionTimer = kPfcDeadlockDetectionTimeMsecMax;
+    }
+    pfcDeadlockTimerGranularity =
+        utility::getPfcDeadlockDetectionTimerGranularity(
+            pfcDeadlockDetectionTimer);
+    pfcDeadlockRecoveryTimer = *pfcWd.recoveryTimeMsecs_ref();
+
+    switch (*pfcWd.recoveryAction_ref()) {
+      case cfg::PfcWatchdogRecoveryAction::DROP:
+        pfcDeadlockRecoveryAction = bcmSwitchPFCDeadlockActionDrop;
+        break;
+      case cfg::PfcWatchdogRecoveryAction::NO_DROP:
+      default:
+        pfcDeadlockRecoveryAction = bcmSwitchPFCDeadlockActionTransmit;
+        break;
+    }
+  };
+
+  if (swPort->getPfc().has_value() &&
+      swPort->getPfc()->watchdog_ref().has_value()) {
+    populatePfcWatchdogParams(swPort->getPfc()->watchdog_ref().value());
+  } else {
+    // Default values initialized will be used, expected for unconfig cases.
+  }
+
+  XLOG(DBG2) << "PFC watchdog being programmed, port: " << port_
+             << " recoveryTimer: " << pfcDeadlockRecoveryTimer
+             << " recoveryAction: " << pfcDeadlockRecoveryAction
+             << " detectionTimer: " << pfcDeadlockDetectionTimer
+             << " timerGranularity: " << pfcDeadlockTimerGranularity
+             << " detectionAndRecoveryEnable: "
+             << pfcDeadlockDetectionAndRecoveryEnable;
+
+  // Program per priority PFC watchdog configurations
+  for (auto pri : enabledPfcPriorities_) {
+    programPerPriorityPfcWatchdog(pri);
+  }
+}
+
+void BcmPort::getProgrammedPfcState(int* pfcRx, int* pfcTx) {
+  auto rv = bcm_port_control_get(unit_, port_, bcmPortControlPFCReceive, pfcRx);
+  bcmCheckError(rv, "Failed to read pfcRx for port ", port_);
+
+  rv = bcm_port_control_get(unit_, port_, bcmPortControlPFCTransmit, pfcTx);
+  bcmCheckError(rv, "Failed to read pfcTx for port ", port_);
 }
 
 void BcmPort::programPfc(const int enableTxPfc, const int enableRxPfc) {
