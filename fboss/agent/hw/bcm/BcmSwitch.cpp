@@ -1193,6 +1193,9 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
       &BcmMirrorTable::processRemovedMirror,
       writableBcmMirrorTable());
 
+  // Process global PFC watchdog configurations
+  processPfcWatchdogGlobalChanges(delta);
+
   pickupLinkStatusChanges(delta);
 
   // As the last step, enable newly enabled ports.  Doing this as the
@@ -1287,6 +1290,65 @@ bool BcmSwitch::processChangedIngressPoolCfg(
     }
   }
   return false;
+}
+
+int BcmSwitch::pfcDeadlockRecoveryEventCallback(
+    int unit,
+    bcm_port_t port,
+    bcm_cos_queue_t cosq,
+    bcm_cosq_pfc_deadlock_recovery_event_t recovery_state,
+    void* /*userdata*/) {
+  XLOG_EVERY_MS(WARNING, 5000)
+      << "PFC deadlock recovery callback invoked for unit " << unit << " port "
+      << (int)port << " cosq " << (int)cosq << " recovery state "
+      << (int)recovery_state;
+  return 0;
+}
+
+void BcmSwitch::processPfcWatchdogGlobalChanges(const StateDelta& delta) {
+  auto oldRecoveryAction = delta.oldState()->getPfcWatchdogRecoveryAction();
+  auto newRecoveryAction = delta.newState()->getPfcWatchdogRecoveryAction();
+
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+    // Look for PFC watchdog only if PFC is supported on platform
+    return;
+  }
+
+  // Needed if PFC watchdog enabled status changes at device level
+  if (oldRecoveryAction.has_value() != newRecoveryAction.has_value()) {
+    int rv = 0;
+    if (newRecoveryAction.has_value()) {
+      // Register the PFC deadlock recovery callback function
+      rv = bcm_cosq_pfc_deadlock_recovery_event_register(
+          unit_, pfcDeadlockRecoveryEventCallback, nullptr);
+      bcmCheckError(rv, "Failed to register PFC deadlock recovery event!");
+    } else {
+      // Unregister the PFC deadlock recovery callback function
+      rv = bcm_cosq_pfc_deadlock_recovery_event_unregister(
+          unit_, pfcDeadlockRecoveryEventCallback, nullptr);
+      bcmCheckError(rv, "Failed to unregister PFC deadlock recovery event!");
+    }
+    XLOG(DBG2) << "PFC watchdog deadlock_recovery_event " << std::boolalpha
+               << newRecoveryAction.has_value();
+  }
+
+  // Default recovery action is NO_DROP
+  if (newRecoveryAction != oldRecoveryAction) {
+    bcm_switch_pfc_deadlock_action_t recoveryAction =
+        bcmSwitchPFCDeadlockActionTransmit;
+    auto recoveryActionConfig = cfg::PfcWatchdogRecoveryAction::NO_DROP;
+    if (newRecoveryAction.has_value() &&
+        (*newRecoveryAction == cfg::PfcWatchdogRecoveryAction::DROP)) {
+      recoveryAction = bcmSwitchPFCDeadlockActionDrop;
+      recoveryActionConfig = *newRecoveryAction;
+    }
+    auto rv = bcm_switch_control_set(
+        unit_, bcmSwitchPFCDeadlockRecoveryAction, recoveryAction);
+    bcmCheckError(rv, "Failed to set bcmSwitchPFCDeadlockRecoveryAction");
+    XLOG(DBG2) << "PFC watchdog deadlock recovery action "
+               << apache::thrift::util::enumNameSafe(recoveryActionConfig)
+               << " programmed!";
+  }
 }
 
 bool BcmSwitch::processChangedPgCfg(

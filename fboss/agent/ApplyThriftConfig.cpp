@@ -290,6 +290,7 @@ class ThriftConfigApplier {
       const cfg::Mirror* config);
   std::shared_ptr<ForwardingInformationBaseMap>
   updateForwardingInformationBaseContainers();
+  std::optional<cfg::PfcWatchdogRecoveryAction> getPfcWatchdogRecoveryAction();
 
   std::shared_ptr<SwitchState> orig_;
   std::shared_ptr<SwitchState> new_;
@@ -497,6 +498,14 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
             entry.interfaces.size(),
             " interfaces ");
       }
+    }
+  }
+
+  {
+    auto pfcWatchdogRecoveryAction = getPfcWatchdogRecoveryAction();
+    if (pfcWatchdogRecoveryAction != orig_->getPfcWatchdogRecoveryAction()) {
+      new_->setPfcWatchdogRecoveryAction(pfcWatchdogRecoveryAction);
+      changed = true;
     }
   }
 
@@ -2980,6 +2989,34 @@ ThriftConfigApplier::updateForwardingInformationBaseContainers() {
   }
 
   return origForwardingInformationBaseMap->clone(newFibContainers);
+}
+
+std::optional<cfg::PfcWatchdogRecoveryAction>
+ThriftConfigApplier::getPfcWatchdogRecoveryAction() {
+  std::shared_ptr<Port> firstPort;
+  std::optional<cfg::PfcWatchdogRecoveryAction> recoveryAction{};
+  for (const auto& port : *new_->getPorts()) {
+    if (port->getPfc().has_value() &&
+        port->getPfc()->watchdog_ref().has_value()) {
+      auto pfcWd = port->getPfc()->watchdog_ref().value();
+      if (!recoveryAction.has_value()) {
+        recoveryAction = *pfcWd.recoveryAction_ref();
+        firstPort = port;
+        XLOG(DBG2) << "PFC watchdog recovery action initialized to "
+                   << (int)*pfcWd.recoveryAction_ref();
+      } else if (*recoveryAction != *pfcWd.recoveryAction_ref()) {
+        // Error: All ports should have the same recovery action configured
+        throw FbossError(
+            "PFC watchdog deadlock recovery action ",
+            *pfcWd.recoveryAction_ref(),
+            " on ",
+            port->getName(),
+            " conflicting with ",
+            firstPort->getName());
+      }
+    }
+  }
+  return recoveryAction;
 }
 
 shared_ptr<SwitchState> applyThriftConfig(

@@ -27,6 +27,7 @@
 #include <thread>
 
 extern "C" {
+#include <bcm/cosq.h>
 #include <bcm/error.h>
 #include <bcm/l2.h>
 #ifdef INCLUDE_PKTIO
@@ -470,6 +471,17 @@ class BcmSwitch : public BcmSwitchIf {
   static void
   linkscanCallback(int unit, bcm_port_t port, bcm_port_info_t* info);
 
+  /*
+   * Invoked by BCM SDK when a PFC watchdog deadlock recovery event
+   * is initiated, used for logging and tracking such events!
+   */
+  static int pfcDeadlockRecoveryEventCallback(
+      int unit,
+      bcm_port_t port,
+      bcm_cos_queue_t cosq,
+      bcm_cosq_pfc_deadlock_recovery_event_t recovery_state,
+      void* userdata);
+
   BootType getBootType() const override {
     return bootType_;
   }
@@ -912,6 +924,13 @@ class BcmSwitch : public BcmSwitchIf {
   bool processChangedPgCfg(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
+
+  /*
+   * Takes care of PFC watchdog deadlock recovery action
+   * programming and callback on deadlock detection, which
+   * are per chip configurations.
+   */
+  void processPfcWatchdogGlobalChanges(const StateDelta& delta);
 
   /*
    * Disable hotswap setting

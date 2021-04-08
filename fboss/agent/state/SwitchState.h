@@ -118,6 +118,9 @@ struct SwitchStateFields {
   // source IP of the DHCP reply pkt to the client host
   folly::IPAddressV4 dhcpV4ReplySrc;
   folly::IPAddressV6 dhcpV6ReplySrc;
+
+  // PFC watchdog recovery action configuration
+  std::optional<cfg::PfcWatchdogRecoveryAction> pfcWatchdogRecoveryAction{};
 };
 
 /*
@@ -325,6 +328,16 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   }
   void setDhcpV6ReplySrc(folly::IPAddressV6 v6ReplySrc) {
     writableFields()->dhcpV6ReplySrc = v6ReplySrc;
+  }
+
+  std::optional<cfg::PfcWatchdogRecoveryAction> getPfcWatchdogRecoveryAction()
+      const {
+    return getFields()->pfcWatchdogRecoveryAction;
+  }
+
+  void setPfcWatchdogRecoveryAction(
+      std::optional<cfg::PfcWatchdogRecoveryAction> recoveryAction) {
+    writableFields()->pfcWatchdogRecoveryAction = recoveryAction;
   }
 
   const std::shared_ptr<LoadBalancerMap>& getLoadBalancers() const;
