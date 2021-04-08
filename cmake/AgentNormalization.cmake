@@ -8,10 +8,12 @@ add_library(normalizer
   fboss/agent/normalization/PortStatsProcessor.cpp
   fboss/agent/normalization/TransformHandler.cpp
   fboss/agent/normalization/StatsExporter.cpp
+  fboss/agent/normalization/CounterTagManager.cpp
 )
 
 target_link_libraries(normalizer
   hardware_stats_cpp2
   Folly::folly
   fboss_types
+  switch_config_cpp2
 )
