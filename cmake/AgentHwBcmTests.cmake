@@ -40,6 +40,7 @@ add_executable(bcm_test
   fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.cpp
   fboss/agent/hw/bcm/tests/BcmLinkStateToggler.cpp
   fboss/agent/hw/bcm/tests/BcmMplsTestUtils.cpp
+  fboss/agent/hw/bcm/tests/BcmPfcTests.cpp
   fboss/agent/hw/bcm/tests/BcmPortQueueManagerTests.cpp
   fboss/agent/hw/bcm/tests/BcmPortIngressBufferManagerTests.cpp
   fboss/agent/hw/bcm/tests/BcmPortTests.cpp
