@@ -3199,4 +3199,19 @@ int BcmCinter::bcm_field_entry_remove(int unit, bcm_field_entry_t entry) {
   writeCintLines(std::move(cint));
   return 0;
 }
+
+int BcmCinter::bcm_cosq_pfc_deadlock_control_set(
+    int unit,
+    bcm_port_t port,
+    int priority,
+    bcm_cosq_pfc_deadlock_control_t type,
+    int arg) {
+  auto funcCint = wrapFunc(to<string>(
+      "bcm_cosq_pfc_deadlock_control_set(",
+      makeParamStr(unit, port, priority, type, arg),
+      ")"));
+  writeCintLines(funcCint);
+  return 0;
+}
+
 } // namespace facebook::fboss

@@ -1644,6 +1644,30 @@ int __real_bcm_field_entry_flexctr_detach(
 
 int __real_bcm_field_entry_remove(int unit, bcm_field_entry_t entry);
 
+int __real_bcm_cosq_pfc_deadlock_control_set(
+    int unit,
+    bcm_port_t port,
+    int priority,
+    bcm_cosq_pfc_deadlock_control_t type,
+    int arg);
+
+int __real_bcm_cosq_pfc_deadlock_control_get(
+    int unit,
+    bcm_port_t port,
+    int priority,
+    bcm_cosq_pfc_deadlock_control_t type,
+    int* arg);
+
+int __real_bcm_cosq_pfc_deadlock_recovery_event_register(
+    int unit,
+    bcm_cosq_pfc_deadlock_recovery_event_cb_t callback,
+    void* userdata);
+
+int __real_bcm_cosq_pfc_deadlock_recovery_event_unregister(
+    int unit,
+    bcm_cosq_pfc_deadlock_recovery_event_cb_t callback,
+    void* userdata);
+
 } // extern "C"
 
 using namespace facebook::fboss;
@@ -3958,6 +3982,42 @@ int __wrap_bcm_field_entry_flexctr_detach(
 
 int __wrap_bcm_field_entry_remove(int unit, bcm_field_entry_t entry) {
   CALL_WRAPPERS_RV(bcm_field_entry_remove(unit, entry));
+}
+
+int __wrap_bcm_cosq_pfc_deadlock_control_set(
+    int unit,
+    bcm_port_t port,
+    int priority,
+    bcm_cosq_pfc_deadlock_control_t type,
+    int arg) {
+  CALL_WRAPPERS_RV(
+      bcm_cosq_pfc_deadlock_control_set(unit, port, priority, type, arg));
+}
+
+int __wrap_bcm_cosq_pfc_deadlock_control_get(
+    int unit,
+    bcm_port_t port,
+    int priority,
+    bcm_cosq_pfc_deadlock_control_t type,
+    int* arg) {
+  CALL_WRAPPERS_RV(
+      bcm_cosq_pfc_deadlock_control_get(unit, port, priority, type, arg));
+}
+
+int __wrap_bcm_cosq_pfc_deadlock_recovery_event_register(
+    int unit,
+    bcm_cosq_pfc_deadlock_recovery_event_cb_t callback,
+    void* userdata) {
+  CALL_WRAPPERS_RV(
+      bcm_cosq_pfc_deadlock_recovery_event_register(unit, callback, userdata));
+}
+
+int __wrap_bcm_cosq_pfc_deadlock_recovery_event_unregister(
+    int unit,
+    bcm_cosq_pfc_deadlock_recovery_event_cb_t callback,
+    void* userdata) {
+  CALL_WRAPPERS_RV(bcm_cosq_pfc_deadlock_recovery_event_unregister(
+      unit, callback, userdata));
 }
 
 } // extern "C"

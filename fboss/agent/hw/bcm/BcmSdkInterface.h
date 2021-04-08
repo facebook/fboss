@@ -1005,6 +1005,30 @@ class BcmSdkInterface {
       bcm_field_flexctr_config_t* flexctr_cfg) = 0;
 
   virtual int bcm_field_entry_remove(int unit, bcm_field_entry_t entry) = 0;
+
+  virtual int bcm_cosq_pfc_deadlock_control_set(
+      int unit,
+      bcm_port_t port,
+      int priority,
+      bcm_cosq_pfc_deadlock_control_t type,
+      int arg) = 0;
+
+  virtual int bcm_cosq_pfc_deadlock_control_get(
+      int unit,
+      bcm_port_t port,
+      int priority,
+      bcm_cosq_pfc_deadlock_control_t type,
+      int* arg) = 0;
+
+  virtual int bcm_cosq_pfc_deadlock_recovery_event_register(
+      int unit,
+      bcm_cosq_pfc_deadlock_recovery_event_cb_t callback,
+      void* userdata) = 0;
+
+  virtual int bcm_cosq_pfc_deadlock_recovery_event_unregister(
+      int unit,
+      bcm_cosq_pfc_deadlock_recovery_event_cb_t callback,
+      void* userdata) = 0;
 };
 
 } // namespace facebook::fboss

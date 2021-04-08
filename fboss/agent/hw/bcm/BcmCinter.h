@@ -311,6 +311,12 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       int profile_index,
       int count,
       bcm_cosq_pfc_class_map_config_t* config_array) override;
+  int bcm_cosq_pfc_deadlock_control_set(
+      int unit,
+      bcm_port_t port,
+      int priority,
+      bcm_cosq_pfc_deadlock_control_t type,
+      int arg) override;
   int bcm_port_priority_group_config_set(
       int unit,
       bcm_gport_t gport,
@@ -1064,6 +1070,26 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       int /*max_count*/,
       bcm_cosq_pfc_class_map_config_t* /*config_array*/,
       int* /*count*/) override {
+    return 0;
+  }
+  int bcm_cosq_pfc_deadlock_control_get(
+      int /*unit*/,
+      bcm_port_t /*port*/,
+      int /*priority*/,
+      bcm_cosq_pfc_deadlock_control_t /*type*/,
+      int* /*arg*/) override {
+    return 0;
+  }
+  int bcm_cosq_pfc_deadlock_recovery_event_register(
+      int /*unit*/,
+      bcm_cosq_pfc_deadlock_recovery_event_cb_t /*callback*/,
+      void* /*userdata*/) override {
+    return 0;
+  }
+  int bcm_cosq_pfc_deadlock_recovery_event_unregister(
+      int /*unit*/,
+      bcm_cosq_pfc_deadlock_recovery_event_cb_t /*callback*/,
+      void* /*userdata*/) override {
     return 0;
   }
   int bcm_port_priority_group_config_get(
