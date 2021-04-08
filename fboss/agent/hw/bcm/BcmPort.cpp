@@ -2121,6 +2121,7 @@ void BcmPort::setPfc(const std::shared_ptr<Port>& swPort) {
   auto pfc = swPort->getPfc();
   int expectTxPfc = 0;
   int expectRxPfc = 0;
+  bool pfcConfigChanged = false;
 
   if (pfc.has_value()) {
     expectTxPfc = (*pfc->tx_ref()) ? 1 : 0;
@@ -2144,12 +2145,26 @@ void BcmPort::setPfc(const std::shared_ptr<Port>& swPort) {
   };
 
   if ((expectTxPfc == currTxPfcEnabled) && (expectRxPfc == currRxPfcEnabled)) {
-    XLOG(DBG4) << "Skip same pause setting for port " << port_
+    XLOG(DBG4) << "Skip same PFC setting for port " << port_
                << ", Tx/Rx =" << logHelper(expectTxPfc, expectRxPfc);
+  } else {
+    pfcConfigChanged = true;
+    // enable/disable pfc
+    programPfc(expectTxPfc, expectRxPfc);
+  }
+
+  if (!pfcConfigChanged && currTxPfcEnabled == 0 && currRxPfcEnabled == 0) {
+    /*
+     * If PFC config has not changed and PFC is not currently enabled,
+     * there is no need to try to program PFC watchdog, return!
+     */
     return;
   }
-  // enable/disable pfc
-  programPfc(expectTxPfc, expectRxPfc);
+
+  if (pfcWatchdogNeedsReprogramming(swPort)) {
+    // Enable/disable pfc watchdog
+    programPfcWatchdog(swPort);
+  }
 }
 
 void BcmPort::setPause(const std::shared_ptr<Port>& swPort) {
