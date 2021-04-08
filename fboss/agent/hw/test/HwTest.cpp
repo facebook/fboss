@@ -142,12 +142,7 @@ void HwTest::tearDownSwitchEnsemble(bool doWarmboot) {
 
 std::shared_ptr<SwitchState> HwTest::applyNewConfig(
     const cfg::SwitchConfig& config) {
-  auto newState = applyThriftConfig(
-      getProgrammedState(),
-      &config,
-      getPlatform(),
-      getHwSwitchEnsemble()->getRib());
-  return newState ? applyNewState(newState) : getProgrammedState();
+  return hwSwitchEnsemble_->applyNewConfig(config);
 }
 
 std::shared_ptr<SwitchState> HwTest::applyNewStateImpl(

@@ -137,6 +137,12 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::getProgrammedState() const {
   return programmedState_;
 }
 
+std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewConfig(
+    const cfg::SwitchConfig& config) {
+  return applyNewState(applyThriftConfig(
+      getProgrammedState(), &config, getPlatform(), getRib()));
+}
+
 std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewStateImpl(
     const std::shared_ptr<SwitchState>& newState,
     bool transaction) {
