@@ -16,34 +16,29 @@ class HwPortProfileTest : public HwTest {
     HwTest::SetUp();
   }
 
-  cfg::SwitchConfig initialConfig() const {
+  cfg::SwitchConfig initialConfig(const std::vector<PortID>& ports) const {
     auto lbMode = getPlatform()->getAsic()->desiredLoopbackMode();
     return utility::oneL3IntfTwoPortConfig(
-        getHwSwitch(),
-        masterLogicalPortIds()[0],
-        masterLogicalPortIds()[1],
-        lbMode);
+        getHwSwitch(), ports[0], ports[1], lbMode);
   }
 
-  bool skipTest() {
-    if (!getPlatform()->getPortProfileConfig(PlatformPortProfileConfigMatcher(
-            Profile, masterLogicalPortIds()[0])) ||
-        !getPlatform()->getPortProfileConfig(PlatformPortProfileConfigMatcher(
-            Profile, masterLogicalPortIds()[1]))) {
-      return true;
-    }
+  std::vector<PortID> findPorts() {
+    std::vector<PortID> ports;
     auto& platformPorts = getPlatform()->getPlatformPorts();
-    for (auto port : {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}) {
+    for (auto port : masterLogicalPortIds()) {
       auto iter = platformPorts.find(port);
-      if (iter == platformPorts.end()) {
-        return true;
+      EXPECT_TRUE(iter != platformPorts.end());
+      if (!getPlatform()->getPortProfileConfig(
+              PlatformPortProfileConfigMatcher(Profile, port))) {
+        continue;
       }
       if (iter->second.supportedProfiles_ref()->find(Profile) ==
           iter->second.supportedProfiles_ref()->end()) {
-        return true;
+        continue;
       }
+      ports.push_back(port);
     }
-    return false;
+    return ports;
   }
 
   void verifyPort(PortID portID) {
@@ -63,7 +58,8 @@ class HwPortProfileTest : public HwTest {
   }
 
   void runTest() {
-    if (skipTest()) {
+    std::vector<PortID> ports = findPorts();
+    if (ports.size() < 2) {
 // profile is not supported.
 #if defined(GTEST_SKIP)
       GTEST_SKIP();
@@ -71,8 +67,8 @@ class HwPortProfileTest : public HwTest {
       return;
     }
     auto setup = [=]() {
-      auto config = initialConfig();
-      for (auto port : {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}) {
+      auto config = initialConfig(ports);
+      for (auto port : {ports[0], ports[1]}) {
         auto hwSwitch = getHwSwitch();
         utility::configurePortProfile(
             *hwSwitch, config, Profile, getAllPortsInGroup(port), port);
@@ -80,8 +76,7 @@ class HwPortProfileTest : public HwTest {
       applyNewConfig(config);
     };
     auto verify = [=]() {
-      for (auto portID :
-           {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}) {
+      for (auto portID : {ports[0], ports[1]}) {
         verifyPort(portID);
       }
     };
