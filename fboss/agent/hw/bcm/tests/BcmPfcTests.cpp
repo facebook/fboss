@@ -227,6 +227,12 @@ class BcmPfcTests : public BcmTest {
     applyNewConfig(currentConfig);
   }
 
+  // Removes PFC configuration for port, but dont apply
+  void removePfcConfigSkipApply(const PortID& portId) {
+    auto portCfg = utility::findCfgPort(currentConfig, portId);
+    portCfg->pfc_ref().reset();
+  }
+
   // Log enabled/disable status of feature
   std::string enabledStatusToString(bool enabled) {
     return (enabled ? "enabled" : "disabled");
@@ -301,7 +307,7 @@ class BcmPfcTests : public BcmTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
-  // Cross check PFC iwatchdog HW configuration with
+  // Cross check PFC watchdog HW programming with SW config
   void runPfcWatchdogTest(const cfg::PfcWatchdog& pfcWatchdogConfig) {
     if (!isSupported(HwAsic::Feature::PFC)) {
       XLOG(WARNING) << "Platform doesn't support PFC";
@@ -316,6 +322,34 @@ class BcmPfcTests : public BcmTest {
     auto verify = [=]() {
       pfcWatchdogProgrammingMatchesConfig(
           masterLogicalPortIds()[0], true, pfcWatchdogConfig);
+    };
+
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
+  // Program PFC watchdog and make sure the detection
+  // timer granularity is as expected
+  void runPfcWatchdogGranularityTest(
+      const cfg::PfcWatchdog& pfcWatchdogConfig,
+      const int expectedBcmGranularity) {
+    if (!isSupported(HwAsic::Feature::PFC)) {
+      XLOG(WARNING) << "Platform doesn't support PFC";
+      return;
+    }
+
+    auto setup = [=]() {
+      currentConfig = initialConfig();
+      setupPfcAndPfcWatchdog(masterLogicalPortIds()[0], pfcWatchdogConfig);
+    };
+
+    auto verify = [=]() {
+      auto portId = masterLogicalPortIds()[0];
+      pfcWatchdogProgrammingMatchesConfig(portId, true, pfcWatchdogConfig);
+      // Explicitly validate granularity!
+      EXPECT_EQ(
+          getProgrammedPfcWatchdogControlParam(
+              portId, bcmCosqPFCDeadlockTimerGranularity),
+          expectedBcmGranularity);
     };
 
     verifyAcrossWarmBoots(setup, verify);
@@ -422,6 +456,207 @@ TEST_F(BcmPfcTests, PfcWatchdogProgrammingSequence) {
         portId, false, defaultPfcWatchdogConfig);
   };
 
+  // The test fails warmboot as there are reconfigurations done in verify
+  setup();
+  verify();
+}
+
+// Validate PFC watchdog deadlock detection timer in the 0-16msec range
+TEST_F(BcmPfcTests, PfcWatchdogGranularity1) {
+  cfg::PfcWatchdog pfcWatchdogConfig{};
+  XLOG(DBG0) << "Verify PFC watchdog deadlock detection timer range 0-15msec";
+  initalizePfcConfigWatchdogValues(
+      pfcWatchdogConfig, 15, 20, cfg::PfcWatchdogRecoveryAction::DROP);
+  runPfcWatchdogGranularityTest(
+      pfcWatchdogConfig, bcmCosqPFCDeadlockTimerInterval1MiliSecond);
+}
+
+// Validate PFC watchdog deadlock detection timer in the 16-160msec range
+TEST_F(BcmPfcTests, PfcWatchdogGranularity2) {
+  cfg::PfcWatchdog pfcWatchdogConfig{};
+  XLOG(DBG0) << "Verify PFC watchdog deadlock detection timer range 16-159msec";
+  initalizePfcConfigWatchdogValues(
+      pfcWatchdogConfig, 16, 20, cfg::PfcWatchdogRecoveryAction::DROP);
+  runPfcWatchdogGranularityTest(
+      pfcWatchdogConfig, bcmCosqPFCDeadlockTimerInterval10MiliSecond);
+}
+
+// Validate PFC watchdog deadlock detection timer in the 16-160msec range
+TEST_F(BcmPfcTests, PfcWatchdogGranularity3) {
+  cfg::PfcWatchdog pfcWatchdogConfig{};
+  XLOG(DBG0) << "Verify PFC watchdog deadlock detection "
+             << "timer 10msec range boundary value 159msec";
+  initalizePfcConfigWatchdogValues(
+      pfcWatchdogConfig, 159, 100, cfg::PfcWatchdogRecoveryAction::DROP);
+  runPfcWatchdogGranularityTest(
+      pfcWatchdogConfig, bcmCosqPFCDeadlockTimerInterval10MiliSecond);
+}
+
+// Validate PFC watchdog deadlock detection timer in the 160-1599msec range
+TEST_F(BcmPfcTests, PfcWatchdogGranularity4) {
+  cfg::PfcWatchdog pfcWatchdogConfig{};
+  XLOG(DBG0) << "Verify PFC watchdog deadlock detection "
+             << "timer 100msec range boundary value 160msec";
+  initalizePfcConfigWatchdogValues(
+      pfcWatchdogConfig, 160, 600, cfg::PfcWatchdogRecoveryAction::DROP);
+  runPfcWatchdogGranularityTest(
+      pfcWatchdogConfig, bcmCosqPFCDeadlockTimerInterval100MiliSecond);
+}
+
+// Validate PFC watchdog deadlock detection timer in the 160-1599msec range
+TEST_F(BcmPfcTests, PfcWatchdogGranularity5) {
+  cfg::PfcWatchdog pfcWatchdogConfig{};
+  XLOG(DBG0) << "Verify PFC watchdog deadlock detection "
+             << "timer 100msec range boundary value 1599msec";
+  initalizePfcConfigWatchdogValues(
+      pfcWatchdogConfig, 1599, 1000, cfg::PfcWatchdogRecoveryAction::DROP);
+  runPfcWatchdogGranularityTest(
+      pfcWatchdogConfig, bcmCosqPFCDeadlockTimerInterval100MiliSecond);
+}
+
+// Validate PFC watchdog deadlock detection timer outside the 0-1599msec range
+TEST_F(BcmPfcTests, PfcWatchdogGranularity6) {
+  cfg::PfcWatchdog pfcWatchdogConfig{};
+  XLOG(DBG0) << "Verify PFC watchdog deadlock detection "
+             << "timer outside range with 1600msec";
+  initalizePfcConfigWatchdogValues(
+      pfcWatchdogConfig, 1600, 2000, cfg::PfcWatchdogRecoveryAction::DROP);
+  runPfcWatchdogGranularityTest(
+      pfcWatchdogConfig, bcmCosqPFCDeadlockTimerInterval100MiliSecond);
+}
+
+// PFC watchdog deadlock recovery action tests
+TEST_F(BcmPfcTests, PfcWatchdogDeadlockRecoveryAction) {
+  if (!isSupported(HwAsic::Feature::PFC)) {
+    XLOG(WARNING) << "Platform doesn't support PFC";
+    return;
+  }
+
+  auto setup = [&]() { setupBaseConfig(); };
+
+  auto verify = [&]() {
+    auto portId1 = masterLogicalPortIds()[0];
+    auto portId2 = masterLogicalPortIds()[1];
+    cfg::PfcWatchdog pfcWatchdogConfig{};
+
+    XLOG(DBG0)
+        << "Verify PFC watchdog recovery action is configured as expected";
+    initalizePfcConfigWatchdogValues(
+        pfcWatchdogConfig, 15, 20, cfg::PfcWatchdogRecoveryAction::DROP);
+    setupPfcAndPfcWatchdog(portId1, pfcWatchdogConfig);
+    pfcWatchdogProgrammingMatchesConfig(portId1, true, pfcWatchdogConfig);
+    EXPECT_EQ(
+        getPfcWatchdogRecoveryAction(),
+        pfcWatchdogRecoveryActionToBcm(
+            *pfcWatchdogConfig.recoveryAction_ref()));
+
+    XLOG(DBG0) << "Enable PFC watchdog on more ports and validate programming";
+    initalizePfcConfigWatchdogValues(
+        pfcWatchdogConfig, 140, 500, cfg::PfcWatchdogRecoveryAction::DROP);
+    setupPfcAndPfcWatchdog(portId2, pfcWatchdogConfig);
+    EXPECT_EQ(
+        getPfcWatchdogRecoveryAction(),
+        pfcWatchdogRecoveryActionToBcm(
+            *pfcWatchdogConfig.recoveryAction_ref()));
+
+    XLOG(DBG0) << "Remove PFC watchdog programming on one port and make"
+               << " sure watchdog recovery action is not impacted";
+    removePfcWatchdogConfig(portId1);
+    EXPECT_EQ(
+        getPfcWatchdogRecoveryAction(),
+        pfcWatchdogRecoveryActionToBcm(cfg::PfcWatchdogRecoveryAction::DROP));
+
+    XLOG(DBG0) << "Remove PFC watchdog programming on the remaining port, "
+               << "make sure the watchdog recovery action goes to default";
+    removePfcWatchdogConfig(portId2);
+    EXPECT_EQ(
+        getPfcWatchdogRecoveryAction(),
+        pfcWatchdogRecoveryActionToBcm(
+            cfg::PfcWatchdogRecoveryAction::NO_DROP));
+
+    XLOG(DBG0) << "Enable PFC watchdog config again on the port";
+    initalizePfcConfigWatchdogValues(
+        pfcWatchdogConfig, 20, 100, cfg::PfcWatchdogRecoveryAction::DROP);
+    setupPfcAndPfcWatchdog(portId2, pfcWatchdogConfig);
+    EXPECT_EQ(
+        getPfcWatchdogRecoveryAction(),
+        pfcWatchdogRecoveryActionToBcm(
+            *pfcWatchdogConfig.recoveryAction_ref()));
+
+    XLOG(DBG0) << "Unconfigure PFC on port and make sure PFC "
+               << "watchdog recovery action is reverted to default";
+    removePfcConfig(portId2);
+    EXPECT_EQ(
+        getPfcWatchdogRecoveryAction(),
+        pfcWatchdogRecoveryActionToBcm(
+            cfg::PfcWatchdogRecoveryAction::NO_DROP));
+  };
+  // The test fails warmboot as there are reconfigurations done in verify
+  setup();
+  verify();
+}
+
+// Verify all ports should be configured with the same
+// PFC watchdog deadlock recovery action.
+TEST_F(BcmPfcTests, PfcWatchdogDeadlockRecoveryActionMismatch) {
+  if (!isSupported(HwAsic::Feature::PFC)) {
+    XLOG(WARNING) << "Platform doesn't support PFC";
+    return;
+  }
+
+  auto setup = [&]() { setupBaseConfig(); };
+
+  auto verify = [&]() {
+    auto portId1 = masterLogicalPortIds()[0];
+    auto portId2 = masterLogicalPortIds()[1];
+    cfg::PfcWatchdog pfcWatchdogConfig{};
+    cfg::PfcWatchdog defaultPfcWatchdogConfig{};
+
+    XLOG(DBG0) << "Enable PFC watchdog and make sure programming is fine";
+    initalizePfcConfigWatchdogValues(
+        pfcWatchdogConfig, 1000, 3000, cfg::PfcWatchdogRecoveryAction::NO_DROP);
+    setupPfcAndPfcWatchdog(portId1, pfcWatchdogConfig);
+    pfcWatchdogProgrammingMatchesConfig(portId1, true, pfcWatchdogConfig);
+    EXPECT_EQ(
+        getPfcWatchdogRecoveryAction(),
+        pfcWatchdogRecoveryActionToBcm(
+            *pfcWatchdogConfig.recoveryAction_ref()));
+
+    XLOG(DBG0) << "Enable PFC watchdog with conflicting recovery action "
+               << "on anther port and make sure programming did not happen";
+    initalizePfcConfigWatchdogValues(
+        pfcWatchdogConfig, 1200, 6000, cfg::PfcWatchdogRecoveryAction::DROP);
+    /*
+     * Applying this config will cause a PFC deadlock recovery action
+     * mismatch between ports and will result in FbossError!
+     */
+    EXPECT_THROW(
+        setupPfcAndPfcWatchdog(portId2, pfcWatchdogConfig), FbossError);
+
+    // Make sure the watchdog programming is still as previously configured
+    pfcWatchdogProgrammingMatchesConfig(
+        portId2, false, defaultPfcWatchdogConfig);
+    EXPECT_EQ(
+        getPfcWatchdogRecoveryAction(),
+        pfcWatchdogRecoveryActionToBcm(
+            cfg::PfcWatchdogRecoveryAction::NO_DROP));
+
+    /*
+     * Remove PFC watchdog from the first port and enable PFC watchdog with
+     * new recovery action on the second port and make sure programming is fine
+     */
+    XLOG(DBG0)
+        << "Disable PFC on one and enable with new action on the other port";
+    removePfcConfigSkipApply(portId1);
+    initalizePfcConfigWatchdogValues(
+        pfcWatchdogConfig, 1200, 6000, cfg::PfcWatchdogRecoveryAction::DROP);
+    setupPfcAndPfcWatchdog(portId2, pfcWatchdogConfig);
+    pfcWatchdogProgrammingMatchesConfig(portId2, true, pfcWatchdogConfig);
+    EXPECT_EQ(
+        getPfcWatchdogRecoveryAction(),
+        pfcWatchdogRecoveryActionToBcm(
+            *pfcWatchdogConfig.recoveryAction_ref()));
+  };
   // The test fails warmboot as there are reconfigurations done in verify
   setup();
   verify();
