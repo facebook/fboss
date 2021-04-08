@@ -149,7 +149,16 @@ TransceiverManagementInterface WedgeQsfp::getTransceiverManagementInterface() {
           (buf[0] ==
            static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_PLUS)) ||
           (buf[0] ==
-           static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP28))) {
+           static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP28)) ||
+          (buf[0] ==
+           static_cast<uint8_t>(TransceiverModuleIdentifier::MINIPHOTON_OBO))) {
+        return TransceiverManagementInterface::SFF;
+      } else if (
+          buf[0] !=
+          static_cast<uint8_t>(TransceiverModuleIdentifier::UNKNOWN)) {
+        XLOG(WARNING) << "Transceiver " << module_
+                      << " has unknown non-zero identifier: " << buf[0]
+                      << ", defaulting to SFF";
         return TransceiverManagementInterface::SFF;
       }
     } catch (const std::exception& ex) {
