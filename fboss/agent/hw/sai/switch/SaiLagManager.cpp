@@ -282,4 +282,14 @@ void SaiLagManager::disableMember(AggregatePortID aggPort, PortID subPort) {
   auto member = getMember(saiLagHandle.get(), subPort);
   setMemberState(member, AggregatePort::Forwarding::DISABLED);
 }
+
+bool SaiLagManager::isLagMember(PortID port) {
+  auto handle = managerTable_->portManager().getPortHandle(port);
+  if (!handle || !handle->port) {
+    throw FbossError("lag membership checked for unknown port ", port);
+  }
+  return concurrentIndices_->memberPort2AggregatePortIds.find(
+             handle->port->adapterKey()) !=
+      concurrentIndices_->memberPort2AggregatePortIds.end();
+}
 } // namespace facebook::fboss

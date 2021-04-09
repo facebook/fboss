@@ -100,6 +100,8 @@ TEST_F(LagManagerTest, addMembers) {
   std::shared_ptr<AggregatePort> swAggregatePort = makeAggregatePort(intf);
   auto saiId = saiManagerTable->lagManager().addLag(swAggregatePort);
   checkLagMembers(saiId, {0, 1});
+  EXPECT_TRUE(saiManagerTable->lagManager().isLagMember(PortID(0)));
+  EXPECT_TRUE(saiManagerTable->lagManager().isLagMember(PortID(1)));
 }
 
 TEST_F(LagManagerTest, updateMembers) {
@@ -114,8 +116,20 @@ TEST_F(LagManagerTest, updateMembers) {
   // Create LAG and verify members
   auto saiId = saiManagerTable->lagManager().addLag(swAggregatePort);
   checkLagMembers(saiId, {0, 1, 3});
+  EXPECT_TRUE(saiManagerTable->lagManager().isLagMember(PortID(0)));
+  EXPECT_TRUE(saiManagerTable->lagManager().isLagMember(PortID(1)));
+  EXPECT_FALSE(saiManagerTable->lagManager().isLagMember(PortID(2)));
+  EXPECT_TRUE(saiManagerTable->lagManager().isLagMember(PortID(3)));
 
   // Update LAG and verify members
   saiManagerTable->lagManager().changeLag(swAggregatePort, newSwAggregatePort);
   checkLagMembers(saiId, {1, 2, 3});
+  EXPECT_FALSE(saiManagerTable->lagManager().isLagMember(PortID(0)));
+  EXPECT_TRUE(saiManagerTable->lagManager().isLagMember(PortID(1)));
+  EXPECT_TRUE(saiManagerTable->lagManager().isLagMember(PortID(2)));
+  EXPECT_TRUE(saiManagerTable->lagManager().isLagMember(PortID(3)));
+
+  // accessing unknown port
+  EXPECT_THROW(
+      saiManagerTable->lagManager().isLagMember(PortID(100)), FbossError);
 }

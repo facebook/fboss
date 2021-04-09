@@ -58,6 +58,8 @@ class SaiLagManager {
 
   void disableMember(AggregatePortID aggPort, PortID subPort);
 
+  bool isLagMember(PortID port);
+
  private:
   std::pair<PortSaiId, std::shared_ptr<SaiLagMember>> addMember(
       const std::shared_ptr<SaiLag>& lag,
