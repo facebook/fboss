@@ -11,6 +11,7 @@
 
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/RestartTimeTracker.h"
+#include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/ThreadHeartbeat.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -601,6 +602,10 @@ class SwSwitch : public HwSwitch::Callback {
 
   RoutingInformationBase* getRib() {
     return rib_.get();
+  }
+
+  SwSwitchRouteUpdateWrapper getRouteUpdater() {
+    return SwSwitchRouteUpdateWrapper(this);
   }
 
   /*

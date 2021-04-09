@@ -15,6 +15,7 @@
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
 
+#include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
@@ -30,30 +31,15 @@
 #include <gtest/gtest.h>
 #include <optional>
 
-using facebook::fboss::AdminDistance;
-using facebook::fboss::InterfaceID;
+using namespace facebook::fboss;
 
 namespace {
 
 const AdminDistance kDefaultAdminDistance = AdminDistance::EBGP;
 
-std::shared_ptr<facebook::fboss::SwitchState> dynamicFibUpdate(
-    facebook::fboss::RouterID vrf,
-    const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
-    const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
-    void* cookie) {
-  facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
-      vrf, v4NetworkToRoute, v6NetworkToRoute);
-
-  auto sw = static_cast<facebook::fboss::SwSwitch*>(cookie);
-  sw->updateStateBlocking("", std::move(fibUpdater));
-  return sw->getState();
-}
 } // namespace
 
 TEST(ForwardingInformationBaseUpdater, ModifyUnpublishedSwitchState) {
-  using namespace facebook::fboss;
-
   auto vrfOne = RouterID(1);
 
   // First, we put together a Forwarding Information Base tree containing
@@ -182,12 +168,41 @@ void EXPECT_FIB_SIZE(
   EXPECT_EQ(fibContainer->getFibV6()->size(), v6FibSize);
 }
 
+const RouterID vrfZero{0};
 } // namespace
+
+void programRoutes(
+    SwSwitch* sw,
+    ClientID client,
+    const std::vector<UnicastRoute>& routes,
+    const std::vector<IpPrefix>& toDel,
+    bool syncFib = false) {
+  auto routeUpdater = sw->getRouteUpdater();
+  std::for_each(
+      routes.begin(), routes.end(), [&routeUpdater, client](const auto& route) {
+        routeUpdater.addRoute(vrfZero, client, route);
+      });
+  std::for_each(
+      toDel.begin(), toDel.end(), [&routeUpdater, client](const auto& pfx) {
+        routeUpdater.delRoute(vrfZero, pfx, client);
+      });
+  SwSwitchRouteUpdateWrapper::SyncFibFor syncFibFor;
+  if (syncFib) {
+    syncFibFor.insert({vrfZero, client});
+  }
+  routeUpdater.program(syncFibFor);
+}
+void programRoutes(
+    SwSwitch* sw,
+    ClientID client,
+    const std::vector<UnicastRoute>& routes,
+    bool syncFib = false) {
+  programRoutes(sw, client, routes, {}, syncFib);
+}
 
 TEST(Rib, Update) {
   using namespace facebook::fboss;
 
-  const RouterID vrfZero{0};
   auto v4Default = folly::CIDRNetworkV4(folly::IPAddressV4("0.0.0.0"), 0);
   auto v6Default = folly::CIDRNetworkV6(folly::IPAddressV6("::"), 0);
 
@@ -231,16 +246,7 @@ TEST(Rib, Update) {
   const size_t numStaticRoutes =
       sw->getRib()->getRouteTableDetails(vrfZero).size();
 
-  sw->getRib()->update(
-      vrfZero,
-      ClientID(10),
-      AdminDistance::EBGP,
-      routesToPrefixA,
-      {},
-      false /* sync */,
-      "rib update unit test",
-      &dynamicFibUpdate,
-      static_cast<void*>(sw));
+  programRoutes(sw, ClientID(10), routesToPrefixA);
 
   EXPECT_FIB_SIZE(sw->getState(), vrfZero, 3, 3);
 
@@ -255,31 +261,12 @@ TEST(Rib, Update) {
   routeToPrefixBFromClient10.push_back(
       createUnicastRoute(prefixB4.first, prefixB4.second, client10Nexthop4));
 
-  sw->getRib()->update(
-      vrfZero,
-      ClientID(10),
-      AdminDistance::EBGP,
-      routeToPrefixBFromClient10,
-      {},
-      false /* sync */,
-      "rib update unit test",
-      &dynamicFibUpdate,
-      static_cast<void*>(sw));
+  programRoutes(sw, ClientID(10), routeToPrefixBFromClient10);
 
   std::vector<UnicastRoute> routeToPrefixBFromClient20;
   routeToPrefixBFromClient20.push_back(
       createUnicastRoute(prefixB4.first, prefixB4.second, client20Nexthop4));
-  sw->getRib()->update(
-      vrfZero,
-      ClientID(20),
-      AdminDistance::EBGP,
-      routeToPrefixBFromClient20,
-      {},
-      false /* sync */,
-      "rib update unit test",
-      &dynamicFibUpdate,
-      static_cast<void*>(sw));
-
+  programRoutes(sw, ClientID(20), routeToPrefixBFromClient20);
   EXPECT_FIB_SIZE(sw->getState(), vrfZero, 4, 3);
 
   // Prefix C will include nexthops from clients 10, 20, and 30
@@ -288,44 +275,17 @@ TEST(Rib, Update) {
   std::vector<UnicastRoute> routeToPrefixCFromClient10;
   routeToPrefixCFromClient10.push_back(
       createUnicastRoute(prefixC6.first, prefixC6.second, client10Nexthop6));
-  sw->getRib()->update(
-      vrfZero,
-      ClientID(10),
-      AdminDistance::EBGP,
-      routeToPrefixCFromClient10,
-      {},
-      false /* sync */,
-      "rib update unit test",
-      &dynamicFibUpdate,
-      static_cast<void*>(sw));
+  programRoutes(sw, ClientID(10), routeToPrefixBFromClient10);
 
   std::vector<UnicastRoute> routeToPrefixCFromClient20;
   routeToPrefixCFromClient20.push_back(
       createUnicastRoute(prefixC6.first, prefixC6.second, client20Nexthop6));
-  sw->getRib()->update(
-      vrfZero,
-      ClientID(20),
-      AdminDistance::EBGP,
-      routeToPrefixCFromClient20,
-      {},
-      false /* sync */,
-      "rib update unit test",
-      &dynamicFibUpdate,
-      static_cast<void*>(sw));
+  programRoutes(sw, ClientID(20), routeToPrefixBFromClient20);
 
   std::vector<UnicastRoute> routeToPrefixCFromClient30;
   routeToPrefixCFromClient30.push_back(
       createUnicastRoute(prefixC6.first, prefixC6.second, client30Nexthop6));
-  sw->getRib()->update(
-      vrfZero,
-      ClientID(30),
-      AdminDistance::EBGP,
-      routeToPrefixCFromClient30,
-      {},
-      false /* sync */,
-      "rib update unit test",
-      &dynamicFibUpdate,
-      static_cast<void*>(sw));
+  programRoutes(sw, ClientID(30), routeToPrefixCFromClient30);
 
   // Make sure all the static and link-local routes are there
   auto state = sw->getState();
@@ -356,16 +316,7 @@ TEST(Rib, Update) {
       createUnicastRoute(prefixD6.first, prefixD6.second, client10Nexthop6b));
   syncFibRoutes.push_back(
       createUnicastRoute(prefixD4.first, prefixD4.second, client10Nexthop4));
-  sw->getRib()->update(
-      vrfZero,
-      ClientID(10),
-      AdminDistance::EBGP,
-      syncFibRoutes,
-      {},
-      true /* sync */,
-      "rib update unit test",
-      &dynamicFibUpdate,
-      static_cast<void*>(sw));
+  programRoutes(sw, ClientID(10), syncFibRoutes, true);
 
   // Make sure all the static and link-local routes are still there
   state = sw->getState();
@@ -426,16 +377,7 @@ TEST(ForwardingInformationBaseUpdater, Deduplication) {
   std::vector<IpPrefix> routesToDelete;
 
   // 1)
-  sw->getRib()->update(
-      vrfZero,
-      ClientID(0),
-      AdminDistance::EBGP,
-      routesToAdd,
-      routesToDelete,
-      false /* sync */,
-      "deduplication unit test",
-      &dynamicFibUpdate,
-      static_cast<void*>(sw));
+  programRoutes(sw, ClientID(0), routesToAdd, routesToDelete);
 
   auto route = sw->getState()
                    ->getFibs()
@@ -445,16 +387,7 @@ TEST(ForwardingInformationBaseUpdater, Deduplication) {
   ASSERT_TRUE(route);
 
   // 3)
-  sw->getRib()->update(
-      vrfZero,
-      ClientID(0),
-      AdminDistance::EBGP,
-      routesToAdd,
-      routesToDelete,
-      false /* sync */,
-      "deduplication unit test",
-      &dynamicFibUpdate,
-      static_cast<void*>(sw));
+  programRoutes(sw, ClientID(0), routesToAdd, routesToDelete);
 
   auto route2 = sw->getState()
                     ->getFibs()
@@ -470,16 +403,7 @@ TEST(ForwardingInformationBaseUpdater, Deduplication) {
       folly::IPAddress("2401:db00:e003:9100:1006::2b")));
 
   // 2)
-  sw->getRib()->update(
-      vrfZero,
-      ClientID(0),
-      AdminDistance::EBGP,
-      routesToAdd,
-      routesToDelete,
-      false /* sync */,
-      "deduplication unit test",
-      &dynamicFibUpdate,
-      static_cast<void*>(sw));
+  programRoutes(sw, ClientID(0), routesToAdd, routesToDelete);
 
   auto route3 = sw->getState()
                     ->getFibs()
