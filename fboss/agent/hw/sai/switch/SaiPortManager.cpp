@@ -1235,4 +1235,20 @@ void SaiPortManager::programMirrorOnAllPorts(
   }
 }
 
+void SaiPortManager::addBridgePort(const std::shared_ptr<Port>& port) {
+  auto handle = getPortHandle(port->getID());
+  CHECK(handle) << "unknown port " << port->getID();
+
+  const auto& saiPort = handle->port;
+  handle->bridgePort = managerTable_->bridgeManager().addBridgePort(
+      SaiPortDescriptor(port->getID()),
+      PortDescriptorSaiId(saiPort->adapterKey()));
+}
+
+void SaiPortManager::changeBridgePort(
+    const std::shared_ptr<Port>& /*oldPort*/,
+    const std::shared_ptr<Port>& newPort) {
+  return addBridgePort(newPort);
+}
+
 } // namespace facebook::fboss

@@ -149,6 +149,11 @@ class SaiPortManager {
       const std::string& mirrorName,
       MirrorAction action);
 
+  void addBridgePort(const std::shared_ptr<Port>& port);
+  void changeBridgePort(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
+
  private:
   void addRemovedHandle(PortID portID);
   void removeRemovedHandleIf(PortID portID);

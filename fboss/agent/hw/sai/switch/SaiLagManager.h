@@ -60,6 +60,11 @@ class SaiLagManager {
 
   bool isLagMember(PortID port);
 
+  void addBridgePort(const std::shared_ptr<AggregatePort>& aggPort);
+  void changeBridgePort(
+      const std::shared_ptr<AggregatePort>& oldPort,
+      const std::shared_ptr<AggregatePort>& newPort);
+
  private:
   std::pair<PortSaiId, std::shared_ptr<SaiLagMember>> addMember(
       const std::shared_ptr<SaiLag>& lag,

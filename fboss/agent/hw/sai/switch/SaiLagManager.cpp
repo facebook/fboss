@@ -292,4 +292,19 @@ bool SaiLagManager::isLagMember(PortID port) {
              handle->port->adapterKey()) !=
       concurrentIndices_->memberPort2AggregatePortIds.end();
 }
+
+void SaiLagManager::addBridgePort(
+    const std::shared_ptr<AggregatePort>& aggPort) {
+  auto handle = getLagHandle(aggPort->getID());
+  auto& lag = handle->lag;
+  handle->bridgePort = managerTable_->bridgeManager().addBridgePort(
+      SaiPortDescriptor(aggPort->getID()),
+      PortDescriptorSaiId(lag->adapterKey()));
+}
+
+void SaiLagManager::changeBridgePort(
+    const std::shared_ptr<AggregatePort>& /*oldPort*/,
+    const std::shared_ptr<AggregatePort>& newPort) {
+  return addBridgePort(newPort);
+}
 } // namespace facebook::fboss
