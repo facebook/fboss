@@ -187,17 +187,12 @@ void initandExitBenchmarkHelper(
   {
     ScopedCallTimer timeIt;
     /*
-     * Do not apply the config through ensemble since it disables and enables
-     * the port and waits for the port to be UP before returning. We would like
-     * to measure the performance only for hw switch init and also the state
-     * transition from INIT TO CONFIGURED.
+     * Do not apply the config through HwSwitchEnsemble::applyInitialConfig
+     * since it disables and enables the port and waits for the port to be UP
+     * before returning. We would like to measure the performance only for hw
+     * switch init and also the state transition from INIT TO CONFIGURED.
      */
-    auto newState = applyThriftConfig(
-        ensemble->getProgrammedState(),
-        &config,
-        hwSwitch->getPlatform(),
-        ensemble->getRib());
-    ensemble->applyNewState(newState);
+    ensemble->applyNewConfig(config);
     ensemble->switchRunStateChanged(SwitchRunState::CONFIGURED);
   }
   suspender.rehire();

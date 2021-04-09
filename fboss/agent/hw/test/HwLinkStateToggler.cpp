@@ -72,22 +72,14 @@ void HwLinkStateToggler::portStateChangeImpl(
   }
 }
 
-void HwLinkStateToggler::applyInitialConfig(
-    const std::shared_ptr<SwitchState>& curState,
-    const Platform* platform,
-    const cfg::SwitchConfig& initCfg,
-    RoutingInformationBase* rib) {
-  auto newState =
-      applyInitialConfigWithPortsDown(curState, platform, initCfg, rib);
+void HwLinkStateToggler::applyInitialConfig(const cfg::SwitchConfig& initCfg) {
+  auto newState = applyInitialConfigWithPortsDown(initCfg);
   bringUpPorts(newState, initCfg);
 }
 
 std::shared_ptr<SwitchState>
 HwLinkStateToggler::applyInitialConfigWithPortsDown(
-    const std::shared_ptr<SwitchState>& curState,
-    const Platform* platform,
-    const cfg::SwitchConfig& initCfg,
-    RoutingInformationBase* rib) {
+    const cfg::SwitchConfig& initCfg) {
   // Goal of this function is twofold
   // - Apply initial config.
   // - Set preemphasis on all ports to 0
@@ -125,7 +117,7 @@ HwLinkStateToggler::applyInitialConfigWithPortsDown(
     *port.state_ref() = portId2DesiredState[*port.logicalID_ref()];
   }
   hwEnsemble_->applyNewConfig(cfg);
-  platform->getHwSwitch()->switchRunStateChanged(SwitchRunState::CONFIGURED);
+  hwEnsemble_->getHwSwitch()->switchRunStateChanged(SwitchRunState::CONFIGURED);
   return hwEnsemble_->getProgrammedState();
 }
 
