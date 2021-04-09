@@ -1290,6 +1290,7 @@ bool SaiSwitch::isValidStateUpdateLocked(
     const std::lock_guard<std::mutex>& /* lock */,
     const StateDelta& delta) const {
   auto globalQosDelta = delta.getDefaultDataPlaneQosPolicyDelta();
+  auto isValid = true;
   if (globalQosDelta.getNew()) {
     auto& newPolicy = globalQosDelta.getNew();
     if (newPolicy->getDscpMap().empty() ||
@@ -1338,7 +1339,38 @@ bool SaiSwitch::isValidStateUpdateLocked(
     throw FbossError("QCM is not supported on SAI");
   }
 
-  return true;
+  if (delta.newState()->getMirrors()->size() >
+      getPlatform()->getAsic()->getMaxMirrors()) {
+    XLOG(ERR) << "Number of mirrors configured is high on this platform";
+    return false;
+  }
+
+  DeltaFunctions::forEachChanged(
+      delta.getMirrorsDelta(),
+      [&](const std::shared_ptr<Mirror>& /* oldMirror */,
+          const std::shared_ptr<Mirror>& newMirror) {
+        if (newMirror->getTruncate() &&
+            !getPlatform()->getAsic()->isSupported(
+                HwAsic::Feature::MIRROR_PACKET_TRUNCATION)) {
+          XLOG(ERR)
+              << "Mirror packet truncation is not supported on this platform";
+          isValid = false;
+        }
+      });
+
+  // Ensure only one sflow mirror session is configured
+  int sflowMirrorCount = 0;
+  for (const auto& mirror : *(delta.newState()->getMirrors())) {
+    if (mirror->type() == Mirror::Type::SFLOW) {
+      sflowMirrorCount++;
+    }
+  }
+  if (sflowMirrorCount > 1) {
+    XLOG(ERR) << "More than one sflow mirrors configured";
+    isValid = false;
+  }
+
+  return isValid;
 }
 
 bool SaiSwitch::sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept {
