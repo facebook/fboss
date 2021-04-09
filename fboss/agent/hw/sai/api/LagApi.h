@@ -29,13 +29,8 @@ struct SaiLagTraits {
   using SaiApiT = LagApi;
   struct Attributes {
     using EnumType = sai_lag_attr_t;
-#ifndef IS_OSS
     using Label =
         SaiAttribute<EnumType, SAI_LAG_ATTR_LABEL, std::array<char, 32>>;
-#else
-    using Label =
-        SaiAttribute<EnumType, SAI_LAG_ATTR_END, std::array<char, 32>>;
-#endif
     using PortVlanId =
         SaiAttribute<EnumType, SAI_LAG_ATTR_PORT_VLAN_ID, uint16_t>;
     using PortList = SaiAttribute<

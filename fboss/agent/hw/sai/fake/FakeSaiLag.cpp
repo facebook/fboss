@@ -20,13 +20,7 @@ sai_status_t set_lag_attribute_fn(
   auto fs = FakeSai::getInstance();
   auto& lag = fs->lagManager.get(lag_id);
   switch (attr->id) {
-    // TODO: upgrade OSS to 1.7.1
-#ifdef IS_OSS
-    case SAI_LAG_ATTR_END:
-#else
-    case SAI_LAG_ATTR_LABEL:
-#endif
-    {
+    case SAI_LAG_ATTR_LABEL: {
       std::copy(
           attr->value.chardata,
           attr->value.chardata + lag.label.size(),
@@ -66,12 +60,7 @@ sai_status_t get_lag_attribute_fn(
         attr_list[i].value.u16 = lag.vlan;
         break;
 
-#ifdef IS_OSS
-      case SAI_LAG_ATTR_END:
-#else
-      case SAI_LAG_ATTR_LABEL:
-#endif
-      {
+      case SAI_LAG_ATTR_LABEL: {
         const auto& label = lag.label;
         std::copy(
             std::begin(label), std::end(label), attr_list[i].value.chardata);
