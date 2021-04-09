@@ -33,7 +33,10 @@ BENCHMARK(RibSyncFibBenchmark) {
       ensemble->getProgrammedState(), true, 50000);
   const auto& routeChunks = gen.getThriftRoutes();
   CHECK_EQ(1, routeChunks.size());
-  auto rib = ensemble->getRib();
+  // Create a dummy rib since we don't want to go through
+  // HwSwitchEnsemble and write to HW
+  auto rib = RoutingInformationBase::fromFollyDynamic(
+      ensemble->getRib()->toFollyDynamic(), nullptr);
   auto switchState = ensemble->getProgrammedState();
   rib->update(
       RouterID(0),
