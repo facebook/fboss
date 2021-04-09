@@ -12,6 +12,7 @@
 #include "folly/container/F14Map.h"
 
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
+#include "fboss/agent/normalization/CounterTagManager.h"
 #include "fboss/agent/normalization/Types.h"
 #include "fboss/agent/types.h"
 
@@ -24,7 +25,8 @@ class PortStatsProcessor {
  public:
   PortStatsProcessor(
       TransformHandler* transformHandler,
-      StatsExporter* statsExporter);
+      StatsExporter* statsExporter,
+      CounterTagManager* counterTagManager);
 
   void processStats(
       const folly::F14FastMap<std::string, HwPortStats>& hwStatsMap);
@@ -39,6 +41,7 @@ class PortStatsProcessor {
 
   TransformHandler* transformHandler_;
   StatsExporter* statsExporter_;
+  CounterTagManager* counterTagManager_;
 };
 
 } // namespace facebook::fboss::normalization

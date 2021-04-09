@@ -25,7 +25,8 @@ class StatsExporter {
       const std::string& portName,
       const std::string& propertyName,
       int64_t timestamp,
-      double value);
+      double value,
+      std::shared_ptr<std::vector<std::string>> tags);
 
   // flush counters downstream. Note the counters published will be
   // buffered locally before calling this method
@@ -36,6 +37,7 @@ class StatsExporter {
     std::string key;
     int64_t unixTime;
     double value;
+    std::shared_ptr<std::vector<std::string>> tags;
   };
 
   const std::vector<OdsCounter>& getCounterBuffer() const {

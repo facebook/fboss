@@ -11,6 +11,7 @@
 
 #include <fmt/core.h>
 
+#include <folly/String.h>
 #include <folly/logging/xlog.h>
 
 namespace facebook::fboss::normalization {
@@ -23,12 +24,14 @@ void StatsExporter::publishPortStats(
     const std::string& portName,
     const std::string& propertyName,
     int64_t timestamp,
-    double value) {
+    double value,
+    std::shared_ptr<std::vector<std::string>> tags) {
   OdsCounter counter;
   counter.entity = fmt::format("{}:{}{}", deviceName_, portName, kEntitySuffix);
   counter.key = fmt::format("FBNet:interface.{}", propertyName);
   counter.unixTime = timestamp;
   counter.value = value;
+  counter.tags = std::move(tags);
 
   counterBuffer_.push_back(std::move(counter));
 }
@@ -37,11 +40,12 @@ void GlogStatsExporter::flushCounters() {
   for (auto& counter : counterBuffer_) {
     XLOGF(
         INFO,
-        "Normalized counter - Entity: {}, Key: {}, Unixtime: {}, Value: {}",
+        "Normalized counter - Entity: {}, Key: {}, Unixtime: {}, Value: {}, Tags: [{}]",
         counter.entity,
         counter.key,
         counter.unixTime,
-        counter.value);
+        counter.value,
+        counter.tags ? folly::join(", ", *counter.tags) : "");
   }
   counterBuffer_.clear();
 }

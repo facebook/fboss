@@ -10,6 +10,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "fboss/agent/normalization/CounterTagManager.h"
 #include "fboss/agent/normalization/PortStatsProcessor.h"
 #include "fboss/agent/normalization/StatsExporter.h"
 #include "fboss/agent/normalization/TransformHandler.h"
@@ -76,18 +77,39 @@ folly::F14FastMap<std::string, HwPortStats> makeHwPortStatsMapT1() {
   return statsMap;
 }
 
+void setupCounterTagManager(CounterTagManager& counterTagManager) {
+  cfg::SwitchConfig config;
+  std::vector<cfg::Port> ports;
+
+  auto addPort = [](std::vector<cfg::Port>& ports,
+                    const std::string& name,
+                    const std::vector<std::string>& tags) {
+    cfg::Port port;
+    port.name_ref() = name;
+    port.counterTags_ref() = tags;
+    ports.push_back(port);
+  };
+
+  addPort(ports, "eth0", {"tag_a", "tag_aa"});
+  addPort(ports, "eth1", {"tag_b", "tag_bb"});
+  config.ports_ref() = ports;
+
+  counterTagManager.reloadCounterTags(config);
+}
+
 class MockStatsExporter : public StatsExporter {
  public:
   explicit MockStatsExporter(const std::string& deviceName)
       : StatsExporter(deviceName) {}
 
-  MOCK_METHOD4(
+  MOCK_METHOD5(
       publishPortStats,
       void(
           const std::string& portName,
           const std::string& propertyName,
           int64_t timestamp,
-          double value));
+          double value,
+          std::shared_ptr<std::vector<std::string>> tags));
   MOCK_METHOD0(flushCounters, void());
 };
 
@@ -97,11 +119,14 @@ TEST(PortStatsProcessorTest, processStats) {
   TransformHandler handler;
   MockStatsExporter exporter("dev");
 
+  CounterTagManager counterTagManager;
+  setupCounterTagManager(counterTagManager);
+
   {
     // t0
     auto hwStatsMap = makeHwPortStatsMapT0();
-    PortStatsProcessor processor(&handler, &exporter);
-    EXPECT_CALL(exporter, publishPortStats(_, _, _, _)).Times(0);
+    PortStatsProcessor processor(&handler, &exporter, &counterTagManager);
+    EXPECT_CALL(exporter, publishPortStats(_, _, _, _, _)).Times(0);
     EXPECT_CALL(exporter, flushCounters()).Times(1);
     processor.processStats(hwStatsMap);
     Mock::VerifyAndClearExpectations(&exporter);
@@ -110,27 +135,79 @@ TEST(PortStatsProcessorTest, processStats) {
   {
     // t1
     auto hwStatsMap = makeHwPortStatsMapT1();
-    PortStatsProcessor processor(&handler, &exporter);
-    EXPECT_CALL(exporter, publishPortStats("eth0", "input_bps", 1010, 800))
-        .Times(1);
-    EXPECT_CALL(exporter, publishPortStats("eth0", "output_bps", 1010, 1600))
+    PortStatsProcessor processor(&handler, &exporter, &counterTagManager);
+    EXPECT_CALL(
+        exporter,
+        publishPortStats(
+            "eth0",
+            "input_bps",
+            1010,
+            800,
+            Pointee(ElementsAre("tag_a", "tag_aa"))))
         .Times(1);
     EXPECT_CALL(
-        exporter, publishPortStats("eth0", "total_input_discards", 1010, 1))
+        exporter,
+        publishPortStats(
+            "eth0",
+            "output_bps",
+            1010,
+            1600,
+            Pointee(ElementsAre("tag_a", "tag_aa"))))
         .Times(1);
     EXPECT_CALL(
-        exporter, publishPortStats("eth0", "total_output_discards", 1010, 3))
+        exporter,
+        publishPortStats(
+            "eth0",
+            "total_input_discards",
+            1010,
+            1,
+            Pointee(ElementsAre("tag_a", "tag_aa"))))
+        .Times(1);
+    EXPECT_CALL(
+        exporter,
+        publishPortStats(
+            "eth0",
+            "total_output_discards",
+            1010,
+            3,
+            Pointee(ElementsAre("tag_a", "tag_aa"))))
         .Times(1);
 
-    EXPECT_CALL(exporter, publishPortStats("eth1", "input_bps", 1010, 1600))
-        .Times(1);
-    EXPECT_CALL(exporter, publishPortStats("eth1", "output_bps", 1010, 2400))
+    EXPECT_CALL(
+        exporter,
+        publishPortStats(
+            "eth1",
+            "input_bps",
+            1010,
+            1600,
+            Pointee(ElementsAre("tag_b", "tag_bb"))))
         .Times(1);
     EXPECT_CALL(
-        exporter, publishPortStats("eth1", "total_input_discards", 1010, 5))
+        exporter,
+        publishPortStats(
+            "eth1",
+            "output_bps",
+            1010,
+            2400,
+            Pointee(ElementsAre("tag_b", "tag_bb"))))
         .Times(1);
     EXPECT_CALL(
-        exporter, publishPortStats("eth1", "total_output_discards", 1010, 3))
+        exporter,
+        publishPortStats(
+            "eth1",
+            "total_input_discards",
+            1010,
+            5,
+            Pointee(ElementsAre("tag_b", "tag_bb"))))
+        .Times(1);
+    EXPECT_CALL(
+        exporter,
+        publishPortStats(
+            "eth1",
+            "total_output_discards",
+            1010,
+            3,
+            Pointee(ElementsAre("tag_b", "tag_bb"))))
         .Times(1);
     EXPECT_CALL(exporter, flushCounters()).Times(1);
     processor.processStats(hwStatsMap);
