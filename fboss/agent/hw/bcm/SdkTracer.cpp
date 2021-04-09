@@ -1668,6 +1668,14 @@ int __real_bcm_cosq_pfc_deadlock_recovery_event_unregister(
     bcm_cosq_pfc_deadlock_recovery_event_cb_t callback,
     void* userdata);
 
+int __real_bcm_flexctr_action_create(
+    int unit,
+    int options,
+    bcm_flexctr_action_t* action,
+    uint32* stat_counter_id);
+
+int __real_bcm_flexctr_action_destroy(int unit, uint32 stat_counter_id);
+
 } // extern "C"
 
 using namespace facebook::fboss;
@@ -4018,6 +4026,19 @@ int __wrap_bcm_cosq_pfc_deadlock_recovery_event_unregister(
     void* userdata) {
   CALL_WRAPPERS_RV(bcm_cosq_pfc_deadlock_recovery_event_unregister(
       unit, callback, userdata));
+}
+
+int __wrap_bcm_flexctr_action_create(
+    int unit,
+    int options,
+    bcm_flexctr_action_t* action,
+    uint32* stat_counter_id) {
+  CALL_WRAPPERS_RV(
+      bcm_flexctr_action_create(unit, options, action, stat_counter_id));
+}
+
+int __wrap_bcm_flexctr_action_destroy(int unit, uint32 stat_counter_id) {
+  CALL_WRAPPERS_RV(bcm_flexctr_action_destroy(unit, stat_counter_id));
 }
 
 } // extern "C"

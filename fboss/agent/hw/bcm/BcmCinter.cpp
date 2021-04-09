@@ -113,7 +113,7 @@ std::shared_ptr<BcmCinter> BcmCinter::getInstance() {
 }
 
 void BcmCinter::setupGlobals() {
-  array<string, 35> globals = {
+  array<string, 37> globals = {
       "_shr_pbmp_t pbmp",
       "_shr_rx_reasons_t reasons",
       "bcm_cosq_gport_discard_t discard",
@@ -149,6 +149,8 @@ void BcmCinter::setupGlobals() {
       "bcm_port_resource_t resources[4]",
       "bcm_port_phy_tx_t tx",
       "bcm_field_flexctr_config_t flexctr_config",
+      "bcm_flexctr_action_t flexctr_action",
+      "bcm_flexctr_trigger_t flexctr_trigger",
   };
   writeCintLines(std::move(globals));
 }
@@ -323,6 +325,10 @@ string BcmCinter::getNextTimeInterfaceVar() {
 
 string BcmCinter::getNextTimeSpecVar() {
   return to<string>("timeSpec_", ++tmpTimeSpecCreated_);
+}
+
+string BcmCinter::getNextStateCounterVar() {
+  return to<string>("stateCounter_", ++tmpStateCounterCreated_);
 }
 
 pair<string, string> BcmCinter::cintForIp6(const bcm_ip6_t in) {
@@ -775,6 +781,123 @@ vector<string> BcmCinter::cintForFlexctrConfig(
       to<string>(
           "flexctr_config.flexctr_action_id=", flexctr_cfg->flexctr_action_id),
       to<string>("flexctr_config.counter_index=", flexctr_cfg->counter_index)};
+  return cintLines;
+}
+
+vector<string> BcmCinter::cintForFlexCtrTrigger(
+    bcm_flexctr_trigger_t& flexctr_trigger) {
+  vector<string> cintLines = {
+      to<string>("flexctr_trigger.trigger_type=", flexctr_trigger.trigger_type),
+      to<string>("flexctr_trigger.period_num=", flexctr_trigger.period_num),
+      to<string>("flexctr_trigger.interval=", flexctr_trigger.interval),
+      to<string>("flexctr_trigger.object=", flexctr_trigger.object),
+      to<string>(
+          "flexctr_trigger.object_value_start=",
+          flexctr_trigger.object_value_start),
+      to<string>(
+          "flexctr_trigger.object_value_stop=",
+          flexctr_trigger.object_value_stop),
+      to<string>(
+          "flexctr_trigger.object_value_mask=",
+          flexctr_trigger.object_value_mask)};
+  return cintLines;
+}
+
+vector<string> BcmCinter::cintForFlexCtrAction(
+    bcm_flexctr_action_t* flexctr_action) {
+  string pbmp;
+  vector<string> cintLines, pbmpCint;
+  tie(pbmp, pbmpCint) = cintForPortBitmap(flexctr_action->ports);
+  cintLines.insert(
+      cintLines.end(),
+      make_move_iterator(pbmpCint.begin()),
+      make_move_iterator(pbmpCint.end()));
+  vector<string> structLines = {
+      "bcm_flexctr_action_t_init(&flexctr_action)",
+      to<string>("flexctr_action.flags=", flexctr_action->flags),
+      to<string>("flexctr_action.source=", flexctr_action->source),
+      to<string>("flexctr_action.ports=", pbmp),
+      to<string>("flexctr_action.hint=", flexctr_action->hint),
+      to<string>(
+          "flexctr_action.drop_count_mode=", flexctr_action->drop_count_mode),
+      to<string>(
+          "flexctr_action.exception_drop_count_enable=",
+          flexctr_action->exception_drop_count_enable),
+      to<string>(
+          "flexctr_action.egress_mirror_count_enable=",
+          flexctr_action->egress_mirror_count_enable),
+      to<string>("flexctr_action.mode=", flexctr_action->mode),
+  };
+  cintLines.insert(
+      cintLines.end(),
+      make_move_iterator(structLines.begin()),
+      make_move_iterator(structLines.end()));
+  // operation_a
+  for (int i = 0; i < BCM_FLEXCTR_OPERATION_OBJECT_SIZE; i++) {
+    vector<string> operationACint = {
+        to<string>(
+            "flexctr_action.operation_a.object[",
+            i,
+            "]=",
+            flexctr_action->operation_a.object[i]),
+        to<string>(
+            "flexctr_action.operation_a.quant_id[",
+            i,
+            "]=",
+            flexctr_action->operation_a.quant_id[i]),
+        to<string>(
+            "flexctr_action.operation_a.mask_size[",
+            i,
+            "]=",
+            flexctr_action->operation_a.mask_size[i]),
+        to<string>(
+            "flexctr_action.operation_a.shift[",
+            i,
+            "]=",
+            flexctr_action->operation_a.shift[i]),
+    };
+    cintLines.insert(
+        cintLines.end(),
+        make_move_iterator(operationACint.begin()),
+        make_move_iterator(operationACint.end()));
+  }
+  // operation_b
+  for (int j = 0; j < BCM_FLEXCTR_OPERATION_OBJECT_SIZE; j++) {
+    vector<string> operationBCint = {
+        to<string>(
+            "flexctr_action.operation_b.object[",
+            j,
+            "]=",
+            flexctr_action->operation_b.object[j]),
+        to<string>(
+            "flexctr_action.operation_b.quant_id[",
+            j,
+            "]=",
+            flexctr_action->operation_b.quant_id[j]),
+        to<string>(
+            "flexctr_action.operation_b.mask_size[",
+            j,
+            "]=",
+            flexctr_action->operation_b.mask_size[j]),
+        to<string>(
+            "flexctr_action.operation_b.shift[",
+            j,
+            "]=",
+            flexctr_action->operation_b.shift[j]),
+    };
+    cintLines.insert(
+        cintLines.end(),
+        make_move_iterator(operationBCint.begin()),
+        make_move_iterator(operationBCint.end()));
+  }
+
+  // Flexctr_trigger
+  auto triggerCint = cintForFlexCtrTrigger(flexctr_action->trigger);
+  cintLines.insert(
+      cintLines.end(),
+      make_move_iterator(triggerCint.begin()),
+      make_move_iterator(triggerCint.end()));
+  cintLines.push_back(to<string>("flexctr_action.trigger=flexctr_trigger"));
   return cintLines;
 }
 
@@ -3214,4 +3337,32 @@ int BcmCinter::bcm_cosq_pfc_deadlock_control_set(
   return 0;
 }
 
+int BcmCinter::bcm_flexctr_action_create(
+    int unit,
+    int options,
+    bcm_flexctr_action_t* action,
+    uint32* stat_counter_id) {
+  string statCounterVar = getNextStateCounterVar();
+  writeCintLine(to<string>("uint32 ", statCounterVar));
+  { statCounterIdVars.wlock()->emplace(*stat_counter_id, statCounterVar); }
+  auto cint = cintForFlexCtrAction(action);
+  auto funcCint = wrapFunc(to<string>(
+      "bcm_flexctr_action_create(",
+      makeParamStr(
+          unit, options, "&flexctr_action", to<string>("&", statCounterVar)),
+      ")"));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(funcCint.begin()),
+      make_move_iterator(funcCint.end()));
+  writeCintLines(std::move(cint));
+  return 0;
+}
+
+int BcmCinter::bcm_flexctr_action_destroy(int unit, uint32 stat_counter_id) {
+  auto cint = wrapFunc(to<string>(
+      "bcm_flexctr_action_destroy(", makeParamStr(unit, stat_counter_id), ")"));
+  writeCintLines(std::move(cint));
+  return 0;
+}
 } // namespace facebook::fboss

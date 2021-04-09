@@ -67,9 +67,6 @@ KNOWN_MISSING_APIS = {
     # End of Qcm related APIs.
     "bcm_errmsg",
     "bcm_field_group_config_t_init",
-    "bcm_flexctr_action_create",
-    "bcm_flexctr_action_destroy",
-    "bcm_flexctr_action_t_init",
     "bcm_l2_addr_delete_by_mac_port",
     "bcm_l2_addr_register",
     "bcm_l2_addr_t_init",
@@ -122,6 +119,7 @@ KNOWN_MISSING_APIS = {
     # init calls don't need to be wrapped.
     "bcm_cosq_pfc_class_map_config_t_init",
     "bcm_field_entry_config_t_init",
+    "bcm_flexctr_action_t_init",
 }
 
 

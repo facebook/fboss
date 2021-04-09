@@ -18,6 +18,7 @@ extern "C" {
 #include <bcm/cosq.h>
 #include <bcm/error.h>
 #include <bcm/field.h>
+#include <bcm/flexctr.h>
 #include <bcm/init.h>
 #include <bcm/l2.h>
 #include <bcm/l3.h>
@@ -1029,6 +1030,13 @@ class BcmSdkInterface {
       int unit,
       bcm_cosq_pfc_deadlock_recovery_event_cb_t callback,
       void* userdata) = 0;
-};
 
+  virtual int bcm_flexctr_action_create(
+      int unit,
+      int options,
+      bcm_flexctr_action_t* action,
+      uint32* stat_counter_id) = 0;
+
+  virtual int bcm_flexctr_action_destroy(int unit, uint32 stat_counter_id) = 0;
+};
 } // namespace facebook::fboss

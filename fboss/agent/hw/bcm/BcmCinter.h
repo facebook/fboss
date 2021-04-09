@@ -617,6 +617,12 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       bcm_field_entry_t entry,
       bcm_field_flexctr_config_t* flexctr_cfg) override;
   int bcm_field_entry_remove(int unit, bcm_field_entry_t entry) override;
+  int bcm_flexctr_action_create(
+      int unit,
+      int options,
+      bcm_flexctr_action_t* action,
+      uint32* stat_counter_id) override;
+  int bcm_flexctr_action_destroy(int unit, uint32 stat_counter_id) override;
 
   /*
    * Getters, traversal functions - Do nothing.
@@ -1672,6 +1678,7 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   std::string getNextPtConfigArrayVar();
   std::string getNextTimeInterfaceVar();
   std::string getNextTimeSpecVar();
+  std::string getNextStateCounterVar();
 
   /*
    * Wrap a generated cint function call with return error code
@@ -1791,6 +1798,12 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   std::vector<std::string> cintForFlexctrConfig(
       bcm_field_flexctr_config_t* flexctr_cfg);
 
+  std::vector<std::string> cintForFlexCtrAction(
+      bcm_flexctr_action_t* flexctr_action);
+
+  std::vector<std::string> cintForFlexCtrTrigger(
+      bcm_flexctr_trigger_t& flexctr_trigger);
+
   /*
    * Synchronize access to data structures for access from multiple
    * threads.
@@ -1818,6 +1831,7 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   std::atomic<uint> tmpPtConfigArrayCreated_{0};
   std::atomic<uint> tmpTimeInterfaceCreated_{0};
   std::atomic<uint> tmpTimeSpecCreated_{0};
+  std::atomic<uint> tmpStateCounterCreated_{0};
 
   std::unique_ptr<AsyncLogger> asyncLogger_;
 
@@ -1833,6 +1847,7 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   folly::Synchronized<std::map<bcm_gport_t, std::string>> mirrorDestIdVars;
   folly::Synchronized<std::map<bcm_field_range_t, std::string>> rangeIdVars;
   folly::Synchronized<std::map<bcm_stg_t, std::string>> stgIdVars;
+  folly::Synchronized<std::map<uint32, std::string>> statCounterIdVars;
 };
 
 } // namespace facebook::fboss
