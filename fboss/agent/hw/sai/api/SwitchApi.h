@@ -118,9 +118,19 @@ struct SaiSwitchTraits {
         SAI_SWITCH_ATTR_ECMP_HASH_IPV4,
         SaiObjectIdT,
         SaiObjectIdDefault>;
+    using LagHashV4 = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_LAG_HASH_IPV4,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
     using EcmpHashV6 = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_ECMP_HASH_IPV6,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
+    using LagHashV6 = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_LAG_HASH_IPV6,
         SaiObjectIdT,
         SaiObjectIdDefault>;
     using EcmpDefaultHashSeed = SaiAttribute<
@@ -376,6 +386,8 @@ struct SaiSwitchTraits {
       std::optional<Attributes::SwitchShellEnable>,
       std::optional<Attributes::EcmpHashV4>,
       std::optional<Attributes::EcmpHashV6>,
+      std::optional<Attributes::LagHashV4>,
+      std::optional<Attributes::LagHashV6>,
       std::optional<Attributes::EcmpDefaultHashSeed>,
       std::optional<Attributes::LagDefaultHashSeed>,
       std::optional<Attributes::EcmpDefaultHashAlgorithm>,
@@ -409,6 +421,8 @@ SAI_ATTRIBUTE_NAME(Switch, SrcMac)
 SAI_ATTRIBUTE_NAME(Switch, SwitchShellEnable)
 SAI_ATTRIBUTE_NAME(Switch, EcmpHashV4)
 SAI_ATTRIBUTE_NAME(Switch, EcmpHashV6)
+SAI_ATTRIBUTE_NAME(Switch, LagHashV4)
+SAI_ATTRIBUTE_NAME(Switch, LagHashV6)
 SAI_ATTRIBUTE_NAME(Switch, EcmpDefaultHashSeed)
 SAI_ATTRIBUTE_NAME(Switch, LagDefaultHashSeed)
 SAI_ATTRIBUTE_NAME(Switch, EcmpDefaultHashAlgorithm)

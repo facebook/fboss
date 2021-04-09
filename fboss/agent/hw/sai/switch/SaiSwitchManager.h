@@ -73,10 +73,15 @@ class SaiSwitchManager {
   void initCpuPort();
 
  private:
-  void programLoadBalancerParams(
-      cfg::LoadBalancerID id,
+  void programEcmpLoadBalancerParams(
       std::optional<sai_uint32_t> seed,
       std::optional<cfg::HashingAlgorithm> algo);
+  void addOrUpdateEcmpLoadBalancer(const std::shared_ptr<LoadBalancer>& newLb);
+
+  void programLagLoadBalancerParams(
+      std::optional<sai_uint32_t> seed,
+      std::optional<cfg::HashingAlgorithm> algo);
+  void addOrUpdateLagLoadBalancer(const std::shared_ptr<LoadBalancer>& newLb);
 
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
@@ -84,6 +89,8 @@ class SaiSwitchManager {
   PortSaiId cpuPort_;
   std::shared_ptr<SaiHash> ecmpV4Hash_;
   std::shared_ptr<SaiHash> ecmpV6Hash_;
+  std::shared_ptr<SaiHash> lagV4Hash_;
+  std::shared_ptr<SaiHash> lagV6Hash_;
   std::shared_ptr<SaiQosMap> globalDscpToTcQosMap_;
   std::shared_ptr<SaiQosMap> globalTcToQueueQosMap_;
 };

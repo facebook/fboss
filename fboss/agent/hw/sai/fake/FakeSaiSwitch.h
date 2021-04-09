@@ -46,6 +46,12 @@ class FakeSwitch {
   void setEcmpHashV6Id(const sai_object_id_t id) {
     ecmpHashV6_ = id;
   }
+  void setLagHashV4Id(const sai_object_id_t id) {
+    lagHashV4_ = id;
+  }
+  void setLagHashV6Id(const sai_object_id_t id) {
+    lagHashV6_ = id;
+  }
   void setEcmpSeed(sai_uint32_t seed) {
     ecmpSeed_ = seed;
   }
@@ -108,6 +114,12 @@ class FakeSwitch {
   }
   sai_object_id_t ecmpHashV6Id() const {
     return ecmpHashV6_;
+  }
+  sai_object_id_t lagHashV4Id() const {
+    return lagHashV4_;
+  }
+  sai_object_id_t lagHashV6Id() const {
+    return lagHashV6_;
   }
   sai_uint32_t ecmpSeed() const {
     return ecmpSeed_;
@@ -232,6 +244,8 @@ class FakeSwitch {
   sai_int32_t lagAlgorithm_{SAI_HASH_ALGORITHM_CRC};
   sai_object_id_t ecmpHashV4_{SAI_NULL_OBJECT_ID};
   sai_object_id_t ecmpHashV6_{SAI_NULL_OBJECT_ID};
+  sai_object_id_t lagHashV4_{SAI_NULL_OBJECT_ID};
+  sai_object_id_t lagHashV6_{SAI_NULL_OBJECT_ID};
   sai_object_id_t qosMapDscpToTc_{SAI_NULL_OBJECT_ID};
   sai_object_id_t qosMapTcToQueue_{SAI_NULL_OBJECT_ID};
   std::vector<int8_t> hwInfo_;

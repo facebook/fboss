@@ -336,6 +336,8 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // shell
       std::nullopt, // ecmp hash v4
       std::nullopt, // ecmp hash v6
+      std::nullopt, // lag hash v4
+      std::nullopt, // lag hash v6
       std::nullopt, // ecmp hash seed
       std::nullopt, // lag hash seed
       std::nullopt, // ecmp hash algo

@@ -111,8 +111,7 @@ void SaiSwitchManager::resetQosMaps() {
   }
 }
 
-void SaiSwitchManager::programLoadBalancerParams(
-    cfg::LoadBalancerID /*id*/,
+void SaiSwitchManager::programEcmpLoadBalancerParams(
     std::optional<sai_uint32_t> seed,
     std::optional<cfg::HashingAlgorithm> algo) {
   auto hashSeed = seed ? seed.value() : 0;
@@ -123,13 +122,9 @@ void SaiSwitchManager::programLoadBalancerParams(
       SaiSwitchTraits::Attributes::EcmpDefaultHashAlgorithm{hashAlgo});
 }
 
-void SaiSwitchManager::addOrUpdateLoadBalancer(
+void SaiSwitchManager::addOrUpdateEcmpLoadBalancer(
     const std::shared_ptr<LoadBalancer>& newLb) {
-  if (newLb->getID() == cfg::LoadBalancerID::AGGREGATE_PORT) {
-    throw FbossError("Hash configuration for aggregate ports is not supported");
-  }
-  programLoadBalancerParams(
-      newLb->getID(), newLb->getSeed(), newLb->getAlgorithm());
+  programEcmpLoadBalancerParams(newLb->getSeed(), newLb->getAlgorithm());
 
   if (newLb->getIPv4Fields().size()) {
     // v4 ECMP
@@ -157,6 +152,55 @@ void SaiSwitchManager::addOrUpdateLoadBalancer(
   }
 }
 
+void SaiSwitchManager::programLagLoadBalancerParams(
+    std::optional<sai_uint32_t> seed,
+    std::optional<cfg::HashingAlgorithm> algo) {
+  auto hashSeed = seed ? seed.value() : 0;
+  auto hashAlgo = algo ? toSaiHashAlgo(algo.value()) : SAI_HASH_ALGORITHM_CRC;
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::LagDefaultHashSeed{hashSeed});
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::LagDefaultHashAlgorithm{hashAlgo});
+}
+
+void SaiSwitchManager::addOrUpdateLagLoadBalancer(
+    const std::shared_ptr<LoadBalancer>& newLb) {
+  programLagLoadBalancerParams(newLb->getSeed(), newLb->getAlgorithm());
+
+  if (newLb->getIPv4Fields().size()) {
+    // v4 LAG
+    cfg::Fields v4LagHashFields;
+    v4LagHashFields.ipv4Fields_ref()->insert(
+        newLb->getIPv4Fields().begin(), newLb->getIPv4Fields().end());
+    v4LagHashFields.transportFields_ref()->insert(
+        newLb->getTransportFields().begin(), newLb->getTransportFields().end());
+    lagV4Hash_ = managerTable_->hashManager().getOrCreate(v4LagHashFields);
+    // Set the new lag v4 hash attribute on switch obj
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::LagHashV4{lagV4Hash_->adapterKey()});
+  }
+  if (newLb->getIPv6Fields().size()) {
+    // v6 LAG
+    cfg::Fields v6LagHashFields;
+    v6LagHashFields.ipv6Fields_ref()->insert(
+        newLb->getIPv6Fields().begin(), newLb->getIPv6Fields().end());
+    v6LagHashFields.transportFields_ref()->insert(
+        newLb->getTransportFields().begin(), newLb->getTransportFields().end());
+    lagV6Hash_ = managerTable_->hashManager().getOrCreate(v6LagHashFields);
+    // Set the new lag v6 hash attribute on switch obj
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::LagHashV6{lagV6Hash_->adapterKey()});
+  }
+}
+
+void SaiSwitchManager::addOrUpdateLoadBalancer(
+    const std::shared_ptr<LoadBalancer>& newLb) {
+  if (newLb->getID() == cfg::LoadBalancerID::AGGREGATE_PORT) {
+    return addOrUpdateLagLoadBalancer(newLb);
+  }
+  addOrUpdateEcmpLoadBalancer(newLb);
+}
+
 void SaiSwitchManager::changeLoadBalancer(
     const std::shared_ptr<LoadBalancer>& /*oldLb*/,
     const std::shared_ptr<LoadBalancer>& newLb) {
@@ -166,9 +210,12 @@ void SaiSwitchManager::changeLoadBalancer(
 void SaiSwitchManager::removeLoadBalancer(
     const std::shared_ptr<LoadBalancer>& oldLb) {
   if (oldLb->getID() == cfg::LoadBalancerID::AGGREGATE_PORT) {
-    throw FbossError("Hash configuration for Agg ports is not supported");
+    programLagLoadBalancerParams(std::nullopt, std::nullopt);
+    lagV4Hash_.reset();
+    lagV6Hash_.reset();
+    return;
   }
-  programLoadBalancerParams(oldLb->getID(), std::nullopt, std::nullopt);
+  programEcmpLoadBalancerParams(std::nullopt, std::nullopt);
   ecmpV4Hash_.reset();
   ecmpV6Hash_.reset();
 }
