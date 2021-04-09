@@ -244,14 +244,7 @@ createTestHandle(cfg::SwitchConfig* config, MacAddress mac, SwitchFlags flags) {
   auto sw = handle->getSw();
 
   // Apply the thrift config
-  auto updateFn = [&](const shared_ptr<SwitchState>& state) {
-    return applyThriftConfig(
-        state,
-        config,
-        sw->getPlatform(),
-        sw->isStandaloneRibEnabled() ? sw->getRib() : nullptr);
-  };
-  sw->updateStateBlocking("test_setup", updateFn);
+  sw->applyConfig("test_setup", *config);
   return handle;
 }
 
