@@ -112,42 +112,7 @@ static void runNewRibTest() {
   // Resume benchmakring post-setup.
   suspender.dismiss();
 
-  for (const auto& chunk : routeChunks) {
-    std::vector<UnicastRoute> routesToAdd;
-    std::vector<IpPrefix> routesToDel;
-
-    for (const auto& route : chunk) {
-      UnicastRoute routeToAdd;
-
-      IpPrefix prefix;
-      prefix.ip = facebook::network::toBinaryAddress(route.prefix.first);
-      prefix.prefixLength = route.prefix.second;
-      routeToAdd.dest_ref() = prefix;
-      routeToAdd.nextHops_ref() = nextHopsThrift(route.nhops);
-
-      routesToAdd.push_back(std::move(routeToAdd));
-    }
-
-    sw->getRib()->update(
-        vrfZero,
-        ClientID(10),
-        AdminDistance::EBGP,
-        routesToAdd,
-        routesToDel,
-        true /* sync */,
-        "FibSync benchmark",
-        [](RouterID vrf,
-           const IPv4NetworkToRouteMap& v4NetworkToRoute,
-           const IPv6NetworkToRouteMap& v6NetworkToRoute,
-           void* cookie) {
-          ForwardingInformationBaseUpdater fibUpdater(
-              vrf, v4NetworkToRoute, v6NetworkToRoute);
-          auto sw2 = static_cast<facebook::fboss::SwSwitch*>(cookie);
-          sw2->updateStateBlocking("", std::move(fibUpdater));
-          return sw2->getState();
-        },
-        sw);
-  }
+  programRoutes(routeChunks, sw);
 }
 
 BENCHMARK(FibSyncFSWLegacy) {
