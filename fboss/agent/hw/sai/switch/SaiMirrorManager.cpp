@@ -17,7 +17,7 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
-
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 namespace facebook::fboss {
@@ -36,6 +36,8 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addMirrorErSpan(
     PortSaiId monitorPort) {
   auto mirrorTunnel = mirror->getMirrorTunnel().value();
   auto headerVersion = mirrorTunnel.srcIp.isV4() ? 4 : 6;
+  auto truncateSize =
+      mirror->getTruncate() ? platform_->getAsic()->getMirrorTruncateSize() : 0;
   SaiEnhancedRemoteMirrorTraits::CreateAttributes attributes{
       SAI_MIRROR_SESSION_TYPE_ENHANCED_REMOTE,
       monitorPort,
@@ -48,8 +50,7 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addMirrorErSpan(
       mirrorTunnel.greProtocol,
       headerVersion,
       mirrorTunnel.ttl,
-      0 // TODO: truncate size
-  };
+      truncateSize};
   SaiEnhancedRemoteMirrorTraits::AdapterHostKey k{
       SAI_MIRROR_SESSION_TYPE_ENHANCED_REMOTE,
       monitorPort,
@@ -65,6 +66,8 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addMirrorSflow(
     PortSaiId monitorPort) {
   auto mirrorTunnel = mirror->getMirrorTunnel().value();
   auto headerVersion = mirrorTunnel.srcIp.isV4() ? 4 : 6;
+  auto truncateSize =
+      mirror->getTruncate() ? platform_->getAsic()->getMirrorTruncateSize() : 0;
   SaiSflowMirrorTraits::CreateAttributes attributes{
       SAI_MIRROR_SESSION_TYPE_SFLOW,
       monitorPort,
@@ -77,8 +80,7 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addMirrorSflow(
       mirrorTunnel.udpPorts.value().udpDstPort,
       headerVersion,
       mirrorTunnel.ttl,
-      0 // TODO: truncate size
-  };
+      truncateSize};
   SaiSflowMirrorTraits::AdapterHostKey k{
       SAI_MIRROR_SESSION_TYPE_SFLOW,
       monitorPort,
@@ -107,8 +109,6 @@ void SaiMirrorManager::addMirror(const std::shared_ptr<Mirror>& mirror) {
     throw FbossError(
         "Attempted to add mirror which already exists: ", mirror->getID());
   }
-
-  // TODO: Check for hw asic truncation support
 
   auto mirrorHandle =
       std::make_unique<SaiMirrorHandle>(mirror->getID(), managerTable_);
@@ -190,7 +190,7 @@ SaiMirrorManager::getMirrorHandle(const std::string& mirrorId) {
 SaiMirrorManager::SaiMirrorManager(
     SaiStore* saiStore,
     SaiManagerTable* managerTable,
-    const SaiPlatform* /*platform*/)
-    : saiStore_(saiStore), managerTable_(managerTable) {}
+    SaiPlatform* platform)
+    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
 } // namespace facebook::fboss

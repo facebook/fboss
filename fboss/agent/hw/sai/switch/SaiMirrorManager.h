@@ -56,7 +56,7 @@ class SaiMirrorManager {
   SaiMirrorManager(
       SaiStore* saiStore,
       SaiManagerTable* managerTable,
-      const SaiPlatform* platform);
+      SaiPlatform* platform);
   void addMirror(const std::shared_ptr<Mirror>& mirror);
   void removeMirror(const std::shared_ptr<Mirror>& mirror);
   void changeMirror(
@@ -79,6 +79,7 @@ class SaiMirrorManager {
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
+  SaiPlatform* platform_;
   folly::F14FastMap<std::string, std::unique_ptr<SaiMirrorHandle>>
       mirrorHandles_;
 };
