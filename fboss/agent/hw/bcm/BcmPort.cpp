@@ -1074,7 +1074,7 @@ void BcmPort::updateStats() {
       kInDstNullDiscards(),
       snmpBcmCustomReceive3,
       &(*curPortStats.inDstNullDiscards__ref()));
-  if ((*programmedSettings_.rlock())->getPfc().has_value()) {
+  if (isProgrammed() && (*programmedSettings_.rlock())->getPfc().has_value()) {
     updatePortPfcStats(now, curPortStats);
   }
   updateFecStats(now, curPortStats);
