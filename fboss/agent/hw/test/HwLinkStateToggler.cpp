@@ -14,6 +14,7 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/state/Port.h"
 
 #include <boost/container/flat_map.hpp>
@@ -58,7 +59,7 @@ void HwLinkStateToggler::portStateChangeImpl(
     auto newPort = newState->getPorts()->getPort(port)->modify(&newState);
     setPortIDAndStateToWaitFor(port, up);
     newPort->setLoopbackMode(desiredLoopbackMode);
-    stateUpdateFn_(newState);
+    hwEnsemble_->applyNewState(newState);
     invokeLinkScanIfNeeded(port, up);
     std::unique_lock<std::mutex> lock{linkEventMutex_};
     linkEventCV_.wait(lock, [this] { return desiredPortEventOccurred_; });
@@ -67,7 +68,7 @@ void HwLinkStateToggler::portStateChangeImpl(
     newState = newState->clone();
     newPort = newState->getPorts()->getPort(port)->modify(&newState);
     newPort->setOperState(up);
-    stateUpdateFn_(newState);
+    hwEnsemble_->applyNewState(newState);
   }
 }
 
@@ -113,19 +114,19 @@ HwLinkStateToggler::applyInitialConfigWithPortsDown(
   // tided over, over the first set of linkscan events that come as a result of
   // init (since there are no portup events in init + initial config
   // application). iii) Start tests.
-  auto newState = applyThriftConfig(curState, &cfg, platform, rib);
-  stateUpdateFn_(newState);
+  hwEnsemble_->applyNewConfig(cfg);
   for (auto& port : *cfg.ports_ref()) {
     // Set all port preemphasis values to 0 so that we can bring ports up and
     // down by setting their loopback mode to PHY and NONE respectively.
     setPortPreemphasis(
-        newState->getPorts()->getPort(PortID(*port.logicalID_ref())), 0);
+        hwEnsemble_->getProgrammedState()->getPorts()->getPort(
+            PortID(*port.logicalID_ref())),
+        0);
     *port.state_ref() = portId2DesiredState[*port.logicalID_ref()];
   }
-  newState = applyThriftConfig(newState, &cfg, platform, rib);
-  stateUpdateFn_(newState);
+  hwEnsemble_->applyNewConfig(cfg);
   platform->getHwSwitch()->switchRunStateChanged(SwitchRunState::CONFIGURED);
-  return newState;
+  return hwEnsemble_->getProgrammedState();
 }
 
 void HwLinkStateToggler::bringUpPorts(

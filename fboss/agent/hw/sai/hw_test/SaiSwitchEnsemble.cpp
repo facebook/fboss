@@ -134,11 +134,7 @@ void SaiSwitchEnsemble::init(
   std::unique_ptr<HwLinkStateToggler> linkToggler;
   if (haveFeature(HwSwitchEnsemble::LINKSCAN)) {
     linkToggler = std::make_unique<SaiLinkStateToggler>(
-        static_cast<SaiSwitch*>(platform->getHwSwitch()),
-        [this](const std::shared_ptr<SwitchState>& toApply) {
-          applyNewState(toApply);
-        },
-        platform->getAsic()->desiredLoopbackMode());
+        this, platform->getAsic()->desiredLoopbackMode());
   }
   std::unique_ptr<std::thread> thriftThread;
   if (FLAGS_setup_thrift) {

@@ -17,7 +17,10 @@ namespace facebook::fboss {
 void SaiLinkStateToggler::setPortPreemphasis(
     const std::shared_ptr<Port>& port,
     int preemphasis) {
-  auto& portManager = hw_->managerTable()->portManager();
+  auto& portManager = static_cast<SaiSwitchEnsemble*>(getHwSwitchEnsemble())
+                          ->getHwSwitch()
+                          ->managerTable()
+                          ->portManager();
   auto portHandle = portManager.getPortHandle(port->getID());
   if (!portHandle) {
     throw FbossError(

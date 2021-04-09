@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 
 #include <memory>
@@ -18,20 +19,20 @@ namespace facebook::fboss {
 
 class BcmSwitch;
 class Port;
+class BcmSwitchEnsemble;
 
 class BcmLinkStateToggler : public HwLinkStateToggler {
  public:
   BcmLinkStateToggler(
-      BcmSwitch* hw,
-      StateUpdateFn stateUpdateFn,
+      BcmSwitchEnsemble* ensemble,
       cfg::PortLoopbackMode desiredLoopbackMode)
-      : HwLinkStateToggler(stateUpdateFn, desiredLoopbackMode), hw_(hw) {}
+      : HwLinkStateToggler(ensemble, desiredLoopbackMode) {}
 
  private:
+  BcmSwitch* getHw();
   void invokeLinkScanIfNeeded(PortID port, bool isUp) override;
   void setPortPreemphasis(const std::shared_ptr<Port>& port, int preemphasis)
       override;
-  BcmSwitch* hw_;
 };
 
 } // namespace facebook::fboss

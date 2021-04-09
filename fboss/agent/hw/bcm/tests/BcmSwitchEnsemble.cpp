@@ -115,12 +115,7 @@ bool BcmSwitchEnsemble::isRouteScaleEnabled() const {
 std::unique_ptr<HwLinkStateToggler> BcmSwitchEnsemble::createLinkToggler(
     HwSwitch* hwSwitch,
     cfg::PortLoopbackMode desiredLoopbackMode) {
-  return std::make_unique<BcmLinkStateToggler>(
-      static_cast<BcmSwitch*>(hwSwitch),
-      [this](const std::shared_ptr<SwitchState>& toApply) {
-        applyNewState(toApply);
-      },
-      desiredLoopbackMode);
+  return std::make_unique<BcmLinkStateToggler>(this, desiredLoopbackMode);
 }
 
 uint64_t BcmSwitchEnsemble::getSwitchId() const {

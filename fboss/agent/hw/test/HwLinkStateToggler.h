@@ -24,16 +24,14 @@ namespace facebook::fboss {
 class RoutingInformationBase;
 class Platform;
 class SwitchState;
+class HwSwitchEnsemble;
 
 class HwLinkStateToggler {
  public:
-  using StateUpdateFn = std::function<void(std::shared_ptr<SwitchState>)>;
-
   explicit HwLinkStateToggler(
-      StateUpdateFn stateUpdateFn,
+      HwSwitchEnsemble* ensemble,
       cfg::PortLoopbackMode desiredLoopbackMode = cfg::PortLoopbackMode::MAC)
-      : stateUpdateFn_(stateUpdateFn),
-        desiredLoopbackMode_(desiredLoopbackMode) {}
+      : hwEnsemble_(ensemble), desiredLoopbackMode_(desiredLoopbackMode) {}
   virtual ~HwLinkStateToggler() {}
 
   void applyInitialConfig(
@@ -51,6 +49,11 @@ class HwLinkStateToggler {
       std::shared_ptr<SwitchState> switchState,
       const std::vector<PortID>& ports) {
     portStateChangeImpl(switchState, ports, false);
+  }
+
+ protected:
+  HwSwitchEnsemble* getHwSwitchEnsemble() {
+    return hwEnsemble_;
   }
 
  private:
@@ -78,7 +81,7 @@ class HwLinkStateToggler {
   bool desiredPortEventOccurred_{false};
   std::condition_variable linkEventCV_;
 
-  StateUpdateFn stateUpdateFn_;
+  HwSwitchEnsemble* hwEnsemble_;
   const cfg::PortLoopbackMode desiredLoopbackMode_;
 };
 

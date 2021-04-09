@@ -10,22 +10,22 @@
 
 #pragma once
 
+#include "fboss/agent/hw/sai/hw_test/SaiSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 
 #include <memory>
 
 namespace facebook::fboss {
 
-class SaiSwitch;
+class SaiSwitchEnsemble;
 class Port;
 
 class SaiLinkStateToggler : public HwLinkStateToggler {
  public:
   SaiLinkStateToggler(
-      SaiSwitch* hw,
-      StateUpdateFn stateUpdateFn,
+      SaiSwitchEnsemble* ensemble,
       cfg::PortLoopbackMode desiredLoopbackMode)
-      : HwLinkStateToggler(stateUpdateFn, desiredLoopbackMode), hw_(hw) {}
+      : HwLinkStateToggler(ensemble, desiredLoopbackMode) {}
 
  private:
   void invokeLinkScanIfNeeded(PortID /*port*/, bool /*isUp*/) override {
@@ -33,8 +33,6 @@ class SaiLinkStateToggler : public HwLinkStateToggler {
   }
   void setPortPreemphasis(const std::shared_ptr<Port>& port, int preemphasis)
       override;
-
-  SaiSwitch* hw_;
 };
 
 } // namespace facebook::fboss
