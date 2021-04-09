@@ -24,7 +24,9 @@ std::shared_ptr<SwitchState> swSwitchFibUpdate(
 
 class SwSwitchRouteUpdateWrapper : public RouteUpdateWrapper {
  public:
-  explicit SwSwitchRouteUpdateWrapper(SwSwitch* sw);
+  explicit SwSwitchRouteUpdateWrapper(
+      SwSwitch* sw,
+      RoutingInformationBase* rib);
 
  private:
   RoutingInformationBase* getRib() override;
@@ -39,5 +41,6 @@ class SwSwitchRouteUpdateWrapper : public RouteUpdateWrapper {
       std::optional<cfg::AclLookupClass> classId,
       bool async) override;
   SwSwitch* sw_;
+  RoutingInformationBase* rib_;
 };
 } // namespace facebook::fboss

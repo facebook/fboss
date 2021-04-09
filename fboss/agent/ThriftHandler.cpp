@@ -651,7 +651,7 @@ void ThriftHandler::deleteUnicastRoutesInVrf(
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
 
-  SwSwitchRouteUpdateWrapper updater(sw_);
+  auto updater = sw_->getRouteUpdater();
   auto routerID = RouterID(vrf);
   auto clientID = ClientID(client);
   for (const auto& prefix : *prefixes) {
@@ -716,7 +716,7 @@ void ThriftHandler::updateUnicastRoutesImpl(
     const std::unique_ptr<std::vector<UnicastRoute>>& routes,
     const std::string& updType,
     bool sync) {
-  SwSwitchRouteUpdateWrapper updater{sw_};
+  auto updater = sw_->getRouteUpdater();
   auto routerID = RouterID(vrf);
   auto clientID = ClientID(client);
   for (const auto& route : *routes) {

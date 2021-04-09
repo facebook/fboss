@@ -34,13 +34,15 @@ std::shared_ptr<SwitchState> swSwitchFibUpdate(
   return sw->getState();
 }
 
-SwSwitchRouteUpdateWrapper::SwSwitchRouteUpdateWrapper(SwSwitch* sw)
+SwSwitchRouteUpdateWrapper::SwSwitchRouteUpdateWrapper(
+    SwSwitch* sw,
+    RoutingInformationBase* rib)
     : RouteUpdateWrapper(
           sw->isStandaloneRibEnabled(),
-          sw->isStandaloneRibEnabled() ? swSwitchFibUpdate
-                                       : std::optional<FibUpdateFunction>(),
-          sw->isStandaloneRibEnabled() ? sw : nullptr),
-      sw_(sw) {}
+          rib ? swSwitchFibUpdate : std::optional<FibUpdateFunction>(),
+          rib ? sw : nullptr),
+      sw_(sw),
+      rib_(rib) {}
 
 void SwSwitchRouteUpdateWrapper::updateStats(
     const RoutingInformationBase::UpdateStatistics& stats) {
@@ -51,7 +53,7 @@ void SwSwitchRouteUpdateWrapper::updateStats(
 }
 
 RoutingInformationBase* SwSwitchRouteUpdateWrapper::getRib() {
-  return sw_->getRib();
+  return rib_;
 }
 
 void SwSwitchRouteUpdateWrapper::programLegacyRib(

@@ -60,7 +60,7 @@ class ResolvedNexthopMonitorTest : public ::testing::Test {
       const RoutePrefix<AddrT>& prefix,
       RouteNextHopSet nexthops,
       ClientID client = ClientID::OPENR) {
-    SwSwitchRouteUpdateWrapper updater(sw_);
+    auto updater = sw_->getRouteUpdater();
     updater.addRoute(
         RouterID(0),
         prefix.network,
@@ -74,7 +74,7 @@ class ResolvedNexthopMonitorTest : public ::testing::Test {
   void delRoute(
       const RoutePrefix<AddrT>& prefix,
       ClientID client = ClientID::OPENR) {
-    SwSwitchRouteUpdateWrapper updater(sw_);
+    auto updater = sw_->getRouteUpdater();
     updater.delRoute(RouterID(0), prefix.network, prefix.mask, client);
     updater.program();
   }

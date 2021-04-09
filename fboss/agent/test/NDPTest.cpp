@@ -433,7 +433,7 @@ class NdpTest : public ::testing::Test {
     nexthops.emplace(UnresolvedNextHop(
         IPAddress("5555:db00:2110:3004::1"), UCMP_DEFAULT_WEIGHT));
 
-    SwSwitchRouteUpdateWrapper updater(sw_);
+    auto updater = sw_->getRouteUpdater();
     updater.addRoute(
         RouterID(0),
         IPAddressV6("1111:1111:1:1::1"),

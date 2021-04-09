@@ -554,7 +554,7 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
       });
 
   setSwitchRunState(SwitchRunState::INITIALIZED);
-  SwSwitchRouteUpdateWrapper(this).programMinAlpmState();
+  SwSwitchRouteUpdateWrapper(this, rib_.get()).programMinAlpmState();
   if (FLAGS_log_all_fib_updates) {
     constexpr auto kAllFibUpdates = "all_fib_updates";
     logRouteUpdates("::", 0, kAllFibUpdates);
@@ -1553,12 +1553,8 @@ void SwSwitch::applyConfig(
   updateStateBlocking(
       reason,
       [&](const shared_ptr<SwitchState>& state) -> shared_ptr<SwitchState> {
-        auto newState = applyThriftConfig(
-            state,
-            &newConfig,
-            getPlatform(),
-            (getFlags() & SwitchFlags::ENABLE_STANDALONE_RIB) ? getRib()
-                                                              : nullptr);
+        auto newState =
+            applyThriftConfig(state, &newConfig, getPlatform(), rib_.get());
 
         if (newState && !isValidStateUpdate(StateDelta(state, newState))) {
           throw FbossError("Invalid config passed in, skipping");

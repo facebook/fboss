@@ -600,12 +600,19 @@ class SwSwitch : public HwSwitch::Callback {
     return lookupClassRouteUpdater_.get();
   }
 
-  RoutingInformationBase* getRib() {
+  /*
+   * RIB and switch state need to be kept in sync,
+   * so only expose const/non write access to rib
+   * All writes to rib must go through SwSwitch or
+   * through the well defined RouteUpdateWrapper
+   * abstraction
+   */
+  const RoutingInformationBase* getRib() const {
     return rib_.get();
   }
 
   SwSwitchRouteUpdateWrapper getRouteUpdater() {
-    return SwSwitchRouteUpdateWrapper(this);
+    return SwSwitchRouteUpdateWrapper(this, rib_.get());
   }
 
   /*

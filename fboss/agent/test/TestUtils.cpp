@@ -298,7 +298,7 @@ void waitForNeighborCacheThread(SwSwitch* sw) {
 
 void waitForRibUpdates(SwSwitch* sw) {
   if (sw->isStandaloneRibEnabled()) {
-    sw->getRib()->waitForRibUpdates();
+    sw->getRouteUpdater().program();
   }
 }
 
@@ -695,7 +695,7 @@ void WaitForSwitchState::stateUpdated(const StateDelta& delta) {
 void programRoutes(
     const utility::RouteDistributionGenerator::RouteChunks& routeChunks,
     SwSwitch* sw) {
-  SwSwitchRouteUpdateWrapper updater(sw);
+  auto updater = sw->getRouteUpdater();
   for (const auto& routeChunk : routeChunks) {
     for (const auto& route : routeChunk) {
       RouteNextHopSet nhops;

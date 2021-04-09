@@ -168,7 +168,7 @@ class MirrorManagerTest : public ::testing::Test {
   }
 
   void addRoute(const RoutePrefix<AddrT>& prefix, RouteNextHopSet nexthops) {
-    SwSwitchRouteUpdateWrapper updater(sw_);
+    auto updater = sw_->getRouteUpdater();
     updater.addRoute(
         RouterID(0),
         prefix.network,
@@ -178,7 +178,7 @@ class MirrorManagerTest : public ::testing::Test {
     updater.program();
   }
   void delRoute(const RoutePrefix<AddrT>& prefix) {
-    SwSwitchRouteUpdateWrapper updater(sw_);
+    auto updater = sw_->getRouteUpdater();
     updater.delRoute(RouterID(0), prefix.network, prefix.mask, ClientID(1000));
     updater.program();
   }

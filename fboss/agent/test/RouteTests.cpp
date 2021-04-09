@@ -312,7 +312,7 @@ TYPED_TEST(RouteTest, dedup) {
   RouteV6::Prefix r3{IPAddressV6("1001::0"), 48};
   RouteV6::Prefix r4{IPAddressV6("2001::0"), 48};
 
-  SwSwitchRouteUpdateWrapper u2(this->sw_);
+  auto u2 = this->sw_->getRouteUpdater();
   u2.addRoute(
       rid, r1.network, r1.mask, kClientA, RouteNextHopEntry(nhop1, DISTANCE));
   u2.addRoute(
@@ -326,7 +326,7 @@ TYPED_TEST(RouteTest, dedup) {
   auto stateV2 = this->sw_->getState();
   EXPECT_NE(stateV1, stateV2);
   // Re-add the same routes; expect no change
-  SwSwitchRouteUpdateWrapper u3(this->sw_);
+  auto u3 = this->sw_->getRouteUpdater();
   u3.addRoute(
       rid, r1.network, r1.mask, kClientA, RouteNextHopEntry(nhop1, DISTANCE));
   u3.addRoute(
@@ -340,7 +340,7 @@ TYPED_TEST(RouteTest, dedup) {
   auto stateV3 = this->sw_->getState();
   EXPECT_EQ(stateV2, stateV3);
   // Re-add the same routes, except for one difference.  Expect an update.
-  SwSwitchRouteUpdateWrapper u4(this->sw_);
+  auto u4 = this->sw_->getRouteUpdater();
   u4.addRoute(
       rid, r1.network, r1.mask, kClientA, RouteNextHopEntry(nhop1, DISTANCE));
   u4.addRoute(
@@ -378,7 +378,7 @@ TYPED_TEST(RouteTest, resolve) {
   auto stateV1 = this->sw_->getState();
   // recursive lookup
   {
-    SwSwitchRouteUpdateWrapper u1(this->sw_);
+    auto u1 = this->sw_->getRouteUpdater();
     RouteNextHopSet nexthops1 =
         makeNextHops({"1.1.1.10"}); // resolved by intf 1
     u1.addRoute(
@@ -425,7 +425,7 @@ TYPED_TEST(RouteTest, resolve) {
     // 3. 10/8 -> 30.1.1.1
     // The above 3 routes causes lookup loop, which should result in
     // all unresolvable.
-    SwSwitchRouteUpdateWrapper u1(this->sw_);
+    auto u1 = this->sw_->getRouteUpdater();
     u1.addRoute(
         rid,
         IPAddress("30.0.0.0"),
@@ -468,7 +468,7 @@ TYPED_TEST(RouteTest, resolve) {
   }
   // recursive lookup across 2 updates
   {
-    SwSwitchRouteUpdateWrapper u1(this->sw_);
+    auto u1 = this->sw_->getRouteUpdater();
     RouteNextHopSet nexthops1 = makeNextHops({"50.0.0.1"});
     u1.addRoute(
         rid,
@@ -489,7 +489,7 @@ TYPED_TEST(RouteTest, resolve) {
     EXPECT_FALSE(r21->needResolve());
 
     // Resolve 50.0.0.1 this should also resolve 40.0.0.0/8
-    SwSwitchRouteUpdateWrapper u2(this->sw_);
+    auto u2 = this->sw_->getRouteUpdater();
     u2.addRoute(
         rid,
         IPAddress("50.0.0.0"),
@@ -523,7 +523,7 @@ TYPED_TEST(RouteTest, resolveDropToCPUMix) {
   auto rid = RouterID(0);
 
   // add a DROP route and a ToCPU route
-  SwSwitchRouteUpdateWrapper u1(this->sw_);
+  auto u1 = this->sw_->getRouteUpdater();
   u1.addRoute(
       rid,
       IPAddress("11.1.1.0"),
@@ -564,7 +564,7 @@ TYPED_TEST(RouteTest, resolveDropToCPUMix) {
   }
 
   // now update the route with just DROP and ToCPU, expect ToCPU to win
-  SwSwitchRouteUpdateWrapper u2(this->sw_);
+  auto u2 = this->sw_->getRouteUpdater();
   RouteNextHopSet nhops2 = makeNextHops(
       {"11.1.1.10", // DROP
        "22.1.1.10"}); // ToCPU
@@ -588,7 +588,7 @@ TYPED_TEST(RouteTest, resolveDropToCPUMix) {
     EXPECT_EQ(0, fwd.getNextHopSet().size());
   }
   // now update the route with just DROP
-  SwSwitchRouteUpdateWrapper u3(this->sw_);
+  auto u3 = this->sw_->getRouteUpdater();
   RouteNextHopSet nhops3 = makeNextHops({"11.1.1.10"}); // DROP
   u3.addRoute(
       rid,
@@ -623,7 +623,7 @@ TYPED_TEST(RouteTest, addDel) {
       {"1.1.3.10", // Drop (via default null route)
        "11:11::1"}); // Drop (via default null route)
 
-  SwSwitchRouteUpdateWrapper u1(this->sw_);
+  auto u1 = this->sw_->getRouteUpdater();
   u1.addRoute(
       rid,
       IPAddress("10.1.1.1"),
@@ -667,7 +667,7 @@ TYPED_TEST(RouteTest, addDel) {
   EXPECT_EQ(expFwd2, fwd2v6);
 
   // change the nexthops of the V4 route
-  SwSwitchRouteUpdateWrapper u2(this->sw_);
+  auto u2 = this->sw_->getRouteUpdater();
   u2.addRoute(
       rid,
       IPAddress("10.1.1.1"),
@@ -686,7 +686,7 @@ TYPED_TEST(RouteTest, addDel) {
   EXPECT_FALSE(r3->needResolve());
 
   // re-add the same route does not cause change
-  SwSwitchRouteUpdateWrapper u3(this->sw_);
+  auto u3 = this->sw_->getRouteUpdater();
   u3.addRoute(
       rid,
       IPAddress("10.1.1.1"),
@@ -697,7 +697,7 @@ TYPED_TEST(RouteTest, addDel) {
   EXPECT_EQ(stateV3, this->sw_->getState());
 
   // now delete the V4 route
-  SwSwitchRouteUpdateWrapper u4(this->sw_);
+  auto u4 = this->sw_->getRouteUpdater();
   u4.delRoute(rid, IPAddress("10.1.1.1"), 24, kClientA);
   u4.program();
   EXPECT_NODEMAP_MATCH(this->sw_);
@@ -706,7 +706,7 @@ TYPED_TEST(RouteTest, addDel) {
   EXPECT_EQ(nullptr, r5);
 
   // change an old route to punt to CPU, add a new route to DROP
-  SwSwitchRouteUpdateWrapper u5(this->sw_);
+  auto u5 = this->sw_->getRouteUpdater();
   u5.addRoute(
       rid,
       IPAddress("10.1.1.0"),
@@ -805,7 +805,7 @@ TYPED_TEST(RouteTest, InterfaceRoutes) {
 
 TYPED_TEST(RouteTest, dropRoutes) {
   auto rid = RouterID(0);
-  SwSwitchRouteUpdateWrapper u1(this->sw_);
+  auto u1 = this->sw_->getRouteUpdater();
   u1.addRoute(
       rid,
       IPAddress("10.10.10.10"),
@@ -875,7 +875,7 @@ TYPED_TEST(RouteTest, dropRoutes) {
 
 TYPED_TEST(RouteTest, toCPURoutes) {
   auto rid = RouterID(0);
-  SwSwitchRouteUpdateWrapper u1(this->sw_);
+  auto u1 = this->sw_->getRouteUpdater();
   u1.addRoute(
       rid,
       IPAddress("10.10.10.10"),
@@ -1033,13 +1033,10 @@ TYPED_TEST(RouteTest, applyNewConfig) {
 
   auto platform = this->sw_->getPlatform();
   auto rib = this->sw_->getRib();
-  XLOG(INFO) << " RIB: " << (rib ? "YES" : "NO");
   auto stateV0 = this->sw_->getState();
-  auto stateV1 =
-      publishAndApplyConfig(this->sw_->getState(), &config, platform, rib);
-
+  this->sw_->applyConfig("Apply config1", config);
+  auto stateV1 = this->sw_->getState();
   ASSERT_NE(nullptr, stateV1);
-  stateV1->publish();
 
   checkChangedRoute(
       TypeParam::hasStandAloneRib,
@@ -1057,9 +1054,9 @@ TYPED_TEST(RouteTest, applyNewConfig) {
   // change an interface address
   config.interfaces_ref()[4].ipAddresses_ref()[3] = "11::11/48";
 
-  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform, rib);
+  this->sw_->applyConfig("Apply config2", config);
+  auto stateV2 = this->sw_->getState();
   ASSERT_NE(nullptr, stateV2);
-  stateV2->publish();
 
   checkChangedRoute(
       TypeParam::hasStandAloneRib,
@@ -1071,8 +1068,7 @@ TYPED_TEST(RouteTest, applyNewConfig) {
 
   // move one interface to cause same route prefix conflict
   config.interfaces_ref()[5].routerID_ref() = 0;
-  EXPECT_THROW(
-      publishAndApplyConfig(stateV2, &config, platform, rib), FbossError);
+  EXPECT_THROW(this->sw_->applyConfig("Bogus config", config), FbossError);
 
   // add a new interface in a new VRF
   config.vlans_ref()->resize(7);
@@ -1091,7 +1087,8 @@ TYPED_TEST(RouteTest, applyNewConfig) {
   config.interfaces_ref()[5].ipAddresses_ref()[0] = "5.2.2.1/24";
   config.interfaces_ref()[5].ipAddresses_ref()[1] = "5::6/48";
 
-  auto stateV3 = publishAndApplyConfig(stateV2, &config, platform, rib);
+  this->sw_->applyConfig("Apply config", config);
+  auto stateV3 = this->sw_->getState();
   ASSERT_NE(nullptr, stateV3);
   checkChangedRoute(
       TypeParam::hasStandAloneRib,
@@ -1112,7 +1109,9 @@ TYPED_TEST(RouteTest, applyNewConfig) {
       });
 
   // re-apply the same configure generates no change
-  auto stateV4 = publishAndApplyConfig(stateV3, &config, platform, rib);
+  this->sw_->applyConfig("Apply config", config);
+  auto stateV4 = this->sw_->getState();
+  ASSERT_NE(nullptr, stateV4);
   if (stateV4) {
     // FIXME - reapplying the same config on standalone rib should yield null,
     // but it does result in new state. The state delta is empty though, so
@@ -1130,7 +1129,7 @@ TYPED_TEST(RouteTest, changedRoutesPostUpdate) {
 
   auto state1 = this->sw_->getState();
   // Add a couple of routes
-  SwSwitchRouteUpdateWrapper u1(this->sw_);
+  auto u1 = this->sw_->getRouteUpdater();
   u1.addRoute(
       rid,
       IPAddress("10.1.1.0"),
@@ -1164,7 +1163,7 @@ TYPED_TEST(RouteTest, changedRoutesPostUpdate) {
       },
       {});
   // Add 2 more routes
-  SwSwitchRouteUpdateWrapper u2(this->sw_);
+  auto u2 = this->sw_->getRouteUpdater();
   u2.addRoute(
       rid,
       IPAddress("10.10.1.0"),
@@ -1201,7 +1200,7 @@ TYPED_TEST(RouteTest, changedRoutesPostUpdate) {
 
 TYPED_TEST(RouteTest, PruneAddedRoutes) {
   auto rid0 = RouterID(0);
-  SwSwitchRouteUpdateWrapper updater(this->sw_);
+  auto updater = this->sw_->getRouteUpdater();
   auto r1prefix = IPAddressV4("20.0.1.51");
   auto r1prefixLen = 24;
   auto r1nexthops = makeNextHops({"10.0.0.1", "30.0.21.51" /* unresolved */});
@@ -1246,7 +1245,7 @@ TYPED_TEST(RouteTest, PruneChangedRoutes) {
   //  ... Add route for prefix42 (RouteForwardAction::TO_CPU)
   // state2
   auto rid0 = RouterID(0);
-  SwSwitchRouteUpdateWrapper updater(this->sw_);
+  auto updater = this->sw_->getRouteUpdater();
 
   RouteV4::Prefix prefix41{IPAddressV4("20.0.21.41"), 32};
   auto nexthops41 = makeNextHops({"10.0.0.1", "face:b00c:0:21::41"});
@@ -1309,7 +1308,7 @@ TYPED_TEST(RouteTest, PruneChangedRoutes) {
 
 // Test adding and deleting per-client nexthops lists
 TYPED_TEST(RouteTest, modRoutes) {
-  SwSwitchRouteUpdateWrapper u1(this->sw_);
+  auto u1 = this->sw_->getRouteUpdater();
 
   RouteV4::Prefix prefix10{IPAddressV4("10.10.10.10"), 32};
   RouteV4::Prefix prefix99{IPAddressV4("99.99.99.99"), 32};
@@ -1346,7 +1345,7 @@ TYPED_TEST(RouteTest, modRoutes) {
   EXPECT_EQ(rt10->getForwardInfo().getNextHopSet(), nexthops1);
   EXPECT_EQ(rt99->getForwardInfo().getNextHopSet(), nexthops3);
 
-  SwSwitchRouteUpdateWrapper u2(this->sw_);
+  auto u2 = this->sw_->getRouteUpdater();
   u2.delRoute(kRid0, IPAddress("10.10.10.10"), 32, kClientA);
   u2.program();
   // 10.10.10.10 should now get clientBs nhops
@@ -1357,7 +1356,7 @@ TYPED_TEST(RouteTest, modRoutes) {
   // Delete the second client/nexthop pair
   // The route & prefix should disappear altogether.
 
-  SwSwitchRouteUpdateWrapper u3(this->sw_);
+  auto u3 = this->sw_->getRouteUpdater();
   u3.delRoute(kRid0, IPAddress("10.10.10.10"), 32, kClientB);
   u3.program();
   rt10 = this->findRoute4(this->sw_->getState(), kRid0, prefix10);
@@ -1368,7 +1367,7 @@ TYPED_TEST(RouteTest, modRoutes) {
 
 // Test adding empty nextHops lists
 TYPED_TEST(RouteTest, disallowEmptyNexthops) {
-  SwSwitchRouteUpdateWrapper u1(this->sw_);
+  auto u1 = this->sw_->getRouteUpdater();
 
   // It's illegal to add an empty nextHops list to a route
 
@@ -1427,7 +1426,7 @@ void addNextHopsForClient(
     ClientID clientId,
     std::string ipPrefix,
     AdminDistance adminDistance = AdminDistance::MAX_ADMIN_DISTANCE) {
-  SwSwitchRouteUpdateWrapper u(sw);
+  auto u = sw->getRouteUpdater();
   u.addRoute(
       kRid0,
       prefix.network,
@@ -1441,7 +1440,7 @@ void deleteNextHopsForClient(
     SwSwitch* sw,
     RouteV4::Prefix prefix,
     ClientID clientId) {
-  SwSwitchRouteUpdateWrapper u(sw);
+  auto u = sw->getRouteUpdater();
   u.delRoute(kRid0, prefix.network, prefix.mask, clientId);
   u.program();
 }
@@ -1454,7 +1453,7 @@ TYPED_TEST(RouteTest, fwdInfoRanking) {
   RouteV4::Prefix prefix{network, mask};
 
   // Add client 30, plus an interface for resolution.
-  SwSwitchRouteUpdateWrapper u1(this->sw_);
+  auto u1 = this->sw_->getRouteUpdater();
   // This is the route all the others will resolve to.
   u1.addRoute(
       kRid0,
@@ -1666,7 +1665,7 @@ TYPED_TEST(RouteTest, withLabelForwardingAction) {
 
   auto state = this->sw_->getState();
 
-  SwSwitchRouteUpdateWrapper updater(this->sw_);
+  auto updater = this->sw_->getRouteUpdater();
   updater.addRoute(
       rid,
       folly::IPAddressV4("1.1.0.0"),
@@ -1711,7 +1710,7 @@ TYPED_TEST(RouteTest, unresolvedWithRouteLabels) {
             LabelForwardingAction::LabelStack{
                 kLabelStacks[i].begin(), kLabelStacks[i].end()})));
   }
-  SwSwitchRouteUpdateWrapper updater(this->sw_);
+  auto updater = this->sw_->getRouteUpdater();
   // routes to remote prefix to bgp next hops
   updater.addRoute(
       rid,
@@ -1749,7 +1748,7 @@ TYPED_TEST(RouteTest, withTunnelAndRouteLabels) {
                 kLabelStacks[i].begin(), kLabelStacks[i].begin() + 2})));
   }
 
-  SwSwitchRouteUpdateWrapper updater(this->sw_);
+  auto updater = this->sw_->getRouteUpdater();
   // routes to remote prefix to bgp next hops
   updater.addRoute(
       rid,
@@ -1830,7 +1829,7 @@ TYPED_TEST(RouteTest, withOnlyTunnelLabels) {
     bgpNextHops.emplace(UnresolvedNextHop(kBgpNextHopAddrs[i], 1));
   }
 
-  SwSwitchRouteUpdateWrapper updater(this->sw_);
+  auto updater = this->sw_->getRouteUpdater();
   // routes to remote prefix to bgp next hops
   updater.addRoute(
       rid,
@@ -1912,7 +1911,7 @@ TYPED_TEST(RouteTest, updateTunnelLabels) {
           LabelForwardingAction::LabelStack{
               kLabelStacks[0].begin(), kLabelStacks[0].begin() + 2})));
 
-  SwSwitchRouteUpdateWrapper updater(this->sw_);
+  auto updater = this->sw_->getRouteUpdater();
   // routes to remote prefix to bgp next hops
   updater.addRoute(
       rid,
@@ -1949,7 +1948,7 @@ TYPED_TEST(RouteTest, updateTunnelLabels) {
           LabelForwardingAction::LabelStack{
               kLabelStacks[1].begin() + 2, kLabelStacks[1].begin() + 3})};
 
-  SwSwitchRouteUpdateWrapper anotherUpdater(this->sw_);
+  auto anotherUpdater = this->sw_->getRouteUpdater();
   anotherUpdater.delRoute(rid, kBgpNextHopAddrs[0], 64, ClientID::OPENR);
   anotherUpdater.addRoute(
       rid,
@@ -2000,7 +1999,7 @@ TYPED_TEST(RouteTest, updateRouteLabels) {
           LabelForwardingAction::LabelStack{
               kLabelStacks[0].begin(), kLabelStacks[0].begin() + 2})));
 
-  SwSwitchRouteUpdateWrapper updater(this->sw_);
+  auto updater = this->sw_->getRouteUpdater();
   // routes to remote prefix to bgp next hops
   updater.addRoute(
       rid,
@@ -2036,7 +2035,7 @@ TYPED_TEST(RouteTest, updateRouteLabels) {
           LabelForwardingAction::LabelStack{
               kLabelStacks[1].begin(), kLabelStacks[1].begin() + 2})};
 
-  SwSwitchRouteUpdateWrapper anotherUpdater(this->sw_);
+  auto anotherUpdater = this->sw_->getRouteUpdater();
   anotherUpdater.delRoute(
       rid, kDestPrefix.network, kDestPrefix.mask, ClientID::BGPD);
   anotherUpdater.program();
@@ -2084,7 +2083,7 @@ TYPED_TEST(RouteTest, withNoLabelForwardingAction) {
 
   auto routeNextHopEntry = RouteNextHopEntry(
       makeNextHops({"1.1.1.1", "1.1.2.1", "1.1.3.1", "1.1.4.1"}), DISTANCE);
-  SwSwitchRouteUpdateWrapper updater(this->sw_);
+  auto updater = this->sw_->getRouteUpdater();
   updater.addRoute(
       rid, folly::IPAddressV4("1.1.0.0"), 16, kClientA, routeNextHopEntry);
 
@@ -2136,7 +2135,7 @@ TYPED_TEST(RouteTest, withInvalidLabelForwardingAction) {
         UnresolvedNextHop(nextHopAddrs[i], 1, nextHopLabelActions[i]));
   }
 
-  SwSwitchRouteUpdateWrapper updater(this->sw_);
+  auto updater = this->sw_->getRouteUpdater();
   updater.addRoute(
       rid,
       folly::IPAddressV4("1.1.0.0"),
@@ -2157,7 +2156,7 @@ TYPED_TEST(RouteTest, serializeRouteTable) {
   RouteV6::Prefix r3{IPAddressV6("1001::0"), 48};
   RouteV6::Prefix r4{IPAddressV6("2001::0"), 48};
 
-  SwSwitchRouteUpdateWrapper u2(this->sw_);
+  auto u2 = this->sw_->getRouteUpdater();
   u2.addRoute(
       rid, r1.network, r1.mask, kClientA, RouteNextHopEntry(nhop1, DISTANCE));
   u2.addRoute(
@@ -2240,7 +2239,7 @@ class UcmpTest : public RouteTest<StandAloneRib> {
  public:
   void resolveRoutes(std::vector<std::pair<folly::IPAddress, RouteNextHopSet>>
                          networkAndNextHops) {
-    SwSwitchRouteUpdateWrapper ru(this->sw_);
+    auto ru = this->sw_->getRouteUpdater();
     for (const auto& nnhs : networkAndNextHops) {
       folly::IPAddress net = nnhs.first;
       RouteNextHopSet nhs = nnhs.second;

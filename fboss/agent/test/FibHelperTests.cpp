@@ -48,7 +48,7 @@ class FibHelperTest : public ::testing::Test {
   }
 
   void programRoute(const folly::CIDRNetwork& prefix) {
-    SwSwitchRouteUpdateWrapper routeUpdater(sw_);
+    auto routeUpdater = sw_->getRouteUpdater();
     RouteNextHopSet nexthops{
         UnresolvedNextHop(kIpAddressA(), UCMP_DEFAULT_WEIGHT)};
     routeUpdater.addRoute(

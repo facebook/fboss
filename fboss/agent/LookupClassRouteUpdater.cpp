@@ -780,7 +780,7 @@ void LookupClassRouteUpdater::updateClassIDsForRoutes(
     auto& [rid, cidr] = ridAndCidr;
     ridClassId2Prefixes[std::make_pair(rid, classID)].emplace_back(cidr);
   }
-  SwSwitchRouteUpdateWrapper updater(sw_);
+  auto updater = sw_->getRouteUpdater();
   for (const auto& [ridAndClassId, prefixes] : ridClassId2Prefixes) {
     updater.programClassID(
         ridAndClassId.first, prefixes, ridAndClassId.second, true /*async*/);

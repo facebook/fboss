@@ -255,7 +255,7 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
   void addDelRouteImpl(
       RoutePrefix<AddrT> routePrefix,
       std::vector<AddrT> nextHops) {
-    SwSwitchRouteUpdateWrapper routeUpdater(sw_);
+    auto routeUpdater = sw_->getRouteUpdater();
     if (nextHops.size()) {
       RouteNextHopSet nexthops;
       for (const auto& nextHop : nextHops) {
@@ -492,7 +492,7 @@ TYPED_TEST(LookupClassRouteUpdaterTest, VerifyInteractionWithSyncFib) {
   this->verifyClassIDHelper(
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
 
-  SwSwitchRouteUpdateWrapper updater(this->sw_);
+  auto updater = this->sw_->getRouteUpdater();
   RouteNextHopSet nexthops;
   nexthops.emplace(UnresolvedNextHop(this->kIpAddressB(), UCMP_DEFAULT_WEIGHT));
 
