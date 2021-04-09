@@ -75,7 +75,7 @@ class BcmEcmpTest : public BcmLinkStateDependentTests {
 };
 
 void BcmEcmpTest::programRouteWithUnresolvedNhops() {
-  ecmpHelper_->programRoutes(getRouteUpdateWrapper(), kNumNextHops);
+  ecmpHelper_->programRoutes(getRouteUpdater(), kNumNextHops);
 }
 
 const BcmMultiPathNextHop* BcmEcmpTest::getBcmMultiPathNextHop() const {
@@ -135,7 +135,7 @@ TEST_F(BcmEcmpTest, UcmpShrink) {
   applyNewState(
       ecmpHelper_->resolveNextHops(getProgrammedState(), kNumNextHops));
   ecmpHelper_->programRoutes(
-      getRouteUpdateWrapper(), kNumNextHops, {kDefaultRoute}, weights);
+      getRouteUpdater(), kNumNextHops, {kDefaultRoute}, weights);
   EXPECT_EQ(
       kNumNextHops + 2,
       getEcmpSizeInHw(

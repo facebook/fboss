@@ -100,7 +100,7 @@ class HwMPLSTest : public HwLinkStateDependentTest {
         }));
 
     ecmpHelper_->programIp2MplsRoutes(
-        getRouteUpdateWrapper(),
+        getRouteUpdater(),
         {port},
         {{port, std::move(stack)}},
         {RoutePrefixV6{prefix, mask}});

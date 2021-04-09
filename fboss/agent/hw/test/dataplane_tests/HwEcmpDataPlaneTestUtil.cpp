@@ -99,7 +99,8 @@ void HwIpEcmpDataPlaneTestUtil<AddrT>::programRoutes(
   auto* ensemble = BaseT::getEnsemble();
   ensemble->applyNewState(
       helper->resolveNextHops(ensemble->getProgrammedState(), ecmpWidth));
-  auto updater = std::make_unique<HwSwitchEnsembleRouteUpdateWrapper>(ensemble);
+  auto updater = std::make_unique<HwSwitchEnsembleRouteUpdateWrapper>(
+      ensemble->getRouteUpdater());
   if (stacks_.empty()) {
     helper->programRoutes(
         std::move(updater), ecmpWidth, {{AddrT(), 0}}, weights);

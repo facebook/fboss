@@ -82,8 +82,8 @@ TEST_F(HwResourceStatsTest, l3Stats) {
          v6NextHopsFreeBefore,
          v4HostFreeBefore,
          v6HostFreeBefore] = getStatsFn();
-    ecmp4.programRoutes(getRouteUpdateWrapper(), kEcmpWidth, {kPrefix4()});
-    ecmp6.programRoutes(getRouteUpdateWrapper(), kEcmpWidth, {kPrefix6()});
+    ecmp4.programRoutes(getRouteUpdater(), kEcmpWidth, {kPrefix4()});
+    ecmp6.programRoutes(getRouteUpdater(), kEcmpWidth, {kPrefix6()});
     applyNewState(ecmp4.resolveNextHops(getProgrammedState(), kEcmpWidth));
     applyNewState(ecmp6.resolveNextHops(getProgrammedState(), kEcmpWidth));
     // Trigger a stats collection
@@ -112,8 +112,8 @@ TEST_F(HwResourceStatsTest, l3Stats) {
     }
     EXPECT_EQ(ecmpFreeAfter, ecmpFreeBefore - 2);
     // Unresolve so we can rerun verify for many (warmboot) iterations
-    ecmp4.unprogramRoutes(getRouteUpdateWrapper(), {kPrefix4()});
-    ecmp6.unprogramRoutes(getRouteUpdateWrapper(), {kPrefix6()});
+    ecmp4.unprogramRoutes(getRouteUpdater(), {kPrefix4()});
+    ecmp6.unprogramRoutes(getRouteUpdater(), {kPrefix6()});
     applyNewState(ecmp4.unresolveNextHops(getProgrammedState(), kEcmpWidth));
     applyNewState(ecmp6.unresolveNextHops(getProgrammedState(), kEcmpWidth));
   };

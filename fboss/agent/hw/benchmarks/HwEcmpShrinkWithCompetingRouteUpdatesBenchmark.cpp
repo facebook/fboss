@@ -44,7 +44,8 @@ BENCHMARK(HwEcmpGroupShrinkWithCompetingRouteUpdates) {
   ensemble->applyNewState(
       ecmpHelper.resolveNextHops(ensemble->getProgrammedState(), kEcmpWidth));
   ecmpHelper.programRoutes(
-      std::make_unique<HwSwitchEnsembleRouteUpdateWrapper>(ensemble.get()),
+      std::make_unique<HwSwitchEnsembleRouteUpdateWrapper>(
+          ensemble->getRouteUpdater()),
       kEcmpWidth);
 
   auto prefix = folly::CIDRNetwork(folly::IPAddress("::"), 0);
@@ -64,7 +65,7 @@ BENCHMARK(HwEcmpGroupShrinkWithCompetingRouteUpdates) {
                          .getThriftRoutes();
 
   std::thread t([&ensemble, &routeChunks]() {
-    HwSwitchEnsembleRouteUpdateWrapper updater(ensemble.get());
+    auto updater = ensemble->getRouteUpdater();
     updater.programRoutes(RouterID(0), ClientID::BGPD, routeChunks);
   });
 

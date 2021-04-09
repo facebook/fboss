@@ -77,8 +77,7 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
     auto newState = utility::enableTrunkPorts(getProgrammedState());
     applyNewState(
         ecmpHelper.resolveNextHops(newState, getAggregatePorts(aggInfo)));
-    ecmpHelper.programRoutes(
-        getRouteUpdateWrapper(), getAggregatePorts(aggInfo));
+    ecmpHelper.programRoutes(getRouteUpdater(), getAggregatePorts(aggInfo));
   }
 
  protected:

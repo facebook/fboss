@@ -183,13 +183,13 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
       }
     }
 
-    helper6.programRoutes(getRouteUpdateWrapper(), nhops);
+    helper6.programRoutes(getRouteUpdater(), nhops);
     state = getProgrammedState();
     for (auto i = 1; i < size; i++) {
       boost::container::flat_set<PortDescriptor> port;
       port.insert(PortDescriptor(ports[i]));
       helper6.programRoutes(
-          getRouteUpdateWrapper(),
+          getRouteUpdater(),
           {PortDescriptor(ports[i])},
           {RouteV6::Prefix{
               folly::IPAddressV6(folly::to<std::string>(kIpStr, i, "::0")),

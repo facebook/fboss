@@ -314,7 +314,7 @@ TEST_F(BcmHostTest, HostRouteLookupClassNotSet) {
           CIDRNetwork(IPAddress("2001::0"), 128), IPAddress("2::10"))};
   auto setup = [=]() {
     applyNewConfig(initialConfig());
-    HwSwitchEnsembleRouteUpdateWrapper updater(getHwSwitchEnsemble());
+    auto updater = getHwSwitchEnsemble()->getRouteUpdater();
     for (const auto& networkAndNexthop : networkAndNexthops) {
       boost::container::flat_set<NextHop> nexthopSet{
           UnresolvedNextHop(networkAndNexthop.second, ECMP_WEIGHT)};

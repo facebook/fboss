@@ -84,7 +84,7 @@ class HwLabelEdgeRouteTest : public HwLinkStateDependentTest {
       labelAction = LabelForwardingAction(
           LabelForwardingAction::LabelForwardingType::PUSH, std::move(stack));
     }
-    HwSwitchEnsembleRouteUpdateWrapper updater(getHwSwitchEnsemble());
+    auto updater = getHwSwitchEnsemble()->getRouteUpdater();
     updater.addRoute(
         kRouter0,
         network,
@@ -157,9 +157,9 @@ class HwLabelEdgeRouteTest : public HwLinkStateDependentTest {
     auto* ecmpHelper = ecmpHelpers_[prefix].get();
     if (!stacks.empty()) {
       ecmpHelper->programIp2MplsRoutes(
-          getRouteUpdateWrapper(), allPorts(), std::move(stacks), {prefix});
+          getRouteUpdater(), allPorts(), std::move(stacks), {prefix});
     } else {
-      ecmpHelper->programRoutes(getRouteUpdateWrapper(), allPorts(), {prefix});
+      ecmpHelper->programRoutes(getRouteUpdater(), allPorts(), {prefix});
     }
   }
 

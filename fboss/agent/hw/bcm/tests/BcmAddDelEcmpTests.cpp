@@ -55,12 +55,12 @@ class BcmAddDelEcmpTest : public BcmTest {
       const utility::EcmpSetupAnyNPorts<AddrT>& ecmpHelper,
       int ecmpWidth,
       const RoutePrefix<AddrT>& prefix) {
-    ecmpHelper.programRoutes(getRouteUpdateWrapper(), ecmpWidth, {prefix});
+    ecmpHelper.programRoutes(getRouteUpdater(), ecmpWidth, {prefix});
   }
 
   void delRoute(const CIDRNetwork& network) {
     auto unprogram = [this](auto ecmpHelper, const auto& prefix) {
-      ecmpHelper.unprogramRoutes(getRouteUpdateWrapper(), {prefix});
+      ecmpHelper.unprogramRoutes(getRouteUpdater(), {prefix});
     };
     if (network.first.isV4()) {
       unprogram(

@@ -40,17 +40,19 @@ std::shared_ptr<SwitchState> hwSwitchEnsembleFibUpdate(
 }
 
 HwSwitchEnsembleRouteUpdateWrapper::HwSwitchEnsembleRouteUpdateWrapper(
-    HwSwitchEnsemble* hwEnsemble)
+    HwSwitchEnsemble* hwEnsemble,
+    RoutingInformationBase* rib)
     : RouteUpdateWrapper(
           hwEnsemble->isStandaloneRibEnabled(),
           hwEnsemble->isStandaloneRibEnabled()
               ? hwSwitchEnsembleFibUpdate
               : std::optional<FibUpdateFunction>(),
           hwEnsemble->isStandaloneRibEnabled() ? hwEnsemble : nullptr),
-      hwEnsemble_(hwEnsemble) {}
+      hwEnsemble_(hwEnsemble),
+      rib_(rib) {}
 
 RoutingInformationBase* HwSwitchEnsembleRouteUpdateWrapper::getRib() {
-  return hwEnsemble_->getRib();
+  return rib_;
 }
 
 void HwSwitchEnsembleRouteUpdateWrapper::programLegacyRib(

@@ -288,7 +288,7 @@ class BcmRouteTest : public BcmTest {
   void addRoute(
       folly::CIDRNetwork network,
       const std::vector<folly::IPAddress>& nexthopAddrs) {
-    HwSwitchEnsembleRouteUpdateWrapper updater(getHwSwitchEnsemble());
+    auto updater = getHwSwitchEnsemble()->getRouteUpdater();
     RouteNextHopEntry::NextHopSet nexthops;
 
     for (const auto& nexthopAddr : nexthopAddrs) {
@@ -304,7 +304,7 @@ class BcmRouteTest : public BcmTest {
     updater.program();
   }
   void delRoute(folly::CIDRNetwork network) {
-    HwSwitchEnsembleRouteUpdateWrapper updater(getHwSwitchEnsemble());
+    auto updater = getHwSwitchEnsemble()->getRouteUpdater();
     updater.delRoute(kRouter0, network.first, network.second, ClientID(1001));
     updater.program();
   }
@@ -1045,7 +1045,7 @@ TEST_F(BcmRouteTest, UnresolveResolveNextHop) {
       ntable->updateEntry(*fields);
     }
     applyNewState(state1);
-    helper.programRoutes(getRouteUpdateWrapper(), ports, {route});
+    helper.programRoutes(getRouteUpdater(), ports, {route});
   };
   auto verify = [=]() {
     /* route is programmed */

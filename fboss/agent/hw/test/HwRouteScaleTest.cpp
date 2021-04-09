@@ -45,7 +45,7 @@ class HwRouteScaleTest : public HwTest {
                              getProgrammedState(),
                              getHwSwitchEnsemble()->isStandaloneRibEnabled())
                              .getThriftRoutes();
-      HwSwitchEnsembleRouteUpdateWrapper updater(getHwSwitchEnsemble());
+      auto updater = getHwSwitchEnsemble()->getRouteUpdater();
       updater.programRoutes(RouterID(0), ClientID::BGPD, routeChunks);
     };
     auto verify = [] {};

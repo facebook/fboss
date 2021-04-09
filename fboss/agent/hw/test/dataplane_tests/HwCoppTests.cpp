@@ -95,7 +95,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
       flat_set<PortDescriptor> ports;
       ports.insert(PortDescriptor(AggregatePortID(1)));
       applyNewState(ecmpHelper.resolveNextHops(getProgrammedState(), ports));
-      ecmpHelper.programRoutes(getRouteUpdateWrapper(), ports);
+      ecmpHelper.programRoutes(getRouteUpdater(), ports);
     }
   }
 

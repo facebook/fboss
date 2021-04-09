@@ -25,7 +25,7 @@ TEST_F(HwOverflowTest, overflowRoutes) {
           .resolveNextHops(getProgrammedState(), utility::kDefaulEcmpWidth));
   bool isStandaloneRibEnabled = getHwSwitchEnsemble()->isStandaloneRibEnabled();
   utility::RouteDistributionGenerator::ThriftRouteChunks routeChunks;
-  HwSwitchEnsembleRouteUpdateWrapper updater(getHwSwitchEnsemble());
+  auto updater = getHwSwitchEnsemble()->getRouteUpdater();
   const RouterID kRid(0);
   switch (getPlatform()->getMode()) {
     case PlatformMode::WEDGE:
@@ -99,7 +99,7 @@ TEST_F(HwOverflowTest, overflowRoutes) {
 
     auto programmedState = getProgrammedState();
     EXPECT_TRUE(programmedState->isPublished());
-    HwSwitchEnsembleRouteUpdateWrapper updater2(getHwSwitchEnsemble());
+    auto updater2 = getHwSwitchEnsemble()->getRouteUpdater();
     updater2.program();
     EXPECT_EQ(programmedState, getProgrammedState());
   }

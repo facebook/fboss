@@ -56,7 +56,8 @@ void runRxSlowPathBenchmark() {
   ensemble->applyNewState(
       ecmpHelper.resolveNextHops(ensemble->getProgrammedState(), kEcmpWidth));
   ecmpHelper.programRoutes(
-      std::make_unique<HwSwitchEnsembleRouteUpdateWrapper>(ensemble.get()),
+      std::make_unique<HwSwitchEnsembleRouteUpdateWrapper>(
+          ensemble->getRouteUpdater()),
       kEcmpWidth);
   // Disable TTL decrements
   utility::disableTTLDecrements(

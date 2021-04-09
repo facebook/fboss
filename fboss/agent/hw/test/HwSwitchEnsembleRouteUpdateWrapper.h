@@ -26,7 +26,9 @@ void hwSwitchFibUpdate(
 
 class HwSwitchEnsembleRouteUpdateWrapper : public RouteUpdateWrapper {
  public:
-  explicit HwSwitchEnsembleRouteUpdateWrapper(HwSwitchEnsemble* hwEnsemble);
+  explicit HwSwitchEnsembleRouteUpdateWrapper(
+      HwSwitchEnsemble* hwEnsemble,
+      RoutingInformationBase* rib);
 
   void programRoutes(
       RouterID rid,
@@ -62,5 +64,6 @@ class HwSwitchEnsembleRouteUpdateWrapper : public RouteUpdateWrapper {
       bool async) override;
 
   HwSwitchEnsemble* hwEnsemble_;
+  RoutingInformationBase* rib_;
 };
 } // namespace facebook::fboss

@@ -140,7 +140,10 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::getProgrammedState() const {
 std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewConfig(
     const cfg::SwitchConfig& config) {
   return applyNewState(applyThriftConfig(
-      getProgrammedState(), &config, getPlatform(), getRib()));
+      getProgrammedState(),
+      &config,
+      getPlatform(),
+      routingInformationBase_.get()));
 }
 
 std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewStateImpl(
@@ -317,7 +320,7 @@ void HwSwitchEnsemble::setupEnsemble(
   // before any other routes. We handle that setup here. Similarly ALPM
   // requires that default routes be deleted last. That aspect is handled
   // in TearDown
-  HwSwitchEnsembleRouteUpdateWrapper(this).programMinAlpmState();
+  getRouteUpdater().programMinAlpmState();
 
   thriftThread_ = std::move(thriftThread);
   switchRunStateChanged(SwitchRunState::INITIALIZED);
@@ -327,8 +330,7 @@ void HwSwitchEnsemble::setupEnsemble(
     // mismatched from FIB). A empty update should not
     // change switchState. Assert that post init. Most
     // interesting case here is of state diverging post WB
-    HwSwitchEnsembleRouteUpdateWrapper u(this);
-    u.program();
+    getRouteUpdater().program();
     CHECK_EQ(curProgrammedState, getProgrammedState());
   }
   // Set ConfigFactory port to default profile id map

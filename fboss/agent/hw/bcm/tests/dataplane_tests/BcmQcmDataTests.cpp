@@ -225,9 +225,7 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
     // We could revisit to add support for v4 at a later time
     if (prefix.isV6()) {
       ecmpHelper6_->programRoutes(
-          getRouteUpdateWrapper(),
-          {port},
-          {RoutePrefixV6{prefix.asV6(), mask}});
+          getRouteUpdater(), {port}, {RoutePrefixV6{prefix.asV6(), mask}});
     }
   }
 

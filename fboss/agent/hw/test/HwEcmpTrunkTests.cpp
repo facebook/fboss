@@ -60,7 +60,7 @@ class HwEcmpTrunkTest : public HwLinkStateDependentTest {
       applyNewState(utility::setTrunkMinLinkCount(state, minlinks));
       applyNewState(
           ecmpHelper_->resolveNextHops(getProgrammedState(), getEcmpPorts()));
-      ecmpHelper_->programRoutes(getRouteUpdateWrapper(), getEcmpPorts());
+      ecmpHelper_->programRoutes(getRouteUpdater(), getEcmpPorts());
     };
 
     auto verify = [=]() {
@@ -129,8 +129,7 @@ TEST_F(HwEcmpTrunkTest, TrunkMemberRemoveWithRouteTest) {
 
     applyNewState(
         ecmpHelper_->resolveNextHops(getProgrammedState(), getEcmpPorts()));
-    ecmpHelper_->programRoutes(
-        getRouteUpdateWrapper(), getEcmpPorts(), v6Prefixes);
+    ecmpHelper_->programRoutes(getRouteUpdater(), getEcmpPorts(), v6Prefixes);
   };
 
   auto verify = [=]() {
@@ -168,7 +167,7 @@ TEST_F(
     applyNewState(utility::setTrunkMinLinkCount(state, minlinks));
     applyNewState(
         ecmpHelper_->resolveNextHops(getProgrammedState(), getEcmpPorts()));
-    ecmpHelper_->programRoutes(getRouteUpdateWrapper(), getEcmpPorts());
+    ecmpHelper_->programRoutes(getRouteUpdater(), getEcmpPorts());
     // We programmed the default route picked by EcmpSetupAnyNPorts so lookup
     // the ECMP group for it
     ASSERT_EQ(
@@ -267,7 +266,7 @@ TEST_F(HwEcmpTrunkTest, TrunkL2ResolveNhopThenLinkDownThenUpThenStateUp) {
     applyNewState(utility::setTrunkMinLinkCount(state, minlinks));
     applyNewState(
         ecmpHelper_->resolveNextHops(getProgrammedState(), getEcmpPorts()));
-    ecmpHelper_->programRoutes(getRouteUpdateWrapper(), getEcmpPorts());
+    ecmpHelper_->programRoutes(getRouteUpdater(), getEcmpPorts());
     // We programmed the default route picked by EcmpSetupAnyNPorts so lookup
     // the ECMP group for it
     ASSERT_EQ(
@@ -353,7 +352,7 @@ TEST_F(
     applyNewState(utility::setTrunkMinLinkCount(state, minlinks));
     applyNewState(
         ecmpHelper_->resolveNextHops(getProgrammedState(), getEcmpPorts()));
-    ecmpHelper_->programRoutes(getRouteUpdateWrapper(), getEcmpPorts());
+    ecmpHelper_->programRoutes(getRouteUpdater(), getEcmpPorts());
     // We programmed the default route picked by EcmpSetupAnyNPorts so lookup
     // the ECMP group for it
     ASSERT_EQ(
@@ -428,7 +427,7 @@ TEST_F(HwEcmpTrunkTest, TrunkL2ResolveNhopThenLinkUpDownUpBeforeReinit) {
     applyNewState(utility::setTrunkMinLinkCount(state, minlinks));
     applyNewState(
         ecmpHelper_->resolveNextHops(getProgrammedState(), getEcmpPorts()));
-    ecmpHelper_->programRoutes(getRouteUpdateWrapper(), getEcmpPorts());
+    ecmpHelper_->programRoutes(getRouteUpdater(), getEcmpPorts());
     // We programmed the default route picked by EcmpSetupAnyNPorts so lookup
     // the ECMP group for it
     ASSERT_EQ(

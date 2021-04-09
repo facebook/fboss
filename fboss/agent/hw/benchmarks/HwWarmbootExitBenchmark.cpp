@@ -78,7 +78,7 @@ void runBenchmark() {
             ensemble->getProgrammedState(), ensemble->isStandaloneRibEnabled())
             .getThriftRoutes();
   }
-  HwSwitchEnsembleRouteUpdateWrapper updater(ensemble.get());
+  auto updater = ensemble->getRouteUpdater();
   updater.programRoutes(RouterID(0), ClientID::BGPD, routeChunks);
   // Static such that the object destructor runs as late as possible. In
   // Static such that the object destructor runs as late as possible. In

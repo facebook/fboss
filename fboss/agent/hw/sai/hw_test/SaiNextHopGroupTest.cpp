@@ -29,7 +29,7 @@ class SaiNextHopGroupTest : public SaiLinkStateDependentTests {
   }
 
   void addRoute(int nextHopGroupMemberCount) {
-    helper_->programRoutes(getRouteUpdateWrapper(), nextHopGroupMemberCount);
+    helper_->programRoutes(getRouteUpdater(), nextHopGroupMemberCount);
   }
 
   void resolveNeighbors(int neighborCount) {

@@ -197,7 +197,7 @@ void initandExitBenchmarkHelper(
   }
   suspender.rehire();
   auto routeChunks = getRoutes(ensemble.get());
-  HwSwitchEnsembleRouteUpdateWrapper updater(ensemble.get());
+  auto updater = ensemble->getRouteUpdater();
   updater.programRoutes(RouterID(0), ClientID::BGPD, routeChunks);
   if (FLAGS_setup_for_warmboot) {
     ScopedCallTimer timeIt;

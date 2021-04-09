@@ -39,7 +39,7 @@ class BcmEmptyEcmpTest : public BcmTest {
       const utility::EcmpSetupAnyNPorts<AddrT>& ecmpHelper,
       int ecmpWidth,
       const RoutePrefix<AddrT>& prefix) {
-    ecmpHelper.programRoutes(getRouteUpdateWrapper(), ecmpWidth, {prefix});
+    ecmpHelper.programRoutes(getRouteUpdater(), ecmpWidth, {prefix});
   }
   void runTest(unsigned int ecmpWidth) {
     auto cfg = initialConfig();

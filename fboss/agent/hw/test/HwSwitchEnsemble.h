@@ -12,6 +12,7 @@
 
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
+#include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/platforms/tests/utils/TestPlatformTypes.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
@@ -161,6 +162,10 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
       std::string& output) = 0;
   bool isStandaloneRibEnabled() const {
     return routingInformationBase_.get() != nullptr;
+  }
+  HwSwitchEnsembleRouteUpdateWrapper getRouteUpdater() {
+    return HwSwitchEnsembleRouteUpdateWrapper(
+        this, routingInformationBase_.get());
   }
 
  protected:

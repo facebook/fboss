@@ -108,7 +108,7 @@ void routeAddDelBenchmarker(bool measureAdd) {
   };
   // Start parallel lookup thread
   std::thread lookupThread([&doLookups]() { doLookups(); });
-  HwSwitchEnsembleRouteUpdateWrapper updater(ensemble.get());
+  auto updater = ensemble->getRouteUpdater();
   if (measureAdd) {
     {
       // Route add benchmark

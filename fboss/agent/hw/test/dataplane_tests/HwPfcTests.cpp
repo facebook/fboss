@@ -58,7 +58,7 @@ class HwPfcTest : public HwLinkStateDependentTest {
       const folly::CIDRNetwork& prefix) {
     RoutePrefixV6 route{prefix.first.asV6(), prefix.second};
     applyNewState(ecmpHelper.resolveNextHops(getProgrammedState(), {port}));
-    ecmpHelper.programRoutes(getRouteUpdateWrapper(), {port}, {route});
+    ecmpHelper.programRoutes(getRouteUpdater(), {port}, {route});
   }
   template <typename ECMP_HELPER>
   void disableTTLDecrements(const ECMP_HELPER& ecmpHelper) {

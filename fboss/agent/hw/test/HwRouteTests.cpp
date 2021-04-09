@@ -91,7 +91,7 @@ class HwRouteTest : public HwLinkStateDependentTest {
     utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(inState, kRouterID());
     applyNewState(ecmpHelper.resolveNextHops(getProgrammedState(), kEcmpWidth));
     ecmpHelper.programRoutes(
-        this->getRouteUpdateWrapper(), kEcmpWidth, routePrefixes);
+        this->getRouteUpdater(), kEcmpWidth, routePrefixes);
     return getProgrammedState();
   }
 
@@ -120,7 +120,7 @@ TYPED_TEST(HwRouteTest, VerifyClassID) {
         {this->kGetRoutePrefix0(),
          this->kGetRoutePrefix1(),
          this->kGetRoutePrefix2()});
-    HwSwitchEnsembleRouteUpdateWrapper updater(this->getHwSwitchEnsemble());
+    auto updater = this->getHwSwitchEnsemble()->getRouteUpdater();
     updater.programClassID(
         this->kRouterID(),
         {this->kGetRoutePrefix0().toCidrNetwork(),
@@ -162,7 +162,7 @@ TYPED_TEST(HwRouteTest, UnresolvedAndResolvedNextHop) {
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
         this->getProgrammedState(), this->kRouterID());
     ecmpHelper.programRoutes(
-        this->getRouteUpdateWrapper(),
+        this->getRouteUpdater(),
         {PortDescriptor(this->masterLogicalPortIds()[0])},
         {this->kGetRoutePrefix0()});
 
@@ -170,7 +170,7 @@ TYPED_TEST(HwRouteTest, UnresolvedAndResolvedNextHop) {
         this->getProgrammedState(),
         {PortDescriptor(this->masterLogicalPortIds()[1])}));
     ecmpHelper.programRoutes(
-        this->getRouteUpdateWrapper(),
+        this->getRouteUpdater(),
         {PortDescriptor(this->masterLogicalPortIds()[1])},
         {this->kGetRoutePrefix1()});
   };
@@ -214,7 +214,7 @@ TYPED_TEST(HwRouteTest, UnresolveResolvedNextHop) {
         ecmpHelper.resolveNextHops(this->getProgrammedState(), 1));
 
     ecmpHelper.programRoutes(
-        this->getRouteUpdateWrapper(), 1, {this->kGetRoutePrefix0()});
+        this->getRouteUpdater(), 1, {this->kGetRoutePrefix0()});
     this->applyNewState(
         ecmpHelper.unresolveNextHops(this->getProgrammedState(), 1));
   };
@@ -236,7 +236,7 @@ TYPED_TEST(HwRouteTest, UnresolvedAndResolvedMultiNextHop) {
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
         this->getProgrammedState(), this->kRouterID());
     ecmpHelper.programRoutes(
-        this->getRouteUpdateWrapper(),
+        this->getRouteUpdater(),
         {PortDescriptor(this->masterLogicalPortIds()[0]),
          PortDescriptor(this->masterLogicalPortIds()[1])},
         {this->kGetRoutePrefix0()});
@@ -246,7 +246,7 @@ TYPED_TEST(HwRouteTest, UnresolvedAndResolvedMultiNextHop) {
         {PortDescriptor(this->masterLogicalPortIds()[2]),
          PortDescriptor(this->masterLogicalPortIds()[3])}));
     ecmpHelper.programRoutes(
-        this->getRouteUpdateWrapper(),
+        this->getRouteUpdater(),
         {PortDescriptor(this->masterLogicalPortIds()[2]),
          PortDescriptor(this->masterLogicalPortIds()[3])},
         {this->kGetRoutePrefix1()});
@@ -326,7 +326,7 @@ TYPED_TEST(HwRouteTest, ResolvedMultiNexthopToUnresolvedSingleNexthop) {
         {PortDescriptor(this->masterLogicalPortIds()[0]),
          PortDescriptor(this->masterLogicalPortIds()[1])}));
     ecmpHelper.programRoutes(
-        this->getRouteUpdateWrapper(),
+        this->getRouteUpdater(),
         {PortDescriptor(this->masterLogicalPortIds()[0]),
          PortDescriptor(this->masterLogicalPortIds()[1])},
         {this->kGetRoutePrefix0()});
@@ -367,7 +367,7 @@ TYPED_TEST(HwRouteTest, ResolvedMultiNexthopToUnresolvedSingleNexthop) {
         this->getProgrammedState(),
         {PortDescriptor(this->masterLogicalPortIds()[0])}));
     ecmpHelper.programRoutes(
-        this->getRouteUpdateWrapper(),
+        this->getRouteUpdater(),
         {PortDescriptor(this->masterLogicalPortIds()[0])},
         {this->kGetRoutePrefix0()});
   };
@@ -401,7 +401,7 @@ TYPED_TEST(HwRouteTest, StaticIp2MplsRoutes) {
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
         this->getProgrammedState(), this->kRouterID());
     ecmpHelper.programRoutes(
-        this->getRouteUpdateWrapper(),
+        this->getRouteUpdater(),
         {PortDescriptor(this->masterLogicalPortIds()[0]),
          PortDescriptor(this->masterLogicalPortIds()[1])},
         {this->kGetRoutePrefix0()});

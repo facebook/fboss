@@ -73,7 +73,7 @@ class HwEcmpTest : public HwLinkStateDependentTest {
   }
   void programRouteWithUnresolvedNhops(int numNhops = kNumNextHops) {
     ecmpHelper_->programRoutes(
-        getRouteUpdateWrapper(),
+        getRouteUpdater(),
         numNhops,
         {kDefaultRoute},
         std::vector<NextHopWeight>(
@@ -198,12 +198,12 @@ TEST_F(HwEcmpTest, ecmpToDropToEcmp) {
   applyNewState(
       ecmpHelper_->unresolveNextHops(getProgrammedState(), kEcmpWidthForTest));
   EXPECT_EQ(0, getEcmpSizeInHw());
-  ecmpHelper_->unprogramRoutes(getRouteUpdateWrapper());
+  ecmpHelper_->unprogramRoutes(getRouteUpdater());
   // Bring the route back, but mimic learning it from peers one by one first
   applyNewState(
       ecmpHelper_->resolveNextHops(getProgrammedState(), kEcmpWidthForTest));
   for (auto i = 0; i < kEcmpWidthForTest; ++i) {
-    ecmpHelper_->programRoutes(getRouteUpdateWrapper(), i + 1);
+    ecmpHelper_->programRoutes(getRouteUpdater(), i + 1);
     if (i) {
       EXPECT_EQ(i + 1, getEcmpSizeInHw());
     }
@@ -377,7 +377,7 @@ TEST_F(HwEcmpTest, ResolvePendingResolveNexthop) {
       ntable->updateEntry(*fields);
     }
     applyNewState(state1);
-    ecmpHelper_->programRoutes(getRouteUpdateWrapper(), 2);
+    ecmpHelper_->programRoutes(getRouteUpdater(), 2);
   };
   auto verify = [=]() {
     /* ecmp is resolved */

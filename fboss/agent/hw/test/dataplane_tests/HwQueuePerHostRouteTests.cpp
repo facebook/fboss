@@ -64,14 +64,13 @@ class HwQueuePerHostRouteTest : public HwLinkStateDependentTest {
         getProgrammedState(), kRouterID());
 
     applyNewState(ecmpHelper.resolveNextHops(getProgrammedState(), kEcmpWidth));
-    ecmpHelper.programRoutes(
-        getRouteUpdateWrapper(), kEcmpWidth, routePrefixes);
+    ecmpHelper.programRoutes(getRouteUpdater(), kEcmpWidth, routePrefixes);
   }
 
   void updateRoutesClassID(
       const std::map<RoutePrefix<AddrT>, std::optional<cfg::AclLookupClass>>&
           routePrefix2ClassID) {
-    HwSwitchEnsembleRouteUpdateWrapper updater(getHwSwitchEnsemble());
+    auto updater = getHwSwitchEnsemble()->getRouteUpdater();
 
     for (const auto& [routePrefix, classID] : routePrefix2ClassID) {
       updater.programClassID(

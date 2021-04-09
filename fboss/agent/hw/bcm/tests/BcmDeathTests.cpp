@@ -43,7 +43,7 @@ class BcmDeathTest : public BcmTest {
     }
 
     auto state = getProgrammedState();
-    HwSwitchEnsembleRouteUpdateWrapper updater(getHwSwitchEnsemble());
+    auto updater = getHwSwitchEnsemble()->getRouteUpdater();
     updater.addRoute(
         RouterID(0),
         network,

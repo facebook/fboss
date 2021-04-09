@@ -101,7 +101,7 @@ class HwTest : public ::testing::Test,
     return std::nullopt;
   }
 
-  std::unique_ptr<HwSwitchEnsembleRouteUpdateWrapper> getRouteUpdateWrapper();
+  std::unique_ptr<HwSwitchEnsembleRouteUpdateWrapper> getRouteUpdater();
 
   template <
       typename SETUP_FN,
@@ -154,7 +154,7 @@ class HwTest : public ::testing::Test,
   template <typename EcmpHelperT>
   void resolveNeigborAndProgramRoutes(const EcmpHelperT& ecmp, int width) {
     applyNewState(ecmp.resolveNextHops(getProgrammedState(), width));
-    ecmp.programRoutes(getRouteUpdateWrapper(), width);
+    ecmp.programRoutes(getRouteUpdater(), width);
   }
 
  private:

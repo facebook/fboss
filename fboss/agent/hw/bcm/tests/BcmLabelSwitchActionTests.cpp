@@ -159,7 +159,7 @@ class BcmLabelSwitchActionTest : public BcmTest {
     for (const auto& nhop : entry.getLabelNextHop().getNextHopSet()) {
       nexthops.insert(UnresolvedNextHop(nhop.addr(), nhop.weight()));
     }
-    HwSwitchEnsembleRouteUpdateWrapper updater(getHwSwitchEnsemble());
+    auto updater = getHwSwitchEnsemble()->getRouteUpdater();
 
     updater.addRoute(
         RouterID(0),

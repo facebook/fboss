@@ -73,25 +73,23 @@ class SaiRouteRollbackTest : public SaiRollbackTest {
     applyNewState(v6EcmpHelper_->resolveNextHops(getProgrammedState(), width));
   }
   std::shared_ptr<SwitchState> programEcmp() {
-    v4EcmpHelper_->programRoutes(
-        getRouteUpdateWrapper(), kEcmpWidth, {kV4Prefix1()});
-    v6EcmpHelper_->programRoutes(
-        getRouteUpdateWrapper(), kEcmpWidth, {kV6Prefix1()});
+    v4EcmpHelper_->programRoutes(getRouteUpdater(), kEcmpWidth, {kV4Prefix1()});
+    v6EcmpHelper_->programRoutes(getRouteUpdater(), kEcmpWidth, {kV6Prefix1()});
     return getProgrammedState();
   }
   std::shared_ptr<SwitchState> programNonEcmp() {
-    v4EcmpHelper_->programRoutes(getRouteUpdateWrapper(), 1, {kV4Prefix2()});
-    v6EcmpHelper_->programRoutes(getRouteUpdateWrapper(), 1, {kV6Prefix2()});
+    v4EcmpHelper_->programRoutes(getRouteUpdater(), 1, {kV4Prefix2()});
+    v6EcmpHelper_->programRoutes(getRouteUpdater(), 1, {kV6Prefix2()});
     return getProgrammedState();
   }
   std::shared_ptr<SwitchState> unprogramEcmp() {
-    v4EcmpHelper_->unprogramRoutes(getRouteUpdateWrapper(), {kV4Prefix1()});
-    v6EcmpHelper_->unprogramRoutes(getRouteUpdateWrapper(), {kV6Prefix1()});
+    v4EcmpHelper_->unprogramRoutes(getRouteUpdater(), {kV4Prefix1()});
+    v6EcmpHelper_->unprogramRoutes(getRouteUpdater(), {kV6Prefix1()});
     return getProgrammedState();
   }
   std::shared_ptr<SwitchState> unprogramNonEcmp() {
-    v4EcmpHelper_->unprogramRoutes(getRouteUpdateWrapper(), {kV4Prefix2()});
-    v6EcmpHelper_->unprogramRoutes(getRouteUpdateWrapper(), {kV6Prefix2()});
+    v4EcmpHelper_->unprogramRoutes(getRouteUpdater(), {kV4Prefix2()});
+    v6EcmpHelper_->unprogramRoutes(getRouteUpdater(), {kV6Prefix2()});
     return getProgrammedState();
   }
 
