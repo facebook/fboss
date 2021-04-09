@@ -106,28 +106,19 @@ class SaiRouteRollbackTest : public SaiRollbackTest {
     if (!getHwSwitchEnsemble()->isStandaloneRibEnabled()) {
       return;
     }
-    auto ribOnlyUpdate =
-        [](facebook::fboss::RouterID /*vrf*/,
-           const facebook::fboss::IPv4NetworkToRouteMap& /*v4NetworkToRoute*/,
-           const facebook::fboss::IPv6NetworkToRouteMap& /*v6NetworkToRoute*/,
-           void* /*cookie*/) { return nullptr; };
+    auto updater = getHwSwitchEnsemble()->getRouteUpdater();
     std::vector<IpPrefix> ipPfxs;
     for (const auto& prefix : prefixes) {
-      IpPrefix pfx;
-      pfx.ip_ref() = network::toBinaryAddress(prefix.first);
-      pfx.prefixLength_ref() = prefix.second;
-      ipPfxs.push_back(pfx);
+      if (prefix.first.isV6()) {
+        v6EcmpHelper_->unprogramRoutes(
+            getRouteUpdater(),
+            {RoutePrefixV6{prefix.first.asV6(), prefix.second}});
+      } else {
+        v4EcmpHelper_->unprogramRoutes(
+            getRouteUpdater(),
+            {RoutePrefixV4{prefix.first.asV4(), prefix.second}});
+      }
     }
-    getHwSwitchEnsemble()->getRib()->update(
-        RouterID(0),
-        ClientID::BGPD,
-        AdminDistance::EBGP,
-        {},
-        ipPfxs,
-        false,
-        "Rollback",
-        ribOnlyUpdate,
-        nullptr);
   }
 
  protected:

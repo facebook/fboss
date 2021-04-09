@@ -77,9 +77,6 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   HwLinkStateToggler* getLinkToggler() {
     return linkToggler_.get();
   }
-  const RoutingInformationBase* getRib() const {
-    return routingInformationBase_.get();
-  }
   RoutingInformationBase* getRib() {
     return routingInformationBase_.get();
   }
