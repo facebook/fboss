@@ -55,10 +55,6 @@ LagSaiId SaiLagManager::addLag(
   concurrentIndices_->aggregatePortIds.emplace(
       lag->adapterKey(), aggregatePort->getID());
   auto handle = std::make_unique<SaiLagHandle>();
-  // create bridge port for LAG
-  handle->bridgePort = managerTable_->bridgeManager().addBridgePort(
-      SaiPortDescriptor(aggregatePort->getID()),
-      PortDescriptorSaiId(lag->adapterKey()));
 
   handle->members = std::move(members);
   handle->lag = std::move(lag);
