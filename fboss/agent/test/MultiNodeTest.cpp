@@ -46,6 +46,8 @@ void MultiNodeTest::TearDown() {
 // point to the test config
 void MultiNodeTest::setupConfigFlag() {
   cfg::AgentConfig testConfig;
+  utility::setPortToDefaultProfileIDMap(
+      std::make_shared<PortMap>(), platform());
   *testConfig.sw_ref() = initialConfig();
   const auto& baseConfig = platform()->config();
   *testConfig.platform_ref() = *baseConfig->thrift.platform_ref();
