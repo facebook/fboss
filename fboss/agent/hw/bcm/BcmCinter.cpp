@@ -33,7 +33,7 @@ extern "C" {
 
 DEFINE_string(
     cint_file,
-    "/var/facebook/logs/fboss/bcm_cinter.log",
+    "/var/facebook/logs/fboss/sdk/bcm_cinter.log",
     "File to dump equivalent cint commands for each wrapped SDK api");
 
 DEFINE_bool(enable_bcm_cinter, false, "Whether to enable bcm cinter");

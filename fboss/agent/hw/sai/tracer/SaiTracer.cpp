@@ -64,7 +64,7 @@ DEFINE_bool(
 
 DEFINE_string(
     sai_log,
-    "/var/facebook/logs/fboss/sai_replayer.log",
+    "/var/facebook/logs/fboss/sdk/sai_replayer.log",
     "File path to the SAI Replayer logs");
 
 DEFINE_int32(

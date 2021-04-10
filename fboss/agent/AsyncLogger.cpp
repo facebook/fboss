@@ -214,10 +214,10 @@ void AsyncLogger::appendLog(const char* logRecord, size_t logSize) {
 }
 
 void AsyncLogger::openLogFile(std::string& filePath) {
-  // By default, async logger opens log file under /var/facebook/logs/fboss/
-  // However, the directory /var/facebook/logs/fboss/ might not exist for test
-  // switches not running chef. When that happens, we fall back to /tmp/ and
-  // write generated code there.
+  // By default, async logger opens log file under /var/facebook/logs/fboss/sdk/
+  // However, the directory /var/facebook/logs/fboss/sdk/ might not exist for
+  // test switches not running chef. When that happens, we fall back to /tmp/
+  // and write generated code there.
   std::string srcTypeStr;
   switch (srcType_) {
     case (BCM_CINTER):
@@ -228,7 +228,7 @@ void AsyncLogger::openLogFile(std::string& filePath) {
       break;
   }
   try {
-    if (filePath.find("/var/facebook/logs/fboss/") == 0) {
+    if (filePath.find("/var/facebook/logs/fboss/sdk/") == 0) {
       // Writes to default log location - append to log
       logFile_ = folly::File(filePath, O_RDWR | O_CREAT | O_APPEND);
     } else {

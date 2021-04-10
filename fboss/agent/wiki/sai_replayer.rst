@@ -37,7 +37,7 @@ Flags and different modes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To enable logging for SAI Replayer, simply pass the flag ``--enable_replayer`` to the wedge agent binary or test binary.
-Once enabled, the generated C++ code can be found under ‘/var/facebook/logs/fboss/sai_replayer.log’, which can be compiled using buck build.
+Once enabled, the generated C++ code can be found under ‘/var/facebook/logs/fboss/sdk/sai_replayer.log’, which can be compiled using buck build.
 
 Logging for ‘send_hostif_packet’ API is disabled by default for performance concern, due to the overhead for logging each sent packet to the dataplane.
 However, if it is needed for certain scenarios, such as the verification test for port blackholing,
