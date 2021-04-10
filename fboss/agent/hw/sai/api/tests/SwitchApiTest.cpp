@@ -191,6 +191,24 @@ TEST_F(SwitchApiTest, setGetEcmpV6Hash) {
       42);
 }
 
+TEST_F(SwitchApiTest, setGetLagV4Hash) {
+  SaiSwitchTraits::Attributes::LagHashV4 lagHash{24};
+  switchApi->setAttribute(switchId, lagHash);
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::LagHashV4{}),
+      24);
+}
+
+TEST_F(SwitchApiTest, setGetLagV6Hash) {
+  SaiSwitchTraits::Attributes::LagHashV6 lagHash{24};
+  switchApi->setAttribute(switchId, lagHash);
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::LagHashV6{}),
+      24);
+}
+
 TEST_F(SwitchApiTest, setGetWarmRestart) {
   SaiSwitchTraits::Attributes::SwitchRestartWarm restartWarm{true};
   switchApi->setAttribute(switchId, restartWarm);
