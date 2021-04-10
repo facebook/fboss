@@ -29,8 +29,6 @@ class SwSwitchRouteUpdateWrapper : public RouteUpdateWrapper {
       RoutingInformationBase* rib);
 
  private:
-  RoutingInformationBase* getRib() override;
-
   AdminDistance clientIdToAdminDistance(ClientID clientID) const override;
   void updateStats(
       const RoutingInformationBase::UpdateStatistics& stats) override;
@@ -41,6 +39,5 @@ class SwSwitchRouteUpdateWrapper : public RouteUpdateWrapper {
       std::optional<cfg::AclLookupClass> classId,
       bool async) override;
   SwSwitch* sw_;
-  RoutingInformationBase* rib_;
 };
 } // namespace facebook::fboss

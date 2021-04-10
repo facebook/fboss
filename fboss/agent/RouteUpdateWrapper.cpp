@@ -75,7 +75,7 @@ void RouteUpdateWrapper::program(const SyncFibFor& syncFibFor) {
       ribRoutesToAddDel_[ridAndClient] = AddDelRoutes{};
     }
   }
-  if (isStandaloneRibEnabled_) {
+  if (rib_) {
     programStandAloneRib(syncFibFor);
   } else {
     programLegacyRib(syncFibFor);
@@ -84,7 +84,7 @@ void RouteUpdateWrapper::program(const SyncFibFor& syncFibFor) {
 }
 
 void RouteUpdateWrapper::programMinAlpmState() {
-  if (isStandaloneRibEnabled_) {
+  if (rib_) {
     getRib()->ensureVrf(RouterID(0));
   }
   addRoute(
@@ -213,7 +213,7 @@ void RouteUpdateWrapper::programClassID(
     const std::vector<folly::CIDRNetwork>& prefixes,
     std::optional<cfg::AclLookupClass> classId,
     bool async) {
-  if (isStandaloneRibEnabled_) {
+  if (rib_) {
     programClassIDStandAloneRib(rid, prefixes, classId, async);
   } else {
     programClassIDLegacyRib(rid, prefixes, classId, async);

@@ -55,7 +55,6 @@ class HwSwitchEnsembleRouteUpdateWrapper : public RouteUpdateWrapper {
   void updateStats(
       const RoutingInformationBase::UpdateStatistics& /*stats*/) override {}
   AdminDistance clientIdToAdminDistance(ClientID clientId) const override;
-  RoutingInformationBase* getRib() override;
   void programLegacyRib(const SyncFibFor& syncFibFor) override;
   void programClassIDLegacyRib(
       RouterID rid,
@@ -64,6 +63,5 @@ class HwSwitchEnsembleRouteUpdateWrapper : public RouteUpdateWrapper {
       bool async) override;
 
   HwSwitchEnsemble* hwEnsemble_;
-  RoutingInformationBase* rib_;
 };
 } // namespace facebook::fboss

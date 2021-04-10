@@ -38,11 +38,10 @@ SwSwitchRouteUpdateWrapper::SwSwitchRouteUpdateWrapper(
     SwSwitch* sw,
     RoutingInformationBase* rib)
     : RouteUpdateWrapper(
-          sw->isStandaloneRibEnabled(),
+          rib,
           rib ? swSwitchFibUpdate : std::optional<FibUpdateFunction>(),
           rib ? sw : nullptr),
-      sw_(sw),
-      rib_(rib) {}
+      sw_(sw) {}
 
 void SwSwitchRouteUpdateWrapper::updateStats(
     const RoutingInformationBase::UpdateStatistics& stats) {
@@ -50,10 +49,6 @@ void SwSwitchRouteUpdateWrapper::updateStats(
   sw_->stats()->addRoutesV6(stats.v6RoutesAdded);
   sw_->stats()->delRoutesV4(stats.v4RoutesDeleted);
   sw_->stats()->delRoutesV6(stats.v6RoutesDeleted);
-}
-
-RoutingInformationBase* SwSwitchRouteUpdateWrapper::getRib() {
-  return rib_;
 }
 
 void SwSwitchRouteUpdateWrapper::programLegacyRib(

@@ -58,7 +58,9 @@ class RouteUpdateWrapper {
       bool async);
 
  private:
-  virtual RoutingInformationBase* getRib() = 0;
+  RoutingInformationBase* getRib() {
+    return rib_;
+  }
   virtual void programLegacyRib(const SyncFibFor& syncFibFor) = 0;
   void printStats(const UpdateStatistics& stats) const;
   void programStandAloneRib(const SyncFibFor& syncFibFor);
@@ -86,16 +88,16 @@ class RouteUpdateWrapper {
       const std::shared_ptr<SwitchState>& in,
       const SyncFibFor& syncFibFor) const;
   RouteUpdateWrapper(
-      bool isStandaloneRibEnabled,
+      RoutingInformationBase* rib,
       std::optional<FibUpdateFunction> fibUpdateFn,
       void* fibUpdateCookie)
-      : isStandaloneRibEnabled_(isStandaloneRibEnabled),
+      : rib_(rib),
         fibUpdateFn_(fibUpdateFn),
         fibUpdateCookie_(fibUpdateCookie) {}
 
   std::unordered_map<std::pair<RouterID, ClientID>, AddDelRoutes>
       ribRoutesToAddDel_;
-  bool isStandaloneRibEnabled_{false};
+  RoutingInformationBase* rib_{nullptr};
   std::optional<FibUpdateFunction> fibUpdateFn_;
   void* fibUpdateCookie_{nullptr};
 };

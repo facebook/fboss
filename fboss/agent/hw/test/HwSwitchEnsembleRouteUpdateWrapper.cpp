@@ -43,17 +43,10 @@ HwSwitchEnsembleRouteUpdateWrapper::HwSwitchEnsembleRouteUpdateWrapper(
     HwSwitchEnsemble* hwEnsemble,
     RoutingInformationBase* rib)
     : RouteUpdateWrapper(
-          hwEnsemble->isStandaloneRibEnabled(),
-          hwEnsemble->isStandaloneRibEnabled()
-              ? hwSwitchEnsembleFibUpdate
-              : std::optional<FibUpdateFunction>(),
-          hwEnsemble->isStandaloneRibEnabled() ? hwEnsemble : nullptr),
-      hwEnsemble_(hwEnsemble),
-      rib_(rib) {}
-
-RoutingInformationBase* HwSwitchEnsembleRouteUpdateWrapper::getRib() {
-  return rib_;
-}
+          rib,
+          rib ? hwSwitchEnsembleFibUpdate : std::optional<FibUpdateFunction>(),
+          rib ? hwEnsemble : nullptr),
+      hwEnsemble_(hwEnsemble) {}
 
 void HwSwitchEnsembleRouteUpdateWrapper::programLegacyRib(
     const SyncFibFor& syncFibFor) {
