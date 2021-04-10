@@ -336,17 +336,21 @@ TransceiverSettings SffModule::getTransceiverSettingsInfo() {
   settings.rateSelectSetting_ref() =
       getRateSelectSettingValue(*settings.rateSelect_ref());
 
+  settings.mediaInterface_ref() =
+      std::vector<MediaInterfaceId>(numMediaLanes());
+  if (!getMediaInterfaceId(*(settings.mediaInterface_ref()))) {
+    settings.mediaInterface_ref().reset();
+  }
+
   settings.mediaLaneSettings_ref() =
       std::vector<MediaLaneSettings>(numMediaLanes());
   settings.hostLaneSettings_ref() =
       std::vector<HostLaneSettings>(numHostLanes());
   if (!flatMem_) {
     if (!getMediaLaneSettings(*(settings.mediaLaneSettings_ref()))) {
-      settings.mediaLaneSettings_ref()->clear();
       settings.mediaLaneSettings_ref().reset();
     }
     if (!getHostLaneSettings(*(settings.hostLaneSettings_ref()))) {
-      settings.hostLaneSettings_ref()->clear();
       settings.hostLaneSettings_ref().reset();
     }
   }
@@ -663,6 +667,22 @@ ExtendedSpecComplianceCode SffModule::getExtendedSpecificationComplianceCode()
     const {
   return (ExtendedSpecComplianceCode)getSettingsValue(
       SffField::EXTENDED_SPECIFICATION_COMPLIANCE);
+}
+
+bool SffModule::getMediaInterfaceId(
+    std::vector<MediaInterfaceId>& mediaInterface) {
+  assert(mediaInterface.size() == numMediaLanes());
+
+  // Currently setting the same media interface for all media lanes
+  auto extSpecCompliance = getExtendedSpecificationComplianceCode();
+  for (int lane = 0; lane < mediaInterface.size(); lane++) {
+    mediaInterface[lane].lane_ref() = lane;
+    MediaInterfaceUnion media;
+    media.set_extendedSpecificationComplianceCode(extSpecCompliance);
+    mediaInterface[lane].media_ref() = media;
+  }
+
+  return true;
 }
 
 ModuleStatus SffModule::getModuleStatus() {

@@ -132,6 +132,7 @@ TransceiverManagementInterface WedgeQsfp::getTransceiverManagementInterface() {
   std::array<uint8_t, 1> buf;
 
   if (!threadSafeI2CBus_->isPresent(module_ + 1)) {
+    XLOG(DBG3) << "Transceiver " << module_ << " not present";
     return TransceiverManagementInterface::NONE;
   }
 
@@ -162,6 +163,9 @@ TransceiverManagementInterface WedgeQsfp::getTransceiverManagementInterface() {
         return TransceiverManagementInterface::SFF;
       }
     } catch (const std::exception& ex) {
+      XLOG(ERR) << "Transceiver " << module_
+                << " failed to read management interface with exception: "
+                << ex.what();
       /* sleep override */
       usleep(kInterfaceDetectionRetryMillis * 1000);
     }

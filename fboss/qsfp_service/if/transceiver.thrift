@@ -186,7 +186,8 @@ enum SMFMediaInterfaceCode {
 }
 
 union MediaInterfaceUnion {
-  1: SMFMediaInterfaceCode smfCode
+  1: SMFMediaInterfaceCode smfCode,
+  2: ExtendedSpecComplianceCode extendedSpecificationComplianceCode,
 }
 
 enum MediaTypeEncodings {

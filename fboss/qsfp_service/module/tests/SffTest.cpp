@@ -109,6 +109,12 @@ TEST(SffTest, transceiverInfoTest) {
   EXPECT_EQ(true, info.status_ref().value_or({}).interruptL_ref().value_or({}));
   EXPECT_EQ(qsfp->numHostLanes(), 4);
   EXPECT_EQ(qsfp->numMediaLanes(), 4);
+
+  for (auto& media : *info.settings_ref()->mediaInterface_ref()) {
+    EXPECT_EQ(
+        media.media_ref()->get_extendedSpecificationComplianceCode(),
+        ExtendedSpecComplianceCode::CWDM4_100G);
+  }
 }
 
 // Tests that a SFF DAC module can properly refresh
@@ -129,6 +135,11 @@ TEST(SffDacTest, transceiverInfoTest) {
       ExtendedSpecComplianceCode::CR4_100G);
   EXPECT_EQ(qsfp->numHostLanes(), 4);
   EXPECT_EQ(qsfp->numMediaLanes(), 4);
+  for (auto& media : *info.settings_ref()->mediaInterface_ref()) {
+    EXPECT_EQ(
+        media.media_ref()->get_extendedSpecificationComplianceCode(),
+        ExtendedSpecComplianceCode::CR4_100G);
+  }
 }
 
 // Tests that a SFF Fr1 module can properly refresh
@@ -149,6 +160,11 @@ TEST(SffFr1Test, transceiverInfoTest) {
       ExtendedSpecComplianceCode::FR1_100G);
   EXPECT_EQ(qsfp->numHostLanes(), 4);
   EXPECT_EQ(qsfp->numMediaLanes(), 1);
+  for (auto& media : *info.settings_ref()->mediaInterface_ref()) {
+    EXPECT_EQ(
+        media.media_ref()->get_extendedSpecificationComplianceCode(),
+        ExtendedSpecComplianceCode::FR1_100G);
+  }
 }
 
 // Tests that a badly programmed module throws an exception

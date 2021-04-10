@@ -190,6 +190,11 @@ class SffModule : public QsfpModule {
    */
   TransceiverSettings getTransceiverSettingsInfo() override;
   /*
+   * Fetches the media interface ids per media lane and returns false if it
+   * fails
+   */
+  bool getMediaInterfaceId(std::vector<MediaInterfaceId>& mediaInterface);
+  /*
    * Return which rate select capability is being used, if any
    */
   virtual RateSelectState getRateSelectValue();
