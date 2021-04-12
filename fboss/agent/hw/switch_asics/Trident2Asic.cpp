@@ -55,7 +55,6 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SFLOW_SAMPLING:
     case HwAsic::Feature::PTP_TC:
     case HwAsic::Feature::PTP_TC_PCS:
-    case HwAsic::Feature::MIRROR_V6_TUNNEL:
     case HwAsic::Feature::EGRESS_QUEUE_FLEX_COUNTER:
     case HwAsic::Feature::PFC:
     case HwAsic::Feature::INGRESS_L3_INTERFACE:

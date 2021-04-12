@@ -250,8 +250,7 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
   template <typename T = AddrT>
   bool skipTest() const {
     return std::is_same<T, folly::IPAddressV6>::value &&
-        !getPlatform()->getAsic()->isSupported(
-            HwAsic::Feature::MIRROR_V6_TUNNEL);
+        !getPlatform()->getAsic()->isSupported(HwAsic::Feature::ERSPANv6);
   }
 
   const RouterID kRid{0};

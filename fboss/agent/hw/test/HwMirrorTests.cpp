@@ -142,8 +142,8 @@ class HwMirrorTest : public HwTest {
   template <typename T = AddrT>
   bool skipMirrorTest() const {
     return std::is_same<T, folly::IPAddressV6>::value &&
-        !getPlatform()->getAsic()->isSupported(
-            HwAsic::Feature::MIRROR_V6_TUNNEL);
+        !getPlatform()->getAsic()->isSupported(HwAsic::Feature::ERSPANv6) &&
+        !getPlatform()->getAsic()->isSupported(HwAsic::Feature::SFLOWv6);
   }
 
   template <typename T = AddrT>
