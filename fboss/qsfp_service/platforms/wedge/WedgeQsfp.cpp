@@ -158,8 +158,8 @@ TransceiverManagementInterface WedgeQsfp::getTransceiverManagementInterface() {
           buf[0] !=
           static_cast<uint8_t>(TransceiverModuleIdentifier::UNKNOWN)) {
         XLOG(WARNING) << "Transceiver " << module_
-                      << " has unknown non-zero identifier: " << buf[0]
-                      << ", defaulting to SFF";
+                      << " has unknown non-zero identifier: "
+                      << static_cast<int>(buf[0]) << ", defaulting to SFF";
         return TransceiverManagementInterface::SFF;
       }
     } catch (const std::exception& ex) {

@@ -168,7 +168,7 @@ enum TransceiverModuleIdentifier {
   QSFP28 = 0x11,
   QSFP_DD = 0x18,
   QSFP_PLUS_CMIS = 0x1E,
-  MINIPHOTON_OBO = 0x5B,
+  MINIPHOTON_OBO = 0x91,
 }
 
 enum CmisModuleState {
