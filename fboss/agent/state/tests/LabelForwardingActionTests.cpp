@@ -1,6 +1,9 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
+#include "fboss/agent/if/gen-cpp2/mpls_types.h"
 #include "fboss/agent/state/LabelForwardingAction.h"
+#include "fboss/agent/state/RouteNextHop.h"
+#include "folly/IPAddress.h"
 
 #include <folly/dynamic.h>
 #include <gtest/gtest.h>
@@ -13,6 +16,17 @@ void testFromAndTo(const LabelForwardingAction& action) {
   EXPECT_EQ(
       action, LabelForwardingAction::fromFollyDynamic(action.toFollyDynamic()));
   EXPECT_EQ(action, LabelForwardingAction::fromThrift(action.toThrift()));
+}
+
+MplsNextHop getMplsNextHop(
+    const folly::IPAddress& ip,
+    InterfaceID inteface,
+    const LabelForwardingAction& action) {
+  MplsNextHop nhop;
+  nhop.nexthop_ref() = ip.str();
+  nhop.labelForwardingAction_ref() = action.toThrift();
+  nhop.interface_ref() = inteface;
+  return nhop;
 }
 } // namespace
 
@@ -125,4 +139,30 @@ TEST(LabelForwardingActionTests, InvalidLabelForwardingAction) {
             {1001, 1002, 1003});
       },
       FbossError);
+}
+
+TEST(LabelForwardingActionTests, MplsNextHopThrift) {
+  std::vector<LabelForwardingAction> actions{
+      LabelForwardingAction(
+          LabelForwardingAction::LabelForwardingType::SWAP, 1001),
+      LabelForwardingAction(
+          LabelForwardingAction::LabelForwardingType::PUSH, {1001, 1002}),
+      LabelForwardingAction(
+          LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP),
+      LabelForwardingAction(LabelForwardingAction::LabelForwardingType::PHP),
+  };
+
+  for (auto ip : {"1.0.0.1", "1::1"}) {
+    for (auto& action : actions) {
+      auto nhopThrift =
+          getMplsNextHop(folly::IPAddress(ip), InterfaceID(10), action);
+      auto nhop = util::fromThrift(nhopThrift);
+      EXPECT_EQ(nhop.labelForwardingAction(), action);
+      if (action.type() !=
+          LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP) {
+        EXPECT_EQ(nhop.intf(), InterfaceID(10));
+        EXPECT_EQ(nhop.addr(), folly::IPAddress(ip));
+      }
+    }
+  }
 }

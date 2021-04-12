@@ -12,6 +12,9 @@
 #include <folly/Conv.h>
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/if/gen-cpp2/mpls_types.h"
+#include "fboss/agent/state/RouteNextHop.h"
+#include "folly/IPAddress.h"
 
 namespace facebook::fboss {
 
@@ -35,6 +38,28 @@ NextHop fromThrift(const NextHopThrift& nht) {
   } else {
     return UnresolvedNextHop(std::move(address), weight, action);
   }
+}
+
+NextHop fromThrift(const MplsNextHop& nht) {
+  std::optional<LabelForwardingAction> action =
+      LabelForwardingAction::fromThrift(nht.get_labelForwardingAction());
+  NextHopWeight weight =
+      nht.get_weight() == 0 ? UCMP_DEFAULT_WEIGHT : nht.get_weight();
+
+  auto isPopupAndLookUp =
+      action.value().type() == MplsActionCode::POP_AND_LOOKUP;
+  if (isPopupAndLookUp) {
+    return UnresolvedNextHop(
+        folly::IPAddress("::"), // ignored
+        weight,
+        action);
+  }
+  auto address = folly::IPAddress(nht.get_nexthop());
+  if (!nht.interface_ref()) {
+    return UnresolvedNextHop(std::move(address), weight, action);
+  }
+  return ResolvedNextHop(
+      std::move(address), InterfaceID(*(nht.interface_ref())), weight, action);
 }
 
 NextHop nextHopFromFollyDynamic(const folly::dynamic& nhopJson) {
