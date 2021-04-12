@@ -17,6 +17,7 @@
 #include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/LoadBalancerConfigApplier.h"
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/if/gen-cpp2/mpls_types.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
@@ -28,6 +29,7 @@
 #include "fboss/agent/state/ControlPlane.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/state/Mirror.h"
 #include "fboss/agent/state/NdpResponseTable.h"
 #include "fboss/agent/state/Port.h"
@@ -292,6 +294,21 @@ class ThriftConfigApplier {
   updateForwardingInformationBaseContainers();
   std::optional<cfg::PfcWatchdogRecoveryAction> getPfcWatchdogRecoveryAction();
 
+  std::shared_ptr<LabelForwardingEntry> createLabelForwardingEntry(
+      MplsLabel label,
+      LabelNextHopEntry::Action action,
+      LabelNextHopSet nexthops);
+
+  LabelNextHopEntry getStaticLabelNextHopEntry(
+      LabelNextHopEntry::Action action,
+      LabelNextHopSet nexthops);
+
+  std::shared_ptr<LabelForwardingInformationBase> updateStaticMplsRoutes(
+      const std::vector<cfg::StaticMplsRouteWithNextHops>&
+          staticMplsRoutesWithNhops,
+      const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToNull,
+      const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCPU);
+
   std::shared_ptr<SwitchState> orig_;
   std::shared_ptr<SwitchState> new_;
   const cfg::SwitchConfig* cfg_{nullptr};
@@ -464,6 +481,15 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
       new_->resetRouteTables(std::move(newerTables));
       changed = true;
     }
+  }
+
+  auto labelFib = updateStaticMplsRoutes(
+      *cfg_->staticMplsRoutesWithNhops_ref(),
+      *cfg_->staticMplsRoutesToNull_ref(),
+      *cfg_->staticMplsRoutesToNull_ref());
+  if (labelFib) {
+    new_->resetLabelForwardingInformationBase(labelFib);
+    changed = true;
   }
 
   auto newVlans = new_->getVlans();
@@ -3017,6 +3043,98 @@ ThriftConfigApplier::getPfcWatchdogRecoveryAction() {
     }
   }
   return recoveryAction;
+}
+
+LabelNextHopEntry ThriftConfigApplier::getStaticLabelNextHopEntry(
+    LabelNextHopEntry::Action action,
+    LabelNextHopSet nexthops) {
+  switch (action) {
+    case LabelNextHopEntry::Action::DROP:
+      return LabelNextHopEntry(
+          LabelNextHopEntry::Action::DROP, AdminDistance::STATIC_ROUTE);
+
+    case LabelNextHopEntry::Action::TO_CPU:
+      return LabelNextHopEntry(
+          LabelNextHopEntry::Action::TO_CPU, AdminDistance::STATIC_ROUTE);
+
+    case LabelNextHopEntry::Action::NEXTHOPS:
+      return LabelNextHopEntry(nexthops, AdminDistance::STATIC_ROUTE);
+  }
+  throw FbossError("invalid label forwarding action ", action);
+}
+
+std::shared_ptr<LabelForwardingEntry>
+ThriftConfigApplier::createLabelForwardingEntry(
+    MplsLabel label,
+    LabelNextHopEntry::Action action,
+    LabelNextHopSet nexthops) {
+  return std::make_shared<LabelForwardingEntry>(
+      label,
+      ClientID::STATIC_ROUTE,
+      getStaticLabelNextHopEntry(action, nexthops));
+}
+
+std::shared_ptr<LabelForwardingInformationBase>
+ThriftConfigApplier::updateStaticMplsRoutes(
+    const std::vector<cfg::StaticMplsRouteWithNextHops>&
+        staticMplsRoutesWithNhops,
+    const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToNull,
+    const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCPU) {
+  if (staticMplsRoutesWithNhops.empty() && staticMplsRoutesToNull.empty() &&
+      staticMplsRoutesToCPU.empty()) {
+    return nullptr;
+  }
+  auto labelFib = new_->getLabelForwardingInformationBase()->clone();
+  for (auto& staticMplsRouteEntry : staticMplsRoutesWithNhops) {
+    auto entry = labelFib->getLabelForwardingEntryIf(
+        staticMplsRouteEntry.get_ingressLabel());
+    if (!entry) {
+      labelFib->addNode(createLabelForwardingEntry(
+          staticMplsRouteEntry.get_ingressLabel(),
+          LabelNextHopEntry::Action::NEXTHOPS,
+          util::toRouteNextHopSet(staticMplsRouteEntry.get_nexthop())));
+    } else {
+      entry = entry->clone();
+      entry->update(
+          ClientID::STATIC_ROUTE,
+          getStaticLabelNextHopEntry(
+              LabelNextHopEntry::Action::NEXTHOPS,
+              util::toRouteNextHopSet(staticMplsRouteEntry.get_nexthop())));
+    }
+  }
+
+  for (auto& staticMplsRouteEntry : staticMplsRoutesToNull) {
+    auto entry = labelFib->getLabelForwardingEntryIf(
+        staticMplsRouteEntry.get_ingressLabel());
+    if (!entry) {
+      labelFib->addNode(createLabelForwardingEntry(
+          staticMplsRouteEntry.get_ingressLabel(),
+          LabelNextHopEntry::Action::DROP,
+          {}));
+    } else {
+      entry = entry->clone();
+      entry->update(
+          ClientID::STATIC_ROUTE,
+          getStaticLabelNextHopEntry(LabelNextHopEntry::Action::DROP, {}));
+    }
+  }
+
+  for (auto& staticMplsRouteEntry : staticMplsRoutesToCPU) {
+    auto entry = labelFib->getLabelForwardingEntryIf(
+        staticMplsRouteEntry.get_ingressLabel());
+    if (!entry) {
+      labelFib->addNode(createLabelForwardingEntry(
+          staticMplsRouteEntry.get_ingressLabel(),
+          LabelNextHopEntry::Action::TO_CPU,
+          {}));
+    } else {
+      entry = entry->clone();
+      entry->update(
+          ClientID::STATIC_ROUTE,
+          getStaticLabelNextHopEntry(LabelNextHopEntry::Action::TO_CPU, {}));
+    }
+  }
+  return labelFib;
 }
 
 shared_ptr<SwitchState> applyThriftConfig(

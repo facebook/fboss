@@ -4,6 +4,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestMplsUtils.h"
+#include "fboss/agent/if/gen-cpp2/mpls_types.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 using namespace ::testing;
@@ -30,9 +31,51 @@ class HwLabelSwitchRouteTest : public HwLinkStateDependentTest {
         getHwSwitch(), ports, cfg::PortLoopbackMode::MAC);
   }
 
+  void configureStaticMplsRoute(
+      cfg::SwitchConfig& config,
+      LabelForwardingAction::LabelForwardingType labelAction) {
+    config.staticMplsRoutesWithNhops_ref()->resize(1);
+    auto& route = config.staticMplsRoutesWithNhops_ref()[0];
+    route.ingressLabel_ref() = kTopLabel;
+
+    setupECMPHelper(kTopLabel, labelAction);
+
+    if (labelAction ==
+        LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP) {
+      MplsNextHop nexthop;
+      nexthop.set_nexthop("::");
+      MplsAction action;
+      action.set_action(labelAction);
+      nexthop.set_labelForwardingAction(action);
+      route.nexthop_ref()->push_back(nexthop);
+      return;
+    }
+
+    for (auto i = 0; i < kWidth; i++) {
+      MplsNextHop nexthop;
+      auto ecmpHelperNhop = getNextHop(i);
+      nexthop.set_nexthop(ecmpHelperNhop.ip.str());
+      nexthop.set_labelForwardingAction(ecmpHelperNhop.action.toThrift());
+      nexthop.interface_ref() = ecmpHelperNhop.intf;
+      route.nexthop_ref()->push_back(nexthop);
+    }
+  }
+
+  void resolveNeighbors() {
+    utility::EcmpSetupTargetedPorts<AddrT> helper(getProgrammedState());
+    boost::container::flat_set<PortDescriptor> ports;
+    for (auto i = 0; i < kWidth; i++) {
+      ports.emplace(masterLogicalPortIds()[i]);
+    }
+    applyNewState(helper.resolveNextHops(getProgrammedState(), ports));
+  }
+
   void setupECMPHelper(
       LabelForwardingEntry::Label topLabel,
       LabelForwardingAction::LabelForwardingType labelAction) {
+    if (helper_) {
+      return;
+    }
     helper_ = std::make_unique<EcmpSetupHelper>(
         getProgrammedState(), topLabel, labelAction);
   }
@@ -209,4 +252,69 @@ TYPED_TEST(HwLabelSwitchRouteTest, Pop) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(HwLabelSwitchRouteTest, ConfigPush) {
+  if (!this->isSupported(HwAsic::Feature::MPLS_ECMP)) {
+    return;
+  }
+  auto setup = [=]() {
+    auto config = this->initialConfig();
+    this->configureStaticMplsRoute(
+        config, LabelForwardingAction::LabelForwardingType::PUSH);
+    this->applyNewConfig(config);
+    this->resolveNeighbors();
+  };
+  auto verify = [=]() {
+    this->verifyMultiPathLabelSwitchAction(
+        LabelForwardingAction::LabelForwardingType::PUSH);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(HwLabelSwitchRouteTest, ConfigSwap) {
+  if (!this->isSupported(HwAsic::Feature::MPLS_ECMP)) {
+    return;
+  }
+  auto setup = [=]() {
+    auto config = this->initialConfig();
+    this->configureStaticMplsRoute(
+        config, LabelForwardingAction::LabelForwardingType::SWAP);
+    this->applyNewConfig(config);
+    this->resolveNeighbors();
+  };
+  auto verify = [=]() {
+    this->verifyMultiPathLabelSwitchAction(
+        LabelForwardingAction::LabelForwardingType::SWAP);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(HwLabelSwitchRouteTest, ConfigPhp) {
+  auto setup = [=]() {
+    auto config = this->initialConfig();
+    this->configureStaticMplsRoute(
+        config, LabelForwardingAction::LabelForwardingType::PHP);
+    this->applyNewConfig(config);
+    this->resolveNeighbors();
+  };
+  auto verify = [=]() {
+    this->verifyMultiPathLabelSwitchAction(
+        LabelForwardingAction::LabelForwardingType::PHP);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(HwLabelSwitchRouteTest, ConfigPop) {
+  auto setup = [=]() {
+    auto config = this->initialConfig();
+    this->configureStaticMplsRoute(
+        config, LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP);
+    this->applyNewConfig(config);
+    this->resolveNeighbors();
+  };
+  auto verify = [=]() {
+    this->verifyLabelSwitchAction(
+        LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
