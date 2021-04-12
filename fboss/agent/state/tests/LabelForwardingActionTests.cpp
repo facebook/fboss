@@ -2,6 +2,7 @@
 
 #include "fboss/agent/if/gen-cpp2/mpls_types.h"
 #include "fboss/agent/state/LabelForwardingAction.h"
+#include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "folly/IPAddress.h"
 
@@ -164,5 +165,28 @@ TEST(LabelForwardingActionTests, MplsNextHopThrift) {
         EXPECT_EQ(nhop.addr(), folly::IPAddress(ip));
       }
     }
+  }
+}
+
+TEST(LabelForwardingActionTests, MplsNextHopThriftSet) {
+  std::vector<LabelForwardingAction> actions{
+      LabelForwardingAction(
+          LabelForwardingAction::LabelForwardingType::SWAP, 1001),
+      LabelForwardingAction(
+          LabelForwardingAction::LabelForwardingType::PUSH, {1001, 1002}),
+      LabelForwardingAction(
+          LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP),
+      LabelForwardingAction(LabelForwardingAction::LabelForwardingType::PHP),
+  };
+  for (auto& action : actions) {
+    std::vector<MplsNextHop> nhops_vec;
+    auto i = 1;
+
+    for (auto ip : {"1::1", "1::2"}) {
+      nhops_vec.push_back(
+          getMplsNextHop(folly::IPAddress(ip), InterfaceID(i++), action));
+    }
+    auto nhops = util::toRouteNextHopSet(nhops_vec);
+    EXPECT_TRUE(LabelForwardingInformationBase::isValidNextHopSet(nhops));
   }
 }
