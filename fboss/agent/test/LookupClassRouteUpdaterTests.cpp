@@ -10,6 +10,7 @@
 
 #include <gtest/gtest.h>
 
+#include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/LookupClassRouteUpdater.h"
 #include "fboss/agent/NeighborUpdater.h"
@@ -36,8 +37,11 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
   using AddrT = typename AddrTAndRib::AddrT;
   static constexpr auto hasStandAloneRib = AddrTAndRib::hasStandAloneRib;
 
+  cfg::SwitchConfig getConfig() const {
+    return testConfigAWithLookupClasses();
+  }
   void SetUp() override {
-    auto config = testConfigAWithLookupClasses();
+    auto config = getConfig();
     auto flags = hasStandAloneRib ? SwitchFlags::ENABLE_STANDALONE_RIB
                                   : SwitchFlags::DEFAULT;
     handle_ = createTestHandle(&config, flags);
@@ -135,6 +139,14 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     }
   }
 
+  RoutePrefix<AddrT> kroutePrefix3() const {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      return RoutePrefix<AddrT>{folly::IPAddressV4{"12.1.4.0"}, 24};
+    } else {
+      return RoutePrefix<AddrT>{
+          folly::IPAddressV6{"3803:6080:d038:3067::"}, 64};
+    }
+  }
   void resolveNeighbor(AddrT ipAddress, MacAddress macAddress) {
     /*
      * Cause a neighbor entry to resolve by receiving appropriate ARP/NDP, and
@@ -583,6 +595,35 @@ TYPED_TEST(LookupClassRouteUpdaterTest, PortLookupClassesChange) {
 
   this->verifyClassIDHelper(
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3);
+}
+
+TYPED_TEST(
+    LookupClassRouteUpdaterTest,
+    CompeteClassIdUpdatesWithRoouteUpdates) {
+  this->addRoute(this->kroutePrefix1(), {this->kIpAddressA()});
+  std::thread classIdUpdates([this]() {
+    for (auto i = 0; i < 1000; ++i) {
+      // Induce class ID updates
+      this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+      this->unresolveNeighbor(this->kIpAddressA());
+    }
+  });
+
+  std::thread routeAddDel([this]() {
+    for (auto i = 0; i < 1000; ++i) {
+      // Induce both route and classID updates
+      this->addRoute(
+          this->kroutePrefix2(), {this->kIpAddressA(), this->kIpAddressB()});
+      this->removeRoute(this->kroutePrefix2());
+    }
+  });
+  for (auto i = 0; i < 1000; ++i) {
+    // Induce just route updates
+    this->addRoute(this->kroutePrefix3(), {this->kIpAddressC()});
+    this->removeRoute(this->kroutePrefix3());
+  }
+  classIdUpdates.join();
+  routeAddDel.join();
 }
 
 template <typename AddrType, bool StandAloneRib, bool RouteFix>
