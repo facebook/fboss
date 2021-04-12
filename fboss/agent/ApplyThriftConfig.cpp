@@ -483,6 +483,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     }
   }
 
+  // resolving mpls next hops may need interfaces to be setup
+  // process static mpls routes after processing interfaces
   auto labelFib = updateStaticMplsRoutes(
       *cfg_->staticMplsRoutesWithNhops_ref(),
       *cfg_->staticMplsRoutesToNull_ref(),
@@ -3086,20 +3088,48 @@ ThriftConfigApplier::updateStaticMplsRoutes(
   }
   auto labelFib = new_->getLabelForwardingInformationBase()->clone();
   for (auto& staticMplsRouteEntry : staticMplsRoutesWithNhops) {
+    std::vector<MplsNextHop> resolvedNextHops{};
+    // resolve next hops if any next hop is unresolved.
+    for (auto nhop : staticMplsRouteEntry.get_nexthop()) {
+      folly::IPAddress nhopAddress(nhop.get_nexthop());
+      auto interface = nhop.interface_ref();
+      if (nhopAddress.isLinkLocal() && !interface.has_value()) {
+        throw FbossError(
+            "static mpls route has link local next hop without interface");
+      }
+      if (interface.has_value() ||
+          nhop.labelForwardingAction_ref()->get_action() ==
+              MplsActionCode::POP_AND_LOOKUP) {
+        resolvedNextHops.push_back(nhop);
+        continue;
+      }
+      // check if nhopAddress is in in one of the interface subnets
+      // look up in interfaces of default router (RouterID(0))
+      auto intfAddrToReach =
+          new_->getInterfaces()->getIntfAddrToReach(RouterID(0), nhopAddress);
+      if (!intfAddrToReach.intf) {
+        throw FbossError(
+            "static mpls route has nexthop ",
+            nhopAddress.str(),
+            " out of interface subnets");
+      }
+      nhop.set_interface(intfAddrToReach.intf->getID());
+      resolvedNextHops.push_back(nhop);
+    }
     auto entry = labelFib->getLabelForwardingEntryIf(
         staticMplsRouteEntry.get_ingressLabel());
     if (!entry) {
       labelFib->addNode(createLabelForwardingEntry(
           staticMplsRouteEntry.get_ingressLabel(),
           LabelNextHopEntry::Action::NEXTHOPS,
-          util::toRouteNextHopSet(staticMplsRouteEntry.get_nexthop())));
+          util::toRouteNextHopSet(resolvedNextHops)));
     } else {
       entry = entry->clone();
       entry->update(
           ClientID::STATIC_ROUTE,
           getStaticLabelNextHopEntry(
               LabelNextHopEntry::Action::NEXTHOPS,
-              util::toRouteNextHopSet(staticMplsRouteEntry.get_nexthop())));
+              util::toRouteNextHopSet(resolvedNextHops)));
     }
   }
 

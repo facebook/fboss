@@ -204,3 +204,61 @@ TEST(StaticRoutes, configureUnconfigure) {
   // No routes and hence no routing table
   ASSERT_EQ(nullptr, t2);
 }
+
+TEST(StaticRoutes, MplsStaticRoutes) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  cfg::SwitchConfig config0;
+  config0.vlans_ref()->resize(1);
+  config0.vlans_ref()[0].id_ref() = 1;
+  config0.interfaces_ref()->resize(1);
+  auto* intfConfig = &config0.interfaces_ref()[0];
+  intfConfig->intfID_ref() = 1;
+  intfConfig->vlanID_ref() = 1;
+  intfConfig->mac_ref() = "00:02:00:11:22:33";
+  intfConfig->ipAddresses_ref()->resize(2);
+  intfConfig->ipAddresses_ref()[0] = "10.0.0.0/24";
+  intfConfig->ipAddresses_ref()[1] = "1::/64";
+
+  // try to set link local nhop without interface
+  config0.staticMplsRoutesWithNhops_ref()->resize(1);
+  config0.staticMplsRoutesWithNhops_ref()[0].ingressLabel_ref() = 100;
+  std::vector<MplsNextHop> nexthops;
+  nexthops.resize(1);
+  nexthops[0].labelForwardingAction_ref()->action_ref() = MplsActionCode::SWAP;
+  nexthops[0].labelForwardingAction_ref()->swapLabel_ref() = 101;
+  nexthops[0].nexthop_ref() = "fe80:abcd:1234:dcab::1";
+  config0.staticMplsRoutesWithNhops_ref()[0].nexthop_ref() = nexthops;
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config0, platform.get(), nullptr),
+      FbossError);
+
+  // try to set non-link local without interface and unreachable via interface
+  nexthops[0].nexthop_ref() = "2::1";
+  config0.staticMplsRoutesWithNhops_ref()[0].nexthop_ref() = nexthops;
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config0, platform.get(), nullptr),
+      FbossError);
+
+  // setup link local with interface and non-link local without interface
+  // reachable via interface
+  nexthops.resize(2);
+  nexthops[0].nexthop_ref() = "fe80:abcd:1234:dcab::1";
+  nexthops[0].interface_ref() = 1;
+
+  nexthops[1].labelForwardingAction_ref()->action_ref() = MplsActionCode::SWAP;
+  nexthops[1].labelForwardingAction_ref()->swapLabel_ref() = 102;
+  nexthops[1].nexthop_ref() = "1::10";
+  config0.staticMplsRoutesWithNhops_ref()[0].nexthop_ref() = nexthops;
+  auto stateV1 =
+      publishAndApplyConfig(stateV0, &config0, platform.get(), nullptr);
+
+  // setup non-link local with interface, still valid
+  nexthops.resize(3);
+  nexthops[2].labelForwardingAction_ref()->action_ref() = MplsActionCode::SWAP;
+  nexthops[2].labelForwardingAction_ref()->swapLabel_ref() = 103;
+  nexthops[2].nexthop_ref() = "2::1";
+  nexthops[2].interface_ref() = 1;
+  publishAndApplyConfig(stateV1, &config0, platform.get(), nullptr);
+}
