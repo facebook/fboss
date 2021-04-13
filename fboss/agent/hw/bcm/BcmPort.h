@@ -309,6 +309,12 @@ class BcmPort {
   // Return whether we have enabled the port from SDK
   bool isEnabledInSDK();
 
+  // Return programmed port config
+  std::shared_ptr<Port> getProgrammedSettings() {
+    auto savedSettings = programmedSettings_.rlock();
+    return *savedSettings;
+  }
+
   BcmSwitch* const hw_{nullptr};
   const bcm_port_t port_; // Broadcom physical port number
   // The gport_ is logically a const, but needs to be initialized as a parameter

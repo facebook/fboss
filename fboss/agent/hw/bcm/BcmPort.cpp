@@ -421,8 +421,9 @@ void BcmPort::disableLinkscan() {
 }
 
 bool BcmPort::isEnabled() {
-  if (*programmedSettings_.rlock()) {
-    return (*programmedSettings_.rlock())->isEnabled();
+  auto settings = getProgrammedSettings();
+  if (settings) {
+    return settings->isEnabled();
   }
   return isEnabledInSDK();
 }
@@ -842,11 +843,7 @@ void BcmPort::setupStatsIfNeeded(const std::shared_ptr<Port>& swPort) {
     return;
   }
 
-  std::shared_ptr<Port> savedPort;
-  {
-    auto savedSettings = programmedSettings_.rlock();
-    savedPort = *savedSettings;
-  }
+  std::shared_ptr<Port> savedPort = getProgrammedSettings();
 
   if (!savedPort || swPort->getName() != savedPort->getName() ||
       hasPortQueueChanges(savedPort, swPort) ||
@@ -1074,7 +1071,9 @@ void BcmPort::updateStats() {
       kInDstNullDiscards(),
       snmpBcmCustomReceive3,
       &(*curPortStats.inDstNullDiscards__ref()));
-  if (isProgrammed() && (*programmedSettings_.rlock())->getPfc().has_value()) {
+
+  auto settings = getProgrammedSettings();
+  if (settings && settings->getPfc().has_value()) {
     updatePortPfcStats(now, curPortStats);
   }
   updateFecStats(now, curPortStats);
@@ -1143,8 +1142,9 @@ void BcmPort::updateFecStats(
   bcm_port_phy_control_t corrected_ctrl, uncorrected_ctrl;
   bcm_port_phy_fec_t fec;
   // get fec from programmed cache to improve performance if possible
-  if (*programmedSettings_.rlock()) {
-    auto profileID = (*programmedSettings_.rlock())->getProfileID();
+  auto settings = getProgrammedSettings();
+  if (settings) {
+    auto profileID = settings->getProfileID();
     const auto profileConf =
         platformPort_->getPortProfileConfigFromCache(profileID);
     fec = utility::phyFecModeToBcmPortPhyFec(
