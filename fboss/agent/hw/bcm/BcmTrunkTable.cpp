@@ -28,6 +28,26 @@ BcmTrunkTable::BcmTrunkTable(const BcmSwitch* hw)
 
 BcmTrunkTable::~BcmTrunkTable() {}
 
+void BcmTrunkTable::portToAggPortAdd(PortID portId, AggregatePortID aggPortId) {
+  XLOG(DBG3) << "portToAggPort map: add map, portId " << portId
+             << " to aggPortId " << aggPortId;
+  portToAggPort_.insert(portId, aggPortId);
+}
+
+void BcmTrunkTable::portToAggPortRemove(PortID portId) {
+  XLOG(DBG3) << "portToAggPort map: erase port" << portId;
+  portToAggPort_.erase(portId);
+}
+
+std::optional<AggregatePortID> BcmTrunkTable::portToAggPortGet(
+    PortID id) const {
+  auto iter = portToAggPort_.find(id);
+  if (iter == portToAggPort_.end()) {
+    return std::nullopt;
+  }
+  return iter->second;
+}
+
 bcm_trunk_t BcmTrunkTable::getBcmTrunkId(AggregatePortID id) const {
   auto iter = tgidLookup_.find(id);
   if (iter == tgidLookup_.end()) {
@@ -61,13 +81,24 @@ void BcmTrunkTable::addTrunk(const std::shared_ptr<AggregatePort>& aggPort) {
         ": corresponding trunk already exists");
   }
 
+  PortID subPort;
+  for (const auto& portAndState : aggPort->subportAndFwdState()) {
+    std::tie(subPort, std::ignore) = portAndState;
+    portToAggPortAdd(subPort, aggPort->getID());
+  }
+
   trunkToMinLinkCount_.addOrUpdate(trunkID, aggPort->getMinimumLinkCount());
   tgidLookup_.insert(aggPort->getID(), trunkID);
+  XLOG(DBG3) << "addTrunk:  Add aggPort " << aggPort->getID() << " to trunk "
+             << trunkID;
 }
 
 void BcmTrunkTable::programTrunk(
     const std::shared_ptr<AggregatePort>& oldAggPort,
     const std::shared_ptr<AggregatePort>& newAggPort) {
+  std::vector<PortID> removedPorts;
+  std::vector<PortID> addedPorts;
+
   CHECK_EQ(oldAggPort->getID(), newAggPort->getID());
 
   auto it = trunks_.find(oldAggPort->getID());
@@ -78,7 +109,15 @@ void BcmTrunkTable::programTrunk(
         ": no corresponding trunk");
   }
 
-  it->second->program(oldAggPort, newAggPort);
+  it->second->program(oldAggPort, newAggPort, addedPorts, removedPorts);
+
+  for (auto subPort : removedPorts) {
+    portToAggPortRemove(subPort);
+  }
+  for (auto subPort : addedPorts) {
+    portToAggPortAdd(subPort, newAggPort->getID());
+  }
+
   trunkToMinLinkCount_.addOrUpdate(
       it->second->id(), newAggPort->getMinimumLinkCount());
 }
@@ -90,6 +129,13 @@ void BcmTrunkTable::deleteTrunk(const std::shared_ptr<AggregatePort>& aggPort) {
         "failed to delete aggregate port ",
         aggPort->getID(),
         ": no corresponding trunk");
+  }
+
+  PortID subPort;
+  for (const auto& portAndState : aggPort->subportAndFwdState()) {
+    std::tie(subPort, std::ignore) = portAndState;
+    XLOG(DBG3) << "deleteTrunk remove port= " << subPort;
+    portToAggPortRemove(subPort);
   }
 
   auto trunkID = it->second->id();

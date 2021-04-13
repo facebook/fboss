@@ -44,6 +44,8 @@ class BcmTrunkTable {
   bcm_trunk_t getBcmTrunkId(AggregatePortID id) const;
   AggregatePortID getAggregatePortId(bcm_trunk_t trunk) const;
 
+  std::optional<AggregatePortID> portToAggPortGet(PortID id) const;
+
   size_t numTrunkPorts() const {
     return trunks_.size();
   }
@@ -63,6 +65,8 @@ class BcmTrunkTable {
   BcmTrunkTable(const BcmTrunkTable&) = delete;
   BcmTrunkTable& operator=(const BcmTrunkTable&) = delete;
 
+  void portToAggPortAdd(PortID portId, AggregatePortID aggPortId);
+  void portToAggPortRemove(PortID);
   boost::container::flat_map<AggregatePortID, std::unique_ptr<BcmTrunk>>
       trunks_;
   const BcmSwitch* const hw_{nullptr};
@@ -71,6 +75,9 @@ class BcmTrunkTable {
 
   // Used for thread-safe id translation
   folly::ConcurrentHashMap<AggregatePortID, bcm_trunk_t> tgidLookup_;
+
+  // Map portID to aggreatePortID, to be used for every RX packet.
+  folly::ConcurrentHashMap<PortID, AggregatePortID> portToAggPort_;
 
  public:
   using iterator = decltype(trunks_)::iterator;

@@ -140,9 +140,14 @@ void BcmTrunk::init(const std::shared_ptr<AggregatePort>& aggPort) {
 
 void BcmTrunk::program(
     const std::shared_ptr<AggregatePort>& oldAggPort,
-    const std::shared_ptr<AggregatePort>& newAggPort) {
+    const std::shared_ptr<AggregatePort>& newAggPort,
+    std::vector<PortID>& addedPorts,
+    std::vector<PortID>& removedPorts) {
   programForwardingState(
-      oldAggPort->subportAndFwdState(), newAggPort->subportAndFwdState());
+      oldAggPort->subportAndFwdState(),
+      newAggPort->subportAndFwdState(),
+      addedPorts,
+      removedPorts);
 
   if (oldAggPort->getName() != newAggPort->getName()) {
     trunkStats_.initialize(newAggPort->getID(), newAggPort->getName());
@@ -151,7 +156,9 @@ void BcmTrunk::program(
 
 void BcmTrunk::programForwardingState(
     AggregatePort::SubportAndForwardingStateConstRange oldRange,
-    AggregatePort::SubportAndForwardingStateConstRange newRange) {
+    AggregatePort::SubportAndForwardingStateConstRange newRange,
+    std::vector<PortID>& addedPorts,
+    std::vector<PortID>& removedPorts) {
   PortID oldSubport, newSubport;
   AggregatePort::Forwarding oldFwdState, newFwdState;
 
@@ -169,13 +176,20 @@ void BcmTrunk::programForwardingState(
     std::tie(oldSubport, oldFwdState) = *oldSubportAndFwdStateIter;
     CHECK_EQ(oldSubport, newSubport);
     if (oldFwdState != newFwdState) {
-      modifyMemberPort(
-          newFwdState == AggregatePort::Forwarding::ENABLED, newSubport);
+      bool addRemove = (newFwdState == AggregatePort::Forwarding::ENABLED);
+      modifyMemberPort(addRemove, newSubport);
+      if (addRemove) {
+        addedPorts.push_back(newSubport);
+      } else {
+        removedPorts.push_back(newSubport);
+      }
     }
   }
 }
 
 void BcmTrunk::modifyMemberPort(bool added, PortID memberPort) {
+  XLOG(INFO) << "modifyMemberPort: bcmTrunkID_ = " << bcmTrunkID_
+             << ", added = " << added << ", port = " << memberPort;
   bcm_trunk_member_t member;
   bcm_trunk_member_t_init(&member);
   member.gport = hw_->getPortTable()->getBcmPort(memberPort)->getBcmGport();
@@ -183,7 +197,6 @@ void BcmTrunk::modifyMemberPort(bool added, PortID memberPort) {
     auto rv = bcm_trunk_member_add(hw_->getUnit(), bcmTrunkID_, &member);
     bcmCheckError(
         rv, "failed to add port ", memberPort, " to trunk ", bcmTrunkID_);
-    XLOG(INFO) << "added port " << memberPort << " to trunk " << bcmTrunkID_;
     trunkStats_.grantMembership(memberPort);
   } else { // deleted
     auto rv = bcm_trunk_member_delete(hw_->getUnit(), bcmTrunkID_, &member);

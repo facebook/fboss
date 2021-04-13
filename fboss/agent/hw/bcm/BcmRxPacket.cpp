@@ -148,28 +148,16 @@ FbBcmRxPacket::FbBcmRxPacket(
     bcm_pktio_pkt_t* pkt = bcmPacket.ptrUnion.pktioPkt;
     bcm_pktio_fid_support_t support;
     uint32 val;
-    bool is_trunk;
 
     auto rv = bcm_pktio_pmd_field_get(
         unit_, pkt, bcmPktioPmdTypeRx, BCMPKT_RXPMD_CPU_COS, &val);
     bcmCheckError(rv, "failed to get pktio CPU_COS");
     _cosQueue = val;
 
-    rv = bcm_pktio_pmd_field_get(
-        unit_, pkt, bcmPktioPmdTypeHigig2, BCM_PKTIO_HG2_PPD0_SRC_T, &val);
-    bcmCheckError(rv, "failed to get pktio BCM_PKTIO_HG2_PPD0_SRC_T");
-    is_trunk = val;
-
-    if (is_trunk) {
-      uint32 src_port;
-      rv = bcm_pktio_pmd_field_get(
-          unit_, pkt, bcmPktioPmdTypeHigig2, BCM_PKTIO_HG2_SRC_PORT, &val);
-      bcmCheckError(rv, "failed to get pktio BCM_PKTIO_HG2_SRC_PORT");
-      src_port = val;
-
+    if (auto optRet = bcmSwitch->getTrunkTable()->portToAggPortGet(
+            PortID(getSrcPort()))) {
       isFromAggregatePort_ = true;
-      srcAggregatePort_ =
-          bcmSwitch->getTrunkTable()->getAggregatePortId(src_port);
+      srcAggregatePort_ = *optRet;
     }
 
     rv = bcm_pktio_pmd_field_get(

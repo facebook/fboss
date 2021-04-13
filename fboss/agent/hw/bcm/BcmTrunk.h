@@ -39,7 +39,9 @@ class BcmTrunk {
   void init(const std::shared_ptr<AggregatePort>& aggPort);
   void program(
       const std::shared_ptr<AggregatePort>& oldAggPort,
-      const std::shared_ptr<AggregatePort>& newAggPort);
+      const std::shared_ptr<AggregatePort>& newAggPort,
+      std::vector<PortID>& addedPorts,
+      std::vector<PortID>& removedPorts);
 
   static void shrinkTrunkGroupHwNotLocked(
       int unit,
@@ -62,7 +64,9 @@ class BcmTrunk {
       const std::shared_ptr<AggregatePort>& aggPort);
   void programForwardingState(
       AggregatePort::SubportAndForwardingStateConstRange oldRange,
-      AggregatePort::SubportAndForwardingStateConstRange newRange);
+      AggregatePort::SubportAndForwardingStateConstRange newRange,
+      std::vector<PortID>& addedPorts,
+      std::vector<PortID>& removedPorts);
   void modifyMemberPort(bool added, PortID memberPort);
 
   // Forbidden copy constructor and assignment operator
