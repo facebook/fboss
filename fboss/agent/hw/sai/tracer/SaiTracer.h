@@ -14,6 +14,7 @@
 #include <tuple>
 
 #include "fboss/agent/AsyncLogger.h"
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
 
 #include <folly/File.h>
 #include <folly/String.h>
@@ -35,6 +36,8 @@ class SaiTracer {
   ~SaiTracer();
 
   static std::shared_ptr<SaiTracer> getInstance();
+
+  void printHex(std::ostringstream& outStringStream, uint8_t u8);
 
   void logApiInitialize(const char** variables, const char** values, int size);
 
@@ -150,6 +153,7 @@ class SaiTracer {
   sai_neighbor_api_t* neighborApi_;
   sai_next_hop_api_t* nextHopApi_;
   sai_next_hop_group_api_t* nextHopGroupApi_;
+  sai_macsec_api_t* macsecApi_;
   sai_mirror_api_t* mirrorApi_;
   sai_mpls_api_t* mplsApi_;
   sai_port_api_t* portApi_;
@@ -245,6 +249,11 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP, "hostifTrapGroup_"},
       {SAI_OBJECT_TYPE_LAG, "lag_"},
       {SAI_OBJECT_TYPE_LAG_MEMBER, "lagMember_"},
+      {SAI_OBJECT_TYPE_MACSEC, "macsec_"},
+      {SAI_OBJECT_TYPE_MACSEC_PORT, "macsecPort_"},
+      {SAI_OBJECT_TYPE_MACSEC_FLOW, "macsecFlow_"},
+      {SAI_OBJECT_TYPE_MACSEC_SA, "macsecSa_"},
+      {SAI_OBJECT_TYPE_MACSEC_SC, "macsecSc_"},
       {SAI_OBJECT_TYPE_MIRROR_SESSION, "mirrorSession_"},
       {SAI_OBJECT_TYPE_NEXT_HOP, "nextHop_"},
       {SAI_OBJECT_TYPE_NEXT_HOP_GROUP, "nextHopGroup_"},
@@ -287,6 +296,11 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP, "hostif_api->"},
       {SAI_OBJECT_TYPE_LAG, "lag_api->"},
       {SAI_OBJECT_TYPE_LAG_MEMBER, "lag_api->"},
+      {SAI_OBJECT_TYPE_MACSEC, "macsec_api->"},
+      {SAI_OBJECT_TYPE_MACSEC_PORT, "macsec_api->"},
+      {SAI_OBJECT_TYPE_MACSEC_FLOW, "macsec_api->"},
+      {SAI_OBJECT_TYPE_MACSEC_SA, "macsec_api->"},
+      {SAI_OBJECT_TYPE_MACSEC_SC, "macsec_api->"},
       {SAI_OBJECT_TYPE_MIRROR_SESSION, "mirror_api->"},
       {SAI_OBJECT_TYPE_INSEG_ENTRY, "mpls_api->"},
       {SAI_OBJECT_TYPE_NEIGHBOR_ENTRY, "neighbor_api->"},

@@ -8,6 +8,8 @@
  *
  */
 
+#include <iomanip>
+
 #include "fboss/agent/hw/sai/tracer/Utils.h"
 
 using folly::to;
@@ -513,6 +515,27 @@ void ipAttr(
           prefix, "addr.ip6[", j, "]=", attr_list[i].value.ipaddr.addr.ip6[j]));
     }
   }
+}
+
+void u8ArrGenericAttr(
+    const uint8_t* array,
+    uint arrLength,
+    int i,
+    std::vector<std::string>& attrLines,
+    const std::string& attrName) {
+  std::ostringstream outStringStream;
+  outStringStream << to<string>("s_a", "[", i, "].value.", attrName, "={");
+  for (int j = 0; j < arrLength - 1; j += 32) {
+    outStringStream << "\n";
+    uint k_end = j + 32;
+    for (int k = j; k < std::min(k_end, arrLength - 1); ++k) {
+      SaiTracer::getInstance()->printHex(outStringStream, array[k]);
+      outStringStream << ", ";
+    }
+  }
+  SaiTracer::getInstance()->printHex(outStringStream, array[arrLength - 1]);
+  outStringStream << "}";
+  attrLines.push_back(outStringStream.str());
 }
 
 } // namespace facebook::fboss

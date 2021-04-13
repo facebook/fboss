@@ -149,4 +149,11 @@ void ipAttr(
     int i,
     std::vector<std::string>& attrLines);
 
+void u8ArrGenericAttr(
+    const uint8_t* array,
+    uint arrLength,
+    int i,
+    std::vector<std::string>& attrLines,
+    const std::string& attrName);
+
 } // namespace facebook::fboss

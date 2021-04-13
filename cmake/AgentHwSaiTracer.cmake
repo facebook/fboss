@@ -12,6 +12,7 @@ add_library(sai_tracer
   fboss/agent/hw/sai/tracer/HashApiTracer.cpp
   fboss/agent/hw/sai/tracer/HostifApiTracer.cpp
   fboss/agent/hw/sai/tracer/LagApiTracer.cpp
+  fboss/agent/hw/sai/tracer/MacsecApiTracer.cpp
   fboss/agent/hw/sai/tracer/MirrorApiTracer.cpp
   fboss/agent/hw/sai/tracer/MplsApiTracer.cpp
   fboss/agent/hw/sai/tracer/NeighborApiTracer.cpp

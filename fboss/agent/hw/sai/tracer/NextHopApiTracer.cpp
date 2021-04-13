@@ -9,7 +9,6 @@
  */
 
 #include "fboss/agent/hw/sai/tracer/NextHopApiTracer.h"
-#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
 
 namespace facebook::fboss {

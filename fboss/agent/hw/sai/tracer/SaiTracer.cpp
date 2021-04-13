@@ -22,6 +22,7 @@
 #include "fboss/agent/hw/sai/tracer/HashApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/HostifApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/LagApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/MacsecApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/MirrorApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/MplsApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/NeighborApiTracer.h"
@@ -189,6 +190,12 @@ sai_status_t __wrap_sai_api_query(
       *api_method_table = facebook::fboss::wrappedLagApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "lag_api");
       break;
+    case SAI_API_MACSEC:
+      SaiTracer::getInstance()->macsecApi_ =
+          static_cast<sai_macsec_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrappedMacsecApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "macsec_api");
+      break;
     case SAI_API_MIRROR:
       SaiTracer::getInstance()->mirrorApi_ =
           static_cast<sai_mirror_api_t*>(*api_method_table);
@@ -305,11 +312,6 @@ namespace {
 
 folly::Singleton<facebook::fboss::SaiTracer> _saiTracer;
 
-inline void printHex(std::ostringstream& outStringStream, uint8_t u8) {
-  outStringStream << "0x" << std::setfill('0') << std::setw(2) << std::hex
-                  << static_cast<int>(u8);
-}
-
 } // namespace
 
 namespace facebook::fboss {
@@ -337,6 +339,11 @@ SaiTracer::~SaiTracer() {
 
 std::shared_ptr<SaiTracer> SaiTracer::getInstance() {
   return _saiTracer.try_get();
+}
+
+void SaiTracer::printHex(std::ostringstream& outStringStream, uint8_t u8) {
+  outStringStream << "0x" << std::setfill('0') << std::setw(2) << std::hex
+                  << static_cast<int>(u8);
 }
 
 void SaiTracer::writeToFile(const vector<string>& strVec) {
@@ -1081,6 +1088,21 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_LAG_MEMBER:
       setLagMemberAttributes(attr_list, attr_count, attrLines);
       break;
+    case SAI_OBJECT_TYPE_MACSEC:
+      setMacsecAttributes(attr_list, attr_count, attrLines);
+      break;
+    case SAI_OBJECT_TYPE_MACSEC_PORT:
+      setMacsecPortAttributes(attr_list, attr_count, attrLines);
+      break;
+    case SAI_OBJECT_TYPE_MACSEC_FLOW:
+      setMacsecFlowAttributes(attr_list, attr_count, attrLines);
+      break;
+    case SAI_OBJECT_TYPE_MACSEC_SA:
+      setMacsecSaAttributes(attr_list, attr_count, attrLines);
+      break;
+    case SAI_OBJECT_TYPE_MACSEC_SC:
+      setMacsecScAttributes(attr_list, attr_count, attrLines);
+      break;
     case SAI_OBJECT_TYPE_MIRROR_SESSION:
       setMirrorSessionAttributes(attr_list, attr_count, attrLines);
       break;
@@ -1396,6 +1418,11 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_LAG, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_LAG_MEMBER, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_MACSEC, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_MACSEC_PORT, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_MACSEC_FLOW, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_MACSEC_SA, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_MACSEC_SC, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_MIRROR_SESSION, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_NEIGHBOR_ENTRY, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_NEXT_HOP, 0);
