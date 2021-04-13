@@ -48,6 +48,18 @@ class LagManagerTest : public ManagerTestBase {
     EXPECT_EQ(observedPorts, expectedPorts);
   }
 
+  void setLagAttributeLabel(
+      LagSaiId lag,
+      std::shared_ptr<AggregatePort> swAggrPort) {
+    auto name = swAggrPort->getName();
+    std::array<char, 32> labelValue{};
+    for (auto i = 0; i < 32 && i < name.length(); i++) {
+      labelValue[i] = name[i];
+    }
+    saiApiTable->lagApi().setAttribute(
+        lag, SaiLagTraits::Attributes::Label(labelValue));
+  }
+
   TestInterface intf0;
   TestInterface intf1;
 };
@@ -55,6 +67,7 @@ class LagManagerTest : public ManagerTestBase {
 TEST_F(LagManagerTest, addLag) {
   std::shared_ptr<AggregatePort> swAggregatePort = makeAggregatePort(intf0);
   LagSaiId saiId = saiManagerTable->lagManager().addLag(swAggregatePort);
+  setLagAttributeLabel(saiId, swAggregatePort);
   auto label = saiApiTable->lagApi().getAttribute(
       saiId, SaiLagTraits::Attributes::Label{});
   std::string value(label.data());
@@ -64,6 +77,7 @@ TEST_F(LagManagerTest, addLag) {
 TEST_F(LagManagerTest, removeLag) {
   std::shared_ptr<AggregatePort> swAggregatePort = makeAggregatePort(intf0);
   LagSaiId saiId = saiManagerTable->lagManager().addLag(swAggregatePort);
+  setLagAttributeLabel(saiId, swAggregatePort);
   auto label = saiApiTable->lagApi().getAttribute(
       saiId, SaiLagTraits::Attributes::Label{});
   std::string value(label.data());
@@ -82,7 +96,9 @@ TEST_F(LagManagerTest, addTwoLags) {
   std::shared_ptr<AggregatePort> swAggregatePort0 = makeAggregatePort(intf0);
   std::shared_ptr<AggregatePort> swAggregatePort1 = makeAggregatePort(intf1);
   LagSaiId saiId0 = saiManagerTable->lagManager().addLag(swAggregatePort0);
+  setLagAttributeLabel(saiId0, swAggregatePort0);
   LagSaiId saiId1 = saiManagerTable->lagManager().addLag(swAggregatePort1);
+  setLagAttributeLabel(saiId1, swAggregatePort1);
 
   auto label0 = saiApiTable->lagApi().getAttribute(
       saiId0, SaiLagTraits::Attributes::Label{});

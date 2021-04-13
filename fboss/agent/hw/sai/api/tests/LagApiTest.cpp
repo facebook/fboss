@@ -18,10 +18,8 @@ class LagApiTest : public ::testing::Test {
     lagApi = std::make_unique<LagApi>();
   }
 
-  LagSaiId createLag(std::string label, uint16_t vlan) {
-    std::array<char, 32> data{};
-    std::copy(std::begin(label), std::end(label), std::begin(data));
-    SaiLagTraits::CreateAttributes attributes{data, vlan};
+  LagSaiId createLag(uint16_t vlan) {
+    SaiLagTraits::CreateAttributes attributes{vlan};
     return lagApi->create<SaiLagTraits>(attributes, switchid);
   }
 
@@ -80,8 +78,8 @@ class LagApiTest : public ::testing::Test {
 
 TEST_F(LagApiTest, TestApi) {
   /* create */
-  auto id0 = createLag("lag0", 1000);
-  auto id1 = createLag("lag1", 1001);
+  auto id0 = createLag(1000);
+  auto id1 = createLag(1001);
   EXPECT_NE(id0, id1);
   EXPECT_TRUE(hasLag(id0));
   EXPECT_TRUE(hasLag(id1));

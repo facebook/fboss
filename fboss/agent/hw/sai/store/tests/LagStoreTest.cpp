@@ -23,11 +23,11 @@ class LagStoreTest : public SaiStoreTest {
   }
 
   LagSaiId createLag(std::string label, uint16_t vlan) {
-    std::array<char, 32> data{};
-    std::copy(std::begin(label), std::end(label), std::begin(data));
-    SaiLagTraits::CreateAttributes c{data, vlan};
+    SaiLagTraits::CreateAttributes c{vlan};
     auto lagId = saiApiTable->lagApi().create<SaiLagTraits>(c, 0);
 
+    std::array<char, 32> data{};
+    std::copy(std::begin(label), std::end(label), std::begin(data));
     saiApiTable->lagApi().setAttribute(
         lagId, SaiLagTraits::Attributes::Label(data));
     return lagId;
@@ -44,7 +44,7 @@ TEST_F(LagStoreTest, setObject) {
   s.reload();
   std::array<char, 32> labelValue{"lag0"};
   SaiLagTraits::Attributes::Label label{labelValue};
-  auto lag = s.get<SaiLagTraits>().setObject(label, {label, 1});
+  auto lag = s.get<SaiLagTraits>().setObject(label, {1});
   std::vector<std::shared_ptr<SaiObject<SaiLagMemberTraits>>> members;
   for (auto i : {1, 2, 3, 4}) {
     SaiLagMemberTraits::AdapterHostKey adapterHostLey{lag->adapterKey(), i};
@@ -65,7 +65,7 @@ TEST_F(LagStoreTest, updateObject) {
   s.reload();
   std::array<char, 32> labelValue{"lag0"};
   SaiLagTraits::Attributes::Label label{labelValue};
-  auto lag = s.get<SaiLagTraits>().setObject(label, {label, 1});
+  auto lag = s.get<SaiLagTraits>().setObject(label, {1});
   std::vector<std::shared_ptr<SaiObject<SaiLagMemberTraits>>> members;
   std::vector<LagMemberSaiId> memberIds;
   for (auto i : {1, 2, 3, 4}) {

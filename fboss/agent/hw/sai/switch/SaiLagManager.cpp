@@ -36,7 +36,7 @@ LagSaiId SaiLagManager::addLag(
 
   auto vlanID = vlanSaiIdsIter->second;
 
-  SaiLagTraits::CreateAttributes createAttributes{labelValue, vlanID};
+  SaiLagTraits::CreateAttributes createAttributes{vlanID};
 
   auto& lagStore = saiStore_->get<SaiLagTraits>();
   auto lag = lagStore.setObject(
