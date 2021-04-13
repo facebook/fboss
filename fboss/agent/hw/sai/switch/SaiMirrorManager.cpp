@@ -193,4 +193,12 @@ SaiMirrorManager::SaiMirrorManager(
     SaiPlatform* platform)
     : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
+std::vector<MirrorSaiId> SaiMirrorManager::getAllMirrorSessionOids() const {
+  std::vector<MirrorSaiId> mirrorSaiIds;
+  for (auto& mirrorIdAndHandle : mirrorHandles_) {
+    mirrorSaiIds.push_back(mirrorIdAndHandle.second->adapterKey());
+  }
+  return mirrorSaiIds;
+}
+
 } // namespace facebook::fboss

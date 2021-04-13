@@ -24,11 +24,20 @@ namespace facebook::fboss::utility {
 
 #define MIRROR_PORT_INGRESS 0x00000001
 #define MIRROR_PORT_EGRESS 0x00000002
-#define MIRROR_PORT_SFLOW 0x00000003
+#define MIRROR_PORT_SFLOW 0x00000004
 
 void getAllMirrorDestinations(
-    facebook::fboss::HwSwitch* /* hwSwitch */,
-    std::vector<uint64_t>& /* destinations */) {}
+    facebook::fboss::HwSwitch* hwSwitch,
+    std::vector<uint64_t>& destinations) {
+  auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch);
+  auto mirrorSaiOids =
+      saiSwitch->managerTable()->mirrorManager().getAllMirrorSessionOids();
+  std::transform(
+      mirrorSaiOids.begin(),
+      mirrorSaiOids.end(),
+      std::back_inserter(destinations),
+      [](MirrorSaiId mirrorOid) -> uint64_t { return mirrorOid; });
+}
 
 uint32_t getMirrorPortIngressAndSflowFlags() {
   return MIRROR_PORT_INGRESS | MIRROR_PORT_SFLOW;
