@@ -15,7 +15,7 @@
 
 using namespace ::testing;
 
-namespace facebook::fboss {
+namespace facebook::fboss::normalization {
 namespace {
 void addPort(
     std::vector<cfg::Port>& ports,
@@ -59,4 +59,4 @@ TEST(CounterTagManagerTest, getCounterTags) {
       ElementsAre("tag_cc", "tag_dd"));
 }
 
-} // namespace facebook::fboss
+} // namespace facebook::fboss::normalization

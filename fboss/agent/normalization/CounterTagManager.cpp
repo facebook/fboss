@@ -12,7 +12,7 @@
 
 #include <folly/MapUtil.h>
 
-namespace facebook::fboss {
+namespace facebook::fboss::normalization {
 
 void CounterTagManager::reloadCounterTags(const cfg::SwitchConfig& curConfig) {
   PortCounterTagsMap newPortCounterTags;
@@ -37,4 +37,4 @@ std::shared_ptr<std::vector<std::string>> CounterTagManager::getCounterTags(
   return nullptr;
 }
 
-} // namespace facebook::fboss
+} // namespace facebook::fboss::normalization

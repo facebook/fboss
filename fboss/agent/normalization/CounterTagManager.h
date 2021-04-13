@@ -15,7 +15,7 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
-namespace facebook::fboss {
+namespace facebook::fboss::normalization {
 /*
  * class to handle and manage counter tags to make it easier for rest of
  * normalization layer to access counter tags which currently reside in agent
@@ -40,4 +40,4 @@ class CounterTagManager {
   folly::Synchronized<PortCounterTagsMap> portCounterTags_;
 };
 
-} // namespace facebook::fboss
+} // namespace facebook::fboss::normalization
