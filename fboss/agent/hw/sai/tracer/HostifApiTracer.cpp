@@ -84,7 +84,6 @@ void setHostifTrapAttributes(
         attrLines.push_back(u32Attr(attr_list, i));
         break;
       default:
-        // TODO(zecheng): Better check for newly added attributes (T69350100)
         break;
     }
   }
@@ -103,7 +102,6 @@ void setHostifTrapGroupAttributes(
         attrLines.push_back(u32Attr(attr_list, i));
         break;
       default:
-        // TODO(zecheng): Better check for newly added attributes (T69350100)
         break;
     }
   }
@@ -125,7 +123,6 @@ void setHostifPacketAttributes(
         attrLines.push_back(u8Attr(attr_list, i));
         break;
       default:
-        // TODO(zecheng): Better check for newly added attributes (T69350100)
         break;
     }
   }

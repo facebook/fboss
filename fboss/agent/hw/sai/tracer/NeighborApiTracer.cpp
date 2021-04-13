@@ -83,8 +83,10 @@ void setNeighborEntryAttributes(
       case SAI_NEIGHBOR_ENTRY_ATTR_DST_MAC_ADDRESS:
         macAddressAttr(attr_list, i, attrLines);
         break;
+      case SAI_NEIGHBOR_ENTRY_ATTR_META_DATA:
+        attrLines.push_back(u32Attr(attr_list, i));
+        break;
       default:
-        // TODO(zecheng): Better check for newly added attributes (T69350100)
         break;
     }
   }

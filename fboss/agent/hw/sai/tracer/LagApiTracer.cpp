@@ -81,14 +81,17 @@ void setLagAttributes(
         break;
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 7, 1)
-      // Attribute(s) with SAI type char[32]
+        // Attribute(s) with SAI type char[32]
+#ifdef IS_OSS
+      case SAI_LAG_ATTR_END:
+#else
       case SAI_LAG_ATTR_LABEL:
+#endif
         charDataAttr(attr_list, i, attrLines);
         break;
 #endif
 
       default:
-        // TODO(vsp): Better check for newly added attributes (T69350100)
         break;
     }
   }
@@ -113,7 +116,6 @@ void setLagMemberAttributes(
         break;
 
       default:
-        // TODO(vsp): Better check for newly added attributes (T69350100)
         break;
     }
   }

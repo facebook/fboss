@@ -125,18 +125,22 @@ void setSwitchAttributes(
         break;
       case SAI_SWITCH_ATTR_PORT_LIST:
       case SAI_SWITCH_ATTR_TAM_OBJECT_ID:
+      case SAI_SWITCH_ATTR_PORT_CONNECTOR_LIST:
+      case SAI_SWITCH_ATTR_SYSTEM_PORT_CONFIG_LIST:
         oidListAttr(attr_list, i, listCount++, attrLines);
         break;
       case SAI_SWITCH_ATTR_SRC_MAC_ADDRESS:
         macAddressAttr(attr_list, i, attrLines);
         break;
       case SAI_SWITCH_ATTR_SWITCH_HARDWARE_INFO:
+      case SAI_SWITCH_ATTR_FIRMWARE_PATH_NAME:
         s8ListAttr(attr_list, i, listCount++, attrLines, true);
         break;
       case SAI_SWITCH_ATTR_INIT_SWITCH:
       case SAI_SWITCH_ATTR_SWITCH_SHELL_ENABLE:
       case SAI_SWITCH_ATTR_RESTART_WARM:
       case SAI_SWITCH_ATTR_ECN_ECT_THRESHOLD_ENABLE:
+      case SAI_SWITCH_ATTR_FIRMWARE_STATUS:
         attrLines.push_back(boolAttr(attr_list, i));
         break;
       case SAI_SWITCH_ATTR_PORT_NUMBER:
@@ -147,14 +151,42 @@ void setSwitchAttributes(
       case SAI_SWITCH_ATTR_MAX_NUMBER_OF_SUPPORTED_PORTS:
       case SAI_SWITCH_ATTR_ECMP_DEFAULT_HASH_SEED:
       case SAI_SWITCH_ATTR_LAG_DEFAULT_HASH_SEED:
+      case SAI_SWITCH_ATTR_ACL_ENTRY_MAXIMUM_PRIORITY:
+      case SAI_SWITCH_ATTR_ACL_ENTRY_MINIMUM_PRIORITY:
+      case SAI_SWITCH_ATTR_AVAILABLE_IPV4_NEIGHBOR_ENTRY:
+      case SAI_SWITCH_ATTR_AVAILABLE_IPV4_NEXTHOP_ENTRY:
+      case SAI_SWITCH_ATTR_AVAILABLE_IPV4_ROUTE_ENTRY:
+      case SAI_SWITCH_ATTR_AVAILABLE_IPV6_NEIGHBOR_ENTRY:
+      case SAI_SWITCH_ATTR_AVAILABLE_IPV6_NEXTHOP_ENTRY:
+      case SAI_SWITCH_ATTR_AVAILABLE_IPV6_ROUTE_ENTRY:
+      case SAI_SWITCH_ATTR_AVAILABLE_NEXT_HOP_GROUP_ENTRY:
+      case SAI_SWITCH_ATTR_AVAILABLE_NEXT_HOP_GROUP_MEMBER_ENTRY:
+      case SAI_SWITCH_ATTR_COUNTER_REFRESH_INTERVAL:
+      case SAI_SWITCH_ATTR_FDB_AGING_TIME:
+      case SAI_SWITCH_ATTR_FIRMWARE_MAJOR_VERSION:
+      case SAI_SWITCH_ATTR_FIRMWARE_MINOR_VERSION:
+      case SAI_SWITCH_ATTR_MAX_SYSTEM_CORES:
+      case SAI_SWITCH_ATTR_SWITCH_ID:
+      case SAI_SWITCH_ATTR_SWITCH_PROFILE_ID:
+      case SAI_SWITCH_ATTR_TYPE:
         attrLines.push_back(u32Attr(attr_list, i));
         break;
       case SAI_SWITCH_ATTR_ECMP_DEFAULT_HASH_ALGORITHM:
       case SAI_SWITCH_ATTR_LAG_DEFAULT_HASH_ALGORITHM:
+      case SAI_SWITCH_ATTR_FIRMWARE_LOAD_METHOD:
+      case SAI_SWITCH_ATTR_FIRMWARE_LOAD_TYPE:
+      case SAI_SWITCH_ATTR_HARDWARE_ACCESS_BUS:
         attrLines.push_back(s32Attr(attr_list, i));
         break;
+      case SAI_SWITCH_ATTR_FDB_DST_USER_META_DATA_RANGE:
+      case SAI_SWITCH_ATTR_NEIGHBOR_DST_USER_META_DATA_RANGE:
+      case SAI_SWITCH_ATTR_ROUTE_DST_USER_META_DATA_RANGE:
+        u32RangeAttr(attr_list, i, attrLines);
+        break;
+      case SAI_SWITCH_ATTR_PLATFROM_CONTEXT:
+        attrLines.push_back(u64Attr(attr_list, i));
+        break;
       default:
-        // TODO(zecheng): Better check for newly added attributes (T69350100)
         break;
     }
   }

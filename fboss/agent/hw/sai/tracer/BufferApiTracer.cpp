@@ -84,7 +84,6 @@ void setBufferPoolAttributes(
         attrLines.push_back(u64Attr(attr_list, i));
         break;
       default:
-        // TODO(zecheng): Better check for newly added attributes (T69350100)
         break;
     }
   }
@@ -110,7 +109,6 @@ void setBufferProfileAttributes(
         attrLines.push_back(s8Attr(attr_list, i));
         break;
       default:
-        // TODO(zecheng): Better check for newly added attributes (T69350100)
         break;
     }
   }

@@ -49,7 +49,6 @@ void setSchedulerAttributes(
         attrLines.push_back(u64Attr(attr_list, i));
         break;
       default:
-        // TODO(zecheng): Better check for newly added attributes (T69350100)
         break;
     }
   }

@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/tracer/PortApiTracer.h"
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
 
 namespace facebook::fboss {
@@ -147,6 +148,12 @@ void setPortAttributes(
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_PORT_ATTR_ADMIN_STATE:
+      case SAI_PORT_ATTR_PKT_TX_ENABLE:
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
+      case SAI_PORT_ATTR_DISABLE_DECREMENT_TTL:
+#else
+      case SAI_PORT_ATTR_DECREMENT_TTL:
+#endif
         attrLines.push_back(boolAttr(attr_list, i));
         break;
       case SAI_PORT_ATTR_HW_LANE_LIST:
@@ -156,9 +163,16 @@ void setPortAttributes(
       case SAI_PORT_ATTR_SPEED:
       case SAI_PORT_ATTR_QOS_NUMBER_OF_QUEUES:
       case SAI_PORT_ATTR_MTU:
+      case SAI_PORT_ATTR_PRBS_POLYNOMIAL:
         attrLines.push_back(u32Attr(attr_list, i));
         break;
       case SAI_PORT_ATTR_QOS_QUEUE_LIST:
+      case SAI_PORT_ATTR_EGRESS_MIRROR_SESSION:
+      case SAI_PORT_ATTR_INGRESS_MIRROR_SESSION:
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
+      case SAI_PORT_ATTR_EGRESS_SAMPLE_MIRROR_SESSION:
+      case SAI_PORT_ATTR_INGRESS_SAMPLE_MIRROR_SESSION:
+#endif
         oidListAttr(attr_list, i, listCount++, attrLines);
         break;
       case SAI_PORT_ATTR_TYPE:
@@ -168,6 +182,7 @@ void setPortAttributes(
       case SAI_PORT_ATTR_MEDIA_TYPE:
       case SAI_PORT_ATTR_INTERFACE_TYPE:
       case SAI_PORT_ATTR_GLOBAL_FLOW_CONTROL_MODE:
+      case SAI_PORT_ATTR_PRBS_CONFIG:
         attrLines.push_back(s32Attr(attr_list, i));
         break;
       case SAI_PORT_ATTR_PORT_VLAN_ID:
@@ -176,10 +191,13 @@ void setPortAttributes(
       case SAI_PORT_ATTR_QOS_DSCP_TO_TC_MAP:
       case SAI_PORT_ATTR_QOS_TC_TO_QUEUE_MAP:
       case SAI_PORT_ATTR_PORT_SERDES_ID:
+      case SAI_PORT_ATTR_EGRESS_MACSEC_ACL:
+      case SAI_PORT_ATTR_EGRESS_SAMPLEPACKET_ENABLE:
+      case SAI_PORT_ATTR_INGRESS_MACSEC_ACL:
+      case SAI_PORT_ATTR_INGRESS_SAMPLEPACKET_ENABLE:
         attrLines.push_back(oidAttr(attr_list, i));
         break;
       default:
-        // TODO(zecheng): Better check for newly added attributes (T69350100)
         break;
     }
   }
@@ -207,7 +225,6 @@ void setPortSerdesAttributes(
         u32ListAttr(attr_list, i, listCount++, attrLines);
         break;
       default:
-        // TODO(zecheng): Better check for newly added attributes (T69350100)
         break;
     }
   }

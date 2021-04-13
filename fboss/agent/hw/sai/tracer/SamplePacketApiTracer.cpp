@@ -38,8 +38,11 @@ void setSamplePacketAttributes(
       case SAI_SAMPLEPACKET_ATTR_SAMPLE_RATE:
         attrLines.push_back(u32Attr(attr_list, i));
         break;
+      case SAI_SAMPLEPACKET_ATTR_TYPE:
+      case SAI_SAMPLEPACKET_ATTR_MODE:
+        attrLines.push_back(s32Attr(attr_list, i));
+        break;
       default:
-        // TODO(zecheng): Better check for newly added attributes (T69350100)
         break;
     }
   }

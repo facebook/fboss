@@ -338,6 +338,24 @@ void u32ListAttr(
   }
 }
 
+void s32RangeAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines) {
+  string prefix = to<string>("s_a", "[", i, "].value.s32range.");
+  attrLines.push_back(to<string>("min=", attr_list[i].value.s32range.min));
+  attrLines.push_back(to<string>("max=", attr_list[i].value.s32range.max));
+}
+
+void u32RangeAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines) {
+  string prefix = to<string>("s_a", "[", i, "].value.u32range.");
+  attrLines.push_back(to<string>("min=", attr_list[i].value.u32range.min));
+  attrLines.push_back(to<string>("max=", attr_list[i].value.u32range.max));
+}
+
 void qosMapListAttr(
     const sai_attribute_t* attr_list,
     int i,

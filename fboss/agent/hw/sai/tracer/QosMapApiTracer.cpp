@@ -44,7 +44,6 @@ void setQosMapAttributes(
         qosMapListAttr(attr_list, i, listCount++, attrLines);
         break;
       default:
-        // TODO(zecheng): Better check for newly added attributes (T69350100)
         break;
     }
   }

@@ -67,7 +67,6 @@ void setTamAttributes(
         s32ListAttr(attr_list, i, listCount++, attrLines);
         break;
       default:
-        // TODO(zecheng): Better check for newly added attributes (T69350100)
         break;
     }
   }
@@ -90,7 +89,6 @@ void setTamEventAttributes(
         oidListAttr(attr_list, i, listCount++, attrLines);
         break;
       default:
-        // TODO(zecheng): Better check for newly added attributes (T69350100)
         break;
     }
   }
@@ -106,7 +104,6 @@ void setTamEventActionAttributes(
         attrLines.push_back(oidAttr(attr_list, i));
         break;
       default:
-        // TODO(zecheng): Better check for newly added attributes (T69350100)
         break;
     }
   }
@@ -122,7 +119,6 @@ void setTamReportAttributes(
         attrLines.push_back(s32Attr(attr_list, i));
         break;
       default:
-        // TODO(zecheng): Better check for newly added attributes (T69350100)
         break;
     }
   }

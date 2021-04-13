@@ -50,12 +50,14 @@ void setMirrorSessionAttributes(
       case SAI_MIRROR_SESSION_ATTR_SAMPLE_RATE:
         attrLines.push_back(u32Attr(attr_list, i));
         break;
+      case SAI_MIRROR_SESSION_ATTR_TYPE:
       case SAI_MIRROR_SESSION_ATTR_ERSPAN_ENCAPSULATION_TYPE:
         attrLines.push_back(s32Attr(attr_list, i));
         break;
       case SAI_MIRROR_SESSION_ATTR_TC:
       case SAI_MIRROR_SESSION_ATTR_TOS:
       case SAI_MIRROR_SESSION_ATTR_TTL:
+      case SAI_MIRROR_SESSION_ATTR_IPHDR_VERSION:
         attrLines.push_back(u8Attr(attr_list, i));
         break;
       case SAI_MIRROR_SESSION_ATTR_SRC_MAC_ADDRESS:
@@ -67,7 +69,6 @@ void setMirrorSessionAttributes(
         ipAttr(attr_list, i, attrLines);
         break;
       default:
-        // TODO(zecheng): Better check for newly added attributes (T69350100)
         break;
     }
   }

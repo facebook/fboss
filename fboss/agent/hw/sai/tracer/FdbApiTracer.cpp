@@ -74,8 +74,10 @@ void setFdbEntryAttributes(
       case SAI_FDB_ENTRY_ATTR_BRIDGE_PORT_ID:
         attrLines.push_back(oidAttr(attr_list, i));
         break;
+      case SAI_FDB_ENTRY_ATTR_META_DATA:
+        attrLines.push_back(u32Attr(attr_list, i));
+        break;
       default:
-        // TODO(zecheng): Better check for newly added attributes (T69350100)
         break;
     }
   }

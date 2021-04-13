@@ -137,7 +137,6 @@ void setAclCounterAttributes(
         attrLines.push_back(u64Attr(attr_list, i));
         break;
       default:
-        // TODO(zecheng): Better check for newly added attributes (T69350100)
         break;
     }
   }
@@ -208,7 +207,6 @@ void setAclEntryAttributes(
         aclEntryFieldMacAttr(attr_list, i, attrLines);
         break;
       default:
-        // TODO(zecheng): Better check for newly added attributes (T69350100)
         break;
     }
   }
@@ -290,7 +288,6 @@ void setAclTableGroupAttributes(
         oidListAttr(attr_list, i, listCount++, attrLines);
         break;
       default:
-        // TODO(zecheng): Better check for newly added attributes (T69350100)
         break;
     }
   }
@@ -310,7 +307,6 @@ void setAclTableGroupMemberAttributes(
         attrLines.push_back(u32Attr(attr_list, i));
         break;
       default:
-        // TODO(zecheng): Better check for newly added attributes (T69350100)
         break;
     }
   }

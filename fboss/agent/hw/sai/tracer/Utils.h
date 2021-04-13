@@ -118,6 +118,16 @@ void u32ListAttr(
     uint32_t listIndex,
     std::vector<std::string>& attrLines);
 
+void s32RangeAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines);
+
+void u32RangeAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines);
+
 void qosMapListAttr(
     const sai_attribute_t* attr_list,
     int i,
