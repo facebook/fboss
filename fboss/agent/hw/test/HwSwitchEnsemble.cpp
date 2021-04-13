@@ -139,11 +139,15 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::getProgrammedState() const {
 
 std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewConfig(
     const cfg::SwitchConfig& config) {
-  return applyNewState(applyThriftConfig(
-      getProgrammedState(),
-      &config,
-      getPlatform(),
-      routingInformationBase_.get()));
+  if (routingInformationBase_) {
+    auto routeUpdater = getRouteUpdater();
+    applyNewState(applyThriftConfig(
+        getProgrammedState(), &config, getPlatform(), &routeUpdater));
+    routeUpdater.program();
+    return getProgrammedState();
+  }
+  return applyNewState(
+      applyThriftConfig(getProgrammedState(), &config, getPlatform()));
 }
 
 std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewStateImpl(
