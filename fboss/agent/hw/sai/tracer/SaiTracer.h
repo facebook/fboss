@@ -142,6 +142,7 @@ class SaiTracer {
   sai_acl_api_t* aclApi_;
   sai_bridge_api_t* bridgeApi_;
   sai_buffer_api_t* bufferApi_;
+  sai_debug_counter_api_t* debugCounterApi_;
   sai_fdb_api_t* fdbApi_;
   sai_hash_api_t* hashApi_;
   sai_hostif_api_t* hostifApi_;
@@ -237,6 +238,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_BRIDGE_PORT, "bridgePort_"},
       {SAI_OBJECT_TYPE_BUFFER_POOL, "bufferPool_"},
       {SAI_OBJECT_TYPE_BUFFER_PROFILE, "bufferProfile_"},
+      {SAI_OBJECT_TYPE_DEBUG_COUNTER, "debugCounter_"},
       {SAI_OBJECT_TYPE_HASH, "hash_"},
       {SAI_OBJECT_TYPE_HOSTIF, "hostif_"},
       {SAI_OBJECT_TYPE_HOSTIF_TRAP, "hostifTrap_"},
@@ -277,6 +279,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_BRIDGE_PORT, "bridge_api->"},
       {SAI_OBJECT_TYPE_BUFFER_POOL, "buffer_api->"},
       {SAI_OBJECT_TYPE_BUFFER_PROFILE, "buffer_api->"},
+      {SAI_OBJECT_TYPE_DEBUG_COUNTER, "debug_counter_api->"},
       {SAI_OBJECT_TYPE_FDB_ENTRY, "fdb_api->"},
       {SAI_OBJECT_TYPE_HASH, "hash_api->"},
       {SAI_OBJECT_TYPE_HOSTIF, "hostif_api->"},

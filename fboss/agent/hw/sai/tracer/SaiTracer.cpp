@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/sai/tracer/AclApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/BridgeApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/BufferApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/DebugCounterApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/FdbApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/HashApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/HostifApiTracer.h"
@@ -157,6 +158,12 @@ sai_status_t __wrap_sai_api_query(
           static_cast<sai_buffer_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrappedBufferApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "buffer_api");
+      break;
+    case SAI_API_DEBUG_COUNTER:
+      SaiTracer::getInstance()->debugCounterApi_ =
+          static_cast<sai_debug_counter_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrappedDebugCounterApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "debug_counter_api");
       break;
     case SAI_API_FDB:
       SaiTracer::getInstance()->fdbApi_ =
@@ -1047,6 +1054,9 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_BUFFER_PROFILE:
       setBufferProfileAttributes(attr_list, attr_count, attrLines);
       break;
+    case SAI_OBJECT_TYPE_DEBUG_COUNTER:
+      setDebugCounterAttributes(attr_list, attr_count, attrLines);
+      break;
     case SAI_OBJECT_TYPE_FDB_ENTRY:
       setFdbEntryAttributes(attr_list, attr_count, attrLines);
       break;
@@ -1379,6 +1389,7 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_BRIDGE_PORT, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_BUFFER_POOL, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_BUFFER_PROFILE, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_DEBUG_COUNTER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_HASH, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_HOSTIF, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_HOSTIF_TRAP, 0);
