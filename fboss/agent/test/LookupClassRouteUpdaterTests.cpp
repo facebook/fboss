@@ -597,9 +597,7 @@ TYPED_TEST(LookupClassRouteUpdaterTest, PortLookupClassesChange) {
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3);
 }
 
-TYPED_TEST(
-    LookupClassRouteUpdaterTest,
-    CompeteClassIdUpdatesWithRoouteUpdates) {
+TYPED_TEST(LookupClassRouteUpdaterTest, CompeteClassIdUpdatesWithRouteUpdates) {
   this->addRoute(this->kroutePrefix1(), {this->kIpAddressA()});
   std::thread classIdUpdates([this]() {
     for (auto i = 0; i < 1000; ++i) {
@@ -621,6 +619,30 @@ TYPED_TEST(
     // Induce just route updates
     this->addRoute(this->kroutePrefix3(), {this->kIpAddressC()});
     this->removeRoute(this->kroutePrefix3());
+  }
+  classIdUpdates.join();
+  routeAddDel.join();
+}
+
+TYPED_TEST(LookupClassRouteUpdaterTest, CompeteClassIdUpdatesWithApplyConfig) {
+  this->addRoute(this->kroutePrefix1(), {this->kIpAddressA()});
+  std::thread classIdUpdates([this]() {
+    for (auto i = 0; i < 1000; ++i) {
+      // Induce class ID updates
+      this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+      this->unresolveNeighbor(this->kIpAddressA());
+    }
+  });
+
+  std::thread routeAddDel([this]() {
+    for (auto i = 0; i < 1000; ++i) {
+      // Induce just route updates
+      this->addRoute(this->kroutePrefix3(), {this->kIpAddressC()});
+      this->removeRoute(this->kroutePrefix3());
+    }
+  });
+  for (auto i = 0; i < 1000; ++i) {
+    this->sw_->applyConfig("Reconfigure", this->getConfig());
   }
   classIdUpdates.join();
   routeAddDel.join();
