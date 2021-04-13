@@ -26,9 +26,13 @@ void hwSwitchFibUpdate(
 
 class HwSwitchEnsembleRouteUpdateWrapper : public RouteUpdateWrapper {
  public:
-  explicit HwSwitchEnsembleRouteUpdateWrapper(
+  HwSwitchEnsembleRouteUpdateWrapper(
       HwSwitchEnsemble* hwEnsemble,
       RoutingInformationBase* rib);
+  HwSwitchEnsembleRouteUpdateWrapper(HwSwitchEnsembleRouteUpdateWrapper&&) =
+      default;
+  HwSwitchEnsembleRouteUpdateWrapper& operator=(
+      HwSwitchEnsembleRouteUpdateWrapper&&) = default;
 
   void programRoutes(
       RouterID rid,

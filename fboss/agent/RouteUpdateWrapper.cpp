@@ -75,12 +75,18 @@ void RouteUpdateWrapper::program(const SyncFibFor& syncFibFor) {
       ribRoutesToAddDel_[ridAndClient] = AddDelRoutes{};
     }
   }
+  if (!rib_ && configRoutes_) {
+    throw FbossError(
+        "Applying route config via RouteUpdateWrapper not "
+        "supported for legacy rib");
+  }
   if (rib_) {
     programStandAloneRib(syncFibFor);
   } else {
     programLegacyRib(syncFibFor);
   }
   ribRoutesToAddDel_.clear();
+  configRoutes_.reset();
 }
 
 void RouteUpdateWrapper::programMinAlpmState() {
@@ -192,6 +198,16 @@ void RouteUpdateWrapper::printStats(const UpdateStatistics& stats) const {
 }
 
 void RouteUpdateWrapper::programStandAloneRib(const SyncFibFor& syncFibFor) {
+  if (configRoutes_) {
+    getRib()->reconfigure(
+        configRoutes_->configRouterIDToInterfaceRoutes,
+        configRoutes_->staticRoutesWithNextHops,
+        configRoutes_->staticRoutesToNull,
+        configRoutes_->staticRoutesToCpu,
+        configRoutes_->staticIp2MplsRoutes,
+        *fibUpdateFn_,
+        fibUpdateCookie_);
+  }
   for (auto [ridClientId, addDelRoutes] : ribRoutesToAddDel_) {
     auto stats = getRib()->update(
         ridClientId.first,
@@ -266,5 +282,19 @@ std::shared_ptr<SwitchState> RouteUpdateWrapper::updateClassIdLegacyRibHelper(
     }
   }
   return newState;
+}
+
+void RouteUpdateWrapper::setRoutesToConfig(
+    const RouterIDAndNetworkToInterfaceRoutes& _configRouterIDToInterfaceRoutes,
+    const std::vector<cfg::StaticRouteWithNextHops>& _staticRoutesWithNextHops,
+    const std::vector<cfg::StaticRouteNoNextHops>& _staticRoutesToNull,
+    const std::vector<cfg::StaticRouteNoNextHops>& _staticRoutesToCpu,
+    const std::vector<cfg::StaticIp2MplsRoute>& _staticIp2MplsRoutes) {
+  configRoutes_ = std::make_unique<ConfigRoutes>(ConfigRoutes{
+      _configRouterIDToInterfaceRoutes,
+      _staticRoutesWithNextHops,
+      _staticRoutesToNull,
+      _staticRoutesToCpu,
+      _staticIp2MplsRoutes});
 }
 } // namespace facebook::fboss

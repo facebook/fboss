@@ -11,6 +11,7 @@
 #pragma once
 
 #include <folly/IPAddress.h>
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
@@ -30,6 +31,18 @@ class RouteUpdateWrapper {
   };
 
  public:
+  using PrefixToInterfaceIDAndIP = boost::container::
+      flat_map<folly::CIDRNetwork, std::pair<InterfaceID, folly::IPAddress>>;
+  using RouterIDAndNetworkToInterfaceRoutes =
+      boost::container::flat_map<RouterID, PrefixToInterfaceIDAndIP>;
+
+  struct ConfigRoutes {
+    RouterIDAndNetworkToInterfaceRoutes configRouterIDToInterfaceRoutes;
+    std::vector<cfg::StaticRouteWithNextHops> staticRoutesWithNextHops;
+    std::vector<cfg::StaticRouteNoNextHops> staticRoutesToNull;
+    std::vector<cfg::StaticRouteNoNextHops> staticRoutesToCpu;
+    std::vector<cfg::StaticIp2MplsRoute> staticIp2MplsRoutes;
+  };
   using RouterIDAndClient = std::pair<RouterID, ClientID>;
   using SyncFibFor = std::unordered_set<RouterIDAndClient>;
   virtual ~RouteUpdateWrapper() = default;
@@ -49,6 +62,14 @@ class RouteUpdateWrapper {
       ClientID clientId);
 
   void delRoute(RouterID id, const IpPrefix& pfx, ClientID clientId);
+  void setRoutesToConfig(
+      const RouterIDAndNetworkToInterfaceRoutes&
+          _configRouterIDToInterfaceRoutes,
+      const std::vector<cfg::StaticRouteWithNextHops>&
+          _staticRoutesWithNextHops,
+      const std::vector<cfg::StaticRouteNoNextHops>& _staticRoutesToNull,
+      const std::vector<cfg::StaticRouteNoNextHops>& _staticRoutesToCpu,
+      const std::vector<cfg::StaticIp2MplsRoute>& _staticIp2MplsRoutes);
   void program(const SyncFibFor& syncFibFor = {});
   void programMinAlpmState();
   void programClassID(
@@ -95,10 +116,13 @@ class RouteUpdateWrapper {
         fibUpdateFn_(fibUpdateFn),
         fibUpdateCookie_(fibUpdateCookie) {}
 
+  RouteUpdateWrapper(RouteUpdateWrapper&&) = default;
+  RouteUpdateWrapper& operator=(RouteUpdateWrapper&&) = default;
   std::unordered_map<std::pair<RouterID, ClientID>, AddDelRoutes>
       ribRoutesToAddDel_;
   RoutingInformationBase* rib_{nullptr};
   std::optional<FibUpdateFunction> fibUpdateFn_;
   void* fibUpdateCookie_{nullptr};
+  std::unique_ptr<ConfigRoutes> configRoutes_{nullptr};
 };
 } // namespace facebook::fboss
