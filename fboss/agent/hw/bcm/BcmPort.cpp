@@ -1145,7 +1145,8 @@ void BcmPort::updateFecStats(
   // get fec from programmed cache to improve performance if possible
   if (*programmedSettings_.rlock()) {
     auto profileID = (*programmedSettings_.rlock())->getProfileID();
-    const auto profileConf = platformPort_->getPortProfileConfig(profileID);
+    const auto profileConf =
+        platformPort_->getPortProfileConfigFromCache(profileID);
     fec = utility::phyFecModeToBcmPortPhyFec(
         platformPort_->shouldDisableFEC() ? phy::FecMode::NONE
                                           : profileConf.get_iphy().get_fec());

@@ -307,7 +307,7 @@ void getPortInfoHelper(
     PortHardwareDetails hw;
     hw.profile_ref() = port->getProfileID();
     hw.profileConfig_ref() =
-        platformPort->getPortProfileConfig(*hw.profile_ref());
+        platformPort->getPortProfileConfigFromCache(*hw.profile_ref());
     hw.pinConfig_ref() = platformPort->getPortPinConfigs(*hw.profile_ref());
     hw.chips_ref() = platformPort->getPortDataplaneChips(*hw.profile_ref());
     portInfo.hw_ref() = hw;

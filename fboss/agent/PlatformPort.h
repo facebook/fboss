@@ -72,6 +72,9 @@ class PlatformPort {
   const std::optional<phy::PortProfileConfig> getPortProfileConfigIf(
       cfg::PortProfileID PortProfileID) const;
 
+  const phy::PortProfileConfig getPortProfileConfigFromCache(
+      cfg::PortProfileID PortProfileID);
+
   /*
    * preDisable() will be called by the hardware code just before disabling
    * a port.
@@ -198,6 +201,8 @@ class PlatformPort {
 
   std::optional<int32_t> getExternalPhyID();
 
+  void clearCachedProfileConfig();
+
  private:
   PortID id_{0};
   Platform* platform_{nullptr};
@@ -205,6 +210,10 @@ class PlatformPort {
   // Forbidden copy constructor and assignment operator
   PlatformPort(PlatformPort const&) = delete;
   PlatformPort& operator=(PlatformPort const&) = delete;
+  // Cached port profile config when transceiver info is required
+  folly::Synchronized<
+      std::optional<std::pair<cfg::PortProfileID, phy::PortProfileConfig>>>
+      cachedProfileConfig_;
 };
 
 std::ostream& operator<<(std::ostream&, PortLedExternalState);

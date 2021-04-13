@@ -181,6 +181,27 @@ PlatformPort::getPortProfileConfigIf(cfg::PortProfileID profileID) const {
       PlatformPortProfileConfigMatcher(profileID, id_));
 }
 
+const phy::PortProfileConfig PlatformPort::getPortProfileConfigFromCache(
+    cfg::PortProfileID profileID) {
+  {
+    auto cachedProfileConfig = cachedProfileConfig_.rlock();
+    if (cachedProfileConfig->has_value() &&
+        cachedProfileConfig->value().first == profileID) {
+      return cachedProfileConfig->value().second;
+    }
+  }
+  XLOG(DBG4) << "Cached profile config not found for port " << id_
+             << " query with profile ID "
+             << apache::thrift::util::enumNameSafe(profileID);
+  phy::PortProfileConfig profile;
+  {
+    auto cachedProfileConfig = cachedProfileConfig_.wlock();
+    profile = getPortProfileConfig(profileID);
+    *cachedProfileConfig = std::make_pair(profileID, profile);
+  }
+  return profile;
+}
+
 // This should only be called by platforms that actually have
 // an external phy
 std::optional<int32_t> PlatformPort::getExternalPhyID() {
@@ -215,6 +236,11 @@ std::optional<TransceiverInfo> PlatformPort::getTransceiverInfo(
                << *transID << " Exception: " << folly::exceptionStr(e);
     return std::nullopt;
   }
+}
+
+void PlatformPort::clearCachedProfileConfig() {
+  auto cachedProfileConfig = cachedProfileConfig_.wlock();
+  *cachedProfileConfig = std::nullopt;
 }
 
 } // namespace facebook::fboss

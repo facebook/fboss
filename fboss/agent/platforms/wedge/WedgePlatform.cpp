@@ -121,6 +121,14 @@ void WedgePlatform::updateQsfpCache(const StateDelta& delta) {
     }
   }
   qsfpCache_->portsChanged(changedPorts);
+  for (const auto& entry : portsDelta) {
+    auto newPort = entry.getNew();
+    if (newPort) {
+      // clear cached port profile config that depends on transceiver info
+      auto platformPort = getPort(newPort->getID());
+      platformPort->clearCachedProfileConfig();
+    }
+  }
 }
 
 void WedgePlatform::updatePorts(const StateDelta& delta) {
