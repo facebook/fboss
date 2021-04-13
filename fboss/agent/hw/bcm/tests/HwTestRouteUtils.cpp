@@ -20,7 +20,8 @@ extern "C" {
 
 namespace facebook::fboss::utility {
 
-bcm_l3_route_t getBcmRoute(int unit, const folly::CIDRNetwork& cidrNetwork) {
+bcm_l3_route_t
+getBcmRoute(int unit, const folly::CIDRNetwork& cidrNetwork, uint32_t flags) {
   bcm_l3_route_t route;
   bcm_l3_route_t_init(&route);
 
@@ -37,6 +38,7 @@ bcm_l3_route_t getBcmRoute(int unit, const folly::CIDRNetwork& cidrNetwork) {
         sizeof(route.l3a_ip6_mask));
     route.l3a_flags = BCM_L3_IP6;
   }
+  route.l3a_flags |= flags;
   CHECK_EQ(bcm_l3_route_get(unit, &route), 0);
   return route;
 }
@@ -49,7 +51,7 @@ bool isEgressToIp(
   if (!bcmSwitch->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::HOSTTABLE)) {
     bcm_l3_route_t route = getBcmRoute(
-        bcmSwitch->getUnit(), folly::CIDRNetwork(addr, addr.bitCount()));
+        bcmSwitch->getUnit(), folly::CIDRNetwork(addr, addr.bitCount()), 0);
     return egress == route.l3a_intf;
   }
   bcm_l3_host_t host;
@@ -74,7 +76,7 @@ std::optional<cfg::AclLookupClass> getHwRouteClassID(
     const folly::CIDRNetwork& cidrNetwork) {
   auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch);
 
-  bcm_l3_route_t route = getBcmRoute(bcmSwitch->getUnit(), cidrNetwork);
+  bcm_l3_route_t route = getBcmRoute(bcmSwitch->getUnit(), cidrNetwork, 0);
 
   return route.l3a_lookup_class == 0
       ? std::nullopt
@@ -87,7 +89,7 @@ bool isHwRouteToCpu(
     const folly::CIDRNetwork& cidrNetwork) {
   auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch);
 
-  bcm_l3_route_t route = getBcmRoute(bcmSwitch->getUnit(), cidrNetwork);
+  bcm_l3_route_t route = getBcmRoute(bcmSwitch->getUnit(), cidrNetwork, 0);
 
   if (route.l3a_flags & BCM_L3_MULTIPATH) {
     return false;
@@ -99,13 +101,30 @@ bool isHwRouteToCpu(
   return (egress.flags & BCM_L3_L2TOCPU) && (egress.flags | BCM_L3_COPY_TO_CPU);
 }
 
+bool isHwRouteHit(
+    const HwSwitch* hwSwitch,
+    RouterID /*rid*/,
+    const folly::CIDRNetwork& cidrNetwork) {
+  auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch);
+  bcm_l3_route_t route = getBcmRoute(bcmSwitch->getUnit(), cidrNetwork, 0);
+  return (route.l3a_flags & BCM_L3_HIT);
+}
+
+void clearHwRouteHit(
+    const HwSwitch* hwSwitch,
+    RouterID /*rid*/,
+    const folly::CIDRNetwork& cidrNetwork) {
+  auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch);
+  getBcmRoute(bcmSwitch->getUnit(), cidrNetwork, BCM_L3_HIT_CLEAR);
+}
+
 bool isHwRouteMultiPath(
     const HwSwitch* hwSwitch,
     RouterID /*rid*/,
     const folly::CIDRNetwork& cidrNetwork) {
   auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch);
 
-  bcm_l3_route_t route = getBcmRoute(bcmSwitch->getUnit(), cidrNetwork);
+  bcm_l3_route_t route = getBcmRoute(bcmSwitch->getUnit(), cidrNetwork, 0);
 
   return route.l3a_flags & BCM_L3_MULTIPATH;
 }
@@ -118,7 +137,7 @@ bool isHwRouteToNextHop(
     std::optional<uint64_t> weight) {
   auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch);
 
-  bcm_l3_route_t route = getBcmRoute(bcmSwitch->getUnit(), cidrNetwork);
+  bcm_l3_route_t route = getBcmRoute(bcmSwitch->getUnit(), cidrNetwork, 0);
 
   if (route.l3a_flags & BCM_L3_MULTIPATH) {
     // check for member to ip, interface

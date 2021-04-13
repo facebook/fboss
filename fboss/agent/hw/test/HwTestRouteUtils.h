@@ -39,4 +39,14 @@ bool isHwRouteToNextHop(
     folly::IPAddress ip,
     std::optional<uint64_t> weight = std::nullopt);
 
+bool isHwRouteHit(
+    const HwSwitch* hwSwitch,
+    RouterID rid,
+    const folly::CIDRNetwork& cidrNetwork);
+
+void clearHwRouteHit(
+    const HwSwitch* hwSwitch,
+    RouterID rid,
+    const folly::CIDRNetwork& cidrNetwork);
+
 } // namespace facebook::fboss::utility
