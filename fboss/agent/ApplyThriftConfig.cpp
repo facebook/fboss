@@ -18,6 +18,7 @@
 #include "fboss/agent/LoadBalancerConfigApplier.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/if/gen-cpp2/mpls_types.h"
+#include "fboss/agent/RouteUpdateWrapper.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
@@ -115,6 +116,15 @@ class ThriftConfigApplier {
       const Platform* platform,
       RoutingInformationBase* rib)
       : orig_(orig), cfg_(config), platform_(platform), rib_(rib) {}
+  ThriftConfigApplier(
+      const std::shared_ptr<SwitchState>& orig,
+      const cfg::SwitchConfig* config,
+      const Platform* platform,
+      RouteUpdateWrapper* routeUpdater)
+      : orig_(orig),
+        cfg_(config),
+        platform_(platform),
+        routeUpdater_(routeUpdater) {}
 
   std::shared_ptr<SwitchState> run();
 
@@ -314,6 +324,7 @@ class ThriftConfigApplier {
   const cfg::SwitchConfig* cfg_{nullptr};
   const Platform* platform_{nullptr};
   RoutingInformationBase* rib_{nullptr};
+  RouteUpdateWrapper* routeUpdater_{nullptr};
 
   struct VlanIpInfo {
     VlanIpInfo(uint8_t mask, MacAddress mac, InterfaceID intf)
@@ -443,43 +454,52 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     }
   }
 
-  if (rib_) {
-    auto newFibs = updateForwardingInformationBaseContainers();
-    if (newFibs) {
-      new_->resetForwardingInformationBases(newFibs);
-      changed = true;
-    }
-
-    rib_->reconfigure(
+  if (routeUpdater_) {
+    routeUpdater_->setRoutesToConfig(
         intfRouteTables_,
         *cfg_->staticRoutesWithNhops_ref(),
         *cfg_->staticRoutesToNull_ref(),
         *cfg_->staticRoutesToCPU_ref(),
-        *cfg_->staticIp2MplsRoutes_ref(),
-        &updateFibFromConfig,
-        static_cast<void*>(&new_));
+        *cfg_->staticIp2MplsRoutes_ref());
   } else {
-    // Note: updateInterfaces() must be called before updateInterfaceRoutes(),
-    // as updateInterfaces() populates the intfRouteTables_ data structure.
-    // Also, updateInterfaceRoutes() should be the first call for updating
-    // RouteTable as this will take the RouteTable from orig_ and add Interface
-    // routes. Calling this after other RouteTable updates will result in other
-    // routes getting removed during updateInterfaceRoutes()
+    if (rib_) {
+      auto newFibs = updateForwardingInformationBaseContainers();
+      if (newFibs) {
+        new_->resetForwardingInformationBases(newFibs);
+        changed = true;
+      }
 
-    auto newTables = updateInterfaceRoutes();
-    if (newTables) {
-      new_->resetRouteTables(newTables);
-      changed = true;
-    }
+      rib_->reconfigure(
+          intfRouteTables_,
+          *cfg_->staticRoutesWithNhops_ref(),
+          *cfg_->staticRoutesToNull_ref(),
+          *cfg_->staticRoutesToCPU_ref(),
+          *cfg_->staticIp2MplsRoutes_ref(),
+          &updateFibFromConfig,
+          static_cast<void*>(&new_));
+    } else {
+      // Note: updateInterfaces() must be called before updateInterfaceRoutes(),
+      // as updateInterfaces() populates the intfRouteTables_ data structure.
+      // Also, updateInterfaceRoutes() should be the first call for updating
+      // RouteTable as this will take the RouteTable from orig_ and add
+      // Interface routes. Calling this after other RouteTable updates will
+      // result in other routes getting removed during updateInterfaceRoutes()
 
-    // Retrieve RouteTableMap from new_ as this will have
-    // all the routes updated until now. Pass this to syncStaticRoutes
-    // so that routes added until now would not be excluded.
-    auto updatedRoutes = new_->getRouteTables();
-    auto newerTables = syncStaticRoutes(updatedRoutes);
-    if (newerTables) {
-      new_->resetRouteTables(std::move(newerTables));
-      changed = true;
+      auto newTables = updateInterfaceRoutes();
+      if (newTables) {
+        new_->resetRouteTables(newTables);
+        changed = true;
+      }
+
+      // Retrieve RouteTableMap from new_ as this will have
+      // all the routes updated until now. Pass this to syncStaticRoutes
+      // so that routes added until now would not be excluded.
+      auto updatedRoutes = new_->getRouteTables();
+      auto newerTables = syncStaticRoutes(updatedRoutes);
+      if (newerTables) {
+        new_->resetRouteTables(std::move(newerTables));
+        changed = true;
+      }
     }
   }
 
@@ -3174,6 +3194,14 @@ shared_ptr<SwitchState> applyThriftConfig(
     RoutingInformationBase* rib) {
   cfg::SwitchConfig emptyConfig;
   return ThriftConfigApplier(state, config, platform, rib).run();
+}
+shared_ptr<SwitchState> applyThriftConfig(
+    const shared_ptr<SwitchState>& state,
+    const cfg::SwitchConfig* config,
+    const Platform* platform,
+    RouteUpdateWrapper* routeUpdater) {
+  cfg::SwitchConfig emptyConfig;
+  return ThriftConfigApplier(state, config, platform, routeUpdater).run();
 }
 
 } // namespace facebook::fboss

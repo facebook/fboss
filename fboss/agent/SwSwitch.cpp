@@ -1550,11 +1550,13 @@ void SwSwitch::applyConfig(
     const std::string& reason,
     const cfg::SwitchConfig& newConfig) {
   // We don't need to hold a lock here. updateStateBlocking() does that for us.
+  auto routeUpdater = getRouteUpdater();
   updateStateBlocking(
       reason,
       [&](const shared_ptr<SwitchState>& state) -> shared_ptr<SwitchState> {
-        auto newState =
-            applyThriftConfig(state, &newConfig, getPlatform(), rib_.get());
+        auto newState = rib_
+            ? applyThriftConfig(state, &newConfig, getPlatform(), &routeUpdater)
+            : applyThriftConfig(state, &newConfig, getPlatform());
 
         if (newState && !isValidStateUpdate(StateDelta(state, newState))) {
           throw FbossError("Invalid config passed in, skipping");
@@ -1575,6 +1577,24 @@ void SwSwitch::applyConfig(
         }
         return newState;
       });
+  /*
+   * For RIB always make route programming go through the routeUpdater wrapper
+   * abstraction. For rib when routes are applied 2 things happen
+   *  - Work is scheduled on rib thread
+   *  - Fib update callback is called to program routes. This in turn (for
+   *  SwSwitch) *may* schedule updates on SwSwitch::update thread.
+   *
+   * If we don't use RouteUpdateWrapper flow for config application becomes
+   * - schedule a blocking update on SwSwitch::update thread
+   *   - schedule work on RIB thread.
+   *
+   * This is classic lock/blocking work inversion, and creates a deadlock
+   * scenario b/w route programming (route add, del or route classID update) and
+   * applyConfig. So ensure programming allways goes through the route update
+   * wrapper abstraction
+   */
+
+  routeUpdater.program();
 }
 
 bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
