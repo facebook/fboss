@@ -13,6 +13,7 @@
 #include "fboss/agent/if/gen-cpp2/mpls_types.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
 
 #include <folly/IPAddress.h>
@@ -30,52 +31,96 @@ using std::make_shared;
 
 auto kStaticClient = ClientID::STATIC_ROUTE;
 
-TEST(StaticRoutes, configureUnconfigure) {
-  auto platform = createMockPlatform();
-  auto stateV0 = make_shared<SwitchState>();
-  auto tablesV0 = stateV0->getRouteTables();
+template <typename StandAloneRib>
+class StaticRouteTest : public ::testing::Test {
+  cfg::SwitchConfig initialConfig() const {
+    cfg::SwitchConfig config;
+    config.vlans_ref()->resize(1);
+    config.vlans_ref()[0].id_ref() = 1;
+    config.vlans_ref()[0].name_ref() = "Vlan1";
+    config.vlans_ref()[0].intfID_ref() = 1;
+    config.interfaces_ref()->resize(1);
+    config.interfaces_ref()[0].ipAddresses_ref()->resize(3);
+    config.interfaces_ref()[0].ipAddresses_ref()[0] = "10.0.0.1/24";
+    config.interfaces_ref()[0].ipAddresses_ref()[1] = "192.168.0.1/24";
+    config.interfaces_ref()[0].ipAddresses_ref()[2] =
+        "2401:db00:2110:3001::0001/64";
+    config.interfaces_ref()[0].intfID_ref() = 1;
+    config.interfaces_ref()[0].routerID_ref() = 0;
+    config.interfaces_ref()[0].vlanID_ref() = 1;
+    config.interfaces_ref()[0].name_ref() = "interface1";
+    config.interfaces_ref()[0].mac_ref() = "00:02:00:00:00:01";
+    config.interfaces_ref()[0].mtu_ref() = 9000;
+    config.staticRoutesToNull_ref()->resize(2);
+    config.staticRoutesToNull_ref()[0].prefix_ref() = "1.1.1.1/32";
+    config.staticRoutesToNull_ref()[1].prefix_ref() = "2001::1/128";
+    config.staticRoutesToCPU_ref()->resize(2);
+    config.staticRoutesToCPU_ref()[0].prefix_ref() = "2.2.2.2/32";
+    config.staticRoutesToCPU_ref()[1].prefix_ref() = "2001::2/128";
+    config.staticRoutesWithNhops_ref()->resize(4);
+    config.staticRoutesWithNhops_ref()[0].prefix_ref() = "3.3.3.3/32";
+    config.staticRoutesWithNhops_ref()[0].nexthops_ref()->resize(1);
+    config.staticRoutesWithNhops_ref()[0].nexthops_ref()[0] = "1.1.1.1";
+    config.staticRoutesWithNhops_ref()[1].prefix_ref() = "4.4.4.4/32";
+    config.staticRoutesWithNhops_ref()[1].nexthops_ref()->resize(1);
+    config.staticRoutesWithNhops_ref()[1].nexthops_ref()[0] = "2.2.2.2";
+    // Now add v6 recursive routes
+    config.staticRoutesWithNhops_ref()[2].prefix_ref() = "2001::3/128";
+    config.staticRoutesWithNhops_ref()[2].nexthops_ref()->resize(1);
+    config.staticRoutesWithNhops_ref()[2].nexthops_ref()[0] = "2001::1";
+    config.staticRoutesWithNhops_ref()[3].prefix_ref() = "2001::4/128";
+    config.staticRoutesWithNhops_ref()[3].nexthops_ref()->resize(1);
+    config.staticRoutesWithNhops_ref()[3].nexthops_ref()[0] = "2001::2";
 
-  cfg::SwitchConfig config;
-  config.staticRoutesToNull_ref()->resize(2);
-  *config.staticRoutesToNull_ref()[0].prefix_ref() = "1.1.1.1/32";
-  *config.staticRoutesToNull_ref()[1].prefix_ref() = "2001::1/128";
-  config.staticRoutesToCPU_ref()->resize(2);
-  *config.staticRoutesToCPU_ref()[0].prefix_ref() = "2.2.2.2/32";
-  *config.staticRoutesToCPU_ref()[1].prefix_ref() = "2001::2/128";
-  config.staticRoutesWithNhops_ref()->resize(4);
-  *config.staticRoutesWithNhops_ref()[0].prefix_ref() = "3.3.3.3/32";
-  config.staticRoutesWithNhops_ref()[0].nexthops_ref()->resize(1);
-  config.staticRoutesWithNhops_ref()[0].nexthops_ref()[0] = "1.1.1.1";
-  *config.staticRoutesWithNhops_ref()[1].prefix_ref() = "4.4.4.4/32";
-  config.staticRoutesWithNhops_ref()[1].nexthops_ref()->resize(1);
-  config.staticRoutesWithNhops_ref()[1].nexthops_ref()[0] = "2.2.2.2";
-  // Now add v6 recursive routes
-  *config.staticRoutesWithNhops_ref()[2].prefix_ref() = "2001::3/128";
-  config.staticRoutesWithNhops_ref()[2].nexthops_ref()->resize(1);
-  config.staticRoutesWithNhops_ref()[2].nexthops_ref()[0] = "2001::1";
-  *config.staticRoutesWithNhops_ref()[3].prefix_ref() = "2001::4/128";
-  config.staticRoutesWithNhops_ref()[3].nexthops_ref()->resize(1);
-  config.staticRoutesWithNhops_ref()[3].nexthops_ref()[0] = "2001::2";
+    // Now add v6 route with stack
+    config.staticIp2MplsRoutes_ref()->resize(1);
+    config.staticIp2MplsRoutes_ref()[0].prefix_ref() = "2001::5/128";
+    config.staticIp2MplsRoutes_ref()[0].nexthops_ref()->resize(1);
+    config.staticIp2MplsRoutes_ref()[0].nexthops_ref()[0].nexthop_ref() =
+        "2001::1";
+    config.staticIp2MplsRoutes_ref()[0]
+        .nexthops_ref()[0]
+        .labelForwardingAction_ref()
+        ->action_ref() = MplsActionCode::PUSH;
+    config.staticIp2MplsRoutes_ref()[0]
+        .nexthops_ref()[0]
+        .labelForwardingAction_ref()
+        ->pushLabels_ref() = {101, 102};
 
-  // Now add v6 route with stack
-  config.staticIp2MplsRoutes_ref()->resize(1);
-  config.staticIp2MplsRoutes_ref()[0].prefix_ref() = "2001::5/128";
-  config.staticIp2MplsRoutes_ref()[0].nexthops_ref()->resize(1);
-  config.staticIp2MplsRoutes_ref()[0].nexthops_ref()[0].nexthop_ref() =
-      "2001::1";
-  config.staticIp2MplsRoutes_ref()[0]
-      .nexthops_ref()[0]
-      .labelForwardingAction_ref()
-      ->action_ref() = MplsActionCode::PUSH;
-  config.staticIp2MplsRoutes_ref()[0]
-      .nexthops_ref()[0]
-      .labelForwardingAction_ref()
-      ->pushLabels_ref() = {101, 102};
+    return config;
+  }
 
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+ public:
+  void SetUp() override {
+    auto flags = StandAloneRib::hasStandAloneRib
+        ? SwitchFlags::ENABLE_STANDALONE_RIB
+        : SwitchFlags::DEFAULT;
+    auto config = initialConfig();
+    handle_ = createTestHandle(&config, flags);
+    sw_ = handle_->getSw();
+  }
+  template <typename AddrT>
+  std::shared_ptr<Route<AddrT>> findRoute(const RoutePrefix<AddrT>& nw) {
+    return ::findRoute<AddrT>(
+        this->sw_->isStandaloneRibEnabled(),
+        RouterID(0),
+        nw.toCidrNetwork(),
+        this->sw_->getState());
+  }
+
+ protected:
+  SwSwitch* sw_;
+  std::unique_ptr<HwTestHandle> handle_;
+};
+
+using StaticRouteTestTypes = ::testing::Types<NoRib, Rib>;
+
+TYPED_TEST_CASE(StaticRouteTest, StaticRouteTestTypes);
+
+TYPED_TEST(StaticRouteTest, configureUnconfigure) {
+  auto stateV1 = this->sw_->getState();
   ASSERT_NE(nullptr, stateV1);
   RouterID rid0(0);
-  auto t1 = stateV1->getRouteTables()->getRouteTableIf(rid0);
   RouteV4::Prefix prefix1v4{IPAddressV4("1.1.1.1"), 32};
   RouteV4::Prefix prefix2v4{IPAddressV4("2.2.2.2"), 32};
   RouteV4::Prefix prefix3v4{IPAddressV4("3.3.3.3"), 32};
@@ -88,8 +133,7 @@ TEST(StaticRoutes, configureUnconfigure) {
 
   RouteV6::Prefix prefix1v6ToMpls{IPAddressV6("2001::5"), 128};
 
-  auto rib1v4 = t1->getRibV4();
-  auto r1v4 = rib1v4->exactMatch(prefix1v4);
+  auto r1v4 = this->findRoute(prefix1v4);
   ASSERT_NE(nullptr, r1v4);
   EXPECT_TRUE(r1v4->isResolved());
   EXPECT_FALSE(r1v4->isUnresolvable());
@@ -99,8 +143,7 @@ TEST(StaticRoutes, configureUnconfigure) {
       r1v4->getForwardInfo(),
       RouteNextHopEntry(
           RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
-
-  auto r2v4 = rib1v4->exactMatch(prefix2v4);
+  auto r2v4 = this->findRoute(prefix2v4);
   ASSERT_NE(nullptr, r2v4);
   EXPECT_TRUE(r2v4->isResolved());
   EXPECT_FALSE(r2v4->isUnresolvable());
@@ -110,9 +153,8 @@ TEST(StaticRoutes, configureUnconfigure) {
       r2v4->getForwardInfo(),
       RouteNextHopEntry(
           RouteForwardAction::TO_CPU, AdminDistance::MAX_ADMIN_DISTANCE));
-
   // Recursive resolution to RouteForwardAction::DROP
-  auto r3v4 = rib1v4->exactMatch(prefix3v4);
+  auto r3v4 = this->findRoute(prefix3v4);
   ASSERT_NE(nullptr, r3v4);
   EXPECT_TRUE(r3v4->isResolved());
   EXPECT_FALSE(r3v4->isUnresolvable());
@@ -124,7 +166,7 @@ TEST(StaticRoutes, configureUnconfigure) {
           RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
 
   // Recursive resolution to CPU
-  auto r4v4 = rib1v4->exactMatch(prefix4v4);
+  auto r4v4 = this->findRoute(prefix4v4);
   ASSERT_NE(nullptr, r4v4);
   EXPECT_TRUE(r4v4->isResolved());
   EXPECT_FALSE(r4v4->isUnresolvable());
@@ -135,8 +177,7 @@ TEST(StaticRoutes, configureUnconfigure) {
       RouteNextHopEntry(
           RouteForwardAction::TO_CPU, AdminDistance::MAX_ADMIN_DISTANCE));
 
-  auto rib1v6 = t1->getRibV6();
-  auto r1v6 = rib1v6->exactMatch(prefix1v6);
+  auto r1v6 = this->findRoute(prefix1v6);
   ASSERT_NE(nullptr, r1v6);
   EXPECT_TRUE(r1v6->isResolved());
   EXPECT_FALSE(r1v6->isUnresolvable());
@@ -147,7 +188,7 @@ TEST(StaticRoutes, configureUnconfigure) {
       RouteNextHopEntry(
           RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
 
-  auto r2v6 = rib1v6->exactMatch(prefix2v6);
+  auto r2v6 = this->findRoute(prefix2v6);
   ASSERT_NE(nullptr, r2v6);
   EXPECT_TRUE(r2v6->isResolved());
   EXPECT_FALSE(r2v6->isUnresolvable());
@@ -159,7 +200,7 @@ TEST(StaticRoutes, configureUnconfigure) {
           RouteForwardAction::TO_CPU, AdminDistance::MAX_ADMIN_DISTANCE));
 
   // Recursive resolution to RouteForwardAction::DROP
-  auto r3v6 = rib1v6->exactMatch(prefix3v6);
+  auto r3v6 = this->findRoute(prefix3v6);
   ASSERT_NE(nullptr, r3v6);
   EXPECT_TRUE(r3v6->isResolved());
   EXPECT_FALSE(r3v6->isUnresolvable());
@@ -171,7 +212,7 @@ TEST(StaticRoutes, configureUnconfigure) {
           RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
 
   // Recursive resolution to CPU
-  auto r4v6 = rib1v6->exactMatch(prefix4v6);
+  auto r4v6 = this->findRoute(prefix4v6);
   ASSERT_NE(nullptr, r4v6);
   EXPECT_TRUE(r4v6->isResolved());
   EXPECT_FALSE(r4v6->isUnresolvable());
@@ -181,10 +222,9 @@ TEST(StaticRoutes, configureUnconfigure) {
       r4v6->getForwardInfo(),
       RouteNextHopEntry(
           RouteForwardAction::TO_CPU, AdminDistance::MAX_ADMIN_DISTANCE));
-
   // Recursive resolution to CPU
 
-  auto r5v6ToMpls1 = rib1v6->exactMatch(prefix1v6ToMpls);
+  auto r5v6ToMpls1 = this->findRoute(prefix1v6ToMpls);
   ASSERT_NE(nullptr, r5v6ToMpls1);
   EXPECT_TRUE(r5v6ToMpls1->isResolved());
   EXPECT_FALSE(r5v6ToMpls1->isUnresolvable());
@@ -197,12 +237,12 @@ TEST(StaticRoutes, configureUnconfigure) {
 
   // Now blow away the static routes from config.
   cfg::SwitchConfig emptyConfig;
-  auto stateV2 =
-      publishAndApplyConfig(stateV1, &emptyConfig, platform.get(), nullptr);
-  ASSERT_NE(nullptr, stateV2);
-  auto t2 = stateV2->getRouteTables()->getRouteTableIf(rid0);
-  // No routes and hence no routing table
-  ASSERT_EQ(nullptr, t2);
+  this->sw_->applyConfig("Empty config", emptyConfig);
+  auto [v4Routes, v6Routes] =
+      getRouteCount(this->sw_->isStandaloneRibEnabled(), this->sw_->getState());
+  // Only null routes remain
+  EXPECT_EQ(1, v4Routes);
+  EXPECT_EQ(1, v6Routes);
 }
 
 TEST(StaticRoutes, MplsStaticRoutes) {
