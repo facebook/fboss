@@ -1156,7 +1156,8 @@ void BcmPort::updateFecStats(
   // RS-FEC errors are in the CODEWORD_COUNT registers, while BaseR fec
   // errors are in the BLOCK_COUNT registers.
   if ((fec == bcmPortPhyFecRs544) || (fec == bcmPortPhyFecRs272) ||
-      (fec == bcmPortPhyFecRs544_2xN) || (fec == bcmPortPhyFecRs272_2xN)) {
+      (fec == bcmPortPhyFecRs544_2xN) || (fec == bcmPortPhyFecRs272_2xN) ||
+      (fec == bcmPortPhyFecRsFec)) {
     corrected_ctrl = BCM_PORT_PHY_CONTROL_FEC_CORRECTED_CODEWORD_COUNT;
     uncorrected_ctrl = BCM_PORT_PHY_CONTROL_FEC_UNCORRECTED_CODEWORD_COUNT;
   } else { /* Assume other FEC is BaseR */
