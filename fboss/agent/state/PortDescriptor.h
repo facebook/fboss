@@ -24,6 +24,7 @@ namespace facebook::fboss {
 class PortDescriptor : public PortDescriptorTemplate<PortID, AggregatePortID> {
  public:
   using BaseT = PortDescriptorTemplate<PortID, AggregatePortID>;
+  using BaseT::PortType;
   explicit PortDescriptor(PortID p) : BaseT(p) {}
   explicit PortDescriptor(AggregatePortID p) : BaseT(p) {}
 

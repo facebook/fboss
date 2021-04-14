@@ -5,6 +5,7 @@
 #include "folly/IPAddress.h"
 
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Mirror.h"
@@ -41,11 +42,50 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
     const auto entry =
         resolveMirrorNextHopNeighbor(state, mirror, destinationIp, nexthop);
 
-    if (!entry) {
+    if (!entry || entry->zeroPort()) {
+      // unresolved next hop
+      continue;
+    }
+    auto neighborPort = entry->getPort();
+    if (mirror->configHasEgressPort()) {
+      if (!neighborPort.isPhysicalPort() ||
+          neighborPort.phyPortID() != mirror->getEgressPort().value()) {
+        // TODO: support configuring LAG egress for mirror
+        continue;
+      }
+    }
+
+    std::optional<PortID> egressPort{};
+    switch (neighborPort.type()) {
+      case PortDescriptor::PortType::PHYSICAL:
+        egressPort = entry->getPort().phyPortID();
+        break;
+      case PortDescriptor::PortType::AGGREGATE: {
+        // pick first forwarding member port
+        auto aggPort = state->getAggregatePorts()->getAggregatePortIf(
+            entry->getPort().aggPortID());
+        if (!aggPort) {
+          XLOG(ERR) << "mirror resolved to non-existing aggregate port "
+                    << entry->getPort().aggPortID();
+          continue;
+        }
+        auto subportAndFwdStates = aggPort->subportAndFwdState();
+        if (subportAndFwdStates.begin() == subportAndFwdStates.end()) {
+          continue;
+        }
+        for (auto subPortAndFwdState : subportAndFwdStates) {
+          if (subPortAndFwdState.second == AggregatePort::Forwarding::ENABLED) {
+            egressPort = subPortAndFwdState.first;
+            break;
+          }
+        }
+      } break;
+    }
+
+    if (!egressPort) {
       continue;
     }
 
-    const auto egressPort = entry->getPort().phyPortID();
     std::optional<AddrT> srcIp = newMirror->getSrcIp()
         ? getIPAddress<AddrT>(mirror->getSrcIp().value())
         : std::optional<AddrT>(std::nullopt);
@@ -56,7 +96,7 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
         nexthop,
         entry,
         newMirror->getTunnelUdpPorts()));
-    newMirror->setEgressPort(egressPort);
+    newMirror->setEgressPort(egressPort.value());
     break;
   }
 
@@ -103,14 +143,6 @@ MirrorManagerImpl<AddrT>::resolveMirrorNextHopNeighbor(
   } else {
     neighbor = vlan->template getNeighborEntryTable<AddrT>()->getEntryIf(
         mirrorNextHopIp);
-  }
-
-  if (!neighbor || neighbor->zeroPort() ||
-      !neighbor->getPort().isPhysicalPort() ||
-      (mirror->configHasEgressPort() &&
-       neighbor->getPort().phyPortID() != mirror->getEgressPort().value())) {
-    /* TODO: support mirroring over LAG port */
-    return std::shared_ptr<NeighborEntryT>(nullptr);
   }
   return neighbor;
 }
