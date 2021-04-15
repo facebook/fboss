@@ -22,3 +22,16 @@ static folly::Singleton<CmdHandler, singleton_tag_type>
 std::shared_ptr<CmdHandler> CmdHandler::getInstance() {
   return cmdHandler.try_get();
 }
+
+namespace facebook::fboss {
+
+void CmdHandler::run() {
+  // TODO add definition
+
+  // Derive IP of the supplied host.
+  // Create desired client for the host.
+  // Query desired method using the client handle.
+  // Print output
+}
+
+} // namespace facebook::fboss

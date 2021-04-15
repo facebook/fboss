@@ -24,6 +24,8 @@ class CmdHandler {
 
   // Static function for getting the CmdHandler folly::Singleton
   static std::shared_ptr<CmdHandler> getInstance();
+
+  void run();
 };
 
 } // namespace facebook::fboss

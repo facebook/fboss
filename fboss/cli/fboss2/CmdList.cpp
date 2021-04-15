@@ -10,10 +10,12 @@
 
 #include "fboss/cli/fboss2/CmdList.h"
 
+#include "fboss/cli/fboss2/CmdHandler.h"
+
 namespace facebook::fboss {
 
 void commandHandler() {
-  // TODO add definition
+  CmdHandler::getInstance()->run();
 }
 
 const std::vector<
