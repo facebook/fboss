@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include "fboss/cli/fboss2/CLI11/CLI.hpp"
+
 #include <memory>
 
 namespace facebook::fboss {
@@ -22,6 +24,11 @@ class CmdGlobalOptions {
 
   // Static function for getting the CmdGlobalOptions folly::Singleton
   static std::shared_ptr<CmdGlobalOptions> getInstance();
+
+  void init(CLI::App& app);
+
+ private:
+  std::string host_;
 };
 
 } // namespace facebook::fboss

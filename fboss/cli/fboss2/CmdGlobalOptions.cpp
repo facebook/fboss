@@ -22,3 +22,11 @@ static folly::Singleton<CmdGlobalOptions, singleton_tag_type>
 std::shared_ptr<CmdGlobalOptions> CmdGlobalOptions::getInstance() {
   return cmdGlobalOptions.try_get();
 }
+
+namespace facebook::fboss {
+
+void CmdGlobalOptions::init(CLI::App& app) {
+  app.add_option("--host", host_, "Hostname to query");
+}
+
+} // namespace facebook::fboss
