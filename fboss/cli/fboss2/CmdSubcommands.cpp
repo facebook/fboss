@@ -36,12 +36,11 @@ std::shared_ptr<CmdSubcommands> CmdSubcommands::getInstance() {
 
 namespace facebook::fboss {
 
-void CmdSubcommands::init(CLI::App& app) {
-  for (const auto& [verb, helpMsg] : kSupportedVerbs()) {
-    app.add_subcommand(verb, helpMsg);
-  }
-
-  for (const auto& [verb, object, helpMsg] : kListOfCommands()) {
+void CmdSubcommands::initHelper(
+    CLI::App& app,
+    const std::vector<std::tuple<std::string, std::string, std::string>>&
+        listOfCommands) {
+  for (const auto& [verb, object, helpMsg] : listOfCommands) {
     auto* verbSubCmd = app.get_subcommand_if(verb);
 
     // TODO explore moving this check to a compile time check
@@ -51,6 +50,14 @@ void CmdSubcommands::init(CLI::App& app) {
 
     verbSubCmd->add_subcommand(object, helpMsg);
   }
+}
+
+void CmdSubcommands::init(CLI::App& app) {
+  for (const auto& [verb, helpMsg] : kSupportedVerbs()) {
+    app.add_subcommand(verb, helpMsg);
+  }
+
+  initHelper(app, kListOfCommands());
 }
 
 } // namespace facebook::fboss

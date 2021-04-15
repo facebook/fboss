@@ -26,6 +26,12 @@ class CmdSubcommands {
   static std::shared_ptr<CmdSubcommands> getInstance();
 
   void init(CLI::App& app);
+
+ private:
+  void initHelper(
+      CLI::App& app,
+      const std::vector<std::tuple<std::string, std::string, std::string>>&
+          listOfCommands);
 };
 
 } // namespace facebook::fboss
