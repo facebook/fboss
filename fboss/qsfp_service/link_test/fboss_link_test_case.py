@@ -3,6 +3,7 @@ import time
 from collections import defaultdict, namedtuple
 from typing import List, DefaultDict, Dict, NamedTuple, Union
 
+from configerator.client import ConfigeratorClient
 from fboss.fb_thrift_clients import FbossAgentClient, QsfpServiceClient
 from libfb.py.decorators import memoize_forever, retryable
 from neteng.fboss.ctrl.ttypes import PortInfoThrift, PortOperState, PortStatus
@@ -16,10 +17,14 @@ class FbosslinkTestCase(LinkTestCase):
     """
 
     _LINK_FLAP_COUNT_KEY = "link_state.flap.sum"
+    _LAB_CONFIG_DIR = "neteng/fboss/lab/config/link_test/link_test_switch_config"
 
     def setUp(self) -> None:
         super().setUp()
         self.log = self.logger
+        # Stop the wedge agent and qsfp_service if they were left running from before
+        self.stop_wedge_agent()
+        self.stop_qsfp_service()
         self.setup_wedge_agent_log()
         self.setup_qsfp_service_log()
         self.use_agent_config("100G")
@@ -34,12 +39,29 @@ class FbosslinkTestCase(LinkTestCase):
         self.stop_wedge_agent()
         self.stop_qsfp_service()
 
+    @memoize_forever
+    def _get_lab_config(self):
+        config_path = self._LAB_CONFIG_DIR + "/" + self.platform
+        content = ConfigeratorClient().get_config_contents_as_JSON(config_path)
+        return content
+
+    @memoize_forever
+    def _get_expected_up_ports(self) -> List[str]:
+        labConfigContent = self._get_lab_config()
+        expectedUpPorts = []
+        for pim in labConfigContent["pimInfo"]:
+            for port, portInfo in pim["interfaces"].items():
+                if portInfo.get("neighbor", "") != "":
+                    expectedUpPorts.append(port.lower())
+        return expectedUpPorts
+
     @retryable(num_tries=50, sleep_time=5, debug=False)
     def check_port_status(self, up_expected: bool = True):
         """
         Method to check all the port status
         """
         port_info = self._get_all_port_info()
+        expected_up_ports = self._get_expected_up_ports()
         self.log.info("checking port status")
         if up_expected:
 
@@ -47,9 +69,7 @@ class FbosslinkTestCase(LinkTestCase):
                 port
                 for port in port_info
                 if not port_info[port].operState == PortOperState.UP
-                # A hack here for now due to the link topology in the lab
-                # at the moment. Will remove after wire the two corner ports up.
-                and port_info[port].name not in ["eth2/1/1", "eth9/16/1"]
+                and port_info[port].name in expected_up_ports
             ]
             self.assertFalse(
                 down_ports,
