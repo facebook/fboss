@@ -42,6 +42,13 @@ RouteDistributionGenerator::RouteDistributionGenerator(
   CHECK_NE(0, ecmpWidth_);
 }
 
+std::shared_ptr<SwitchState> RouteDistributionGenerator::resolveNextHops(
+    std::shared_ptr<SwitchState> in) const {
+  auto nhop6Resolved = EcmpSetupAnyNPorts6(in).resolveNextHops(in, ecmpWidth());
+  return EcmpSetupAnyNPorts4(nhop6Resolved)
+      .resolveNextHops(nhop6Resolved, ecmpWidth());
+}
+
 const RouteDistributionGenerator::RouteChunks& RouteDistributionGenerator::get()
     const {
   if (generatedRouteChunks_) {

@@ -69,6 +69,10 @@ class RouteDistributionGenerator {
       unsigned int chunkSize,
       unsigned int ecmpWidth,
       RouterID routerId = RouterID(0));
+
+  virtual ~RouteDistributionGenerator() = default;
+  virtual std::shared_ptr<SwitchState> resolveNextHops(
+      std::shared_ptr<SwitchState> in) const;
   /*
    * Compute, cache and return route distribution
    */

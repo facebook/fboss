@@ -34,17 +34,13 @@ class HwRouteScaleTest : public HwTest {
     auto setup = [this]() {
       applyNewConfig(
           utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds()));
+      auto routeGen = RouteScaleGeneratorT(
+          getProgrammedState(),
+          getHwSwitchEnsemble()->isStandaloneRibEnabled());
 
-      applyNewState(utility::EcmpSetupAnyNPorts6(getProgrammedState())
-                        .resolveNextHops(
-                            getProgrammedState(), utility::kDefaulEcmpWidth));
-      applyNewState(utility::EcmpSetupAnyNPorts4(getProgrammedState())
-                        .resolveNextHops(
-                            getProgrammedState(), utility::kDefaulEcmpWidth));
-      auto routeChunks = RouteScaleGeneratorT(
-                             getProgrammedState(),
-                             getHwSwitchEnsemble()->isStandaloneRibEnabled())
-                             .getThriftRoutes();
+      applyNewState(routeGen.resolveNextHops(
+          getHwSwitchEnsemble()->getProgrammedState()));
+      auto routeChunks = routeGen.getThriftRoutes();
       auto updater = getHwSwitchEnsemble()->getRouteUpdater();
       updater.programRoutes(RouterID(0), ClientID::BGPD, routeChunks);
     };

@@ -102,6 +102,8 @@ class TurboFSWRouteScaleGenerator : public RouteDistributionGenerator {
       SwitchStates& generatedStates) const;
 
  public:
+  std::shared_ptr<SwitchState> resolveNextHops(
+      std::shared_ptr<SwitchState> in) const override;
   explicit TurboFSWRouteScaleGenerator(
       const std::shared_ptr<SwitchState>& startingState,
       bool isStandaloneRibEnabled,
@@ -116,6 +118,9 @@ class TurboFSWRouteScaleGenerator : public RouteDistributionGenerator {
   const SwitchStates& getSwitchStates() const;
   bool isSupported(PlatformMode mode) const;
   mutable std::optional<SwitchStates> generatedStates_;
+  boost::container::flat_set<PortDescriptor> unlabeledPorts_;
+  boost::container::flat_set<PortDescriptor> labeledPorts_;
+  boost::container::flat_set<PortDescriptor> allPorts_;
 };
 
 } // namespace facebook::fboss::utility

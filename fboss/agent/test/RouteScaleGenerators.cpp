@@ -254,7 +254,25 @@ TurboFSWRouteScaleGenerator::TurboFSWRouteScaleGenerator(
       // V4 Routes per label path
       // 11 /26 for interpod + 3750 VIP routes
       v4PrefixLabelDistributionSpec_(
-          {{26, {11, 1, 500}}, {32, {3761, 376, 600}}}) {}
+          {{26, {11, 1, 500}}, {32, {3761, 376, 600}}}) {
+  for (auto port : *startingState->getPorts()) {
+    if (!port->isEnabled()) {
+      continue;
+    }
+    allPorts_.insert(PortDescriptor(port->getID()));
+  }
+  CHECK_GE(allPorts_.size(), ecmpWidth);
+
+  size_t unlabeledPortsSize = ecmpWidth - 32;
+  for (auto i = 0; i < ecmpWidth; i++) {
+    auto iPortId = *(allPorts_.begin() + i);
+    if (i < unlabeledPortsSize) {
+      unlabeledPorts_.insert(iPortId);
+    } else {
+      labeledPorts_.insert(iPortId);
+    }
+  }
+}
 
 template <typename AddrT>
 void TurboFSWRouteScaleGenerator::genIp2MplsRouteDistribution(
@@ -330,37 +348,8 @@ TurboFSWRouteScaleGenerator::getSwitchStates() const {
   auto width = ecmpWidth();
 
   CHECK_GE(width, 32);
-  size_t unlabeledPortsSize = width - 32;
 
-  boost::container::flat_set<PortDescriptor> unlabeledPorts{};
-  boost::container::flat_set<PortDescriptor> labeledPorts{};
-  boost::container::flat_set<PortDescriptor> allPorts{};
-
-  for (auto port : *state->getPorts()) {
-    if (!port->isEnabled()) {
-      continue;
-    }
-    allPorts.insert(PortDescriptor(port->getID()));
-  }
-  CHECK_GE(allPorts.size(), width);
-
-  for (auto i = 0; i < width; i++) {
-    auto iPortId = *(allPorts.begin() + i);
-    if (i < unlabeledPortsSize) {
-      unlabeledPorts.insert(iPortId);
-    } else {
-      labeledPorts.insert(iPortId);
-    }
-  }
-
-  auto nhopsResolvedState =
-      ecmpHelper6.resolveNextHops(startingState(), unlabeledPorts);
-  nhopsResolvedState =
-      ecmpHelper6.resolveNextHops(nhopsResolvedState, labeledPorts);
-  nhopsResolvedState =
-      ecmpHelper4.resolveNextHops(nhopsResolvedState, unlabeledPorts);
-  nhopsResolvedState =
-      ecmpHelper4.resolveNextHops(nhopsResolvedState, labeledPorts);
+  auto nhopsResolvedState = resolveNextHops(state);
   nhopsResolvedState->publish();
   generatedStates_->push_back(nhopsResolvedState);
 
@@ -382,28 +371,41 @@ TurboFSWRouteScaleGenerator::getSwitchStates() const {
     }
   }
   newState =
-      ecmpHelper6.setupECMPForwarding(newState, unlabeledPorts, v6Prefixes);
+      ecmpHelper6.setupECMPForwarding(newState, unlabeledPorts_, v6Prefixes);
   newState =
-      ecmpHelper4.setupECMPForwarding(newState, unlabeledPorts, v4Prefixes);
+      ecmpHelper4.setupECMPForwarding(newState, unlabeledPorts_, v4Prefixes);
   generatedStates_->push_back(newState);
 
   // Add v6 labelled routes
   genIp2MplsRouteDistribution<folly::IPAddressV6>(
       v6PrefixLabelDistributionSpec_,
-      labeledPorts,
-      allPorts,
+      labeledPorts_,
+      allPorts_,
       *generatedStates_);
 
   // Add v4 labelled routes
   genIp2MplsRouteDistribution<folly::IPAddressV4>(
       v4PrefixLabelDistributionSpec_,
-      labeledPorts,
-      allPorts,
+      labeledPorts_,
+      allPorts_,
       *generatedStates_);
 
   return *generatedStates_;
 }
 
+std::shared_ptr<SwitchState> TurboFSWRouteScaleGenerator::resolveNextHops(
+    std::shared_ptr<SwitchState> in) const {
+  auto ecmpHelper4 = EcmpSetupTargetedPorts4(in);
+  auto ecmpHelper6 = EcmpSetupTargetedPorts6(in);
+  auto nhopsResolvedState = ecmpHelper6.resolveNextHops(in, unlabeledPorts_);
+  nhopsResolvedState =
+      ecmpHelper6.resolveNextHops(nhopsResolvedState, labeledPorts_);
+  nhopsResolvedState =
+      ecmpHelper4.resolveNextHops(nhopsResolvedState, unlabeledPorts_);
+  nhopsResolvedState =
+      ecmpHelper4.resolveNextHops(nhopsResolvedState, labeledPorts_);
+  return nhopsResolvedState;
+}
 bool TurboFSWRouteScaleGenerator::isSupported(PlatformMode mode) const {
   return (
       mode == PlatformMode::MINIPACK || mode == PlatformMode::YAMP ||
