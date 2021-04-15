@@ -18,6 +18,7 @@
 #include <iostream>
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/lib/FunctionCallTimeReporter.h"
 
@@ -44,17 +45,19 @@ void routeAddDelBenchmarker(bool measureAdd) {
     // skip if this is not supported for a platform
     return;
   }
+  ensemble->applyNewState(
+      routeGenerator.resolveNextHops(ensemble->getProgrammedState()));
   const RouterID kRid(0);
   auto routeChunks = routeGenerator.getThriftRoutes();
   auto allThriftRoutes = routeGenerator.allThriftRoutes();
-  // Get routes with one greater ecmp width to capture a peering
+  // Get routes with one smaller ecmp width to capture a peering
   // flap and following route updates
-  auto allThriftRoutesWiderEcmp = RouteScaleGeneratorT(
-                                      ensemble->getProgrammedState(),
-                                      ensemble->isStandaloneRibEnabled(),
-                                      allThriftRoutes.size(),
-                                      routeGenerator.ecmpWidth() + 1)
-                                      .allThriftRoutes();
+  auto allThriftRoutesNarrowerEcmp = RouteScaleGeneratorT(
+                                         ensemble->getProgrammedState(),
+                                         ensemble->isStandaloneRibEnabled(),
+                                         allThriftRoutes.size(),
+                                         routeGenerator.ecmpWidth() - 1)
+                                         .allThriftRoutes();
 
   std::atomic<bool> done{false};
 
@@ -139,7 +142,7 @@ void routeAddDelBenchmarker(bool measureAdd) {
     // Sync fib with same set of routes
     syncFib(allThriftRoutes);
     // Sync fib with same set of routes, but ecmp nhops changed
-    syncFib(allThriftRoutesWiderEcmp);
+    syncFib(allThriftRoutesNarrowerEcmp);
     // Sync fib with no routes - del all
     syncFib({});
     // Sync fib with all routes
