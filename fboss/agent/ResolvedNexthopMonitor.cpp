@@ -111,7 +111,14 @@ bool ResolvedNexthopMonitor::skipLabelFibEntry(
   }
   auto nexthopByClient = entry->getLabelNextHopsByClient();
   auto bestEntry = nexthopByClient.getBestEntry();
-  return isClientMonitored(bestEntry.first);
+  for (auto nhop : bestEntry.second->getNextHopSet()) {
+    if (nhop.labelForwardingAction().has_value() &&
+        nhop.labelForwardingAction()->type() ==
+            LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP) {
+      return true;
+    }
+  }
+  return !isClientMonitored(bestEntry.first);
 }
 
 void ResolvedNexthopMonitor::processChangedLabelFibEntry(
