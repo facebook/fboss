@@ -10,6 +10,10 @@
 
 #include "fboss/cli/fboss2/CmdCreateClient.h"
 
+#include "fboss/cli/fboss2/CmdUtils.h"
+
+#include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
+
 #include <folly/Singleton.h>
 
 namespace {
@@ -22,3 +26,16 @@ static folly::Singleton<CmdCreateClient, singleton_tag_type>
 std::shared_ptr<CmdCreateClient> CmdCreateClient::getInstance() {
   return cmdCreateClient.try_get();
 }
+
+namespace facebook::fboss {
+
+template <typename T>
+std::unique_ptr<T> CmdCreateClient::create(
+    const std::string& ip,
+    folly::EventBase& evb) {
+  if constexpr (std::is_same_v<T, facebook::fboss::FbossCtrlAsyncClient>) {
+    return utils::createAgentClient(ip, evb);
+  }
+}
+
+} // namespace facebook::fboss

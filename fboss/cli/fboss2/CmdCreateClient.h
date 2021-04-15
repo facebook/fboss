@@ -11,6 +11,7 @@
 
 #include "fboss/cli/fboss2/CLI11/CLI.hpp"
 
+#include <folly/io/async/AsyncSocket.h>
 #include <memory>
 
 namespace facebook::fboss {
@@ -24,6 +25,9 @@ class CmdCreateClient {
 
   // Static function for getting the CmdCreateClient folly::Singleton
   static std::shared_ptr<CmdCreateClient> getInstance();
+
+  template <typename T>
+  std::unique_ptr<T> create(const std::string& ip, folly::EventBase& evb);
 };
 
 } // namespace facebook::fboss
