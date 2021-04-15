@@ -1038,12 +1038,20 @@ class App {
     }
 
     /// Check to see if a subcommand is part of this command (text version)
+    /// throws error if the subcom does not exist
     App *get_subcommand(std::string subcom) const {
         auto subc = _find_subcommand(subcom, false, false);
         if(subc == nullptr)
             throw OptionNotFound(subcom);
         return subc;
     }
+
+    /// Check to see if a sucommand is pat of this command (text version)
+    /// returns nullptr if the subcom does not exist
+    App *get_subcommand_if(std::string subcom) const {
+        return _find_subcommand(subcom, false, false);
+    }
+
     /// Get a pointer to subcommand by index
     App *get_subcommand(int index = 0) const {
         if(index >= 0) {
