@@ -28,6 +28,12 @@ class CmdCreateClient {
 
   template <typename T>
   std::unique_ptr<T> create(const std::string& ip, folly::EventBase& evb);
+
+ private:
+  template <typename T>
+  std::unique_ptr<T> createAdditional(
+      const std::string& ip,
+      folly::EventBase& evb);
 };
 
 } // namespace facebook::fboss

@@ -35,6 +35,8 @@ std::unique_ptr<T> CmdCreateClient::create(
     folly::EventBase& evb) {
   if constexpr (std::is_same_v<T, facebook::fboss::FbossCtrlAsyncClient>) {
     return utils::createAgentClient(ip, evb);
+  } else {
+    return createAdditional<T>(ip, evb);
   }
 }
 
