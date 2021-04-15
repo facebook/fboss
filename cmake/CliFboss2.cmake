@@ -12,10 +12,12 @@ add_executable(fboss2
   fboss/cli/fboss2/Main.cpp
   fboss/cli/fboss2/oss/CmdGlobalOptions.cpp
   fboss/cli/fboss2/oss/CmdList.cpp
+  fboss/cli/fboss2/oss/CmdUtils.cpp
 )
 
 target_link_libraries(fboss2
   CLI11
+  ctrl_cpp2
   Folly::folly
 )
 
