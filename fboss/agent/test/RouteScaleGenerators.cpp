@@ -406,9 +406,10 @@ std::shared_ptr<SwitchState> TurboFSWRouteScaleGenerator::resolveNextHops(
       ecmpHelper4.resolveNextHops(nhopsResolvedState, labeledPorts_);
   return nhopsResolvedState;
 }
+
 bool TurboFSWRouteScaleGenerator::isSupported(PlatformMode mode) const {
   return (
       mode == PlatformMode::MINIPACK || mode == PlatformMode::YAMP ||
-      mode == PlatformMode::WEDGE400 || mode == PlatformMode::WEDGE400C);
+      mode == PlatformMode::FUJI || mode == PlatformMode::ELBERT);
 }
 } // namespace facebook::fboss::utility

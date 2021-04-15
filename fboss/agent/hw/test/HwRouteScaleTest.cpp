@@ -103,8 +103,6 @@ TEST_F(HwRouteScaleTest, turboFabricScaleTest) {
   runTest<utility::TurboFSWRouteScaleGenerator>(
       {PlatformMode::MINIPACK,
        PlatformMode::YAMP,
-       PlatformMode::WEDGE400,
-       PlatformMode::WEDGE400C,
        PlatformMode::ELBERT,
        PlatformMode::FUJI});
 }
