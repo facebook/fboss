@@ -9,6 +9,7 @@
  */
 
 #include <folly/IPAddressV6.h>
+
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
@@ -21,6 +22,8 @@
 #include "fboss/agent/hw/test/TrafficPolicyUtils.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
+#include "fboss/agent/state/LabelForwardingEntry.h"
+#include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 namespace {
@@ -92,18 +95,23 @@ class HwMPLSTest : public HwLinkStateDependentTest {
       folly::IPAddressV6 prefix,
       uint8_t mask,
       PortDescriptor port,
-      LabelForwardingAction::LabelStack stack) {
+      LabelForwardingAction::LabelStack stack = {}) {
     applyNewState(ecmpHelper_->resolveNextHops(
         getProgrammedState(),
         {
             port,
         }));
 
-    ecmpHelper_->programIp2MplsRoutes(
-        getRouteUpdater(),
-        {port},
-        {{port, std::move(stack)}},
-        {RoutePrefixV6{prefix, mask}});
+    if (stack.empty()) {
+      ecmpHelper_->programRoutes(
+          getRouteUpdater(), {port}, {RoutePrefixV6{prefix, mask}});
+    } else {
+      ecmpHelper_->programIp2MplsRoutes(
+          getRouteUpdater(),
+          {port},
+          {{port, std::move(stack)}},
+          {RoutePrefixV6{prefix, mask}});
+    }
   }
 
   LabelForwardingEntry::Label programLabelSwap(PortDescriptor port) {
@@ -115,6 +123,24 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     applyNewState(ecmpSwapHelper_->setupECMPForwarding(state, {port}));
     auto swapNextHop = ecmpSwapHelper_->nhop(port);
     return swapNextHop.action.swapWith().value();
+  }
+
+  void programLabelPop(LabelForwardingEntry::Label label) {
+    // program MPLS route to POP
+    auto state = getProgrammedState();
+    state = state->clone();
+    auto* labelFib = state->getLabelForwardingInformationBase()->modify(&state);
+
+    LabelForwardingAction popAndLookup(
+        LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP);
+    UnresolvedNextHop nexthop(folly::IPAddress("::1"), 1, popAndLookup);
+    labelFib->programLabel(
+        &state,
+        label,
+        ClientID::STATIC_ROUTE,
+        AdminDistance::STATIC_ROUTE,
+        {nexthop});
+    applyNewState(state);
   }
 
   std::unique_ptr<utility::MplsEcmpSetupTargetedPorts<folly::IPAddressV6>>
@@ -313,6 +339,32 @@ TEST_F(HwMPLSTest, MplsMatchPktsNottrapped) {
     EXPECT_EQ(statBefore, statAfter);
   };
 
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwMPLSTest, Pop) {
+  if (skipTest()) {
+    return;
+  }
+  auto setup = [=]() {
+    // pop and lookup 1101
+    programLabelPop(1101);
+    // setup route for 2001::, dest ip under label 1101
+    addRoute(
+        folly::IPAddressV6("2001::"),
+        128,
+        PortDescriptor(masterLogicalPortIds()[0]));
+  };
+  auto verify = [=]() {
+    auto outPktsBefore =
+        getPortOutPkts(getLatestPortStats(masterLogicalPortIds()[0]));
+    // send mpls packet with label and let it pop
+    sendMplsPacket(1101, masterLogicalPortIds()[1]);
+    // ip packet should be forwarded as per route for 2001::/128
+    auto outPktsAfter =
+        getPortOutPkts(getLatestPortStats(masterLogicalPortIds()[0]));
+    EXPECT_EQ((outPktsAfter - outPktsBefore), 1);
+  };
   verifyAcrossWarmBoots(setup, verify);
 }
 } // namespace facebook::fboss
