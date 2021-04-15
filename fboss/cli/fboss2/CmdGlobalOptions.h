@@ -28,6 +28,8 @@ class CmdGlobalOptions {
   void init(CLI::App& app);
 
  private:
+  void initAdditional(CLI::App& app);
+
   std::string host_;
 };
 
