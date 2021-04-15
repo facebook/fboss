@@ -4,6 +4,7 @@
 # cmake/FooBar.cmake
 
 add_executable(fboss2
+  fboss/cli/fboss2/CmdCreateClient.cpp
   fboss/cli/fboss2/CmdGlobalOptions.cpp
   fboss/cli/fboss2/CmdHandler.cpp
   fboss/cli/fboss2/CmdList.cpp
