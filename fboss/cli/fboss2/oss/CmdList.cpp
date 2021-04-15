@@ -8,15 +8,16 @@
  *
  */
 
-#include <string>
-#include <tuple>
-#include <vector>
+#include "fboss/cli/fboss2/CmdList.h"
 
 namespace facebook::fboss {
 
 const std::vector<std::tuple<std::string, std::string, std::string>>&
-kListOfCommands();
-const std::vector<std::tuple<std::string, std::string, std::string>>&
-kListOfAdditionalCommands();
+kListOfAdditionalCommands() {
+  static const std::vector<std::tuple<std::string, std::string, std::string>>
+      listOfAdditionalCommands;
 
+  return listOfAdditionalCommands;
 }
+
+} // namespace facebook::fboss

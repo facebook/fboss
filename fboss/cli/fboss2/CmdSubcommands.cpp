@@ -58,6 +58,7 @@ void CmdSubcommands::init(CLI::App& app) {
   }
 
   initHelper(app, kListOfCommands());
+  initHelper(app, kListOfAdditionalCommands());
 }
 
 } // namespace facebook::fboss
