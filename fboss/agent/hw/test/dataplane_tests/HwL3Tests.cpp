@@ -14,12 +14,11 @@
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
-using folly::IPAddress;
+using folly::IPAddressV4;
 using folly::IPAddressV6;
 
 namespace facebook::fboss {
 
-template <typename AddrT>
 class HwL3Test : public HwLinkStateDependentTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
@@ -28,61 +27,92 @@ class HwL3Test : public HwLinkStateDependentTest {
     return cfg;
   }
 
-  RoutePrefix<AddrT> kGetRoutePrefix() const {
-    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
-      return RoutePrefix<folly::IPAddressV4>{folly::IPAddressV4{"1.1.1.0"}, 24};
-    } else {
-      return RoutePrefix<folly::IPAddressV6>{folly::IPAddressV6{"1::"}, 64};
-    }
+  RoutePrefix<folly::IPAddressV4> kGetRoutePrefixIPv4() const {
+    return RoutePrefix<folly::IPAddressV4>{folly::IPAddressV4{"1.1.1.0"}, 24};
   }
 
-  AddrT kSrcIP() {
-    if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
-      return folly::IPAddressV4("1.1.1.1");
-    } else {
-      return folly::IPAddressV6("1::1");
-    }
+  RoutePrefix<folly::IPAddressV6> kGetRoutePrefixIPv6() const {
+    return RoutePrefix<folly::IPAddressV6>{folly::IPAddressV6{"1::"}, 64};
   }
 
-  AddrT kDstIP() {
-    if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
-      return folly::IPAddressV4("1.1.1.3");
-    } else {
-      return folly::IPAddressV6("1::3");
-    }
+  folly::IPAddressV4 kSrcIPv4() {
+    return folly::IPAddressV4("1.1.1.1");
   }
 
-  void checkRouteHit() {
+  folly::IPAddressV6 kSrcIPv6() {
+    return folly::IPAddressV6("1::0");
+  }
+
+  folly::IPAddressV4 kDstIPv4() {
+    return folly::IPAddressV4("1.1.1.3");
+  }
+
+  folly::IPAddressV6 kDstIPv6() {
+    return folly::IPAddressV6("1::3");
+  }
+
+  void testRouteHitBit() {
     auto setup = [=]() {};
 
     auto verify = [=]() {
       auto vlanId = utility::firstVlanID(initialConfig());
       auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
-      RoutePrefix<AddrT> prefix(kGetRoutePrefix());
-      auto cidr = folly::CIDRNetwork(prefix.network, prefix.mask);
+      RoutePrefix<folly::IPAddressV4> prefix4(kGetRoutePrefixIPv4());
+      RoutePrefix<folly::IPAddressV6> prefix6(kGetRoutePrefixIPv6());
+      auto cidr4 = folly::CIDRNetwork(prefix4.network, prefix4.mask);
+      auto cidr6 = folly::CIDRNetwork(prefix6.network, prefix6.mask);
 
       // Ensure hit bit is NOT set
       EXPECT_FALSE(
-          utility::isHwRouteHit(this->getHwSwitch(), RouterID(0), cidr));
+          utility::isHwRouteHit(this->getHwSwitch(), RouterID(0), cidr4));
+      EXPECT_FALSE(
+          utility::isHwRouteHit(this->getHwSwitch(), RouterID(0), cidr6));
 
-      // Construct and send packet
-      auto pkt = utility::makeIpTxPacket(
+      // Construct and send IPv4 packet
+      auto pkt4 = utility::makeIpTxPacket(
           getHwSwitch(),
           vlanId,
           intfMac,
           intfMac,
-          this->kSrcIP(),
-          this->kDstIP());
-      getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(pkt));
+          this->kSrcIPv4(),
+          this->kDstIPv4());
+      getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(pkt4));
 
-      // Verify hit bit is set
+      // Verify hit bit is set for IPv4 route and NOT set for IPv6 route
       EXPECT_TRUE(
-          utility::isHwRouteHit(this->getHwSwitch(), RouterID(0), cidr));
-
-      // Clear hit bit and verify
-      utility::clearHwRouteHit(this->getHwSwitch(), RouterID(0), cidr);
+          utility::isHwRouteHit(this->getHwSwitch(), RouterID(0), cidr4));
       EXPECT_FALSE(
-          utility::isHwRouteHit(this->getHwSwitch(), RouterID(0), cidr));
+          utility::isHwRouteHit(this->getHwSwitch(), RouterID(0), cidr6));
+
+      // Construct and send IPv6 packet
+      auto pkt6 = utility::makeIpTxPacket(
+          getHwSwitch(),
+          vlanId,
+          intfMac,
+          intfMac,
+          this->kSrcIPv6(),
+          this->kDstIPv6());
+      getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(pkt6));
+
+      // Verify hit bit is set for both IPv4 and IPv6 routes
+      EXPECT_TRUE(
+          utility::isHwRouteHit(this->getHwSwitch(), RouterID(0), cidr4));
+      EXPECT_TRUE(
+          utility::isHwRouteHit(this->getHwSwitch(), RouterID(0), cidr6));
+
+      // Clear IPv4 route hit bit and verify
+      utility::clearHwRouteHit(this->getHwSwitch(), RouterID(0), cidr4);
+      EXPECT_FALSE(
+          utility::isHwRouteHit(this->getHwSwitch(), RouterID(0), cidr4));
+      EXPECT_TRUE(
+          utility::isHwRouteHit(this->getHwSwitch(), RouterID(0), cidr6));
+
+      // Clear IPv6 route hit bit and verify
+      utility::clearHwRouteHit(this->getHwSwitch(), RouterID(0), cidr6);
+      EXPECT_FALSE(
+          utility::isHwRouteHit(this->getHwSwitch(), RouterID(0), cidr4));
+      EXPECT_FALSE(
+          utility::isHwRouteHit(this->getHwSwitch(), RouterID(0), cidr6));
     };
 
     // TODO(vsp): Once hitbit is set, ensure its preserved after warm boot.
@@ -90,11 +120,8 @@ class HwL3Test : public HwLinkStateDependentTest {
   }
 };
 
-using IpTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
-TYPED_TEST_SUITE(HwL3Test, IpTypes);
-
-TYPED_TEST(HwL3Test, HitBit) {
-  this->checkRouteHit();
+TEST_F(HwL3Test, TestRouteHitBit) {
+  this->testRouteHitBit();
 }
 
 } // namespace facebook::fboss
