@@ -10,6 +10,7 @@
 
 #include "fboss/cli/fboss2/CLI11/CLI.hpp"
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
+#include "fboss/cli/fboss2/CmdSubcommands.h"
 
 #include <folly/init/Init.h>
 
@@ -24,6 +25,7 @@ int cliMain(int argc, char* argv[]) {
    app.require_subcommand();
 
    CmdGlobalOptions::getInstance()->init(app);
+   CmdSubcommands::getInstance()->init(app);
 
    CLI11_PARSE(app, argc, argv);
 
