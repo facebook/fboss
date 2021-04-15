@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/hw_test/SaiLinkStateToggler.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 
+#include <folly/io/async/AsyncSignalHandler.h>
 #include "fboss/agent/hw/sai/diag/SaiRepl.h"
 #include "fboss/agent/hw/sai/hw_test/SaiTestHandler.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -26,6 +27,7 @@
 
 #include <boost/container/flat_set.hpp>
 
+#include <csignal>
 #include <memory>
 #include <thread>
 
@@ -34,12 +36,30 @@ DECLARE_bool(setup_thrift);
 DECLARE_string(config);
 
 namespace {
+using folly::AsyncSignalHandler;
+
 void initFlagDefaults(const std::map<std::string, std::string>& defaults) {
   for (auto item : defaults) {
     gflags::SetCommandLineOptionWithMode(
         item.first.c_str(), item.second.c_str(), gflags::SET_FLAGS_DEFAULT);
   }
 }
+
+class SignalHandler : public AsyncSignalHandler {
+ public:
+  explicit SignalHandler(folly::EventBase* eventBase)
+      : AsyncSignalHandler(eventBase) {
+    registerSignalHandler(SIGINT);
+    registerSignalHandler(SIGTERM);
+  }
+  void signalReceived(int /*signum*/) noexcept override {
+    auto evb = getEventBase();
+    evb->runInEventBaseThread([evb] { evb->terminateLoopSoon(); });
+  }
+
+ private:
+};
+
 } // namespace
 
 namespace facebook::fboss {
@@ -51,17 +71,18 @@ SaiSwitchEnsemble::SaiSwitchEnsemble(
 std::unique_ptr<std::thread> SaiSwitchEnsemble::createThriftThread(
     const SaiSwitch* hwSwitch) {
   return std::make_unique<std::thread>([hwSwitch] {
-    folly::EventBase eventBase;
+    folly::EventBase* eventBase = new folly::EventBase();
     auto handler = std::make_shared<SaiTestHandler>(hwSwitch);
     auto server = setupThriftServer(
-        eventBase,
+        *eventBase,
         handler,
         FLAGS_thrift_port,
         false /* isDuplex */,
         false /* setupSSL*/,
         true /* isStreaming */);
+    SignalHandler signalHandler(eventBase);
     // Run the EventBase main loop
-    eventBase.loopForever();
+    eventBase->loopForever();
   });
 }
 
