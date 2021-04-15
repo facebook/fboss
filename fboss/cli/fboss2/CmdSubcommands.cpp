@@ -10,8 +10,6 @@
 
 #include "fboss/cli/fboss2/CmdSubcommands.h"
 
-#include "fboss/cli/fboss2/CmdList.h"
-
 #include <folly/Singleton.h>
 
 namespace {
@@ -38,9 +36,10 @@ namespace facebook::fboss {
 
 void CmdSubcommands::initHelper(
     CLI::App& app,
-    const std::vector<std::tuple<std::string, std::string, std::string>>&
+    const std::vector<
+        std::tuple<std::string, std::string, std::string, CommandHandlerFn>>&
         listOfCommands) {
-  for (const auto& [verb, object, helpMsg] : listOfCommands) {
+  for (const auto& [verb, object, helpMsg, commandHandlerFn] : listOfCommands) {
     auto* verbSubCmd = app.get_subcommand_if(verb);
 
     // TODO explore moving this check to a compile time check
@@ -48,7 +47,8 @@ void CmdSubcommands::initHelper(
       throw std::runtime_error("unsupported verb " + verb);
     }
 
-    verbSubCmd->add_subcommand(object, helpMsg);
+    auto* objectSubCmd = verbSubCmd->add_subcommand(object, helpMsg);
+    objectSubCmd->callback(commandHandlerFn);
   }
 }
 

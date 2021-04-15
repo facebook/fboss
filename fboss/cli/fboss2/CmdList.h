@@ -8,15 +8,19 @@
  *
  */
 
+#include <functional>
 #include <string>
 #include <tuple>
 #include <vector>
 
 namespace facebook::fboss {
 
-const std::vector<std::tuple<std::string, std::string, std::string>>&
-kListOfCommands();
-const std::vector<std::tuple<std::string, std::string, std::string>>&
-kListOfAdditionalCommands();
+using CommandHandlerFn = std::function<void ()>;
 
+const std::vector<
+    std::tuple<std::string, std::string, std::string, CommandHandlerFn>>&
+kListOfCommands();
+const std::vector<
+    std::tuple<std::string, std::string, std::string, CommandHandlerFn>>&
+kListOfAdditionalCommands();
 }

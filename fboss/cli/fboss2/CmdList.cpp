@@ -12,10 +12,17 @@
 
 namespace facebook::fboss {
 
-const std::vector<std::tuple<std::string, std::string, std::string>>&
+void commandHandler() {
+  // TODO add definition
+}
+
+const std::vector<
+    std::tuple<std::string, std::string, std::string, CommandHandlerFn>>&
 kListOfCommands() {
-  static const std::vector<std::tuple<std::string, std::string, std::string>>
-      listOfCommands = {{"show", "acl", "Show ACL information"}};
+  static const std::vector<
+      std::tuple<std::string, std::string, std::string, CommandHandlerFn>>
+      listOfCommands = {
+          {"show", "acl", "Show ACL information", commandHandler}};
 
   return listOfCommands;
 }
