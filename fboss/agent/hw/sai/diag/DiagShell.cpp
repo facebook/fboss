@@ -171,11 +171,6 @@ void DiagShell::initTerminal() {
   }
 }
 
-void DiagShell::resetTerminal() {
-  repl_.reset();
-  ts_.reset();
-}
-
 int DiagShell::getPtymFd() const {
   /* Helper function to return the file descriptor for pty master */
   return ptym_->file.fd();
@@ -263,12 +258,6 @@ std::string DiagShell::readOutput(int timeoutMs) {
 StreamingDiagShellServer::StreamingDiagShellServer(const SaiSwitch* hw)
     : DiagShell(hw) {}
 
-StreamingDiagShellServer::~StreamingDiagShellServer() noexcept {
-  if (producerThread_) {
-    producerThread_->detach();
-  }
-}
-
 void StreamingDiagShellServer::setPublisher(
     apache::thrift::ServerStreamPublisher<std::string>&& publisher) {
   publisher_ =
@@ -315,7 +304,6 @@ void StreamingDiagShellServer::resetPublisher() {
   if (producerThread_) {
     producerThread_->detach();
   }
-  resetTerminal();
   shouldResetPublisher_ = false;
   locked->reset();
   disconnect();

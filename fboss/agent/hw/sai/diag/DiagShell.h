@@ -84,7 +84,6 @@ class DiagShell {
 
  protected:
   void initTerminal();
-  void resetTerminal();
 
   std::mutex diagShellMutex_;
   std::unique_lock<std::mutex> diagShellLock_;
@@ -111,7 +110,6 @@ class DiagShell {
 class StreamingDiagShellServer : public DiagShell {
  public:
   explicit StreamingDiagShellServer(const SaiSwitch* hw);
-  ~StreamingDiagShellServer() noexcept override;
 
   std::string start(
       apache::thrift::ServerStreamPublisher<std::string>&& publisher);
