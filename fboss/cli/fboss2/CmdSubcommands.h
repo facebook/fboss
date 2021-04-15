@@ -24,6 +24,8 @@ class CmdSubcommands {
 
   // Static function for getting the CmdSubcommands folly::Singleton
   static std::shared_ptr<CmdSubcommands> getInstance();
+
+  void init(CLI::App& app);
 };
 
 } // namespace facebook::fboss

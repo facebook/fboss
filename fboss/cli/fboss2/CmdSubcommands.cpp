@@ -14,6 +14,15 @@
 
 namespace {
 struct singleton_tag_type {};
+
+const std::map<std::string, std::string>& kSupportedVerbs() {
+  static const std::map<std::string, std::string> supportedVerbs = {
+      {"show", "Show object info"},
+  };
+
+  return supportedVerbs;
+};
+
 } // namespace
 
 using facebook::fboss::CmdSubcommands;
@@ -22,3 +31,13 @@ static folly::Singleton<CmdSubcommands, singleton_tag_type>
 std::shared_ptr<CmdSubcommands> CmdSubcommands::getInstance() {
   return cmdSubcommands.try_get();
 }
+
+namespace facebook::fboss {
+
+void CmdSubcommands::init(CLI::App& app) {
+  for (const auto& [verb, helpMsg] : kSupportedVerbs()) {
+    app.add_subcommand(verb, helpMsg);
+  }
+}
+
+} // namespace facebook::fboss
