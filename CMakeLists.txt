@@ -541,6 +541,11 @@ if (NOT SAI_ONLY)
       fboss/agent/NeighborUpdater.cpp
       fboss/agent/NeighborUpdaterImpl.cpp
       fboss/agent/normalization/Normalizer.cpp
+      fboss/agent/normalization/oss/Normalizer.cpp
+      fboss/agent/normalization/PortStatsProcessor.cpp
+      fboss/agent/normalization/TransformHandler.cpp
+      fboss/agent/normalization/StatsExporter.cpp
+      fboss/agent/normalization/CounterTagManager.cpp
       fboss/agent/oss/AggregatePortStats.cpp
       fboss/agent/oss/FbossInit.cpp
       fboss/agent/oss/Main.cpp

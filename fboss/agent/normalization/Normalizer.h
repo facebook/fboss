@@ -9,9 +9,16 @@
  */
 #pragma once
 
-#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
+#include <memory>
 
 #include "folly/container/F14Map.h"
+
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
+#include "fboss/agent/normalization/CounterTagManager.h"
+#include "fboss/agent/normalization/StatsExporter.h"
+#include "fboss/agent/normalization/TransformHandler.h"
+
+DECLARE_string(default_device_name);
 
 namespace facebook::fboss {
 
@@ -19,10 +26,18 @@ class Normalizer {
  public:
   static std::shared_ptr<Normalizer> getInstance();
 
+  Normalizer();
+
   void processStats(
       const folly::F14FastMap<std::string, HwPortStats>& hwStatsMap);
 
   void processLinkStateChange(const std::string& portName, bool isUp);
+
+ private:
+  const std::string deviceName_;
+  std::unique_ptr<normalization::TransformHandler> transformHandler_;
+  std::unique_ptr<normalization::StatsExporter> statsExporter_;
+  std::unique_ptr<normalization::CounterTagManager> counterTagManager_;
 };
 
 } // namespace facebook::fboss

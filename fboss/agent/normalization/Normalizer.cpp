@@ -13,6 +13,11 @@
 #include <folly/Singleton.h>
 #include <folly/logging/xlog.h>
 
+DEFINE_string(
+    default_device_name,
+    "unknown_device",
+    "default device name used for counter normalization");
+
 namespace facebook::fboss {
 namespace {
 folly::Singleton<Normalizer> theInstance;
