@@ -114,7 +114,7 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
           0,
           255,
           payload);
-      getHwSwitch()->sendPacketSwitchedSync(std::move(pkt));
+      getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(pkt));
     }
   }
 
