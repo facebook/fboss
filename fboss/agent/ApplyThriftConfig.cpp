@@ -3110,7 +3110,7 @@ ThriftConfigApplier::updateStaticMplsRoutes(
   for (auto& staticMplsRouteEntry : staticMplsRoutesWithNhops) {
     std::vector<MplsNextHop> resolvedNextHops{};
     // resolve next hops if any next hop is unresolved.
-    for (auto nhop : staticMplsRouteEntry.get_nexthop()) {
+    for (auto nhop : staticMplsRouteEntry.get_nexthops()) {
       folly::IPAddress nhopAddress(nhop.get_nexthop());
       auto interface = nhop.interface_ref();
       if (nhopAddress.isLinkLocal() && !interface.has_value()) {

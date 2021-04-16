@@ -47,7 +47,7 @@ class HwLabelSwitchRouteTest : public HwLinkStateDependentTest {
       MplsAction action;
       action.set_action(labelAction);
       nexthop.set_labelForwardingAction(action);
-      route.nexthop_ref()->push_back(nexthop);
+      route.nexthops_ref()->push_back(nexthop);
       return;
     }
 
@@ -57,7 +57,7 @@ class HwLabelSwitchRouteTest : public HwLinkStateDependentTest {
       nexthop.set_nexthop(ecmpHelperNhop.ip.str());
       nexthop.set_labelForwardingAction(ecmpHelperNhop.action.toThrift());
       nexthop.interface_ref() = ecmpHelperNhop.intf;
-      route.nexthop_ref()->push_back(nexthop);
+      route.nexthops_ref()->push_back(nexthop);
     }
   }
 

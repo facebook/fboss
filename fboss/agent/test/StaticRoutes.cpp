@@ -269,14 +269,14 @@ TEST(StaticRoutes, MplsStaticRoutes) {
   nexthops[0].labelForwardingAction_ref()->action_ref() = MplsActionCode::SWAP;
   nexthops[0].labelForwardingAction_ref()->swapLabel_ref() = 101;
   nexthops[0].nexthop_ref() = "fe80:abcd:1234:dcab::1";
-  config0.staticMplsRoutesWithNhops_ref()[0].nexthop_ref() = nexthops;
+  config0.staticMplsRoutesWithNhops_ref()[0].nexthops_ref() = nexthops;
   EXPECT_THROW(
       publishAndApplyConfig(stateV0, &config0, platform.get(), nullptr),
       FbossError);
 
   // try to set non-link local without interface and unreachable via interface
   nexthops[0].nexthop_ref() = "2::1";
-  config0.staticMplsRoutesWithNhops_ref()[0].nexthop_ref() = nexthops;
+  config0.staticMplsRoutesWithNhops_ref()[0].nexthops_ref() = nexthops;
   EXPECT_THROW(
       publishAndApplyConfig(stateV0, &config0, platform.get(), nullptr),
       FbossError);
@@ -290,7 +290,7 @@ TEST(StaticRoutes, MplsStaticRoutes) {
   nexthops[1].labelForwardingAction_ref()->action_ref() = MplsActionCode::SWAP;
   nexthops[1].labelForwardingAction_ref()->swapLabel_ref() = 102;
   nexthops[1].nexthop_ref() = "1::10";
-  config0.staticMplsRoutesWithNhops_ref()[0].nexthop_ref() = nexthops;
+  config0.staticMplsRoutesWithNhops_ref()[0].nexthops_ref() = nexthops;
   auto stateV1 =
       publishAndApplyConfig(stateV0, &config0, platform.get(), nullptr);
 
