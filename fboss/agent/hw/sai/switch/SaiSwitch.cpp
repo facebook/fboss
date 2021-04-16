@@ -1712,7 +1712,12 @@ std::optional<L2Entry> SaiSwitch::getL2Entry(
     // fdb event should not have been punted to us)
     // For Aging events, consider the entry as already validated (programmed)
     case SAI_FDB_EVENT_LEARNED:
-      entryType = L2Entry::L2EntryType::L2_ENTRY_TYPE_PENDING;
+      if (platform_->getAsic()->isSupported(
+              HwAsic::Feature::PENDING_L2_ENTRY)) {
+        entryType = L2Entry::L2EntryType::L2_ENTRY_TYPE_PENDING;
+      } else {
+        entryType = L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED;
+      }
       break;
     case SAI_FDB_EVENT_AGED:
       entryType = L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED;
