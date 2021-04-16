@@ -72,4 +72,8 @@ void Normalizer::processLinkStateChange(
       DBG6, "port {} link state changed to {}", portName, isUp ? "UP" : "DOWN");
 }
 
+void Normalizer::reloadCounterTags(const cfg::SwitchConfig& curConfig) {
+  counterTagManager_->reloadCounterTags(curConfig);
+}
+
 } // namespace facebook::fboss

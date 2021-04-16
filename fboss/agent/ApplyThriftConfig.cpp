@@ -19,6 +19,7 @@
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/RouteUpdateWrapper.h"
 #include "fboss/agent/if/gen-cpp2/mpls_types.h"
+#include "fboss/agent/normalization/Normalizer.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
@@ -638,6 +639,14 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
       new_->resetLoadBalancers(std::move(newLoadBalancers));
       changed = true;
     }
+  }
+
+  // normalizer to refresh counter tags
+  if (auto normalizer = Normalizer::getInstance()) {
+    normalizer->reloadCounterTags(*cfg_);
+  } else {
+    XLOG(ERR)
+        << "Normalizer failed to initialize, skipping loading counter tags";
   }
 
   if (!changed) {

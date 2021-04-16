@@ -33,6 +33,9 @@ class Normalizer {
 
   void processLinkStateChange(const std::string& portName, bool isUp);
 
+  // delegate to CounterTagManager
+  void reloadCounterTags(const cfg::SwitchConfig& curConfig);
+
  private:
   const std::string deviceName_;
   std::unique_ptr<normalization::TransformHandler> transformHandler_;
