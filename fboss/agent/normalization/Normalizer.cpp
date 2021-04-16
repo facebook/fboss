@@ -13,6 +13,12 @@
 #include <folly/Singleton.h>
 #include <folly/logging/xlog.h>
 
+#include "fboss/agent/normalization/PortStatsProcessor.h"
+
+DEFINE_bool(
+    enable_counter_normalization,
+    false,
+    "Load the agent with counter normalization support enabled");
 DEFINE_string(
     default_device_name,
     "unknown_device",
@@ -42,15 +48,26 @@ std::shared_ptr<Normalizer> Normalizer::getInstance() {
 
 void Normalizer::processStats(
     const folly::F14FastMap<std::string, HwPortStats>& hwStatsMap) {
+  if (!FLAGS_enable_counter_normalization) {
+    return;
+  }
+
   if (XLOG_IS_ON(DBG6)) {
     print(hwStatsMap);
   }
+  normalization::PortStatsProcessor processor(
+      transformHandler_.get(), statsExporter_.get(), counterTagManager_.get());
+  processor.processStats(hwStatsMap);
+
   XLOG(DBG5) << "normalizer processed stats";
 }
 
 void Normalizer::processLinkStateChange(
     const std::string& portName,
     bool isUp) {
+  if (!FLAGS_enable_counter_normalization) {
+    return;
+  }
   XLOGF(
       DBG6, "port {} link state changed to {}", portName, isUp ? "UP" : "DOWN");
 }
