@@ -67,13 +67,17 @@ std::shared_ptr<SwitchState> RouteDistributionGenerator::resolveNextHops(
 
 const RouteDistributionGenerator::RouteChunks& RouteDistributionGenerator::get()
     const {
+  genRoutes();
+  return *generatedRouteChunks_;
+}
+
+void RouteDistributionGenerator::genRoutes() const {
   if (generatedRouteChunks_) {
-    return *generatedRouteChunks_;
+    return;
   }
   generatedRouteChunks_ = RouteChunks();
   genRouteDistribution<folly::IPAddressV6>(v6DistributionSpec_);
   genRouteDistribution<folly::IPAddressV4>(v4DistributionSpec_);
-  return *generatedRouteChunks_;
 }
 
 const RouteDistributionGenerator::ThriftRouteChunks&
