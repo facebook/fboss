@@ -37,13 +37,16 @@ struct FdbEventNotificationData {
   sai_fdb_event_t eventType;
   sai_fdb_entry_t fdbEntry;
   BridgePortSaiId bridgePortSaiId;
+  sai_uint32_t fdbMetaData;
   explicit FdbEventNotificationData(
       sai_fdb_event_t eventType,
       sai_fdb_entry_t fdbEntry,
-      BridgePortSaiId bridgePortSaiId)
+      BridgePortSaiId bridgePortSaiId,
+      sai_uint32_t fdbMetaData)
       : eventType(eventType),
         fdbEntry(fdbEntry),
-        bridgePortSaiId(bridgePortSaiId) {}
+        bridgePortSaiId(bridgePortSaiId),
+        fdbMetaData(fdbMetaData) {}
 };
 
 class SaiSwitch : public HwSwitch {

@@ -1648,17 +1648,21 @@ void SaiSwitch::fdbEventCallback(
   std::vector<FdbEventNotificationData> fdbEventNotificationDataTmp;
   for (auto i = 0; i < count; i++) {
     BridgePortSaiId bridgePortSaiId{0};
+    sai_uint32_t fdbMetaData = 0;
     for (auto j = 0; j < data[i].attr_count; j++) {
       switch (data[i].attr[j].id) {
         case SAI_FDB_ENTRY_ATTR_BRIDGE_PORT_ID:
           bridgePortSaiId = data[i].attr[j].value.oid;
+          break;
+        case SAI_FDB_ENTRY_ATTR_META_DATA:
+          fdbMetaData = data[i].attr[j].value.u32;
           break;
         default:
           break;
       }
     }
     fdbEventNotificationDataTmp.push_back(FdbEventNotificationData(
-        data[i].event_type, data[i].fdb_entry, bridgePortSaiId));
+        data[i].event_type, data[i].fdb_entry, bridgePortSaiId, fdbMetaData));
   }
   fdbEventBottomHalfEventBase_.runInEventBaseThread(
       [this,
@@ -1765,11 +1769,17 @@ std::optional<L2Entry> SaiSwitch::getL2Entry(
     return std::nullopt;
   }
 
+  auto classID = fdbEvent.fdbMetaData != 0
+      ? std::optional<cfg::AclLookupClass>(
+            cfg::AclLookupClass(fdbEvent.fdbMetaData))
+      : std::nullopt;
+
   return L2Entry{
       fromSaiMacAddress(fdbEvent.fdbEntry.mac_address),
       vlanItr->second,
       portDesc.value(),
-      entryType};
+      entryType,
+      classID};
 }
 
 template <
