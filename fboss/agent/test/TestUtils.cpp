@@ -699,8 +699,8 @@ void programRoutes(
   for (const auto& routeChunk : routeChunks) {
     for (const auto& route : routeChunk) {
       RouteNextHopSet nhops;
-      for (const auto& ip : route.nhops) {
-        nhops.emplace(UnresolvedNextHop(ip, ECMP_WEIGHT));
+      for (const auto& nhop : route.nhops) {
+        nhops.emplace(nhop);
       }
       updater.addRoute(
           RouterID(0),

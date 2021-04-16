@@ -13,6 +13,7 @@
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/platforms/common/PlatformMode.h"
+#include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/types.h"
@@ -54,7 +55,7 @@ class RouteDistributionGenerator {
  public:
   struct Route {
     folly::CIDRNetwork prefix;
-    std::vector<folly::IPAddress> nhops;
+    std::vector<UnresolvedNextHop> nhops;
   };
   using RouteChunk = std::vector<Route>;
   using RouteChunks = std::vector<RouteChunk>;
@@ -109,7 +110,7 @@ class RouteDistributionGenerator {
 
  private:
   template <typename AddrT>
-  const std::vector<folly::IPAddress>& getNhops() const;
+  const std::vector<UnresolvedNextHop>& getNhops() const;
   template <typename AddT>
   void genRouteDistribution(const Masklen2NumPrefixes& routeDistribution) const;
 

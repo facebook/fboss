@@ -10,16 +10,32 @@
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include <glog/logging.h>
 #include <optional>
 
+namespace facebook::fboss {
 namespace {
-
-using facebook::fboss::utility::PrefixGenerator;
-
+UnicastRoute makeUnicastRoute(
+    const folly::CIDRNetwork& nw,
+    const std::vector<UnresolvedNextHop>& nhops,
+    AdminDistance admin = AdminDistance::EBGP) {
+  UnicastRoute route;
+  route.dest_ref() = facebook::fboss::toIpPrefix(nw);
+  route.action_ref() = RouteForwardAction::NEXTHOPS;
+  route.adminDistance_ref() = admin;
+  std::vector<NextHopThrift> nhopsThrift;
+  nhopsThrift.reserve(nhops.size());
+  std::for_each(nhops.begin(), nhops.end(), [&nhopsThrift](const auto& nhop) {
+    nhopsThrift.emplace_back(NextHop(nhop).toThrift());
+  });
+  route.nextHops_ref() = nhopsThrift;
+  return route;
+}
 } // namespace
+} // namespace facebook::fboss
 
 namespace facebook::fboss::utility {
 
@@ -103,15 +119,16 @@ RouteDistributionGenerator::allThriftRoutes() const {
 }
 
 template <typename AddrT>
-const std::vector<folly::IPAddress>& RouteDistributionGenerator::getNhops()
+const std::vector<UnresolvedNextHop>& RouteDistributionGenerator::getNhops()
     const {
-  static std::vector<folly::IPAddress> nhops;
+  static std::vector<UnresolvedNextHop> nhops;
   if (nhops.size()) {
     return nhops;
   }
   EcmpSetupAnyNPorts<AddrT> ecmpHelper(startingState_, routerId_);
   for (auto i = 0; i < ecmpWidth_; ++i) {
-    nhops.emplace_back(folly::IPAddress(ecmpHelper.nhop(i).ip));
+    nhops.emplace_back(UnresolvedNextHop(
+        folly::IPAddress(ecmpHelper.nhop(i).ip), ECMP_WEIGHT));
   }
   return nhops;
 }
