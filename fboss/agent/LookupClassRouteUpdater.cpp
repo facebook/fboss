@@ -596,6 +596,16 @@ LookupClassRouteUpdater::addRouteAndFindClassID(
       withClassIDPrefixes.insert(ridAndCidr);
       withoutClassIDPrefixes.erase(ridAndCidr);
     } else {
+      /*
+       * Refer to detailed comment in agent/LookupClassRouteUpdater.h
+       * Route inherits classID of one of its reachable next hops...
+       */
+      if (neighborClassID.has_value()) {
+        XLOG(DBG2) << "Queue-per-host can break for Route " << addedRoute->str()
+                   << " when traffic chooses vlan: " << vlanID
+                   << " nexthop: " << nextHop.addr();
+      }
+
       withoutClassIDPrefixes.insert(ridAndCidr);
       withClassIDPrefixes.erase(ridAndCidr);
     }
