@@ -78,8 +78,10 @@ TEST(RouteScaleGeneratorsTest, TurboFSWRouteScaleGenerator) {
   auto handle = createTestHandle(&cfg);
   auto routeDistributionGen = utility::TurboFSWRouteScaleGenerator(
       handle->getSw()->getState(), isStandaloneRibEnabled, kChunkSize, 64);
-  verifyRouteCount(routeDistributionGen, kExtraRoutes, 69);
-  verifyChunking(routeDistributionGen, 69, kChunkSize);
+  verifyRouteCount(routeDistributionGen, kExtraRoutes, 7803);
+  // Chunking in TurboFSWRouteScaleGenerator is dictated by label distribution
+  // which is bespoke to TurboFSWRouteScaleGenerator, so skip verifyChunking for
+  // this generator
 }
 
 } // namespace facebook::fboss

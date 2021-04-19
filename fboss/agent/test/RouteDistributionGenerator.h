@@ -111,9 +111,6 @@ class RouteDistributionGenerator {
  private:
   template <typename AddrT>
   const std::vector<UnresolvedNextHop>& getNhops() const;
-  template <typename AddT>
-  void genRouteDistribution(const Masklen2NumPrefixes& routeDistribution) const;
-  virtual void genRoutes() const;
 
   const std::shared_ptr<SwitchState> startingState_;
   const Masklen2NumPrefixes v6DistributionSpec_;
@@ -124,6 +121,9 @@ class RouteDistributionGenerator {
   const RouterID routerId_{0};
 
  protected:
+  template <typename AddT>
+  void genRouteDistribution(const Masklen2NumPrefixes& routeDistribution) const;
+  virtual void genRoutes() const;
   /*
    * Caches for generated chunks. Mark mutable since caching is just a
    * optimization doesn't and doesn't reflect the

@@ -89,18 +89,6 @@ class HgridUuRouteScaleGenerator : public RouteDistributionGenerator {
 };
 
 class TurboFSWRouteScaleGenerator : public RouteDistributionGenerator {
- private:
-  const MaskLen2PrefixLabelDistribution v6PrefixLabelDistributionSpec_;
-  const MaskLen2PrefixLabelDistribution v4PrefixLabelDistributionSpec_;
-  using SwitchStates = std::vector<std::shared_ptr<SwitchState>>;
-
-  template <typename AddrT>
-  void genIp2MplsRouteDistribution(
-      const MaskLen2PrefixLabelDistribution& LabelDistributionSpec,
-      const boost::container::flat_set<PortDescriptor>& labeledPorts,
-      const boost::container::flat_set<PortDescriptor>& allPorts,
-      SwitchStates& generatedStates) const;
-
  public:
   std::shared_ptr<SwitchState> resolveNextHops(
       std::shared_ptr<SwitchState> in) const override;
@@ -115,9 +103,17 @@ class TurboFSWRouteScaleGenerator : public RouteDistributionGenerator {
       unsigned int ecmpWidth = 64,
       RouterID routerId = RouterID(0));
 
-  const SwitchStates& getSwitchStates() const;
   bool isSupported(PlatformMode mode) const;
-  mutable std::optional<SwitchStates> generatedStates_;
+
+ private:
+  const MaskLen2PrefixLabelDistribution v6PrefixLabelDistributionSpec_;
+  const MaskLen2PrefixLabelDistribution v4PrefixLabelDistributionSpec_;
+  template <typename AddrT>
+  void genIp2MplsRouteDistribution(
+      const MaskLen2PrefixLabelDistribution& LabelDistributionSpec,
+      const boost::container::flat_set<PortDescriptor>& labeledPorts) const;
+
+  void genRoutes() const override;
   boost::container::flat_set<PortDescriptor> unlabeledPorts_;
   boost::container::flat_set<PortDescriptor> labeledPorts_;
   boost::container::flat_set<PortDescriptor> allPorts_;

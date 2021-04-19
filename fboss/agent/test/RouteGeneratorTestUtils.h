@@ -56,6 +56,11 @@ void verifyRouteCount(
     uint64_t expectedNewRoutes);
 
 void verifyChunking(
+    const utility::RouteDistributionGenerator::RouteChunks& routeChunks,
+    unsigned int totalRoutes,
+    unsigned int chunkSize);
+
+void verifyChunking(
     const utility::RouteDistributionGenerator& routeDistributionGen,
     unsigned int totalRoutes,
     unsigned int chunkSize);
