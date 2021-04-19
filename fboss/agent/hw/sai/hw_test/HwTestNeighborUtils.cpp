@@ -75,5 +75,15 @@ std::optional<uint32_t> getNbrClassId(
       SaiNeighborTraits::Attributes::Metadata{});
 }
 
+bool isHostHit(const HwSwitch* /*hwSwitch*/, const folly::IPAddress& /*ip*/) {
+  throw FbossError("Neighbor entry hitbit is unsupported for SAI");
+}
+
+void clearHostHitBit(
+    const HwSwitch* /*hwSwitch*/,
+    const folly::IPAddress& /*ip*/) {
+  throw FbossError("Neighbor entry hitbit is unsupported for SAI");
+}
+
 } // namespace utility
 } // namespace facebook::fboss

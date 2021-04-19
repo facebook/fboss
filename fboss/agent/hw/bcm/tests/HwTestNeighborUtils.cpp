@@ -22,7 +22,7 @@ extern "C" {
 namespace facebook::fboss::utility {
 namespace {
 
-bcm_l3_host_t getHost(int unit, const folly::IPAddress& ip) {
+bcm_l3_host_t getHost(int unit, const folly::IPAddress& ip, uint32_t flags) {
   bcm_l3_host_t host;
   bcm_l3_host_t_init(&host);
   if (ip.isV4()) {
@@ -31,6 +31,7 @@ bcm_l3_host_t getHost(int unit, const folly::IPAddress& ip) {
     host.l3a_flags |= BCM_L3_IP6;
     ipToBcmIp6(ip.asV6(), &(host.l3a_ip6_addr));
   }
+  host.l3a_flags |= flags;
   auto rv = bcm_l3_host_find(unit, &host);
   bcmCheckError(rv, "Unable to find host: ", ip);
   return host;
@@ -67,7 +68,7 @@ bool nbrExists(
   try {
     if (hwSwitch->getPlatform()->getAsic()->isSupported(
             HwAsic::Feature::HOSTTABLE)) {
-      getHost(static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip);
+      getHost(static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip, 0);
     } else {
       getRoute(static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip);
     }
@@ -88,7 +89,8 @@ bool nbrProgrammedToCpu(
   bcm_if_t intf;
   if (hwSwitch->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::HOSTTABLE)) {
-    auto host = getHost(static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip);
+    auto host =
+        getHost(static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip, 0);
     intf = host.l3a_intf;
   } else {
     auto route =
@@ -108,7 +110,8 @@ std::optional<uint32_t> getNbrClassId(
     const folly::IPAddress& ip) {
   if (hwSwitch->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::HOSTTABLE)) {
-    auto host = getHost(static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip);
+    auto host =
+        getHost(static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip, 0);
     return host.l3a_lookup_class;
   } else {
     auto route =
@@ -116,4 +119,16 @@ std::optional<uint32_t> getNbrClassId(
     return route.l3a_lookup_class;
   }
 }
+
+bool isHostHit(const HwSwitch* hwSwitch, const folly::IPAddress& ip) {
+  auto host =
+      getHost(static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip, 0);
+  return host.l3a_flags & BCM_L3_HIT;
+}
+
+void clearHostHitBit(const HwSwitch* hwSwitch, const folly::IPAddress& ip) {
+  getHost(
+      static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip, BCM_L3_HIT_CLEAR);
+}
+
 } // namespace facebook::fboss::utility
