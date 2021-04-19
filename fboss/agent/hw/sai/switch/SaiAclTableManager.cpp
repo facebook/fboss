@@ -145,6 +145,7 @@ std::
       fieldFdbDstUserMeta,
       true, // route meta
       true, // neighbor meta
+      false, // ether type
   };
 
   SaiAclTableTraits::CreateAttributes attributes{adapterHostKey};
@@ -634,6 +635,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
                 addedAclEntry->getLookupClassNeighbor().value()))};
   }
 
+  std::optional<SaiAclEntryTraits::Attributes::FieldEthertype> fieldEtherType{
+      std::nullopt};
+
   std::optional<SaiAclEntryTraits::Attributes::FieldFdbDstUserMeta>
       fieldFdbDstUserMeta{std::nullopt};
   if (addedAclEntry->getLookupClassL2()) {
@@ -779,7 +783,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
          fieldIcmpV6Code.has_value() || fieldDscp.has_value() ||
          fieldDstMac.has_value() || fieldIpType.has_value() ||
          fieldTtl.has_value() || fieldFdbDstUserMeta.has_value() ||
-         fieldRouteDstUserMeta.has_value() ||
+         fieldRouteDstUserMeta.has_value() || fieldEtherType.has_value() ||
          fieldNeighborDstUserMeta.has_value()) &&
         (aclActionPacketAction.has_value() || aclActionCounter.has_value() ||
          aclActionSetTC.has_value() || aclActionSetDSCP.has_value() ||
@@ -817,6 +821,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldFdbDstUserMeta,
       fieldRouteDstUserMeta,
       fieldNeighborDstUserMeta,
+      fieldEtherType,
       aclActionPacketAction,
       aclActionCounter,
       aclActionSetTC,

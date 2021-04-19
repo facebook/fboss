@@ -47,6 +47,7 @@ sai_status_t create_acl_table_fn(
   bool fieldFdbDstUserMeta = 0;
   bool fieldRouteDstUserMeta = 0;
   bool fieldNeighborDstUserMeta = 0;
+  bool fieldEthertype = 0;
 
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
@@ -130,6 +131,9 @@ sai_status_t create_acl_table_fn(
       case SAI_ACL_TABLE_ATTR_FIELD_NEIGHBOR_DST_USER_META:
         fieldNeighborDstUserMeta = attr_list[i].value.booldata;
         break;
+      case SAI_ACL_TABLE_ATTR_FIELD_ETHER_TYPE:
+        fieldEthertype = attr_list[i].value.booldata;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
         break;
@@ -165,7 +169,8 @@ sai_status_t create_acl_table_fn(
       fieldTtl,
       fieldFdbDstUserMeta,
       fieldRouteDstUserMeta,
-      fieldNeighborDstUserMeta);
+      fieldNeighborDstUserMeta,
+      fieldEthertype);
 
   return SAI_STATUS_SUCCESS;
 }
@@ -334,6 +339,10 @@ sai_status_t get_acl_table_attribute_fn(
       case SAI_ACL_TABLE_ATTR_FIELD_NEIGHBOR_DST_USER_META: {
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);
         attr[i].value.booldata = aclTable.fieldNeighborDstUserMeta;
+      } break;
+      case SAI_ACL_TABLE_ATTR_FIELD_ETHER_TYPE: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        attr[i].value.booldata = aclTable.fieldEthertype;
       } break;
       case SAI_ACL_TABLE_ATTR_AVAILABLE_ACL_ENTRY:
       case SAI_ACL_TABLE_ATTR_AVAILABLE_ACL_COUNTER:
@@ -513,6 +522,13 @@ sai_status_t set_acl_entry_attribute_fn(
       aclEntry.fieldNeighborDstUserMetaMask = attr->value.aclfield.mask.u32;
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_ACL_TABLE_ATTR_FIELD_ETHER_TYPE:
+      aclEntry.fieldEtherTypeEnable = attr->value.aclfield.enable;
+      aclEntry.fieldEtherTypeData = attr->value.aclfield.data.u16;
+      aclEntry.fieldEtherTypeMask = attr->value.aclfield.mask.u16;
+      res = SAI_STATUS_SUCCESS;
+      break;
+
     case SAI_ACL_ENTRY_ATTR_ACTION_PACKET_ACTION:
       aclEntry.actionPacketActionEnable = attr->value.aclaction.enable;
       aclEntry.actionPacketActionData = attr->value.aclaction.parameter.u32;
@@ -711,6 +727,12 @@ sai_status_t get_acl_entry_attribute_fn(
         attr_list[i].value.aclfield.mask.u32 =
             aclEntry.fieldNeighborDstUserMetaMask;
         break;
+      case SAI_ACL_TABLE_ATTR_FIELD_ETHER_TYPE:
+        attr_list[i].value.aclfield.enable = aclEntry.fieldEtherTypeEnable;
+        attr_list[i].value.aclfield.data.u16 = aclEntry.fieldEtherTypeData;
+        attr_list[i].value.aclfield.mask.u16 = aclEntry.fieldEtherTypeMask;
+        break;
+
       case SAI_ACL_ENTRY_ATTR_ACTION_PACKET_ACTION:
         attr_list[i].value.aclaction.enable = aclEntry.actionPacketActionEnable;
         attr_list[i].value.aclaction.parameter.u32 =

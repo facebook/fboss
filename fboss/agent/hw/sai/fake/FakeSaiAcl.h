@@ -166,6 +166,10 @@ class FakeAclEntry {
   sai_uint32_t fieldNeighborDstUserMetaData;
   sai_uint32_t fieldNeighborDstUserMetaMask;
 
+  bool fieldEtherTypeEnable{false};
+  sai_uint16_t fieldEtherTypeData;
+  sai_uint16_t fieldEtherTypeMask;
+
   bool actionPacketActionEnable{false};
   sai_uint32_t actionPacketActionData;
 
@@ -214,7 +218,8 @@ class FakeAclTable {
       bool fieldTtl,
       bool fieldFdbDstUserMeta,
       bool fieldRouteDstUserMeta,
-      bool fieldNeighborDstUserMeta)
+      bool fieldNeighborDstUserMeta,
+      bool fieldEthertype)
       : stage(stage),
         bindPointTypeList(bindPointTypeList),
         actionTypeList(actionTypeList),
@@ -239,7 +244,8 @@ class FakeAclTable {
         fieldTtl(fieldTtl),
         fieldFdbDstUserMeta(fieldFdbDstUserMeta),
         fieldRouteDstUserMeta(fieldRouteDstUserMeta),
-        fieldNeighborDstUserMeta(fieldNeighborDstUserMeta) {}
+        fieldNeighborDstUserMeta(fieldNeighborDstUserMeta),
+        fieldEthertype(fieldEthertype) {}
 
   static sai_acl_api_t* kApi();
 
@@ -270,6 +276,7 @@ class FakeAclTable {
   bool fieldFdbDstUserMeta;
   bool fieldRouteDstUserMeta;
   bool fieldNeighborDstUserMeta;
+  bool fieldEthertype;
 };
 
 class FakeAclCounter {

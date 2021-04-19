@@ -65,7 +65,8 @@ class AclTableGroupStoreTest : public SaiStoreTest {
             true, // ttl
             true, // fdb meta
             true, // route meta
-            true // neighbor meta
+            true, // neighbor meta
+            true, // ether type
         },
         0);
   }

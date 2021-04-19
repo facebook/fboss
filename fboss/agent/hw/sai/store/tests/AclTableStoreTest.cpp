@@ -133,6 +133,10 @@ class AclTableStoreTest : public SaiStoreTest {
     return std::make_pair(11, 0xFFFFFFFF);
   }
 
+  std::pair<sai_uint16_t, sai_uint16_t> kEtherType() const {
+    return std::make_pair(0x0800, 0xFFFF);
+  }
+
   sai_uint32_t kPacketAction() const {
     return SAI_PACKET_ACTION_DROP;
   }
@@ -198,7 +202,8 @@ class AclTableStoreTest : public SaiStoreTest {
             true, // ttl
             true, // fdb meta
             true, // route meta
-            true // neighbor meta
+            true, // neighbor meta
+            true, // ethertype
         },
         0);
   }
@@ -231,6 +236,7 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryFieldU32(this->kFdbDstUserMeta()),
             AclEntryFieldU32(this->kRouteDstUserMeta()),
             AclEntryFieldU32(this->kNeighborDstUserMeta()),
+            AclEntryFieldU16(this->kEtherType()),
             AclEntryActionU32(this->kPacketAction()),
             AclEntryActionSaiObjectIdT(this->kCounter()),
             AclEntryActionU8(this->kSetTC()),
@@ -288,7 +294,8 @@ TEST_F(AclTableStoreTest, loadAclTables) {
       true, // ttl
       true, // fdb meta
       true, // route meta
-      true // neighbor meta
+      true, // neighbor meta
+      true, // ethertype
   };
 
   auto got = store.get(k);
@@ -320,7 +327,8 @@ TEST_F(AclTableStoreTest, loadAclTables) {
       true, // ttl
       true, // fdb meta
       true, // route meta
-      true // neighbor meta
+      true, // neighbor meta
+      true, // ethertype
   };
 
   auto got2 = store.get(k2);
@@ -408,7 +416,8 @@ TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
       true, // ttl
       true, // fdb meta
       true, // route meta
-      true // neighbor meta
+      true, // neighbor meta
+      true, // ethertype
   };
 
   SaiAclTableTraits::AdapterHostKey k{c};
@@ -447,6 +456,7 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
       this->kFdbDstUserMeta(),
       this->kRouteDstUserMeta(),
       this->kNeighborDstUserMeta(),
+      this->kEtherType(),
       this->kPacketAction(),
       this->kCounter(),
       this->kSetTC(),

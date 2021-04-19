@@ -179,6 +179,8 @@ struct SaiAclTableTraits {
         EnumType,
         SAI_ACL_TABLE_ATTR_FIELD_NEIGHBOR_DST_USER_META,
         bool>;
+    using FieldEthertype =
+        SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_ETHER_TYPE, bool>;
   };
 
   using AdapterKey = AclTableSaiId;
@@ -207,7 +209,8 @@ struct SaiAclTableTraits {
       std::optional<Attributes::FieldTtl>,
       std::optional<Attributes::FieldFdbDstUserMeta>,
       std::optional<Attributes::FieldRouteDstUserMeta>,
-      std::optional<Attributes::FieldNeighborDstUserMeta>>;
+      std::optional<Attributes::FieldNeighborDstUserMeta>,
+      std::optional<Attributes::FieldEthertype>>;
 
   using CreateAttributes = AdapterHostKey;
 };
@@ -240,6 +243,7 @@ SAI_ATTRIBUTE_NAME(AclTable, FieldRouteDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclTable, FieldNeighborDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclTable, AvailableEntry);
 SAI_ATTRIBUTE_NAME(AclTable, AvailableCounter);
+SAI_ATTRIBUTE_NAME(AclTable, FieldEthertype);
 
 struct SaiAclEntryTraits {
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_ACL_ENTRY;
@@ -336,7 +340,10 @@ struct SaiAclEntryTraits {
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_NEIGHBOR_DST_USER_META,
         AclEntryFieldU32>;
-
+    using FieldEthertype = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_FIELD_ETHER_TYPE,
+        AclEntryFieldU16>;
     using ActionPacketAction = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_ACTION_PACKET_ACTION,
@@ -391,6 +398,7 @@ struct SaiAclEntryTraits {
       std::optional<Attributes::FieldFdbDstUserMeta>,
       std::optional<Attributes::FieldRouteDstUserMeta>,
       std::optional<Attributes::FieldNeighborDstUserMeta>,
+      std::optional<Attributes::FieldEthertype>,
       std::optional<Attributes::ActionPacketAction>,
       std::optional<Attributes::ActionCounter>,
       std::optional<Attributes::ActionSetTC>,
@@ -423,6 +431,7 @@ SAI_ATTRIBUTE_NAME(AclEntry, FieldTtl);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldFdbDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldRouteDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldNeighborDstUserMeta);
+SAI_ATTRIBUTE_NAME(AclEntry, FieldEthertype);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionPacketAction);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionCounter);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionSetTC);

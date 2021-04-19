@@ -231,6 +231,10 @@ class AclApiTest : public ::testing::Test {
     return std::make_pair(12, 0xFFFFFFFF);
   }
 
+  std::pair<sai_uint16_t, sai_uint16_t> kEtherType() const {
+    return std::make_pair(0x0800, 0xFFFF);
+  }
+
   sai_uint32_t kPacketAction() const {
     return SAI_PACKET_ACTION_DROP;
   }
@@ -335,7 +339,8 @@ class AclApiTest : public ::testing::Test {
             true, // ttl
             true, // fdb meta
             true, // route meta
-            true // neighbor meta
+            true, // neighbor meta
+            true, // ether type
         },
         kSwitchID());
   }
@@ -405,6 +410,8 @@ class AclApiTest : public ::testing::Test {
     SaiAclEntryTraits::Attributes::FieldNeighborDstUserMeta
         aclFieldNeighborDstUserMetaAttribute{
             AclEntryFieldU32(kNeighborDstUserMeta())};
+    SaiAclEntryTraits::Attributes::FieldEthertype aclFieldEtherTypeAttribute{
+        AclEntryFieldU16(kEtherType())};
 
     SaiAclEntryTraits::Attributes::ActionPacketAction aclActionPacketAction{
         AclEntryActionU32(kPacketAction())};
@@ -445,6 +452,7 @@ class AclApiTest : public ::testing::Test {
          aclFieldFdbDstUserMetaAttribute,
          aclFieldRouteDstUserMetaAttribute,
          aclFieldNeighborDstUserMetaAttribute,
+         aclFieldEtherTypeAttribute,
          aclActionPacketAction,
          aclActionCounter,
          aclActionSetTC,
@@ -563,6 +571,7 @@ class AclApiTest : public ::testing::Test {
       const std::pair<sai_uint32_t, sai_uint32_t>& fdbDstUserMeta,
       const std::pair<sai_uint32_t, sai_uint32_t>& routeDstUserMeta,
       const std::pair<sai_uint32_t, sai_uint32_t>& neighborDstUserMeta,
+      const std::pair<sai_uint16_t, sai_uint16_t>& etherType,
       sai_uint32_t packetAction,
       sai_object_id_t counter,
       sai_uint8_t setTC,
@@ -616,6 +625,8 @@ class AclApiTest : public ::testing::Test {
         aclEntryId, SaiAclEntryTraits::Attributes::FieldRouteDstUserMeta());
     auto aclFieldNeighborDstUserMetaGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldNeighborDstUserMeta());
+    auto aclFieldEtherTypeGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldEthertype());
 
     auto aclActionPacketActionGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::ActionPacketAction());
@@ -655,6 +666,7 @@ class AclApiTest : public ::testing::Test {
     EXPECT_EQ(aclFieldRouteDstUserMetaGot.getDataAndMask(), routeDstUserMeta);
     EXPECT_EQ(
         aclFieldNeighborDstUserMetaGot.getDataAndMask(), neighborDstUserMeta);
+    EXPECT_EQ(aclFieldEtherTypeGot.getDataAndMask(), etherType);
 
     EXPECT_EQ(aclActionPacketActionGot.getData(), packetAction);
     EXPECT_EQ(aclActionCounterGot.getData(), counter);
@@ -855,6 +867,7 @@ TEST_F(AclApiTest, getAclEntryAttribute) {
       kFdbDstUserMeta(),
       kRouteDstUserMeta(),
       kNeighborDstUserMeta(),
+      kEtherType(),
       kPacketAction(),
       kCounter(),
       kSetTC(),
@@ -1021,6 +1034,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   SaiAclEntryTraits::Attributes::FieldNeighborDstUserMeta
       aclFieldNeighborDstUserMetaAttribute2{
           AclEntryFieldU32(kNeighborDstUserMeta2())};
+  SaiAclEntryTraits::Attributes::FieldEthertype aclFieldEtherType{
+      AclEntryFieldU16(kEtherType())};
 
   SaiAclEntryTraits::Attributes::ActionPacketAction aclActionPacketAction2{
       AclEntryActionU32(kPacketAction2())};
@@ -1059,6 +1074,7 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   aclApi->setAttribute(aclEntryId, aclFieldFdbDstUserMetaAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldRouteDstUserMetaAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldNeighborDstUserMetaAttribute2);
+  aclApi->setAttribute(aclEntryId, aclFieldEtherType);
   aclApi->setAttribute(aclEntryId, aclActionPacketAction2);
   aclApi->setAttribute(aclEntryId, aclActionCounter2);
   aclApi->setAttribute(aclEntryId, aclActionSetTC2);
@@ -1091,6 +1107,7 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       kFdbDstUserMeta2(),
       kRouteDstUserMeta2(),
       kNeighborDstUserMeta2(),
+      kEtherType(),
       kPacketAction2(),
       kCounter2(),
       kSetTC2(),
