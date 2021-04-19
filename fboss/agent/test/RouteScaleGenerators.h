@@ -40,7 +40,7 @@ constexpr unsigned int kDefaulEcmpWidth = 4;
  */
 class RSWRouteScaleGenerator : public RouteDistributionGenerator {
  public:
-  explicit RSWRouteScaleGenerator(
+  RSWRouteScaleGenerator(
       const std::shared_ptr<SwitchState>& startingState,
       bool isStandaloneRibEnabled,
       unsigned int chunkSize = kDefaultChunkSize,
@@ -50,7 +50,7 @@ class RSWRouteScaleGenerator : public RouteDistributionGenerator {
 
 class FSWRouteScaleGenerator : public RouteDistributionGenerator {
  public:
-  explicit FSWRouteScaleGenerator(
+  FSWRouteScaleGenerator(
       const std::shared_ptr<SwitchState>& startingState,
       bool isStandaloneRibEnabled,
       unsigned int chunkSize = kDefaultChunkSize,
@@ -60,7 +60,7 @@ class FSWRouteScaleGenerator : public RouteDistributionGenerator {
 
 class THAlpmRouteScaleGenerator : public RouteDistributionGenerator {
  public:
-  explicit THAlpmRouteScaleGenerator(
+  THAlpmRouteScaleGenerator(
       const std::shared_ptr<SwitchState>& startingState,
       bool isStandaloneRibEnabled,
       unsigned int chunkSize = kDefaultChunkSize,
@@ -70,7 +70,7 @@ class THAlpmRouteScaleGenerator : public RouteDistributionGenerator {
 
 class HgridDuRouteScaleGenerator : public RouteDistributionGenerator {
  public:
-  explicit HgridDuRouteScaleGenerator(
+  HgridDuRouteScaleGenerator(
       const std::shared_ptr<SwitchState>& startingState,
       bool isStandaloneRibEnabled,
       unsigned int chunkSize = kDefaultChunkSize,
@@ -80,7 +80,7 @@ class HgridDuRouteScaleGenerator : public RouteDistributionGenerator {
 
 class HgridUuRouteScaleGenerator : public RouteDistributionGenerator {
  public:
-  explicit HgridUuRouteScaleGenerator(
+  HgridUuRouteScaleGenerator(
       const std::shared_ptr<SwitchState>& startingState,
       bool isStandaloneRibEnabled,
       unsigned int chunkSize = kDefaultChunkSize,
@@ -92,7 +92,7 @@ class TurboFSWRouteScaleGenerator : public RouteDistributionGenerator {
  public:
   std::shared_ptr<SwitchState> resolveNextHops(
       std::shared_ptr<SwitchState> in) const override;
-  explicit TurboFSWRouteScaleGenerator(
+  TurboFSWRouteScaleGenerator(
       const std::shared_ptr<SwitchState>& startingState,
       bool isStandaloneRibEnabled,
       unsigned int chunkSize = kDefaultChunkSize,
