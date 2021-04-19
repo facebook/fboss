@@ -231,58 +231,6 @@ EcmpSetupTargetedPorts<IPAddrT>::nhop(PortDescriptor portDesc) const {
 }
 
 template <typename IPAddrT>
-std::shared_ptr<SwitchState>
-EcmpSetupTargetedPorts<IPAddrT>::setupECMPForwarding(
-    const std::shared_ptr<SwitchState>& inputState,
-    const flat_set<PortDescriptor>& portDescriptors,
-    const std::vector<RouteT>& prefixes,
-    const std::vector<NextHopWeight>& weights) const {
-  auto outputState{inputState->clone()};
-  if (prefixes.empty()) {
-    return outputState;
-  }
-  std::vector<NextHopWeight> hopWeights;
-  if (!weights.size()) {
-    for (auto i = 0; i < portDescriptors.size(); ++i) {
-      hopWeights.push_back(ECMP_WEIGHT);
-    }
-  } else {
-    hopWeights = weights;
-  }
-
-  CHECK_EQ(portDescriptors.size(), hopWeights.size());
-  RouteNextHopSet nhops;
-  {
-    auto i = 0;
-    for (const auto& portDescriptor : portDescriptors) {
-      nhops.emplace(UnresolvedNextHop(
-          BaseEcmpSetupHelperT::ip(portDescriptor), hopWeights[i++]));
-    }
-  }
-  const auto& tables1 = outputState->getRouteTables();
-  RouteUpdater u2(tables1);
-  for (const auto& prefix : prefixes) {
-    u2.addRoute(
-        routerId_,
-        folly::IPAddress(prefix.network),
-        prefix.mask,
-        ClientID::BGPD,
-        RouteNextHopEntry(nhops, AdminDistance::EBGP));
-  }
-
-  auto tables2 = u2.updateDone();
-  if (!tables2) {
-    // Route updater returns null when nothing changed, indicating
-    // that route was already programmed as desired. So just return
-    return outputState;
-  }
-  tables2->publish();
-
-  outputState->resetRouteTables(tables2);
-  return outputState;
-}
-
-template <typename IPAddrT>
 void EcmpSetupTargetedPorts<IPAddrT>::programRoutes(
     std::unique_ptr<RouteUpdateWrapper> updater,
     const flat_set<PortDescriptor>& portDescriptors,
@@ -420,16 +368,6 @@ std::shared_ptr<SwitchState> EcmpSetupAnyNPorts<IPAddrT>::unresolveNextHops(
     size_t numNextHops) const {
   return ecmpSetupTargetedPorts_.unresolveNextHops(
       inputState, getPortDescs(numNextHops));
-}
-
-template <typename IPAddrT>
-std::shared_ptr<SwitchState> EcmpSetupAnyNPorts<IPAddrT>::setupECMPForwarding(
-    const std::shared_ptr<SwitchState>& inputState,
-    size_t ecmpWidth,
-    const std::vector<RouteT>& prefixes,
-    const std::vector<NextHopWeight>& weights) const {
-  return ecmpSetupTargetedPorts_.setupECMPForwarding(
-      inputState, getPortDescs(ecmpWidth), prefixes, weights);
 }
 
 template <typename IPAddrT>

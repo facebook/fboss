@@ -145,13 +145,6 @@ class EcmpSetupTargetedPorts
     return routerId_;
   }
 
-  std::shared_ptr<SwitchState> setupECMPForwarding(
-      const std::shared_ptr<SwitchState>& inputState,
-      const boost::container::flat_set<PortDescriptor>& nhops,
-      const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
-      const std::vector<NextHopWeight>& weights =
-          std::vector<NextHopWeight>()) const;
-
   void programRoutes(
       std::unique_ptr<RouteUpdateWrapper> wrapper,
       const boost::container::flat_set<PortDescriptor>& nhops,
@@ -281,15 +274,6 @@ class EcmpSetupAnyNPorts {
   std::shared_ptr<SwitchState> unresolveNextHops(
       const std::shared_ptr<SwitchState>& inputState,
       const boost::container::flat_set<PortDescriptor>& portDescs) const;
-  /*
-   * Setup ECMP group with next hops going over any N ports
-   */
-  std::shared_ptr<SwitchState> setupECMPForwarding(
-      const std::shared_ptr<SwitchState>& inputState,
-      size_t width,
-      const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
-      const std::vector<NextHopWeight>& weights =
-          std::vector<NextHopWeight>()) const;
 
   void programRoutes(
       std::unique_ptr<RouteUpdateWrapper> wrapper,
