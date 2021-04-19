@@ -279,10 +279,6 @@ bool SwSwitch::isConfigured() const {
   return getSwitchRunState() >= SwitchRunState::CONFIGURED;
 }
 
-bool SwSwitch::isFibSynced() const {
-  return getSwitchRunState() >= SwitchRunState::FIB_SYNCED;
-}
-
 bool SwSwitch::isExiting() const {
   return getSwitchRunState() >= SwitchRunState::EXITING;
 }

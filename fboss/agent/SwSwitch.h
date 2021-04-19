@@ -180,8 +180,6 @@ class SwSwitch : public HwSwitch::Callback {
 
   bool isConfigured() const;
 
-  bool isFibSynced() const;
-
   bool isExiting() const;
 
   void updateLldpStats();
