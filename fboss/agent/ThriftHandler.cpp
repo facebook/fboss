@@ -676,27 +676,25 @@ void ThriftHandler::syncFibInVrf(
   ensureConfigured(__func__);
 
   // Only route updates in first syncFib for each client are logged
-  auto logRoutes = (sw_->getBootType() == BootType::WARM_BOOT) &&
-      (syncedFibClients.find(client) == syncedFibClients.end());
+  auto firstClientSync =
+      syncedFibClients.find(client) == syncedFibClients.end();
   auto clientId = static_cast<ClientID>(client);
   auto clientName = apache::thrift::TEnumTraits<ClientID>::findName(clientId);
   auto clientIdentifier =
       "fboss-agent-warmboot-" + (clientName ? string(clientName) : "DEFAULT");
-  if (logRoutes) {
+  if (firstClientSync && sw_->getBootType() == BootType::WARM_BOOT) {
     sw_->logRouteUpdates("::", 0, clientIdentifier);
     sw_->logRouteUpdates("0.0.0.0", 0, clientIdentifier);
   }
   SCOPE_EXIT {
-    if (logRoutes) {
+    if (firstClientSync && sw_->getBootType() == BootType::WARM_BOOT) {
       sw_->stopLoggingRouteUpdates(clientIdentifier);
     }
   };
   updateUnicastRoutesImpl(vrf, client, routes, "syncFibInVrf", true);
 
-  // If this is the first update, set sync time.
-  // TODO - record time per client instead
-  if (!syncedFibClients.size()) {
-    sw_->setRestartTime(RestartEvent::FIB_SYNCED);
+  if (firstClientSync) {
+    sw_->setFibSyncTimeForClient(clientId);
   }
 
   syncedFibClients.emplace(client);

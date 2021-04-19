@@ -307,8 +307,18 @@ SwitchRunState SwSwitch::getSwitchRunState() const {
   return runState_.load(std::memory_order_acquire);
 }
 
-void SwSwitch::setRestartTime(RestartEvent event) {
-  restart_time::mark(event);
+void SwSwitch::setFibSyncTimeForClient(ClientID clientId) {
+  switch (clientId) {
+    case ClientID::BGPD:
+      restart_time::mark(RestartEvent::FIB_SYNCED_BGPD);
+      break;
+    case ClientID::OPENR:
+      restart_time::mark(RestartEvent::FIB_SYNCED_OPENR);
+      break;
+    default:
+      // no time tracking for remaining clients
+      break;
+  }
 }
 
 folly::dynamic SwSwitch::gracefulExitState() const {

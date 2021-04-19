@@ -697,7 +697,7 @@ class SwSwitch : public HwSwitch::Callback {
     return resolvedNexthopProbeScheduler_.get();
   }
 
-  void setRestartTime(RestartEvent event);
+  void setFibSyncTimeForClient(ClientID clientId);
 
  private:
   void updateStateBlockingImpl(

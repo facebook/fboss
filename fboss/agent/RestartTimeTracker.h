@@ -37,7 +37,8 @@ enum class RestartEvent : uint16_t {
   PROCESS_STARTED,
   INITIALIZED,
   CONFIGURED,
-  FIB_SYNCED,
+  FIB_SYNCED_BGPD,
+  FIB_SYNCED_OPENR,
 };
 
 namespace restart_time {

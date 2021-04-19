@@ -93,8 +93,10 @@ std::string to_string(RestartEvent type) {
       return "initialized";
     case RestartEvent::CONFIGURED:
       return "configured";
-    case RestartEvent::FIB_SYNCED:
-      return "fib_synced";
+    case RestartEvent::FIB_SYNCED_BGPD:
+      return "fib_synced_bgp";
+    case RestartEvent::FIB_SYNCED_OPENR:
+      return "fib_synced_openr";
     case RestartEvent::SIGNAL_RECEIVED:
       return "signal_received";
     case RestartEvent::SHUTDOWN:
@@ -145,7 +147,7 @@ class RestartTimeTracker {
       if (lastEvent_) {
         exportDurationCounter(*lastEvent_, *tp, stageCounterName(type));
       }
-      if (type == RestartEvent::FIB_SYNCED) {
+      if (type == RestartEvent::CONFIGURED) {
         completed_ = true;
         if (firstEvent_) {
           // terminal state, export total counter
@@ -179,7 +181,8 @@ class RestartTimeTracker {
         return processStartTime(getpid());
       case RestartEvent::INITIALIZED:
       case RestartEvent::CONFIGURED:
-      case RestartEvent::FIB_SYNCED:
+      case RestartEvent::FIB_SYNCED_BGPD:
+      case RestartEvent::FIB_SYNCED_OPENR:
         return steady_clock::now();
       case RestartEvent::SIGNAL_RECEIVED:
       case RestartEvent::SHUTDOWN:
