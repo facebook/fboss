@@ -75,4 +75,12 @@ service QsfpService extends fb303.FacebookService {
   map<i32, transceiver.WriteResponse> writeTransceiverRegister(
     1: transceiver.WriteRequest request
   ) throws (1: fboss.FbossBaseError error)
+
+  /*
+   * Thrift call to program one PHY port. This call will be made by agent to
+   * qsfp_service
+   */
+  void programXphyPort(
+    1: i32 portId,
+    2: switch_config.PortProfileID portProfileId)
 }

@@ -74,6 +74,12 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
       std::map<int32_t, WriteResponse>& response,
       std::unique_ptr<WriteRequest> request) override;
 
+  /*
+   * Thrift call servicing routine for programming one PHY port
+   */
+  void programXphyPort(int32_t portId, cfg::PortProfileID portProfileId)
+      override;
+
  private:
   // Forbidden copy constructor and assignment operator
   QsfpServiceHandler(QsfpServiceHandler const&) = delete;

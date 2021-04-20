@@ -115,5 +115,13 @@ void QsfpServiceHandler::writeTransceiverRegister(
   }
   manager_->writeTransceiverRegister(response, std::move(request));
 }
+
+void QsfpServiceHandler::programXphyPort(
+    int32_t portId,
+    cfg::PortProfileID portProfileId) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  manager_->programXphyPort(portId, portProfileId);
+}
+
 } // namespace fboss
 } // namespace facebook

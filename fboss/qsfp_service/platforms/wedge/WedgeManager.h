@@ -115,6 +115,15 @@ class WedgeManager : public TransceiverManager {
     return true;
   }
 
+  /*
+   * Virtual function to program a PHY port on external PHY. This is a dummy
+   * function here, it needs to be implemented by the platforms which support
+   * external PHY and the PHY code is running in this qsfp_service process
+   */
+  virtual void programXphyPort(
+      int32_t /* portId */,
+      cfg::PortProfileID /* portProfileId */) override {}
+
  protected:
   virtual std::unique_ptr<TransceiverI2CApi> getI2CBus();
   void updateTransceiverMap();
