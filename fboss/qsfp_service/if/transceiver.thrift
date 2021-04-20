@@ -253,6 +253,12 @@ struct HostLaneSignals {
   3: optional CmisLaneState cmisLaneState,
 }
 
+struct RxEqualizerSettings {
+  1: i32 preCursor,
+  2: i32 postCursor,
+  3: i32 mainAmplitude,
+}
+
 struct TransceiverSettings {
   1: FeatureState cdrTx,
   2: FeatureState cdrRx,
