@@ -32,6 +32,11 @@ class BaseSystemContainerTests : public ::testing::Test {
   }
 
  protected:
+  /*
+   This address should be calculated manually, without relying on a
+   SystemContainer class, so that we can verify the logic in SystemContainer, in
+   case there are changes being made
+  */
   virtual uint32_t getLedAddress(int pim, int led) const = 0;
   FakeFpgaDevice* fpgaDevice_;
 
