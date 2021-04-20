@@ -95,29 +95,43 @@ bool BcmHwTableStatManager::refreshHwStatusStats(HwResourceStats* stats) const {
   return !v4Stale && !v6Stale;
 }
 
-bool BcmHwTableStatManager::refreshLPMStats(HwResourceStats* stats) const {
-  // IPv6 LPM table info
-  std::array<int, 3> routeSlots = {0, 0, 0};
-  std::array<bcm_switch_object_t, routeSlots.size()> bcmUsedEntryTypes = {
+int BcmHwTableStatManager::getAlpmUsedRouteCounts(
+    AlpmUsedRouteCounts& counts) const {
+  if (hw_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::ALPM_ROUTE_PROJECTION)) {
+    if (int ret = getAlpmUsedRouteCount(counts[kIpv4AlpmUsedIndex], false)) {
+      return ret;
+    }
+    if (is128ByteIpv6Enabled_) {
+      counts[kIpv6Mask64AlpmUsedIndex] = 0;
+      return getAlpmUsedRouteCount(counts[kIpv6Mask128AlpmUsedIndex], true);
+    } else {
+      counts[kIpv6Mask128AlpmUsedIndex] = 0;
+      return getAlpmUsedRouteCount(counts[kIpv6Mask64AlpmUsedIndex], true);
+    }
+  }
+  std::array<bcm_switch_object_t, 3> bcmUsedEntryTypes = {
       bcmSwitchObjectL3RouteV4RoutesUsed,
       bcmSwitchObjectL3RouteV6Routes64bUsed,
       bcmSwitchObjectL3RouteV6Routes128bUsed,
   };
 
-  auto ret = bcm_switch_object_count_multi_get(
-      hw_->getUnit(),
-      routeSlots.size(),
-      bcmUsedEntryTypes.data(),
-      routeSlots.data());
+  return bcm_switch_object_count_multi_get(
+      hw_->getUnit(), counts.size(), bcmUsedEntryTypes.data(), counts.data());
+}
+
+bool BcmHwTableStatManager::refreshLPMStats(HwResourceStats* stats) const {
+  // IPv6 LPM table info
+  // Used
+  std::array<int, 3> counts = {0, 0, 0};
+  auto ret = getAlpmUsedRouteCounts(counts);
   if (ret) {
-    XLOG(ERR) << "Unable to get LPM table usage, LPM table "
-                 "stats will be stale";
+    XLOG(ERR) << "Unable to get LPM route table used";
     return false;
   }
-  // Used
-  stats->lpm_ipv4_used_ref() = routeSlots[0];
-  stats->lpm_ipv6_mask_0_64_used_ref() = routeSlots[1];
-  stats->lpm_ipv6_mask_65_127_used_ref() = routeSlots[2];
+  stats->lpm_ipv4_used_ref() = counts[kIpv4AlpmUsedIndex];
+  stats->lpm_ipv6_mask_0_64_used_ref() = counts[kIpv6Mask64AlpmUsedIndex];
+  stats->lpm_ipv6_mask_65_127_used_ref() = counts[kIpv6Mask128AlpmUsedIndex];
 
   // Max
   int v4Max, v6Max;
@@ -193,8 +207,7 @@ bool BcmHwTableStatManager::refreshAlpmFreeRouteCounts(
     // v4
     int v4Max, v4Used;
     auto ret1 = getAlpmMaxRouteCount(v4Max, false);
-    auto ret2 = bcm_switch_object_count_get(
-        0, bcmSwitchObjectL3RouteV4RoutesUsed, &v4Used);
+    auto ret2 = getAlpmUsedRouteCount(v4Used, false);
     if (!ret1 && !ret2) {
       stats->lpm_ipv4_free_ref() = std::max(0, v4Max - v4Used);
     } else {
@@ -206,13 +219,7 @@ bool BcmHwTableStatManager::refreshAlpmFreeRouteCounts(
     int v6Max, v6Used;
     int ret1, ret2;
     ret1 = getAlpmMaxRouteCount(v6Max, true);
-    if (is128ByteIpv6Enabled_) {
-      ret2 = bcm_switch_object_count_get(
-          0, bcmSwitchObjectL3RouteV6Routes128bUsed, &v6Used);
-    } else {
-      ret2 = bcm_switch_object_count_get(
-          0, bcmSwitchObjectL3RouteV6Routes64bUsed, &v6Used);
-    }
+    ret2 = getAlpmUsedRouteCount(v6Used, true);
     if (!ret1 && !ret2) {
       stats->lpm_ipv6_free_ref() = std::max(0, v6Max - v6Used);
     } else {

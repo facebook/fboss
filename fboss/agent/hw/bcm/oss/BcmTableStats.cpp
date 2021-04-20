@@ -31,4 +31,17 @@ int BcmHwTableStatManager::getAlpmMaxRouteCount(int& count, bool isV6) const {
       0, bcmSwitchObjectL3RouteV6Routes64bMax, &count);
 }
 
+int BcmHwTableStatManager::getAlpmUsedRouteCount(int& count, bool isV6) const {
+  if (!isV6) {
+    return bcm_switch_object_count_get(
+        0, bcmSwitchObjectL3RouteV4RoutesUsed, &count);
+  }
+  if (is128ByteIpv6Enabled_) {
+    return bcm_switch_object_count_get(
+        0, bcmSwitchObjectL3RouteV6Routes128bUsed, &count);
+  }
+  return bcm_switch_object_count_get(
+      0, bcmSwitchObjectL3RouteV6Routes64bUsed, &count);
+}
+
 } // namespace facebook::fboss

@@ -43,6 +43,13 @@ class BcmHwTableStatManager {
       const std::shared_ptr<Mirror>& addedMirror,
       HwResourceStats* stats) const;
   int getAlpmMaxRouteCount(int& count, bool isV6) const;
+  int getAlpmUsedRouteCount(int& count, bool isV6) const;
+
+  using AlpmUsedRouteCounts = std::array<int, 3>;
+  static const auto kIpv4AlpmUsedIndex = 0;
+  static const auto kIpv6Mask64AlpmUsedIndex = 1;
+  static const auto kIpv6Mask128AlpmUsedIndex = 2;
+  int getAlpmUsedRouteCounts(AlpmUsedRouteCounts& counts) const;
 
   const BcmSwitch* hw_{nullptr};
 
