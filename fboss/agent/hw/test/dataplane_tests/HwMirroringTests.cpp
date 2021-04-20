@@ -3,12 +3,16 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
+#include "fboss/agent/hw/test/HwTestMirrorUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestStatUtils.h"
+#include "fboss/agent/hw/test/HwTestTrunkUtils.h"
 #include "fboss/agent/state/Mirror.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TrunkUtils.h"
+#include "fboss/agent/types.h"
 
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
@@ -60,6 +64,9 @@ template <typename AddrT>
 class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
  public:
   using EcmpSetupAnyNPortsT = typename utility::EcmpSetupAnyNPorts<AddrT>;
+  using EcmpSetupTargetedPortsT =
+      typename utility::EcmpSetupTargetedPorts<AddrT>;
+
   void SetUp() override {
     HwLinkStateDependentTest::SetUp();
     ecmpHelper_ =
@@ -292,6 +299,52 @@ TYPED_TEST(HwDataPlaneMirrorTest, TrucatePortErspanMirror) {
     return;
   }
   this->testPortMirrorWithLargePacket(kErspan);
+}
+
+TYPED_TEST(HwDataPlaneMirrorTest, ErspanMirrorWithLagMember) {
+  if (this->skipTest()) {
+    return;
+  }
+  auto setup = [=]() {
+    auto config = this->initialConfig();
+
+    utility::addAggPort(AggregatePortID(1), {this->mirrorToPort_}, &config);
+    auto state0 = this->applyNewConfig(config);
+    state0 = utility::setTrunkMinLinkCount(state0, 1);
+    state0 = utility::enableTrunkPorts(state0);
+    this->applyNewState(state0);
+
+    this->setupDataPlaneWithMirror(kErspan);
+    this->mirrorPort(kErspan);
+  };
+  auto verify = [=]() {
+    utility::verifyAggregatePortCount(this->getHwSwitchEnsemble(), 1);
+    utility::verifyAggregatePort(
+        this->getHwSwitchEnsemble(), AggregatePortID(1));
+    utility::verifyAggregatePortMemberCount(
+        this->getHwSwitchEnsemble(), AggregatePortID(1), 1, 1);
+
+    std::vector<uint64_t> destinations;
+    utility::getAllMirrorDestinations(this->getHwSwitch(), destinations);
+    ASSERT_EQ(destinations.size(), 1);
+
+    utility::verifyPortMirrorDestination(
+        this->getHwSwitch(),
+        this->trafficPort_,
+        utility::getMirrorPortIngressFlags(),
+        destinations[0]);
+
+    if (this->getHwSwitch()->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::EGRESS_MIRRORING)) {
+      utility::verifyPortMirrorDestination(
+          this->getHwSwitch(),
+          this->trafficPort_,
+          utility::getMirrorPortEgressFlags(),
+          destinations[0]);
+    }
+    this->verify(kErspan);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss

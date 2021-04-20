@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/state/Interface.h"
+#include "fboss/agent/test/TrunkUtils.h"
 
 namespace facebook::fboss {
 
@@ -1946,6 +1947,45 @@ TYPED_TEST(HwMirrorTest, SampleAllPortsReloadConfig) {
     }
   };
   if (this->skipMirrorTest() || this->skipSflowTest()) {
+    return;
+  }
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(HwMirrorTest, ResolvedErspanMirrorOnTrunk) {
+  auto setup = [=]() {
+    auto params = this->testParams();
+    auto cfg = this->initialConfig();
+
+    utility::addAggPort(1, {this->masterLogicalPortIds()[0]}, &cfg);
+    cfg.mirrors_ref()->push_back(this->getErspanMirror());
+    auto state = this->applyNewConfig(cfg);
+    this->applyNewState(utility::enableTrunkPorts(state));
+
+    auto mirrors = this->getProgrammedState()->getMirrors()->clone();
+    auto mirror = mirrors->getMirrorIf(kErspan);
+    auto newMirror = std::make_shared<Mirror>(
+        mirror->getID(),
+        mirror->getEgressPort(),
+        mirror->getDestinationIp(),
+        mirror->getSrcIp());
+    newMirror->setEgressPort(PortID(this->masterLogicalPortIds()[0]));
+    newMirror->setMirrorTunnel(MirrorTunnel(
+        params.ipAddrs[0],
+        params.ipAddrs[1],
+        params.macAddrs[0],
+        params.macAddrs[1]));
+    mirrors->updateNode(newMirror);
+    auto newState = this->getProgrammedState()->clone();
+    newState->resetMirrors(mirrors);
+    this->applyNewState(newState);
+  };
+  auto verify = [=]() {
+    auto mirror =
+        this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
+    utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
+  };
+  if (this->skipMirrorTest()) {
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);

@@ -12,6 +12,7 @@
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/Mirror.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TrunkUtils.h"
 
 #include <gtest/gtest.h>
 #include <chrono>
@@ -96,6 +97,10 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
 
   HwSwitchEnsemble::Features featuresDesired() const override {
     return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX};
+  }
+
+  void configTrunk(cfg::SwitchConfig* config) {
+    utility::addAggPort(1, {getPortsForSampling()[0]}, config);
   }
 
   void
@@ -387,5 +392,49 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketCount) {
 
 TEST_F(HwSflowMirrorTest, VerifySampledPacketCountWithLargePackets) {
   runSampleRateTest(8192);
+}
+
+TEST_F(HwSflowMirrorTest, VerifySampledPacketWithLagMemberAsEgressPort) {
+  if (!getPlatform()->getAsic()->isSupported(HwAsic::Feature::SFLOW_SAMPLING) ||
+      !getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::MIRROR_PACKET_TRUNCATION) ||
+      !getPlatform()->getAsic()->isSupported(HwAsic::Feature::SFLOWv6)) {
+    return;
+  }
+  auto setup = [=]() {
+    auto config = initialConfig();
+    configTrunk(&config);
+    configMirror(&config, true /* truncate */, false /* isv6 */);
+    configSampling(&config, 1);
+    auto state = applyNewConfig(config);
+    applyNewState(utility::enableTrunkPorts(state));
+    resolveMirror();
+  };
+  auto verify = [=]() {
+    auto ports = getPortsForSampling();
+    bringDownPorts(std::vector<PortID>(ports.begin() + 2, ports.end()));
+    auto pkt = genPacket(1, 8000);
+    auto dstIp = folly::CIDRNetwork{"2401:101:101::101", 128};
+    auto packetCapture = HwTestPacketTrapEntry(getHwSwitch(), dstIp);
+    HwTestPacketSnooper snooper(getHwSwitchEnsemble());
+    sendPkt(getPortsForSampling()[1], pkt.getTxPacket(getHwSwitch()));
+    auto capturedPkt = snooper.waitForPacket(10);
+    ASSERT_TRUE(capturedPkt.has_value());
+
+    auto _ = capturedPkt->getTxPacket(getHwSwitch());
+    auto __ = folly::io::Cursor(_->buf());
+    XLOG(INFO) << PktUtil::hexDump(__);
+
+    // packet's payload is truncated before it was mirrored
+    EXPECT_LE(capturedPkt->length(), pkt.length());
+    auto capturedHdrSize = getSflowPacketHeaderLength(true);
+    EXPECT_GE(capturedPkt->length(), capturedHdrSize);
+    EXPECT_LE(
+        capturedPkt->length() - capturedHdrSize,
+        210); /* TODO: confirm length in CS00010399535 and CS00012130950 */
+    auto payload = capturedPkt->v6PayLoad()->payload()->payload();
+    EXPECT_EQ(getSlfowPacketSrcPort(payload), getPortsForSampling()[1]);
+  };
+  verifyAcrossWarmBoots(setup, verify);
 }
 } // namespace facebook::fboss
