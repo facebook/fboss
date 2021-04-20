@@ -143,6 +143,8 @@ class SaiAclTableManager {
       const std::optional<std::string>& mirrorId,
       MirrorAction action);
 
+  void removeUnclaimedAclEntries();
+
  private:
   SaiAclTableHandle* FOLLY_NULLABLE
   getAclTableHandleImpl(const std::string& aclTableName) const;

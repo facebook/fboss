@@ -935,4 +935,9 @@ void SaiAclTableManager::programMirrorOnAllAcls(
     }
   }
 }
+
+void SaiAclTableManager::removeUnclaimedAclEntries() {
+  auto& aclEntryStore = saiStore_->get<SaiAclEntryTraits>();
+  aclEntryStore.removeUnexpectedUnclaimedWarmbootHandles();
+}
 } // namespace facebook::fboss
