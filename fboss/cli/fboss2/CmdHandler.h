@@ -37,7 +37,8 @@ class CmdHandler {
     return static_cast<const CmdTypeT&>(*this);
   }
 
-  std::pair<std::string, RetType> asyncHandler(const std::string& host) {
+  std::tuple<std::string, RetType, std::string> asyncHandler(
+      const std::string& host) {
     // Derive IP of the supplied host.
     auto hostIp = utils::getIPFromHost(host);
     XLOG(DBG2) << "host: " << host << " ip: " << hostIp.str();
@@ -45,8 +46,15 @@ class CmdHandler {
     // Create desired client for the host.
     auto client = utils::createClient<ClientType>(hostIp.str());
 
-    RetType result = impl().queryClient(client);
-    return std::make_pair(host, result);
+    std::string errStr;
+    RetType result;
+    try {
+      result = impl().queryClient(client);
+    } catch (std::exception const& err) {
+      errStr = folly::to<std::string>("Thrift call failed: '", err.what(), "'");
+    }
+
+    return std::make_tuple(host, result, errStr);
   }
 };
 

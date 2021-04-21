@@ -50,7 +50,8 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
     hosts = utils::getHostsFromFile(CmdGlobalOptions::getInstance()->getFile());
   }
 
-  std::vector<std::future<std::pair<std::string, RetType>>> futureList;
+  std::vector<std::future<std::tuple<std::string, RetType, std::string>>>
+      futureList;
   for (const auto& host : hosts) {
     futureList.push_back(std::async(
         std::launch::async,
@@ -60,14 +61,18 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
   }
 
   for (auto& f : futureList) {
-    auto [host, result] = f.get();
+    auto [host, result, errStr] = f.get();
 
     if (futureList.size() != 1) {
       std::cout << host << "::" << std::endl
                 << std::string(80, '=') << std::endl;
     }
 
-    impl().printOutput(result);
+    if (errStr.empty()) {
+      impl().printOutput(result);
+    } else {
+      std::cerr << errStr << std::endl << std::endl;
+    }
   }
 }
 
