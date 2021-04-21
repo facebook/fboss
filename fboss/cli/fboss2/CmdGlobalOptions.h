@@ -31,6 +31,10 @@ class CmdGlobalOptions {
     return hosts_;
   }
 
+  std::string getSmc() {
+    return smc_;
+  }
+
   std::string getLogLevel() {
     return logLevel_;
   }
@@ -39,6 +43,7 @@ class CmdGlobalOptions {
   void initAdditional(CLI::App& app);
 
   std::vector<std::string> hosts_{"localhost"};
+  std::string smc_;
   std::string logLevel_{"DBG0"};
 };
 
