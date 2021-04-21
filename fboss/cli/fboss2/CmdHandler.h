@@ -11,12 +11,18 @@
 
 #include "fboss/cli/fboss2/CLI11/CLI.hpp"
 
+#include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
+
 #include <memory>
 
 namespace facebook::fboss {
 
+template <typename CmdTypeT, typename CmdTypeTraits>
 class CmdHandler {
  public:
+  using ClientType = typename CmdTypeTraits::ClientType;
+  using RetType = typename CmdTypeTraits::RetType;
+
   void run();
 };
 

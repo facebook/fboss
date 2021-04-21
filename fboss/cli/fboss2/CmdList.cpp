@@ -11,11 +11,13 @@
 #include "fboss/cli/fboss2/CmdList.h"
 
 #include "fboss/cli/fboss2/CmdHandler.h"
+#include "fboss/cli/fboss2/CmdShowAcl.h"
 
 namespace facebook::fboss {
 
+template <typename T>
 void commandHandler() {
-  CmdHandler().run();
+  T().run();
 }
 
 const std::vector<
@@ -24,7 +26,7 @@ kListOfCommands() {
   static const std::vector<
       std::tuple<std::string, std::string, std::string, CommandHandlerFn>>
       listOfCommands = {
-          {"show", "acl", "Show ACL information", commandHandler}};
+          {"show", "acl", "Show ACL information", commandHandler<CmdShowAcl>}};
 
   return listOfCommands;
 }

@@ -12,6 +12,7 @@
 
 #include "fboss/cli/fboss2/CmdCreateClient.h"
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
+#include "fboss/cli/fboss2/CmdShowAcl.h"
 #include "fboss/cli/fboss2/CmdUtils.h"
 
 #include <folly/Singleton.h>
@@ -19,7 +20,12 @@
 
 namespace facebook::fboss {
 
-void CmdHandler::run() {
+// Avoid template linker error
+// https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
+template void CmdHandler<CmdShowAcl, CmdShowAclTraits>::run();
+
+template <typename CmdTypeT, typename CmdTypeTraits>
+void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
   // TODO Implements show acl
   // generalize for any subcommand implementation
 
