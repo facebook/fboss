@@ -15,7 +15,7 @@
 namespace facebook::fboss {
 
 void commandHandler() {
-  CmdHandler::getInstance()->run();
+  CmdHandler().run();
 }
 
 const std::vector<

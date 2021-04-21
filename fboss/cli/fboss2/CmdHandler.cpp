@@ -17,17 +17,6 @@
 #include <folly/Singleton.h>
 #include <folly/logging/xlog.h>
 
-namespace {
-struct singleton_tag_type {};
-} // namespace
-
-using facebook::fboss::CmdHandler;
-static folly::Singleton<CmdHandler, singleton_tag_type>
-    cmdHandler{};
-std::shared_ptr<CmdHandler> CmdHandler::getInstance() {
-  return cmdHandler.try_get();
-}
-
 namespace facebook::fboss {
 
 void CmdHandler::run() {

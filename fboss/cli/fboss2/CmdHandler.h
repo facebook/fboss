@@ -17,14 +17,6 @@ namespace facebook::fboss {
 
 class CmdHandler {
  public:
-  CmdHandler() = default;
-  ~CmdHandler() = default;
-  CmdHandler(const CmdHandler& other) = delete;
-  CmdHandler& operator=(const CmdHandler& other) = delete;
-
-  // Static function for getting the CmdHandler folly::Singleton
-  static std::shared_ptr<CmdHandler> getInstance();
-
   void run();
 };
 
