@@ -734,6 +734,7 @@ if (NOT SAI_ONLY)
       i2c_controller_stats_cpp2
       mpls_cpp2
       qsfp_cpp2
+      async_logger
       common_file_utils
       Folly::folly
       wangle::wangle

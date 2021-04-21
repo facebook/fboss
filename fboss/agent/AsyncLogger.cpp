@@ -64,6 +64,8 @@ void terminateHandler() {
   abort();
 }
 
+bool isWarmBoot;
+
 } // namespace
 
 namespace facebook::fboss {
@@ -88,6 +90,10 @@ AsyncLogger::AsyncLogger(
 
 AsyncLogger::~AsyncLogger() {
   fsync(logFile_.wlock()->fd());
+}
+
+void AsyncLogger::setBootType(bool canWarmBoot) {
+  isWarmBoot = canWarmBoot;
 }
 
 void AsyncLogger::worker_thread() {
@@ -259,9 +265,10 @@ void AsyncLogger::writeNewBootHeader() {
   std::tm tm;
   localtime_r(&timer, &tm);
 
+  auto bootType = isWarmBoot ? "warmboot" : "coldboot";
   std::ostringstream oss;
-  oss << "// Start of a new boot " << std::put_time(&tm, "%Y-%m-%d %T")
-      << std::endl;
+  oss << "// Start of a " << bootType << " "
+      << std::put_time(&tm, "%Y-%m-%d %T") << std::endl;
   auto ossString = oss.str();
   appendLog(ossString.c_str(), ossString.size());
 }

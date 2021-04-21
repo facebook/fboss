@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 
+#include "fboss/agent/AsyncLogger.h"
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/Utils.h"
 
@@ -53,6 +54,9 @@ HwSwitchWarmBootHelper::HwSwitchWarmBootHelper(
 
     auto bootType = canWarmBoot_ ? "WARM" : "COLD";
     XLOG(DBG1) << "Will attempt " << bootType << " boot";
+
+    // Notify Async logger about the boot type
+    AsyncLogger::setBootType(canWarmBoot_);
 
     setupWarmBootFile();
   }

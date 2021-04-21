@@ -53,6 +53,8 @@ class AsyncLogger {
 
   void appendLog(const char* logRecord, size_t logSize);
 
+  static void setBootType(bool canWarmBoot);
+
   // Expose these variables for testing purpose
   uint32_t flushCount_{0};
 
