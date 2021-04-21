@@ -20,6 +20,7 @@
 #include <gtest/gtest.h>
 
 #include <common/files/FileUtil.h>
+#include <folly/experimental/TestUtil.h>
 
 using namespace facebook::fboss;
 using namespace ::testing;
@@ -267,13 +268,13 @@ TEST_F(WedgeManagerTest, syncPorts) {
 }
 
 TEST_F(WedgeManagerTest, coldBootTest) {
-  std::string kWarmBootDirPath = "/dev/shm/fboss/warm_boot";
-  std::string kColdBootFileName =
-      kWarmBootDirPath + "/cold_boot_once_qsfp_service";
+  auto warmbootDir = folly::test::TemporaryDirectory();
+  FLAGS_warmboot_dir = warmbootDir.path().string();
+  std::string coldBootFileName =
+      warmbootDir.path().string() + "/cold_boot_once_qsfp_service";
 
   // Create the cold boot file
-  facebook::files::FileUtil::create_directory_and_parents(kWarmBootDirPath);
-  EXPECT_EQ(facebook::files::FileUtil::touch(kColdBootFileName), true);
+  EXPECT_EQ(facebook::files::FileUtil::touch(coldBootFileName), true);
   // Delete the existing wedge manager and create a new one
   wedgeManager_.reset();
   wedgeManager_ = std::make_unique<NiceMock<MockWedgeManager>>(16, 4);
@@ -284,7 +285,7 @@ TEST_F(WedgeManagerTest, coldBootTest) {
   }
   wedgeManager_->initTransceiverMap();
   // Confirm that the cold boot file was deleted
-  EXPECT_EQ(facebook::files::FileUtil::fileExists(kColdBootFileName), false);
+  EXPECT_EQ(facebook::files::FileUtil::fileExists(coldBootFileName), false);
 
   // Test a warm boot
   wedgeManager_.reset();

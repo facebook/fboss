@@ -11,6 +11,8 @@
 #include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 
+DECLARE_string(warmboot_dir);
+
 namespace facebook {
 namespace fboss {
 class WedgeManager : public TransceiverManager {

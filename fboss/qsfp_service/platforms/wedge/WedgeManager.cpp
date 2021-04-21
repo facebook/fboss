@@ -13,11 +13,17 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
+// allow us to configure the warmboot dir so that the qsfp cold boot test can
+// run concurrently with itself
+DEFINE_string(
+    warmboot_dir,
+    "/dev/shm/fboss/warm_boot",
+    "Path to the directory in which we store the warmboot flag");
+
 namespace {
 
 constexpr int kSecAfterModuleOutOfReset = 2;
-constexpr auto forceColdBootPath =
-    "/dev/shm/fboss/warm_boot/cold_boot_once_qsfp_service";
+constexpr auto kForceColdBootFileName = "cold_boot_once_qsfp_service";
 
 } // namespace
 
@@ -93,7 +99,8 @@ void WedgeManager::initTransceiverMap() {
   }
 
   // Check if a cold boot has been forced
-  if (removeFile(forceColdBootPath)) {
+  if (removeFile(folly::to<std::string>(
+          FLAGS_warmboot_dir, "/", kForceColdBootFileName))) {
     XLOG(INFO) << "Forced cold boot";
     for (int idx = 0; idx < getNumQsfpModules(); idx++) {
       try {
