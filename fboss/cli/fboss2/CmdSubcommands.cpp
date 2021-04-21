@@ -18,6 +18,7 @@ struct singleton_tag_type {};
 const std::map<std::string, std::string>& kSupportedVerbs() {
   static const std::map<std::string, std::string> supportedVerbs = {
       {"show", "Show object info"},
+      {"clear", "Clear object info"},
   };
 
   return supportedVerbs;
