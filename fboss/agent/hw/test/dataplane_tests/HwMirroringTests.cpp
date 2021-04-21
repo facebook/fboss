@@ -108,7 +108,9 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
     auto vlanId = VlanID(utility::kBaseVlanId);
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     std::vector<uint8_t> payload(payloadSize, 0xff);
-    while (count--) {
+    auto oldOutPkts = getPortOutPkts(getLatestPortStats(trafficPort_));
+    auto i = 0;
+    while (i < count) {
       auto pkt = utility::makeUDPTxPacket(
           getHwSwitch(),
           vlanId,
@@ -121,8 +123,25 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
           0,
           255,
           payload);
-      getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(pkt));
+      getHwSwitch()->sendPacketSwitchedAsync(std::move(pkt));
+      i++;
     }
+
+    // ensure as many packets as expected have been sent
+    getHwSwitchEnsemble()->waitPortStatsCondition(
+        [oldOutPkts, count, trafficPort = trafficPort_](
+            const auto& newPortStats) {
+          auto iter = newPortStats.find(trafficPort);
+          if (iter == newPortStats.end()) {
+            return false;
+          }
+          auto& portStats = iter->second;
+          auto newOutPkt = *portStats.outUnicastPkts__ref() +
+              *portStats.outMulticastPkts__ref() +
+              *portStats.outBroadcastPkts__ref();
+          return (newOutPkt > oldOutPkts) &&
+              ((newOutPkt - oldOutPkts) >= count);
+        });
   }
 
   void setupDataPlaneWithMirror(
