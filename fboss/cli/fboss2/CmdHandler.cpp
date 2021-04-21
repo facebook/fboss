@@ -37,7 +37,7 @@ void CmdHandler::run() {
   // Derive IP of the supplied host.
   auto host = CmdGlobalOptions::getInstance()->getHost();
   auto hostIp = utils::getIPFromHost(host);
-  XLOG(DBG0) << "host: " << host << " ip: " << hostIp.str();
+  XLOG(DBG2) << "host: " << host << " ip: " << hostIp.str();
 
   // Create desired client for the host.
   folly::EventBase evb;

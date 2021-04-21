@@ -13,6 +13,10 @@
 #include "fboss/cli/fboss2/CmdSubcommands.h"
 
 #include <folly/init/Init.h>
+#include <folly/logging/Init.h>
+#include <folly/logging/xlog.h>
+
+FOLLY_INIT_LOGGING_CONFIG("fboss=DBG0; default:async=true");
 
 namespace facebook::fboss {
 
