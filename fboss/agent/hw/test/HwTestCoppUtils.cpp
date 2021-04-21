@@ -322,7 +322,7 @@ uint64_t getQueueOutPacketsWithRetry(
   uint64_t outPkts = 0, outBytes = 0;
   do {
     std::tie(outPkts, outBytes) =
-        utility::getCpuQueueOutPacketsAndBytes(hwSwitch, queueId);
+        getCpuQueueOutPacketsAndBytes(hwSwitch, queueId);
     if (retryTimes == 0 || outPkts == expectedNumPkts) {
       break;
     }
@@ -339,4 +339,37 @@ uint64_t getQueueOutPacketsWithRetry(
 
   return outPkts;
 }
+
+std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
+    HwSwitch* hwSwitch,
+    int queueId) {
+  auto hwPortStats = getCpuQueueStats(hwSwitch);
+  auto queueIter = hwPortStats.queueOutPackets__ref()->find(queueId);
+  auto outPackets = (queueIter != hwPortStats.queueOutPackets__ref()->end())
+      ? queueIter->second
+      : 0;
+  queueIter = hwPortStats.queueOutBytes__ref()->find(queueId);
+  auto outBytes = (queueIter != hwPortStats.queueOutBytes__ref()->end())
+      ? queueIter->second
+      : 0;
+  return std::pair(outPackets, outBytes);
+}
+
+std::pair<uint64_t, uint64_t> getCpuQueueOutDiscardPacketsAndBytes(
+    HwSwitch* hwSwitch,
+    int queueId) {
+  auto hwPortStats = getCpuQueueStats(hwSwitch);
+  auto queueIter = hwPortStats.queueOutDiscardPackets__ref()->find(queueId);
+  auto outDiscardPackets =
+      (queueIter != hwPortStats.queueOutDiscardPackets__ref()->end())
+      ? queueIter->second
+      : 0;
+  queueIter = hwPortStats.queueOutDiscardBytes__ref()->find(queueId);
+  auto outDiscardBytes =
+      (queueIter != hwPortStats.queueOutDiscardBytes__ref()->end())
+      ? queueIter->second
+      : 0;
+  return std::pair(outDiscardPackets, outDiscardBytes);
+}
+
 } // namespace facebook::fboss::utility

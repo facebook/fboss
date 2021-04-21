@@ -21,23 +21,11 @@ namespace facebook::fboss {
 
 namespace utility {
 
-std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
-    HwSwitch* hwSwitch,
-    int queueId) {
+HwPortStats getCpuQueueStats(HwSwitch* hwSwitch) {
   auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch);
   SwitchStats dummy;
   saiSwitch->updateStats(&dummy);
-  auto hwPortStats =
-      saiSwitch->managerTable()->hostifManager().getCpuPortStats();
-  auto queueIter = hwPortStats.queueOutPackets__ref()->find(queueId);
-  auto outPackets = (queueIter != hwPortStats.queueOutPackets__ref()->end())
-      ? queueIter->second
-      : 0;
-  queueIter = hwPortStats.queueOutBytes__ref()->find(queueId);
-  auto outBytes = (queueIter != hwPortStats.queueOutPackets__ref()->end())
-      ? queueIter->second
-      : 0;
-  return std::pair(outPackets, outBytes);
+  return saiSwitch->managerTable()->hostifManager().getCpuPortStats();
 }
 
 std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(

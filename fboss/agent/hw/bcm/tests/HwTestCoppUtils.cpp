@@ -28,24 +28,11 @@ const std::string kMplsDestNoMatchCounterName = "mpls-dest-nomatch-counter";
 
 namespace facebook::fboss::utility {
 
-std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
-    HwSwitch* hwSwitch,
-    int queueId) {
+HwPortStats getCpuQueueStats(HwSwitch* hwSwitch) {
   HwPortStats portStats;
-  uint64_t queueOutPacketCount{};
-  uint64_t queueOutByteCount{};
-
   auto* bcmSwitch = static_cast<BcmSwitch*>(hwSwitch);
   bcmSwitch->getControlPlane()->updateQueueCounters(&portStats);
-  if (portStats.queueOutPackets__ref()->find(queueId) !=
-      portStats.queueOutPackets__ref()->end()) {
-    queueOutPacketCount = portStats.queueOutPackets__ref()->at(queueId);
-  }
-  if (portStats.queueOutBytes__ref()->find(queueId) !=
-      portStats.queueOutBytes__ref()->end()) {
-    queueOutByteCount = portStats.queueOutBytes__ref()->at(queueId);
-  }
-  return std::make_pair(queueOutPacketCount, queueOutByteCount);
+  return portStats;
 }
 
 std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(

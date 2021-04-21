@@ -10,6 +10,7 @@
 
 #pragma once
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/types.h"
 
@@ -23,6 +24,7 @@
  */
 
 namespace facebook::fboss {
+class HwPortStats;
 class HwSwitch;
 
 namespace utility {
@@ -101,6 +103,10 @@ cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic);
 std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
     HwSwitch* hwSwitch,
     int queueId);
+std::pair<uint64_t, uint64_t> getCpuQueueOutDiscardPacketsAndBytes(
+    HwSwitch* hwSwitch,
+    int queueId);
+HwPortStats getCpuQueueStats(HwSwitch* hwSwitch);
 std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
     const HwAsic* hwAsic);
 
