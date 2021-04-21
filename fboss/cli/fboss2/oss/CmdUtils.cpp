@@ -26,4 +26,8 @@ std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createAgentClient(
       std::move(channel));
 }
 
+std::vector<std::string> getHostsInSmcTier(const std::string& parentTierName) {
+  return {};
+}
+
 } // namespace facebook::fboss::utils
