@@ -17,11 +17,6 @@
 
 namespace facebook::fboss {
 
-template <typename T>
-void commandHandler() {
-  T().run();
-}
-
 const std::vector<
     std::tuple<std::string, std::string, std::string, CommandHandlerFn>>&
 kListOfCommands() {

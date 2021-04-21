@@ -23,4 +23,10 @@ kListOfCommands();
 const std::vector<
     std::tuple<std::string, std::string, std::string, CommandHandlerFn>>&
 kListOfAdditionalCommands();
+
+template <typename T>
+void commandHandler() {
+  T().run();
 }
+
+} // namespace facebook::fboss
