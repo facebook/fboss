@@ -60,8 +60,7 @@ class BcmControlPlane {
 
   void setupIngressQosPolicy(const std::optional<std::string>& qosPolicyName);
 
-  void updateQueueCounters(
-      BcmEgressQueueTrafficCounterStats* returnQueueStats = nullptr);
+  void updateQueueCounters(HwPortStats* portStats = nullptr);
 
   QueueConfig getMulticastQueueSettings() {
     return queueManager_->getCurrentQueueSettings().multicast;

@@ -103,8 +103,7 @@ class BcmCosQueueManager {
   void destroyQueueCounters();
   void updateQueueStats(
       std::chrono::seconds now,
-      HwPortStats* portStats = nullptr,
-      BcmEgressQueueTrafficCounterStats* returnQueueStats = nullptr);
+      HwPortStats* portStats = nullptr);
 
   void getCosQueueGportsFromHw();
   bcm_gport_t getPortGport() const {

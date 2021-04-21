@@ -301,8 +301,7 @@ void BcmCosQueueManager::destroyQueueCounters() {
 
 void BcmCosQueueManager::updateQueueStats(
     std::chrono::seconds now,
-    HwPortStats* portStats,
-    BcmEgressQueueTrafficCounterStats* returnQueueStats) {
+    HwPortStats* portStats) {
   // We only need one BcmEgressQueueFlexCounter for all the BcmPorts in
   // the same unit, and this FlexCounter is created in BcmSwitch::setupCos()
   // So this should be thread-safe to call here.
@@ -315,24 +314,6 @@ void BcmCosQueueManager::updateQueueStats(
     // Collect all queue stats for such port at once.
     flexCounterMgr->getStats(portGport_, *queueFlexCounterStatsLock);
   }
-
-  auto updateReturnQueueStats = [&](cfg::StreamType streamType,
-                                    int queueId,
-                                    cfg::CounterType counterType,
-                                    uint64_t statVal) {
-    // Only update returnQueueStats when it's valid
-    if (returnQueueStats == nullptr) {
-      return;
-    }
-    if (returnQueueStats->find(streamType) == returnQueueStats->end() ||
-        returnQueueStats->at(streamType).find(queueId) ==
-            returnQueueStats->at(streamType).end() ||
-        returnQueueStats->at(streamType).at(queueId).find(counterType) ==
-            returnQueueStats->at(streamType).at(queueId).end()) {
-      return;
-    }
-    returnQueueStats->at(streamType).at(queueId).at(counterType) = statVal;
-  };
 
   for (const auto& cntr : queueCounters_) {
     if (cntr.first.isScopeQueues()) {
@@ -354,11 +335,6 @@ void BcmCosQueueManager::updateQueueStats(
             countersItr.second.get(),
             now,
             portStats);
-        updateReturnQueueStats(
-            cntr.first.streamType,
-            countersItr.first,
-            cntr.first.getCounterType(),
-            value);
       }
     }
     if (cntr.first.isScopeAggregated()) {

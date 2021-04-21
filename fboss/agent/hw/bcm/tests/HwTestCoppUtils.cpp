@@ -31,14 +31,21 @@ namespace facebook::fboss::utility {
 std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
     HwSwitch* hwSwitch,
     int queueId) {
+  HwPortStats portStats;
+  uint64_t queueOutPacketCount{};
+  uint64_t queueOutByteCount{};
+
   auto* bcmSwitch = static_cast<BcmSwitch*>(hwSwitch);
-  BcmEgressQueueTrafficCounterStats stats;
-  stats[cfg::StreamType::MULTICAST][queueId][cfg::CounterType::PACKETS] = 0;
-  stats[cfg::StreamType::MULTICAST][queueId][cfg::CounterType::BYTES] = 0;
-  bcmSwitch->getControlPlane()->updateQueueCounters(&stats);
-  return std::make_pair(
-      stats[cfg::StreamType::MULTICAST][queueId][cfg::CounterType::PACKETS],
-      stats[cfg::StreamType::MULTICAST][queueId][cfg::CounterType::BYTES]);
+  bcmSwitch->getControlPlane()->updateQueueCounters(&portStats);
+  if (portStats.queueOutPackets__ref()->find(queueId) !=
+      portStats.queueOutPackets__ref()->end()) {
+    queueOutPacketCount = portStats.queueOutPackets__ref()->at(queueId);
+  }
+  if (portStats.queueOutBytes__ref()->find(queueId) !=
+      portStats.queueOutBytes__ref()->end()) {
+    queueOutByteCount = portStats.queueOutBytes__ref()->at(queueId);
+  }
+  return std::make_pair(queueOutPacketCount, queueOutByteCount);
 }
 
 std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
