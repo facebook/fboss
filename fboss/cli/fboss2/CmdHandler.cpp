@@ -40,11 +40,14 @@ template <typename CmdTypeT, typename CmdTypeTraits>
 void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
   utils::setLogLevel(CmdGlobalOptions::getInstance()->getLogLevel());
 
-  // TODO with this logic, --smc overrides --host.
-  // Use CLI11 validation to fail specifying --smc, --host together.
+  // TODO with this logic, --file overrides --smc and --smc overrides --host.
+  // Use CLI11 validation to fail specifying --file, --smc, --host together.
   auto hosts = CmdGlobalOptions::getInstance()->getHosts();
   if (!CmdGlobalOptions::getInstance()->getSmc().empty()) {
     hosts = utils::getHostsInSmcTier(CmdGlobalOptions::getInstance()->getSmc());
+  }
+  if (!CmdGlobalOptions::getInstance()->getFile().empty()) {
+    hosts = utils::getHostsFromFile(CmdGlobalOptions::getInstance()->getFile());
   }
 
   std::vector<std::future<std::pair<std::string, RetType>>> futureList;
