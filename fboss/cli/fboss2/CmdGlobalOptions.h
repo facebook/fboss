@@ -51,6 +51,10 @@ class CmdGlobalOptions {
     return fmt_;
   }
 
+  std::string getLogUsage() {
+    return logUsage_;
+  }
+
  private:
   void initAdditional(CLI::App& app);
 
@@ -60,6 +64,7 @@ class CmdGlobalOptions {
   std::string logLevel_{"DBG0"};
   std::string sslPolicy_{"plaintext"};
   std::string fmt_{"tabular"};
+  std::string logUsage_;
 };
 
 } // namespace facebook::fboss
