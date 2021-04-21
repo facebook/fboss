@@ -22,6 +22,7 @@
 
 #include <folly/Singleton.h>
 #include <folly/logging/xlog.h>
+#include <future>
 
 namespace facebook::fboss {
 
@@ -39,23 +40,23 @@ template <typename CmdTypeT, typename CmdTypeTraits>
 void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
   utils::setLogLevel(CmdGlobalOptions::getInstance()->getLogLevel());
 
-  bool printHostName = (CmdGlobalOptions::getInstance()->getHosts().size() != 1);
+  std::vector<std::future<std::pair<std::string, RetType>>> futureList;
   for (const auto& host : CmdGlobalOptions::getInstance()->getHosts()) {
-    if (printHostName) {
-      std::cout << std::endl << host << std::endl;
-      std::cout << std::string(80, '-') << std::endl;
+    futureList.push_back(std::async(
+        std::launch::async,
+        &CmdHandler::asyncHandler,
+        this,
+        host /*, inArgs*/));
+  }
+
+  for (auto& f : futureList) {
+    auto [host, result] = f.get();
+
+    if (futureList.size() != 1) {
+      std::cout << host << "::" << std::endl
+                << std::string(80, '=') << std::endl;
     }
 
-    // Derive IP of the supplied host.
-    auto hostIp = utils::getIPFromHost(host);
-    XLOG(DBG2) << "host: " << host << " ip: " << hostIp.str();
-
-    // Create desired client for the host.
-    folly::EventBase evb;
-
-    auto client = utils::createClient<ClientType>(hostIp.str(), evb);
-
-    RetType result = impl().queryClient(client);
     impl().printOutput(result);
   }
 }

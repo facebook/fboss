@@ -13,6 +13,10 @@
 
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 
+#include "fboss/cli/fboss2/CmdUtils.h"
+#include "fboss/cli/fboss2/CmdClientUtils.h"
+#include <folly/logging/xlog.h>
+
 #include <memory>
 
 namespace facebook::fboss {
@@ -31,6 +35,20 @@ class CmdHandler {
   }
   const CmdTypeT& impl() const {
     return static_cast<const CmdTypeT&>(*this);
+  }
+
+  std::pair<std::string, RetType> asyncHandler(const std::string& host) {
+    // Derive IP of the supplied host.
+    auto hostIp = utils::getIPFromHost(host);
+    XLOG(DBG2) << "host: " << host << " ip: " << hostIp.str();
+
+    // Create desired client for the host.
+    folly::EventBase evb;
+
+    auto client = utils::createClient<ClientType>(hostIp.str(), evb);
+
+    RetType result = impl().queryClient(client);
+    return std::make_pair(host, result);
   }
 };
 
