@@ -12,6 +12,7 @@ add_executable(fboss2
   fboss/cli/fboss2/CmdList.cpp
   fboss/cli/fboss2/CmdShowAcl.h
   fboss/cli/fboss2/CmdShowArp.h
+  fboss/cli/fboss2/CmdShowLldp.h
   fboss/cli/fboss2/CmdShowNdp.h
   fboss/cli/fboss2/CmdShowNdp.h
   fboss/cli/fboss2/CmdSubcommands.cpp

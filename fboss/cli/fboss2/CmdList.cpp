@@ -15,6 +15,7 @@
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/CmdShowAcl.h"
 #include "fboss/cli/fboss2/CmdShowArp.h"
+#include "fboss/cli/fboss2/CmdShowLldp.h"
 #include "fboss/cli/fboss2/CmdShowNdp.h"
 
 namespace facebook::fboss {
@@ -27,6 +28,7 @@ kListOfCommands() {
       listOfCommands = {
           {"show", "acl", "Show ACL information", commandHandler<CmdShowAcl>},
           {"show", "arp", "Show ARP information", commandHandler<CmdShowArp>},
+          {"show", "lldp", "Show LLDPinformation", commandHandler<CmdShowLldp>},
           {"show", "ndp", "Show NDP information", commandHandler<CmdShowNdp>},
 
           {"clear", "arp", "Clear ARP information", commandHandler<CmdClearArp>},
