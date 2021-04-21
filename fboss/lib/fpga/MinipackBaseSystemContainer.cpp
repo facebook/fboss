@@ -4,11 +4,11 @@
 
 namespace facebook::fboss {
 
-void MinipackBaseSystemContainer::initHW() {
+void MinipackBaseSystemContainer::initHW(bool /* forceReset */) {
   if (isHwInitialized_) {
     return;
   }
-  fpgaDevice_->mmap();
+  getFpgaDevice()->mmap();
   isHwInitialized_ = true;
 }
 

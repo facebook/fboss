@@ -2,15 +2,16 @@
 
 #pragma once
 
-#include "fboss/lib/fpga/FpgaDevice.h"
+#include "fboss/lib/fpga/MultiPimPlatformSystemContainer.h"
+
 #include "fboss/lib/fpga/MinipackBasePimContainer.h"
 
 namespace facebook::fboss {
 // The base system container for Minipack switch family.
-class MinipackBaseSystemContainer {
+class MinipackBaseSystemContainer : public MultiPimPlatformSystemContainer {
  public:
   explicit MinipackBaseSystemContainer(std::unique_ptr<FpgaDevice> fpgaDevice)
-      : fpgaDevice_(std::move(fpgaDevice)) {}
+      : MultiPimPlatformSystemContainer(std::move(fpgaDevice)) {}
 
   virtual ~MinipackBaseSystemContainer() {}
   const static int kPimStartNum = 2;
@@ -20,16 +21,13 @@ class MinipackBaseSystemContainer {
    * to any HW devices.
    * For now, it just allocate FPGA memory map to get it ready.
    */
-  virtual void initHW();
+  void initHW(bool forceReset = false) override;
 
   // To avoid ambiguity, we explicitly decided the pim number starts from 2.
-  uint32_t getPimOffset(int pim);
+  uint32_t getPimOffset(int pim) override;
+
   virtual MinipackBasePimContainer* getPimContainer(int pim) const;
   virtual std::vector<MinipackBasePimContainer*> getAllPimContainers();
-
-  FpgaDevice* getFpgaDevice() const {
-    return fpgaDevice_.get();
-  }
 
  protected:
   // FPGA Device Info
@@ -40,9 +38,6 @@ class MinipackBaseSystemContainer {
 
   std::array<std::unique_ptr<MinipackBasePimContainer>, kNumberPim> pims_;
   bool isHwInitialized_{false};
-
- private:
-  std::unique_ptr<FpgaDevice> fpgaDevice_;
 };
 
 } // namespace facebook::fboss

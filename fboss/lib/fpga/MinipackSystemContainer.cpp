@@ -30,7 +30,7 @@ MinipackSystemContainer::MinipackSystemContainer(
         pim,
         folly::format("pim{:d}", pim).str(),
         getFpgaDevice(),
-        MinipackBaseSystemContainer::getPimOffset(pim),
+        getPimOffset(pim),
         kFacebookFpgaPimSize);
   }
 }
