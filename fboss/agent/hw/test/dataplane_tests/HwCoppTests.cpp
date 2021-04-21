@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestTrunkUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
+#include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TrunkUtils.h"
@@ -404,6 +405,76 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
 
   void unRegisterPktReceivedCallback() {
     pktReceivedCallback_ = nullptr;
+  }
+
+  std::optional<folly::IPAddress> getDestinationIpIfValid(RxPacket* pkt) {
+    std::optional<folly::IPAddress> destinationAddress;
+    auto pktData = pkt->buf()->clone();
+    folly::io::Cursor cursor{pktData.get()};
+    auto receivedPkt = utility::EthFrame{cursor};
+    auto v6Packet = receivedPkt.v6PayLoad();
+    if (v6Packet.has_value()) {
+      auto v6Header = v6Packet->header();
+      destinationAddress = v6Header.dstAddr;
+    } else {
+      auto v4Packet = receivedPkt.v4PayLoad();
+      if (v4Packet.has_value()) {
+        auto v4Header = v4Packet->header();
+        destinationAddress = v4Header.dstAddr;
+      }
+    }
+
+    return destinationAddress;
+  }
+
+  void sendTcpPktsOnPort(
+      PortID port,
+      VlanID vlanId,
+      int numPktsToSend,
+      const folly::IPAddress& dstIpAddress,
+      int l4SrcPort,
+      int l4DstPort,
+      const std::optional<folly::MacAddress>& dstMac = std::nullopt,
+      uint8_t trafficClass = 0,
+      std::optional<std::vector<uint8_t>> payload = std::nullopt) {
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    utility::sendTcpPkts(
+        getHwSwitch(),
+        numPktsToSend,
+        vlanId,
+        dstMac ? *dstMac : intfMac,
+        dstIpAddress,
+        l4SrcPort,
+        l4DstPort,
+        port,
+        trafficClass,
+        payload);
+    XLOG(DBG0) << "Sending " << numPktsToSend << " TCP packets on port "
+               << (int)port << " / VLAN " << (int)vlanId;
+  }
+
+  void createLineRateTrafficOnPort(
+      PortID port,
+      VlanID vlanId,
+      const folly::IPAddress& dstIpAddress) {
+    auto minPktsForLineRate =
+        getHwSwitchEnsemble()->getMinPktsForLineRate(port);
+    auto dstMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+
+    // Create a loop with specified destination packets
+    sendTcpPktsOnPort(
+        port,
+        vlanId,
+        minPktsForLineRate,
+        dstIpAddress,
+        utility::kNonSpecialPort1,
+        utility::kNonSpecialPort2,
+        dstMac);
+
+    // Wait for packet loop buildup
+    getHwSwitchEnsemble()->waitForLineRateOnPort(port);
+    XLOG(DBG0) << "Created dataplane loop with packets for "
+               << dstIpAddress.str();
   }
 
  private:
