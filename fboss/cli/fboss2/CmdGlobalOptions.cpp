@@ -28,6 +28,7 @@ namespace facebook::fboss {
 void CmdGlobalOptions::init(CLI::App& app) {
   app.add_option("--host", hosts_, "Hostname(s) to query");
   app.add_option("-l,--loglevel", logLevel_, "Debug log level");
+  app.add_option("--file", file_, "filename, queries every host in the file");
 
   initAdditional(app);
 }
