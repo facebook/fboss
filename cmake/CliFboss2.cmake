@@ -8,6 +8,7 @@ add_executable(fboss2
   fboss/cli/fboss2/CmdGlobalOptions.cpp
   fboss/cli/fboss2/CmdHandler.cpp
   fboss/cli/fboss2/CmdList.cpp
+  fboss/cli/fboss2/CmdShowAcl.h
   fboss/cli/fboss2/CmdSubcommands.cpp
   fboss/cli/fboss2/CmdUtils.cpp
   fboss/cli/fboss2/Main.cpp
