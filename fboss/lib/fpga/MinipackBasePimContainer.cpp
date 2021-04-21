@@ -19,7 +19,7 @@ MinipackBasePimContainer::MinipackBasePimContainer(
     uint32_t pimStart,
     uint32_t pimSize,
     unsigned int portsPerPim)
-    : pim_(pim) {
+    : MultiPimPlatformPimContainer(), pim_(pim) {
   pimQsfpController_ = std::make_unique<FbFpgaPimQsfpController>(
       std::make_unique<FpgaMemoryRegion>(
           "PimQsfpController",
@@ -51,5 +51,10 @@ FbFpgaPimQsfpController* MinipackBasePimContainer::getPimQsfpController() {
 MinipackLed* MinipackBasePimContainer::getLedController(int qsfp) const {
   CHECK(qsfp >= 0 && qsfp < kNumLedPerPim);
   return ledControllers_[qsfp].get();
+}
+
+bool MinipackBasePimContainer::isPimPresent() const {
+  // TODO(joseph5wu)
+  return true;
 }
 } // namespace facebook::fboss

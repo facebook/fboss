@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "fboss/lib/fpga/MultiPimPlatformPimContainer.h"
+
 #include "fboss/lib/fpga/FbFpgaI2c.h"
 #include "fboss/lib/fpga/FbFpgaPimQsfpController.h"
 #include "fboss/lib/fpga/FpgaDevice.h"
@@ -10,7 +12,7 @@
 
 namespace facebook::fboss {
 
-class MinipackBasePimContainer {
+class MinipackBasePimContainer : public MultiPimPlatformPimContainer {
  public:
   // To avoid ambiguity, we explicitly decided the pim number starts from 2.
   MinipackBasePimContainer(
@@ -31,6 +33,12 @@ class MinipackBasePimContainer {
 
   MinipackPimController* getController() {
     return pimController_.get();
+  }
+
+  bool isPimPresent() const override;
+
+  void initHW(bool /* forceReset */ = false) override {
+    // no-op
   }
 
  protected:
