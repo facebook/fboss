@@ -47,6 +47,10 @@ class CmdGlobalOptions {
     return sslPolicy_;
   }
 
+  std::string getFmt() {
+    return fmt_;
+  }
+
  private:
   void initAdditional(CLI::App& app);
 
@@ -55,6 +59,7 @@ class CmdGlobalOptions {
   std::string file_;
   std::string logLevel_{"DBG0"};
   std::string sslPolicy_{"plaintext"};
+  std::string fmt_{"tabular"};
 };
 
 } // namespace facebook::fboss
