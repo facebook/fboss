@@ -31,10 +31,15 @@ class CmdGlobalOptions {
     return host_;
   }
 
+  std::string getLogLevel() {
+    return logLevel_;
+  }
+
  private:
   void initAdditional(CLI::App& app);
 
   std::string host_;
+  std::string logLevel_{"DBG0"};
 };
 
 } // namespace facebook::fboss
