@@ -9,10 +9,11 @@
  */
 #include "fboss/cli/fboss2/CmdUtils.h"
 
-#include <chrono>
-#include <folly/logging/xlog.h>
 #include <folly/logging/LogConfig.h>
 #include <folly/logging/LoggerDB.h>
+#include <folly/logging/xlog.h>
+#include <chrono>
+#include <fstream>
 
 using namespace std::chrono;
 
@@ -55,6 +56,18 @@ const folly::IPAddress getIPFromHost(const std::string& hostname) {
   }
   XLOG(ERR) <<"Could not get an IP for: " << hostname;
   return IPAddress();
+}
+
+std::vector<std::string> getHostsFromFile(const std::string& filename) {
+  std::vector<std::string> hosts;
+  std::ifstream in(filename);
+  std::string str;
+
+  while (std::getline(in, str)) {
+    hosts.push_back(str);
+  }
+
+  return hosts;
 }
 
 void setLogLevel(std::string logLevelStr) {
