@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
+#include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestTrunkUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
@@ -953,4 +954,103 @@ TYPED_TEST(HwCoppTest, JumboFramesToQueues) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(HwCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
+  constexpr int kReceiveRetriesInSeconds = 2;
+  constexpr int kTransmitRetriesInSeconds = 5;
+  constexpr int kHighPriorityPacketCount = 30000;
+  std::map<folly::IPAddress, uint64_t> rxPktCountMap{};
+
+  auto setup = [=]() { setupEcmpDataplaneLoop(); };
+
+  auto pktReceiveHandler = [&](RxPacket* pkt) {
+    auto destinationAddress = getDestinationIpIfValid(pkt);
+    if (destinationAddress.has_value()) {
+      rxPktCountMap[destinationAddress.value()]++;
+    }
+  };
+
+  auto verify = [&]() {
+    auto configIntf = folly::copy(*(this->initialConfig()).interfaces_ref())[1];
+    const auto ipForHighPriorityQueue =
+        folly::IPAddress::createNetwork(
+            configIntf.ipAddresses_ref()[1], -1, false)
+            .first;
+    const auto ipForLowPriorityQueue = folly::IPAddress("4::1");
+
+    // Register packet receive callback
+    auto baseVlan = utility::firstVlanID(initialConfig());
+    registerPktReceivedCallback(pktReceiveHandler);
+
+    // Create trap entry to punt data traffic to CPU low pri queue
+    auto ipAddress = folly::CIDRNetwork{ipForLowPriorityQueue, 128};
+    auto packetCapture = HwTestPacketTrapEntry(getHwSwitch(), ipAddress);
+
+    // Create dataplane loop with lowerPriority traffic on port0
+    createLineRateTrafficOnPort(
+        masterLogicalPortIds()[0], baseVlan, ipForLowPriorityQueue);
+
+    // Get initial packet count on port1 for high priority traffic
+    auto initialHighPriorityPacketCount =
+        getLatestPortStats(masterLogicalPortIds()[1]).get_outUnicastPkts_();
+
+    // Send a fixed number of high priority packets on port1
+    sendTcpPktsOnPort(
+        masterLogicalPortIds()[1],
+        VlanID(baseVlan + 1),
+        kHighPriorityPacketCount,
+        ipForHighPriorityQueue,
+        utility::kNonSpecialPort1,
+        utility::kBgpPort);
+
+    auto allHighPriorityPacketsSent = [&](const auto& newStats) {
+      auto portStatsIter = newStats.find(masterLogicalPortIds()[1]);
+      auto outCount = (portStatsIter == newStats.end())
+          ? 0
+          : portStatsIter->second.get_outUnicastPkts_();
+      return outCount ==
+          (kHighPriorityPacketCount + initialHighPriorityPacketCount);
+    };
+
+    // Make sure all the high priority packets have been sent
+    getHwSwitchEnsemble()->waitPortStatsCondition(
+        allHighPriorityPacketsSent,
+        kTransmitRetriesInSeconds,
+        std::chrono::milliseconds(std::chrono::seconds(1)));
+
+    // Check high priority queue stats to see if all packets are received
+    auto highPriorityCoppQueueStats = utility::getQueueOutPacketsWithRetry(
+        getHwSwitch(),
+        utility::getCoppHighPriQueueId(getAsic()),
+        kReceiveRetriesInSeconds,
+        kHighPriorityPacketCount);
+
+    // Unregister packet received callback
+    unRegisterPktReceivedCallback();
+
+    XLOG(DBG0) << "Received packet count  -> HighPriority:"
+               << rxPktCountMap[ipForHighPriorityQueue]
+               << ", LowerPriority:" << rxPktCountMap[ipForLowPriorityQueue];
+    uint64_t lowerPriorityCoppQueueStats =
+        utility::getCpuQueueOutPacketsAndBytes(
+            getHwSwitch(), utility::kCoppLowPriQueueId)
+            .first;
+
+    /*
+     * Stats on lower priority queue will not be same as above
+     * as traffic continues to be punted, printing for reference
+     */
+    XLOG(DBG0) << "COPP queue packet count-> HighPriority:"
+               << highPriorityCoppQueueStats
+               << ", LowerPriority:" << lowerPriorityCoppQueueStats;
+
+    /*
+     * Test passes if all the high priority packets sent are received at
+     * application layer, this will verify no drops after dequeue from
+     * the COPP queue.
+     */
+    EXPECT_EQ(kHighPriorityPacketCount, rxPktCountMap[ipForHighPriorityQueue]);
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
