@@ -13,6 +13,7 @@
 #include "fboss/cli/fboss2/CmdCreateClient.h"
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/CmdShowAcl.h"
+#include "fboss/cli/fboss2/CmdShowArp.h"
 #include "fboss/cli/fboss2/CmdShowNdp.h"
 #include "fboss/cli/fboss2/CmdUtils.h"
 
@@ -24,6 +25,7 @@ namespace facebook::fboss {
 // Avoid template linker error
 // https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
 template void CmdHandler<CmdShowAcl, CmdShowAclTraits>::run();
+template void CmdHandler<CmdShowArp, CmdShowArpTraits>::run();
 template void CmdHandler<CmdShowNdp, CmdShowNdpTraits>::run();
 
 template <typename CmdTypeT, typename CmdTypeTraits>
