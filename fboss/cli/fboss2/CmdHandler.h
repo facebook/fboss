@@ -43,9 +43,7 @@ class CmdHandler {
     XLOG(DBG2) << "host: " << host << " ip: " << hostIp.str();
 
     // Create desired client for the host.
-    folly::EventBase evb;
-
-    auto client = utils::createClient<ClientType>(hostIp.str(), evb);
+    auto client = utils::createClient<ClientType>(hostIp.str());
 
     RetType result = impl().queryClient(client);
     return std::make_pair(host, result);

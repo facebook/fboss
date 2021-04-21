@@ -14,10 +14,10 @@
 namespace facebook::fboss::utils {
 
 std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createAgentClient(
-    const std::string& ip,
-    folly::EventBase& evb) {
+    const std::string& ip) {
+  auto eb = folly::EventBaseManager::get()->getEventBase();
   auto addr = folly::SocketAddress(ip, kFbossAgentPort);
-  auto sock = folly::AsyncSocket::newSocket(&evb, addr, kConnTimeout);
+  auto sock = folly::AsyncSocket::newSocket(eb, addr, kConnTimeout);
   sock->setSendTimeout(kSendTimeout);
   auto channel =
       apache::thrift::HeaderClientChannel::newChannel(std::move(sock));

@@ -22,8 +22,7 @@ static auto constexpr kSendTimeout = 5000;
 static auto constexpr kFbossAgentPort = 5909;
 
 std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createAgentClient(
-    const std::string& ip,
-    folly::EventBase& evb);
+    const std::string& ip);
 
 const folly::IPAddress getIPFromHost(const std::string& hostname);
 
