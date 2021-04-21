@@ -34,12 +34,6 @@
 #define RUN_HW_LOAD_BALANCER_TEST(                                           \
     TEST_FIXTURE, MULTIPATH_TYPE, HASH_TYPE, TRAFFIC_TYPE)                   \
   TEST_F(TEST_FIXTURE, TEST_NAME(MULTIPATH_TYPE, HASH_TYPE, TRAFFIC_TYPE)) { \
-    if (!isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION) &&          \
-        BOOST_PP_STRINGIZE(HASH_TYPE) == std::string{"Half"}) {              \
-      XLOG(INFO) << " Skipping half hash test since chip does not support "  \
-                    " hash field customization";                             \
-      return;                                                                \
-    }                                                                        \
     if (BOOST_PP_STRINGIZE(MULTIPATH_TYPE) == std::string{"WideUcmp"} &&                    \
             !getPlatform()->getAsic()->isSupported(                          \
                 HwAsic::Feature::WIDE_ECMP)) {                               \

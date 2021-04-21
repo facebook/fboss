@@ -79,7 +79,20 @@ SaiHashManager::SaiHashManager(
     SaiStore* saiStore,
     SaiManagerTable* managerTable,
     SaiPlatform* platform)
-    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
+    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
+    // query default hash keys
+    auto switchId = managerTable_->switchManager().getSwitchSaiId();
+    auto ecmpHashId = SaiApiTable::getInstance()->switchApi().getAttribute(
+        switchId, SaiSwitchTraits::Attributes::EcmpHash{});
+    auto lagHashId = SaiApiTable::getInstance()->switchApi().getAttribute(
+        switchId, SaiSwitchTraits::Attributes::LagHash{});
+    CHECK_NE(ecmpHashId, SAI_NULL_OBJECT_ID)
+        << "default hash for ECMP not found";
+    CHECK_NE(lagHashId, SAI_NULL_OBJECT_ID) << "default hash for LAG not found";
+  }
+}
 
 void SaiHashManager::removeUnclaimedDefaultHash() {
   if (platform_->getAsic()->isSupported(

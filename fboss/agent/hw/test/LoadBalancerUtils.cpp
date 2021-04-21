@@ -103,6 +103,12 @@ std::shared_ptr<SwitchState> addLoadBalancers(
     const Platform* platform,
     const std::shared_ptr<SwitchState>& inputState,
     const std::vector<cfg::LoadBalancer>& loadBalancerCfgs) {
+  if (!platform->getAsic()->isSupported(
+          HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
+    // configuring hash is not supported.
+    XLOG(WARNING) << "load balancer configuration is not supported.";
+    return inputState;
+  }
   auto newState{inputState->clone()};
   auto lbMap = newState->getLoadBalancers()->clone();
   for (const auto& loadBalancerCfg : loadBalancerCfgs) {
