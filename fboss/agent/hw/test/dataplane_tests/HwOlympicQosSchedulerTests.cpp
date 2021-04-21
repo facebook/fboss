@@ -123,7 +123,8 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
       const std::vector<int>& queueIds,
       const std::map<int, std::vector<uint8_t>>& queueToDscp) {
     // Higher speed ports need more packets to reach line rate
-    auto pktsToSend = getPortSpeed() > cfg::PortSpeed::HUNDREDG ? 1000 : 100;
+    auto pktsToSend =
+        getHwSwitchEnsemble()->getMinPktsForLineRate(masterLogicalPortIds()[0]);
     for (const auto& queueId : queueIds) {
       sendUdpPkts(queueToDscp.at(queueId).front(), pktsToSend);
     }
@@ -180,10 +181,6 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
   void verifyWRRToAllSPTraffic();
 
  private:
-  cfg::PortSpeed getPortSpeed() const {
-    const auto& programmedState = getHwSwitchEnsemble()->getProgrammedState();
-    return programmedState->getPort(masterLogicalPortIds()[0])->getSpeed();
-  }
   bool verifyWRRHelper(
       int maxWeightQueueId,
       const std::map<int, uint8_t>& wrrQueueToWeight);

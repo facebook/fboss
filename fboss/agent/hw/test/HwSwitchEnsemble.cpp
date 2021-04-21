@@ -427,4 +427,10 @@ void HwSwitchEnsemble::ensureThrift() {
     thriftThread_ = setupThrift();
   }
 }
+
+size_t HwSwitchEnsemble::getMinPktsForLineRate(const PortID& port) {
+  auto portSpeed = programmedState_->getPort(port)->getSpeed();
+  return (portSpeed > cfg::PortSpeed::HUNDREDG ? 1000 : 100);
+}
+
 } // namespace facebook::fboss

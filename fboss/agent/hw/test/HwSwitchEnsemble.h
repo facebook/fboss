@@ -164,6 +164,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
     return HwSwitchEnsembleRouteUpdateWrapper(
         this, routingInformationBase_.get());
   }
+  size_t getMinPktsForLineRate(const PortID& portId);
 
  protected:
   /*
