@@ -9,21 +9,11 @@
  */
 #include "fboss/cli/fboss2/CmdUtils.h"
 
-#include <thrift/lib/cpp2/async/HeaderClientChannel.h>
-
 namespace facebook::fboss::utils {
 
 std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createAgentClient(
     const std::string& ip) {
-  auto eb = folly::EventBaseManager::get()->getEventBase();
-  auto addr = folly::SocketAddress(ip, kFbossAgentPort);
-  auto sock = folly::AsyncSocket::newSocket(eb, addr, kConnTimeout);
-  sock->setSendTimeout(kSendTimeout);
-  auto channel =
-      apache::thrift::HeaderClientChannel::newChannel(std::move(sock));
-  channel->setTimeout(kRecvTimeout);
-  return std::make_unique<facebook::fboss::FbossCtrlAsyncClient>(
-      std::move(channel));
+  return createPlaintextAgentClient(ip);
 }
 
 std::vector<std::string> getHostsInSmcTier(const std::string& parentTierName) {

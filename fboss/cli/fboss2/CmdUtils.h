@@ -24,6 +24,9 @@ static auto constexpr kFbossAgentPort = 5909;
 std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createAgentClient(
     const std::string& ip);
 
+std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient>
+createPlaintextAgentClient(const std::string& ip);
+
 const folly::IPAddress getIPFromHost(const std::string& hostname);
 std::vector<std::string> getHostsInSmcTier(const std::string& parentTierName);
 std::vector<std::string> getHostsFromFile(const std::string& filename);
