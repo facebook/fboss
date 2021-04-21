@@ -1030,11 +1030,11 @@ TEST_F(HwCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
     XLOG(DBG0) << "Received packet count  -> HighPriority:"
                << rxPktCountMap[ipForHighPriorityQueue]
                << ", LowerPriority:" << rxPktCountMap[ipForLowPriorityQueue];
+
     uint64_t lowerPriorityCoppQueueStats =
         utility::getCpuQueueOutPacketsAndBytes(
             getHwSwitch(), utility::kCoppLowPriQueueId)
             .first;
-
     /*
      * Stats on lower priority queue will not be same as above
      * as traffic continues to be punted, printing for reference
@@ -1042,6 +1042,22 @@ TEST_F(HwCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
     XLOG(DBG0) << "COPP queue packet count-> HighPriority:"
                << highPriorityCoppQueueStats
                << ", LowerPriority:" << lowerPriorityCoppQueueStats;
+
+    // Get the drop stats on the high and lower priority CPU queues
+    auto highPriorityCoppQueueDiscardStats =
+        utility::getCpuQueueOutDiscardPacketsAndBytes(
+            getHwSwitch(), utility::getCoppHighPriQueueId(getAsic()))
+            .first;
+    auto lowerPriorityCoppQueueDiscardStats =
+        utility::getCpuQueueOutDiscardPacketsAndBytes(
+            getHwSwitch(), utility::kCoppLowPriQueueId)
+            .first;
+    XLOG(DBG0) << "COPP queue drop count  -> HighPriority:"
+               << highPriorityCoppQueueDiscardStats
+               << ", LowerPriority:" << lowerPriorityCoppQueueDiscardStats;
+
+    // Test fails if there is a drop in the high priority queue
+    EXPECT_EQ(highPriorityCoppQueueDiscardStats, 0);
 
     /*
      * Test passes if all the high priority packets sent are received at
