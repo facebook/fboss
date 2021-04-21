@@ -39,18 +39,25 @@ template <typename CmdTypeT, typename CmdTypeTraits>
 void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
   utils::setLogLevel(CmdGlobalOptions::getInstance()->getLogLevel());
 
-  // Derive IP of the supplied host.
-  auto host = CmdGlobalOptions::getInstance()->getHost();
-  auto hostIp = utils::getIPFromHost(host);
-  XLOG(DBG2) << "host: " << host << " ip: " << hostIp.str();
+  bool printHostName = (CmdGlobalOptions::getInstance()->getHosts().size() != 1);
+  for (const auto& host : CmdGlobalOptions::getInstance()->getHosts()) {
+    if (printHostName) {
+      std::cout << std::endl << host << std::endl;
+      std::cout << std::string(80, '-') << std::endl;
+    }
 
-  // Create desired client for the host.
-  folly::EventBase evb;
+    // Derive IP of the supplied host.
+    auto hostIp = utils::getIPFromHost(host);
+    XLOG(DBG2) << "host: " << host << " ip: " << hostIp.str();
 
-  auto client = utils::createClient<ClientType>(hostIp.str(), evb);
+    // Create desired client for the host.
+    folly::EventBase evb;
 
-  RetType result = impl().queryClient(client);
-  impl().printOutput(result);
+    auto client = utils::createClient<ClientType>(hostIp.str(), evb);
+
+    RetType result = impl().queryClient(client);
+    impl().printOutput(result);
+  }
 }
 
 } // namespace facebook::fboss

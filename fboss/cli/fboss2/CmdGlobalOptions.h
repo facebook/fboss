@@ -27,8 +27,8 @@ class CmdGlobalOptions {
 
   void init(CLI::App& app);
 
-  std::string getHost() {
-    return host_;
+  std::vector<std::string> getHosts() {
+    return hosts_;
   }
 
   std::string getLogLevel() {
@@ -38,7 +38,7 @@ class CmdGlobalOptions {
  private:
   void initAdditional(CLI::App& app);
 
-  std::string host_{"localhost"};
+  std::vector<std::string> hosts_{"localhost"};
   std::string logLevel_{"DBG0"};
 };
 
