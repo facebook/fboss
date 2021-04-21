@@ -368,7 +368,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
 };
 
 class HwCoppQosTest : public HwLinkStateDependentTest {
-  using pktReceivedCb = folly::Function<void(RxPacket* pkt)>;
+  using pktReceivedCb = folly::Function<void(RxPacket* pkt) const>;
 
  protected:
   cfg::SwitchConfig initialConfig() const override {
@@ -394,17 +394,18 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
   }
 
   void packetReceived(RxPacket* pkt) noexcept override {
-    if (pktReceivedCallback_) {
-      pktReceivedCallback_(pkt);
+    auto receivedCallback = pktReceivedCallback_.lock();
+    if (*receivedCallback) {
+      (*receivedCallback)(pkt);
     }
   }
 
   void registerPktReceivedCallback(pktReceivedCb callback) {
-    pktReceivedCallback_ = std::move(callback);
+    *pktReceivedCallback_.lock() = std::move(callback);
   }
 
   void unRegisterPktReceivedCallback() {
-    pktReceivedCallback_ = nullptr;
+    *pktReceivedCallback_.lock() = nullptr;
   }
 
   std::optional<folly::IPAddress> getDestinationIpIfValid(RxPacket* pkt) {
@@ -478,7 +479,7 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
   }
 
  private:
-  pktReceivedCb pktReceivedCallback_;
+  folly::Synchronized<pktReceivedCb, std::mutex> pktReceivedCallback_;
   HwSwitchEnsemble::Features featuresDesired() const override {
     return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX};
   }
