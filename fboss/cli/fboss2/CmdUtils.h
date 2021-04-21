@@ -33,4 +33,6 @@ std::vector<std::string> getHostsFromFile(const std::string& filename);
 
 void setLogLevel(std::string logLevelStr);
 
+void logUsage(const std::string& cmdName);
+
 } // namespace facebook::fboss::utils

@@ -20,4 +20,6 @@ std::vector<std::string> getHostsInSmcTier(const std::string& parentTierName) {
   return {};
 }
 
+void logUsage(const std::string& /*cmdName*/) {}
+
 } // namespace facebook::fboss::utils

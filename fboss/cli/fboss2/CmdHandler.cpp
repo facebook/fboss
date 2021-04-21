@@ -39,6 +39,7 @@ template void CmdHandler<CmdClearNdp, CmdClearNdpTraits>::run();
 template <typename CmdTypeT, typename CmdTypeTraits>
 void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
   utils::setLogLevel(CmdGlobalOptions::getInstance()->getLogLevel());
+  utils::logUsage(std::string(typeid(this).name()));
 
   // TODO with this logic, --file overrides --smc and --smc overrides --host.
   // Use CLI11 validation to fail specifying --file, --smc, --host together.
