@@ -34,6 +34,8 @@ void CmdHandler::run() {
   // TODO Implements show acl
   // generalize for any subcommand implementation
 
+  utils::setLogLevel(CmdGlobalOptions::getInstance()->getLogLevel());
+
   // Derive IP of the supplied host.
   auto host = CmdGlobalOptions::getInstance()->getHost();
   auto hostIp = utils::getIPFromHost(host);

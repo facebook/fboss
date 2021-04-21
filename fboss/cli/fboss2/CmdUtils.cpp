@@ -11,6 +11,8 @@
 
 #include <chrono>
 #include <folly/logging/xlog.h>
+#include <folly/logging/LogConfig.h>
+#include <folly/logging/LoggerDB.h>
 
 using namespace std::chrono;
 
@@ -53,6 +55,26 @@ const folly::IPAddress getIPFromHost(const std::string& hostname) {
   }
   XLOG(ERR) <<"Could not get an IP for: " << hostname;
   return IPAddress();
+}
+
+void setLogLevel(std::string logLevelStr) {
+  if (logLevelStr == "DBG0") {
+    return;
+  }
+
+  auto logLevel = folly::stringToLogLevel(logLevelStr);
+
+  auto logConfig = folly::LoggerDB::get().getConfig();
+  auto& categoryMap = logConfig.getCategoryConfigs();
+
+  for (auto& p : categoryMap) {
+    auto category = folly::LoggerDB::get().getCategory(p.first);
+    if (category != nullptr) {
+      folly::LoggerDB::get().setLevel(category, logLevel);
+    }
+  }
+
+  XLOG(DBG1) << "Setting loglevel to " << logLevelStr;
 }
 
 } // namespace facebook::fboss::utils
