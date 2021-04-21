@@ -116,7 +116,6 @@ class TurboFSWRouteScaleGenerator : public RouteDistributionGenerator {
   void genRoutes() const override;
   boost::container::flat_set<PortDescriptor> unlabeledPorts_;
   boost::container::flat_set<PortDescriptor> labeledPorts_;
-  boost::container::flat_set<PortDescriptor> allPorts_;
 };
 
 } // namespace facebook::fboss::utility
