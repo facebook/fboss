@@ -10,12 +10,13 @@
 
 #include "fboss/cli/fboss2/CmdHandler.h"
 
+#include "fboss/cli/fboss2/CmdClearArp.h"
+#include "fboss/cli/fboss2/CmdClientUtils.h"
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/CmdShowAcl.h"
 #include "fboss/cli/fboss2/CmdShowArp.h"
 #include "fboss/cli/fboss2/CmdShowNdp.h"
 #include "fboss/cli/fboss2/CmdUtils.h"
-#include "fboss/cli/fboss2/CmdClientUtils.h"
 
 #include <folly/Singleton.h>
 #include <folly/logging/xlog.h>
@@ -27,6 +28,8 @@ namespace facebook::fboss {
 template void CmdHandler<CmdShowAcl, CmdShowAclTraits>::run();
 template void CmdHandler<CmdShowArp, CmdShowArpTraits>::run();
 template void CmdHandler<CmdShowNdp, CmdShowNdpTraits>::run();
+
+template void CmdHandler<CmdClearArp, CmdClearArpTraits>::run();
 
 template <typename CmdTypeT, typename CmdTypeTraits>
 void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {

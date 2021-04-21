@@ -5,6 +5,7 @@
 
 add_executable(fboss2
   fboss/cli/fboss2/CmdClientUtils.cpp
+  fboss/cli/fboss2/CmdClearArp.h
   fboss/cli/fboss2/CmdGlobalOptions.cpp
   fboss/cli/fboss2/CmdHandler.cpp
   fboss/cli/fboss2/CmdList.cpp
