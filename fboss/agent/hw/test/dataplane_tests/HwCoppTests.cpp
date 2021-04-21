@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestTrunkUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TrunkUtils.h"
@@ -362,6 +363,107 @@ class HwCoppTest : public HwLinkStateDependentTest {
  private:
   HwSwitchEnsemble::Features featuresDesired() const override {
     return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX};
+  }
+};
+
+class HwCoppQosTest : public HwLinkStateDependentTest {
+  using pktReceivedCb = folly::Function<void(RxPacket* pkt)>;
+
+ protected:
+  cfg::SwitchConfig initialConfig() const override {
+    auto cfg = utility::twoL3IntfConfig(
+        getHwSwitch(),
+        masterLogicalPortIds()[0],
+        masterLogicalPortIds()[1],
+        cfg::PortLoopbackMode::MAC);
+    utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
+    addCustomCpuQueueConfig(cfg, getAsic());
+    return cfg;
+  }
+
+  void setupEcmpDataplaneLoop() {
+    auto vlanId = utility::firstVlanID(initialConfig());
+    auto dstMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState(), dstMac);
+    resolveNeigborAndProgramRoutes(ecmpHelper, 1);
+    auto& nextHop = ecmpHelper.getNextHops()[0];
+    utility::disableTTLDecrements(
+        getHwSwitch(), ecmpHelper.getRouterId(), nextHop);
+  }
+
+  void packetReceived(RxPacket* pkt) noexcept override {
+    if (pktReceivedCallback_) {
+      pktReceivedCallback_(pkt);
+    }
+  }
+
+  void registerPktReceivedCallback(pktReceivedCb callback) {
+    pktReceivedCallback_ = std::move(callback);
+  }
+
+  void unRegisterPktReceivedCallback() {
+    pktReceivedCallback_ = nullptr;
+  }
+
+ private:
+  pktReceivedCb pktReceivedCallback_;
+  HwSwitchEnsemble::Features featuresDesired() const override {
+    return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX};
+  }
+  /*
+   * addCustomCpuQueueConfig() is a modified version of
+   * utility::addCpuQueueConfig(), differences:
+   *   1) CPU low pri queue is given the same weight as mid pri queue
+   *   2) No rate limiting on queues
+   * The objective of the config is to make sure low priority queue
+   * behaves just like the mid priority queue. Test here tries to
+   * validate prioritization of CPU high priority queue traffic vs
+   * other priority traffic. To ensure there is maximum traffic in
+   * the lower priority queue, dataplane loop is created on one of the
+   * port and the same traffic copied to CPU. As there is not enough
+   * support to copy traffic from data plane to mid priority queue
+   * for all platforms, copying this traffic to low priority queue
+   * and removing the rate limiting on low priority CPU queue.
+   */
+  void addCustomCpuQueueConfig(cfg::SwitchConfig& config, const HwAsic* hwAsic)
+      const {
+    std::vector<cfg::PortQueue> cpuQueues;
+
+    cfg::PortQueue queue0;
+    queue0.id_ref() = utility::kCoppLowPriQueueId;
+    queue0.name_ref() = "cpuQueue-low";
+    queue0.streamType_ref() = utility::getCpuDefaultStreamType(hwAsic);
+    queue0.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+    queue0.weight_ref() =
+        utility::kCoppMidPriWeight; // Weight of mid priority queue
+    cpuQueues.push_back(queue0);
+
+    cfg::PortQueue queue1;
+    queue1.id_ref() = utility::kCoppDefaultPriQueueId;
+    queue1.name_ref() = "cpuQueue-default";
+    queue1.streamType_ref() = utility::getCpuDefaultStreamType(hwAsic);
+    queue1.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+    queue1.weight_ref() = utility::kCoppDefaultPriWeight;
+    cpuQueues.push_back(queue1);
+
+    cfg::PortQueue queue2;
+    queue2.id_ref() = utility::kCoppMidPriQueueId;
+    queue2.name_ref() = "cpuQueue-mid";
+    queue2.streamType_ref() = utility::getCpuDefaultStreamType(hwAsic);
+    queue2.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+    queue2.weight_ref() = utility::kCoppMidPriWeight;
+    cpuQueues.push_back(queue2);
+
+    cfg::PortQueue queue9;
+    queue9.id_ref() = utility::getCoppHighPriQueueId(hwAsic);
+    queue9.name_ref() = "cpuQueue-high";
+    queue9.streamType_ref() = utility::getCpuDefaultStreamType(hwAsic);
+    queue9.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+    queue9.weight_ref() = utility::kCoppHighPriWeight;
+    cpuQueues.push_back(queue9);
+
+    config.cpuQueues_ref() = cpuQueues;
   }
 };
 

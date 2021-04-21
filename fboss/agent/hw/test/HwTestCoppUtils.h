@@ -88,6 +88,8 @@ void setDefaultCpuTrafficPolicyConfig(
     cfg::SwitchConfig& config,
     const HwAsic* hwAsic);
 
+cfg::StreamType getCpuDefaultStreamType(const HwAsic* hwAsic);
+
 cfg::Range getRange(uint32_t minimum, uint32_t maximum);
 
 uint16_t getCoppHighPriQueueId(const HwAsic* hwAsic);
