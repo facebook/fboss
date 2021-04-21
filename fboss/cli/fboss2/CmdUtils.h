@@ -25,4 +25,6 @@ std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createAgentClient(
     const std::string& ip,
     folly::EventBase& evb);
 
+const folly::IPAddress getIPFromHost(const std::string& hostname);
+
 } // namespace facebook::fboss::utils
