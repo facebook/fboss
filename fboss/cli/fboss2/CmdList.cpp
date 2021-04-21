@@ -11,6 +11,7 @@
 #include "fboss/cli/fboss2/CmdList.h"
 
 #include "fboss/cli/fboss2/CmdClearArp.h"
+#include "fboss/cli/fboss2/CmdClearNdp.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/CmdShowAcl.h"
 #include "fboss/cli/fboss2/CmdShowArp.h"
@@ -29,6 +30,7 @@ kListOfCommands() {
           {"show", "ndp", "Show NDP information", commandHandler<CmdShowNdp>},
 
           {"clear", "arp", "Clear ARP information", commandHandler<CmdClearArp>},
+          {"clear", "ndp", "Clear NDP information", commandHandler<CmdClearNdp>},
       };
 
   return listOfCommands;

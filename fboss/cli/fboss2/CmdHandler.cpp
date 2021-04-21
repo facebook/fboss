@@ -11,6 +11,7 @@
 #include "fboss/cli/fboss2/CmdHandler.h"
 
 #include "fboss/cli/fboss2/CmdClearArp.h"
+#include "fboss/cli/fboss2/CmdClearNdp.h"
 #include "fboss/cli/fboss2/CmdClientUtils.h"
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/CmdShowAcl.h"
@@ -30,6 +31,7 @@ template void CmdHandler<CmdShowArp, CmdShowArpTraits>::run();
 template void CmdHandler<CmdShowNdp, CmdShowNdpTraits>::run();
 
 template void CmdHandler<CmdClearArp, CmdClearArpTraits>::run();
+template void CmdHandler<CmdClearNdp, CmdClearNdpTraits>::run();
 
 template <typename CmdTypeT, typename CmdTypeTraits>
 void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
