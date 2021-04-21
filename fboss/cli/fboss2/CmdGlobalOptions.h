@@ -27,6 +27,10 @@ class CmdGlobalOptions {
 
   void init(CLI::App& app);
 
+  std::string getHost() {
+    return host_;
+  }
+
  private:
   void initAdditional(CLI::App& app);
 

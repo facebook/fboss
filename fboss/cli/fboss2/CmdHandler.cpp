@@ -10,7 +10,12 @@
 
 #include "fboss/cli/fboss2/CmdHandler.h"
 
+#include "fboss/cli/fboss2/CmdCreateClient.h"
+#include "fboss/cli/fboss2/CmdGlobalOptions.h"
+#include "fboss/cli/fboss2/CmdUtils.h"
+
 #include <folly/Singleton.h>
+#include <folly/logging/xlog.h>
 
 namespace {
 struct singleton_tag_type {};
@@ -26,12 +31,28 @@ std::shared_ptr<CmdHandler> CmdHandler::getInstance() {
 namespace facebook::fboss {
 
 void CmdHandler::run() {
-  // TODO add definition
+  // TODO Implements show acl
+  // generalize for any subcommand implementation
 
   // Derive IP of the supplied host.
+  auto host = CmdGlobalOptions::getInstance()->getHost();
+  auto hostIp = utils::getIPFromHost(host);
+  XLOG(DBG0) << "host: " << host << " ip: " << hostIp.str();
+
   // Create desired client for the host.
+  folly::EventBase evb;
+  auto client =
+      CmdCreateClient::getInstance()
+          ->create<facebook::fboss::FbossCtrlAsyncClient>(hostIp.str(), evb);
+
   // Query desired method using the client handle.
+  std::vector<facebook::fboss::AclEntryThrift> aclTable;
+  client->sync_getAclTable(aclTable);
+
   // Print output
+  for (auto const& aclEntry : aclTable) {
+    std::cout << aclEntry.get_name() << std::endl;
+  }
 }
 
 } // namespace facebook::fboss
