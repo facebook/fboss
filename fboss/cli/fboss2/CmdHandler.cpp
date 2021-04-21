@@ -26,9 +26,6 @@ template void CmdHandler<CmdShowAcl, CmdShowAclTraits>::run();
 
 template <typename CmdTypeT, typename CmdTypeTraits>
 void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
-  // TODO Implements show acl
-  // generalize for any subcommand implementation
-
   utils::setLogLevel(CmdGlobalOptions::getInstance()->getLogLevel());
 
   // Derive IP of the supplied host.
@@ -39,17 +36,10 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
   // Create desired client for the host.
   folly::EventBase evb;
   auto client =
-      CmdCreateClient::getInstance()
-          ->create<facebook::fboss::FbossCtrlAsyncClient>(hostIp.str(), evb);
+      CmdCreateClient::getInstance()->create<ClientType>(hostIp.str(), evb);
 
-  // Query desired method using the client handle.
-  std::vector<facebook::fboss::AclEntryThrift> aclTable;
-  client->sync_getAclTable(aclTable);
-
-  // Print output
-  for (auto const& aclEntry : aclTable) {
-    std::cout << aclEntry.get_name() << std::endl;
-  }
+  RetType result = impl().queryClient(client);
+  impl().printOutput(result);
 }
 
 } // namespace facebook::fboss

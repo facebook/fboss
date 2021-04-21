@@ -24,6 +24,14 @@ class CmdHandler {
   using RetType = typename CmdTypeTraits::RetType;
 
   void run();
+
+ private:
+  CmdTypeT& impl() {
+    return static_cast<CmdTypeT&>(*this);
+  }
+  const CmdTypeT& impl() const {
+    return static_cast<const CmdTypeT&>(*this);
+  }
 };
 
 } // namespace facebook::fboss
