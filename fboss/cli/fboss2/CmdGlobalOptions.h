@@ -38,7 +38,7 @@ class CmdGlobalOptions {
  private:
   void initAdditional(CLI::App& app);
 
-  std::string host_;
+  std::string host_{"localhost"};
   std::string logLevel_{"DBG0"};
 };
 
