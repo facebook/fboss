@@ -29,6 +29,11 @@ std::shared_ptr<CmdCreateClient> CmdCreateClient::getInstance() {
 
 namespace facebook::fboss {
 
+// Avoid template linker error
+// https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
+template std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient>
+CmdCreateClient::create(const std::string& ip, folly::EventBase& evb);
+
 template <typename T>
 std::unique_ptr<T> CmdCreateClient::create(
     const std::string& ip,
