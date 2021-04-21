@@ -10,12 +10,12 @@
 
 #include "fboss/cli/fboss2/CmdHandler.h"
 
-#include "fboss/cli/fboss2/CmdCreateClient.h"
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/CmdShowAcl.h"
 #include "fboss/cli/fboss2/CmdShowArp.h"
 #include "fboss/cli/fboss2/CmdShowNdp.h"
 #include "fboss/cli/fboss2/CmdUtils.h"
+#include "fboss/cli/fboss2/CmdClientUtils.h"
 
 #include <folly/Singleton.h>
 #include <folly/logging/xlog.h>
@@ -39,8 +39,8 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
 
   // Create desired client for the host.
   folly::EventBase evb;
-  auto client =
-      CmdCreateClient::getInstance()->create<ClientType>(hostIp.str(), evb);
+
+  auto client = utils::createClient<ClientType>(hostIp.str(), evb);
 
   RetType result = impl().queryClient(client);
   impl().printOutput(result);
