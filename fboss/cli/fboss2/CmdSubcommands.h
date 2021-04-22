@@ -30,6 +30,10 @@ class CmdSubcommands {
 
   void init(CLI::App& app);
 
+  std::vector<std::string> getIpv6Addrs() {
+    return ipv6Addrs_;
+  }
+
  private:
   void initHelper(
       CLI::App& app,
@@ -39,6 +43,8 @@ class CmdSubcommands {
           utils::ObjectArgTypeId,
           std::string,
           CommandHandlerFn>>& listOfCommands);
+
+  std::vector<std::string> ipv6Addrs_;
 };
 
 } // namespace facebook::fboss

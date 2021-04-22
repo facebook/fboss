@@ -54,6 +54,10 @@ void CmdSubcommands::initHelper(
 
     auto* objectSubCmd = verbSubCmd->add_subcommand(object, helpMsg);
     objectSubCmd->callback(commandHandlerFn);
+
+    if (objectArgType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST) {
+      objectSubCmd->add_option("ipv6Addrs", ipv6Addrs_, "IPv6 addr(s)");
+    }
   }
 }
 
