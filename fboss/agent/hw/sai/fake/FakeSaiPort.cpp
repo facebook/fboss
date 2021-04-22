@@ -44,6 +44,8 @@ sai_status_t create_port_fn(
   bool disableTtlDecrement{false};
   sai_port_interface_type_t interface_type{SAI_PORT_INTERFACE_TYPE_NONE};
   bool txEnable{true};
+  std::optional<sai_object_id_t> ingressMacsecAcl;
+  std::optional<sai_object_id_t> egressMacsecAcl;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_PORT_ATTR_ADMIN_STATE:
@@ -126,6 +128,12 @@ sai_status_t create_port_fn(
         }
       } break;
 #endif
+      case SAI_PORT_ATTR_INGRESS_MACSEC_ACL:
+        ingressMacsecAcl = attr_list[i].value.oid;
+        break;
+      case SAI_PORT_ATTR_EGRESS_MACSEC_ACL:
+        egressMacsecAcl = attr_list[i].value.oid;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -167,6 +175,12 @@ sai_status_t create_port_fn(
   }
   if (egressSampleMirrorList.size()) {
     port.egressSampleMirrorList = egressSampleMirrorList;
+  }
+  if (ingressMacsecAcl.has_value()) {
+    port.ingressMacsecAcl = ingressMacsecAcl.value();
+  }
+  if (egressMacsecAcl.has_value()) {
+    port.egressMacsecAcl = egressMacsecAcl.value();
   }
   port.mtu = mtu;
   port.qosDscpToTcMap = qosDscpToTcMap;
@@ -307,6 +321,12 @@ sai_status_t set_port_attribute_fn(
       }
     } break;
 #endif
+    case SAI_PORT_ATTR_INGRESS_MACSEC_ACL:
+      port.ingressMacsecAcl = attr->value.oid;
+      break;
+    case SAI_PORT_ATTR_EGRESS_MACSEC_ACL:
+      port.egressMacsecAcl = attr->value.oid;
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -447,6 +467,12 @@ sai_status_t get_port_attribute_fn(
         attr[i].value.objlist.count = port.egressSampleMirrorList.size();
         break;
 #endif
+      case SAI_PORT_ATTR_INGRESS_MACSEC_ACL:
+        attr[i].value.oid = port.ingressMacsecAcl;
+        break;
+      case SAI_PORT_ATTR_EGRESS_MACSEC_ACL:
+        attr[i].value.oid = port.egressMacsecAcl;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }

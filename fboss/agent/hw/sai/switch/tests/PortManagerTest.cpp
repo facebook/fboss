@@ -102,12 +102,13 @@ class PortManagerTest : public ManagerTestBase {
           std::nullopt, // Ingress Mirror Session
           std::nullopt, // Egress Mirror Session
           std::nullopt, // Ingress Sample Packet
-          std::nullopt // Egress Sample Packet
+          std::nullopt, // Egress Sample Packet
 #if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
-          ,
           std::nullopt, // Ingress mirror sample session
-          std::nullopt // Egress mirror sample session
+          std::nullopt, // Egress mirror sample session
 #endif
+          std::nullopt, // Ingress macsec acl
+          std::nullopt // Egress macsec acl
     };
     return portApi.create<SaiPortTraits>(a, 0);
   }

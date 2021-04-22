@@ -148,10 +148,16 @@ struct SaiPortTraits {
         SaiAttribute<EnumType, SAI_PORT_ATTR_PRBS_POLYNOMIAL, sai_uint32_t>;
     using PrbsConfig =
         SaiAttribute<EnumType, SAI_PORT_ATTR_PRBS_CONFIG, sai_int32_t>;
-    using IngressMacSecAcl =
-        SaiAttribute<EnumType, SAI_PORT_ATTR_INGRESS_MACSEC_ACL, SaiObjectIdT>;
-    using EgressMacSecAcl =
-        SaiAttribute<EnumType, SAI_PORT_ATTR_EGRESS_MACSEC_ACL, SaiObjectIdT>;
+    using IngressMacSecAcl = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_INGRESS_MACSEC_ACL,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
+    using EgressMacSecAcl = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_EGRESS_MACSEC_ACL,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
   };
   using AdapterKey = PortSaiId;
   using AdapterHostKey = Attributes::HwLaneList;
@@ -174,13 +180,13 @@ struct SaiPortTraits {
       std::optional<Attributes::IngressMirrorSession>,
       std::optional<Attributes::EgressMirrorSession>,
       std::optional<Attributes::IngressSamplePacketEnable>,
-      std::optional<Attributes::EgressSamplePacketEnable>
+      std::optional<Attributes::EgressSamplePacketEnable>,
 #if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
-      ,
       std::optional<Attributes::IngressSampleMirrorSession>,
-      std::optional<Attributes::EgressSampleMirrorSession>
+      std::optional<Attributes::EgressSampleMirrorSession>,
 #endif
-      >;
+      std::optional<Attributes::IngressMacSecAcl>,
+      std::optional<Attributes::EgressMacSecAcl>>;
 
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
