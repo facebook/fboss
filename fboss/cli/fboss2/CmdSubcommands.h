@@ -32,6 +32,10 @@ class CmdSubcommands {
     return ipv6Addrs_;
   }
 
+  std::vector<std::string> getPorts() {
+    return ports_;
+  }
+
  private:
   void initHelper(
       CLI::App& app,
@@ -43,6 +47,7 @@ class CmdSubcommands {
           CommandHandlerFn>>& listOfCommands);
 
   std::vector<std::string> ipv6Addrs_;
+  std::vector<std::string> ports_;
 };
 
 } // namespace facebook::fboss
