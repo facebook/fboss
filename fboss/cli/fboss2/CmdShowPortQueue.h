@@ -76,9 +76,11 @@ class CmdShowPortQueue : public CmdHandler<CmdShowPortQueue, CmdShowPortQueueTra
             queue.get_id(),
             queue.get_name(),
             queue.get_mode(),
-            queue.weight_ref() ? *queue.weight_ref() : 0,
-            queue.reservedBytes_ref() ? *queue.reservedBytes_ref() : 0,
-            queue.scalingFactor_ref() ? *queue.scalingFactor_ref() : 0);
+            queue.weight_ref() ? std::to_string(*queue.weight_ref()) : "",
+            queue.reservedBytes_ref()
+                ? std::to_string(*queue.reservedBytes_ref())
+                : "",
+            queue.scalingFactor_ref() ? *queue.scalingFactor_ref() : "");
       }
 
       std::cout << "\n";
