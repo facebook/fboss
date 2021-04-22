@@ -16,16 +16,19 @@ namespace facebook::fboss {
 
 struct CmdShowPortTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
-  using ObjectArgType = std::monostate;
+      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
+  using ObjectArgType = std::vector<std::string>;
   using RetType = std::map<int32_t, facebook::fboss::PortInfoThrift>;
 };
 
 class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
  public:
+  using ObjectArgType = CmdShowPortTraits::ObjectArgType;
   using RetType = CmdShowPortTraits::RetType;
 
-  RetType queryClient(const folly::IPAddress& hostIp) {
+  RetType queryClient(
+      const folly::IPAddress& hostIp,
+      const ObjectArgType& queriedPorts) {
     RetType retVal;
     auto client = utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(
         hostIp.str());

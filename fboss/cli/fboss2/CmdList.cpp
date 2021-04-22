@@ -61,7 +61,7 @@ kListOfCommands() {
 
           {"show",
            "port",
-           utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
+           utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
            "Show Port information",
            commandHandler<CmdShowPort>},
 
