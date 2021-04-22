@@ -56,7 +56,7 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
   hasRun = true;
 
   utils::setLogLevel(CmdGlobalOptions::getInstance()->getLogLevel());
-  utils::logUsage(std::string(typeid(this).name()));
+  utils::logUsage(folly::demangle(typeid(this)).toStdString());
 
   if (!CmdGlobalOptions::getInstance()->isValid()) {
     exit(1);
