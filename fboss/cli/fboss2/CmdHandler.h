@@ -24,7 +24,6 @@ namespace facebook::fboss {
 template <typename CmdTypeT, typename CmdTypeTraits>
 class CmdHandler {
  public:
-  using ClientType = typename CmdTypeTraits::ClientType;
   using RetType = typename CmdTypeTraits::RetType;
 
   void run();
@@ -43,13 +42,11 @@ class CmdHandler {
     auto hostIp = utils::getIPFromHost(host);
     XLOG(DBG2) << "host: " << host << " ip: " << hostIp.str();
 
-    // Create desired client for the host.
-    auto client = utils::createClient<ClientType>(hostIp.str());
 
     std::string errStr;
     RetType result;
     try {
-      result = impl().queryClient(client);
+      result = impl().queryClient(hostIp);
     } catch (std::exception const& err) {
       errStr = folly::to<std::string>("Thrift call failed: '", err.what(), "'");
     }

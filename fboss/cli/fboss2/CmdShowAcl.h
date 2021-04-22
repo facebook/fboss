@@ -15,20 +15,19 @@
 namespace facebook::fboss {
 
 struct CmdShowAclTraits {
-  using ClientType = facebook::fboss::FbossCtrlAsyncClient;
   using RetType = std::vector<facebook::fboss::AclEntryThrift>;
 };
 
 class CmdShowAcl : public CmdHandler<CmdShowAcl, CmdShowAclTraits> {
  public:
-  using ClientType = CmdShowAclTraits::ClientType;
   using RetType = CmdShowAclTraits::RetType;
 
-  RetType queryClient(
-      const std::unique_ptr<ClientType>& client) {
+  RetType queryClient(const folly::IPAddress& hostIp) {
     RetType retVal;
-
+    auto client = utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(
+        hostIp.str());
     client->sync_getAclTable(retVal);
+
     return retVal;
   }
 

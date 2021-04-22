@@ -15,18 +15,17 @@
 namespace facebook::fboss {
 
 struct CmdShowArpTraits {
-  using ClientType = facebook::fboss::FbossCtrlAsyncClient;
   using RetType = std::vector<facebook::fboss::ArpEntryThrift>;
 };
 
 class CmdShowArp : public CmdHandler<CmdShowArp, CmdShowArpTraits> {
  public:
-  using ClientType = CmdShowArpTraits::ClientType;
   using RetType = CmdShowArpTraits::RetType;
 
-  RetType queryClient(
-      const std::unique_ptr<ClientType>& client) {
+  RetType queryClient(const folly::IPAddress& hostIp) {
     RetType retVal;
+    auto client = utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(
+        hostIp.str());
 
     client->sync_getArpTable(retVal);
     return retVal;

@@ -24,9 +24,10 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
   using ClientType = CmdShowLldpTraits::ClientType;
   using RetType = CmdShowLldpTraits::RetType;
 
-  RetType queryClient(
-      const std::unique_ptr<ClientType>& client) {
+  RetType queryClient(const folly::IPAddress& hostIp) {
     RetType retVal;
+    auto client = utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(
+        hostIp.str());
 
     client->sync_getLldpNeighbors(retVal);
     return retVal;

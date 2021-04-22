@@ -15,18 +15,17 @@
 namespace facebook::fboss {
 
 struct CmdShowNdpTraits {
-  using ClientType = facebook::fboss::FbossCtrlAsyncClient;
   using RetType = std::vector<facebook::fboss::NdpEntryThrift>;
 };
 
 class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
  public:
-  using ClientType = CmdShowNdpTraits::ClientType;
   using RetType = CmdShowNdpTraits::RetType;
 
-  RetType queryClient(
-      const std::unique_ptr<ClientType>& client) {
+  RetType queryClient(const folly::IPAddress& hostIp) {
     RetType retVal;
+    auto client = utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(
+        hostIp.str());
 
     client->sync_getNdpTable(retVal);
     return retVal;

@@ -17,18 +17,18 @@
 namespace facebook::fboss {
 
 struct CmdClearArpTraits {
-  using ClientType = facebook::fboss::FbossCtrlAsyncClient;
   using RetType = std::string;
 };
 
 class CmdClearArp : public CmdHandler<CmdClearArp, CmdClearArpTraits> {
  public:
-  using ClientType = CmdClearArpTraits::ClientType;
   using RetType = CmdClearArpTraits::RetType;
 
-  RetType queryClient(
-      const std::unique_ptr<ClientType>& client) {
+  RetType queryClient(const folly::IPAddress& hostIp) {
     RetType retVal;
+
+    auto client = utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(
+        hostIp.str());
 
     std::vector<facebook::fboss::ArpEntryThrift> arpEntries;
     client->sync_getArpTable(arpEntries);
