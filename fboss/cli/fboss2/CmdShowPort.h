@@ -65,14 +65,28 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
         "ProfileID");
     std::cout << std::string(90, '-') << std::endl;
 
+    // TODO Factor out colored printing to a separate class that could be used
+    // by multiple subcommands
+    // explore if fmt library offers simpler way to nest coloring with
+    // indented formatting.
     for (auto const&[portId, portInfo] : portId2PortInfoThrift) {
-      std::cout << fmt::format(fmtString,
-                               portInfo.get_portId(),
-                               portInfo.get_name(),
-                               getAdminStateStr(portInfo.get_adminState()),
-                               getOperStateStr(portInfo.get_operState()),
-                               getSpeedGbps(portInfo.get_speedMbps()),
-                               portInfo.get_profileID());
+      auto [operState, operColor] = getOperStateStr(portInfo.get_operState());
+
+      fmt::print(
+          "{:<7}{:<15}{:<15}",
+          portInfo.get_portId(),
+          portInfo.get_name(),
+          getAdminStateStr(portInfo.get_adminState()));
+
+      fmt::print(
+          fmt::emphasis::bold | fg(operColor),
+          "{0:<15}",
+          operState);
+
+      fmt::print(
+          "{:<10}{:<20}\n",
+          getSpeedGbps(portInfo.get_speedMbps()),
+          portInfo.get_profileID());
     }
   }
 
@@ -89,13 +103,15 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
         std::to_string(static_cast<int>(adminState)));
   }
 
-  std::string getOperStateStr(PortOperState operState) {
+  std::pair<std::string, fmt::color> getOperStateStr(
+      PortOperState operState) {
     switch (operState) {
       case PortOperState::DOWN:
-        return "Down";
+        return std::make_pair("Down", fmt::color::red);
       case PortOperState::UP:
-        return "Up";
+        return std::make_pair("Up", fmt::color::green);
     }
+
     throw std::runtime_error(
         "Unsupported LinkState: " +
         std::to_string(static_cast<int>(operState)));

@@ -13,11 +13,13 @@
 
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 
-#include "fboss/cli/fboss2/CmdUtils.h"
 #include "fboss/cli/fboss2/CmdClientUtils.h"
-#include <folly/logging/xlog.h>
-
 #include "fboss/cli/fboss2/CmdSubcommands.h"
+#include "fboss/cli/fboss2/CmdUtils.h"
+
+#include <fmt/color.h>
+#include <fmt/format.h>
+#include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
 
