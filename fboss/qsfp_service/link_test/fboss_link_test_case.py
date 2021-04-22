@@ -33,6 +33,7 @@ class FbosslinkTestCase(LinkTestCase):
         time.sleep(120)
 
         self.test_name = self._testMethodName.upper()
+        self.check_transceiver_presence()
         self.check_port_status()
 
     def tearDown(self) -> None:
@@ -144,10 +145,33 @@ class FbosslinkTestCase(LinkTestCase):
                 )
             except Exception:
                 self.logger.warning(
-                    "Transciver id to interface name mapping"
+                    "Transceiver id to interface name mapping"
                     f" failed for {interface_name} "
                 )
         return transceiver_map
+
+    @memoize_forever
+    def _get_all_interface_name_to_transceiver_id_mapping(
+        self,
+    ) -> Dict[str, str]:
+        """
+        Used to fetch the interface name to transceiver id mapping.
+        """
+        intf_map: DefaultDict = DefaultDict(str)
+        intf_port_id_map_result = self._get_all_interface_name_to_port_id_mapping()
+        with self._get_fboss_agent_client(self.hostname) as client:
+            port_status: Dict[int, PortStatus] = client.getPortStatus()
+        for interface_name, port_info in intf_port_id_map_result.items():
+            try:
+                intf_map[interface_name] = port_status[
+                    port_info.port_id
+                ].transceiverIdx.transceiverId
+            except Exception:
+                self.logger.warning(
+                    "Interface name to Transceiver Id mapping"
+                    f" failed for {interface_name} "
+                )
+        return intf_map
 
     def get_all_qsfp_dom_values(self) -> Dict[str, dict]:
         """
@@ -242,3 +266,24 @@ class FbosslinkTestCase(LinkTestCase):
                     ] = f"expected_flap_count = {oldCounts.get(port, 0)}, actual_flap_count = {newCounts.get(port, 0)}"
 
         self.assertFalse(bad_ports, msg=f"{bad_ports}")
+
+    @retryable(num_tries=50, sleep_time=5, debug=False)
+    def check_transceiver_presence(self) -> None:
+        """
+        Checks that all the ports that are expected to be up,
+        have transceivers that are marked present in TransceiverInfo
+        """
+        self.log.info("checking if transceivers are marked present correctly")
+        with self._get_qsfp_service_client(self.hostname) as qsfp_client:
+            qsfp_info = qsfp_client.getTransceiverInfo()
+        self.assertTrue(
+            qsfp_info,
+            msg="Empty TransceiverInfo received from qsfp_service client",
+        )
+        intf_id_mapping = self._get_all_interface_name_to_transceiver_id_mapping()
+        expected_up_ports = self._get_expected_up_ports()
+        for port in expected_up_ports:
+            self.assertTrue(
+                qsfp_info[intf_id_mapping[port]].present,
+                msg=f"Transceiver absent on {port}",
+            )

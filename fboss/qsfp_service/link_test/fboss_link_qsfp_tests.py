@@ -33,6 +33,8 @@ class FbossLinkQsfpTests(FbosslinkTestCase):
         # Restart qsfp service
         self.log.info("Restarting qsfp service in warmboot mode")
         self.warm_boot_qsfp_service()
+        # Confirm that all transceivers are marked present
+        self.check_transceiver_presence()
         # Confirm that the ports come back up
         self.check_port_status()
         # Make sure no flaps have occurred
@@ -56,6 +58,8 @@ class FbossLinkQsfpTests(FbosslinkTestCase):
         # Restart qsfp service
         self.log.info("Restarting qsfp service in coldboot mode")
         self.cold_boot_qsfp_service()
+        # Confirm that all transceivers are marked present
+        self.check_transceiver_presence()
         # Confirm that the ports come back up
         self.check_port_status()
         # Make sure flaps have occurred to ensure cold boot indeed happened
