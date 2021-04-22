@@ -301,6 +301,20 @@ sai_acl_ip_type_t SaiAclTableManager::cfgIpTypeToSaiIpType(
   throw FbossError("Unsupported IP Type option");
 }
 
+uint16_t SaiAclTableManager::cfgEtherTypeToSaiEtherType(
+    cfg::EtherType cfgEtherType) const {
+  switch (cfgEtherType) {
+    case cfg::EtherType::ANY:
+    case cfg::EtherType::IPv4:
+    case cfg::EtherType::IPv6:
+    case cfg::EtherType::MACSEC:
+    case cfg::EtherType::LLDP:
+      return static_cast<uint16_t>(cfgEtherType);
+  }
+  // should return in one of the cases
+  throw FbossError("Unsupported EtherType option");
+}
+
 sai_uint32_t SaiAclTableManager::cfgLookupClassToSaiMetaDataAndMaskHelper(
     cfg::AclLookupClass lookupClass,
     sai_uint32_t dstUserMetaDataRangeMin,
@@ -637,6 +651,12 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 
   std::optional<SaiAclEntryTraits::Attributes::FieldEthertype> fieldEtherType{
       std::nullopt};
+  if (addedAclEntry->getEtherType()) {
+    auto etherTypeData =
+        cfgEtherTypeToSaiEtherType(addedAclEntry->getEtherType().value());
+    fieldEtherType = SaiAclEntryTraits::Attributes::FieldEthertype{
+        AclEntryFieldU16(std::make_pair(etherTypeData, kEtherTypeMask))};
+  }
 
   std::optional<SaiAclEntryTraits::Attributes::FieldFdbDstUserMeta>
       fieldFdbDstUserMeta{std::nullopt};

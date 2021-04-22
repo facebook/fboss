@@ -86,6 +86,7 @@ class SaiAclTableManager {
   static auto constexpr kMaskDontCare = 0;
   static auto constexpr kIcmpTypeMask = 0xFF;
   static auto constexpr kIcmpCodeMask = 0xFF;
+  static auto constexpr kEtherTypeMask = 0xFFFF;
 
   static const folly::MacAddress& kMacMask() {
     static const folly::MacAddress macMask{"FF:FF:FF:FF:FF:FF"};
@@ -131,6 +132,7 @@ class SaiAclTableManager {
 
   sai_acl_ip_frag_t cfgIpFragToSaiIpFrag(cfg::IpFragMatch cfgType) const;
   sai_acl_ip_type_t cfgIpTypeToSaiIpType(cfg::IpType cfgIpType) const;
+  uint16_t cfgEtherTypeToSaiEtherType(cfg::EtherType cfgEtherType) const;
 
   std::pair<sai_uint32_t, sai_uint32_t> cfgLookupClassToSaiFdbMetaDataAndMask(
       cfg::AclLookupClass lookupClass) const;

@@ -118,6 +118,7 @@ struct AclEntryFields {
   std::optional<cfg::AclLookupClass> lookupClassRoute{std::nullopt};
   std::optional<cfg::PacketLookupResultType> packetLookupResult{std::nullopt};
 
+  std::optional<cfg::EtherType> etherType{std::nullopt};
   cfg::AclActionType actionType{cfg::AclActionType::PERMIT};
   std::optional<MatchAction> aclAction{std::nullopt};
 };
@@ -166,7 +167,8 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
         getFields()->lookupClassL2 == acl.getLookupClassL2() &&
         getFields()->lookupClassNeighbor == acl.getLookupClassNeighbor() &&
         getFields()->lookupClassRoute == acl.getLookupClassRoute() &&
-        getFields()->packetLookupResult == acl.getPacketLookupResult();
+        getFields()->packetLookupResult == acl.getPacketLookupResult() &&
+        getFields()->etherType == acl.getEtherType();
   }
 
   int getPriority() const {
@@ -289,6 +291,14 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
     writableFields()->ttl = ttl;
   }
 
+  std::optional<cfg::EtherType> getEtherType() const {
+    return getFields()->etherType;
+  }
+
+  void setEtherType(cfg::EtherType etherType) {
+    writableFields()->etherType = etherType;
+  }
+
   std::optional<folly::MacAddress> getDstMac() const {
     return getFields()->dstMac;
   }
@@ -350,7 +360,7 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
         getIcmpType() || getDscp() || getIpType() || getTtl() || getDstMac() ||
         getL4SrcPort() || getL4DstPort() || getLookupClassL2() ||
         getLookupClassNeighbor() || getLookupClassRoute() ||
-        getPacketLookupResult();
+        getPacketLookupResult() || getEtherType();
   }
 
  private:

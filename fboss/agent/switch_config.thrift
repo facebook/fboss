@@ -158,6 +158,14 @@ enum IpType {
   IP6 = 3,
 }
 
+enum EtherType {
+  ANY = 0x0000,
+  IPv4 = 0x0800,
+  IPv6 = 0x86DD,
+  MACSEC = 0x88E5,
+  LLDP = 0x88CC,
+}
+
 struct Ttl {
   1: i16 value
   2: i16 mask = 0xFF
@@ -414,6 +422,8 @@ struct AclEntry {
   27: optional AclLookupClass lookupClassRoute
 
   28: optional PacketLookupResultType packetLookupResult
+
+  29: optional EtherType etherType
 }
 
 /*
