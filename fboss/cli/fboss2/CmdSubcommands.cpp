@@ -42,24 +42,34 @@ void CmdSubcommands::initHelper(
         std::string,
         utils::ObjectArgTypeId,
         std::string,
+        std::string,
         CommandHandlerFn>>& listOfCommands) {
-  for (const auto& [verb, object, objectArgType, helpMsg, commandHandlerFn] :
-       listOfCommands) {
-    auto* verbSubCmd = app.get_subcommand_if(verb);
+  for (
+      const auto& [verb, object, objectArgType, subCmd, helpMsg, commandHandlerFn] :
+      listOfCommands) {
+    auto* verbCmd = app.get_subcommand_if(verb);
 
     // TODO explore moving this check to a compile time check
-    if (!verbSubCmd) {
+    if (!verbCmd) {
       throw std::runtime_error("unsupported verb " + verb);
     }
 
-    auto* objectSubCmd = verbSubCmd->add_subcommand(object, helpMsg);
-    objectSubCmd->callback(commandHandlerFn);
+    auto* objectCmd = verbCmd->get_subcommand_if(object);
+    if (!objectCmd) {
+      objectCmd = verbCmd->add_subcommand(object, helpMsg);
+      objectCmd->callback(commandHandlerFn);
 
-    if (objectArgType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST) {
-      objectSubCmd->add_option("ipv6Addrs", ipv6Addrs_, "IPv6 addr(s)");
-    } else if (
-        objectArgType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST) {
-      objectSubCmd->add_option("ports", ports_, "Port(s)");
+      if (objectArgType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST) {
+        objectCmd->add_option("ipv6Addrs", ipv6Addrs_, "IPv6 addr(s)");
+      } else if (
+          objectArgType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST) {
+        objectCmd->add_option("ports", ports_, "Port(s)");
+      }
+    }
+
+    if (!subCmd.empty()) {
+      auto* objectSubCmd = objectCmd->add_subcommand(subCmd, helpMsg);
+      objectSubCmd->callback(commandHandlerFn);
     }
   }
 }

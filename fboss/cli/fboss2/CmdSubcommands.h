@@ -44,6 +44,7 @@ class CmdSubcommands {
           std::string,
           utils::ObjectArgTypeId,
           std::string,
+          std::string,
           CommandHandlerFn>>& listOfCommands);
 
   std::vector<std::string> ipv6Addrs_;

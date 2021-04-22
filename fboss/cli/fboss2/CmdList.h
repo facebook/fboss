@@ -25,12 +25,14 @@ const std::vector<std::tuple<
     std::string,
     utils::ObjectArgTypeId,
     std::string,
+    std::string,
     CommandHandlerFn>>&
 kListOfCommands();
 const std::vector<std::tuple<
     std::string,
     std::string,
     utils::ObjectArgTypeId,
+    std::string,
     std::string,
     CommandHandlerFn>>&
 kListOfAdditionalCommands();

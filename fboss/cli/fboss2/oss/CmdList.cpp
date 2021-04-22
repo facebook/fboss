@@ -17,6 +17,7 @@ const std::vector<std::tuple<
     std::string,
     utils::ObjectArgTypeId,
     std::string,
+    std::string,
     CommandHandlerFn>>&
 kListOfAdditionalCommands() {
   static const std::vector<std::tuple<
@@ -24,6 +25,7 @@ kListOfAdditionalCommands() {
       std::string,
       utils::ObjectArgTypeId,
       std::string,
+    std::string,
       CommandHandlerFn>>
       listOfAdditionalCommands;
 
