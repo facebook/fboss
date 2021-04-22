@@ -25,8 +25,6 @@ static auto constexpr kConnTimeout = 1000;
 static auto constexpr kRecvTimeout = 45000;
 static auto constexpr kSendTimeout = 5000;
 
-static auto constexpr kFbossAgentPort = 5909;
-
 std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createAgentClient(
     const std::string& ip);
 
