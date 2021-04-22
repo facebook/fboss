@@ -53,6 +53,14 @@ class CmdGlobalOptions {
     return logUsage_;
   }
 
+  int getAgentThriftPort() {
+    return agentThriftPort_;
+  }
+
+  int getBgpThriftPort() {
+    return bgpThriftPort_;
+  }
+
  private:
   void initAdditional(CLI::App& app);
 
@@ -63,6 +71,8 @@ class CmdGlobalOptions {
   std::string sslPolicy_{"plaintext"};
   std::string fmt_{"tabular"};
   std::string logUsage_;
+  int agentThriftPort_{5909};
+  int bgpThriftPort_{6909};
 };
 
 } // namespace facebook::fboss
