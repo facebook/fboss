@@ -31,6 +31,7 @@ void CmdGlobalOptions::init(CLI::App& app) {
   app.add_option("--file", file_, "filename, queries every host in the file");
   app.add_option("--fmt", fmt_, "output format (tabular, JSON)");
   app.add_option("--agent-port", agentThriftPort_, "Agent thrift port to connect to");
+  app.add_option("--color", color_, "color (no, yes => yes for tty and no for pipe)");
 
   initAdditional(app);
 }

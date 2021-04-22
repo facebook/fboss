@@ -76,6 +76,10 @@ class CmdGlobalOptions {
     return bgpThriftPort_;
   }
 
+  std::string getColor() {
+    return color_;
+  }
+
  private:
   void initAdditional(CLI::App& app);
 
@@ -88,6 +92,7 @@ class CmdGlobalOptions {
   std::string logUsage_;
   int agentThriftPort_{5909};
   int bgpThriftPort_{6909};
+  std::string color_{"yes"};
 };
 
 } // namespace facebook::fboss
