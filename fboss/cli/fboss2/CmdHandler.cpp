@@ -58,14 +58,19 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
   utils::setLogLevel(CmdGlobalOptions::getInstance()->getLogLevel());
   utils::logUsage(std::string(typeid(this).name()));
 
-  // TODO with this logic, --file overrides --smc and --smc overrides --host.
-  // Use CLI11 validation to fail specifying --file, --smc, --host together.
-  auto hosts = CmdGlobalOptions::getInstance()->getHosts();
-  if (!CmdGlobalOptions::getInstance()->getSmc().empty()) {
-    hosts = utils::getHostsInSmcTier(CmdGlobalOptions::getInstance()->getSmc());
+  if (!CmdGlobalOptions::getInstance()->isValid()) {
+    exit(1);
   }
-  if (!CmdGlobalOptions::getInstance()->getFile().empty()) {
+
+  std::vector<std::string> hosts;
+  if (!CmdGlobalOptions::getInstance()->getHosts().empty()) {
+    hosts = CmdGlobalOptions::getInstance()->getHosts();
+  } else if (!CmdGlobalOptions::getInstance()->getSmc().empty()) {
+    hosts = utils::getHostsInSmcTier(CmdGlobalOptions::getInstance()->getSmc());
+  } else if (!CmdGlobalOptions::getInstance()->getFile().empty()) {
     hosts = utils::getHostsFromFile(CmdGlobalOptions::getInstance()->getFile());
+  } else { // if host is not specified, default to localhost
+    hosts = {"localhost"};
   }
 
   std::vector<std::future<std::tuple<std::string, RetType, std::string>>>

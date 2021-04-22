@@ -25,6 +25,21 @@ class CmdGlobalOptions {
 
   void init(CLI::App& app);
 
+  bool isValid() {
+    bool hostsSet = !getHosts().empty();
+    bool smcSet = !getSmc().empty();
+    bool fileSet = !getFile().empty();
+
+    if ((hostsSet && (smcSet || fileSet)) ||
+        (smcSet && (hostsSet || fileSet)) ||
+        (fileSet && (hostsSet || smcSet))) {
+      std::cerr << "only one of host(s), smc or file can be set\n";
+      return false;
+    }
+
+    return true;
+  }
+
   std::vector<std::string> getHosts() {
     return hosts_;
   }
@@ -64,7 +79,7 @@ class CmdGlobalOptions {
  private:
   void initAdditional(CLI::App& app);
 
-  std::vector<std::string> hosts_{"localhost"};
+  std::vector<std::string> hosts_;
   std::string smc_;
   std::string file_;
   std::string logLevel_{"DBG0"};
