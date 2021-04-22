@@ -40,8 +40,21 @@ template void CmdHandler<CmdShowPortQueue, CmdShowPortQueueTraits>::run();
 template void CmdHandler<CmdClearArp, CmdClearArpTraits>::run();
 template void CmdHandler<CmdClearNdp, CmdClearNdpTraits>::run();
 
+static bool hasRun = false;
+
 template <typename CmdTypeT, typename CmdTypeTraits>
 void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
+  // Parsing library invokes every chained command handler, but we only need
+  // the 'leaf' command handler to be invoked. Thus, after the first (leaf)
+  // command handler is invoked, simply return.
+  // TODO: explore if the parsing library provides a better way to implement
+  // this.
+  if (hasRun) {
+    return;
+  }
+
+  hasRun = true;
+
   utils::setLogLevel(CmdGlobalOptions::getInstance()->getLogLevel());
   utils::logUsage(std::string(typeid(this).name()));
 
