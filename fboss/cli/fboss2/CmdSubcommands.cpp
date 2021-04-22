@@ -38,11 +38,11 @@ namespace facebook::fboss {
 void CmdSubcommands::initHelper(
     CLI::App& app,
     const std::vector<std::tuple<
-        std::string,
-        std::string,
+        CmdVerb,
+        CmdObject,
         utils::ObjectArgTypeId,
-        std::string,
-        std::string,
+        CmdSubCmd,
+        CmdHelpMsg,
         CommandHandlerFn>>& listOfCommands) {
   for (
       const auto& [verb, object, objectArgType, subCmd, helpMsg, commandHandlerFn] :

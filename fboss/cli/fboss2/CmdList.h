@@ -20,6 +20,11 @@ namespace facebook::fboss {
 
 using CommandHandlerFn = std::function<void ()>;
 
+using CmdVerb = std::string;
+using CmdObject = std::string;
+using CmdSubCmd = std::string;
+using CmdHelpMsg = std::string;
+
 const std::vector<std::tuple<
     std::string,
     std::string,

@@ -40,11 +40,11 @@ class CmdSubcommands {
   void initHelper(
       CLI::App& app,
       const std::vector<std::tuple<
-          std::string,
-          std::string,
+          CmdVerb,
+          CmdObject,
           utils::ObjectArgTypeId,
-          std::string,
-          std::string,
+          CmdSubCmd,
+          CmdHelpMsg,
           CommandHandlerFn>>& listOfCommands);
 
   std::vector<std::string> ipv6Addrs_;

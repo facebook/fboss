@@ -23,19 +23,19 @@
 namespace facebook::fboss {
 
 const std::vector<std::tuple<
-    std::string,
-    std::string,
+    CmdVerb,
+    CmdObject,
     utils::ObjectArgTypeId,
-    std::string,
-    std::string,
+    CmdSubCmd,
+    CmdHelpMsg,
     CommandHandlerFn>>&
 kListOfCommands() {
   static const std::vector<std::tuple<
-      std::string,
-      std::string,
+      CmdVerb,
+      CmdObject,
       utils::ObjectArgTypeId,
-      std::string,
-      std::string,
+      CmdSubCmd,
+      CmdHelpMsg,
       CommandHandlerFn>>
       listOfCommands = {
           {"show",
