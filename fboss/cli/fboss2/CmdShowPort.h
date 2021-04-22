@@ -12,6 +12,8 @@
 
 #include "fboss/cli/fboss2/CmdHandler.h"
 
+#include <unistd.h>
+
 namespace facebook::fboss {
 
 struct CmdShowPortTraits {
@@ -78,10 +80,16 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
           portInfo.get_name(),
           getAdminStateStr(portInfo.get_adminState()));
 
-      fmt::print(
-          fmt::emphasis::bold | fg(operColor),
-          "{0:<15}",
-          operState);
+      if (isatty(fileno(stdout))) {
+          fmt::print(
+              fmt::emphasis::bold | fg(operColor),
+              "{0:<15}",
+              operState);
+        } else {
+          fmt::print(
+              "{0:<15}",
+              operState);
+        }
 
       fmt::print(
           "{:<10}{:<20}\n",
