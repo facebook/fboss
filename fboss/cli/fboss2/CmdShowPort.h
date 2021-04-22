@@ -29,11 +29,26 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
   RetType queryClient(
       const folly::IPAddress& hostIp,
       const ObjectArgType& queriedPorts) {
-    RetType retVal;
+    RetType portEntries;
+
     auto client = utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(
         hostIp.str());
 
-    client->sync_getAllPortInfo(retVal);
+    client->sync_getAllPortInfo(portEntries);
+
+    if (queriedPorts.size() == 0) {
+      return portEntries;
+    }
+
+    RetType retVal;
+    for (auto const&[portId, portInfo] : portEntries) {
+      for (auto const& queriedPort : queriedPorts) {
+        if (portInfo.get_name() == queriedPort) {
+          retVal.insert(std::make_pair(portId, portInfo));
+        }
+      }
+    }
+
     return retVal;
   }
 
