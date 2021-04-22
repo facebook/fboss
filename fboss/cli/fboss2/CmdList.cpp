@@ -17,6 +17,7 @@
 #include "fboss/cli/fboss2/CmdShowArp.h"
 #include "fboss/cli/fboss2/CmdShowLldp.h"
 #include "fboss/cli/fboss2/CmdShowNdp.h"
+#include "fboss/cli/fboss2/CmdShowPort.h"
 
 namespace facebook::fboss {
 
@@ -57,6 +58,12 @@ kListOfCommands() {
            utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST,
            "Show NDP information",
            commandHandler<CmdShowNdp>},
+
+          {"show",
+           "port",
+           utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
+           "Show Port information",
+           commandHandler<CmdShowPort>},
 
           {"clear",
            "arp",

@@ -18,6 +18,7 @@
 #include "fboss/cli/fboss2/CmdShowArp.h"
 #include "fboss/cli/fboss2/CmdShowLldp.h"
 #include "fboss/cli/fboss2/CmdShowNdp.h"
+#include "fboss/cli/fboss2/CmdShowPort.h"
 #include "fboss/cli/fboss2/CmdUtils.h"
 
 #include <folly/Singleton.h>
@@ -32,6 +33,7 @@ template void CmdHandler<CmdShowAcl, CmdShowAclTraits>::run();
 template void CmdHandler<CmdShowArp, CmdShowArpTraits>::run();
 template void CmdHandler<CmdShowLldp, CmdShowLldpTraits>::run();
 template void CmdHandler<CmdShowNdp, CmdShowNdpTraits>::run();
+template void CmdHandler<CmdShowPort, CmdShowPortTraits>::run();
 
 template void CmdHandler<CmdClearArp, CmdClearArpTraits>::run();
 template void CmdHandler<CmdClearNdp, CmdClearNdpTraits>::run();
