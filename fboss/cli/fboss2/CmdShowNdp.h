@@ -29,11 +29,28 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
   RetType queryClient(
       const folly::IPAddress& hostIp,
       const ObjectArgType& queriedNdpEntries) {
-    RetType ndpEntries, retVal;
+    RetType ndpEntries;
     auto client = utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(
         hostIp.str());
 
-    client->sync_getNdpTable(retVal);
+    client->sync_getNdpTable(ndpEntries);
+
+    if (queriedNdpEntries.size() == 0) {
+      return ndpEntries;
+    }
+
+    RetType retVal;
+    for (auto const& ndpEntry : ndpEntries) {
+      auto ip = folly::IPAddress::fromBinary(
+          folly::ByteRange(folly::StringPiece(ndpEntry.get_ip().get_addr())));
+
+      for (auto const& queriedNdpEntry : queriedNdpEntries) {
+        if (ip.str() == queriedNdpEntry) {
+          retVal.push_back(ndpEntry);
+        }
+      }
+    }
+
     return retVal;
   }
 
