@@ -18,13 +18,11 @@ struct CmdShowLldpTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;
-  using ClientType = facebook::fboss::FbossCtrlAsyncClient;
   using RetType = std::vector<facebook::fboss::LinkNeighborThrift>;
 };
 
 class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
  public:
-  using ClientType = CmdShowLldpTraits::ClientType;
   using RetType = CmdShowLldpTraits::RetType;
 
   RetType queryClient(const folly::IPAddress& hostIp) {

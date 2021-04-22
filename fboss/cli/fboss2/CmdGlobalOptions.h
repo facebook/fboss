@@ -11,8 +11,6 @@
 
 #include "fboss/cli/fboss2/CLI11/CLI.hpp"
 
-#include <memory>
-
 namespace facebook::fboss {
 
 class CmdGlobalOptions {

@@ -19,8 +19,6 @@
 
 #include "fboss/cli/fboss2/CmdSubcommands.h"
 
-#include <memory>
-
 namespace facebook::fboss {
 
 template <typename CmdTypeT, typename CmdTypeTraits>

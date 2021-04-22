@@ -14,8 +14,6 @@
 #include "fboss/cli/fboss2/CmdList.h"
 #include "fboss/cli/fboss2/CmdUtils.h"
 
-#include <memory>
-
 namespace facebook::fboss {
 
 class CmdSubcommands {
