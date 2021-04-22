@@ -27,6 +27,7 @@ class MatchAction {
    */
   using SendToQueue = std::pair<cfg::QueueMatchAction, bool>;
   using SetDscp = cfg::SetDscpMatchAction;
+  using MacsecFlow = cfg::MacsecFlowAction;
 
   MatchAction() {}
 
@@ -36,7 +37,8 @@ class MatchAction {
         setDscp_(action.setDscp_),
         ingressMirror_(action.ingressMirror_),
         egressMirror_(action.egressMirror_),
-        toCpuAction_(action.toCpuAction_) {}
+        toCpuAction_(action.toCpuAction_),
+        macsecFlow_(action.macsecFlow_) {}
 
   std::optional<SendToQueue> getSendToQueue() const {
     return sendToQueue_;
@@ -64,6 +66,14 @@ class MatchAction {
 
   void setSetDscp(const SetDscp& setDscp) {
     setDscp_ = setDscp;
+  }
+
+  std::optional<MacsecFlow> getMacsecFlow() const {
+    return macsecFlow_;
+  }
+
+  void setMacsecFlow(const MacsecFlow& macsecFlow) {
+    macsecFlow_ = macsecFlow;
   }
 
   std::optional<std::string> getIngressMirror() const {
@@ -99,20 +109,41 @@ class MatchAction {
   }
 
   bool operator==(const MatchAction& action) const {
-    return sendToQueue_ == action.sendToQueue_ &&
-        ingressMirror_ == action.ingressMirror_ &&
-        egressMirror_ == action.egressMirror_ &&
-        trafficCounter_ == action.trafficCounter_ &&
-        setDscp_ == action.setDscp_ && toCpuAction_ == action.toCpuAction_;
+    return std::tie(
+               sendToQueue_,
+               ingressMirror_,
+               egressMirror_,
+               trafficCounter_,
+               setDscp_,
+               toCpuAction_,
+               macsecFlow_) ==
+        std::tie(
+               action.sendToQueue_,
+               action.ingressMirror_,
+               action.egressMirror_,
+               action.trafficCounter_,
+               action.setDscp_,
+               action.toCpuAction_,
+               action.macsecFlow_);
   }
 
   MatchAction& operator=(const MatchAction& action) {
-    sendToQueue_ = action.sendToQueue_;
-    trafficCounter_ = action.trafficCounter_;
-    setDscp_ = action.setDscp_;
-    ingressMirror_ = action.ingressMirror_;
-    egressMirror_ = action.egressMirror_;
-    toCpuAction_ = action.toCpuAction_;
+    std::tie(
+        sendToQueue_,
+        ingressMirror_,
+        egressMirror_,
+        trafficCounter_,
+        setDscp_,
+        toCpuAction_,
+        macsecFlow_) =
+        std::tie(
+            action.sendToQueue_,
+            action.ingressMirror_,
+            action.egressMirror_,
+            action.trafficCounter_,
+            action.setDscp_,
+            action.toCpuAction_,
+            action.macsecFlow_);
     return *this;
   }
 
@@ -126,6 +157,7 @@ class MatchAction {
   std::optional<std::string> ingressMirror_{std::nullopt};
   std::optional<std::string> egressMirror_{std::nullopt};
   std::optional<cfg::ToCpuAction> toCpuAction_{std::nullopt};
+  std::optional<MacsecFlow> macsecFlow_{std::nullopt};
 };
 
 } // namespace facebook::fboss

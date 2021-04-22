@@ -694,6 +694,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   std::optional<std::string> ingressMirror{std::nullopt};
   std::optional<std::string> egressMirror{std::nullopt};
 
+  std::optional<SaiAclEntryTraits::Attributes::ActionMacsecFlow>
+      aclActionMacsecFlow{std::nullopt};
+
   auto action = addedAclEntry->getAclAction();
   if (action) {
     if (action.value().getTrafficCounter()) {
@@ -788,10 +791,14 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclActionSetDSCP = SaiAclEntryTraits::Attributes::ActionSetDSCP{
           AclEntryActionU8(dscpValue)};
     }
-  }
 
-  std::optional<SaiAclEntryTraits::Attributes::ActionMacsecFlow>
-      aclActionMacsecFlow{std::nullopt};
+    if (action.value().getMacsecFlow()) {
+      sai_object_id_t flowId = static_cast<sai_object_id_t>(
+          *action.value().getMacsecFlow().value().flowId_ref());
+      aclActionMacsecFlow = SaiAclEntryTraits::Attributes::ActionMacsecFlow{
+          AclEntryActionSaiObjectIdT(flowId)};
+    }
+  }
 
   // TODO(skhare) At least one field and one action must be specified.
   // Once we add support for all fields and actions, throw error if that is not

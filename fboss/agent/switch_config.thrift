@@ -459,6 +459,10 @@ enum ToCpuAction {
   TRAP = 1,
 }
 
+struct MacsecFlowAction {
+  1: u64 flowId
+}
+
 struct MatchAction {
   1: optional QueueMatchAction sendToQueue
   2: optional PacketCounterMatchAction packetCounter_DEPRECATED
@@ -467,6 +471,7 @@ struct MatchAction {
   5: optional string egressMirror
   6: optional string counter
   7: optional ToCpuAction toCpuAction
+  8: optional MacsecFlowAction macsecFlow
 }
 
 struct MatchToAction {
