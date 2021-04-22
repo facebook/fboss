@@ -17,6 +17,8 @@
 #include "fboss/cli/fboss2/CmdClientUtils.h"
 #include <folly/logging/xlog.h>
 
+#include "fboss/cli/fboss2/CmdSubcommands.h"
+
 #include <memory>
 
 namespace facebook::fboss {
@@ -24,6 +26,9 @@ namespace facebook::fboss {
 template <typename CmdTypeT, typename CmdTypeTraits>
 class CmdHandler {
  public:
+  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
+      CmdTypeTraits::ObjectArgTypeId;
+  using ObjectArgType = typename CmdTypeTraits::ObjectArgType;
   using RetType = typename CmdTypeTraits::RetType;
 
   void run();
@@ -36,17 +41,30 @@ class CmdHandler {
     return static_cast<const CmdTypeT&>(*this);
   }
 
+  RetType queryClientHelper(const folly::IPAddress& hostIp) {
+    RetType result;
+    if constexpr (
+        ObjectArgTypeId ==
+        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST) {
+      result = impl().queryClient(
+          hostIp, CmdSubcommands::getInstance()->getIpv6Addrs());
+    } else {
+      result = impl().queryClient(hostIp);
+    }
+
+     return result;
+  }
+
   std::tuple<std::string, RetType, std::string> asyncHandler(
       const std::string& host) {
     // Derive IP of the supplied host.
     auto hostIp = utils::getIPFromHost(host);
     XLOG(DBG2) << "host: " << host << " ip: " << hostIp.str();
 
-
     std::string errStr;
     RetType result;
     try {
-      result = impl().queryClient(hostIp);
+      result = queryClientHelper(hostIp);
     } catch (std::exception const& err) {
       errStr = folly::to<std::string>("Thrift call failed: '", err.what(), "'");
     }

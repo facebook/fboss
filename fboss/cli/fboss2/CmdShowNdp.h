@@ -23,10 +23,13 @@ struct CmdShowNdpTraits {
 
 class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
  public:
+  using ObjectArgType = CmdShowNdpTraits::ObjectArgType;
   using RetType = CmdShowNdpTraits::RetType;
 
-  RetType queryClient(const folly::IPAddress& hostIp) {
-    RetType retVal;
+  RetType queryClient(
+      const folly::IPAddress& hostIp,
+      const ObjectArgType& queriedNdpEntries) {
+    RetType ndpEntries, retVal;
     auto client = utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(
         hostIp.str());
 
