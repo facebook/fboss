@@ -20,19 +20,55 @@
 
 namespace facebook::fboss {
 
-const std::vector<
-    std::tuple<std::string, std::string, std::string, CommandHandlerFn>>&
+const std::vector<std::tuple<
+    std::string,
+    std::string,
+    utils::ObjectArgTypeId,
+    std::string,
+    CommandHandlerFn>>&
 kListOfCommands() {
-  static const std::vector<
-      std::tuple<std::string, std::string, std::string, CommandHandlerFn>>
+  static const std::vector<std::tuple<
+      std::string,
+      std::string,
+      utils::ObjectArgTypeId,
+      std::string,
+      CommandHandlerFn>>
       listOfCommands = {
-          {"show", "acl", "Show ACL information", commandHandler<CmdShowAcl>},
-          {"show", "arp", "Show ARP information", commandHandler<CmdShowArp>},
-          {"show", "lldp", "Show LLDPinformation", commandHandler<CmdShowLldp>},
-          {"show", "ndp", "Show NDP information", commandHandler<CmdShowNdp>},
+          {"show",
+           "acl",
+           utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
+           "Show ACL information",
+           commandHandler<CmdShowAcl>},
 
-          {"clear", "arp", "Clear ARP information", commandHandler<CmdClearArp>},
-          {"clear", "ndp", "Clear NDP information", commandHandler<CmdClearNdp>},
+          {"show",
+           "arp",
+           utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
+           "Show ARP information",
+           commandHandler<CmdShowArp>},
+
+          {"show",
+           "lldp",
+           utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
+           "Show LLDPinformation",
+           commandHandler<CmdShowLldp>},
+
+          {"show",
+           "ndp",
+           utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST,
+           "Show NDP information",
+           commandHandler<CmdShowNdp>},
+
+          {"clear",
+           "arp",
+           utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
+           "Clear ARP information",
+           commandHandler<CmdClearArp>},
+
+          {"clear",
+           "ndp",
+           utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
+           "Clear NDP information",
+           commandHandler<CmdClearNdp>},
       };
 
   return listOfCommands;

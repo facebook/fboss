@@ -10,7 +10,9 @@
 #pragma once
 
 #include "fboss/cli/fboss2/CLI11/CLI.hpp"
+
 #include "fboss/cli/fboss2/CmdList.h"
+#include "fboss/cli/fboss2/CmdUtils.h"
 
 #include <memory>
 
@@ -31,9 +33,12 @@ class CmdSubcommands {
  private:
   void initHelper(
       CLI::App& app,
-      const std::vector<
-          std::tuple<std::string, std::string, std::string, CommandHandlerFn>>&
-          listOfCommands);
+      const std::vector<std::tuple<
+          std::string,
+          std::string,
+          utils::ObjectArgTypeId,
+          std::string,
+          CommandHandlerFn>>& listOfCommands);
 };
 
 } // namespace facebook::fboss

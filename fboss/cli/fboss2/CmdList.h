@@ -7,21 +7,32 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#pragma once
 
 #include <functional>
 #include <string>
 #include <tuple>
 #include <vector>
 
+#include "fboss/cli/fboss2/CmdUtils.h"
+
 namespace facebook::fboss {
 
 using CommandHandlerFn = std::function<void ()>;
 
-const std::vector<
-    std::tuple<std::string, std::string, std::string, CommandHandlerFn>>&
+const std::vector<std::tuple<
+    std::string,
+    std::string,
+    utils::ObjectArgTypeId,
+    std::string,
+    CommandHandlerFn>>&
 kListOfCommands();
-const std::vector<
-    std::tuple<std::string, std::string, std::string, CommandHandlerFn>>&
+const std::vector<std::tuple<
+    std::string,
+    std::string,
+    utils::ObjectArgTypeId,
+    std::string,
+    CommandHandlerFn>>&
 kListOfAdditionalCommands();
 
 template <typename T>

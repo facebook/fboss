@@ -37,10 +37,14 @@ namespace facebook::fboss {
 
 void CmdSubcommands::initHelper(
     CLI::App& app,
-    const std::vector<
-        std::tuple<std::string, std::string, std::string, CommandHandlerFn>>&
-        listOfCommands) {
-  for (const auto& [verb, object, helpMsg, commandHandlerFn] : listOfCommands) {
+    const std::vector<std::tuple<
+        std::string,
+        std::string,
+        utils::ObjectArgTypeId,
+        std::string,
+        CommandHandlerFn>>& listOfCommands) {
+  for (const auto& [verb, object, objectArgType, helpMsg, commandHandlerFn] :
+       listOfCommands) {
     auto* verbSubCmd = app.get_subcommand_if(verb);
 
     // TODO explore moving this check to a compile time check

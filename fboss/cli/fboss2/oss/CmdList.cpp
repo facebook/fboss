@@ -12,11 +12,19 @@
 
 namespace facebook::fboss {
 
-const std::vector<
-    std::tuple<std::string, std::string, std::string, CommandHandlerFn>>&
+const std::vector<std::tuple<
+    std::string,
+    std::string,
+    utils::ObjectArgTypeId,
+    std::string,
+    CommandHandlerFn>>&
 kListOfAdditionalCommands() {
-  static const std::vector<
-      std::tuple<std::string, std::string, std::string, CommandHandlerFn>>
+  static const std::vector<std::tuple<
+      std::string,
+      std::string,
+      utils::ObjectArgTypeId,
+      std::string,
+      CommandHandlerFn>>
       listOfAdditionalCommands;
 
   return listOfAdditionalCommands;
