@@ -48,15 +48,43 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
     std::cout << std::string(90, '-') << std::endl;
 
     for (auto const&[portId, portInfo] : portId2PortInfoThrift) {
-      std::cout << fmt::format(
-          fmtString,
-          portInfo.get_portId(),
-          portInfo.get_name(),
-          portInfo.get_adminState(),
-          portInfo.get_operState(),
-          portInfo.get_speedMbps(),
-          portInfo.get_profileID());
+      std::cout << fmt::format(fmtString,
+                               portInfo.get_portId(),
+                               portInfo.get_name(),
+                               getAdminStateStr(portInfo.get_adminState()),
+                               getOperStateStr(portInfo.get_operState()),
+                               getSpeedGbps(portInfo.get_speedMbps()),
+                               portInfo.get_profileID());
     }
+  }
+
+  std::string getAdminStateStr(PortAdminState adminState) {
+    switch (adminState) {
+      case PortAdminState::DISABLED:
+        return "Disabled";
+      case PortAdminState::ENABLED:
+        return "Enabled";
+    }
+
+    throw std::runtime_error(
+        "Unsupported AdminState: " +
+        std::to_string(static_cast<int>(adminState)));
+  }
+
+  std::string getOperStateStr(PortOperState operState) {
+    switch (operState) {
+      case PortOperState::DOWN:
+        return "Down";
+      case PortOperState::UP:
+        return "Up";
+    }
+    throw std::runtime_error(
+        "Unsupported LinkState: " +
+        std::to_string(static_cast<int>(operState)));
+  }
+
+  std::string getSpeedGbps(int64_t speedMbps) {
+    return std::to_string(speedMbps / 1000) + "G";
   }
 };
 
