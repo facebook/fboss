@@ -34,8 +34,29 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
     return retVal;
   }
 
-  void printOutput(const RetType& portInfoThrift) {
-    // TODO
+  void printOutput(const RetType& portId2PortInfoThrift) {
+    std::string fmtString = "{:<7}{:<15}{:<15}{:<15}{:<10}{:<20}\n";
+
+    std::cout << fmt::format(
+        fmtString,
+        "ID",
+        "Name",
+        "AdminState",
+        "LinkState",
+        "Speed",
+        "ProfileID");
+    std::cout << std::string(90, '-') << std::endl;
+
+    for (auto const&[portId, portInfo] : portId2PortInfoThrift) {
+      std::cout << fmt::format(
+          fmtString,
+          portInfo.get_portId(),
+          portInfo.get_name(),
+          portInfo.get_adminState(),
+          portInfo.get_operState(),
+          portInfo.get_speedMbps(),
+          portInfo.get_profileID());
+    }
   }
 };
 
