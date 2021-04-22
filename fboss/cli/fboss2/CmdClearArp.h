@@ -17,6 +17,9 @@
 namespace facebook::fboss {
 
 struct CmdClearArpTraits {
+  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
+      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
+  using ObjectArgType = std::monostate;
   using RetType = std::string;
 };
 

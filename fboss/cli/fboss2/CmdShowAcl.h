@@ -15,6 +15,9 @@
 namespace facebook::fboss {
 
 struct CmdShowAclTraits {
+  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
+      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
+  using ObjectArgType = std::monostate;
   using RetType = std::vector<facebook::fboss::AclEntryThrift>;
 };
 

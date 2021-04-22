@@ -15,6 +15,9 @@
 namespace facebook::fboss {
 
 struct CmdShowNdpTraits {
+  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
+      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST;
+  using ObjectArgType = std::vector<std::string>;
   using RetType = std::vector<facebook::fboss::NdpEntryThrift>;
 };
 
