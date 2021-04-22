@@ -790,6 +790,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
     }
   }
 
+  std::optional<SaiAclEntryTraits::Attributes::ActionMacsecFlow>
+      aclActionMacsecFlow{std::nullopt};
+
   // TODO(skhare) At least one field and one action must be specified.
   // Once we add support for all fields and actions, throw error if that is not
   // honored.
@@ -808,7 +811,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
         (aclActionPacketAction.has_value() || aclActionCounter.has_value() ||
          aclActionSetTC.has_value() || aclActionSetDSCP.has_value() ||
          aclActionMirrorIngress.has_value() ||
-         aclActionMirrorEgress.has_value()))) {
+         aclActionMirrorEgress.has_value() ||
+         aclActionMacsecFlow.has_value()))) {
     XLOG(DBG)
         << "Unsupported field/action for aclEntry: addedAclEntry->getID())";
     return AclEntrySaiId{0};
@@ -848,6 +852,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclActionSetDSCP,
       aclActionMirrorIngress,
       aclActionMirrorEgress,
+      aclActionMacsecFlow,
   };
 
   auto saiAclEntry = aclEntryStore.setObject(adapterHostKey, attributes);

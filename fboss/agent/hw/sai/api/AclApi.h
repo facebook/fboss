@@ -368,6 +368,11 @@ struct SaiAclEntryTraits {
         EnumType,
         SAI_ACL_ENTRY_ATTR_ACTION_MIRROR_EGRESS,
         AclEntryActionSaiObjectIdList>;
+    using ActionMacsecFlow = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_ACTION_MACSEC_FLOW,
+        AclEntryActionSaiObjectIdT,
+        SaiAclEntryActionSaiObjectDefault>;
   };
 
   using AdapterKey = AclEntrySaiId;
@@ -404,7 +409,8 @@ struct SaiAclEntryTraits {
       std::optional<Attributes::ActionSetTC>,
       std::optional<Attributes::ActionSetDSCP>,
       std::optional<Attributes::ActionMirrorIngress>,
-      std::optional<Attributes::ActionMirrorEgress>>;
+      std::optional<Attributes::ActionMirrorEgress>,
+      std::optional<Attributes::ActionMacsecFlow>>;
 };
 
 SAI_ATTRIBUTE_NAME(AclEntry, TableId);
@@ -438,6 +444,7 @@ SAI_ATTRIBUTE_NAME(AclEntry, ActionSetTC);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionSetDSCP);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionMirrorIngress);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionMirrorEgress);
+SAI_ATTRIBUTE_NAME(AclEntry, ActionMacsecFlow);
 
 struct SaiAclCounterTraits {
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_ACL_COUNTER;

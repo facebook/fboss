@@ -271,6 +271,13 @@ class AclApiTest : public ::testing::Test {
     return 20;
   }
 
+  sai_object_id_t kMacsecFlow() const {
+    return 44;
+  }
+  sai_object_id_t kMacsecFlow2() const {
+    return 45;
+  }
+
   const std::vector<sai_object_id_t>& kMirrorIngress() const {
     static const std::vector<sai_object_id_t> mirrorIngress{10, 11};
 
@@ -302,7 +309,8 @@ class AclApiTest : public ::testing::Test {
         SAI_ACL_ACTION_TYPE_MIRROR_INGRESS,
         SAI_ACL_ACTION_TYPE_MIRROR_EGRESS,
         SAI_ACL_ACTION_TYPE_SET_TC,
-        SAI_ACL_ACTION_TYPE_SET_DSCP};
+        SAI_ACL_ACTION_TYPE_SET_DSCP,
+        SAI_ACL_ACTION_TYPE_MACSEC_FLOW};
 
     return actionTypeList;
   }
@@ -426,6 +434,8 @@ class AclApiTest : public ::testing::Test {
         AclEntryActionSaiObjectIdList(kMirrorIngress())};
     SaiAclEntryTraits::Attributes::ActionMirrorEgress aclActionMirrorEgress{
         AclEntryActionSaiObjectIdList(kMirrorEgress())};
+    SaiAclEntryTraits::Attributes::ActionMacsecFlow aclActionMacsecFlow{
+        AclEntryActionSaiObjectIdT(kMacsecFlow())};
 
     return aclApi->create<SaiAclEntryTraits>(
         {aclTableIdAttribute,
@@ -458,7 +468,8 @@ class AclApiTest : public ::testing::Test {
          aclActionSetTC,
          aclActionSetDSCP,
          aclActionMirrorIngress,
-         aclActionMirrorEgress},
+         aclActionMirrorEgress,
+         aclActionMacsecFlow},
         kSwitchID());
   }
 
@@ -577,7 +588,8 @@ class AclApiTest : public ::testing::Test {
       sai_uint8_t setTC,
       sai_uint8_t setDSCP,
       const std::vector<sai_object_id_t>& mirrorIngress,
-      const std::vector<sai_object_id_t>& mirrorEgress) const {
+      const std::vector<sai_object_id_t>& mirrorEgress,
+      sai_object_id_t macsecFlow) const {
     auto aclPriorityGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::Priority());
 
@@ -640,6 +652,8 @@ class AclApiTest : public ::testing::Test {
         aclEntryId, SaiAclEntryTraits::Attributes::ActionMirrorIngress());
     auto aclActionMirrorEgress = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::ActionMirrorEgress());
+    auto aclActionMacsecFlowGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::ActionMacsecFlow());
 
     EXPECT_EQ(aclPriorityGot, priority);
 
@@ -674,6 +688,7 @@ class AclApiTest : public ::testing::Test {
     EXPECT_EQ(aclActionSetDSCPGot.getData(), setDSCP);
     EXPECT_EQ(aclActionMirrorIngress.getData(), mirrorIngress);
     EXPECT_EQ(aclActionMirrorEgress.getData(), mirrorEgress);
+    EXPECT_EQ(aclActionMacsecFlowGot.getData(), macsecFlow);
   }
 
   std::shared_ptr<FakeSai> fs;
@@ -873,7 +888,8 @@ TEST_F(AclApiTest, getAclEntryAttribute) {
       kSetTC(),
       kSetDSCP(),
       kMirrorIngress(),
-      kMirrorEgress());
+      kMirrorEgress(),
+      kMacsecFlow());
 }
 
 TEST_F(AclApiTest, getAclCounterAttribute) {
@@ -1049,6 +1065,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       AclEntryActionSaiObjectIdList(kMirrorIngress2())};
   SaiAclEntryTraits::Attributes::ActionMirrorEgress aclActionMirrorEgress2{
       AclEntryActionSaiObjectIdList(kMirrorEgress2())};
+  SaiAclEntryTraits::Attributes::ActionMacsecFlow aclActionMacsecFlow2{
+      AclEntryActionSaiObjectIdT(kMacsecFlow2())};
 
   aclApi->setAttribute(aclEntryId, aclPriorityAttribute2);
 
@@ -1081,6 +1099,7 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   aclApi->setAttribute(aclEntryId, aclActionSetDSCP2);
   aclApi->setAttribute(aclEntryId, aclActionMirrorIngress2);
   aclApi->setAttribute(aclEntryId, aclActionMirrorEgress2);
+  aclApi->setAttribute(aclEntryId, aclActionMacsecFlow2);
 
   getAndVerifyAclEntryAttribute(
       aclEntryId,
@@ -1113,7 +1132,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       kSetTC2(),
       kSetDSCP2(),
       kMirrorIngress2(),
-      kMirrorEgress2());
+      kMirrorEgress2(),
+      kMacsecFlow2());
 
   SaiAclEntryTraits::Attributes::ActionPacketAction aclActionPacketAction3{
       AclEntryActionU32(kPacketAction3())};

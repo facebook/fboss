@@ -188,6 +188,9 @@ class FakeAclEntry {
   bool actionMirrorEgressEnable{false};
   std::vector<sai_object_id_t> actionMirrorEgressData;
 
+  bool actionMacsecFlowEnable{false};
+  sai_object_id_t actionMacsecFlowData;
+
   sai_object_id_t id;
 };
 

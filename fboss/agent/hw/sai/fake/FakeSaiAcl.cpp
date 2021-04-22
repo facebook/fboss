@@ -571,6 +571,11 @@ sai_status_t set_acl_entry_attribute_fn(
           std::begin(aclEntry.actionMirrorEgressData));
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_ACL_ENTRY_ATTR_ACTION_MACSEC_FLOW:
+      aclEntry.actionMacsecFlowEnable = attr->value.aclaction.enable;
+      aclEntry.actionMacsecFlowData = attr->value.aclaction.parameter.oid;
+      res = SAI_STATUS_SUCCESS;
+      break;
     default:
       res = SAI_STATUS_NOT_SUPPORTED;
       break;
@@ -764,6 +769,11 @@ sai_status_t get_acl_entry_attribute_fn(
             aclEntry.actionMirrorEgressData.size();
         attr_list[i].value.aclaction.parameter.objlist.list =
             aclEntry.actionMirrorEgressData.data();
+        break;
+      case SAI_ACL_ENTRY_ATTR_ACTION_MACSEC_FLOW:
+        attr_list[i].value.aclaction.enable = aclEntry.actionMacsecFlowEnable;
+        attr_list[i].value.aclaction.parameter.oid =
+            aclEntry.actionMacsecFlowData;
         break;
       default:
         return SAI_STATUS_NOT_SUPPORTED;
