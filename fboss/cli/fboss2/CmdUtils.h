@@ -15,6 +15,11 @@
 
 namespace facebook::fboss::utils {
 
+enum class ObjectArgTypeId : uint8_t {
+  OBJECT_ARG_TYPE_ID_NONE = 0,
+  OBJECT_ARG_TYPE_ID_IPV6_LIST,
+};
+
 static auto constexpr kConnTimeout = 1000;
 static auto constexpr kRecvTimeout = 45000;
 static auto constexpr kSendTimeout = 5000;
