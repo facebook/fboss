@@ -46,6 +46,11 @@ class CmdHandler {
         utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST) {
       result = impl().queryClient(
           hostIp, CmdSubcommands::getInstance()->getIpv6Addrs());
+    }  else if constexpr (
+        ObjectArgTypeId ==
+        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST) {
+      result = impl().queryClient(
+          hostIp, CmdSubcommands::getInstance()->getPorts());
     } else {
       result = impl().queryClient(hostIp);
     }
