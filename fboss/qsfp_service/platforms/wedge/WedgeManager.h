@@ -133,7 +133,6 @@ class WedgeManager : public TransceiverManager {
       wedgeI2cBus_; /* thread safe handle to access bus */
 
   std::unique_ptr<AgentConfig> config_;
-  const std::unique_ptr<const PlatformMapping> platformMapping_;
   PortNameMap portName2Module_;
   PortGroups portGroupMap_;
 

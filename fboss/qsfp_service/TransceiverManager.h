@@ -6,6 +6,7 @@
 #include <folly/Synchronized.h>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/i2c/gen-cpp2/i2c_controller_stats_types.h"
 #include "fboss/lib/phy/PhyManager.h"
@@ -18,8 +19,11 @@ namespace facebook {
 namespace fboss {
 class TransceiverManager {
  public:
-  explicit TransceiverManager(std::unique_ptr<TransceiverPlatformApi> api)
-      : qsfpPlatApi_(std::move(api)) {}
+  explicit TransceiverManager(
+      std::unique_ptr<TransceiverPlatformApi> api,
+      std::unique_ptr<PlatformMapping> platformMapping)
+      : qsfpPlatApi_(std::move(api)),
+        platformMapping_(std::move(platformMapping)) {}
   virtual ~TransceiverManager() {}
   virtual void initTransceiverMap() = 0;
   virtual void getTransceiversInfo(
@@ -98,6 +102,9 @@ class TransceiverManager {
     return qsfpPlatApi_.get();
   }
 
+  const PlatformMapping* getPlatformMapping() {
+    return platformMapping_.get();
+  }
   /*
    * Virtual function to initialize all the Phy in the system
    */
@@ -130,6 +137,11 @@ class TransceiverManager {
    * constructor
    */
   std::unique_ptr<TransceiverPlatformApi> qsfpPlatApi_;
+  /* This variable stores the PlatformMapping object which has a map for all the
+   * components connected on different ports. This handle is populated from this
+   * class constructor
+   */
+  const std::unique_ptr<const PlatformMapping> platformMapping_;
   // A time point until when the remediation of module will be paused.
   // Before reaching that time point, the module is paused
   // and it will resume once the time is reached.
