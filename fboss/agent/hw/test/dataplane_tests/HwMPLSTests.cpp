@@ -143,6 +143,19 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     applyNewState(state);
   }
 
+  void programLabelPhp(PortDescriptor port) {
+    utility::MplsEcmpSetupTargetedPorts<folly::IPAddressV6> phpEcmpHelper(
+        getProgrammedState(),
+        kTopLabel,
+        LabelForwardingAction::LabelForwardingType::PHP);
+    auto state = phpEcmpHelper.resolveNextHops(
+        getProgrammedState(),
+        {
+            port,
+        });
+    applyNewState(phpEcmpHelper.setupECMPForwarding(state, {port}));
+  }
+
   std::unique_ptr<utility::MplsEcmpSetupTargetedPorts<folly::IPAddressV6>>
       ecmpSwapHelper_;
 
@@ -361,6 +374,27 @@ TEST_F(HwMPLSTest, Pop) {
     // send mpls packet with label and let it pop
     sendMplsPacket(1101, masterLogicalPortIds()[1]);
     // ip packet should be forwarded as per route for 2001::/128
+    auto outPktsAfter =
+        getPortOutPkts(getLatestPortStats(masterLogicalPortIds()[0]));
+    EXPECT_EQ((outPktsAfter - outPktsBefore), 1);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwMPLSTest, Php) {
+  if (skipTest()) {
+    return;
+  }
+  auto setup = [=]() {
+    // php to exit out of port 0
+    programLabelPhp(PortDescriptor(masterLogicalPortIds()[0]));
+  };
+  auto verify = [=]() {
+    auto outPktsBefore =
+        getPortOutPkts(getLatestPortStats(masterLogicalPortIds()[0]));
+    // send mpls packet with label and let it forward with php
+    sendMplsPacket(1101, masterLogicalPortIds()[1]);
+    // ip packet should be forwarded through port 0
     auto outPktsAfter =
         getPortOutPkts(getLatestPortStats(masterLogicalPortIds()[0]));
     EXPECT_EQ((outPktsAfter - outPktsBefore), 1);
