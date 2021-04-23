@@ -129,6 +129,16 @@ int main(int argc, char* argv[]) {
     return EX_OK;
   }
 
+  if (FLAGS_read_reg) {
+    return doReadReg(
+        bus.get(), ports, FLAGS_offset, FLAGS_length, FLAGS_page, evb);
+  }
+
+  if (FLAGS_write_reg) {
+    return doWriteReg(
+        bus.get(), ports, FLAGS_offset, FLAGS_page, FLAGS_data, evb);
+  }
+
   int retcode = EX_OK;
   for (unsigned int portNum : ports) {
     if (FLAGS_clear_low_power && overrideLowPower(bus.get(), portNum, false)) {
@@ -188,37 +198,6 @@ int main(int argc, char* argv[]) {
         }
       } else {
         cmisHostInputLoopback(bus.get(), portNum, noLoopback);
-      }
-    }
-
-    if (FLAGS_read_reg) {
-      if (FLAGS_offset == -1) {
-        fprintf(stderr,
-               "QSFP %d: Fail to read register. Specify offset using --offset",
-               portNum);
-        retcode = EX_SOFTWARE;
-      }
-      else {
-        if (FLAGS_length > 128) {
-          fprintf(stderr,
-               "QSFP %d: Fail to read register. The --length value should be between 1 to 128",
-               portNum);
-          retcode = EX_SOFTWARE;
-        } else {
-          doReadReg(bus.get(), portNum, FLAGS_offset, FLAGS_length);
-        }
-      }
-    }
-
-    if (FLAGS_write_reg) {
-      if (FLAGS_offset == -1) {
-        fprintf(stderr,
-               "QSFP %d: Fail to write register. Specify offset using --offset",
-               portNum);
-        retcode = EX_SOFTWARE;
-      }
-      else {
-        doWriteReg(bus.get(), portNum, FLAGS_offset, FLAGS_data);
       }
     }
 

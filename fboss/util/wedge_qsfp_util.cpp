@@ -124,6 +124,7 @@ DEFINE_bool(write_reg, false, "Write a register, use with --offset and --data");
 DEFINE_int32(offset, -1, "The offset of register to read/write (0..255)");
 DEFINE_int32(data, 0, "The byte to write to the register, use with --offset");
 DEFINE_int32(length, 1, "The number of bytes to read from the register (1..128), use with --offset");
+DEFINE_int32(page, -1, "The page to use when doing transceiver register access");
 DEFINE_int32(pause_remediation, 0,
     "Number of seconds to prevent qsfp_service from doing remediation to modules");
 DEFINE_bool(get_remediation_until_time, false,
@@ -405,24 +406,28 @@ bool setTxDisable(TransceiverI2CApi* bus, unsigned int port, bool disable) {
   return true;
 }
 
-void doReadReg(TransceiverI2CApi* bus, unsigned int port, int offset, int length) {
-  uint8_t buf[128];
-  try {
-    bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, offset, length, buf);
-  } catch (const I2cError& ex) {
-    fprintf(stderr, "QSFP %d: fail to read module\n", port);
-    return;
+std::vector<int32_t> zeroBasedPortIds(std::vector<unsigned int>& ports) {
+  std::vector<int32_t> idx;
+  for (auto port : ports) {
+    // Direct I2C bus starts from 1 instead of 0, however qsfp_service
+    // index starts from 0. So here we try to comply to match that
+    // behavior.
+    idx.push_back(port - 1);
   }
+  return idx;
+}
+
+void displayReadRegData(const uint8_t* buf, int offset, int length) {
   // Print the read registers
   // Print 16 bytes in a line with offset at start and extra gap after 8 bytes
-  for (int i=0; i<length; i++) {
+  for (int i = 0; i < length; i++) {
     if (i % 16 == 0) {
       // New line after 16 bytes (except the first line)
       if (i != 0) {
         printf("\n");
       }
       // 2 byte offset at start of every line
-      printf("%04x: ", offset+i);
+      printf("%04x: ", offset + i);
     } else if (i % 8 == 0) {
       // Extra gap after 8 bytes in a line
       printf(" ");
@@ -432,7 +437,89 @@ void doReadReg(TransceiverI2CApi* bus, unsigned int port, int offset, int length
   printf("\n");
 }
 
-void doWriteReg(TransceiverI2CApi* bus, unsigned int port, int offset, uint8_t value) {
+void doReadRegViaService(
+    std::vector<int32_t>& ports,
+    int offset,
+    int length,
+    int page,
+    folly::EventBase& evb) {
+  auto client = getQsfpClient(evb);
+  ReadRequest request;
+  TransceiverIOParameters param;
+  request.ids_ref() = ports;
+  param.offset_ref() = offset;
+  param.length_ref() = length;
+  if (page != -1) {
+    param.page_ref() = page;
+  }
+  request.parameter_ref() = param;
+  std::map<int32_t, ReadResponse> response;
+
+  try {
+    client->sync_readTransceiverRegister(response, request);
+    for (const auto& iterator : response) {
+      printf("Port Id : %d\n", iterator.first + 1);
+      auto data = iterator.second.data_ref()->data();
+      if (iterator.second.data_ref()->length() < length) {
+        fprintf(stderr, "QSFP %d: fail to read module\n", iterator.first + 1);
+      } else {
+        displayReadRegData(data, offset, iterator.second.data_ref()->length());
+      }
+    }
+  } catch (const std::exception& ex) {
+    fprintf(
+        stderr, "error reading register from qsfp_service: %s\n", ex.what());
+  }
+}
+
+void doReadRegDirect(TransceiverI2CApi* bus, unsigned int port, int offset, int length) {
+  std::array<uint8_t, 128> buf;
+  try {
+    bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, offset, length, buf.data());
+  } catch (const I2cError& ex) {
+    fprintf(stderr, "QSFP %d: fail to read module\n", port);
+    return;
+  }
+  displayReadRegData(buf.data(), offset, length);
+}
+
+int doReadReg(
+    TransceiverI2CApi* bus,
+    std::vector<unsigned int>& ports,
+    int offset,
+    int length,
+    int page,
+    folly::EventBase& evb) {
+  if (offset == -1) {
+    fprintf(
+        stderr,
+        "QSFP %s: Fail to read register. Specify offset using --offset\n",
+        folly::join(",", ports).c_str());
+    return EX_SOFTWARE;
+  }
+  if (length > 128) {
+    fprintf(
+        stderr,
+        "QSFP %s: Fail to read register. The --length value should be between 1 to 128\n",
+        folly::join(",", ports).c_str());
+    return EX_SOFTWARE;
+  }
+
+  if (FLAGS_direct_i2c) {
+    for (unsigned int portNum : ports) {
+      printf("Port Id : %d\n", portNum);
+      doReadRegDirect(bus, portNum, FLAGS_offset, FLAGS_length);
+    }
+  } else {
+    // Release the bus access for QSFP service
+    bus->close();
+    std::vector<int32_t> idx = zeroBasedPortIds(ports);
+    doReadRegViaService(idx, offset, length, page, evb);
+  }
+  return EX_OK;
+}
+
+void doWriteRegDirect(TransceiverI2CApi* bus, unsigned int port, int offset, uint8_t value) {
   uint8_t buf[1] = {value};
   try {
     bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, offset, 1, buf);
@@ -441,6 +528,70 @@ void doWriteReg(TransceiverI2CApi* bus, unsigned int port, int offset, uint8_t v
     return;
   }
   printf("QSFP %d: successfully write 0x%02x to %d.\n", port, value, offset);
+}
+
+void doWriteRegViaService(
+    std::vector<int32_t>& ports,
+    int offset,
+    int page,
+    uint8_t value,
+    folly::EventBase& evb) {
+  auto client = getQsfpClient(evb);
+  WriteRequest request;
+  TransceiverIOParameters param;
+  request.ids_ref() = ports;
+  param.offset_ref() = offset;
+  if (page != -1) {
+    param.page_ref() = page;
+  }
+  request.parameter_ref() = param;
+  request.data_ref() = value;
+  std::map<int32_t, WriteResponse> response;
+
+  try {
+    client->sync_writeTransceiverRegister(response, request);
+    for (const auto& iterator : response) {
+      if (*(response[iterator.first].success_ref())) {
+        printf(
+            "QSFP %d: successfully write 0x%02x to %d.\n",
+            iterator.first + 1,
+            value,
+            offset);
+      } else {
+        fprintf(stderr, "QSFP %d: not present or unwritable\n", iterator.first + 1);
+      }
+    }
+  } catch (const std::exception& ex) {
+    fprintf(stderr, "error writing register via qsfp_service: %s\n", ex.what());
+    return;
+  }
+}
+
+int doWriteReg(
+    TransceiverI2CApi* bus,
+    std::vector<unsigned int>& ports,
+    int offset,
+    int page,
+    uint8_t data,
+    folly::EventBase& evb) {
+  if (offset == -1) {
+    fprintf(
+        stderr,
+        "QSFP %s: Fail to write register. Specify offset using --offset\n",
+        folly::join(",", ports).c_str());
+    return EX_SOFTWARE;
+  }
+  if (FLAGS_direct_i2c) {
+    for (unsigned int portNum : ports) {
+      doWriteRegDirect(bus, portNum, offset, data);
+    }
+  } else {
+    // Release the bus access for QSFP service
+    bus->close();
+    std::vector<int32_t> idx = zeroBasedPortIds(ports);
+    doWriteRegViaService(idx, offset, page, data, evb);
+  }
+  return EX_OK;
 }
 
 std::map<int32_t, DOMDataUnion> fetchDataFromQsfpService(

@@ -31,6 +31,7 @@ DECLARE_bool(write_reg);
 DECLARE_int32(offset);
 DECLARE_int32(data);
 DECLARE_int32(length);
+DECLARE_int32(page);
 DECLARE_int32(pause_remediation);
 DECLARE_bool(get_remediation_until_time);
 DECLARE_bool(update_module_firmware);
@@ -73,9 +74,23 @@ TransceiverManagementInterface getModuleType(
 
 bool setTxDisable(TransceiverI2CApi* bus, unsigned int port, bool disable);
 
-void doReadReg(TransceiverI2CApi* bus, unsigned int port, int offset, int length);
+std::vector<int32_t> zeroBasedPortIds(std::vector<unsigned int>& ports);
 
-void doWriteReg(TransceiverI2CApi* bus, unsigned int port, int offset, uint8_t value);
+int doReadReg(
+    TransceiverI2CApi* bus,
+    std::vector<unsigned int>& ports,
+    int offset,
+    int length,
+    int page,
+    folly::EventBase& evb);
+
+int doWriteReg(
+    TransceiverI2CApi* bus,
+    std::vector<unsigned int>& ports,
+    int offset,
+    int page,
+    uint8_t data,
+    folly::EventBase& evb);
 
 std::map<int32_t, DOMDataUnion> fetchDataFromQsfpService(
     const std::vector<int32_t>& ports, folly::EventBase& evb);
