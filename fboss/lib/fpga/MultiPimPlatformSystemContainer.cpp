@@ -9,6 +9,7 @@
  */
 #include "fboss/lib/fpga/MultiPimPlatformSystemContainer.h"
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/lib/fpga/FpgaDevice.h"
 
 namespace facebook::fboss {
@@ -18,4 +19,20 @@ MultiPimPlatformSystemContainer::MultiPimPlatformSystemContainer(
     : fpgaDevice_(std::move(fpgaDevice)) {}
 
 MultiPimPlatformSystemContainer::~MultiPimPlatformSystemContainer() {}
+
+MultiPimPlatformPimContainer* MultiPimPlatformSystemContainer::getPimContainer(
+    int pim) const {
+  if (auto pimItr = pims_.find(pim); pimItr != pims_.end()) {
+    return pimItr->second.get();
+  }
+  throw FbossError("Can't accest pim container. Pim:", pim, " doesn't exist");
+}
+
+void MultiPimPlatformSystemContainer::setPimContainer(
+    int pim,
+    std::unique_ptr<MultiPimPlatformPimContainer> pimContainer) {
+  // Always replace with new pim container. Although it shouldn't happen in
+  // prod.
+  pims_[pim] = std::move(pimContainer);
+}
 } // namespace facebook::fboss

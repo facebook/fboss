@@ -25,13 +25,15 @@ MinipackSystemContainer::MinipackSystemContainer(
     : MinipackBaseSystemContainer(std::move(fpgaDevice)) {
   // create all PIM FPGA controllers
   for (auto pim = kPimStartNum; pim < kPimStartNum + kNumberPim; pim++) {
-    // Should we align the PIM number to start from 2 or not?
-    pims_[pim - kPimStartNum] = std::make_unique<MinipackPimContainer>(
+    setPimContainer(
         pim,
-        folly::format("pim{:d}", pim).str(),
-        getFpgaDevice(),
-        getPimOffset(pim),
-        kFacebookFpgaPimSize);
+        std::make_unique<MinipackPimContainer>(
+            pim,
+            fmt::format("pim{:d}", pim),
+            getFpgaDevice(),
+            getPimOffset(pim),
+            kFacebookFpgaPimSize));
+    ;
   }
 }
 

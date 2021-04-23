@@ -19,18 +19,7 @@ uint32_t MinipackBaseSystemContainer::getPimOffset(int pim) {
 
 MinipackBasePimContainer* MinipackBaseSystemContainer::getPimContainer(
     int pim) const {
-  // To avoid ambiguity, we explicitly decided the pim number starts from 2.
-  CHECK(pim >= 2 && pim <= kNumberPim + 1);
-  return pims_[pim - 2].get();
+  return dynamic_cast<MinipackBasePimContainer*>(
+      MultiPimPlatformSystemContainer::getPimContainer(pim));
 }
-
-std::vector<MinipackBasePimContainer*>
-MinipackBaseSystemContainer::getAllPimContainers() {
-  std::vector<MinipackBasePimContainer*> pims;
-  for (const auto& pim : pims_) {
-    pims.push_back(pim.get());
-  }
-  return pims;
-}
-
 } // namespace facebook::fboss

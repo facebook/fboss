@@ -26,8 +26,7 @@ class MinipackBaseSystemContainer : public MultiPimPlatformSystemContainer {
   // To avoid ambiguity, we explicitly decided the pim number starts from 2.
   uint32_t getPimOffset(int pim) override;
 
-  virtual MinipackBasePimContainer* getPimContainer(int pim) const;
-  virtual std::vector<MinipackBasePimContainer*> getAllPimContainers();
+  MinipackBasePimContainer* getPimContainer(int pim) const override;
 
  protected:
   // FPGA Device Info
@@ -36,7 +35,6 @@ class MinipackBaseSystemContainer : public MultiPimPlatformSystemContainer {
   static constexpr uint32_t kFacebookFpgaPimBase = 0x40000;
   static constexpr uint32_t kFacebookFpgaPimSize = 0x8000;
 
-  std::array<std::unique_ptr<MinipackBasePimContainer>, kNumberPim> pims_;
   bool isHwInitialized_{false};
 };
 

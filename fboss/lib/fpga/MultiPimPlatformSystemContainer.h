@@ -9,6 +9,9 @@
  */
 #pragma once
 
+#include "fboss/lib/fpga/MultiPimPlatformPimContainer.h"
+
+#include <map>
 #include <memory>
 
 namespace facebook::fboss {
@@ -40,6 +43,13 @@ class MultiPimPlatformSystemContainer {
    */
   virtual void initHW(bool forceReset = false) = 0;
 
+  virtual MultiPimPlatformPimContainer* getPimContainer(int pim) const;
+
+ protected:
+  void setPimContainer(
+      int pim,
+      std::unique_ptr<MultiPimPlatformPimContainer> pimContainer);
+
  private:
   // Forbidden copy constructor and assignment operator
   MultiPimPlatformSystemContainer(MultiPimPlatformSystemContainer const&) =
@@ -48,5 +58,6 @@ class MultiPimPlatformSystemContainer {
       MultiPimPlatformSystemContainer const&) = delete;
 
   std::unique_ptr<FpgaDevice> fpgaDevice_;
+  std::map<int, std::unique_ptr<MultiPimPlatformPimContainer>> pims_;
 };
 } // namespace facebook::fboss
