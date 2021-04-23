@@ -2,6 +2,7 @@
 
 #include "fboss/lib/fpga/MinipackSystemContainer.h"
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/lib/fpga/MinipackPimContainer.h"
 
 #include <folly/Singleton.h>
@@ -37,4 +38,30 @@ MinipackSystemContainer::MinipackSystemContainer(
   }
 }
 
+MultiPimPlatformPimContainer::PimType MinipackSystemContainer::getPimType(
+    int pim) {
+  static constexpr auto kMinipack16QPimVal = 0xA3000000;
+  static constexpr auto kMinipack16OPimVal = 0xA5000000;
+
+  static constexpr uint32_t kFacebookFpgaPimTypeBase = 0xFF000000;
+  static constexpr uint32_t kFacebookFpgaPimTypeReg = 0x0;
+
+  auto pimOffset = getPimOffset(pim);
+  uint32_t curPimTypeReg =
+      getFpgaDevice()->read(pimOffset + kFacebookFpgaPimTypeReg) &
+      kFacebookFpgaPimTypeBase;
+
+  switch (curPimTypeReg) {
+    case kMinipack16QPimVal:
+      return MultiPimPlatformPimContainer::PimType::MINIPACK_16Q;
+    case kMinipack16OPimVal:
+      return MultiPimPlatformPimContainer::PimType::MINIPACK_16O;
+    default:
+      throw FbossError(
+          "Unrecoginized pim type with register value:",
+          curPimTypeReg,
+          " for pim:",
+          pim);
+  }
+}
 } // namespace facebook::fboss

@@ -35,11 +35,4 @@ void MultiPimPlatformSystemContainer::setPimContainer(
   // prod.
   pims_[pim] = std::move(pimContainer);
 }
-
-MultiPimPlatformPimContainer::PimType
-MultiPimPlatformSystemContainer::getPimType(int /* pim */) {
-  // TODO(joseph5wu) Make it pure virtual after moving getPimType() from
-  // Controller to here for Minipack family
-  throw FbossError("Must be implemented in child class");
-}
 } // namespace facebook::fboss
