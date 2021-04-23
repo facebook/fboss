@@ -25,7 +25,7 @@ MultiPimPlatformPimContainer* MultiPimPlatformSystemContainer::getPimContainer(
   if (auto pimItr = pims_.find(pim); pimItr != pims_.end()) {
     return pimItr->second.get();
   }
-  throw FbossError("Can't accest pim container. Pim:", pim, " doesn't exist");
+  throw FbossError("Can't access pim container. Pim:", pim, " doesn't exist");
 }
 
 void MultiPimPlatformSystemContainer::setPimContainer(
@@ -34,5 +34,12 @@ void MultiPimPlatformSystemContainer::setPimContainer(
   // Always replace with new pim container. Although it shouldn't happen in
   // prod.
   pims_[pim] = std::move(pimContainer);
+}
+
+MultiPimPlatformPimContainer::PimType
+MultiPimPlatformSystemContainer::getPimType(int /* pim */) {
+  // TODO(joseph5wu) Make it pure virtual after moving getPimType() from
+  // Controller to here for Minipack family
+  throw FbossError("Must be implemented in child class");
 }
 } // namespace facebook::fboss

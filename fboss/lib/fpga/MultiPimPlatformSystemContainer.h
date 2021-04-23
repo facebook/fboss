@@ -45,6 +45,10 @@ class MultiPimPlatformSystemContainer {
 
   virtual MultiPimPlatformPimContainer* getPimContainer(int pim) const;
 
+  // TODO(joseph5wu) Make it pure virtual after moving getPimType() from
+  // Controller to here for Minipack family
+  virtual MultiPimPlatformPimContainer::PimType getPimType(int pim);
+
  protected:
   void setPimContainer(
       int pim,

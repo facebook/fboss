@@ -3,6 +3,8 @@
 #pragma once
 
 #include <gtest/gtest.h>
+
+#include "fboss/lib/fpga/MultiPimPlatformSystemContainer.h"
 #include "fboss/lib/fpga/facebook/tests/FakeFpgaDevice.h"
 
 namespace facebook::fboss {
@@ -17,9 +19,32 @@ class BaseSystemContainerTests : public ::testing::Test {
       int numLeds,
       Color onColor,
       Color offColor) {
+    // TODO(joseph5wu) Will deprecate this function and use the one with
+    // map<int, int> for expectedPimToNumLeds
+    std::unordered_map<int, int> expectedPimToNumLeds;
+    for (auto pim = pimStart; pim < numPims + pimStart; ++pim) {
+      expectedPimToNumLeds.emplace(pim, numLeds);
+    }
+    testPimLeds(
+        systemContainer,
+        numPims,
+        pimStart,
+        expectedPimToNumLeds,
+        onColor,
+        offColor);
+  }
+
+  template <typename SystemContainer, typename Color>
+  void testPimLeds(
+      SystemContainer* systemContainer,
+      int numPims,
+      int pimStart,
+      std::unordered_map<int, int> expectedPimToNumLeds,
+      Color onColor,
+      Color offColor) {
     for (auto pim = pimStart; pim < numPims + pimStart; pim++) {
       auto pimContainer = systemContainer->getPimContainer(pim);
-      for (auto led = 0; led < numLeds; led++) {
+      for (auto led = 0; led < expectedPimToNumLeds.at(pim); led++) {
         auto ledController = pimContainer->getLedController(led);
         auto ledAddr = getLedAddress(pim, led);
         testLedOnOff(ledController, onColor, offColor, ledAddr);
@@ -28,6 +53,17 @@ class BaseSystemContainerTests : public ::testing::Test {
         fpgaDevice_->write(ledAddr, static_cast<uint32_t>(onColor));
         EXPECT_EQ(ledController->getColor(), onColor);
       }
+    }
+  }
+
+  template <typename SystemContainer>
+  void testPimTypes(
+      SystemContainer* systemContainer,
+      const std::unordered_map<int, MultiPimPlatformPimContainer::PimType>&
+          expectedPimToPimType) {
+    for (auto pimTypeItr : expectedPimToPimType) {
+      EXPECT_EQ(
+          systemContainer->getPimType(pimTypeItr.first), pimTypeItr.second);
     }
   }
 
