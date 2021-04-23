@@ -56,6 +56,7 @@ class CmdShowPortQueue : public CmdHandler<CmdShowPortQueue, CmdShowPortQueueTra
     std::string fmtString = "{:<7}{:<20}{:<25}{:<10}{:<15}{:<15}\n";
 
     for (auto const&[portId, portInfo] : portId2PortInfoThrift) {
+      std::ignore = portId;
 
       std::cout << portInfo.get_name() << "\n";
       std::cout << std::string(10, '=') << std::endl;

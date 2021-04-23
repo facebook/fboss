@@ -74,6 +74,7 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
     // explore if fmt library offers simpler way to nest coloring with
     // indented formatting.
     for (auto const&[portId, portInfo] : portId2PortInfoThrift) {
+      std::ignore = portId;
       auto [operState, operColor] = getOperStateStr(portInfo.get_operState());
 
       fmt::print(
