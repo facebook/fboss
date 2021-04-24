@@ -19,28 +19,26 @@ static const std::unordered_set<std::string> g_ports = {"eth0", "eth1", "lo"};
 static const std::string g_pktCnt = "Content";
 class DerivedPacketStreamService : public PacketStreamService {
  public:
-  explicit DerivedPacketStreamService(
+  DerivedPacketStreamService(
       const std::string& serviceName,
       std::shared_ptr<folly::Baton<>> baton)
       : PacketStreamService(serviceName), baton_(baton) {}
-  virtual ~DerivedPacketStreamService() override {}
-  virtual void clientConnected(const std::string& clientId) override {
+  void clientConnected(const std::string& clientId) override {
     EXPECT_EQ(clientId, g_client);
   }
-  virtual void clientDisconnected(const std::string& clientId) override {
+  void clientDisconnected(const std::string& clientId) override {
     EXPECT_EQ(clientId, g_client);
     if (baton_) {
       baton_->post();
     }
   }
-  virtual void addPort(const std::string& clientId, const std::string& l2Port)
+  void addPort(const std::string& clientId, const std::string& l2Port)
       override {
     EXPECT_EQ(clientId, g_client);
     EXPECT_FALSE(g_ports.find(l2Port) == g_ports.end());
   }
-  virtual void removePort(
-      const std::string& clientId,
-      const std::string& l2Port) override {
+  void removePort(const std::string& clientId, const std::string& l2Port)
+      override {
     EXPECT_EQ(clientId, g_client);
     EXPECT_FALSE(g_ports.find(l2Port) == g_ports.end());
   }
@@ -55,7 +53,8 @@ class DerivedPacketStreamClient : public PacketStreamClient {
       folly::EventBase* evb,
       std::shared_ptr<folly::Baton<>> baton)
       : PacketStreamClient(clientId, evb), baton_(baton) {}
-  virtual void recvPacket(TPacket&& packet) override {
+
+  void recvPacket(TPacket&& packet) override {
     EXPECT_FALSE(g_ports.find(*packet.l2Port_ref()) == g_ports.end());
     EXPECT_EQ(g_pktCnt, *packet.buf_ref());
     pktCnt_[*packet.l2Port_ref()]++;
@@ -73,8 +72,6 @@ class DerivedPacketStreamClient : public PacketStreamClient {
 
 class PacketStreamTest : public Test {
  public:
-  PacketStreamTest() {}
-
   void tryConnect(
       std::shared_ptr<folly::Baton<>> baton,
       DerivedPacketStreamClient& streamClient) {
