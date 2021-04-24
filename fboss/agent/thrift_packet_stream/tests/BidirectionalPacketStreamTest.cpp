@@ -6,6 +6,7 @@
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/EventBaseManager.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
+#include <folly/logging/xlog.h>
 #include <folly/portability/GMock.h>
 #include <folly/portability/GTest.h>
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
@@ -101,7 +102,7 @@ class BidirectionalPacketStreamTest : public Test {
       const std::string& port,
       std::shared_ptr<AsyncPacketTransport> transport,
       std::shared_ptr<folly::Baton<>> baton = {}) {
-    LOG(INFO) << "Send FbossToMka: port: " << port << " numPkts:" << numPkts;
+    XLOG(INFO) << "Send FbossToMka: port: " << port << " numPkts:" << numPkts;
     if (!baton) {
       baton = std::make_shared<folly::Baton<>>();
     }
@@ -126,7 +127,7 @@ class BidirectionalPacketStreamTest : public Test {
       EXPECT_EQ(bufStr, pktString);
     }
 
-    LOG(INFO) << "Completed SendFbossToMKA for port:" << port;
+    XLOG(INFO) << "Completed SendFbossToMKA for port:" << port;
   }
 
   void sendMkaToFboss(
@@ -135,7 +136,7 @@ class BidirectionalPacketStreamTest : public Test {
       std::shared_ptr<AsyncPacketTransport> transport,
       std::shared_ptr<folly::Baton<>> baton = {},
       bool validatePackets = true) {
-    LOG(INFO) << "Send MKAToFboss: port: " << port << " numPkts:" << numPkts;
+    XLOG(INFO) << "Send MKAToFboss: port: " << port << " numPkts:" << numPkts;
     if (!baton) {
       baton = std::make_shared<folly::Baton<>>();
     }
@@ -160,7 +161,7 @@ class BidirectionalPacketStreamTest : public Test {
         EXPECT_EQ(g_mkaTofboss, *pkt.buf_ref());
       }
     }
-    LOG(INFO) << "Completed SendMKAToFboss for port:" << port;
+    XLOG(INFO) << "Completed SendMKAToFboss for port:" << port;
   }
 
   void sendParallelMultiplePkts(size_t numPkts = 100) {

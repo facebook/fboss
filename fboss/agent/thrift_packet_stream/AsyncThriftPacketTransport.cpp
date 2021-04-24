@@ -3,6 +3,8 @@
 #include "fboss/agent/thrift_packet_stream/AsyncThriftPacketTransport.h"
 #include "fboss/agent/thrift_packet_stream/BidirectionalPacketStream.h"
 
+#include <folly/logging/xlog.h>
+
 namespace facebook {
 namespace fboss {
 ssize_t AsyncThriftPacketTransport::send(
@@ -16,7 +18,7 @@ ssize_t AsyncThriftPacketTransport::send(
   if (auto serverSharedPtr = server_.lock()) {
     return serverSharedPtr->send(std::move(packet));
   }
-  LOG(ERROR) << "AsyncThriftPacketTransport server not available";
+  XLOG(ERR) << "AsyncThriftPacketTransport server not available";
   return 0;
 }
 

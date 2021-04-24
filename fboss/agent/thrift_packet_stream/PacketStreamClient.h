@@ -14,9 +14,7 @@ namespace facebook {
 namespace fboss {
 class PacketStreamClient {
  public:
-  explicit PacketStreamClient(
-      const std::string& clientId,
-      folly::EventBase* evb);
+  PacketStreamClient(const std::string& clientId, folly::EventBase* evb);
 
   virtual ~PacketStreamClient();
   void connectToServer(const std::string& ip, uint16_t port);

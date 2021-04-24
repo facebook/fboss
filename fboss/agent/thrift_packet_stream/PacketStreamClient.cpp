@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 #include "fboss/agent/thrift_packet_stream/PacketStreamClient.h"
 #include <folly/io/async/AsyncSocket.h>
+#include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 
 namespace facebook {
@@ -20,7 +21,7 @@ PacketStreamClient::PacketStreamClient(
 
 PacketStreamClient::~PacketStreamClient() {
   try {
-    LOG(INFO) << "Destroying PacketStreamClient";
+    XLOG(INFO) << "Destroying PacketStreamClient";
 #if FOLLY_HAS_COROUTINES
     if (cancelSource_) {
       cancelSource_->requestCancellation();
@@ -30,7 +31,7 @@ PacketStreamClient::~PacketStreamClient() {
     }
 #endif
   } catch (const std::exception& ex) {
-    LOG(WARNING) << clientId_ << " disconnect failed:" << ex.what();
+    XLOG(WARNING) << clientId_ << " disconnect failed:" << ex.what();
   }
   if (evb_) {
     evb_->terminateLoopSoon();
@@ -53,7 +54,7 @@ void PacketStreamClient::createClient(const std::string& ip, uint16_t port) {
 void PacketStreamClient::connectToServer(const std::string& ip, uint16_t port) {
 #if FOLLY_HAS_COROUTINES
   if (State::INIT != state_.load()) {
-    VLOG(2) << "Client is already in process of connecting to server";
+    XLOG(INFO) << "Client is already in process of connecting to server";
     return;
   }
   if (!evb_) {
@@ -70,7 +71,7 @@ void PacketStreamClient::connectToServer(const std::string& ip, uint16_t port) {
       }
       folly::coro::blockingWait(connect());
     } catch (const std::exception& ex) {
-      LOG(ERROR) << "Connect to server failed with ex:" << ex.what();
+      XLOG(ERR) << "Connect to server failed with ex:" << ex.what();
       state_.store(State::INIT);
     }
   });
@@ -84,11 +85,11 @@ folly::coro::Task<void> PacketStreamClient::connect() {
   auto result = co_await client_->co_connect(clientId_);
   if (cancelSource_->isCancellationRequested()) {
     state_.store(State::INIT);
-    LOG(ERROR) << "Cancellation Requested;";
+    XLOG(ERR) << "Cancellation Requested;";
     co_return;
   }
   state_.store(State::CONNECTED);
-  LOG(INFO) << clientId_ << " connected successfully";
+  XLOG(INFO) << clientId_ << " connected successfully";
   co_await folly::coro::co_withCancellation(
       cancelSource_->getToken(),
       folly::coro::co_invoke(
@@ -99,18 +100,18 @@ folly::coro::Task<void> PacketStreamClient::connect() {
                 recvPacket(std::move(*packet));
               }
             } catch (const std::exception& ex) {
-              LOG(ERROR) << clientId_
-                         << " Server error: " << folly::exceptionStr(ex);
+              XLOG(ERR) << clientId_
+                        << " Server error: " << folly::exceptionStr(ex);
               state_.store(State::INIT);
             }
             co_return;
           }));
-  VLOG(2) << "Client Cancellation Completed";
+  XLOG(INFO) << "Client Cancellation Completed";
 }
 #endif
 
 void PacketStreamClient::cancel() {
-  LOG(INFO) << "Cancel PacketStreamClient";
+  XLOG(INFO) << "Cancel PacketStreamClient";
 
 #if FOLLY_HAS_COROUTINES
   if (cancelSource_) {
@@ -128,7 +129,7 @@ bool PacketStreamClient::isConnectedToServer() {
 void PacketStreamClient::registerPortToServer(const std::string& port) {
 #if FOLLY_HAS_COROUTINES
   if (!isConnectedToServer()) {
-    LOG(ERROR) << "Client not connected;";
+    XLOG(ERR) << "Client not connected;";
     throw std::runtime_error("Client not connected;");
   }
   folly::coro::blockingWait(client_->co_registerPort(clientId_, port));
@@ -140,7 +141,7 @@ void PacketStreamClient::registerPortToServer(const std::string& port) {
 void PacketStreamClient::clearPortFromServer(const std::string& l2port) {
 #if FOLLY_HAS_COROUTINES
   if (!isConnectedToServer()) {
-    LOG(ERROR) << "Client not connected;";
+    XLOG(ERR) << "Client not connected;";
     throw std::runtime_error("Client not connected;");
   }
   folly::coro::blockingWait(client_->co_clearPort(clientId_, l2port));

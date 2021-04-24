@@ -15,7 +15,7 @@ class AsyncThriftPacketTransport : public AsyncPacketTransport {
   /**
    * Create a thrift stream
    */
-  explicit AsyncThriftPacketTransport(
+  AsyncThriftPacketTransport(
       std::string l2Port,
       std::shared_ptr<facebook::fboss::BidirectionalPacketStream> server)
       : AsyncPacketTransport(std::move(l2Port)), server_(server) {}

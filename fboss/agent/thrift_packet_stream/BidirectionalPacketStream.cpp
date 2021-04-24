@@ -3,6 +3,8 @@
 #include "fboss/agent/thrift_packet_stream/BidirectionalPacketStream.h"
 #include "fboss/agent/thrift_packet_stream/AsyncThriftPacketTransport.h"
 
+#include <folly/logging/xlog.h>
+
 namespace facebook {
 namespace fboss {
 
@@ -87,7 +89,7 @@ BidirectionalPacketStream::BidirectionalPacketStream(
 }
 
 BidirectionalPacketStream::~BidirectionalPacketStream() {
-  LOG(INFO) << "Closing Bidirectional stream:";
+  XLOG(INFO) << "Closing Bidirectional stream:";
   if (evb_) {
     evb_->runImmediatelyOrRunInEventBaseThreadAndWait(
         [this]() { cancelTimeout(); });
@@ -101,20 +103,20 @@ void BidirectionalPacketStream::registerPortsToServer() {
       portMap_.withWLock([&](auto& lockedMap) {
         for (const auto& port : lockedMap) {
           // register the port for local server
-          LOG(INFO) << serviceName_ << ": Register Port " << port;
+          XLOG(INFO) << serviceName_ << ": Register Port " << port;
           PacketStreamService::registerPort(
               std::make_unique<std::string>(connectedClientId_),
               std::make_unique<std::string>(port));
           // now lets ask the server to register port.
           PacketStreamClient::registerPortToServer(port);
-          LOG(INFO) << "Registered Port:" << port << " successfully with "
-                    << connectedClientId_;
+          XLOG(INFO) << "Registered Port:" << port << " successfully with "
+                     << connectedClientId_;
         }
       });
       newConnection_.store(false);
     } catch (const std::exception& ex) {
       STATS_err_port_register.add(1);
-      LOG(ERROR) << "Failed to register ports err:" << ex.what();
+      XLOG(ERR) << "Failed to register ports err:" << ex.what();
     }
   }
 }
@@ -124,7 +126,7 @@ void BidirectionalPacketStream::connectClient(uint16_t port) {
     STATS_err_invalid_connect_client_port.add(1);
     throw std::runtime_error("Invalid port");
   }
-  LOG(INFO) << serviceName_ << ": Starting Connection to Server: " << port;
+  XLOG(INFO) << serviceName_ << ": Starting Connection to Server: " << port;
   peerServerPort_.store(port);
   newConnection_.store(true);
   PacketStreamClient::connectToServer("::1", port);
@@ -147,7 +149,7 @@ void BidirectionalPacketStream::timeoutExpired() noexcept {
     // try to reconnect.
     STATS_start_reconnect_to_server.add(1);
     auto port = peerServerPort_.load();
-    LOG(INFO) << serviceName_ << ": Reconnecting to server on port: " << port;
+    XLOG(INFO) << serviceName_ << ": Reconnecting to server on port: " << port;
     newConnection_.store(true);
     PacketStreamClient::connectToServer("::1", port);
   }
@@ -159,7 +161,7 @@ std::shared_ptr<AsyncPacketTransport> BidirectionalPacketStream::listen(
   if (port.empty()) {
     return {};
   }
-  LOG(INFO) << serviceName_ << ": Start listening on Port: " << port;
+  XLOG(INFO) << serviceName_ << ": Start listening on Port: " << port;
   portMap_.withWLock([&](auto& lockedMap) { lockedMap.emplace(port); });
   if (clientConnected_.load() && PacketStreamClient::isConnectedToServer()) {
     // lets try to register the port.
@@ -170,11 +172,11 @@ std::shared_ptr<AsyncPacketTransport> BidirectionalPacketStream::listen(
           std::make_unique<std::string>(port));
       // now lets ask the server to register port.
       PacketStreamClient::registerPortToServer(port);
-      LOG(INFO) << "Registered Port:" << port << " successfully with "
-                << connectedClientId_;
+      XLOG(INFO) << "Registered Port:" << port << " successfully with "
+                 << connectedClientId_;
 
     } catch (const std::exception& ex) {
-      LOG(ERROR) << "Failed to register port: " << port << " err:" << ex.what();
+      XLOG(ERR) << "Failed to register port: " << port << " err:" << ex.what();
       STATS_err_port_register.add(1);
       return {};
     }
@@ -212,19 +214,19 @@ void BidirectionalPacketStream::close(const std::string& port) {
       // clear remove server port registration.
       PacketStreamClient::clearPortFromServer(port);
     } catch (const std::exception& ex) {
-      LOG(ERROR) << "Error deleting the port: " << ex.what();
+      XLOG(ERR) << "Error deleting the port: " << ex.what();
       STATS_err_delete_port.add(1);
       return;
     }
   }
-  LOG(INFO) << "Unregister Port:" << port;
+  XLOG(INFO) << "Unregister Port:" << port;
 }
 
 void BidirectionalPacketStream::recvPacket(TPacket&& packet) {
   const auto& port = *packet.l2Port_ref();
   STATS_pkt_recvd.add(1);
   if (port.empty()) {
-    LOG(ERROR) << "Packet received with port empty";
+    XLOG(ERR) << "Packet received with port empty";
     STATS_err_pkt_recv_empty_port.add(1);
     return;
   }
@@ -245,8 +247,8 @@ void BidirectionalPacketStream::recvPacket(TPacket&& packet) {
     return true;
   });
   if (failed) {
-    LOG(ERROR) << "Packet received for port:" << port
-               << " that's doesn't have transport to forward";
+    XLOG(ERR) << "Packet received for port:" << port
+              << " that's doesn't have transport to forward";
     throw std::runtime_error("acceptor not registered");
   }
 }
@@ -254,7 +256,7 @@ void BidirectionalPacketStream::recvPacket(TPacket&& packet) {
 ssize_t BidirectionalPacketStream::send(TPacket&& packet) {
   if (!clientConnected_.load()) {
     STATS_err_send_client_not_connected.add(1);
-    LOG(ERROR) << "client not yet connected";
+    XLOG(ERR) << "client not yet connected";
     return -1;
   }
   ssize_t sz = packet.buf_ref()->size();
@@ -262,7 +264,7 @@ ssize_t BidirectionalPacketStream::send(TPacket&& packet) {
     // call the packetstreamservice send method to send the packet.
     PacketStreamService::send(connectedClientId_, std::move(packet));
   } catch (const std::exception& ex) {
-    LOG(ERROR) << "send packet failed:" << ex.what();
+    XLOG(ERR) << "send packet failed:" << ex.what();
     STATS_err_send_pkt_failed.add(1);
     // TODO:(shankaran) - Try to reconnect when there is a failure.
     return -1;

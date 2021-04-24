@@ -25,7 +25,7 @@ class BidirectionalPacketStream
       public PacketStreamClient,
       public folly::AsyncTimeout {
  public:
-  explicit BidirectionalPacketStream(
+  BidirectionalPacketStream(
       const std::string& serviceName,
       folly::EventBase* ioEventBase,
       folly::EventBase* timerEventBase,

@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/thrift_packet_stream/PacketStreamService.h"
+#include <folly/logging/xlog.h>
 
 namespace facebook {
 namespace fboss {
@@ -16,7 +17,7 @@ PacketStreamService::~PacketStreamService() {
       lockedMap.clear();
     });
   } catch (const std::exception& ex) {
-    LOG(ERROR) << "Failed to close the thrift stream;";
+    XLOG(ERR) << "Failed to close the thrift stream;";
   }
 }
 
@@ -33,7 +34,7 @@ apache::thrift::ServerStream<TPacket> PacketStreamService::connect(
     std::unique_ptr<std::string> clientIdPtr) {
   try {
     if (!clientIdPtr || clientIdPtr->empty()) {
-      LOG(ERROR) << "Invalid Client";
+      XLOG(ERR) << "Invalid Client";
       throw createTPacketException(
           TPacketErrorCode::INVALID_CLIENT, "Invalid client");
     }
@@ -42,7 +43,7 @@ apache::thrift::ServerStream<TPacket> PacketStreamService::connect(
         apache::thrift::ServerStream<TPacket>::createPublisher(
             [client = clientId, this] {
               // when the client is disconnected run this section.
-              LOG(INFO) << "Client disconnected: " << client;
+              XLOG(INFO) << "Client disconnected: " << client;
               clientMap_.withWLock([client = client](auto& lockedMap) {
                 lockedMap.erase(client);
               });
@@ -56,10 +57,10 @@ apache::thrift::ServerStream<TPacket> PacketStreamService::connect(
               std::make_pair(client, ClientInfo(std::move(publisher))));
         });
     clientConnected(clientId);
-    LOG(INFO) << clientId << " connected successfully to PacketStreamService";
+    XLOG(INFO) << clientId << " connected successfully to PacketStreamService";
     return std::move(streamAndPublisher.first);
   } catch (const std::exception& except) {
-    LOG(ERROR) << "connect failed with exp:" << except.what();
+    XLOG(ERR) << "connect failed with exp:" << except.what();
     throw createTPacketException(
         TPacketErrorCode::INTERNAL_ERROR, except.what());
   }
@@ -69,14 +70,14 @@ void PacketStreamService::send(const std::string& clientId, TPacket&& packet) {
   clientMap_.withRLock([&](auto& lockedMap) {
     auto iter = lockedMap.find(clientId);
     if (iter == lockedMap.end()) {
-      LOG(ERROR) << "Client '" << clientId << "' Not Connected";
+      XLOG(ERR) << "Client '" << clientId << "' Not Connected";
       throw createTPacketException(
           TPacketErrorCode::CLIENT_NOT_CONNECTED, "client not connected");
     }
     const auto& clientInfo = iter->second;
     auto portIter = clientInfo.portList_.find(*packet.l2Port_ref());
     if (portIter == clientInfo.portList_.end()) {
-      LOG(ERROR) << "Port '" << *packet.l2Port_ref() << "'Not Registered";
+      XLOG(ERR) << "Port '" << *packet.l2Port_ref() << "'Not Registered";
       throw createTPacketException(
           TPacketErrorCode::PORT_NOT_REGISTERED, "PORT not registered");
     }
@@ -114,13 +115,13 @@ void PacketStreamService::registerPort(
     std::unique_ptr<std::string> clientIdPtr,
     std::unique_ptr<std::string> l2PortPtr) {
   if (!clientIdPtr || clientIdPtr->empty()) {
-    LOG(ERROR) << "Invalid Client";
+    XLOG(ERR) << "Invalid Client";
     throw createTPacketException(
         TPacketErrorCode::INVALID_CLIENT, "Invalid client");
   }
 
   if (!l2PortPtr || l2PortPtr->empty()) {
-    LOG(ERROR) << "Invalid port";
+    XLOG(ERR) << "Invalid port";
     throw createTPacketException(
         TPacketErrorCode::INVALID_L2PORT, "Invalid Port");
   }
@@ -130,7 +131,7 @@ void PacketStreamService::registerPort(
   clientMap_.withWLock([&](auto& lockedMap) {
     auto iter = lockedMap.find(clientId);
     if (iter == lockedMap.end()) {
-      LOG(ERROR) << "Client " << clientId << " not found";
+      XLOG(ERR) << "Client " << clientId << " not found";
       throw createTPacketException(
           TPacketErrorCode::CLIENT_NOT_CONNECTED, "client not connected");
     }
@@ -157,7 +158,7 @@ void PacketStreamService::clearPort(
   clientMap_.withWLock([&](auto& lockedMap) {
     auto iter = lockedMap.find(clientId);
     if (iter == lockedMap.end()) {
-      LOG(ERROR) << "Client not connected";
+      XLOG(ERR) << "Client not connected";
       throw createTPacketException(
           TPacketErrorCode::CLIENT_NOT_CONNECTED, "client not connected");
     }
