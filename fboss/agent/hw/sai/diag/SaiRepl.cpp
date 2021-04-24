@@ -13,6 +13,11 @@
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 
 #include <folly/system/ThreadName.h>
+#ifndef IS_OSS
+#if __has_feature(address_sanitizer)
+#include <sanitizer/lsan_interface.h>
+#endif
+#endif
 
 namespace facebook::fboss {
 
@@ -46,7 +51,12 @@ SaiRepl::~SaiRepl() noexcept {
   try {
     if (!exited_.load()) {
       shellThread_->detach();
-      shellThread_.release();
+      __attribute__((unused)) auto leakedShellThread = shellThread_.release();
+#ifndef IS_OSS
+#if __has_feature(address_sanitizer)
+      __lsan_ignore_object(leakedShellThread);
+#endif
+#endif
     } else {
       shellThread_->join();
       shellThread_.reset();
