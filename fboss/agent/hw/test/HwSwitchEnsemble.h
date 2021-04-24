@@ -150,7 +150,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   /*
    * Initiate graceful exit
    */
-  void gracefulExit();
+  virtual void gracefulExit();
   void waitForLineRateOnPort(PortID port);
   void ensureThrift();
 

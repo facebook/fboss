@@ -168,4 +168,10 @@ void SaiSwitchEnsemble::init(
   diagShell_ = std::make_unique<DiagShell>(hw);
   diagCmdServer_ = std::make_unique<DiagCmdServer>(hw, diagShell_.get());
 }
+
+void SaiSwitchEnsemble::gracefulExit() {
+  diagCmdServer_.reset();
+  diagShell_.reset();
+  HwSwitchEnsemble::gracefulExit();
+}
 } // namespace facebook::fboss
