@@ -26,13 +26,17 @@
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
+#include <gtest/gtest.h>
+
 namespace {
 const facebook::fboss::LabelForwardingEntry::Label kTopLabel{1101};
 constexpr auto kGetQueueOutPktsRetryTimes = 5;
+using TestTypes = ::testing::Types<facebook::fboss::PortID>;
 } // namespace
 
 namespace facebook::fboss {
 
+template <typename PortType>
 class HwMPLSTest : public HwLinkStateDependentTest {
  protected:
   void SetUp() override {
@@ -237,28 +241,30 @@ class HwMPLSTest : public HwLinkStateDependentTest {
   std::unique_ptr<utility::EcmpSetupTargetedPorts6> ecmpHelper_;
 };
 
-TEST_F(HwMPLSTest, Push) {
-  if (skipTest()) {
+TYPED_TEST_SUITE(HwMPLSTest, TestTypes);
+
+TYPED_TEST(HwMPLSTest, Push) {
+  if (this->skipTest()) {
     return;
   }
   auto setup = [=]() {
     // setup ip2mpls route to 2401::201:ab00/120 through
     // port 0 w/ stack {101, 102}
-    addRoute(
+    this->addRoute(
         folly::IPAddressV6("2401::201:ab00"),
         120,
-        PortDescriptor(masterLogicalPortIds()[0]),
+        PortDescriptor(this->masterLogicalPortIds()[0]),
         {101, 102});
   };
   auto verify = [=]() {
     // capture packet exiting port 0 (entering due to loopback)
-    auto packetCapture =
-        HwTestPacketTrapEntry(getHwSwitch(), masterLogicalPortIds()[0]);
-    HwTestPacketSnooper snooper(getHwSwitchEnsemble());
+    auto packetCapture = HwTestPacketTrapEntry(
+        this->getHwSwitch(), this->masterLogicalPortIds()[0]);
+    HwTestPacketSnooper snooper(this->getHwSwitchEnsemble());
     // generate the packet entering  port 1
-    sendL3Packet(
+    this->sendL3Packet(
         folly::IPAddressV6("2401::201:ab01"),
-        masterLogicalPortIds()[1],
+        this->masterLogicalPortIds()[1],
         DSCP(16)); // tc = 2 for dscp = 16
     auto pkt = snooper.waitForPacket(10);
     auto mplsPayLoad = pkt ? pkt->mplsPayLoad() : std::nullopt;
@@ -272,26 +278,28 @@ TEST_F(HwMPLSTest, Push) {
     });
     EXPECT_EQ(mplsPayLoad->header(), expectedMplsHdr);
   };
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwMPLSTest, Swap) {
-  if (skipTest()) {
+TYPED_TEST(HwMPLSTest, Swap) {
+  if (this->skipTest()) {
     return;
   }
   auto setup = [=]() {
     // setup ip2mpls route to 2401::201:ab00/120 through
     // port 0 w/ stack {101, 102}
-    programLabelSwap(PortDescriptor(masterLogicalPortIds()[0]));
+    this->programLabelSwap(PortDescriptor(this->masterLogicalPortIds()[0]));
   };
   auto verify = [=]() {
     // capture packet exiting port 0 (entering due to loopback)
-    auto packetCapture =
-        HwTestPacketTrapEntry(getHwSwitch(), masterLogicalPortIds()[0]);
-    HwTestPacketSnooper snooper(getHwSwitchEnsemble());
+    auto packetCapture = HwTestPacketTrapEntry(
+        this->getHwSwitch(), this->masterLogicalPortIds()[0]);
+    HwTestPacketSnooper snooper(this->getHwSwitchEnsemble());
     // generate the packet entering  port 1
-    sendMplsPacket(
-        1101, masterLogicalPortIds()[1], EXP(5)); // send packet with exp 5
+    this->sendMplsPacket(
+        1101,
+        this->masterLogicalPortIds()[1],
+        EXP(5)); // send packet with exp 5
     auto pkt = snooper.waitForPacket(10);
 
     auto mplsPayLoad = pkt ? pkt->mplsPayLoad() : std::nullopt;
@@ -301,17 +309,17 @@ TEST_F(HwMPLSTest, Swap) {
       return;
     }
     uint32_t expectedOutLabel =
-        utility::getLabelSwappedWithForTopLabel(getHwSwitch(), kTopLabel);
+        utility::getLabelSwappedWithForTopLabel(this->getHwSwitch(), kTopLabel);
     auto expectedMplsHdr = MPLSHdr({
         MPLSHdr::Label{expectedOutLabel, 2, true, 127}, // exp is remarked to 2
     });
     EXPECT_EQ(mplsPayLoad->header(), expectedMplsHdr);
   };
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwMPLSTest, MplsNoMatchPktsToLowPriQ) {
-  if (skipTest()) {
+TYPED_TEST(HwMPLSTest, MplsNoMatchPktsToLowPriQ) {
+  if (this->skipTest()) {
     return;
   }
   auto setup = [=]() {};
@@ -319,86 +327,98 @@ TEST_F(HwMPLSTest, MplsNoMatchPktsToLowPriQ) {
   auto verify = [=]() {
     const auto& mplsNoMatchCounter = utility::getMplsDestNoMatchCounterName();
     auto statBefore = utility::getAclInOutPackets(
-        getHwSwitch(), getProgrammedState(), "", mplsNoMatchCounter);
+        this->getHwSwitch(),
+        this->getProgrammedState(),
+        "",
+        mplsNoMatchCounter);
 
-    sendMplsPktAndVerifyTrappedCpuQueue(utility::kCoppLowPriQueueId);
+    this->sendMplsPktAndVerifyTrappedCpuQueue(utility::kCoppLowPriQueueId);
 
     auto statAfter = utility::getAclInOutPackets(
-        getHwSwitch(), getProgrammedState(), "", mplsNoMatchCounter);
+        this->getHwSwitch(),
+        this->getProgrammedState(),
+        "",
+        mplsNoMatchCounter);
     EXPECT_EQ(statBefore + 1, statAfter);
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwMPLSTest, MplsMatchPktsNottrapped) {
-  if (skipTest()) {
+TYPED_TEST(HwMPLSTest, MplsMatchPktsNottrapped) {
+  if (this->skipTest()) {
     return;
   }
   auto setup = [=]() {
-    programLabelSwap(PortDescriptor(masterLogicalPortIds()[0]));
+    this->programLabelSwap(PortDescriptor(this->masterLogicalPortIds()[0]));
   };
 
   auto verify = [=]() {
     const auto& mplsNoMatchCounter = utility::getMplsDestNoMatchCounterName();
     auto statBefore = utility::getAclInOutPackets(
-        getHwSwitch(), getProgrammedState(), "", mplsNoMatchCounter);
+        this->getHwSwitch(),
+        this->getProgrammedState(),
+        "",
+        mplsNoMatchCounter);
 
-    sendMplsPktAndVerifyTrappedCpuQueue(
+    this->sendMplsPktAndVerifyTrappedCpuQueue(
         utility::kCoppLowPriQueueId, 1101, 1 /* To send*/, 0 /* expected*/);
 
     auto statAfter = utility::getAclInOutPackets(
-        getHwSwitch(), getProgrammedState(), "", mplsNoMatchCounter);
+        this->getHwSwitch(),
+        this->getProgrammedState(),
+        "",
+        mplsNoMatchCounter);
     EXPECT_EQ(statBefore, statAfter);
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwMPLSTest, Pop) {
-  if (skipTest()) {
+TYPED_TEST(HwMPLSTest, Pop) {
+  if (this->skipTest()) {
     return;
   }
   auto setup = [=]() {
     // pop and lookup 1101
-    programLabelPop(1101);
+    this->programLabelPop(1101);
     // setup route for 2001::, dest ip under label 1101
-    addRoute(
+    this->addRoute(
         folly::IPAddressV6("2001::"),
         128,
-        PortDescriptor(masterLogicalPortIds()[0]));
+        PortDescriptor(this->masterLogicalPortIds()[0]));
   };
   auto verify = [=]() {
-    auto outPktsBefore =
-        getPortOutPkts(getLatestPortStats(masterLogicalPortIds()[0]));
+    auto outPktsBefore = getPortOutPkts(
+        this->getLatestPortStats(this->masterLogicalPortIds()[0]));
     // send mpls packet with label and let it pop
-    sendMplsPacket(1101, masterLogicalPortIds()[1]);
+    this->sendMplsPacket(1101, this->masterLogicalPortIds()[1]);
     // ip packet should be forwarded as per route for 2001::/128
-    auto outPktsAfter =
-        getPortOutPkts(getLatestPortStats(masterLogicalPortIds()[0]));
+    auto outPktsAfter = getPortOutPkts(
+        this->getLatestPortStats(this->masterLogicalPortIds()[0]));
     EXPECT_EQ((outPktsAfter - outPktsBefore), 1);
   };
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwMPLSTest, Php) {
-  if (skipTest()) {
+TYPED_TEST(HwMPLSTest, Php) {
+  if (this->skipTest()) {
     return;
   }
   auto setup = [=]() {
     // php to exit out of port 0
-    programLabelPhp(PortDescriptor(masterLogicalPortIds()[0]));
+    this->programLabelPhp(PortDescriptor(this->masterLogicalPortIds()[0]));
   };
   auto verify = [=]() {
-    auto outPktsBefore =
-        getPortOutPkts(getLatestPortStats(masterLogicalPortIds()[0]));
+    auto outPktsBefore = getPortOutPkts(
+        this->getLatestPortStats(this->masterLogicalPortIds()[0]));
     // send mpls packet with label and let it forward with php
-    sendMplsPacket(1101, masterLogicalPortIds()[1]);
+    this->sendMplsPacket(1101, this->masterLogicalPortIds()[1]);
     // ip packet should be forwarded through port 0
-    auto outPktsAfter =
-        getPortOutPkts(getLatestPortStats(masterLogicalPortIds()[0]));
+    auto outPktsAfter = getPortOutPkts(
+        this->getLatestPortStats(this->masterLogicalPortIds()[0]));
     EXPECT_EQ((outPktsAfter - outPktsBefore), 1);
   };
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 } // namespace facebook::fboss
