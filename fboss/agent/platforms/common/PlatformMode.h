@@ -25,6 +25,7 @@ enum class PlatformMode : char {
   WEDGE400,
   FUJI,
   ELBERT,
+  CLOUDRIPPER
 };
 
 enum class ExternalPhyVersion : char {

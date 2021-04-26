@@ -22,44 +22,18 @@ SaiWedge400CPlatform::SaiWedge400CPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo)
     : SaiTajoPlatform(
           std::move(productInfo),
-          std::make_unique<Wedge400CPlatformMapping>()) {
-  asic_ = std::make_unique<TajoAsic>();
-}
+          std::make_unique<Wedge400CPlatformMapping>()) {}
 
 SaiWedge400CPlatform::SaiWedge400CPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
     std::unique_ptr<Wedge400CEbbLabPlatformMapping> mapping)
-    : SaiTajoPlatform(std::move(productInfo), std::move(mapping)) {
-  asic_ = std::make_unique<TajoAsic>();
-}
+    : SaiTajoPlatform(std::move(productInfo), std::move(mapping)) {}
 
 std::string SaiWedge400CPlatform::getHwConfig() {
   return *config()->thrift.platform_ref()->get_chip().get_asic().config_ref();
 }
 
-HwAsic* SaiWedge400CPlatform::getAsic() const {
-  return asic_.get();
-}
-
 SaiWedge400CPlatform::~SaiWedge400CPlatform() {}
-
-std::optional<SaiSwitchTraits::Attributes::AclFieldList>
-SaiWedge400CPlatform::getAclFieldList() const {
-  static const std::vector<sai_int32_t> kAclFieldList = {
-      SAI_ACL_TABLE_ATTR_FIELD_SRC_IPV6,
-      SAI_ACL_TABLE_ATTR_FIELD_DST_IPV6,
-      SAI_ACL_TABLE_ATTR_FIELD_SRC_IP,
-      SAI_ACL_TABLE_ATTR_FIELD_DST_IP,
-      SAI_ACL_TABLE_ATTR_FIELD_IP_PROTOCOL,
-      SAI_ACL_TABLE_ATTR_FIELD_DSCP,
-      SAI_ACL_TABLE_ATTR_FIELD_ACL_IP_TYPE,
-      SAI_ACL_TABLE_ATTR_FIELD_TTL,
-      SAI_ACL_TABLE_ATTR_FIELD_FDB_DST_USER_META,
-      SAI_ACL_TABLE_ATTR_FIELD_ROUTE_DST_USER_META,
-      SAI_ACL_TABLE_ATTR_FIELD_NEIGHBOR_DST_USER_META,
-  };
-  return kAclFieldList;
-}
 
 SaiWedge400CEbbLabPlatform::SaiWedge400CEbbLabPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo)

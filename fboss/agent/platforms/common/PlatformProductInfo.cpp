@@ -120,6 +120,8 @@ void PlatformProductInfo::initMode() {
       mode_ = PlatformMode::FAKE_WEDGE40;
     } else if (modelName.find("fake_wedge") == 0) {
       mode_ = PlatformMode::FAKE_WEDGE;
+    } else if (modelName.find("CLOUDRIPPER") == 0) {
+      mode_ = PlatformMode::CLOUDRIPPER;
     } else {
       throw std::runtime_error("invalid model name " + modelName);
     }

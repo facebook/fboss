@@ -18,6 +18,8 @@ class SaiCloudRipperPlatform : public SaiTajoPlatform {
   explicit SaiCloudRipperPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo);
   ~SaiCloudRipperPlatform() override;
+
+  std::string getHwConfig() override;
 };
 
 } // namespace facebook::fboss

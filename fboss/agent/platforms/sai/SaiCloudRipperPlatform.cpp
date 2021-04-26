@@ -21,6 +21,11 @@ SaiCloudRipperPlatform::SaiCloudRipperPlatform(
     : SaiTajoPlatform(
           std::move(productInfo),
           std::make_unique<CloudRipperPlatformMapping>()) {}
+
+std::string SaiCloudRipperPlatform::getHwConfig() {
+  return *config()->thrift.platform_ref()->get_chip().get_asic().config_ref();
+}
+
 SaiCloudRipperPlatform::~SaiCloudRipperPlatform() {}
 
 } // namespace facebook::fboss
