@@ -415,6 +415,9 @@ uint32_t SaiHostifManager::getMaxCpuQueues() const {
 }
 
 QueueConfig SaiHostifManager::getQueueSettings() const {
+  if (!cpuPortHandle_) {
+    return QueueConfig{};
+  }
   auto queueConfig =
       managerTable_->queueManager().getQueueSettings(cpuPortHandle_->queues);
   auto maxCpuQueues = getMaxCpuQueues();

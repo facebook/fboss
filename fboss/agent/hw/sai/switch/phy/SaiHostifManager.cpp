@@ -12,10 +12,10 @@
 
 namespace facebook::fboss {
 
-// PHY doesn't need HostIf feature
 SaiHostifManager::SaiHostifManager(
-    SaiStore* /* saiStore */,
-    SaiManagerTable* /* managerTable */,
-    const SaiPlatform* /* platform */) {}
+    SaiStore* saiStore,
+    SaiManagerTable* managerTable,
+    const SaiPlatform* platform)
+    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
 } // namespace facebook::fboss
