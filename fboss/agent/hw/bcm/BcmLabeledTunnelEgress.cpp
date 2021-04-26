@@ -64,4 +64,13 @@ void BcmLabeledTunnelEgress::prepareEgressObject(
   eObj->intf = tunnel_->getTunnelInterface();
 }
 
+void BcmLabeledTunnelEgress::prepareEgressObjectOnTrunk(
+    bcm_if_t intfId,
+    bcm_trunk_t trunk,
+    const folly::MacAddress& mac,
+    bcm_l3_egress_t* egress) const {
+  BcmLabeledEgress::prepareEgressObjectOnTrunk(intfId, trunk, mac, egress);
+  egress->intf = tunnel_->getTunnelInterface();
+}
+
 } // namespace facebook::fboss

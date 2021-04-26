@@ -484,6 +484,18 @@ bool BcmEcmpEgress::removeEgressIdHwLocked(
       useHsdk);
 }
 
+void BcmEgress::prepareEgressObjectOnTrunk(
+    bcm_if_t intfId,
+    bcm_trunk_t trunk,
+    const folly::MacAddress& mac,
+    bcm_l3_egress_t* egress) const {
+  bcm_l3_egress_t_init(egress);
+  egress->intf = intfId;
+  egress->flags |= BCM_L3_TGID;
+  egress->trunk = trunk;
+  memcpy(egress->mac_addr, mac.bytes(), sizeof(egress->mac_addr));
+}
+
 void BcmEgress::programToTrunk(
     bcm_if_t intfId,
     bcm_vrf_t vrf,
@@ -491,11 +503,7 @@ void BcmEgress::programToTrunk(
     const MacAddress mac,
     bcm_trunk_t trunk) {
   bcm_l3_egress_t egress;
-  bcm_l3_egress_t_init(&egress);
-  egress.intf = intfId;
-  egress.flags |= BCM_L3_TGID;
-  egress.trunk = trunk;
-  memcpy(egress.mac_addr, mac.bytes(), sizeof(egress.mac_addr));
+  prepareEgressObjectOnTrunk(intfId, trunk, mac, &egress);
 
   bool addOrUpdateEgress = false;
   const auto warmBootCache = hw_->getWarmBootCache();

@@ -125,6 +125,12 @@ class BcmEgress : public BcmEgressBase {
       RouteForwardAction action,
       bcm_l3_egress_t* egress) const;
 
+  virtual void prepareEgressObjectOnTrunk(
+      bcm_if_t intfId,
+      bcm_trunk_t trunk,
+      const folly::MacAddress& mac,
+      bcm_l3_egress_t* egress) const;
+
  private:
   virtual BcmWarmBootCache::EgressId2EgressCitr
   findEgress(bcm_vrf_t vrf, bcm_if_t intfId, const folly::IPAddress& ip) const;

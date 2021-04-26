@@ -43,4 +43,21 @@ void BcmLabeledEgress::prepareEgressObject(
   }
 }
 
+void BcmLabeledEgress::prepareEgressObjectOnTrunk(
+    bcm_if_t intfId,
+    bcm_trunk_t trunk,
+    const folly::MacAddress& mac,
+    bcm_l3_egress_t* egress) const {
+  BcmEgress::prepareEgressObjectOnTrunk(intfId, trunk, mac, egress);
+  auto bcmEgress = reinterpret_cast<bcm_l3_egress_t*>(egress);
+  bcmEgress->mpls_label = label_;
+  auto defaultDataPlaneQosPolicy =
+      hw_->getQosPolicyTable()->getDefaultDataPlaneQosPolicyIf();
+  if (defaultDataPlaneQosPolicy) {
+    bcmEgress->mpls_qos_map_id =
+        defaultDataPlaneQosPolicy->getHandle(BcmQosMap::Type::MPLS_EGRESS);
+    bcmEgress->mpls_flags |= BCM_MPLS_EGRESS_LABEL_EXP_REMARK;
+  }
+}
+
 } // namespace facebook::fboss

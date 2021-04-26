@@ -34,7 +34,8 @@
 namespace {
 const facebook::fboss::LabelForwardingEntry::Label kTopLabel{1101};
 constexpr auto kGetQueueOutPktsRetryTimes = 5;
-using TestTypes = ::testing::Types<facebook::fboss::PortID>;
+using TestTypes =
+    ::testing::Types<facebook::fboss::PortID, facebook::fboss::AggregatePortID>;
 } // namespace
 
 namespace facebook::fboss {
@@ -253,6 +254,12 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
   }
 
+  void setup() {
+    if constexpr (std::is_same_v<PortType, AggregatePortID>) {
+      applyNewState(utility::enableTrunkPorts(getProgrammedState()));
+    }
+  }
+
   std::unique_ptr<utility::EcmpSetupTargetedPorts6> ecmpHelper_;
 };
 
@@ -263,6 +270,7 @@ TYPED_TEST(HwMPLSTest, Push) {
     return;
   }
   auto setup = [=]() {
+    this->setup();
     // setup ip2mpls route to 2401::201:ab00/120 through
     // port 0 w/ stack {101, 102}
     this->addRoute(
@@ -301,6 +309,7 @@ TYPED_TEST(HwMPLSTest, Swap) {
     return;
   }
   auto setup = [=]() {
+    this->setup();
     // setup ip2mpls route to 2401::201:ab00/120 through
     // port 0 w/ stack {101, 102}
     this->programLabelSwap(this->getPortDescriptor(0));
@@ -337,7 +346,7 @@ TYPED_TEST(HwMPLSTest, MplsNoMatchPktsToLowPriQ) {
   if (this->skipTest()) {
     return;
   }
-  auto setup = [=]() {};
+  auto setup = [=]() { this->setup(); };
 
   auto verify = [=]() {
     const auto& mplsNoMatchCounter = utility::getMplsDestNoMatchCounterName();
@@ -364,7 +373,10 @@ TYPED_TEST(HwMPLSTest, MplsMatchPktsNottrapped) {
   if (this->skipTest()) {
     return;
   }
-  auto setup = [=]() { this->programLabelSwap(this->getPortDescriptor(0)); };
+  auto setup = [=]() {
+    this->setup();
+    this->programLabelSwap(this->getPortDescriptor(0));
+  };
 
   auto verify = [=]() {
     const auto& mplsNoMatchCounter = utility::getMplsDestNoMatchCounterName();
@@ -393,6 +405,7 @@ TYPED_TEST(HwMPLSTest, Pop) {
     return;
   }
   auto setup = [=]() {
+    this->setup();
     // pop and lookup 1101
     this->programLabelPop(1101);
     // setup route for 2001::, dest ip under label 1101
@@ -417,6 +430,7 @@ TYPED_TEST(HwMPLSTest, Php) {
     return;
   }
   auto setup = [=]() {
+    this->setup();
     // php to exit out of port 0
     this->programLabelPhp(this->getPortDescriptor(0));
   };
