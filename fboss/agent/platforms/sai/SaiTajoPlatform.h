@@ -9,20 +9,24 @@
  */
 #pragma once
 
-#include "fboss/agent/platforms/sai/SaiTajoPlatform.h"
+#include "fboss/agent/platforms/sai/SaiHwPlatform.h"
 
 namespace facebook::fboss {
 
 class TajoAsic;
-class Wedge400CEbbLabPlatformMapping;
 
-class SaiWedge400CPlatform : public SaiTajoPlatform {
+class SaiTajoPlatform : public SaiHwPlatform {
  public:
-  explicit SaiWedge400CPlatform(
-      std::unique_ptr<PlatformProductInfo> productInfo);
-  ~SaiWedge400CPlatform() override;
-  std::string getHwConfig() override;
+  explicit SaiTajoPlatform(
+      std::unique_ptr<PlatformProductInfo> productInfo,
+      std::unique_ptr<PlatformMapping> platformMapping);
+  ~SaiTajoPlatform() override;
+
+  std::optional<SaiSwitchTraits::Attributes::AclFieldList> getAclFieldList()
+      const override;
+
   HwAsic* getAsic() const override;
+
   uint32_t numLanesPerCore() const override {
     return 4;
   }
@@ -46,22 +50,8 @@ class SaiWedge400CPlatform : public SaiTajoPlatform {
   }
   void initLEDs() override {}
 
-  std::optional<SaiSwitchTraits::Attributes::AclFieldList> getAclFieldList()
-      const override;
-
  protected:
-  SaiWedge400CPlatform(
-      std::unique_ptr<PlatformProductInfo> productInfo,
-      std::unique_ptr<Wedge400CEbbLabPlatformMapping> mapping);
-
- private:
   std::unique_ptr<TajoAsic> asic_;
-};
-
-class SaiWedge400CEbbLabPlatform : public SaiWedge400CPlatform {
- public:
-  explicit SaiWedge400CEbbLabPlatform(
-      std::unique_ptr<PlatformProductInfo> productInfo);
 };
 
 } // namespace facebook::fboss
