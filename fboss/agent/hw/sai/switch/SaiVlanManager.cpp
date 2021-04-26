@@ -16,6 +16,8 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include <folly/logging/xlog.h>
 
@@ -23,6 +25,20 @@
 #include <tuple>
 
 namespace facebook::fboss {
+SaiVlanManager::SaiVlanManager(
+    SaiStore* saiStore,
+    SaiManagerTable* managerTable,
+    const SaiPlatform* platform)
+    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::DEFAULT_VLAN)) {
+    // default vlan
+    // TODO(pshaikh): manage default vlan more graciously
+    auto key = managerTable_->switchManager().getDefaultVlanAdapterKey();
+    auto defaultVlan =
+        saiStore_->get<SaiVlanTraits>().reloadObject(VlanSaiId(key));
+    defaultVlan->release();
+  }
+}
 
 VlanSaiId SaiVlanManager::addVlan(const std::shared_ptr<Vlan>& swVlan) {
   VlanID swVlanId = swVlan->getID();
