@@ -21,6 +21,7 @@
 #include "fboss/agent/platforms/sai/SaiBcmWedge400PlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge40PlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmYampPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiCloudRipperPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiFakePlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
 #include "fboss/agent/state/Port.h"
@@ -181,6 +182,8 @@ void SaiPlatform::initPorts() {
     PortID portId(port.first);
     if (platformMode == PlatformMode::WEDGE400C) {
       saiPort = std::make_unique<SaiWedge400CPlatformPort>(portId, this);
+    } else if (platformMode == PlatformMode::CLOUDRIPPER) {
+      saiPort = std::make_unique<SaiCloudRipperPlatformPort>(portId, this);
     } else if (platformMode == PlatformMode::WEDGE) {
       saiPort = std::make_unique<SaiBcmWedge40PlatformPort>(portId, this);
     } else if (platformMode == PlatformMode::WEDGE100) {
