@@ -23,8 +23,11 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/LabelForwardingEntry.h"
+#include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TrunkUtils.h"
+#include "fboss/agent/types.h"
 
 #include <gtest/gtest.h>
 
@@ -51,6 +54,14 @@ class HwMPLSTest : public HwLinkStateDependentTest {
         LabelForwardingAction::LabelForwardingType::SWAP);
   }
 
+  PortDescriptor getPortDescriptor(int index) {
+    if constexpr (std::is_same_v<PortType, PortID>) {
+      return PortDescriptor(masterLogicalPortIds()[index]);
+    } else {
+      return PortDescriptor(AggregatePortID(index + 1));
+    }
+  }
+
   cfg::SwitchConfig initialConfig() const override {
     std::vector<PortID> ports = {
         masterLogicalPortIds()[0],
@@ -59,6 +70,10 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     auto config = utility::onePortPerVlanConfig(
         getHwSwitch(), std::move(ports), cfg::PortLoopbackMode::MAC, true);
 
+    if constexpr (std::is_same_v<PortType, AggregatePortID>) {
+      utility::addAggPort(1, {masterLogicalPortIds()[0]}, &config);
+      utility::addAggPort(2, {masterLogicalPortIds()[1]}, &config);
+    }
     cfg::QosMap qosMap;
     for (auto tc = 0; tc < 8; tc++) {
       // setup ingress qos map for dscp
@@ -253,7 +268,7 @@ TYPED_TEST(HwMPLSTest, Push) {
     this->addRoute(
         folly::IPAddressV6("2401::201:ab00"),
         120,
-        PortDescriptor(this->masterLogicalPortIds()[0]),
+        this->getPortDescriptor(0),
         {101, 102});
   };
   auto verify = [=]() {
@@ -288,7 +303,7 @@ TYPED_TEST(HwMPLSTest, Swap) {
   auto setup = [=]() {
     // setup ip2mpls route to 2401::201:ab00/120 through
     // port 0 w/ stack {101, 102}
-    this->programLabelSwap(PortDescriptor(this->masterLogicalPortIds()[0]));
+    this->programLabelSwap(this->getPortDescriptor(0));
   };
   auto verify = [=]() {
     // capture packet exiting port 0 (entering due to loopback)
@@ -349,9 +364,7 @@ TYPED_TEST(HwMPLSTest, MplsMatchPktsNottrapped) {
   if (this->skipTest()) {
     return;
   }
-  auto setup = [=]() {
-    this->programLabelSwap(PortDescriptor(this->masterLogicalPortIds()[0]));
-  };
+  auto setup = [=]() { this->programLabelSwap(this->getPortDescriptor(0)); };
 
   auto verify = [=]() {
     const auto& mplsNoMatchCounter = utility::getMplsDestNoMatchCounterName();
@@ -384,9 +397,7 @@ TYPED_TEST(HwMPLSTest, Pop) {
     this->programLabelPop(1101);
     // setup route for 2001::, dest ip under label 1101
     this->addRoute(
-        folly::IPAddressV6("2001::"),
-        128,
-        PortDescriptor(this->masterLogicalPortIds()[0]));
+        folly::IPAddressV6("2001::"), 128, this->getPortDescriptor(0));
   };
   auto verify = [=]() {
     auto outPktsBefore = getPortOutPkts(
@@ -407,7 +418,7 @@ TYPED_TEST(HwMPLSTest, Php) {
   }
   auto setup = [=]() {
     // php to exit out of port 0
-    this->programLabelPhp(PortDescriptor(this->masterLogicalPortIds()[0]));
+    this->programLabelPhp(this->getPortDescriptor(0));
   };
   auto verify = [=]() {
     auto outPktsBefore = getPortOutPkts(
