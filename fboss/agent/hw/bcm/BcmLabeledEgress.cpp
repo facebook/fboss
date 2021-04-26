@@ -13,6 +13,20 @@ extern "C" {
 #include <bcm/mpls.h>
 }
 
+namespace {
+void setupLabeledEgressProperties(
+    bcm_l3_egress_t* bcmEgress,
+    bcm_mpls_label_t label,
+    facebook::fboss::BcmQosPolicy* qosPolicy) {
+  bcmEgress->mpls_label = label;
+  if (qosPolicy) {
+    bcmEgress->mpls_qos_map_id =
+        qosPolicy->getHandle(facebook::fboss::BcmQosMap::Type::MPLS_EGRESS);
+    bcmEgress->mpls_flags |= BCM_MPLS_EGRESS_LABEL_EXP_REMARK;
+  }
+}
+} // namespace
+
 namespace facebook::fboss {
 
 BcmWarmBootCache::EgressId2EgressCitr BcmLabeledEgress::findEgress(
@@ -32,15 +46,9 @@ void BcmLabeledEgress::prepareEgressObject(
     RouteForwardAction action,
     bcm_l3_egress_t* eObj) const {
   BcmEgress::prepareEgressObject(intfId, port, mac, action, eObj);
-  auto bcmEgress = reinterpret_cast<bcm_l3_egress_t*>(eObj);
-  bcmEgress->mpls_label = label_;
   auto defaultDataPlaneQosPolicy =
       hw_->getQosPolicyTable()->getDefaultDataPlaneQosPolicyIf();
-  if (defaultDataPlaneQosPolicy) {
-    bcmEgress->mpls_qos_map_id =
-        defaultDataPlaneQosPolicy->getHandle(BcmQosMap::Type::MPLS_EGRESS);
-    bcmEgress->mpls_flags |= BCM_MPLS_EGRESS_LABEL_EXP_REMARK;
-  }
+  setupLabeledEgressProperties(eObj, label_, defaultDataPlaneQosPolicy);
 }
 
 void BcmLabeledEgress::prepareEgressObjectOnTrunk(
@@ -49,15 +57,10 @@ void BcmLabeledEgress::prepareEgressObjectOnTrunk(
     const folly::MacAddress& mac,
     bcm_l3_egress_t* egress) const {
   BcmEgress::prepareEgressObjectOnTrunk(intfId, trunk, mac, egress);
-  auto bcmEgress = reinterpret_cast<bcm_l3_egress_t*>(egress);
-  bcmEgress->mpls_label = label_;
+
   auto defaultDataPlaneQosPolicy =
       hw_->getQosPolicyTable()->getDefaultDataPlaneQosPolicyIf();
-  if (defaultDataPlaneQosPolicy) {
-    bcmEgress->mpls_qos_map_id =
-        defaultDataPlaneQosPolicy->getHandle(BcmQosMap::Type::MPLS_EGRESS);
-    bcmEgress->mpls_flags |= BCM_MPLS_EGRESS_LABEL_EXP_REMARK;
-  }
+  setupLabeledEgressProperties(egress, label_, defaultDataPlaneQosPolicy);
 }
 
 } // namespace facebook::fboss
