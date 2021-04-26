@@ -65,6 +65,7 @@ class HwAsic {
     REMOVE_PORTS_FOR_COLDBOOT,
     EGRESS_MIRRORING,
     EGRESS_SFLOW,
+    DEFAULT_VLAN,
   };
 
   enum class AsicType {

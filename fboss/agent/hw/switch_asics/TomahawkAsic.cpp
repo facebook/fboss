@@ -37,6 +37,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT:
     case HwAsic::Feature::EGRESS_MIRRORING:
     case HwAsic::Feature::EGRESS_SFLOW:
+    case HwAsic::Feature::DEFAULT_VLAN:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
