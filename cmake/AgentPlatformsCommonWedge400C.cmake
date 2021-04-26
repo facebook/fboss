@@ -7,6 +7,10 @@ add_library(wedge400c_platform_mapping
     fboss/agent/platforms/common/wedge400c/Wedge400CPlatformMapping.cpp
 )
 
+add_library(cloud_ripper_platform_mapping
+    fboss/agent/platforms/common/cloud_ripper/CloudRipperPlatformMapping.cpp
+)
+
 target_link_libraries(wedge400c_platform_mapping
   platform_mapping
 )
