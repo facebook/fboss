@@ -133,6 +133,15 @@ class HwAsic {
    */
   virtual int getMaxNumLogicalPorts() const = 0;
   virtual uint32_t getMaxWideEcmpSize() const = 0;
+
+  /*
+   * Port ID offset for system port. Default is 0.
+   * This will be added to PortID and will be carried in the
+   * sflow shim header
+   */
+  virtual int getSystemPortIDOffset() const {
+    return 0;
+  }
 };
 
 } // namespace facebook::fboss

@@ -64,6 +64,9 @@ class TajoAsic : public HwAsic {
   uint32_t getMaxWideEcmpSize() const override {
     return 128;
   }
+  int getSystemPortIDOffset() const override {
+    return 1000;
+  }
 };
 
 } // namespace facebook::fboss
