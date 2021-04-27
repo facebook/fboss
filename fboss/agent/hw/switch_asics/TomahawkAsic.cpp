@@ -66,6 +66,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::ALPM_ROUTE_PROJECTION:
     case HwAsic::Feature::SAI_PORT_SPEED_CHANGE:
     case HwAsic::Feature::SFLOW_SHIM_VERSION_FIELD:
+    case HwAsic::Feature::SAI_LAG_HASH:
       return false;
   }
   return false;

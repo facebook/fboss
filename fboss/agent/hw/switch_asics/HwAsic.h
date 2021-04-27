@@ -66,6 +66,7 @@ class HwAsic {
     EGRESS_MIRRORING,
     EGRESS_SFLOW,
     DEFAULT_VLAN,
+    SAI_LAG_HASH,
   };
 
   enum class AsicType {
