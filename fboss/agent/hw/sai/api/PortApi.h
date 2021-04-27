@@ -158,6 +158,11 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_EGRESS_MACSEC_ACL,
         SaiObjectIdT,
         SaiObjectIdDefault>;
+    struct AttributeSystemPortId {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SystemPortId =
+        SaiExtensionAttribute<sai_uint16_t, AttributeSystemPortId>;
   };
   using AdapterKey = PortSaiId;
   using AdapterHostKey = Attributes::HwLaneList;
@@ -242,6 +247,7 @@ SAI_ATTRIBUTE_NAME(Port, PrbsPolynomial)
 SAI_ATTRIBUTE_NAME(Port, PrbsConfig)
 SAI_ATTRIBUTE_NAME(Port, IngressMacSecAcl)
 SAI_ATTRIBUTE_NAME(Port, EgressMacSecAcl)
+SAI_ATTRIBUTE_NAME(Port, SystemPortId)
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};

@@ -26,4 +26,8 @@ std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
     AttributeRxAcCouplingBypassIdWrapper::operator()() {
   return SAI_PORT_SERDES_ATTR_EXT_RX_AC_COUPLING_BYPASS;
 }
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeSystemPortId::operator()() {
+  return std::nullopt;
+}
 } // namespace facebook::fboss
