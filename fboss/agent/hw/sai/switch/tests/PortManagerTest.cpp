@@ -108,7 +108,8 @@ class PortManagerTest : public ManagerTestBase {
           std::nullopt, // Egress mirror sample session
 #endif
           std::nullopt, // Ingress macsec acl
-          std::nullopt // Egress macsec acl
+          std::nullopt, // Egress macsec acl
+          std::nullopt
     };
     return portApi.create<SaiPortTraits>(a, 0);
   }

@@ -191,7 +191,8 @@ struct SaiPortTraits {
       std::optional<Attributes::EgressSampleMirrorSession>,
 #endif
       std::optional<Attributes::IngressMacSecAcl>,
-      std::optional<Attributes::EgressMacSecAcl>>;
+      std::optional<Attributes::EgressMacSecAcl>,
+      std::optional<Attributes::SystemPortId>>;
 
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,

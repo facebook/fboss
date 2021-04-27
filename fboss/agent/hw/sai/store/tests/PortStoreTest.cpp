@@ -38,7 +38,8 @@ class PortStoreTest : public SaiStoreTest {
           std::nullopt, // Egress mirror sample session
 #endif
           std::nullopt, // Ingress macsec acl
-          std::nullopt // Egress macsec acl
+          std::nullopt, // Egress macsec acl
+          std::nullopt
     };
   }
 
