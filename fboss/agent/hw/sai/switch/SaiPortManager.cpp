@@ -108,6 +108,18 @@ void fillHwPortStats(
   }
 }
 
+std::optional<SaiPortTraits::Attributes::SystemPortId> getSystemPortId(
+    const SaiPlatform* platform,
+    PortID portId) {
+  if (platform->getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TAJO) {
+#if !defined(TAJO_SDK_VERSION_1_38_0)
+    return std::optional<SaiPortTraits::Attributes::SystemPortId>{
+        portId + platform->getAsic()->getSystemPortIDOffset()};
+#endif
+  }
+  return std::nullopt;
+}
+
 } // namespace
 
 SaiPortManager::SaiPortManager(
