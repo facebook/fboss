@@ -46,6 +46,7 @@ sai_status_t create_port_fn(
   bool txEnable{true};
   std::optional<sai_object_id_t> ingressMacsecAcl;
   std::optional<sai_object_id_t> egressMacsecAcl;
+  std::optional<uint16_t> systemPortId;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_PORT_ATTR_ADMIN_STATE:
@@ -134,6 +135,9 @@ sai_status_t create_port_fn(
       case SAI_PORT_ATTR_EGRESS_MACSEC_ACL:
         egressMacsecAcl = attr_list[i].value.oid;
         break;
+      case SAI_PORT_ATTR_EXT_FAKE_SYSTEM_PORT_ID:
+        systemPortId = attr_list[i].value.u16;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -181,6 +185,9 @@ sai_status_t create_port_fn(
   }
   if (egressMacsecAcl.has_value()) {
     port.egressMacsecAcl = egressMacsecAcl.value();
+  }
+  if (systemPortId.has_value()) {
+    port.systemPortId = systemPortId.value();
   }
   port.mtu = mtu;
   port.qosDscpToTcMap = qosDscpToTcMap;
@@ -327,6 +334,9 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_EGRESS_MACSEC_ACL:
       port.egressMacsecAcl = attr->value.oid;
       break;
+    case SAI_PORT_ATTR_EXT_FAKE_SYSTEM_PORT_ID:
+      port.systemPortId = attr->value.u16;
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -472,6 +482,9 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_EGRESS_MACSEC_ACL:
         attr[i].value.oid = port.egressMacsecAcl;
+        break;
+      case SAI_PORT_ATTR_EXT_FAKE_SYSTEM_PORT_ID:
+        attr[i].value.u16 = port.systemPortId;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

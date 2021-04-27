@@ -260,6 +260,14 @@ TEST_F(PortApiTest, setGetOptionalAttributes) {
   SaiPortTraits::Attributes::PktTxEnable txEnable{false};
   portApi->setAttribute(portId, txEnable);
   EXPECT_FALSE(portApi->getAttribute(portId, txEnable));
+
+  // System port ID
+  uint16_t systemPortId{1001};
+  portApi->setAttribute(
+      portId, SaiPortTraits::Attributes::SystemPortId{systemPortId});
+  auto gotSystemPortId =
+      portApi->getAttribute(portId, SaiPortTraits::Attributes::SystemPortId{});
+  EXPECT_EQ(gotSystemPortId, systemPortId);
 }
 
 // ObjectApi tests

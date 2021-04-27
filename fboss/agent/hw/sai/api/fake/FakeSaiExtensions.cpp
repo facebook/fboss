@@ -59,5 +59,8 @@ std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::HwEccErrorInitiateWrapper::operator()() {
   return SAI_SWITCH_ATTR_EXT_FAKE_HW_ECC_ERROR_INITIATE;
 }
-
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeSystemPortId::operator()() {
+  return SAI_PORT_ATTR_EXT_FAKE_SYSTEM_PORT_ID;
+}
 } // namespace facebook::fboss

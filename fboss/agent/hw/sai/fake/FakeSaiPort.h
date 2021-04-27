@@ -51,6 +51,7 @@ struct FakePort {
   std::vector<sai_object_id_t> egressSampleMirrorList;
   sai_object_id_t ingressMacsecAcl{SAI_NULL_OBJECT_ID};
   sai_object_id_t egressMacsecAcl{SAI_NULL_OBJECT_ID};
+  uint16_t systemPortId{0};
 };
 
 struct FakePortSerdes {
