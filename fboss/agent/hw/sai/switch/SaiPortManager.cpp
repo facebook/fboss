@@ -662,6 +662,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
           platformPort->getTransmitterTech(), speed)) {
     interfaceType = saiInterfaceType.value();
   }
+  auto systemPortId = getSystemPortId(platform_, swPort->getID());
   return SaiPortTraits::CreateAttributes {
     hwLaneList, static_cast<uint32_t>(speed), adminState, fecMode,
         internalLoopbackMode, mediaType, globalFlowControlMode, vlanId,
@@ -677,7 +678,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #endif
         std::nullopt, // Ingress macsec acl
         std::nullopt, // Egress macsec acl
-        std::nullopt
+        systemPortId
   };
 }
 
