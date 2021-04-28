@@ -661,5 +661,36 @@ std::optional<phy::PhyPortConfig> WedgeManager::getPhyPortConfigValues(
   return phyPortConfig;
 }
 
+/*
+ * getExternalPhyId
+ *
+ * This function takes the portId, port profile id and returns the external Phy
+ * Id for that. This function looks into the platform mapping to derive the Phy
+ * Id for a port and profile
+ */
+std::optional<uint32_t> WedgeManager::getExternalPhyId(int32_t portId) {
+  auto platformPortEntry = platformMapping_->getPlatformPorts().find(portId);
+  if (platformPortEntry == platformMapping_->getPlatformPorts().end()) {
+    XLOG(INFO) << folly::sformat(
+        "Platform port {:d} not found in platform mapping", portId);
+    return std::nullopt;
+  }
+
+  const auto& chips = platformMapping_->getChips();
+  if (chips.empty()) {
+    throw FbossError(
+        folly::sformat("Port{:d} Chip not found in platform mapping", portId));
+  }
+
+  const auto& xphy = utility::getDataPlanePhyChips(
+      platformPortEntry->second, chips, phy::DataPlanePhyChipType::XPHY);
+
+  if (xphy.size() != 1) {
+    return std::nullopt;
+  }
+
+  return *xphy.begin()->second.physicalID_ref();
+}
+
 } // namespace fboss
 } // namespace facebook

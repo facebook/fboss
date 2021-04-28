@@ -110,6 +110,12 @@ class WedgeManager : public TransceiverManager {
       cfg::PortProfileID portProfileId);
 
   /*
+   * This function returns Phy Id corresponding to a port and profile using
+   * platform mapping
+   */
+  std::optional<uint32_t> getExternalPhyId(int32_t portId);
+
+  /*
    * This function will call PhyManager to create all the ExternalPhy objects
    */
   bool initExternalPhyMap() override {

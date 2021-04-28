@@ -77,6 +77,9 @@ FBOSS_STRONG_TYPE(uint8_t, EXP);
 FBOSS_STRONG_TYPE(uint32_t, PciVendorId);
 FBOSS_STRONG_TYPE(uint32_t, PciDeviceId);
 FBOSS_STRONG_TYPE(uint8_t, PfcPriority);
+FBOSS_STRONG_TYPE(uint8_t, PimId);
+FBOSS_STRONG_TYPE(uint8_t, MdioControllerId);
+FBOSS_STRONG_TYPE(uint8_t, PhyAddr);
 
 /*
  * A unique ID identifying a node in our state tree.
