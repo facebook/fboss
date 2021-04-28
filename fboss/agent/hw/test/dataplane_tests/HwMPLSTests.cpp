@@ -324,11 +324,18 @@ TYPED_TEST(HwMPLSTest, Push) {
     [[maybe_unused]] auto verifier = this->getPacketVerifer(
         this->masterLogicalPortIds()[0], expectedMplsHdr);
 
+    auto outPktsBefore = getPortOutPkts(
+        this->getLatestPortStats(this->masterLogicalPortIds()[0]));
+
     // generate the packet entering  port 1
     this->sendL3Packet(
         folly::IPAddressV6("2401::201:ab01"),
         this->masterLogicalPortIds()[1],
         DSCP(16)); // tc = 2 for dscp = 16
+
+    auto outPktsAfter = getPortOutPkts(
+        this->getLatestPortStats(this->masterLogicalPortIds()[0]));
+    EXPECT_EQ((outPktsAfter - outPktsBefore), 1);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
@@ -352,11 +359,18 @@ TYPED_TEST(HwMPLSTest, Swap) {
     [[maybe_unused]] auto verifier = this->getPacketVerifer(
         this->masterLogicalPortIds()[0], expectedMplsHdr);
 
+    auto outPktsBefore = getPortOutPkts(
+        this->getLatestPortStats(this->masterLogicalPortIds()[0]));
+
     // generate the packet entering  port 1
     this->sendMplsPacket(
         1101,
         this->masterLogicalPortIds()[1],
         EXP(5)); // send packet with exp 5
+
+    auto outPktsAfter = getPortOutPkts(
+        this->getLatestPortStats(this->masterLogicalPortIds()[0]));
+    EXPECT_EQ((outPktsAfter - outPktsBefore), 1);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
