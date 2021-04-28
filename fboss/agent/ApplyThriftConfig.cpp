@@ -3142,7 +3142,7 @@ ThriftConfigApplier::updateStaticMplsRoutes(
             nhopAddress.str(),
             " out of interface subnets");
       }
-      nhop.set_interface(intfAddrToReach.intf->getID());
+      nhop.interface_ref() = intfAddrToReach.intf->getID();
       resolvedNextHops.push_back(nhop);
     }
     auto entry = labelFib->getLabelForwardingEntryIf(

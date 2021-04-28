@@ -172,7 +172,7 @@ std::optional<cfg::ActiveQueueManagement> bcmAqmToCfgAqm(
   cfg::LinearQueueCongestionDetection linear;
   linear.minimumLength = discard.min_thresh;
   linear.maximumLength = discard.max_thresh;
-  detection.set_linear(linear);
+  detection.linear_ref() = linear;
   aqm.detection_ref() = detection;
   aqm.behavior_ref() = cfgQuenBehaviorFromBcmAqm(discard);
   return aqm;

@@ -27,7 +27,7 @@ cfg::ActiveQueueManagement getEarlyDropAqmConfig() {
   cfg::LinearQueueCongestionDetection earlyDropLQCD;
   earlyDropLQCD.minimumLength = 208;
   earlyDropLQCD.maximumLength = 416;
-  earlyDropAQM.detection.set_linear(earlyDropLQCD);
+  earlyDropAQM.detection.linear_ref() = earlyDropLQCD;
   earlyDropAQM.behavior = cfg::QueueCongestionBehavior::EARLY_DROP;
   return earlyDropAQM;
 }
@@ -37,7 +37,7 @@ cfg::ActiveQueueManagement getECNAqmConfig() {
   cfg::LinearQueueCongestionDetection ecnLQCD;
   ecnLQCD.minimumLength = 624;
   ecnLQCD.maximumLength = 624;
-  ecnAQM.detection.set_linear(ecnLQCD);
+  ecnAQM.detection.linear_ref() = ecnLQCD;
   ecnAQM.behavior = cfg::QueueCongestionBehavior::ECN;
   return ecnAQM;
 }
@@ -66,7 +66,7 @@ TEST(CosQueueBcmConvertors, cfgAqmToFromBcm) {
   for (const auto& aqm : aqms) {
     // w/ threshold
     auto defaultAqm = aqm;
-    defaultAqm.detection.set_linear(detection);
+    defaultAqm.detection.linear_ref() = detection;
     bcm_cosq_gport_discard_t discard =
         cfgAqmToBcmAqm(aqm.behavior, aqm.detection, defaultAqm);
     auto cfgAqmOpt = bcmAqmToCfgAqm(discard, defaultAqm);

@@ -54,12 +54,12 @@ cfg::PlatformPortEntry getPlatformPortEntryWithXPHY() {
       phy::PinID tcvr;
       *tcvr.chip_ref() = kDefaultTcvrChipName;
       *tcvr.lane_ref() = i * 2 + j;
-      tcvrPin.set_end(tcvr);
+      tcvrPin.end_ref() = tcvr;
       linePin.z_ref() = tcvrPin;
 
       xphy.line_ref()->push_back(linePin);
     }
-    xphyPin.set_junction(xphy);
+    xphyPin.junction_ref() = xphy;
     pin.z_ref() = xphyPin;
 
     entry.mapping_ref()->pins_ref()->push_back(pin);
@@ -120,7 +120,7 @@ cfg::PlatformPortEntry getPlatformPortEntryWithoutXPHY() {
     phy::PinID tcvr;
     *tcvr.chip_ref() = kDefaultTcvrChipName;
     *tcvr.lane_ref() = i;
-    tcvrPin.set_end(tcvr);
+    tcvrPin.end_ref() = tcvr;
     pin.z_ref() = tcvrPin;
 
     entry.mapping_ref()->pins_ref()->push_back(pin);

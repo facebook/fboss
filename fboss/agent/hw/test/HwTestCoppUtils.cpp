@@ -121,10 +121,10 @@ cfg::PortQueueRate setPortQueueRate(const HwAsic* hwAsic, uint16_t queueId) {
   auto portQueueRate = cfg::PortQueueRate();
 
   if (hwAsic->isSupported(HwAsic::Feature::SCHEDULER_PPS)) {
-    portQueueRate.set_pktsPerSec(getRange(0, pps));
+    portQueueRate.pktsPerSec_ref() = getRange(0, pps);
   } else {
     uint32_t kbps = getCoppQueueKbpsFromPps(hwAsic, pps);
-    portQueueRate.set_kbitsPerSec(getRange(0, kbps));
+    portQueueRate.kbitsPerSec_ref() = getRange(0, kbps);
   }
 
   return portQueueRate;

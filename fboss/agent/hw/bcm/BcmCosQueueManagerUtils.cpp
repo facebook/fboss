@@ -70,7 +70,7 @@ cfg::Range getRange(uint32_t minimum, uint32_t maximum) {
 
 cfg::PortQueueRate getPortQueueRatePps(uint32_t minimum, uint32_t maximum) {
   cfg::PortQueueRate portQueueRate;
-  portQueueRate.set_pktsPerSec(getRange(minimum, maximum));
+  portQueueRate.pktsPerSec_ref() = getRange(minimum, maximum);
 
   return portQueueRate;
 }

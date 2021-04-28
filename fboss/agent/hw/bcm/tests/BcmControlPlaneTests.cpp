@@ -50,7 +50,7 @@ std::vector<cfg::PortQueue> getConfigCPUQueues(
   defaultQ.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   defaultQ.weight_ref() = 1;
   defaultQ.portQueueRate_ref() = cfg::PortQueueRate();
-  defaultQ.portQueueRate_ref()->set_pktsPerSec(utility::getRange(0, 200));
+  defaultQ.portQueueRate_ref()->pktsPerSec_ref() = utility::getRange(0, 200);
   defaultQ.reservedBytes_ref() = 5 * mmuCellBytes;
   defaultQ.sharedBytes_ref() = 50 * mmuCellBytes;
   cpuQueues.push_back(defaultQ);
@@ -62,7 +62,7 @@ std::vector<cfg::PortQueue> getConfigCPUQueues(
   low.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   low.weight_ref() = kLowCpuQueueWeight;
   low.portQueueRate_ref() = cfg::PortQueueRate();
-  low.portQueueRate_ref()->set_pktsPerSec(utility::getRange(0, 100));
+  low.portQueueRate_ref()->pktsPerSec_ref() = utility::getRange(0, 100);
   low.reservedBytes_ref() = kLowCpuQueueReservedMmuCellNum * mmuCellBytes;
   low.sharedBytes_ref() = kLowCpuQueueSharedMmuCellNum * mmuCellBytes;
   cpuQueues.push_back(low);
@@ -179,7 +179,7 @@ TEST_F(BcmControlPlaneTest, ChangeCPULowQueueSettings) {
     // change low queue pps from 100 to 1000. the last one is low queue
     auto& lowQueue = cfg.cpuQueues_ref()->at(cfg.cpuQueues_ref()->size() - 1);
     lowQueue.portQueueRate_ref() = cfg::PortQueueRate();
-    lowQueue.portQueueRate_ref()->set_pktsPerSec(utility::getRange(0, 1000));
+    lowQueue.portQueueRate_ref()->pktsPerSec_ref() = utility::getRange(0, 1000);
 
     applyNewConfig(cfg);
   };

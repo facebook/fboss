@@ -538,7 +538,7 @@ bool CmisModule::getMediaInterfaceId(
   for (int lane = 0; lane < mediaInterface.size(); lane++) {
     mediaInterface[lane].lane_ref() = lane;
     MediaInterfaceUnion media;
-    media.set_smfCode(smfMediaInterface);
+    media.smfCode_ref() = smfMediaInterface;
     mediaInterface[lane].media_ref() = media;
   }
 
@@ -933,7 +933,7 @@ DOMDataUnion CmisModule::getDOMDataUnion() {
   }
   cmisData.timeCollected_ref() = lastRefreshTime_;
   DOMDataUnion data;
-  data.set_cmis(cmisData);
+  data.cmis_ref() = cmisData;
   return data;
 }
 

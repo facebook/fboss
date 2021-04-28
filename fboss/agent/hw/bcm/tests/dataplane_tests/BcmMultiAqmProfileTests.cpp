@@ -83,7 +83,7 @@ class BcmMultiAqmProfileTest : public BcmLinkStateDependentTests {
     cfg::LinearQueueCongestionDetection ecnLQCD;
     ecnLQCD.minimumLength = 208;
     ecnLQCD.maximumLength = 208;
-    ecnAQM.detection.set_linear(ecnLQCD);
+    ecnAQM.detection.linear_ref() = ecnLQCD;
     ecnAQM.behavior = cfg::QueueCongestionBehavior::ECN;
 
     return ecnAQM;
@@ -94,7 +94,7 @@ class BcmMultiAqmProfileTest : public BcmLinkStateDependentTests {
     cfg::LinearQueueCongestionDetection wredLQCD;
     wredLQCD.minimumLength = 208;
     wredLQCD.maximumLength = 208;
-    wredAQM.detection.set_linear(wredLQCD);
+    wredAQM.detection.linear_ref() = wredLQCD;
     wredAQM.behavior = cfg::QueueCongestionBehavior::EARLY_DROP;
 
     return wredAQM;

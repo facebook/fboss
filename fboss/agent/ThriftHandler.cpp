@@ -243,7 +243,7 @@ void getPortInfoHelper(
         range.maximum_ref() =
             *queue->getPortQueueRate().value().get_pktsPerSec().maximum_ref();
         PortQueueRate portQueueRate;
-        portQueueRate.set_pktsPerSec(range);
+        portQueueRate.pktsPerSec_ref() = range;
 
         pq.portQueueRate_ref() = portQueueRate;
       } else if (
@@ -255,7 +255,7 @@ void getPortInfoHelper(
         range.maximum_ref() =
             *queue->getPortQueueRate().value().get_kbitsPerSec().maximum_ref();
         PortQueueRate portQueueRate;
-        portQueueRate.set_kbitsPerSec(range);
+        portQueueRate.kbitsPerSec_ref() = range;
 
         pq.portQueueRate_ref() = portQueueRate;
       }

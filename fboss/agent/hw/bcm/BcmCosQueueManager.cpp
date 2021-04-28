@@ -582,8 +582,9 @@ void BcmCosQueueManager::getBandwidth(
   *range.minimum_ref() = ppsMin;
   *range.maximum_ref() = ppsMax;
 
-  flags != BCM_COSQ_BW_PACKET_MODE ? portQueueRate.set_kbitsPerSec(range)
-                                   : portQueueRate.set_pktsPerSec(range);
+  flags != BCM_COSQ_BW_PACKET_MODE
+      ? portQueueRate.kbitsPerSec_ref().emplace(range)
+      : portQueueRate.pktsPerSec_ref().emplace(range);
 
   queue->setPortQueueRate(portQueueRate);
 }

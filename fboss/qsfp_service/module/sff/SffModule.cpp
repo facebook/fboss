@@ -678,7 +678,7 @@ bool SffModule::getMediaInterfaceId(
   for (int lane = 0; lane < mediaInterface.size(); lane++) {
     mediaInterface[lane].lane_ref() = lane;
     MediaInterfaceUnion media;
-    media.set_extendedSpecificationComplianceCode(extSpecCompliance);
+    media.extendedSpecificationComplianceCode_ref() = extSpecCompliance;
     mediaInterface[lane].media_ref() = media;
   }
 
@@ -778,7 +778,7 @@ DOMDataUnion SffModule::getDOMDataUnion() {
   }
   sffData.timeCollected_ref() = lastRefreshTime_;
   DOMDataUnion data;
-  data.set_sff8636(sffData);
+  data.sff8636_ref() = sffData;
   return data;
 }
 

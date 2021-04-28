@@ -79,7 +79,7 @@ cfg::ActiveQueueManagement getEarlyDropAqmConfig(int mmuCellBytes) {
   cfg::LinearQueueCongestionDetection earlyDropLQCD;
   earlyDropLQCD.minimumLength = mmuCellBytes;
   earlyDropLQCD.maximumLength = 2 * mmuCellBytes;
-  earlyDropAQM.detection.set_linear(earlyDropLQCD);
+  earlyDropAQM.detection.linear_ref() = earlyDropLQCD;
   earlyDropAQM.behavior = cfg::QueueCongestionBehavior::EARLY_DROP;
   return earlyDropAQM;
 }
@@ -89,7 +89,7 @@ cfg::ActiveQueueManagement getECNAqmConfig(int mmuCellBytes) {
   cfg::LinearQueueCongestionDetection ecnLQCD;
   ecnLQCD.minimumLength = 3 * mmuCellBytes;
   ecnLQCD.maximumLength = 3 * mmuCellBytes;
-  ecnAQM.detection.set_linear(ecnLQCD);
+  ecnAQM.detection.linear_ref() = ecnLQCD;
   ecnAQM.behavior = cfg::QueueCongestionBehavior::ECN;
   return ecnAQM;
 }

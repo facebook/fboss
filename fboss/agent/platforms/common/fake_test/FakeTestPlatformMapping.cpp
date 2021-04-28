@@ -186,7 +186,7 @@ FakeTestPlatformMapping::getPlatformPortEntriesByGroup(int groupID) {
     *pinEnd.chip_ref() = folly::sformat("eth1/{}", groupID + 1);
     *pinEnd.lane_ref() = portProfiles.first;
     phy::Pin zPin;
-    zPin.set_end(pinEnd);
+    zPin.end_ref() = pinEnd;
     pinConnection.z_ref() = zPin;
     port.mapping_ref()->pins_ref()->push_back(pinConnection);
 

@@ -19,7 +19,7 @@ cfg::ActiveQueueManagement kGetOlympicEcnConfig() {
   cfg::LinearQueueCongestionDetection ecnLQCD;
   ecnLQCD.minimumLength_ref() = 41600;
   ecnLQCD.maximumLength_ref() = 41600;
-  ecnAQM.detection_ref()->set_linear(ecnLQCD);
+  ecnAQM.detection_ref()->linear_ref() = ecnLQCD;
   ecnAQM.behavior_ref() = cfg::QueueCongestionBehavior::ECN;
   return ecnAQM;
 }
@@ -28,7 +28,7 @@ cfg::ActiveQueueManagement kGetWredConfig() {
   cfg::LinearQueueCongestionDetection wredLQCD;
   wredLQCD.minimumLength_ref() = 41600;
   wredLQCD.maximumLength_ref() = 41600;
-  wredAQM.detection_ref()->set_linear(wredLQCD);
+  wredAQM.detection_ref()->linear_ref() = wredLQCD;
   wredAQM.behavior_ref() = cfg::QueueCongestionBehavior::EARLY_DROP;
   return wredAQM;
 }

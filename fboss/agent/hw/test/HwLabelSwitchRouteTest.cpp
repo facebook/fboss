@@ -43,10 +43,10 @@ class HwLabelSwitchRouteTest : public HwLinkStateDependentTest {
     if (labelAction ==
         LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP) {
       MplsNextHop nexthop;
-      nexthop.set_nexthop("::");
+      nexthop.nexthop_ref() = "::";
       MplsAction action;
-      action.set_action(labelAction);
-      nexthop.set_labelForwardingAction(action);
+      action.action_ref() = labelAction;
+      nexthop.labelForwardingAction_ref() = action;
       route.nexthops_ref()->push_back(nexthop);
       return;
     }
@@ -54,8 +54,8 @@ class HwLabelSwitchRouteTest : public HwLinkStateDependentTest {
     for (auto i = 0; i < kWidth; i++) {
       MplsNextHop nexthop;
       auto ecmpHelperNhop = getNextHop(i);
-      nexthop.set_nexthop(ecmpHelperNhop.ip.str());
-      nexthop.set_labelForwardingAction(ecmpHelperNhop.action.toThrift());
+      nexthop.nexthop_ref() = ecmpHelperNhop.ip.str();
+      nexthop.labelForwardingAction_ref() = ecmpHelperNhop.action.toThrift();
       nexthop.interface_ref() = ecmpHelperNhop.intf;
       route.nexthops_ref()->push_back(nexthop);
     }
