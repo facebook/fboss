@@ -30,6 +30,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::EGRESS_SFLOW:
     case HwAsic::Feature::DEFAULT_VLAN:
     case HwAsic::Feature::L2_LEARNING:
+    case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
       return true;
 
     case HwAsic::Feature::ERSPANv6:
