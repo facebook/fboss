@@ -1044,9 +1044,11 @@ HwInitResult SaiSwitch::initLocked(
     }
     handleStandaloneRIBTransition(folly::dynamic::object(), ret);
   }
-  // for both cold and warm boot, recover l2 learning mode
-  managerTable_->bridgeManager().setL2LearningMode(
-      ret.switchState->getSwitchSettings()->getL2LearningMode());
+  if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::L2_LEARNING)) {
+    // for both cold and warm boot, recover l2 learning mode
+    managerTable_->bridgeManager().setL2LearningMode(
+        ret.switchState->getSwitchSettings()->getL2LearningMode());
+  }
 
   ret.switchState->publish();
   return ret;
