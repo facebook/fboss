@@ -1917,6 +1917,7 @@ std::string SaiSwitch::listObjects(
       case HwObjectType::PORT:
         objTypes.push_back(SAI_OBJECT_TYPE_PORT);
         objTypes.push_back(SAI_OBJECT_TYPE_PORT_SERDES);
+        objTypes.push_back(SAI_OBJECT_TYPE_PORT_CONNECTOR);
         break;
       case HwObjectType::LAG:
         objTypes.push_back(SAI_OBJECT_TYPE_LAG);

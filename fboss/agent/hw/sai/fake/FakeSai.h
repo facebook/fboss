@@ -69,6 +69,7 @@ struct FakeSai {
   FakeNextHopGroupManager nextHopGroupManager;
   FakePortManager portManager;
   FakePortSerdesManager portSerdesManager;
+  FakePortConnectorManager portConnectorManager;
   FakeQosMapManager qosMapManager;
   FakeQueueManager queueManager;
   FakeRouteManager routeManager;

@@ -519,6 +519,7 @@ class SaiStore {
       SaiObjectStore<SaiInSegTraits>,
       SaiObjectStore<SaiQosMapTraits>,
       SaiObjectStore<SaiPortSerdesTraits>,
+      SaiObjectStore<SaiPortConnectorTraits>,
       SaiObjectStore<SaiWredTraits>,
       SaiObjectStore<SaiTamReportTraits>,
       SaiObjectStore<SaiTamEventActionTraits>,

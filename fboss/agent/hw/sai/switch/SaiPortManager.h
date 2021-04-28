@@ -37,6 +37,7 @@ class SaiStore;
 
 using SaiPort = SaiObjectWithCounters<SaiPortTraits>;
 using SaiPortSerdes = SaiObject<SaiPortSerdesTraits>;
+using SaiPortConnector = SaiObject<SaiPortConnectorTraits>;
 
 /*
  * Cache port mirror data from sw switch
@@ -68,6 +69,7 @@ struct SaiPortHandle {
   ~SaiPortHandle();
   std::shared_ptr<SaiPort> port;
   std::shared_ptr<SaiPortSerdes> serdes;
+  std::shared_ptr<SaiPortConnector> connector;
   std::shared_ptr<SaiBridgePort> bridgePort;
   std::vector<SaiQueueHandle*> configuredQueues;
   std::shared_ptr<SaiSamplePacket> ingressSamplePacket;

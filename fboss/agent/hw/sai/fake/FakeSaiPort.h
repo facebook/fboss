@@ -72,8 +72,20 @@ struct FakePortSerdes {
   std::vector<int32_t> rxCouplingByPass;
 };
 
+struct FakePortConnector {
+  explicit FakePortConnector(
+      sai_object_id_t _linePort,
+      sai_object_id_t _systemPort)
+      : linePort(_linePort), systemPort(_systemPort) {}
+  sai_object_id_t id;
+  sai_object_id_t linePort;
+  sai_object_id_t systemPort;
+};
+
 using FakePortManager = FakeManager<sai_object_id_t, FakePort>;
 using FakePortSerdesManager = FakeManager<sai_object_id_t, FakePortSerdes>;
+using FakePortConnectorManager =
+    FakeManager<sai_object_id_t, FakePortConnector>;
 
 void populate_port_api(sai_port_api_t** port_api);
 

@@ -368,13 +368,11 @@ struct SaiPortConnectorTraits {
     using LineSidePortId = SaiAttribute<
         EnumType,
         SAI_PORT_CONNECTOR_ATTR_LINE_SIDE_PORT_ID,
-        SaiObjectIdT,
-        SaiObjectIdDefault>;
+        SaiObjectIdT>;
     using SystemSidePortId = SaiAttribute<
         EnumType,
         SAI_PORT_CONNECTOR_ATTR_SYSTEM_SIDE_PORT_ID,
-        SaiObjectIdT,
-        SaiObjectIdDefault>;
+        SaiObjectIdT>;
   };
   using AdapterKey = PortConnectorSaiId;
   using AdapterHostKey =

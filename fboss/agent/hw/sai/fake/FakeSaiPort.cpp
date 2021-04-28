@@ -825,6 +825,77 @@ sai_status_t get_port_serdes_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
+sai_status_t create_port_connector_fn(
+    sai_object_id_t* port_connector_id,
+    sai_object_id_t /*switch_id*/,
+    uint32_t count,
+    const sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+  sai_object_id_t linePort, sysPort;
+
+  for (auto i = 0; i < count; i++) {
+    switch (attr_list[i].id) {
+      case SAI_PORT_CONNECTOR_ATTR_LINE_SIDE_PORT_ID:
+        linePort = attr_list[i].value.oid;
+        break;
+      case SAI_PORT_CONNECTOR_ATTR_SYSTEM_SIDE_PORT_ID:
+        sysPort = attr_list[i].value.oid;
+        break;
+      default:
+        return SAI_STATUS_INVALID_PARAMETER;
+    }
+  }
+  *port_connector_id = fs->portConnectorManager.create(linePort, sysPort);
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t remove_port_connector_fn(sai_object_id_t port_connector_id) {
+  auto fs = FakeSai::getInstance();
+  fs->portConnectorManager.remove(port_connector_id);
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t set_port_connector_attribute_fn(
+    sai_object_id_t port_connector_id,
+    const sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  auto& portConnector = fs->portConnectorManager.get(port_connector_id);
+
+  switch (attr->id) {
+    case SAI_PORT_CONNECTOR_ATTR_LINE_SIDE_PORT_ID:
+      portConnector.linePort = attr->value.oid;
+      break;
+    case SAI_PORT_CONNECTOR_ATTR_SYSTEM_SIDE_PORT_ID:
+      portConnector.systemPort = attr->value.oid;
+      break;
+    default:
+      return SAI_STATUS_NOT_SUPPORTED;
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t get_port_connector_attribute_fn(
+    sai_object_id_t port_connector_id,
+    uint32_t attr_count,
+    sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+  auto& portConnector = fs->portConnectorManager.get(port_connector_id);
+
+  for (auto i = 0; i < attr_count; i++) {
+    switch (attr_list[i].id) {
+      case SAI_PORT_CONNECTOR_ATTR_LINE_SIDE_PORT_ID:
+        attr_list[i].value.oid = portConnector.linePort;
+        break;
+      case SAI_PORT_CONNECTOR_ATTR_SYSTEM_SIDE_PORT_ID:
+        attr_list[i].value.oid = portConnector.systemPort;
+        break;
+      default:
+        return SAI_STATUS_NOT_IMPLEMENTED;
+    }
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
 namespace facebook::fboss {
 
 static sai_port_api_t _port_api;
@@ -841,6 +912,10 @@ void populate_port_api(sai_port_api_t** port_api) {
   _port_api.remove_port_serdes = &remove_port_serdes_fn;
   _port_api.set_port_serdes_attribute = &set_port_serdes_attribute_fn;
   _port_api.get_port_serdes_attribute = &get_port_serdes_attribute_fn;
+  _port_api.create_port_connector = &create_port_connector_fn;
+  _port_api.remove_port_connector = &remove_port_connector_fn;
+  _port_api.set_port_connector_attribute = &set_port_connector_attribute_fn;
+  _port_api.get_port_connector_attribute = &get_port_connector_attribute_fn;
   *port_api = &_port_api;
 }
 
