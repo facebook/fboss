@@ -76,4 +76,14 @@ cfg::L2LearningMode SaiBridgeManager::getL2LearningMode() const {
   throw FbossError("unsupported fdb learning mode ", fdbLearningMode_);
 }
 
+void SaiBridgeManager::setL2LearningMode(
+    std::optional<cfg::L2LearningMode> l2LearningMode) {
+  if (l2LearningMode) {
+    fdbLearningMode_ = getFdbLearningMode(l2LearningMode.value());
+  }
+  XLOG(INFO) << "FDB learning mode set to "
+             << (getL2LearningMode() == cfg::L2LearningMode::HARDWARE
+                     ? "hardware"
+                     : "software");
+}
 } // namespace facebook::fboss
