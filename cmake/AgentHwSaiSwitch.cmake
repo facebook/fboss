@@ -50,8 +50,8 @@ if (SAI_TAJO_IMPL)
   )
 else()
   list(APPEND SAI_SWITCH_SRC
+    fboss/agent/hw/sai/switch/oss/SaiSwitch.cpp
     fboss/agent/hw/sai/switch/npu/oss/SaiPortManager.cpp
-    fboss/agent/hw/sai/switch/npu/oss/SaiSwitch.cpp
     fboss/agent/hw/sai/switch/npu/oss/SaiTamManager.cpp
   )
 endif()
