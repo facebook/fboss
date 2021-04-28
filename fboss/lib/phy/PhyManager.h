@@ -5,6 +5,7 @@
 #include <map>
 #include <vector>
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/lib/phy/ExternalPhy.h"
 #include "fboss/mdio/Mdio.h"
 
@@ -37,6 +38,10 @@ class PhyManager {
    */
   void
   programOnePort(int slotId, int mdioId, int phyId, phy::PhyPortConfig config);
+
+  void programOnePort(
+      int32_t /* portId */,
+      cfg::PortProfileID /* portProfileId */) {}
 
   /*
    * This function calls ExternalPhy function setPortPrbs for the given
