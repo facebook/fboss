@@ -30,6 +30,7 @@
 #include "fboss/agent/types.h"
 
 #include <gtest/gtest.h>
+#include <memory>
 
 namespace {
 const facebook::fboss::LabelForwardingEntry::Label kTopLabel{1101};
@@ -42,6 +43,38 @@ namespace facebook::fboss {
 
 template <typename PortType>
 class HwMPLSTest : public HwLinkStateDependentTest {
+  struct HwPacketVerifier {
+    HwPacketVerifier(HwSwitchEnsemble* ensemble, PortID port, MPLSHdr hdr)
+        : ensemble_(ensemble), entry_{}, snooper_{}, expectedHdr_(hdr) {
+      if (!ensemble->getPlatform()->getAsic()->isSupported(
+              HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER)) {
+        return;
+      }
+      // capture packet exiting port (entering back due to loopback)
+      entry_ = std::make_unique<HwTestPacketTrapEntry>(
+          ensemble->getHwSwitch(), port);
+      snooper_ = std::make_unique<HwTestPacketSnooper>(ensemble_);
+    }
+
+    ~HwPacketVerifier() {
+      if (!ensemble_->getPlatform()->getAsic()->isSupported(
+              HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER)) {
+        return;
+      }
+      auto pkt = snooper_->waitForPacket(10);
+      auto mplsPayLoad = pkt ? pkt->mplsPayLoad() : std::nullopt;
+      EXPECT_TRUE(mplsPayLoad.has_value());
+      if (mplsPayLoad) {
+        EXPECT_EQ(mplsPayLoad->header(), expectedHdr_);
+      }
+    }
+
+    HwSwitchEnsemble* ensemble_;
+    std::unique_ptr<HwTestPacketTrapEntry> entry_;
+    std::unique_ptr<HwTestPacketSnooper> snooper_;
+    MPLSHdr expectedHdr_;
+  };
+
  protected:
   void SetUp() override {
     HwLinkStateDependentTest::SetUp();
@@ -260,6 +293,10 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     }
   }
 
+  HwPacketVerifier getPacketVerifer(PortID port, MPLSHdr hdr) {
+    return HwPacketVerifier(getHwSwitchEnsemble(), port, hdr);
+  }
+
   std::unique_ptr<utility::EcmpSetupTargetedPorts6> ecmpHelper_;
 };
 
@@ -280,26 +317,18 @@ TYPED_TEST(HwMPLSTest, Push) {
         {101, 102});
   };
   auto verify = [=]() {
-    // capture packet exiting port 0 (entering due to loopback)
-    auto packetCapture = HwTestPacketTrapEntry(
-        this->getHwSwitch(), this->masterLogicalPortIds()[0]);
-    HwTestPacketSnooper snooper(this->getHwSwitchEnsemble());
+    auto expectedMplsHdr = MPLSHdr({
+        MPLSHdr::Label{102, 5, 0, 254}, // exp = 5 for tc = 2
+        MPLSHdr::Label{101, 5, 1, 254}, // exp = 5 for tc = 2
+    });
+    [[maybe_unused]] auto verifier = this->getPacketVerifer(
+        this->masterLogicalPortIds()[0], expectedMplsHdr);
+
     // generate the packet entering  port 1
     this->sendL3Packet(
         folly::IPAddressV6("2401::201:ab01"),
         this->masterLogicalPortIds()[1],
         DSCP(16)); // tc = 2 for dscp = 16
-    auto pkt = snooper.waitForPacket(10);
-    auto mplsPayLoad = pkt ? pkt->mplsPayLoad() : std::nullopt;
-    EXPECT_TRUE(mplsPayLoad.has_value());
-    if (!mplsPayLoad) {
-      return;
-    }
-    auto expectedMplsHdr = MPLSHdr({
-        MPLSHdr::Label{102, 5, 0, 254}, // exp = 5 for tc = 2
-        MPLSHdr::Label{101, 5, 1, 254}, // exp = 5 for tc = 2
-    });
-    EXPECT_EQ(mplsPayLoad->header(), expectedMplsHdr);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
@@ -315,29 +344,19 @@ TYPED_TEST(HwMPLSTest, Swap) {
     this->programLabelSwap(this->getPortDescriptor(0));
   };
   auto verify = [=]() {
-    // capture packet exiting port 0 (entering due to loopback)
-    auto packetCapture = HwTestPacketTrapEntry(
-        this->getHwSwitch(), this->masterLogicalPortIds()[0]);
-    HwTestPacketSnooper snooper(this->getHwSwitchEnsemble());
-    // generate the packet entering  port 1
-    this->sendMplsPacket(
-        1101,
-        this->masterLogicalPortIds()[1],
-        EXP(5)); // send packet with exp 5
-    auto pkt = snooper.waitForPacket(10);
-
-    auto mplsPayLoad = pkt ? pkt->mplsPayLoad() : std::nullopt;
-
-    EXPECT_TRUE(mplsPayLoad.has_value());
-    if (!mplsPayLoad) {
-      return;
-    }
     uint32_t expectedOutLabel =
         utility::getLabelSwappedWithForTopLabel(this->getHwSwitch(), kTopLabel);
     auto expectedMplsHdr = MPLSHdr({
         MPLSHdr::Label{expectedOutLabel, 2, true, 127}, // exp is remarked to 2
     });
-    EXPECT_EQ(mplsPayLoad->header(), expectedMplsHdr);
+    [[maybe_unused]] auto verifier = this->getPacketVerifer(
+        this->masterLogicalPortIds()[0], expectedMplsHdr);
+
+    // generate the packet entering  port 1
+    this->sendMplsPacket(
+        1101,
+        this->masterLogicalPortIds()[1],
+        EXP(5)); // send packet with exp 5
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
