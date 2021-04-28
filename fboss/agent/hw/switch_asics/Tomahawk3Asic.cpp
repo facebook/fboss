@@ -41,6 +41,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::EGRESS_SFLOW:
     case HwAsic::Feature::SAI_ECN_WRED:
     case HwAsic::Feature::DEFAULT_VLAN:
+    case HwAsic::Feature::L2_LEARNING:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:

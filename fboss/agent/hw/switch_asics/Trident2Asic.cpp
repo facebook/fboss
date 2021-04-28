@@ -29,6 +29,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::EGRESS_MIRRORING:
     case HwAsic::Feature::EGRESS_SFLOW:
     case HwAsic::Feature::DEFAULT_VLAN:
+    case HwAsic::Feature::L2_LEARNING:
       return true;
 
     case HwAsic::Feature::ERSPANv6:

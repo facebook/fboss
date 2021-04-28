@@ -67,6 +67,7 @@ class HwAsic {
     EGRESS_SFLOW,
     DEFAULT_VLAN,
     SAI_LAG_HASH,
+    L2_LEARNING,
   };
 
   enum class AsicType {
