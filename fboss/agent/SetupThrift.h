@@ -59,7 +59,6 @@ std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
   address.setFromLocalPort(port);
   server->setAddress(address);
   server->setIdleTimeout(std::chrono::seconds(FLAGS_thrift_idle_timeout));
-  server->setup();
   return server;
 }
 

@@ -299,13 +299,8 @@ int AgentInitializer::initAgent() {
   };
   SignalHandler signalHandler(eventBase_, sw_, stopServices);
 
-  SCOPE_EXIT {
-    server_->cleanUp();
-  };
   XLOG(INFO) << "serving on localhost on port " << FLAGS_port;
-
-  // Run the EventBase main loop
-  eventBase_->loopForever();
+  server_->serve();
   return 0;
 }
 
