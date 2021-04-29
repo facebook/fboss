@@ -80,7 +80,8 @@ SaiHashManager::SaiHashManager(
     SaiManagerTable* managerTable,
     SaiPlatform* platform)
     : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {
-  if (!platform_->getAsic()->isSupported(
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::TRAFFIC_HASHING) &&
+      !platform_->getAsic()->isSupported(
           HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
     // query default hash keys
     auto switchId = managerTable_->switchManager().getSwitchSaiId();

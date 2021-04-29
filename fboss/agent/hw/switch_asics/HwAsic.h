@@ -69,6 +69,7 @@ class HwAsic {
     SAI_LAG_HASH,
     L2_LEARNING,
     SAI_ACL_ENTRY_SRC_PORT_QUALIFIER,
+    TRAFFIC_HASHING,
   };
 
   enum class AsicType {
