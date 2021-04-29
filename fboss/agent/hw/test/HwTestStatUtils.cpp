@@ -15,6 +15,7 @@
 
 #include <folly/logging/xlog.h>
 
+#include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <algorithm>
 
 namespace facebook::fboss {
@@ -57,4 +58,13 @@ uint64_t getPortInPkts(const std::map<PortID, HwPortStats>& port2Stats) {
         return sum + getPortInPkts(portIdAndStats.second);
       });
 }
+
+void printPortStats(const std::map<PortID, HwPortStats>& port2Stats) {
+  for (auto& [port, stats] : port2Stats) {
+    XLOG(DBG1) << "Stats for port: " << port;
+    XLOG(DBG1) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+        stats);
+  }
+}
+
 } // namespace facebook::fboss

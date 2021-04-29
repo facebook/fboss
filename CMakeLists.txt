@@ -271,6 +271,7 @@ add_fbthrift_cpp_library(
   hardware_stats_cpp2
   fboss/agent/hw/hardware_stats.thrift
   OPTIONS
+    json
     visitation
 )
 add_fbthrift_cpp_library(
