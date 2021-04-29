@@ -18,6 +18,9 @@ class PlatformMode;
 namespace facebook {
 namespace fboss {
 class TransceiverManager {
+  using PortNameMap = std::map<std::string, int32_t>;
+  using PortGroups = std::map<int32_t, std::set<cfg::Port>>;
+
  public:
   explicit TransceiverManager(
       std::unique_ptr<TransceiverPlatformApi> api,
@@ -123,6 +126,14 @@ class TransceiverManager {
       int32_t portId,
       cfg::PortProfileID portProfileId) = 0;
 
+  const PortGroups& getModuleToPortMap() const {
+    return portGroupMap_;
+  }
+
+  const PortNameMap& getPortNameToModuleMap() const {
+    return portNameToModule_;
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   TransceiverManager(TransceiverManager const&) = delete;
@@ -146,6 +157,9 @@ class TransceiverManager {
   // Before reaching that time point, the module is paused
   // and it will resume once the time is reached.
   time_t pauseRemediationUntil_{0};
+
+  PortNameMap portNameToModule_;
+  PortGroups portGroupMap_;
 };
 } // namespace fboss
 } // namespace facebook

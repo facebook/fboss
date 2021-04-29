@@ -56,7 +56,7 @@ void WedgeManager::loadConfig() {
 
     auto itPlatformPort = platformPorts.find(portId);
     if (itPlatformPort == platformPorts.end()) {
-      XLOG(ERR) << "Did not found platform port for sw port " << portId;
+      XLOG(ERR) << "Did not find platform port for sw port " << portId;
       continue;
     }
 
@@ -64,7 +64,7 @@ void WedgeManager::loadConfig() {
         itPlatformPort->second, platformMapping_->getChips());
 
     if (!transceiverId) {
-      XLOG(ERR) << "Did not found transceiver id for port id " << portId;
+      XLOG(ERR) << "Did not find transceiver id for port id " << portId;
       continue;
     }
 
@@ -75,8 +75,13 @@ void WedgeManager::loadConfig() {
     } else {
       portGroupIt->second.insert(port);
     }
-    XLOG(INFO) << "Added port " << portId << " to transceiver "
-               << transceiverId.value();
+    std::string portName = "";
+    if (auto name = port.name_ref()) {
+      portName = *name;
+      portNameToModule_[portName] = transceiverId.value();
+    }
+    XLOG(INFO) << "Added port " << portName << " with portId " << portId
+               << " to transceiver " << transceiverId.value();
   }
 }
 

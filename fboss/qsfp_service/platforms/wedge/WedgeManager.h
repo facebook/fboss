@@ -19,8 +19,6 @@ class WedgeManager : public TransceiverManager {
  public:
   using TransceiverMap = std::map<int32_t, TransceiverInfo>;
   using PortMap = std::map<int32_t, PortStatus>;
-  using PortNameMap = std::map<std::string, int32_t>;
-  using PortGroups = std::map<int32_t, std::set<cfg::Port>>;
 
   explicit WedgeManager(
       std::unique_ptr<TransceiverPlatformApi> api,
@@ -139,8 +137,6 @@ class WedgeManager : public TransceiverManager {
       wedgeI2cBus_; /* thread safe handle to access bus */
 
   std::unique_ptr<AgentConfig> config_;
-  PortNameMap portName2Module_;
-  PortGroups portGroupMap_;
 
   folly::Synchronized<std::map<TransceiverID, std::map<uint32_t, PortStatus>>>
       ports_;
