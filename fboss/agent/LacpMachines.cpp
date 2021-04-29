@@ -965,15 +965,6 @@ void Selector::restoreState() {
   auto targetLagID = LinkAggregationGroupID::from(
       controller_.actorInfo(), controller_.partnerInfo());
 
-  // If the Link Aggregation Group this port has SELECTED or STANDBYed is the
-  // same as that identified by targetLagID, then there's nothing to do.
-  auto maybeSelection = getSelectionIf();
-  if (maybeSelection && maybeSelection->lagID == targetLagID) {
-    XLOG(DBG4) << "Selection[" << controller_.portID()
-               << "]: skipping selection logic";
-    return;
-  }
-
   Selector::portToSelection().insert(std::make_pair(
       controller_.portID(), Selection(targetLagID, SelectionState::SELECTED)));
 
