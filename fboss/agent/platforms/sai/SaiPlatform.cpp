@@ -22,6 +22,7 @@
 #include "fboss/agent/platforms/sai/SaiBcmWedge40PlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmYampPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiCloudRipperPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiElbert8DDPhyPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiFakePlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
 #include "fboss/agent/state/Port.h"
@@ -198,10 +199,13 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiBcmMinipackPlatformPort>(portId, this);
     } else if (platformMode == PlatformMode::YAMP) {
       saiPort = std::make_unique<SaiBcmYampPlatformPort>(portId, this);
+    } else if (platformMode == PlatformMode::ELBERT) {
+      saiPort = std::make_unique<SaiElbert8DDPhyPlatformPort>(portId, this);
     } else {
       saiPort = std::make_unique<SaiFakePlatformPort>(portId, this);
     }
     portMapping_.insert(std::make_pair(portId, std::move(saiPort)));
+    XLOG(INFO) << "SaiPlatform: Made SaiPort (portMapping_) for " << portId;
   }
 }
 

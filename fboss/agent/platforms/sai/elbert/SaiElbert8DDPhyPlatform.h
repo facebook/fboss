@@ -40,7 +40,6 @@ class SaiElbert8DDPhyPlatform : public SaiHwPlatform {
   bool isSerdesApiSupported() override;
   bool supportInterfaceType() const override;
   void initLEDs() override;
-  void initPorts() override {}
 
   sai_service_method_table_t* getServiceMethodTable() const override;
 

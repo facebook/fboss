@@ -15,6 +15,7 @@ add_library(sai_platform
   fboss/agent/platforms/sai/SaiBcmWedge100Platform.cpp
   fboss/agent/platforms/sai/SaiBcmWedge40Platform.cpp
   fboss/agent/platforms/sai/SaiBcmWedge400Platform.cpp
+  fboss/agent/platforms/sai/SaiElbert8DDPhyPlatformPort.cpp
   fboss/agent/platforms/sai/SaiFakePlatform.cpp
   fboss/agent/platforms/sai/SaiFakePlatformPort.cpp
   fboss/agent/platforms/sai/SaiHwPlatform.cpp

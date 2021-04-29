@@ -99,9 +99,11 @@ std::string SaiElbert8DDPhyPlatform::getHwConfig() {
 HwAsic* SaiElbert8DDPhyPlatform::getAsic() const {
   return asic_.get();
 }
+
 uint32_t SaiElbert8DDPhyPlatform::numLanesPerCore() const {
-  throw FbossError("SaiElbert8DDPhyPlatform doesn't support numLanesPerCore()");
+  return 24;
 }
+
 std::vector<PortID> SaiElbert8DDPhyPlatform::getAllPortsInGroup(
     PortID /* portID */) const {
   throw FbossError("SaiElbert8DDPhyPlatform doesn't support FlexPort");
