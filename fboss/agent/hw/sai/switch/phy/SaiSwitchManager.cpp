@@ -15,8 +15,4 @@ namespace facebook::fboss {
 
 void SaiSwitchManager::initCpuPort() {}
 
-PortSaiId SaiSwitchManager::getCpuPort() const {
-  throw FbossError("getCpuPort not supported on Phy");
-}
-
 } // namespace facebook::fboss

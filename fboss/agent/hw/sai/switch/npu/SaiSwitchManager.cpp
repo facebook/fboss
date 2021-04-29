@@ -21,8 +21,4 @@ void SaiSwitchManager::initCpuPort() {
       switch_->adapterKey(), SaiSwitchTraits::Attributes::CpuPort{});
 }
 
-PortSaiId SaiSwitchManager::getCpuPort() const {
-  return cpuPort_;
-}
-
 } // namespace facebook::fboss

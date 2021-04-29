@@ -86,7 +86,7 @@ class SaiSwitchManager {
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   std::unique_ptr<SaiSwitchObj> switch_;
-  PortSaiId cpuPort_;
+  std::optional<PortSaiId> cpuPort_;
   std::shared_ptr<SaiHash> ecmpV4Hash_;
   std::shared_ptr<SaiHash> ecmpV6Hash_;
   std::shared_ptr<SaiHash> lagV4Hash_;

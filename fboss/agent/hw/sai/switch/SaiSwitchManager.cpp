@@ -83,6 +83,13 @@ SaiSwitchManager::SaiSwitchManager(
   initCpuPort();
 }
 
+PortSaiId SaiSwitchManager::getCpuPort() const {
+  if (cpuPort_) {
+    return *cpuPort_;
+  }
+  throw FbossError("getCpuPort not supported on Phy");
+}
+
 SwitchSaiId SaiSwitchManager::getSwitchSaiId() const {
   if (!switch_) {
     throw FbossError("failed to get switch id: switch not initialized");
