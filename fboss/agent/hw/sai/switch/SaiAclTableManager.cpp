@@ -76,84 +76,9 @@ sai_uint32_t SaiAclTableManager::getMetaDataMask(
   return metaDataMax - 1;
 }
 
-std::
-    pair<SaiAclTableTraits::AdapterHostKey, SaiAclTableTraits::CreateAttributes>
-    SaiAclTableManager::createAclTableHelper() {
-  std::vector<sai_int32_t> bindPointList{SAI_ACL_BIND_POINT_TYPE_SWITCH};
-  std::vector<sai_int32_t> actionTypeList{
-      SAI_ACL_ACTION_TYPE_PACKET_ACTION,
-      SAI_ACL_ACTION_TYPE_COUNTER,
-      SAI_ACL_ACTION_TYPE_SET_TC,
-      SAI_ACL_ACTION_TYPE_SET_DSCP,
-      SAI_ACL_ACTION_TYPE_MIRROR_INGRESS,
-      SAI_ACL_ACTION_TYPE_MIRROR_EGRESS};
-
-  /*
-   * Tajo either does not support following qualifier or enabling those
-   * overflows max key width. Thus, disable those on Tajo for now.
-   */
-  bool isTajo =
-      platform_->getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TAJO;
-  auto fieldL4SrcPort = isTajo ? false : true;
-  auto fieldL4DstPort = isTajo ? false : true;
-  auto fieldTcpFlags = isTajo ? false : true;
-  auto fieldSrcPort = isTajo ? false : true;
-  auto fieldOutPort = isTajo ? false : true;
-  auto fieldIpFrag = isTajo ? false : true;
-  auto fieldIcmpV4Type = isTajo ? false : true;
-  auto fieldIcmpV4Code = isTajo ? false : true;
-  auto fieldIcmpV6Type = isTajo ? false : true;
-  auto fieldIcmpV6Code = isTajo ? false : true;
-  auto fieldDstMac = isTajo ? false : true;
-
-  /*
-   * FdbDstUserMetaData is required only for MH-NIC queue-per-host solution.
-   * However, the solution is not applicable for Trident2 as FBOSS does not
-   * implement queues on Trident2.
-   * Furthermore, Trident2 supports fewer ACL qualifiers than other
-   * hardwares. Thus, avoid programming unncessary qualifiers (or else we run
-   * out resources).
-   */
-  auto fieldFdbDstUserMeta = platform_->getAsic()->getAsicType() !=
-          HwAsic::AsicType::ASIC_TYPE_TRIDENT2
-      ? true
-      : false;
-
-  SaiAclTableTraits::AdapterHostKey adapterHostKey{
-      SAI_ACL_STAGE_INGRESS,
-      bindPointList,
-      actionTypeList,
-      true, // srcIpv6
-      true, // dstIpv6
-      true, // srcIpV4
-      true, // dstIpV4
-      fieldL4SrcPort,
-      fieldL4DstPort,
-      true, // ipProtocol
-      fieldTcpFlags,
-      fieldSrcPort,
-      fieldOutPort,
-      fieldIpFrag,
-      fieldIcmpV4Type,
-      fieldIcmpV4Code,
-      fieldIcmpV6Type,
-      fieldIcmpV6Code,
-      true, // dscp
-      fieldDstMac,
-      true, // ipType
-      true, // ttl
-      fieldFdbDstUserMeta,
-      true, // route meta
-      true, // neighbor meta
-      false, // ether type
-  };
-
-  SaiAclTableTraits::CreateAttributes attributes{adapterHostKey};
-
-  return std::make_pair(adapterHostKey, attributes);
-}
-
-AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
+AclTableSaiId SaiAclTableManager::addAclTable(
+    const std::string& aclTableName,
+    sai_acl_stage_t aclStage) {
   /*
    * TODO(skhare)
    * Add single ACL Table for now (called during SaiSwitch::init()).
@@ -174,7 +99,7 @@ AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
   SaiAclTableTraits::AdapterHostKey adapterHostKey;
   SaiAclTableTraits::CreateAttributes attributes;
 
-  std::tie(adapterHostKey, attributes) = createAclTableHelper();
+  std::tie(adapterHostKey, attributes) = aclTableCreateAttributes(aclStage);
 
   auto& aclTableStore = saiStore_->get<SaiAclTableTraits>();
 
@@ -188,8 +113,10 @@ AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
   auto aclTableSaiId = it->second->aclTable->adapterKey();
 
   // Add ACL Table to group based on the stage
-  managerTable_->aclTableGroupManager().addAclTableGroupMember(
-      SAI_ACL_STAGE_INGRESS, aclTableSaiId, aclTableName);
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::ACL_TABLE_GROUP)) {
+    managerTable_->aclTableGroupManager().addAclTableGroupMember(
+        SAI_ACL_STAGE_INGRESS, aclTableSaiId, aclTableName);
+  }
 
   return aclTableSaiId;
 }

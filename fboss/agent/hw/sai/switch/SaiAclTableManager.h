@@ -100,7 +100,9 @@ class SaiAclTableManager {
    * data type for {add, remove, changed}AclTable:
    * const std:shared_ptr<AclTable>&.
    */
-  AclTableSaiId addAclTable(const std::string& aclTableName);
+  AclTableSaiId addAclTable(
+      const std::string& aclTableName,
+      sai_acl_stage_t aclStage);
   void removeAclTable();
   void changedAclTable();
 
@@ -159,7 +161,7 @@ class SaiAclTableManager {
   std::pair<
       SaiAclTableTraits::AdapterHostKey,
       SaiAclTableTraits::CreateAttributes>
-  createAclTableHelper();
+  aclTableCreateAttributes(sai_acl_stage_t aclStage);
 
   sai_u32_range_t getFdbDstUserMetaDataRange() const;
   sai_u32_range_t getRouteDstUserMetaDataRange() const;

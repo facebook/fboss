@@ -1099,7 +1099,8 @@ void SaiSwitch::initStoreAndManagersLocked(
         HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD) {
       managerTable_->aclTableGroupManager().addAclTableGroup(
           SAI_ACL_STAGE_INGRESS);
-      managerTable_->aclTableManager().addAclTable(kAclTable1);
+      managerTable_->aclTableManager().addAclTable(
+          kAclTable1, SAI_ACL_STAGE_INGRESS);
     }
 
     if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::DEBUG_COUNTER)) {
