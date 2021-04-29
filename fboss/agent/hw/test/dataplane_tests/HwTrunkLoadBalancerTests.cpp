@@ -10,6 +10,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
@@ -89,35 +90,50 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
         getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC);
     return config;
   }
+
+  void
+  pumpIPTraffic(bool isV6, bool loopThroughFrontPanel, AggPortInfo aggInfo) {
+    std::optional<PortID> frontPanelPortToLoopTraffic;
+    if (loopThroughFrontPanel) {
+      // Next port to loop back traffic through
+      frontPanelPortToLoopTraffic =
+          PortID(masterLogicalPortIds()[aggInfo.numPhysicalPorts()]);
+    }
+    utility::pumpTraffic(
+        isV6,
+        getHwSwitch(),
+        getPlatform()->getLocalMac(),
+        VlanID(utility::kDefaultVlanId),
+        frontPanelPortToLoopTraffic);
+  }
+
+  cfg::SwitchConfig configureAggregatePorts(AggPortInfo aggInfo) {
+    auto config = initialConfig();
+    addAggregatePorts(&config, aggInfo);
+    return config;
+  }
+
+  void setupIPECMP(AggPortInfo aggInfo) {
+    utility::EcmpSetupTargetedPorts6 ecmpHelper6{getProgrammedState()};
+    utility::EcmpSetupTargetedPorts4 ecmpHelper4{getProgrammedState()};
+    programRoutes(ecmpHelper6, aggInfo);
+    programRoutes(ecmpHelper4, aggInfo);
+  }
+
   void runIPLoadBalanceTest(
       bool isV6,
       const std::vector<cfg::LoadBalancer>& loadBalancers,
       AggPortInfo aggInfo,
       bool loopThroughFrontPanel) {
     auto setup = [=]() {
-      auto config = initialConfig();
-      addAggregatePorts(&config, aggInfo);
+      auto config = configureAggregatePorts(aggInfo);
       applyNewConfig(config);
-      utility::EcmpSetupTargetedPorts6 ecmpHelper6{getProgrammedState()};
-      utility::EcmpSetupTargetedPorts4 ecmpHelper4{getProgrammedState()};
-      programRoutes(ecmpHelper6, aggInfo);
-      programRoutes(ecmpHelper4, aggInfo);
+      setupIPECMP(aggInfo);
       applyNewState(utility::addLoadBalancers(
           getPlatform(), getProgrammedState(), loadBalancers));
     };
     auto verify = [=]() {
-      std::optional<PortID> frontPanelPortToLoopTraffic;
-      if (loopThroughFrontPanel) {
-        // Next port to loop back traffic through
-        frontPanelPortToLoopTraffic =
-            PortID(masterLogicalPortIds()[aggInfo.numPhysicalPorts()]);
-      }
-      utility::pumpTraffic(
-          isV6,
-          getHwSwitch(),
-          getPlatform()->getLocalMac(),
-          VlanID(utility::kDefaultVlanId),
-          frontPanelPortToLoopTraffic);
+      pumpIPTraffic(isV6, loopThroughFrontPanel, aggInfo);
       // Don't tolerate a deviation of > 25%
       EXPECT_TRUE(utility::isLoadBalanced(
           getHwSwitchEnsemble(), getPhysicalPorts(aggInfo), 25));
