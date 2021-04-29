@@ -89,6 +89,9 @@ class WedgeManager : public TransceiverManager {
   void getAndClearTransceiversSignalFlags(
       std::map<int32_t, SignalFlags>& signalFlagsMap,
       std::unique_ptr<std::vector<int32_t>> ids) override;
+  void getAndClearTransceiversMediaSignals(
+      std::map<int32_t, std::map<int, MediaLaneSignals>>& mediaSignalsMap,
+      std::unique_ptr<std::vector<int32_t>> ids) override;
 
   // This function will bring all the transceivers out of reset, making use
   // of the specific implementation from each platform. Platforms that bring

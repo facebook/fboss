@@ -48,5 +48,8 @@ class TransceiverTestsHelper {
  private:
   TransceiverInfo info_;
 };
+
+void testCachedMediaSignals(QsfpModule* qsfp);
+
 } // namespace fboss
 } // namespace facebook

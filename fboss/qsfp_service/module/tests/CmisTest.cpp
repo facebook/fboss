@@ -123,6 +123,7 @@ TEST(CmisTest, transceiverInfoTest) {
     EXPECT_EQ(
         media.media_ref()->get_smfCode(), SMFMediaInterfaceCode::FR4_200G);
   }
+  testCachedMediaSignals(xcvr.get());
 }
 
 // MSM: Not_Present -> Present -> Discovered -> Inactive (on Agent timeout

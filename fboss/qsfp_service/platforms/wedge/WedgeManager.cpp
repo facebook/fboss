@@ -597,6 +597,31 @@ void WedgeManager::getAndClearTransceiversSignalFlags(
   }
 }
 
+void WedgeManager::getAndClearTransceiversMediaSignals(
+    std::map<int32_t, std::map<int, MediaLaneSignals>>& mediaSignalsMap,
+    std::unique_ptr<std::vector<int32_t>> ids) {
+  XLOG(INFO) << "getAndClearTransceiversMediaSignals, with ids: "
+             << (ids->size() > 0 ? folly::join(",", *ids) : "None");
+  if (ids->empty()) {
+    folly::gen::range(0, getNumQsfpModules()) | folly::gen::appendTo(*ids);
+  }
+
+  auto lockedTransceivers = transceivers_.rlock();
+  for (const auto& i : *ids) {
+    if (!isValidTransceiver(i)) {
+      // If the transceiver idx is not valid,
+      // just skip and continue to the next.
+      continue;
+    }
+    std::map<int, MediaLaneSignals> mediaSignals;
+    if (auto it = lockedTransceivers->find(TransceiverID(i));
+        it != lockedTransceivers->end()) {
+      mediaSignals = it->second->readAndClearCachedMediaLaneSignals();
+      mediaSignalsMap[i] = mediaSignals;
+    }
+  }
+}
+
 /*
  * getPhyPortConfigValues
  *

@@ -30,9 +30,9 @@ TEST(SffTest, transceiverInfoTest) {
   int idx = 1;
   std::unique_ptr<SffCwdm4Transceiver> qsfpImpl =
       std::make_unique<SffCwdm4Transceiver>(idx);
-
   std::unique_ptr<SffModule> qsfp =
       std::make_unique<SffModule>(nullptr, std::move(qsfpImpl), 4);
+
   qsfp->refresh();
 
   TransceiverInfo info = qsfp->getTransceiverInfo();
@@ -115,6 +115,7 @@ TEST(SffTest, transceiverInfoTest) {
         media.media_ref()->get_extendedSpecificationComplianceCode(),
         ExtendedSpecComplianceCode::CWDM4_100G);
   }
+  testCachedMediaSignals(qsfp.get());
 }
 
 // Tests that a SFF DAC module can properly refresh
@@ -140,6 +141,7 @@ TEST(SffDacTest, transceiverInfoTest) {
         media.media_ref()->get_extendedSpecificationComplianceCode(),
         ExtendedSpecComplianceCode::CR4_100G);
   }
+  testCachedMediaSignals(qsfp.get());
 }
 
 // Tests that a SFF Fr1 module can properly refresh
@@ -165,6 +167,7 @@ TEST(SffFr1Test, transceiverInfoTest) {
         media.media_ref()->get_extendedSpecificationComplianceCode(),
         ExtendedSpecComplianceCode::FR1_100G);
   }
+  testCachedMediaSignals(qsfp.get());
 }
 
 // Tests that a badly programmed module throws an exception

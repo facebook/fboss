@@ -296,4 +296,34 @@ TEST_F(WedgeManagerTest, coldBootTest) {
     EXPECT_CALL(*wedgeManager_, triggerQsfpHardReset(i)).Times(0);
   }
 }
+
+TEST_F(WedgeManagerTest, getAndClearTransceiversSignalFlagsTest) {
+  std::map<int32_t, SignalFlags> signalFlags;
+
+  // When no ports are passed, signalFlags should have info about all 16 modules
+  wedgeManager_->getAndClearTransceiversSignalFlags(
+      signalFlags, std::make_unique<std::vector<int32_t>>());
+  EXPECT_EQ(signalFlags.size(), 16);
+
+  signalFlags.clear();
+  std::vector<int32_t> ports{1, 5, 9};
+  wedgeManager_->getAndClearTransceiversSignalFlags(
+      signalFlags, std::make_unique<std::vector<int32_t>>(ports));
+  EXPECT_EQ(signalFlags.size(), 3);
+}
+
+TEST_F(WedgeManagerTest, getAndClearTransceiversMediaSignalsTest) {
+  std::map<int32_t, std::map<int, MediaLaneSignals>> mediaSignalsMap;
+
+  // When no ports are passed, signalFlags should have info about all 16 modules
+  wedgeManager_->getAndClearTransceiversMediaSignals(
+      mediaSignalsMap, std::make_unique<std::vector<int32_t>>());
+  EXPECT_EQ(mediaSignalsMap.size(), 16);
+
+  mediaSignalsMap.clear();
+  std::vector<int32_t> ports{1, 5, 9};
+  wedgeManager_->getAndClearTransceiversMediaSignals(
+      mediaSignalsMap, std::make_unique<std::vector<int32_t>>(ports));
+  EXPECT_EQ(mediaSignalsMap.size(), 3);
+}
 } // namespace

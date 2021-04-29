@@ -7,6 +7,81 @@
 namespace facebook {
 namespace fboss {
 
+void testCachedMediaSignals(QsfpModule* qsfp) {
+  auto mgmtInterface =
+      qsfp->getTransceiverInfo().transceiverManagementInterface_ref().value_or(
+          {});
+  auto writeTxFault = [&](uint8_t fault) {
+    TransceiverIOParameters param;
+    param.length_ref() = 1;
+    if (mgmtInterface == TransceiverManagementInterface::SFF) {
+      param.offset_ref() = 4;
+      param.page_ref() = 0;
+    } else {
+      param.offset_ref() = 135;
+      param.page_ref() = 0x11;
+    }
+    qsfp->writeTransceiver(param, fault);
+  };
+  // Store the original refresh interval and then change it to 0 so that we can
+  // trigger a forced refresh
+  std::string originalRefreshInterval;
+  gflags::GetCommandLineOption(
+      "qsfp_data_refresh_interval", &originalRefreshInterval);
+  gflags::SetCommandLineOptionWithMode(
+      "qsfp_data_refresh_interval", "0", gflags::SET_FLAGS_DEFAULT);
+
+  // Clear the cached media signals initially
+  qsfp->readAndClearCachedMediaLaneSignals();
+  qsfp->refresh();
+
+  // Mark Tx Faults as false
+  writeTxFault(0);
+  qsfp->refresh();
+
+  // Read the cached signals twice(in case tx fault was originally asserted in
+  // the eeprom), it should return false for all lanes
+  auto cachedSignal = qsfp->readAndClearCachedMediaLaneSignals();
+  cachedSignal = qsfp->readAndClearCachedMediaLaneSignals();
+  EXPECT_EQ(cachedSignal.size(), qsfp->numMediaLanes());
+  for (const auto& kv : cachedSignal) {
+    EXPECT_EQ(kv.second.txFault_ref().value_or({}), false);
+  }
+  cachedSignal.clear();
+
+  // Set TX Faults on all lanes and then clear it. We want to make sure the
+  // current tx fault status returns false, but the cached fault returns true.
+  writeTxFault(0xFF);
+  qsfp->refresh();
+  writeTxFault(0);
+  qsfp->refresh();
+
+  // Read the cached tx fault, it should return true for all lanes
+  cachedSignal = qsfp->readAndClearCachedMediaLaneSignals();
+  EXPECT_EQ(cachedSignal.size(), qsfp->numMediaLanes());
+  for (const auto& kv : cachedSignal) {
+    EXPECT_EQ(kv.second.txFault_ref().value_or({}), true);
+  }
+  // Read the current tx fault, it should return false for all lanes
+  TransceiverInfo info = qsfp->getTransceiverInfo();
+  for (const auto& signal : info.mediaLaneSignals_ref().value_or({})) {
+    EXPECT_EQ(signal.txFault_ref().value_or({}), false);
+  }
+  cachedSignal.clear();
+
+  // Read the cache again, fault should go back to false
+  cachedSignal = qsfp->readAndClearCachedMediaLaneSignals();
+  EXPECT_EQ(cachedSignal.size(), qsfp->numMediaLanes());
+  for (const auto& kv : cachedSignal) {
+    EXPECT_EQ(kv.second.txFault_ref().value_or({}), false);
+  }
+
+  gflags::SetCommandLineOptionWithMode(
+      "qsfp_data_refresh_interval",
+      originalRefreshInterval.c_str(),
+      gflags::SET_FLAGS_DEFAULT);
+}
+
 void TransceiverTestsHelper::verifyVendorName(const std::string& expected) {
   EXPECT_EQ(expected, *info_.vendor_ref().value_or({}).name_ref());
 }

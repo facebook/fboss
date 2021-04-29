@@ -98,6 +98,13 @@ class Transceiver {
    */
   virtual SignalFlags readAndClearCachedSignalFlags() = 0;
 
+  /*
+   * return the cached media lane signals and clear it after the read like an
+   * clear on read register.
+   */
+  virtual std::map<int, MediaLaneSignals>
+  readAndClearCachedMediaLaneSignals() = 0;
+
  private:
   // no copy or assignment
   Transceiver(Transceiver const&) = delete;

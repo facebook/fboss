@@ -74,7 +74,6 @@ class QsfpModule : public Transceiver {
   TransceiverID getID() const override;
 
   bool detectPresenceLocked();
-  virtual TransceiverInfo parseDataLocked();
 
   virtual void refresh() override;
   folly::Future<folly::Unit> futureRefresh() override;
@@ -189,6 +188,12 @@ class QsfpModule : public Transceiver {
    * on read register.
    */
   SignalFlags readAndClearCachedSignalFlags() override;
+
+  /*
+   * return the cached media lane signals and clear it after the read like an
+   * clear on read register.
+   */
+  std::map<int, MediaLaneSignals> readAndClearCachedMediaLaneSignals() override;
 
   using LengthAndGauge = std::pair<double, uint8_t>;
 
@@ -484,9 +489,11 @@ class QsfpModule : public Transceiver {
   // This would bring difficulty in root cause link issues. Thus here we
   // have a cache to store the collected data in ODS reporting frequency.
   SignalFlags signalFlagCache_;
+  std::map<int, MediaLaneSignals> mediaSignalsCache_;
 
  private:
   void refreshLocked();
+  virtual TransceiverInfo parseDataLocked();
   /*
    * Perform a raw register read on the transceiver
    * This must be called with a lock held on qsfpModuleMutex_
@@ -498,6 +505,12 @@ class QsfpModule : public Transceiver {
    * This must be called with a lock held on qsfpModuleMutex_
    */
   bool writeTransceiverLocked(TransceiverIOParameters param, uint8_t data);
+
+  /*
+   * Perform logic OR operation to media lane signals in order to cache them
+   * for ODS to report.
+   */
+  void cacheMediaLaneSignals(const std::vector<MediaLaneSignals>& mediaSignals);
 };
 } // namespace fboss
 } // namespace facebook

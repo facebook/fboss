@@ -230,6 +230,7 @@ TransceiverInfo QsfpModule::parseDataLocked() {
     info.mediaLaneSignals_ref()->clear();
     info.mediaLaneSignals_ref().reset();
   }
+  cacheMediaLaneSignals(*info.mediaLaneSignals_ref());
   if (!getSignalsPerHostLane(*info.hostLaneSignals_ref())) {
     info.hostLaneSignals_ref()->clear();
     info.hostLaneSignals_ref().reset();
@@ -335,6 +336,24 @@ void QsfpModule::cacheSignalFlags(const SignalFlags& signalflag) {
       *signalflag.txLol_ref() | *signalFlagCache_.txLol_ref();
   signalFlagCache_.rxLol_ref() =
       *signalflag.rxLol_ref() | *signalFlagCache_.rxLol_ref();
+}
+
+void QsfpModule::cacheMediaLaneSignals(
+    const std::vector<MediaLaneSignals>& mediaSignals) {
+  for (const auto& signal : mediaSignals) {
+    if (mediaSignalsCache_.find(*signal.lane_ref()) ==
+        mediaSignalsCache_.end()) {
+      // Initialize all lanes to false if an entry in the cache doesn't exist
+      // yet
+      mediaSignalsCache_[*signal.lane_ref()].lane_ref() = *signal.lane_ref();
+      mediaSignalsCache_[*signal.lane_ref()].txFault_ref() = false;
+    }
+    if (auto txFault = signal.txFault_ref()) {
+      if (*txFault) {
+        mediaSignalsCache_[*signal.lane_ref()].txFault_ref() = true;
+      }
+    }
+  }
 }
 
 void QsfpModule::transceiverPortsChanged(
@@ -636,6 +655,19 @@ SignalFlags QsfpModule::readAndClearCachedSignalFlags() {
   signalFlagCache_.txLol_ref() = 0;
   signalFlagCache_.rxLol_ref() = 0;
   return signalFlag;
+}
+
+std::map<int, MediaLaneSignals>
+QsfpModule::readAndClearCachedMediaLaneSignals() {
+  lock_guard<std::mutex> g(qsfpModuleMutex_);
+  // Store the cached data before clearing it.
+  std::map<int, MediaLaneSignals> mediaSignals(mediaSignalsCache_);
+
+  // Clear the cached data after read.
+  for (auto& signal : mediaSignalsCache_) {
+    signal.second.txFault_ref() = false;
+  }
+  return mediaSignals;
 }
 
 /*

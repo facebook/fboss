@@ -88,17 +88,19 @@ class TransceiverManager {
   virtual void publishI2cTransactionStats() = 0;
 
   /*
-   * Virtual function to get the cached transceiver signal flags and clear
-   * the cached data.
-   * This is introduced mainly due to the mismatch of ODS reporting frequency
-   * and the interval of us reading transceiver data. Some of the clear on read
-   * information may be lost in this process and not being captured in the ODS
-   * time series. This would bring difficulty in root cause link issues. Thus
-   * here we provide a way of read and clear the data for the purpose of ODS
-   * data reporting.
+   * Virtual functions to get the cached transceiver signal flags and media lane
+   * signals and clear the cached data. This is introduced mainly due to the
+   * mismatch of ODS reporting frequency and the interval of us reading
+   * transceiver data. Some of the clear on read information may be lost in this
+   * process and not being captured in the ODS time series. This would bring
+   * difficulty in root cause link issues. Thus here we provide a way of read
+   * and clear the data for the purpose of ODS data reporting.
    */
   virtual void getAndClearTransceiversSignalFlags(
       std::map<int32_t, SignalFlags>& signalFlagsMap,
+      std::unique_ptr<std::vector<int32_t>> ids) = 0;
+  virtual void getAndClearTransceiversMediaSignals(
+      std::map<int32_t, std::map<int, MediaLaneSignals>>& mediaSignalsMap,
       std::unique_ptr<std::vector<int32_t>> ids) = 0;
 
   TransceiverPlatformApi* getQsfpPlatformApi() {
