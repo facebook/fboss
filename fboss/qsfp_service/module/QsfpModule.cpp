@@ -93,8 +93,6 @@ QsfpModule::QsfpModule(
     : transceiverManager_(transceiverManager),
       qsfpImpl_(std::move(qsfpImpl)),
       portsPerTransceiver_(portsPerTransceiver) {
-  CHECK_GT(portsPerTransceiver_, 0);
-
   // Setting up the last down time as current time minus the difference
   // between remediate_interval and initial_remediate_interval so
   // that the first remediation takes place initial_remediate_interval from now

@@ -219,7 +219,6 @@ CmisModule::CmisModule(
     std::unique_ptr<TransceiverImpl> qsfpImpl,
     unsigned int portsPerTransceiver)
     : QsfpModule(transceiverManager, std::move(qsfpImpl), portsPerTransceiver) {
-  CHECK_GT(portsPerTransceiver, 0);
 }
 
 CmisModule::~CmisModule() {}
