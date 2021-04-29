@@ -8,16 +8,18 @@
 #
 # For example:
 # python3 sai_replayer_gcc_build.py --sai_replayer_log sai_replayer.log
-#                                   --sai_replayer_cpp sai_replayer.cpp
 #                                   --sai_headers /path/to/sai/inc/
 #                                   --sai_lib /path/to/libsai.a
 #                                   --brcm_lib /path/to/libxgs_robo.a
 #                                   --brcm_phymode_lib /path/to/libphymodepil.a
 #                                   --brcm_epdm_lib /path/to/libepdm.a
 #                                   --protobuf_lib /path/to/libprotobuf.a
+#                                   --yaml_lib /path/to/libyaml.a
 
 import argparse
+import os
 import subprocess
+
 
 HEADERS = """#include <stdio.h>
 #include <stdlib.h>
@@ -27,6 +29,8 @@ HEADERS = """#include <stdio.h>
 extern "C" {
 #include <sai.h>
 }"""
+
+SAI_REPLAYER_CPP = "sai_replayer.cpp"
 
 
 def process_log(log_path, output_path):
@@ -51,8 +55,9 @@ def process_log(log_path, output_path):
 def build_binary(cpp_path, sai_header, *libraries):
     command = f"gcc {cpp_path} -I {sai_header} -lm -lpthread -lrt -lstdc++ -ldl"
     for lib in libraries:
-        command += f" {lib}"
-    print(command)
+        if lib is not None:
+            command += f" {lib}"
+    print(f"\n{command}")
     subprocess.run(command, shell=True)
 
 
@@ -69,36 +74,41 @@ def main():
         help="Input sai replayer log generated from runtime. This should be "
         "the log file produced by FBOSS agent.",
     )
-    psr.add_argument(
-        "--sai_replayer_cpp",
-        required=False,
-        type=str,
-        default="sai_replayer.cpp",
-        help="Processed cpp file that is used for gcc to compile. Since the "
-        "original log file is designed to build with FBOSS, it needs to "
-        "replace main function to compile as a standalone file in gcc.",
-    )
     psr.add_argument("--sai_headers", required=True, type=str)
     psr.add_argument("--sai_lib", required=True, type=str)
     psr.add_argument("--brcm_lib", required=True, type=str)
     psr.add_argument("--brcm_phymode_lib", required=True, type=str)
     psr.add_argument("--brcm_epdm_lib", required=True, type=str)
     psr.add_argument("--protobuf_lib", required=True, type=str)
+    psr.add_argument(
+        "--yaml_lib",
+        required=False,
+        type=str,
+        help="yaml_lib is required after 5.0*",
+    )
     args = psr.parse_args()
+
     # Process Sai Replayer Log from internal build form
     # to standalone main function.
-    process_log(args.sai_replayer_log, args.sai_replayer_cpp)
+    process_log(args.sai_replayer_log, SAI_REPLAYER_CPP)
 
     # Compile and link the binary from libraries provided.
-    build_binary(
-        args.sai_replayer_cpp,
-        args.sai_headers,
-        args.sai_lib,
-        args.brcm_lib,
-        args.brcm_phymode_lib,
-        args.brcm_epdm_lib,
-        args.protobuf_lib,
-    )
+    try:
+        build_binary(
+            SAI_REPLAYER_CPP,
+            args.sai_headers,
+            args.sai_lib,
+            args.brcm_lib,
+            args.brcm_phymode_lib,
+            args.brcm_epdm_lib,
+            args.protobuf_lib,
+            args.yaml_lib,
+        )
+    except RuntimeError:
+        os.remove(SAI_REPLAYER_CPP)
+
+    # Delete the cpp file
+    os.remove(SAI_REPLAYER_CPP)
 
 
 if __name__ == "__main__":
