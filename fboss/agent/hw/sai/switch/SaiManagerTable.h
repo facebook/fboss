@@ -32,6 +32,7 @@ class SaiHashManager;
 class SaiHostifManager;
 class SaiInSegEntryManager;
 class SaiLagManager;
+class SaiMacsecManager;
 class SaiMirrorManager;
 class SaiNeighborManager;
 class SaiNextHopManager;
@@ -87,6 +88,9 @@ class SaiManagerTable {
 
   SaiLagManager& lagManager();
   const SaiLagManager& lagManager() const;
+
+  SaiMacsecManager& macsecManager();
+  const SaiMacsecManager& macsecManager() const;
 
   SaiMirrorManager& mirrorManager();
   const SaiMirrorManager& mirrorManager() const;
@@ -151,6 +155,7 @@ class SaiManagerTable {
   std::unique_ptr<SaiFdbManager> fdbManager_;
   std::unique_ptr<SaiHashManager> hashManager_;
   std::unique_ptr<SaiHostifManager> hostifManager_;
+  std::unique_ptr<SaiMacsecManager> macsecManager_;
   std::unique_ptr<SaiMirrorManager> mirrorManager_;
   std::unique_ptr<SaiNeighborManager> neighborManager_;
   std::unique_ptr<SaiNextHopManager> nextHopManager_;

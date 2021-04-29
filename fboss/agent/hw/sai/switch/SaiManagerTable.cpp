@@ -22,6 +22,7 @@
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiInSegEntryManager.h"
 #include "fboss/agent/hw/sai/switch/SaiLagManager.h"
+#include "fboss/agent/hw/sai/switch/SaiMacsecManager.h"
 #include "fboss/agent/hw/sai/switch/SaiMirrorManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
@@ -69,6 +70,7 @@ void SaiManagerTable::createSaiTableManagers(
   portManager_ = std::make_unique<SaiPortManager>(
       saiStore, this, platform, concurrentIndices);
   qosMapManager_ = std::make_unique<SaiQosMapManager>(saiStore, this, platform);
+  macsecManager_ = std::make_unique<SaiMacsecManager>(saiStore);
   virtualRouterManager_ =
       std::make_unique<SaiVirtualRouterManager>(saiStore, this, platform);
   vlanManager_ = std::make_unique<SaiVlanManager>(saiStore, this, platform);
@@ -134,6 +136,7 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   // removing all mirror sessions. Ports no longer has any
   // dependency with mirror and can be removed.
   mirrorManager_.reset();
+  macsecManager_.reset();
   portManager_.reset();
   // Hash manager is going away, reset hashes
   switchManager_->resetHashes();
@@ -224,6 +227,14 @@ SaiHostifManager& SaiManagerTable::hostifManager() {
 
 const SaiHostifManager& SaiManagerTable::hostifManager() const {
   return *hostifManager_;
+}
+
+SaiMacsecManager& SaiManagerTable::macsecManager() {
+  return *macsecManager_;
+}
+
+const SaiMacsecManager& SaiManagerTable::macsecManager() const {
+  return *macsecManager_;
 }
 
 SaiMirrorManager& SaiManagerTable::mirrorManager() {

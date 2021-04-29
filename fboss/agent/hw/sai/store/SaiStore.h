@@ -526,7 +526,8 @@ class SaiStore {
       SaiObjectStore<SaiTamEventTraits>,
       SaiObjectStore<SaiTamTraits>,
       SaiObjectStore<SaiLagTraits>,
-      SaiObjectStore<SaiLagMemberTraits>>
+      SaiObjectStore<SaiLagMemberTraits>,
+      SaiObjectStore<SaiMacsecTraits>>
       stores_;
 };
 
