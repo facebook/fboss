@@ -44,6 +44,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::DEFAULT_VLAN:
     case HwAsic::Feature::L2_LEARNING:
     case HwAsic::Feature::TRAFFIC_HASHING:
+    case HwAsic::Feature::ACL_TABLE_GROUP:
       return true;
     case HwAsic::Feature::HOT_SWAP:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
@@ -74,6 +75,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::EGRESS_SFLOW:
     case HwAsic::Feature::SAI_LAG_HASH:
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
+    case HwAsic::Feature::MACSEC:
       return false;
   }
   return false;

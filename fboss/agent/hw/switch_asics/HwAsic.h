@@ -70,6 +70,8 @@ class HwAsic {
     L2_LEARNING,
     SAI_ACL_ENTRY_SRC_PORT_QUALIFIER,
     TRAFFIC_HASHING,
+    ACL_TABLE_GROUP,
+    MACSEC,
   };
 
   enum class AsicType {

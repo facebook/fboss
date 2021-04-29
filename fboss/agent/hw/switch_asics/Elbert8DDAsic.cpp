@@ -5,9 +5,13 @@
 #include "fboss/agent/FbossError.h"
 
 namespace facebook::fboss {
-bool Elbert8DDAsic::isSupported(Feature /* feature */) const {
-  // TODO(joseph5wu) Right now, Elbert8DDAsic doesn't support any existing
-  // switch feature. But we will add more MacSec feature soon.
+bool Elbert8DDAsic::isSupported(Feature feature) const {
+  switch (feature) {
+    case HwAsic::Feature::MACSEC:
+      return true;
+    default:
+      return false;
+  }
   return false;
 }
 
