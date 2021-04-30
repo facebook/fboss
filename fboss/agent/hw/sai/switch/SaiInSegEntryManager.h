@@ -72,9 +72,7 @@ class SaiInSegEntryManager {
       const SaiPlatform* platform)
       : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
-  // for tests only
-  const SaiInSegEntryHandle* getInSegEntryHandle(
-      LabelForwardingEntry::Label label) const;
+  SaiInSegEntryHandle* getInSegEntryHandle(LabelForwardingEntry::Label label);
 
   void processAddedInSegEntry(
       const std::shared_ptr<LabelForwardingEntry>& addedEntry);

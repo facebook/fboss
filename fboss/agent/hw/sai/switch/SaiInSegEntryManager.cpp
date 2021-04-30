@@ -36,7 +36,6 @@ SaiInSegEntryHandle::NextHopHandle getNextHopHandle(
             RouterID(kDefaultRouterID));
     return virtualRouterHandle->mplsRouterInterface;
   }
-
   if (nexthops.size() == 1) {
     SaiInSegTraits::InSegEntry inSegEntry{
         managerTable->switchManager().getSwitchSaiId(),
@@ -69,16 +68,6 @@ namespace facebook::fboss {
 
 void SaiInSegEntryManager::processAddedInSegEntry(
     const std::shared_ptr<LabelForwardingEntry>& addedEntry) {
-  SaiInSegEntryHandle handle;
-
-  handle.nexthopHandle = getNextHopHandle(managerTable_, addedEntry);
-
-  SaiInSegTraits::CreateAttributes createAttributes{
-      SAI_PACKET_ACTION_FORWARD, // not supporting any other action now except
-                                 // forward
-      1, // always pop 1 label even for swap and push another label
-      handle.nextHopAdapterKey()};
-
   SaiInSegTraits::InSegEntry inSegEntry{
       managerTable_->switchManager().getSwitchSaiId(),
       static_cast<sai_label_id_t>(addedEntry->getID())};
@@ -86,10 +75,17 @@ void SaiInSegEntryManager::processAddedInSegEntry(
     throw FbossError(
         "label fib entry already exists for ", addedEntry->getID());
   }
+  auto iter = saiInSegEntryTable_.emplace(inSegEntry, SaiInSegEntryHandle{});
+  auto& handle = iter.first->second;
+  handle.nexthopHandle = getNextHopHandle(managerTable_, addedEntry);
+  SaiInSegTraits::CreateAttributes createAttributes{
+      SAI_PACKET_ACTION_FORWARD, // not supporting any other action now except
+                                 // forward
+      1, // always pop 1 label even for swap and push another label
+      handle.nextHopAdapterKey()};
 
   auto& store = saiStore_->get<SaiInSegTraits>();
   handle.inSegEntry = store.setObject(inSegEntry, createAttributes);
-  saiInSegEntryTable_.emplace(inSegEntry, handle);
 }
 
 void SaiInSegEntryManager::processChangedInSegEntry(
@@ -124,11 +120,11 @@ void SaiInSegEntryManager::processRemovedInSegEntry(
   saiInSegEntryTable_.erase(inSegEntry);
 }
 
-const SaiInSegEntryHandle* SaiInSegEntryManager::getInSegEntryHandle(
-    LabelForwardingEntry::Label label) const {
+SaiInSegEntryHandle* SaiInSegEntryManager::getInSegEntryHandle(
+    LabelForwardingEntry::Label label) {
   auto inSegEntry = SaiInSegTraits::InSegEntry(
       managerTable_->switchManager().getSwitchSaiId(), label);
-  const auto& itr = saiInSegEntryTable_.find(inSegEntry);
+  auto itr = saiInSegEntryTable_.find(inSegEntry);
   if (itr == saiInSegEntryTable_.end()) {
     return nullptr;
   }
@@ -155,28 +151,26 @@ template <typename NextHopTraitsT>
 void ManagedInSegNextHop<NextHopTraitsT>::afterCreate(
     ManagedInSegNextHop<NextHopTraitsT>::PublisherObject nexthop) {
   this->setPublisherObject(nexthop);
-  // set entry to next hop
   auto entry = inSegEntryManager_->getInSegObject(inSegKey_);
   if (!entry) {
-    // entry is not yet created.
+    // managed next hop is created before inseg entry.
+    // while creating inseg entry, managed next hop id must be used in create
+    // attributes
     return;
   }
-  auto attributes = entry->attributes();
-  sai_object_id_t nextHopId = nexthop->adapterKey();
-  std::get<std::optional<SaiInSegTraits::Attributes::NextHopId>>(attributes) =
-      nextHopId;
-  entry->setAttributes(attributes);
+  // point entry to next hop
+  entry->setOptionalAttribute(
+      SaiInSegTraits::Attributes::NextHopId{nexthop->adapterKey()});
 }
 
 template <typename NextHopTraitsT>
 void ManagedInSegNextHop<NextHopTraitsT>::beforeRemove() {
-  // set entry to NULL
   auto entry = inSegEntryManager_->getInSegObject(inSegKey_);
-  auto attributes = entry->attributes();
-
-  std::get<std::optional<SaiInSegTraits::Attributes::NextHopId>>(attributes) =
-      SAI_NULL_OBJECT_ID;
-  entry->setAttributes(attributes);
+  if (entry) {
+    // point entry to drop
+    entry->setOptionalAttribute(
+        SaiInSegTraits::Attributes::NextHopId{SAI_NULL_OBJECT_ID});
+  }
   this->setPublisherObject(nullptr);
 }
 
