@@ -150,6 +150,11 @@ string PktUtil::hexDump(Cursor cursor, uint32_t length) {
   return result;
 }
 
+string PktUtil::hexDump(const IOBuf* buf) {
+  Cursor cursor(buf);
+  return hexDump(cursor);
+}
+
 IOBuf PktUtil::parseHexData(StringPiece hex) {
   // The hex encoded version is at least 2 bytes per binary byte.
   // Allocating hex.size() / 2 will always be more room than we need.

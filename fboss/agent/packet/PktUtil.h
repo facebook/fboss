@@ -89,6 +89,7 @@ class PktUtil {
   static std::string hexDump(folly::io::Cursor cursor);
   static std::string hexDump(folly::io::Cursor start, folly::io::Cursor end);
   static std::string hexDump(folly::io::Cursor start, uint32_t length);
+  static std::string hexDump(const folly::IOBuf* buf);
 
   /*
    * Parse an ASCII hex string and return the binary data in a folly::IOBuf.
