@@ -118,8 +118,16 @@ class BcmLabeledEgressTest : public BcmTest {
 
   BcmEcmpEgress* makeEcmpEgress(
       const BcmEcmpEgress::EgressId2Weight& egressId2Weight) {
+    int totalWeight = std::accumulate(
+        egressId2Weight.begin(),
+        egressId2Weight.end(),
+        0,
+        [](int v, const BcmEcmpEgress::EgressId2Weight::value_type& p) {
+          return v + p.second;
+        });
+    bool isUcmp = totalWeight != egressId2Weight.size();
     auto ecmpEgress =
-        std::make_unique<BcmEcmpEgress>(getHwSwitch(), egressId2Weight);
+        std::make_unique<BcmEcmpEgress>(getHwSwitch(), egressId2Weight, isUcmp);
     auto* rv = ecmpEgress.get();
     ecmpEgresses_.push_back(std::move(ecmpEgress));
     return rv;

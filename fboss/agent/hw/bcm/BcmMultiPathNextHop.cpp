@@ -38,8 +38,8 @@ BcmMultiPathNextHop::BcmMultiPathNextHop(
   }
   if (egressId2Weight.size() > 1) {
     // BcmEcmpEgress object only for more than 1 paths.
-    ecmpEgress_ =
-        std::make_unique<BcmEcmpEgress>(hw, std::move(egressId2Weight));
+    ecmpEgress_ = std::make_unique<BcmEcmpEgress>(
+        hw, std::move(egressId2Weight), RouteNextHopEntry::isUcmp(fwd));
   }
   fwd_ = std::move(fwd);
   nexthops_ = std::move(nexthops);
@@ -117,6 +117,15 @@ void BcmMultiPathNextHopTable::egressResolutionChangedHwLocked(
   auto* hw = getBcmSwitch();
   for (const auto& ecmpAndEgressIds :
        hw->getWarmBootCache()->ecmp2EgressIds()) {
+    auto egressId2Weight = ecmpAndEgressIds.second;
+    int totalWeight = std::accumulate(
+        egressId2Weight.begin(),
+        egressId2Weight.end(),
+        0,
+        [](int v, const BcmEcmpEgress::EgressId2Weight::value_type& p) {
+          return v + p.second;
+        });
+    bool ucmpEnabled_ = ucmpSupported_ && totalWeight != egressId2Weight.size();
     for (auto path : affectedEgressIds) {
       switch (action) {
         case BcmEcmpEgress::Action::EXPAND:
@@ -126,7 +135,7 @@ void BcmMultiPathNextHopTable::egressResolutionChangedHwLocked(
               ecmpAndEgressIds.second,
               path,
               hw->getRunState(),
-              ucmpSupported_,
+              ucmpEnabled_,
               wideEcmpSupported_,
               useHsdk_);
           break;
@@ -136,7 +145,7 @@ void BcmMultiPathNextHopTable::egressResolutionChangedHwLocked(
               ecmpAndEgressIds.first,
               ecmpAndEgressIds.second,
               path,
-              ucmpSupported_,
+              ucmpEnabled_,
               wideEcmpSupported_,
               useHsdk_);
           break;

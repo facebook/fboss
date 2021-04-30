@@ -281,11 +281,12 @@ BcmEgress::~BcmEgress() {
 
 BcmEcmpEgress::BcmEcmpEgress(
     const BcmSwitchIf* hw,
-    const EgressId2Weight& egressId2Weight)
+    const EgressId2Weight& egressId2Weight,
+    const bool isUcmp)
     : BcmEgressBase(hw), egressId2Weight_(egressId2Weight) {
   if (hw_->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER)) {
-    ucmpSupported_ = true;
+    ucmpEnabled_ = isUcmp;
   }
   if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::HSDK)) {
     useHsdk_ = true;
@@ -300,7 +301,7 @@ void BcmEcmpEgress::program() {
   bcm_l3_egress_ecmp_t obj;
   bcm_l3_egress_ecmp_t_init(&obj);
   int numPaths = 0;
-  if (ucmpSupported_) {
+  if (ucmpEnabled_) {
     numPaths = egressId2Weight_.size();
   } else {
     for (auto path : egressId2Weight_) {
@@ -340,17 +341,18 @@ void BcmEcmpEgress::program() {
                                     : "(invalid id)")
                << " for " << numPaths << " paths"
                << ((obj.flags & BCM_L3_REPLACE) ? " replace" : " noreplace")
-               << ((obj.flags & BCM_L3_WITH_ID) ? " with id" : " without id");
+               << ((obj.flags & BCM_L3_WITH_ID) ? " with id" : " without id")
+               << ", native ucmp " << (ucmpEnabled_ ? "enabled" : "disabled");
     int ret = 0;
     if (useHsdk_) {
-      if (ucmpSupported_) {
+      if (ucmpEnabled_) {
         obj.ecmp_group_flags = BCM_L3_ECMP_MEMBER_WEIGHTED;
       }
       // @lint-ignore CLANGTIDY
       bcm_l3_ecmp_member_t ecmpMemberArray[numPaths];
       auto idx = 0;
       for (const auto& path : egressId2Weight_) {
-        if (ucmpSupported_) {
+        if (ucmpEnabled_) {
           if (hw_->getEgressManager()->isResolved(path.first)) {
             bcm_l3_ecmp_member_t_init(&ecmpMemberArray[idx]);
             ecmpMemberArray[idx].egress_if = path.first;
@@ -444,7 +446,7 @@ bool BcmEcmpEgress::pathUnreachableHwLocked(EgressId path) {
       getID(),
       egressId2Weight_,
       path,
-      ucmpSupported_,
+      ucmpEnabled_,
       wideEcmpSupported_,
       useHsdk_);
 }
@@ -456,7 +458,7 @@ bool BcmEcmpEgress::pathReachableHwLocked(EgressId path) {
       egressId2Weight_,
       path,
       hw_->getRunState(),
-      ucmpSupported_,
+      ucmpEnabled_,
       wideEcmpSupported_,
       useHsdk_);
 }
@@ -466,7 +468,7 @@ bool BcmEcmpEgress::removeEgressIdHwLocked(
     EgressId ecmpId,
     const EgressId2Weight& egressIdInSw,
     EgressId toRemove,
-    bool ucmpSupported,
+    bool ucmpEnabled,
     bool wideEcmpSupported,
     bool useHsdk) {
   auto it = egressIdInSw.find(toRemove);
@@ -479,7 +481,7 @@ bool BcmEcmpEgress::removeEgressIdHwLocked(
       unit,
       ecmpId,
       std::make_pair(toRemove, it->second),
-      ucmpSupported,
+      ucmpEnabled,
       wideEcmpSupported,
       useHsdk);
 }
@@ -585,7 +587,7 @@ bool BcmEcmpEgress::removeEgressIdHwNotLocked(
     int unit,
     EgressId ecmpId,
     std::pair<EgressId, int> toRemove,
-    bool ucmpSupported,
+    bool ucmpEnabled,
     bool wideEcmpSupported,
     bool useHsdk) {
   int ret = 0;
@@ -593,7 +595,7 @@ bool BcmEcmpEgress::removeEgressIdHwNotLocked(
     bcm_l3_ecmp_member_t member;
     bcm_l3_ecmp_member_t_init(&member);
     member.egress_if = toRemove.first;
-    if (ucmpSupported) {
+    if (ucmpEnabled) {
       // This function will always blow away all egress members
       // associated with the toRemove egress intf.
       ret = bcm_l3_ecmp_member_delete(unit, ecmpId, &member);
@@ -640,7 +642,9 @@ bool BcmEcmpEgress::removeEgressIdHwNotLocked(
     return false;
   }
   if (ret != BCM_E_NOT_FOUND) {
-    XLOG(DBG1) << " Removed  " << toRemove.first << " from: " << ecmpId;
+    XLOG(DBG1) << " Removed  " << toRemove.first << " from: " << ecmpId
+               << " with native ucmp "
+               << (ucmpEnabled ? "enabled" : "disabled");
   }
   return true;
 }
@@ -651,7 +655,7 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
     const EgressId2Weight& egressId2WeightInSw,
     EgressId toAdd,
     SwitchRunState runState,
-    bool ucmpSupported,
+    bool ucmpEnabled,
     bool wideEcmpSupported,
     bool useHsdk) {
   if (egressId2WeightInSw.find(toAdd) == egressId2WeightInSw.end()) {
@@ -660,7 +664,7 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
     return false;
   }
   int numPaths = 0;
-  if (ucmpSupported) {
+  if (ucmpEnabled) {
     numPaths = egressId2WeightInSw.size();
   } else {
     for (auto path : egressId2WeightInSw) {
@@ -708,7 +712,7 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
     bcmCheckError(ret, "Unable to get ecmp entry ", ecmpId);
     for (size_t i = 0; i < totalMembersInHw; ++i) {
       if (toAdd == membersInHw[i].egress_if) {
-        if (ucmpSupported) {
+        if (ucmpEnabled) {
           countInHw = membersInHw[i].weight;
           memberIndex = i;
           break;
@@ -738,7 +742,7 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
   }
 
   if (useHsdk) {
-    if (ucmpSupported) {
+    if (ucmpEnabled) {
       if (memberIndex != -1) {
         // member already exists, just update its weight
         membersInHw[memberIndex].weight = countInSw;
@@ -764,6 +768,8 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
         bcmCheckError(
             ret, "Error adding member ", toAdd, " to ecmp entry ", ecmpId);
       }
+      XLOG(DBG1) << "Added " << toAdd << " to " << ecmpId
+                 << " with native ucmp enabled";
     } else {
       for (int i = 0; i < countInSw - countInHw; ++i) {
         bcm_l3_ecmp_member_t member;
@@ -773,9 +779,11 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
         bcmCheckError(ret, "Error adding ", toAdd, " to ", ecmpId);
         if (runState < SwitchRunState::INITIALIZED) {
           XLOG(DBG1) << "Added " << toAdd << " to " << ecmpId
+                     << " with native ucmp disabled"
                      << " before transitioning to INIT state";
         } else {
-          XLOG(DBG1) << "Added " << toAdd << " to " << ecmpId;
+          XLOG(DBG1) << "Added " << toAdd << " to " << ecmpId
+                     << " with native ucmp disabled";
         }
       }
     }

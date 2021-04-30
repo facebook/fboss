@@ -397,4 +397,8 @@ RouteNextHopEntry RouteNextHopEntry::fromStaticIp2MplsRoute(
   return RouteNextHopEntry(std::move(nhops), AdminDistance::STATIC_ROUTE);
 }
 
+bool RouteNextHopEntry::isUcmp(const NextHopSet& nhopSet) {
+  return totalWeight(nhopSet) != nhopSet.size();
+}
+
 } // namespace facebook::fboss

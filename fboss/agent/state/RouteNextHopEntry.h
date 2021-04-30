@@ -97,6 +97,7 @@ class RouteNextHopEntry {
       const cfg::StaticRouteWithNextHops& route);
   static facebook::fboss::RouteNextHopEntry fromStaticIp2MplsRoute(
       const cfg::StaticIp2MplsRoute& route);
+  static bool isUcmp(const NextHopSet& nhopSet);
 
  private:
   AdminDistance adminDistance_;

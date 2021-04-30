@@ -29,8 +29,7 @@ getEcmpGroupInHw(const BcmSwitch* hw, bcm_if_t ecmp, int sizeInSw) {
     bcm_l3_ecmp_get(
         hw->getUnit(), &existing, sizeInSw, pathsInHw, &pathsInHwCount);
     for (size_t i = 0; i < pathsInHwCount; ++i) {
-      if (hw->getPlatform()->getAsic()->isSupported(
-              HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER)) {
+      if (existing.ecmp_group_flags == BCM_L3_ECMP_MEMBER_WEIGHTED) {
         for (size_t j = 0; j < pathsInHw[i].weight; j++) {
           ecmpGroup.insert(pathsInHw[i].egress_if);
         }

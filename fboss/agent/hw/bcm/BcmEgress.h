@@ -155,7 +155,10 @@ class BcmEcmpEgress : public BcmEgressBase {
   using EgressId2Weight = boost::container::flat_map<EgressId, uint64_t>;
   enum class Action { SHRINK, EXPAND, SKIP };
 
-  BcmEcmpEgress(const BcmSwitchIf* hw, const EgressId2Weight& egressId2Weight);
+  BcmEcmpEgress(
+      const BcmSwitchIf* hw,
+      const EgressId2Weight& egressId2Weight,
+      const bool isUcmp);
   ~BcmEcmpEgress() override;
   bool pathUnreachableHwLocked(EgressId path);
   bool pathReachableHwLocked(EgressId path);
@@ -183,14 +186,14 @@ class BcmEcmpEgress : public BcmEgressBase {
       const EgressId2Weight& egressIdInSw,
       EgressId toAdd,
       SwitchRunState runState,
-      bool ucmpSupported,
+      bool ucmpEnabled,
       bool wideEcmpSupported,
       bool useHsdk);
   static bool removeEgressIdHwNotLocked(
       int unit,
       EgressId ecmpId,
       std::pair<EgressId, int> toRemove,
-      bool ucmpSupported,
+      bool ucmpEnabled,
       bool wideEcmpSupported,
       bool useHsdk);
   static bool removeEgressIdHwLocked(
@@ -198,7 +201,7 @@ class BcmEcmpEgress : public BcmEgressBase {
       EgressId ecmpId,
       const EgressId2Weight& egressIdInSw,
       EgressId toRemove,
-      bool ucmpSupported,
+      bool ucmpEnabled,
       bool wideEcmpSupported,
       bool useHsdk);
   static void programWideEcmp(
@@ -223,7 +226,7 @@ class BcmEcmpEgress : public BcmEgressBase {
   void program();
   static bool isWideEcmpEnabled(bool wideEcmpSupported);
   const EgressId2Weight egressId2Weight_;
-  bool ucmpSupported_{false};
+  bool ucmpEnabled_{false};
   // TODO(daiweix): remove this flag when all TH4 devices use B0 chip
   bool useHsdk_{false};
   bool wideEcmpSupported_{false};
