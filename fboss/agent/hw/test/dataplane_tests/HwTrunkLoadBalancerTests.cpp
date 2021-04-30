@@ -84,6 +84,25 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
     ecmpHelper.programRoutes(getRouteUpdater(), getAggregatePorts(aggInfo));
   }
 
+  template <typename ECMP_HELPER>
+  void programIp2MplsRoutes(
+      const ECMP_HELPER& ecmpHelper,
+      const AggPortInfo aggInfo) {
+    std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks{};
+
+    for (auto i = 0; i < aggInfo.numAggPorts; ++i) {
+      stacks.emplace(
+          PortDescriptor(AggregatePortID(i + 1)),
+          LabelForwardingAction::LabelStack{10010 + i + 1});
+    }
+
+    auto newState = utility::enableTrunkPorts(getProgrammedState());
+    applyNewState(
+        ecmpHelper.resolveNextHops(newState, getAggregatePorts(aggInfo)));
+    ecmpHelper.programIp2MplsRoutes(
+        getRouteUpdater(), getAggregatePorts(aggInfo), stacks);
+  }
+
  protected:
   cfg::SwitchConfig initialConfig() const override {
     auto config = utility::onePortPerVlanConfig(
@@ -120,6 +139,13 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
     programRoutes(ecmpHelper4, aggInfo);
   }
 
+  void setupIP2MPLSECMP(AggPortInfo aggInfo) {
+    utility::EcmpSetupTargetedPorts6 ecmpHelper6{getProgrammedState()};
+    utility::EcmpSetupTargetedPorts4 ecmpHelper4{getProgrammedState()};
+    programIp2MplsRoutes(ecmpHelper6, aggInfo);
+    programIp2MplsRoutes(ecmpHelper4, aggInfo);
+  }
+
   void runIPLoadBalanceTest(
       bool isV6,
       const std::vector<cfg::LoadBalancer>& loadBalancers,
@@ -129,6 +155,27 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
       auto config = configureAggregatePorts(aggInfo);
       applyNewConfig(config);
       setupIPECMP(aggInfo);
+      applyNewState(utility::addLoadBalancers(
+          getPlatform(), getProgrammedState(), loadBalancers));
+    };
+    auto verify = [=]() {
+      pumpIPTraffic(isV6, loopThroughFrontPanel, aggInfo);
+      // Don't tolerate a deviation of > 25%
+      EXPECT_TRUE(utility::isLoadBalanced(
+          getHwSwitchEnsemble(), getPhysicalPorts(aggInfo), 25));
+    };
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
+  void runIP2MplsLoadBalanceTest(
+      bool isV6,
+      const std::vector<cfg::LoadBalancer>& loadBalancers,
+      AggPortInfo aggInfo,
+      bool loopThroughFrontPanel) {
+    auto setup = [=]() {
+      auto config = configureAggregatePorts(aggInfo);
+      applyNewConfig(config);
+      setupIP2MPLSECMP(aggInfo);
       applyNewState(utility::addLoadBalancers(
           getPlatform(), getProgrammedState(), loadBalancers));
     };
@@ -154,8 +201,11 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
         return runIPLoadBalanceTest(
             true, loadBalancers, aggInfo, loopThroughFrontPanel);
       case TrafficType::IPv4MPLS:
+        return runIP2MplsLoadBalanceTest(
+            false, loadBalancers, aggInfo, loopThroughFrontPanel);
       case TrafficType::IPv6MPLS:
-        throw FbossError("MPLS trunk load balancer test is not supported yet.");
+        return runIP2MplsLoadBalanceTest(
+            true, loadBalancers, aggInfo, loopThroughFrontPanel);
     }
   }
 };
