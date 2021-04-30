@@ -235,6 +235,8 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     auto pkt =
         utility::EthFrame(eth, utility::IPPacket<folly::IPAddressV6>(ip6))
             .getTxPacket(getHwSwitch());
+    XLOG(DBG2) << "sending packet: ";
+    XLOG(DBG2) << PktUtil::hexDump(pkt->buf());
     // send pkt on src port, let it loop back in switch and be l3 switched
     getHwSwitchEnsemble()->ensureSendPacketOutOfPort(std::move(pkt), from);
   }
@@ -259,7 +261,8 @@ class HwMPLSTest : public HwLinkStateDependentTest {
         srcMac, dstMac, {mplsLabel}, srcIp, dstIp, 10000, 20000);
 
     auto pkt = frame.getTxPacket(getHwSwitch());
-
+    XLOG(DBG2) << "sending packet: ";
+    XLOG(DBG2) << PktUtil::hexDump(pkt->buf());
     // send pkt on src port, let it loop back in switch and be l3 switched
     getHwSwitchEnsemble()->ensureSendPacketOutOfPort(std::move(pkt), from);
   }
