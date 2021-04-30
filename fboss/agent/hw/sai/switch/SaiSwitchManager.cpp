@@ -80,7 +80,14 @@ SaiSwitchManager::SaiSwitchManager(
         platform->getSwitchAttributes(false),
         0 /* fake switch id; ignored */);
   }
-  initCpuPort();
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
+    initCpuPort();
+  }
+}
+
+void SaiSwitchManager::initCpuPort() {
+  cpuPort_ = SaiApiTable::getInstance()->switchApi().getAttribute(
+      switch_->adapterKey(), SaiSwitchTraits::Attributes::CpuPort{});
 }
 
 PortSaiId SaiSwitchManager::getCpuPort() const {

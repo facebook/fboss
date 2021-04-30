@@ -72,6 +72,7 @@ class HwAsic {
     TRAFFIC_HASHING,
     ACL_TABLE_GROUP,
     MACSEC,
+    CPU_PORT,
   };
 
   enum class AsicType {

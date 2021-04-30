@@ -45,6 +45,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::L2_LEARNING:
     case HwAsic::Feature::TRAFFIC_HASHING:
     case HwAsic::Feature::ACL_TABLE_GROUP:
+    case HwAsic::Feature::CPU_PORT:
       return true;
     case HwAsic::Feature::HOT_SWAP:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
