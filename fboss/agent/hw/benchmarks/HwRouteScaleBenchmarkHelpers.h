@@ -23,6 +23,7 @@
 #include "fboss/lib/FunctionCallTimeReporter.h"
 
 DECLARE_bool(json);
+DECLARE_bool(enable_standalone_rib);
 
 namespace facebook::fboss {
 
@@ -35,6 +36,8 @@ namespace facebook::fboss {
 template <typename RouteScaleGeneratorT>
 void routeAddDelBenchmarker(bool measureAdd) {
   folly::BenchmarkSuspender suspender;
+  // Retire this when rib is rolled out everywhere
+  FLAGS_enable_standalone_rib = true;
   auto ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
   auto config = utility::onePortPerVlanConfig(
       ensemble->getHwSwitch(), ensemble->masterLogicalPortIds());
