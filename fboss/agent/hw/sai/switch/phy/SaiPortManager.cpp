@@ -25,12 +25,7 @@
 
 namespace facebook::fboss {
 
-void SaiPortManager::addRemovedHandle(PortID /*portID*/) {}
-
-void SaiPortManager::removeRemovedHandleIf(PortID /*portID*/) {}
-
 PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& /* swPort */) {
   return PortSaiId(0);
 }
-
 } // namespace facebook::fboss

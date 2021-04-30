@@ -36,6 +36,7 @@ set(SAI_SWITCH_SRC
   fboss/agent/hw/sai/switch/SaiVirtualRouterManager.cpp
   fboss/agent/hw/sai/switch/SaiWredManager.cpp
   fboss/agent/hw/sai/switch/oss/SaiBufferManager.cpp
+  fboss/agent/hw/sai/switch/oss/SaiPortManager.cpp
   fboss/agent/hw/sai/switch/npu/SaiAclTableManager.cpp
   fboss/agent/hw/sai/switch/npu/SaiPortManager.cpp
 )
@@ -43,7 +44,6 @@ set(SAI_SWITCH_SRC
 # TODO Support SAI_PHY_IMPL(T86789543)
 if (SAI_TAJO_IMPL)
   list(APPEND SAI_SWITCH_SRC
-    fboss/agent/hw/sai/switch/npu/oss/SaiPortManager.cpp
     fboss/agent/hw/sai/switch/npu/tajo/SaiSwitch.cpp
     fboss/agent/hw/sai/switch/npu/tajo/SaiTamManager.cpp
   )
@@ -51,7 +51,6 @@ else()
   list(APPEND SAI_SWITCH_SRC
     fboss/agent/hw/sai/switch/oss/SaiSwitch.cpp
     fboss/agent/hw/sai/switch/oss/SaiTamManager.cpp
-    fboss/agent/hw/sai/switch/npu/oss/SaiPortManager.cpp
   )
 endif()
 
