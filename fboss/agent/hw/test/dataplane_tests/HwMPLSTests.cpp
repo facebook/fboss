@@ -227,14 +227,15 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     EthHdr eth{intfMac, intfMac, std::move(vlans), 0x86DD};
     // construct l3 hdr
     IPv6Hdr ip6{folly::IPAddressV6("1::10"), dst};
-    ip6.nextHeader = 59; /* no next header */
+    ip6.nextHeader = 17; /* udp payload */
     if (dscp) {
       ip6.trafficClass = (dscp.value() << 2); // last two bits are ECN
     }
-    // get tx packet
-    auto pkt =
-        utility::EthFrame(eth, utility::IPPacket<folly::IPAddressV6>(ip6))
-            .getTxPacket(getHwSwitch());
+    UDPHeader udp(4049, 4050, 1);
+    utility::UDPDatagram datagram(udp, {0xff});
+    auto pkt = utility::EthFrame(
+                   eth, utility::IPPacket<folly::IPAddressV6>(ip6, datagram))
+                   .getTxPacket(getHwSwitch());
     XLOG(DBG2) << "sending packet: ";
     XLOG(DBG2) << PktUtil::hexDump(pkt->buf());
     // send pkt on src port, let it loop back in switch and be l3 switched
