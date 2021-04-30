@@ -252,5 +252,6 @@ add_library(async_logger
 
 target_link_libraries(async_logger
   fboss_error
+  fb303::fb303
   Folly::folly
 )

@@ -17,6 +17,7 @@
 #include "fboss/agent/AsyncLogger.h"
 #include "fboss/agent/SysError.h"
 
+#include <fb303/ServiceData.h>
 #include <folly/FileUtil.h>
 #include <gflags/gflags.h>
 
@@ -34,6 +35,9 @@ static std::array<char, facebook::fboss::AsyncLogger::kBufferSize> buffer0;
 static std::array<char, facebook::fboss::AsyncLogger::kBufferSize> buffer1;
 
 namespace {
+
+constexpr auto kBuildRevision = "build_revision";
+constexpr auto kSdkVersion = "SDK Version";
 
 void terminateHandler() {
   if (offset > 0) {
@@ -260,6 +264,7 @@ void AsyncLogger::openLogFile(std::string& filePath) {
 }
 
 void AsyncLogger::writeNewBootHeader() {
+  // Log current time and boot type
   auto now = std::chrono::system_clock::now();
   auto timer = std::chrono::system_clock::to_time_t(now);
   std::tm tm;
@@ -271,6 +276,21 @@ void AsyncLogger::writeNewBootHeader() {
       << std::put_time(&tm, "%Y-%m-%d %T") << std::endl;
   auto ossString = oss.str();
   appendLog(ossString.c_str(), ossString.size());
+
+  // Log commit ID and SDK version
+  std::string commitId;
+  fb303::fbData->getExportedValue(commitId, kBuildRevision);
+  std::string sdkVersion;
+  fb303::fbData->getExportedValue(sdkVersion, kSdkVersion);
+
+  // Remove newline in SDK version
+  sdkVersion.erase(
+      std::remove(sdkVersion.begin(), sdkVersion.end(), '\n'),
+      sdkVersion.end());
+
+  std::string agentVersion = folly::to<std::string>(
+      "// Commit id : ", commitId, "\n", "// SDK version : ", sdkVersion, "\n");
+  appendLog(agentVersion.c_str(), agentVersion.size());
 }
 
 } // namespace facebook::fboss
