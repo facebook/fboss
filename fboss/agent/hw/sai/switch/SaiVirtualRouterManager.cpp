@@ -12,6 +12,8 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
@@ -19,6 +21,28 @@
 
 namespace facebook::fboss {
 
+SaiVirtualRouterManager::SaiVirtualRouterManager(
+    SaiStore* saiStore,
+    SaiManagerTable* managerTable,
+    const SaiPlatform* platform)
+    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::VRF)) {
+    auto& store = saiStore_->get<SaiVirtualRouterTraits>();
+    auto virtualRouterHandle = std::make_unique<SaiVirtualRouterHandle>();
+    SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
+    VirtualRouterSaiId defaultVrfId{
+        SaiApiTable::getInstance()->switchApi().getAttribute(
+            switchId, SaiSwitchTraits::Attributes::DefaultVirtualRouterId{})};
+    virtualRouterHandle->virtualRouter = store.loadObjectOwnedByAdapter(
+        SaiVirtualRouterTraits::AdapterKey{defaultVrfId});
+    virtualRouterHandle->mplsRouterInterface =
+        createMplsRouterInterface(defaultVrfId);
+
+    CHECK(virtualRouterHandle->virtualRouter);
+    handles_.emplace(
+        std::make_pair(RouterID(0), std::move(virtualRouterHandle)));
+  }
+}
 VirtualRouterSaiId SaiVirtualRouterManager::addVirtualRouter(
     const RouterID& /* routerId */) {
   throw FbossError("Adding new virtual routers is not supported");

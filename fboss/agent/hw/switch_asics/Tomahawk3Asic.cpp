@@ -46,6 +46,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::TRAFFIC_HASHING:
     case HwAsic::Feature::ACL_TABLE_GROUP:
     case HwAsic::Feature::CPU_PORT:
+    case HwAsic::Feature::VRF:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:

@@ -34,6 +34,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::TRAFFIC_HASHING:
     case HwAsic::Feature::ACL_TABLE_GROUP:
     case HwAsic::Feature::CPU_PORT:
+    case HwAsic::Feature::VRF:
       return true;
 
     case HwAsic::Feature::ERSPANv6:

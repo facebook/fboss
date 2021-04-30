@@ -73,6 +73,7 @@ class HwAsic {
     ACL_TABLE_GROUP,
     MACSEC,
     CPU_PORT,
+    VRF,
   };
 
   enum class AsicType {
