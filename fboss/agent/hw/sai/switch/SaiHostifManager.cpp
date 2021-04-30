@@ -24,6 +24,16 @@ using namespace std::chrono;
 
 namespace facebook::fboss {
 
+SaiHostifManager::SaiHostifManager(
+    SaiStore* saiStore,
+    SaiManagerTable* managerTable,
+    const SaiPlatform* platform)
+    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
+    loadCpuPort();
+  }
+}
+
 std::pair<sai_hostif_trap_type_t, sai_packet_action_t>
 SaiHostifManager::packetReasonToHostifTrap(
     cfg::PacketRxReason reason,
