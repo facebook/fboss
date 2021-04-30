@@ -333,6 +333,7 @@ struct PortQueueThrift {
 struct PfcConfig {
   1: bool tx,
   2: bool rx,
+  3: bool watchdog,
 }
 
 struct PortInfoThrift {

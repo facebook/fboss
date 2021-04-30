@@ -326,6 +326,7 @@ void getPortInfoHelper(
     auto pfc = port->getPfc();
     pc.tx_ref() = *pfc->tx_ref();
     pc.rx_ref() = *pfc->rx_ref();
+    pc.watchdog_ref() = pfc->watchdog_ref().has_value();
     portInfo.pfc_ref() = pc;
   }
 

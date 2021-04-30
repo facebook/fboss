@@ -115,6 +115,8 @@ class PortDetailsCmd(cmds.FbossCmd):
                 pfc_str = "TX "
             if port_info.pfc.rx:
                 pfc_str = pfc_str + "RX"
+            if port_info.pfc.watchdog:
+                pfc_str = pfc_str + " WD"
             lines.append(("PFC", pfc_str))
 
         if hasattr(port_info, "profileID") and port_info.profileID:
