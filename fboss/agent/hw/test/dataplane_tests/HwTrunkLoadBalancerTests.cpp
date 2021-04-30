@@ -14,8 +14,10 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
+#include "fboss/agent/state/LabelForwardingAction.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TrunkUtils.h"
+#include "folly/IPAddressV4.h"
 
 #include "fboss/agent/state/SwitchState.h"
 
@@ -42,7 +44,21 @@ struct AggPortInfo {
 const AggPortInfo k4X3WideAggs{4, 3};
 const AggPortInfo k4X2WideAggs{4, 2};
 
-enum TrafficType { IPv4, IPv6, IPv4MPLS, IPv6MPLS };
+enum TrafficType {
+  IPv4,
+  IPv6,
+  IPv4MPLS,
+  IPv6MPLS,
+  v4MPLS4Swap,
+  v4MPLS4Php,
+  v6MPLS4Swap,
+  v6MPLS4Php
+};
+
+static constexpr uint32_t kV4TopSwap = 10010;
+static constexpr uint32_t kV6TopSwap = 10011;
+static constexpr uint32_t kV4TopPhp = 20010;
+static constexpr uint32_t kV6TopPhp = 20011;
 
 } // namespace
 
@@ -103,6 +119,17 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
         getRouteUpdater(), getAggregatePorts(aggInfo), stacks);
   }
 
+  template <typename ECMP_HELPER>
+  void programMplsRoutes(
+      const ECMP_HELPER& ecmpHelper,
+      const AggPortInfo aggInfo) {
+    auto newState = utility::enableTrunkPorts(getProgrammedState());
+    applyNewState(
+        ecmpHelper.resolveNextHops(newState, getAggregatePorts(aggInfo)));
+    auto ports = getAggregatePorts(aggInfo);
+    ecmpHelper.setupECMPForwarding(getProgrammedState(), ports);
+  }
+
  protected:
   cfg::SwitchConfig initialConfig() const override {
     auto config = utility::onePortPerVlanConfig(
@@ -126,6 +153,25 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
         frontPanelPortToLoopTraffic);
   }
 
+  void pumpMPLSTraffic(
+      bool isV6,
+      uint32_t label,
+      bool loopThroughFrontPanel,
+      AggPortInfo aggInfo) {
+    std::optional<PortID> frontPanelPortToLoopTraffic;
+    if (loopThroughFrontPanel) {
+      // Next port to loop back traffic through
+      frontPanelPortToLoopTraffic =
+          PortID(masterLogicalPortIds()[aggInfo.numPhysicalPorts()]);
+    }
+    utility::pumpMplsTraffic(
+        isV6,
+        getHwSwitch(),
+        label,
+        getPlatform()->getLocalMac(),
+        frontPanelPortToLoopTraffic);
+  }
+
   cfg::SwitchConfig configureAggregatePorts(AggPortInfo aggInfo) {
     auto config = initialConfig();
     addAggregatePorts(&config, aggInfo);
@@ -144,6 +190,29 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
     utility::EcmpSetupTargetedPorts4 ecmpHelper4{getProgrammedState()};
     programIp2MplsRoutes(ecmpHelper6, aggInfo);
     programIp2MplsRoutes(ecmpHelper4, aggInfo);
+  }
+
+  void setupMPLSECMP(AggPortInfo aggInfo) {
+    utility::MplsEcmpSetupTargetedPorts<folly::IPAddressV4> v4SwapHelper{
+        getProgrammedState(),
+        kV4TopSwap,
+        LabelForwardingAction::LabelForwardingType::SWAP};
+    utility::MplsEcmpSetupTargetedPorts<folly::IPAddressV6> v6SwapHelper{
+        getProgrammedState(),
+        kV6TopSwap,
+        LabelForwardingAction::LabelForwardingType::SWAP};
+    utility::MplsEcmpSetupTargetedPorts<folly::IPAddressV4> v4PhpHelper{
+        getProgrammedState(),
+        kV4TopSwap,
+        LabelForwardingAction::LabelForwardingType::PHP};
+    utility::MplsEcmpSetupTargetedPorts<folly::IPAddressV4> v6PhpHelper{
+        getProgrammedState(),
+        kV6TopSwap,
+        LabelForwardingAction::LabelForwardingType::PHP};
+    programMplsRoutes(v4SwapHelper, aggInfo);
+    programMplsRoutes(v6SwapHelper, aggInfo);
+    programMplsRoutes(v4PhpHelper, aggInfo);
+    programMplsRoutes(v6PhpHelper, aggInfo);
   }
 
   void runIPLoadBalanceTest(
@@ -188,6 +257,38 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
+  void runMpls2MplsLoadBalanceTest(
+      bool isV6,
+      const std::vector<cfg::LoadBalancer>& loadBalancers,
+      LabelForwardingAction::LabelForwardingType type,
+      AggPortInfo aggInfo,
+      bool loopThroughFrontPanel) {
+    uint32_t labelV4 =
+        (type == LabelForwardingAction::LabelForwardingType::SWAP ? kV4TopSwap
+                                                                  : kV4TopPhp);
+    uint32_t labelV6 =
+        (type == LabelForwardingAction::LabelForwardingType::SWAP ? kV6TopSwap
+                                                                  : kV6TopPhp);
+    auto setup = [=]() {
+      auto config = configureAggregatePorts(aggInfo);
+      applyNewConfig(config);
+      setupMPLSECMP(aggInfo);
+      applyNewState(utility::addLoadBalancers(
+          getPlatform(), getProgrammedState(), loadBalancers));
+    };
+    auto verify = [=]() {
+      if (isV6) {
+        pumpMPLSTraffic(isV6, labelV6, loopThroughFrontPanel, aggInfo);
+      } else {
+        pumpMPLSTraffic(isV6, labelV4, loopThroughFrontPanel, aggInfo);
+      }
+      // Don't tolerate a deviation of > 25%
+      EXPECT_TRUE(utility::isLoadBalanced(
+          getHwSwitchEnsemble(), getPhysicalPorts(aggInfo), 25));
+    };
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
   void runLoadBalanceTest(
       TrafficType traffic,
       const std::vector<cfg::LoadBalancer>& loadBalancers,
@@ -206,6 +307,34 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
       case TrafficType::IPv6MPLS:
         return runIP2MplsLoadBalanceTest(
             true, loadBalancers, aggInfo, loopThroughFrontPanel);
+      case TrafficType::v4MPLS4Swap:
+        return runMpls2MplsLoadBalanceTest(
+            false,
+            loadBalancers,
+            LabelForwardingAction::LabelForwardingType::SWAP,
+            aggInfo,
+            loopThroughFrontPanel);
+      case TrafficType::v6MPLS4Swap:
+        return runMpls2MplsLoadBalanceTest(
+            true,
+            loadBalancers,
+            LabelForwardingAction::LabelForwardingType::SWAP,
+            aggInfo,
+            loopThroughFrontPanel);
+      case TrafficType::v4MPLS4Php:
+        return runMpls2MplsLoadBalanceTest(
+            false,
+            loadBalancers,
+            LabelForwardingAction::LabelForwardingType::PHP,
+            aggInfo,
+            loopThroughFrontPanel);
+      case TrafficType::v6MPLS4Php:
+        return runMpls2MplsLoadBalanceTest(
+            true,
+            loadBalancers,
+            LabelForwardingAction::LabelForwardingType::PHP,
+            aggInfo,
+            loopThroughFrontPanel);
     }
   }
 };
