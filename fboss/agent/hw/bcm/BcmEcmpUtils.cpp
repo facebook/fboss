@@ -135,4 +135,17 @@ bcm_if_t getEgressIdForRoute(
   return bcmRoute->getEgressId();
 }
 
+bool isNativeUcmpEnabled(const BcmSwitch* hw, bcm_if_t ecmp) {
+  bcm_l3_egress_ecmp_t existing;
+  bcm_l3_egress_ecmp_t_init(&existing);
+  existing.ecmp_intf = ecmp;
+  int pathsInHwCount;
+  if (hw->getPlatform()->getAsic()->isSupported(HwAsic::Feature::HSDK)) {
+    // @lint-ignore CLANGTIDY
+    bcm_l3_ecmp_get(hw->getUnit(), &existing, 0, NULL, &pathsInHwCount);
+    return existing.ecmp_group_flags == BCM_L3_ECMP_MEMBER_WEIGHTED;
+  }
+  return false;
+}
+
 } // namespace facebook::fboss::utility

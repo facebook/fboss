@@ -160,4 +160,34 @@ TEST_F(BcmEcmpTest, UcmpShrink) {
       getEcmpSizeInHw(
           getHwSwitch(), kDefaultRoutePrefix, kRid, kNumNextHops + 2));
 }
+
+TEST_F(BcmEcmpTest, NativeUcmpFlag) {
+  auto ucmpSupported = getHwSwitch()->getPlatform()->getAsic()->isSupported(
+      HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER);
+  // Program UCMP route
+  const std::vector<NextHopWeight> ucmpWeights = {3, 1, 1, 1, 1, 1, 1, 1};
+  applyNewState(
+      ecmpHelper_->resolveNextHops(getProgrammedState(), kNumNextHops));
+  ecmpHelper_->programRoutes(
+      getRouteUpdater(), kNumNextHops, {kDefaultRoute}, ucmpWeights);
+  auto ecmp = utility::getEgressIdForRoute(
+      getHwSwitch(),
+      kDefaultRoutePrefix.first,
+      kDefaultRoutePrefix.second,
+      kRid);
+  EXPECT_EQ(ucmpSupported, utility::isNativeUcmpEnabled(getHwSwitch(), ecmp));
+  // Program ECMP route
+  const std::vector<NextHopWeight> ecmpWeights = {1, 1, 1, 1, 1, 1, 1, 1};
+  applyNewState(
+      ecmpHelper_->resolveNextHops(getProgrammedState(), kNumNextHops));
+  ecmpHelper_->programRoutes(
+      getRouteUpdater(), kNumNextHops, {kDefaultRoute}, ecmpWeights);
+  ecmp = utility::getEgressIdForRoute(
+      getHwSwitch(),
+      kDefaultRoutePrefix.first,
+      kDefaultRoutePrefix.second,
+      kRid);
+  EXPECT_FALSE(utility::isNativeUcmpEnabled(getHwSwitch(), ecmp));
+}
+
 } // namespace facebook::fboss
