@@ -98,6 +98,59 @@ TEST_F(HwTrunkTest, TrunkMemberPortDownMinLinksViolated) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(HwTrunkTest, TrunkPortStatsWithMplsPush) {
+  if (getPlatform()->getAsic()->getAsicType() ==
+          HwAsic::AsicType::ASIC_TYPE_FAKE ||
+      getPlatform()->getAsic()->getAsicType() ==
+          HwAsic::AsicType::ASIC_TYPE_MOCK ||
+      getPlatform()->getAsic()->getAsicType() ==
+          HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+  auto setup = [=]() {
+    auto cfg = initialConfig();
+    utility::addAggPort(1, {masterLogicalPortIds()[1]}, &cfg);
+    applyConfigAndEnableTrunks(cfg);
+    auto ecmpHelper = utility::EcmpSetupTargetedPorts6(getProgrammedState());
+    applyNewState(ecmpHelper.resolveNextHops(
+        getProgrammedState(), {PortDescriptor(AggregatePortID(1))}));
+    ecmpHelper.programIp2MplsRoutes(
+        getRouteUpdater(),
+        {PortDescriptor(AggregatePortID(1))},
+        {{PortDescriptor(AggregatePortID(1)), {1001, 1002}}});
+  };
+  auto verify = [=]() {
+    auto vlanId = VlanID(utility::kBaseVlanId);
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    for (auto throughPort : {false, true}) {
+      auto stats = getLatestPortStats(masterLogicalPortIds()[1]);
+      auto pkts0 = *stats.outUnicastPkts__ref() +
+          *stats.outMulticastPkts__ref() + *stats.outBroadcastPkts__ref();
+      auto pkt = utility::makeUDPTxPacket(
+          getHwSwitch(),
+          vlanId,
+          intfMac,
+          intfMac,
+          folly::IPAddress("2401::1"),
+          folly::IPAddress("2401::2"),
+          10001,
+          20001);
+      throughPort
+          ? getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
+                std::move(pkt), masterLogicalPortIds()[0])
+          : getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(pkt));
+      stats = getLatestPortStats(masterLogicalPortIds()[1]);
+      auto pkts1 = *stats.outUnicastPkts__ref() +
+          *stats.outMulticastPkts__ref() + *stats.outBroadcastPkts__ref();
+      EXPECT_GT(pkts1, pkts0);
+    }
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 TEST_F(HwTrunkTest, TrunkPortStats) {
   if (getPlatform()->getAsic()->getAsicType() ==
           HwAsic::AsicType::ASIC_TYPE_FAKE ||
