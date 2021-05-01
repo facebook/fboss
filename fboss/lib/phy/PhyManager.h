@@ -12,6 +12,8 @@
 namespace facebook {
 namespace fboss {
 
+class MultiPimPlatformSystemContainer;
+
 class PhyManager {
  public:
   virtual ~PhyManager() {}
@@ -21,6 +23,8 @@ class PhyManager {
    * needs to be defined by inheriting classes.
    */
   virtual bool initExternalPhyMap() = 0;
+
+  virtual MultiPimPlatformSystemContainer* getSystemContainer() = 0;
 
   int getNumOfSlot() const {
     return numOfSlot_;
