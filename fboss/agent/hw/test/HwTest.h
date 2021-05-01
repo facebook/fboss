@@ -172,7 +172,6 @@ class HwTest : public ::testing::Test,
   HwTest(HwTest const&) = delete;
   HwTest& operator=(HwTest const&) = delete;
 
- private:
   std::unique_ptr<HwSwitchEnsemble> hwSwitchEnsemble_;
 };
 
