@@ -118,13 +118,23 @@ class HwAqmTest : public HwLinkStateDependentTest {
     };
     auto verify = [=]() {
       sendPkts(kDscp(), isEcn);
-      auto portStats = getLatestPortStats(masterLogicalPortIds()[0]);
-      auto increment = isEcn ? *portStats.outEcnCounter__ref()
-                             : *portStats.wredDroppedPackets__ref();
-      XLOG(DBG0) << (isEcn ? " ECN " : "WRED ") << " counter: " << increment;
-      XLOG(DBG0) << "Queue watermark : "
-                 << (*portStats.queueWatermarkBytes__ref())[2];
-      EXPECT_GT(increment, 0);
+
+      auto countIncremented = [&](const auto& newStats) {
+        auto portStatsIter = newStats.find(masterLogicalPortIds()[0]);
+        auto increment = isEcn
+            ? portStatsIter->second.get_outEcnCounter_()
+            : portStatsIter->second.get_wredDroppedPackets_();
+        XLOG(DBG0) << (isEcn ? " ECN " : "WRED ") << " counter: " << increment;
+        XLOG(DBG0)
+            << "Queue watermark : "
+            << portStatsIter->second.get_queueWatermarkBytes_().find(2)->second;
+        return increment > 0;
+      };
+
+      // There can be delay before stats are synced.
+      // So, add retries to avoid flakiness.
+      EXPECT_TRUE(
+          getHwSwitchEnsemble()->waitPortStatsCondition(countIncremented));
     };
 
     verifyAcrossWarmBoots(setup, verify);
