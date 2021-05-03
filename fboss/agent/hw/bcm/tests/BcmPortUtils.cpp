@@ -247,10 +247,13 @@ void verifyRxSettting(
 }
 
 void verifyFec(
-    PortID /*portID*/,
-    cfg::PortProfileID /*profileID*/,
-    Platform* /*platform*/) {
-  // TODO: verify FEC
-  return;
+    PortID portID,
+    cfg::PortProfileID profileID,
+    Platform* platform) {
+  auto* bcmSwitch = static_cast<BcmSwitch*>(platform->getHwSwitch());
+  auto bcmPort = bcmSwitch->getPortTable()->getBcmPort(portID);
+  const auto desiredFecMode = bcmSwitch->getPlatform()->getPhyFecMode(
+      PlatformPortProfileConfigMatcher(profileID, portID));
+  EXPECT_EQ(desiredFecMode, bcmPort->getFECMode());
 }
 } // namespace facebook::fboss::utility

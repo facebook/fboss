@@ -1514,8 +1514,9 @@ uint32_t BcmPort::getCL91FECStatus() const {
 }
 
 bool BcmPort::isCL91FECApplicable() const {
-  return hw_->getPlatform()->getAsic()->getAsicType() ==
-      HwAsic::AsicType::ASIC_TYPE_TOMAHAWK;
+  auto asic = hw_->getPlatform()->getAsic()->getAsicType();
+  return asic == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK ||
+      asic == HwAsic::AsicType::ASIC_TYPE_FAKE;
 }
 
 void BcmPort::setFEC(const std::shared_ptr<Port>& swPort) {
