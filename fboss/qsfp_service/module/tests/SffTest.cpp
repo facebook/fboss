@@ -170,6 +170,55 @@ TEST(SffFr1Test, transceiverInfoTest) {
   testCachedMediaSignals(qsfp.get());
 }
 
+// Tests that a miniphoton module can properly refresh
+TEST(SffMiniphotonTest, transceiverInfoTest) {
+  int idx = 1;
+  std::unique_ptr<MiniphotonOBOTransceiver> qsfpImpl =
+      std::make_unique<MiniphotonOBOTransceiver>(idx);
+  std::unique_ptr<SffModule> qsfp =
+      std::make_unique<SffModule>(nullptr, std::move(qsfpImpl), 4);
+
+  qsfp->refresh();
+  TransceiverInfo info = qsfp->getTransceiverInfo();
+  TransceiverTestsHelper tests(info);
+
+  tests.verifyVendorName("FACETEST");
+  EXPECT_EQ(
+      *info.extendedSpecificationComplianceCode_ref(),
+      ExtendedSpecComplianceCode::CWDM4_100G);
+  EXPECT_EQ(qsfp->numHostLanes(), 4);
+  EXPECT_EQ(qsfp->numMediaLanes(), 4);
+  for (auto& media : *info.settings_ref()->mediaInterface_ref()) {
+    EXPECT_EQ(
+        media.media_ref()->get_extendedSpecificationComplianceCode(),
+        ExtendedSpecComplianceCode::CWDM4_100G);
+  }
+}
+
+TEST(UnknownModuleIdentifierTest, transceiverInfoTest) {
+  int idx = 1;
+  std::unique_ptr<UnknownModuleIdentifierTransceiver> qsfpImpl =
+      std::make_unique<UnknownModuleIdentifierTransceiver>(idx);
+  std::unique_ptr<SffModule> qsfp =
+      std::make_unique<SffModule>(nullptr, std::move(qsfpImpl), 4);
+
+  qsfp->refresh();
+  TransceiverInfo info = qsfp->getTransceiverInfo();
+  TransceiverTestsHelper tests(info);
+
+  tests.verifyVendorName("FACETEST");
+  EXPECT_EQ(
+      *info.extendedSpecificationComplianceCode_ref(),
+      ExtendedSpecComplianceCode::CWDM4_100G);
+  EXPECT_EQ(qsfp->numHostLanes(), 4);
+  EXPECT_EQ(qsfp->numMediaLanes(), 4);
+  for (auto& media : *info.settings_ref()->mediaInterface_ref()) {
+    EXPECT_EQ(
+        media.media_ref()->get_extendedSpecificationComplianceCode(),
+        ExtendedSpecComplianceCode::CWDM4_100G);
+  }
+}
+
 // Tests that a badly programmed module throws an exception
 TEST(BadSffTest, simpleRead) {
   int idx = 1;

@@ -5,6 +5,15 @@
 
 #include <gtest/gtest.h>
 
+namespace {
+// Create a copy of the lower page that's passed in, and set the module ID byte
+template <typename ArrayT, size_t MemberCount = std::extent<ArrayT>::value>
+ArrayT customizeModuleIdentifier(ArrayT base, uint8_t newIdentifier) {
+  base[0] = newIdentifier;
+  return base;
+}
+} // namespace
+
 namespace facebook {
 namespace fboss {
 
@@ -117,6 +126,14 @@ std::array<uint8_t, 128> kSffCwdm4PageLower = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff,
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00,
 };
+
+// Miniphoton OBO are SFF CWDM4 optics w/ a module identifier of 0x91
+std::array<uint8_t, 128> kMiniphotonOBOPageLower =
+    customizeModuleIdentifier(kSffCwdm4PageLower, 0x91);
+
+// use an invalid module ID (not defined in TransceiverModuleIdentifier)
+std::array<uint8_t, 128> kUnknownSffModuleIdentifierPageLower =
+    customizeModuleIdentifier(kSffCwdm4PageLower, 0xFF);
 
 std::array<uint8_t, 128> kSffCwdm4BadPageLower = {
     0x0d, 0xff, 0xff, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40,
@@ -298,6 +315,19 @@ SffFr1Transceiver::SffFr1Transceiver(int module)
 
 BadSffCwdm4Transceiver::BadSffCwdm4Transceiver(int module)
     : FakeTransceiverImpl(module, kSffCwdm4BadPageLower, kSffCwdm4UpperPages) {}
+
+MiniphotonOBOTransceiver::MiniphotonOBOTransceiver(int module)
+    : FakeTransceiverImpl(
+          module,
+          kMiniphotonOBOPageLower,
+          kSffCwdm4UpperPages) {}
+
+UnknownModuleIdentifierTransceiver::UnknownModuleIdentifierTransceiver(
+    int module)
+    : FakeTransceiverImpl(
+          module,
+          kUnknownSffModuleIdentifierPageLower,
+          kSffCwdm4UpperPages) {}
 
 Cmis200GTransceiver::Cmis200GTransceiver(int module)
     : FakeTransceiverImpl(module, kCmisPageLower, kCmisUpperPages) {}
