@@ -237,6 +237,31 @@ TEST_F(WedgeManagerTest, mgmtInterfaceChangedTest) {
   }
 }
 
+TEST_F(WedgeManagerTest, miniphotonMgmtInterfaceDetectionTest) {
+  wedgeManager_->overrideMgmtInterface(
+      1, uint8_t(TransceiverModuleIdentifier::MINIPHOTON_OBO));
+  wedgeManager_->overridePresence(1, true);
+  wedgeManager_->refreshTransceivers();
+  auto currentModules = wedgeManager_->mgmtInterfaces();
+  EXPECT_EQ(currentModules.size(), 16);
+  for (auto module : currentModules) {
+    EXPECT_EQ(module.second, TransceiverManagementInterface::SFF);
+  }
+}
+
+// We default to SFF for unknown IDs
+TEST_F(WedgeManagerTest, unknownMgmtInterfaceDetectionTest) {
+  // some unused mgmt interface (not in TransceiverModuleIdentifier)
+  wedgeManager_->overrideMgmtInterface(1, 0xFF);
+  wedgeManager_->overridePresence(1, true);
+  wedgeManager_->refreshTransceivers();
+  auto currentModules = wedgeManager_->mgmtInterfaces();
+  EXPECT_EQ(currentModules.size(), 16);
+  for (auto module : currentModules) {
+    EXPECT_EQ(module.second, TransceiverManagementInterface::SFF);
+  }
+}
+
 TEST_F(WedgeManagerTest, syncPorts) {
   // Sync the port status for a few ports and confirm that the returned
   // response is expected
