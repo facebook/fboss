@@ -115,6 +115,11 @@ DEFINE_bool(
     false,
     "Flag to turn on logging of all updates to the FIB");
 
+DEFINE_int32(
+    minimum_ethernet_packet_length,
+    64,
+    "Expected minimum ethernet packet length");
+
 namespace {
 
 /**
@@ -1057,10 +1062,20 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
 
   pcapMgr_->packetReceived(pkt.get());
 
-  // The minimum required frame length for ethernet is 64 bytes.
-  // Abort processing early if the packet is too short.
+  /*
+   * The minimum required frame length for ethernet is 64 bytes.
+   * Abort processing early if the packet is too short.
+   * Adding an option to override this minimum length in case
+   * wedge_agent is used with simulator. In this case, wedge_agent
+   * using simulator can be connected to a peer linux_agent running
+   * in a container with a GRE tunnel interconnecting them. An ARP
+   * request/response from linux_agent will not be padded to be
+   * 64B coz of the GRE header added, but as GRE tunnel is decaped
+   * before the ARP packet is handed over to wedge_agent, the
+   * received frame size as seen by wedge_agent will be <64B.
+   */
   auto len = pkt->getLength();
-  if (len < 64) {
+  if (len < FLAGS_minimum_ethernet_packet_length) {
     portStats(port)->pktBogus();
     return;
   }
