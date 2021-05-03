@@ -149,6 +149,7 @@ void pumpMplsTraffic(
     HwSwitch* hw,
     uint32_t label,
     folly::MacAddress intfMac,
+    VlanID vlanId,
     std::optional<PortID> frontPanelPortToLoopTraffic) {
   MPLSHdr::Label mplsLabel{label, 0, true, 128};
   std::unique_ptr<TxPacket> pkt;
@@ -166,7 +167,8 @@ void pumpMplsTraffic(
                               srcIp.asV6(),
                               dstIp.asV6(),
                               10000 + i,
-                              20000 + j)
+                              20000 + j,
+                              vlanId)
                         : utility::getEthFrame(
                               intfMac,
                               intfMac,
@@ -174,7 +176,8 @@ void pumpMplsTraffic(
                               srcIp.asV4(),
                               dstIp.asV4(),
                               10000 + i,
-                              20000 + j);
+                              20000 + j,
+                              vlanId);
 
       if (isV6) {
         pkt = frame.getTxPacket(hw);

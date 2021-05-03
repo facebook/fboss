@@ -36,7 +36,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
     uint16_t sport = 9701;
     uint16_t dport = 9801;
     return utility::getEthFrame(
-        mac, mac, sip, dip, sport, dport, vlanId, payloadSize);
+        mac, mac, sip, dip, sport, dport, VlanID(vlanId), payloadSize);
   }
 
   std::vector<PortID> getPortsForSampling() const {

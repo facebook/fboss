@@ -237,16 +237,13 @@ EthFrame getEthFrame(
     AddrT dstIp,
     uint16_t sPort,
     uint16_t dPort,
-    uint16_t vlanId,
+    VlanID vlanId,
     size_t payloadSize) {
   constexpr auto isV4 = std::is_same_v<AddrT, folly::IPAddressV4>;
   constexpr auto etherType =
       isV4 ? ETHERTYPE::ETHERTYPE_IPV4 : ETHERTYPE::ETHERTYPE_IPV6;
-  EthHdr ethHdr{
-      srcMac,
-      dstMac,
-      {EthHdr::VlanTags_t{VlanTag(vlanId, 0x8100)}},
-      static_cast<uint16_t>(etherType)};
+  auto tags = EthHdr::VlanTags_t{VlanTag(vlanId, 0x8100)};
+  EthHdr ethHdr{srcMac, dstMac, {tags}, static_cast<uint16_t>(etherType)};
   std::conditional_t<isV4, IPv4Hdr, IPv6Hdr> ipHdr;
   ipHdr.srcAddr = srcIp;
   ipHdr.dstAddr = dstIp;
@@ -277,13 +274,12 @@ EthFrame getEthFrame(
     AddrT srcIp,
     AddrT dstIp,
     uint16_t sPort,
-    uint16_t dPort) {
+    uint16_t dPort,
+    VlanID vlanId) {
   constexpr auto isV4 = std::is_same_v<AddrT, folly::IPAddressV4>;
+  auto tags = EthHdr::VlanTags_t{VlanTag(vlanId, 0x8100)};
   EthHdr ethHdr{
-      srcMac,
-      dstMac,
-      {EthHdr::VlanTags_t{VlanTag(1, 0x8100)}},
-      static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_MPLS)};
+      srcMac, dstMac, {tags}, static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_MPLS)};
 
   MPLSHdr mplsHdr{std::move(labels)};
 
@@ -313,7 +309,7 @@ template EthFrame getEthFrame<folly::IPAddressV4>(
     folly::IPAddressV4 dstIp,
     uint16_t sPort,
     uint16_t dPort,
-    uint16_t vlanId,
+    VlanID vlanId,
     size_t payloadSize);
 
 template EthFrame getEthFrame<folly::IPAddressV6>(
@@ -323,7 +319,7 @@ template EthFrame getEthFrame<folly::IPAddressV6>(
     folly::IPAddressV6 dstIp,
     uint16_t sPort,
     uint16_t dPort,
-    uint16_t vlanId,
+    VlanID vlanId,
     size_t payloadSize);
 
 template EthFrame getEthFrame<folly::IPAddressV4>(
@@ -333,7 +329,8 @@ template EthFrame getEthFrame<folly::IPAddressV4>(
     folly::IPAddressV4 srcIp,
     folly::IPAddressV4 dstIp,
     uint16_t sPort,
-    uint16_t dPort);
+    uint16_t dPort,
+    VlanID vlanId);
 
 template EthFrame getEthFrame<folly::IPAddressV6>(
     folly::MacAddress srcMac,
@@ -342,7 +339,8 @@ template EthFrame getEthFrame<folly::IPAddressV6>(
     folly::IPAddressV6 srcIp,
     folly::IPAddressV6 dstIp,
     uint16_t sPort,
-    uint16_t dPort);
+    uint16_t dPort,
+    VlanID vlanId);
 
 } // namespace utility
 

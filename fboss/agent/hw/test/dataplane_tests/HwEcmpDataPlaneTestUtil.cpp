@@ -164,6 +164,7 @@ void HwMplsEcmpDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
       ensemble->getHwSwitch(),
       label_.getLabelValue(),
       mac,
+      firstVlan->getID(),
       port);
 }
 

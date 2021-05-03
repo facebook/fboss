@@ -250,6 +250,8 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     const auto srcMac = utility::kLocalCpuMac();
     const auto dstMac = utility::kLocalCpuMac(); /* for l3 switching */
 
+    auto vlanId = utility::firstVlanID(initialConfig());
+
     uint8_t tc = exp.has_value() ? static_cast<uint8_t>(exp.value()) : 0;
     MPLSHdr::Label mplsLabel{topLabel, tc, true, 128};
 
@@ -259,7 +261,7 @@ class HwMPLSTest : public HwLinkStateDependentTest {
 
     // get tx packet
     auto frame = utility::getEthFrame(
-        srcMac, dstMac, {mplsLabel}, srcIp, dstIp, 10000, 20000);
+        srcMac, dstMac, {mplsLabel}, srcIp, dstIp, 10000, 20000, vlanId);
 
     auto pkt = frame.getTxPacket(getHwSwitch());
     XLOG(DBG2) << "sending packet: ";

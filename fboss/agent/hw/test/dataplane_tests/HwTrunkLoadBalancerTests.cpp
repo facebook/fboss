@@ -175,6 +175,7 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
         getHwSwitch(),
         label,
         getPlatform()->getLocalMac(),
+        VlanID(utility::kDefaultVlanId),
         frontPanelPortToLoopTraffic);
   }
 

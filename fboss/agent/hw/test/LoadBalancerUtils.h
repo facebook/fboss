@@ -58,6 +58,7 @@ void pumpMplsTraffic(
     HwSwitch* hw,
     uint32_t label,
     folly::MacAddress intfMac,
+    VlanID vlanId,
     std::optional<PortID> frontPanelPortToLoopTraffic = std::nullopt);
 
 bool isLoadBalanced(

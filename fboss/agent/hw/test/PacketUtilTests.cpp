@@ -17,6 +17,7 @@ using namespace ::testing;
 using namespace facebook::fboss;
 
 namespace {
+const VlanID kVlan1 = VlanID(1);
 constexpr auto kUDP =
     "c6 7c 1a 73"
     "00 18 5c 75"
@@ -336,7 +337,8 @@ TEST(PacketUtilTest, GetEthFrameV4) {
       folly::IPAddressV4("10.0.1.1"),
       folly::IPAddressV4("10.0.1.2"),
       10010,
-      10020);
+      10020,
+      kVlan1);
 
   auto txPkt = ethFrame0.getTxPacket(&hwSwitch);
   folly::io::Cursor cursor(txPkt->buf());
@@ -356,7 +358,8 @@ TEST(PacketUtilTest, GetEthFrameV6) {
       folly::IPAddressV6("1001::1"),
       folly::IPAddressV6("1001::2"),
       10010,
-      10020);
+      10020,
+      kVlan1);
 
   auto txPkt = ethFrame0.getTxPacket(&hwSwitch);
   folly::io::Cursor cursor(txPkt->buf());
