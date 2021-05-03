@@ -126,6 +126,21 @@ void BcmAPI::updateUsingOverrideMap(HwConfigMap& hwConfig) {
       // change here programmatically allows warm-boot into pktio setting
       // without waiting for the external bcm config file change.
       {"pktio_driver_type", std::to_string(static_cast<int>(FLAGS_use_pktio))},
+
+      // We overrode some SDK bcm.conf defaults and carried those patches over
+      // to the new SDKs when upgrading SDK.  Better to override bcm.conf
+      // defaults here and avoid touching SDK, so we have less SDK patches to
+      // carry. Doing it here allows the config to be effective accross
+      // warm-boot. They should be also set in configerator bcm.conf to ensure
+      //  SAI gets the right settings.
+
+      // This setting fixes the ATOM CPU hung upon PCIe timeout bug.
+      // See D25261964 for context details.
+      {"pcie_host_intf_timeout_purge_enable", "0"},
+
+      // Fix BcmQosMapTest.BcmAllQosMaps failure.
+      // See context details in D26037426
+      {"qos_map_multi_get_mode", "1"},
   };
 
   for (const auto& entry : overrideConfMap) {
