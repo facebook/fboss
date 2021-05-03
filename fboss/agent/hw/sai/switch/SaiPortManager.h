@@ -65,9 +65,16 @@ struct SaiPortMirrorInfo {
   }
 };
 
+/*
+ * For Xphy we create system side port, line side port and a port connector
+ * associating these two. The Line side port is used for all subsequent MacSec
+ * programming and it is kept in PortHandle's port, the system side Sai port is
+ * kept in saiPort and the port connector in connector field.
+ */
 struct SaiPortHandle {
   ~SaiPortHandle();
   std::shared_ptr<SaiPort> port;
+  std::shared_ptr<SaiPort> sysPort;
   std::shared_ptr<SaiPortSerdes> serdes;
   std::shared_ptr<SaiPortConnector> connector;
   std::shared_ptr<SaiBridgePort> bridgePort;
@@ -100,7 +107,8 @@ class SaiPortManager {
       const SaiPortTraits::CreateAttributes& newAttributes);
 
   SaiPortTraits::CreateAttributes attributesFromSwPort(
-      const std::shared_ptr<Port>& swPort) const;
+      const std::shared_ptr<Port>& swPort,
+      bool lineSide = false) const;
 
   SaiPortSerdesTraits::CreateAttributes serdesAttributesFromSwPort(
       PortSaiId portSaid,

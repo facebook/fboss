@@ -107,19 +107,6 @@ void fillHwPortStats(
     }
   }
 }
-
-std::optional<SaiPortTraits::Attributes::SystemPortId> getSystemPortId(
-    const SaiPlatform* platform,
-    PortID portId) {
-  if (platform->getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TAJO) {
-#if !defined(TAJO_SDK_VERSION_1_38_0)
-    return std::optional<SaiPortTraits::Attributes::SystemPortId>{
-        portId + platform->getAsic()->getSystemPortIDOffset()};
-#endif
-  }
-  return std::nullopt;
-}
-
 } // namespace
 
 SaiPortManager::SaiPortManager(
@@ -550,60 +537,6 @@ void SaiPortManager::changePort(
   }
   changeQueue(
       newPort->getID(), oldPort->getPortQueues(), newPort->getPortQueues());
-}
-
-SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
-    const std::shared_ptr<Port>& swPort) const {
-  bool adminState =
-      swPort->getAdminState() == cfg::PortState::ENABLED ? true : false;
-  auto profileID = swPort->getProfileID();
-  auto portID = swPort->getID();
-  auto platformPort = platform_->getPort(portID);
-  auto portProfileConfig = platformPort->getPortProfileConfig(profileID);
-  auto speed = *portProfileConfig.speed_ref();
-  auto hwLaneList = platformPort->getHwPortLanes(speed);
-  auto globalFlowControlMode = utility::getSaiPortPauseMode(swPort->getPause());
-  auto internalLoopbackMode =
-      utility::getSaiPortInternalLoopbackMode(swPort->getLoopbackMode());
-  auto mediaType =
-      utility::getSaiPortMediaType(platformPort->getTransmitterTech(), speed);
-
-  auto enableFec =
-      (speed >= cfg::PortSpeed::HUNDREDG) || !platformPort->shouldDisableFEC();
-
-  SaiPortTraits::Attributes::FecMode fecMode;
-  if (!enableFec) {
-    fecMode = SAI_PORT_FEC_MODE_NONE;
-  } else {
-    auto phyFecMode = platform_->getPhyFecMode(
-        PlatformPortProfileConfigMatcher(profileID, portID));
-    fecMode = utility::getSaiPortFecMode(phyFecMode);
-  }
-  uint16_t vlanId = swPort->getIngressVlan();
-
-  std::optional<SaiPortTraits::Attributes::InterfaceType> interfaceType{};
-  if (auto saiInterfaceType = platform_->getInterfaceType(
-          platformPort->getTransmitterTech(), speed)) {
-    interfaceType = saiInterfaceType.value();
-  }
-  auto systemPortId = getSystemPortId(platform_, swPort->getID());
-  return SaiPortTraits::CreateAttributes {
-    hwLaneList, static_cast<uint32_t>(speed), adminState, fecMode,
-        internalLoopbackMode, mediaType, globalFlowControlMode, vlanId,
-        swPort->getMaxFrameSize(), std::nullopt, std::nullopt, std::nullopt,
-        interfaceType, std::nullopt,
-        std::nullopt, // Ingress Mirror Session
-        std::nullopt, // Egress Mirror Session
-        std::nullopt, // Ingress Sample Packet
-        std::nullopt, // Egress Sample Packet
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
-        std::nullopt, // Ingress mirror sample session
-        std::nullopt, // Egress mirror sample session
-#endif
-        std::nullopt, // Ingress macsec acl
-        std::nullopt, // Egress macsec acl
-        systemPortId
-  };
 }
 
 std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
