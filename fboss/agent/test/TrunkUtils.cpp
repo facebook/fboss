@@ -34,7 +34,7 @@ void addAggPort(
   static constexpr auto kAggPortName = "AGG";
   cfg::AggregatePort aggPort;
   *aggPort.key_ref() = key;
-  *aggPort.name_ref() = kAggPortName;
+  aggPort.name_ref() = folly::to<std::string>(kAggPortName, "-", key);
   *aggPort.description_ref() = kAggPortName;
   for (auto port : ports) {
     aggPort.memberPorts_ref()->push_back(makePortMember(port, rate));
