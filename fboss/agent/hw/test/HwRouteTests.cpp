@@ -155,6 +155,37 @@ TYPED_TEST(HwRouteTest, VerifyClassID) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(HwRouteTest, VerifyClassIdWithNhopResolutionFlap) {
+  auto setup = [=]() {
+    auto state = this->applyNewConfig(this->initialConfig());
+    this->addRoutes(state, {this->kGetRoutePrefix0()});
+    auto updater = this->getHwSwitchEnsemble()->getRouteUpdater();
+    updater.programClassID(
+        this->kRouterID(),
+        {this->kGetRoutePrefix0().toCidrNetwork()},
+        this->kLookupClass(),
+        false /*sync*/);
+
+    // verify classID programming
+    this->verifyClassIDHelper(this->kGetRoutePrefix0(), this->kLookupClass());
+    auto kEcmpWidth = 1;
+    using AddrT = typename TestFixture::Type;
+    utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(
+        this->getProgrammedState(), this->kRouterID());
+    // Unresolve nhop
+    this->applyNewState(
+        ecmpHelper.unresolveNextHops(this->getProgrammedState(), kEcmpWidth));
+    // Resolve nhop
+    this->applyNewState(
+        ecmpHelper.resolveNextHops(this->getProgrammedState(), kEcmpWidth));
+  };
+  auto verify = [=]() {
+    this->verifyClassIDHelper(this->kGetRoutePrefix0(), this->kLookupClass());
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 TYPED_TEST(HwRouteTest, UnresolvedAndResolvedNextHop) {
   using AddrT = typename TestFixture::Type;
   auto setup = [=]() {
