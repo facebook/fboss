@@ -28,6 +28,7 @@
 #include "fboss/agent/hw/test/HwTestStatUtils.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/types.h"
 
 DECLARE_bool(setup_for_warmboot);
 DECLARE_int32(thrift_port);
@@ -78,6 +79,10 @@ class HwTest : public ::testing::Test,
   HwPortStats getLatestPortStats(PortID port);
   std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports);
+
+  HwTrunkStats getLatestAggregatePortStats(AggregatePortID aggPort);
+  std::map<AggregatePortID, HwTrunkStats> getLatestAggregatePortStats(
+      const std::vector<AggregatePortID>& aggPorts);
 
   std::vector<PortID> masterLogicalPortIds() const;
   std::vector<PortID> getAllPortsInGroup(PortID portID) const;

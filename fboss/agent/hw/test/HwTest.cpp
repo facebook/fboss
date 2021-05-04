@@ -163,6 +163,15 @@ std::map<PortID, HwPortStats> HwTest::getLatestPortStats(
   return hwSwitchEnsemble_->getLatestPortStats(ports);
 }
 
+HwTrunkStats HwTest::getLatestAggregatePortStats(AggregatePortID aggPort) {
+  return getLatestAggregatePortStats(
+      std::vector<AggregatePortID>{aggPort})[aggPort];
+}
+std::map<AggregatePortID, HwTrunkStats> HwTest::getLatestAggregatePortStats(
+    const std::vector<AggregatePortID>& aggPorts) {
+  return hwSwitchEnsemble_->getLatestAggregatePortStats(aggPorts);
+}
+
 std::unique_ptr<HwSwitchEnsembleRouteUpdateWrapper> HwTest::getRouteUpdater() {
   return std::make_unique<HwSwitchEnsembleRouteUpdateWrapper>(
       getHwSwitchEnsemble()->getRouteUpdater());

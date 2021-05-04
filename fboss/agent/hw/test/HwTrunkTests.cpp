@@ -129,6 +129,10 @@ TEST_F(HwTrunkTest, TrunkPortStatsWithMplsPush) {
       auto stats = getLatestPortStats(masterLogicalPortIds()[1]);
       auto pkts0 = *stats.outUnicastPkts__ref() +
           *stats.outMulticastPkts__ref() + *stats.outBroadcastPkts__ref();
+      auto trunkStats = getLatestAggregatePortStats(AggregatePortID(1));
+      auto trunkPkts0 = *trunkStats.outUnicastPkts__ref() +
+          *trunkStats.outMulticastPkts__ref() +
+          *trunkStats.outBroadcastPkts__ref();
       auto pkt = utility::makeUDPTxPacket(
           getHwSwitch(),
           vlanId,
@@ -143,9 +147,14 @@ TEST_F(HwTrunkTest, TrunkPortStatsWithMplsPush) {
                 std::move(pkt), masterLogicalPortIds()[0])
           : getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(pkt));
       stats = getLatestPortStats(masterLogicalPortIds()[1]);
+      trunkStats = getLatestAggregatePortStats(AggregatePortID(1));
       auto pkts1 = *stats.outUnicastPkts__ref() +
           *stats.outMulticastPkts__ref() + *stats.outBroadcastPkts__ref();
+      auto trunkPkts1 = *trunkStats.outUnicastPkts__ref() +
+          *trunkStats.outMulticastPkts__ref() +
+          *trunkStats.outBroadcastPkts__ref();
       EXPECT_GT(pkts1, pkts0);
+      EXPECT_GT(trunkPkts1, trunkPkts0);
     }
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -180,6 +189,10 @@ TEST_F(HwTrunkTest, TrunkPortStats) {
       auto stats = getLatestPortStats(masterLogicalPortIds()[1]);
       auto pkts0 = *stats.outUnicastPkts__ref() +
           *stats.outMulticastPkts__ref() + *stats.outBroadcastPkts__ref();
+      auto trunkStats = getLatestAggregatePortStats(AggregatePortID(1));
+      auto trunkPkts0 = *trunkStats.outUnicastPkts__ref() +
+          *trunkStats.outMulticastPkts__ref() +
+          *trunkStats.outBroadcastPkts__ref();
       auto pkt = utility::makeUDPTxPacket(
           getHwSwitch(),
           vlanId,
@@ -194,9 +207,14 @@ TEST_F(HwTrunkTest, TrunkPortStats) {
                 std::move(pkt), masterLogicalPortIds()[0])
           : getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(pkt));
       stats = getLatestPortStats(masterLogicalPortIds()[1]);
+      trunkStats = getLatestAggregatePortStats(AggregatePortID(1));
       auto pkts1 = *stats.outUnicastPkts__ref() +
           *stats.outMulticastPkts__ref() + *stats.outBroadcastPkts__ref();
+      auto trunkPkts1 = *trunkStats.outUnicastPkts__ref() +
+          *trunkStats.outMulticastPkts__ref() +
+          *trunkStats.outBroadcastPkts__ref();
       EXPECT_GT(pkts1, pkts0);
+      EXPECT_GT(trunkPkts1, trunkPkts0);
     }
   };
   verifyAcrossWarmBoots(setup, verify);
