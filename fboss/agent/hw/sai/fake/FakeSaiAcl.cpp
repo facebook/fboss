@@ -15,6 +15,73 @@
 
 using facebook::fboss::FakeSai;
 
+namespace facebook::fboss {
+bool FakeAclTable::entryFieldSupported(const sai_attribute_t& attr) const {
+  switch (attr.id) {
+    case SAI_ACL_ENTRY_ATTR_PRIORITY:
+      return true;
+    case SAI_ACL_ENTRY_ATTR_FIELD_SRC_IPV6:
+      return fieldSrcIpV6;
+    case SAI_ACL_ENTRY_ATTR_FIELD_DST_IPV6:
+      return fieldDstIpV6;
+    case SAI_ACL_ENTRY_ATTR_FIELD_SRC_IP:
+      return fieldSrcIpV4;
+    case SAI_ACL_ENTRY_ATTR_FIELD_DST_IP:
+      return fieldDstIpV4;
+    case SAI_ACL_ENTRY_ATTR_FIELD_SRC_PORT:
+      return fieldSrcPort;
+    case SAI_ACL_ENTRY_ATTR_FIELD_OUT_PORT:
+      return fieldOutPort;
+    case SAI_ACL_ENTRY_ATTR_FIELD_L4_SRC_PORT:
+      return fieldL4SrcPort;
+    case SAI_ACL_ENTRY_ATTR_FIELD_L4_DST_PORT:
+      return fieldL4DstPort;
+    case SAI_ACL_ENTRY_ATTR_FIELD_IP_PROTOCOL:
+      return fieldIpProtocol;
+    case SAI_ACL_ENTRY_ATTR_FIELD_TCP_FLAGS:
+      return fieldTcpFlags;
+    case SAI_ACL_ENTRY_ATTR_FIELD_ACL_IP_FRAG:
+      return fieldIpFrag;
+    case SAI_ACL_ENTRY_ATTR_FIELD_ICMP_TYPE:
+      return fieldIcmpV6Code;
+    case SAI_ACL_ENTRY_ATTR_FIELD_ICMP_CODE:
+      return fieldIcmpV4Code;
+    case SAI_ACL_ENTRY_ATTR_FIELD_ICMPV6_TYPE:
+      return fieldIcmpV6Type;
+    case SAI_ACL_ENTRY_ATTR_FIELD_ICMPV6_CODE:
+      return fieldIcmpV6Code;
+    case SAI_ACL_ENTRY_ATTR_FIELD_DSCP:
+      return fieldDscp;
+    case SAI_ACL_ENTRY_ATTR_FIELD_DST_MAC:
+      return fieldDstMac;
+    case SAI_ACL_ENTRY_ATTR_FIELD_ACL_IP_TYPE:
+      return fieldIpType;
+    case SAI_ACL_ENTRY_ATTR_FIELD_TTL:
+      return fieldTtl;
+    case SAI_ACL_ENTRY_ATTR_FIELD_FDB_DST_USER_META:
+      return fieldFdbDstUserMeta;
+    case SAI_ACL_ENTRY_ATTR_FIELD_ROUTE_DST_USER_META:
+      return fieldRouteDstUserMeta;
+    case SAI_ACL_ENTRY_ATTR_FIELD_NEIGHBOR_DST_USER_META:
+      return fieldNeighborDstUserMeta;
+    case SAI_ACL_TABLE_ATTR_FIELD_ETHER_TYPE:
+      return fieldEthertype;
+    // Actions
+    case SAI_ACL_ENTRY_ATTR_ACTION_PACKET_ACTION:
+    case SAI_ACL_ENTRY_ATTR_ACTION_COUNTER:
+    case SAI_ACL_ENTRY_ATTR_ACTION_SET_TC:
+    case SAI_ACL_ENTRY_ATTR_ACTION_SET_DSCP:
+    case SAI_ACL_ENTRY_ATTR_ACTION_MIRROR_INGRESS:
+    case SAI_ACL_ENTRY_ATTR_ACTION_MIRROR_EGRESS:
+    case SAI_ACL_ENTRY_ATTR_ACTION_MACSEC_FLOW:
+      return true;
+    default:
+      return false;
+  }
+  return false;
+}
+} // namespace facebook::fboss
+
 sai_status_t create_acl_table_fn(
     sai_object_id_t* acl_table_id,
     sai_object_id_t /*switch_id */,
@@ -366,6 +433,10 @@ sai_status_t set_acl_entry_attribute_fn(
     return SAI_STATUS_INVALID_PARAMETER;
   }
 
+  const auto& aclTable = fs->aclTableManager.get(aclEntry.tableId);
+  if (!aclTable.entryFieldSupported(*attr)) {
+    return SAI_STATUS_NOT_SUPPORTED;
+  }
   switch (attr->id) {
     case SAI_ACL_ENTRY_ATTR_PRIORITY:
       aclEntry.priority = attr->value.u32;

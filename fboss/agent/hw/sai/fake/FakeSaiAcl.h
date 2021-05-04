@@ -250,6 +250,7 @@ class FakeAclTable {
         fieldNeighborDstUserMeta(fieldNeighborDstUserMeta),
         fieldEthertype(fieldEthertype) {}
 
+  bool entryFieldSupported(const sai_attribute_t& attr) const;
   static sai_acl_api_t* kApi();
 
   sai_object_id_t id;
