@@ -68,8 +68,6 @@ struct PortFields {
  6: i32 ingressVlan
  // TODO: use switch_config.PortSpeed?
  7: string portSpeed
- // TODO: use switch_config.PortFEC?
- 9: string portFEC
  // TODO: use switch_config.PortPause?
  10: bool rxPause
  11: bool txPause

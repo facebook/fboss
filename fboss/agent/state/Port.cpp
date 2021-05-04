@@ -170,9 +170,6 @@ state::PortFields PortFields::toThrift() const {
 
   *port.portProfileID_ref() = apache::thrift::util::enumNameSafe(profileID);
 
-  // TODO: remove this after next version is pushed
-  port.portFEC_ref() = "OFF";
-
   auto loopbackModeName = apache::thrift::util::enumName(loopbackMode);
   if (loopbackModeName == nullptr) {
     CHECK(false) << "Unexpected port LoopbackMode: "

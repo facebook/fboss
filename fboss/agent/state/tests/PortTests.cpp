@@ -177,7 +177,6 @@ TEST(Port, ToFromWithPgConfigs) {
           "portProfileID": "PROFILE_10G_1_NRZ_NOFEC",
           "ingressVlan" : 2000,
           "portSpeed" : "XG",
-          "portFEC" : "OFF",
           "txPause" : false,
           "sampleDest" : "MIRROR",
           "portLoopbackMode" : "PHY",
@@ -262,7 +261,6 @@ TEST(Port, ToFromJSON) {
           "portProfileID": "PROFILE_10G_1_NRZ_NOFEC",
           "ingressVlan" : 2000,
           "portSpeed" : "XG",
-          "portFEC" : "OFF",
           "txPause" : true,
           "sampleDest" : "MIRROR",
           "portLoopbackMode" : "PHY",
@@ -418,7 +416,6 @@ TEST(Port, ToFromJSONMissingMaxFrameSize) {
           "portProfileID": "PROFILE_10G_1_NRZ_NOFEC",
           "ingressVlan" : 2000,
           "portSpeed" : "XG",
-          "portFEC" : "OFF",
           "txPause" : true,
           "sampleDest" : "MIRROR",
           "portLoopbackMode" : "PHY"
@@ -578,7 +575,6 @@ TEST(Port, ToFromJSONLoopbackModeMissingFromJson) {
           "ingressVlan" : 2000,
           "portSpeed" : "XG",
           "portProfileID": "PROFILE_10G_1_NRZ_NOFEC",
-          "portFEC" : "OFF",
           "txPause" : true
         }
   )";
