@@ -14,6 +14,7 @@
 namespace facebook::fboss {
 
 class HwPhyEnsemble;
+class MultiPimPlatformPimContainer;
 
 class HwTest : public ::testing::Test {
  public:
@@ -23,6 +24,8 @@ class HwTest : public ::testing::Test {
   HwPhyEnsemble* getHwPhyEnsemble() {
     return ensemble_.get();
   }
+
+  MultiPimPlatformPimContainer* getPimContainer(int pimID);
 
   void SetUp() override;
   void TearDown() override;

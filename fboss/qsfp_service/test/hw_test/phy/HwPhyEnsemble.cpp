@@ -9,10 +9,24 @@
  */
 #include "fboss/qsfp_service/test/hw_test/phy/HwPhyEnsemble.h"
 
+#include "fboss/agent/FbossError.h"
+#include "fboss/lib/fpga/MultiPimPlatformSystemContainer.h"
 #include "fboss/lib/phy/PhyManager.h"
 
 namespace facebook::fboss {
 HwPhyEnsemble::HwPhyEnsemble() {}
 
 HwPhyEnsemble::~HwPhyEnsemble() {}
+
+int8_t HwPhyEnsemble::getFirstAvailablePimID(
+    MultiPimPlatformPimContainer::PimType pimType) {
+  auto pimStartNum = phyManager_->getSystemContainer()->getPimStartNum();
+  for (auto i = 0; i < phyManager_->getNumOfSlot(); ++i) {
+    if (pimType ==
+        phyManager_->getSystemContainer()->getPimType(i + pimStartNum)) {
+      return i + pimStartNum;
+    }
+  }
+  throw FbossError("Can't find pimType:", pimType, " pim in this platform");
+}
 } // namespace facebook::fboss

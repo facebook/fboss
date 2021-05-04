@@ -28,6 +28,10 @@ class MinipackBaseSystemContainer : public MultiPimPlatformSystemContainer {
 
   MinipackBasePimContainer* getPimContainer(int pim) const override;
 
+  uint8_t getPimStartNum() const override {
+    return kPimStartNum;
+  }
+
  protected:
   // FPGA Device Info
   static constexpr uint32_t kFacebookFpgaVendorID = 0x1d9b;

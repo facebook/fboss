@@ -11,6 +11,8 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
+#include "fboss/lib/fpga/MultiPimPlatformSystemContainer.h"
+#include "fboss/lib/phy/PhyManager.h"
 #include "fboss/qsfp_service/test/hw_test/phy/HwPhyEnsemble.h"
 #include "fboss/qsfp_service/test/hw_test/phy/HwPhyEnsembleFactory.h"
 
@@ -59,5 +61,10 @@ void HwTest::SetUp() {
 void HwTest::TearDown() {
   // TODO(joseph5wu) Add entra step before reset the ensemble
   ensemble_.reset();
+}
+
+MultiPimPlatformPimContainer* HwTest::getPimContainer(int pimID) {
+  return ensemble_->getPhyManager()->getSystemContainer()->getPimContainer(
+      pimID);
 }
 } // namespace facebook::fboss

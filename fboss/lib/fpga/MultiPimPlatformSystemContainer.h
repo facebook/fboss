@@ -36,6 +36,8 @@ class MultiPimPlatformSystemContainer {
 
   virtual uint32_t getPimOffset(int pim) = 0;
 
+  virtual uint8_t getPimStartNum() const = 0;
+
   /**
    * Map the FPGA into the process, and init the HW.
    *

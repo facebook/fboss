@@ -63,7 +63,16 @@ class HwPhyEnsemble {
     return phyManager_.get();
   }
 
+  int8_t getTargetPimID() const {
+    return targetPimID_;
+  }
+
  protected:
+  // Based on pimType to find the first available pim ID.
+  // Will throw exception if such pimType doesn't exist
+  int8_t getFirstAvailablePimID(MultiPimPlatformPimContainer::PimType pimType);
+
   std::unique_ptr<PhyManager> phyManager_;
+  int8_t targetPimID_{-1};
 };
 } // namespace facebook::fboss
