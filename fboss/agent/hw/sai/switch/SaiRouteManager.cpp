@@ -416,6 +416,17 @@ void ManagedRouteNextHop<NextHopTraitsT>::updateMetadata() const {
       route->adapterKey(), SaiRouteTraits::Attributes::Metadata{});
 
   if (expectedMetadata.value() != actualMetadata) {
+    /*
+     * Set Sai object attr to actual metadata and then update.
+     * In BRCM-SAI there is a case where the SAI SDK itself updates
+     * metadata of a route when it points to CPU. Now in SaiObject
+     * the metatdata may still be set to expectedMetadata, while the
+     * HW would have it be == actualMetadata. So force our in memory
+     * state to reconcile with HW value and then set to desired
+     * expectedMetadata value
+     */
+    route->setOptionalAttribute(
+        SaiRouteTraits::Attributes::Metadata{actualMetadata});
     route->setAttribute(expectedMetadata);
   }
 }
