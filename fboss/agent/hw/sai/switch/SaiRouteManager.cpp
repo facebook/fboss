@@ -416,7 +416,7 @@ void ManagedRouteNextHop<NextHopTraitsT>::updateMetadata() const {
       route->adapterKey(), SaiRouteTraits::Attributes::Metadata{});
 
   if (expectedMetadata.value() != actualMetadata) {
-    api.setAttribute(route->adapterKey(), expectedMetadata.value());
+    route->setAttribute(expectedMetadata);
   }
 }
 
