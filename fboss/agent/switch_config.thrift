@@ -120,14 +120,6 @@ const PortPause NO_PAUSE = {
   "rx": false,
 }
 
-enum PortFEC {
-  ON = 1,
-  OFF = 2,
-  RS_544 = 3,
-  RS_528 = 4,
-  RS_544_2_N = 5,
-}
-
 /**
  *  [DEPRECATED] TODO(joseph5wu)
  *  A Range for L4 port range checker
@@ -776,11 +768,6 @@ struct Port {
    * 0 indicates no sampling while 1 indicates sampling all packets.
    */
   15: i64 sFlowEgressRate = 0
-
-  /**
-   * Should FEC be on for this port?
-   */
-  16: PortFEC fec = PortFEC.OFF
 
   /*
    * Setup port in loopback mode
