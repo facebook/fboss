@@ -9,13 +9,18 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiMacsecManager.h"
+#include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 
 #include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
 
 namespace facebook::fboss {
 
-SaiMacsecManager::SaiMacsecManager(SaiStore* saiStore) : saiStore_(saiStore) {}
+SaiMacsecManager::SaiMacsecManager(
+    SaiStore* saiStore,
+    SaiManagerTable* managerTable)
+    : saiStore_(saiStore), managerTable_(managerTable) {}
 
 SaiMacsecManager::~SaiMacsecManager() {}
 
@@ -38,8 +43,7 @@ MacsecSaiId SaiMacsecManager::addMacsec(
   auto& macsecStore = saiStore_->get<SaiMacsecTraits>();
   auto saiMacsecObj = macsecStore.setObject(key, attributes);
   auto macsecHandle = std::make_unique<SaiMacsecHandle>();
-  handle->macsec = saiMacsecObj;
-
+  macsecHandle->macsec = std::move(saiMacsecObj);
   macsecHandles_.emplace(direction, std::move(macsecHandle));
   return macsecHandles_[direction]->macsec->adapterKey();
 }
@@ -141,6 +145,90 @@ SaiMacsecFlow* SaiMacsecManager::getMacsecFlowImpl(
         direction);
   }
   return macsecHandle->flow.get();
+}
+
+MacsecPortSaiId SaiMacsecManager::addMacsecPort(
+    PortID linePort,
+    sai_macsec_direction_t direction) {
+  auto macsecPort = getMacsecPortHandle(linePort, direction);
+  if (macsecPort) {
+    throw FbossError(
+        "Attempted to add macsecPort for port/direction that already exists: ",
+        linePort,
+        ",",
+        direction,
+        " SAI id: ",
+        macsecPort->port->adapterKey());
+  }
+  auto macsecHandle = getMacsecHandle(direction);
+  auto portHandle = managerTable_->portManager().getPortHandle(linePort);
+  if (!portHandle) {
+    throw FbossError(
+        "Attempted to add macsecPort for linePort that doesn't exist: ",
+        linePort);
+  }
+
+  SaiMacsecPortTraits::CreateAttributes attributes{
+      portHandle->port->adapterKey(), direction};
+  SaiMacsecPortTraits::AdapterHostKey key{linePort, direction};
+
+  auto& store = saiStore_->get<SaiMacsecPortTraits>();
+  auto saiObj = store.setObject(key, attributes);
+  auto macsecPortHandle = std::make_unique<SaiMacsecPortHandle>();
+  macsecPortHandle->port = std::move(saiObj);
+
+  macsecHandle->ports.emplace(linePort, std::move(macsecPortHandle));
+  return macsecHandle->ports[linePort]->port->adapterKey();
+}
+
+const SaiMacsecPortHandle* FOLLY_NULLABLE SaiMacsecManager::getMacsecPortHandle(
+    PortID linePort,
+    sai_macsec_direction_t direction) const {
+  return getMacsecPortHandleImpl(linePort, direction);
+}
+SaiMacsecPortHandle* FOLLY_NULLABLE SaiMacsecManager::getMacsecPortHandle(
+    PortID linePort,
+    sai_macsec_direction_t direction) {
+  return getMacsecPortHandleImpl(linePort, direction);
+}
+
+void SaiMacsecManager::removeMacsecPort(
+    PortID linePort,
+    sai_macsec_direction_t direction) {
+  auto macsecHandle = getMacsecHandle(direction);
+  auto itr = macsecHandle->ports.find(linePort);
+  if (itr == macsecHandle->ports.end()) {
+    throw FbossError(
+        "Attempted to remove non-existent macsec port for lineport, direction: ",
+        linePort,
+        ", ",
+        direction);
+  }
+  macsecHandle->ports.erase(itr);
+  XLOG(INFO) << "removed macsec port for lineport, direction: " << linePort
+             << ", " << direction;
+}
+
+SaiMacsecPortHandle* FOLLY_NULLABLE SaiMacsecManager::getMacsecPortHandleImpl(
+    PortID linePort,
+    sai_macsec_direction_t direction) const {
+  auto macsecHandle = getMacsecHandle(direction);
+  if (!macsecHandle) {
+    throw FbossError(
+        "Attempted to get macsecPort for direction that has no macsec pipeline obj ",
+        direction);
+  }
+
+  auto itr = macsecHandle->ports.find(linePort);
+  if (itr == macsecHandle->ports.end()) {
+    return nullptr;
+  }
+
+  CHECK(itr->second.get())
+      << "Invalid null SaiMacsecPortHandle for linePort, direction: "
+      << linePort << ", " << direction;
+
+  return itr->second.get();
 }
 
 } // namespace facebook::fboss

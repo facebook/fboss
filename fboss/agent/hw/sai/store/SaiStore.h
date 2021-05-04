@@ -528,7 +528,8 @@ class SaiStore {
       SaiObjectStore<SaiLagTraits>,
       SaiObjectStore<SaiLagMemberTraits>,
       SaiObjectStore<SaiMacsecTraits>,
-      SaiObjectStore<SaiMacsecFlowTraits>>
+      SaiObjectStore<SaiMacsecFlowTraits>,
+      SaiObjectStore<SaiMacsecPortTraits>>
       stores_;
 };
 

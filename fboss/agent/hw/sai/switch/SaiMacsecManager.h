@@ -50,7 +50,7 @@ class SaiMacsecManager {
       F14FastMap<sai_macsec_direction_t, std::unique_ptr<SaiMacsecHandle>>;
 
  public:
-  explicit SaiMacsecManager(SaiStore* saiStore);
+  SaiMacsecManager(SaiStore* saiStore, SaiManagerTable* managerTable);
   ~SaiMacsecManager();
 
   SaiMacsecHandle* FOLLY_NULLABLE
@@ -72,9 +72,23 @@ class SaiMacsecManager {
   SaiMacsecFlow* getMacsecFlowImpl(sai_macsec_direction_t direction) const;
   void removeMacsecFlow(sai_macsec_direction_t direction);
 
+  MacsecPortSaiId addMacsecPort(
+      PortID linePort,
+      sai_macsec_direction_t direction);
+  const SaiMacsecPortHandle* FOLLY_NULLABLE
+  getMacsecPortHandle(PortID linePort, sai_macsec_direction_t direction) const;
+  SaiMacsecPortHandle* FOLLY_NULLABLE
+  getMacsecPortHandle(PortID linePort, sai_macsec_direction_t direction);
+  SaiMacsecPortHandle* FOLLY_NULLABLE getMacsecPortHandleImpl(
+      PortID linePort,
+      sai_macsec_direction_t direction) const;
+  void removeMacsecPort(PortID linePort, sai_macsec_direction_t direction);
+
   SaiStore* saiStore_;
 
   MacsecHandles macsecHandles_;
+
+  SaiManagerTable* managerTable_;
 };
 
 } // namespace facebook::fboss
