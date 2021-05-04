@@ -323,6 +323,11 @@ class CmisModule : public QsfpModule {
   cfg::PortSpeed getPortSpeed() const;
 
   /*
+   * Set the optics Rx euqlizer pre/post/main values
+   */
+  void setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer);
+
+  /*
    * We found that some module did not enable Rx output squelch by default,
    * which introduced some difficulty to bring link back up when flapped.
    * This function is to ensure that Rx output squelch is always enabled.

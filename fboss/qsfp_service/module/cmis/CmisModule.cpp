@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <string>
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/platforms/common/PlatformMode.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 #include "fboss/qsfp_service/StatsPublisher.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
@@ -114,10 +115,14 @@ static CmisFieldInfo::CmisFieldMap cmisFields = {
     {CmisField::RX_DISABLE, {CmisPages::PAGE10, 138, 1}},
     {CmisField::RX_SQUELCH_DISABLE, {CmisPages::PAGE10, 139, 1}},
     {CmisField::STAGE_CTRL_SET_0, {CmisPages::PAGE10, 143, 1}},
+    {CmisField::STAGE_CTRL_SET0_IMMEDIATE, {CmisPages::PAGE10, 144, 1}},
     {CmisField::APP_SEL_LANE_1, {CmisPages::PAGE10, 145, 1}},
     {CmisField::APP_SEL_LANE_2, {CmisPages::PAGE10, 146, 1}},
     {CmisField::APP_SEL_LANE_3, {CmisPages::PAGE10, 147, 1}},
     {CmisField::APP_SEL_LANE_4, {CmisPages::PAGE10, 148, 1}},
+    {CmisField::RX_CONTROL_PRE_CURSOR, {CmisPages::PAGE10, 162, 4}},
+    {CmisField::RX_CONTROL_POST_CURSOR, {CmisPages::PAGE10, 166, 4}},
+    {CmisField::RX_CONTROL_MAIN, {CmisPages::PAGE10, 170, 4}},
     // Page 11h
     {CmisField::DATA_PATH_STATE, {CmisPages::PAGE11, 128, 4}},
     {CmisField::TX_FAULT_FLAG, {CmisPages::PAGE11, 135, 1}},
@@ -138,6 +143,9 @@ static CmisFieldInfo::CmisFieldMap cmisFields = {
     {CmisField::ACTIVE_CTRL_LANE_4, {CmisPages::PAGE11, 209, 1}},
     {CmisField::TX_CDR_CONTROL, {CmisPages::PAGE11, 221, 1}},
     {CmisField::RX_CDR_CONTROL, {CmisPages::PAGE11, 222, 1}},
+    {CmisField::RX_OUT_PRE_CURSOR, {CmisPages::PAGE11, 223, 4}},
+    {CmisField::RX_OUT_POST_CURSOR, {CmisPages::PAGE11, 227, 4}},
+    {CmisField::RX_OUT_MAIN, {CmisPages::PAGE11, 231, 4}},
     // Page 13h
     {CmisField::LOOPBACK_CAPABILITY, {CmisPages::PAGE13, 128, 1}},
     {CmisField::PATTERN_CAPABILITY, {CmisPages::PAGE13, 129, 1}},
@@ -1163,6 +1171,27 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
   dataPathDeInit = 0x0;
   qsfpImpl_->writeTransceiver(
       TransceiverI2CApi::ADDR_QSFP, offset, length, &dataPathDeInit);
+
+  // Set the Rx equalizer based on platform and speed if needed
+  RxEqualizerSettings rxEq;
+  if (transceiverManager_->getPlatformMode() == PlatformMode::ELBERT) {
+    if (speed == cfg::PortSpeed::FOURHUNDREDG) {
+      rxEq.preCursor_ref() = 4;
+      rxEq.postCursor_ref() = 0;
+      rxEq.mainAmplitude_ref() = 3;
+      setModuleRxEqualizerLocked(rxEq);
+    } else if (speed == cfg::PortSpeed::TWOHUNDREDG) {
+      rxEq.preCursor_ref() = 3;
+      rxEq.postCursor_ref() = 0;
+      rxEq.mainAmplitude_ref() = 3;
+      setModuleRxEqualizerLocked(rxEq);
+    }
+  } else if (transceiverManager_->getPlatformMode() == PlatformMode::WEDGE400) {
+    rxEq.preCursor_ref() = 4;
+    rxEq.postCursor_ref() = 0;
+    rxEq.mainAmplitude_ref() = 3;
+    setModuleRxEqualizerLocked(rxEq);
+  }
 }
 
 /*
@@ -1288,6 +1317,125 @@ void CmisModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
 
   lastCustomizeTime_ = std::time(nullptr);
   needsCustomization_ = false;
+}
+
+/*
+ * setModuleRxEqualizerLocked
+ *
+ * Customize the optics for Rx pre-cursor, Rx post cursor, Rx main amplitude
+ * 1. Check P11h, B223-234 to compare current and desired pre/post/main
+ * 2. Write P10h, B162-165 for Pre
+ * 3. Write P10h, B166-169 for Post
+ * 4. Write P10h, B170-173 for Main
+ * 5. Write P10h, B145-152 bit 0 = 1 to use Staged Set 0 values
+ * 6. Write P10h, B144 = 0xFF to apply stage 0 control value immediately
+ */
+void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
+  uint8_t currPre[4], currPost[4], currMain[4];
+  uint8_t desiredPre[4], desiredPost[4], desiredMain[4];
+  bool changePre = false, changePost = false, changeMain = false;
+  int offset, length, dataAddress;
+
+  for (int i = 0; i < 4; i++) {
+    desiredPre[i] = ((*rxEqualizer.preCursor_ref() & 0xf) << 4) |
+        (*rxEqualizer.preCursor_ref() & 0xf);
+    desiredPost[i] = ((*rxEqualizer.postCursor_ref() & 0xf) << 4) |
+        (*rxEqualizer.postCursor_ref() & 0xf);
+    desiredMain[i] = ((*rxEqualizer.mainAmplitude_ref() & 0xf) << 4) |
+        (*rxEqualizer.mainAmplitude_ref() & 0xf);
+  }
+
+  // Flip to page 0x11 to read current values
+  uint8_t page = 0x11;
+  qsfpImpl_->writeTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+
+  auto compareSettings = [&](uint8_t currSettings[],
+                             uint8_t desiredSettings[],
+                             int length,
+                             bool& changeNeeded) {
+    for (auto i = 0; i < length; i++) {
+      if (currSettings[i] != desiredSettings[i]) {
+        // Some of the pre-cursor value needs to be changed so break from
+        // here
+        changeNeeded = true;
+        return;
+      }
+    }
+  };
+
+  // Compare current Pre cursor value to see if the change is needed
+  getQsfpFieldAddress(
+      CmisField::RX_OUT_PRE_CURSOR, dataAddress, offset, length);
+  qsfpImpl_->readTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, offset, length, currPre);
+  compareSettings(currPre, desiredPre, length, changePre);
+
+  // Compare current Post cursor value to see if the change is needed
+  getQsfpFieldAddress(
+      CmisField::RX_OUT_POST_CURSOR, dataAddress, offset, length);
+  qsfpImpl_->readTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, offset, length, currPost);
+  compareSettings(currPost, desiredPost, length, changePost);
+
+  // Compare current Rx Main value to see if the change is needed
+  getQsfpFieldAddress(CmisField::RX_OUT_MAIN, dataAddress, offset, length);
+  qsfpImpl_->readTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, offset, length, currMain);
+  compareSettings(currMain, desiredMain, length, changeMain);
+
+  // If anything is changed then apply the change and trigger it
+  if (changePre || changePost || changeMain) {
+    // Flip to page 0x10 to change the values
+    page = 0x10;
+    qsfpImpl_->writeTransceiver(
+        TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+
+    // Apply the change for pre/post/main if needed
+    if (changePre) {
+      getQsfpFieldAddress(
+          CmisField::RX_CONTROL_PRE_CURSOR, dataAddress, offset, length);
+      qsfpImpl_->writeTransceiver(
+          TransceiverI2CApi::ADDR_QSFP, offset, length, desiredPre);
+    }
+    if (changePost) {
+      getQsfpFieldAddress(
+          CmisField::RX_CONTROL_POST_CURSOR, dataAddress, offset, length);
+      qsfpImpl_->writeTransceiver(
+          TransceiverI2CApi::ADDR_QSFP, offset, length, desiredPost);
+    }
+    if (changeMain) {
+      getQsfpFieldAddress(
+          CmisField::RX_CONTROL_MAIN, dataAddress, offset, length);
+      qsfpImpl_->writeTransceiver(
+          TransceiverI2CApi::ADDR_QSFP, offset, length, desiredMain);
+    }
+
+    // Apply the change using stage 0 control
+    getQsfpFieldAddress(CmisField::APP_SEL_LANE_1, dataAddress, offset, length);
+    uint8_t stage0Control[8];
+    qsfpImpl_->readTransceiver(
+        TransceiverI2CApi::ADDR_QSFP, offset, 8, stage0Control);
+    for (int i = 0; i < 8; i++) {
+      stage0Control[i] |= 1;
+    }
+    qsfpImpl_->writeTransceiver(
+        TransceiverI2CApi::ADDR_QSFP, offset, 8, stage0Control);
+
+    // Trigger the stage 0 control values to be operational in optics
+    getQsfpFieldAddress(
+        CmisField::STAGE_CTRL_SET0_IMMEDIATE, dataAddress, offset, length);
+    uint8_t stage0ControlTrigger = 0xff;
+    qsfpImpl_->writeTransceiver(
+        TransceiverI2CApi::ADDR_QSFP, offset, length, &stage0ControlTrigger);
+
+    XLOG(INFO) << folly::sformat(
+        "Module {:s} customized for {:s} {:s} {:s}",
+        qsfpImpl_->getName(),
+        changePre ? "Pre-cursor" : "",
+        changePost ? "Post-cursor" : "",
+        changeMain ? "Rx-out-main" : "");
+  }
 }
 
 } // namespace fboss
