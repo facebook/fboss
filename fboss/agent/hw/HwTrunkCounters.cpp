@@ -11,6 +11,14 @@ HwTrunkCounters::HwTrunkCounters(
     AggregatePortID aggPortID,
     std::string trunkName)
     : aggregatePortID_(aggPortID), trunkName_(trunkName) {
+  reinitialize(aggPortID, trunkName);
+}
+
+void HwTrunkCounters::reinitialize(
+    AggregatePortID aggPortID,
+    std::string trunkName) {
+  aggregatePortID_ = aggPortID;
+  trunkName_ = trunkName;
   initializeCounter(kInBytes());
   initializeCounter(kInUnicastPkts());
   initializeCounter(kInMulticastPkts());

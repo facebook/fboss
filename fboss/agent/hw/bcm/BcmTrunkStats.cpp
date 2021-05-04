@@ -29,11 +29,12 @@ void BcmTrunkStats::initialize(
     std::string trunkName) {
   aggregatePortID_ = aggPortID;
   trunkName_ = trunkName;
-
-  // TODO: what if counters already exist, add copy constructor in
-  // HwTrunkCounters
-  counters_ =
-      std::make_unique<utility::HwTrunkCounters>(aggregatePortID_, trunkName_);
+  if (!counters_) {
+    counters_ = std::make_unique<utility::HwTrunkCounters>(
+        aggregatePortID_, trunkName_);
+  } else {
+    counters_->reinitialize(aggregatePortID_, trunkName_);
+  }
 }
 
 void BcmTrunkStats::grantMembership(PortID memberPortID) {

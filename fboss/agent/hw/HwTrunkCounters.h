@@ -13,6 +13,7 @@ class HwTrunkCounters {
  public:
   HwTrunkCounters(AggregatePortID aggPortID, std::string trunkName);
   void updateCounters(std::chrono::seconds now, const HwTrunkStats& stats);
+  void reinitialize(AggregatePortID aggPortID, std::string trunkName);
 
  private:
   // Helpers which operate on an individual counter
