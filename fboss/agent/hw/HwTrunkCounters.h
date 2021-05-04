@@ -31,4 +31,7 @@ class HwTrunkCounters {
 };
 
 void clearHwTrunkStats(HwTrunkStats& stats);
+void accumulateHwTrunkMemberStats(
+    HwTrunkStats& stats,
+    const HwPortStats& memberStats);
 } // namespace facebook::fboss::utility

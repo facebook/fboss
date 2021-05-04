@@ -111,36 +111,7 @@ BcmTrunkStats::accumulateMemberStats() const {
       }
       auto& memberStats = memberStatsOptional.value();
 
-      *cumulativeSum.inBytes__ref() += *memberStats.inBytes__ref();
-      *cumulativeSum.inUnicastPkts__ref() += *memberStats.inUnicastPkts__ref();
-      *cumulativeSum.inMulticastPkts__ref() +=
-          *memberStats.inMulticastPkts__ref();
-      *cumulativeSum.inBroadcastPkts__ref() +=
-          *memberStats.inBroadcastPkts__ref();
-      *cumulativeSum.inDiscards__ref() += *memberStats.inDiscards__ref();
-      *cumulativeSum.inErrors__ref() += *memberStats.inErrors__ref();
-      *cumulativeSum.inPause__ref() += *memberStats.inPause__ref();
-      *cumulativeSum.inIpv4HdrErrors__ref() +=
-          *memberStats.inIpv4HdrErrors__ref();
-      *cumulativeSum.inIpv6HdrErrors__ref() +=
-          *memberStats.inIpv6HdrErrors__ref();
-      *cumulativeSum.inDiscardsRaw__ref() += *memberStats.inDiscardsRaw__ref();
-      *cumulativeSum.inDstNullDiscards__ref() +=
-          *memberStats.inDstNullDiscards__ref();
-
-      *cumulativeSum.outBytes__ref() += *memberStats.outBytes__ref();
-      *cumulativeSum.outUnicastPkts__ref() +=
-          *memberStats.outUnicastPkts__ref();
-      *cumulativeSum.outMulticastPkts__ref() +=
-          *memberStats.outMulticastPkts__ref();
-      *cumulativeSum.outBroadcastPkts__ref() +=
-          *memberStats.outBroadcastPkts__ref();
-      *cumulativeSum.outDiscards__ref() += *memberStats.outDiscards__ref();
-      *cumulativeSum.outErrors__ref() += *memberStats.outErrors__ref();
-      *cumulativeSum.outPause__ref() += *memberStats.outPause__ref();
-      *cumulativeSum.outCongestionDiscardPkts__ref() +=
-          *memberStats.outCongestionDiscardPkts__ref();
-
+      utility::accumulateHwTrunkMemberStats(cumulativeSum, memberStats);
       if (!timeRetrievedFromMemberPort) {
         timeRetrieved = memberPort->getTimeRetrieved();
         timeRetrievedFromMemberPort = true;
