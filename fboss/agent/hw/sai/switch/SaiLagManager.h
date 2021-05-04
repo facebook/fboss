@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "fboss/agent/hw/HwTrunkCounters.h"
 #include "fboss/agent/hw/sai/api/LagApi.h"
 #include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
@@ -20,6 +21,7 @@ struct SaiLagHandle {
   std::shared_ptr<SaiBridgePort> bridgePort{};
   uint32_t minimumLinkCount{0};
   VlanID vlanId{};
+  std::unique_ptr<utility::HwTrunkCounters> counters;
 };
 
 class SaiManagerTable;
@@ -64,6 +66,10 @@ class SaiLagManager {
   void changeBridgePort(
       const std::shared_ptr<AggregatePort>& oldPort,
       const std::shared_ptr<AggregatePort>& newPort);
+
+  void updateStats(AggregatePortID /*aggPort*/) {
+    // TODO(pshaikh): implement this
+  }
 
  private:
   std::pair<PortSaiId, std::shared_ptr<SaiLagMember>> addMember(

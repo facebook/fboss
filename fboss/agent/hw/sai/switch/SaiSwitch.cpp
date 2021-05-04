@@ -731,13 +731,21 @@ bool SaiSwitch::sendPacketOutOfPortAsync(
 }
 
 void SaiSwitch::updateStatsImpl(SwitchStats* /* switchStats */) {
-  auto iter = concurrentIndices_->portIds.begin();
-  while (iter != concurrentIndices_->portIds.end()) {
+  auto portsIter = concurrentIndices_->portIds.begin();
+  while (portsIter != concurrentIndices_->portIds.end()) {
     {
       std::lock_guard<std::mutex> locked(saiSwitchMutex_);
-      managerTable_->portManager().updateStats(iter->second);
+      managerTable_->portManager().updateStats(portsIter->second);
     }
-    ++iter;
+    ++portsIter;
+  }
+  auto lagsIter = concurrentIndices_->aggregatePortIds.begin();
+  while (lagsIter != concurrentIndices_->aggregatePortIds.end()) {
+    {
+      std::lock_guard<std::mutex> locked(saiSwitchMutex_);
+      managerTable_->lagManager().updateStats(lagsIter->second);
+    }
+    ++lagsIter;
   }
   {
     std::lock_guard<std::mutex> locked(saiSwitchMutex_);

@@ -60,6 +60,8 @@ LagSaiId SaiLagManager::addLag(
   handle->lag = std::move(lag);
   handle->minimumLinkCount = aggregatePort->getMinimumLinkCount();
   handle->vlanId = vlanID;
+  handle->counters = std::make_unique<utility::HwTrunkCounters>(
+      aggregatePort->getID(), aggregatePort->getName());
   handles_.emplace(aggregatePort->getID(), std::move(handle));
   managerTable_->vlanManager().createVlanMember(
       vlanID, SaiPortDescriptor(aggregatePort->getID()));
@@ -126,6 +128,10 @@ void SaiLagManager::changeLag(
     setMemberState(member.second.get(), newIter->second);
     saiLagHandle->members.emplace(std::move(member));
     newIter++;
+  }
+  if (newAggregatePort->getName() != oldAggregatePort->getName()) {
+    saiLagHandle->counters->reinitialize(
+        newAggregatePort->getID(), newAggregatePort->getName());
   }
 }
 
