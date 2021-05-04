@@ -3,6 +3,7 @@
 #pragma once
 
 #include "fboss/agent/hw/HwTrunkCounters.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/sai/api/LagApi.h"
 #include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
@@ -68,6 +69,8 @@ class SaiLagManager {
       const std::shared_ptr<AggregatePort>& newPort);
 
   void updateStats(AggregatePortID aggPort);
+
+  std::optional<HwTrunkStats> getHwTrunkStats(AggregatePortID aggPort) const;
 
  private:
   std::pair<PortSaiId, std::shared_ptr<SaiLagMember>> addMember(

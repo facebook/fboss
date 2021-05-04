@@ -341,4 +341,13 @@ void SaiLagManager::updateStats(AggregatePortID aggPort) {
     handle->counters->updateCounters(timeRetrieved.value(), stats);
   }
 }
+
+std::optional<HwTrunkStats> SaiLagManager::getHwTrunkStats(
+    AggregatePortID aggPort) const {
+  auto* handle = getLagHandleIf(aggPort);
+  if (!handle) {
+    return std::nullopt;
+  }
+  return handle->counters->getHwTrunkStats();
+}
 } // namespace facebook::fboss

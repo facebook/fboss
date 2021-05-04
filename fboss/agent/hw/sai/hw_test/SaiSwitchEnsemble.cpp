@@ -11,6 +11,7 @@
 
 #include "fboss/agent/SetupThrift.h"
 #include "fboss/agent/hw/sai/hw_test/SaiLinkStateToggler.h"
+#include "fboss/agent/hw/sai/switch/SaiLagManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 
 #include <folly/io/async/AsyncSignalHandler.h>
@@ -118,8 +119,16 @@ std::map<PortID, HwPortStats> SaiSwitchEnsemble::getLatestPortStats(
 
 std::map<AggregatePortID, HwTrunkStats>
 SaiSwitchEnsemble::getLatestAggregatePortStats(
-    const std::vector<AggregatePortID>& /*aggregatePorts*/) {
-  return {};
+    const std::vector<AggregatePortID>& aggregatePorts) {
+  std::map<AggregatePortID, HwTrunkStats> stats;
+  for (auto aggregatePort : aggregatePorts) {
+    auto lagStats = getHwSwitch()->managerTable()->lagManager().getHwTrunkStats(
+        aggregatePort);
+
+    stats.emplace(
+        aggregatePort, (lagStats.has_value() ? *lagStats : HwTrunkStats{}));
+  }
+  return stats;
 }
 
 uint64_t SaiSwitchEnsemble::getSwitchId() const {
