@@ -10,14 +10,14 @@
 #include "BcmTrunkStats.h"
 
 #include "fboss/agent/hw/CounterUtils.h"
+#include "fboss/agent/hw/HwTrunkCounters.h"
 #include "fboss/agent/hw/StatsConstants.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
-#include "fboss/agent/hw/HwTrunkCounters.h"
-
 #include <folly/logging/xlog.h>
 #include <chrono>
+#include <memory>
 
 namespace facebook::fboss {
 
@@ -30,42 +30,10 @@ void BcmTrunkStats::initialize(
   aggregatePortID_ = aggPortID;
   trunkName_ = trunkName;
 
-  initializeCounter(kInBytes());
-  initializeCounter(kInUnicastPkts());
-  initializeCounter(kInMulticastPkts());
-  initializeCounter(kInBroadcastPkts());
-  initializeCounter(kInDiscards());
-  initializeCounter(kInDiscardsRaw());
-  initializeCounter(kInErrors());
-  initializeCounter(kInPause());
-  initializeCounter(kInIpv4HdrErrors());
-  initializeCounter(kInIpv6HdrErrors());
-  initializeCounter(kInDstNullDiscards());
-
-  initializeCounter(kOutBytes());
-  initializeCounter(kOutUnicastPkts());
-  initializeCounter(kOutMulticastPkts());
-  initializeCounter(kOutBroadcastPkts());
-  initializeCounter(kOutDiscards());
-  initializeCounter(kOutErrors());
-  initializeCounter(kOutPause());
-  initializeCounter(kOutCongestionDiscards());
-  initializeCounter(kOutEcnCounter());
-}
-
-void BcmTrunkStats::initializeCounter(folly::StringPiece counterKey) {
-  auto oldCounter = getCounterIf(counterKey);
-
-  auto externalCounterName = constructCounterName(counterKey);
-  auto newCounter =
-      stats::MonotonicCounter({externalCounterName, fb303::SUM, fb303::RATE});
-
-  if (oldCounter) {
-    oldCounter->swap(newCounter);
-    utility::deleteCounter(newCounter.getName());
-  } else {
-    counters_.emplace(counterKey.str(), std::move(newCounter));
-  }
+  // TODO: what if counters already exist, add copy constructor in
+  // HwTrunkCounters
+  counters_ =
+      std::make_unique<utility::HwTrunkCounters>(aggregatePortID_, trunkName_);
 }
 
 void BcmTrunkStats::grantMembership(PortID memberPortID) {
@@ -182,62 +150,12 @@ BcmTrunkStats::accumulateMemberStats() const {
   return std::make_pair(cumulativeSum, timeRetrieved);
 }
 
-stats::MonotonicCounter* FOLLY_NULLABLE
-BcmTrunkStats::getCounterIf(folly::StringPiece counterKey) {
-  auto it = counters_.find(counterKey.str());
-  if (it == counters_.end()) {
-    return nullptr;
-  }
-
-  return &(it->second);
-}
-
-void BcmTrunkStats::updateCounter(
-    std::chrono::seconds now,
-    folly::StringPiece counterKey,
-    int64_t value) {
-  auto counter = getCounterIf(counterKey);
-  if (!counter) {
-    return;
-  }
-
-  counter->updateValue(now, value);
-}
-
 void BcmTrunkStats::update() {
   HwTrunkStats stats;
   std::chrono::seconds then;
 
   std::tie(stats, then) = accumulateMemberStats();
-
-  updateCounter(then, kInBytes(), *stats.inBytes__ref());
-  updateCounter(then, kInUnicastPkts(), *stats.inUnicastPkts__ref());
-  updateCounter(then, kInMulticastPkts(), *stats.inMulticastPkts__ref());
-  updateCounter(then, kInBroadcastPkts(), *stats.inBroadcastPkts__ref());
-  updateCounter(then, kInDiscards(), *stats.inDiscards__ref());
-  updateCounter(then, kInErrors(), *stats.inErrors__ref());
-  updateCounter(then, kInPause(), *stats.inPause__ref());
-  updateCounter(then, kInIpv4HdrErrors(), *stats.inIpv4HdrErrors__ref());
-  updateCounter(then, kInIpv6HdrErrors(), *stats.inIpv6HdrErrors__ref());
-
-  updateCounter(then, kOutBytes(), *stats.outBytes__ref());
-  updateCounter(then, kOutUnicastPkts(), *stats.outUnicastPkts__ref());
-  updateCounter(then, kOutMulticastPkts(), *stats.outMulticastPkts__ref());
-  updateCounter(then, kOutBroadcastPkts(), *stats.outBroadcastPkts__ref());
-  updateCounter(then, kOutDiscards(), *stats.outDiscards__ref());
-  updateCounter(then, kOutErrors(), *stats.outErrors__ref());
-  updateCounter(then, kOutPause(), *stats.outPause__ref());
-  updateCounter(
-      then, kOutCongestionDiscards(), *stats.outCongestionDiscardPkts__ref());
-  updateCounter(then, kOutEcnCounter(), *stats.outEcnCounter__ref());
-}
-
-std::string BcmTrunkStats::constructCounterName(
-    folly::StringPiece counterKey) const {
-  if (trunkName_ == "") {
-    return folly::to<std::string>("po", aggregatePortID_, ".", counterKey);
-  }
-  return folly::to<std::string>(trunkName_, ".", counterKey);
+  counters_->updateCounters(then, stats);
 }
 
 } // namespace facebook::fboss

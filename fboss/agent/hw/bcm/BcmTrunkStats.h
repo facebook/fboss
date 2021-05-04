@@ -10,6 +10,7 @@
 #pragma once
 
 #include "common/stats/MonotonicCounter.h"
+#include "fboss/agent/hw/HwTrunkCounters.h"
 #include "fboss/agent/hw/StatsConstants.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/types.h"
@@ -44,16 +45,6 @@ class BcmTrunkStats {
   // Helpers operating on an HwTrunkStats object
   std::pair<HwTrunkStats, std::chrono::seconds> accumulateMemberStats() const;
 
-  // Helpers which operate on an individual counter
-  void initializeCounter(folly::StringPiece counterKey);
-  stats::MonotonicCounter* FOLLY_NULLABLE
-  getCounterIf(folly::StringPiece counterKey);
-  void updateCounter(
-      std::chrono::seconds now,
-      folly::StringPiece counterKey,
-      int64_t value);
-  std::string constructCounterName(folly::StringPiece counterKey) const;
-
   const BcmSwitchIf* const hw_;
   std::string trunkName_;
   AggregatePortID aggregatePortID_{0};
@@ -62,7 +53,7 @@ class BcmTrunkStats {
       folly::Synchronized<boost::container::flat_set<PortID>>;
   SynchronizedPortIDs memberPortIDs_;
 
-  std::map<std::string, stats::MonotonicCounter> counters_;
+  std::unique_ptr<utility::HwTrunkCounters> counters_{};
 };
 
 } // namespace facebook::fboss
