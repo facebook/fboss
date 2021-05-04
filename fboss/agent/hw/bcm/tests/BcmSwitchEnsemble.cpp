@@ -108,6 +108,12 @@ std::map<PortID, HwPortStats> BcmSwitchEnsemble::getLatestPortStats(
   return mapPortStats;
 }
 
+std::map<AggregatePortID, HwTrunkStats>
+BcmSwitchEnsemble::getLatestAggregatePortStats(
+    const std::vector<AggregatePortID>& /*aggregatePorts*/) {
+  return {};
+}
+
 bool BcmSwitchEnsemble::isRouteScaleEnabled() const {
   return BcmAPI::isAlpmEnabled();
 }

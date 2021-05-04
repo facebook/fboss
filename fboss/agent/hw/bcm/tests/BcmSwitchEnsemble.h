@@ -51,6 +51,9 @@ class BcmSwitchEnsemble : public HwSwitchEnsemble {
   std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports) override;
 
+  std::map<AggregatePortID, HwTrunkStats> getLatestAggregatePortStats(
+      const std::vector<AggregatePortID>& aggregatePorts) override;
+
   void runDiagCommand(const std::string& input, std::string& output) override;
 
   void init(const HwSwitchEnsemble::HwSwitchEnsembleInitInfo* info) override;

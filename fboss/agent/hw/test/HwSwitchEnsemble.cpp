@@ -267,6 +267,12 @@ HwPortStats HwSwitchEnsemble::getLatestPortStats(PortID port) {
   return getLatestPortStats(std::vector<PortID>{port})[port];
 }
 
+HwTrunkStats HwSwitchEnsemble::getLatestAggregatePortStats(
+    AggregatePortID aggregatePort) {
+  return getLatestAggregatePortStats(
+      std::vector<AggregatePortID>{aggregatePort})[aggregatePort];
+}
+
 bool HwSwitchEnsemble::waitForAnyPorAndQueutOutBytesIncrement(
     const std::map<PortID, HwPortStats>& originalPortStats) {
   auto queueStatsSupported =

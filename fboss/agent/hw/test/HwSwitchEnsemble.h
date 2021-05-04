@@ -146,6 +146,13 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   virtual std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports) = 0;
   HwPortStats getLatestPortStats(PortID port);
+  /*
+   * Get latest stats for given aggregate ports
+   */
+  virtual std::map<AggregatePortID, HwTrunkStats> getLatestAggregatePortStats(
+      const std::vector<AggregatePortID>& aggregatePorts) = 0;
+  HwTrunkStats getLatestAggregatePortStats(AggregatePortID port);
+
   folly::dynamic gracefulExitState() const;
   /*
    * Initiate graceful exit

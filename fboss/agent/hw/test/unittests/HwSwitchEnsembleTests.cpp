@@ -20,6 +20,10 @@ class TestHwSwitchEnsemble : HwSwitchEnsemble {
       const std::vector<PortID>& /* ports */) override {
     return std::map<PortID, HwPortStats>();
   }
+  std::map<AggregatePortID, HwTrunkStats> getLatestAggregatePortStats(
+      const std::vector<AggregatePortID>& aggregatePorts) override {
+    return {};
+  }
   bool isRouteScaleEnabled() const override {
     return true;
   }
