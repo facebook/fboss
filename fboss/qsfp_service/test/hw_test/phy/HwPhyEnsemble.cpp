@@ -27,6 +27,9 @@ int8_t HwPhyEnsemble::getFirstAvailablePimID(
       return i + pimStartNum;
     }
   }
-  throw FbossError("Can't find pimType:", pimType, " pim in this platform");
+  throw FbossError(
+      "Can't find pimType:",
+      MultiPimPlatformPimContainer::getPimTypeStr(pimType),
+      " pim in this platform");
 }
 } // namespace facebook::fboss

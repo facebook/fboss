@@ -24,18 +24,6 @@ DEFINE_string(
 
 namespace facebook::fboss {
 
-namespace {
-MultiPimPlatformPimContainer::PimType getPimTypeFromStr(
-    const std::string& pimTypeStr) {
-  if (pimTypeStr == "ELBERT_16Q") {
-    return MultiPimPlatformPimContainer::PimType::ELBERT_16Q;
-  } else if (pimTypeStr == "ELBERT_8DD") {
-    return MultiPimPlatformPimContainer::PimType::ELBERT_8DD;
-  }
-  throw FbossError("Current phy hw_test doesn't support PimType:", pimTypeStr);
-}
-} // namespace
-
 void HwTest::SetUp() {
   HwPhyEnsemble::HwPhyEnsembleInitInfo initInfo;
   // If user doesn't specify the pim type for testing, we use productInfo
@@ -53,7 +41,8 @@ void HwTest::SetUp() {
             "Current phy hw_test doesn't support PlatformMode:", platformMode);
     }
   } else {
-    initInfo.pimType = getPimTypeFromStr(FLAGS_target_pim_type);
+    initInfo.pimType =
+        MultiPimPlatformPimContainer::getPimTypeFromStr(FLAGS_target_pim_type);
   }
   ensemble_ = createHwEnsemble(initInfo);
 }

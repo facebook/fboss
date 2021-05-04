@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <string>
+
 namespace facebook::fboss {
 /*
  * Multi-pim Platform Pim Container base class.
@@ -25,6 +27,8 @@ class MultiPimPlatformPimContainer {
     ELBERT_16Q,
     ELBERT_8DD,
   };
+  static std::string getPimTypeStr(PimType pimType);
+  static PimType getPimTypeFromStr(const std::string& pimTypeStr);
 
   MultiPimPlatformPimContainer();
   virtual ~MultiPimPlatformPimContainer();
