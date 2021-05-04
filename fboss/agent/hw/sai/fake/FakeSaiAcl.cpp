@@ -43,7 +43,7 @@ bool FakeAclTable::entryFieldSupported(const sai_attribute_t& attr) const {
     case SAI_ACL_ENTRY_ATTR_FIELD_ACL_IP_FRAG:
       return fieldIpFrag;
     case SAI_ACL_ENTRY_ATTR_FIELD_ICMP_TYPE:
-      return fieldIcmpV6Code;
+      return fieldIcmpV4Type;
     case SAI_ACL_ENTRY_ATTR_FIELD_ICMP_CODE:
       return fieldIcmpV4Code;
     case SAI_ACL_ENTRY_ATTR_FIELD_ICMPV6_TYPE:
