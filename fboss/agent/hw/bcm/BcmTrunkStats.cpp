@@ -14,6 +14,8 @@
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
+#include "fboss/agent/hw/HwTrunkCounters.h"
+
 #include <folly/logging/xlog.h>
 #include <chrono>
 
@@ -94,7 +96,7 @@ BcmTrunkStats::accumulateMemberStats() const {
   bool timeRetrievedFromMemberPort = false;
 
   HwTrunkStats cumulativeSum;
-  clearHwTrunkStats(cumulativeSum);
+  utility::clearHwTrunkStats(cumulativeSum);
 
   {
     auto lockedMemberPortIDsPtr = memberPortIDs_.rlock();
@@ -178,29 +180,6 @@ BcmTrunkStats::accumulateMemberStats() const {
   }
 
   return std::make_pair(cumulativeSum, timeRetrieved);
-}
-
-void BcmTrunkStats::clearHwTrunkStats(HwTrunkStats& stats) {
-  *stats.inBytes__ref() = 0;
-  *stats.inUnicastPkts__ref() = 0;
-  *stats.inMulticastPkts__ref() = 0;
-  *stats.inBroadcastPkts__ref() = 0;
-  *stats.inDiscards__ref() = 0;
-  *stats.inErrors__ref() = 0;
-  *stats.inPause__ref() = 0;
-  *stats.inIpv4HdrErrors__ref() = 0;
-  *stats.inIpv6HdrErrors__ref() = 0;
-  *stats.inDiscardsRaw__ref() = 0;
-  *stats.inDstNullDiscards__ref() = 0;
-
-  *stats.outBytes__ref() = 0;
-  *stats.outUnicastPkts__ref() = 0;
-  *stats.outMulticastPkts__ref() = 0;
-  *stats.outBroadcastPkts__ref() = 0;
-  *stats.outDiscards__ref() = 0;
-  *stats.outErrors__ref() = 0;
-  *stats.outPause__ref() = 0;
-  *stats.outCongestionDiscardPkts__ref() = 0;
 }
 
 stats::MonotonicCounter* FOLLY_NULLABLE

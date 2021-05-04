@@ -42,7 +42,6 @@ class BcmTrunkStats {
   BcmTrunkStats& operator=(const BcmTrunkStats&) = delete;
 
   // Helpers operating on an HwTrunkStats object
-  static void clearHwTrunkStats(HwTrunkStats& stats);
   std::pair<HwTrunkStats, std::chrono::seconds> accumulateMemberStats() const;
 
   // Helpers which operate on an individual counter

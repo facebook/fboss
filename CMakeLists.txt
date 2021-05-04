@@ -411,6 +411,7 @@ if (NOT SAI_ONLY)
       fboss/agent/hw/DiagCmdFilter.cpp
       fboss/agent/hw/HwSwitchWarmBootHelper.cpp
       fboss/agent/hw/HwSwitchStats.cpp
+      fboss/agent/hw/HwTrunkCounters.cpp
       fboss/agent/hw/bcm/BcmAclEntry.cpp
       fboss/agent/hw/bcm/BcmAclStat.cpp
       fboss/agent/hw/bcm/BcmAclTable.cpp
