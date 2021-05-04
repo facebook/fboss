@@ -20,6 +20,7 @@ extern "C" {
 #include <folly/dynamic.h>
 
 #include "fboss/agent/hw/bcm/MinimumLinkCountMap.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
@@ -59,6 +60,9 @@ class BcmTrunkTable {
   void updateStats();
 
   bool isMinLinkMet(bcm_trunk_t trunk) const;
+
+  std::optional<HwTrunkStats> getHwTrunkStats(
+      AggregatePortID aggregatePortID) const;
 
  private:
   // Forbidden copy constructor and assignment operator

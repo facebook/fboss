@@ -223,4 +223,14 @@ bool BcmTrunkTable::isMinLinkMet(bcm_trunk_t trunk) const {
   return count < minLinkCount ? false : true;
 }
 
+std::optional<HwTrunkStats> BcmTrunkTable::getHwTrunkStats(
+    AggregatePortID aggregatePortID) const {
+  auto iter = trunks_.find(aggregatePortID);
+  if (iter == trunks_.end()) {
+    return std::nullopt;
+  }
+  const auto& stats = iter->second->stats();
+  return stats.getHwTrunkStats();
+}
+
 } // namespace facebook::fboss

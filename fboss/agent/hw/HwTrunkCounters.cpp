@@ -98,6 +98,7 @@ void HwTrunkCounters::updateCounters(
   updateCounter(
       now, kOutCongestionDiscards(), *stats.outCongestionDiscardPkts__ref());
   updateCounter(now, kOutEcnCounter(), *stats.outEcnCounter__ref());
+  stats_ = stats;
 }
 
 void HwTrunkCounters::updateCounter(

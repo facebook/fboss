@@ -130,4 +130,8 @@ void BcmTrunkStats::update() {
   counters_->updateCounters(then, stats);
 }
 
+HwTrunkStats BcmTrunkStats::getHwTrunkStats() const {
+  return counters_->getHwTrunkStats();
+}
+
 } // namespace facebook::fboss

@@ -19,7 +19,9 @@
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/bcm/BcmTrunkTable.h"
 #include "fboss/agent/hw/bcm/tests/BcmLinkStateToggler.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/hw/test/HwTestStatUtils.h"
@@ -110,8 +112,15 @@ std::map<PortID, HwPortStats> BcmSwitchEnsemble::getLatestPortStats(
 
 std::map<AggregatePortID, HwTrunkStats>
 BcmSwitchEnsemble::getLatestAggregatePortStats(
-    const std::vector<AggregatePortID>& /*aggregatePorts*/) {
-  return {};
+    const std::vector<AggregatePortID>& aggregatePorts) {
+  std::map<AggregatePortID, HwTrunkStats> stats{};
+  for (auto aggregatePort : aggregatePorts) {
+    auto trunkStats =
+        getHwSwitch()->getTrunkTable()->getHwTrunkStats(aggregatePort);
+    stats.emplace(
+        aggregatePort, (trunkStats.has_value() ? *trunkStats : HwTrunkStats{}));
+  }
+  return stats;
 }
 
 bool BcmSwitchEnsemble::isRouteScaleEnabled() const {

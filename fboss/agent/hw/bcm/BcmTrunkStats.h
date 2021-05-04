@@ -38,6 +38,8 @@ class BcmTrunkStats {
   void grantMembership(PortID memberPortID);
   void revokeMembership(PortID memberPortID);
 
+  HwTrunkStats getHwTrunkStats() const;
+
  private:
   BcmTrunkStats(const BcmTrunkStats&) = delete;
   BcmTrunkStats& operator=(const BcmTrunkStats&) = delete;
