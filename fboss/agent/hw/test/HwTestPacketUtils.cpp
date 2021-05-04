@@ -167,8 +167,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
       static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP),
       payloadBytes.size());
   ipHdr.dscp = dscp;
-  ipHdr.computeChecksum();
   ipHdr.ttl = ttl;
+  ipHdr.computeChecksum();
 
   return makeIpTxPacket(hw, ethHdr, ipHdr, payloadBytes);
 }
@@ -298,8 +298,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
       static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP),
       payloadBytes.size());
   ipHdr.dscp = dscp;
-  ipHdr.computeChecksum();
   ipHdr.ttl = ttl;
+  ipHdr.computeChecksum();
   // UDPHeader
   UDPHeader udpHdr(srcPort, dstPort, UDPHeader::size() + payloadBytes.size());
 
@@ -440,8 +440,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
       static_cast<uint8_t>(IP_PROTO::IP_PROTO_TCP),
       payloadBytes.size());
   ipHdr.dscp = dscp;
-  ipHdr.computeChecksum();
   ipHdr.ttl = ttl;
+  ipHdr.computeChecksum();
   // TCPHeader
   TCPHeader tcpHdr(srcPort, dstPort);
 
