@@ -50,10 +50,7 @@ AclTableGroupSaiId SaiAclTableGroupManager::addAclTableGroup(
       handles_.emplace(aclStage, std::move(aclTableGroupHandle));
   CHECK(inserted);
 
-  if (platform_->getAsic()->isSupported(
-          HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL)) {
-    managerTable_->switchManager().setIngressAcl();
-  }
+  managerTable_->switchManager().setIngressAcl();
 
   return it->second->aclTableGroup->adapterKey();
 }

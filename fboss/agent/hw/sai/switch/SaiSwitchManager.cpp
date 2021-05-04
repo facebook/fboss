@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/api/AdapterKeySerializers.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
+#include "fboss/agent/hw/sai/api/Types.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -257,6 +258,10 @@ void SaiSwitchManager::clearQosPolicy() {
 }
 
 void SaiSwitchManager::setIngressAcl() {
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL)) {
+    return;
+  }
   auto aclTableGroupHandle = managerTable_->aclTableGroupManager()
                                  .getAclTableGroupHandle(SAI_ACL_STAGE_INGRESS)
                                  ->aclTableGroup;
@@ -266,8 +271,20 @@ void SaiSwitchManager::setIngressAcl() {
 }
 
 void SaiSwitchManager::resetIngressAcl() {
-  switch_->setOptionalAttribute(
-      SaiSwitchTraits::Attributes::IngressAcl{SAI_NULL_OBJECT_ID});
+  // Since resetIngressAcl() will be called in SaiManagerTable destructor.,
+  // we can't call pure virtual function HwAsic::isSupported() to check
+  // whether an asic supports SAI_ACL_STAGE_INGRESS
+  // Therefore, we will try to read from SaiObject to see whether there's a
+  // ingress acl set. If there's a not null id set, we set it to null
+  auto ingressAcl =
+      std::get<std::optional<SaiSwitchTraits::Attributes::IngressAcl>>(
+          switch_->attributes());
+  if (ingressAcl && ingressAcl->value() != SAI_NULL_OBJECT_ID) {
+    XLOG(INFO) << "Reset current ingress acl:" << ingressAcl->value()
+               << " back to null";
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::IngressAcl{SAI_NULL_OBJECT_ID});
+  }
 }
 
 void SaiSwitchManager::gracefulExit() {
