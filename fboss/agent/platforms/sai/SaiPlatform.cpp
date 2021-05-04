@@ -205,7 +205,6 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiFakePlatformPort>(portId, this);
     }
     portMapping_.insert(std::make_pair(portId, std::move(saiPort)));
-    XLOG(INFO) << "SaiPlatform: Made SaiPort (portMapping_) for " << portId;
   }
 }
 
