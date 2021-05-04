@@ -76,4 +76,71 @@ SaiMacsecManager::getMacsecHandleImpl(sai_macsec_direction_t direction) const {
   return itr->second.get();
 }
 
+MacsecFlowSaiId SaiMacsecManager::addMacsecFlow(
+    sai_macsec_direction_t direction) {
+  auto flow = getMacsecFlow(direction);
+  if (flow) {
+    throw FbossError(
+        "Attempted to add macsecFlow for direction that already exists: ",
+        direction,
+        " SAI id: ",
+        flow->adapterKey());
+  }
+
+  auto macsecHandle = getMacsecHandle(direction);
+  if (!macsecHandle) {
+    throw FbossError(
+        "Attempted to add macsecFlow for direction that has no macsec pipeline obj: ",
+        direction);
+  }
+
+  SaiMacsecFlowTraits::CreateAttributes attributes = {
+      direction,
+  };
+  SaiMacsecFlowTraits::AdapterHostKey key{direction};
+
+  auto& store = saiStore_->get<SaiMacsecFlowTraits>();
+  auto saiObj = store.setObject(key, attributes);
+
+  macsecHandle->flow = std::move(saiObj);
+  return macsecHandle->flow->adapterKey();
+}
+
+const SaiMacsecFlow* SaiMacsecManager::getMacsecFlow(
+    sai_macsec_direction_t direction) const {
+  return getMacsecFlowImpl(direction);
+}
+SaiMacsecFlow* SaiMacsecManager::getMacsecFlow(
+    sai_macsec_direction_t direction) {
+  return getMacsecFlowImpl(direction);
+}
+
+void SaiMacsecManager::removeMacsecFlow(sai_macsec_direction_t direction) {
+  auto macsecHandle = getMacsecHandle(direction);
+  if (!macsecHandle) {
+    throw FbossError(
+        "Attempted to remove macsecFlow for direction that has no macsec pipeline obj: ",
+        direction);
+  }
+
+  if (!macsecHandle->flow) {
+    throw FbossError(
+        "Attempted to remove non-existent macsec flow for direction: ",
+        direction);
+  }
+  macsecHandle->flow.reset();
+  XLOG(INFO) << "removed macsec Flow for direction: " << direction;
+}
+
+SaiMacsecFlow* SaiMacsecManager::getMacsecFlowImpl(
+    sai_macsec_direction_t direction) const {
+  auto macsecHandle = getMacsecHandle(direction);
+  if (!macsecHandle) {
+    throw FbossError(
+        "Attempted to get macsecFlow for direction that has no macsec pipeline obj: ",
+        direction);
+  }
+  return macsecHandle->flow.get();
+}
+
 } // namespace facebook::fboss

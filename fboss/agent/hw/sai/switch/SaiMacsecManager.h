@@ -35,7 +35,8 @@ struct SaiMacsecSCHandle {
 
 struct SaiMacsecPortHandle {
   std::shared_ptr<SaiMacsecPort> port;
-  folly::F14FastMap<PortID, std::unique_ptr<SaiMacsecSCHandle>> secureChannels;
+  folly::F14FastMap<MacsecSecureChannelId, std::unique_ptr<SaiMacsecSCHandle>>
+      secureChannels;
 };
 
 struct SaiMacsecHandle {
@@ -64,6 +65,12 @@ class SaiMacsecManager {
       bool physicalBypassEnable);
   SaiMacsecHandle* FOLLY_NULLABLE
   getMacsecHandleImpl(sai_macsec_direction_t direction) const;
+
+  MacsecFlowSaiId addMacsecFlow(sai_macsec_direction_t direction);
+  const SaiMacsecFlow* getMacsecFlow(sai_macsec_direction_t direction) const;
+  SaiMacsecFlow* getMacsecFlow(sai_macsec_direction_t direction);
+  SaiMacsecFlow* getMacsecFlowImpl(sai_macsec_direction_t direction) const;
+  void removeMacsecFlow(sai_macsec_direction_t direction);
 
   SaiStore* saiStore_;
 

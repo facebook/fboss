@@ -59,6 +59,8 @@ FBOSS_STRONG_TYPE(sai_object_id_t, MacsecSASaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, MacsecSCSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, MacsecFlowSaiId);
 
+FBOSS_STRONG_TYPE(sai_uint64_t, MacsecSecureChannelId);
+
 namespace facebook::fboss {
 
 using SaiCharArray32 = std::array<char, 32>;
