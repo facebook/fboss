@@ -3289,7 +3289,7 @@ int BcmCinter::bcm_field_entry_flexctr_attach(
   auto cint = cintForFlexctrConfig(flexctr_cfg);
   auto funcCint = wrapFunc(to<string>(
       "bcm_field_entry_flexctr_attach(",
-      makeParamStr(unit, entry, "&flexctr_cfg"),
+      makeParamStr(unit, entry, "&flexctr_config"),
       ")"));
   cint.insert(
       cint.end(),
@@ -3306,7 +3306,7 @@ int BcmCinter::bcm_field_entry_flexctr_detach(
   auto cint = cintForFlexctrConfig(flexctr_cfg);
   auto funcCint = wrapFunc(to<string>(
       "bcm_field_entry_flexctr_detach(",
-      makeParamStr(unit, entry, "&flexctr_cfg"),
+      makeParamStr(unit, entry, "&flexctr_config"),
       ")"));
   cint.insert(
       cint.end(),
