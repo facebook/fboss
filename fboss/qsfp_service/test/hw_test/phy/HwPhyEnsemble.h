@@ -14,6 +14,8 @@
 #include <optional>
 #include <set>
 
+#include "fboss/lib/fpga/MultiPimPlatformPimContainer.h"
+
 namespace facebook::fboss {
 
 class PhyManager;
@@ -43,10 +45,12 @@ class PhyManager;
 class HwPhyEnsemble {
  public:
   struct HwPhyEnsembleInitInfo {
-    // For XPHY platforms, they usually have multiple pims but our hw_test
-    // doesn't really care to test on all pims. Using this info to control
-    // how we will initialize pims and the phys on such pims for hw_test.
-    std::optional<std::set<int>> pimIdsInfo;
+    // Specify which pim type the HwTest want to run all the tests against.
+    // We have some platforms using two different pim types, for example,
+    // Elbert uses Elbert16Q and Elbert8DD, and these linecards have different
+    // phy features. So we need user to define which linecard type to use
+    // before running the hw_test.
+    MultiPimPlatformPimContainer::PimType pimType;
   };
 
   HwPhyEnsemble();

@@ -9,14 +9,50 @@
  */
 #include "fboss/qsfp_service/test/hw_test/phy/HwTest.h"
 
+#include "fboss/agent/FbossError.h"
+#include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/qsfp_service/test/hw_test/phy/HwPhyEnsemble.h"
 #include "fboss/qsfp_service/test/hw_test/phy/HwPhyEnsembleFactory.h"
 
+DEFINE_string(
+    target_pim_type,
+    "",
+    "Target pim type for hw_test. "
+    "[MINIPACK_16Q/ MINIPACK_16O/ YAMP_16Q/ FUJI_16Q/ ELBERT_16Q/ ELBERT_8DD]");
+
 namespace facebook::fboss {
+
+namespace {
+MultiPimPlatformPimContainer::PimType getPimTypeFromStr(
+    const std::string& pimTypeStr) {
+  if (pimTypeStr == "ELBERT_16Q") {
+    return MultiPimPlatformPimContainer::PimType::ELBERT_16Q;
+  } else if (pimTypeStr == "ELBERT_8DD") {
+    return MultiPimPlatformPimContainer::PimType::ELBERT_8DD;
+  }
+  throw FbossError("Current phy hw_test doesn't support PimType:", pimTypeStr);
+}
+} // namespace
+
 void HwTest::SetUp() {
-  // TODO(joseph5wu) Prepare HwPhyEnsemble::HwPhyEnsembleInfo to pick up just
-  // one pim to initialize
   HwPhyEnsemble::HwPhyEnsembleInitInfo initInfo;
+  // If user doesn't specify the pim type for testing, we use productInfo
+  if (FLAGS_target_pim_type.empty()) {
+    auto productInfo =
+        std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
+    productInfo->initialize();
+    auto platformMode = productInfo->getMode();
+    switch (platformMode) {
+      case PlatformMode::ELBERT:
+        initInfo.pimType = MultiPimPlatformPimContainer::PimType::ELBERT_8DD;
+        break;
+      default:
+        throw FbossError(
+            "Current phy hw_test doesn't support PlatformMode:", platformMode);
+    }
+  } else {
+    initInfo.pimType = getPimTypeFromStr(FLAGS_target_pim_type);
+  }
   ensemble_ = createHwEnsemble(initInfo);
 }
 
