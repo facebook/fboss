@@ -43,7 +43,7 @@ class PhyManager {
   void
   programOnePort(int slotId, int mdioId, int phyId, phy::PhyPortConfig config);
 
-  void programOnePort(
+  virtual void programOnePort(
       int32_t /* portId */,
       cfg::PortProfileID /* portProfileId */) {}
 
