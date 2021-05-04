@@ -1,6 +1,10 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/sai/switch/SaiLagManager.h"
+
+#include "fboss/agent/hw/HwPortFb303Stats.h"
+#include "fboss/agent/hw/HwTrunkCounters.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
@@ -308,5 +312,33 @@ void SaiLagManager::changeBridgePort(
     const std::shared_ptr<AggregatePort>& /*oldPort*/,
     const std::shared_ptr<AggregatePort>& newPort) {
   return addBridgePort(newPort);
+}
+
+void SaiLagManager::updateStats(AggregatePortID aggPort) {
+  HwTrunkStats stats{};
+  utility::clearHwTrunkStats(stats);
+
+  std::optional<std::chrono::seconds> timeRetrieved{};
+
+  auto* handle = getLagHandle(aggPort);
+  for (auto [portSaiId, member] : handle->members) {
+    auto portIdsIter = concurrentIndices_->portIds.find(portSaiId);
+    if (portIdsIter == concurrentIndices_->portIds.end()) {
+      continue;
+    }
+    auto fb303Stats =
+        managerTable_->portManager().getLastPortStat(portIdsIter->second);
+    if (!fb303Stats) {
+      continue;
+    }
+    utility::accumulateHwTrunkMemberStats(stats, fb303Stats->portStats());
+    if (!timeRetrieved) {
+      timeRetrieved = fb303Stats->timeRetrieved();
+    }
+  }
+  if (timeRetrieved) {
+    // at least one member exists in lag
+    handle->counters->updateCounters(timeRetrieved.value(), stats);
+  }
 }
 } // namespace facebook::fboss

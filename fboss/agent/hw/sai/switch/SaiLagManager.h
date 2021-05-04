@@ -67,9 +67,7 @@ class SaiLagManager {
       const std::shared_ptr<AggregatePort>& oldPort,
       const std::shared_ptr<AggregatePort>& newPort);
 
-  void updateStats(AggregatePortID /*aggPort*/) {
-    // TODO(pshaikh): implement this
-  }
+  void updateStats(AggregatePortID aggPort);
 
  private:
   std::pair<PortSaiId, std::shared_ptr<SaiLagMember>> addMember(
