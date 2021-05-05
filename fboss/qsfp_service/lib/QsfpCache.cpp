@@ -52,7 +52,7 @@ void QsfpCache::portsChanged(const PortMapThrift& ports) {
   }
 
   ports_.withWLock([this, &ports](auto& lockedPorts) {
-    auto gen = this->incrementGen();
+    auto gen = incrementGen();
     for (const auto& item : ports) {
       lockedPorts[PortID(item.first)] = {item.second, gen};
     }
@@ -149,7 +149,7 @@ folly::Future<folly::Unit> QsfpCache::doSync(PortMapThrift&& toSync) {
                     gen = incrementGen(),
                     oldAliveSince = remoteAliveSince_](auto&& tcvrs) {
     XLOG(DBG1) << "Got " << tcvrs.size() << " transceivers from qsfp_service";
-    this->updateCache(tcvrs);
+    updateCache(tcvrs);
     if (remoteAliveSince_ == oldAliveSince || oldAliveSince < 0) {
       // no restart occurred in middle of request, store gen
       remoteGen_ = gen;
@@ -171,7 +171,7 @@ folly::Future<folly::Unit> QsfpCache::doSync(PortMapThrift&& toSync) {
           [this](const std::exception& e) {
             XLOG(ERR) << PlatformAlert()
                       << "Exception talking to qsfp_service: " << e.what();
-            this->maybeSync();
+            maybeSync();
           })
       .ensure([this]() {
         // make sure we allow other requests in again
