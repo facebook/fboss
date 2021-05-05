@@ -25,5 +25,11 @@ std::unique_ptr<TransceiverManager> createYampTransceiverManager() {
 std::unique_ptr<TransceiverManager> createElbertTransceiverManager() {
   return std::unique_ptr<TransceiverManager>{};
 }
+
+std::shared_ptr<FbossMacsecHandler> createFbossMacsecHandler(
+    TransceiverManager* /* wedgeMgr */) {
+  return nullptr;
+}
+
 } // namespace fboss
 } // namespace facebook

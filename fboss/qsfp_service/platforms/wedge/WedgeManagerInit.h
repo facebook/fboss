@@ -16,8 +16,12 @@ namespace fboss {
 
 class TransceiverManager;
 class PlatformProductInfo;
+class FbossMacsecHandler;
 
 std::unique_ptr<TransceiverManager> createTransceiverManager();
+
+std::shared_ptr<FbossMacsecHandler> createFbossMacsecHandler(
+    TransceiverManager* wedgeMgr);
 
 /**
  * This function should return derived TransceiverManager which is still in dev.
