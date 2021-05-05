@@ -28,7 +28,7 @@ class Interface(NamedTuple):
 
 
 class InterfaceShowCmd(cmds.FbossCmd):
-    """ Show interface information """
+    """Show interface information"""
 
     def run(self, interfaces):
         with self._create_agent_client() as client:
@@ -65,7 +65,7 @@ class InterfaceShowCmd(cmds.FbossCmd):
 
 
 def convert_address(addr: bytes) -> str:
-    """ convert binary address to human readable format """
+    """convert binary address to human readable format"""
     if len(addr) == 4:
         return socket.inet_ntop(socket.AF_INET, addr)
     elif len(addr) == 16:
@@ -74,7 +74,7 @@ def convert_address(addr: bytes) -> str:
 
 
 def sort_key(port: str) -> Any:
-    """ function to return X+Y when given ethX/Y """
+    """function to return X+Y when given ethX/Y"""
     port_re = re.compile(r"eth(\d+)/(\d+)")
     match = port_re.match(port)
     if match:
@@ -125,10 +125,10 @@ def get_interface_summary(agent_client, qsfp_client) -> List[Interface]:
 
 
 class InterfaceSummaryCmd(cmds.FbossCmd):
-    """ Show interface summary """
+    """Show interface summary"""
 
     def print_table(self, interface_summary: List[Interface]) -> None:
-        """ build and output a table with interface summary data """
+        """build and output a table with interface summary data"""
         table = prettytable.PrettyTable(hrules=prettytable.ALL)
         table.field_names = ["VLAN", "Interface", "MTU", "Addresses", "Ports"]
         table.align["Addresses"] = "l"
@@ -140,7 +140,7 @@ class InterfaceSummaryCmd(cmds.FbossCmd):
         print(table)
 
     def run(self) -> None:
-        """ fetch data and populate interface summary list """
+        """fetch data and populate interface summary list"""
         with ExitStack() as stack:
             agent_client = stack.enter_context(self._create_agent_client())
             qsfp_client = stack.enter_context(self._create_qsfp_client())

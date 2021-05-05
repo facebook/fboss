@@ -49,7 +49,7 @@ DEFAULT_CLIENTID = 1
 
 
 class CliOptions(object):
-    """ Object for holding CLI state information """
+    """Object for holding CLI state information"""
 
     def __init__(self, hostname, file, port, timeout):
         self.hostname = hostname
@@ -59,7 +59,7 @@ class CliOptions(object):
 
 
 class ArpCli(object):
-    """ ARP Cli sub-commands """
+    """ARP Cli sub-commands"""
 
     def __init__(self):
         self.arp.add_command(self._table, name="table")
@@ -67,13 +67,13 @@ class ArpCli(object):
 
     @click.group(cls=AliasedGroup)
     def arp():
-        """ Show ARP Information """
+        """Show ARP Information"""
         pass
 
     @click.command()
     @click.pass_obj
     def _table(cli_opts):
-        """ Show the ARP table """
+        """Show the ARP table"""
         arp.ArpTableCmd(cli_opts).run()
 
     @click.command()
@@ -87,7 +87,7 @@ class ArpCli(object):
     @click.argument("ip")
     @click.pass_obj
     def _flush(cli_opts, ip, vlan):
-        """ Flush an ARP entry by [IP] or [subnet] or flush [all]"""
+        """Flush an ARP entry by [IP] or [subnet] or flush [all]"""
         if ip == "all":
             ip = "0.0.0.0/0"
         cmds.NeighborFlushSubnetCmd(cli_opts).run(
@@ -96,7 +96,7 @@ class ArpCli(object):
 
 
 class AggregatePortCli(object):
-    """ Aggregate Port sub-commands """
+    """Aggregate Port sub-commands"""
 
     @click.command()
     @click.argument("port", required=False, default="")
@@ -109,14 +109,14 @@ class AggregatePortCli(object):
 
 
 class NicCli(object):
-    """NIC Cli sub-commands """
+    """NIC Cli sub-commands"""
 
     def __init__(self):
         self.nic.add_command(self._vendor, name="vendor")
 
     @click.group(cls=AliasedGroup)
     def nic():
-        """ Show NIC Information on connected hosts"""
+        """Show NIC Information on connected hosts"""
         pass
 
     @click.command()
@@ -129,7 +129,7 @@ class NicCli(object):
 
 
 class IpCli(object):
-    """ IP sub-commands """
+    """IP sub-commands"""
 
     @click.command()
     @click.option(
@@ -141,12 +141,12 @@ class IpCli(object):
     )
     @click.pass_obj
     def ip(cli_opts, interface):
-        """ Show IP information for an interface """
+        """Show IP information for an interface"""
         ip.IpCmd(cli_opts).run(interface)
 
 
 class InterfaceCli(object):
-    """ Interface sub-commands """
+    """Interface sub-commands"""
 
     def __init__(self):
         self.interface.add_command(self._show, name="show")
@@ -154,7 +154,7 @@ class InterfaceCli(object):
 
     @click.group(cls=AliasedGroup)
     def interface():
-        """ Show Interface Information """
+        """Show Interface Information"""
         pass
 
     @click.command()
@@ -168,30 +168,30 @@ class InterfaceCli(object):
     @click.command()
     @click.pass_obj
     def _summary(cli_opts):
-        """ Show interface summary """
+        """Show interface summary"""
         interface.InterfaceSummaryCmd(cli_opts).run()
 
 
 class L2Cli(object):
-    """ Show L2 sub-commands """
+    """Show L2 sub-commands"""
 
     def __init__(self):
         self.l2.add_command(self._table, name="table")
 
     @click.group(cls=AliasedGroup)
     def l2():
-        """ Show L2 information """
+        """Show L2 information"""
         pass
 
     @click.command()
     @click.pass_obj
     def _table(cli_opts):
-        """ Show the L2 table """
+        """Show the L2 table"""
         l2.L2TableCmd(cli_opts).run()
 
 
 class LldpCli(object):
-    """ Lldp sub-commands """
+    """Lldp sub-commands"""
 
     @click.command()
     @click.option(
@@ -209,12 +209,12 @@ class LldpCli(object):
     )
     @click.pass_obj
     def lldp(cli_opts, port, verbose):
-        """ Show LLDP neighbors """
+        """Show LLDP neighbors"""
         lldp.LldpCmd(cli_opts).run(port, verbose)
 
 
 class NdpCli(object):
-    """ Show NDP sub-commands """
+    """Show NDP sub-commands"""
 
     def __init__(self):
         self.ndp.add_command(self._table, name="table")
@@ -222,13 +222,13 @@ class NdpCli(object):
 
     @click.group(cls=AliasedGroup)
     def ndp():
-        """ Show NDP information """
+        """Show NDP information"""
         pass
 
     @click.command()
     @click.pass_obj
     def _table(cli_opts):
-        """ Show the NDP table """
+        """Show the NDP table"""
         ndp.NdpTableCmd(cli_opts).run()
 
     @click.command()
@@ -242,7 +242,7 @@ class NdpCli(object):
     @click.argument("ip")
     @click.pass_obj
     def _flush(cli_opts, ip, vlan):
-        """ Flush an NDP entry by [IP] or [subnet] or flush [all]"""
+        """Flush an NDP entry by [IP] or [subnet] or flush [all]"""
         if ip == "all":
             ip = "::/0"
         cmds.NeighborFlushSubnetCmd(cli_opts).run(
@@ -271,7 +271,7 @@ class PortType(click.ParamType):
 
 
 class Stats(object):
-    """ Port stats sub-commands """
+    """Port stats sub-commands"""
 
     def __init__(self):
         self.stats.add_command(self._show, name="show")
@@ -279,7 +279,7 @@ class Stats(object):
 
     @click.group(cls=AliasedGroup)
     def stats():
-        """ Show/clear Port stats """
+        """Show/clear Port stats"""
         pass
 
     @click.command()
@@ -289,19 +289,19 @@ class Stats(object):
     )
     @click.pass_obj
     def _show(cli_opts, detail, ports):
-        """ Show port statistics """
+        """Show port statistics"""
         port.PortStatsCmd(cli_opts).run(detail, ports)
 
     @click.command()
     @click.argument("ports", nargs=-1, type=PortType())
     @click.pass_obj
     def _clear(cli_opts, ports):
-        """ Clear stats"""
+        """Clear stats"""
         port.PortStatsClearCmd(cli_opts).run(ports)
 
 
 class PortState(object):
-    """ Port state sub-commands """
+    """Port state sub-commands"""
 
     def __init__(self):
         self.state.add_command(self._show, name="show")
@@ -312,7 +312,7 @@ class PortState(object):
 
     @click.group(cls=AliasedGroup)  # noqa: B902
     def state():
-        """ Port state commands """
+        """Port state commands"""
         pass
 
     @click.command()
@@ -320,7 +320,7 @@ class PortState(object):
     @click.option("--all", is_flag=True, help="Display Disabled ports")
     @click.pass_obj
     def _show(cli_opts, ports, all):  # noqa: B902
-        """ Show port state for given [port(s)] """
+        """Show port state for given [port(s)]"""
         port.PortStatusCmd(cli_opts).run(
             detail=False, ports=ports, verbose=False, internal=True, all=all
         )
@@ -329,14 +329,14 @@ class PortState(object):
     @click.argument("ports", nargs=-1, type=PortType())
     @click.pass_obj
     def _enable(cli_opts, ports):  # noqa: B902
-        """ Enable port state for given [port(s)] """
+        """Enable port state for given [port(s)]"""
         port.PortSetStatusCmd(cli_opts).run(ports, True)
 
     @click.command()
     @click.argument("ports", nargs=-1, type=PortType())
     @click.pass_obj
     def _disable(cli_opts, ports):  # noqa: B902
-        """ Disable port state for given [port(s)] """
+        """Disable port state for given [port(s)]"""
         port.PortSetStatusCmd(cli_opts).run(ports, False)
 
     @click.command()
@@ -344,7 +344,7 @@ class PortState(object):
     @click.option("--all", is_flag=True, help="Flap all Present but Down ports")
     @click.pass_obj
     def _flap(cli_opts, ports, all):  # noqa: B902
-        """ Flap port state for given [port(s)] """
+        """Flap port state for given [port(s)]"""
         port.PortFlapCmd(cli_opts).run(ports, all)
 
     @click.command()
@@ -354,7 +354,7 @@ class PortState(object):
     @click.option("--off", is_flag=True, help="LED will be permanently OFF")
     @click.pass_obj
     def _set_led(cli_opts, ports, internal, on, off):  # noqa: B902
-        """ Set LED light state for given [port(s)] """
+        """Set LED light state for given [port(s)]"""
         value = PortLedExternalState.NONE
         if on:
             value = PortLedExternalState.EXTERNAL_FORCE_ON
@@ -373,7 +373,7 @@ class PrbsContext(CliOptions):  # noqa: B903
 
 
 class PortPrbsCli(object):
-    """ Port prbs sub-commands """
+    """Port prbs sub-commands"""
 
     def __init__(self):
         self.prbs.add_command(self.asic, name="asic")
@@ -399,32 +399,32 @@ class PortPrbsCli(object):
 
     @click.group(cls=AliasedGroup)  # noqa: B902
     def prbs():
-        """ Port prbs commands """
+        """Port prbs commands"""
         pass
 
     @click.group(cls=AliasedGroup)  # noqa: B902
     def gearbox():
-        """ Port prbs gearbox commands """
+        """Port prbs gearbox commands"""
         pass
 
     @click.group(cls=AliasedGroup)  # noqa: B902
     @click.pass_context
     def system(ctx):  # noqa: B902
-        """ Port prbs gearbox system commands """
+        """Port prbs gearbox system commands"""
         ctx.obj = PrbsContext(ctx.obj, PrbsComponent.GB_SYSTEM)
         pass
 
     @click.group(cls=AliasedGroup)  # noqa: B902
     @click.pass_context
     def line(ctx):  # noqa: B902
-        """ Port prbs gearbox system commands """
+        """Port prbs gearbox system commands"""
         ctx.obj = PrbsContext(ctx.obj, PrbsComponent.GB_LINE)
         pass
 
     @click.group(cls=AliasedGroup)  # noqa: B902
     @click.pass_context
     def asic(ctx):  # noqa: B902
-        """ Port prbs asic commands """
+        """Port prbs asic commands"""
         ctx.obj = PrbsContext(ctx.obj, PrbsComponent.ASIC)
         pass
 
@@ -438,21 +438,21 @@ class PortPrbsCli(object):
     )
     @click.pass_obj
     def _enable(obj, ports, p):  # noqa: B902
-        """ Enable prbs for given [port(s)] """
+        """Enable prbs for given [port(s)]"""
         port.PortPrbsCmd(obj, obj.component, ports).set_prbs(True, p)
 
     @click.command()
     @click.argument("ports", nargs=-1, type=PortType())
     @click.pass_obj
     def _disable(obj, ports):  # noqa: B902
-        """ Disable prbs for given [port(s)] """
+        """Disable prbs for given [port(s)]"""
         port.PortPrbsCmd(obj, obj.component, ports).set_prbs(False)
 
     @click.command()
     @click.argument("ports", nargs=-1, type=PortType())
     @click.pass_obj
     def _stats(obj, ports):  # noqa: B902
-        """ Get stats of prbs for given [port(s)] """
+        """Get stats of prbs for given [port(s)]"""
 
         port.PortPrbsCmd(obj, obj.component, ports).get_prbs_stats()
 
@@ -460,33 +460,33 @@ class PortPrbsCli(object):
     @click.argument("ports", nargs=-1, type=PortType())
     @click.pass_obj
     def _clear(obj, ports):  # noqa: B902
-        """ Clear stats of prbs for given [port(s)] """
+        """Clear stats of prbs for given [port(s)]"""
         port.PortPrbsCmd(obj, obj.component, ports).clear_prbs_stats()
 
 
 class PortTransceiver(object):
-    """ Port transceiver sub-commands """
+    """Port transceiver sub-commands"""
 
     def __init__(self):
         self.transceiver.add_command(self._transceiver, name="show")
 
     @click.group(cls=AliasedGroup)  # noqa: B902
     def transceiver():
-        """ Port transceiver commands """
+        """Port transceiver commands"""
         pass
 
     @click.command()
     @click.argument("ports", nargs=-1, type=PortType())
     @click.pass_obj
     def _transceiver(cli_opts, ports):  # noqa: B902
-        """ Show port transceiver for given [port(s)] """
+        """Show port transceiver for given [port(s)]"""
         port.PortStatusCmd(cli_opts).run(
             detail=False, ports=ports, verbose=True, internal=False, all=all
         )
 
 
 class PortCli(object):
-    """ Port sub-commands """
+    """Port sub-commands"""
 
     def __init__(self):
         self.port.add_command(self._details, name="details")
@@ -499,26 +499,26 @@ class PortCli(object):
 
     @click.group(cls=AliasedGroup)
     def port():
-        """ Show port information """
+        """Show port information"""
         pass
 
     @click.command()
     @click.argument("ports", nargs=-1, type=PortType())
     @click.pass_obj
     def _details(cli_opts, ports):
-        """ Show port details for given [port(s)] """
+        """Show port details for given [port(s)]"""
         port.PortDetailsCmd(cli_opts).run(ports)
 
     @click.command()
     @click.argument("ports", nargs=-1, type=PortType())
     @click.pass_obj
     def _description(cli_opts, ports):
-        """ Show port description for given [port(s)] """
+        """Show port description for given [port(s)]"""
         port.PortDescriptionCmd(cli_opts).run(ports)
 
 
 class ProductInfoCli(object):
-    """ Product Info sub-commands """
+    """Product Info sub-commands"""
 
     @click.command()
     @click.option(
@@ -526,12 +526,12 @@ class ProductInfoCli(object):
     )
     @click.pass_obj
     def product(cli_opts, detail):
-        """ Show product information """
+        """Show product information"""
         info.ProductInfoCmd(cli_opts).run(detail)
 
 
 class RouteCli(object):
-    """ Route sub-commands """
+    """Route sub-commands"""
 
     def __init__(self):
         self.route.add_command(self._ip, name="ip")
@@ -544,7 +544,7 @@ class RouteCli(object):
 
     @click.group(cls=AliasedGroup)
     def route():
-        """ Show route information """
+        """Show route information"""
         pass
 
     @click.command()
@@ -558,7 +558,7 @@ class RouteCli(object):
     )
     @click.pass_obj
     def _ip(cli_opts, ip, vrf):
-        """ Show the route to a specific IP """
+        """Show the route to a specific IP"""
         route.RouteIpCmd(cli_opts).run(ip, vrf)
 
     @click.command()
@@ -573,7 +573,7 @@ class RouteCli(object):
     @click.argument("prefix", nargs=-1, type=str)
     @click.pass_obj
     def _table(cli_opts, client_id, ipv4, ipv6, prefix):  # noqa: B902
-        """ Show the route table """
+        """Show the route table"""
         route.RouteTableCmd(cli_opts).run(client_id, ipv4, ipv6, prefix)
 
     @click.command()
@@ -582,7 +582,7 @@ class RouteCli(object):
     @click.argument("prefix", nargs=-1, type=str)
     @click.pass_obj
     def _details(cli_opts, ipv4, ipv6, prefix):  # noqa: B902
-        """ Show details of the route table """
+        """Show details of the route table"""
         route.RouteTableDetailsCmd(cli_opts).run(ipv4, ipv6, prefix)
 
     @click.command()
@@ -648,7 +648,7 @@ class RouteCli(object):
     @click.command()
     @click.pass_obj
     def _summary(cli_opt):
-        """ Print a summary of routing tables """
+        """Print a summary of routing tables"""
         route.RouteTableSummaryCmd(cli_opt).run()
 
 
@@ -663,7 +663,7 @@ class VerbosityCli(object):
 
 
 class AgentConfig(object):
-    """ Agent config sub-commands """
+    """Agent config sub-commands"""
 
     def __init__(self):
         self.config.add_command(self._show, name="show")
@@ -671,7 +671,7 @@ class AgentConfig(object):
 
     @click.group(cls=AliasedGroup)  # noqa: B902
     def config():
-        """ Agent config commands"""
+        """Agent config commands"""
         pass
 
     @click.command()
@@ -680,55 +680,55 @@ class AgentConfig(object):
     )
     @click.pass_obj
     def _show(cli_opts, json):  # noqa: B902
-        """ Show running config """
+        """Show running config"""
         agent.AgentConfigCmd(cli_opts).run(KEYWORD_CONFIG_SHOW, json)
 
     @click.command()
     @click.pass_obj
     def _reload(cli_opts):  # noqa: B902
-        """ Reload agent configuration file """
+        """Reload agent configuration file"""
         agent.AgentConfigCmd(cli_opts).run(KEYWORD_CONFIG_RELOAD)
 
 
 class AgentCli(object):
-    """ Agent sub-commands """
+    """Agent sub-commands"""
 
     def __init__(self):
         self.agent.add_command(AgentConfig().config)
 
     @click.group(cls=AliasedGroup)  # noqa: B902
     def agent():
-        """ agent commands """
+        """agent commands"""
         pass
 
 
 class AclCli(object):
-    """ Show Acl sub-commands """
+    """Show Acl sub-commands"""
 
     def __init__(self):
         self.acl.add_command(self._table, name="table")
 
     @click.group(cls=AliasedGroup)
     def acl():
-        """ Show Acl information """
+        """Show Acl information"""
         pass
 
     @click.command()
     @click.pass_obj
     def _table(cli_opts):
-        """ Show the Acl table """
+        """Show the Acl table"""
         acl.AclTableCmd(cli_opts).run()
 
 
 class ListHwObjectsCli(object):
-    """ Show list Hw obects sub-commands """
+    """Show list Hw obects sub-commands"""
 
     def __init__(self):
         self.list_hw_objects.add_command(self._list, name="list")
 
     @click.group(cls=AliasedGroup)
     def list_hw_objects():
-        """ List HW objecttsn """
+        """List HW objecttsn"""
         pass
 
     @click.command()
@@ -749,7 +749,7 @@ class ListHwObjectsCli(object):
     )
     @click.pass_obj
     def _list(cli_opts, hw_object, cached):
-        """ List Hw objects """
+        """List Hw objects"""
         hw_obj_types = [
             HwObjectType()._NAMES_TO_VALUES[_hw_obj_type] for _hw_obj_type in hw_object
         ]
@@ -779,7 +779,7 @@ def main(ctx, hostname, file, port, timeout):
 
 
 def add_modules(main_func):
-    """ Add sub-commands to main """
+    """Add sub-commands to main"""
 
     main_func.add_command(ArpCli().arp)
     main_func.add_command(AggregatePortCli().aggregate_port)

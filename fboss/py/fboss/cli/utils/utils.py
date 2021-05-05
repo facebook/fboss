@@ -77,7 +77,7 @@ def make_error_string(msg):
 
 
 def get_status_strs(status, is_present):
-    """ Get port status attributes """
+    """Get port status attributes"""
 
     COLOR_RED, COLOR_GREEN, COLOR_RESET = get_colors()
     attrs = {}
@@ -142,7 +142,7 @@ def get_qsfp_info_map(qsfp_client, qsfps, continue_on_error=False):
 def get_vlan_port_map(
     agent_client, qsfp_client, colors=True, details=True
 ) -> DefaultDict[str, DefaultDict[str, List[str]]]:
-    """ fetch port info and map vlan -> ports """
+    """fetch port info and map vlan -> ports"""
     all_port_info_map = agent_client.getAllPortInfo()
     port_status_map = agent_client.getPortStatus()
 
@@ -214,7 +214,7 @@ def get_port_summary(
     details: bool,
     colors: bool,
 ) -> str:
-    """ build the port summary output taking into account various state """
+    """build the port summary output taking into account various state"""
     COLOR_RED, COLOR_GREEN, COLOR_RESET = get_colors() if colors else ("", "", "")
     port_speed_display = get_port_speed_display(speed, enabled, up) if details else ""
     # port has channels assigned with sfp present or fab port, is enabled/up
@@ -245,7 +245,7 @@ def get_port_speed_display(speed, enabled, up):
 
 @retryable(num_tries=3, sleep_time=0.1)
 def get_vlan_aggregate_port_map(client) -> Dict[str, str]:
-    """ fetch aggregate port table and map vlan -> port channel name"""
+    """fetch aggregate port table and map vlan -> port channel name"""
     aggregate_port_table = client.getAggregatePortTable()
     vlan_aggregate_port_map: Dict = {}
     for aggregate_port in aggregate_port_table:

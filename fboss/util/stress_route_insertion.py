@@ -109,7 +109,7 @@ class StressRouteInsertion(object):
         print("...done.")
 
     def run_test(self):
-        """ Run actual test """
+        """Run actual test"""
         print(
             "Generating {} random routes with prefix between {} and {}".format(
                 self.entries, self.minprefix, self.maxprefix

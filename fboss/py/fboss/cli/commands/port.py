@@ -558,7 +558,7 @@ class PortStatusCmd(cmds.FbossCmd):
 
 
 class PortStatusDetailCmd(object):
-    """ Print detailed/verbose port status """
+    """Print detailed/verbose port status"""
 
     def __init__(self, client, ports, qsfp_client, verbose):
         self._client = client
@@ -573,7 +573,7 @@ class PortStatusDetailCmd(object):
         self._verbose = verbose
 
     def _get_port_speeds(self):
-        """ Get speeds for all ports """
+        """Get speeds for all ports"""
 
         all_info = self._client.getAllPortInfo()
         return {p: info.speedMbps for p, info in all_info.items()}
@@ -592,7 +592,7 @@ class PortStatusDetailCmd(object):
         return [start_channel]
 
     def _get_channel_detail(self, port, status):
-        """ Get channel detail for port """
+        """Get channel detail for port"""
 
         channels = status.transceiverIdx.channels
         if channels is None:
@@ -613,7 +613,7 @@ class PortStatusDetailCmd(object):
             return 10 * log10(mw)
 
     def _get_dummy_status(self):
-        """ Get dummy status for ports without data """
+        """Get dummy status for ports without data"""
 
         for port, status in sorted(self._status_resp.items()):
             if status.transceiverIdx:
@@ -625,7 +625,7 @@ class PortStatusDetailCmd(object):
                     self._info_resp[port] = info
 
     def _print_transceiver_ports(self, ports, info):
-        """ Print port info if the transceiver doesn't have any"""
+        """Print port info if the transceiver doesn't have any"""
 
         present = info.present if info else None
 
@@ -638,7 +638,7 @@ class PortStatusDetailCmd(object):
             )
 
     def _print_vendor_details(self, info):
-        """ print vendor details """
+        """print vendor details"""
 
         print(
             "Vendor:  {:<16}  Part Number:  {:<16}".format(
@@ -653,7 +653,7 @@ class PortStatusDetailCmd(object):
         )
 
     def _print_settings_details(self, info):
-        """ print setting details"""
+        """print setting details"""
 
         print(
             "CDR Tx: {}\tCDR Rx: {}".format(
@@ -691,7 +691,7 @@ class PortStatusDetailCmd(object):
         )
 
     def _get_cable_details(self, info):
-        """ returns cable details """
+        """returns cable details"""
 
         # TODO(T20770659): Add support for AOC.
         # TODO(T20773909): Validate cable type based on part number.
@@ -747,7 +747,7 @@ class PortStatusDetailCmd(object):
             print("\n      WARNING: Please verify DOM.")
 
     def _print_thresholds(self, thresh):
-        """ print threshold details """
+        """print threshold details"""
 
         print(
             "  {:<16}   {:>10} {:>15} {:>15} {:>10}".format(
@@ -820,7 +820,7 @@ class PortStatusDetailCmd(object):
         )
 
     def _print_sensor_flags(self, sensor):
-        """ print details about sensor flags """
+        """print details about sensor flags"""
 
         # header
         print(
@@ -936,7 +936,7 @@ class PortStatusDetailCmd(object):
         )
 
     def _print_transceiver_details(self, tid):  # noqa
-        """ Print details about transceiver """
+        """Print details about transceiver"""
 
         info = self._info_resp.get(tid)
         ch_to_port = self._t_to_p[tid]
@@ -999,7 +999,7 @@ class PortStatusDetailCmd(object):
             self._print_transceiver_ports(ch_to_port.values(), info)
 
     def _print_port_detail(self):
-        """ print port details """
+        """print port details"""
 
         if not self._qsfp_client:
             self._print_transceiver_ports(self._status_resp.keys(), None)
@@ -1026,7 +1026,7 @@ class PortStatusDetailCmd(object):
                 )
 
     def get_detail_status(self):
-        """ Get port detail port status """
+        """Get port detail port status"""
 
         for port, status in sorted(self._status_resp.items()):
             if status.transceiverIdx:

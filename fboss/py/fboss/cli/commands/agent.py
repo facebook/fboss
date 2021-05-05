@@ -39,7 +39,7 @@ class AgentConfigCmd(cmds.FbossCmd):
             print(thrift_dumps(parsed))
 
     def _reload_config(self):
-        """ Reload agent config without restarting """
+        """Reload agent config without restarting"""
         with self._create_agent_client() as client:
             try:
                 client.reloadConfig()
