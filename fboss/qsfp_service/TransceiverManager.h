@@ -7,13 +7,12 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
+#include "fboss/agent/platforms/common/PlatformMode.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/i2c/gen-cpp2/i2c_controller_stats_types.h"
 #include "fboss/lib/phy/PhyManager.h"
 #include "fboss/lib/usb/TransceiverPlatformApi.h"
 #include "fboss/qsfp_service/module/Transceiver.h"
-
-class PlatformMode;
 
 namespace facebook {
 namespace fboss {
