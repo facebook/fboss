@@ -330,6 +330,12 @@ class SwitchStats : public boost::noncopyable {
   void MKAServiceRecvSuccess() {
     MKAServiceRecvSuccess_.addValue(1);
   }
+  void PfcDeadlockDetectionCount() {
+    pfcDeadlockDetectionCount_.addValue(1);
+  }
+  void PfcDeadlockRecoveryCount() {
+    pfcDeadlockRecoveryCount_.addValue(1);
+  }
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -535,6 +541,10 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries MKAServiceSendSuccess_;
   // Number of pkts recvd from MkaService.
   TLTimeseries MKAServiceRecvSuccess_;
+  // Number of timers pfc deadlock watchodg was hit
+  TLTimeseries pfcDeadlockDetectionCount_;
+  // Number of timers pfc deadlock recovery hit
+  TLTimeseries pfcDeadlockRecoveryCount_;
 };
 
 } // namespace facebook::fboss

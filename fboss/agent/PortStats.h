@@ -80,6 +80,9 @@ class PortStats {
   void MKAServiceSendSuccess();
   void MKAServiceRecvSuccess();
 
+  void pfcDeadlockRecoveryCount();
+  void pfcDeadlockDetectionCount();
+
  private:
   // Forbidden copy constructor and assignment operator
   PortStats(PortStats const&) = delete;

@@ -103,6 +103,10 @@ class HwSwitch {
      * provide special behavior when a crash occurs.
      */
     virtual void exitFatal() const noexcept = 0;
+
+    virtual void pfcWatchdogStateChanged(
+        const PortID& port,
+        const bool deadlock) = 0;
   };
 
   enum FeaturesDesired : uint32_t {

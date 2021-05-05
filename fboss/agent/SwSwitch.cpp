@@ -1157,6 +1157,29 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
   portStats(port)->pktUnhandled();
 }
 
+void SwSwitch::pfcWatchdogStateChanged(
+    const PortID& portId,
+    const bool deadlockDetected) {
+  if (!isFullyInitialized()) {
+    XLOG(ERR)
+        << "Ignore PFC watchdog event changes before we are fully initialized...";
+    return;
+  }
+  auto state = getState();
+  if (!state) {
+    // Make sure the state actually exists, this could be an issue if
+    // called during initialization
+    XLOG(ERR)
+        << "Ignore PFC watchdog event changes, as switch state doesn't exist yet";
+    return;
+  }
+  if (deadlockDetected) {
+    portStats(portId)->pfcDeadlockDetectionCount();
+  } else {
+    portStats(portId)->pfcDeadlockRecoveryCount();
+  }
+}
+
 void SwSwitch::linkStateChanged(PortID portId, bool up) {
   if (!isFullyInitialized()) {
     XLOG(ERR)

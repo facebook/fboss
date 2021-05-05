@@ -1297,11 +1297,20 @@ int BcmSwitch::pfcDeadlockRecoveryEventCallback(
     bcm_port_t port,
     bcm_cos_queue_t cosq,
     bcm_cosq_pfc_deadlock_recovery_event_t recovery_state,
-    void* /*userdata*/) {
+    void* userdata) {
+  Callback* callback = (Callback*)userdata;
   XLOG_EVERY_MS(WARNING, 5000)
       << "PFC deadlock recovery callback invoked for unit " << unit << " port "
       << (int)port << " cosq " << (int)cosq << " recovery state "
       << (int)recovery_state;
+
+  CHECK(callback);
+  if (recovery_state == bcmCosqPfcDeadlockRecoveryEventBegin) {
+    // deadlock detected
+    callback->pfcWatchdogStateChanged(PortID(port), true);
+  } else if (recovery_state == bcmCosqPfcDeadlockRecoveryEventEnd) {
+    callback->pfcWatchdogStateChanged(PortID(port), false);
+  }
   return 0;
 }
 
@@ -1320,12 +1329,12 @@ void BcmSwitch::processPfcWatchdogGlobalChanges(const StateDelta& delta) {
     if (newRecoveryAction.has_value()) {
       // Register the PFC deadlock recovery callback function
       rv = bcm_cosq_pfc_deadlock_recovery_event_register(
-          unit_, pfcDeadlockRecoveryEventCallback, nullptr);
+          unit_, pfcDeadlockRecoveryEventCallback, callback_);
       bcmCheckError(rv, "Failed to register PFC deadlock recovery event!");
     } else {
       // Unregister the PFC deadlock recovery callback function
       rv = bcm_cosq_pfc_deadlock_recovery_event_unregister(
-          unit_, pfcDeadlockRecoveryEventCallback, nullptr);
+          unit_, pfcDeadlockRecoveryEventCallback, callback_);
       bcmCheckError(rv, "Failed to unregister PFC deadlock recovery event!");
     }
     XLOG(DBG2) << "PFC watchdog deadlock_recovery_event " << std::boolalpha

@@ -101,6 +101,8 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   void l2LearningUpdateReceived(
       L2Entry l2Entry,
       L2EntryUpdateType l2EntryUpdateType) override;
+  void pfcWatchdogStateChanged(const PortID& port, const bool deadlock)
+      override;
   void exitFatal() const noexcept override {}
   void addHwEventObserver(HwSwitchEventObserverIf* observer);
   void removeHwEventObserver(HwSwitchEventObserverIf* observer);
@@ -205,6 +207,9 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   folly::Synchronized<std::set<HwSwitchEventObserverIf*>> hwEventObservers_;
   std::unique_ptr<std::thread> thriftThread_;
   std::unique_ptr<folly::FunctionScheduler> fs_;
+  std::map<PortID, int> watchdogDeadlockCounter_;
+  std::map<PortID, int> watchdogRecoveryCounter_;
+
   // Test and observer threads can both apply state
   // updadtes. So protect with a mutex
   mutable std::mutex updateStateMutex_;

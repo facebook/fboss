@@ -439,4 +439,22 @@ size_t HwSwitchEnsemble::getMinPktsForLineRate(const PortID& port) {
   return (portSpeed > cfg::PortSpeed::HUNDREDG ? 1000 : 100);
 }
 
+static void addOrUpdateCounter(
+    std::map<PortID, int>& watchdogCounter,
+    const PortID& port) {
+  auto iter = watchdogCounter.find(port);
+  if (iter != watchdogCounter.end()) {
+    (*iter).second += 1;
+  } else {
+    watchdogCounter.insert({port, 1});
+  }
+}
+
+void HwSwitchEnsemble::pfcWatchdogStateChanged(
+    const PortID& port,
+    const bool deadlock) {
+  addOrUpdateCounter(
+      deadlock ? watchdogDeadlockCounter_ : watchdogRecoveryCounter_, port);
+}
+
 } // namespace facebook::fboss

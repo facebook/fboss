@@ -216,7 +216,15 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
           map,
           kCounterPrefix + "mka_service.recvd",
           SUM,
-          RATE) {}
+          RATE),
+      pfcDeadlockDetectionCount_(
+          map,
+          kCounterPrefix + "pfc_deadlock_detection",
+          SUM),
+      pfcDeadlockRecoveryCount_(
+          map,
+          kCounterPrefix + "pfc_deadlock_recovery",
+          SUM) {}
 
 PortStats* FOLLY_NULLABLE SwitchStats::port(PortID portID) {
   auto it = ports_.find(portID);

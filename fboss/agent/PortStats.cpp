@@ -20,6 +20,8 @@ namespace facebook::fboss {
 const std::string kNameKeySeperator = ".";
 const std::string kUp = "up";
 const std::string kLinkStateFlap = "link_state.flap";
+const std::string kPfcDeadlockDetectionCount = "pfc_deadlock_detection";
+const std::string kPfcDeadlockRecoveryCount = "pfc_deadlock_recovery";
 
 PortStats::PortStats(
     PortID portID,
@@ -157,6 +159,20 @@ void PortStats::linkStateChange(bool isUp) {
     }
   }
   switchStats_->linkStateChange();
+}
+
+void PortStats::pfcDeadlockDetectionCount() {
+  if (!portName_.empty()) {
+    tcData().addStatValue(getCounterKey(kPfcDeadlockDetectionCount), 1, SUM);
+  }
+  switchStats_->PfcDeadlockDetectionCount();
+}
+
+void PortStats::pfcDeadlockRecoveryCount() {
+  if (!portName_.empty()) {
+    tcData().addStatValue(getCounterKey(kPfcDeadlockRecoveryCount), 1, SUM);
+  }
+  switchStats_->PfcDeadlockRecoveryCount();
 }
 
 void PortStats::ipv4DstLookupFailure() {
