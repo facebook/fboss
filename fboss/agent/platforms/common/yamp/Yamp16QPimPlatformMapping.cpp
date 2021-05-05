@@ -63960,7 +63960,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
       },
       "pins": {
         "iphy": [
-          
+
         ],
         "xphyLine": [
           {
@@ -64051,12 +64051,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "xphyLine": {
           "numLanes": 4,
           "modulation": 2,
-          "fec": 544
+          "fec": 1
         },
         "xphySystem": {
           "numLanes": 4,
           "modulation": 2,
-          "fec": 544
+          "fec": 1
         }
       }
     }

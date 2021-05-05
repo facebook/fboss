@@ -345,7 +345,7 @@ TEST_F(PlatformMappingTest, VerifyYampPortProfileConfigOverride) {
             cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N,
             PortID(port.first)));
     EXPECT_TRUE(
-        *portProfileConfig->xphyLine_ref()->fec_ref() == phy::FecMode::RS544);
+        *portProfileConfig->xphyLine_ref()->fec_ref() == phy::FecMode::NONE);
   }
 }
 
