@@ -2008,6 +2008,15 @@ void BcmPort::programPfcWatchdog(const std::shared_ptr<Port>& swPort) {
   int pfcDeadlockDetectionAndRecoveryEnable{0};
 
   auto programPerPriorityPfcWatchdog = [&](int pri) {
+    // XXX: Work around in CS00012182388 for PFC WD disable
+    if (!pfcDeadlockDetectionAndRecoveryEnable) {
+      setPfcCosqDeadlockControl(
+          pri,
+          bcmCosqPFCDeadlockDetectionAndRecoveryEnable,
+          pfcDeadlockDetectionAndRecoveryEnable,
+          "bcmCosqPFCDeadlockDetectionAndRecoveryEnable");
+    }
+
     // TimerGranularity needs to be set before DetectionTimer
     setPfcCosqDeadlockControl(
         pri,
@@ -2024,11 +2033,15 @@ void BcmPort::programPfcWatchdog(const std::shared_ptr<Port>& swPort) {
         bcmCosqPFCDeadlockRecoveryTimer,
         pfcDeadlockRecoveryTimer,
         "bcmCosqPFCDeadlockRecoveryTimer");
-    setPfcCosqDeadlockControl(
-        pri,
-        bcmCosqPFCDeadlockDetectionAndRecoveryEnable,
-        pfcDeadlockDetectionAndRecoveryEnable,
-        "bcmCosqPFCDeadlockDetectionAndRecoveryEnable");
+
+    // XXX: Work around in CS00012182388 for PFC WD enable
+    if (pfcDeadlockDetectionAndRecoveryEnable) {
+      setPfcCosqDeadlockControl(
+          pri,
+          bcmCosqPFCDeadlockDetectionAndRecoveryEnable,
+          pfcDeadlockDetectionAndRecoveryEnable,
+          "bcmCosqPFCDeadlockDetectionAndRecoveryEnable");
+    }
   };
 
   auto populatePfcWatchdogParams = [&](const cfg::PfcWatchdog& pfcWd) {
@@ -2040,6 +2053,12 @@ void BcmPort::programPfcWatchdog(const std::shared_ptr<Port>& swPort) {
                     << " configured, truncating to maximum possible value "
                     << kPfcDeadlockDetectionTimeMsecMax;
       pfcDeadlockDetectionTimer = kPfcDeadlockDetectionTimeMsecMax;
+    } else if (pfcDeadlockDetectionTimer == 0) {
+      // XXX: Workaround for CS00012182388, non zero value expected
+      XLOG(WARNING) << "Unsupported PFC deadlock detection timer value "
+                    << pfcDeadlockDetectionTimer
+                    << " configured, setting to the min possible value 1msec";
+      pfcDeadlockDetectionTimer = 1;
     }
     pfcDeadlockTimerGranularity =
         utility::getPfcDeadlockDetectionTimerGranularity(
