@@ -174,6 +174,10 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
         this, routingInformationBase_.get());
   }
   size_t getMinPktsForLineRate(const PortID& portId);
+  int readPfcDeadlockDetectionCounter(const PortID& port);
+  int readPfcDeadlockRecoveryCounter(const PortID& port);
+  void clearPfcDeadlockRecoveryCounter(const PortID& port);
+  void clearPfcDeadlockDetectionCounter(const PortID& port);
 
  protected:
   /*
@@ -196,6 +200,9 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
       bool transaction);
   virtual std::unique_ptr<std::thread> setupThrift() = 0;
 
+  void addOrUpdateCounter(const PortID& port, const bool deadlock);
+  void clearPfcWatchdogCounter(const PortID& port, const bool deadlock);
+  int readPfcWatchdogCounter(const PortID& port, const bool deadlock);
   bool waitForAnyPorAndQueutOutBytesIncrement(
       const std::map<PortID, HwPortStats>& originalPortStats);
 
@@ -207,6 +214,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   folly::Synchronized<std::set<HwSwitchEventObserverIf*>> hwEventObservers_;
   std::unique_ptr<std::thread> thriftThread_;
   std::unique_ptr<folly::FunctionScheduler> fs_;
+
   std::map<PortID, int> watchdogDeadlockCounter_;
   std::map<PortID, int> watchdogRecoveryCounter_;
 

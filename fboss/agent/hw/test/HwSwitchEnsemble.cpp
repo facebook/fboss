@@ -439,22 +439,61 @@ size_t HwSwitchEnsemble::getMinPktsForLineRate(const PortID& port) {
   return (portSpeed > cfg::PortSpeed::HUNDREDG ? 1000 : 100);
 }
 
-static void addOrUpdateCounter(
-    std::map<PortID, int>& watchdogCounter,
-    const PortID& port) {
-  auto iter = watchdogCounter.find(port);
-  if (iter != watchdogCounter.end()) {
+void HwSwitchEnsemble::addOrUpdateCounter(
+    const PortID& port,
+    const bool deadlock) {
+  auto& watchdogCounterMap =
+      deadlock ? watchdogDeadlockCounter_ : watchdogRecoveryCounter_;
+  auto iter = watchdogCounterMap.find(port);
+  if (iter != watchdogCounterMap.end()) {
     (*iter).second += 1;
   } else {
-    watchdogCounter.insert({port, 1});
+    watchdogCounterMap.insert({port, 1});
   }
 }
 
 void HwSwitchEnsemble::pfcWatchdogStateChanged(
     const PortID& port,
     const bool deadlock) {
-  addOrUpdateCounter(
-      deadlock ? watchdogDeadlockCounter_ : watchdogRecoveryCounter_, port);
+  addOrUpdateCounter(port, deadlock);
 }
 
+int HwSwitchEnsemble::readPfcDeadlockDetectionCounter(const PortID& port) {
+  return readPfcWatchdogCounter(port, true);
+}
+
+int HwSwitchEnsemble::readPfcDeadlockRecoveryCounter(const PortID& port) {
+  return readPfcWatchdogCounter(port, false);
+}
+
+int HwSwitchEnsemble::readPfcWatchdogCounter(
+    const PortID& port,
+    const bool deadlock) {
+  auto& watchdogCounterMap =
+      deadlock ? watchdogDeadlockCounter_ : watchdogRecoveryCounter_;
+  auto iter = watchdogCounterMap.find(port);
+  if (iter != watchdogCounterMap.end()) {
+    return (*iter).second;
+  }
+  return 0;
+}
+
+void HwSwitchEnsemble::clearPfcDeadlockRecoveryCounter(const PortID& port) {
+  clearPfcWatchdogCounter(port, false);
+}
+
+void HwSwitchEnsemble::clearPfcDeadlockDetectionCounter(const PortID& port) {
+  clearPfcWatchdogCounter(port, true);
+}
+
+void HwSwitchEnsemble::clearPfcWatchdogCounter(
+    const PortID& port,
+    const bool deadlock) {
+  auto& watchdogCounterMap =
+      deadlock ? watchdogDeadlockCounter_ : watchdogRecoveryCounter_;
+  auto iter = watchdogCounterMap.find(port);
+  if (iter != watchdogCounterMap.end()) {
+    watchdogCounterMap[port] = 0;
+  }
+}
 } // namespace facebook::fboss

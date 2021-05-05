@@ -73,29 +73,6 @@ class HwPfcTest : public HwLinkStateDependentTest {
     auto vlanId = utility::firstVlanID(initialConfig());
     return utility::getInterfaceMac(getProgrammedState(), vlanId);
   }
-  void pumpTraffic(const int priority) {
-    auto vlanId = utility::firstVlanID(initialConfig());
-    auto intfMac = getIntfMac();
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
-    // pri = 7 => dscp 56
-    int dscp = priority * 8;
-    for (const auto& dstIp : {kDstIp1(), kDstIp2()}) {
-      auto txPacket = utility::makeUDPTxPacket(
-          getHwSwitch(),
-          vlanId,
-          srcMac,
-          intfMac,
-          folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
-          dstIp,
-          8000,
-          8001,
-          dscp << 2, // dscp is last 6 bits in TC
-          255,
-          std::vector<uint8_t>(7000, 0xff));
-
-      getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
-    }
-  }
 
   void setupQosMapForPfc(cfg::QosMap& qosMap) {
     // update pfc maps
@@ -186,7 +163,7 @@ class HwPfcTest : public HwLinkStateDependentTest {
     poolConfig.sharedBytes_ref() = 10000;
     bufferPoolCfgMap.insert(std::make_pair("bufferNew", poolConfig));
     newCfg.bufferPoolConfigs_ref() = bufferPoolCfgMap;
-
+    cfg_ = newCfg;
     applyNewConfig(newCfg);
   }
 
@@ -244,14 +221,7 @@ class HwPfcTest : public HwLinkStateDependentTest {
  protected:
   void runTest(const int trafficClass, const int pfcPriority) {
     auto setup = [&]() {
-      setupHelper();
-      utility::EcmpSetupTargetedPorts6 ecmpHelper6{
-          getProgrammedState(), getIntfMac()};
-      setupECMPForwarding(
-          ecmpHelper6, PortDescriptor(masterLogicalPortIds()[0]), kPrefix1());
-      setupECMPForwarding(
-          ecmpHelper6, PortDescriptor(masterLogicalPortIds()[1]), kPrefix2());
-      disableTTLDecrements(ecmpHelper6);
+      setupConfigAndEcmpTraffic();
       validateInitPfcCounters(
           {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}, pfcPriority);
     };
@@ -265,10 +235,112 @@ class HwPfcTest : public HwLinkStateDependentTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
+  void setupConfigAndEcmpTraffic() {
+    setupHelper();
+    utility::EcmpSetupTargetedPorts6 ecmpHelper6{
+        getProgrammedState(), getIntfMac()};
+    setupECMPForwarding(
+        ecmpHelper6, PortDescriptor(masterLogicalPortIds()[0]), kPrefix1());
+    setupECMPForwarding(
+        ecmpHelper6, PortDescriptor(masterLogicalPortIds()[1]), kPrefix2());
+    disableTTLDecrements(ecmpHelper6);
+  }
+
  public:
-  // override pfc maps default behavior
+  void pumpTraffic(const int priority) {
+    auto vlanId = utility::firstVlanID(initialConfig());
+    auto intfMac = getIntfMac();
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    // pri = 7 => dscp 56
+    int dscp = priority * 8;
+    for (const auto& dstIp : {kDstIp1(), kDstIp2()}) {
+      auto txPacket = utility::makeUDPTxPacket(
+          getHwSwitch(),
+          vlanId,
+          srcMac,
+          intfMac,
+          folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
+          dstIp,
+          8000,
+          8001,
+          dscp << 2, // dscp is last 6 bits in TC
+          255,
+          std::vector<uint8_t>(7000, 0xff));
+
+      getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
+    }
+  }
+
+  void setupWatchdog(bool enable) {
+    cfg::PfcWatchdog pfcWatchdog;
+    if (enable) {
+      pfcWatchdog.recoveryAction_ref() =
+          cfg::PfcWatchdogRecoveryAction::NO_DROP;
+      pfcWatchdog.recoveryTimeMsecs_ref() = 10;
+      pfcWatchdog.detectionTimeMsecs_ref() = 1;
+    }
+
+    for (const auto& portID :
+         {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}) {
+      auto portCfg = utility::findCfgPort(cfg_, portID);
+      if (portCfg->pfc_ref().has_value()) {
+        if (enable) {
+          portCfg->pfc_ref()->watchdog_ref() = pfcWatchdog;
+        } else {
+          portCfg->pfc_ref()->watchdog_ref().reset();
+        }
+      }
+    }
+    applyNewConfig(cfg_);
+  }
+
+  void validatePfcWatchdogCountersReset(const PortID& port) {
+    auto deadlockCtr =
+        getHwSwitchEnsemble()->readPfcDeadlockDetectionCounter(port);
+    auto recoveryCtr =
+        getHwSwitchEnsemble()->readPfcDeadlockRecoveryCounter(port);
+    XLOG(INFO) << "deadlockCtr:" << deadlockCtr
+               << ", recoveryCtr:" << recoveryCtr;
+    EXPECT_TRUE((deadlockCtr == 0) && (recoveryCtr == 0));
+  }
+
+  void validatePfcWatchdogCounters(const PortID& port) {
+    int deadlockCtr = 0, recoveryCtr = 0;
+    int retries = 10;
+    bool countersHit = false;
+    while (retries--) {
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+      deadlockCtr =
+          getHwSwitchEnsemble()->readPfcDeadlockDetectionCounter(port);
+      recoveryCtr = getHwSwitchEnsemble()->readPfcDeadlockRecoveryCounter(port);
+      if (deadlockCtr > 0 && recoveryCtr > 0) {
+        countersHit = true;
+        break;
+      }
+    }
+    XLOG(DBG0) << "For port: " << port << " deadlockCtr = " << deadlockCtr
+               << " recoveryCtr = " << recoveryCtr;
+    EXPECT_TRUE(countersHit);
+  }
+
+  void validateRxPfcCounterIncrement(const PortID& port) {
+    int retries = 2;
+    int rxPfcCtrOld = 0;
+    std::tie(std::ignore, rxPfcCtrOld) = getTxRxPfcCounters(port, 0);
+    while (retries--) {
+      int rxPfcCtrNew = 0;
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+      std::tie(std::ignore, rxPfcCtrNew) = getTxRxPfcCounters(port, 0);
+      if (rxPfcCtrNew > rxPfcCtrOld) {
+        return;
+      }
+    }
+    EXPECT_TRUE(0);
+  }
+
   std::map<int, int> tc2PgOverride = {};
   std::map<int, int> pfcPri2PgIdOverride = {};
+  cfg::SwitchConfig cfg_;
 };
 
 TEST_F(HwPfcTest, verifyPfcDefault) {
@@ -307,6 +379,64 @@ TEST_F(HwPfcTest, verifyPfcWithMapChanges_1) {
   tc2PgOverride.insert(std::make_pair(7, 1));
   pfcPri2PgIdOverride.insert(std::make_pair(7, 1));
   runTest(trafficClass, pfcPriority);
+}
+
+// intent of this test is to setup watchdog for the PFC
+// and observe it kicks in and update the watchdog counters
+// watchdog counters are created/incremented when callback
+// for deadlock/recovery kicks in
+TEST_F(HwPfcTest, PfcWatchdog) {
+  if (!HwTest::isSupported(HwAsic::Feature::PFC)) {
+    return;
+  }
+  auto setup = [&]() {
+    setupConfigAndEcmpTraffic();
+    setupWatchdog(true /* enable watchdog */);
+  };
+  auto verify = [&]() {
+    validatePfcWatchdogCountersReset(masterLogicalPortIds()[0]);
+    pumpTraffic(0 /* traffic class */);
+    validateRxPfcCounterIncrement(masterLogicalPortIds()[0]);
+    validatePfcWatchdogCounters(masterLogicalPortIds()[0]);
+  };
+  // warmboot support to be added in next step
+  setup();
+  verify();
+}
+
+// intent of this test is to setup watchdog for PFC
+// and remove it. Observe that counters should stop incrementing
+// Clear them and check they stay the same
+// Since the watchdog counters are sw based, upon warm boot
+// we don't expect these counters to be incremented either
+TEST_F(HwPfcTest, PfcWatchdogReset) {
+  if (!HwTest::isSupported(HwAsic::Feature::PFC)) {
+    return;
+  }
+  auto setup = [&]() {
+    setupConfigAndEcmpTraffic();
+    setupWatchdog(true /* enable watchdog */);
+    pumpTraffic(0 /* traffic class */);
+    // lets wait for the watchdog counters to be populated
+    validatePfcWatchdogCounters(masterLogicalPortIds()[0]);
+    // reset watchdog
+    setupWatchdog(false /* disable */);
+    // reset the watchdog counters
+    getHwSwitchEnsemble()->clearPfcDeadlockRecoveryCounter(
+        masterLogicalPortIds()[0]);
+    getHwSwitchEnsemble()->clearPfcDeadlockDetectionCounter(
+        masterLogicalPortIds()[0]);
+  };
+
+  auto verify = [&]() {
+    // ensure that RX PFC continues to increment
+    validateRxPfcCounterIncrement(masterLogicalPortIds()[0]);
+    // validate that pfc watchdog counters do not increment anymore
+    validatePfcWatchdogCountersReset(masterLogicalPortIds()[0]);
+  };
+
+  // warmboot support to be added in next step
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss
