@@ -425,14 +425,10 @@ TEST_F(BcmPfcTests, PfcWatchdogProgrammingSequence) {
     setupPfcWatchdog(portId, pfcWatchdogConfig);
     pfcWatchdogProgrammingMatchesConfig(portId, true, pfcWatchdogConfig);
 
-    /*
-     * XXX: Subsequent test cases fail with this enabled, needs debugging!
-     *
-     * XLOG(DBG0) << "Verify removing PFC watchdog removes the programming";
-     * removePfcWatchdogConfig(portId);
-     * EXPECT_TRUE(pfcWatchdogProgrammingMatchesConfig(
-     *    portId, false, defaultPfcWatchdogConfig));
-     */
+    XLOG(DBG0) << "Verify removing PFC watchdog removes the programming";
+    removePfcWatchdogConfig(portId);
+    pfcWatchdogProgrammingMatchesConfig(
+        portId, false, defaultPfcWatchdogConfig);
 
     XLOG(DBG0)
         << "Verify removing PFC watchdog does not impact PFC programming";
