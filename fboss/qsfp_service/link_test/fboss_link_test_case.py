@@ -39,6 +39,7 @@ class FbosslinkTestCase(LinkTestCase):
     def tearDown(self) -> None:
         self.stop_wedge_agent()
         self.stop_qsfp_service()
+        self.clear_fboss_state()
 
     @memoize_forever
     def _get_lab_config(self):
