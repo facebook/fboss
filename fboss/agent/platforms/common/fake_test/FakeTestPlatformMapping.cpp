@@ -101,6 +101,17 @@ FakeTestPlatformMapping::FakeTestPlatformMapping(
     *profile.speed_ref() = std::get<0>(itProfile.second);
     *profile.iphy_ref()->numLanes_ref() = std::get<1>(itProfile.second);
     *profile.iphy_ref()->fec_ref() = std::get<2>(itProfile.second);
+
+    phy::ProfileSideConfig xphySys;
+    xphySys.numLanes_ref() = std::get<1>(itProfile.second);
+    xphySys.fec_ref() = std::get<2>(itProfile.second);
+    profile.xphySystem_ref() = xphySys;
+
+    phy::ProfileSideConfig xphyLine;
+    xphyLine.numLanes_ref() = std::get<1>(itProfile.second);
+    xphyLine.fec_ref() = std::get<2>(itProfile.second);
+    profile.xphyLine_ref() = xphyLine;
+
     cfg::PlatformPortProfileConfigEntry configEntry;
     cfg::PlatformPortConfigFactor factor;
     factor.profileID_ref() = itProfile.first;
@@ -120,6 +131,12 @@ FakeTestPlatformMapping::FakeTestPlatformMapping(
     *iphy.type_ref() = phy::DataPlanePhyChipType::IPHY;
     *iphy.physicalID_ref() = groupID;
     setChip(*iphy.name_ref(), iphy);
+
+    phy::DataPlanePhyChip xphy;
+    xphy.name_ref() = folly::sformat("XPHY{}", groupID);
+    xphy.type_ref() = phy::DataPlanePhyChipType::XPHY;
+    xphy.physicalID_ref() = groupID;
+    setChip(*xphy.name_ref(), xphy);
 
     phy::DataPlanePhyChip tcvr;
     *tcvr.name_ref() = folly::sformat("eth1/{}", groupID + 1);
@@ -146,7 +163,6 @@ cfg::PlatformPortConfig FakeTestPlatformMapping::getPlatformPortConfig(
     platformPortConfig.subsumedPorts_ref()->push_back(portID + i);
   }
 
-  // right now, we can just use iphy<->tcvr mode in fake platform
   platformPortConfig.pins_ref()->transceiver_ref() = {};
   for (auto i = 0; i < lanes; i++) {
     phy::PinConfig iphy;
@@ -157,6 +173,14 @@ cfg::PlatformPortConfig FakeTestPlatformMapping::getPlatformPortConfig(
     // rx configs
     iphy.rx_ref() = getFakeRxSetting();
     platformPortConfig.pins_ref()->iphy_ref()->push_back(iphy);
+
+    phy::PinConfig xphy;
+    xphy.id_ref()->chip_ref() = folly::sformat("XPHY{}", groupID);
+    xphy.id_ref()->lane_ref() = (startLane + i);
+    xphy.tx_ref() = getFakeTxSetting();
+    xphy.rx_ref() = getFakeRxSetting();
+    platformPortConfig.pins_ref()->xphySys_ref() = {xphy};
+    platformPortConfig.pins_ref()->xphyLine_ref() = {xphy};
 
     phy::PinConfig tcvr;
     *tcvr.id_ref()->chip_ref() = folly::sformat("eth1/{}", groupID + 1);
@@ -179,16 +203,35 @@ FakeTestPlatformMapping::getPlatformPortEntriesByGroup(int groupID) {
     *port.mapping_ref()->controllingPort_ref() =
         controllingPortIds_.at(groupID);
 
-    phy::PinConnection pinConnection;
-    *pinConnection.a_ref()->chip_ref() = folly::sformat("core{}", groupID);
-    *pinConnection.a_ref()->lane_ref() = portProfiles.first;
+    phy::PinConnection asicPinConnection;
+    asicPinConnection.a_ref()->chip_ref() = folly::sformat("core{}", groupID);
+    asicPinConnection.a_ref()->lane_ref() = portProfiles.first;
+
+    phy::PinConnection xphyLinePinConnection;
+    xphyLinePinConnection.a_ref()->chip_ref() =
+        folly::sformat("XPHY{}", groupID);
+    xphyLinePinConnection.a_ref()->lane_ref() = portProfiles.first;
+
     phy::PinID pinEnd;
     *pinEnd.chip_ref() = folly::sformat("eth1/{}", groupID + 1);
     *pinEnd.lane_ref() = portProfiles.first;
+
     phy::Pin zPin;
     zPin.end_ref() = pinEnd;
-    pinConnection.z_ref() = zPin;
-    port.mapping_ref()->pins_ref()->push_back(pinConnection);
+    xphyLinePinConnection.z_ref() = zPin;
+
+    phy::PinJunction xphyPinJunction;
+    xphyPinJunction.system_ref()->chip_ref() =
+        folly::sformat("XPHY{}", groupID);
+    xphyPinJunction.system_ref()->lane_ref() = portProfiles.first;
+    xphyPinJunction.line_ref() = {xphyLinePinConnection};
+
+    phy::Pin xphyPin;
+    xphyPin.junction_ref() = xphyPinJunction;
+
+    asicPinConnection.z_ref() = xphyPin;
+
+    port.mapping_ref()->pins_ref()->push_back(asicPinConnection);
 
     for (auto profileID : portProfiles.second) {
       port.supportedProfiles_ref()->emplace(
