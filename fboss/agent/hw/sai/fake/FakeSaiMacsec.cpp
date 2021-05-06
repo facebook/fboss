@@ -99,8 +99,12 @@ sai_status_t create_macsec_port_fn(
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
   sai_macsec_direction_t macsecDirection;
+  sai_object_id_t linePortId;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
+      case SAI_MACSEC_PORT_ATTR_PORT_ID:
+        linePortId = attr_list[i].value.oid;
+        break;
       case SAI_MACSEC_PORT_ATTR_MACSEC_DIRECTION:
         macsecDirection =
             static_cast<sai_macsec_direction_t>(attr_list[i].value.s32);
@@ -110,7 +114,7 @@ sai_status_t create_macsec_port_fn(
     }
   }
 
-  *macsec_port_id = fs->macsecManager.create(macsecDirection);
+  *macsec_port_id = fs->macsecPortManager.create(linePortId, macsecDirection);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -274,7 +278,7 @@ sai_status_t create_macsec_sc_fn(
 #endif
   std::optional<bool> sciEnable;
   std::optional<bool> replayProtectionEnable;
-  std::optional<sai_int32_t> replayProtectionWindow;
+  std::optional<sai_uint32_t> replayProtectionWindow;
   std::optional<sai_uint8_t> sectagOffset;
 
   for (int i = 0; i < attr_count; ++i) {
@@ -300,6 +304,9 @@ sai_status_t create_macsec_sc_fn(
         break;
       case SAI_MACSEC_SC_ATTR_MACSEC_REPLAY_PROTECTION_ENABLE:
         replayProtectionEnable = attr_list[i].value.booldata;
+        break;
+      case SAI_MACSEC_SC_ATTR_MACSEC_REPLAY_PROTECTION_WINDOW:
+        replayProtectionWindow = attr_list[i].value.u32;
         break;
       case SAI_MACSEC_SC_ATTR_MACSEC_SECTAG_OFFSET:
         sectagOffset = attr_list[i].value.u8;
