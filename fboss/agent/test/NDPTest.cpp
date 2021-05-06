@@ -11,6 +11,7 @@
 
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/LinkAggregationManager.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/SwitchStats.h"
@@ -23,6 +24,8 @@
 #include "fboss/agent/packet/ICMPHdr.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/PktUtil.h"
+#include "fboss/agent/state/AggregatePort.h"
+#include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -58,8 +61,13 @@ namespace {
 // TODO(joseph5wu) Network control strict priority queue
 const uint8_t kNCStrictPriorityQueue = 7;
 const MacAddress kPlatformMac("02:01:02:03:04:05");
+const AggregatePortID kAggregatePortID = AggregatePortID(300);
+const int kSubportCount = 2;
 
-cfg::SwitchConfig createSwitchConfig(seconds raInterval, seconds ndpTimeout) {
+cfg::SwitchConfig createSwitchConfig(
+    seconds raInterval,
+    seconds ndpTimeout,
+    bool createAggPort = false) {
   // Create a thrift config to use
   cfg::SwitchConfig config;
   config.vlans_ref()->resize(2);
@@ -112,6 +120,19 @@ cfg::SwitchConfig createSwitchConfig(seconds raInterval, seconds ndpTimeout) {
 
   if (ndpTimeout.count() > 0) {
     *config.arpTimeoutSeconds_ref() = ndpTimeout.count();
+  }
+
+  if (createAggPort) {
+    config.aggregatePorts_ref()->resize(1);
+    config.aggregatePorts_ref()[0].key_ref() =
+        static_cast<uint16_t>(kAggregatePortID);
+    config.aggregatePorts_ref()[0].name_ref() = "AggPort";
+    config.aggregatePorts_ref()[0].description_ref() = "Test Aggport";
+    config.aggregatePorts_ref()[0].memberPorts_ref()->resize(kSubportCount);
+    for (auto i = 0; i < kSubportCount; i++) {
+      config.aggregatePorts_ref()[0].memberPorts_ref()[i].memberPortID_ref() =
+          i + 1;
+    }
   }
 
   return config;
@@ -884,6 +905,80 @@ TYPED_TEST(NdpTest, FlushEntry) {
   numFlushed =
       thriftHandler.flushNeighborEntry(make_unique<BinaryAddress>(binAddr), 5);
   EXPECT_EQ(numFlushed, 0);
+}
+
+// Ensure that NDP entries learned against a port are
+// flushed when the port become part of Aggregate
+TYPED_TEST(NdpTest, FlushOnAggPortTransition) {
+  auto handle = this->setupTestHandle();
+  auto sw = handle->getSw();
+
+  ThriftHandler thriftHandler(sw);
+
+  // Helper for checking entries in NDP table
+  auto getNDPTableEntry = [&](IPAddressV6 ip, VlanID vlan) {
+    return sw->getState()
+        ->getVlans()
+        ->getVlanIf(vlan)
+        ->getNdpTable()
+        ->getEntryIf(ip);
+  };
+
+  auto neighborAddr = IPAddressV6("2401:db00:2110:3004::b");
+
+  // Create NDP entry against a port
+  WaitForNdpEntryCreation neighbor1Create(sw, neighborAddr, VlanID(5), false);
+
+  sendNeighborAdvertisement(
+      handle.get(), neighborAddr.str(), "02:05:73:f9:46:fb", 1, 5);
+
+  EXPECT_TRUE(neighbor1Create.wait());
+  auto entry = getNDPTableEntry(neighborAddr, VlanID(5));
+  EXPECT_NE(entry, nullptr);
+
+  // Create an Aggregate port with a subport that has
+  // NDP entries already present
+  seconds raInterval = seconds(0);
+  seconds ndpInterval = seconds(0);
+  auto config = createSwitchConfig(raInterval, ndpInterval, true);
+  sw->applyConfig("Add aggports", config);
+
+  // Enable the subPorts
+  AggregatePort::PartnerState pState{};
+  for (int i = 0; i < kSubportCount; i++) {
+    ProgramForwardingAndPartnerState addPort1ToAggregatePort(
+        PortID(i + 1),
+        kAggregatePortID,
+        AggregatePort::Forwarding::ENABLED,
+        pState);
+    sw->updateStateNoCoalescing(
+        "Adding member port to AggregatePort", addPort1ToAggregatePort);
+  }
+
+  auto* evb = sw->getBackgroundEvb();
+  evb->runInEventBaseThreadAndWait(
+      [&]() { std::this_thread::sleep_for(std::chrono::milliseconds(1000)); });
+
+  // Old entry should be flushed
+  entry = getNDPTableEntry(neighborAddr, VlanID(5));
+  EXPECT_EQ(entry, nullptr);
+
+  // Send neighbor advertisement on Aggregate
+  WaitForNdpEntryCreation neighbor2Create(sw, neighborAddr, VlanID(5), false);
+
+  sendNeighborAdvertisement(
+      handle.get(),
+      neighborAddr.str(),
+      "02:05:73:f9:46:fb",
+      static_cast<uint16_t>(kAggregatePortID),
+      5);
+
+  EXPECT_TRUE(neighbor2Create.wait());
+  entry = getNDPTableEntry(neighborAddr, VlanID(5));
+  EXPECT_NE(entry, nullptr);
+  EXPECT_EQ(
+      entry->getPort(),
+      PortDescriptor(PortID(static_cast<uint16_t>(kAggregatePortID))));
 }
 
 TYPED_TEST(NdpTest, PendingNdp) {
