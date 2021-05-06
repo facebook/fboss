@@ -64,6 +64,10 @@ void MultiNodeTest::setupConfigFlag() {
   platform()->reloadConfig();
 }
 
+void MultiNodeTest::setupFlags() {
+  // no common flag to set yet
+}
+
 void MultiNodeTest::SetUp() {
   AgentInitializer::createSwitch(
       argCount,
@@ -72,6 +76,7 @@ void MultiNodeTest::SetUp() {
        HwSwitch::FeaturesDesired::LINKSCAN_DESIRED),
       initPlatform);
   setupConfigFlag();
+  setupFlags();
   asyncInitThread_.reset(
       new std::thread([this] { AgentInitializer::initAgent(); }));
   asyncInitThread_->detach();

@@ -37,11 +37,14 @@ constexpr int kLacpLongTimeout{30};
 
 class MultiNodeLacpTest : public MultiNodeTest {
   void SetUp() override {
-    FLAGS_enable_lacp = true;
     MultiNodeTest::SetUp();
   }
   cfg::SwitchConfig initialConfig() const override {
     return getConfigWithAggPort();
+  }
+  void setupFlags() override {
+    FLAGS_enable_lacp = true;
+    MultiNodeTest::setupFlags();
   }
 
  protected:

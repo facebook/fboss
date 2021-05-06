@@ -19,6 +19,7 @@ class MultiNodeTest : public ::testing::Test, public AgentInitializer {
  protected:
   void SetUp() override;
   void TearDown() override;
+  virtual void setupFlags();
   void setPortStatus(PortID port, bool up);
   std::unique_ptr<FbossCtrlAsyncClient> getRemoteThriftClient();
   bool waitForSwitchStateCondition(
