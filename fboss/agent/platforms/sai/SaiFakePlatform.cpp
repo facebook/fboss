@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/platforms/sai/SaiFakePlatform.h"
+#include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/switch_asics/FakeAsic.h"
 #include "fboss/agent/platforms/common/fake_test/FakeTestPlatformMapping.h"
 
@@ -57,6 +58,10 @@ SaiFakePlatform::~SaiFakePlatform() {}
 folly::MacAddress SaiFakePlatform::getLocalMac() const {
   static const folly::MacAddress kLocalMac("02:00:00:00:00:01");
   return kLocalMac;
+}
+
+const std::set<sai_api_t>& SaiFakePlatform::getSupportedApiList() const {
+  return SaiApiTable::getInstance()->getFullApiList();
 }
 
 } // namespace facebook::fboss
