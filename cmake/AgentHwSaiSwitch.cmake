@@ -64,6 +64,7 @@ target_link_libraries(sai_switch
   -Wl,--unresolved-symbols=ignore-all
   core
   hw_switch_stats
+  hw_trunk_counters
   hw_fb303_stats
   hw_cpu_fb303_stats
   hw_port_fb303_stats

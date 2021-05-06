@@ -100,6 +100,7 @@ target_link_libraries(bcm
   sflow_cpp2
   hw_switch_warmboot_helper
   hw_switch_stats
+  hw_trunk_counters
   hw_resource_stats_publisher
   bcm_types
   packettrace_cpp2

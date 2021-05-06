@@ -321,7 +321,8 @@ void SaiLagManager::updateStats(AggregatePortID aggPort) {
   std::optional<std::chrono::seconds> timeRetrieved{};
 
   auto* handle = getLagHandle(aggPort);
-  for (auto [portSaiId, member] : handle->members) {
+  for (auto member : handle->members) {
+    auto portSaiId = member.first;
     auto portIdsIter = concurrentIndices_->portIds.find(portSaiId);
     if (portIdsIter == concurrentIndices_->portIds.end()) {
       continue;

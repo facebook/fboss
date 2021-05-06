@@ -38,6 +38,10 @@ add_library(hw_cpu_fb303_stats
   fboss/agent/hw/HwCpuFb303Stats.cpp
 )
 
+add_library(hw_trunk_counters
+  fboss/agent/hw/HwTrunkCounters.cpp
+)
+
 add_library(hw_switch_warmboot_helper
   fboss/agent/hw/HwSwitchWarmBootHelper.cpp
 )
@@ -81,6 +85,14 @@ target_link_libraries(hw_cpu_fb303_stats
   FBThrift::thriftcpp2
   hardware_stats_cpp2
   Folly::folly
+)
+
+target_link_libraries(hw_trunk_counters
+  counter_utils
+  FBThrift::thriftcpp2
+  hardware_stats_cpp2
+  Folly::folly
+  fboss_types
 )
 
 target_link_libraries(buffer_stats
