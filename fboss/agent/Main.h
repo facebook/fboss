@@ -99,7 +99,7 @@ class AgentInitializer {
       uint32_t hwFeaturesDesired,
       PlatformInitFn initPlatform);
   int initAgent();
-  void stopAgent();
+  void stopAgent(bool setupWarmboot);
 
  private:
   SwSwitch* sw_;

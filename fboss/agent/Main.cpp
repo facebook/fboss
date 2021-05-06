@@ -304,13 +304,15 @@ int AgentInitializer::initAgent() {
   return 0;
 }
 
-void AgentInitializer::stopAgent() {
+void AgentInitializer::stopAgent(bool setupWarmboot) {
   server_->stopListening();
   XLOG(INFO) << "Stopped thrift server listening";
   initializer_->stopFunctionScheduler();
   XLOG(INFO) << "Stopped stats FunctionScheduler";
   fbossFinalize();
-  sw_->gracefulExit();
+  if (setupWarmboot) {
+    sw_->gracefulExit();
+  }
 }
 
 int fbossMain(

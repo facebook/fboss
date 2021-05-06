@@ -12,6 +12,7 @@
 #include <gtest/gtest.h>
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/ApplyThriftConfig.h"
+#include "fboss/agent/LacpMachines.h"
 #include "fboss/agent/LinkAggregationManager.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/state/Port.h"
@@ -24,7 +25,6 @@ using namespace facebook::fboss;
 
 DEFINE_int32(multiNodeTestPort1, 0, "multinode test port 1");
 DEFINE_int32(multiNodeTestPort2, 0, "multinode test port 2");
-DEFINE_bool(run_forever, false, "run the test forever");
 
 DECLARE_bool(enable_lacp);
 
@@ -110,106 +110,134 @@ class MultiNodeLacpTest : public MultiNodeTest {
 };
 
 TEST_F(MultiNodeLacpTest, Bringup) {
-  // Wait for AggPort
-  waitForAggPortStatus(true);
+  auto setup = [=]() {};
 
-  // verify lacp state information
-  verifyLacpState();
+  auto verify = [=]() {
+    // Wait for AggPort
+    waitForAggPortStatus(true);
 
-  // Do not tear down setup if run_forver flag is true. This is used on
-  // remote side of device under test to keep state running till DUT
-  // completes tests. Test will be terminated by the starting script
-  // by sending a SIGTERM.
-  if (FLAGS_run_forever) {
-    XLOG(DBG2) << "MultiNodeLacpTest run forever...";
-    while (true) {
-      sleep(1);
-      XLOG_EVERY_MS(DBG2, 5000) << "MultiNodeLacpTest running forever";
-    }
-  }
+    // verify lacp state information
+    verifyLacpState();
+  };
+
+  auto setupPostWarmboot = [=]() {};
+
+  auto verifyPostWarmboot = [=]() {
+    auto period = PeriodicTransmissionMachine::LONG_PERIOD * 3;
+    // ensure that lacp session can stay up post timeout
+    XLOG(DBG2) << "Waiting for LACP timeout period";
+    std::this_thread::sleep_for(period);
+    verifyLacpState();
+  };
+  checkForRemoteSideRun();
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
 }
 
 TEST_F(MultiNodeLacpTest, LinkDown) {
-  // Wait for AggPort
-  waitForAggPortStatus(true);
+  auto setup = [=]() {};
 
-  // verify lacp state information
-  verifyLacpState();
+  auto verify = [=]() {
+    // Wait for AggPort
+    waitForAggPortStatus(true);
 
-  XLOG(DBG2) << "Disable an Agg member port";
-  const auto& subPorts = getSubPorts();
-  EXPECT_NE(subPorts.size(), 0);
-  const auto& testPort = subPorts.front().portID;
-  setPortStatus(testPort, false);
+    // verify lacp state information
+    verifyLacpState();
 
-  // wait for LACP protocol to react
-  waitForAggPortStatus(false);
+    XLOG(DBG2) << "Disable an Agg member port";
+    const auto& subPorts = getSubPorts();
+    EXPECT_NE(subPorts.size(), 0);
+    const auto& testPort = subPorts.front().portID;
+    setPortStatus(testPort, false);
 
-  XLOG(DBG2) << "Enable Agg member port";
-  setPortStatus(testPort, true);
+    // wait for LACP protocol to react
+    waitForAggPortStatus(false);
 
-  waitForAggPortStatus(true);
-  verifyLacpState();
+    XLOG(DBG2) << "Enable Agg member port";
+    setPortStatus(testPort, true);
+
+    waitForAggPortStatus(true);
+    verifyLacpState();
+  };
+  checkForRemoteSideRun();
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(MultiNodeLacpTest, RemoteLinkDown) {
-  // Wait for AggPort
-  waitForAggPortStatus(true);
+  auto setup = [=]() {};
+  auto verify = [=]() {
+    // Wait for AggPort
+    waitForAggPortStatus(true);
 
-  // verify lacp state information
-  verifyLacpState();
+    // verify lacp state information
+    verifyLacpState();
 
-  XLOG(DBG2) << "Disable an Agg member port on remote switch";
-  const auto& subPorts = getSubPorts();
-  EXPECT_NE(subPorts.size(), 0);
-  const auto& remotePortID = getRemotePortID(subPorts.front().portID);
-  auto client = getRemoteThriftClient();
-  client->sync_setPortState(remotePortID, false);
+    XLOG(DBG2) << "Disable an Agg member port on remote switch";
+    const auto& subPorts = getSubPorts();
+    EXPECT_NE(subPorts.size(), 0);
+    const auto& remotePortID = getRemotePortID(subPorts.front().portID);
+    auto client = getRemoteThriftClient();
+    client->sync_setPortState(remotePortID, false);
 
-  // wait for LACP protocol to react
-  waitForAggPortStatus(false);
+    // wait for LACP protocol to react
+    waitForAggPortStatus(false);
 
-  XLOG(DBG2) << "Enable Agg member port on remote switch";
-  client->sync_setPortState(remotePortID, true);
-  waitForAggPortStatus(true);
-  verifyLacpState();
+    XLOG(DBG2) << "Enable Agg member port on remote switch";
+    client->sync_setPortState(remotePortID, true);
+    waitForAggPortStatus(true);
+    verifyLacpState();
+  };
+  checkForRemoteSideRun();
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(MultiNodeLacpTest, LacpSlowFastInterop) {
-  // Change Lacp to fast mode
-  sw()->applyConfig(
-      "Add AggPort fast mode", getConfigWithAggPort(cfg::LacpPortRate::FAST));
+  auto setup = [=]() {
+    // Change Lacp to fast mode
+    sw()->applyConfig(
+        "Add AggPort fast mode", getConfigWithAggPort(cfg::LacpPortRate::FAST));
+  };
 
-  // Wait for AggPort
-  waitForAggPortStatus(true);
+  auto verify = [=]() {
+    // Wait for AggPort
+    waitForAggPortStatus(true);
 
-  // verify lacp state information
-  verifyLacpState();
+    // verify lacp state information
+    verifyLacpState();
+  };
+  checkForRemoteSideRun();
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 // Stop sending LACP on one port and verify
 // that remote side times out
 TEST_F(MultiNodeLacpTest, LacpTimeout) {
-  waitForAggPortStatus(true);
-  // verify lacp state information
-  verifyLacpState();
-
-  // stop LACP on one of the member ports
-  const auto& subPortRange = getSubPorts();
-  EXPECT_GE(subPortRange.size(), 2);
-  auto lagMgr = sw()->getLagManager();
-  lagMgr->stopLacpOnSubPort(subPortRange.back().portID);
-
-  auto remoteLacpTimeout = [this](const std::shared_ptr<SwitchState>& state) {
-    const auto& localPort = getSubPorts().front().portID;
-    const auto& aggPort = state->getAggregatePorts()->getAggregatePort(kAggId);
-    const auto& remoteState = aggPort->getPartnerState(localPort).state;
-    const auto flagsToCheck =
-        LacpState::IN_SYNC | LacpState::COLLECTING | LacpState::DISTRIBUTING;
-    return ((remoteState & flagsToCheck) == 0);
+  auto setup = [=]() {
+    waitForAggPortStatus(true);
+    // verify lacp state information
+    verifyLacpState();
   };
-  // Remote side LACP should timeout on second member and
-  // bring down both members due to minlink violation after 3 timeouts
-  EXPECT_TRUE(
-      waitForSwitchStateCondition(remoteLacpTimeout, 4 * kLacpLongTimeout));
+
+  auto verify = [=]() {
+    // stop LACP on one of the member ports
+    const auto& subPortRange = getSubPorts();
+    EXPECT_GE(subPortRange.size(), 2);
+    auto lagMgr = sw()->getLagManager();
+    lagMgr->stopLacpOnSubPort(subPortRange.back().portID);
+
+    auto remoteLacpTimeout = [this](const std::shared_ptr<SwitchState>& state) {
+      const auto& localPort = getSubPorts().front().portID;
+      const auto& aggPort =
+          state->getAggregatePorts()->getAggregatePort(kAggId);
+      const auto& remoteState = aggPort->getPartnerState(localPort).state;
+      const auto flagsToCheck =
+          LacpState::IN_SYNC | LacpState::COLLECTING | LacpState::DISTRIBUTING;
+      return ((remoteState & flagsToCheck) == 0);
+    };
+    // Remote side LACP should timeout on second member and
+    // bring down both members due to minlink violation after 3 timeouts
+    EXPECT_TRUE(
+        waitForSwitchStateCondition(remoteLacpTimeout, 4 * kLacpLongTimeout));
+  };
+  checkForRemoteSideRun();
+  verifyAcrossWarmBoots(setup, verify);
 }

@@ -27,6 +27,8 @@ DEFINE_string(
     multiNodeTestRemoteSwitchName,
     "",
     "multinode test remote switch name");
+DEFINE_bool(setup_for_warmboot, false, "Set up test for warmboot");
+DEFINE_bool(run_forever, false, "run the test forever");
 
 namespace {
 int argCount{0};
@@ -37,8 +39,7 @@ PlatformInitFn initPlatform{nullptr};
 namespace facebook::fboss {
 
 void MultiNodeTest::TearDown() {
-  // TODO - handle both warmboot and non warmboot exits
-  stopAgent();
+  stopAgent(FLAGS_setup_for_warmboot);
 }
 
 // Construct a config file by combining the hw config passed
@@ -116,6 +117,20 @@ void MultiNodeTest::setPortStatus(PortID portId, bool up) {
     return newState;
   };
   sw()->updateStateBlocking("set port state", configFnLinkDown);
+}
+
+void MultiNodeTest::checkForRemoteSideRun() {
+  // Do not tear down setup if run_forver flag is true. This is used on
+  // remote side of device under test to keep state running till DUT
+  // completes tests. Test will be terminated by the starting script
+  // by sending a SIGTERM.
+  if (FLAGS_run_forever) {
+    XLOG(DBG2) << "MultiNodeLacpTest run forever...";
+    while (true) {
+      sleep(1);
+      XLOG_EVERY_MS(DBG2, 5000) << "MultiNodeLacpTest running forever";
+    }
+  }
 }
 
 int mulitNodeTestMain(int argc, char** argv, PlatformInitFn initPlatformFn) {
