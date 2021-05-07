@@ -121,3 +121,102 @@ TEST_F(MacsecManagerTest, removeNonexistentMacsec) {
           SAI_MACSEC_DIRECTION_INGRESS),
       FbossError);
 }
+
+TEST_F(MacsecManagerTest, addMacsecPort) {
+  saiManagerTable->macsecManager().addMacsec(
+      SAI_MACSEC_DIRECTION_INGRESS, false);
+  saiManagerTable->macsecManager().addMacsec(
+      SAI_MACSEC_DIRECTION_EGRESS, false);
+
+  std::shared_ptr<Port> swPort = makePort(p0);
+  saiManagerTable->portManager().addPort(swPort);
+
+  saiManagerTable->macsecManager().addMacsecPort(
+      swPort->getID(), SAI_MACSEC_DIRECTION_INGRESS);
+  saiManagerTable->macsecManager().addMacsecPort(
+      swPort->getID(), SAI_MACSEC_DIRECTION_EGRESS);
+
+  auto ingressPort = saiManagerTable->macsecManager().getMacsecPortHandle(
+      swPort->getID(), SAI_MACSEC_DIRECTION_INGRESS);
+
+  auto egressPort = saiManagerTable->macsecManager().getMacsecPortHandle(
+      swPort->getID(), SAI_MACSEC_DIRECTION_EGRESS);
+
+  CHECK_NE(ingressPort, nullptr);
+  CHECK_NE(egressPort, nullptr);
+}
+
+TEST_F(MacsecManagerTest, addMacsecPortForNonexistentMacsec) {
+  std::shared_ptr<Port> swPort = makePort(p0);
+  saiManagerTable->portManager().addPort(swPort);
+
+  EXPECT_THROW(
+      saiManagerTable->macsecManager().addMacsecPort(
+          swPort->getID(), SAI_MACSEC_DIRECTION_INGRESS),
+      FbossError);
+}
+
+TEST_F(MacsecManagerTest, addMacsecPortForNonexistentPort) {
+  saiManagerTable->macsecManager().addMacsec(
+      SAI_MACSEC_DIRECTION_INGRESS, false);
+
+  EXPECT_THROW(
+      saiManagerTable->macsecManager().addMacsecPort(
+          PortID(p0.id), SAI_MACSEC_DIRECTION_INGRESS),
+      FbossError);
+}
+
+TEST_F(MacsecManagerTest, addDuplicateMacsecPort) {
+  saiManagerTable->macsecManager().addMacsec(
+      SAI_MACSEC_DIRECTION_INGRESS, false);
+
+  std::shared_ptr<Port> swPort = makePort(p0);
+  saiManagerTable->portManager().addPort(swPort);
+
+  saiManagerTable->macsecManager().addMacsecPort(
+      swPort->getID(), SAI_MACSEC_DIRECTION_INGRESS);
+  EXPECT_THROW(
+      saiManagerTable->macsecManager().addMacsecPort(
+          swPort->getID(), SAI_MACSEC_DIRECTION_INGRESS),
+      FbossError);
+}
+
+TEST_F(MacsecManagerTest, removeMacsecPort) {
+  saiManagerTable->macsecManager().addMacsec(
+      SAI_MACSEC_DIRECTION_INGRESS, false);
+
+  std::shared_ptr<Port> swPort = makePort(p0);
+  saiManagerTable->portManager().addPort(swPort);
+
+  saiManagerTable->macsecManager().addMacsecPort(
+      swPort->getID(), SAI_MACSEC_DIRECTION_INGRESS);
+
+  auto ingressPort = saiManagerTable->macsecManager().getMacsecPortHandle(
+      swPort->getID(), SAI_MACSEC_DIRECTION_INGRESS);
+
+  CHECK_NE(ingressPort, nullptr);
+
+  saiManagerTable->macsecManager().removeMacsecPort(
+      swPort->getID(), SAI_MACSEC_DIRECTION_INGRESS);
+
+  ingressPort = saiManagerTable->macsecManager().getMacsecPortHandle(
+      swPort->getID(), SAI_MACSEC_DIRECTION_INGRESS);
+  CHECK_EQ(ingressPort, nullptr);
+}
+
+TEST_F(MacsecManagerTest, removeNonexistentMacsecPort) {
+  // When there's no macsec pipeline obj
+  EXPECT_THROW(
+      saiManagerTable->macsecManager().removeMacsecPort(
+          PortID(p0.id), SAI_MACSEC_DIRECTION_INGRESS),
+      FbossError);
+
+  saiManagerTable->macsecManager().addMacsec(
+      SAI_MACSEC_DIRECTION_INGRESS, false);
+
+  // When there's a macsec pipeline, but no macsecPort
+  EXPECT_THROW(
+      saiManagerTable->macsecManager().removeMacsecPort(
+          PortID(p0.id), SAI_MACSEC_DIRECTION_INGRESS),
+      FbossError);
+}
