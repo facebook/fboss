@@ -220,3 +220,75 @@ TEST_F(MacsecManagerTest, removeNonexistentMacsecPort) {
           PortID(p0.id), SAI_MACSEC_DIRECTION_INGRESS),
       FbossError);
 }
+
+TEST_F(MacsecManagerTest, addMacsecFlow) {
+  saiManagerTable->macsecManager().addMacsec(
+      SAI_MACSEC_DIRECTION_INGRESS, false);
+  saiManagerTable->macsecManager().addMacsec(
+      SAI_MACSEC_DIRECTION_EGRESS, false);
+
+  saiManagerTable->macsecManager().addMacsecFlow(SAI_MACSEC_DIRECTION_INGRESS);
+  saiManagerTable->macsecManager().addMacsecFlow(SAI_MACSEC_DIRECTION_EGRESS);
+
+  auto ingressFlow = saiManagerTable->macsecManager().getMacsecFlow(
+      SAI_MACSEC_DIRECTION_INGRESS);
+  auto egressFlow = saiManagerTable->macsecManager().getMacsecFlow(
+      SAI_MACSEC_DIRECTION_EGRESS);
+
+  CHECK_NE(ingressFlow, nullptr);
+  CHECK_NE(egressFlow, nullptr);
+}
+
+TEST_F(MacsecManagerTest, addMacsecFlowForNonexistentMacsec) {
+  EXPECT_THROW(
+      saiManagerTable->macsecManager().addMacsecFlow(
+          SAI_MACSEC_DIRECTION_INGRESS),
+      FbossError);
+}
+
+TEST_F(MacsecManagerTest, addDuplicateMacsecFlow) {
+  saiManagerTable->macsecManager().addMacsec(
+      SAI_MACSEC_DIRECTION_INGRESS, false);
+
+  saiManagerTable->macsecManager().addMacsecFlow(SAI_MACSEC_DIRECTION_INGRESS);
+  EXPECT_THROW(
+      saiManagerTable->macsecManager().addMacsecFlow(
+          SAI_MACSEC_DIRECTION_INGRESS),
+      FbossError);
+}
+
+TEST_F(MacsecManagerTest, removeMacsecFlow) {
+  saiManagerTable->macsecManager().addMacsec(
+      SAI_MACSEC_DIRECTION_INGRESS, false);
+
+  saiManagerTable->macsecManager().addMacsecFlow(SAI_MACSEC_DIRECTION_INGRESS);
+
+  auto ingressFlow = saiManagerTable->macsecManager().getMacsecFlow(
+      SAI_MACSEC_DIRECTION_INGRESS);
+
+  CHECK_NE(ingressFlow, nullptr);
+
+  saiManagerTable->macsecManager().removeMacsecFlow(
+      SAI_MACSEC_DIRECTION_INGRESS);
+
+  ingressFlow = saiManagerTable->macsecManager().getMacsecFlow(
+      SAI_MACSEC_DIRECTION_INGRESS);
+  CHECK_EQ(ingressFlow, nullptr);
+}
+
+TEST_F(MacsecManagerTest, removeNonexistentMacsecFlow) {
+  // When there's no macsec pipeline obj
+  EXPECT_THROW(
+      saiManagerTable->macsecManager().removeMacsecFlow(
+          SAI_MACSEC_DIRECTION_INGRESS),
+      FbossError);
+
+  saiManagerTable->macsecManager().addMacsec(
+      SAI_MACSEC_DIRECTION_INGRESS, false);
+
+  // When there's a macsec pipeline, but no macsecFlow
+  EXPECT_THROW(
+      saiManagerTable->macsecManager().removeMacsecFlow(
+          SAI_MACSEC_DIRECTION_INGRESS),
+      FbossError);
+}
