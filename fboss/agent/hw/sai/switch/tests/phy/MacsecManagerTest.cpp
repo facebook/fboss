@@ -41,6 +41,11 @@ mka::MKASak makeSak(
   sak.assocNum_ref() = assocNum;
   return sak;
 }
+
+MacsecSecureChannelId packSci(mka::MKASci& sci) {
+  auto mac = folly::MacAddress(*sci.macAddress_ref());
+  return MacsecSecureChannelId(mac.u64NBO() | *sci.port_ref());
+}
 } // namespace
 
 class MacsecManagerTest : public ManagerTestBase {
@@ -290,5 +295,146 @@ TEST_F(MacsecManagerTest, removeNonexistentMacsecFlow) {
   EXPECT_THROW(
       saiManagerTable->macsecManager().removeMacsecFlow(
           SAI_MACSEC_DIRECTION_INGRESS),
+      FbossError);
+}
+
+TEST_F(MacsecManagerTest, addMacsecSC) {
+  saiManagerTable->macsecManager().addMacsec(
+      SAI_MACSEC_DIRECTION_INGRESS, false);
+
+  auto flowId = saiManagerTable->macsecManager().addMacsecFlow(
+      SAI_MACSEC_DIRECTION_INGRESS);
+
+  std::shared_ptr<Port> swPort = makePort(p0);
+  saiManagerTable->portManager().addPort(swPort);
+
+  saiManagerTable->macsecManager().addMacsecPort(
+      swPort->getID(), SAI_MACSEC_DIRECTION_INGRESS);
+
+  saiManagerTable->macsecManager().addMacsecSC(
+      swPort->getID(),
+      SAI_MACSEC_DIRECTION_INGRESS,
+      flowId,
+      packSci(remoteSci),
+      true);
+
+  auto scHandle = saiManagerTable->macsecManager().getMacsecSCHandle(
+      swPort->getID(), packSci(remoteSci), SAI_MACSEC_DIRECTION_INGRESS);
+
+  CHECK_NE(scHandle, nullptr);
+}
+
+TEST_F(MacsecManagerTest, addMacsecSCForNonexistentMacsec) {
+  std::shared_ptr<Port> swPort = makePort(p0);
+  saiManagerTable->portManager().addPort(swPort);
+
+  EXPECT_THROW(
+      saiManagerTable->macsecManager().addMacsecSC(
+          swPort->getID(),
+          SAI_MACSEC_DIRECTION_INGRESS,
+          MacsecFlowSaiId(0),
+          packSci(remoteSci),
+          true),
+      FbossError);
+}
+
+TEST_F(MacsecManagerTest, addMacsecSCForNonexistentMacsecPort) {
+  saiManagerTable->macsecManager().addMacsec(
+      SAI_MACSEC_DIRECTION_INGRESS, false);
+
+  auto flowId = saiManagerTable->macsecManager().addMacsecFlow(
+      SAI_MACSEC_DIRECTION_INGRESS);
+
+  std::shared_ptr<Port> swPort = makePort(p0);
+  saiManagerTable->portManager().addPort(swPort);
+
+  EXPECT_THROW(
+      saiManagerTable->macsecManager().addMacsecSC(
+          swPort->getID(),
+          SAI_MACSEC_DIRECTION_INGRESS,
+          flowId,
+          packSci(remoteSci),
+          true),
+      FbossError);
+}
+
+TEST_F(MacsecManagerTest, addDuplicateMacsecSC) {
+  saiManagerTable->macsecManager().addMacsec(
+      SAI_MACSEC_DIRECTION_INGRESS, false);
+
+  auto flowId = saiManagerTable->macsecManager().addMacsecFlow(
+      SAI_MACSEC_DIRECTION_INGRESS);
+
+  std::shared_ptr<Port> swPort = makePort(p0);
+  saiManagerTable->portManager().addPort(swPort);
+
+  saiManagerTable->macsecManager().addMacsecPort(
+      swPort->getID(), SAI_MACSEC_DIRECTION_INGRESS);
+
+  saiManagerTable->macsecManager().addMacsecSC(
+      swPort->getID(),
+      SAI_MACSEC_DIRECTION_INGRESS,
+      flowId,
+      packSci(remoteSci),
+      true);
+
+  EXPECT_THROW(
+      saiManagerTable->macsecManager().addMacsecSC(
+          swPort->getID(),
+          SAI_MACSEC_DIRECTION_INGRESS,
+          flowId,
+          packSci(remoteSci),
+          true),
+      FbossError);
+}
+
+TEST_F(MacsecManagerTest, removeMacsecSC) {
+  saiManagerTable->macsecManager().addMacsec(
+      SAI_MACSEC_DIRECTION_INGRESS, false);
+
+  auto flowId = saiManagerTable->macsecManager().addMacsecFlow(
+      SAI_MACSEC_DIRECTION_INGRESS);
+
+  std::shared_ptr<Port> swPort = makePort(p0);
+  saiManagerTable->portManager().addPort(swPort);
+
+  saiManagerTable->macsecManager().addMacsecPort(
+      swPort->getID(), SAI_MACSEC_DIRECTION_INGRESS);
+
+  saiManagerTable->macsecManager().addMacsecSC(
+      swPort->getID(),
+      SAI_MACSEC_DIRECTION_INGRESS,
+      flowId,
+      packSci(remoteSci),
+      true);
+
+  auto scHandle = saiManagerTable->macsecManager().getMacsecSCHandle(
+      swPort->getID(), packSci(remoteSci), SAI_MACSEC_DIRECTION_INGRESS);
+
+  CHECK_NE(scHandle, nullptr);
+
+  saiManagerTable->macsecManager().removeMacsecSC(
+      swPort->getID(), packSci(remoteSci), SAI_MACSEC_DIRECTION_INGRESS);
+
+  scHandle = saiManagerTable->macsecManager().getMacsecSCHandle(
+      swPort->getID(), packSci(remoteSci), SAI_MACSEC_DIRECTION_INGRESS);
+
+  CHECK_EQ(scHandle, nullptr);
+}
+
+TEST_F(MacsecManagerTest, removeNonexistentMacsecSC) {
+  // When there's no macsec pipeline obj
+  EXPECT_THROW(
+      saiManagerTable->macsecManager().removeMacsecPort(
+          PortID(p0.id), SAI_MACSEC_DIRECTION_INGRESS),
+      FbossError);
+
+  saiManagerTable->macsecManager().addMacsec(
+      SAI_MACSEC_DIRECTION_INGRESS, false);
+
+  // When there's no macsec port
+  EXPECT_THROW(
+      saiManagerTable->macsecManager().removeMacsecPort(
+          PortID(p0.id), SAI_MACSEC_DIRECTION_INGRESS),
       FbossError);
 }

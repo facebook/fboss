@@ -15,6 +15,15 @@
 #include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
 
+extern "C" {
+#include <sai.h>
+}
+
+namespace {
+constexpr sai_uint8_t kSectagOffset = 12;
+constexpr sai_int32_t kReplayProtectionWindow = 100;
+} // namespace
+
 namespace facebook::fboss {
 
 SaiMacsecManager::SaiMacsecManager(
@@ -104,9 +113,9 @@ MacsecFlowSaiId SaiMacsecManager::addMacsecFlow(
   SaiMacsecFlowTraits::AdapterHostKey key{direction};
 
   auto& store = saiStore_->get<SaiMacsecFlowTraits>();
-  auto saiObj = store.setObject(key, attributes);
+  auto secureChannelObject = store.setObject(key, attributes);
 
-  macsecHandle->flow = std::move(saiObj);
+  macsecHandle->flow = std::move(secureChannelObject);
   return macsecHandle->flow->adapterKey();
 }
 
@@ -233,6 +242,120 @@ SaiMacsecPortHandle* FOLLY_NULLABLE SaiMacsecManager::getMacsecPortHandleImpl(
       << "Invalid null SaiMacsecPortHandle for linePort, direction: "
       << linePort << ", " << direction;
 
+  return itr->second.get();
+}
+
+MacsecSCSaiId SaiMacsecManager::addMacsecSC(
+    PortID linePort,
+    sai_macsec_direction_t direction,
+    MacsecFlowSaiId flowId,
+    MacsecSecureChannelId secureChannelId,
+    bool xpn64Enable) {
+  auto handle = getMacsecSCHandle(linePort, secureChannelId, direction);
+  if (handle) {
+    throw FbossError(
+        "Attempted to add macsecSC for secureChannelId:direction that already exists: ",
+        secureChannelId,
+        ":",
+        direction,
+        " SAI id: ",
+        handle->secureChannel->adapterKey());
+  }
+
+  auto macsecPort = getMacsecPortHandle(linePort, direction);
+  if (!macsecPort) {
+    throw FbossError(
+        "Attempted to add macsecSC for linePort that doesn't exist: ",
+        linePort);
+  }
+
+  std::optional<bool> secureChannelEnable;
+  std::optional<bool> replayProtectionEnable;
+  std::optional<sai_int32_t> replayProtectionWindow;
+
+  if (direction == SAI_MACSEC_DIRECTION_EGRESS) {
+    secureChannelEnable = true;
+  }
+  if (direction == SAI_MACSEC_DIRECTION_INGRESS) {
+    replayProtectionEnable = true;
+    replayProtectionWindow = kReplayProtectionWindow;
+  }
+
+  SaiMacsecSCTraits::CreateAttributes attributes {
+    secureChannelId, direction, flowId,
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 1)
+        xpn64Enable ? SAI_MACSEC_CIPHER_SUITE_GCM_AES_XPN_256
+                    : SAI_MACSEC_CIPHER_SUITE_GCM_AES_256, /* ciphersuite */
+#endif
+        secureChannelEnable, replayProtectionEnable, replayProtectionWindow,
+        kSectagOffset
+  };
+  SaiMacsecSCTraits::AdapterHostKey secureChannelKey{
+      secureChannelId, direction};
+
+  auto& store = saiStore_->get<SaiMacsecSCTraits>();
+  auto saiObj = store.setObject(secureChannelKey, attributes);
+  auto scHandle = std::make_unique<SaiMacsecSCHandle>();
+  scHandle->secureChannel = std::move(saiObj);
+  macsecPort->secureChannels.emplace(secureChannelId, std::move(scHandle));
+  return macsecPort->secureChannels[secureChannelId]
+      ->secureChannel->adapterKey();
+}
+
+const SaiMacsecSCHandle* FOLLY_NULLABLE SaiMacsecManager::getMacsecSCHandle(
+    PortID linePort,
+    MacsecSecureChannelId secureChannelId,
+    sai_macsec_direction_t direction) const {
+  return getMacsecSCHandleImpl(linePort, secureChannelId, direction);
+}
+SaiMacsecSCHandle* FOLLY_NULLABLE SaiMacsecManager::getMacsecSCHandle(
+    PortID linePort,
+    MacsecSecureChannelId secureChannelId,
+    sai_macsec_direction_t direction) {
+  return getMacsecSCHandleImpl(linePort, secureChannelId, direction);
+}
+
+void SaiMacsecManager::removeMacsecSC(
+    PortID linePort,
+    MacsecSecureChannelId secureChannelId,
+    sai_macsec_direction_t direction) {
+  auto portHandle = getMacsecPortHandle(linePort, direction);
+  if (!portHandle) {
+    throw FbossError(
+        "Attempted to remove SC for non-existent linePort: ", linePort);
+  }
+  auto itr = portHandle->secureChannels.find(secureChannelId);
+  if (itr == portHandle->secureChannels.end()) {
+    throw FbossError(
+        "Attempted to remove non-existent macsec SC for linePort:secureChannelId:direction: ",
+        linePort,
+        ":",
+        secureChannelId,
+        ":",
+        direction);
+  }
+  portHandle->secureChannels.erase(itr);
+  XLOG(INFO) << "removed macsec SC for linePort:secureChannelId:direction: "
+             << linePort << ":" << secureChannelId << ":" << direction;
+}
+
+SaiMacsecSCHandle* FOLLY_NULLABLE SaiMacsecManager::getMacsecSCHandleImpl(
+    PortID linePort,
+    MacsecSecureChannelId secureChannelId,
+    sai_macsec_direction_t direction) const {
+  auto portHandle = getMacsecPortHandle(linePort, direction);
+  if (!portHandle) {
+    return nullptr;
+  }
+  auto itr = portHandle->secureChannels.find(secureChannelId);
+  if (itr == portHandle->secureChannels.end()) {
+    return nullptr;
+  }
+  if (!itr->second.get()) {
+    XLOG(FATAL)
+        << "Invalid null SaiMacsecSCHandle for secureChannelId:direction: "
+        << secureChannelId << ":" << direction;
+  }
   return itr->second.get();
 }
 
