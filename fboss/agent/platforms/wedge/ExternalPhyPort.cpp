@@ -44,8 +44,15 @@ void ExternalPhyPort<PlatformT, PortStatsT>::portChanged(
   auto changingPrbsState = oldPort &&
       (oldPort->getGbSystemPrbs() != newPort->getGbSystemPrbs() ||
        oldPort->getGbLinePrbs() != newPort->getGbLinePrbs());
+  // TODO(ccpowers): Eventually we should allow qsfp service to alert the
+  // wedge agent to transceiver swaps. This method currently doesn't support
+  // 100G FR1, since the port won't flap, it will just go down w/ the default
+  // settings.
+  // Check if the port flapped, in which case we should check if we need to
+  // reprogram the phy. (in case the optics was swapped)
+  auto statusChanged = (!oldPort || oldPort->isUp() != newPort->isUp());
 
-  if (!enabling && !changingSpeed && !changingPrbsState) {
+  if (!enabling && !changingSpeed && !changingPrbsState && !statusChanged) {
     XLOG(DBG1) << "No need to reprogram " << newPort->getName();
     return;
   }
