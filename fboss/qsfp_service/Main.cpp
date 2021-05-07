@@ -1,3 +1,5 @@
+// Copyright 2004-present Facebook. All Rights Reserved.
+
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 
 #include <folly/experimental/FunctionScheduler.h>
