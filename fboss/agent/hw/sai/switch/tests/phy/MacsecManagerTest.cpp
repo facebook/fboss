@@ -75,3 +75,49 @@ class MacsecManagerTest : public ManagerTestBase {
   mka::MKASci localSci;
   mka::MKASci remoteSci;
 };
+
+TEST_F(MacsecManagerTest, addMacsec) {
+  saiManagerTable->macsecManager().addMacsec(
+      SAI_MACSEC_DIRECTION_INGRESS, false);
+  saiManagerTable->macsecManager().addMacsec(
+      SAI_MACSEC_DIRECTION_EGRESS, false);
+
+  auto ingressHandle = saiManagerTable->macsecManager().getMacsecHandle(
+      SAI_MACSEC_DIRECTION_INGRESS);
+  auto egressHandle = saiManagerTable->macsecManager().getMacsecHandle(
+      SAI_MACSEC_DIRECTION_EGRESS);
+
+  CHECK_NE(ingressHandle, nullptr);
+  CHECK_NE(egressHandle, nullptr);
+}
+
+TEST_F(MacsecManagerTest, addDuplicateMacsec) {
+  saiManagerTable->macsecManager().addMacsec(
+      SAI_MACSEC_DIRECTION_INGRESS, false);
+  EXPECT_THROW(
+      saiManagerTable->macsecManager().addMacsec(
+          SAI_MACSEC_DIRECTION_INGRESS, false),
+      FbossError);
+}
+
+TEST_F(MacsecManagerTest, removeMacsec) {
+  saiManagerTable->macsecManager().addMacsec(
+      SAI_MACSEC_DIRECTION_INGRESS, false);
+
+  auto ingressHandle = saiManagerTable->macsecManager().getMacsecHandle(
+      SAI_MACSEC_DIRECTION_INGRESS);
+  CHECK_NE(ingressHandle, nullptr);
+
+  saiManagerTable->macsecManager().removeMacsec(SAI_MACSEC_DIRECTION_INGRESS);
+
+  ingressHandle = saiManagerTable->macsecManager().getMacsecHandle(
+      SAI_MACSEC_DIRECTION_INGRESS);
+  CHECK_EQ(ingressHandle, nullptr);
+}
+
+TEST_F(MacsecManagerTest, removeNonexistentMacsec) {
+  EXPECT_THROW(
+      saiManagerTable->macsecManager().removeMacsec(
+          SAI_MACSEC_DIRECTION_INGRESS),
+      FbossError);
+}

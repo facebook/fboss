@@ -59,17 +59,13 @@ class SaiMacsecManager {
   getMacsecHandle(sai_macsec_direction_t direction) const;
   void removeMacsec(sai_macsec_direction_t direction);
 
- private:
   MacsecSaiId addMacsec(
       sai_macsec_direction_t direction,
       bool physicalBypassEnable);
-  SaiMacsecHandle* FOLLY_NULLABLE
-  getMacsecHandleImpl(sai_macsec_direction_t direction) const;
 
   MacsecFlowSaiId addMacsecFlow(sai_macsec_direction_t direction);
   const SaiMacsecFlow* getMacsecFlow(sai_macsec_direction_t direction) const;
   SaiMacsecFlow* getMacsecFlow(sai_macsec_direction_t direction);
-  SaiMacsecFlow* getMacsecFlowImpl(sai_macsec_direction_t direction) const;
   void removeMacsecFlow(sai_macsec_direction_t direction);
 
   MacsecPortSaiId addMacsecPort(
@@ -79,10 +75,15 @@ class SaiMacsecManager {
   getMacsecPortHandle(PortID linePort, sai_macsec_direction_t direction) const;
   SaiMacsecPortHandle* FOLLY_NULLABLE
   getMacsecPortHandle(PortID linePort, sai_macsec_direction_t direction);
+  void removeMacsecPort(PortID linePort, sai_macsec_direction_t direction);
+
+ private:
+  SaiMacsecHandle* FOLLY_NULLABLE
+  getMacsecHandleImpl(sai_macsec_direction_t direction) const;
+  SaiMacsecFlow* getMacsecFlowImpl(sai_macsec_direction_t direction) const;
   SaiMacsecPortHandle* FOLLY_NULLABLE getMacsecPortHandleImpl(
       PortID linePort,
       sai_macsec_direction_t direction) const;
-  void removeMacsecPort(PortID linePort, sai_macsec_direction_t direction);
 
   SaiStore* saiStore_;
 
