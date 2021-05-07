@@ -196,6 +196,11 @@ void SaiMacsecManager::removeMacsecPort(
     PortID linePort,
     sai_macsec_direction_t direction) {
   auto macsecHandle = getMacsecHandle(direction);
+  if (!macsecHandle) {
+    throw FbossError(
+        "Attempted to remove macsecPort for direction that has no macsec pipeline obj ",
+        direction);
+  }
   auto itr = macsecHandle->ports.find(linePort);
   if (itr == macsecHandle->ports.end()) {
     throw FbossError(
