@@ -48,25 +48,25 @@ class AsyncLoggerTest : public ::testing::Test {
 TEST_F(AsyncLoggerTest, logTimeoutTest) {
   std::string str(kTestStringSize, '.');
   asyncLogger->appendLog(str.c_str(), str.size());
-  EXPECT_EQ(asyncLogger->flushCount_, 0);
+  EXPECT_EQ(asyncLogger->getFlushCount(), 0);
 
   // Wait for one log timeout and then check
   // Add 20ms of boundry to let background thread flush data
   std::unique_lock<std::mutex> lock(latch);
   cv.wait_for(lock, std::chrono::milliseconds(logTimeout + 20));
-  EXPECT_EQ(asyncLogger->flushCount_, 1);
+  EXPECT_EQ(asyncLogger->getFlushCount(), 1);
 
   // Wait for one more log timeout but there's no logging happening
   // So flush count should still be the same
   cv.wait_for(lock, std::chrono::milliseconds(logTimeout + 20));
-  EXPECT_EQ(asyncLogger->flushCount_, 1);
+  EXPECT_EQ(asyncLogger->getFlushCount(), 1);
 }
 #endif
 
 TEST_F(AsyncLoggerTest, fullflushTest) {
   std::string str(kTestStringSize, '.');
   asyncLogger->appendLog(str.c_str(), str.size());
-  EXPECT_EQ(asyncLogger->flushCount_, 0);
+  EXPECT_EQ(asyncLogger->getFlushCount(), 0);
 
   asyncLogger->appendLog(str.c_str(), str.size());
 
@@ -74,17 +74,17 @@ TEST_F(AsyncLoggerTest, fullflushTest) {
   // immediately. Wait for 20ms to let that happen
   std::unique_lock<std::mutex> lock(latch);
   cv.wait_for(lock, std::chrono::milliseconds(20));
-  EXPECT_GE(asyncLogger->flushCount_, 1);
+  EXPECT_GE(asyncLogger->getFlushCount(), 1);
 }
 
 TEST_F(AsyncLoggerTest, forceflushTest) {
   std::string str = "TestString";
   asyncLogger->appendLog(str.c_str(), str.size());
-  EXPECT_EQ(asyncLogger->flushCount_, 0);
+  EXPECT_EQ(asyncLogger->getFlushCount(), 0);
 
   // Force flush will block until the flush happens
   asyncLogger->forceFlush();
-  EXPECT_EQ(asyncLogger->flushCount_, 1);
+  EXPECT_EQ(asyncLogger->getFlushCount(), 1);
 }
 
 TEST_F(AsyncLoggerTest, emptyBufferTest) {
@@ -96,16 +96,16 @@ TEST_F(AsyncLoggerTest, emptyBufferTest) {
 
   std::string str = "";
   asyncLogger->appendLog(str.c_str(), str.size());
-  EXPECT_EQ(asyncLogger->flushCount_, 1);
+  EXPECT_EQ(asyncLogger->getFlushCount(), 1);
 
   // Wait for one log timeout and then check empty buffer
   // Add 20ms of boundry to let background thread flush data
   cv.wait_for(lock, std::chrono::milliseconds(logTimeout + 20));
-  EXPECT_EQ(asyncLogger->flushCount_, 1);
+  EXPECT_EQ(asyncLogger->getFlushCount(), 1);
 
   // Force flush and check
   asyncLogger->forceFlush();
-  EXPECT_EQ(asyncLogger->flushCount_, 1);
+  EXPECT_EQ(asyncLogger->getFlushCount(), 1);
 }
 
 TEST_F(AsyncLoggerTest, concurrentWaitTest) {
@@ -131,5 +131,5 @@ TEST_F(AsyncLoggerTest, concurrentWaitTest) {
   // Without triggering a timeout, logger should flush str0, and one of
   // str1 or str2. The other unflushed string should be in the current buffer.
   // Therefore, the flush count should be equal or greater than two.
-  EXPECT_GE(asyncLogger->flushCount_, 2);
+  EXPECT_GE(asyncLogger->getFlushCount(), 2);
 }
