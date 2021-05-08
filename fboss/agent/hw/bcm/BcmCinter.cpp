@@ -779,7 +779,8 @@ vector<string> BcmCinter::cintForFlexctrConfig(
     bcm_field_flexctr_config_t* flexctr_cfg) {
   vector<string> cintLines = {
       to<string>(
-          "flexctr_config.flexctr_action_id=", flexctr_cfg->flexctr_action_id),
+          "flexctr_config.flexctr_action_id=",
+          getCintVar(statCounterIdVars, flexctr_cfg->flexctr_action_id)),
       to<string>("flexctr_config.counter_index=", flexctr_cfg->counter_index)};
   return cintLines;
 }
@@ -832,6 +833,35 @@ vector<string> BcmCinter::cintForFlexCtrAction(
       cintLines.end(),
       make_move_iterator(structLines.begin()),
       make_move_iterator(structLines.end()));
+  // index_operation
+  for (int i = 0; i < BCM_FLEXCTR_OPERATION_OBJECT_SIZE; i++) {
+    vector<string> indexOperationCint = {
+        to<string>(
+            "flexctr_action.index_operation.object[",
+            i,
+            "]=",
+            flexctr_action->index_operation.object[i]),
+        to<string>(
+            "flexctr_action.index_operation.quant_id[",
+            i,
+            "]=",
+            flexctr_action->index_operation.quant_id[i]),
+        to<string>(
+            "flexctr_action.index_operation.mask_size[",
+            i,
+            "]=",
+            flexctr_action->index_operation.mask_size[i]),
+        to<string>(
+            "flexctr_action.index_operation.shift[",
+            i,
+            "]=",
+            flexctr_action->index_operation.shift[i]),
+    };
+    cintLines.insert(
+        cintLines.end(),
+        make_move_iterator(indexOperationCint.begin()),
+        make_move_iterator(indexOperationCint.end()));
+  }
   // operation_a
   for (int i = 0; i < BCM_FLEXCTR_OPERATION_OBJECT_SIZE; i++) {
     vector<string> operationACint = {
@@ -3289,7 +3319,7 @@ int BcmCinter::bcm_field_entry_flexctr_attach(
   auto cint = cintForFlexctrConfig(flexctr_cfg);
   auto funcCint = wrapFunc(to<string>(
       "bcm_field_entry_flexctr_attach(",
-      makeParamStr(unit, entry, "&flexctr_config"),
+      makeParamStr(unit, getCintVar(fieldEntryVars, entry), "&flexctr_config"),
       ")"));
   cint.insert(
       cint.end(),
@@ -3306,7 +3336,7 @@ int BcmCinter::bcm_field_entry_flexctr_detach(
   auto cint = cintForFlexctrConfig(flexctr_cfg);
   auto funcCint = wrapFunc(to<string>(
       "bcm_field_entry_flexctr_detach(",
-      makeParamStr(unit, entry, "&flexctr_config"),
+      makeParamStr(unit, getCintVar(fieldEntryVars, entry), "&flexctr_config"),
       ")"));
   cint.insert(
       cint.end(),
@@ -3317,8 +3347,10 @@ int BcmCinter::bcm_field_entry_flexctr_detach(
 }
 
 int BcmCinter::bcm_field_entry_remove(int unit, bcm_field_entry_t entry) {
-  auto cint = wrapFunc(
-      to<string>("bcm_field_entry_remove(", makeParamStr(unit, entry), ")"));
+  auto cint = wrapFunc(to<string>(
+      "bcm_field_entry_remove(",
+      makeParamStr(unit, getCintVar(fieldEntryVars, entry)),
+      ")"));
   writeCintLines(std::move(cint));
   return 0;
 }
