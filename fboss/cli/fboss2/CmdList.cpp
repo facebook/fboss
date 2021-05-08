@@ -19,6 +19,7 @@
 #include "fboss/cli/fboss2/CmdShowNdp.h"
 #include "fboss/cli/fboss2/CmdShowPort.h"
 #include "fboss/cli/fboss2/CmdShowPortQueue.h"
+#include "fboss/cli/fboss2/CmdShowTransceiver.h"
 
 namespace facebook::fboss {
 
@@ -79,6 +80,13 @@ kListOfCommands() {
            "queue",
            "Show Port queue information",
            commandHandler<CmdShowPortQueue>},
+
+          {"show",
+           "transceiver",
+           utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
+           "",
+           "Show Transceiver information",
+           commandHandler<CmdShowTransceiver>},
 
           {"clear",
            "arp",

@@ -17,6 +17,7 @@ add_executable(fboss2
   fboss/cli/fboss2/CmdShowNdp.h
   fboss/cli/fboss2/CmdShowPort.h
   fboss/cli/fboss2/CmdShowPortQueue.h
+  fboss/cli/fboss2/CmdShowTransceiver.h
   fboss/cli/fboss2/CmdSubcommands.cpp
   fboss/cli/fboss2/CmdUtils.cpp
   fboss/cli/fboss2/Main.cpp
