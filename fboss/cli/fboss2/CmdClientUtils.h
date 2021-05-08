@@ -18,8 +18,4 @@ namespace facebook::fboss::utils {
 template <typename T>
 std::unique_ptr<T> createClient(const std::string& ip);
 
-template <typename T>
-std::unique_ptr<T> createAdditionalClient(const std::string& ip);
-
 } // namespace facebook::fboss::utils
-

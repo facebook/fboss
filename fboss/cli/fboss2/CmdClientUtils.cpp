@@ -16,17 +16,10 @@
 
 namespace facebook::fboss::utils {
 
-template std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient>
-createClient(const std::string& ip);
-
-template <typename T>
-std::unique_ptr<T> createClient(const std::string& ip) {
-  if constexpr (std::is_same_v<T, facebook::fboss::FbossCtrlAsyncClient>) {
-    return utils::createAgentClient(ip);
-  } else {
-    return utils::createAdditionalClient<T>(ip);
-  }
+template <>
+std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createClient(
+    const std::string& ip) {
+  return utils::createAgentClient(ip);
 }
 
 } // namespace facebook::fboss::utils
-
