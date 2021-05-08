@@ -22,7 +22,6 @@ using namespace std::chrono;
 
 using folly::ByteRange;
 using folly::IPAddress;
-using folly::IPAddress;
 using folly::IPAddressV6;
 
 namespace facebook::fboss::utils {
@@ -57,7 +56,7 @@ const folly::IPAddress getIPFromHost(const std::string& hostname) {
           IPAddressV6::byteCount()));
     }
   }
-  XLOG(ERR) <<"Could not get an IP for: " << hostname;
+  XLOG(ERR) << "Could not get an IP for: " << hostname;
   return IPAddress();
 }
 
@@ -104,6 +103,20 @@ createPlaintextAgentClient(const std::string& ip) {
       apache::thrift::HeaderClientChannel::newChannel(std::move(sock));
   channel->setTimeout(kRecvTimeout);
   return std::make_unique<facebook::fboss::FbossCtrlAsyncClient>(
+      std::move(channel));
+}
+
+std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient>
+createPlaintextQsfpClient(const std::string& ip) {
+  auto eb = folly::EventBaseManager::get()->getEventBase();
+  auto qsfpServicePort = CmdGlobalOptions::getInstance()->getQsfpThriftPort();
+  auto addr = folly::SocketAddress(ip, qsfpServicePort);
+  auto sock = folly::AsyncSocket::newSocket(eb, addr, kConnTimeout);
+  sock->setSendTimeout(kSendTimeout);
+  auto channel =
+      apache::thrift::HeaderClientChannel::newChannel(std::move(sock));
+  channel->setTimeout(kRecvTimeout);
+  return std::make_unique<facebook::fboss::QsfpServiceAsyncClient>(
       std::move(channel));
 }
 

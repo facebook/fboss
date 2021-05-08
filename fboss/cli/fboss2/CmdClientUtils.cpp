@@ -11,6 +11,7 @@
 
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/cli/fboss2/CmdUtils.h"
+#include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
 
 #include <string>
 
@@ -20,6 +21,12 @@ template <>
 std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createClient(
     const std::string& ip) {
   return utils::createAgentClient(ip);
+}
+
+template <>
+std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> createClient(
+    const std::string& ip) {
+  return utils::createQsfpClient(ip);
 }
 
 } // namespace facebook::fboss::utils

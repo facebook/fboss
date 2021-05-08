@@ -72,6 +72,10 @@ class CmdGlobalOptions {
     return agentThriftPort_;
   }
 
+  int getQsfpThriftPort() {
+    return qsfpThriftPort_;
+  }
+
   int getBgpThriftPort() {
     return bgpThriftPort_;
   }
@@ -91,6 +95,7 @@ class CmdGlobalOptions {
   std::string fmt_{"tabular"};
   std::string logUsage_;
   int agentThriftPort_{5909};
+  int qsfpThriftPort_{5910};
   int bgpThriftPort_{6909};
   std::string color_{"yes"};
 };

@@ -30,8 +30,12 @@ void CmdGlobalOptions::init(CLI::App& app) {
   app.add_option("-l,--loglevel", logLevel_, "Debug log level");
   app.add_option("--file", file_, "filename, queries every host in the file");
   app.add_option("--fmt", fmt_, "output format (tabular, JSON)");
-  app.add_option("--agent-port", agentThriftPort_, "Agent thrift port to connect to");
-  app.add_option("--color", color_, "color (no, yes => yes for tty and no for pipe)");
+  app.add_option(
+      "--agent-port", agentThriftPort_, "Agent thrift port to connect to");
+  app.add_option(
+      "--qsfp-port", qsfpThriftPort_, "QsfpService thrift port to connect to");
+  app.add_option(
+      "--color", color_, "color (no, yes => yes for tty and no for pipe)");
 
   initAdditional(app);
 }

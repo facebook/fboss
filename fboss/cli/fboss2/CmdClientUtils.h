@@ -9,8 +9,7 @@
  */
 #pragma once
 
-#include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
-
+#include <memory>
 #include <string>
 
 namespace facebook::fboss::utils {
