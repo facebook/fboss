@@ -29,6 +29,7 @@ add_executable(fboss2
 target_link_libraries(fboss2
   CLI11
   ctrl_cpp2
+  qsfp_cpp2
   Folly::folly
 )
 
