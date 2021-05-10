@@ -121,9 +121,9 @@ class PhyInterfaceHandler {
   virtual void initializeSlotPhys(int /* slotId */, bool /* warmboot */) = 0;
 
   /*
-   * This function provides the slot id, mdio id, phy id for a given port id
+   * This function provides the slot id, mdio id, phy id for a global xphy id
    */
-  virtual std::tuple<int, int, int> getPhyIdInfo(uint16_t id) = 0;
+  virtual phy::PhyIDInfo getPhyIDInfo(GlobalXphyID xphyID) = 0;
 
  protected:
 };
