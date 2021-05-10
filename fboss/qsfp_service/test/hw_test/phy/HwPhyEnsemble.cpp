@@ -10,6 +10,7 @@
 #include "fboss/qsfp_service/test/hw_test/phy/HwPhyEnsemble.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/platforms/common/MultiPimPlatformMapping.h"
 #include "fboss/lib/fpga/MultiPimPlatformSystemContainer.h"
 #include "fboss/lib/phy/PhyManager.h"
 
@@ -17,6 +18,17 @@ namespace facebook::fboss {
 HwPhyEnsemble::HwPhyEnsemble() {}
 
 HwPhyEnsemble::~HwPhyEnsemble() {}
+
+void HwPhyEnsemble::init(const HwPhyEnsembleInitInfo& info) {
+  phyManager_ = choosePhyManager(info.pimType);
+  phyManager_->getSystemContainer()->initHW();
+
+  // And then based on init info (pimType)to locate the first
+  // available pim in the test environment to initialize.
+  targetPimID_ = getFirstAvailablePimID(info.pimType);
+
+  platformMapping_ = chooseMultiPimPlatformMapping(info.pimType);
+}
 
 int8_t HwPhyEnsemble::getFirstAvailablePimID(
     MultiPimPlatformPimContainer::PimType pimType) {
@@ -31,5 +43,18 @@ int8_t HwPhyEnsemble::getFirstAvailablePimID(
       "Can't find pimType:",
       MultiPimPlatformPimContainer::getPimTypeStr(pimType),
       " pim in this platform");
+}
+
+std::vector<int> HwPhyEnsemble::getTargetPimXphyList(
+    MultiPimPlatformMapping* platformMapping) const {
+  auto pimPlatformMapping =
+      platformMapping->getPimPlatformMapping(targetPimID_);
+  std::vector<int> xphys;
+  for (const auto& chip : pimPlatformMapping->getChips()) {
+    if (chip.second.get_type() == phy::DataPlanePhyChipType::XPHY) {
+      xphys.push_back(chip.second.get_physicalID());
+    }
+  }
+  return xphys;
 }
 } // namespace facebook::fboss

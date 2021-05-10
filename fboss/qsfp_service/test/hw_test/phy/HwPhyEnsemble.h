@@ -13,12 +13,14 @@
 #include <memory>
 #include <optional>
 #include <set>
+#include <vector>
 
 #include "fboss/lib/fpga/MultiPimPlatformPimContainer.h"
 
 namespace facebook::fboss {
 
 class PhyManager;
+class MultiPimPlatformMapping;
 
 /*
  * HwPhyEnsemble will be the hw_test ensemble class to manager PhyManager.
@@ -57,7 +59,7 @@ class HwPhyEnsemble {
   // TODO(joseph5wu) Might need some extra logic to handle desctrutor
   virtual ~HwPhyEnsemble();
 
-  virtual void init(const HwPhyEnsembleInitInfo& info) = 0;
+  virtual void init(const HwPhyEnsembleInitInfo& info);
 
   PhyManager* getPhyManager() const {
     return phyManager_.get();
@@ -68,11 +70,22 @@ class HwPhyEnsemble {
   }
 
  protected:
+  std::vector<int> getTargetPimXphyList(
+      MultiPimPlatformMapping* platformMapping) const;
+
+  std::unique_ptr<PhyManager> phyManager_;
+  std::unique_ptr<MultiPimPlatformMapping> platformMapping_;
+  int8_t targetPimID_{-1};
+
+ private:
+  virtual std::unique_ptr<PhyManager> choosePhyManager(
+      MultiPimPlatformPimContainer::PimType pimType) = 0;
+
+  virtual std::unique_ptr<MultiPimPlatformMapping>
+  chooseMultiPimPlatformMapping(
+      MultiPimPlatformPimContainer::PimType pimType) = 0;
   // Based on pimType to find the first available pim ID.
   // Will throw exception if such pimType doesn't exist
   int8_t getFirstAvailablePimID(MultiPimPlatformPimContainer::PimType pimType);
-
-  std::unique_ptr<PhyManager> phyManager_;
-  int8_t targetPimID_{-1};
 };
 } // namespace facebook::fboss
