@@ -15,6 +15,7 @@
 #include <folly/Range.h>
 
 #include "fboss/agent/gen-cpp2/platform_config_types.h"
+#include "fboss/agent/types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "folly/dynamic.h"
 
@@ -120,6 +121,22 @@ struct PhyPortConfig {
   bool operator!=(const PhyPortConfig& rhs) const;
   std::string str();
   folly::dynamic toDynamic() const;
+};
+
+// Structure for keeping port phy information for a port
+struct PhyIDInfo {
+  PimID pimID;
+  MdioControllerID controllerID;
+  PhyAddr phyAddr;
+
+  bool operator==(const PhyIDInfo& other) const {
+    return std::tie(pimID, controllerID, phyAddr) ==
+        std::tie(other.pimID, other.controllerID, other.phyAddr);
+  }
+
+  bool operator!=(const PhyIDInfo& other) const {
+    return !(*this == other);
+  }
 };
 
 class ExternalPhy {
