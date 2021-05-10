@@ -245,13 +245,14 @@ SaiMacsecPortHandle* FOLLY_NULLABLE SaiMacsecManager::getMacsecPortHandleImpl(
   return itr->second.get();
 }
 
-MacsecSCSaiId SaiMacsecManager::addMacsecSC(
+MacsecSCSaiId SaiMacsecManager::addMacsecSecureChannel(
     PortID linePort,
     sai_macsec_direction_t direction,
     MacsecFlowSaiId flowId,
     MacsecSecureChannelId secureChannelId,
     bool xpn64Enable) {
-  auto handle = getMacsecSCHandle(linePort, secureChannelId, direction);
+  auto handle =
+      getMacsecSecureChannelHandle(linePort, secureChannelId, direction);
   if (handle) {
     throw FbossError(
         "Attempted to add macsecSC for secureChannelId:direction that already exists: ",
@@ -295,27 +296,29 @@ MacsecSCSaiId SaiMacsecManager::addMacsecSC(
 
   auto& store = saiStore_->get<SaiMacsecSCTraits>();
   auto saiObj = store.setObject(secureChannelKey, attributes);
-  auto scHandle = std::make_unique<SaiMacsecSCHandle>();
+  auto scHandle = std::make_unique<SaiMacsecSecureChannelHandle>();
   scHandle->secureChannel = std::move(saiObj);
   macsecPort->secureChannels.emplace(secureChannelId, std::move(scHandle));
   return macsecPort->secureChannels[secureChannelId]
       ->secureChannel->adapterKey();
 }
 
-const SaiMacsecSCHandle* FOLLY_NULLABLE SaiMacsecManager::getMacsecSCHandle(
+const SaiMacsecSecureChannelHandle* FOLLY_NULLABLE
+SaiMacsecManager::getMacsecSecureChannelHandle(
     PortID linePort,
     MacsecSecureChannelId secureChannelId,
     sai_macsec_direction_t direction) const {
-  return getMacsecSCHandleImpl(linePort, secureChannelId, direction);
+  return getMacsecSecureChannelHandleImpl(linePort, secureChannelId, direction);
 }
-SaiMacsecSCHandle* FOLLY_NULLABLE SaiMacsecManager::getMacsecSCHandle(
+SaiMacsecSecureChannelHandle* FOLLY_NULLABLE
+SaiMacsecManager::getMacsecSecureChannelHandle(
     PortID linePort,
     MacsecSecureChannelId secureChannelId,
     sai_macsec_direction_t direction) {
-  return getMacsecSCHandleImpl(linePort, secureChannelId, direction);
+  return getMacsecSecureChannelHandleImpl(linePort, secureChannelId, direction);
 }
 
-void SaiMacsecManager::removeMacsecSC(
+void SaiMacsecManager::removeMacsecSecureChannel(
     PortID linePort,
     MacsecSecureChannelId secureChannelId,
     sai_macsec_direction_t direction) {
@@ -339,7 +342,8 @@ void SaiMacsecManager::removeMacsecSC(
              << linePort << ":" << secureChannelId << ":" << direction;
 }
 
-SaiMacsecSCHandle* FOLLY_NULLABLE SaiMacsecManager::getMacsecSCHandleImpl(
+SaiMacsecSecureChannelHandle* FOLLY_NULLABLE
+SaiMacsecManager::getMacsecSecureChannelHandleImpl(
     PortID linePort,
     MacsecSecureChannelId secureChannelId,
     sai_macsec_direction_t direction) const {
