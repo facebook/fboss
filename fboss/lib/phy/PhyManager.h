@@ -17,6 +17,9 @@ class MultiPimPlatformSystemContainer;
 class PhyManager {
  public:
   virtual ~PhyManager() {}
+
+  virtual phy::PhyIDInfo getPhyIDInfo(GlobalXphyID xphyID) const = 0;
+
   /*
    * This function initializes all the PHY objects for a given chassis. The PHY
    * objects are kept per slot, per MDIO controller, per phy address. This
