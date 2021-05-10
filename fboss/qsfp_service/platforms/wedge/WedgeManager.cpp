@@ -1,7 +1,11 @@
+// (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
+
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/qsfp_service/QsfpConfig.h"
+#include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/module/QsfpModule.h"
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
 #include "fboss/qsfp_service/module/sff/SffModule.h"
@@ -47,10 +51,10 @@ WedgeManager::WedgeManager(
 
 void WedgeManager::loadConfig() {
   const auto& platformPorts = platformMapping_->getPlatformPorts();
-  config_ = AgentConfig::fromDefaultFile();
+  agentConfig_ = AgentConfig::fromDefaultFile();
 
-  // Process config info here.
-  for (const auto& port : *config_->thrift.sw_ref()->ports_ref()) {
+  // Process agent config info here.
+  for (const auto& port : *agentConfig_->thrift.sw_ref()->ports_ref()) {
     // Get the transceiver id based on the port info from config.
     auto portId = *port.logicalID_ref();
 
@@ -82,6 +86,13 @@ void WedgeManager::loadConfig() {
     }
     XLOG(INFO) << "Added port " << portName << " with portId " << portId
                << " to transceiver " << transceiverId.value();
+  }
+
+  // Process QSFP config here
+  try {
+    qsfpConfig_ = QsfpConfig::fromDefaultFile();
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Error loading QSFP Service config : " << ex.what();
   }
 }
 

@@ -22,3 +22,14 @@ target_link_libraries(qsfp_lib
     fb303::fb303
     FBThrift::thriftcpp2
 )
+
+add_library(qsfp_config
+  fboss/qsfp_service/QsfpConfig.cpp
+)
+
+target_link_libraries(qsfp_config
+  error
+  qsfp_config_cpp2
+  Folly::folly
+  FBThrift::thriftcpp2
+)

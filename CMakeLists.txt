@@ -204,6 +204,16 @@ add_fbthrift_cpp_library(
 add_fbthrift_cpp_library(
   transceiver_cpp2
   fboss/qsfp_service/if/transceiver.thrift
+  OPTIONS
+    json
+)
+add_fbthrift_cpp_library(
+  qsfp_config_cpp2
+  fboss/qsfp_service/if/qsfp_service_config.thrift
+  OPTIONS
+    json
+  DEPENDS
+    transceiver_cpp2
 )
 add_fbthrift_cpp_library(
   phy_cpp2
@@ -769,6 +779,7 @@ if (NOT SAI_ONLY)
   target_link_libraries(qsfp_service
       qsfp_module
       fboss_agent
+      qsfp_config
   )
 
   add_executable(cp2112_util
