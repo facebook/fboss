@@ -425,8 +425,8 @@ TEST_F(MacsecManagerTest, removeMacsecSecureChannel) {
 TEST_F(MacsecManagerTest, removeNonexistentMacsecSecureChannel) {
   // When there's no macsec pipeline obj
   EXPECT_THROW(
-      saiManagerTable->macsecManager().removeMacsecPort(
-          PortID(p0.id), SAI_MACSEC_DIRECTION_INGRESS),
+      saiManagerTable->macsecManager().removeMacsecSecureChannel(
+          PortID(p0.id), packSci(remoteSci), SAI_MACSEC_DIRECTION_INGRESS),
       FbossError);
 
   saiManagerTable->macsecManager().addMacsec(
@@ -434,7 +434,19 @@ TEST_F(MacsecManagerTest, removeNonexistentMacsecSecureChannel) {
 
   // When there's no macsec port
   EXPECT_THROW(
-      saiManagerTable->macsecManager().removeMacsecPort(
-          PortID(p0.id), SAI_MACSEC_DIRECTION_INGRESS),
+      saiManagerTable->macsecManager().removeMacsecSecureChannel(
+          PortID(p0.id), packSci(remoteSci), SAI_MACSEC_DIRECTION_INGRESS),
+      FbossError);
+
+  std::shared_ptr<Port> swPort = makePort(p0);
+  saiManagerTable->portManager().addPort(swPort);
+
+  saiManagerTable->macsecManager().addMacsecPort(
+      swPort->getID(), SAI_MACSEC_DIRECTION_INGRESS);
+
+  // When there's no secure channel
+  EXPECT_THROW(
+      saiManagerTable->macsecManager().removeMacsecSecureChannel(
+          PortID(p0.id), packSci(remoteSci), SAI_MACSEC_DIRECTION_INGRESS),
       FbossError);
 }
