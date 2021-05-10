@@ -82,8 +82,7 @@ std::unique_ptr<std::thread> SaiSwitchEnsemble::createThriftThread(
         false /* setupSSL*/,
         true /* isStreaming */);
     SignalHandler signalHandler(eventBase);
-    // Run the EventBase main loop
-    eventBase->loopForever();
+    server->serve();
   });
 }
 
