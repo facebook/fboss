@@ -4,6 +4,7 @@
 
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/packet/MPLSHdr.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "folly/io/Cursor.h"
@@ -75,7 +76,14 @@ void MPLSHandler::popLabelAndLookup(
         MPLSHdr(std::vector<MPLSHdr::Label>(stack.begin() + 1, stack.end())),
         cursor);
   }
-  // TODO: schedule IP packet for handling.
+  auto protocol = utility::decapsulateMplsPacket(pkt->buf());
+  if (!protocol) {
+    XLOG_EVERY_MS(ERR, 1000)
+        << "MPLS packet did not contain v4 or v6 IP packet";
+    return;
+  }
+  // schedule v4 or v6 packet to be handled as usual
+  sw_->packetReceived(std::move(pkt));
 }
 
 bool MPLSHandler::isLabelProgrammed(const MPLSHdr& header) const {
