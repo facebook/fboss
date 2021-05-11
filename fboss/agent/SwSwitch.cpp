@@ -54,6 +54,7 @@
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/IPv4Hdr.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
+#include "fboss/agent/packet/MPLSHdr.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/DeltaFunctions.h"
@@ -1143,9 +1144,16 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
     }
       return;
     case (uint16_t)ETHERTYPE::ETHERTYPE_MPLS: {
-      auto label = c.readBE<uint32_t>();
-      XLOG_EVERY_MS(DBG2, 1000) << "Received Mpls packet with label:" << label;
-      // TODO - Decode the label stack and payload underneath
+      // updates the cursor
+      auto hdr = MPLSHdr(&c);
+      auto label = hdr.stack()[0].getLabelValue();
+      auto labels = getState()->getLabelForwardingInformationBase();
+      if (!labels || !labels->getLabelForwardingEntryIf(label)) {
+        XLOG_EVERY_MS(ERR, 1000)
+            << "received packet with unknown label:" << label;
+      } else {
+        XLOG_EVERY_MS(ERR, 1000) << "Received Mpls packet with label:" << label;
+      }
       break;
     }
     default:
