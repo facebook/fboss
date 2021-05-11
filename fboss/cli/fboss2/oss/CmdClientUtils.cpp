@@ -14,20 +14,18 @@
 
 namespace facebook::fboss::utils {
 
-std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient>
-createPlaintextAgentClient(const std::string& ip);
-
-std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient>
-createPlaintextQsfpClient(const std::string& ip);
-
 std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createAgentClient(
     const std::string& ip) {
-  return createPlaintextAgentClient(ip);
+  auto agentPort = CmdGlobalOptions::getInstance()->getAgentThriftPort();
+  return createPlaintextClient<facebook::fboss::FbossCtrlAsyncClient>(
+      ip, agentPort);
 }
 
 std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> createQsfpClient(
     const std::string& ip) {
-  return createPlaintextQsfpClient(ip);
+  auto qsfpServicePort = CmdGlobalOptions::getInstance()->getQsfpThriftPort();
+  return createPlaintextClient<facebook::fboss::QsfpServiceAsyncClient>(
+      ip, qsfpServicePort);
 }
 
 } // namespace facebook::fboss::utils
