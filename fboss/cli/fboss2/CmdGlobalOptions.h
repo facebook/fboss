@@ -80,6 +80,10 @@ class CmdGlobalOptions {
     return bgpThriftPort_;
   }
 
+  int getCoopThriftPort() {
+    return coopThriftPort_;
+  }
+
   std::string getColor() {
     return color_;
   }
@@ -97,6 +101,7 @@ class CmdGlobalOptions {
   int agentThriftPort_{5909};
   int qsfpThriftPort_{5910};
   int bgpThriftPort_{6909};
+  int coopThriftPort_{6969};
   std::string color_{"yes"};
 };
 
