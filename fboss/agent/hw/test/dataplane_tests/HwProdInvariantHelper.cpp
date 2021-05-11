@@ -104,4 +104,35 @@ void HwProdInvariantHelper::verifyDscpToQueueMapping() {
   }
   EXPECT_TRUE(mappingVerified);
 }
+
+void HwProdInvariantHelper::verifySafeDiagCmds() {
+  std::vector<std::string> diagCmds;
+  switch (ensemble_->getAsic()->getAsicType()) {
+    case HwAsic::AsicType::ASIC_TYPE_FAKE:
+    case HwAsic::AsicType::ASIC_TYPE_MOCK:
+    case HwAsic::AsicType::ASIC_TYPE_TAJO:
+    case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
+      break;
+
+    case HwAsic::AsicType::ASIC_TYPE_TRIDENT2:
+    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK:
+    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
+    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
+      diagCmds.push_back("ps");
+      diagCmds.push_back("show counters");
+      diagCmds.push_back("soc 0");
+      break;
+  }
+  if (diagCmds.size()) {
+    for (auto i = 0; i < 10; ++i) {
+      for (auto cmd : diagCmds) {
+        std::string out;
+        ensemble_->runDiagCommand(cmd + "\n", out);
+      }
+    }
+    std::string out;
+    ensemble_->runDiagCommand("quit\n", out);
+  }
+}
+
 } // namespace facebook::fboss

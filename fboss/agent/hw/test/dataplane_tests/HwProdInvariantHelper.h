@@ -26,6 +26,7 @@ class HwProdInvariantHelper {
 
   void setupEcmp();
   void verifyInvariants() {
+    verifySafeDiagCmds();
     verifyDscpToQueueMapping();
     verifyCopp();
     verifyLoadBalacing();
@@ -41,6 +42,7 @@ class HwProdInvariantHelper {
   cfg::SwitchConfig initialConfig() const {
     return initialCfg_;
   }
+  void verifySafeDiagCmds();
   void verifyDscpToQueueMapping();
   void verifyLoadBalacing();
   void verifyCopp();
