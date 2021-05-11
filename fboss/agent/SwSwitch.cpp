@@ -30,6 +30,7 @@
 #if FOLLY_HAS_COROUTINES
 #include "fboss/agent/MKAServiceManager.h"
 #endif
+#include "fboss/agent/MPLSHandler.h"
 #include "fboss/agent/MacTableManager.h"
 #include "fboss/agent/MirrorManager.h"
 #include "fboss/agent/NeighborUpdater.h"
@@ -178,6 +179,7 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
       nUpdater_(new NeighborUpdater(this)),
       pcapMgr_(new PktCaptureManager(this)),
       mirrorManager_(new MirrorManager(this)),
+      mplsHandler_(new MPLSHandler(this)),
       routeUpdateLogger_(new RouteUpdateLogger(this)),
       resolvedNexthopMonitor_(new ResolvedNexthopMonitor(this)),
       resolvedNexthopProbeScheduler_(new ResolvedNexthopProbeScheduler(this)),
@@ -1146,14 +1148,7 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
     case (uint16_t)ETHERTYPE::ETHERTYPE_MPLS: {
       // updates the cursor
       auto hdr = MPLSHdr(&c);
-      auto label = hdr.stack()[0].getLabelValue();
-      auto labels = getState()->getLabelForwardingInformationBase();
-      if (!labels || !labels->getLabelForwardingEntryIf(label)) {
-        XLOG_EVERY_MS(ERR, 1000)
-            << "received packet with unknown label:" << label;
-      } else {
-        XLOG_EVERY_MS(ERR, 1000) << "Received Mpls packet with label:" << label;
-      }
+      mplsHandler_->handlePacket(std::move(pkt), hdr, c);
       break;
     }
     default:

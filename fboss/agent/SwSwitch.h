@@ -40,6 +40,7 @@ class IPv4Handler;
 class IPv6Handler;
 class LinkAggregationManager;
 class LldpManager;
+class MPLSHandler;
 class PktCaptureManager;
 class Platform;
 class Port;
@@ -885,6 +886,7 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<NeighborUpdater> nUpdater_;
   std::unique_ptr<PktCaptureManager> pcapMgr_;
   std::unique_ptr<MirrorManager> mirrorManager_;
+  std::unique_ptr<MPLSHandler> mplsHandler_;
   std::unique_ptr<RouteUpdateLogger> routeUpdateLogger_;
   std::unique_ptr<LinkAggregationManager> lagManager_;
   std::unique_ptr<ResolvedNexthopMonitor> resolvedNexthopMonitor_;
