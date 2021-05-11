@@ -208,6 +208,8 @@ class QsfpModule : public Transceiver {
    */
   virtual unsigned int numMediaLanes() const = 0;
 
+  virtual void configureModule() {}
+
  protected:
   // no copy or assignment
   QsfpModule(QsfpModule const&) = delete;

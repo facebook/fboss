@@ -1171,27 +1171,6 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
   dataPathDeInit = 0x0;
   qsfpImpl_->writeTransceiver(
       TransceiverI2CApi::ADDR_QSFP, offset, length, &dataPathDeInit);
-
-  // Set the Rx equalizer based on platform and speed if needed
-  RxEqualizerSettings rxEq;
-  if (transceiverManager_->getPlatformMode() == PlatformMode::ELBERT) {
-    if (speed == cfg::PortSpeed::FOURHUNDREDG) {
-      rxEq.preCursor_ref() = 4;
-      rxEq.postCursor_ref() = 0;
-      rxEq.mainAmplitude_ref() = 3;
-      setModuleRxEqualizerLocked(rxEq);
-    } else if (speed == cfg::PortSpeed::TWOHUNDREDG) {
-      rxEq.preCursor_ref() = 3;
-      rxEq.postCursor_ref() = 0;
-      rxEq.mainAmplitude_ref() = 3;
-      setModuleRxEqualizerLocked(rxEq);
-    }
-  } else if (transceiverManager_->getPlatformMode() == PlatformMode::WEDGE400) {
-    rxEq.preCursor_ref() = 4;
-    rxEq.postCursor_ref() = 0;
-    rxEq.mainAmplitude_ref() = 3;
-    setModuleRxEqualizerLocked(rxEq);
-  }
 }
 
 /*
@@ -1320,6 +1299,51 @@ void CmisModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
 }
 
 /*
+ * configureModule
+ *
+ * Set the module serdes / Rx equalizer after module has been discovered. This
+ * is done only if current serdes setting is different from desired one. Elbert:
+ *  Speed 400G -> pre/post/main: 4/0/3
+ *  Speed 200G -> pre/post/main: 3/0/3
+ * Wedge400:
+ *  All speeds -> pre/post/main: 3/0/3
+ */
+void CmisModule::configureModule() {
+  // Find port speed first
+  auto speed = getPortSpeed();
+
+  XLOG(INFO) << folly::sformat(
+      "Module {:s}, configureModule for current speed {}",
+      qsfpImpl_->getName(),
+      apache::thrift::util::enumNameSafe(speed));
+
+  // Set the Rx equalizer based on platform and speed if needed
+  RxEqualizerSettings rxEq;
+  if (!transceiverManager_) {
+    return;
+  }
+
+  if (transceiverManager_->getPlatformMode() == PlatformMode::ELBERT) {
+    if (speed == cfg::PortSpeed::FOURHUNDREDG) {
+      rxEq.preCursor_ref() = 4;
+      rxEq.postCursor_ref() = 0;
+      rxEq.mainAmplitude_ref() = 3;
+      setModuleRxEqualizerLocked(rxEq);
+    } else if (speed == cfg::PortSpeed::TWOHUNDREDG) {
+      rxEq.preCursor_ref() = 3;
+      rxEq.postCursor_ref() = 0;
+      rxEq.mainAmplitude_ref() = 3;
+      setModuleRxEqualizerLocked(rxEq);
+    }
+  } else if (transceiverManager_->getPlatformMode() == PlatformMode::WEDGE400) {
+    rxEq.preCursor_ref() = 4;
+    rxEq.postCursor_ref() = 0;
+    rxEq.mainAmplitude_ref() = 3;
+    setModuleRxEqualizerLocked(rxEq);
+  }
+}
+
+/*
  * setModuleRxEqualizerLocked
  *
  * Customize the optics for Rx pre-cursor, Rx post cursor, Rx main amplitude
@@ -1335,6 +1359,9 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
   uint8_t desiredPre[4], desiredPost[4], desiredMain[4];
   bool changePre = false, changePost = false, changeMain = false;
   int offset, length, dataAddress;
+
+  XLOG(INFO) << folly::sformat(
+      "setModuleRxEqualizerLocked called for {:s}", qsfpImpl_->getName());
 
   for (int i = 0; i < 4; i++) {
     desiredPre[i] = ((*rxEqualizer.preCursor_ref() & 0xf) << 4) |

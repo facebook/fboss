@@ -71,6 +71,8 @@ class CmisModule : public QsfpModule {
    */
   unsigned int numMediaLanes() const override;
 
+  void configureModule() override;
+
  protected:
   // no copy or assignment
   CmisModule(CmisModule const&) = delete;
@@ -316,11 +318,6 @@ class CmisModule : public QsfpModule {
    * register of QSFP whenever it is newly inserted.
    */
   void ensureOutOfReset() const;
-
-  /*
-   * Determine set speed of enabled member ports.
-   */
-  cfg::PortSpeed getPortSpeed() const;
 
   /*
    * Set the optics Rx euqlizer pre/post/main values

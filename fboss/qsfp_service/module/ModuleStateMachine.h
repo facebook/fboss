@@ -147,6 +147,46 @@ fsm.get_attribute(qsfpModuleObjPtr)->exitBringupRemediateFunction();
 }
 }
 ;
+/*
+ * moduleActiveStateEntryFn
+ * Type: State Entry Function
+ *
+ * State Entry Function for the state MODULE_STATE_ACTIVE
+ * When Module SM enters Active state then it needs to check and correct the
+ * optics serdes setting if required.
+ */
+BOOST_MSM_EUML_ACTION(moduleActiveStateEntryFn){
+    template <class Event, class Fsm, class State>
+    void
+    operator()(const Event& /* ev */, Fsm& fsm, State& /* currState */) const {
+        XLOG(DBG2) << "MSM"
+                   << fsm.get_attribute(qsfpModuleObjPtr)->getModuleId()
+                   << ": moduleActiveStateEntryFn: "
+                   << "Entering state MODULE_STATE_ACTIVE";
+
+// Set the module serdes once the optics goes to Active state
+fsm.get_attribute(qsfpModuleObjPtr)->configureModule();
+}
+}
+;
+
+/*
+ * moduleActiveStateExitFn
+ * Type: State Exit Function
+ *
+ * State Exit Function for the state MODULE_STATE_ACTIVE
+ */
+BOOST_MSM_EUML_ACTION(moduleActiveStateExitFn){
+    template <class Event, class Fsm, class State>
+    void
+    operator()(const Event& /* ev */, Fsm& fsm, State& /* currState */) const {
+        XLOG(DBG2) << "MSM"
+                   << fsm.get_attribute(qsfpModuleObjPtr)->getModuleId()
+                   << ": moduleActiveStateExitFn: "
+                   << "Exiting state MODULE_STATE_ACTIVE";
+}
+}
+;
 
 // Module State Machine States
 BOOST_MSM_EUML_STATE((), MODULE_STATE_NOT_PRESENT)
@@ -157,7 +197,9 @@ BOOST_MSM_EUML_STATE(
 BOOST_MSM_EUML_STATE(
     (moduleInactiveStateEntryFn, moduleInactiveStateExitFn),
     MODULE_STATE_INACTIVE)
-BOOST_MSM_EUML_STATE((), MODULE_STATE_ACTIVE)
+BOOST_MSM_EUML_STATE(
+    (moduleActiveStateEntryFn, moduleActiveStateExitFn),
+    MODULE_STATE_ACTIVE)
 BOOST_MSM_EUML_STATE((), MODULE_STATE_UPGRADING)
 
 // Module State Machine Events
