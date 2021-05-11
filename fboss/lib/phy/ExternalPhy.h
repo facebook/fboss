@@ -75,7 +75,6 @@ struct LaneConfig {
   std::optional<TxSettings> tx;
 
   bool operator==(const LaneConfig& rhs) const;
-  std::string str();
   folly::dynamic toDynamic() const;
 };
 
@@ -83,7 +82,6 @@ struct PhySideConfig {
   std::map<int32_t, LaneConfig> lanes;
 
   bool operator==(const PhySideConfig& rhs) const;
-  std::string str();
   folly::dynamic toDynamic() const;
 };
 
@@ -92,7 +90,6 @@ struct ExternalPhyConfig {
   PhySideConfig line;
 
   bool operator==(const ExternalPhyConfig& rhs) const;
-  std::string str();
   folly::dynamic toDynamic() const;
   static ExternalPhyConfig fromConfigeratorTypes(
       PortPinConfig portPinConfig,
@@ -109,7 +106,6 @@ struct ExternalPhyProfileConfig {
   bool operator==(const ExternalPhyProfileConfig& rhs) const;
   static ExternalPhyProfileConfig fromPortProfileConfig(
       const PortProfileConfig& portCfg);
-  std::string str();
   folly::dynamic toDynamic() const;
 };
 
@@ -119,7 +115,6 @@ struct PhyPortConfig {
 
   bool operator==(const PhyPortConfig& rhs) const;
   bool operator!=(const PhyPortConfig& rhs) const;
-  std::string str();
   folly::dynamic toDynamic() const;
 };
 
