@@ -220,7 +220,7 @@ void SaiSwitch::unregisterCallbacks() noexcept {
     // link scan is completely shut-off
   }
 
-  if (runState_ >= SwitchRunState::CONFIGURED) {
+  if (runState_ >= SwitchRunState::INITIALIZED) {
     fdbEventBottomHalfEventBase_.terminateLoopSoon();
     fdbEventBottomHalfThread_->join();
   }
@@ -1559,18 +1559,15 @@ void SaiSwitch::switchRunStateChangedImplLocked(
     const std::lock_guard<std::mutex>& lock,
     SwitchRunState newState) {
   switch (newState) {
-    case SwitchRunState::INITIALIZED:
-      break;
-    case SwitchRunState::CONFIGURED: {
-      // receive learn events after switch is configured to prevent
-      // fdb entries from being created against ports  which would
-      // become members of lags later on.
+    case SwitchRunState::INITIALIZED: {
       fdbEventBottomHalfThread_ = std::make_unique<std::thread>([this]() {
         initThread("fbossSaiFdbBH");
         fdbEventBottomHalfEventBase_.loopForever();
       });
       auto& switchApi = SaiApiTable::getInstance()->switchApi();
       switchApi.registerFdbEventCallback(switchId_, __gFdbEventCallback);
+    } break;
+    case SwitchRunState::CONFIGURED: {
       if (getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED) {
         /*
          * Post warmboot synchronize hw link state with switch state
@@ -1643,6 +1640,14 @@ void SaiSwitch::fdbEventCallback(
     uint32_t count,
     const sai_fdb_event_notification_data_t* data) {
   XLOG(INFO) << "Received " << count << " learn notifications";
+  if (runState_ < SwitchRunState::CONFIGURED) {
+    // receive learn events after switch is configured to prevent
+    // fdb entries from being created against ports  which would
+    // become members of lags later on.
+    XLOG(WARNING)
+        << "ignoring learn notifications as switch is not configured.";
+    return;
+  }
   /*
    * FDB event notifications can be parsed in several ways
    * 1) Deep copy of sai_fdb_event_notification_data_t. This includes
