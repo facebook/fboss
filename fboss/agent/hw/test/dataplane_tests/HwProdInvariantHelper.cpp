@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/BcmTestedShellCommands.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwEcmpDataPlaneTestUtil.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
@@ -118,9 +119,10 @@ void HwProdInvariantHelper::verifySafeDiagCmds() {
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK:
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
-      diagCmds.push_back("ps");
-      diagCmds.push_back("show counters");
-      diagCmds.push_back("soc 0");
+      std::for_each(
+          ::BCM_TESTED_CMDS.begin(),
+          ::BCM_TESTED_CMDS.end(),
+          [&diagCmds](const auto& cmd) { diagCmds.push_back(cmd); });
       break;
   }
   if (diagCmds.size()) {

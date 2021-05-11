@@ -42,6 +42,7 @@ class HwProdInvariantHelper {
   cfg::SwitchConfig initialConfig() const {
     return initialCfg_;
   }
+  std::vector<std::string> getBcmCommandsToTest() const;
   void verifySafeDiagCmds();
   void verifyDscpToQueueMapping();
   void verifyLoadBalacing();
