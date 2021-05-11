@@ -393,8 +393,6 @@ if (NOT SAI_ONLY)
       fboss/agent/hw/switch_asics/Tomahawk3Asic.cpp
       fboss/agent/hw/switch_asics/TomahawkAsic.cpp
       fboss/agent/hw/switch_asics/Trident2Asic.cpp
-      fboss/agent/hw/switch_asics/Tomahawk4Asic.cpp
-      fboss/agent/hw/switch_asics/oss/Tomahawk4Asic.cpp
   )
 
   add_library(fboss_agent STATIC
