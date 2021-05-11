@@ -107,20 +107,13 @@ class PortDescriptorTemplate {
   }
   static PortDescriptorTemplate fromFollyDynamic(
       const folly::dynamic& descJSON) {
-    // For backward compatibility, try to decode using
-    // old format if type is not object. This can be removed later
-    // after physical port also switch to new format
-    if (descJSON.type() == folly::dynamic::Type::OBJECT) {
-      switch ((PortType)descJSON[kPortType].asInt()) {
-        case PortType::PHYSICAL:
-          return PortDescriptorTemplate(PortIdType(descJSON[kPortId].asInt()));
-        case PortType::AGGREGATE:
-          return PortDescriptorTemplate(TrunkIdType(descJSON[kPortId].asInt()));
-      }
-      XLOG(FATAL) << "Unknown port type";
-    } else {
-      return PortDescriptorTemplate(PortIdType(descJSON.asInt()));
+    switch ((PortType)descJSON[kPortType].asInt()) {
+      case PortType::PHYSICAL:
+        return PortDescriptorTemplate(PortIdType(descJSON[kPortId].asInt()));
+      case PortType::AGGREGATE:
+        return PortDescriptorTemplate(TrunkIdType(descJSON[kPortId].asInt()));
     }
+    XLOG(FATAL) << "Unknown port type";
   }
   std::string str() const {
     return isPhysicalPort()
