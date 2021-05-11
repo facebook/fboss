@@ -329,9 +329,9 @@ folly::dynamic SwSwitch::gracefulExitState() const {
   folly::dynamic switchState = folly::dynamic::object;
   switchState[kSwSwitch] = getAppliedState()->toFollyDynamic();
   if (rib_) {
-    // TODO: Change to serializing only unresolved routes, once the
-    // code to reconstruct RIB from FIB is in prod wedge_agent
-    switchState[kRib] = rib_->toFollyDynamic();
+    // For RIB we employ a optmization to serialize only unresolved routes
+    // and recover others from FIB
+    switchState[kRib] = rib_->unresolvedRoutesFollyDynamic();
   }
   return switchState;
 }
