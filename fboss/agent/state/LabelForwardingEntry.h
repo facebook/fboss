@@ -62,6 +62,8 @@ class LabelForwardingEntry
     return getFields()->labelNextHopsByClient.isEmpty();
   }
 
+  bool isPopAndLookup() const;
+
   const LabelNextHopEntry* FOLLY_NULLABLE
   getEntryForClient(ClientID clientId) const;
 

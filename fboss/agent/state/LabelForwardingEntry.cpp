@@ -105,6 +105,16 @@ std::string LabelForwardingEntry::str() const {
       ", =>",
       getLabelNextHop().str());
 }
+
+bool LabelForwardingEntry::isPopAndLookup() const {
+  const auto& nexthops = getFields()->nexthop.getNextHopSet();
+  if (nexthops.size() == 1) {
+    // there must be exactly one next hop for POP_AND_LOOKUP action
+    return nexthops.begin()->isPopAndLookup();
+  }
+  return false;
+}
+
 template class NodeBaseT<LabelForwardingEntry, LabelForwardingEntryFields>;
 
 } // namespace facebook::fboss
