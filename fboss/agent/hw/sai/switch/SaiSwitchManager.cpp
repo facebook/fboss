@@ -137,6 +137,21 @@ void SaiSwitchManager::programEcmpLoadBalancerParams(
       SaiSwitchTraits::Attributes::EcmpDefaultHashAlgorithm{hashAlgo});
 }
 
+template <typename EcmpHashAttrT>
+void SaiSwitchManager::setLoadBalancer(HashSaiId hashSaiId) {
+  // On some SAI implementations, setting new hash field has the effect of
+  // setting hash fields to union of the current hash fields and the new
+  // hash fields. This behavior is incorrect and will be fixed in the long
+  // run (CS00012187635). In the meanwhile, clear and set desired fields as a
+  // workaround.
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET)) {
+    switch_->setOptionalAttribute(EcmpHashAttrT{SAI_NULL_OBJECT_ID});
+  }
+
+  switch_->setOptionalAttribute(EcmpHashAttrT{hashSaiId});
+}
+
 void SaiSwitchManager::addOrUpdateEcmpLoadBalancer(
     const std::shared_ptr<LoadBalancer>& newLb) {
   programEcmpLoadBalancerParams(newLb->getSeed(), newLb->getAlgorithm());
@@ -150,8 +165,8 @@ void SaiSwitchManager::addOrUpdateEcmpLoadBalancer(
         newLb->getTransportFields().begin(), newLb->getTransportFields().end());
     ecmpV4Hash_ = managerTable_->hashManager().getOrCreate(v4EcmpHashFields);
     // Set the new ecmp v4 hash attribute on switch obj
-    switch_->setOptionalAttribute(
-        SaiSwitchTraits::Attributes::EcmpHashV4{ecmpV4Hash_->adapterKey()});
+    setLoadBalancer<SaiSwitchTraits::Attributes::EcmpHashV4>(
+        ecmpV4Hash_->adapterKey());
   }
   if (newLb->getIPv6Fields().size()) {
     // v6 ECMP
@@ -162,8 +177,8 @@ void SaiSwitchManager::addOrUpdateEcmpLoadBalancer(
         newLb->getTransportFields().begin(), newLb->getTransportFields().end());
     ecmpV6Hash_ = managerTable_->hashManager().getOrCreate(v6EcmpHashFields);
     // Set the new ecmp v6 hash attribute on switch obj
-    switch_->setOptionalAttribute(
-        SaiSwitchTraits::Attributes::EcmpHashV6{ecmpV6Hash_->adapterKey()});
+    setLoadBalancer<SaiSwitchTraits::Attributes::EcmpHashV6>(
+        ecmpV6Hash_->adapterKey());
   }
 }
 
