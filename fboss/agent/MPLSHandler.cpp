@@ -4,7 +4,9 @@
 
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "folly/io/Cursor.h"
 
 namespace facebook::fboss {
 MPLSHandler::MPLSHandler(SwSwitch* sw) : sw_(sw) {}
@@ -20,38 +22,69 @@ void MPLSHandler::handlePacket(
 }
 
 void MPLSHandler::handleKnownLabel(
-    std::unique_ptr<RxPacket> /*pkt*/,
+    std::unique_ptr<RxPacket> pkt,
     const MPLSHdr& header,
-    folly::io::Cursor /*cursor*/) {
-  XLOG_EVERY_MS(ERR, 1000) << "Received Mpls packet with known label:"
-                           << header.getLookupLabel();
-  // TODO: process and analyze the packet
+    folly::io::Cursor cursor) {
+  auto topLabel = header.getLookupLabel();
+  XLOG(WARNING) << "Received Mpls packet with known label:"
+                << topLabel.getLabelValue();
+  auto entry = sw_->getState()
+                   ->getLabelForwardingInformationBase()
+                   ->getLabelForwardingEntry(topLabel.getLabelValue());
+  const auto& nexthop = entry->getLabelNextHop();
+
+  if (nexthop.getAction() == LabelNextHopEntry::Action::TO_CPU) {
+    return handleLabel2Me(std::move(pkt), header, cursor);
+  }
+  if (entry->isPopAndLookup()) {
+    return popLabelAndLookup(std::move(pkt), header, cursor);
+  }
+  // ignore any packet which is not pop and look up
+  XLOG_EVERY_MS(ERR, 1000) << "dropping known label: "
+                           << topLabel.getLabelValue()
+                           << " , not pop and lookup.";
 }
 
 void MPLSHandler::handleUnknownLabel(
     std::unique_ptr<RxPacket> /*pkt*/,
     const MPLSHdr& header,
     folly::io::Cursor /*cursor*/) {
+  // unknown mpls label packet dropped.
+  // TODO: add ods counter for such dropped mpls packet
+  auto topLabel = header.getLookupLabel();
   XLOG_EVERY_MS(ERR, 1000) << "received packet with unknown label:"
-                           << header.getLookupLabel();
+                           << topLabel.getLabelValue();
 }
 
 void MPLSHandler::handleLabel2Me(
     std::unique_ptr<RxPacket> /*pkt*/,
     const MPLSHdr& /*header*/,
     folly::io::Cursor /*cursor*/) const {
-  // TODO: A label may be punted to CPU for several reasons, one of them could
-  // be pop and look up results into cpu next hop; experiment determiend this
-  // doesn't strip the label.
+  // TODO: handle labels punted to cpu
+}
+
+void MPLSHandler::popLabelAndLookup(
+    std::unique_ptr<RxPacket> pkt,
+    const MPLSHdr& header,
+    folly::io::Cursor cursor) {
+  auto topLabel = header.getLookupLabel();
+  if (!topLabel.isbottomOfStack()) {
+    const auto& stack = header.stack();
+    return handlePacket(
+        std::move(pkt),
+        MPLSHdr(std::vector<MPLSHdr::Label>(stack.begin() + 1, stack.end())),
+        cursor);
+  }
+  // TODO: schedule IP packet for handling.
 }
 
 bool MPLSHandler::isLabelProgrammed(const MPLSHdr& header) const {
-  auto lookupLabel = header.getLookupLabel();
+  auto topLabel = header.getLookupLabel();
 
   auto labels = sw_->getState()->getLabelForwardingInformationBase();
   if (!labels) {
     return false;
   }
-  return labels->getLabelForwardingEntryIf(lookupLabel) != nullptr;
+  return labels->getLabelForwardingEntryIf(topLabel.getLabelValue()) != nullptr;
 }
 } // namespace facebook::fboss

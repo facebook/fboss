@@ -38,6 +38,11 @@ class MPLSHandler {
 
   bool isLabelProgrammed(const MPLSHdr& header) const;
 
+  void popLabelAndLookup(
+      std::unique_ptr<RxPacket> pkt,
+      const MPLSHdr& header,
+      folly::io::Cursor cursor);
+
   SwSwitch* sw_;
 };
 
