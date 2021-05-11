@@ -245,23 +245,30 @@ class HwMPLSTest : public HwLinkStateDependentTest {
   void sendMplsPacket(
       uint32_t topLabel,
       PortID from,
-      std::optional<EXP> exp = std::nullopt) {
+      std::optional<EXP> exp = std::nullopt,
+      folly::IPAddressV6 dstIp = folly::IPAddressV6("2001::")) {
     // construct eth hdr
     const auto srcMac = utility::kLocalCpuMac();
     const auto dstMac = utility::kLocalCpuMac(); /* for l3 switching */
 
-    auto vlanId = utility::firstVlanID(initialConfig());
+    auto vlanId = utility::firstVlanID(initialConfig()) + 1;
 
     uint8_t tc = exp.has_value() ? static_cast<uint8_t>(exp.value()) : 0;
     MPLSHdr::Label mplsLabel{topLabel, tc, true, 128};
 
     // construct l3 hdr
     auto srcIp = folly::IPAddressV6(("1001::"));
-    auto dstIp = folly::IPAddressV6(("2001::"));
 
     // get tx packet
     auto frame = utility::getEthFrame(
-        srcMac, dstMac, {mplsLabel}, srcIp, dstIp, 10000, 20000, vlanId);
+        srcMac,
+        dstMac,
+        {mplsLabel},
+        srcIp,
+        dstIp,
+        10000,
+        20000,
+        VlanID(vlanId));
 
     auto pkt = frame.getTxPacket(getHwSwitch());
     XLOG(DBG2) << "sending packet: ";
@@ -482,6 +489,45 @@ TYPED_TEST(HwMPLSTest, Php) {
     auto outPktsAfter = getPortOutPkts(
         this->getLatestPortStats(this->masterLogicalPortIds()[0]));
     EXPECT_EQ((outPktsAfter - outPktsBefore), 1);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(HwMPLSTest, Pop2Cpu) {
+  if (this->skipTest()) {
+    return;
+  }
+  auto setup = [=]() {
+    this->setup();
+    // pop and lookup 1101
+    this->programLabelPop(1101);
+  };
+  auto verify = [=]() {
+    HwTestPacketSnooper snooper(
+        this->getHwSwitchEnsemble(), this->masterLogicalPortIds()[1]);
+
+    // send mpls packet with label and let it pop
+    this->sendMplsPacket(
+        1101,
+        this->masterLogicalPortIds()[1],
+        EXP(0),
+        folly::IPAddressV6("1::0"));
+    // ip packet should be punted to cpu after Pop
+    auto frame = snooper.waitForPacket(1);
+    ASSERT_TRUE(frame.has_value());
+
+    auto mplsPayLoad = frame->mplsPayLoad();
+    ASSERT_FALSE(mplsPayLoad.has_value());
+
+    auto v6PayLoad = frame->v6PayLoad();
+    ASSERT_TRUE(v6PayLoad.has_value());
+
+    auto udpPayload = v6PayLoad->payload();
+    ASSERT_TRUE(udpPayload.has_value());
+
+    auto hdr = v6PayLoad->header();
+    EXPECT_EQ(hdr.srcAddr, folly::IPAddress("1001::"));
+    EXPECT_EQ(hdr.dstAddr, folly::IPAddress("1::0"));
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
