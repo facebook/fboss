@@ -534,6 +534,7 @@ if (NOT SAI_ONLY)
       fboss/agent/LldpManager.cpp
       fboss/agent/LoadBalancerConfigApplier.cpp
       fboss/agent/Main.cpp
+      fboss/agent/MPLSHandler.cpp
       fboss/agent/SetupThrift.cpp
       fboss/agent/MKAServicePorts.cpp
       fboss/agent/MKAServiceManager.cpp

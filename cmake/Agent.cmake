@@ -122,6 +122,7 @@ add_library(core
   fboss/agent/MacTableUtils.cpp
   fboss/agent/MirrorManager.cpp
   fboss/agent/MirrorManagerImpl.cpp
+  fboss/agent/MPLSHandler.cpp
   fboss/agent/NdpCache.cpp
   fboss/agent/NeighborUpdater.cpp
   fboss/agent/NeighborUpdaterImpl.cpp

@@ -59,6 +59,10 @@ struct MPLSHdr {
     return stack_ == other.stack_;
   }
 
+  uint32_t getLookupLabel() const {
+    return stack_[0].getLabelValue();
+  }
+
  private:
   union MPLSLabel {
     uint32_t u32;
