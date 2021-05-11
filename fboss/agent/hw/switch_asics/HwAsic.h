@@ -74,6 +74,7 @@ class HwAsic {
     MACSEC,
     CPU_PORT,
     VRF,
+    SAI_HASH_FIELDS_CLEAR_BEFORE_SET,
   };
 
   enum class AsicType {

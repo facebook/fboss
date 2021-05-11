@@ -35,6 +35,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_TABLE_GROUP:
     case HwAsic::Feature::CPU_PORT:
     case HwAsic::Feature::VRF:
+    case HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET:
       return true;
 
     case HwAsic::Feature::ERSPANv6:
