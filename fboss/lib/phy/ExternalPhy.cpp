@@ -165,4 +165,9 @@ float_t ExternalPhy::getLaneSpeed(const PhyPortConfig& config, Side side) {
   }
 }
 
+std::string PhyIDInfo::str() const {
+  return folly::to<std::string>(
+      "[PIM:", pimID, ", MDIO:", controllerID, ", PHY:", phyAddr, "]");
+}
+
 } // namespace facebook::fboss::phy

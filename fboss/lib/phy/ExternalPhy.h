@@ -132,6 +132,7 @@ struct PhyIDInfo {
   bool operator!=(const PhyIDInfo& other) const {
     return !(*this == other);
   }
+  std::string str() const;
 };
 
 class ExternalPhy {

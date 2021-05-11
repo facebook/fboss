@@ -2,9 +2,28 @@
 
 #include "fboss/lib/phy/PhyManager.h"
 #include <folly/logging/xlog.h>
+#include "fboss/agent/FbossError.h"
 
 namespace facebook {
 namespace fboss {
+
+phy::ExternalPhy* PhyManager::getExternalPhy(GlobalXphyID xphyID) {
+  auto pimID = getPhyIDInfo(xphyID).pimID;
+  const auto& pimXphyMap = xphyMap_.find(pimID);
+  if (pimXphyMap == xphyMap_.end()) {
+    throw FbossError(
+        "getExternalPhy: Invalid Slot Id ", pimID, " is not in xphyMap_");
+  }
+  if (pimXphyMap->second.find(xphyID) == pimXphyMap->second.end()) {
+    throw FbossError(
+        "getExternalPhy: Invalid Global Xphy Id ",
+        xphyID,
+        " is not in xphyMap_ for Pim Id ",
+        pimID);
+  }
+  // Return the externalPhy object for this slot, mdio, phy
+  return xphyMap_[pimID][xphyID].get();
+}
 
 /*
  * getExternalPhy
@@ -139,6 +158,13 @@ float_t PhyManager::getLaneSpeed(
   // Call the ExternalPhy function
   return xphy->getLaneSpeed(config, side);
 };
+
+GlobalXphyID PhyManager::getGlobalXphyID(
+    const phy::PhyIDInfo& /* phyIDInfo */) const {
+  // TODO(joseph5wu) Will make it pure virtual once we have all PhyManager
+  // child classes to implement their own version.
+  throw FbossError("getGlobalXphyID() is unsupported for such Phymanager");
+}
 
 } // namespace fboss
 } // namespace facebook
