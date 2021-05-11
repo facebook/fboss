@@ -9,6 +9,7 @@
 #include <folly/Optional.h>
 #include <folly/io/IOBuf.h>
 #include <condition_variable>
+#include <optional>
 
 namespace facebook::fboss {
 
@@ -16,7 +17,9 @@ class RxPacket;
 
 class HwTestPacketSnooper : public HwSwitchEnsemble::HwSwitchEventObserverIf {
  public:
-  explicit HwTestPacketSnooper(HwSwitchEnsemble* ensemble);
+  explicit HwTestPacketSnooper(
+      HwSwitchEnsemble* ensemble,
+      std::optional<PortID> port = std::nullopt);
   virtual ~HwTestPacketSnooper() override;
   void packetReceived(RxPacket* pkt) noexcept override;
   // Wait until timeout (seconds), If timeout = 0, wait forever.
@@ -29,6 +32,7 @@ class HwTestPacketSnooper : public HwSwitchEnsemble::HwSwitchEventObserverIf {
       L2EntryUpdateType /*l2EntryUpdateType*/) override {}
 
   HwSwitchEnsemble* ensemble_;
+  std::optional<PortID> port_;
   std::mutex mtx_;
   std::condition_variable cv_;
   std::unique_ptr<folly::IOBuf> data_;
