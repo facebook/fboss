@@ -7,27 +7,27 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#pragma once
 
+#include "fboss/cli/fboss2/CmdClientUtils.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
 
-#include <memory>
-#include <string>
-
 namespace facebook::fboss::utils {
 
-static auto constexpr kConnTimeout = 1000;
-static auto constexpr kRecvTimeout = 45000;
-static auto constexpr kSendTimeout = 5000;
+std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient>
+createPlaintextAgentClient(const std::string& ip);
 
-template <typename T>
-std::unique_ptr<T> createClient(const std::string& ip);
+std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient>
+createPlaintextQsfpClient(const std::string& ip);
 
 std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createAgentClient(
-    const std::string& ip);
+    const std::string& ip) {
+  return createPlaintextAgentClient(ip);
+}
 
 std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> createQsfpClient(
-    const std::string& ip);
+    const std::string& ip) {
+  return createPlaintextQsfpClient(ip);
+}
 
 } // namespace facebook::fboss::utils

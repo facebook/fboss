@@ -11,16 +11,6 @@
 
 namespace facebook::fboss::utils {
 
-std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createAgentClient(
-    const std::string& ip) {
-  return createPlaintextAgentClient(ip);
-}
-
-std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> createQsfpClient(
-    const std::string& ip) {
-  return createPlaintextQsfpClient(ip);
-}
-
 std::vector<std::string> getHostsInSmcTier(const std::string& parentTierName) {
   return {};
 }
