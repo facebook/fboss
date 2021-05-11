@@ -5,6 +5,8 @@
 #include <folly/io/Cursor.h>
 #include <vector>
 
+#include "fboss/agent/packet/Ethertype.h"
+
 namespace facebook::fboss {
 
 struct MPLSHdr {
@@ -71,5 +73,9 @@ struct MPLSHdr {
   };
   std::vector<Label> stack_;
 };
+
+namespace utility {
+std::optional<ETHERTYPE> decapsulateMplsPacket(folly::IOBuf* buf);
+}
 
 } // namespace facebook::fboss

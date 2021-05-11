@@ -3,7 +3,11 @@
 #include <gtest/gtest.h>
 
 #include "fboss/agent/hw/mock/MockRxPacket.h"
+#include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/MPLSHdr.h"
+#include "fboss/agent/packet/PktUtil.h"
+
+#include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
 
@@ -117,6 +121,90 @@ TEST(MPLSHdrTest, cursor_data_constructor_3_labels) {
   for (auto i = 0; i < hdrStack.size(); i++) {
     EXPECT_EQ(stack[i], hdrStack[i]);
   }
+}
+
+TEST(MPLSHdrTest, decapsulateV6MplsPacket) {
+  auto ioBuf = PktUtil::parseHexData(
+      // dst mac, src mac vlan-type
+      "44 4c a8 e4 19 e3 02 90 fb 43 a2 ec 81 00"
+      // vlan tag and mpls
+      "0f a1 88 47"
+      // label on top
+      "00 12 c2 7e"
+      // label in middle
+      "00 0c 82 7e"
+      // label at the bottom
+      "00 06 43 7e"
+      // ip header
+      "60 00 00 00 00 40 3a 7e 24 01 db 00 00 30 c0 0d"
+      "fa ce 00 00 00 95 00 00 25 01 00 01 00 00 00 00"
+      "00 00 00 00 00 00 01 01"
+      // icmp6
+      "80 00 e0 54 14 91 00 01 66 27 85 5d 00 00 00 00"
+      "fd 9f 02 00 00 00 00 00 10 11 12 13 14 15 16 17"
+      "18 19 1a 1b 1c 1d 1e 1f 20 21 22 23 24 25 26 27"
+      "28 29 2a 2b 2c 2d 2e 2f 30 31 32 33 34 35 36 37");
+
+  auto ethType = utility::decapsulateMplsPacket(&ioBuf);
+  EXPECT_EQ(ethType.value(), ETHERTYPE::ETHERTYPE_IPV6);
+
+  // labels popped, ether type fixed to v6
+  auto expectedIOBuf = PktUtil::parseHexData(
+      // dst mac, src mac vlan-type
+      "44 4c a8 e4 19 e3 02 90 fb 43 a2 ec 81 00"
+      // vlan tag and v6
+      "0f a1 86 dd"
+      // ip header
+      "60 00 00 00 00 40 3a 7e 24 01 db 00 00 30 c0 0d"
+      "fa ce 00 00 00 95 00 00 25 01 00 01 00 00 00 00"
+      "00 00 00 00 00 00 01 01"
+      // icmp6
+      "80 00 e0 54 14 91 00 01 66 27 85 5d 00 00 00 00"
+      "fd 9f 02 00 00 00 00 00 10 11 12 13 14 15 16 17"
+      "18 19 1a 1b 1c 1d 1e 1f 20 21 22 23 24 25 26 27"
+      "28 29 2a 2b 2c 2d 2e 2f 30 31 32 33 34 35 36 37");
+
+  EXPECT_TRUE(folly::IOBufEqualTo()(ioBuf, expectedIOBuf));
+}
+
+TEST(MPLSHdrTest, decapsulateV4MplsPacket) {
+  auto ioBuf = PktUtil::parseHexData(
+      // dst mac, src mac vlan-type
+      "a4 4c 11 b7 c4 01 02 90 fb 55 a8 71 81 00"
+      // vlan tag and mpls
+      "0f a7 88 47"
+      // label on top
+      "00 06 90 5f"
+      // label at the bottom
+      "00 06 71 5f"
+      // ip header
+      "45 00 00 54 20 a2 40 00 5f 01 b6 a2 0a 2e 18 05"
+      "0a 2e 18 04"
+      // icmp4
+      "08 00 0f 64 9f 0f 00 01 d9 92 43 5c 00 00 00 00"
+      "68 c9 05 00 00 00 00 00 10 11 12 13 14 15 16 17"
+      "18 19 1a 1b 1c 1d 1e 1f 20 21 22 23 24 25 26 27"
+      "28 29 2a 2b 2c 2d 2e 2f 30 31 32 33 34 35 36 37");
+
+  auto ethType = utility::decapsulateMplsPacket(&ioBuf);
+  EXPECT_EQ(ethType.value(), ETHERTYPE::ETHERTYPE_IPV4);
+
+  // labels popped, ether type fixed to v4
+  auto expectedIOBuf = PktUtil::parseHexData(
+      // dst mac, src mac vlan-type
+      "a4 4c 11 b7 c4 01 02 90 fb 55 a8 71 81 00"
+      // vlan tag and mpls
+      "0f a7 08 00"
+      // ip header
+      "45 00 00 54 20 a2 40 00 5f 01 b6 a2 0a 2e 18 05"
+      "0a 2e 18 04"
+      // icmpv4
+      "08 00 0f 64 9f 0f 00 01 d9 92 43 5c 00 00 00 00"
+      "68 c9 05 00 00 00 00 00 10 11 12 13 14 15 16 17"
+      "18 19 1a 1b 1c 1d 1e 1f 20 21 22 23 24 25 26 27"
+      "28 29 2a 2b 2c 2d 2e 2f 30 31 32 33 34 35 36 37");
+
+  EXPECT_TRUE(folly::IOBufEqualTo()(ioBuf, expectedIOBuf));
 }
 
 } // namespace facebook::fboss
