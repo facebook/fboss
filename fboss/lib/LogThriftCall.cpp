@@ -35,7 +35,7 @@ LogThriftCall::LogThriftCall(
   }
 
   Cpp2ConnContext* ctx2 = ctx->getConnectionContext();
-  auto client = ctx2->getPeerAddress()->getHostStr();
+  auto client = ctx2->getPeerAddress()->getAddressStr();
   auto identity = ctx2->getPeerCommonName();
   if (identity.empty()) {
     identity = "unknown";
