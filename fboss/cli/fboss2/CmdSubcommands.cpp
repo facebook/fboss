@@ -19,6 +19,7 @@ const std::map<std::string, std::string>& kSupportedVerbs() {
   static const std::map<std::string, std::string> supportedVerbs = {
       {"show", "Show object info"},
       {"clear", "Clear object info"},
+      {"create", "Create object"},
   };
 
   return supportedVerbs;
@@ -27,8 +28,7 @@ const std::map<std::string, std::string>& kSupportedVerbs() {
 } // namespace
 
 using facebook::fboss::CmdSubcommands;
-static folly::Singleton<CmdSubcommands, singleton_tag_type>
-    cmdSubcommands{};
+static folly::Singleton<CmdSubcommands, singleton_tag_type> cmdSubcommands{};
 std::shared_ptr<CmdSubcommands> CmdSubcommands::getInstance() {
   return cmdSubcommands.try_get();
 }
@@ -59,10 +59,12 @@ void CmdSubcommands::initHelper(
       objectCmd = verbCmd->add_subcommand(object, helpMsg);
       objectCmd->callback(commandHandlerFn);
 
-      if (objectArgType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST) {
+      if (objectArgType ==
+          utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST) {
         objectCmd->add_option("ipv6Addrs", ipv6Addrs_, "IPv6 addr(s)");
       } else if (
-          objectArgType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST) {
+          objectArgType ==
+          utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST) {
         objectCmd->add_option("ports", ports_, "Port(s)");
       }
     }
