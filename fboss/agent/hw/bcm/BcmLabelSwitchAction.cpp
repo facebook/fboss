@@ -3,6 +3,7 @@
 #include "fboss/agent/hw/bcm/BcmLabelSwitchAction.h"
 
 #include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/hw/bcm/BcmLabelSwitchingUtils.h"
 #include "fboss/agent/hw/bcm/BcmMultiPathNextHop.h"
 #include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
@@ -67,6 +68,18 @@ BcmLabelSwitchAction::BcmLabelSwitchAction(
           BcmMultiPathNextHopKey(0 /* vrfid */, entry.normalizedNextHops()));
     }
     action_.egress_if = nexthop_->getEgressId();
+  } else {
+    // action POP
+    if (hw->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::INGRESS_L3_INTERFACE)) {
+      // use ingress intf of default vlan for re-injected packet after pop
+      bcm_vlan_t defaultVlan;
+      auto rv = bcm_vlan_default_get(0, &defaultVlan);
+      bcmCheckError(rv, "Unable to get default VLAN");
+      const auto intf =
+          hw->getIntfTable()->getBcmIntf(InterfaceID(defaultVlan));
+      action_.ingress_if = intf->getBcmIfId();
+    }
   }
 
   auto itr = hw->getWarmBootCache()->findLabelAction(action_.label);
