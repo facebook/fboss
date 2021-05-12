@@ -416,6 +416,13 @@ class WaitForSwitchState : public AutoRegisterStateObserver {
       }
     }
     done_ = false;
+    // TSAN seems not smart enough to figure out that ~WaitForSwitchState() will
+    // only be called after wait() is successfully done. Thus, suppress TSAN
+    // data race warning starting from now until WaitForSwitchState is
+    // destroyed.
+    tsanGuard_ =
+        std::make_unique<folly::annotate_ignore_thread_sanitizer_guard>(
+            __FILE__, __LINE__);
     return true;
   }
 

@@ -11,6 +11,7 @@
 
 #include <boost/core/noncopyable.hpp>
 
+#include <folly/synchronization/SanitizeThread.h>
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/StateDelta.h"
 
@@ -40,6 +41,12 @@ class AutoRegisterStateObserver : public StateObserver {
 
  private:
   SwSwitch* sw_{nullptr};
+
+ protected:
+  // Used to suppress TSAN data race on vptr between observer->stateUpdated() in
+  // SwSwitch and destructor ~AutoRegisterStateObserver(), which might only
+  // happen in unit tests
+  std::unique_ptr<folly::annotate_ignore_thread_sanitizer_guard> tsanGuard_;
 };
 
 } // namespace facebook::fboss
