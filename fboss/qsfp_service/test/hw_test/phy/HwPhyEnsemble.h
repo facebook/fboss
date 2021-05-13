@@ -23,6 +23,7 @@ namespace facebook::fboss {
 
 class PhyManager;
 class MultiPimPlatformMapping;
+class PlatformMapping;
 
 namespace phy {
 class ExternalPhy;
@@ -86,10 +87,16 @@ class HwPhyEnsemble {
  protected:
   std::vector<int> getTargetPimXphyList(
       MultiPimPlatformMapping* platformMapping) const;
+  bool isXphySupported() const {
+    return isXphySupported_;
+  }
 
   std::unique_ptr<PhyManager> phyManager_;
-  std::unique_ptr<MultiPimPlatformMapping> platformMapping_;
+  // PIM PlatformMapping
+  std::unique_ptr<PlatformMapping> platformMapping_;
   PimID targetPimID_;
+  // Some platform doesn't have xphy
+  bool isXphySupported_{false};
   GlobalXphyID targetGlobalXphyID_;
 
  private:

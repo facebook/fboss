@@ -29,7 +29,19 @@ void HwPhyEnsemble::init(std::unique_ptr<HwPhyEnsembleInitInfo> initInfo) {
   // available pim in the test environment to initialize.
   targetPimID_ = getFirstAvailablePimID();
 
-  platformMapping_ = chooseMultiPimPlatformMapping();
+  auto multiPimPlatformMapping = chooseMultiPimPlatformMapping();
+  platformMapping_ =
+      multiPimPlatformMapping->getPimPlatformMappingUniquePtr(targetPimID_);
+
+  // Find the first xphy for this pim
+  for (const auto& chip : platformMapping_->getChips()) {
+    if (chip.second.get_type() == phy::DataPlanePhyChipType::XPHY) {
+      isXphySupported_ = true;
+      targetGlobalXphyID_ = chip.second.get_physicalID();
+      // TODO(joseph5wu) Find all the SW ports using this xphy
+      break;
+    }
+  }
 }
 
 PimID HwPhyEnsemble::getFirstAvailablePimID() {
@@ -44,19 +56,6 @@ PimID HwPhyEnsemble::getFirstAvailablePimID() {
       "Can't find pimType:",
       MultiPimPlatformPimContainer::getPimTypeStr(initInfo_->pimType),
       " pim in this platform");
-}
-
-std::vector<int> HwPhyEnsemble::getTargetPimXphyList(
-    MultiPimPlatformMapping* platformMapping) const {
-  auto pimPlatformMapping =
-      platformMapping->getPimPlatformMapping(targetPimID_);
-  std::vector<int> xphys;
-  for (const auto& chip : pimPlatformMapping->getChips()) {
-    if (chip.second.get_type() == phy::DataPlanePhyChipType::XPHY) {
-      xphys.push_back(chip.second.get_physicalID());
-    }
-  }
-  return xphys;
 }
 
 phy::ExternalPhy* HwPhyEnsemble::getTargetExternalPhy() {
