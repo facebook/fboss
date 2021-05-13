@@ -37,6 +37,10 @@ std::vector<cfg::PlatformPortEntry> getPlatformPortsByControllingPort(
     const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts,
     PortID controllingPort);
 
+std::vector<cfg::PlatformPortEntry> getPlatformPortsByChip(
+    const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts,
+    const phy::DataPlanePhyChip& chip);
+
 std::map<std::string, phy::DataPlanePhyChip> getDataPlanePhyChips(
     const cfg::PlatformPortEntry& port,
     const std::map<std::string, phy::DataPlanePhyChip>& chipsMap,

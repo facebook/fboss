@@ -400,4 +400,64 @@ TEST(PlatformConfigUtilsTests, GetTransceiverId) {
   EXPECT_FALSE(transceiverId);
 }
 
+TEST(PlatformConfigUtilsTests, GetPlatformPortsByChip) {
+  std::map<int32_t, cfg::PlatformPortEntry> platformPorts;
+
+  auto portWithXphy = getPlatformPortEntryWithXPHY();
+  static const auto kPortWithXphyID = 1000;
+  portWithXphy.mapping_ref()->id_ref() = kPortWithXphyID;
+  platformPorts.emplace(kPortWithXphyID, portWithXphy);
+
+  auto portWithoutXphy = getPlatformPortEntryWithoutXPHY();
+  static const auto kPortWithoutXphyID = 1001;
+  portWithoutXphy.mapping_ref()->id_ref() = kPortWithoutXphyID;
+  platformPorts.emplace(kPortWithoutXphyID, portWithoutXphy);
+
+  auto portWithoutXphyAndTcvr = getPlatformPortEntryWithoutTransceiver();
+  static const auto kPortWithoutXphyAndTcvr = 1002;
+  portWithoutXphyAndTcvr.mapping_ref()->id_ref() = kPortWithoutXphyAndTcvr;
+  platformPorts.emplace(kPortWithoutXphyAndTcvr, portWithoutXphyAndTcvr);
+
+  const auto& platformChips = getPlatformChips();
+
+  const auto& portsWithIphy = utility::getPlatformPortsByChip(
+      platformPorts, platformChips.find(kDefaultIphyChipName)->second);
+  // All three ports should use the same iphy
+  const std::set<int32_t> expectedPortsWithIphy = {
+      kPortWithXphyID, kPortWithoutXphyID, kPortWithoutXphyAndTcvr};
+  std::set<int32_t> actualPortsWithIphy;
+  for (const auto& port : portsWithIphy) {
+    actualPortsWithIphy.insert(port.get_mapping().get_id());
+  }
+  EXPECT_EQ(actualPortsWithIphy, expectedPortsWithIphy);
+
+  const auto& portsWithXphy = utility::getPlatformPortsByChip(
+      platformPorts, platformChips.find(kDefaultXphyChipName)->second);
+  // Only two ports should use the same xphy
+  const std::set<int32_t> expectedPortsWithXphy = {kPortWithXphyID};
+  std::set<int32_t> actualPortsWithXphy;
+  for (const auto& port : portsWithXphy) {
+    actualPortsWithXphy.insert(port.get_mapping().get_id());
+  }
+  EXPECT_EQ(actualPortsWithXphy, expectedPortsWithXphy);
+
+  const auto& portsWithTcvr = utility::getPlatformPortsByChip(
+      platformPorts, platformChips.find(kDefaultTcvrChipName)->second);
+  // Only two ports should use the same transceiver
+  const std::set<int32_t> expectedPortsWithTcvr = {
+      kPortWithXphyID, kPortWithoutXphyID};
+  std::set<int32_t> actualPortsWithTcvr;
+  for (const auto& port : portsWithTcvr) {
+    actualPortsWithTcvr.insert(port.get_mapping().get_id());
+  }
+  EXPECT_EQ(actualPortsWithTcvr, expectedPortsWithTcvr);
+
+  // make a fake chip
+  phy::DataPlanePhyChip fake;
+  fake.name_ref() = "fake";
+  const auto& portsWithFakeChip =
+      utility::getPlatformPortsByChip(platformPorts, fake);
+  EXPECT_TRUE(portsWithFakeChip.empty());
+}
+
 } // namespace facebook::fboss::utility
