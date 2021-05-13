@@ -13,6 +13,10 @@
 #include <string>
 #include <vector>
 
+#include <gflags/gflags.h>
+
+DECLARE_string(normalized_counter_entity_prefix);
+
 namespace facebook::fboss::normalization {
 
 // abstraction for stats exporting logic

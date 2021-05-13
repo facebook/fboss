@@ -14,6 +14,11 @@
 #include <folly/String.h>
 #include <folly/logging/xlog.h>
 
+DEFINE_string(
+    normalized_counter_entity_prefix,
+    "",
+    "Entity prefix for normalized counters to allow for distinguishing prod vs. test");
+
 namespace facebook::fboss::normalization {
 
 namespace {
@@ -28,7 +33,12 @@ void StatsExporter::publishPortStats(
     int32_t intervalSec,
     std::shared_ptr<std::vector<std::string>> tags) {
   OdsCounter counter;
-  counter.entity = fmt::format("{}:{}{}", deviceName_, portName, kEntitySuffix);
+  counter.entity = fmt::format(
+      "{}{}:{}{}",
+      FLAGS_normalized_counter_entity_prefix,
+      deviceName_,
+      portName,
+      kEntitySuffix);
   counter.key = fmt::format("FBNet:interface.{}", propertyName);
   counter.unixTime = timestamp;
   counter.value = value;
