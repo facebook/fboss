@@ -23,6 +23,18 @@ PhyManager::PhyManager(const PlatformMapping* platformMapping) {
   }
 }
 
+GlobalXphyID PhyManager::getGlobalXphyIDbyPortID(PortID portID) const {
+  if (auto id = portToGlobalXphyID_.find(portID);
+      id != portToGlobalXphyID_.end()) {
+    return id->second;
+  }
+  throw FbossError(
+      "Unable to get GlobalXphyID for port:",
+      portID,
+      ", current portToGlobalXphyID_ size:",
+      portToGlobalXphyID_.size());
+}
+
 phy::ExternalPhy* PhyManager::getExternalPhy(GlobalXphyID xphyID) {
   auto pimID = getPhyIDInfo(xphyID).pimID;
   const auto& pimXphyMap = xphyMap_.find(pimID);

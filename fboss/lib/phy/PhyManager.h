@@ -23,6 +23,7 @@ class PhyManager {
   explicit PhyManager(const PlatformMapping* platformMapping);
   virtual ~PhyManager() {}
 
+  GlobalXphyID getGlobalXphyIDbyPortID(PortID portID) const;
   virtual phy::PhyIDInfo getPhyIDInfo(GlobalXphyID xphyID) const = 0;
   virtual GlobalXphyID getGlobalXphyID(const phy::PhyIDInfo& phyIDInfo) const;
 
@@ -79,7 +80,7 @@ class PhyManager {
   programOnePort(int slotId, int mdioId, int phyId, phy::PhyPortConfig config);
 
   virtual void programOnePort(
-      int32_t /* portId */,
+      PortID /* portId */,
       cfg::PortProfileID /* portProfileId */) {}
 
   /*

@@ -2,6 +2,7 @@
 
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/qsfp_service/QsfpConfig.h"
@@ -731,6 +732,15 @@ std::optional<uint32_t> WedgeManager::getExternalPhyId(int32_t portId) {
   }
 
   return *xphy.begin()->second.physicalID_ref();
+}
+
+void WedgeManager::programXphyPort(
+    int32_t portId,
+    cfg::PortProfileID portProfileId) {
+  if (phyManager_ == nullptr) {
+    throw FbossError("Unable to program xphy port when PhyManager is not set");
+  }
+  phyManager_->programOnePort(PortID(portId), portProfileId);
 }
 
 } // namespace fboss
