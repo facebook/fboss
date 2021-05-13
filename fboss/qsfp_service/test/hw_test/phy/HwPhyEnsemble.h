@@ -100,7 +100,8 @@ class HwPhyEnsemble {
   GlobalXphyID targetGlobalXphyID_;
 
  private:
-  virtual std::unique_ptr<PhyManager> choosePhyManager() = 0;
+  virtual std::unique_ptr<PhyManager> choosePhyManager(
+      const PlatformMapping* platformMapping) = 0;
 
   virtual std::unique_ptr<MultiPimPlatformMapping>
   chooseMultiPimPlatformMapping() = 0;

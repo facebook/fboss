@@ -2,11 +2,26 @@
 
 #include "fboss/lib/phy/PhyManager.h"
 
+#include "fboss/agent/platforms/common/PlatformMapping.h"
+#include "fboss/agent/types.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
+
 #include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+PhyManager::PhyManager(const PlatformMapping* platformMapping) {
+  const auto& chips = platformMapping->getChips();
+  for (const auto& port : platformMapping->getPlatformPorts()) {
+    const auto& xphy = utility::getDataPlanePhyChips(
+        port.second, chips, phy::DataPlanePhyChipType::XPHY);
+    if (!xphy.empty()) {
+      portToGlobalXphyID_.emplace(
+          PortID(port.first),
+          GlobalXphyID(*xphy.begin()->second.physicalID_ref()));
+    }
+  }
+}
 
 phy::ExternalPhy* PhyManager::getExternalPhy(GlobalXphyID xphyID) {
   auto pimID = getPhyIDInfo(xphyID).pimID;
@@ -130,8 +145,8 @@ phy::ExternalPhyPortStats PhyManager::getPortStats(
 /*
  * getPortPrbsStats
  *
- * Calls the ExternalPhy getPortPrbsStats function. This function will be called
- * by application like agent.
+ * Calls the ExternalPhy getPortPrbsStats function. This function will be
+ * called by application like agent.
  */
 phy::ExternalPhyPortStats PhyManager::getPortPrbsStats(
     int slotId,
@@ -167,5 +182,4 @@ GlobalXphyID PhyManager::getGlobalXphyID(
   throw FbossError("getGlobalXphyID() is unsupported for such Phymanager");
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

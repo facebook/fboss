@@ -22,14 +22,15 @@ HwPhyEnsemble::~HwPhyEnsemble() {}
 void HwPhyEnsemble::init(std::unique_ptr<HwPhyEnsembleInitInfo> initInfo) {
   initInfo_ = std::move(initInfo);
 
-  phyManager_ = choosePhyManager();
+  auto multiPimPlatformMapping = chooseMultiPimPlatformMapping();
+
+  phyManager_ = choosePhyManager(multiPimPlatformMapping.get());
   phyManager_->getSystemContainer()->initHW();
 
   // And then based on init info (pimType)to locate the first
   // available pim in the test environment to initialize.
   targetPimID_ = getFirstAvailablePimID();
 
-  auto multiPimPlatformMapping = chooseMultiPimPlatformMapping();
   platformMapping_ =
       multiPimPlatformMapping->getPimPlatformMappingUniquePtr(targetPimID_);
 

@@ -16,9 +16,11 @@ namespace fboss {
 
 class MultiPimPlatformSystemContainer;
 class MultiPimPlatformPimContainer;
+class PlatformMapping;
 
 class PhyManager {
  public:
+  explicit PhyManager(const PlatformMapping* platformMapping);
   virtual ~PhyManager() {}
 
   virtual phy::PhyIDInfo getPhyIDInfo(GlobalXphyID xphyID) const = 0;
@@ -150,6 +152,16 @@ class PhyManager {
   // based on PimID
   using XphyMap = std::map<PimID, PimXphyMap>;
   XphyMap xphyMap_;
+
+ private:
+  // PhyManager is in the middle of changing its apis to accept PortID instead
+  // of asking users to get all three Pim/MDIO Controller/PHY id.
+  // Using a global PortID will make it easy for the communication b/w
+  // wedge_agent and qsfp_service.
+  // As for PhyManager, we need to use the GlobalXphyID to locate the exact
+  // ExternalPhy so that we can call ExternalPhy apis to program the xphy.
+  // This map will cache the two global ID: PortID and GlobalXphyID
+  std::unordered_map<PortID, GlobalXphyID> portToGlobalXphyID_;
 };
 
 } // namespace fboss

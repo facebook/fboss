@@ -30,7 +30,8 @@ class SaiPhyEnsemble : public HwPhyEnsemble {
   }
 
  private:
-  std::unique_ptr<PhyManager> choosePhyManager() override;
+  std::unique_ptr<PhyManager> choosePhyManager(
+      const PlatformMapping* platformMapping) override;
 
   std::unique_ptr<MultiPimPlatformMapping> chooseMultiPimPlatformMapping()
       override;
