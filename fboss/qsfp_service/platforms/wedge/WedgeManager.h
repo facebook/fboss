@@ -16,8 +16,10 @@
 
 DECLARE_string(warmboot_dir);
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
+class PhyManager;
+
 class WedgeManager : public TransceiverManager {
  public:
   using TransceiverMap = std::map<int32_t, TransceiverInfo>;
@@ -139,8 +141,13 @@ class WedgeManager : public TransceiverManager {
  protected:
   virtual std::unique_ptr<TransceiverI2CApi> getI2CBus();
   void updateTransceiverMap();
-  std::unique_ptr<TransceiverI2CApi>
-      wedgeI2cBus_; /* thread safe handle to access bus */
+
+  void setPhyManager(std::unique_ptr<PhyManager> phyManager) {
+    phyManager_ = std::move(phyManager);
+  }
+
+  // thread safe handle to access bus
+  std::unique_ptr<TransceiverI2CApi> wedgeI2cBus_;
 
   std::unique_ptr<AgentConfig> agentConfig_;
   std::unique_ptr<QsfpConfig> qsfpConfig_;
@@ -150,11 +157,13 @@ class WedgeManager : public TransceiverManager {
 
   PlatformMode platformMode_;
 
+  // For platforms that needs to program xphy
+  std::unique_ptr<PhyManager> phyManager_;
+
  private:
   void loadConfig() override;
   // Forbidden copy constructor and assignment operator
   WedgeManager(WedgeManager const&) = delete;
   WedgeManager& operator=(WedgeManager const&) = delete;
 };
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss
