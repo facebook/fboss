@@ -26,7 +26,8 @@ SaiBcmMinipackPlatform::SaiBcmMinipackPlatform(
           std::make_unique<MinipackPlatformMapping>(
               ExternalPhyVersion::MILN5_2)) {
   asic_ = std::make_unique<Tomahawk3Asic>();
-  phyInterfaceHandler_ = std::make_unique<MinipackPhyInterfaceHandler>();
+  phyInterfaceHandler_ =
+      std::make_unique<MinipackPhyInterfaceHandler>(getPlatformMapping());
 }
 
 } // namespace facebook::fboss

@@ -4,8 +4,7 @@
 
 #include "fboss/lib/phy/ExternalPhy.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class PhyInterfaceHandler {
  public:
@@ -128,5 +127,4 @@ class PhyInterfaceHandler {
  protected:
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss
