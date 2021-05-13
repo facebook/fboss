@@ -74,8 +74,12 @@ class HwPhyEnsemble {
     return phyManager_.get();
   }
 
-  int8_t getTargetPimID() const {
+  PimID getTargetPimID() const {
     return targetPimID_;
+  }
+
+  GlobalXphyID getTargetGlobalXphyID() const {
+    return targetGlobalXphyID_;
   }
 
   phy::ExternalPhy* getTargetExternalPhy();
@@ -84,20 +88,17 @@ class HwPhyEnsemble {
     return *initInfo_;
   }
 
- protected:
-  std::vector<int> getTargetPimXphyList(
-      MultiPimPlatformMapping* platformMapping) const;
+  const PlatformMapping* getPlatformMapping() const {
+    return platformMapping_.get();
+  }
+
+  const std::vector<PortID>& getTargetPorts() const {
+    return targetPorts_;
+  }
+
   bool isXphySupported() const {
     return isXphySupported_;
   }
-
-  std::unique_ptr<PhyManager> phyManager_;
-  // PIM PlatformMapping
-  std::unique_ptr<PlatformMapping> platformMapping_;
-  PimID targetPimID_;
-  // Some platform doesn't have xphy
-  bool isXphySupported_{false};
-  GlobalXphyID targetGlobalXphyID_;
 
  private:
   virtual std::unique_ptr<PhyManager> choosePhyManager(
@@ -111,5 +112,13 @@ class HwPhyEnsemble {
   PimID getFirstAvailablePimID();
 
   std::unique_ptr<HwPhyEnsembleInitInfo> initInfo_;
+  std::unique_ptr<PhyManager> phyManager_;
+  PimID targetPimID_;
+  // PIM PlatformMapping
+  std::unique_ptr<PlatformMapping> platformMapping_;
+  // Some platform doesn't have xphy
+  bool isXphySupported_{false};
+  GlobalXphyID targetGlobalXphyID_;
+  std::vector<PortID> targetPorts_;
 };
 } // namespace facebook::fboss

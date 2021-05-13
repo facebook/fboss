@@ -11,6 +11,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/MultiPimPlatformMapping.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/fpga/MultiPimPlatformSystemContainer.h"
 #include "fboss/lib/phy/PhyManager.h"
 
@@ -39,7 +40,13 @@ void HwPhyEnsemble::init(std::unique_ptr<HwPhyEnsembleInitInfo> initInfo) {
     if (chip.second.get_type() == phy::DataPlanePhyChipType::XPHY) {
       isXphySupported_ = true;
       targetGlobalXphyID_ = chip.second.get_physicalID();
-      // TODO(joseph5wu) Find all the SW ports using this xphy
+      // Fetch all the sw port ids for this xphy
+      const auto& ports = utility::getPlatformPortsByChip(
+          platformMapping_->getPlatformPorts(), chip.second);
+      targetPorts_.clear();
+      for (const auto& port : ports) {
+        targetPorts_.push_back(PortID(port.get_mapping().get_id()));
+      }
       break;
     }
   }

@@ -12,7 +12,6 @@
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
-#include "fboss/agent/state/Mirror.h"
 #include "fboss/agent/state/PortPgConfig.h"
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/Thrifty.h"

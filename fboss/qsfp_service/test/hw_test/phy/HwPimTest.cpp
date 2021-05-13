@@ -16,7 +16,6 @@ namespace facebook::fboss {
 
 TEST_F(HwTest, CheckPimPresent) {
   auto targetPimID = getHwPhyEnsemble()->getTargetPimID();
-  EXPECT_NE(targetPimID, -1);
   EXPECT_TRUE(getPimContainer(targetPimID)->isPimPresent());
 }
 } // namespace facebook::fboss
