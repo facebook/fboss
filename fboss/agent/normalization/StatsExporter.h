@@ -26,6 +26,7 @@ class StatsExporter {
       const std::string& propertyName,
       int64_t timestamp,
       double value,
+      int32_t intervalSec,
       std::shared_ptr<std::vector<std::string>> tags);
 
   // flush counters downstream. Note the counters published will be
@@ -37,6 +38,7 @@ class StatsExporter {
     std::string key;
     int64_t unixTime;
     double value;
+    int32_t intervalSec;
     std::shared_ptr<std::vector<std::string>> tags;
   };
 

@@ -173,6 +173,9 @@ void Initializer::initImpl() {
   // Start the UpdateSwitchStatsThread
   fs_ = new FunctionScheduler();
   fs_->setThreadName("UpdateStatsThread");
+  // steady will help even out the interval which will especially make
+  // aggregated counters more accurate with less spikes and dips
+  fs_->setSteady(true);
   std::function<void()> callback(std::bind(updateStats, sw_));
   auto timeInterval = std::chrono::seconds(1);
   fs_->addFunction(callback, timeInterval, "updateStats");

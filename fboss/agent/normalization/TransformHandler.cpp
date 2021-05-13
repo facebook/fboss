@@ -9,6 +9,8 @@
  */
 #include "fboss/agent/normalization/TransformHandler.h"
 
+#include <optional>
+
 #include <folly/MapUtil.h>
 
 namespace facebook::fboss::normalization {
@@ -17,9 +19,14 @@ std::optional<double> TransformHandler::bps(
     const std::string& portName,
     const std::string& propertyName,
     StatTimestamp propertyTimestamp,
-    int64_t propertyValue) {
-  auto maybeRate =
-      rate(portName, propertyName, propertyTimestamp, propertyValue);
+    int64_t propertyValue,
+    int32_t processIntervalSec) {
+  auto maybeRate = rate(
+      portName,
+      propertyName,
+      propertyTimestamp,
+      propertyValue,
+      processIntervalSec);
   if (maybeRate) {
     return handleBytesToBits(*maybeRate);
   }
@@ -30,19 +37,30 @@ std::optional<double> TransformHandler::rate(
     const std::string& portName,
     const std::string& propertyName,
     StatTimestamp propertyTimestamp,
-    int64_t propertyValue) {
+    int64_t propertyValue,
+    int32_t processIntervalSec) {
   return handleRate(
-      Counter(propertyTimestamp, propertyValue), portName, propertyName);
+      Counter(propertyTimestamp, propertyValue),
+      portName,
+      propertyName,
+      processIntervalSec);
 }
 
 std::optional<double> TransformHandler::handleRate(
     const Counter& counter,
     const std::string& portName,
-    const std::string& propertyName) {
+    const std::string& propertyName,
+    int32_t processIntervalSec) {
   if (auto lastPtr =
           folly::get_ptr(lastCounterCache_, portName, propertyName)) {
-    double rate = static_cast<double>(counter.value - lastPtr->value) /
-        (counter.timestamp - lastPtr->timestamp);
+    auto timeDiff = counter.timestamp - lastPtr->timestamp;
+    if (timeDiff < processIntervalSec) {
+      // skip processing this counter
+      return std::nullopt;
+    }
+
+    double rate =
+        static_cast<double>(counter.value - lastPtr->value) / timeDiff;
     *lastPtr = counter;
     return rate;
   } else {

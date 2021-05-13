@@ -21,8 +21,8 @@ TEST(StatsExporterTest, publishPortStats) {
   auto tags = std::make_shared<std::vector<std::string>>(
       std::vector<std::string>{"tag1", "tag2"});
 
-  statsExporter.publishPortStats("eth1", "input_bps", 30, 100, tags);
-  statsExporter.publishPortStats("eth1", "output_bps", 30, 200, tags);
+  statsExporter.publishPortStats("eth1", "input_bps", 30, 100, 60, tags);
+  statsExporter.publishPortStats("eth1", "output_bps", 30, 200, 15, tags);
 
   auto counterBuffer = statsExporter.getCounterBuffer();
 
@@ -31,12 +31,14 @@ TEST(StatsExporterTest, publishPortStats) {
   EXPECT_EQ(counterBuffer[0].key, "FBNet:interface.input_bps");
   EXPECT_EQ(counterBuffer[0].unixTime, 30);
   EXPECT_EQ(counterBuffer[0].value, 100);
+  EXPECT_EQ(counterBuffer[0].intervalSec, 60);
   EXPECT_THAT(*counterBuffer[0].tags, ElementsAre("tag1", "tag2"));
 
   EXPECT_EQ(counterBuffer[1].entity, "dev:eth1.FBNet");
   EXPECT_EQ(counterBuffer[1].key, "FBNet:interface.output_bps");
   EXPECT_EQ(counterBuffer[1].unixTime, 30);
   EXPECT_EQ(counterBuffer[1].value, 200);
+  EXPECT_EQ(counterBuffer[1].intervalSec, 15);
   EXPECT_THAT(*counterBuffer[1].tags, ElementsAre("tag1", "tag2"));
 
   statsExporter.flushCounters();

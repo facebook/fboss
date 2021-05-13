@@ -32,12 +32,17 @@ class PortStatsProcessor {
       const folly::F14FastMap<std::string, HwPortStats>& hwStatsMap);
 
  private:
+  // @param processIntervalSec: ODS has a minimal interval to accept a data
+  // point which is 15 seconds. Also, existing collections have different data
+  // interval for different counters. It's very important to support that to not
+  // break existing use cases during onbox migration
   void process(
       const std::string& portName,
       const std::string& normalizedPropertyName,
       StatTimestamp propertyTimestamp,
       int64_t propertyValue,
-      TransformType type);
+      TransformType type,
+      int32_t processIntervalSec);
 
   TransformHandler* transformHandler_;
   StatsExporter* statsExporter_;

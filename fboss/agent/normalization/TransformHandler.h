@@ -28,20 +28,23 @@ class TransformHandler {
       const std::string& portName,
       const std::string& propertyName,
       StatTimestamp propertyTimestamp,
-      int64_t propertyValue);
+      int64_t propertyValue,
+      int32_t processIntervalSec);
 
   // (cur_value - prev_value) / interval
   std::optional<double> rate(
       const std::string& portName,
       const std::string& propertyName,
       StatTimestamp propertyTimestamp,
-      int64_t propertyValue);
+      int64_t propertyValue,
+      int32_t processIntervalSec);
 
  private:
   std::optional<double> handleRate(
       const Counter& counter,
       const std::string& portName,
-      const std::string& propertyName);
+      const std::string& propertyName,
+      int32_t processIntervalSec);
 
   static constexpr double handleBytesToBits(double bytesValue) {
     return bytesValue * 8;

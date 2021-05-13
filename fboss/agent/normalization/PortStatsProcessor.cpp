@@ -30,25 +30,29 @@ void PortStatsProcessor::processStats(
         "input_bps",
         StatTimestamp(*hwPortStats.timestamp__ref()),
         *hwPortStats.inBytes__ref(),
-        TransformType::BPS);
+        TransformType::BPS,
+        60);
     process(
         portName,
         "output_bps",
         StatTimestamp(*hwPortStats.timestamp__ref()),
         *hwPortStats.outBytes__ref(),
-        TransformType::BPS);
+        TransformType::BPS,
+        60);
     process(
         portName,
         "total_input_discards",
         StatTimestamp(*hwPortStats.timestamp__ref()),
         *hwPortStats.inDiscards__ref(),
-        TransformType::RATE);
+        TransformType::RATE,
+        60);
     process(
         portName,
         "total_output_discards",
         StatTimestamp(*hwPortStats.timestamp__ref()),
         *hwPortStats.outDiscards__ref(),
-        TransformType::RATE);
+        TransformType::RATE,
+        60);
   }
 
   statsExporter_->flushCounters();
@@ -59,16 +63,25 @@ void PortStatsProcessor::process(
     const std::string& normalizedPropertyName,
     StatTimestamp propertyTimestamp,
     int64_t propertyValue,
-    TransformType type) {
+    TransformType type,
+    int32_t processIntervalSec) {
   std::optional<double> transformedValue;
   switch (type) {
     case TransformType::RATE:
       transformedValue = transformHandler_->rate(
-          portName, normalizedPropertyName, propertyTimestamp, propertyValue);
+          portName,
+          normalizedPropertyName,
+          propertyTimestamp,
+          propertyValue,
+          processIntervalSec);
       break;
     case TransformType::BPS:
       transformedValue = transformHandler_->bps(
-          portName, normalizedPropertyName, propertyTimestamp, propertyValue);
+          portName,
+          normalizedPropertyName,
+          propertyTimestamp,
+          propertyValue,
+          processIntervalSec);
       break;
   }
 
@@ -80,6 +93,7 @@ void PortStatsProcessor::process(
         normalizedPropertyName,
         propertyTimestamp,
         *transformedValue,
+        processIntervalSec,
         std::move(counterTags));
   }
 }

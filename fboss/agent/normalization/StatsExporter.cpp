@@ -25,12 +25,14 @@ void StatsExporter::publishPortStats(
     const std::string& propertyName,
     int64_t timestamp,
     double value,
+    int32_t intervalSec,
     std::shared_ptr<std::vector<std::string>> tags) {
   OdsCounter counter;
   counter.entity = fmt::format("{}:{}{}", deviceName_, portName, kEntitySuffix);
   counter.key = fmt::format("FBNet:interface.{}", propertyName);
   counter.unixTime = timestamp;
   counter.value = value;
+  counter.intervalSec = intervalSec;
   counter.tags = std::move(tags);
 
   counterBuffer_.push_back(std::move(counter));
@@ -40,11 +42,12 @@ void GlogStatsExporter::flushCounters() {
   for (auto& counter : counterBuffer_) {
     XLOGF(
         INFO,
-        "Normalized counter - Entity: {}, Key: {}, Unixtime: {}, Value: {}, Tags: [{}]",
+        "Normalized counter - Entity: {}, Key: {}, Unixtime: {}, Value: {}, Interval: {}, Tags: [{}]",
         counter.entity,
         counter.key,
         counter.unixTime,
         counter.value,
+        counter.intervalSec,
         counter.tags ? folly::join(", ", *counter.tags) : "");
   }
   counterBuffer_.clear();
