@@ -13,9 +13,9 @@
 
 namespace facebook::fboss {
 std::unique_ptr<HwPhyEnsemble> createHwEnsemble(
-    const HwPhyEnsemble::HwPhyEnsembleInitInfo& info) {
+    std::unique_ptr<HwPhyEnsemble::HwPhyEnsembleInitInfo> initInfo) {
   auto ensemble = std::make_unique<SaiPhyEnsemble>();
-  ensemble->init(info);
+  ensemble->init(std::move(initInfo));
   return ensemble;
 }
 } // namespace facebook::fboss

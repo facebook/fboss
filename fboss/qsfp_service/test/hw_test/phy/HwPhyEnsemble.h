@@ -59,7 +59,7 @@ class HwPhyEnsemble {
   // TODO(joseph5wu) Might need some extra logic to handle desctrutor
   virtual ~HwPhyEnsemble();
 
-  virtual void init(const HwPhyEnsembleInitInfo& info);
+  virtual void init(std::unique_ptr<HwPhyEnsembleInitInfo> initInfo);
 
   PhyManager* getPhyManager() const {
     return phyManager_.get();
@@ -67,6 +67,10 @@ class HwPhyEnsemble {
 
   int8_t getTargetPimID() const {
     return targetPimID_;
+  }
+
+  const HwPhyEnsembleInitInfo& getInitInfo() const {
+    return *initInfo_;
   }
 
  protected:
@@ -78,14 +82,14 @@ class HwPhyEnsemble {
   int8_t targetPimID_{-1};
 
  private:
-  virtual std::unique_ptr<PhyManager> choosePhyManager(
-      MultiPimPlatformPimContainer::PimType pimType) = 0;
+  virtual std::unique_ptr<PhyManager> choosePhyManager() = 0;
 
   virtual std::unique_ptr<MultiPimPlatformMapping>
-  chooseMultiPimPlatformMapping(
-      MultiPimPlatformPimContainer::PimType pimType) = 0;
+  chooseMultiPimPlatformMapping() = 0;
   // Based on pimType to find the first available pim ID.
   // Will throw exception if such pimType doesn't exist
-  int8_t getFirstAvailablePimID(MultiPimPlatformPimContainer::PimType pimType);
+  int8_t getFirstAvailablePimID();
+
+  std::unique_ptr<HwPhyEnsembleInitInfo> initInfo_;
 };
 } // namespace facebook::fboss

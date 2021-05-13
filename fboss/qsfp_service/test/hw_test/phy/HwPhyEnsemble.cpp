@@ -19,29 +19,30 @@ HwPhyEnsemble::HwPhyEnsemble() {}
 
 HwPhyEnsemble::~HwPhyEnsemble() {}
 
-void HwPhyEnsemble::init(const HwPhyEnsembleInitInfo& info) {
-  phyManager_ = choosePhyManager(info.pimType);
+void HwPhyEnsemble::init(std::unique_ptr<HwPhyEnsembleInitInfo> initInfo) {
+  initInfo_ = std::move(initInfo);
+
+  phyManager_ = choosePhyManager();
   phyManager_->getSystemContainer()->initHW();
 
   // And then based on init info (pimType)to locate the first
   // available pim in the test environment to initialize.
-  targetPimID_ = getFirstAvailablePimID(info.pimType);
+  targetPimID_ = getFirstAvailablePimID();
 
-  platformMapping_ = chooseMultiPimPlatformMapping(info.pimType);
+  platformMapping_ = chooseMultiPimPlatformMapping();
 }
 
-int8_t HwPhyEnsemble::getFirstAvailablePimID(
-    MultiPimPlatformPimContainer::PimType pimType) {
+int8_t HwPhyEnsemble::getFirstAvailablePimID() {
   auto pimStartNum = phyManager_->getSystemContainer()->getPimStartNum();
   for (auto i = 0; i < phyManager_->getNumOfSlot(); ++i) {
-    if (pimType ==
+    if (initInfo_->pimType ==
         phyManager_->getSystemContainer()->getPimType(i + pimStartNum)) {
       return i + pimStartNum;
     }
   }
   throw FbossError(
       "Can't find pimType:",
-      MultiPimPlatformPimContainer::getPimTypeStr(pimType),
+      MultiPimPlatformPimContainer::getPimTypeStr(initInfo_->pimType),
       " pim in this platform");
 }
 

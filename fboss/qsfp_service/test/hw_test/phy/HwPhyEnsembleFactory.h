@@ -24,5 +24,5 @@ namespace facebook::fboss {
  * members - PhyManager) interfaces.
  */
 std::unique_ptr<HwPhyEnsemble> createHwEnsemble(
-    const HwPhyEnsemble::HwPhyEnsembleInitInfo& info);
+    std::unique_ptr<HwPhyEnsemble::HwPhyEnsembleInitInfo> initInfo);
 } // namespace facebook::fboss

@@ -25,7 +25,7 @@ DEFINE_string(
 namespace facebook::fboss {
 
 void HwTest::SetUp() {
-  HwPhyEnsemble::HwPhyEnsembleInitInfo initInfo;
+  auto initInfo = std::make_unique<HwPhyEnsemble::HwPhyEnsembleInitInfo>();
   // If user doesn't specify the pim type for testing, we use productInfo
   if (FLAGS_target_pim_type.empty()) {
     auto productInfo =
@@ -34,17 +34,17 @@ void HwTest::SetUp() {
     auto platformMode = productInfo->getMode();
     switch (platformMode) {
       case PlatformMode::ELBERT:
-        initInfo.pimType = MultiPimPlatformPimContainer::PimType::ELBERT_8DD;
+        initInfo->pimType = MultiPimPlatformPimContainer::PimType::ELBERT_8DD;
         break;
       default:
         throw FbossError(
             "Current phy hw_test doesn't support PlatformMode:", platformMode);
     }
   } else {
-    initInfo.pimType =
+    initInfo->pimType =
         MultiPimPlatformPimContainer::getPimTypeFromStr(FLAGS_target_pim_type);
   }
-  ensemble_ = createHwEnsemble(initInfo);
+  ensemble_ = createHwEnsemble(std::move(initInfo));
 }
 
 void HwTest::TearDown() {

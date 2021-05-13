@@ -22,13 +22,12 @@ class SaiPhyEnsemble : public HwPhyEnsemble {
 
   ~SaiPhyEnsemble() override {}
 
-  void init(const HwPhyEnsemble::HwPhyEnsembleInitInfo& info) override;
+  void init(std::unique_ptr<HwPhyEnsembleInitInfo> initInfo) override;
 
  private:
-  std::unique_ptr<PhyManager> choosePhyManager(
-      MultiPimPlatformPimContainer::PimType pimType) override;
+  std::unique_ptr<PhyManager> choosePhyManager() override;
 
-  std::unique_ptr<MultiPimPlatformMapping> chooseMultiPimPlatformMapping(
-      MultiPimPlatformPimContainer::PimType pimType) override;
+  std::unique_ptr<MultiPimPlatformMapping> chooseMultiPimPlatformMapping()
+      override;
 };
 } // namespace facebook::fboss
