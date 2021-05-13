@@ -15,6 +15,7 @@
 namespace facebook::fboss {
 
 class PhyManager;
+class SaiHwPlatform;
 
 class SaiPhyEnsemble : public HwPhyEnsemble {
  public:
@@ -24,10 +25,18 @@ class SaiPhyEnsemble : public HwPhyEnsemble {
 
   void init(std::unique_ptr<HwPhyEnsembleInitInfo> initInfo) override;
 
+  SaiHwPlatform* getSaiHwPlatform() {
+    return saiHwPlatform_;
+  }
+
  private:
   std::unique_ptr<PhyManager> choosePhyManager() override;
 
   std::unique_ptr<MultiPimPlatformMapping> chooseMultiPimPlatformMapping()
       override;
+
+  SaiHwPlatform* chooseSaiHwPlatform();
+
+  SaiHwPlatform* saiHwPlatform_;
 };
 } // namespace facebook::fboss

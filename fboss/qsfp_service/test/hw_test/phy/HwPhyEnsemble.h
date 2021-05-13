@@ -15,6 +15,7 @@
 #include <set>
 #include <vector>
 
+#include "fboss/agent/types.h"
 #include "fboss/lib/fpga/MultiPimPlatformPimContainer.h"
 
 namespace facebook::fboss {
@@ -79,7 +80,8 @@ class HwPhyEnsemble {
 
   std::unique_ptr<PhyManager> phyManager_;
   std::unique_ptr<MultiPimPlatformMapping> platformMapping_;
-  int8_t targetPimID_{-1};
+  PimID targetPimID_;
+  GlobalXphyID targetGlobalXphyID_;
 
  private:
   virtual std::unique_ptr<PhyManager> choosePhyManager() = 0;
@@ -88,7 +90,7 @@ class HwPhyEnsemble {
   chooseMultiPimPlatformMapping() = 0;
   // Based on pimType to find the first available pim ID.
   // Will throw exception if such pimType doesn't exist
-  int8_t getFirstAvailablePimID();
+  PimID getFirstAvailablePimID();
 
   std::unique_ptr<HwPhyEnsembleInitInfo> initInfo_;
 };

@@ -32,12 +32,12 @@ void HwPhyEnsemble::init(std::unique_ptr<HwPhyEnsembleInitInfo> initInfo) {
   platformMapping_ = chooseMultiPimPlatformMapping();
 }
 
-int8_t HwPhyEnsemble::getFirstAvailablePimID() {
+PimID HwPhyEnsemble::getFirstAvailablePimID() {
   auto pimStartNum = phyManager_->getSystemContainer()->getPimStartNum();
   for (auto i = 0; i < phyManager_->getNumOfSlot(); ++i) {
     if (initInfo_->pimType ==
         phyManager_->getSystemContainer()->getPimType(i + pimStartNum)) {
-      return i + pimStartNum;
+      return PimID(i + pimStartNum);
     }
   }
   throw FbossError(
