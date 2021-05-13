@@ -8,6 +8,7 @@ namespace facebook::fboss {
 bool Elbert8DDAsic::isSupported(Feature feature) const {
   switch (feature) {
     case HwAsic::Feature::MACSEC:
+    case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT:
       return true;
     default:
       return false;
