@@ -58,4 +58,8 @@ std::vector<int> HwPhyEnsemble::getTargetPimXphyList(
   }
   return xphys;
 }
+
+phy::ExternalPhy* HwPhyEnsemble::getTargetExternalPhy() {
+  return phyManager_->getExternalPhy(targetGlobalXphyID_);
+}
 } // namespace facebook::fboss

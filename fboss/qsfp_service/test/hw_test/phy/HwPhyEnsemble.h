@@ -17,11 +17,16 @@
 
 #include "fboss/agent/types.h"
 #include "fboss/lib/fpga/MultiPimPlatformPimContainer.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 namespace facebook::fboss {
 
 class PhyManager;
 class MultiPimPlatformMapping;
+
+namespace phy {
+class ExternalPhy;
+}
 
 /*
  * HwPhyEnsemble will be the hw_test ensemble class to manager PhyManager.
@@ -54,6 +59,8 @@ class HwPhyEnsemble {
     // phy features. So we need user to define which linecard type to use
     // before running the hw_test.
     MultiPimPlatformPimContainer::PimType pimType;
+    // Expected default fwVersion installed after phy initialized
+    phy::PhyFwVersion fwVersion;
   };
 
   HwPhyEnsemble();
@@ -69,6 +76,8 @@ class HwPhyEnsemble {
   int8_t getTargetPimID() const {
     return targetPimID_;
   }
+
+  phy::ExternalPhy* getTargetExternalPhy();
 
   const HwPhyEnsembleInitInfo& getInitInfo() const {
     return *initInfo_;
@@ -88,6 +97,7 @@ class HwPhyEnsemble {
 
   virtual std::unique_ptr<MultiPimPlatformMapping>
   chooseMultiPimPlatformMapping() = 0;
+
   // Based on pimType to find the first available pim ID.
   // Will throw exception if such pimType doesn't exist
   PimID getFirstAvailablePimID();

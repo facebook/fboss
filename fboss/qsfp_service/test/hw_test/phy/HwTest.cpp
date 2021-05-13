@@ -24,6 +24,25 @@ DEFINE_string(
 
 namespace facebook::fboss {
 
+namespace {
+// TODO(joseph5wu) Currently we haven't fully integrate firmware upgrade process
+// w/ qsfp_service and hw_test. Therefore, we use static target firmware version
+// for basic hw firmware test for now.
+phy::PhyFwVersion getTargetFirmwareVersion(
+    MultiPimPlatformPimContainer::PimType pimType) {
+  if (pimType == MultiPimPlatformPimContainer::PimType::ELBERT_8DD) {
+    phy::PhyFwVersion fw;
+    fw.version_ref() = 91;
+    fw.versionStr_ref() = "91.1";
+    fw.minorVersion_ref() = 1;
+    return fw;
+  }
+  throw FbossError(
+      "Unrecoginize PimType:",
+      MultiPimPlatformPimContainer::getPimTypeStr(pimType));
+}
+} // namespace
+
 void HwTest::SetUp() {
   auto initInfo = std::make_unique<HwPhyEnsemble::HwPhyEnsembleInitInfo>();
   // If user doesn't specify the pim type for testing, we use productInfo
@@ -44,6 +63,7 @@ void HwTest::SetUp() {
     initInfo->pimType =
         MultiPimPlatformPimContainer::getPimTypeFromStr(FLAGS_target_pim_type);
   }
+  initInfo->fwVersion = getTargetFirmwareVersion(initInfo->pimType);
   ensemble_ = createHwEnsemble(std::move(initInfo));
 }
 

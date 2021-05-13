@@ -139,6 +139,7 @@ struct PhyFwVersion {
   2: i32 crc
   3: optional string versionStr
   4: optional i32 dateCode
+  5: optional i32 minorVersion
 }
 
 
