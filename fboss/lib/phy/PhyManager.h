@@ -2,18 +2,20 @@
 
 #pragma once
 
-#include <map>
-#include <vector>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/phy/ExternalPhy.h"
 #include "fboss/mdio/Mdio.h"
 
+#include <map>
+#include <vector>
+
 namespace facebook {
 namespace fboss {
 
 class MultiPimPlatformSystemContainer;
+class MultiPimPlatformPimContainer;
 
 class PhyManager {
  public:
@@ -22,12 +24,29 @@ class PhyManager {
   virtual phy::PhyIDInfo getPhyIDInfo(GlobalXphyID xphyID) const = 0;
   virtual GlobalXphyID getGlobalXphyID(const phy::PhyIDInfo& phyIDInfo) const;
 
+  virtual void createExternalPhy(
+      GlobalXphyID /* xphyID */,
+      MultiPimPlatformPimContainer* /* pimContainer */) {}
+
   /*
    * This function initializes all the PHY objects for a given chassis. The PHY
    * objects are kept per slot, per MDIO controller, per phy address. This
    * needs to be defined by inheriting classes.
    */
   virtual bool initExternalPhyMap() = 0;
+
+  virtual void initializeExternalPhy(
+      GlobalXphyID /* xphyID */,
+      bool /* warmBoot */) {}
+
+  /*
+   * A virtual function for the ExternalPhy obejcts. The sub-class needs to
+   * implement this function. The implementation will be different for
+   * Minipack abd Yamp. If the Phy code is in same process then that should
+   * called PhyManager function otherwise it should  be a thrift call to port
+   * service process
+   */
+  virtual void initializeSlotPhys(int /* slotId */, bool /* warmboot */) {}
 
   virtual MultiPimPlatformSystemContainer* getSystemContainer() = 0;
 
@@ -101,15 +120,6 @@ class PhyManager {
       int phyId,
       phy::PhyPortConfig config,
       phy::Side side);
-
-  /*
-   * A virtual function for the ExternalPhy obejcts. The sub-class needs to
-   * implement this function. The implementation will be different for
-   * Minipack abd Yamp. If the Phy code is in same process then that should
-   * called PhyManager function otherwise it should  be a thrift call to port
-   * service process
-   */
-  virtual void initializeSlotPhys(int /* slotId */, bool /* warmboot */) {}
 
  protected:
   // Number of slot in the platform
