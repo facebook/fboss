@@ -120,6 +120,14 @@ target_link_libraries(traffic_policy_utils
   Folly::folly
 )
 
+add_fbthrift_cpp_library(
+  validated_shell_commands_cpp2
+  fboss/agent/hw/test/validated_shell_commands.thrift
+  OPTIONS
+    json
+    visitation
+)
+
 add_library(hw_switch_test
   fboss/agent/hw/test/HwEcmpTests.cpp
   fboss/agent/hw/test/HwFlexPortTests.cpp
@@ -217,4 +225,5 @@ target_link_libraries(hw_switch_test
   route_scale_gen
   trunk_utils
   Folly::folly
+  validated_shell_commands_cpp2
 )

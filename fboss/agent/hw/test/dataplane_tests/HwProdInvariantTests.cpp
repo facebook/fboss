@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 
 #include "fboss/agent/hw/test/HwTestProdConfigUtils.h"
+#include "fboss/agent/hw/test/gen-cpp2/validated_shell_commands_constants.h"
 
 #include "fboss/agent/hw/test/dataplane_tests/HwProdInvariantHelper.h"
 

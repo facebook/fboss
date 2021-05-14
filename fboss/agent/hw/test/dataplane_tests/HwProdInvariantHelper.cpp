@@ -13,11 +13,12 @@
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
-#include "fboss/agent/hw/test/dataplane_tests/BcmTestedShellCommands.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwEcmpDataPlaneTestUtil.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+
+#include "fboss/agent/hw/test/gen-cpp2/validated_shell_commands_constants.h"
 
 namespace {
 auto constexpr kEcmpWidth = 4;
@@ -107,7 +108,7 @@ void HwProdInvariantHelper::verifyDscpToQueueMapping() {
 }
 
 void HwProdInvariantHelper::verifySafeDiagCmds() {
-  std::vector<std::string> diagCmds;
+  std::set<std::string> diagCmds;
   switch (ensemble_->getAsic()->getAsicType()) {
     case HwAsic::AsicType::ASIC_TYPE_FAKE:
     case HwAsic::AsicType::ASIC_TYPE_MOCK:
@@ -119,10 +120,7 @@ void HwProdInvariantHelper::verifySafeDiagCmds() {
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK:
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
-      std::for_each(
-          ::BCM_TESTED_CMDS.begin(),
-          ::BCM_TESTED_CMDS.end(),
-          [&diagCmds](const auto& cmd) { diagCmds.push_back(cmd); });
+      diagCmds = validated_shell_commands_constants::BCM_TESTED_CMDS();
       break;
   }
   if (diagCmds.size()) {
