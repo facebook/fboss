@@ -71,6 +71,44 @@ class Mdio {
 
 template <typename IO>
 class MdioController {
+ private:
+  // This can be useful by clients to do multiple MDIO reads/writes
+  // w/out releasing the controller. Sample:
+  // {
+  //   auto io = controller.fully_lock();
+  //   io->write(...);
+  //   io->read(...);
+  // }
+
+  // Functions for synchronizing multiple processes' access to
+  // MDIO. The calling thread must hold a LockedPtr lock for
+  // inter-thread exclusion before attempting to acquire or release
+  // an inter-process lock.
+
+  struct ProcLock {
+    ProcLock(std::shared_ptr<folly::File> lockFile) : lockFile_(lockFile) {
+      lockFile_->lock();
+    }
+
+    // Clear the lockFile when moving so that we don't unlock twice
+    explicit ProcLock(ProcLock&& old) noexcept
+        : lockFile_(std::move(old.lockFile_)) {
+      old.lockFile_ = nullptr;
+    }
+    // Delete copy ctor since it doesn't really make sense to have two locks on
+    // the same mutex.
+    explicit ProcLock(ProcLock&) = delete;
+
+    ~ProcLock() {
+      if (lockFile_.get() != nullptr) {
+        lockFile_->unlock();
+      }
+    }
+
+   private:
+    std::shared_ptr<folly::File> lockFile_;
+  };
+
  public:
   using LockedPtr = typename folly::Synchronized<IO, std::mutex>::LockedPtr;
 
@@ -152,43 +190,8 @@ class MdioController {
     return eventBase_.get();
   }
 
-  // This can be useful by clients to do multiple MDIO reads/writes
-  // w/out releasing the controller. Sample:
-  // {
-  //   auto io = controller.fully_lock();
-  //   io->write(...);
-  //   io->read(...);
-  // }
 
-  // Functions for synchronizing multiple processes' access to
-  // MDIO. The calling thread must hold a LockedPtr lock for
-  // inter-thread exclusion before attempting to acquire or release
-  // an inter-process lock.
-
-  struct ProcLock {
-    ProcLock(std::shared_ptr<folly::File> lockFile) : lockFile_(lockFile) {
-      lockFile_->lock();
-    }
-
-    // Clear the lockFile when moving so that we don't unlock twice
-    explicit ProcLock(ProcLock&& old) noexcept
-        : lockFile_(std::move(old.lockFile_)) {
-      old.lockFile_ = nullptr;
-    }
-    // Delete copy ctor since it doesn't really make sense to have two locks on
-    // the same mutex.
-    explicit ProcLock(ProcLock&) = delete;
-
-    ~ProcLock() {
-      if (lockFile_.get() != nullptr) {
-        lockFile_->unlock();
-      }
-    }
-
-   private:
-    std::shared_ptr<folly::File> lockFile_;
-  };
-
+ public:
   class FullyLockedMdio {
    public:
     FullyLockedMdio(
@@ -210,7 +213,6 @@ class MdioController {
     LockedPtr locked_;
     ProcLock procLock_;
   };
-
   FullyLockedMdio fully_lock() {
     CHECK(lockFile_);
     auto threadLock = io_.lock();
