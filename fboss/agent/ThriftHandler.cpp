@@ -1220,7 +1220,7 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
         tempRoute.nextHopAddrs_ref() =
             util::fromFwdNextHops(fwdInfo.getNextHopSet());
         tempRoute.nextHops_ref() =
-            util::fromRouteNextHopSet(fwdInfo.getNextHopSet());
+            util::fromRouteNextHopSet(fwdInfo.normalizedNextHops());
         routes.emplace_back(std::move(tempRoute));
       });
 }
@@ -1244,7 +1244,7 @@ void ThriftHandler::getRouteTableByClient(
             toBinaryAddress(route->prefix().network);
         tempRoute.dest_ref()->prefixLength_ref() = route->prefix().mask;
         tempRoute.nextHops_ref() =
-            util::fromRouteNextHopSet(entry->getNextHopSet());
+            util::fromRouteNextHopSet(entry->normalizedNextHops());
         for (const auto& nh : *tempRoute.nextHops_ref()) {
           tempRoute.nextHopAddrs_ref()->emplace_back(*nh.address_ref());
         }
@@ -1259,7 +1259,7 @@ void ThriftHandler::getRouteTableDetails(std::vector<RouteDetails>& routes) {
       sw_->isStandaloneRibEnabled(),
       sw_->getState(),
       [&routes](RouterID /*rid*/, const auto& route) {
-        routes.emplace_back(route->toRouteDetails());
+        routes.emplace_back(route->toRouteDetails(true));
       });
 }
 
@@ -1309,12 +1309,12 @@ void ThriftHandler::getIpRouteDetails(
   if (ipAddr.isV4()) {
     auto match = sw_->longestMatch(state, ipAddr.asV4(), RouterID(vrfId));
     if (match && match->isResolved()) {
-      route = match->toRouteDetails();
+      route = match->toRouteDetails(true);
     }
   } else {
     auto match = sw_->longestMatch(state, ipAddr.asV6(), RouterID(vrfId));
     if (match && match->isResolved()) {
-      route = match->toRouteDetails();
+      route = match->toRouteDetails(true);
     }
   }
 }
@@ -1896,7 +1896,7 @@ void ThriftHandler::getMplsRouteTableByClient(
     mplsRoute.topLabel = entry->getID();
     mplsRoute.adminDistance_ref() = labelNextHopEntry->getAdminDistance();
     *mplsRoute.nextHops_ref() =
-        util::fromRouteNextHopSet(labelNextHopEntry->getNextHopSet());
+        util::fromRouteNextHopSet(labelNextHopEntry->normalizedNextHops());
     mplsRoutes.emplace_back(std::move(mplsRoute));
   }
 }
@@ -1925,7 +1925,7 @@ void ThriftHandler::getMplsRouteDetails(
   *mplsRouteDetail.nextHopMulti_ref() =
       entry->getLabelNextHopsByClient().toThrift();
   const auto& fwd = entry->getLabelNextHop();
-  for (const auto& nh : fwd.getNextHopSet()) {
+  for (const auto& nh : fwd.normalizedNextHops()) {
     mplsRouteDetail.nextHops_ref()->push_back(nh.toThrift());
   }
   *mplsRouteDetail.adminDistance_ref() = fwd.getAdminDistance();

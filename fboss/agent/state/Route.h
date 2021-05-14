@@ -52,7 +52,7 @@ struct RouteFields {
    */
   static RouteFields fromFollyDynamic(const folly::dynamic& routeJson);
 
-  RouteDetails toRouteDetails() const;
+  RouteDetails toRouteDetails(bool normalizedNhopWeights = false) const;
   bool isHostRoute() const {
     return prefix.mask == prefix.network.bitCount();
   }
@@ -212,8 +212,8 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
     return fromFollyDynamic(folly::parseJson(jsonStr));
   }
 
-  RouteDetails toRouteDetails() const {
-    return RouteBase::getFields()->toRouteDetails();
+  RouteDetails toRouteDetails(bool normalizedNhopWeights = false) const {
+    return RouteBase::getFields()->toRouteDetails(normalizedNhopWeights);
   }
 
   /*

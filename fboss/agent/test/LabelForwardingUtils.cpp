@@ -102,6 +102,7 @@ NextHopThrift getSwapNextHopThrift(int offset) {
   *action.action_ref() = MplsActionCode::SWAP;
   action.swapLabel_ref() = 601;
   nexthop.mplsAction_ref() = action;
+  nexthop.weight_ref() = 1;
   return nexthop;
 }
 
