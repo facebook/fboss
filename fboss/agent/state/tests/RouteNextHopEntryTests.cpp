@@ -161,6 +161,7 @@ TEST(RouteNextHopEntry, EmptyListIsDrop) {
   ASSERT_EQ(nextHopEntry.getNextHopSet().size(), 0);
 }
 
+// Total weight greater than 128. Should get normalized to 512
 TEST(RouteNextHopEntry, NormalizedFixedSizeWideNextHop) {
   RouteNextHopSet nhops;
 
@@ -170,6 +171,52 @@ TEST(RouteNextHopEntry, NormalizedFixedSizeWideNextHop) {
   nhops.emplace(ResolvedNextHop(nextHopAddr1, InterfaceID(1), 55));
   nhops.emplace(ResolvedNextHop(nextHopAddr2, InterfaceID(2), 56));
   nhops.emplace(ResolvedNextHop(nextHopAddr3, InterfaceID(3), 57));
+
+  auto normalizedNextHops =
+      RouteNextHopEntry(nhops, kDefaultAdminDistance).normalizedNextHops();
+
+  NextHopWeight totalWeight = std::accumulate(
+      normalizedNextHops.begin(),
+      normalizedNextHops.end(),
+      0,
+      [](NextHopWeight w, const NextHop& nh) { return w + nh.weight(); });
+  EXPECT_EQ(totalWeight, FLAGS_ecmp_width);
+}
+
+// Total weight greater than ecmp_width but can be reduced
+// by proportionally reducing weights first and then fitting to 512
+TEST(RouteNextHopEntry, ScaledDownNormalizedFixedSizeWideNextHop) {
+  RouteNextHopSet nhops;
+
+  FLAGS_ecmp_width = 512;
+  FLAGS_wide_ecmp = true;
+
+  nhops.emplace(ResolvedNextHop(nextHopAddr1, InterfaceID(1), 550));
+  nhops.emplace(ResolvedNextHop(nextHopAddr2, InterfaceID(2), 560));
+  nhops.emplace(ResolvedNextHop(nextHopAddr3, InterfaceID(3), 570));
+
+  auto normalizedNextHops =
+      RouteNextHopEntry(nhops, kDefaultAdminDistance).normalizedNextHops();
+
+  NextHopWeight totalWeight = std::accumulate(
+      normalizedNextHops.begin(),
+      normalizedNextHops.end(),
+      0,
+      [](NextHopWeight w, const NextHop& nh) { return w + nh.weight(); });
+  EXPECT_EQ(totalWeight, FLAGS_ecmp_width);
+}
+
+// Total width exceeds 512 after proportionaly reducing weights.
+// should get normalized by reducing the high weight members
+TEST(RouteNextHopEntry, ScaledDownFixedSizeWideNextHop) {
+  RouteNextHopSet nhops;
+
+  FLAGS_ecmp_width = 512;
+  FLAGS_wide_ecmp = true;
+
+  nhops.emplace(ResolvedNextHop(nextHopAddr1, InterfaceID(1), 1));
+  nhops.emplace(ResolvedNextHop(nextHopAddr2, InterfaceID(2), 1));
+  nhops.emplace(ResolvedNextHop(nextHopAddr3, InterfaceID(3), 25235));
 
   auto normalizedNextHops =
       RouteNextHopEntry(nhops, kDefaultAdminDistance).normalizedNextHops();

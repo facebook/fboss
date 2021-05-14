@@ -289,31 +289,34 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHops() const {
           scaledNextHops.insert(decMax);
         }
       }
+      scaledTotalWeight = FLAGS_ecmp_width;
     }
     XLOG(DBG2) << "Scaled next hops from " << getNextHopSet() << " to "
                << scaledNextHops;
     normalizedNextHops = scaledNextHops;
-
   } else {
-    if (FLAGS_wide_ecmp && totalWeight > kMinSizeForWideEcmp) {
-      std::map<folly::IPAddress, uint64_t> nhopAndWeights;
-      for (const auto& nhop : normalizedNextHops) {
-        nhopAndWeights.insert(std::make_pair(nhop.addr(), nhop.weight()));
-      }
-      normalizeNextHopWeightsToMaxPaths<folly::IPAddress>(
-          nhopAndWeights, FLAGS_ecmp_width);
-      NextHopSet normalizedToMaxPathNextHops;
-      for (const auto& nhop : normalizedNextHops) {
-        normalizedToMaxPathNextHops.insert(ResolvedNextHop(
-            nhop.addr(),
-            nhop.intf(),
-            nhopAndWeights[nhop.addr()],
-            nhop.labelForwardingAction()));
-      }
-      XLOG(DBG2) << "Scaled next hops from " << getNextHopSet() << " to "
-                 << normalizedToMaxPathNextHops;
-      return normalizedToMaxPathNextHops;
+    scaledTotalWeight = totalWeight;
+  }
+
+  if (FLAGS_wide_ecmp && scaledTotalWeight > kMinSizeForWideEcmp &&
+      scaledTotalWeight < FLAGS_ecmp_width) {
+    std::map<folly::IPAddress, uint64_t> nhopAndWeights;
+    for (const auto& nhop : normalizedNextHops) {
+      nhopAndWeights.insert(std::make_pair(nhop.addr(), nhop.weight()));
     }
+    normalizeNextHopWeightsToMaxPaths<folly::IPAddress>(
+        nhopAndWeights, FLAGS_ecmp_width);
+    NextHopSet normalizedToMaxPathNextHops;
+    for (const auto& nhop : normalizedNextHops) {
+      normalizedToMaxPathNextHops.insert(ResolvedNextHop(
+          nhop.addr(),
+          nhop.intf(),
+          nhopAndWeights[nhop.addr()],
+          nhop.labelForwardingAction()));
+    }
+    XLOG(DBG2) << "Scaled next hops from " << getNextHopSet() << " to "
+               << normalizedToMaxPathNextHops;
+    return normalizedToMaxPathNextHops;
   }
   return normalizedNextHops;
 }
