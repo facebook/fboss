@@ -394,8 +394,11 @@ RateSelectSetting SffModule::getRateSelectSettingValue(RateSelectState state) {
   uint8_t rateRx = getSettingsValue(SffField::RATE_SELECT_RX);
   uint8_t rateTx = getSettingsValue(SffField::RATE_SELECT_TX);
   if (rateRx != rateTx) {
-    XLOG(ERR) << "Unable to retrieve rate select setting: rx(" << std::hex
-              << rateRx << " and tx(" << rateTx << ") are not equal";
+    XLOG(ERR) << folly::sformat(
+        "Unable to retrieve rate select setting: rx({:#x}) and tx({:#x}) are not equal",
+        rateRx,
+        rateTx);
+
     return RateSelectSetting::UNSUPPORTED;
   }
 
@@ -1025,9 +1028,11 @@ void SffModule::setPowerOverrideIfSupported(PowerControlState currentState) {
   qsfpImpl_->writeTransceiver(
       TransceiverI2CApi::ADDR_QSFP, offset, sizeof(power), &power);
 
-  XLOG(INFO) << "Port " << portStr << ": QSFP set to power setting "
-             << apache::thrift::util::enumNameSafe(desiredSetting) << " ("
-             << int(power) << ")";
+  XLOG(INFO) << folly::sformat(
+      "Port {:s}: QSFP set to power setting {:s} ({:d})",
+      portStr,
+      apache::thrift::util::enumNameSafe(desiredSetting),
+      power);
 }
 
 /*

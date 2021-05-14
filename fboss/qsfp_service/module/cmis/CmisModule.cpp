@@ -568,8 +568,8 @@ void CmisModule::getApplicationCapabilities() {
       break;
     }
 
-    XLOG(DBG3) << "Adding module capability: " << data[1] << " at position "
-               << (i + 1);
+    XLOG(DBG3) << folly::sformat(
+        "Adding module capability: {:#x} at position {:d}", data[1], i + 1);
     ApplicationAdvertisingField applicationAdvertisingField;
     applicationAdvertisingField.ApSelCode = (i + 1);
     applicationAdvertisingField.moduleMediaInterface = data[1];
@@ -1068,7 +1068,8 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
   // The application sel code is at the higher four bits of the field.
   currentApplicationSel = currentApplicationSel >> 4;
 
-  XLOG(INFO) << "currentApplicationSel: " << currentApplicationSel;
+  XLOG(INFO) << folly::sformat(
+      "currentApplicationSel: {:#x}", currentApplicationSel);
 
   uint8_t currentApplication;
   int offset;
@@ -1082,7 +1083,7 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
   offset += (currentApplicationSel - 1) * length + 1;
   getQsfpValue(dataAddress, offset, 1, &currentApplication);
 
-  XLOG(INFO) << "currentApplication: " << std::hex << (int)currentApplication;
+  XLOG(INFO) << folly::sformat("currentApplication: {:#x}", currentApplication);
 
   if (static_cast<uint8_t>(applicationIter->second) == currentApplication) {
     XLOG(INFO) << "speed matches. Doing nothing.";
@@ -1141,7 +1142,7 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
   numHostLanes_ = capabilityIter->second.hostLaneCount;
   numMediaLanes_ = capabilityIter->second.mediaLaneCount;
 
-  XLOG(INFO) << "newApSelCode: " << std::hex << (int)newApSelCode;
+  XLOG(INFO) << folly::sformat("newApSelCode: {:#x}", newApSelCode);
 
   getQsfpFieldAddress(CmisField::APP_SEL_LANE_1, dataAddress, offset, length);
 
@@ -1163,8 +1164,10 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
   qsfpImpl_->writeTransceiver(
       TransceiverI2CApi::ADDR_QSFP, offset, sizeof(applySet0), &applySet0);
 
-  XLOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName())
-             << " set application to " << capabilityIter->first;
+  XLOG(INFO) << folly::sformat(
+      "Port: {:s} set application to {:#x}",
+      qsfpImpl_->getName(),
+      capabilityIter->first);
 
   // Release the lanes from DeInit.
   getQsfpFieldAddress(CmisField::DATA_PATH_DEINIT, dataAddress, offset, length);
@@ -1238,8 +1241,10 @@ void CmisModule::setPowerOverrideIfSupported(PowerControlState currentState) {
   qsfpImpl_->writeTransceiver(
       TransceiverI2CApi::ADDR_QSFP, offset, length, &currentModuleControl);
 
-  XLOG(INFO) << "Port " << portStr << ": QSFP module control field set to "
-             << std::hex << (int)currentModuleControl;
+  XLOG(INFO) << folly::sformat(
+      "Port {:s}: QSFP module control field set to {:#x}",
+      portStr,
+      currentModuleControl);
 }
 
 void CmisModule::ensureRxOutputSquelchEnabled(

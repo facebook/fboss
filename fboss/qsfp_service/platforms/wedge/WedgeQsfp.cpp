@@ -140,7 +140,8 @@ TransceiverManagementInterface WedgeQsfp::getTransceiverManagementInterface() {
     try {
       threadSafeI2CBus_->moduleRead(
           module_ + 1, TransceiverI2CApi::ADDR_QSFP, 0, 1, buf.data());
-      XLOG(DBG3) << "Transceiver " << module_ << " identifier: " << buf[0];
+      XLOG(DBG3) << folly::sformat(
+          "Transceiver {:d}  identifier: {:#x}", module_, buf[0]);
       if ((buf[0] ==
            static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_PLUS_CMIS)) ||
           (buf[0] ==
@@ -157,9 +158,10 @@ TransceiverManagementInterface WedgeQsfp::getTransceiverManagementInterface() {
       } else if (
           buf[0] !=
           static_cast<uint8_t>(TransceiverModuleIdentifier::UNKNOWN)) {
-        XLOG(WARNING) << "Transceiver " << module_
-                      << " has unknown non-zero identifier: "
-                      << static_cast<int>(buf[0]) << ", defaulting to SFF";
+        XLOG(WARNING) << folly::sformat(
+            "Transceiver {:d} has unknown non-zero identifier: {:#x} defaulting to SFF",
+            module_,
+            buf[0]);
         return TransceiverManagementInterface::SFF;
       }
     } catch (const std::exception& ex) {
