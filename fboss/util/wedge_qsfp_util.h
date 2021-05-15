@@ -47,6 +47,8 @@ DECLARE_string(module_type);
 DECLARE_string(fw_version);
 DECLARE_string(port_range);
 DECLARE_bool(dsp_image);
+DECLARE_bool(client_parser);
+DECLARE_bool(verbose);
 
 enum LoopbackMode {
   noLoopback,
@@ -96,7 +98,7 @@ std::map<int32_t, DOMDataUnion> fetchDataFromQsfpService(
     const std::vector<int32_t>& ports, folly::EventBase& evb);
 
 std::map<int32_t, TransceiverInfo> fetchInfoFromQsfpService(
-    const std::vector<int32_t>& ports);
+    const std::vector<int32_t>& ports, folly::EventBase& evb);
 
 DOMDataUnion fetchDataFromLocalI2CBus(TransceiverI2CApi* bus, unsigned int port);
 
@@ -124,10 +126,21 @@ void printChannelMonitor(unsigned int index,
                          std::optional<double> rxSNR);
 
 void printSffDetail(const DOMDataUnion& domDataUnion, unsigned int port);
-
+void printSffDetailService(
+    const TransceiverInfo& transceiverInfo,
+    unsigned int port,
+    bool verbose);
 void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port);
+void printCmisDetailService(
+    const TransceiverInfo& transceiverInfo,
+    unsigned int port,
+    bool verbose);
 
 void printPortDetail(const DOMDataUnion& domDataUnion, unsigned int port);
+void printPortDetailService(
+    const TransceiverInfo& transceiverInfo,
+    unsigned int port,
+    bool verbose);
 
 void tryOpenBus(TransceiverI2CApi* bus);
 

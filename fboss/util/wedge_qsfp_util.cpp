@@ -33,6 +33,7 @@
 #include <thread>
 #include <vector>
 #include <utility>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 namespace {
 const std::map<uint8_t, std::string> kCmisAppNameMapping = {
@@ -135,7 +136,7 @@ DEFINE_string(firmware_filename, "",
             "Module firmware filename along with path");
 DEFINE_uint32(msa_password, 0x00001011, "MSA password for module privilige operation");
 DEFINE_uint32(image_header_len, 0, "Firmware image header length");
-DEFINE_bool(get_module_fw_info, false, "Get the module  firmware info for list of ports, use with portA and portB");
+DEFINE_bool(get_module_fw_info, false, "Get the module firmware info for list of ports, use with portA and portB");
 DEFINE_bool(cdb_command, false, "Read from CDB block, use with --command_code");
 DEFINE_int32(command_code, -1, "CDB command code (16 bit)");
 DEFINE_string(cdb_payload, "", "CDB command LPL payload (list of bytes)");
@@ -145,6 +146,11 @@ DEFINE_string(module_type, "", "specify the module type, ie: finisar-200g");
 DEFINE_string(fw_version, "", "specify the firmware version, ie: 7.8 or ca.f8");
 DEFINE_string(port_range, "", "specify the port range, ie: 1,3,5-8");
 DEFINE_bool(dsp_image, false, "if this is a DSP firmware image");
+DEFINE_bool(
+    client_parser,
+    false,
+    "Used to print DOM data that is parsed by the client as opposed to parsed by the service(which is the default)");
+DEFINE_bool(verbose, false, "Print more details");
 
 namespace {
 struct ModulePartInfo_s {
@@ -619,15 +625,13 @@ std::map<int32_t, DOMDataUnion> fetchDataFromQsfpService(
 }
 
 std::map<int32_t, TransceiverInfo> fetchInfoFromQsfpService(
-    const std::vector<int32_t>& ports) {
-  folly::EventBase evb;
-  auto qsfpServiceClient = QsfpClient::createClient(&evb);
-  auto client = std::move(qsfpServiceClient).getVia(&evb);
+    const std::vector<int32_t>& ports,
+    folly::EventBase& evb) {
+  auto client = getQsfpClient(evb);
 
   std::map<int32_t, TransceiverInfo> qsfpInfoMap;
 
   client->sync_getTransceiverInfo(qsfpInfoMap, ports);
-
   return qsfpInfoMap;
 }
 
@@ -754,6 +758,522 @@ void printChannelMonitor(unsigned int index,
   } else {
     printf("    Channel %d:   %12fmW  %12fmW  %12fmA  %12s\n",
            index, rxPower, txPower, txBias, "N/A");
+  }
+}
+
+uint8_t getSensorMonitors(const Sensor& sensor) {
+  uint8_t value = 0;
+  if (auto flags = sensor.flags_ref()) {
+    value = (*(flags->alarm_ref()->high_ref()) << 3) |
+        (*(flags->alarm_ref()->low_ref()) << 2) |
+        (*(flags->warn_ref()->high_ref()) << 1) |
+        (*(flags->warn_ref()->low_ref()));
+  }
+  return value;
+}
+
+void printLaneLine(const char* detail, unsigned int numChannels) {
+  if (numChannels == 4) {
+    printf(
+        "%-22s     %-12s %-12s %-12s %-12s",
+        detail,
+        "Lane 1",
+        "Lane 2",
+        "Lane 3",
+        "Lane 4");
+  } else if (numChannels == 1) {
+        printf(
+        "%-22s     %-12s",
+        detail,
+        "Lane 1");
+  } else {
+    printf(
+        "%-22s     %-12s %-12s %-12s %-12s %-12s %-12s %-12s %-12s",
+        detail,
+        "Lane 1",
+        "Lane 2",
+        "Lane 3",
+        "Lane 4",
+        "Lane 5",
+        "Lane 6",
+        "Lane 7",
+        "Lane 8");
+  }
+}
+
+void printGlobalInterruptFlags(const GlobalSensors& sensors) {
+  printf("  Global Interrupt Flags: \n");
+  printf("    Temp: 0x%02x\n", getSensorMonitors(*(sensors.temp_ref())));
+  printf("    Vcc: 0x%02x\n", getSensorMonitors(*(sensors.vcc_ref())));
+}
+
+void printChannelInterruptFlags(const std::vector<Channel>& channels) {
+  int numChannels = channels.size();
+  printLaneLine("  Lane Interrupts: ", numChannels);
+
+  auto getHighAlarm = [](const Sensor& sensor){
+    return *(sensor.flags_ref()->alarm_ref()->high_ref());
+  };
+  auto getHighWarn = [](const Sensor& sensor) {
+    return *(sensor.flags_ref()->warn_ref()->high_ref());
+  };
+  auto getLowAlarm = [](const Sensor& sensor) {
+    return *(sensor.flags_ref()->alarm_ref()->low_ref());
+  };
+  auto getLowWarn = [](const Sensor& sensor) {
+    return *(sensor.flags_ref()->warn_ref()->low_ref());
+  };
+
+  printf("\n    %-22s", "Tx Pwr High Alarm");
+  for (const auto& channel : channels) {
+    printf(
+        " %-12d", getHighAlarm(*(channel.sensors_ref()->txPwr_ref())));
+  }
+  printf("\n    %-22s", "Tx Pwr High Warn");
+  for (const auto& channel : channels) {
+    printf(
+        " %-12d", getHighWarn(*(channel.sensors_ref()->txPwr_ref())));
+  }
+  printf("\n    %-22s", "Tx Pwr Low Alarm");
+  for (const auto& channel : channels) {
+    printf(
+        " %-12d", getLowAlarm(*(channel.sensors_ref()->txPwr_ref())));
+  }
+  printf("\n    %-22s", "Tx Pwr Low Warn");
+  for (const auto& channel : channels) {
+    printf(
+        " %-12d", getLowWarn(*(channel.sensors_ref()->txPwr_ref())));
+  }
+
+  printf("\n    %-22s", "Tx Bias High Alarm");
+  for (const auto& channel : channels) {
+    printf(
+        " %-12d", getHighAlarm(*(channel.sensors_ref()->txBias_ref())));
+  }
+  printf("\n    %-22s", "Tx Bias High Warn");
+  for (const auto& channel : channels) {
+    printf(
+        " %-12d", getHighWarn(*(channel.sensors_ref()->txBias_ref())));
+  }
+  printf("\n    %-22s", "Tx Bias Low Alarm");
+  for (const auto& channel : channels) {
+    printf(
+        " %-12d", getLowAlarm(*(channel.sensors_ref()->txBias_ref())));
+  }
+  printf("\n    %-22s", "Tx Bias Low Warn");
+  for (const auto& channel : channels) {
+    printf(
+        " %-12d", getLowWarn(*(channel.sensors_ref()->txBias_ref())));
+  }
+
+  printf("\n    %-22s", "Rx Pwr High Alarm");
+  for (const auto& channel : channels) {
+    printf(
+        " %-12d", getHighAlarm(*(channel.sensors_ref()->rxPwr_ref())));
+  }
+  printf("\n    %-22s", "Rx Pwr High Warn");
+  for (const auto& channel : channels) {
+    printf(
+        " %-12d", getHighWarn(*(channel.sensors_ref()->rxPwr_ref())));
+  }
+  printf("\n    %-22s", "Rx Pwr Low Alarm");
+  for (const auto& channel : channels) {
+    printf(
+        " %-12d", getLowAlarm(*(channel.sensors_ref()->rxPwr_ref())));
+  }
+  printf("\n    %-22s", "Rx Pwr Low Warn");
+  for (const auto& channel : channels) {
+    printf(
+        " %-12d", getLowWarn(*(channel.sensors_ref()->rxPwr_ref())));
+  }
+
+  printf("\n");
+}
+
+void printHostLaneSignals(const std::vector<HostLaneSignals>& signals) {
+  unsigned int numLanes = signals.size();
+  if (numLanes == 0) {
+    return;
+  }
+  printLaneLine("  Host Lane Signals: ", numLanes);
+  // Assumption: If a signal is valid for first lane, it is also valid for other
+  // lanes.
+  if (signals[0].dataPathDeInit_ref()) {
+    printf("\n    %-22s", "Datapath de-init");
+    for (const auto& signal : signals) {
+      printf(" %-12d", *(signal.dataPathDeInit_ref()));
+    }
+  }
+  if (signals[0].cmisLaneState_ref()) {
+    printf("\n    %-22s", "Lane state");
+    for (const auto& signal : signals) {
+      printf(
+          " %-12s",
+          apache::thrift::util::enumNameSafe(
+              *(signal.cmisLaneState_ref()))
+              .c_str());
+    }
+  }
+  printf("\n");
+}
+
+void printMediaLaneSignals(const std::vector<MediaLaneSignals>& signals) {
+  unsigned int numLanes = signals.size();
+  if (numLanes == 0) {
+    return;
+  }
+  printLaneLine("  Media Lane Signals: ", numLanes);
+  // Assumption: If a signal is valid for first lane, it is also valid for other
+  // lanes.
+  if (signals[0].txLos_ref()) {
+    printf("\n    %-22s", "Tx LOS");
+    for (const auto& signal : signals) {
+      printf(" %-12d", *(signal.txLos_ref()));
+    }
+  }
+  if (signals[0].txLol_ref()) {
+    printf("\n    %-22s", "Tx LOL");
+    for (const auto& signal : signals) {
+      printf(" %-12d", *(signal.txLol_ref()));
+    }
+  }
+  if (signals[0].rxLos_ref()) {
+    printf("\n    %-22s", "Rx LOS");
+    for (const auto& signal : signals) {
+      printf(" %-12d", *(signal.rxLos_ref()));
+    }
+  }
+  if (signals[0].rxLol_ref()) {
+    printf("\n    %-22s", "Rx LOL");
+    for (const auto& signal : signals) {
+      printf(" %-12d", *(signal.rxLol_ref()));
+    }
+  }
+  if (signals[0].txFault_ref()) {
+    printf("\n    %-22s", "Tx Fault");
+    for (const auto& signal : signals) {
+      printf(" %-12d", *(signal.txFault_ref()));
+    }
+  }
+  if (signals[0].txAdaptEqFault_ref()) {
+    printf("\n    %-22s", "Tx Adaptive Eq Fault");
+    for (const auto& signal : signals) {
+      printf(" %-12d", *(signal.txAdaptEqFault_ref()));
+    }
+  }
+  printf("\n");
+}
+
+void printHostLaneSettings(const std::vector<HostLaneSettings>& settings) {
+  unsigned int numLanes = settings.size();
+  if (numLanes == 0) {
+    return;
+  }
+  printLaneLine("  Host Lane Settings:", numLanes);
+  if (settings[0].txInputEqualization_ref()) {
+    printf("\n    %-22s", "Tx Input Equalization");
+    for (const auto& setting : settings) {
+      printf(" 0x%-10x", *(setting.txInputEqualization_ref()));
+    }
+  }
+  if (settings[0].rxOutputEmphasis_ref()) {
+    printf("\n    %-22s", "Rx Output Emphasis");
+    for (const auto& setting : settings) {
+      printf(" 0x%-10x", *(setting.rxOutputEmphasis_ref()));
+    }
+  }
+  if (settings[0].rxOutputAmplitude_ref()) {
+    printf("\n    %-22s", "Rx Output Amplitude");
+    for (const auto& setting : settings) {
+      printf(" 0x%-10x", *(setting.rxOutputAmplitude_ref()));
+    }
+  }
+  if (settings[0].rxOutput_ref()) {
+    printf("\n    %-22s", "Rx Output Disable");
+    for (const auto& setting : settings) {
+      printf(" %-12d", *(setting.rxOutput_ref()));
+    }
+  }
+  if (settings[0].rxSquelch_ref()) {
+    printf("\n    %-22s", "Rx Squelch Disable");
+    for (const auto& setting : settings) {
+      printf(" %-12d", *(setting.rxSquelch_ref()));
+    }
+  }
+  printf("\n");
+}
+
+void printMediaLaneSettings(const std::vector<MediaLaneSettings>& settings) {
+  unsigned int numLanes = settings.size();
+  if (numLanes == 0) {
+    return;
+  }
+  printLaneLine("  Media Lane Settings:", numLanes);
+  if (settings[0].txDisable_ref()) {
+    printf("\n    %-22s", "Tx Disable");
+    for (const auto& setting : settings) {
+      printf(" %-12d", *(setting.txDisable_ref()));
+    }
+  }
+  if (settings[0].txSquelch_ref()) {
+    printf("\n    %-22s", "Tx Squelch Disable");
+    for (const auto& setting : settings) {
+      printf(" %-12d", *(setting.txSquelch_ref()));
+    }
+  }
+  if (settings[0].txAdaptiveEqControl_ref()) {
+    printf("\n    %-22s", "Tx Adaptive Eq Ctrl");
+    for (const auto& setting : settings) {
+      printf(" %-12d", *(setting.txAdaptiveEqControl_ref()));
+    }
+  }
+  if (settings[0].txSquelchForce_ref()) {
+    printf("\n    %-22s", "Tx Forced Squelch");
+    for (const auto& setting : settings) {
+      printf(" %-12d", *(setting.txSquelchForce_ref()));
+    }
+  }
+  printf("\n");
+}
+
+void printGlobalDomMonitors(const GlobalSensors& sensors) {
+  printf("  Global DOM Monitors:\n");
+  printf("    Temperature: %.2f C\n", *(sensors.temp_ref()->value_ref()));
+  printf("    Supply Voltage: %.2f V\n", *(sensors.vcc_ref()->value_ref()));
+}
+
+void printLaneDomMonitors(const std::vector<Channel>& channels) {
+  int numChannels = channels.size();
+  printLaneLine("  Lane Dom Monitors:", numChannels);
+
+  printf("\n    %-22s", "Tx Pwr (mW)");
+  for (const auto& channel : channels) {
+    printf(
+        " %-12.2f", *(channel.sensors_ref()->txPwr_ref()->value_ref()));
+  }
+  if (channels[0].sensors_ref()->txPwrdBm_ref()) {
+    printf("\n    %-22s", "Tx Pwr (dBm)");
+    for (const auto& channel : channels) {
+      printf(
+          " %-12.2f",
+          *(channel.sensors_ref()->txPwrdBm_ref()->value_ref()));
+    }
+  }
+  printf("\n    %-22s", "Rx Pwr (mW)");
+  for (const auto& channel : channels) {
+    printf(
+        " %-12.2f", *(channel.sensors_ref()->rxPwr_ref()->value_ref()));
+  }
+  if (channels[0].sensors_ref()->rxPwrdBm_ref()) {
+    printf("\n    %-22s", "Rx Pwr (dBm)");
+    for (const auto& channel : channels) {
+      printf(
+          " %-12.2f",
+          *(channel.sensors_ref()->rxPwrdBm_ref()->value_ref()));
+    }
+  }
+  printf("\n    %-22s", "Tx Bias (mA)");
+  for (const auto& channel : channels) {
+    printf(
+        " %-12.2f", *(channel.sensors_ref()->txBias_ref()->value_ref()));
+  }
+  if (auto rxSnrCh0 = channels[0].sensors_ref()->rxSnr_ref()) {
+    printf("\n    %-22s", "Rx SNR");
+    for (const auto& channel : channels) {
+      if (auto snr = channel.sensors_ref()->rxSnr_ref()) {
+        printf(
+          " %-12.2f", *((*snr).value_ref()));
+      }
+    }
+  }
+  printf("\n");
+}
+
+void printThresholds(const AlarmThreshold& thresholds) {
+    printf("  Thresholds:\n");
+    auto printMonitorThreshold = [](const char* monitor,
+                                    const ThresholdLevels& levels) {
+      printf(
+          "  %-15s %-14s %.2f\n",
+          monitor,
+          "High Alarm",
+          *(levels.alarm_ref()->high_ref()));
+      printf(
+          "  %-15s %-14s %.2f\n",
+          monitor,
+          "High Warning",
+          *(levels.warn_ref()->high_ref()));
+      printf(
+          "  %-15s %-14s %.2f\n",
+          monitor,
+          "Low Warning",
+          *(levels.warn_ref()->low_ref()));
+      printf(
+          "  %-15s %-14s %.2f\n",
+          monitor,
+          "Low Alarm",
+          *(levels.alarm_ref()->low_ref()));
+    };
+    printMonitorThreshold("  Temp (C)", *(thresholds.temp_ref()));
+    printMonitorThreshold("  Vcc (V)", *(thresholds.vcc_ref()));
+    printMonitorThreshold("  Rx Power (mW)", *(thresholds.rxPwr_ref()));
+    printMonitorThreshold("  Tx Power (mW)", *(thresholds.txPwr_ref()));
+    printMonitorThreshold("  Tx Bias (mA)", *(thresholds.txBias_ref()));
+}
+
+void printManagementInterface(
+    const TransceiverInfo& transceiverInfo,
+    const char* fmt) {
+  if (auto mgmtInterface =
+          transceiverInfo.transceiverManagementInterface_ref()) {
+    printf(fmt, apache::thrift::util::enumNameSafe(*mgmtInterface).c_str());
+  }
+}
+
+void printVerboseInfo(const TransceiverInfo& transceiverInfo) {
+  auto globalSensors = transceiverInfo.sensor_ref();
+
+  if (globalSensors) {
+    printGlobalInterruptFlags(*globalSensors);
+  }
+  printChannelInterruptFlags(*(transceiverInfo.channels_ref()));
+  if (auto thresholds = transceiverInfo.thresholds_ref()) {
+    printThresholds(*thresholds);
+  }
+}
+
+void printVendorInfo(const TransceiverInfo& transceiverInfo) {
+  if (auto vendor = transceiverInfo.vendor_ref()) {
+    auto vendorInfo = *vendor;
+    printf("  Vendor Info:\n");
+    auto name = *(vendorInfo.name_ref());
+    auto pn = *(vendorInfo.partNumber_ref());
+    auto rev = *(vendorInfo.rev_ref());
+    auto sn = *(vendorInfo.serialNumber_ref());
+    auto dateCode = *(vendorInfo.dateCode_ref());
+    printf("    Vendor: %s\n", name.c_str());
+    printf("    Vendor PN: %s\n", pn.c_str());
+    printf("    Vendor Rev: %s\n", rev.c_str());
+    printf("    Vendor SN: %s\n", sn.c_str());
+    printf("    Date Code: %s\n", dateCode.c_str());
+  }
+}
+
+void printCableInfo(const Cable& cable) {
+  printf("  Cable Settings:\n");
+  if (auto sm = cable.singleMode_ref()) {
+    printf("    Length (SMF): %d m\n", *sm);
+  }
+  if (auto om5 = cable.om5_ref()) {
+    printf("    Length (OM5): %d m\n", *om5);
+  }
+  if (auto om4 = cable.om4_ref()) {
+    printf("    Length (OM4): %d m\n", *om4);
+  }
+  if (auto om3 = cable.om3_ref()) {
+    printf("    Length (OM3): %d m\n", *om3);
+  }
+  if (auto om2 = cable.om2_ref()) {
+    printf("    Length (OM2): %d m\n", *om2);
+  }
+  if (auto om1 = cable.om1_ref()) {
+    printf("    Length (OM1): %d m\n", *om1);
+  }
+  if (auto copper = cable.copper_ref()) {
+    printf("    Length (Copper): %d m\n", *copper);
+  }
+  if (auto copperLength = cable.length_ref()) {
+    printf("    Length (Copper dM): %.1f m\n", *copperLength);
+  }
+  if (auto gauge = cable.gauge_ref()) {
+    printf("    DAC Cable Gauge: %d\n", *gauge);
+  }
+}
+
+void printDomMonitors(const TransceiverInfo& transceiverInfo) {
+  auto globalSensors = transceiverInfo.sensor_ref();
+  printLaneDomMonitors(*(transceiverInfo.channels_ref()));
+  if (globalSensors) {
+    printGlobalDomMonitors(*globalSensors);
+  }
+}
+
+void printSignalsAndSettings(const TransceiverInfo& transceiverInfo) {
+  auto settings = *(transceiverInfo.settings_ref());
+  if (auto hostSignals = transceiverInfo.hostLaneSignals_ref()) {
+    printHostLaneSignals(*hostSignals);
+  }
+  if (auto mediaSignals = transceiverInfo.mediaLaneSignals_ref()) {
+    printMediaLaneSignals(*mediaSignals);
+  }
+  if (auto hostSettings = settings.hostLaneSettings_ref()) {
+    printHostLaneSettings(*hostSettings);
+  }
+  if (auto mediaSettings = settings.mediaLaneSettings_ref()) {
+    printMediaLaneSettings(*mediaSettings);
+  }
+}
+
+void printSffDetailService(
+    const TransceiverInfo& transceiverInfo,
+    unsigned int port,
+    bool verbose) {
+  auto settings = *(transceiverInfo.settings_ref());
+
+  printf("Port %d\n", port);
+
+  // ------ Module Status -------
+  printf("  Module Status:\n");
+  if (auto identifier = transceiverInfo.identifier_ref()) {
+    printf(
+        "    Transceiver Identifier: %s\n",
+        apache::thrift::util::enumNameSafe(*identifier).c_str());
+  }
+  if (auto status = transceiverInfo.status_ref()) {
+    printf("    InterruptL: 0x%02x\n", *(status->interruptL_ref()));
+    printf("    Data_Not_Ready: 0x%02x\n", *(status->dataNotReady_ref()));
+  }
+  if (auto ext = transceiverInfo.extendedSpecificationComplianceCode_ref()) {
+    printf(
+        "    Extended Specification Compliance Code: %s\n",
+        apache::thrift::util::enumNameSafe(*(ext)).c_str());
+  }
+
+  printManagementInterface(transceiverInfo, "    Transceiver Management Interface: %s\n");
+  printSignalsAndSettings(transceiverInfo);
+  printDomMonitors(transceiverInfo);
+
+  if (verbose) {
+    printVerboseInfo(transceiverInfo);
+  }
+
+  printVendorInfo(transceiverInfo);
+
+  if (auto cable = transceiverInfo.cable_ref()) {
+    printCableInfo(*cable);
+  }
+  printf("  Module Control:\n");
+  printf(
+      "    Rate Select: %s\n",
+      apache::thrift::util::enumNameSafe(*(settings.rateSelect_ref())).c_str());
+  printf(
+      "    Rate Select Setting: %s\n",
+      apache::thrift::util::enumNameSafe(*(settings.rateSelectSetting_ref()))
+          .c_str());
+  printf(
+      "    CDR support:  TX: %s\tRX: %s\n",
+      apache::thrift::util::enumNameSafe(*(settings.cdrTx_ref())).c_str(),
+      apache::thrift::util::enumNameSafe(*(settings.cdrRx_ref())).c_str());
+  printf(
+      "    Power Measurement: %s\n",
+      apache::thrift::util::enumNameSafe(*(settings.powerMeasurement_ref()))
+          .c_str());
+  printf(
+      "    Power Control: %s\n",
+      apache::thrift::util::enumNameSafe(*(settings.powerControl_ref()))
+          .c_str());
+  if (auto timeCollected = transceiverInfo.timeCollected_ref()) {
+    printf("  Time collected: %s\n", getLocalTime(*timeCollected).c_str());
   }
 }
 
@@ -927,6 +1447,56 @@ void printSffDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
   }
 }
 
+void printCmisDetailService(
+    const TransceiverInfo& transceiverInfo,
+    unsigned int port,
+    bool verbose) {
+  auto moduleStatus = transceiverInfo.status_ref();
+  auto channels = *(transceiverInfo.channels_ref());
+  printf("Port %d\n", port);
+  auto settings = *(transceiverInfo.settings_ref());
+
+  printManagementInterface(transceiverInfo, "  Transceiver Management Interface: %s\n");
+
+  if (moduleStatus && moduleStatus->cmisModuleState_ref()) {
+    printf(
+        "  Module State: %s\n",
+        apache::thrift::util::enumNameSafe(
+            *(moduleStatus->cmisModuleState_ref()))
+            .c_str());
+  }
+  if (auto mediaInterfaceId = settings.mediaInterface_ref()) {
+    printf(
+        "  Media Interface: %s\n",
+        apache::thrift::util::enumNameSafe(
+            (*mediaInterfaceId)[0].media_ref()->get_smfCode())
+            .c_str());
+  }
+  printf(
+      "  Power Control: %s\n",
+      apache::thrift::util::enumNameSafe(*settings.powerControl_ref()).c_str());
+
+  if (moduleStatus && moduleStatus->fwStatus_ref()) {
+    auto fwStatus = *(moduleStatus->fwStatus_ref());
+    if (auto version = fwStatus.version_ref()) {
+      printf("  FW Version: %s\n", (*version).c_str());
+    }
+    if (auto fwFault = fwStatus.fwFault_ref()) {
+      printf("  Firmware fault: 0x%x\n", *fwFault);
+    }
+  }
+
+  if (verbose) {
+    printVerboseInfo(transceiverInfo);
+  }
+  printSignalsAndSettings(transceiverInfo);
+  printDomMonitors(transceiverInfo);
+  printVendorInfo(transceiverInfo);
+  if (auto timeCollected = transceiverInfo.timeCollected_ref()) {
+    printf("  Time collected: %s\n", getLocalTime(*timeCollected).c_str());
+  }
+}
+
 void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
   int i = 0; // For the index of lane
   CmisData cmisData = domDataUnion.get_cmis();
@@ -1084,6 +1654,26 @@ void printPortDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
   } else {
     fprintf(stderr, "Unrecognizable DOMDataUnion format.\n");
     return;
+  }
+}
+
+void printPortDetailService(
+    const TransceiverInfo& transceiverInfo,
+    unsigned int port,
+    bool verbose) {
+  if (auto mgmtInterface =
+          transceiverInfo.transceiverManagementInterface_ref()) {
+    if (*mgmtInterface == TransceiverManagementInterface::SFF) {
+      printSffDetailService(transceiverInfo, port, verbose);
+    } else {
+      assert(*mgmtInterface == TransceiverManagementInterface::CMIS);
+      printCmisDetailService(transceiverInfo, port, verbose);
+    }
+  } else {
+    fprintf(
+        stderr,
+        "Management Interface cannot be inferred. Port %d may not be present.\n",
+        port);
   }
 }
 

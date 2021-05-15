@@ -96,20 +96,27 @@ int main(int argc, char* argv[]) {
     }
   } else {
     try {
-      std::vector<int32_t> idx;
-      for(auto port : ports) {
-        // Direct I2C bus starts from 1 instead of 0, however qsfp_service index
-        // starts from 0. So here we try to comply to match that behavior.
-        idx.push_back(port - 1);
-      }
-      auto domDataUnionMap = fetchDataFromQsfpService(idx, evb);
-      for (auto& i : idx) {
-        auto iter = domDataUnionMap.find(i);
-        if(iter == domDataUnionMap.end()) {
-          fprintf(stderr, "Port %d is not present.\n", i + 1);
+      std::vector<int32_t> idx = zeroBasedPortIds(ports);
+      if (FLAGS_client_parser) {
+        auto domDataUnionMap = fetchDataFromQsfpService(idx, evb);
+        for (auto& tcvrId : idx) {
+          auto iter = domDataUnionMap.find(tcvrId);
+          if (iter == domDataUnionMap.end()) {
+            fprintf(stderr, "Port %d is not present.\n", tcvrId + 1);
+          } else {
+            printPortDetail(iter->second, iter->first + 1);
+          }
         }
-        else {
-          printPortDetail(iter->second, iter->first + 1);
+      } else {
+        auto transceiverInfo = fetchInfoFromQsfpService(idx, evb);
+        for (auto& i : idx) {
+          auto iter = transceiverInfo.find(i);
+          if (iter == transceiverInfo.end()) {
+            fprintf(
+                stderr, "qsfp_service didn't return data for Port %d\n", i + 1);
+          } else {
+            printPortDetailService(iter->second, iter->first + 1, FLAGS_verbose);
+          }
         }
       }
       return EX_OK;
