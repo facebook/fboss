@@ -83,8 +83,15 @@ class SaiSwitchManager {
       std::optional<cfg::HashingAlgorithm> algo);
   void addOrUpdateLagLoadBalancer(const std::shared_ptr<LoadBalancer>& newLb);
 
-  template <typename EcmpHashAttrT>
-  void setLoadBalancer(HashSaiId hashSaiId);
+  template <typename HashAttrT>
+  SaiHashTraits::CreateAttributes getProgrammedHashAttr();
+
+  template <typename HashAttrT>
+  void setLoadBalancer(
+      const std::shared_ptr<SaiHash>& hash,
+      SaiHashTraits::CreateAttributes& hashCreateAttrs);
+  template <typename HashAttrT>
+  void resetLoadBalancer();
 
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;

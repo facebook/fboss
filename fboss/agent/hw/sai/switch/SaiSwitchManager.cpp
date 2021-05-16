@@ -80,6 +80,9 @@ SaiSwitchManager::SaiSwitchManager(
         std::monostate(),
         platform->getSwitchAttributes(false),
         0 /* fake switch id; ignored */);
+
+    resetLoadBalancer<SaiSwitchTraits::Attributes::EcmpHashV4>();
+    resetLoadBalancer<SaiSwitchTraits::Attributes::EcmpHashV6>();
   }
   if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
     initCpuPort();
@@ -137,8 +140,63 @@ void SaiSwitchManager::programEcmpLoadBalancerParams(
       SaiSwitchTraits::Attributes::EcmpDefaultHashAlgorithm{hashAlgo});
 }
 
-template <typename EcmpHashAttrT>
-void SaiSwitchManager::setLoadBalancer(HashSaiId hashSaiId) {
+template <typename HashAttrT>
+SaiHashTraits::CreateAttributes SaiSwitchManager::getProgrammedHashAttr() {
+  SaiHashTraits::CreateAttributes hashCreateAttrs{std::nullopt, std::nullopt};
+  auto& [nativeHashFieldList, udfGroupList] = hashCreateAttrs;
+
+  auto programmedHash =
+      std::get<std::optional<HashAttrT>>(switch_->attributes());
+  if (!programmedHash ||
+      (programmedHash.value().value() == SAI_NULL_OBJECT_ID)) {
+    return hashCreateAttrs;
+  }
+
+  auto programmedNativeHashFieldList =
+      SaiApiTable::getInstance()->hashApi().getAttribute(
+          HashSaiId{programmedHash.value().value()},
+          SaiHashTraits::Attributes::NativeHashFieldList{});
+  auto programmedUDFGroupList =
+      SaiApiTable::getInstance()->hashApi().getAttribute(
+          HashSaiId{programmedHash.value().value()},
+          SaiHashTraits::Attributes::UDFGroupList{});
+
+  if (!programmedNativeHashFieldList.empty()) {
+    nativeHashFieldList = programmedNativeHashFieldList;
+  }
+  if (!programmedUDFGroupList.empty()) {
+    udfGroupList = programmedUDFGroupList;
+  }
+
+  return hashCreateAttrs;
+}
+
+template <typename HashAttrT>
+void SaiSwitchManager::setLoadBalancer(
+    const std::shared_ptr<SaiHash>& hash,
+    SaiHashTraits::CreateAttributes& programmedHashCreateAttrs) {
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET)) {
+    // This code patch is called during cold boot as well as warm boot but the
+    // if check is true only in following cases:
+    //     - during cold boot (very first time setting load balancer),
+    //     - during warm boot (if config has load balancer changed post warm
+    //     boot),
+    //     - during reload config if load balancer config is updated.
+    //
+    // The check is false during warm boot if the config does not carry any
+    // changes to the load balancer (common case).
+    auto newHashCreateAttrs = hash->attributes();
+    if (programmedHashCreateAttrs != newHashCreateAttrs) {
+      resetLoadBalancer<HashAttrT>();
+    }
+  }
+
+  switch_->setOptionalAttribute(HashAttrT{hash->adapterKey()});
+}
+
+template <typename HashAttrT>
+void SaiSwitchManager::resetLoadBalancer() {
   // On some SAI implementations, setting new hash field has the effect of
   // setting hash fields to union of the current hash fields and the new
   // hash fields. This behavior is incorrect and will be fixed in the long
@@ -146,10 +204,8 @@ void SaiSwitchManager::setLoadBalancer(HashSaiId hashSaiId) {
   // workaround.
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET)) {
-    switch_->setOptionalAttribute(EcmpHashAttrT{SAI_NULL_OBJECT_ID});
+    switch_->setOptionalAttribute(HashAttrT{SAI_NULL_OBJECT_ID});
   }
-
-  switch_->setOptionalAttribute(EcmpHashAttrT{hashSaiId});
 }
 
 void SaiSwitchManager::addOrUpdateEcmpLoadBalancer(
@@ -158,33 +214,43 @@ void SaiSwitchManager::addOrUpdateEcmpLoadBalancer(
 
   if (newLb->getIPv4Fields().size()) {
     // v4 ECMP
+    auto programmedLoadBalancer =
+        getProgrammedHashAttr<SaiSwitchTraits::Attributes::EcmpHashV4>();
+
     cfg::Fields v4EcmpHashFields;
     v4EcmpHashFields.ipv4Fields_ref()->insert(
         newLb->getIPv4Fields().begin(), newLb->getIPv4Fields().end());
     v4EcmpHashFields.transportFields_ref()->insert(
         newLb->getTransportFields().begin(), newLb->getTransportFields().end());
     ecmpV4Hash_ = managerTable_->hashManager().getOrCreate(v4EcmpHashFields);
+
     // Set the new ecmp v4 hash attribute on switch obj
     setLoadBalancer<SaiSwitchTraits::Attributes::EcmpHashV4>(
-        ecmpV4Hash_->adapterKey());
+        ecmpV4Hash_, programmedLoadBalancer);
   }
   if (newLb->getIPv6Fields().size()) {
     // v6 ECMP
+    auto programmedLoadBalancer =
+        getProgrammedHashAttr<SaiSwitchTraits::Attributes::EcmpHashV6>();
+
     cfg::Fields v6EcmpHashFields;
     v6EcmpHashFields.ipv6Fields_ref()->insert(
         newLb->getIPv6Fields().begin(), newLb->getIPv6Fields().end());
     v6EcmpHashFields.transportFields_ref()->insert(
         newLb->getTransportFields().begin(), newLb->getTransportFields().end());
     ecmpV6Hash_ = managerTable_->hashManager().getOrCreate(v6EcmpHashFields);
+
     // Set the new ecmp v6 hash attribute on switch obj
     setLoadBalancer<SaiSwitchTraits::Attributes::EcmpHashV6>(
-        ecmpV6Hash_->adapterKey());
+        ecmpV6Hash_, programmedLoadBalancer);
   }
 }
 
 void SaiSwitchManager::programLagLoadBalancerParams(
     std::optional<sai_uint32_t> seed,
     std::optional<cfg::HashingAlgorithm> algo) {
+  // TODO(skhare) setLoadBalancer is called only for ECMP today. Add similar
+  // logic for LAG.
   auto hashSeed = seed ? seed.value() : 0;
   auto hashAlgo = algo ? toSaiHashAlgo(algo.value()) : SAI_HASH_ALGORITHM_CRC;
   switch_->setOptionalAttribute(
