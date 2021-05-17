@@ -114,9 +114,7 @@ class TransceiverManager {
    */
   virtual bool initExternalPhyMap() = 0;
 
-  virtual PhyManager* getPhyManager() {
-    return nullptr;
-  }
+  virtual PhyManager* getPhyManager() = 0;
 
   /*
    * Virtual function to program a PHY port on external PHY. This function

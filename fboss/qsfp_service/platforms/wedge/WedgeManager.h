@@ -131,6 +131,10 @@ class WedgeManager : public TransceiverManager {
   void programXphyPort(int32_t portId, cfg::PortProfileID portProfileId)
       override;
 
+  PhyManager* getPhyManager() override {
+    return phyManager_.get();
+  }
+
  protected:
   virtual std::unique_ptr<TransceiverI2CApi> getI2CBus();
   void updateTransceiverMap();

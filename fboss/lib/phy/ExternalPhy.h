@@ -122,6 +122,8 @@ struct PhyPortConfig {
 struct PhyIDInfo {
   PimID pimID;
   MdioControllerID controllerID;
+  // TODO(ccpowers): this is currently being used as a phy ID rather than an
+  // address, need to correct this.
   PhyAddr phyAddr;
 
   bool operator==(const PhyIDInfo& other) const {
