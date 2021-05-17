@@ -2652,6 +2652,11 @@ int BcmCinter::bcm_tx(int unit, bcm_pkt_t* tx_pkt, void* /*cookie*/) {
   return 0;
 }
 
+int BcmCinter::bcm_pktio_tx(int /*unit*/, bcm_pktio_pkt_t* /*tx_pkt*/) {
+  // TODO: implement cint
+  return 0;
+}
+
 int BcmCinter::bcm_pkt_free(int /*unit*/, bcm_pkt_t* /*pkt*/) {
   return 0;
 }

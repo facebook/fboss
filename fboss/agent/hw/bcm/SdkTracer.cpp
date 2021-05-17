@@ -915,6 +915,8 @@ int __real_bcm_pkt_free(int unit, bcm_pkt_t* pkt);
 
 int __real_bcm_tx(int unit, bcm_pkt_t* tx_pkt, void* cookie);
 
+int __real_bcm_pktio_tx(int unit, bcm_pktio_pkt_t* tx_pkt);
+
 int __real_bcm_l3_egress_destroy(int unit, bcm_if_t intf);
 
 int __real_bcm_port_control_get(
@@ -2749,6 +2751,13 @@ int __wrap_bcm_tx(int unit, bcm_pkt_t* tx_pkt, void* cookie) {
     TIME_CALL;
     CALL_WRAPPERS_RV_CINTER_FIRST(bcm_tx(unit, tx_pkt, cookie));
   }
+}
+
+int __wrap_bcm_pktio_tx(int unit, bcm_pktio_pkt_t* tx_pkt) {
+  // The SDK will free the packet data once it executes bcm_pktio_tx, so
+  // we call BcmCinter->bcm_pktio_tx here first since BcmCinter requires
+  // access to packet data in order to log it.
+  CALL_WRAPPERS_RV_CINTER_FIRST(bcm_pktio_tx(unit, tx_pkt));
 }
 
 int __wrap_bcm_rx_stop(int unit, bcm_rx_cfg_t* cfg) {

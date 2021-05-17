@@ -531,6 +531,7 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   int bcm_vlan_port_remove(int unit, bcm_vlan_t vid, bcm_pbmp_t pbmp) override;
   int bcm_l2_station_delete(int unit, int station_id) override;
   int bcm_tx(int unit, bcm_pkt_t* tx_pkt, void* cookie) override;
+  int bcm_pktio_tx(int unit, bcm_pktio_pkt_t* tx_pkt) override;
   int bcm_port_stat_enable_set(int unit, bcm_gport_t port, int enable) override;
   int bcm_stat_clear(int unit, bcm_port_t port) override;
   int bcm_port_speed_set(int unit, bcm_port_t port, int speed) override;

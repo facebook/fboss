@@ -24,6 +24,9 @@ extern "C" {
 #include <bcm/tx.h>
 #include <bcm/types.h>
 #include <bcm/vlan.h>
+
+#include <bcm/pktio.h>
+#include <bcm/pktio_defs.h>
 }
 
 namespace facebook::fboss {
@@ -217,6 +220,8 @@ class BcmInterface {
       int value) = 0;
 
   virtual int bcm_tx(int unit, bcm_pkt_t* tx_pkt, void* cookie) = 0;
+
+  virtual int bcm_pktio_tx(int unit, bcm_pktio_pkt_t* tx_pkt) = 0;
 
   virtual int
   bcm_l3_egress_get(int unit, bcm_if_t intf, bcm_l3_egress_t* egr) = 0;
