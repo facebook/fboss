@@ -83,6 +83,10 @@ const uint8_t kV6LinkLocalAddrMask{64};
 // Needed until CoPP is removed from code and put into config
 const int kAclStartPriority = 100000;
 
+// Only one buffer pool is supported systemwide. Variable to track the name
+// and validate during a config change.
+std::optional<std::string> sharedBufferPoolName;
+
 std::shared_ptr<facebook::fboss::SwitchState> updateFibFromConfig(
     facebook::fboss::RouterID vrf,
     const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
@@ -756,6 +760,8 @@ shared_ptr<PortMap> ThriftConfigApplier::updatePorts() {
   PortMap::NodeContainer newPorts;
   bool changed = false;
 
+  sharedBufferPoolName.reset();
+
   // Process all supplied port configs
   for (const auto& portCfg : *cfg_->ports_ref()) {
     PortID id(*portCfg.logicalID_ref());
@@ -1102,8 +1108,27 @@ void ThriftConfigApplier::validateUpdatePgBufferPoolName(
   // this is processed after bufferPoolConfig changes
   // validate that bufferPool name exists in the cfg
   for (const auto& portPg : portPgCfgs) {
+    auto bufferPoolName = portPg->getBufferPoolName();
+
+    // only one buffer pool is supported
+    // check buffer pool name is common across pgs and across ports
+    if (!sharedBufferPoolName.has_value()) {
+      sharedBufferPoolName = bufferPoolName;
+      XLOG(DBG2) << "sharedBufferPoolName: " << sharedBufferPoolName.value();
+    } else if (sharedBufferPoolName != bufferPoolName) {
+      throw FbossError(
+          "Port:",
+          port->getID(),
+          " with pg name: ",
+          portPgName,
+          " buffer pool name: ",
+          bufferPoolName,
+          " is different from shared buffer pool name: ",
+          sharedBufferPoolName.value(),
+          " Only one bufferPool supported! ");
+    }
+
     if (!portPg->getBufferPoolName().empty()) {
-      auto bufferPoolName = portPg->getBufferPoolName();
       auto bufferPoolCfgMap = new_->getBufferPoolCfgs();
       if (!bufferPoolCfgMap) {
         throw FbossError(

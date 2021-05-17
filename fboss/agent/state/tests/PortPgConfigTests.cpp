@@ -113,12 +113,18 @@ TEST(PortPgConfig, applyConfig) {
   auto stateV0 = make_shared<SwitchState>();
 
   constexpr folly::StringPiece kBufferPoolName = "bufferPool";
+  constexpr folly::StringPiece kPgConfigName = "foo";
+
   std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
   cfg::SwitchConfig config;
-  config.ports_ref()->resize(1);
+  config.ports_ref()->resize(2);
   config.ports_ref()[0].logicalID_ref() = 1;
   config.ports_ref()[0].name_ref() = "port1";
   config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+
+  config.ports_ref()[1].logicalID_ref() = 2;
+  config.ports_ref()[1].name_ref() = "port2";
+  config.ports_ref()[1].state_ref() = cfg::PortState::ENABLED;
 
   std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
   std::vector<cfg::PortPgConfig> portPgConfigs;
@@ -127,10 +133,10 @@ TEST(PortPgConfig, applyConfig) {
     pgConfig.id_ref() = pgId;
     portPgConfigs.emplace_back(pgConfig);
   }
-  portPgConfigMap["foo"] = portPgConfigs;
+  portPgConfigMap[kPgConfigName.str()] = portPgConfigs;
 
   cfg::PortPfc pfc;
-  pfc.portPgConfigName_ref() = "foo";
+  pfc.portPgConfigName_ref() = kPgConfigName.str();
   config.ports_ref()[0].pfc_ref() = pfc;
   config.portPgConfigs_ref() = portPgConfigMap;
 
@@ -144,6 +150,7 @@ TEST(PortPgConfig, applyConfig) {
 
   auto createPortPgConfig = [&](const int pgIdStart,
                                 const int pgIdEnd,
+                                const std::string& pgConfigName,
                                 const std::string& bufferName) {
     portPgConfigs.clear();
     for (pgId = pgIdStart; pgId < pgIdEnd; pgId++) {
@@ -156,17 +163,17 @@ TEST(PortPgConfig, applyConfig) {
       pgConfig.bufferPoolName_ref() = bufferName;
       portPgConfigs.emplace_back(pgConfig);
     }
-    portPgConfigMap["foo"] = portPgConfigs;
+    portPgConfigMap[pgConfigName] = portPgConfigs;
     config.portPgConfigs_ref() = portPgConfigMap;
   };
 
   auto createBufferPoolCfg = [&](const int sharedBytes,
-                                 const int headroomBytes) {
+                                 const int headroomBytes,
+                                 const std::string& bufferName) {
     cfg::BufferPoolConfig tmpPoolConfig1;
     tmpPoolConfig1.headroomBytes_ref() = headroomBytes;
     tmpPoolConfig1.sharedBytes_ref() = sharedBytes;
-    bufferPoolCfgMap.clear();
-    bufferPoolCfgMap.insert(make_pair(kBufferPoolName.str(), tmpPoolConfig1));
+    bufferPoolCfgMap.insert(make_pair(bufferName, tmpPoolConfig1));
     config.bufferPoolConfigs_ref() = bufferPoolCfgMap;
   };
 
@@ -187,6 +194,7 @@ TEST(PortPgConfig, applyConfig) {
   createPortPgConfig(
       0 /* pg start index */,
       kStateTestNumPortPgs /* pg end index */,
+      kPgConfigName.str(),
       kBufferPoolName.str());
   cfg::BufferPoolConfig tmpPoolConfig;
   bufferPoolCfgMap.insert(make_pair(kBufferPoolName.str(), tmpPoolConfig));
@@ -216,6 +224,7 @@ TEST(PortPgConfig, applyConfig) {
     createPortPgConfig(
         0,
         cfg::switch_config_constants::PORT_PG_VALUE_MAX(),
+        kPgConfigName.str(),
         kBufferPoolName.str());
     auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
     EXPECT_NE(nullptr, stateV3);
@@ -232,7 +241,11 @@ TEST(PortPgConfig, applyConfig) {
     // between old and new we push the change
     // we are changing the pg id from
     // {0, kStateTestNumPortPgs} -> {1, kStateTestNumPortPgs+1}
-    createPortPgConfig(1, kStateTestNumPortPgs + 1, kBufferPoolName.str());
+    createPortPgConfig(
+        1,
+        kStateTestNumPortPgs + 1,
+        kPgConfigName.str(),
+        kBufferPoolName.str());
     auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
     EXPECT_NE(nullptr, stateV3);
 
@@ -252,8 +265,10 @@ TEST(PortPgConfig, applyConfig) {
     constexpr int kDelta = 1;
     // validate that new bufferPol cfg results in new updates
     // appropriately reflected in the PortPg config
-    createPortPgConfig(0, 1, kBufferPoolName.str());
-    createBufferPoolCfg(kBufferSharedBytes, kBufferHdrmBytes);
+    createPortPgConfig(0, 1, kPgConfigName.str(), kBufferPoolName.str());
+    bufferPoolCfgMap.clear();
+    createBufferPoolCfg(
+        kBufferSharedBytes, kBufferHdrmBytes, kBufferPoolName.str());
     auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
     EXPECT_NE(nullptr, stateV3);
 
@@ -262,7 +277,11 @@ TEST(PortPgConfig, applyConfig) {
 
     // modify contents of the buffer pool
     // ensure they get reflected
-    createBufferPoolCfg(kBufferSharedBytes + kDelta, kBufferHdrmBytes + kDelta);
+    bufferPoolCfgMap.clear();
+    createBufferPoolCfg(
+        kBufferSharedBytes + kDelta,
+        kBufferHdrmBytes + kDelta,
+        kBufferPoolName.str());
     auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
     EXPECT_NE(nullptr, stateV4);
     const auto& pgCfgsNew1 = stateV4->getPort(PortID(1))->getPortPgConfigs();
@@ -270,13 +289,17 @@ TEST(PortPgConfig, applyConfig) {
         kBufferSharedBytes + kDelta, kBufferHdrmBytes + kDelta, pgCfgsNew1);
 
     // no change expected here
-    createBufferPoolCfg(kBufferSharedBytes + kDelta, kBufferHdrmBytes + kDelta);
+    bufferPoolCfgMap.clear();
+    createBufferPoolCfg(
+        kBufferSharedBytes + kDelta,
+        kBufferHdrmBytes + kDelta,
+        kBufferPoolName.str());
     auto stateV5 = publishAndApplyConfig(stateV4, &config, platform.get());
     EXPECT_EQ(nullptr, stateV5);
 
     // reset the bufferPool, ensure thats cleaned up from the PgConfig
     bufferPoolCfgMap.clear();
-    createPortPgConfig(0, 1, "");
+    createPortPgConfig(0, 1, kPgConfigName.str(), "");
     config.bufferPoolConfigs_ref() = bufferPoolCfgMap;
     stateV5 = publishAndApplyConfig(stateV4, &config, platform.get());
     EXPECT_NE(nullptr, stateV5);
@@ -293,4 +316,46 @@ TEST(PortPgConfig, applyConfig) {
 
   EXPECT_NE(nullptr, stateV3);
   EXPECT_FALSE(stateV3->getPort(PortID(1))->getPortPgConfigs());
+
+  {
+    // validate bufferpool name is same across all ports.
+    auto stateV6 = make_shared<SwitchState>();
+
+    createPortPgConfig(
+        0 /* pg start index */,
+        kStateTestNumPortPgs /* pg end index */,
+        "pgMapCfg1",
+        "bufferPool1");
+
+    createPortPgConfig(
+        0 /* pg start index */,
+        kStateTestNumPortPgs /* pg end index */,
+        "pgMapCfg2",
+        "bufferPool2");
+
+    constexpr int kBufferHdrmBytes = 2000;
+    constexpr int kBufferSharedBytes = 3000;
+
+    bufferPoolCfgMap.clear();
+    createBufferPoolCfg(kBufferSharedBytes, kBufferHdrmBytes, "bufferPool1");
+    createBufferPoolCfg(kBufferSharedBytes, kBufferHdrmBytes, "bufferPool2");
+
+    pfc.portPgConfigName_ref() = "pgMapCfg1";
+    config.ports_ref()[0].pfc_ref() = pfc;
+
+    pfc.portPgConfigName_ref() = "pgMapCfg2";
+    config.ports_ref()[1].pfc_ref() = pfc;
+
+    EXPECT_THROW(
+        publishAndApplyConfig(stateV6, &config, platform.get()), FbossError);
+
+    // Fix pgMapCfg2 to use bufferPool1 and check again
+    createPortPgConfig(
+        0 /* pg start index */,
+        kStateTestNumPortPgs /* pg end index */,
+        "pgMapCfg2",
+        "bufferPool1");
+
+    EXPECT_NO_THROW(publishAndApplyConfig(stateV6, &config, platform.get()));
+  }
 }
