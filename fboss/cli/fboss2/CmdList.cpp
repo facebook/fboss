@@ -10,16 +10,16 @@
 
 #include "fboss/cli/fboss2/CmdList.h"
 
-#include "fboss/cli/fboss2/CmdClearArp.h"
-#include "fboss/cli/fboss2/CmdClearNdp.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
-#include "fboss/cli/fboss2/CmdShowAcl.h"
-#include "fboss/cli/fboss2/CmdShowArp.h"
-#include "fboss/cli/fboss2/CmdShowLldp.h"
-#include "fboss/cli/fboss2/CmdShowNdp.h"
-#include "fboss/cli/fboss2/CmdShowPort.h"
-#include "fboss/cli/fboss2/CmdShowPortQueue.h"
-#include "fboss/cli/fboss2/CmdShowTransceiver.h"
+#include "fboss/cli/fboss2/commands/clear/CmdClearArp.h"
+#include "fboss/cli/fboss2/commands/clear/CmdClearNdp.h"
+#include "fboss/cli/fboss2/commands/show/CmdShowAcl.h"
+#include "fboss/cli/fboss2/commands/show/CmdShowArp.h"
+#include "fboss/cli/fboss2/commands/show/CmdShowLldp.h"
+#include "fboss/cli/fboss2/commands/show/CmdShowNdp.h"
+#include "fboss/cli/fboss2/commands/show/CmdShowPort.h"
+#include "fboss/cli/fboss2/commands/show/CmdShowPortQueue.h"
+#include "fboss/cli/fboss2/commands/show/CmdShowTransceiver.h"
 
 namespace facebook::fboss {
 

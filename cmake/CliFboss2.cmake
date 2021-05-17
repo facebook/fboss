@@ -6,19 +6,19 @@
 add_executable(fboss2
   fboss/cli/fboss2/CmdClientUtils.cpp
   fboss/cli/fboss2/oss/CmdClientUtils.cpp
-  fboss/cli/fboss2/CmdClearArp.h
-  fboss/cli/fboss2/CmdClearNdp.h
+  fboss/cli/fboss2/commands/clear/CmdClearArp.h
+  fboss/cli/fboss2/commands/clear/CmdClearNdp.h
   fboss/cli/fboss2/CmdGlobalOptions.cpp
   fboss/cli/fboss2/CmdHandler.cpp
   fboss/cli/fboss2/CmdList.cpp
-  fboss/cli/fboss2/CmdShowAcl.h
-  fboss/cli/fboss2/CmdShowArp.h
-  fboss/cli/fboss2/CmdShowLldp.h
-  fboss/cli/fboss2/CmdShowNdp.h
-  fboss/cli/fboss2/CmdShowNdp.h
-  fboss/cli/fboss2/CmdShowPort.h
-  fboss/cli/fboss2/CmdShowPortQueue.h
-  fboss/cli/fboss2/CmdShowTransceiver.h
+  fboss/cli/fboss2/commands/show/CmdShowAcl.h
+  fboss/cli/fboss2/commands/show/CmdShowArp.h
+  fboss/cli/fboss2/commands/show/CmdShowLldp.h
+  fboss/cli/fboss2/commands/show/CmdShowNdp.h
+  fboss/cli/fboss2/commands/show/CmdShowNdp.h
+  fboss/cli/fboss2/commands/show/CmdShowPort.h
+  fboss/cli/fboss2/commands/show/CmdShowPortQueue.h
+  fboss/cli/fboss2/commands/show/CmdShowTransceiver.h
   fboss/cli/fboss2/CmdSubcommands.cpp
   fboss/cli/fboss2/CmdUtils.cpp
   fboss/cli/fboss2/Main.cpp
