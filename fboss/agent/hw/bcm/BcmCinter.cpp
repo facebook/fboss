@@ -153,6 +153,15 @@ void BcmCinter::setupGlobals() {
       "bcm_flexctr_trigger_t flexctr_trigger",
   };
   writeCintLines(std::move(globals));
+#ifdef INCLUDE_PKTIO
+  array<string, 4> pktioGlobals = {
+      "bcm_pktio_pkt_t* pktio_pkt",
+      "void *pktio_data",
+      "uint8 *pktio_bytes",
+      "uint32 pktio_len",
+  };
+  writeCintLines(std::move(pktioGlobals));
+#endif
 }
 
 template <typename C>
@@ -2652,8 +2661,71 @@ int BcmCinter::bcm_tx(int unit, bcm_pkt_t* tx_pkt, void* /*cookie*/) {
   return 0;
 }
 
-int BcmCinter::bcm_pktio_tx(int /*unit*/, bcm_pktio_pkt_t* /*tx_pkt*/) {
-  // TODO: implement cint
+int BcmCinter::bcm_pktio_tx(int unit, bcm_pktio_pkt_t* tx_pkt) {
+#ifdef INCLUDE_PKTIO
+  if (!FLAGS_gen_tx_cint) {
+    return 0;
+  }
+
+  vector<string> cint{};
+  void* data;
+  uint32_t length;
+
+  bcm_pktio_pkt_data_get(unit, tx_pkt, &data, &length);
+
+  auto allocFuncCint = wrapFunc(to<string>(
+      "bcm_pktio_alloc(", makeParamStr(unit, length, 0, "&pktio_pkt"), ")"));
+
+  cint.insert(
+      cint.end(),
+      make_move_iterator(allocFuncCint.begin()),
+      make_move_iterator(allocFuncCint.end()));
+
+  cint.push_back(to<string>("pktio_pkt->flags = ", tx_pkt->flags));
+
+  for (int i = 0; i < BCM_PKTIO_PMD_SIZE_WORDS; i++) {
+    cint.push_back(
+        to<string>("pktio_pkt->pmd.data[", i, "] = ", tx_pkt->pmd.data[i]));
+  }
+
+  auto putFuncCint = wrapFunc(to<string>(
+      "bcm_pktio_put(",
+      makeParamStr(unit, "pktio_pkt", length, "(auto) &pktio_data"),
+      ")"));
+
+  cint.insert(
+      cint.end(),
+      make_move_iterator(putFuncCint.begin()),
+      make_move_iterator(putFuncCint.end()));
+
+  cint.push_back(to<string>("pktio_bytes = (auto) pktio_data"));
+
+  for (int i = 0; i < length; i++) {
+    cint.push_back(
+        to<string>("pktio_bytes[", i, "] = ", static_cast<uint8_t*>(data)[i]));
+  }
+
+  auto txFuncCint = wrapFunc(
+      to<string>("bcm_pktio_tx(", makeParamStr(unit, "pktio_pkt"), ")"));
+
+  cint.insert(
+      cint.end(),
+      make_move_iterator(txFuncCint.begin()),
+      make_move_iterator(txFuncCint.end()));
+
+  auto freeFuncCint = wrapFunc(
+      to<string>("bcm_pktio_free(", makeParamStr(unit, "pktio_pkt"), ")"));
+
+  cint.insert(
+      cint.end(),
+      make_move_iterator(freeFuncCint.begin()),
+      make_move_iterator(freeFuncCint.end()));
+
+  writeCintLines(std::move(cint));
+#else
+  (void)unit;
+  (void)tx_pkt;
+#endif
   return 0;
 }
 
