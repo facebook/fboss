@@ -230,14 +230,24 @@ class FbosslinkTestCase(LinkTestCase):
         client = self._get_fboss_agent_client(self.hostname)
         return client.getAllPortInfo()
 
+    @retryable(num_tries=50, sleep_time=5, debug=False)
     def _get_fboss_agent_client(self, hostname: str) -> FbossAgentClient:
         client = FbossAgentClient(
             hostname, port=DEFAULT_AGENT_REMOTE_PORT, timeout=DEFAULT_THRIFT_TIMEOUT
         )
+        self.assertTrue(
+            client,
+            msg="Invalid FbossAgentClient",
+        )
         return client
 
+    @retryable(num_tries=50, sleep_time=5, debug=False)
     def _get_qsfp_service_client(self, hostname: str) -> QsfpServiceClient:
         qsfp_client = QsfpServiceClient(hostname, None, timeout=DEFAULT_THRIFT_TIMEOUT)
+        self.assertTrue(
+            qsfp_client,
+            msg="Invalid QsfpServiceClient",
+        )
         return qsfp_client
 
     def _getOverallLinkFlapCount(self):
