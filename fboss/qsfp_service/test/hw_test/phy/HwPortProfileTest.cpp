@@ -13,6 +13,7 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/lib/phy/PhyManager.h"
 #include "fboss/qsfp_service/test/hw_test/phy/HwPhyEnsemble.h"
+#include "fboss/qsfp_service/test/hw_test/phy/HwPortUtils.h"
 
 namespace facebook::fboss {
 
@@ -35,8 +36,12 @@ class HwPortProfileTest : public HwTest {
     return std::nullopt;
   }
 
-  void verifyPort(PortID /* portID */) {
-    // TODO(joseph5wu) Add verify logic
+  void verifyPort(PortID portID) {
+    utility::verifyPhyPortConfig(
+        portID,
+        Profile,
+        getHwPhyEnsemble()->getPlatformMapping(),
+        getHwPhyEnsemble()->getTargetExternalPhy());
   }
 
   void runTest() {
