@@ -42,6 +42,9 @@ class HwPortProfileTest : public HwTest {
         Profile,
         getHwPhyEnsemble()->getPlatformMapping(),
         getHwPhyEnsemble()->getTargetExternalPhy());
+
+    utility::veridyPhyPortConnector(
+        portID, getHwPhyEnsemble()->getPhyManager());
   }
 
   void runTest() {
