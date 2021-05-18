@@ -381,17 +381,15 @@ void LookupClassRouteUpdater::processNeighborAdded(
       allPrefixesWithClassID_.end(),
       std::inserter(toBeUpdatedPrefixes, toBeUpdatedPrefixes.end()));
 
-  std::vector<RouteAndClassID> routesAndClassIDs;
   auto routeClassID = addedNeighbor->getClassID().value();
 
   for (const auto& ridAndCidr : toBeUpdatedPrefixes) {
     withoutClassIDPrefixes.erase(ridAndCidr);
     withClassIDPrefixes.insert(ridAndCidr);
     allPrefixesWithClassID_.insert(ridAndCidr);
-    routesAndClassIDs.emplace_back(std::make_pair(ridAndCidr, routeClassID));
+    toUpdateRoutesAndClassIDs_.emplace_back(
+        std::make_pair(ridAndCidr, routeClassID));
   }
-
-  updateClassIDsForRoutes(routesAndClassIDs);
 }
 
 template <typename RemovedNeighborT>
@@ -418,8 +416,6 @@ void LookupClassRouteUpdater::processNeighborRemoved(
     nextHopAndVlan2Prefixes_.erase(it);
     return;
   }
-
-  std::vector<RouteAndClassID> routesAndClassIDs;
 
   auto& newState = stateDelta.newState();
 
@@ -463,10 +459,9 @@ void LookupClassRouteUpdater::processNeighborRemoved(
       }
     }
 
-    routesAndClassIDs.push_back(std::make_pair(ridAndCidr, routeClassID));
+    toUpdateRoutesAndClassIDs_.push_back(
+        std::make_pair(ridAndCidr, routeClassID));
   }
-
-  updateClassIDsForRoutes(routesAndClassIDs);
 }
 
 template <typename ChangedNeighborT>
@@ -643,7 +638,8 @@ void LookupClassRouteUpdater::processRouteAdded(
       addRouteAndFindClassID(stateDelta, rid, addedRoute, std::nullopt);
 
   if (routeClassID.has_value()) {
-    updateClassIDsForRoutes({std::make_pair(ridAndCidr, routeClassID)});
+    toUpdateRoutesAndClassIDs_.push_back(
+        std::make_pair(ridAndCidr, routeClassID));
   }
 }
 
@@ -835,6 +831,8 @@ void LookupClassRouteUpdater::stateUpdated(const StateDelta& stateDelta) {
 
   processRouteUpdates<folly::IPAddressV6>(stateDelta);
   processRouteUpdates<folly::IPAddressV4>(stateDelta);
+  updateClassIDsForRoutes(toUpdateRoutesAndClassIDs_);
+  toUpdateRoutesAndClassIDs_.clear();
 }
 
 } // namespace facebook::fboss

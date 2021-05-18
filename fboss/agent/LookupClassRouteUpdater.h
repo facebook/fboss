@@ -246,6 +246,9 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
    */
   std::set<RidAndCidr> allPrefixesWithClassID_;
 
+  // pending routes with classID to be updated
+  std::vector<RouteAndClassID> toUpdateRoutesAndClassIDs_;
+
   SwSwitch* sw_;
 
   bool inited_{false};
