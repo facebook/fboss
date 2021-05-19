@@ -37,7 +37,7 @@ bcm_l3_host_t getHost(int unit, const folly::IPAddress& ip, uint32_t flags) {
   return host;
 }
 
-bcm_l3_route_t getRoute(int unit, const folly::IPAddress& ip) {
+bcm_l3_route_t getRoute(int unit, const folly::IPAddress& ip, uint32_t flags) {
   bcm_l3_route_t route;
   bcm_l3_route_t_init(&route);
   if (ip.isV4()) {
@@ -55,6 +55,7 @@ bcm_l3_route_t getRoute(int unit, const folly::IPAddress& ip) {
         sizeof(route.l3a_ip6_mask));
     route.l3a_flags |= BCM_L3_IP6;
   }
+  route.l3a_flags |= flags;
   auto rv = bcm_l3_route_get(unit, &route);
   bcmCheckError(rv, "Unable to find route: ", ip);
   return route;
@@ -70,7 +71,7 @@ bool nbrExists(
             HwAsic::Feature::HOSTTABLE)) {
       getHost(static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip, 0);
     } else {
-      getRoute(static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip);
+      getRoute(static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip, 0);
     }
   } catch (const BcmError& e) {
     if (e.getBcmError() == BCM_E_NOT_FOUND) {
@@ -94,7 +95,7 @@ bool nbrProgrammedToCpu(
     intf = host.l3a_intf;
   } else {
     auto route =
-        getRoute(static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip);
+        getRoute(static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip, 0);
     intf = route.l3a_intf;
   }
   bcm_l3_egress_t egress;
@@ -115,20 +116,36 @@ std::optional<uint32_t> getNbrClassId(
     return host.l3a_lookup_class;
   } else {
     auto route =
-        getRoute(static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip);
+        getRoute(static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip, 0);
     return route.l3a_lookup_class;
   }
 }
 
 bool isHostHit(const HwSwitch* hwSwitch, const folly::IPAddress& ip) {
-  auto host =
-      getHost(static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip, 0);
-  return host.l3a_flags & BCM_L3_HIT;
+  if (hwSwitch->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::HOSTTABLE)) {
+    auto host =
+        getHost(static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip, 0);
+    return host.l3a_flags & BCM_L3_HIT;
+  }
+  auto route =
+      getRoute(static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip, 0);
+  return route.l3a_flags & BCM_L3_HIT;
 }
 
 void clearHostHitBit(const HwSwitch* hwSwitch, const folly::IPAddress& ip) {
-  getHost(
-      static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip, BCM_L3_HIT_CLEAR);
+  if (hwSwitch->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::HOSTTABLE)) {
+    getHost(
+        static_cast<const BcmSwitch*>(hwSwitch)->getUnit(),
+        ip,
+        BCM_L3_HIT_CLEAR);
+  } else {
+    getRoute(
+        static_cast<const BcmSwitch*>(hwSwitch)->getUnit(),
+        ip,
+        BCM_L3_HIT_CLEAR);
+  }
 }
 
 } // namespace facebook::fboss::utility
