@@ -170,12 +170,15 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
       frontPanelPortToLoopTraffic =
           PortID(masterLogicalPortIds()[aggInfo.numPhysicalPorts()]);
     }
+    auto firstVlan = *(getProgrammedState()->getVlans()->begin());
+    auto mac =
+        utility::getInterfaceMac(getProgrammedState(), firstVlan->getID());
     utility::pumpMplsTraffic(
         isV6,
         getHwSwitch(),
         label,
-        getPlatform()->getLocalMac(),
-        VlanID(utility::kDefaultVlanId),
+        mac,
+        firstVlan->getID(),
         frontPanelPortToLoopTraffic);
   }
 
