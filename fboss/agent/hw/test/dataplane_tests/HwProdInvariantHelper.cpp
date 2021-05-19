@@ -117,10 +117,13 @@ void HwProdInvariantHelper::verifySafeDiagCmds() {
       break;
 
     case HwAsic::AsicType::ASIC_TYPE_TRIDENT2:
+      diagCmds = validated_shell_commands_constants::TD2_TESTED_CMDS();
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK:
+      diagCmds = validated_shell_commands_constants::TH_TESTED_CMDS();
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
+      diagCmds = validated_shell_commands_constants::TH3_TESTED_CMDS();
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
-      diagCmds = validated_shell_commands_constants::BCM_TESTED_CMDS();
+      diagCmds = validated_shell_commands_constants::TH4_TESTED_CMDS();
       break;
   }
   if (diagCmds.size()) {
