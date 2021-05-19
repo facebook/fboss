@@ -215,6 +215,11 @@ void BcmUnit::deleteBcmUnitImpl() {
     steady_clock::time_point begin = steady_clock::now();
     XLOG(INFO) << " [Exit] Initiating BRCM ASIC shutdown";
 
+    /* This is the counterpart of bcm_pktio_init() in the desctruction
+     * path internal to SDK.  But Broadcom only made bcm_pktio_init
+     * call in the SDK, not this one, so we have to make this call
+     * here.  Broadcom is working on fixing it.
+     */
     if (usePKTIO_) {
       int rv;
 #ifdef INCLUDE_PKTIO
@@ -316,7 +321,6 @@ void BcmUnit::attach(bool warmBoot) {
   // dump hw config after attach in case there was any modifications
   platform_->dumpHwConfig();
 
-  int rv;
   auto asic = platform_->getAsic();
 
   if (asic->isSupported(HwAsic::Feature::PKTIO)) {
@@ -327,15 +331,6 @@ void BcmUnit::attach(bool warmBoot) {
     }
   }
   XLOG(INFO) << "usePKTIO = " << usePKTIO_;
-
-  if (usePKTIO_) {
-#ifdef INCLUDE_PKTIO
-    rv = bcm_pktio_init(unit_);
-#else
-    rv = BCM_E_CONFIG;
-#endif
-    bcmCheckError(rv, "Failed to init PKTIO");
-  }
 
   attached_.store(true, std::memory_order_release);
 } // namespace facebook::fboss
