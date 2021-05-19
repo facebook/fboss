@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/qsfp_service/test/hw_test/phy/HwTest.h"
+#include "fboss/qsfp_service/test/hw_test/HwTest.h"
 
 #include "fboss/lib/phy/ExternalPhy.h"
 #include "fboss/lib/phy/PhyManager.h"
