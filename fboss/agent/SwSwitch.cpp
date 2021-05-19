@@ -611,10 +611,6 @@ void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
         duration_cast<duration<float>>(steady_clock::now() - startTime)
             .count());
   }
-
-  // Transition to FIB_SYNCED state to allow protocols to add/update routes.
-  // TODO - Remove this once FIB_SYNCED SwitchRunstate is depreciated
-  fibSynced();
 }
 
 void SwSwitch::logRouteUpdates(
@@ -630,13 +626,6 @@ void SwSwitch::logRouteUpdates(
 
 void SwSwitch::stopLoggingRouteUpdates(const std::string& identifier) {
   routeUpdateLogger_->stopLoggingForIdentifier(identifier);
-}
-
-void SwSwitch::fibSynced() {
-  if (getBootType() == BootType::WARM_BOOT) {
-    routeUpdateLogger_->stopLoggingForIdentifier("fboss-agent-warmboot");
-  }
-  setSwitchRunState(SwitchRunState::FIB_SYNCED);
 }
 
 void SwSwitch::registerStateObserver(

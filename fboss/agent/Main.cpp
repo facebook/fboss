@@ -170,6 +170,9 @@ void Initializer::initImpl() {
   }
   sw_->initialConfigApplied(startTime);
 
+  if (sw_->getBootType() == BootType::WARM_BOOT) {
+    sw_->stopLoggingRouteUpdates("fboss-agent-warmboot");
+  }
   // Start the UpdateSwitchStatsThread
   fs_ = new FunctionScheduler();
   fs_->setThreadName("UpdateStatsThread");

@@ -322,7 +322,6 @@ class SwSwitch : public HwSwitch::Callback {
    */
   void initialConfigApplied(
       const std::chrono::steady_clock::time_point& startTime);
-  void fibSynced();
   /*
    * Publish all thread-local stats to the main fb303::fbData singleton,
    * so they will be visible via fb303 thrift calls.
