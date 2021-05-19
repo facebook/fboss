@@ -14,23 +14,23 @@
 namespace facebook {
 namespace fboss {
 
-class TransceiverManager;
+class WedgeManager;
 class PlatformProductInfo;
 class FbossMacsecHandler;
 
-std::unique_ptr<TransceiverManager> createTransceiverManager();
+std::unique_ptr<WedgeManager> createTransceiverManager();
 
 std::shared_ptr<FbossMacsecHandler> createFbossMacsecHandler(
-    TransceiverManager* wedgeMgr);
+    WedgeManager* wedgeMgr);
 
 /**
- * This function should return derived TransceiverManager which is still in dev.
+ * This function should return derived WedgeManager which is still in dev.
  */
-std::unique_ptr<TransceiverManager> createFBTransceiverManager(
+std::unique_ptr<WedgeManager> createFBWedgeManager(
     std::unique_ptr<PlatformProductInfo> productInfo);
 
-std::unique_ptr<TransceiverManager> createYampTransceiverManager();
+std::unique_ptr<WedgeManager> createYampWedgeManager();
 
-std::unique_ptr<TransceiverManager> createElbertTransceiverManager();
+std::unique_ptr<WedgeManager> createElbertWedgeManager();
 } // namespace fboss
 } // namespace facebook

@@ -9,25 +9,25 @@
  */
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
 
-#include "fboss/qsfp_service/TransceiverManager.h"
+#include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 
 namespace facebook {
 namespace fboss {
-std::unique_ptr<TransceiverManager> createFBTransceiverManager(
+std::unique_ptr<WedgeManager> createFBWedgeManager(
     std::unique_ptr<PlatformProductInfo> /*productInfo*/) {
-  return std::unique_ptr<TransceiverManager>{};
+  return std::unique_ptr<WedgeManager>{};
 }
 
-std::unique_ptr<TransceiverManager> createYampTransceiverManager() {
-  return std::unique_ptr<TransceiverManager>{};
+std::unique_ptr<WedgeManager> createYampWedgeManager() {
+  return std::unique_ptr<WedgeManager>{};
 }
 
-std::unique_ptr<TransceiverManager> createElbertTransceiverManager() {
-  return std::unique_ptr<TransceiverManager>{};
+std::unique_ptr<WedgeManager> createElbertWedgeManager() {
+  return std::unique_ptr<WedgeManager>{};
 }
 
 std::shared_ptr<FbossMacsecHandler> createFbossMacsecHandler(
-    TransceiverManager* /* wedgeMgr */) {
+    WedgeManager* /* wedgeMgr */) {
   return nullptr;
 }
 

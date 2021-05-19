@@ -1,3 +1,13 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+
 #pragma once
 
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
@@ -21,7 +31,6 @@ class GalaxyManager : public WedgeManager {
   GalaxyManager(GalaxyManager const&) = delete;
   GalaxyManager& operator=(GalaxyManager const&) = delete;
 
- protected:
   std::unique_ptr<TransceiverI2CApi> getI2CBus() override;
 };
 } // namespace fboss

@@ -17,7 +17,7 @@
 namespace facebook {
 namespace fboss {
 
-std::unique_ptr<TransceiverManager> createTransceiverManager() {
+std::unique_ptr<WedgeManager> createTransceiverManager() {
   auto productInfo =
       std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
   productInfo->initialize();
@@ -29,13 +29,13 @@ std::unique_ptr<TransceiverManager> createTransceiverManager() {
       mode == PlatformMode::GALAXY_LC || mode == PlatformMode::GALAXY_FC) {
     return std::make_unique<GalaxyManager>(mode);
   } else if (mode == PlatformMode::YAMP) {
-    return createYampTransceiverManager();
+    return createYampWedgeManager();
   } else if (mode == PlatformMode::ELBERT) {
-    return createElbertTransceiverManager();
+    return createElbertWedgeManager();
   } else if (
       mode == PlatformMode::FUJI || mode == PlatformMode::MINIPACK ||
       mode == PlatformMode::WEDGE400 || mode == PlatformMode::WEDGE400C) {
-    return createFBTransceiverManager(std::move(productInfo));
+    return createFBWedgeManager(std::move(productInfo));
   }
   return std::make_unique<Wedge40Manager>();
 }

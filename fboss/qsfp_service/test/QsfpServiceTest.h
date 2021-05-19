@@ -19,6 +19,7 @@
 #include <folly/experimental/FunctionScheduler.h>
 
 #include "fboss/qsfp_service/QsfpServiceHandler.h"
+#include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 
 namespace facebook {
 namespace fboss {
@@ -32,7 +33,7 @@ class QsfpServiceTest : public ::testing::Test {
   void TearDown() override;
 
  protected:
-  std::unique_ptr<TransceiverManager> transceiverManager_;
+  std::unique_ptr<WedgeManager> transceiverManager_;
 
  private:
   // Forbidden copy constructor and assignment operator
