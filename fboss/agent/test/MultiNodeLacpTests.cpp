@@ -21,6 +21,8 @@
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 
+#include "common/process/Process.h"
+
 using namespace facebook::fboss;
 
 DEFINE_int32(multiNodeTestPort1, 0, "multinode test port 1");
@@ -240,6 +242,50 @@ TEST_F(MultiNodeLacpTest, LacpTimeout) {
     // bring down both members due to minlink violation after 3 timeouts
     EXPECT_TRUE(
         waitForSwitchStateCondition(remoteLacpTimeout, 4 * kLacpLongTimeout));
+  };
+  checkForRemoteSideRun();
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(MultiNodeLacpTest, NeighborTest) {
+  const auto dstIpV4 = "1.1.1.2";
+  const auto dstIpV6 = "1::1";
+
+  const auto config = getConfigWithAggPort();
+  const auto vlanId = config.vlanPorts_ref()[0].vlanID_ref();
+
+  auto setup = [=]() {
+    // Wait for AggPort
+    waitForAggPortStatus(true);
+
+    // verify lacp state information
+    verifyLacpState();
+
+    std::string pingCmd = "ping -c 5 ";
+    std::string resultStr;
+    std::string errStr;
+    EXPECT_TRUE(facebook::process::Process::execShellCmd(
+        pingCmd + dstIpV4, &resultStr, &errStr));
+    EXPECT_TRUE(facebook::process::Process::execShellCmd(
+        pingCmd + dstIpV6, &resultStr, &errStr));
+  };
+
+  auto verify = [=]() {
+    auto checkNeighbor = [&](auto neighborEntry) {
+      EXPECT_NE(neighborEntry, nullptr);
+      EXPECT_EQ(neighborEntry->isPending(), false);
+      EXPECT_EQ(neighborEntry->getPort(), kAggId);
+    };
+    checkNeighbor(sw()->getState()
+                      ->getVlans()
+                      ->getVlanIf(VlanID(*vlanId))
+                      ->getArpTable()
+                      ->getEntryIf(folly::IPAddressV4(dstIpV4)));
+    checkNeighbor(sw()->getState()
+                      ->getVlans()
+                      ->getVlanIf(VlanID(*vlanId))
+                      ->getNdpTable()
+                      ->getEntryIf(folly::IPAddressV6(dstIpV6)));
   };
   checkForRemoteSideRun();
   verifyAcrossWarmBoots(setup, verify);
