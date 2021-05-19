@@ -592,7 +592,8 @@ void ThriftHandler::addUnicastRouteInVrf(
     int16_t client,
     std::unique_ptr<UnicastRoute> route,
     int32_t vrf) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto clientName = apache::thrift::util::enumNameSafe(ClientID(client));
+  auto log = LOG_THRIFT_CALL(DBG1, clientName);
   auto routes = std::make_unique<std::vector<UnicastRoute>>();
   routes->emplace_back(std::move(*route));
   addUnicastRoutesInVrf(client, std::move(routes), vrf);
@@ -601,7 +602,8 @@ void ThriftHandler::addUnicastRouteInVrf(
 void ThriftHandler::addUnicastRoute(
     int16_t client,
     std::unique_ptr<UnicastRoute> route) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto clientName = apache::thrift::util::enumNameSafe(ClientID(client));
+  auto log = LOG_THRIFT_CALL(DBG1, clientName);
   addUnicastRouteInVrf(client, std::move(route), 0);
 }
 
@@ -609,7 +611,8 @@ void ThriftHandler::deleteUnicastRouteInVrf(
     int16_t client,
     std::unique_ptr<IpPrefix> prefix,
     int32_t vrf) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto clientName = apache::thrift::util::enumNameSafe(ClientID(client));
+  auto log = LOG_THRIFT_CALL(DBG1, clientName);
   auto prefixes = std::make_unique<std::vector<IpPrefix>>();
   prefixes->emplace_back(std::move(*prefix));
   deleteUnicastRoutesInVrf(client, std::move(prefixes), vrf);
@@ -618,7 +621,8 @@ void ThriftHandler::deleteUnicastRouteInVrf(
 void ThriftHandler::deleteUnicastRoute(
     int16_t client,
     std::unique_ptr<IpPrefix> prefix) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto clientName = apache::thrift::util::enumNameSafe(ClientID(client));
+  auto log = LOG_THRIFT_CALL(DBG1, clientName);
   deleteUnicastRouteInVrf(client, std::move(prefix), 0);
 }
 
@@ -626,7 +630,8 @@ void ThriftHandler::addUnicastRoutesInVrf(
     int16_t client,
     std::unique_ptr<std::vector<UnicastRoute>> routes,
     int32_t vrf) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto clientName = apache::thrift::util::enumNameSafe(ClientID(client));
+  auto log = LOG_THRIFT_CALL(DBG1, clientName);
   ensureConfigured(__func__);
   updateUnicastRoutesImpl(vrf, client, routes, "addUnicastRoutesInVrf", false);
 }
@@ -634,7 +639,8 @@ void ThriftHandler::addUnicastRoutesInVrf(
 void ThriftHandler::addUnicastRoutes(
     int16_t client,
     std::unique_ptr<std::vector<UnicastRoute>> routes) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto clientName = apache::thrift::util::enumNameSafe(ClientID(client));
+  auto log = LOG_THRIFT_CALL(DBG1, clientName);
   ensureConfigured(__func__);
   addUnicastRoutesInVrf(client, std::move(routes), 0);
 }
@@ -649,7 +655,8 @@ void ThriftHandler::deleteUnicastRoutesInVrf(
     int16_t client,
     std::unique_ptr<std::vector<IpPrefix>> prefixes,
     int32_t vrf) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto clientName = apache::thrift::util::enumNameSafe(ClientID(client));
+  auto log = LOG_THRIFT_CALL(DBG1, clientName);
   ensureConfigured(__func__);
 
   auto updater = sw_->getRouteUpdater();
@@ -664,7 +671,8 @@ void ThriftHandler::deleteUnicastRoutesInVrf(
 void ThriftHandler::deleteUnicastRoutes(
     int16_t client,
     std::unique_ptr<std::vector<IpPrefix>> prefixes) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto clientName = apache::thrift::util::enumNameSafe(ClientID(client));
+  auto log = LOG_THRIFT_CALL(DBG1, clientName);
   ensureConfigured(__func__);
   deleteUnicastRoutesInVrf(client, std::move(prefixes), 0);
 }
@@ -1727,7 +1735,8 @@ void ThriftHandler::setExternalLedState(
 void ThriftHandler::addMplsRoutes(
     int16_t clientId,
     std::unique_ptr<std::vector<MplsRoute>> mplsRoutes) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto clientName = apache::thrift::util::enumNameSafe(ClientID(clientId));
+  auto log = LOG_THRIFT_CALL(DBG1, clientName);
   ensureConfigured(__func__);
   auto updateFn = [=, routes = std::move(*mplsRoutes)](
                       const std::shared_ptr<SwitchState>& state) {
@@ -1839,7 +1848,8 @@ void ThriftHandler::addMplsRoutesImpl(
 void ThriftHandler::deleteMplsRoutes(
     int16_t clientId,
     std::unique_ptr<std::vector<int32_t>> topLabels) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto clientName = apache::thrift::util::enumNameSafe(ClientID(clientId));
+  auto log = LOG_THRIFT_CALL(DBG1, clientName);
   ensureConfigured(__func__);
   auto updateFn = [=, topLabels = std::move(*topLabels)](
                       const std::shared_ptr<SwitchState>& state) {

@@ -30,17 +30,19 @@ LogThriftCall::LogThriftCall(
       file_(file),
       line_(line),
       start_(std::chrono::steady_clock::now()) {
+  std::string client;
+  std::string identity;
   if (!ctx) {
-    return;
-  }
-
-  Cpp2ConnContext* ctx2 = ctx->getConnectionContext();
-  auto client = ctx2->getPeerAddress()->getAddressStr();
-  auto identity = ctx2->getPeerCommonName();
-  if (identity.empty()) {
+    client = "unknown";
     identity = "unknown";
+  } else {
+    Cpp2ConnContext* ctx2 = ctx->getConnectionContext();
+    client = ctx2->getPeerAddress()->getAddressStr();
+    identity = ctx2->getPeerCommonName();
+    if (identity.empty()) {
+      identity = "unknown";
+    }
   }
-
   // this specific format is consumed by systemd-journald/rsyslogd
   if (paramsStr.empty()) {
     FB_LOG_RAW_WITH_CONTEXT(logger_, level_, file_, line_, "")
