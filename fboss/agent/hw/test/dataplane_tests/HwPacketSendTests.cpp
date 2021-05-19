@@ -298,14 +298,12 @@ TEST_F(HwPacketFloodTest, NdpFloodTest) {
     auto portStatsBefore = getLatestPortStats(masterLogicalPortIds());
     auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
-    auto txPacket = utility::makeIpTxPacket(
+    auto txPacket = utility::makeNeighborSolicitation(
         getHwSwitch(),
         vlanId,
-        srcMac,
-        folly::MacAddress("33:33:00:00:00:02"),
-        folly::IPAddress("1::1"),
-        folly::IPAddress("ff02::2"));
+        intfMac,
+        folly::IPAddressV6(folly::IPAddressV6::LINK_LOCAL, intfMac),
+        folly::IPAddressV6("1::2"));
     getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
         std::move(txPacket), masterLogicalPortIds()[0], std::nullopt);
     checkPacketFlooding(portStatsBefore, true);
