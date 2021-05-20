@@ -44,8 +44,10 @@ class HwPortProfileTest : public HwTest {
   void verifyPort(PortID portID) {
     auto port = getProgrammedState()->getPorts()->getPort(portID);
     // verify interface mode
-    utility::verifyInterfaceMode(
-        port->getID(), port->getProfileID(), getPlatform());
+    if (getAsic()->isSupported(HwAsic::Feature::PORT_INTERFACE_TYPE)) {
+      utility::verifyInterfaceMode(
+          port->getID(), port->getProfileID(), getPlatform());
+    }
     // verify tx settings
     utility::verifyTxSettting(
         port->getID(), port->getProfileID(), getPlatform());

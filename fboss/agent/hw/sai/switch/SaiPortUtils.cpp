@@ -63,8 +63,7 @@ sai_port_media_type_t getSaiPortMediaType(
       return SAI_PORT_MEDIA_TYPE_FIBER;
 
     case TransmitterTechnology::BACKPLANE:
-    // TODO: fix this once SAI is upgraded with below symbol
-    // return SAI_PORT_MEDIA_TYPE_BACKPLANE;
+      return SAI_PORT_MEDIA_TYPE_BACKPLANE;
     case TransmitterTechnology::UNKNOWN:
       switch (speed) {
         case cfg::PortSpeed::FORTYG:
