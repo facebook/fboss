@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 namespace facebook::fboss {
@@ -22,8 +23,14 @@ SaiAclTableManager::SaiAclTableManager(
     : saiStore_(saiStore),
       managerTable_(managerTable),
       platform_(platform),
-      aclEntryMinimumPriority_(0),
-      aclEntryMaximumPriority_(0),
+      aclEntryMinimumPriority_(
+          SaiApiTable::getInstance()->switchApi().getAttribute(
+              managerTable_->switchManager().getSwitchSaiId(),
+              SaiSwitchTraits::Attributes::AclEntryMinimumPriority())),
+      aclEntryMaximumPriority_(
+          SaiApiTable::getInstance()->switchApi().getAttribute(
+              managerTable_->switchManager().getSwitchSaiId(),
+              SaiSwitchTraits::Attributes::AclEntryMaximumPriority())),
       fdbDstUserMetaDataRangeMin_(0),
       fdbDstUserMetaDataRangeMax_(0),
       fdbDstUserMetaDataMask_(0),
