@@ -2295,26 +2295,6 @@ void BcmPort::setPortResource(const std::shared_ptr<Port>& swPort) {
         current.phy_lane_config == desired.phy_lane_config;
   };
 
-  // (T79767617) Known SDK issues on TH4. Right now, use this workaround to
-  // unblock our warmboot testing before Broadcom releases the fix.
-  auto asicType = hw_->getPlatform()->getAsic()->getAsicType();
-  if (asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
-    switch (profileConf.get_iphy().get_modulation()) {
-      case phy::IpModulation::PAM4:
-        // PAM4 + NS
-        BCM_PORT_RESOURCE_PHY_LANE_CONFIG_FORCE_PAM4_SET(
-            curPortResource.phy_lane_config);
-        BCM_PORT_RESOURCE_PHY_LANE_CONFIG_FORCE_NS_SET(
-            curPortResource.phy_lane_config);
-        break;
-      case phy::IpModulation::NRZ:
-        // NRZ
-        BCM_PORT_RESOURCE_PHY_LANE_CONFIG_FORCE_NRZ_SET(
-            curPortResource.phy_lane_config);
-        break;
-    };
-  }
-
   if (isPortResourceSame(curPortResource, desiredPortResource)) {
     XLOG(DBG2)
         << "Desired port resource is the same as current one. No need to "
