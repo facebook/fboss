@@ -14,6 +14,8 @@
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/fpga/MultiPimPlatformSystemContainer.h"
 #include "fboss/lib/phy/PhyManager.h"
+#include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
+#include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
 
 namespace facebook::fboss {
 HwPhyEnsemble::HwPhyEnsemble() {}
@@ -25,8 +27,11 @@ void HwPhyEnsemble::init(std::unique_ptr<HwPhyEnsembleInitInfo> initInfo) {
 
   auto multiPimPlatformMapping = chooseMultiPimPlatformMapping();
 
-  phyManager_ = choosePhyManager(multiPimPlatformMapping.get());
-  phyManager_->getSystemContainer()->initHW();
+  wedgeManager_ = createWedgeManager();
+  // Initialize the I2c bus
+  wedgeManager_->initTransceiverMap();
+  // Initialize the PhyManager all ExternalPhy for the system
+  wedgeManager_->initExternalPhyMap();
 
   // And then based on init info (pimType)to locate the first
   // available pim in the test environment to initialize.
@@ -52,11 +57,15 @@ void HwPhyEnsemble::init(std::unique_ptr<HwPhyEnsembleInitInfo> initInfo) {
   }
 }
 
+PhyManager* HwPhyEnsemble::getPhyManager() {
+  return wedgeManager_->getPhyManager();
+}
+
 PimID HwPhyEnsemble::getFirstAvailablePimID() {
-  auto pimStartNum = phyManager_->getSystemContainer()->getPimStartNum();
-  for (auto i = 0; i < phyManager_->getNumOfSlot(); ++i) {
+  auto pimStartNum = getPhyManager()->getSystemContainer()->getPimStartNum();
+  for (auto i = 0; i < getPhyManager()->getNumOfSlot(); ++i) {
     if (initInfo_->pimType ==
-        phyManager_->getSystemContainer()->getPimType(i + pimStartNum)) {
+        getPhyManager()->getSystemContainer()->getPimType(i + pimStartNum)) {
       return PimID(i + pimStartNum);
     }
   }
@@ -67,6 +76,6 @@ PimID HwPhyEnsemble::getFirstAvailablePimID() {
 }
 
 phy::ExternalPhy* HwPhyEnsemble::getTargetExternalPhy() {
-  return phyManager_->getExternalPhy(targetGlobalXphyID_);
+  return getPhyManager()->getExternalPhy(targetGlobalXphyID_);
 }
 } // namespace facebook::fboss

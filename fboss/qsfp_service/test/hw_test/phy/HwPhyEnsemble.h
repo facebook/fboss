@@ -22,6 +22,7 @@
 namespace facebook::fboss {
 
 class PhyManager;
+class WedgeManager;
 class MultiPimPlatformMapping;
 class PlatformMapping;
 
@@ -70,9 +71,7 @@ class HwPhyEnsemble {
 
   virtual void init(std::unique_ptr<HwPhyEnsembleInitInfo> initInfo);
 
-  PhyManager* getPhyManager() const {
-    return phyManager_.get();
-  }
+  PhyManager* getPhyManager();
 
   PimID getTargetPimID() const {
     return targetPimID_;
@@ -112,7 +111,7 @@ class HwPhyEnsemble {
   PimID getFirstAvailablePimID();
 
   std::unique_ptr<HwPhyEnsembleInitInfo> initInfo_;
-  std::unique_ptr<PhyManager> phyManager_;
+  std::unique_ptr<WedgeManager> wedgeManager_;
   PimID targetPimID_;
   // PIM PlatformMapping
   std::unique_ptr<PlatformMapping> platformMapping_;
