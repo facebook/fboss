@@ -95,10 +95,6 @@ class HwPhyEnsemble {
     return targetPorts_;
   }
 
-  bool isXphySupported() const {
-    return isXphySupported_;
-  }
-
  private:
   virtual std::unique_ptr<MultiPimPlatformMapping>
   chooseMultiPimPlatformMapping() = 0;
@@ -112,8 +108,6 @@ class HwPhyEnsemble {
   PimID targetPimID_;
   // PIM PlatformMapping
   std::unique_ptr<PlatformMapping> platformMapping_;
-  // Some platform doesn't have xphy
-  bool isXphySupported_{false};
   GlobalXphyID targetGlobalXphyID_;
   std::vector<PortID> targetPorts_;
 };

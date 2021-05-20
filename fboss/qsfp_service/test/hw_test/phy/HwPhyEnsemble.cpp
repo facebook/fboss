@@ -43,7 +43,6 @@ void HwPhyEnsemble::init(std::unique_ptr<HwPhyEnsembleInitInfo> initInfo) {
   // Find the first xphy for this pim
   for (const auto& chip : platformMapping_->getChips()) {
     if (chip.second.get_type() == phy::DataPlanePhyChipType::XPHY) {
-      isXphySupported_ = true;
       targetGlobalXphyID_ = chip.second.get_physicalID();
       // Fetch all the sw port ids for this xphy
       const auto& ports = utility::getPlatformPortsByChip(
