@@ -19,18 +19,9 @@ class SaiHwPlatform;
 
 class SaiPhyEnsemble : public HwPhyEnsemble {
  public:
-  SaiPhyEnsemble() {}
-
-  ~SaiPhyEnsemble() override {}
-
-  void init(std::unique_ptr<HwPhyEnsembleInitInfo> initInfo) override;
-
   SaiHwPlatform* getSaiHwPlatform();
 
  private:
-  std::unique_ptr<PhyManager> choosePhyManager(
-      const PlatformMapping* platformMapping) override;
-
   std::unique_ptr<MultiPimPlatformMapping> chooseMultiPimPlatformMapping()
       override;
 };
