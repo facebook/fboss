@@ -20,20 +20,19 @@ namespace facebook::fboss {
 template <cfg::PortProfileID Profile>
 class HwPortProfileTest : public HwTest {
  protected:
-  std::optional<PortID> findAvailablePort() {
+  std::vector<PortID> findAvailablePort() {
+    std::vector<PortID> ports;
     const auto& platformPorts =
         getHwPhyEnsemble()->getPlatformMapping()->getPlatformPorts();
     for (auto portID : getHwPhyEnsemble()->getTargetPorts()) {
       auto iter = platformPorts.find(portID);
       EXPECT_TRUE(iter != platformPorts.end());
-      if (iter->second.supportedProfiles_ref()->find(Profile) ==
+      if (iter->second.supportedProfiles_ref()->find(Profile) !=
           iter->second.supportedProfiles_ref()->end()) {
-        continue;
+        ports.emplace_back(portID);
       }
-      return portID;
     }
-    // Can't find a port can support such profile
-    return std::nullopt;
+    return ports;
   }
 
   void verifyPort(PortID portID) {
@@ -48,18 +47,20 @@ class HwPortProfileTest : public HwTest {
   }
 
   void runTest() {
-    auto port = findAvailablePort();
-    if (!port) {
+    auto ports = findAvailablePort();
+    if (!ports.size()) {
 // profile is not supported.
 #if defined(GTEST_SKIP)
       GTEST_SKIP();
 #endif
       return;
     }
-    // Call PhyManager to program such port
-    getHwPhyEnsemble()->getPhyManager()->programOnePort(*port, Profile);
-    // Verify whether such profile has been programmed to the port
-    verifyPort(*port);
+    for (auto port : ports) {
+      // Call PhyManager to program such port
+      getHwPhyEnsemble()->getPhyManager()->programOnePort(port, Profile);
+      // Verify whether such profile has been programmed to the port
+      verifyPort(port);
+    }
   }
 };
 
