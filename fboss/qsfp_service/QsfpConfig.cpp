@@ -1,7 +1,6 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include "fboss/qsfp_service/QsfpConfig.h"
-
 #include "fboss/agent/FbossError.h"
 
 #include <folly/FileUtil.h>
@@ -34,5 +33,21 @@ std::unique_ptr<QsfpConfig> QsfpConfig::fromRawConfig(
       configStr, qsfpConfig);
 
   return std::make_unique<QsfpConfig>(std::move(qsfpConfig), configStr);
+}
+
+void QsfpConfig::dumpConfig(folly::StringPiece path) const {
+  folly::writeFile(raw, path.data());
+}
+
+std::unique_ptr<facebook::fboss::QsfpConfig> createEmptyQsfpConfig() {
+  facebook::fboss::cfg::QsfpServiceConfig qsfpCfg;
+  return createFakeQsfpConfig(qsfpCfg);
+}
+
+std::unique_ptr<facebook::fboss::QsfpConfig> createFakeQsfpConfig(
+    facebook::fboss::cfg::QsfpServiceConfig& qsfpCfg) {
+  return std::make_unique<facebook::fboss::QsfpConfig>(
+      qsfpCfg,
+      apache::thrift::SimpleJSONSerializer::serialize<std::string>(qsfpCfg));
 }
 } // namespace facebook::fboss

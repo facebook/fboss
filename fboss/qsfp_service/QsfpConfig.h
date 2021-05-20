@@ -15,8 +15,12 @@ struct QsfpConfig {
   static std::unique_ptr<QsfpConfig> fromFile(folly::StringPiece path);
   static std::unique_ptr<QsfpConfig> fromRawConfig(const std::string& contents);
 
+  void dumpConfig(folly::StringPiece path) const;
   const cfg::QsfpServiceConfig thrift;
   const std::string raw;
 };
 
+std::unique_ptr<facebook::fboss::QsfpConfig> createEmptyQsfpConfig();
+std::unique_ptr<facebook::fboss::QsfpConfig> createFakeQsfpConfig(
+    cfg::QsfpServiceConfig& thriftConfig);
 } // namespace facebook::fboss

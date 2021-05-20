@@ -13,6 +13,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/module/tests/MockTransceiverImpl.h"
+#include "fboss/qsfp_service/test/FakeConfigsHelper.h"
 
 #include <folly/Memory.h>
 
@@ -29,13 +30,19 @@ namespace {
 class WedgeManagerTest : public ::testing::Test {
  public:
   void SetUp() override {
+    setupFakeAgentConfig(agentCfgPath);
+    setupFakeQsfpConfig(qsfpCfgPath);
     // Create a wedge manager for 16 modules and 4 ports per module
     wedgeManager_ = std::make_unique<NiceMock<MockWedgeManager>>(16, 4);
     wedgeManager_->initTransceiverMap();
     gflags::SetCommandLineOptionWithMode(
         "qsfp_data_refresh_interval", "0", gflags::SET_FLAGS_DEFAULT);
   }
+
   std::unique_ptr<NiceMock<MockWedgeManager>> wedgeManager_;
+  folly::test::TemporaryDirectory tmpDir = folly::test::TemporaryDirectory();
+  std::string agentCfgPath = tmpDir.path().string() + "/fakeAgentConfig";
+  std::string qsfpCfgPath = tmpDir.path().string() + "/fakeQsfpConfig";
 };
 
 TEST_F(WedgeManagerTest, getTransceiverInfoBasic) {
