@@ -17,7 +17,7 @@
 namespace facebook {
 namespace fboss {
 
-std::unique_ptr<WedgeManager> createTransceiverManager() {
+std::unique_ptr<WedgeManager> createWedgeManager() {
   auto productInfo =
       std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
   productInfo->initialize();

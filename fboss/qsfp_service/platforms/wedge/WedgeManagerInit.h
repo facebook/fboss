@@ -18,7 +18,7 @@ class WedgeManager;
 class PlatformProductInfo;
 class FbossMacsecHandler;
 
-std::unique_ptr<WedgeManager> createTransceiverManager();
+std::unique_ptr<WedgeManager> createWedgeManager();
 
 std::shared_ptr<FbossMacsecHandler> createFbossMacsecHandler(
     WedgeManager* wedgeMgr);

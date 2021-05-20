@@ -30,12 +30,17 @@ class QsfpServiceTest : public ::testing::Test {
   ~QsfpServiceTest() override = default;
 
   void SetUp() override;
-  void TearDown() override;
 
  protected:
-  std::unique_ptr<WedgeManager> transceiverManager_;
+  WedgeManager* getWedgeManager() {
+    return wedgeManager_.get();
+  }
+  const WedgeManager* getWedgeManager() const {
+    return wedgeManager_.get();
+  }
 
  private:
+  std::unique_ptr<WedgeManager> wedgeManager_;
   // Forbidden copy constructor and assignment operator
   QsfpServiceTest(QsfpServiceTest const&) = delete;
   QsfpServiceTest& operator=(QsfpServiceTest const&) = delete;

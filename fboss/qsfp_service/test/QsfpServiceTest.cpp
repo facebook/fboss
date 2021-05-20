@@ -44,16 +44,14 @@ void QsfpServiceTest::SetUp() {
   folly::SingletonVault::singleton()->destroyInstances();
   folly::SingletonVault::singleton()->reenableInstances();
 
-  transceiverManager_ = createTransceiverManager();
+  wedgeManager_ = createWedgeManager();
 }
-
-void QsfpServiceTest::TearDown() {}
 
 TEST_F(QsfpServiceTest, simpleTest) {
   std::vector<int32_t> data = {1, 3, 7};
   std::map<int32_t, TransceiverInfo> info;
 
-  transceiverManager_->getTransceiversInfo(
+  getWedgeManager()->getTransceiversInfo(
       info, std::make_unique<std::vector<int32_t>>(data));
   ASSERT_EQ(3, info.size());
 }

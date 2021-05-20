@@ -34,7 +34,7 @@ FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 int main(int argc, char** argv) {
   qsfpServiceInit(&argc, &argv);
 
-  auto transceiverManager = createTransceiverManager();
+  auto transceiverManager = createWedgeManager();
   StatsPublisher publisher(transceiverManager.get());
 
   auto handler =
