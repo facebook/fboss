@@ -71,12 +71,22 @@ target_link_libraries(async_logger_test
 
 gtest_discover_tests(async_logger_test)
 
+add_library(agent_test_lib
+  fboss/agent/test/AgentTest.cpp
+)
+
+target_link_libraries(agent_test_lib
+  main
+  fboss_agent
+)
+
 add_library(multinode_tests
   fboss/agent/test/MultiNodeTest.cpp
   fboss/agent/test/MultiNodeLacpTests.cpp
 )
 
 target_link_libraries(multinode_tests
+  agent_test_lib
   main
   fboss_agent
   config_factory

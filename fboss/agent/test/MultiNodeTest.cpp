@@ -27,19 +27,12 @@ DEFINE_string(
     multiNodeTestRemoteSwitchName,
     "",
     "multinode test remote switch name");
-DEFINE_bool(setup_for_warmboot, false, "Set up test for warmboot");
 DEFINE_bool(run_forever, false, "run the test forever");
-
-namespace {
-int argCount{0};
-char** argVec{nullptr};
-PlatformInitFn initPlatform{nullptr};
-} // unnamed namespace
 
 namespace facebook::fboss {
 
 void MultiNodeTest::TearDown() {
-  stopAgent(FLAGS_setup_for_warmboot);
+  stopAgent();
 }
 
 // Construct a config file by combining the hw config passed
@@ -69,18 +62,7 @@ void MultiNodeTest::setupFlags() {
 }
 
 void MultiNodeTest::SetUp() {
-  AgentInitializer::createSwitch(
-      argCount,
-      argVec,
-      (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
-       HwSwitch::FeaturesDesired::LINKSCAN_DESIRED),
-      initPlatform);
-  setupConfigFlag();
-  setupFlags();
-  asyncInitThread_.reset(
-      new std::thread([this] { AgentInitializer::initAgent(); }));
-  asyncInitThread_->detach();
-  initializer()->waitForInitDone();
+  setupAgent();
   XLOG(DBG0) << "Multinode setup ready";
 }
 
@@ -92,36 +74,6 @@ std::unique_ptr<FbossCtrlAsyncClient> MultiNodeTest::getRemoteThriftClient() {
   auto socket = folly::AsyncSocket::newSocket(eb, agent);
   auto chan = HeaderClientChannel::newChannel(std::move(socket));
   return std::make_unique<FbossCtrlAsyncClient>(std::move(chan));
-}
-
-bool MultiNodeTest::waitForSwitchStateCondition(
-    std::function<bool(const std::shared_ptr<SwitchState>&)> conditionFn,
-    uint32_t retries,
-    std::chrono::duration<uint32_t, std::milli> msBetweenRetry) {
-  auto newState = sw()->getState();
-  while (retries--) {
-    if (conditionFn(newState)) {
-      return true;
-    }
-    std::this_thread::sleep_for(msBetweenRetry);
-    newState = sw()->getState();
-  }
-  XLOG(DBG3) << "Awaited state condition was never satisfied";
-  return false;
-}
-
-void MultiNodeTest::setPortStatus(PortID portId, bool up) {
-  auto configFnLinkDown = [=](const std::shared_ptr<SwitchState>& state) {
-    auto newState = state->clone();
-    auto ports = newState->getPorts()->clone();
-    auto port = ports->getPort(portId)->clone();
-    port->setAdminState(
-        up ? cfg::PortState::ENABLED : cfg::PortState::DISABLED);
-    ports->updateNode(port);
-    newState->resetPorts(ports);
-    return newState;
-  };
-  sw()->updateStateBlocking("set port state", configFnLinkDown);
 }
 
 void MultiNodeTest::checkForRemoteSideRun() {
@@ -140,9 +92,7 @@ void MultiNodeTest::checkForRemoteSideRun() {
 
 int mulitNodeTestMain(int argc, char** argv, PlatformInitFn initPlatformFn) {
   ::testing::InitGoogleTest(&argc, argv);
-  argCount = argc;
-  argVec = argv;
-  initPlatform = initPlatformFn;
+  initAgentTest(argc, argv, initPlatformFn);
   return RUN_ALL_TESTS();
 }
 
