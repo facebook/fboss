@@ -49,6 +49,10 @@ class MultiPimPlatformSystemContainer {
 
   virtual MultiPimPlatformPimContainer::PimType getPimType(int pim) = 0;
 
+  size_t getNumPims() const {
+    return pims_.size();
+  }
+
  protected:
   void setPimContainer(
       int pim,
