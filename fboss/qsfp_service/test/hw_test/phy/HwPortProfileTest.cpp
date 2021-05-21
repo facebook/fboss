@@ -48,13 +48,7 @@ class HwPortProfileTest : public HwTest {
 
   void runTest() {
     auto ports = findAvailablePort();
-    if (!ports.size()) {
-// profile is not supported.
-#if defined(GTEST_SKIP)
-      GTEST_SKIP();
-#endif
-      return;
-    }
+    EXPECT_TRUE(!ports.empty());
     for (auto port : ports) {
       // Call PhyManager to program such port
       getHwPhyEnsemble()->getPhyManager()->programOnePort(port, Profile);
