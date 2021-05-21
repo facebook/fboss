@@ -202,6 +202,10 @@ class SaiObjectEventAggregateSubscriber
     object_ = object;
   }
 
+  SubscriberSharedPtr getObject() const {
+    return object_;
+  }
+
  private:
   std::array<bool, Size> livePublisherObjects_{false};
   SubscriberSharedPtr object_;

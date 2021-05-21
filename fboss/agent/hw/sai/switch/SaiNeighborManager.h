@@ -73,6 +73,8 @@ class ManagedNeighbor : public SaiObjectEventAggregateSubscriber<
     return handle_.get();
   }
 
+  void notifySubscribers() const;
+
  private:
   SaiNeighborManager* manager_;
   SaiPortDescriptor port_;

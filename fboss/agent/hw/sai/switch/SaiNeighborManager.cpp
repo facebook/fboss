@@ -61,12 +61,17 @@ void SaiNeighborManager::changeNeighbor(
   }
   if (!oldSwEntry->isPending() && newSwEntry->isPending()) {
     removeNeighbor(oldSwEntry);
-    // TODO(borisb): unresolve in next hop group...
   }
   if (!oldSwEntry->isPending() && !newSwEntry->isPending()) {
     if (*oldSwEntry != *newSwEntry) {
       removeNeighbor(oldSwEntry);
       addNeighbor(newSwEntry);
+    } else {
+      /* attempt to resolve next hops if not already resolved, if already
+       * resolved, it would be no-op */
+      auto iter = managedNeighbors_.find(saiEntryFromSwEntry(newSwEntry));
+      CHECK(iter != managedNeighbors_.end());
+      iter->second->notifySubscribers();
     }
   }
 }
@@ -208,6 +213,14 @@ void ManagedNeighbor::removeObject(size_t, PublisherObjects) {
   this->resetObject();
   handle_->neighbor = nullptr;
   handle_->fdbEntry = nullptr;
+}
+
+void ManagedNeighbor::notifySubscribers() const {
+  auto neighbor = this->getObject();
+  if (!neighbor || !manager_->isLinkUp(port_)) {
+    return;
+  }
+  neighbor->notifyAfterCreate(neighbor);
 }
 
 template SaiNeighborTraits::NeighborEntry
