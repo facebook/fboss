@@ -125,8 +125,8 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
       std::count_if(
           rib.begin(),
           rib.end(),
-          [](const typename std::remove_reference_t<decltype(
-                 rib)>::ConstIterator::TreeNode& entry) {
+          [](const typename std::remove_reference_t<
+              decltype(rib)>::ConstIterator::TreeNode& entry) {
             return entry.value()->isResolved();
           }));
 

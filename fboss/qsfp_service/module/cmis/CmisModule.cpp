@@ -665,8 +665,8 @@ bool CmisModule::getSignalsPerHostLane(std::vector<HostLaneSignals>& signals) {
     signals[lane].dataPathDeInit_ref() = dataPathDeInit & (1 << lane);
 
     bool evenLane = (lane % 2 == 0);
-    signals[lane].cmisLaneState_ref() = (CmisLaneState)(
-        evenLane ? data[lane / 2] & 0xF : (data[lane / 2] >> 4) & 0xF);
+    signals[lane].cmisLaneState_ref() =
+        (CmisLaneState)(evenLane ? data[lane / 2] & 0xF : (data[lane / 2] >> 4) & 0xF);
   }
 
   return true;
