@@ -52,6 +52,28 @@ double CmisFieldInfo::getSnr(const uint16_t data) {
   return snr;
 }
 
+double CmisFieldInfo::getPreCursor(const uint8_t data) {
+  double pre;
+  pre = (data > 7) ? 0 : data * 0.5;
+  return pre;
+}
+
+double CmisFieldInfo::getPostCursor(const uint8_t data) {
+  double post;
+  post = (data > 7) ? 0 : data;
+  return post;
+}
+
+std::pair<uint32_t, uint32_t> CmisFieldInfo::getAmplitude(const uint8_t data) {
+  std::vector<std::pair<uint32_t, uint32_t>> rxAmp = {
+      {100, 400}, {300, 600}, {400, 800}, {600, 1200}};
+  if (data > 3) {
+    return std::pair<uint32_t, uint32_t>(0, 0);
+  } else {
+    return rxAmp[data];
+  }
+}
+
 FeatureState CmisFieldInfo::getFeatureState(
     const uint8_t support,
     const uint8_t enabled) {

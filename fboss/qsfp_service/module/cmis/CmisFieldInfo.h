@@ -191,6 +191,15 @@ class CmisFieldInfo {
   // Render SNR from 16 bits fixed-point value
   static double getSnr(const uint16_t data);
 
+  // Render Precursor from 4 bits fixed-point value
+  static double getPreCursor(const uint8_t data);
+
+  // Render Postcursor from 4 bits fixed-point value
+  static double getPostCursor(const uint8_t data);
+
+  // Render Amplitude from 4 bits fixed-point value
+  static std::pair<uint32_t, uint32_t> getAmplitude(const uint8_t data);
+
   // Render result as a member of FeatureState enum
   static FeatureState getFeatureState(uint8_t support, uint8_t enabled = 1);
 

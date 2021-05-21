@@ -1634,6 +1634,22 @@ void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
   for (i = 0; i < 8; i++) {
     printf("%05.04g    ", (CmisFieldInfo::getSnr(page14Buf[113+i*2] << 8 | page14Buf[112+i*2])));
   }
+  printf("\nRX PreCur (dB)    ");
+  for (i = 0; i < 8; i++) {
+    printf("%.1f      ", CmisFieldInfo::getPreCursor((page11Buf[95+i/2]>>((i%2)*4)) & 0x0f));
+  }
+  printf("\nRX PostCur (dB)   ");
+  for (i = 0; i < 8; i++) {
+    printf("%.1f      ", CmisFieldInfo::getPostCursor((page11Buf[99+i/2]>>((i%2)*4)) & 0x0f));
+  }
+  printf("\nRX Ampl (mV)      ");
+  for (i = 0; i < 8; i++) {
+    auto ampRange = CmisFieldInfo::getAmplitude((page11Buf[103+i/2]>>((i%2)*4)) & 0x0f);
+    char rangeStr[16];
+    sprintf(rangeStr, "%d-%d      ", ampRange.first, ampRange.second);
+    rangeStr[9] = 0;
+    printf("%s", rangeStr);
+  }
   if (auto timeCollected = cmisData.timeCollected_ref()) {
     printf(
       "\nTime collected: %s",
