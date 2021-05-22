@@ -98,6 +98,7 @@ target_link_libraries(multinode_tests
 
 add_library(link_tests
   fboss/agent/test/link_tests/LinkTest.cpp
+  fboss/agent/test/link_tests/LinkSanityTests.cpp
 )
 
 target_link_libraries(link_tests
@@ -108,4 +109,14 @@ target_link_libraries(link_tests
   fboss_config_utils
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
+)
+
+add_executable(bcm_link_test
+  fboss/agent/test/link_tests/BcmLinkTests.cpp
+)
+
+target_link_libraries(bcm_link_test
+  link_tests
+  platform
+  bcm
 )
