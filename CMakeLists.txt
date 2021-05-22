@@ -289,6 +289,17 @@ add_fbthrift_cpp_library(
   fboss/lib/i2c/i2c_controller_stats.thrift
 )
 add_fbthrift_cpp_library(
+  mka_config_cpp2
+  fboss/mka_service/if/mka_config.thrift
+)
+add_fbthrift_cpp_library(
+  mka_cpp2
+  fboss/mka_service/if/mka.thrift
+  DEPENDS
+    fb303_cpp2
+    mka_config_cpp2
+)
+add_fbthrift_cpp_library(
   qsfp_cpp2
   fboss/qsfp_service/if/qsfp.thrift
   SERVICES
@@ -300,6 +311,7 @@ add_fbthrift_cpp_library(
     transceiver_cpp2
     switch_config_cpp2
     mpls_cpp2
+    mka_cpp2
 )
 
 add_fbthrift_cpp_library(

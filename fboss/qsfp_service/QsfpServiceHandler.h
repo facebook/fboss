@@ -6,8 +6,13 @@
 #include "common/fb303/cpp/FacebookBase2.h"
 
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/facebook/mka_service/handlers/MacsecHandler.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
+#include "fboss/qsfp_service/platforms/wedge/facebook/FbossMacsecHandler.h"
+
+DECLARE_string(sak_list_warmboot_config);
+DECLARE_int32(phy_service_macsec_port);
 
 namespace facebook {
 namespace fboss {
@@ -15,7 +20,9 @@ namespace fboss {
 class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
                            public facebook::fb303::FacebookBase2 {
  public:
-  explicit QsfpServiceHandler(std::unique_ptr<TransceiverManager> manager);
+  explicit QsfpServiceHandler(
+      std::unique_ptr<TransceiverManager> manager,
+      std::shared_ptr<mka::MacsecHandler> handler);
   ~QsfpServiceHandler() override = default;
 
   void init();
@@ -81,12 +88,49 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
   void programXphyPort(int32_t portId, cfg::PortProfileID portProfileId)
       override;
 
+#if FOLLY_HAS_COROUTINES
+  folly::coro::Task<bool> co_sakInstallRx(
+      std::unique_ptr<mka::MKASak> sak,
+      std::unique_ptr<mka::MKASci> sciToAdd) override;
+
+  folly::coro::Task<bool> co_sakInstallTx(
+      std::unique_ptr<mka::MKASak> sak) override;
+
+  folly::coro::Task<bool> co_sakDeleteRx(
+      std::unique_ptr<mka::MKASak> sak,
+      std::unique_ptr<mka::MKASci> sciToRemove) override;
+
+  folly::coro::Task<bool> co_sakDelete(
+      std::unique_ptr<mka::MKASak> sak) override;
+
+  folly::coro::Task<std::unique_ptr<mka::MKASakHealthResponse>>
+  co_sakHealthCheck(std::unique_ptr<mka::MKASak> sak) override;
+#endif
+
+  /* TODO(rajank): Move/enable this for mka warmboot support
+  const mka::MKAActiveSakSessionSet& getSakSet() const {
+    return sakSet_;
+  }
+
+  const std::string& getWarmBootconfigFile() const {
+    return configFile_;
+  }
+  */
+
  private:
   // Forbidden copy constructor and assignment operator
   QsfpServiceHandler(QsfpServiceHandler const&) = delete;
   QsfpServiceHandler& operator=(QsfpServiceHandler const&) = delete;
 
+  void validateHandler() const;
+
+  // TODO(rajank): Move/enable this for mka warmboot support
+  // void updateWarmBootConfig() const;
+  // mka::MKAActiveSakSessionSet sakSet_;
+  // std::string configFile_;
+
   std::unique_ptr<TransceiverManager> manager_{nullptr};
+  std::shared_ptr<mka::MacsecHandler> macsecHandler_;
 };
 } // namespace fboss
 } // namespace facebook

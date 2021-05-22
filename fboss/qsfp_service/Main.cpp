@@ -26,7 +26,8 @@ DEFINE_int32(
 
 int doServerLoop(
     std::shared_ptr<apache::thrift::ThriftServer> thriftServer,
-    std::shared_ptr<QsfpServiceHandler>);
+    std::shared_ptr<QsfpServiceHandler> handler);
+
 int qsfpServiceInit(int* argc, char*** argv);
 
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
@@ -35,10 +36,15 @@ int main(int argc, char** argv) {
   qsfpServiceInit(&argc, &argv);
 
   auto transceiverManager = createWedgeManager();
+  auto pTransceiverManager = transceiverManager.get();
+
   StatsPublisher publisher(transceiverManager.get());
 
-  auto handler =
-      std::make_shared<QsfpServiceHandler>(std::move(transceiverManager));
+  // Create Platform specific FbossMacsecHandler object
+  auto macsecHandler = createFbossMacsecHandler(pTransceiverManager);
+
+  auto handler = std::make_shared<QsfpServiceHandler>(
+      std::move(transceiverManager), macsecHandler);
   handler->init();
   auto server = std::make_shared<apache::thrift::ThriftServer>();
   server->setPort(FLAGS_port);
@@ -77,6 +83,7 @@ int main(int argc, char** argv) {
   // Note: This doesn't block, this merely starts it's own thread
   scheduler.start();
 
+  // Start the server loop
   doServerLoop(server, handler);
 
   return 0;

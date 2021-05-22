@@ -1,6 +1,8 @@
 namespace cpp2 facebook.fboss.mka
 namespace py neteng.fboss.mka.mka_config
 namespace py3 neteng.fboss.mka
+namespace py.asyncio neteng.fboss.asyncio.mka_config
+namespace go neteng.fboss.mka.mka_config
 
 const i16 DEFAULT_KEYSERVER_PRIORITY = 0x16
 

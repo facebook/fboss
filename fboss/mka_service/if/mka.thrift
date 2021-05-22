@@ -3,6 +3,8 @@
 namespace cpp2 facebook.fboss.mka
 namespace py3 neteng.fboss
 namespace py neteng.fboss.mka
+namespace py.asyncio neteng.fboss.asyncio.mka
+namespace go neteng.fboss.mka
 
 include "common/fb303/if/fb303.thrift"
 include "fboss/mka_service/if/mka_config.thrift"

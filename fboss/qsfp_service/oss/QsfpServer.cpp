@@ -14,7 +14,7 @@ int qsfpServiceInit(int* argc, char*** argv) {
 
 int doServerLoop(
     std::shared_ptr<apache::thrift::ThriftServer> thriftServer,
-    std::shared_ptr<QsfpServiceHandler> /* unused */) {
+    std::shared_ptr<QsfpServiceHandler>) {
   thriftServer->setup();
   folly::EventBase* evb = thriftServer->getEventBaseManager()->getEventBase();
   evb->loopForever();

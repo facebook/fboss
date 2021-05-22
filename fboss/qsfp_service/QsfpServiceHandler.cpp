@@ -7,12 +7,61 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
+DEFINE_string(
+    sak_list_warmboot_config,
+    "/var/facebook/fboss/mka_service/sak_lists/",
+    "path to store the physervice SAK config for service restart");
+DEFINE_string(
+    sak_list_warmboot_filename,
+    "sak_config",
+    "filename of warmbootconfig");
+
+DEFINE_int64(
+    sak_config_validity_in_secs,
+    3600,
+    "warmboot config validity in secs");
+
+DEFINE_int32(
+    phy_service_macsec_port,
+    5910,
+    "Port for the phy service thrift service");
+
 namespace facebook {
 namespace fboss {
 
+template <typename Type>
+static void valid(const Type& val) {
+  if (!val) {
+    throw FbossError("Invalid input");
+  }
+}
+
 QsfpServiceHandler::QsfpServiceHandler(
-    std::unique_ptr<TransceiverManager> manager)
-    : FacebookBase2("QsfpService"), manager_(std::move(manager)) {}
+    std::unique_ptr<TransceiverManager> manager,
+    std::shared_ptr<mka::MacsecHandler> handler)
+    : FacebookBase2("QsfpService"),
+      manager_(std::move(manager)),
+      macsecHandler_(handler) {
+  /* TODO(rajank): Move/enable this for mka warmboot support
+  if (FLAGS_sak_list_warmboot_config.empty() ||
+      FLAGS_sak_list_warmboot_filename.empty()) {
+    return;
+  }
+  configFile_ = facebook::files::FileUtil::joinPaths(
+      FLAGS_sak_list_warmboot_config, FLAGS_sak_list_warmboot_filename);
+  try {
+    if (mka::MKASerializer::getInstance()->getMKAActiveSessionSet(
+            configFile_, sakSet_, FLAGS_sak_config_validity_in_secs)) {
+      XLOG(INFO) << "Loaded SAK Configs from " << configFile_;
+    }
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Failed to load warmbootconfig: ex:" << ex.what();
+  }
+  facebook::files::FileUtil::recursivelyCreateDir(
+      FLAGS_sak_list_warmboot_config);
+  */
+  XLOG(INFO) << "FbossPhyMacsecService inside QsfpServiceHandler Started";
+}
 
 void QsfpServiceHandler::init() {
   // Initialize the I2c bus
@@ -123,6 +172,121 @@ void QsfpServiceHandler::programXphyPort(
   auto log = LOG_THRIFT_CALL(INFO);
   manager_->programXphyPort(portId, portProfileId);
 }
+
+void QsfpServiceHandler::validateHandler() const {
+  if (!macsecHandler_) {
+    throw FbossError("Macsec handler not initialized");
+  }
+}
+
+/* TODO(rajank): Move/enable this for mka warmboot support
+void QsfpServiceHandler::updateWarmBootConfig() const {
+  if (configFile_.empty()) {
+    return;
+  }
+  if (!mka::MKASerializer::getInstance()->writeMKAActiveSakSessionSet(
+          configFile_, sakSet_)) {
+    XLOG(ERR) << "Failed to update SAK Warmboot Config at: " << configFile_;
+  }
+}
+*/
+
+#if FOLLY_HAS_COROUTINES
+
+folly::coro::Task<bool> QsfpServiceHandler::co_sakInstallRx(
+    std::unique_ptr<mka::MKASak> sak,
+    std::unique_ptr<mka::MKASci> sciToAdd) {
+  validateHandler();
+  valid<decltype(sak)>(sak);
+  valid<decltype(sciToAdd)>(sciToAdd);
+  bool ret = macsecHandler_->sakInstallRx(*sak, *sciToAdd);
+  /* TODO(rajank): Move/enable this for mka warmboot support
+  if (ret) {
+    mka::MKAActiveSakSession sess;
+    sess.sak_ref() = std::move(*sak);
+    sess.sciList_ref()->emplace_back(std::move(*sciToAdd));
+    sakSet_.items.emplace(std::move(sess));
+    updateWarmBootConfig();
+  }
+  */
+  co_return ret;
+}
+
+folly::coro::Task<bool> QsfpServiceHandler::co_sakInstallTx(
+    std::unique_ptr<mka::MKASak> sak) {
+  validateHandler();
+  valid<decltype(sak)>(sak);
+  bool ret = macsecHandler_->sakInstallTx(*sak);
+  /* TODO(rajank): Move/enable this for mka warmboot support
+  if (ret) {
+    updateWarmBootConfig();
+  }
+  */
+  co_return ret;
+}
+
+folly::coro::Task<bool> QsfpServiceHandler::co_sakDeleteRx(
+    std::unique_ptr<mka::MKASak> sak,
+    std::unique_ptr<mka::MKASci> sciToRemove) {
+  validateHandler();
+  valid<decltype(sak)>(sak);
+  valid<decltype(sciToRemove)>(sciToRemove);
+  bool ret = macsecHandler_->sakDeleteRx(*sak, *sciToRemove);
+  /* TODO(rajank): Move/enable this for mka warmboot support
+  if (ret) {
+    mka::MKAActiveSakSession sess;
+    sess.sak_ref() = std::move(*sak);
+    std::unordered_set<mka::MKAActiveSakSession>::iterator iter =
+        sakSet_.items.find(sess);
+    if (iter == sakSet_.items.end()) {
+      co_return ret;
+    }
+    // Expected copy. The unordered set values are const and can't be
+    // modified, so we copy and replace it.
+    std::vector<mka::MKASci> list = *iter->sciList_ref();
+    for (auto sciIter = list.begin(); sciIter != list.end(); sciIter++) {
+      auto& sci = *sciIter;
+      if (*sci.macAddress_ref() == *sciToRemove->macAddress_ref() &&
+          *sci.port_ref() == *sciToRemove->port_ref()) {
+        list.erase(sciIter);
+        break;
+      }
+    }
+    sess.sciList_ref() = std::move(list);
+    sakSet_.items.erase(iter);
+    sakSet_.items.emplace(sess);
+    updateWarmBootConfig();
+  }
+  */
+  co_return ret;
+}
+
+folly::coro::Task<bool> QsfpServiceHandler::co_sakDelete(
+    std::unique_ptr<mka::MKASak> sak) {
+  validateHandler();
+  valid<decltype(sak)>(sak);
+  bool ret = macsecHandler_->sakDelete(*sak);
+  /* TODO(rajank): Move/enable this for mka warmboot support
+  if (ret) {
+    mka::MKAActiveSakSession sess;
+    sess.sak_ref() = std::move(*sak);
+    sakSet_.items.erase(sess);
+    updateWarmBootConfig();
+  }
+  */
+  co_return ret;
+}
+
+folly::coro::Task<std::unique_ptr<mka::MKASakHealthResponse>>
+QsfpServiceHandler::co_sakHealthCheck(std::unique_ptr<mka::MKASak> sak) {
+  validateHandler();
+  valid<decltype(sak)>(sak);
+  // TODO:(shankaran) - when healthcheck fails remove the sak from set.
+  co_return std::make_unique<mka::MKASakHealthResponse>(
+      macsecHandler_->sakHealthCheck(*sak));
+}
+
+#endif
 
 } // namespace fboss
 } // namespace facebook
