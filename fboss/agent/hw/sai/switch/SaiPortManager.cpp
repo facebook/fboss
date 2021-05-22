@@ -1120,4 +1120,17 @@ void SaiPortManager::changeBridgePort(
   return addBridgePort(newPort);
 }
 
+bool SaiPortManager::isUp(PortID portID) const {
+  auto handle = getPortHandle(portID);
+  auto saiPortId = handle->port->adapterKey();
+  return isUp(saiPortId);
+}
+
+bool SaiPortManager::isUp(PortSaiId saiPortId) const {
+  auto adminState = SaiApiTable::getInstance()->portApi().getAttribute(
+      saiPortId, SaiPortTraits::Attributes::AdminState{});
+  auto operStatus = SaiApiTable::getInstance()->portApi().getAttribute(
+      saiPortId, SaiPortTraits::Attributes::OperStatus{});
+  return adminState && (operStatus == SAI_PORT_OPER_STATUS_UP);
+}
 } // namespace facebook::fboss

@@ -164,6 +164,10 @@ class SaiPortManager {
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
 
+  bool isUp(PortID portID) const;
+
+  bool isUp(PortSaiId saiPortId) const;
+
  private:
   void addRemovedHandle(PortID portID);
   void removeRemovedHandleIf(PortID portID);
