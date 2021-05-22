@@ -95,3 +95,17 @@ target_link_libraries(multinode_tests
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
+
+add_library(link_tests
+  fboss/agent/test/link_tests/LinkTest.cpp
+)
+
+target_link_libraries(link_tests
+  agent_test_lib
+  main
+  fboss_agent
+  config_factory
+  fboss_config_utils
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
