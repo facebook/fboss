@@ -5,10 +5,11 @@
 #include "fboss/agent/Main.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/TestUtils.h"
 
 namespace facebook::fboss {
 
-class AgentTest : public AgentInitializer {
+class AgentTest : public ::testing::Test, public AgentInitializer {
  public:
   virtual ~AgentTest();
 

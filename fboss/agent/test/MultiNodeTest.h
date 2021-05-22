@@ -10,13 +10,12 @@
 
 #include "fboss/agent/Main.h"
 #include "fboss/agent/test/AgentTest.h"
-#include "fboss/agent/test/TestUtils.h"
 
 DECLARE_string(config);
 
 namespace facebook::fboss {
 
-class MultiNodeTest : public ::testing::Test, public AgentTest {
+class MultiNodeTest : public AgentTest {
  protected:
   void SetUp() override;
   void TearDown() override;
