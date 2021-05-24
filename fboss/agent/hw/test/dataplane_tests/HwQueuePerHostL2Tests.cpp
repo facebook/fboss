@@ -95,7 +95,16 @@ class HwQueuePerHostL2Test : public HwLinkStateDependentTest {
       XLOG(DBG0) << "queueId: " << qid << " pktsOnQueue: " << pktsOnQueue;
 
       if (qid == kQueueID()) {
-        EXPECT_GE(pktsOnQueue, 1);
+        /*
+         * On some platforms, split horizon check is after ACL matching.
+         * Thus, the counter get increment one additional time for the looped
+         * back packet.
+         */
+        if (getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TAJO) {
+          EXPECT_EQ(pktsOnQueue, 2);
+        } else {
+          EXPECT_EQ(pktsOnQueue, 1);
+        }
       } else {
         EXPECT_EQ(pktsOnQueue, 0);
       }
