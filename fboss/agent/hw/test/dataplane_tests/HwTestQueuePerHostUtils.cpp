@@ -8,6 +8,8 @@
  *
  */
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.h"
+
+#include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/TrafficPolicyUtils.h"
 
 #include <string>
@@ -83,22 +85,65 @@ std::string getQueuePerHostRouteAclNameForQueue(int queueId) {
   return folly::to<std::string>("queue-per-host-queue-route-", queueId);
 }
 
+std::string getQueuePerHostTtlAclName() {
+  return "ttl";
+}
+
+std::string getQueuePerHostTtlCounterName() {
+  return "ttlCounter";
+}
+
 void addQueuePerHostAcls(cfg::SwitchConfig* config) {
+  cfg::Ttl ttl;
+  std::tie(*ttl.value_ref(), *ttl.mask_ref()) = std::make_tuple(0x80, 0x80);
+  auto ttlCounterName = getQueuePerHostTtlCounterName();
+
+  utility::addTrafficCounter(config, ttlCounterName);
+
+  // TTL + {L2, neighbor, route}
+  for (auto queueId : kQueuePerhostQueueIds()) {
+    auto classID = kQueuePerHostQueueToClass().at(queueId);
+
+    auto l2AndTtlAclName = folly::to<std::string>(
+        "ttl-", getQueuePerHostL2AclNameForQueue(queueId));
+    utility::addL2ClassIDAndTtlAcl(config, l2AndTtlAclName, classID, ttl);
+    utility::addQueueMatcher(config, l2AndTtlAclName, queueId, ttlCounterName);
+
+    auto neighborAndTtlAclName = folly::to<std::string>(
+        "ttl-", getQueuePerHostNeighborAclNameForQueue(queueId));
+    utility::addNeighborClassIDAndTtlAcl(
+        config, neighborAndTtlAclName, classID, ttl);
+    utility::addQueueMatcher(
+        config, neighborAndTtlAclName, queueId, ttlCounterName);
+
+    auto routeAndTtlAclName = folly::to<std::string>(
+        "ttl-", getQueuePerHostRouteAclNameForQueue(queueId));
+    utility::addRouteClassIDAndTtlAcl(config, routeAndTtlAclName, classID, ttl);
+    utility::addQueueMatcher(
+        config, routeAndTtlAclName, queueId, ttlCounterName);
+  }
+
+  // {L2, neighbor, route}-only
   for (auto queueId : kQueuePerhostQueueIds()) {
     auto classID = kQueuePerHostQueueToClass().at(queueId);
 
     auto l2AclName = getQueuePerHostL2AclNameForQueue(queueId);
-    utility::addL2ClassIDAcl(config, l2AclName, classID);
+    utility::addL2ClassIDAndTtlAcl(config, l2AclName, classID);
     utility::addQueueMatcher(config, l2AclName, queueId);
 
     auto neighborAclName = getQueuePerHostNeighborAclNameForQueue(queueId);
-    utility::addNeighborClassIDAcl(config, neighborAclName, classID);
+    utility::addNeighborClassIDAndTtlAcl(config, neighborAclName, classID);
     utility::addQueueMatcher(config, neighborAclName, queueId);
 
     auto routeAclName = getQueuePerHostRouteAclNameForQueue(queueId);
-    utility::addRouteClassIDAcl(config, routeAclName, classID);
+    utility::addRouteClassIDAndTtlAcl(config, routeAclName, classID);
     utility::addQueueMatcher(config, routeAclName, queueId);
   }
+
+  // TTL only
+  auto* ttlAcl = utility::addAcl(config, getQueuePerHostTtlAclName());
+  ttlAcl->ttl_ref() = ttl;
+  utility::addAclStat(config, getQueuePerHostTtlAclName(), ttlCounterName);
 }
 
 } // namespace facebook::fboss::utility

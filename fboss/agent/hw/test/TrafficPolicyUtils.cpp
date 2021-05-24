@@ -22,35 +22,50 @@ void addDscpAclToCfg(
   config->acls_ref()[numCfgAcls].dscp_ref() = dscp;
 }
 
-void addL2ClassIDAcl(
+void addL2ClassIDAndTtlAcl(
     cfg::SwitchConfig* config,
     const std::string& aclName,
-    cfg::AclLookupClass lookupClassL2) {
+    cfg::AclLookupClass lookupClassL2,
+    std::optional<cfg::Ttl> ttl) {
   auto numCfgAcls = config->acls_ref()->size();
   config->acls_ref()->resize(numCfgAcls + 1);
   *config->acls_ref()[numCfgAcls].name_ref() = aclName;
+
   config->acls_ref()[numCfgAcls].lookupClassL2_ref() = lookupClassL2;
+  if (ttl.has_value()) {
+    config->acls_ref()[numCfgAcls].ttl_ref() = ttl.value();
+  }
 }
 
-void addNeighborClassIDAcl(
+void addNeighborClassIDAndTtlAcl(
     cfg::SwitchConfig* config,
     const std::string& aclName,
-    cfg::AclLookupClass lookupClassNeighbor) {
+    cfg::AclLookupClass lookupClassNeighbor,
+    std::optional<cfg::Ttl> ttl) {
   auto numCfgAcls = config->acls_ref()->size();
   config->acls_ref()->resize(numCfgAcls + 1);
   *config->acls_ref()[numCfgAcls].name_ref() = aclName;
+
   config->acls_ref()[numCfgAcls].lookupClassNeighbor_ref() =
       lookupClassNeighbor;
+  if (ttl.has_value()) {
+    config->acls_ref()[numCfgAcls].ttl_ref() = ttl.value();
+  }
 }
 
-void addRouteClassIDAcl(
+void addRouteClassIDAndTtlAcl(
     cfg::SwitchConfig* config,
     const std::string& aclName,
-    cfg::AclLookupClass lookupClassRoute) {
+    cfg::AclLookupClass lookupClassRoute,
+    std::optional<cfg::Ttl> ttl) {
   auto numCfgAcls = config->acls_ref()->size();
   config->acls_ref()->resize(numCfgAcls + 1);
   *config->acls_ref()[numCfgAcls].name_ref() = aclName;
+
   config->acls_ref()[numCfgAcls].lookupClassRoute_ref() = lookupClassRoute;
+  if (ttl.has_value()) {
+    config->acls_ref()[numCfgAcls].ttl_ref() = ttl.value();
+  }
 }
 
 void addQueueMatcher(

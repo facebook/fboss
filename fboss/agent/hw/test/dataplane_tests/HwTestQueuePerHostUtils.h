@@ -32,4 +32,6 @@ const std::vector<cfg::AclLookupClass>& kLookupClasses();
 void addQueuePerHostQueueConfig(cfg::SwitchConfig* config);
 void addQueuePerHostAcls(cfg::SwitchConfig* config);
 
+std::string getQueuePerHostTtlAclName();
+std::string getQueuePerHostTtlCounterName();
 } // namespace facebook::fboss::utility
