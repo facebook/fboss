@@ -16,6 +16,8 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 
+#include "fboss/agent/hw/test/HwTestAclUtils.h"
+
 namespace facebook::fboss {
 
 template <typename AddrT>
@@ -169,6 +171,12 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
   }
 
   void _verifyHelper(bool frontPanel) {
+    auto ttlAclName = utility::getQueuePerHostTtlAclName();
+    auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
+
+    auto statBefore = utility::getAclInOutPackets(
+        getHwSwitch(), this->getProgrammedState(), ttlAclName, ttlCounterName);
+
     std::map<int, int64_t> beforeQueueOutPkts;
     for (const auto& queueId : utility::kQueuePerhostQueueIds()) {
       beforeQueueOutPkts[queueId] =
@@ -179,7 +187,8 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
 
     for (const auto& ipToMacAndClassID : getIpToMacAndClassID()) {
       auto dstIP = ipToMacAndClassID.first;
-      sendPacket(dstIP, frontPanel);
+      sendPacket(dstIP, frontPanel, 64 /* ttl < 128 */);
+      sendPacket(dstIP, frontPanel, 128 /* ttl >= 128 */);
     }
 
     std::map<int, int64_t> afterQueueOutPkts;
@@ -215,9 +224,15 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
       if (qid == 0) {
         EXPECT_GE(pktsOnQueue, 1);
       } else {
-        EXPECT_EQ(pktsOnQueue, 1);
+        EXPECT_EQ(pktsOnQueue, 2 /* 1 pkt each for ttl < 128 and ttl >= 128 */);
       }
     }
+
+    auto statAfter = utility::getAclInOutPackets(
+        getHwSwitch(), this->getProgrammedState(), ttlAclName, ttlCounterName);
+
+    // counts ttl >= 128 packet only
+    EXPECT_EQ(statAfter - statBefore, getIpToMacAndClassID().size());
   }
 
   void verifyHostToQueueMappingClassIDsAfterResolveHelper(bool frontPanel) {
@@ -276,7 +291,7 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
   }
 
  private:
-  void sendPacket(AddrT dstIP, bool frontPanel) {
+  void sendPacket(AddrT dstIP, bool frontPanel, uint8_t ttl) {
     auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -288,8 +303,9 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
         kSrcIP(),
         dstIP,
         8000, // l4 src port
-        8001 // l4 dst port
-    );
+        8001, // l4 dst port
+        48 << 2, // DSCP
+        ttl);
     // port is in LB mode, so it will egress and immediately loop back.
     // Since it is not re-written, it should hit the pipeline as if it
     // ingressed on the port, and be properly queued.
