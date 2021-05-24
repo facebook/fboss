@@ -6,7 +6,7 @@
 
 namespace facebook::fboss {
 
-class Elbert8DDAsic : public HwAsic {
+class CredoF104Asic : public HwAsic {
  public:
   bool isSupported(Feature feature) const override;
   AsicType getAsicType() const override {

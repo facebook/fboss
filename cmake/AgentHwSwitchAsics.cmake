@@ -12,7 +12,7 @@ add_library(switch_asics
   fboss/agent/hw/switch_asics/TomahawkAsic.cpp
   fboss/agent/hw/switch_asics/Trident2Asic.cpp
   fboss/agent/hw/switch_asics/TajoAsic.cpp
-  fboss/agent/hw/switch_asics/Elbert8DDAsic.cpp
+  fboss/agent/hw/switch_asics/CredoF104Asic.cpp
 )
 
 target_link_libraries(switch_asics

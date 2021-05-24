@@ -11,7 +11,7 @@
 #include "fboss/agent/platforms/sai/elbert/SaiElbert8DDPhyPlatform.h"
 
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
-#include "fboss/agent/hw/switch_asics/Elbert8DDAsic.h"
+#include "fboss/agent/hw/switch_asics/CredoF104Asic.h"
 #include "fboss/agent/platforms/common/elbert/facebook/Elbert8DDPimPlatformMapping.h"
 
 sai_status_t credo_library_initialize(void);
@@ -88,7 +88,7 @@ SaiElbert8DDPhyPlatform::SaiElbert8DDPhyPlatform(
               ->getPimPlatformMappingUniquePtr(pimId)),
       pimId_(pimId),
       phyId_(phyId) {
-  asic_ = std::make_unique<Elbert8DDAsic>();
+  asic_ = std::make_unique<CredoF104Asic>();
 }
 
 SaiElbert8DDPhyPlatform::~SaiElbert8DDPhyPlatform() {}

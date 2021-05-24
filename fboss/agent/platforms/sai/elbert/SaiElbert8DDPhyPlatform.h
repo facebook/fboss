@@ -13,7 +13,7 @@
 
 namespace facebook::fboss {
 
-class Elbert8DDAsic;
+class CredoF104Asic;
 
 class SaiElbert8DDPhyPlatform : public SaiHwPlatform {
  public:
@@ -59,7 +59,7 @@ class SaiElbert8DDPhyPlatform : public SaiHwPlatform {
  private:
   uint8_t pimId_{0};
   int phyId_{0};
-  std::unique_ptr<Elbert8DDAsic> asic_;
+  std::unique_ptr<CredoF104Asic> asic_;
   std::optional<SaiSwitchTraits::CreateAttributes> switchCreateAttrs_;
 
   void initImpl(uint32_t hwFeaturesDesired) override;
