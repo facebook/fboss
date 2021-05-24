@@ -82,14 +82,13 @@ class HwPhyEnsemble {
   }
 
   phy::ExternalPhy* getTargetExternalPhy();
+  phy::ExternalPhy* getExternalPhy(PortID portID);
 
   const HwPhyEnsembleInitInfo& getInitInfo() const {
     return *initInfo_;
   }
 
-  const PlatformMapping* getPlatformMapping() const {
-    return platformMapping_.get();
-  }
+  const PlatformMapping* getPlatformMapping() const;
 
   const std::vector<PortID>& getTargetPorts() const {
     return targetPorts_;

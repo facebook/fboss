@@ -11,9 +11,12 @@
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/phy/PhyManager.h"
 #include "fboss/qsfp_service/test/hw_test/phy/HwPhyEnsemble.h"
 #include "fboss/qsfp_service/test/hw_test/phy/HwPortUtils.h"
+
+#include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
 
@@ -24,12 +27,17 @@ class HwPortProfileTest : public HwTest {
     std::vector<PortID> ports;
     const auto& platformPorts =
         getHwPhyEnsemble()->getPlatformMapping()->getPlatformPorts();
-    for (auto portID : getHwPhyEnsemble()->getTargetPorts()) {
-      auto iter = platformPorts.find(portID);
-      EXPECT_TRUE(iter != platformPorts.end());
-      if (iter->second.supportedProfiles_ref()->find(Profile) !=
-          iter->second.supportedProfiles_ref()->end()) {
-        ports.emplace_back(portID);
+    const auto& chips = getHwPhyEnsemble()->getPlatformMapping()->getChips();
+    for (auto idAndEntry : platformPorts) {
+      const auto& xphy = utility::getDataPlanePhyChips(
+          idAndEntry.second, chips, phy::DataPlanePhyChipType::XPHY);
+      if (xphy.empty()) {
+        // TODO - expand test to non xphy ports
+        continue;
+      }
+      if (idAndEntry.second.supportedProfiles_ref()->find(Profile) !=
+          idAndEntry.second.supportedProfiles_ref()->end()) {
+        ports.emplace_back(PortID(idAndEntry.first));
       }
     }
     return ports;
@@ -40,7 +48,7 @@ class HwPortProfileTest : public HwTest {
         portID,
         Profile,
         getHwPhyEnsemble()->getPlatformMapping(),
-        getHwPhyEnsemble()->getTargetExternalPhy());
+        getHwPhyEnsemble()->getExternalPhy(portID));
 
     utility::veridyPhyPortConnector(
         portID, getHwPhyEnsemble()->getPhyManager());

@@ -60,6 +60,10 @@ PhyManager* HwPhyEnsemble::getPhyManager() {
   return wedgeManager_->getPhyManager();
 }
 
+const PlatformMapping* HwPhyEnsemble::getPlatformMapping() const {
+  return wedgeManager_->getPlatformMapping();
+}
+
 PimID HwPhyEnsemble::getFirstAvailablePimID() {
   auto pimStartNum = getPhyManager()->getSystemContainer()->getPimStartNum();
   for (auto i = 0; i < getPhyManager()->getNumOfSlot(); ++i) {
@@ -76,5 +80,10 @@ PimID HwPhyEnsemble::getFirstAvailablePimID() {
 
 phy::ExternalPhy* HwPhyEnsemble::getTargetExternalPhy() {
   return getPhyManager()->getExternalPhy(targetGlobalXphyID_);
+}
+
+phy::ExternalPhy* HwPhyEnsemble::getExternalPhy(PortID port) {
+  auto phyManager = getPhyManager();
+  return phyManager->getExternalPhy(phyManager->getGlobalXphyIDbyPortID(port));
 }
 } // namespace facebook::fboss
