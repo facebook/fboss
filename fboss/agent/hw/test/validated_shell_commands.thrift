@@ -1,5 +1,5 @@
 namespace cpp2 facebook.fboss
-namespace py neteng.fboss.validated_shell_commands
+namespace py3 neteng.fboss
 
 namespace cpp2 fboss.agent.hw.test.dataplane_tests
 
