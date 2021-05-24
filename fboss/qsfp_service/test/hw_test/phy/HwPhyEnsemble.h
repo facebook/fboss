@@ -18,6 +18,7 @@
 #include "fboss/agent/types.h"
 #include "fboss/lib/fpga/MultiPimPlatformPimContainer.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 
 namespace facebook::fboss {
 
@@ -65,11 +66,7 @@ class HwPhyEnsemble {
     phy::PhyFwVersion fwVersion;
   };
 
-  HwPhyEnsemble();
-  // TODO(joseph5wu) Might need some extra logic to handle desctrutor
-  virtual ~HwPhyEnsemble();
-
-  virtual void init(std::unique_ptr<HwPhyEnsembleInitInfo> initInfo);
+  void init(std::unique_ptr<HwPhyEnsembleInitInfo> initInfo);
 
   PhyManager* getPhyManager();
   phy::ExternalPhy* getExternalPhy(PortID portID);

@@ -9,12 +9,12 @@
  */
 #include "fboss/qsfp_service/test/hw_test/phy/HwPhyEnsembleFactory.h"
 
-#include "fboss/qsfp_service/test/hw_test/phy/sai/SaiPhyEnsemble.h"
+#include "fboss/qsfp_service/test/hw_test/phy/HwPhyEnsemble.h"
 
 namespace facebook::fboss {
 std::unique_ptr<HwPhyEnsemble> createHwEnsemble(
     std::unique_ptr<HwPhyEnsemble::HwPhyEnsembleInitInfo> initInfo) {
-  auto ensemble = std::make_unique<SaiPhyEnsemble>();
+  auto ensemble = std::make_unique<HwPhyEnsemble>();
   ensemble->init(std::move(initInfo));
   return ensemble;
 }

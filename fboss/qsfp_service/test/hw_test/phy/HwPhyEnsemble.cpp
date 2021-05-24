@@ -14,13 +14,9 @@
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/fpga/MultiPimPlatformSystemContainer.h"
 #include "fboss/lib/phy/PhyManager.h"
-#include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
 
 namespace facebook::fboss {
-HwPhyEnsemble::HwPhyEnsemble() {}
-
-HwPhyEnsemble::~HwPhyEnsemble() {}
 
 void HwPhyEnsemble::init(std::unique_ptr<HwPhyEnsembleInitInfo> initInfo) {
   initInfo_ = std::move(initInfo);
