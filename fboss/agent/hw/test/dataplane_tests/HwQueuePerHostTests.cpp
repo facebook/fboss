@@ -282,6 +282,48 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
+  void verifyTtldCounter(bool frontPanel) {
+    if (!isSupported(HwAsic::Feature::L3_QOS)) {
+      return;
+    }
+
+    auto setup = [this]() {
+      this->_setupHelper();
+
+      auto state1 = this->addNeighbors(this->getProgrammedState());
+      auto state2 = this->resolveNeighbors(state1);
+
+      this->applyNewState(state2);
+    };
+
+    auto verify = [this, frontPanel]() {
+      auto ttlAclName = utility::getQueuePerHostTtlAclName();
+      auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
+
+      auto statBefore = utility::getAclInOutPackets(
+          getHwSwitch(),
+          this->getProgrammedState(),
+          ttlAclName,
+          ttlCounterName);
+
+      auto dstIP = getIpToMacAndClassID().begin()->first;
+
+      sendPacket(dstIP, frontPanel, 64 /* ttl < 128 */);
+      sendPacket(dstIP, frontPanel, 128 /* ttl >= 128 */);
+
+      auto statAfter = utility::getAclInOutPackets(
+          getHwSwitch(),
+          this->getProgrammedState(),
+          ttlAclName,
+          ttlCounterName);
+
+      // counts ttl >= 128 packet only
+      EXPECT_EQ(statAfter - statBefore, 1);
+    };
+
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
   AddrT kSrcIP() {
     if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
       return folly::IPAddressV4("1.0.0.1");
@@ -359,6 +401,18 @@ TYPED_TEST(
 // queue.
 TYPED_TEST(HwQueuePerHostTest, VerifyHostToQueueMappingClassIDsWithResolveCpu) {
   this->VerifyHostToQueueMappingClassIDsWithResolve(false /* cpu port */);
+}
+
+// Verify that TTLd traffic not going to queue-per-host has TTLd counter
+// incremented.
+TYPED_TEST(HwQueuePerHostTest, VerifyTtldCounterFrontPanel) {
+  this->verifyTtldCounter(true /* front panel port */);
+}
+
+// Verify that TTLd traffic not going to queue-per-host has TTLd counter
+// incremented.
+TYPED_TEST(HwQueuePerHostTest, VerifyTtldCounterCpu) {
+  this->verifyTtldCounter(false /* cpu port */);
 }
 
 } // namespace facebook::fboss
