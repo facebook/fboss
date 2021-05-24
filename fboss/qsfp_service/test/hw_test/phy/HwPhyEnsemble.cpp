@@ -25,35 +25,11 @@ HwPhyEnsemble::~HwPhyEnsemble() {}
 void HwPhyEnsemble::init(std::unique_ptr<HwPhyEnsembleInitInfo> initInfo) {
   initInfo_ = std::move(initInfo);
 
-  auto multiPimPlatformMapping = chooseMultiPimPlatformMapping();
-
   wedgeManager_ = createWedgeManager();
   // Initialize the I2c bus
   wedgeManager_->initTransceiverMap();
   // Initialize the PhyManager all ExternalPhy for the system
   wedgeManager_->initExternalPhyMap();
-
-  // And then based on init info (pimType)to locate the first
-  // available pim in the test environment to initialize.
-  targetPimID_ = getFirstAvailablePimID();
-
-  platformMapping_ =
-      multiPimPlatformMapping->getPimPlatformMappingUniquePtr(targetPimID_);
-
-  // Find the first xphy for this pim
-  for (const auto& chip : platformMapping_->getChips()) {
-    if (chip.second.get_type() == phy::DataPlanePhyChipType::XPHY) {
-      targetGlobalXphyID_ = chip.second.get_physicalID();
-      // Fetch all the sw port ids for this xphy
-      const auto& ports = utility::getPlatformPortsByChip(
-          platformMapping_->getPlatformPorts(), chip.second);
-      targetPorts_.clear();
-      for (const auto& port : ports) {
-        targetPorts_.push_back(PortID(port.get_mapping().get_id()));
-      }
-      break;
-    }
-  }
 }
 
 PhyManager* HwPhyEnsemble::getPhyManager() {
@@ -62,24 +38,6 @@ PhyManager* HwPhyEnsemble::getPhyManager() {
 
 const PlatformMapping* HwPhyEnsemble::getPlatformMapping() const {
   return wedgeManager_->getPlatformMapping();
-}
-
-PimID HwPhyEnsemble::getFirstAvailablePimID() {
-  auto pimStartNum = getPhyManager()->getSystemContainer()->getPimStartNum();
-  for (auto i = 0; i < getPhyManager()->getNumOfSlot(); ++i) {
-    if (initInfo_->pimType ==
-        getPhyManager()->getSystemContainer()->getPimType(i + pimStartNum)) {
-      return PimID(i + pimStartNum);
-    }
-  }
-  throw FbossError(
-      "Can't find pimType:",
-      MultiPimPlatformPimContainer::getPimTypeStr(initInfo_->pimType),
-      " pim in this platform");
-}
-
-phy::ExternalPhy* HwPhyEnsemble::getTargetExternalPhy() {
-  return getPhyManager()->getExternalPhy(targetGlobalXphyID_);
 }
 
 phy::ExternalPhy* HwPhyEnsemble::getExternalPhy(PortID port) {

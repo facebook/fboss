@@ -72,16 +72,6 @@ class HwPhyEnsemble {
   virtual void init(std::unique_ptr<HwPhyEnsembleInitInfo> initInfo);
 
   PhyManager* getPhyManager();
-
-  PimID getTargetPimID() const {
-    return targetPimID_;
-  }
-
-  GlobalXphyID getTargetGlobalXphyID() const {
-    return targetGlobalXphyID_;
-  }
-
-  phy::ExternalPhy* getTargetExternalPhy();
   phy::ExternalPhy* getExternalPhy(PortID portID);
 
   const HwPhyEnsembleInitInfo& getInitInfo() const {
@@ -90,24 +80,8 @@ class HwPhyEnsemble {
 
   const PlatformMapping* getPlatformMapping() const;
 
-  const std::vector<PortID>& getTargetPorts() const {
-    return targetPorts_;
-  }
-
  private:
-  virtual std::unique_ptr<MultiPimPlatformMapping>
-  chooseMultiPimPlatformMapping() = 0;
-
-  // Based on pimType to find the first available pim ID.
-  // Will throw exception if such pimType doesn't exist
-  PimID getFirstAvailablePimID();
-
   std::unique_ptr<HwPhyEnsembleInitInfo> initInfo_;
   std::unique_ptr<WedgeManager> wedgeManager_;
-  PimID targetPimID_;
-  // PIM PlatformMapping
-  std::unique_ptr<PlatformMapping> platformMapping_;
-  GlobalXphyID targetGlobalXphyID_;
-  std::vector<PortID> targetPorts_;
 };
 } // namespace facebook::fboss
