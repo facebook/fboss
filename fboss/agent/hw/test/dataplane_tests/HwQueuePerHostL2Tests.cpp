@@ -13,6 +13,7 @@
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
+#include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestMacUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.h"
@@ -45,6 +46,12 @@ class HwQueuePerHostL2Test : public HwLinkStateDependentTest {
   }
 
   void verifyHelper(bool useFrontPanel) {
+    auto ttlAclName = utility::getQueuePerHostTtlAclName();
+    auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
+
+    auto statBefore = utility::getAclInOutPackets(
+        getHwSwitch(), this->getProgrammedState(), ttlAclName, ttlCounterName);
+
     std::map<int, int64_t> beforeQueueOutPkts;
     for (const auto& queueId : utility::kQueuePerhostQueueIds()) {
       beforeQueueOutPkts[queueId] =
@@ -53,13 +60,17 @@ class HwQueuePerHostL2Test : public HwLinkStateDependentTest {
               .at(queueId);
     }
 
-    auto txPacket = createL3Pkt();
+    auto txPacket = createL3Pkt(64 /* ttl < 128 */);
+    auto txPacket2 = createL3Pkt(128 /* ttl >= 128 */);
 
     if (useFrontPanel) {
       getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
           std::move(txPacket), PortID(masterLogicalPortIds()[1]));
+      getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
+          std::move(txPacket2), PortID(masterLogicalPortIds()[1]));
     } else {
       getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
+      getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket2));
     }
 
     /*
@@ -101,17 +112,29 @@ class HwQueuePerHostL2Test : public HwLinkStateDependentTest {
          * back packet.
          */
         if (getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TAJO) {
-          EXPECT_EQ(pktsOnQueue, 2);
+          /* 1 pkt each for ttl < 128 and ttl >= 128 */
+          EXPECT_EQ(pktsOnQueue, 4);
         } else {
-          EXPECT_EQ(pktsOnQueue, 1);
+          /* 1 pkt each for ttl < 128 and ttl >= 128 */
+          EXPECT_EQ(pktsOnQueue, 2);
         }
       } else {
         EXPECT_EQ(pktsOnQueue, 0);
       }
     }
+
+    auto statAfter = utility::getAclInOutPackets(
+        getHwSwitch(), this->getProgrammedState(), ttlAclName, ttlCounterName);
+
+    /*
+     * counts ttl >= 128 packet only
+     * but L2 traffic (so TTL is not decremented, and thus looped back packet
+     * also has ttl >= 128, thus the count is 2.
+     */
+    EXPECT_EQ(statAfter - statBefore, 2);
   }
 
-  std::unique_ptr<facebook::fboss::TxPacket> createL3Pkt() {
+  std::unique_ptr<facebook::fboss::TxPacket> createL3Pkt(uint8_t ttl) {
     return utility::makeUDPTxPacket(
         getHwSwitch(),
         VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref()),
@@ -120,8 +143,9 @@ class HwQueuePerHostL2Test : public HwLinkStateDependentTest {
         folly::IPAddressV6("1::1"), // srcIPv6
         folly::IPAddressV6("1::10"), // dstIPv6
         8000, // l4 src port
-        8001 // l4 dst port
-    );
+        8001, // l4 dst port
+        48 << 2, // DSCP
+        ttl);
   }
 
   PortDescriptor physPortDescr() const {
