@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/cli/fboss2/CLI11/CLI.hpp"
+#include "fboss/cli/fboss2/options/SSLPolicy.h"
 
 namespace facebook::fboss {
 
@@ -56,7 +57,7 @@ class CmdGlobalOptions {
     return logLevel_;
   }
 
-  std::string getSslPolicy() {
+  const SSLPolicy& getSslPolicy() {
     return sslPolicy_;
   }
 
@@ -95,7 +96,7 @@ class CmdGlobalOptions {
   std::string smc_;
   std::string file_;
   std::string logLevel_{"DBG0"};
-  std::string sslPolicy_{"plaintext"};
+  SSLPolicy sslPolicy_{"plaintext"};
   std::string fmt_{"tabular"};
   std::string logUsage_;
   int agentThriftPort_{5909};

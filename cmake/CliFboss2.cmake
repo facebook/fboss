@@ -25,6 +25,7 @@ add_executable(fboss2
   fboss/cli/fboss2/oss/CmdGlobalOptions.cpp
   fboss/cli/fboss2/oss/CmdList.cpp
   fboss/cli/fboss2/oss/CmdUtils.cpp
+  fboss/cli/fboss2/options/SSLPolicy.h
 )
 
 target_link_libraries(fboss2
