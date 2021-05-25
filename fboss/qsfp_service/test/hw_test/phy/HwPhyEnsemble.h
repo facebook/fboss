@@ -54,19 +54,10 @@ class ExternalPhy;
  */
 class HwPhyEnsemble {
  public:
-  struct HwPhyEnsembleInitInfo {
-    // Expected default fwVersion installed after phy initialized
-    phy::PhyFwVersion fwVersion;
-  };
-
-  void init(std::unique_ptr<HwPhyEnsembleInitInfo> initInfo);
+  void init();
 
   PhyManager* getPhyManager();
   phy::ExternalPhy* getExternalPhy(PortID portID);
-
-  const HwPhyEnsembleInitInfo& getInitInfo() const {
-    return *initInfo_;
-  }
 
   const PlatformMapping* getPlatformMapping() const;
   const WedgeManager* getWedgeManager() const {
@@ -74,7 +65,6 @@ class HwPhyEnsemble {
   }
 
  private:
-  std::unique_ptr<HwPhyEnsembleInitInfo> initInfo_;
   std::unique_ptr<WedgeManager> wedgeManager_;
 };
 } // namespace facebook::fboss

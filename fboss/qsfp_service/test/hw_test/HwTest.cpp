@@ -18,27 +18,11 @@
 
 namespace facebook::fboss {
 
-namespace {
-// TODO(joseph5wu) Currently we haven't fully integrate firmware upgrade process
-// w/ qsfp_service and hw_test. Therefore, we use static target firmware version
-// for basic hw firmware test for now.
-phy::PhyFwVersion getTargetFirmwareVersion() {
-  phy::PhyFwVersion fw;
-  fw.version_ref() = 91;
-  fw.versionStr_ref() = "91.1";
-  fw.minorVersion_ref() = 1;
-  return fw;
-}
-} // namespace
-
 void HwTest::SetUp() {
-  auto initInfo = std::make_unique<HwPhyEnsemble::HwPhyEnsembleInitInfo>();
-  initInfo->fwVersion = getTargetFirmwareVersion();
-  ensemble_ = createHwEnsemble(std::move(initInfo));
+  ensemble_ = createHwEnsemble();
 }
 
 void HwTest::TearDown() {
-  // TODO(joseph5wu) Add entra step before reset the ensemble
   ensemble_.reset();
 }
 

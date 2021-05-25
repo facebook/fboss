@@ -18,9 +18,7 @@
 
 namespace facebook::fboss {
 
-void HwPhyEnsemble::init(std::unique_ptr<HwPhyEnsembleInitInfo> initInfo) {
-  initInfo_ = std::move(initInfo);
-
+void HwPhyEnsemble::init() {
   wedgeManager_ = createWedgeManager();
   // Initialize the I2c bus
   wedgeManager_->initTransceiverMap();
