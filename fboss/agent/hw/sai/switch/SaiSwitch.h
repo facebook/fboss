@@ -128,6 +128,11 @@ class SaiSwitch : public HwSwitch {
       uint32_t count,
       const sai_fdb_event_notification_data_t* data);
 
+  void parityErrorSwitchEventCallback(
+      sai_size_t buffer_size,
+      const void* buffer,
+      uint32_t event_type);
+
   void tamEventCallback(
       sai_object_id_t tam_event_id,
       sai_size_t buffer_size,

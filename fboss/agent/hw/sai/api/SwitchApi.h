@@ -516,7 +516,9 @@ class SwitchApi : public SaiApi<SwitchApi> {
   void registerTamEventCallback(
       SwitchSaiId id,
       sai_tam_event_notification_fn tam_event_cb);
-
+  void registerParityErrorSwitchEventCallback(
+      SwitchSaiId id,
+      void* switch_event_cb);
   void unregisterRxCallback(SwitchSaiId switch_id) {
     registerRxCallback(switch_id, nullptr);
   }
@@ -528,6 +530,9 @@ class SwitchApi : public SaiApi<SwitchApi> {
   }
   void unregisterTamEventCallback(SwitchSaiId id) {
     registerTamEventCallback(id, nullptr);
+  }
+  void unregisterParityErrorSwitchEventCallback(SwitchSaiId id) {
+    registerParityErrorSwitchEventCallback(id, nullptr);
   }
 
  private:

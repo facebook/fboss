@@ -35,4 +35,43 @@ SaiSwitchTraits::Attributes::HwEccErrorInitiateWrapper::operator()() {
   return std::nullopt;
 }
 
+void SwitchApi::registerParityErrorSwitchEventCallback(
+    SwitchSaiId id,
+    void* switch_event_cb) {
+#if defined(SAI_VERSION_5_0_0_3_ODP)
+  sai_attribute_t attr;
+  attr.value.ptr = switch_event_cb;
+  attr.id = SAI_SWITCH_ATTR_SWITCH_EVENT_NOTIFY;
+  sai_attribute_t eventAttr;
+  eventAttr.id = SAI_SWITCH_ATTR_SWITCH_EVENT_TYPE;
+  if (switch_event_cb) {
+    // Register switch callback function
+    auto rv = _setAttribute(id, &attr);
+    saiLogError(
+        rv, ApiType, "Unable to register parity error switch event callback");
+
+    // Register switch events
+    std::array<uint32_t, 5> events = {
+        SAI_SWITCH_EVENT_TYPE_PARITY_ERROR,
+        SAI_SWITCH_EVENT_TYPE_STABLE_FULL,
+        SAI_SWITCH_EVENT_TYPE_STABLE_ERROR,
+        SAI_SWITCH_EVENT_TYPE_UNCONTROLLED_SHUTDOWN,
+        SAI_SWITCH_EVENT_TYPE_WARM_BOOT_DOWNGRADE};
+    eventAttr.value.u32list.count = events.size();
+    eventAttr.value.u32list.list = events.data();
+    rv = _setAttribute(id, &eventAttr);
+    saiLogError(rv, ApiType, "Unable to register parity error switch events");
+  } else {
+    // First unregister switch events
+    eventAttr.value.u32list.count = 0;
+    auto rv = _setAttribute(id, &eventAttr);
+    saiLogError(rv, ApiType, "Unable to unregister switch events");
+
+    // Then unregister callback function
+    rv = _setAttribute(id, &attr);
+    saiLogError(rv, ApiType, "Unable to unregister TAM event callback");
+  }
+#endif
+}
+
 } // namespace facebook::fboss

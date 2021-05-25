@@ -55,6 +55,42 @@ std::string correctionType(sai_switch_correction_type_t type) {
 
 namespace facebook::fboss {
 
+void SaiSwitch::parityErrorSwitchEventCallback(
+    sai_size_t /*buffer_size*/,
+    const void* buffer,
+    uint32_t event_type) {
+  const sai_switch_ser_log_info_t* eventInfo =
+      static_cast<const sai_switch_ser_log_info_t*>(buffer);
+  std::stringstream sstream;
+  sstream << "received switch event: " << eventName(event_type)
+          << ", event info(";
+  bool correctible = true;
+  if (eventInfo) {
+    sstream << "correction type=" << correctionType(eventInfo->correction_type)
+            << " , flags=" << std::hex << eventInfo->flags;
+    correctible =
+        (eventInfo->correction_type !=
+         SAI_SWITCH_CORRECTION_TYPE_FAIL_TO_CORRECT);
+  }
+  sstream << ")";
+  XLOG(WARNING) << sstream.str();
+  switch (event_type) {
+    case SAI_SWITCH_EVENT_TYPE_STABLE_FULL:
+    case SAI_SWITCH_EVENT_TYPE_STABLE_ERROR:
+    case SAI_SWITCH_EVENT_TYPE_UNCONTROLLED_SHUTDOWN:
+    case SAI_SWITCH_EVENT_TYPE_WARM_BOOT_DOWNGRADE:
+      getSwitchStats()->asicError();
+      break;
+    case SAI_SWITCH_EVENT_TYPE_PARITY_ERROR:
+      if (correctible) {
+        getSwitchStats()->corrParityError();
+      } else {
+        getSwitchStats()->uncorrParityError();
+      }
+      break;
+  }
+}
+
 void SaiSwitch::tamEventCallback(
     sai_object_id_t /*tam_event_id*/,
     sai_size_t /*buffer_size*/,
@@ -100,4 +136,5 @@ void SaiSwitch::tamEventCallback(
       break;
   }
 }
+
 } // namespace facebook::fboss

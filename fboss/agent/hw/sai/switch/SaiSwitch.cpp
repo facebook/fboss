@@ -140,6 +140,13 @@ void __gFdbEventCallback(
   __gSaiSwitch->fdbEventCallback(count, data);
 }
 
+void __gParityErrorSwitchEventCallback(
+    sai_size_t buffer_size,
+    const void* buffer,
+    uint32_t event_type) {
+  __gSaiSwitch->parityErrorSwitchEventCallback(buffer_size, buffer, event_type);
+}
+
 void __gTamEventCallback(
     sai_object_id_t tam_event_id,
     sai_size_t buffer_size,
@@ -1333,7 +1340,11 @@ void SaiSwitch::unregisterCallbacksLocked(
     switchApi.unregisterRxCallback(switchId_);
   }
   if (isFeatureSetupLocked(FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED, lock)) {
+#if defined(SAI_VERSION_5_0_0_3_ODP)
+    switchApi.unregisterParityErrorSwitchEventCallback(switchId_);
+#else
     switchApi.unregisterTamEventCallback(switchId_);
+#endif
   }
   switchApi.unregisterFdbEventCallback(switchId_);
 }
@@ -1601,7 +1612,12 @@ void SaiSwitch::switchRunStateChangedImplLocked(
       }
       if (getFeaturesDesired() & FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED) {
         auto& switchApi = SaiApiTable::getInstance()->switchApi();
+#if defined(SAI_VERSION_5_0_0_3_ODP)
+        switchApi.registerParityErrorSwitchEventCallback(
+            switchId_, (void*)__gParityErrorSwitchEventCallback);
+#else
         switchApi.registerTamEventCallback(switchId_, __gTamEventCallback);
+#endif
       }
     } break;
     default:

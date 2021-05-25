@@ -85,4 +85,11 @@ void SaiSwitch::tamEventCallback(
   }
   XLOG(WARNING) << sstream.str();
 }
+
+void SaiSwitch::parityErrorSwitchEventCallback(
+    sai_size_t /*buffer_size*/,
+    const void* /*buffer*/,
+    uint32_t /*event_type*/) {
+  // noop;
+}
 } // namespace facebook::fboss

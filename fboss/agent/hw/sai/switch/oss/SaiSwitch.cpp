@@ -11,4 +11,11 @@ void SaiSwitch::tamEventCallback(
     const sai_attribute_t* /*attr_list*/) {
   // noop;
 }
+
+void SaiSwitch::parityErrorSwitchEventCallback(
+    sai_size_t /*buffer_size*/,
+    const void* /*buffer*/,
+    uint32_t /*event_type*/) {
+  // noop;
+}
 } // namespace facebook::fboss

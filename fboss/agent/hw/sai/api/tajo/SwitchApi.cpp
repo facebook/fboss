@@ -37,4 +37,9 @@ SaiSwitchTraits::Attributes::HwEccErrorInitiateWrapper::operator()() {
   return std::nullopt;
 #endif
 }
+
+void SwitchApi::registerParityErrorSwitchEventCallback(
+    SwitchSaiId /*id*/,
+    void* /*switch_event_cb*/) {}
+
 } // namespace facebook::fboss
