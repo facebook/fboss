@@ -17,7 +17,7 @@ class MockWedgeManager : public WedgeManager {
     numPortsPerModule_ = numPortsPerModule;
   }
 
-  PlatformMode getPlatformMode() override {
+  PlatformMode getPlatformMode() const override {
     return PlatformMode::WEDGE;
   }
 

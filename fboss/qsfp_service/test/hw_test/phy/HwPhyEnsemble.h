@@ -69,6 +69,9 @@ class HwPhyEnsemble {
   }
 
   const PlatformMapping* getPlatformMapping() const;
+  const WedgeManager* getWedgeManager() const {
+    return wedgeManager_.get();
+  }
 
  private:
   std::unique_ptr<HwPhyEnsembleInitInfo> initInfo_;
