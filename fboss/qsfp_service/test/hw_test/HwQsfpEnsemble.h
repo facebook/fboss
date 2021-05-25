@@ -31,7 +31,7 @@ class ExternalPhy;
 }
 
 /*
- * HwPhyEnsemble will be the hw_test ensemble class to manager PhyManager.
+ * HwQsfpEnsemble will be the hw_test ensemble class to manager PhyManager.
  * This ensemble will be used in qsfp_service phy related hw_test to provide
  * all phy related helper function accross different phy implementation.
  * Currently we have three major implementations of PhyManager:
@@ -40,11 +40,11 @@ class ExternalPhy;
  * - SAI XPHY (Elbert)
  * This base class can provide the definition of all the phy related helper
  * functions, and then all the above three implementation can extend
- * HwPhyEnsemble to implement these functions in their own way with their own
+ * HwQsfpEnsemble to implement these functions in their own way with their own
  * PhyManager.
  * So the directory of phy related hw_test will be:
  * - phy
- * --- HwPhyEnsemble.h
+ * --- HwQsfpEnsemble.h
  * --- sai
  * ----- SaiPhyEnsemble.h
  * --- bcm
@@ -52,7 +52,7 @@ class ExternalPhy;
  * --- yamp
  * ----- YampPhyEnsemble.h
  */
-class HwPhyEnsemble {
+class HwQsfpEnsemble {
  public:
   void init();
 

@@ -13,7 +13,7 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/phy/PhyManager.h"
-#include "fboss/qsfp_service/test/hw_test/phy/HwPhyEnsemble.h"
+#include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 #include "fboss/qsfp_service/test/hw_test/phy/HwPortUtils.h"
 
 #include <folly/logging/xlog.h>
@@ -26,8 +26,8 @@ class HwPortProfileTest : public HwTest {
   std::vector<PortID> findAvailablePort() {
     std::vector<PortID> ports;
     const auto& platformPorts =
-        getHwPhyEnsemble()->getPlatformMapping()->getPlatformPorts();
-    const auto& chips = getHwPhyEnsemble()->getPlatformMapping()->getChips();
+        getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
+    const auto& chips = getHwQsfpEnsemble()->getPlatformMapping()->getChips();
     for (auto idAndEntry : platformPorts) {
       const auto& xphy = utility::getDataPlanePhyChips(
           idAndEntry.second, chips, phy::DataPlanePhyChipType::XPHY);
@@ -47,11 +47,11 @@ class HwPortProfileTest : public HwTest {
     utility::verifyPhyPortConfig(
         portID,
         Profile,
-        getHwPhyEnsemble()->getPlatformMapping(),
-        getHwPhyEnsemble()->getExternalPhy(portID));
+        getHwQsfpEnsemble()->getPlatformMapping(),
+        getHwQsfpEnsemble()->getExternalPhy(portID));
 
     utility::veridyPhyPortConnector(
-        portID, getHwPhyEnsemble()->getPhyManager());
+        portID, getHwQsfpEnsemble()->getPhyManager());
   }
 
   void runTest() {
@@ -59,7 +59,7 @@ class HwPortProfileTest : public HwTest {
     EXPECT_TRUE(!ports.empty());
     for (auto port : ports) {
       // Call PhyManager to program such port
-      getHwPhyEnsemble()->getPhyManager()->programOnePort(port, Profile);
+      getHwQsfpEnsemble()->getPhyManager()->programOnePort(port, Profile);
       // Verify whether such profile has been programmed to the port
       verifyPort(port);
     }

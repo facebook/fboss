@@ -13,7 +13,7 @@
 
 namespace facebook::fboss {
 
-class HwPhyEnsemble;
+class HwQsfpEnsemble;
 class MultiPimPlatformPimContainer;
 
 class HwTest : public ::testing::Test {
@@ -21,7 +21,7 @@ class HwTest : public ::testing::Test {
   HwTest() = default;
   ~HwTest() override = default;
 
-  HwPhyEnsemble* getHwPhyEnsemble() {
+  HwQsfpEnsemble* getHwQsfpEnsemble() {
     return ensemble_.get();
   }
 
@@ -35,6 +35,6 @@ class HwTest : public ::testing::Test {
   HwTest(HwTest const&) = delete;
   HwTest& operator=(HwTest const&) = delete;
 
-  std::unique_ptr<HwPhyEnsemble> ensemble_;
+  std::unique_ptr<HwQsfpEnsemble> ensemble_;
 };
 } // namespace facebook::fboss

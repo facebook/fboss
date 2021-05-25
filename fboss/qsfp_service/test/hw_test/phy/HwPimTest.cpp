@@ -12,12 +12,12 @@
 #include "fboss/lib/fpga/MultiPimPlatformPimContainer.h"
 #include "fboss/lib/fpga/MultiPimPlatformSystemContainer.h"
 #include "fboss/lib/phy/PhyManager.h"
-#include "fboss/qsfp_service/test/hw_test/phy/HwPhyEnsemble.h"
+#include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 
 namespace facebook::fboss {
 
 TEST_F(HwTest, CheckPimPresent) {
-  auto phyManager = getHwPhyEnsemble()->getPhyManager();
+  auto phyManager = getHwQsfpEnsemble()->getPhyManager();
   EXPECT_EQ(
       phyManager->getNumOfSlot(),
       phyManager->getSystemContainer()->getNumPims());

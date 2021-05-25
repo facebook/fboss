@@ -13,12 +13,12 @@
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/lib/fpga/MultiPimPlatformSystemContainer.h"
 #include "fboss/lib/phy/PhyManager.h"
-#include "fboss/qsfp_service/test/hw_test/phy/HwPhyEnsemble.h"
+#include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 
 namespace facebook::fboss {
 
 void HwTest::SetUp() {
-  ensemble_ = std::make_unique<HwPhyEnsemble>();
+  ensemble_ = std::make_unique<HwQsfpEnsemble>();
   ensemble_->init();
 }
 

@@ -13,18 +13,18 @@
 #include "fboss/agent/platforms/common/PlatformMode.h"
 #include "fboss/lib/phy/ExternalPhy.h"
 #include "fboss/lib/phy/PhyManager.h"
-#include "fboss/qsfp_service/test/hw_test/phy/HwPhyEnsemble.h"
+#include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 
 namespace facebook::fboss {
 
 TEST_F(HwTest, CheckDefaultFirmwareVersion) {
-  auto chips = getHwPhyEnsemble()->getPlatformMapping()->getChips();
+  auto chips = getHwQsfpEnsemble()->getPlatformMapping()->getChips();
   if (!chips.size()) {
     return;
   }
 
   phy::PhyFwVersion desiredFw;
-  auto platformMode = getHwPhyEnsemble()->getWedgeManager()->getPlatformMode();
+  auto platformMode = getHwQsfpEnsemble()->getWedgeManager()->getPlatformMode();
   switch (platformMode) {
     case PlatformMode::ELBERT:
       desiredFw.version_ref() = 91;
@@ -38,7 +38,7 @@ TEST_F(HwTest, CheckDefaultFirmwareVersion) {
     if (chip.second.get_type() != phy::DataPlanePhyChipType::XPHY) {
       continue;
     }
-    auto xphy = getHwPhyEnsemble()->getPhyManager()->getExternalPhy(
+    auto xphy = getHwQsfpEnsemble()->getPhyManager()->getExternalPhy(
         GlobalXphyID(chip.second.get_physicalID()));
     EXPECT_EQ(xphy->fwVersion(), desiredFw);
   }

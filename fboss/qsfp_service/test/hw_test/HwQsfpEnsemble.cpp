@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/qsfp_service/test/hw_test/phy/HwPhyEnsemble.h"
+#include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/MultiPimPlatformMapping.h"
@@ -18,7 +18,7 @@
 
 namespace facebook::fboss {
 
-void HwPhyEnsemble::init() {
+void HwQsfpEnsemble::init() {
   wedgeManager_ = createWedgeManager();
   // Initialize the I2c bus
   wedgeManager_->initTransceiverMap();
@@ -26,15 +26,15 @@ void HwPhyEnsemble::init() {
   wedgeManager_->initExternalPhyMap();
 }
 
-PhyManager* HwPhyEnsemble::getPhyManager() {
+PhyManager* HwQsfpEnsemble::getPhyManager() {
   return wedgeManager_->getPhyManager();
 }
 
-const PlatformMapping* HwPhyEnsemble::getPlatformMapping() const {
+const PlatformMapping* HwQsfpEnsemble::getPlatformMapping() const {
   return wedgeManager_->getPlatformMapping();
 }
 
-phy::ExternalPhy* HwPhyEnsemble::getExternalPhy(PortID port) {
+phy::ExternalPhy* HwQsfpEnsemble::getExternalPhy(PortID port) {
   auto phyManager = getPhyManager();
   return phyManager->getExternalPhy(phyManager->getGlobalXphyIDbyPortID(port));
 }
