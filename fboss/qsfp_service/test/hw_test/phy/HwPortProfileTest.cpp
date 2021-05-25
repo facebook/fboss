@@ -9,6 +9,7 @@
  */
 #include "fboss/qsfp_service/test/hw_test/HwTest.h"
 
+#include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
@@ -24,7 +25,7 @@ template <cfg::PortProfileID Profile>
 class HwPortProfileTest : public HwTest {
  protected:
   std::vector<PortID> findAvailablePort() {
-    std::vector<PortID> ports;
+    std::set<PortID> xPhyPorts;
     const auto& platformPorts =
         getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
     const auto& chips = getHwQsfpEnsemble()->getPlatformMapping()->getChips();
@@ -32,12 +33,21 @@ class HwPortProfileTest : public HwTest {
       const auto& xphy = utility::getDataPlanePhyChips(
           idAndEntry.second, chips, phy::DataPlanePhyChipType::XPHY);
       if (xphy.empty()) {
-        // TODO - expand test to non xphy ports
         continue;
       }
-      if (idAndEntry.second.supportedProfiles_ref()->find(Profile) !=
-          idAndEntry.second.supportedProfiles_ref()->end()) {
-        ports.emplace_back(PortID(idAndEntry.first));
+      xPhyPorts.emplace(PortID(idAndEntry.first));
+    }
+    std::vector<PortID> ports;
+    auto agentConfig = getHwQsfpEnsemble()->getWedgeManager()->getAgentConfig();
+    auto& swConfig = *agentConfig->thrift.sw_ref();
+    for (auto& port : *swConfig.ports_ref()) {
+      if (xPhyPorts.find(PortID(*port.logicalID_ref())) == xPhyPorts.end()) {
+        // TODO: expand to non xphy ports too
+        continue;
+      }
+      if (*port.profileID_ref() == Profile &&
+          *port.state_ref() == cfg::PortState::ENABLED) {
+        ports.emplace_back(PortID(*port.logicalID_ref()));
       }
     }
     return ports;

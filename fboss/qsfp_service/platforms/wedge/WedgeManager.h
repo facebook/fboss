@@ -134,6 +134,9 @@ class WedgeManager : public TransceiverManager {
   PhyManager* getPhyManager() override {
     return phyManager_.get();
   }
+  const AgentConfig* getAgentConfig() const {
+    return agentConfig_.get();
+  }
 
  protected:
   virtual std::unique_ptr<TransceiverI2CApi> getI2CBus();
