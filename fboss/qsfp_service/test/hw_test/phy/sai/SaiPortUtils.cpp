@@ -20,7 +20,7 @@
 #include <gtest/gtest.h>
 
 namespace facebook::fboss::utility {
-void veridyPhyPortConnector(PortID portID, PhyManager* xphyManager) {
+void verifyPhyPortConnector(PortID portID, PhyManager* xphyManager) {
   auto saiPhyManager = static_cast<SaiPhyManager*>(xphyManager);
   // The goal here is to check whether:
   // 1) the connector is using the correct system port and line port.
