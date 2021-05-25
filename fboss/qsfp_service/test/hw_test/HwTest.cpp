@@ -16,54 +16,24 @@
 #include "fboss/qsfp_service/test/hw_test/phy/HwPhyEnsemble.h"
 #include "fboss/qsfp_service/test/hw_test/phy/HwPhyEnsembleFactory.h"
 
-DEFINE_string(
-    target_pim_type,
-    "",
-    "Target pim type for hw_test. "
-    "[MINIPACK_16Q/ MINIPACK_16O/ YAMP_16Q/ FUJI_16Q/ ELBERT_16Q/ ELBERT_8DD]");
-
 namespace facebook::fboss {
 
 namespace {
 // TODO(joseph5wu) Currently we haven't fully integrate firmware upgrade process
 // w/ qsfp_service and hw_test. Therefore, we use static target firmware version
 // for basic hw firmware test for now.
-phy::PhyFwVersion getTargetFirmwareVersion(
-    MultiPimPlatformPimContainer::PimType pimType) {
-  if (pimType == MultiPimPlatformPimContainer::PimType::ELBERT_8DD) {
-    phy::PhyFwVersion fw;
-    fw.version_ref() = 91;
-    fw.versionStr_ref() = "91.1";
-    fw.minorVersion_ref() = 1;
-    return fw;
-  }
-  throw FbossError(
-      "Unrecoginize PimType:",
-      MultiPimPlatformPimContainer::getPimTypeStr(pimType));
+phy::PhyFwVersion getTargetFirmwareVersion() {
+  phy::PhyFwVersion fw;
+  fw.version_ref() = 91;
+  fw.versionStr_ref() = "91.1";
+  fw.minorVersion_ref() = 1;
+  return fw;
 }
 } // namespace
 
 void HwTest::SetUp() {
   auto initInfo = std::make_unique<HwPhyEnsemble::HwPhyEnsembleInitInfo>();
-  // If user doesn't specify the pim type for testing, we use productInfo
-  if (FLAGS_target_pim_type.empty()) {
-    auto productInfo =
-        std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
-    productInfo->initialize();
-    auto platformMode = productInfo->getMode();
-    switch (platformMode) {
-      case PlatformMode::ELBERT:
-        initInfo->pimType = MultiPimPlatformPimContainer::PimType::ELBERT_8DD;
-        break;
-      default:
-        throw FbossError(
-            "Current phy hw_test doesn't support PlatformMode:", platformMode);
-    }
-  } else {
-    initInfo->pimType =
-        MultiPimPlatformPimContainer::getPimTypeFromStr(FLAGS_target_pim_type);
-  }
-  initInfo->fwVersion = getTargetFirmwareVersion(initInfo->pimType);
+  initInfo->fwVersion = getTargetFirmwareVersion();
   ensemble_ = createHwEnsemble(std::move(initInfo));
 }
 

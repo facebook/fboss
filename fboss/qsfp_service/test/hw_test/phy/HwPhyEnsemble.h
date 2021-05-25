@@ -16,7 +16,6 @@
 #include <vector>
 
 #include "fboss/agent/types.h"
-#include "fboss/lib/fpga/MultiPimPlatformPimContainer.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 
@@ -56,12 +55,6 @@ class ExternalPhy;
 class HwPhyEnsemble {
  public:
   struct HwPhyEnsembleInitInfo {
-    // Specify which pim type the HwTest want to run all the tests against.
-    // We have some platforms using two different pim types, for example,
-    // Elbert uses Elbert16Q and Elbert8DD, and these linecards have different
-    // phy features. So we need user to define which linecard type to use
-    // before running the hw_test.
-    MultiPimPlatformPimContainer::PimType pimType;
     // Expected default fwVersion installed after phy initialized
     phy::PhyFwVersion fwVersion;
   };
