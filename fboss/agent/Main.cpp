@@ -174,7 +174,7 @@ void Initializer::initImpl() {
     sw_->stopLoggingRouteUpdates("fboss-agent-warmboot");
   }
   // Start the UpdateSwitchStatsThread
-  fs_ = new FunctionScheduler();
+  fs_ = std::make_unique<FunctionScheduler>();
   fs_->setThreadName("UpdateStatsThread");
   // steady will help even out the interval which will especially make
   // aggregated counters more accurate with less spikes and dips

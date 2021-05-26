@@ -51,7 +51,7 @@ class Initializer {
   void initImpl();
   SwSwitch* sw_;
   Platform* platform_;
-  folly::FunctionScheduler* fs_;
+  std::unique_ptr<folly::FunctionScheduler> fs_;
   std::mutex initLock_;
   std::condition_variable initCondition_;
 };
