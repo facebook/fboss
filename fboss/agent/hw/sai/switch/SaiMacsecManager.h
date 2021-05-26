@@ -101,6 +101,31 @@ class SaiMacsecManager {
       MacsecSecureChannelId secureChannelId,
       sai_macsec_direction_t direction);
 
+  MacsecSASaiId addMacsecSecureAssoc(
+      PortID linePort,
+      MacsecSecureChannelId secureChannelId,
+      sai_macsec_direction_t direction,
+      uint8_t assocNum,
+      SaiMacsecSak secureAssociationKey,
+      SaiMacsecSalt salt,
+      SaiMacsecAuthKey authKey,
+      MacsecShortSecureChannelId shortSecureChannelId);
+  const SaiMacsecSecureAssoc* FOLLY_NULLABLE getMacsecSecureAssoc(
+      PortID linePort,
+      MacsecSecureChannelId secureChannelId,
+      sai_macsec_direction_t direction,
+      uint8_t assocNum) const;
+  SaiMacsecSecureAssoc* FOLLY_NULLABLE getMacsecSecureAssoc(
+      PortID linePort,
+      MacsecSecureChannelId secureChannelId,
+      sai_macsec_direction_t direction,
+      uint8_t assocNum);
+  void removeMacsecSecureAssoc(
+      PortID linePort,
+      MacsecSecureChannelId secureChannelId,
+      sai_macsec_direction_t direction,
+      uint8_t assocNum);
+
  private:
   SaiMacsecHandle* FOLLY_NULLABLE
   getMacsecHandleImpl(sai_macsec_direction_t direction) const;
@@ -112,6 +137,12 @@ class SaiMacsecManager {
       PortID linePort,
       MacsecSecureChannelId secureChannelId,
       sai_macsec_direction_t direction) const;
+  SaiMacsecSecureAssoc* FOLLY_NULLABLE getMacsecSecureAssocImpl(
+      PortID linePort,
+      MacsecSecureChannelId secureChannelId,
+      sai_macsec_direction_t direction,
+      uint8_t assocNum) const;
+
   SaiStore* saiStore_;
 
   MacsecHandles macsecHandles_;

@@ -61,6 +61,7 @@ FBOSS_STRONG_TYPE(sai_object_id_t, MacsecFlowSaiId);
 
 // Macsec secure channel identifier (SCI) - 48 bit mac address + 16 bit port ID
 FBOSS_STRONG_TYPE(sai_uint64_t, MacsecSecureChannelId);
+FBOSS_STRONG_TYPE(sai_uint32_t, MacsecShortSecureChannelId)
 
 namespace facebook::fboss {
 

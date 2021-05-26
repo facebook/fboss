@@ -355,11 +355,122 @@ SaiMacsecManager::getMacsecSecureChannelHandleImpl(
   if (itr == portHandle->secureChannels.end()) {
     return nullptr;
   }
-  if (!itr->second.get()) {
-    XLOG(FATAL)
-        << "Invalid null SaiMacsecSCHandle for secureChannelId:direction: "
-        << secureChannelId << ":" << direction;
+
+  CHECK(itr->second.get())
+      << "Invalid null SaiMacsecSCHandle for secureChannelId:direction: "
+      << secureChannelId << ":" << direction;
+  return itr->second.get();
+}
+
+MacsecSASaiId SaiMacsecManager::addMacsecSecureAssoc(
+    PortID linePort,
+    MacsecSecureChannelId secureChannelId,
+    sai_macsec_direction_t direction,
+    uint8_t assocNum,
+    SaiMacsecSak secureAssociationKey,
+    SaiMacsecSalt salt,
+    SaiMacsecAuthKey authKey,
+    MacsecShortSecureChannelId shortSecureChannelId) {
+  auto handle =
+      getMacsecSecureAssoc(linePort, secureChannelId, direction, assocNum);
+  if (handle) {
+    throw FbossError(
+        "Attempted to add macsecSA for secureChannelId:assocNum that already exists: ",
+        secureChannelId,
+        ":",
+        assocNum,
+        " SAI id: ",
+        handle->adapterKey());
   }
+  auto scHandle =
+      getMacsecSecureChannelHandle(linePort, secureChannelId, direction);
+  if (!scHandle) {
+    throw FbossError(
+        "Attempted to add macsecSA for non-existent sc for lineport, secureChannelId, direction: ",
+        secureChannelId,
+        ", ",
+        linePort,
+        ", ",
+        " direction: ");
+  }
+
+  SaiMacsecSATraits::CreateAttributes attributes {
+    scHandle->secureChannel->adapterKey(), assocNum, authKey, direction,
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 1)
+        shortSecureChannelId,
+#endif
+        secureAssociationKey, salt, std::nullopt /* minimumXpn */
+  };
+  SaiMacsecSATraits::AdapterHostKey key{
+      scHandle->secureChannel->adapterKey(), assocNum, direction};
+
+  auto& store = saiStore_->get<SaiMacsecSATraits>();
+  auto saiObj = store.setObject(key, attributes);
+
+  scHandle->secureAssocs.emplace(assocNum, std::move(saiObj));
+  return scHandle->secureAssocs[assocNum]->adapterKey();
+}
+
+const SaiMacsecSecureAssoc* FOLLY_NULLABLE
+SaiMacsecManager::getMacsecSecureAssoc(
+    PortID linePort,
+    MacsecSecureChannelId secureChannelId,
+    sai_macsec_direction_t direction,
+    uint8_t assocNum) const {
+  return getMacsecSecureAssocImpl(
+      linePort, secureChannelId, direction, assocNum);
+}
+SaiMacsecSecureAssoc* FOLLY_NULLABLE SaiMacsecManager::getMacsecSecureAssoc(
+    PortID linePort,
+    MacsecSecureChannelId secureChannelId,
+    sai_macsec_direction_t direction,
+    uint8_t assocNum) {
+  return getMacsecSecureAssocImpl(
+      linePort, secureChannelId, direction, assocNum);
+}
+
+void SaiMacsecManager::removeMacsecSecureAssoc(
+    PortID linePort,
+    MacsecSecureChannelId secureChannelId,
+    sai_macsec_direction_t direction,
+    uint8_t assocNum) {
+  auto scHandle =
+      getMacsecSecureChannelHandle(linePort, secureChannelId, direction);
+  if (!scHandle) {
+    throw FbossError(
+        "Attempted to remove SA for non-existent secureChannelId: ",
+        secureChannelId);
+  }
+  auto saHandle = scHandle->secureAssocs.find(assocNum);
+  if (saHandle == scHandle->secureAssocs.end()) {
+    throw FbossError(
+        "Attempted to remove non-existent SA for secureChannelId, assocNum:  ",
+        secureChannelId,
+        ", ",
+        assocNum);
+  }
+  scHandle->secureAssocs.erase(saHandle);
+  XLOG(INFO) << "removed macsec SA for secureChannelId:assocNum: "
+             << secureChannelId << ":" << assocNum;
+}
+
+SaiMacsecSecureAssoc* FOLLY_NULLABLE SaiMacsecManager::getMacsecSecureAssocImpl(
+    PortID linePort,
+    MacsecSecureChannelId secureChannelId,
+    sai_macsec_direction_t direction,
+    uint8_t assocNum) const {
+  auto scHandle =
+      getMacsecSecureChannelHandle(linePort, secureChannelId, direction);
+  if (!scHandle) {
+    return nullptr;
+  }
+  auto itr = scHandle->secureAssocs.find(assocNum);
+  if (itr == scHandle->secureAssocs.end()) {
+    return nullptr;
+  }
+  CHECK(itr->second.get())
+      << "Invalid null std::shared_ptr<SaiMacsecSA> for secureChannelId:assocNum: "
+      << secureChannelId << ":" << assocNum;
   return itr->second.get();
 }
 
