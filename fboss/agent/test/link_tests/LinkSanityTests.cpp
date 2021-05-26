@@ -1,7 +1,9 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include <gtest/gtest.h>
+#include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
+#include "fboss/qsfp_service/lib/QsfpCache.h"
 
 using namespace ::testing;
 using namespace facebook::fboss;
@@ -25,4 +27,26 @@ TEST_F(LinkTest, asicLinkFlap) {
   };
 
   verifyAcrossWarmBoots([]() {}, verify);
+}
+
+TEST_F(LinkTest, getTransceivers) {
+  auto allTransceiversPresent = [this]() {
+    auto ports = getCabledPorts();
+    // Set the port status on all cabled ports to false. The link should go
+    // down
+    for (const auto& port : ports) {
+      auto transceiverId =
+          platform()->getPlatformPort(port)->getTransceiverID().value();
+      if (!platform()->getQsfpCache()->getIf(transceiverId)) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  verifyAcrossWarmBoots(
+      []() {},
+      [allTransceiversPresent, this]() {
+        checkWithRetry(allTransceiversPresent);
+      });
 }
