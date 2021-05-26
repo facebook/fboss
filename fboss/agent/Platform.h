@@ -28,6 +28,7 @@ class ThriftHandler;
 struct ProductInfo;
 class HwAsic;
 class PlatformProductInfo;
+class QsfpCache;
 enum class PlatformMode : char;
 
 /*
@@ -245,6 +246,8 @@ class Platform {
    * initPorts() will be called during port initialization.
    */
   virtual void initPorts() = 0;
+
+  virtual QsfpCache* getQsfpCache() const = 0;
 
   virtual bool supportsAddRemovePort() const {
     return false;

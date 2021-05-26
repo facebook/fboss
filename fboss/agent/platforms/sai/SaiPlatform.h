@@ -65,7 +65,7 @@ class SaiPlatform : public Platform, public StateObserver {
   HwSwitchWarmBootHelper* getWarmBootHelper();
   virtual uint32_t numLanesPerCore() const = 0;
   void stateUpdated(const StateDelta& delta) override;
-  QsfpCache* getQsfpCache() const;
+  QsfpCache* getQsfpCache() const override;
 
   virtual std::vector<PortID> getAllPortsInGroup(PortID portID) const = 0;
   virtual std::vector<FlexPortMode> getSupportedFlexPortModes() const = 0;

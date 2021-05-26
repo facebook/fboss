@@ -54,6 +54,7 @@ class MockPlatform : public Platform {
   MOCK_METHOD1(onInitialConfigApplied, void(SwSwitch* sw));
   MOCK_METHOD0(initPorts, void());
   MOCK_CONST_METHOD0(supportsAddRemovePort, bool());
+  MOCK_CONST_METHOD0(getQsfpCache, QsfpCache*());
 
  private:
   void createTmpDir();

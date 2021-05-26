@@ -85,6 +85,9 @@ class BcmTestPlatform : public BcmPlatform {
   virtual bool usesYamlConfig() const {
     return false;
   }
+  QsfpCache* getQsfpCache() const override {
+    return nullptr;
+  }
 
  protected:
   // Each platform should have their own logical ports list.

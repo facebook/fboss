@@ -74,7 +74,7 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
     return warmBootHelper_.get();
   }
 
-  QsfpCache* getQsfpCache() const {
+  QsfpCache* getQsfpCache() const override {
     return qsfpCache_.get();
   }
 

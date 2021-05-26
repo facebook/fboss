@@ -48,6 +48,9 @@ class SimPlatform : public Platform {
   }
 
   void initPorts() override;
+  QsfpCache* getQsfpCache() const override {
+    return nullptr;
+  }
 
  private:
   // Forbidden copy constructor and assignment operator
