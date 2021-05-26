@@ -29,6 +29,8 @@ using SaiMacsecSecureChannel = SaiObject<SaiMacsecSCTraits>;
 using SaiMacsecFlow = SaiObject<SaiMacsecFlowTraits>;
 
 struct SaiMacsecSecureChannelHandle {
+  // Flow must come before SC for destruction to remove them in the right order
+  std::shared_ptr<SaiMacsecFlow> flow;
   std::shared_ptr<SaiMacsecSecureChannel> secureChannel;
   folly::F14FastMap<uint8_t, std::shared_ptr<SaiMacsecSecureAssoc>>
       secureAssocs;
@@ -45,7 +47,6 @@ struct SaiMacsecPortHandle {
 
 struct SaiMacsecHandle {
   std::shared_ptr<SaiMacsec> macsec;
-  std::shared_ptr<SaiMacsecFlow> flow;
   folly::F14FastMap<PortID, std::unique_ptr<SaiMacsecPortHandle>> ports;
 };
 
@@ -67,10 +68,14 @@ class SaiMacsecManager {
       sai_macsec_direction_t direction,
       bool physicalBypassEnable);
 
-  MacsecFlowSaiId addMacsecFlow(sai_macsec_direction_t direction);
-  const SaiMacsecFlow* getMacsecFlow(sai_macsec_direction_t direction) const;
-  SaiMacsecFlow* getMacsecFlow(sai_macsec_direction_t direction);
-  void removeMacsecFlow(sai_macsec_direction_t direction);
+  const SaiMacsecFlow* getMacsecFlow(
+      PortID linePort,
+      MacsecSecureChannelId secureChannelId,
+      sai_macsec_direction_t direction) const;
+  SaiMacsecFlow* getMacsecFlow(
+      PortID linePort,
+      MacsecSecureChannelId secureChannelId,
+      sai_macsec_direction_t direction);
 
   MacsecPortSaiId addMacsecPort(
       PortID linePort,
@@ -84,7 +89,6 @@ class SaiMacsecManager {
   MacsecSCSaiId addMacsecSecureChannel(
       PortID linePort,
       sai_macsec_direction_t direction,
-      MacsecFlowSaiId flowId,
       MacsecSecureChannelId secureChannelId,
       bool xpn64Enable);
   const SaiMacsecSecureChannelHandle* FOLLY_NULLABLE
@@ -129,7 +133,10 @@ class SaiMacsecManager {
  private:
   SaiMacsecHandle* FOLLY_NULLABLE
   getMacsecHandleImpl(sai_macsec_direction_t direction) const;
-  SaiMacsecFlow* getMacsecFlowImpl(sai_macsec_direction_t direction) const;
+  SaiMacsecFlow* getMacsecFlowImpl(
+      PortID linePort,
+      MacsecSecureChannelId secureChannelId,
+      sai_macsec_direction_t direction) const;
   SaiMacsecPortHandle* FOLLY_NULLABLE getMacsecPortHandleImpl(
       PortID linePort,
       sai_macsec_direction_t direction) const;
@@ -142,6 +149,8 @@ class SaiMacsecManager {
       MacsecSecureChannelId secureChannelId,
       sai_macsec_direction_t direction,
       uint8_t assocNum) const;
+  std::shared_ptr<SaiMacsecFlow> createMacsecFlow(
+      sai_macsec_direction_t direction);
 
   SaiStore* saiStore_;
 

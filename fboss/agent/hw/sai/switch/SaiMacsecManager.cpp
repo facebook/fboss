@@ -89,71 +89,47 @@ SaiMacsecManager::getMacsecHandleImpl(sai_macsec_direction_t direction) const {
   return itr->second.get();
 }
 
-MacsecFlowSaiId SaiMacsecManager::addMacsecFlow(
+std::shared_ptr<SaiMacsecFlow> SaiMacsecManager::createMacsecFlow(
     sai_macsec_direction_t direction) {
-  auto flow = getMacsecFlow(direction);
-  if (flow) {
-    throw FbossError(
-        "Attempted to add macsecFlow for direction that already exists: ",
-        direction,
-        " SAI id: ",
-        flow->adapterKey());
-  }
-
-  auto macsecHandle = getMacsecHandle(direction);
-  if (!macsecHandle) {
-    throw FbossError(
-        "Attempted to add macsecFlow for direction that has no macsec pipeline obj: ",
-        direction);
-  }
-
   SaiMacsecFlowTraits::CreateAttributes attributes = {
       direction,
   };
   SaiMacsecFlowTraits::AdapterHostKey key{direction};
 
   auto& store = saiStore_->get<SaiMacsecFlowTraits>();
-  auto secureChannelObject = store.setObject(key, attributes);
 
-  macsecHandle->flow = std::move(secureChannelObject);
-  return macsecHandle->flow->adapterKey();
+  return store.setObject(key, attributes);
 }
 
 const SaiMacsecFlow* SaiMacsecManager::getMacsecFlow(
+    PortID linePort,
+    MacsecSecureChannelId secureChannelId,
     sai_macsec_direction_t direction) const {
-  return getMacsecFlowImpl(direction);
+  return getMacsecFlowImpl(linePort, secureChannelId, direction);
 }
 SaiMacsecFlow* SaiMacsecManager::getMacsecFlow(
+    PortID linePort,
+    MacsecSecureChannelId secureChannelId,
     sai_macsec_direction_t direction) {
-  return getMacsecFlowImpl(direction);
-}
-
-void SaiMacsecManager::removeMacsecFlow(sai_macsec_direction_t direction) {
-  auto macsecHandle = getMacsecHandle(direction);
-  if (!macsecHandle) {
-    throw FbossError(
-        "Attempted to remove macsecFlow for direction that has no macsec pipeline obj: ",
-        direction);
-  }
-
-  if (!macsecHandle->flow) {
-    throw FbossError(
-        "Attempted to remove non-existent macsec flow for direction: ",
-        direction);
-  }
-  macsecHandle->flow.reset();
-  XLOG(INFO) << "removed macsec Flow for direction: " << direction;
+  return getMacsecFlowImpl(linePort, secureChannelId, direction);
 }
 
 SaiMacsecFlow* SaiMacsecManager::getMacsecFlowImpl(
+    PortID linePort,
+    MacsecSecureChannelId secureChannelId,
     sai_macsec_direction_t direction) const {
-  auto macsecHandle = getMacsecHandle(direction);
-  if (!macsecHandle) {
+  auto macsecScHandle =
+      getMacsecSecureChannelHandle(linePort, secureChannelId, direction);
+  if (!macsecScHandle) {
     throw FbossError(
-        "Attempted to get macsecFlow for direction that has no macsec pipeline obj: ",
+        "Attempted to get macsecFlow for non-existent SC ",
+        secureChannelId,
+        "for port ",
+        linePort,
+        " direction ",
         direction);
   }
-  return macsecHandle->flow.get();
+  return macsecScHandle->flow.get();
 }
 
 MacsecPortSaiId SaiMacsecManager::addMacsecPort(
@@ -248,7 +224,6 @@ SaiMacsecPortHandle* FOLLY_NULLABLE SaiMacsecManager::getMacsecPortHandleImpl(
 MacsecSCSaiId SaiMacsecManager::addMacsecSecureChannel(
     PortID linePort,
     sai_macsec_direction_t direction,
-    MacsecFlowSaiId flowId,
     MacsecSecureChannelId secureChannelId,
     bool xpn64Enable) {
   auto handle =
@@ -269,6 +244,10 @@ MacsecSCSaiId SaiMacsecManager::addMacsecSecureChannel(
         "Attempted to add macsecSC for linePort that doesn't exist: ",
         linePort);
   }
+
+  // create a new flow for the SC
+  auto flow = createMacsecFlow(direction);
+  auto flowId = flow->adapterKey();
 
   std::optional<bool> secureChannelEnable;
   std::optional<bool> replayProtectionEnable;
@@ -298,6 +277,7 @@ MacsecSCSaiId SaiMacsecManager::addMacsecSecureChannel(
   auto saiObj = store.setObject(secureChannelKey, attributes);
   auto scHandle = std::make_unique<SaiMacsecSecureChannelHandle>();
   scHandle->secureChannel = std::move(saiObj);
+  scHandle->flow = std::move(flow);
   macsecPort->secureChannels.emplace(secureChannelId, std::move(scHandle));
   return macsecPort->secureChannels[secureChannelId]
       ->secureChannel->adapterKey();
