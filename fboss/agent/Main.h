@@ -88,7 +88,7 @@ class AgentInitializer {
     return platform_;
   }
   Initializer* initializer() const {
-    return initializer_;
+    return initializer_.get();
   }
 
  public:
@@ -105,7 +105,7 @@ class AgentInitializer {
  private:
   SwSwitch* sw_;
   Platform* platform_;
-  Initializer* initializer_;
+  std::unique_ptr<Initializer> initializer_;
   std::unique_ptr<apache::thrift::ThriftServer> server_;
   folly::EventBase* eventBase_;
 };

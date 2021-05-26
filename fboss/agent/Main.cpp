@@ -40,6 +40,11 @@
 #include <future>
 #include <mutex>
 #include <string>
+#ifndef IS_OSS
+#if __has_feature(address_sanitizer)
+#include <sanitizer/lsan_interface.h>
+#endif
+#endif
 
 using apache::thrift::ThriftServer;
 using folly::AsyncSignalHandler;
@@ -207,6 +212,11 @@ void SignalHandler::signalReceived(int /*signum*/) noexcept {
       << duration_cast<duration<float>>(switchGracefulExit - begin).count();
 
   restart_time::mark(RestartEvent::SHUTDOWN);
+#ifndef IS_OSS
+#if __has_feature(address_sanitizer)
+  __lsan_ignore_object(sw_);
+#endif
+#endif
 
   exit(0);
 }
@@ -263,7 +273,7 @@ void AgentInitializer::createSwitch(
   // Create the SwSwitch and thrift handler
   sw_ = new SwSwitch(std::move(platform));
   platform_ = sw_->getPlatform();
-  initializer_ = new Initializer(sw_, platform_);
+  initializer_ = std::make_unique<Initializer>(sw_, platform_);
 }
 
 int AgentInitializer::initAgent() {
@@ -315,6 +325,11 @@ void AgentInitializer::stopAgent(bool setupWarmboot) {
   stopServices();
   if (setupWarmboot) {
     sw_->gracefulExit();
+#ifndef IS_OSS
+#if __has_feature(address_sanitizer)
+    __lsan_ignore_object(sw_);
+#endif
+#endif
   }
 }
 
