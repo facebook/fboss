@@ -18,6 +18,7 @@ class BcmLabelSwitchAction {
       BcmSwitch* hw,
       bcm_mpls_label_t topLabel,
       const LabelNextHopEntry& entry);
+  void update(BcmSwitch* hw, const LabelNextHopEntry& entry);
 
   ~BcmLabelSwitchAction();
 
@@ -30,6 +31,12 @@ class BcmLabelSwitchAction {
   BcmLabelSwitchAction(BcmLabelSwitchAction&&) = delete;
   BcmLabelSwitchAction& operator=(const BcmLabelSwitchAction&) = delete;
   BcmLabelSwitchAction& operator=(BcmLabelSwitchAction&&) = delete;
+
+  void program(
+      BcmSwitch* hw,
+      bcm_mpls_label_t topLabel,
+      const LabelNextHopEntry& entry,
+      bool replace);
 
   int unit_;
   // reference to resolved next hop(s)

@@ -27,17 +27,36 @@ BcmLabelSwitchAction::BcmLabelSwitchAction(
     bcm_mpls_label_t topLabel,
     const LabelNextHopEntry& entry)
     : unit_(hw->getUnit()) {
+  program(hw, topLabel, entry, false);
+}
+
+void BcmLabelSwitchAction::update(
+    BcmSwitch* hw,
+    const LabelNextHopEntry& entry) {
+  program(hw, action_.label, entry, true);
+}
+
+void BcmLabelSwitchAction::program(
+    BcmSwitch* hw,
+    bcm_mpls_label_t topLabel,
+    const LabelNextHopEntry& entry,
+    bool replace) {
   // using vrf 0 by default for host references, if going forward more than one
   // vrf gets supported, next hop address or label forwarding info  entry base
   // must carry which vrf to use to resolve next hop l3 address
 
-  bcm_mpls_tunnel_switch_t_init(&action_);
-  action_.label = topLabel;
-  action_.flags = BCM_MPLS_SWITCH_TTL_DECREMENT; // decrement TTL by 1
-  action_.port = BCM_GPORT_INVALID; // platform label space
+  if (replace) {
+    action_.flags |= BCM_MPLS_SWITCH_REPLACE;
+  } else {
+    bcm_mpls_tunnel_switch_t_init(&action_);
+    action_.label = topLabel;
+    action_.flags |= BCM_MPLS_SWITCH_TTL_DECREMENT; // decrement TTL by 1
+    action_.port = BCM_GPORT_INVALID; // platform label space
+  }
   action_.action = utility::getLabelSwitchAction(
       entry.getAction(),
       entry.getNextHopSet().begin()->labelForwardingAction()->type());
+  std::shared_ptr<BcmMultiPathNextHop> nexthop;
 
   auto defaultDataPlaneQosPolicy =
       hw->getQosPolicyTable()->getDefaultDataPlaneQosPolicyIf();
@@ -57,17 +76,17 @@ BcmLabelSwitchAction::BcmLabelSwitchAction(
       action_.flags |= BCM_MPLS_SWITCH_OUTER_TTL;
       /* PHP reuses same egress objects as those of L3, because PHP are
        * unlabeled next hops */
-      nexthop_ = hw->writableMultiPathNextHopTable()->referenceOrEmplaceNextHop(
+      nexthop = hw->writableMultiPathNextHopTable()->referenceOrEmplaceNextHop(
           BcmMultiPathNextHopKey(
               0 /* vrfid */,
               utility::stripLabelForwarding(entry.normalizedNextHops())));
     } else {
       // put decremented TTL into outgoing L3 packets
       action_.flags |= BCM_MPLS_SWITCH_OUTER_TTL;
-      nexthop_ = hw->writableMultiPathNextHopTable()->referenceOrEmplaceNextHop(
+      nexthop = hw->writableMultiPathNextHopTable()->referenceOrEmplaceNextHop(
           BcmMultiPathNextHopKey(0 /* vrfid */, entry.normalizedNextHops()));
     }
-    action_.egress_if = nexthop_->getEgressId();
+    action_.egress_if = nexthop->getEgressId();
   } else {
     // action POP
     if (hw->getPlatform()->getAsic()->isSupported(
@@ -90,8 +109,10 @@ BcmLabelSwitchAction::BcmLabelSwitchAction(
                  << " already exists";
       exists = true;
     }
-    XLOG(DBG3) << "replacing label switch action for label " << topLabel;
     action_.flags |= BCM_MPLS_SWITCH_REPLACE;
+  }
+  if (action_.flags & BCM_MPLS_SWITCH_REPLACE) {
+    XLOG(DBG3) << "replacing label switch action for label " << topLabel;
   } else {
     XLOG(DBG3) << "adding label switch action for label " << topLabel;
   }
@@ -104,6 +125,7 @@ BcmLabelSwitchAction::BcmLabelSwitchAction(
   if (itr != hw->getWarmBootCache()->Label2LabelActionMapEnd()) {
     hw->getWarmBootCache()->programmedLabelAction(itr);
   }
+  nexthop_ = nexthop;
 }
 
 BcmLabelSwitchAction::~BcmLabelSwitchAction() {

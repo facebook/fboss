@@ -26,8 +26,14 @@ void BcmLabelMap::processRemovedLabelSwitchAction(BcmLabel topLabel) {
 void BcmLabelMap::processChangedLabelSwitchAction(
     BcmLabel topLabel,
     const LabelNextHopEntry& nexthops) {
-  processRemovedLabelSwitchAction(topLabel);
-  processAddedLabelSwitchAction(topLabel, nexthops);
+  auto entry = labelMap_.find(topLabel);
+  if (entry == labelMap_.end()) {
+    throw FbossError(
+        "Label switch entry modify failed. No entry found for label ",
+        topLabel);
+  } else {
+    entry->second->update(hw_, nexthops);
+  }
 }
 
 } // namespace facebook::fboss

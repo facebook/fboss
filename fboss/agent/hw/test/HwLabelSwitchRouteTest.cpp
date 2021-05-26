@@ -116,10 +116,11 @@ class HwLabelSwitchRouteTest : public HwLinkStateDependentTest {
   }
 
   void setupLabelSwitchActionWithMultiNextHop(
-      LabelForwardingAction::LabelForwardingType action) {
+      LabelForwardingAction::LabelForwardingType action,
+      int width = kWidth) {
     setupECMPHelper(kTopLabel, action);
     LabelNextHopSet nhops;
-    for (auto i = 0; i < kWidth; i++) {
+    for (auto i = 0; i < width; i++) {
       auto testNhop = getNextHop(i);
       applyNewState(helper_->resolveNextHop(getProgrammedState(), testNhop));
       nhops.insert(LabelNextHop{
@@ -206,6 +207,26 @@ TYPED_TEST(HwLabelSwitchRouteTest, EcmpSwap) {
     return;
   }
   auto setup = [=]() {
+    this->setupLabelSwitchActionWithMultiNextHop(
+        LabelForwardingAction::LabelForwardingType::SWAP);
+  };
+  auto verify = [=]() {
+    this->verifyMultiPathLabelSwitchAction(
+        LabelForwardingAction::LabelForwardingType::SWAP);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(HwLabelSwitchRouteTest, EcmpModify) {
+  if (!this->isSupported(HwAsic::Feature::MPLS_ECMP)) {
+    return;
+  }
+  auto setup = [=]() {
+    // set up initial ecmp with width 2
+    this->setupLabelSwitchActionWithMultiNextHop(
+        LabelForwardingAction::LabelForwardingType::SWAP, 2);
+
+    // change to default ecmp with width 4
     this->setupLabelSwitchActionWithMultiNextHop(
         LabelForwardingAction::LabelForwardingType::SWAP);
   };
