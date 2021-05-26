@@ -15,7 +15,8 @@ from contextlib import ExitStack
 from facebook.network.Address.ttypes import Address, AddressType, BinaryAddress
 from fboss.cli.commands import commands as cmds
 from fboss.cli.utils import utils
-from neteng.fboss.ctrl.ttypes import IpPrefix, NextHopThrift, UnicastRoute
+from neteng.fboss.common.ttypes import NextHopThrift
+from neteng.fboss.ctrl.ttypes import IpPrefix, UnicastRoute
 from thrift.transport.TTransport import TTransportException
 
 

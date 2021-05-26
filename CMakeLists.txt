@@ -172,6 +172,7 @@ add_fbthrift_cpp_library(
   OPTIONS
     json
   DEPENDS
+    common_cpp2
     mpls_cpp2
 )
 add_fbthrift_cpp_library(
@@ -239,6 +240,13 @@ add_fbthrift_cpp_library(
   fboss/agent/if/sflow.thrift
 )
 add_fbthrift_cpp_library(
+  common_cpp2
+  fboss/agent/if/common.thrift
+  DEPENDS
+    mpls_cpp2
+    network_address_cpp2
+)
+add_fbthrift_cpp_library(
   ctrl_cpp2
   fboss/agent/if/ctrl.thrift
   SERVICES
@@ -252,6 +260,7 @@ add_fbthrift_cpp_library(
     optic_cpp2
     platform_config_cpp2
     transceiver_cpp2
+    common_cpp2
 )
 add_fbthrift_cpp_library(
   packet_stream_cpp2

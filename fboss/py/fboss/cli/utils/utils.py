@@ -17,7 +17,7 @@ from typing import DefaultDict, Dict, List, Tuple
 
 from facebook.network.Address.ttypes import BinaryAddress
 from libfb.py.decorators import retryable
-from neteng.fboss.ctrl.ttypes import NextHopThrift
+from neteng.fboss.common.ttypes import NextHopThrift
 from neteng.fboss.mpls.ttypes import MplsAction, MplsActionCode
 
 

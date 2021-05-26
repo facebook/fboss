@@ -10,6 +10,7 @@ include "fboss/agent/if/fboss.thrift"
 include "common/fb303/if/fb303.thrift"
 include "common/network/if/Address.thrift"
 include "fboss/agent/if/mpls.thrift"
+include "fboss/agent/if/common.thrift"
 include "fboss/agent/if/optic.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
 include "fboss/agent/switch_config.thrift"
@@ -60,22 +61,6 @@ struct IpPrefix {
   2: required i16 prefixLength,
 }
 
-struct NextHopThrift {
-  1: Address.BinaryAddress address,
-  // Default weight of 0 represents an ECMP route.
-  // This default is chosen for two reasons:
-  // 1) We rely on the arithmetic properties of 0 for ECMP vs UCMP route
-  //    resolution calculations. A 0 weight next hop being present at a variety
-  //    of layers in a route resolution tree will cause the entire route
-  //    resolution to use ECMP.
-  // 2) A client which does not set a value will result in
-  //    0 being populated even with strange behavior in the client language
-  //    which is consistent with C++
-  2: i32 weight = 0,
-  // MPLS encapsulation information for IP->MPLS and MPLS routes
-  3: optional mpls.MplsAction mplsAction,
-}
-
 enum RouteForwardAction {
   DROP = 0,
   TO_CPU = 1,
@@ -89,7 +74,7 @@ struct UnicastRoute {
   // ensure we don't crash clients/servers that still see it as required.
   2: list<Address.BinaryAddress> nextHopAddrs,
   3: optional AdminDistance adminDistance,
-  4: list<NextHopThrift> nextHops,
+  4: list<common.NextHopThrift> nextHops,
   // Optional forwarding action. If not specified (for backward compatibility)
   // infer from nexthops
   5: optional RouteForwardAction action
@@ -98,14 +83,14 @@ struct UnicastRoute {
 struct MplsRoute {
   1: required mpls.MplsLabel topLabel,
   3: optional AdminDistance adminDistance,
-  4: list<NextHopThrift> nextHops,
+  4: list<common.NextHopThrift> nextHops,
 }
 
 struct ClientAndNextHops {
   1: required i32 clientId,
   // Deprecated in favor of '3: nextHops'
   2: required list<Address.BinaryAddress> nextHopAddrs,
-  3: required list<NextHopThrift> nextHops,
+  3: required list<common.NextHopThrift> nextHops,
 }
 
 struct IfAndIP {
@@ -121,7 +106,7 @@ struct RouteDetails {
   4: required list<ClientAndNextHops> nextHopMulti,
   5: required bool isConnected,
   6: optional AdminDistance adminDistance,
-  7: list<NextHopThrift> nextHops,
+  7: list<common.NextHopThrift> nextHops,
 }
 
 struct MplsRouteDetails {
@@ -129,7 +114,7 @@ struct MplsRouteDetails {
   2: string action
   3: list<ClientAndNextHops> nextHopMulti,
   4: AdminDistance adminDistance,
-  5: list<NextHopThrift> nextHops,
+  5: list<common.NextHopThrift> nextHops,
 }
 
 struct ArpEntryThrift {
