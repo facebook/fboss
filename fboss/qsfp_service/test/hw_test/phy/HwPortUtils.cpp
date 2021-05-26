@@ -9,8 +9,14 @@
  */
 #include "fboss/qsfp_service/test/hw_test/phy/HwPortUtils.h"
 
+#include "fboss/agent/hw/sai/api/PortApi.h"
+#include "fboss/agent/hw/sai/api/SaiApiTable.h"
+#include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/lib/phy/ExternalPhy.h"
+#include "fboss/lib/phy/SaiPhyManager.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 
 #include <folly/logging/xlog.h>
@@ -68,5 +74,44 @@ void verifyPhyPortConfig(
       *expectedProfileConfig->xphyLine_ref(), actualPortConfig.profile.line);
 
   // TODO(rajank) Add tx_settings check
+}
+
+void verifyPhyPortConnector(PortID portID, HwQsfpEnsemble* qsfpEnsemble) {
+  if (qsfpEnsemble->getWedgeManager()->getPlatformMode() !=
+      PlatformMode::ELBERT) {
+    return;
+  }
+
+  auto saiPhyManager =
+      static_cast<SaiPhyManager*>(qsfpEnsemble->getPhyManager());
+  // The goal here is to check whether:
+  // 1) the connector is using the correct system port and line port.
+  // 2) both system and line port admin state is enabled
+  // Expected config from PlatformMapping
+  auto* saiPortHandle = saiPhyManager->getSaiSwitch(portID)
+                            ->managerTable()
+                            ->portManager()
+                            .getPortHandle(portID);
+  auto connector = saiPortHandle->connector;
+  auto& portApi = SaiApiTable::getInstance()->portApi();
+  auto linePortID = portApi.getAttribute(
+      connector->adapterKey(),
+      SaiPortConnectorTraits::Attributes::LineSidePortId{});
+  EXPECT_EQ(linePortID, saiPortHandle->port->adapterKey());
+
+  auto systemPortID = portApi.getAttribute(
+      connector->adapterKey(),
+      SaiPortConnectorTraits::Attributes::SystemSidePortId{});
+  EXPECT_EQ(systemPortID, saiPortHandle->sysPort->adapterKey());
+
+  auto adminState = portApi.getAttribute(
+      saiPortHandle->port->adapterKey(),
+      SaiPortTraits::Attributes::AdminState{});
+  EXPECT_TRUE(adminState);
+
+  adminState = portApi.getAttribute(
+      saiPortHandle->sysPort->adapterKey(),
+      SaiPortTraits::Attributes::AdminState{});
+  EXPECT_TRUE(adminState);
 }
 } // namespace facebook::fboss::utility

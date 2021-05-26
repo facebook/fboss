@@ -60,8 +60,7 @@ class HwPortProfileTest : public HwTest {
         getHwQsfpEnsemble()->getPlatformMapping(),
         getHwQsfpEnsemble()->getExternalPhy(portID));
 
-    utility::verifyPhyPortConnector(
-        portID, getHwQsfpEnsemble()->getPhyManager());
+    utility::verifyPhyPortConnector(portID, getHwQsfpEnsemble());
   }
 
   void runTest() {

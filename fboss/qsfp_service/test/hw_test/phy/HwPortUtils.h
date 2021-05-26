@@ -17,6 +17,7 @@ namespace facebook::fboss {
 
 class PlatformMapping;
 class PhyManager;
+class HwQsfpEnsemble;
 
 namespace phy {
 class ExternalPhy;
@@ -30,7 +31,7 @@ void verifyPhyPortConfig(
     const PlatformMapping* platformMapping,
     phy::ExternalPhy* xphy);
 
-void verifyPhyPortConnector(PortID portID, PhyManager* xphyManager);
+void verifyPhyPortConnector(PortID portID, HwQsfpEnsemble* qsfpEnsemble);
 } // namespace utility
 
 } // namespace facebook::fboss
