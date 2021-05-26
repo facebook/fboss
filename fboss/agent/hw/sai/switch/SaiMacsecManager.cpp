@@ -155,7 +155,8 @@ MacsecPortSaiId SaiMacsecManager::addMacsecPort(
 
   SaiMacsecPortTraits::CreateAttributes attributes{
       portHandle->port->adapterKey(), direction};
-  SaiMacsecPortTraits::AdapterHostKey key{linePort, direction};
+  SaiMacsecPortTraits::AdapterHostKey key{
+      portHandle->port->adapterKey(), direction};
 
   auto& store = saiStore_->get<SaiMacsecPortTraits>();
   auto saiObj = store.setObject(key, attributes);
