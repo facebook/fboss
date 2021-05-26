@@ -31,10 +31,6 @@ DEFINE_bool(run_forever, false, "run the test forever");
 
 namespace facebook::fboss {
 
-void MultiNodeTest::TearDown() {
-  stopAgent();
-}
-
 // Construct a config file by combining the hw config passed
 // and sw configs from test utility and set config flag to
 // point to the test config
@@ -62,7 +58,7 @@ void MultiNodeTest::setupFlags() {
 }
 
 void MultiNodeTest::SetUp() {
-  setupAgent();
+  AgentTest::SetUp();
   XLOG(DBG0) << "Multinode setup ready";
 }
 

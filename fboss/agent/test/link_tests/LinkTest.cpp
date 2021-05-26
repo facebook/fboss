@@ -16,12 +16,8 @@ using namespace facebook::fboss;
 
 namespace facebook::fboss {
 
-void LinkTest::TearDown() {
-  stopAgent();
-}
-
 void LinkTest::SetUp() {
-  setupAgent();
+  AgentTest::SetUp();
   initializeCabledPorts();
   // Wait for all the cabled ports to link up before finishing the setup
   waitForAllCabledPorts(true);

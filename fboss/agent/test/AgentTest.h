@@ -12,6 +12,12 @@ namespace facebook::fboss {
 class AgentTest : public ::testing::Test, public AgentInitializer {
  public:
   virtual ~AgentTest();
+  void SetUp() override {
+    setupAgent();
+  }
+  void TearDown() override {
+    stopAgent();
+  }
 
  protected:
   void stopAgent();

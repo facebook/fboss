@@ -18,7 +18,6 @@ namespace facebook::fboss {
 class MultiNodeTest : public AgentTest {
  protected:
   void SetUp() override;
-  void TearDown() override;
   void setupFlags() override;
   void setupConfigFlag() override;
 

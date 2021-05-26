@@ -9,7 +9,6 @@ namespace facebook::fboss {
 class LinkTest : public AgentTest {
  protected:
   void SetUp() override;
-  void TearDown() override;
   void waitForAllCabledPorts(
       bool up,
       uint32_t retries = 60,
