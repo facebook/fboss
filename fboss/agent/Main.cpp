@@ -295,27 +295,24 @@ int AgentInitializer::initAgent() {
   facebook::fb303::ThreadCachedServiceData::get()->startPublishThread(
       std::chrono::milliseconds(FLAGS_stat_publish_interval_ms));
 
-  auto stopServices = [&]() {
-    // stop accepting new connections
-    server_->stopListening();
-    XLOG(INFO) << "Stopped thrift server listening";
-    initializer_->stopFunctionScheduler();
-    XLOG(INFO) << "Stopped stats FunctionScheduler";
-    fbossFinalize();
-  };
-  SignalHandler signalHandler(eventBase_, sw_, stopServices);
+  SignalHandler signalHandler(eventBase_, sw_, [this]() { stopServices(); });
 
   XLOG(INFO) << "serving on localhost on port " << FLAGS_port;
   server_->serve();
   return 0;
 }
 
-void AgentInitializer::stopAgent(bool setupWarmboot) {
+void AgentInitializer::stopServices() {
+  // stop accepting new connections
   server_->stopListening();
   XLOG(INFO) << "Stopped thrift server listening";
   initializer_->stopFunctionScheduler();
   XLOG(INFO) << "Stopped stats FunctionScheduler";
   fbossFinalize();
+}
+
+void AgentInitializer::stopAgent(bool setupWarmboot) {
+  stopServices();
   if (setupWarmboot) {
     sw_->gracefulExit();
   }

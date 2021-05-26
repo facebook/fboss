@@ -92,6 +92,7 @@ class AgentInitializer {
   }
 
  public:
+  void stopServices();
   AgentInitializer() {}
   void createSwitch(
       int argc,
