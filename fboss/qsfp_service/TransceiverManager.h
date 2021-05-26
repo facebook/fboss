@@ -129,9 +129,7 @@ class TransceiverManager {
     return portGroupMap_;
   }
 
-  const PortNameMap& getPortNameToModuleMap() const {
-    return portNameToModule_;
-  }
+  const PortNameMap& getPortNameToModuleMap() const;
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -157,7 +155,7 @@ class TransceiverManager {
   // and it will resume once the time is reached.
   time_t pauseRemediationUntil_{0};
 
-  PortNameMap portNameToModule_;
+  mutable PortNameMap portNameToModule_;
   PortGroups portGroupMap_;
 };
 } // namespace fboss

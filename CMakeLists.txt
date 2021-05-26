@@ -801,6 +801,13 @@ if (NOT SAI_ONLY)
   target_link_libraries(cp2112_util fboss_agent)
 
   add_executable(wedge_qsfp_util
+      fboss/qsfp_service/platforms/wedge/WedgeManager.cpp
+      fboss/qsfp_service/platforms/wedge/Wedge100Manager.cpp
+      fboss/qsfp_service/platforms/wedge/GalaxyManager.cpp
+      fboss/qsfp_service/platforms/wedge/Wedge40Manager.cpp
+      fboss/qsfp_service/platforms/wedge/WedgeManagerInit.cpp
+      fboss/qsfp_service/platforms/wedge/oss/WedgeManagerInit.cpp
+      fboss/qsfp_service/TransceiverManager.cpp
       fboss/util/wedge_qsfp_util.cpp
       fboss/util/qsfp_util_main.cpp
       fboss/util/oss/wedge_qsfp_util.cpp
@@ -814,6 +821,8 @@ if (NOT SAI_ONLY)
       fboss/lib/i2c/FirmwareUpgrader.h
   )
   target_link_libraries(wedge_qsfp_util
+      fboss_agent
+      qsfp_config
       qsfp_lib
       qsfp_module
       ${YAML-CPP}

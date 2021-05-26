@@ -1,9 +1,13 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/util/wedge_qsfp_util.h"
+#include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
+#include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
+
 #include <folly/init/Init.h>
 #include <gflags/gflags.h>
 #include <glog/logging.h>
+
 #include <sysexits.h>
 
 using namespace facebook::fboss;
@@ -53,17 +57,24 @@ int main(int argc, char* argv[]) {
 
   std::vector<unsigned int> ports;
   bool good = true;
+  std::unique_ptr<WedgeManager> wedgeManager = nullptr;
   for (int n = 1; n < argc; ++n) {
     unsigned int portNum;
+    auto& portStr = argv[n];
     try {
       if (argv[n][0] == 'x' && argv[n][1] == 'e') {
         portNum = 1 + folly::to<unsigned int>(argv[n] + 2);
+      } else if (isalpha(portStr[0])) {
+        if (!wedgeManager) {
+          wedgeManager = createWedgeManager();
+        }
+        portNum = wedgeManager->getPortNameToModuleMap().at(portStr) + 1;
       } else {
         portNum = folly::to<unsigned int>(argv[n]);
       }
       ports.push_back(portNum);
     } catch (const std::exception& ex) {
-      fprintf(stderr, "error: invalid port number \"%s\": %s\n",
+      fprintf(stderr, "error: invalid port name/number \"%s\": %s\n",
               argv[n], ex.what());
       good = false;
     }

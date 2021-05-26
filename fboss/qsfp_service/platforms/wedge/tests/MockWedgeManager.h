@@ -11,8 +11,11 @@ namespace facebook::fboss {
 
 class MockWedgeManager : public WedgeManager {
  public:
-  MockWedgeManager(int numModules = 16, int numPortsPerModule = 4)
-      : WedgeManager(nullptr, nullptr, PlatformMode::WEDGE) {
+  MockWedgeManager(
+      int numModules = 16,
+      int numPortsPerModule = 4,
+      std::unique_ptr<PlatformMapping> platformMapping = nullptr)
+      : WedgeManager(nullptr, std::move(platformMapping), PlatformMode::WEDGE) {
     numModules_ = numModules;
     numPortsPerModule_ = numPortsPerModule;
   }
