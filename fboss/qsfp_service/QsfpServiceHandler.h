@@ -6,7 +6,7 @@
 #include "common/fb303/cpp/FacebookBase2.h"
 
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
-#include "fboss/facebook/mka_service/handlers/MacsecHandler.h"
+#include "fboss/mka_service/handlers/MacsecHandler.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
 #include "fboss/qsfp_service/platforms/wedge/facebook/FbossMacsecHandler.h"
