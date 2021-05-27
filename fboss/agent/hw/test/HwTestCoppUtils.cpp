@@ -64,9 +64,8 @@ cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic) {
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK:
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
-      return cfg::ToCpuAction::COPY;
     case HwAsic::AsicType::ASIC_TYPE_TAJO:
-      return cfg::ToCpuAction::TRAP;
+      return cfg::ToCpuAction::COPY;
     case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
       throw FbossError(
           "AsicType ", hwAsic->getAsicType(), " doesn't support cpu action");
