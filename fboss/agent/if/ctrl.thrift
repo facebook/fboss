@@ -953,6 +953,21 @@ service FbossCtrl extends fb303.FacebookService {
   */
   platform_config.PlatformMapping getPlatformMapping()
     throws (1: fboss.FbossBaseError error)
+
+  /*
+   * API to add named next hop groups, named next hop group with same name will be replaced
+   */
+  void addOrUpdateNextHopGroups(1: list<common.NamedNextHopGroup> nextHopGroups) throws (1: fboss.FbossBaseError error)
+
+  /*
+   * API to remove named next hop groups
+   */
+  void removeNextHopGroups(1: list<string> name) throws (1: fboss.FbossBaseError error)
+
+  /*
+   * API to get named next hop groups
+   */
+  list<common.NamedNextHopGroup> getNextHopGroups(1: list<string> name) throws (1: fboss.FbossBaseError error)
 }
 
 service NeighborListenerClient extends fb303.FacebookService {

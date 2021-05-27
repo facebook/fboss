@@ -24,3 +24,16 @@ struct NextHopThrift {
   // MPLS encapsulation information for IP->MPLS and MPLS routes
   3: optional mpls.MplsAction mplsAction,
 }
+
+/*
+* named next hop group is regular set of next hops but identified by name.
+* address of each next hop is recursively resolved.
+* if any next hop has MPLS push action, then recursive resolution may expand label stack..
+* if any next hop has MPLS swap action, then recursive resolution may expand label stack.
+* if any next hop has MPLS php action, then recursive resolution may not expand label stack.
+* if any next hop has MPLS pop action, then all next hops must have MPLS pop action, address of nexthop is ignored.
+*/
+struct NamedNextHopGroup {
+    1: required string name
+    2: required list<NextHopThrift> nexthops
+}
