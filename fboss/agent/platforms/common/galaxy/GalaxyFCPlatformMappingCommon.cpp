@@ -6495,8 +6495,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
 )";
 
 constexpr auto kFabricCardNameRegex = "fc(\\d+)";
-constexpr auto kDefaultFCName = "fc001";
-constexpr auto kLCName = "lc_name";
 
 std::string updatePlatformMappingStr(const std::string& lcName) {
   int cardID = 0;
@@ -6516,17 +6514,5 @@ GalaxyFCPlatformMapping::GalaxyFCPlatformMapping(
     const std::string& linecardName)
     : PlatformMapping(updatePlatformMappingStr(linecardName)) {}
 
-std::string GalaxyFCPlatformMapping::getFabriccardName() {
-  std::string netwhoamiStr;
-  if (!folly::readFile(FLAGS_netwhoami.data(), netwhoamiStr)) {
-    return kDefaultFCName;
-  }
-
-  auto netwhoamiDynamic = folly::parseJson(netwhoamiStr);
-  if (netwhoamiDynamic.find(kLCName) == netwhoamiDynamic.items().end()) {
-    return kDefaultFCName;
-  }
-  return netwhoamiDynamic[kLCName].asString();
-}
 } // namespace fboss
 } // namespace facebook
