@@ -97,6 +97,7 @@ static CmisFieldInfo::CmisFieldMap cmisFields = {
     {CmisField::RX_SIG_INT_CONT_AD, {CmisPages::PAGE01, 162, 1}},
     {CmisField::DSP_FW_VERSION, {CmisPages::PAGE01, 194, 2}},
     {CmisField::BUILD_REVISION, {CmisPages::PAGE01, 196, 2}},
+    {CmisField::APPLICATION_ADVERTISING2, {CmisPages::PAGE01, 223, 4}},
     // Page 02h
     {CmisField::TEMPERATURE_THRESH, {CmisPages::PAGE02, 128, 8}},
     {CmisField::VCC_THRESH, {CmisPages::PAGE02, 136, 8}},
@@ -521,11 +522,22 @@ SMFMediaInterfaceCode CmisModule::getSmfMediaInterface() {
   int length;
   int dataAddress;
 
-  getQsfpFieldAddress(
-      CmisField::APPLICATION_ADVERTISING1, dataAddress, offset, length);
-  // We use the module Media Interface ID, which is located at the second byte
-  // of the field, as Application ID here.
-  offset += (currentApplicationSel - 1) * length + 1;
+  // The ApSel value from 0 to 8 are present in the lower page and values from
+  // 9 to 15 are in page 1
+  if (currentApplicationSel <= 8) {
+    getQsfpFieldAddress(
+        CmisField::APPLICATION_ADVERTISING1, dataAddress, offset, length);
+    // We use the module Media Interface ID, which is located at the second byte
+    // of the field, as Application ID here.
+    offset += (currentApplicationSel - 1) * length + 1;
+  } else {
+    getQsfpFieldAddress(
+        CmisField::APPLICATION_ADVERTISING2, dataAddress, offset, length);
+    // This page contains Module media interface id on second byte of field
+    // for ApSel 9 onwards
+    offset += (currentApplicationSel - 9) * length + 1;
+  }
+
   getQsfpValue(dataAddress, offset, 1, &currentApplication);
 
   return (SMFMediaInterfaceCode)currentApplication;
