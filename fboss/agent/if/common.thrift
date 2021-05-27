@@ -37,3 +37,20 @@ struct NamedNextHopGroup {
     1: required string name
     2: required list<NextHopThrift> nexthops
 }
+
+/*
+ * Forwarding Class
+ */
+enum ForwardingClass {
+  DEFAULT = 0   // internal use only
+  CLASS_1 = 1
+  CLASS_2 = 2
+  CLASS_3 = 3
+  CLASS_4 = 4
+  CLASS_5 = 5
+  CLASS_6 = 6
+  CLASS_7 = 7
+}
+
+typedef map<byte, ForwardingClass> DscpToForwardingClassMap
+typedef map<ForwardingClass, list<NamedNextHopGroup>> ForwardingClassToNamedNhgs

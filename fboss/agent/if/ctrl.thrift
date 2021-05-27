@@ -968,6 +968,26 @@ service FbossCtrl extends fb303.FacebookService {
    * API to get named next hop groups
    */
   list<common.NamedNextHopGroup> getNextHopGroups(1: list<string> name) throws (1: fboss.FbossBaseError error)
+
+  /*
+   * Set all DSCP values for a given forwarding class
+   */
+  void setDscpToForwardingClass(1: list<byte> dscp, 2: common.ForwardingClass fc) throws (1: fboss.FbossBaseError error)
+
+  /*
+   * Clear all DSCP values for a given forwarding class, cleared DSCP values map to internal default forwarding class
+   */
+  void clearForwardingClassForDscp(1: list<byte> dscp) throws (1: fboss.FbossBaseError error)
+
+  /*
+   * Get forwarding class for a given DSCP
+   */
+  common.ForwardingClass getForwardingClassForDscp(1: byte dscp) throws (1: fboss.FbossBaseError error)
+
+  /*
+   * Get DSCP mapping to forwarding class
+   */
+  common.DscpToForwardingClassMap getDscpToForwardingClassMap()
 }
 
 service NeighborListenerClient extends fb303.FacebookService {
