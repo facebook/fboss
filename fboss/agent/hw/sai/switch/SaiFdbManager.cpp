@@ -298,6 +298,7 @@ L2EntryThrift SaiFdbManager::fdbToL2Entry(
   // If we programmed a entry via SaiFdbManager,
   // its valiadted
   entry.l2EntryType_ref() = L2EntryType::L2_ENTRY_TYPE_VALIDATED;
+  entry.port_ref() = 0;
 
   // To get the PortID, we get the bridgePortId from the fdb entry,
   // then get that Bridge Port's PortId attribute. We can lookup the
@@ -306,14 +307,22 @@ L2EntryThrift SaiFdbManager::fdbToL2Entry(
   auto bridgePortSaiId =
       fdbApi.getAttribute(fdbEntry, SaiFdbTraits::Attributes::BridgePortId());
   auto& bridgeApi = SaiApiTable::getInstance()->bridgeApi();
-  auto portSaiId = bridgeApi.getAttribute(
+  auto portOrLagSaiId = bridgeApi.getAttribute(
       BridgePortSaiId{bridgePortSaiId},
       SaiBridgePortTraits::Attributes::PortId{});
-  const auto portItr = concurrentIndices_->portIds.find(PortSaiId{portSaiId});
-  if (portItr == concurrentIndices_->portIds.cend()) {
-    throw FbossError("l2 table entry had unknown port sai id: ", portSaiId);
+  const auto portItr =
+      concurrentIndices_->portIds.find(PortSaiId{portOrLagSaiId});
+  const auto lagItr =
+      concurrentIndices_->aggregatePortIds.find(LagSaiId{portOrLagSaiId});
+
+  if (portItr != concurrentIndices_->portIds.cend()) {
+    entry.port_ref() = portItr->second;
+  } else if (lagItr != concurrentIndices_->aggregatePortIds.cend()) {
+    entry.trunk_ref() = lagItr->second;
+  } else {
+    throw FbossError(
+        "l2 table entry had unknown port sai id: ", portOrLagSaiId);
   }
-  entry.port_ref() = portItr->second;
   auto metadata =
       fdbApi.getAttribute(fdbEntry, SaiFdbTraits::Attributes::Metadata{});
   if (metadata) {
@@ -324,7 +333,7 @@ L2EntryThrift SaiFdbManager::fdbToL2Entry(
 
 std::vector<L2EntryThrift> SaiFdbManager::getL2Entries() const {
   std::vector<L2EntryThrift> entries;
-  entries.resize(managedFdbEntries_.size());
+  entries.reserve(managedFdbEntries_.size());
   for (const auto& publisherAndFdbEntry : managedFdbEntries_) {
     entries.emplace_back(
         fdbToL2Entry(publisherAndFdbEntry.second->makeFdbEntry(managerTable_)));
