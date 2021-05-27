@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/test/HwTestMacUtils.h"
 #include "fboss/agent/hw/test/HwTestNeighborUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/state/Port.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TrunkUtils.h"
 
@@ -99,10 +100,15 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
     }
   }
   void verifyForwarding() {
+    enableTrunks();
     for (auto i = 0; i < 5; ++i) {
       verifySentPacket(neighborAddr<folly::IPAddressV4>());
       verifySentPacket(neighborAddr<folly::IPAddressV6>());
     }
+  }
+
+  void enableTrunks() {
+    applyNewState(utility::enableTrunkPorts(this->getProgrammedState()));
   }
 
   void learnMacAndProgramNeighbors(
@@ -171,24 +177,28 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
     programNeighbor(port, neighborAddr<folly::IPAddressV6>(), lookupClass);
   }
   void triggerMacLearning(PortDescriptor port) {
+    auto phyPort = *physicalPortsFor(port).begin();
+    auto vlanID =
+        getProgrammedState()->getPorts()->getPort(phyPort)->getIngressVlan();
     auto txPacket = utility::makeEthTxPacket(
         getHwSwitch(),
-        kVlanID,
+        vlanID,
         kNeighborMac,
         MacAddress::BROADCAST,
         ETHERTYPE::ETHERTYPE_LLDP);
-    auto phyPort = *physicalPortsFor(port).begin();
     EXPECT_TRUE(getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
         std::move(txPacket), phyPort));
   }
   void verifySentPacket(const folly::IPAddress& dstIp) {
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), kVlanID);
+    auto firstVlan = *(getProgrammedState()->getVlans()->begin());
+    auto intfMac =
+        utility::getInterfaceMac(getProgrammedState(), firstVlan->getID());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto srcIp =
         dstIp.isV6() ? folly::IPAddress("1::3") : folly::IPAddress("1.1.1.3");
     auto txPacket = utility::makeUDPTxPacket(
         getHwSwitch(),
-        kVlanID,
+        firstVlan->getID(),
         srcMac, // src mac
         intfMac, // dst mac
         srcIp,
