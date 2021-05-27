@@ -54,3 +54,27 @@ enum ForwardingClass {
 
 typedef map<byte, ForwardingClass> DscpToForwardingClassMap
 typedef map<ForwardingClass, list<NamedNextHopGroup>> ForwardingClassToNamedNhgs
+
+
+/*
+ * Class based traffic forwarding policy
+ */
+struct ClassBasedPolicy {
+    1: string name
+    2: list<string> defaultNexthopGroups
+    3: ForwardingClassToNamedNhgs class2NextHopGroups
+}
+
+/*
+ * Traffic redirection policy
+ */
+union Policy {
+    1: ClassBasedPolicy cbfPolicy
+}
+
+union NamedRouteDestination {
+    // list of named next hop groups
+    1: list<string> nextHopGroups
+    // traffic redirection policy name
+    2: string policyName
+}

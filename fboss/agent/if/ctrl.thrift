@@ -78,12 +78,16 @@ struct UnicastRoute {
   // Optional forwarding action. If not specified (for backward compatibility)
   // infer from nexthops
   5: optional RouteForwardAction action
+  // use this instead of next hops for using policy based routing or named next hop group
+  6: common.NamedRouteDestination namedRouteDestination
 }
 
 struct MplsRoute {
   1: required mpls.MplsLabel topLabel,
   3: optional AdminDistance adminDistance,
   4: list<common.NextHopThrift> nextHops,
+  // use this instead of next hops for using policy based routing or named next hop group
+  6: common.NamedRouteDestination namedRouteDestination
 }
 
 struct ClientAndNextHops {
@@ -91,6 +95,8 @@ struct ClientAndNextHops {
   // Deprecated in favor of '3: nextHops'
   2: required list<Address.BinaryAddress> nextHopAddrs,
   3: required list<common.NextHopThrift> nextHops,
+  // will be populated if policy based route or named next hop group is used
+  4: optional common.NamedRouteDestination namedRouteDestination,
 }
 
 struct IfAndIP {
@@ -107,6 +113,8 @@ struct RouteDetails {
   5: required bool isConnected,
   6: optional AdminDistance adminDistance,
   7: list<common.NextHopThrift> nextHops,
+  // use this for policy based route or with named next hop groups
+  8: optional common.NamedRouteDestination namedRouteDestination,
 }
 
 struct MplsRouteDetails {
@@ -115,6 +123,8 @@ struct MplsRouteDetails {
   3: list<ClientAndNextHops> nextHopMulti,
   4: AdminDistance adminDistance,
   5: list<common.NextHopThrift> nextHops,
+  // use this for policy based route or with named next hop groups
+  6: optional common.NamedRouteDestination namedRouteDestination,
 }
 
 struct ArpEntryThrift {
@@ -988,6 +998,37 @@ service FbossCtrl extends fb303.FacebookService {
    * Get DSCP mapping to forwarding class
    */
   common.DscpToForwardingClassMap getDscpToForwardingClassMap()
+
+  /*
+   * Add one or multiple traffic redirection policy objects.
+   */
+  void addOrUpdatePolicies(1: list<common.Policy> policy) throws (1: fboss.FbossBaseError error)
+
+  /*
+   * Remove one or multiple traffic redirection policy objects.
+   */
+  void removePolicies(1: list<string> policyName) throws (1: fboss.FbossBaseError error)
+
+  /*
+   * Get one or multiple traffic redirection policy objects.
+   */
+  list<common.Policy> getPolicies(1: list<string> policyNames) throws (1: fboss.FbossBaseError error)
+  list<common.Policy> getAllPolicies()
+
+  /*
+   * Set named next hop groups for given class to a policy
+   */
+  void setNextHopGroups(1: string policyName, 2: common.ForwardingClass fc, 3: list<string> nextHopGroups) throws (1: fboss.FbossBaseError error)
+
+  /*
+   * Clear all next hop groups for given class from a policy
+   */
+  void clearNextHopGroups(1: string policyName, 2: common.ForwardingClass fc) throws (1: fboss.FbossBaseError error)
+
+  /*
+   * Get all next hop group names for class in a policy
+   */
+  list<common.NamedNextHopGroup> getNextHopGroupsForPolicy(1: string policyName, 2: common.ForwardingClass fc) throws (1: fboss.FbossBaseError error)
 }
 
 service NeighborListenerClient extends fb303.FacebookService {
