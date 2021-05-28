@@ -17,8 +17,6 @@
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 #include "fboss/qsfp_service/test/hw_test/phy/HwPortUtils.h"
 
-#include <folly/logging/xlog.h>
-
 namespace facebook::fboss {
 
 template <cfg::PortProfileID Profile>
@@ -66,12 +64,39 @@ class HwPortProfileTest : public HwTest {
   void runTest() {
     auto ports = findAvailablePort();
     EXPECT_TRUE(!ports.empty());
+    auto portMap = std::make_unique<WedgeManager::PortMap>();
     for (auto port : ports) {
       // Call PhyManager to program such port
       getHwQsfpEnsemble()->getPhyManager()->programOnePort(port, Profile);
       // Verify whether such profile has been programmed to the port
+      portMap->emplace(port, getPortStatus(port));
       verifyPort(port);
     }
+    std::map<int32_t, TransceiverInfo> transceivers;
+    getHwQsfpEnsemble()->getWedgeManager()->syncPorts(
+        transceivers, std::move(portMap));
+  }
+
+ private:
+  PortStatus getPortStatus(PortID portId) {
+    auto config = *getHwQsfpEnsemble()
+                       ->getWedgeManager()
+                       ->getAgentConfig()
+                       ->thrift.sw_ref();
+    std::optional<cfg::Port> portCfg;
+    for (auto& port : *config.ports_ref()) {
+      if (*port.logicalID_ref() == static_cast<uint16_t>(portId)) {
+        portCfg = port;
+        break;
+      }
+    }
+    CHECK(portCfg);
+    PortStatus status;
+    status.enabled_ref() = *portCfg->state_ref() == cfg::PortState::ENABLED;
+    // Mark port down to force transceiver programming
+    status.up_ref() = false;
+    status.speedMbps_ref() = static_cast<int64_t>(*portCfg->speed_ref());
+    return status;
   }
 };
 

@@ -63,6 +63,9 @@ class HwQsfpEnsemble {
   const WedgeManager* getWedgeManager() const {
     return wedgeManager_.get();
   }
+  WedgeManager* getWedgeManager() {
+    return wedgeManager_.get();
+  }
 
  private:
   std::unique_ptr<WedgeManager> wedgeManager_;
