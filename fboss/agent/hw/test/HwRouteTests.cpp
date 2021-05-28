@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
+#include "fboss/agent/state/LabelForwardingAction.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestMplsUtils.h"
@@ -15,7 +16,12 @@
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
+#include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/if/gen-cpp2/common_types.h"
+
 #include <string>
+
+using facebook::network::toBinaryAddress;
 
 namespace facebook::fboss {
 
@@ -415,17 +421,16 @@ TYPED_TEST(HwRouteTest, StaticIp2MplsRoutes) {
     config.staticIp2MplsRoutes_ref()[0].prefix_ref() =
         this->kGetRoutePrefix1().str();
 
+    NextHopThrift nexthop;
+    nexthop.address_ref() = toBinaryAddress(folly::IPAddress(
+        this->kStaticIp2MplsNextHop().str())); // in prefix 0 subnet
+    MplsAction action;
+    action.action_ref() = MplsActionCode::PUSH;
+    action.pushLabels_ref() = {1001, 1002};
+    nexthop.mplsAction_ref() = action;
+
     config.staticIp2MplsRoutes_ref()[0].nexthops_ref()->resize(1);
-    config.staticIp2MplsRoutes_ref()[0].nexthops_ref()[0].nexthop_ref() =
-        this->kStaticIp2MplsNextHop().str(); // in prefix 0 subnet
-    config.staticIp2MplsRoutes_ref()[0]
-        .nexthops_ref()[0]
-        .labelForwardingAction_ref()
-        ->action_ref() = MplsActionCode::PUSH;
-    config.staticIp2MplsRoutes_ref()[0]
-        .nexthops_ref()[0]
-        .labelForwardingAction_ref()
-        ->pushLabels_ref() = {1001, 1002};
+    config.staticIp2MplsRoutes_ref()[0].nexthops_ref()[0] = nexthop;
     this->applyNewConfig(config);
 
     // resolve prefix 0 subnet

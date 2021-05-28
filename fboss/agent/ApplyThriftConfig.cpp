@@ -2347,20 +2347,15 @@ std::shared_ptr<RouteTableMap> ThriftConfigApplier::syncStaticRoutes(
     // routes, that may lead to unexpected behavior where some interface
     // gets more traffic.  If necessary, in the future, we can make it
     // possible to configure strictly ECMP static routes
-    for (auto& mplsNextHop : *route.nexthops_ref()) {
-      auto ip = folly::IPAddress(*mplsNextHop.nexthop_ref());
-      auto& labelForwardingAction = *mplsNextHop.labelForwardingAction_ref();
-      if (!labelForwardingAction.action_ref().is_set()) {
-        throw FbossError("ingress mpls route has no mpls action");
+    for (auto& nexthop : *route.nexthops_ref()) {
+      auto nhop = util::fromThrift(nexthop);
+      if (auto labelForwardingAction = nhop.labelForwardingAction()) {
+        if (labelForwardingAction.has_value() &&
+            labelForwardingAction->type() != MplsActionCode::PUSH) {
+          throw FbossError("ingress mpls route has invalid mpls action");
+        }
       }
-      if (*(labelForwardingAction.action_ref()) != MplsActionCode::PUSH) {
-        throw FbossError("ingress mpls route has invalid mpls action");
-      }
-      LabelForwardingAction action(
-          *(labelForwardingAction.action_ref()),
-          *(labelForwardingAction.pushLabels_ref()));
-
-      nhops.emplace(UnresolvedNextHop(ip, UCMP_DEFAULT_WEIGHT, action));
+      nhops.emplace(nhop);
     }
     updater.addRoute(
         RouterID(*route.routerID_ref()),

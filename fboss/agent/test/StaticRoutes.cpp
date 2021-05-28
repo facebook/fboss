@@ -16,6 +16,8 @@
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
 
+#include "fboss/agent/AddressUtil.h"
+
 #include <folly/IPAddress.h>
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
@@ -24,6 +26,7 @@
 #include <memory>
 
 using namespace facebook::fboss;
+using facebook::network::toBinaryAddress;
 using folly::IPAddress;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
@@ -76,17 +79,13 @@ class StaticRouteTest : public ::testing::Test {
     config.staticIp2MplsRoutes_ref()->resize(1);
     config.staticIp2MplsRoutes_ref()[0].prefix_ref() = "2001::5/128";
     config.staticIp2MplsRoutes_ref()[0].nexthops_ref()->resize(1);
-    config.staticIp2MplsRoutes_ref()[0].nexthops_ref()[0].nexthop_ref() =
-        "2001::1";
-    config.staticIp2MplsRoutes_ref()[0]
-        .nexthops_ref()[0]
-        .labelForwardingAction_ref()
-        ->action_ref() = MplsActionCode::PUSH;
-    config.staticIp2MplsRoutes_ref()[0]
-        .nexthops_ref()[0]
-        .labelForwardingAction_ref()
-        ->pushLabels_ref() = {101, 102};
-
+    config.staticIp2MplsRoutes_ref()[0].nexthops_ref()[0].address_ref() =
+        toBinaryAddress(folly::IPAddress("2001::1"));
+    MplsAction action;
+    action.action_ref() = MplsActionCode::PUSH;
+    action.pushLabels_ref() = {101, 102};
+    config.staticIp2MplsRoutes_ref()[0].nexthops_ref()[0].mplsAction_ref() =
+        action;
     return config;
   }
 

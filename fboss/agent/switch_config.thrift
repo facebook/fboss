@@ -9,6 +9,7 @@ namespace cpp2 facebook.fboss.cfg
 namespace go neteng.fboss.switch_config
 namespace php fboss_switch_config
 
+include "fboss/agent/if/common.thrift"
 include "fboss/agent/if/mpls.thrift"
 
 typedef i64 (cpp.type = "uint64_t") u64
@@ -1067,7 +1068,7 @@ struct StaticIp2MplsRoute {
   /* Prefix in the format like 10.0.0.0/8 */
   2: string prefix
   /* mpls next hops with push labels */
-  3: list<mpls.MplsNextHop > nexthops
+  3: list<common.NextHopThrift > nexthops
 }
 
 struct StaticMplsRouteWithNextHops {

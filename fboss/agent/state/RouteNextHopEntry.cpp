@@ -11,6 +11,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/NexthopUtils.h"
+#include "fboss/agent/state/RouteNextHop.h"
 
 #include <folly/logging/xlog.h>
 #include <gflags/gflags.h>
@@ -381,22 +382,9 @@ RouteNextHopEntry RouteNextHopEntry::fromStaticIp2MplsRoute(
     const cfg::StaticIp2MplsRoute& route) {
   RouteNextHopSet nhops;
 
-  for (auto& mplsNextHop : *route.nexthops_ref()) {
-    auto ip = folly::IPAddress(*mplsNextHop.nexthop_ref());
-    auto& labelForwardingAction = *mplsNextHop.labelForwardingAction_ref();
-    if (!labelForwardingAction.action_ref().is_set()) {
-      throw FbossError("ingress mpls route has no mpls action");
-    }
-    if (*(labelForwardingAction.action_ref()) != MplsActionCode::PUSH) {
-      throw FbossError("ingress mpls route has invalid mpls action");
-    }
-    LabelForwardingAction action(
-        *(labelForwardingAction.action_ref()),
-        *(labelForwardingAction.pushLabels_ref()));
-
-    nhops.emplace(UnresolvedNextHop(ip, UCMP_DEFAULT_WEIGHT, action));
+  for (auto& nexthop : *route.nexthops_ref()) {
+    nhops.emplace(util::fromThrift(nexthop));
   }
-
   return RouteNextHopEntry(std::move(nhops), AdminDistance::STATIC_ROUTE);
 }
 

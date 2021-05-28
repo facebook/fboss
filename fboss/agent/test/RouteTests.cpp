@@ -18,11 +18,15 @@
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
 
+#include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/if/gen-cpp2/common_types.h"
+
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 #include <optional>
 
 using namespace facebook::fboss;
+using facebook::network::toBinaryAddress;
 using folly::IPAddress;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
@@ -1519,28 +1523,20 @@ TYPED_TEST(RouteTest, StaticIp2MplsRoutes) {
   config.staticIp2MplsRoutes_ref()->resize(2);
   config.staticIp2MplsRoutes_ref()[0].prefix_ref() = "10.0.0.0/24";
   config.staticIp2MplsRoutes_ref()[0].nexthops_ref()->resize(1);
-  config.staticIp2MplsRoutes_ref()[0].nexthops_ref()[0].nexthop_ref() =
-      "1.1.1.10";
-  config.staticIp2MplsRoutes_ref()[0]
-      .nexthops_ref()[0]
-      .labelForwardingAction_ref()
-      ->action_ref() = MplsActionCode::PUSH;
-  config.staticIp2MplsRoutes_ref()[0]
-      .nexthops_ref()[0]
-      .labelForwardingAction_ref()
-      ->pushLabels_ref() = {101, 102};
+  NextHopThrift v4Nexthop;
+  v4Nexthop.address_ref() = toBinaryAddress(folly::IPAddress("1.1.1.10"));
+  MplsAction action;
+  action.action_ref() = MplsActionCode::PUSH;
+  action.pushLabels_ref() = {101, 102};
+  v4Nexthop.mplsAction_ref() = action;
+  config.staticIp2MplsRoutes_ref()[0].nexthops_ref()[0] = v4Nexthop;
 
   config.staticIp2MplsRoutes_ref()[1].prefix_ref() = "1:1::/64";
   config.staticIp2MplsRoutes_ref()[1].nexthops_ref()->resize(1);
-  config.staticIp2MplsRoutes_ref()[1].nexthops_ref()[0].nexthop_ref() = "1::10";
-  config.staticIp2MplsRoutes_ref()[1]
-      .nexthops_ref()[0]
-      .labelForwardingAction_ref()
-      ->action_ref() = MplsActionCode::PUSH;
-  config.staticIp2MplsRoutes_ref()[1]
-      .nexthops_ref()[0]
-      .labelForwardingAction_ref()
-      ->pushLabels_ref() = {101, 102};
+  NextHopThrift v6Nexthop;
+  v6Nexthop.address_ref() = toBinaryAddress(folly::IPAddress("1::10"));
+  v6Nexthop.mplsAction_ref() = action;
+  config.staticIp2MplsRoutes_ref()[1].nexthops_ref()[0] = v6Nexthop;
 
   this->sw_->applyConfig("New config", config);
 
