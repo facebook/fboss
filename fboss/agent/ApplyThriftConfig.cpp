@@ -3137,19 +3137,27 @@ ThriftConfigApplier::updateStaticMplsRoutes(
   }
   auto labelFib = new_->getLabelForwardingInformationBase()->clone();
   for (auto& staticMplsRouteEntry : staticMplsRoutesWithNhops) {
-    std::vector<MplsNextHop> resolvedNextHops{};
+    RouteNextHopSet resolvedNextHops{};
     // resolve next hops if any next hop is unresolved.
-    for (auto nhop : staticMplsRouteEntry.get_nexthops()) {
-      folly::IPAddress nhopAddress(nhop.get_nexthop());
-      auto interface = nhop.interface_ref();
-      if (nhopAddress.isLinkLocal() && !interface.has_value()) {
+    for (auto nexthop : staticMplsRouteEntry.get_nexthops()) {
+      auto nhop = util::fromThrift(nexthop);
+      if (!nhop.labelForwardingAction()) {
         throw FbossError(
-            "static mpls route has link local next hop without interface");
+            "static mpls route for label ",
+            staticMplsRouteEntry.get_ingressLabel(),
+            " has next hop without label action");
       }
-      if (interface.has_value() ||
-          nhop.labelForwardingAction_ref()->get_action() ==
+      folly::IPAddress nhopAddress(nhop.addr());
+      if (nhopAddress.isLinkLocal() && !nhop.isResolved()) {
+        throw FbossError(
+            "static mpls route for label ",
+            staticMplsRouteEntry.get_ingressLabel(),
+            " has link local next hop without interface");
+      }
+      if (nhop.isResolved() ||
+          nhop.labelForwardingAction()->type() ==
               MplsActionCode::POP_AND_LOOKUP) {
-        resolvedNextHops.push_back(nhop);
+        resolvedNextHops.insert(nhop);
         continue;
       }
       // check if nhopAddress is in in one of the interface subnets
@@ -3158,12 +3166,17 @@ ThriftConfigApplier::updateStaticMplsRoutes(
           new_->getInterfaces()->getIntfAddrToReach(RouterID(0), nhopAddress);
       if (!intfAddrToReach.intf) {
         throw FbossError(
-            "static mpls route has nexthop ",
+            "static mpls route for label ",
+            staticMplsRouteEntry.get_ingressLabel(),
+            " has nexthop ",
             nhopAddress.str(),
             " out of interface subnets");
       }
-      nhop.interface_ref() = intfAddrToReach.intf->getID();
-      resolvedNextHops.push_back(nhop);
+      resolvedNextHops.insert(ResolvedNextHop(
+          nhop.addr(),
+          intfAddrToReach.intf->getID(),
+          nhop.weight(),
+          nhop.labelForwardingAction()));
     }
     auto entry = labelFib->getLabelForwardingEntryIf(
         staticMplsRouteEntry.get_ingressLabel());
@@ -3171,14 +3184,13 @@ ThriftConfigApplier::updateStaticMplsRoutes(
       labelFib->addNode(createLabelForwardingEntry(
           staticMplsRouteEntry.get_ingressLabel(),
           LabelNextHopEntry::Action::NEXTHOPS,
-          util::toRouteNextHopSet(resolvedNextHops)));
+          resolvedNextHops));
     } else {
       entry = entry->clone();
       entry->update(
           ClientID::STATIC_ROUTE,
           getStaticLabelNextHopEntry(
-              LabelNextHopEntry::Action::NEXTHOPS,
-              util::toRouteNextHopSet(resolvedNextHops)));
+              LabelNextHopEntry::Action::NEXTHOPS, resolvedNextHops));
     }
   }
 

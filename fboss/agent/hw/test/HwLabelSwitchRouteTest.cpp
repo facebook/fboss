@@ -4,8 +4,11 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestMplsUtils.h"
+#include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/if/gen-cpp2/mpls_types.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+
+#include "fboss/agent/AddressUtil.h"
 
 using namespace ::testing;
 namespace {
@@ -42,21 +45,22 @@ class HwLabelSwitchRouteTest : public HwLinkStateDependentTest {
 
     if (labelAction ==
         LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP) {
-      MplsNextHop nexthop;
-      nexthop.nexthop_ref() = "::";
+      NextHopThrift nexthop;
+      nexthop.address_ref() = network::toBinaryAddress(folly::IPAddress("::"));
       MplsAction action;
       action.action_ref() = labelAction;
-      nexthop.labelForwardingAction_ref() = action;
+      nexthop.mplsAction_ref() = action;
       route.nexthops_ref()->push_back(nexthop);
       return;
     }
 
     for (auto i = 0; i < kWidth; i++) {
-      MplsNextHop nexthop;
+      NextHopThrift nexthop;
       auto ecmpHelperNhop = getNextHop(i);
-      nexthop.nexthop_ref() = ecmpHelperNhop.ip.str();
-      nexthop.labelForwardingAction_ref() = ecmpHelperNhop.action.toThrift();
-      nexthop.interface_ref() = ecmpHelperNhop.intf;
+      nexthop.address_ref() = network::toBinaryAddress(ecmpHelperNhop.ip);
+      nexthop.mplsAction_ref() = ecmpHelperNhop.action.toThrift();
+      nexthop.address_ref()->set_ifName(
+          folly::to<std::string>("fboss", ecmpHelperNhop.intf));
       route.nexthops_ref()->push_back(nexthop);
     }
   }

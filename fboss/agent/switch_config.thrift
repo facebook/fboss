@@ -1075,7 +1075,7 @@ struct StaticMplsRouteWithNextHops {
   /* Look up MPLS packet based on label */
   1: mpls.MplsLabel  ingressLabel
   /* forward MPLS packet to nexthops */
-  2: list<mpls.MplsNextHop > nexthops
+  2: list<common.NextHopThrift > nexthops
 }
 
 struct StaticMplsRouteNoNextHops {
