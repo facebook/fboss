@@ -21,7 +21,7 @@ namespace facebook::fboss {
 
 template <cfg::PortProfileID Profile>
 class HwPortProfileTest : public HwTest {
- protected:
+ private:
   std::vector<PortID> findAvailablePort() {
     std::set<PortID> xPhyPorts;
     const auto& platformPorts =
@@ -60,7 +60,12 @@ class HwPortProfileTest : public HwTest {
 
     utility::verifyPhyPortConnector(portID, getHwQsfpEnsemble());
   }
+  void verifyTransceiverSettings(
+      const std::map<int32_t, TransceiverInfo>& /*transceivers*/) {
+    // TODO
+  }
 
+ protected:
   void runTest() {
     auto ports = findAvailablePort();
     EXPECT_TRUE(!ports.empty());
@@ -75,6 +80,7 @@ class HwPortProfileTest : public HwTest {
     std::map<int32_t, TransceiverInfo> transceivers;
     getHwQsfpEnsemble()->getWedgeManager()->syncPorts(
         transceivers, std::move(portMap));
+    verifyTransceiverSettings(transceivers);
   }
 
  private:
