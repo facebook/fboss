@@ -9,7 +9,7 @@
 #include "fboss/mka_service/handlers/MacsecHandler.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
-#include "fboss/qsfp_service/platforms/wedge/facebook/FbossMacsecHandler.h"
+#include "fboss/qsfp_service/platforms/wedge/FbossMacsecHandler.h"
 
 DECLARE_string(sak_list_warmboot_config);
 DECLARE_int32(phy_service_macsec_port);
