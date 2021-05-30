@@ -59,8 +59,8 @@ class HwLabelSwitchRouteTest : public HwLinkStateDependentTest {
       auto ecmpHelperNhop = getNextHop(i);
       nexthop.address_ref() = network::toBinaryAddress(ecmpHelperNhop.ip);
       nexthop.mplsAction_ref() = ecmpHelperNhop.action.toThrift();
-      nexthop.address_ref()->set_ifName(
-          folly::to<std::string>("fboss", ecmpHelperNhop.intf));
+      nexthop.address_ref()->ifName_ref() =
+          folly::to<std::string>("fboss", ecmpHelperNhop.intf);
       route.nexthops_ref()->push_back(nexthop);
     }
   }

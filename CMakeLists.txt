@@ -159,6 +159,8 @@ add_fbthrift_cpp_library(
 add_fbthrift_cpp_library(
   network_address_cpp2
   common/network/if/Address.thrift
+  OPTIONS
+    json
 )
 add_fbthrift_cpp_library(
   mpls_cpp2
@@ -228,20 +230,28 @@ add_fbthrift_cpp_library(
 add_fbthrift_cpp_library(
   optic_cpp2
   fboss/agent/if/optic.thrift
+  OPTIONS
+    json
   DEPENDS
     transceiver_cpp2
 )
 add_fbthrift_cpp_library(
   fboss_cpp2
   fboss/agent/if/fboss.thrift
+  OPTIONS
+    json
 )
 add_fbthrift_cpp_library(
   sflow_cpp2
   fboss/agent/if/sflow.thrift
+  OPTIONS
+    json
 )
 add_fbthrift_cpp_library(
   common_cpp2
   fboss/agent/if/common.thrift
+  OPTIONS
+    json
   DEPENDS
     mpls_cpp2
     network_address_cpp2
@@ -252,6 +262,8 @@ add_fbthrift_cpp_library(
   SERVICES
     FbossCtrl
     NeighborListenerClient
+  OPTIONS
+    json
   DEPENDS
     fboss_cpp2
     fb303_cpp2
@@ -313,6 +325,8 @@ add_fbthrift_cpp_library(
   fboss/qsfp_service/if/qsfp.thrift
   SERVICES
     QsfpService
+  OPTIONS
+    json
   DEPENDS
     fb303_cpp2
     ctrl_cpp2
@@ -783,6 +797,7 @@ if (NOT SAI_ONLY)
       ${SODIUM}
       ${MNL}
       ${OPENNSA}
+      ${YAML}
       wedge40_platform_mapping
       wedge100_platform_mapping
       galaxy_platform_mapping
