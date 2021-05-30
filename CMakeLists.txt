@@ -83,7 +83,11 @@ endif()
 
 # TODO (skhare) Once CMakeLists.txt is modified to follow buck hierarchy in
 # cmake/*, set BCM-specific flags for BCM libs only
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DINCLUDE_L3 -DLONGS_ARE_64BITS -DBCM_ESW_SUPPORT")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DINCLUDE_L3 -DLONGS_ARE_64BITS \
+    -DBCM_ESW_SUPPORT -DBCMDRD_INCLUDE_CUSTOM_CONFIG \
+    -DBCMDRD_CONFIG_INCLUDE_BCM56990_Bx=1 \
+    -DBCMDRD_CONFIG_INCLUDE_CHIP_DEFAULT=0 \
+    -DINCLUDE_PSTATS -DBCM_RPC_SUPPORT -DBC")
 
 include_directories(${CMAKE_SOURCE_DIR})
 include_directories(${CMAKE_BUILD_DIR})
@@ -145,6 +149,11 @@ find_library(YAML-CPP yaml-cpp)
 find_path(YAML-CPP_INCLUDE_DIR NAMES yaml-cpp/yaml.h)
 include_directories(${YAML-CPP_INCLUDE_DIR})
 message(STATUS "Found YAML-CPP_INCLUDE_DIR: ${YAML-CPP_INCLUDE_DIR}")
+
+find_library(YAML yaml)
+find_path(YAML_INCLUDE_DIR NAMES yaml.h)
+include_directories(${YAML_INCLUDE_DIR})
+message(STATUS "Found YAML_INCLUDE_DIR: ${YAML_INCLUDE_DIR}")
 
 # Generate thrift deps and libraries
 include(FBThriftCppLibrary)

@@ -111,6 +111,7 @@ target_link_libraries(bcm
   Folly::folly
   ${OPENNSA}
   ${YAML-CPP}
+  ${YAML}
 )
 
 set_target_properties(bcm PROPERTIES COMPILE_FLAGS
