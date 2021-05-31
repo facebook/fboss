@@ -65,4 +65,21 @@ void deleteCounter(const std::string& oldCounterName) {
   fb303::fbData->clearCounter(oldCounterName);
 }
 
+std::string counterTypeToString(cfg::CounterType type) {
+  switch (type) {
+    case cfg::CounterType::PACKETS:
+      return "packets";
+    case cfg::CounterType::BYTES:
+      return "bytes";
+  }
+  throw std::runtime_error("Unsupported Counter Type");
+}
+
+std::string statNameFromCounterType(
+    const std::string& statPrefix,
+    cfg::CounterType counterType) {
+  return folly::to<std::string>(
+      statPrefix, ".", counterTypeToString(counterType));
+}
+
 } // namespace facebook::fboss::utility

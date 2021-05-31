@@ -71,6 +71,7 @@ target_link_libraries(hw_fb303_stats
   counter_utils
   fb303::fb303
   Folly::folly
+  switch_config_cpp2
 )
 
 target_link_libraries(hw_port_fb303_stats

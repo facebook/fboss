@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/bcm/BcmIngressFieldProcessorFlexCounter.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
+#include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/HwResourceStatsPublisher.h"
 #include "fboss/agent/hw/bcm/BcmPortUtils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -92,16 +93,6 @@ using facebook::fboss::bcmCheckError;
 BcmStatUpdater::BcmStatUpdater(BcmSwitch* hw)
     : hw_(hw),
       bcmTableStatsManager_(std::make_unique<BcmHwTableStatManager>(hw)) {}
-
-std::string BcmStatUpdater::counterTypeToString(cfg::CounterType type) {
-  switch (type) {
-    case cfg::CounterType::PACKETS:
-      return "packets";
-    case cfg::CounterType::BYTES:
-      return "bytes";
-  }
-  throw FbossError("Unsupported Counter Type");
-}
 
 void BcmStatUpdater::toBeAddedAclStat(
     BcmAclStatHandle handle,
@@ -319,13 +310,13 @@ void BcmStatUpdater::refreshAclStats() {
       }
       // counter name exists, but counter type doesn't
       itr->second[counterType] = std::make_unique<MonotonicCounter>(
-          aclStatName + "." + counterTypeToString(counterType),
+          utility::statNameFromCounterType(aclStatName, counterType),
           fb303::SUM,
           fb303::RATE);
     } else {
       lockedAclStats->operator[](handle)[counterType] =
           std::make_unique<MonotonicCounter>(
-              aclStatName + "." + counterTypeToString(counterType),
+              utility::statNameFromCounterType(aclStatName, counterType),
               fb303::SUM,
               fb303::RATE);
     }

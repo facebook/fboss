@@ -197,8 +197,6 @@ class BcmStatUpdater {
   }
 
  private:
-  std::string counterTypeToString(cfg::CounterType type);
-
   void updateAclStats();
   BcmTrafficCounterStats getAclTrafficStats(
       BcmAclStatHandle handle,

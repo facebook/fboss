@@ -14,6 +14,8 @@
 #include <string>
 #include <vector>
 
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
+
 namespace facebook::fboss::utility {
 
 class CounterPrevAndCur {
@@ -45,5 +47,10 @@ int64_t subtractIncrements(
     const std::vector<CounterPrevAndCur>& countersToSubtract);
 
 void deleteCounter(const std::string& oldCounterName);
+
+std::string counterTypeToString(cfg::CounterType type);
+std::string statNameFromCounterType(
+    const std::string& statPrefix,
+    cfg::CounterType counterType);
 
 } // namespace facebook::fboss::utility
