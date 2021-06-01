@@ -766,6 +766,10 @@ void SaiSwitch::updateStatsImpl(SwitchStats* /* switchStats */) {
     std::lock_guard<std::mutex> locked(saiSwitchMutex_);
     HwResourceStatsPublisher().publish(hwResourceStats_);
   }
+  {
+    std::lock_guard<std::mutex> locked(saiSwitchMutex_);
+    managerTable_->aclTableManager().updateStats();
+  }
 }
 
 uint64_t SaiSwitch::getDeviceWatermarkBytes() const {

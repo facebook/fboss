@@ -156,6 +156,8 @@ class SaiAclTableManager {
 
   void removeUnclaimedAclEntries();
 
+  void updateStats();
+
  private:
   SaiAclTableHandle* FOLLY_NULLABLE
   getAclTableHandleImpl(const std::string& aclTableName) const;

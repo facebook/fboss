@@ -22,6 +22,9 @@
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include <folly/MacAddress.h>
+#include <chrono>
+
+using namespace std::chrono;
 
 namespace facebook::fboss {
 
@@ -928,4 +931,35 @@ void SaiAclTableManager::removeUnclaimedAclEntries() {
   auto& aclEntryStore = saiStore_->get<SaiAclEntryTraits>();
   aclEntryStore.removeUnexpectedUnclaimedWarmbootHandles();
 }
+
+void SaiAclTableManager::updateStats() {
+  auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+
+  for (const auto& handle : handles_) {
+    for (const auto& aclMember : handle.second->aclTableMembers) {
+      for (const auto& [counterType, counterName] :
+           aclMember.second->aclCounterTypeAndName) {
+        switch (counterType) {
+          case cfg::CounterType::PACKETS: {
+            auto counterPackets =
+                SaiApiTable::getInstance()->aclApi().getAttribute(
+                    aclMember.second->aclCounter->adapterKey(),
+                    SaiAclCounterTraits::Attributes::CounterPackets());
+            aclStats_.updateStat(now, counterName, counterPackets);
+          } break;
+          case cfg::CounterType::BYTES: {
+            auto counterBytes =
+                SaiApiTable::getInstance()->aclApi().getAttribute(
+                    aclMember.second->aclCounter->adapterKey(),
+                    SaiAclCounterTraits::Attributes::CounterBytes());
+            aclStats_.updateStat(now, counterName, counterBytes);
+          } break;
+          default:
+            throw FbossError("Unsupported CounterType for ACL");
+        }
+      }
+    }
+  }
+}
+
 } // namespace facebook::fboss
