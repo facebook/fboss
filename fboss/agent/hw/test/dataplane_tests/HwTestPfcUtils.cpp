@@ -49,7 +49,7 @@ void enablePfcMapsConfig(cfg::SwitchConfig& cfg) {
     pfcPri2QueueId.emplace(i, i);
   }
 
-  if (cfg.qosPolicies_ref().has_value() &&
+  if (cfg.qosPolicies_ref().is_set() &&
       cfg.qosPolicies_ref()[0].qosMap_ref().has_value()) {
     cfg.qosPolicies_ref()[0].qosMap_ref()->trafficClassToPgId_ref() =
         std::move(tc2PgId);

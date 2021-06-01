@@ -11,6 +11,7 @@ target_link_libraries(counter_utils
   fb303::fb303
   FBThrift::thriftcpp2
   hardware_stats_cpp2
+  switch_config_cpp2
 )
 
 add_library(diag_cmd_filter
@@ -86,6 +87,7 @@ target_link_libraries(hw_cpu_fb303_stats
   FBThrift::thriftcpp2
   hardware_stats_cpp2
   Folly::folly
+  switch_config_cpp2
 )
 
 target_link_libraries(hw_trunk_counters

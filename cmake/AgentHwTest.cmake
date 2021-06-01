@@ -107,6 +107,7 @@ target_link_libraries(prod_config_utils
   switch_config_cpp2
   hw_qos_utils
   hw_copp_utils
+  hw_switch_test
 )
 
 add_library(traffic_policy_utils
