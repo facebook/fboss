@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
+#include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
@@ -306,9 +307,14 @@ SaiAclTableManager::cfgLookupClassToSaiNeighborMetaDataAndMask(
       neighborDstUserMetaDataMask_);
 }
 
-std::shared_ptr<SaiAclCounter> SaiAclTableManager::addAclCounter(
+std::pair<
+    std::shared_ptr<SaiAclCounter>,
+    std::vector<std::pair<cfg::CounterType, std::string>>>
+SaiAclTableManager::addAclCounter(
     const SaiAclTableHandle* aclTableHandle,
     const cfg::TrafficCounter& trafficCount) {
+  std::vector<std::pair<cfg::CounterType, std::string>> aclCounterTypeAndName;
+
   SaiAclCounterTraits::Attributes::TableId aclTableId{
       aclTableHandle->aclTable->adapterKey()};
   std::optional<SaiAclCounterTraits::Attributes::EnablePacketCount>
@@ -317,18 +323,26 @@ std::shared_ptr<SaiAclCounter> SaiAclTableManager::addAclCounter(
       enableByteCount{false};
 
   for (const auto& counterType : *trafficCount.types_ref()) {
+    std::string statSuffix;
     switch (counterType) {
       case cfg::CounterType::PACKETS:
         enablePacketCount =
             SaiAclCounterTraits::Attributes::EnablePacketCount{true};
+        statSuffix = "packets";
         break;
       case cfg::CounterType::BYTES:
         enableByteCount =
             SaiAclCounterTraits::Attributes::EnableByteCount{true};
+        statSuffix = "bytes";
         break;
       default:
         throw FbossError("Unsupported CounterType for ACL");
     }
+
+    auto statName =
+        folly::to<std::string>(*trafficCount.name_ref(), ".", statSuffix);
+    aclCounterTypeAndName.push_back(std::make_pair(counterType, statName));
+    aclStats_.reinitStat(statName, std::nullopt);
   }
 
   SaiAclCounterTraits::AdapterHostKey adapterHostKey{
@@ -346,10 +360,9 @@ std::shared_ptr<SaiAclCounter> SaiAclTableManager::addAclCounter(
   };
 
   auto& aclCounterStore = saiStore_->get<SaiAclCounterTraits>();
-
   auto saiAclCounter = aclCounterStore.setObject(adapterHostKey, attributes);
 
-  return saiAclCounter;
+  return std::make_pair(saiAclCounter, aclCounterTypeAndName);
 }
 
 AclEntrySaiId SaiAclTableManager::addAclEntry(
@@ -603,6 +616,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   }
 
   std::shared_ptr<SaiAclCounter> saiAclCounter{nullptr};
+  std::vector<std::pair<cfg::CounterType, std::string>> aclCounterTypeAndName;
   std::optional<SaiAclEntryTraits::Attributes::ActionCounter> aclActionCounter{
       std::nullopt};
 
@@ -627,7 +641,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   auto action = addedAclEntry->getAclAction();
   if (action) {
     if (action.value().getTrafficCounter()) {
-      saiAclCounter = addAclCounter(
+      std::tie(saiAclCounter, aclCounterTypeAndName) = addAclCounter(
           aclTableHandle, action.value().getTrafficCounter().value());
       aclActionCounter = SaiAclEntryTraits::Attributes::ActionCounter{
           AclEntryActionSaiObjectIdT(
@@ -793,6 +807,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   auto entryHandle = std::make_unique<SaiAclEntryHandle>();
   entryHandle->aclEntry = saiAclEntry;
   entryHandle->aclCounter = saiAclCounter;
+  entryHandle->aclCounterTypeAndName = aclCounterTypeAndName;
   entryHandle->ingressMirror = ingressMirror;
   entryHandle->egressMirror = egressMirror;
   auto [it, inserted] = aclTableHandle->aclTableMembers.emplace(
@@ -823,6 +838,20 @@ void SaiAclTableManager::removeAclEntry(
   }
 
   aclTableHandle->aclTableMembers.erase(itr);
+
+  auto action = removedAclEntry->getAclAction();
+  if (action && action.value().getTrafficCounter()) {
+    removeAclCounter(action.value().getTrafficCounter().value());
+  }
+}
+
+void SaiAclTableManager::removeAclCounter(
+    const cfg::TrafficCounter& trafficCount) {
+  for (const auto& counterType : *trafficCount.types_ref()) {
+    auto statName =
+        utility::statNameFromCounterType(*trafficCount.name_ref(), counterType);
+    aclStats_.removeStat(statName);
+  }
 }
 
 void SaiAclTableManager::changedAclEntry(

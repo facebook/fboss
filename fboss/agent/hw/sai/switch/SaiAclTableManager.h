@@ -17,6 +17,8 @@
 #include "fboss/agent/state/Mirror.h"
 #include "fboss/agent/types.h"
 
+#include "fboss/agent/hw/HwFb303Stats.h"
+
 #include <folly/MacAddress.h>
 
 #include <memory>
@@ -44,6 +46,7 @@ struct SaiAclEntryHandle {
    */
   std::shared_ptr<SaiAclCounter> aclCounter;
   std::shared_ptr<SaiAclEntry> aclEntry;
+  std::vector<std::pair<cfg::CounterType, std::string>> aclCounterTypeAndName;
   std::optional<std::string> ingressMirror;
   std::optional<std::string> egressMirror;
   std::optional<std::string> getIngressMirror() {
@@ -126,9 +129,13 @@ class SaiAclTableManager {
       const SaiAclTableHandle* aclTableHandle,
       int priority) const;
 
-  std::shared_ptr<SaiAclCounter> addAclCounter(
+  std::pair<
+      std::shared_ptr<SaiAclCounter>,
+      std::vector<std::pair<cfg::CounterType, std::string>>>
+  addAclCounter(
       const SaiAclTableHandle* aclTableHandle,
       const cfg::TrafficCounter& trafficCount);
+  void removeAclCounter(const cfg::TrafficCounter& trafficCount);
 
   sai_uint32_t swPriorityToSaiPriority(int priority) const;
 
@@ -192,6 +199,8 @@ class SaiAclTableManager {
   using SaiAclTableHandles =
       folly::F14FastMap<std::string, std::unique_ptr<SaiAclTableHandle>>;
   SaiAclTableHandles handles_;
+
+  HwFb303Stats aclStats_;
 
   const sai_uint32_t aclEntryMinimumPriority_;
   const sai_uint32_t aclEntryMaximumPriority_;
