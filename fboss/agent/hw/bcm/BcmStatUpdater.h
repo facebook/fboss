@@ -175,6 +175,9 @@ class BcmStatUpdater {
       cfg::CounterType counterType);
   size_t getAclStatCounterCount() const;
 
+  std::vector<cfg::CounterType> getAclStatCounterType(
+      BcmAclStatHandle handle) const;
+
   /* Functions to be called during state update */
   void toBeAddedAclStat(
       BcmAclStatHandle handle,

@@ -225,6 +225,23 @@ MonotonicCounter* FOLLY_NULLABLE BcmStatUpdater::getAclStatCounterIf(
   return nullptr;
 }
 
+std::vector<cfg::CounterType> BcmStatUpdater::getAclStatCounterType(
+    BcmAclStatHandle handle) const {
+  std::vector<cfg::CounterType> counterTypes;
+
+  auto lockedAclStats = aclStats_.rlock();
+  for (auto& iter : *lockedAclStats) {
+    if (iter.first == handle) {
+      for (auto& innerIter : iter.second) {
+        counterTypes.push_back(innerIter.first);
+      }
+      break;
+    }
+  }
+
+  return counterTypes;
+}
+
 void BcmStatUpdater::clearPortStats(
     const std::unique_ptr<std::vector<int32_t>>& ports) {
   // XXX clear per queue stats and, BST stats as well.
