@@ -63,11 +63,17 @@ class HwIpEcmpDataPlaneTestUtil
       HwSwitchEnsemble* ensemble,
       RouterID vrf,
       std::vector<LabelForwardingAction::LabelStack> stacks);
+  HwIpEcmpDataPlaneTestUtil(
+      HwSwitchEnsemble* ensemble,
+      const std::optional<folly::MacAddress>& nextHopMac,
+      RouterID vrf);
 
   void programRoutes(int ecmpWidth, const std::vector<NextHopWeight>& weights)
       override;
   /* pump IP traffic */
   void pumpTrafficThroughPort(std::optional<PortID> port) override;
+
+  const std::vector<EcmpNextHop<AddrT>> getNextHops();
 
  private:
   std::vector<LabelForwardingAction::LabelStack> stacks_;

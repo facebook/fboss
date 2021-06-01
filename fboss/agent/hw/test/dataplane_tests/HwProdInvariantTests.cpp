@@ -16,6 +16,12 @@
 
 #include "fboss/agent/hw/test/dataplane_tests/HwProdInvariantHelper.h"
 
+#include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
+
+#include "fboss/agent/state/Port.h"
+
 namespace facebook::fboss {
 /*
  * Test to verify that standard invariants hold. DO NOT change the name
@@ -50,4 +56,52 @@ class HwProdInvariantsTest : public HwLinkStateDependentTest {
 TEST_F(HwProdInvariantsTest, verifyInvariants) {
   verifyAcrossWarmBoots([]() {}, [this]() { verifyInvariants(); });
 }
+
+class HwProdInvariantsMmuLosslessTest : public HwLinkStateDependentTest {
+ protected:
+  cfg::SwitchConfig initialConfig() const override {
+    auto cfg =
+        utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
+    utility::addProdFeaturesToConfig(
+        cfg, getHwSwitch(), FLAGS_mmu_lossless_mode, masterLogicalPortIds());
+    return cfg;
+  }
+
+  void SetUp() override {
+    FLAGS_mmu_lossless_mode = true;
+    HwLinkStateDependentTest::SetUp();
+    prodInvariants_ = std::make_unique<HwProdInvariantHelper>(
+        getHwSwitchEnsemble(), initialConfig());
+    // explicitly creating with interfaceMac as nexthop, causes
+    // routed pkts to be not dropped when looped to ingress
+    prodInvariants_->setupEcmpWithNextHopMac(dstMac());
+  }
+
+  HwSwitchEnsemble::Features featuresDesired() const override {
+    return HwProdInvariantHelper::featuresDesired();
+  }
+
+  void verifyInvariants() {
+    prodInvariants_->verifyInvariants();
+    prodInvariants_->verifyNoDiscards();
+  }
+
+  MacAddress dstMac() const {
+    auto vlanId = utility::firstVlanID(initialConfig());
+    return utility::getInterfaceMac(getProgrammedState(), vlanId);
+  }
+
+ private:
+  std::unique_ptr<HwProdInvariantHelper> prodInvariants_;
+};
+
+// validate that running there are no discards during line rate run
+// of traffic while doing warm boot
+TEST_F(HwProdInvariantsMmuLosslessTest, ValidateMmuLosslessMode) {
+  if (!getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+    return;
+  }
+  verifyAcrossWarmBoots([]() {}, [this]() { verifyInvariants(); });
+}
+
 } // namespace facebook::fboss

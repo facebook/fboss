@@ -25,6 +25,7 @@ class HwProdInvariantHelper {
       : ensemble_(ensemble), initialCfg_(initialCfg) {}
 
   void setupEcmp();
+  void setupEcmpWithNextHopMac(const folly::MacAddress& nextHop);
   void verifyInvariants() {
     verifySafeDiagCmds();
     verifyDscpToQueueMapping();
@@ -37,6 +38,7 @@ class HwProdInvariantHelper {
         HwSwitchEnsemble::PACKET_RX,
         HwSwitchEnsemble::STATS_COLLECTION};
   }
+  void verifyNoDiscards();
 
  private:
   cfg::SwitchConfig initialConfig() const {

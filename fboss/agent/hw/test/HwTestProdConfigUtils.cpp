@@ -16,12 +16,15 @@
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.h"
 
 namespace facebook::fboss::utility {
 
 void addProdFeaturesToConfig(
     cfg::SwitchConfig& config,
-    const HwSwitch* hwSwitch) {
+    const HwSwitch* hwSwitch,
+    bool mmuLossless,
+    const std::vector<PortID>& ports) {
   auto hwAsic = hwSwitch->getPlatform()->getAsic();
   /*
    * Configures port queue for cpu port
@@ -51,6 +54,11 @@ void addProdFeaturesToConfig(
   if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
     config.loadBalancers_ref()->push_back(
         utility::getEcmpFullHashConfig(hwSwitch->getPlatform()));
+  }
+
+  if (hwAsic->isSupported(HwAsic::Feature::PFC) && mmuLossless) {
+    // pfc works reliably only in mmu lossless mode
+    utility::addPfcConfig(config, ports);
   }
 }
 } // namespace facebook::fboss::utility

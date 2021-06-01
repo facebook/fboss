@@ -32,6 +32,14 @@ void HwProdInvariantHelper::setupEcmp() {
       kEcmpWidth, std::vector<NextHopWeight>(kEcmpWidth, 1));
 }
 
+void HwProdInvariantHelper::setupEcmpWithNextHopMac(
+    const folly::MacAddress& nextHopMac) {
+  ecmpHelper_ = std::make_unique<utility::HwIpV6EcmpDataPlaneTestUtil>(
+      ensemble_, nextHopMac, RouterID(0));
+  ecmpHelper_->programRoutes(
+      kEcmpWidth, std::vector<NextHopWeight>(kEcmpWidth, 1));
+}
+
 void HwProdInvariantHelper::verifyLoadBalacing() {
   CHECK(ecmpHelper_);
   ecmpHelper_->pumpTrafficThroughPort(
@@ -136,6 +144,14 @@ void HwProdInvariantHelper::verifySafeDiagCmds() {
     std::string out;
     ensemble_->runDiagCommand("quit\n", out);
   }
+}
+
+void HwProdInvariantHelper::verifyNoDiscards() {
+  auto portId = ensemble_->masterLogicalPortIds()[0];
+  auto outDiscards = *ensemble_->getLatestPortStats(portId).outDiscards__ref();
+  auto inDiscards = *ensemble_->getLatestPortStats(portId).inDiscards__ref();
+  EXPECT_EQ(outDiscards, 0);
+  EXPECT_EQ(inDiscards, 0);
 }
 
 } // namespace facebook::fboss

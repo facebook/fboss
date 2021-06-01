@@ -88,6 +88,18 @@ HwIpEcmpDataPlaneTestUtil<AddrT>::HwIpEcmpDataPlaneTestUtil(
 template <typename AddrT>
 HwIpEcmpDataPlaneTestUtil<AddrT>::HwIpEcmpDataPlaneTestUtil(
     HwSwitchEnsemble* ensemble,
+    const std::optional<folly::MacAddress>& nextHopMac,
+    RouterID vrf)
+    : BaseT(
+          ensemble,
+          std::make_unique<EcmpSetupAnyNPortsT>(
+              ensemble->getProgrammedState(),
+              nextHopMac,
+              vrf)) {}
+
+template <typename AddrT>
+HwIpEcmpDataPlaneTestUtil<AddrT>::HwIpEcmpDataPlaneTestUtil(
+    HwSwitchEnsemble* ensemble,
     RouterID vrf)
     : HwIpEcmpDataPlaneTestUtil(ensemble, vrf, {}) {}
 

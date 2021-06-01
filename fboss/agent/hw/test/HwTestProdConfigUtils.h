@@ -9,6 +9,7 @@
  */
 
 #pragma once
+#include "fboss/agent/types.h"
 
 namespace facebook::fboss {
 class HwSwitch;
@@ -22,6 +23,8 @@ namespace utility {
  */
 void addProdFeaturesToConfig(
     cfg::SwitchConfig& config,
-    const HwSwitch* hwSwitch);
+    const HwSwitch* hwSwitch,
+    const bool mmuLossless = false,
+    const std::vector<PortID>& ports = {});
 } // namespace utility
 } // namespace facebook::fboss
