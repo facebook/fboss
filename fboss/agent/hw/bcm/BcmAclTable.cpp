@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/BcmAclTable.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/bcm/BcmAclEntry.h"
 #include "fboss/agent/hw/bcm/BcmStatUpdater.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
@@ -114,6 +115,13 @@ void BcmAclTable::derefBcmAclStat(const std::string& counterName) {
   auto& aclStatRefCnt = aclStatItr->second.second;
   aclStatRefCnt--;
   if (!aclStatRefCnt) {
+    auto counterTypes =
+        hw_->getStatUpdater()->getAclStatCounterType(bcmAclStat->getHandle());
+    for (auto counterType : counterTypes) {
+      utility::deleteCounter(
+          utility::statNameFromCounterType(counterName, counterType));
+    }
+
     hw_->getStatUpdater()->toBeRemovedAclStat(bcmAclStat->getHandle());
     aclStatMap_.erase(aclStatItr);
   }
