@@ -13,11 +13,14 @@
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
+
+#include <fb303/ServiceData.h>
 
 namespace facebook::fboss {
 
@@ -51,6 +54,34 @@ TEST_F(HwAclStatTest, AclStatCreate) {
         getHwSwitch(), /*ACLs*/ 1, /*stats*/ 1, /*counters*/ 1);
     utility::checkAclStat(
         getHwSwitch(), getProgrammedState(), {"acl0"}, "stat0");
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwAclStatTest, AclStatCreateDeleteCreate) {
+  auto setup = [=]() {
+    auto newCfg = initialConfig();
+    addDscpAcl(&newCfg, "acl0");
+    utility::addAclStat(&newCfg, "acl0", "stat0");
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=]() {
+    EXPECT_TRUE(facebook::fb303::fbData->getStatMap()->contains(
+        utility::statNameFromCounterType("stat0", cfg::CounterType::PACKETS)));
+
+    auto newCfg = initialConfig();
+    applyNewConfig(newCfg);
+    EXPECT_FALSE(facebook::fb303::fbData->getStatMap()->contains(
+        utility::statNameFromCounterType("stat0", cfg::CounterType::PACKETS)));
+
+    auto newCfg2 = initialConfig();
+    addDscpAcl(&newCfg2, "acl0");
+    utility::addAclStat(&newCfg2, "acl0", "stat0");
+    applyNewConfig(newCfg2);
+    EXPECT_TRUE(facebook::fb303::fbData->getStatMap()->contains(
+        utility::statNameFromCounterType("stat0", cfg::CounterType::PACKETS)));
   };
 
   verifyAcrossWarmBoots(setup, verify);
