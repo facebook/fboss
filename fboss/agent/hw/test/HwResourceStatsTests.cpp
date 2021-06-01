@@ -11,7 +11,7 @@
 #include "fboss/agent/hw/HwResourceStatsPublisher.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/hw/test/HwTest.h"
+#include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -28,15 +28,9 @@ using namespace facebook::fb303;
 
 namespace facebook::fboss {
 
-class HwResourceStatsTest : public HwTest {
- public:
-  void SetUp() override {
-    HwTest::SetUp();
-    applyNewConfig(config());
-  }
-
+class HwResourceStatsTest : public HwLinkStateDependentTest {
  protected:
-  cfg::SwitchConfig config() const {
+  cfg::SwitchConfig initialConfig() const override {
     return utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
   }
   using Prefix6 = typename Route<folly::IPAddressV6>::Prefix;
@@ -106,9 +100,6 @@ TEST_F(HwResourceStatsTest, l3Stats) {
             HwAsic::Feature::HOSTTABLE)) {
       EXPECT_LT(v6HostFreeAfter, v6HostFreeBefore);
       EXPECT_LT(v4HostFreeAfter, v4HostFreeBefore);
-    } else {
-      EXPECT_EQ(v6HostFreeAfter, 0);
-      EXPECT_EQ(v4HostFreeAfter, 0);
     }
     EXPECT_EQ(ecmpFreeAfter, ecmpFreeBefore - 2);
     // Unresolve so we can rerun verify for many (warmboot) iterations
@@ -138,7 +129,7 @@ TEST_F(HwResourceStatsTest, aclStats) {
           fbData->getCounter(kAclCountersFree));
     };
     auto [aclEntriesFreeBefore, aclCountersFreeBefore] = getStatsFn();
-    auto newCfg = config();
+    auto newCfg = initialConfig();
     auto acl = utility::addAcl(&newCfg, "acl0");
     acl->dscp_ref() = 0x10;
     utility::addAclStat(&newCfg, "acl0", "stat0");
@@ -150,7 +141,7 @@ TEST_F(HwResourceStatsTest, aclStats) {
     // More than one h/w resource gets consumed on configuring
     // a counter
     EXPECT_LT(aclCountersFreeAfter, aclCountersFreeBefore);
-    applyNewConfig(config());
+    applyNewConfig(initialConfig());
   };
   verifyAcrossWarmBoots(setup, verify);
 }
