@@ -31,35 +31,14 @@ NextHop fromThrift(const NextHopThrift& nht) {
   // Only honor interface specified over thrift if the address
   // is a v6 link-local. Otherwise, consume it as an unresolved
   // next hop and let route resolution populate the interface.
-  if (nht.address_ref()->get_ifName() and v6LinkLocal) {
+  // for MPLS next hops accept interface specification
+  if (nht.address_ref()->get_ifName() and (v6LinkLocal or action.has_value())) {
     InterfaceID intfID =
         util::getIDFromTunIntfName(*(nht.address_ref()->get_ifName()));
     return ResolvedNextHop(std::move(address), intfID, weight, action);
   } else {
     return UnresolvedNextHop(std::move(address), weight, action);
   }
-}
-
-NextHop fromThrift(const MplsNextHop& nht) {
-  std::optional<LabelForwardingAction> action =
-      LabelForwardingAction::fromThrift(nht.get_labelForwardingAction());
-  NextHopWeight weight =
-      nht.get_weight() == 0 ? UCMP_DEFAULT_WEIGHT : nht.get_weight();
-
-  auto isPopupAndLookUp =
-      action.value().type() == MplsActionCode::POP_AND_LOOKUP;
-  if (isPopupAndLookUp) {
-    return UnresolvedNextHop(
-        folly::IPAddress("::"), // ignored
-        weight,
-        action);
-  }
-  auto address = folly::IPAddress(nht.get_nexthop());
-  if (!nht.interface_ref()) {
-    return UnresolvedNextHop(std::move(address), weight, action);
-  }
-  return ResolvedNextHop(
-      std::move(address), InterfaceID(*(nht.interface_ref())), weight, action);
 }
 
 NextHop nextHopFromFollyDynamic(const folly::dynamic& nhopJson) {

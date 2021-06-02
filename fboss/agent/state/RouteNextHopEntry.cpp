@@ -53,15 +53,6 @@ RouteNextHopSet toRouteNextHopSet(std::vector<NextHopThrift> const& nhs) {
   return rnhs;
 }
 
-RouteNextHopSet toRouteNextHopSet(std::vector<MplsNextHop> const& nhs) {
-  RouteNextHopSet rnhs;
-  rnhs.reserve(nhs.size());
-  for (auto const& nh : nhs) {
-    rnhs.emplace(fromThrift(nh));
-  }
-  return rnhs;
-}
-
 std::vector<NextHopThrift> fromRouteNextHopSet(RouteNextHopSet const& nhs) {
   std::vector<NextHopThrift> nhts;
   nhts.reserve(nhs.size());

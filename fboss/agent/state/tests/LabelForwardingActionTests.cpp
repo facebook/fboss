@@ -1,5 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
+#include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/if/gen-cpp2/mpls_types.h"
 #include "fboss/agent/state/LabelForwardingAction.h"
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
@@ -11,6 +13,7 @@
 
 using namespace ::testing;
 using namespace facebook::fboss;
+using facebook::network::toBinaryAddress;
 
 namespace {
 void testFromAndTo(const LabelForwardingAction& action) {
@@ -19,14 +22,14 @@ void testFromAndTo(const LabelForwardingAction& action) {
   EXPECT_EQ(action, LabelForwardingAction::fromThrift(action.toThrift()));
 }
 
-MplsNextHop getMplsNextHop(
+NextHopThrift getMplsNextHop(
     const folly::IPAddress& ip,
-    InterfaceID inteface,
+    InterfaceID interface,
     const LabelForwardingAction& action) {
-  MplsNextHop nhop;
-  nhop.nexthop_ref() = ip.str();
-  nhop.labelForwardingAction_ref() = action.toThrift();
-  nhop.interface_ref() = inteface;
+  NextHopThrift nhop;
+  nhop.address_ref() = toBinaryAddress(ip);
+  nhop.address_ref()->ifName_ref() = folly::to<std::string>("fboss", interface);
+  nhop.mplsAction_ref() = action.toThrift();
   return nhop;
 }
 } // namespace
@@ -179,12 +182,17 @@ TEST(LabelForwardingActionTests, MplsNextHopThriftSet) {
       LabelForwardingAction(LabelForwardingAction::LabelForwardingType::PHP),
   };
   for (auto& action : actions) {
-    std::vector<MplsNextHop> nhops_vec;
+    std::vector<NextHopThrift> nhops_vec;
     auto i = 1;
 
     for (auto ip : {"1::1", "1::2"}) {
       nhops_vec.push_back(
           getMplsNextHop(folly::IPAddress(ip), InterfaceID(i++), action));
+      if (action.type() ==
+          LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP) {
+        // only one next hop for pop and look up action
+        break;
+      }
     }
     auto nhops = util::toRouteNextHopSet(nhops_vec);
     EXPECT_TRUE(LabelForwardingInformationBase::isValidNextHopSet(nhops));

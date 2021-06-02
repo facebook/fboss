@@ -211,7 +211,6 @@ bool operator==(const UnresolvedNextHop& a, const UnresolvedNextHop& b);
 
 namespace util {
 NextHop fromThrift(const NextHopThrift& nht);
-NextHop fromThrift(const MplsNextHop& nht);
 NextHop nextHopFromFollyDynamic(const folly::dynamic& nhopJson);
 } // namespace util
 

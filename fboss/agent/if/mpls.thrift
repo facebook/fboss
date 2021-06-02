@@ -27,14 +27,3 @@ struct MplsAction {
   2: optional MplsLabel swapLabel,         // Required if action == SWAP
   3: optional MplsLabelStack pushLabels,   // Required if action == PUSH
 }
-
-struct MplsNextHop {
-  /* nexthop ip address, only directly connected nexthops are supported */
-  1: string nexthop
-  /* label forwarding action towards nexthop */
-  2: MplsAction labelForwardingAction
-  /* interface to reach next hop, required for link local nexthop */
-  3: optional i32 interface
-  /* weight */
-  4: i32 weight = 0,
-}

@@ -129,8 +129,6 @@ namespace util {
  */
 RouteNextHopSet toRouteNextHopSet(std::vector<NextHopThrift> const& nhts);
 
-RouteNextHopSet toRouteNextHopSet(std::vector<MplsNextHop> const& nhts);
-
 /**
  * Convert RouteNextHops to thrift representaion of nexthops
  */
