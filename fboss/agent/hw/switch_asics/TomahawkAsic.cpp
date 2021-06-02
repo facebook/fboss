@@ -75,6 +75,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SFLOW_SHIM_VERSION_FIELD:
     case HwAsic::Feature::SAI_LAG_HASH:
     case HwAsic::Feature::MACSEC:
+    case HwAsic::Feature::SAI_MPLS_QOS:
       return false;
   }
   return false;
