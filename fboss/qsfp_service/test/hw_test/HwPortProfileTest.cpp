@@ -17,6 +17,8 @@
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 
+#include <folly/logging/xlog.h>
+
 namespace facebook::fboss {
 
 template <cfg::PortProfileID Profile>
@@ -89,8 +91,13 @@ class HwPortProfileTest : public HwTest {
     utility::verifyPhyPortConnector(portID, getHwQsfpEnsemble());
   }
   void verifyTransceiverSettings(
-      const std::map<int32_t, TransceiverInfo>& /*transceivers*/) {
-    // TODO
+      const std::map<int32_t, TransceiverInfo>& transceivers) {
+    XLOG(INFO) << " Will verify transceiver settings for : "
+               << transceivers.size() << " ports.";
+    for (auto idAndTransceiver : transceivers) {
+      auto& transceiver = idAndTransceiver.second;
+      EXPECT_TRUE(*transceiver.present_ref());
+    }
   }
 
  protected:
@@ -119,7 +126,16 @@ class HwPortProfileTest : public HwTest {
   }
 
  private:
+  std::optional<TransceiverID> getTranscieverIdx(PortID portId) {
+    const auto& platformPorts =
+        getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
+    const auto& chips = getHwQsfpEnsemble()->getPlatformMapping()->getChips();
+    return utility::getTransceiverId(
+        platformPorts.find(static_cast<int32_t>(portId))->second, chips);
+  }
   PortStatus getPortStatus(PortID portId) {
+    auto transceiverId = getTranscieverIdx(portId);
+    EXPECT_TRUE(transceiverId);
     auto config = *getHwQsfpEnsemble()
                        ->getWedgeManager()
                        ->getAgentConfig()
@@ -134,6 +150,9 @@ class HwPortProfileTest : public HwTest {
     CHECK(portCfg);
     PortStatus status;
     status.enabled_ref() = *portCfg->state_ref() == cfg::PortState::ENABLED;
+    TransceiverIdxThrift idx;
+    idx.transceiverId_ref() = *transceiverId;
+    status.transceiverIdx_ref() = idx;
     // Mark port down to force transceiver programming
     status.up_ref() = false;
     status.speedMbps_ref() = static_cast<int64_t>(*portCfg->speed_ref());
