@@ -351,6 +351,8 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // restart warm
       std::nullopt, // qos dscp to tc map
       std::nullopt, // qos tc to queue map
+      std::nullopt, // qos exp to tc map
+      std::nullopt, // qos tc to exp map
       macAgingTime,
       std::nullopt, // ingress acl
       aclFieldList,

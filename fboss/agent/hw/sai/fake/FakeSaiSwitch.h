@@ -190,11 +190,23 @@ class FakeSwitch {
   void setTcToQueue(sai_object_id_t oid) {
     qosMapTcToQueue_ = oid;
   }
+  void setExpToTc(sai_object_id_t oid) {
+    qosMapExpToTc_ = oid;
+  }
+  void setTcToExp(sai_object_id_t oid) {
+    qosMapTcToExp_ = oid;
+  }
   sai_object_id_t dscpToTc() const {
     return qosMapDscpToTc_;
   }
   sai_object_id_t tcToQueue() const {
     return qosMapTcToQueue_;
+  }
+  sai_object_id_t expToTc() const {
+    return qosMapExpToTc_;
+  }
+  sai_object_id_t tcToExp() const {
+    return qosMapTcToExp_;
   }
   sai_uint32_t getMacAgingTime() const {
     return macAgingTime_;
@@ -248,6 +260,8 @@ class FakeSwitch {
   sai_object_id_t lagHashV6_{SAI_NULL_OBJECT_ID};
   sai_object_id_t qosMapDscpToTc_{SAI_NULL_OBJECT_ID};
   sai_object_id_t qosMapTcToQueue_{SAI_NULL_OBJECT_ID};
+  sai_object_id_t qosMapExpToTc_{SAI_NULL_OBJECT_ID};
+  sai_object_id_t qosMapTcToExp_{SAI_NULL_OBJECT_ID};
   std::vector<int8_t> hwInfo_;
   bool restartWarm_{false};
   sai_uint32_t macAgingTime_{0};

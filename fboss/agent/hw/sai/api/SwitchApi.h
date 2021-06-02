@@ -168,6 +168,16 @@ struct SaiSwitchTraits {
         SAI_SWITCH_ATTR_QOS_TC_TO_QUEUE_MAP,
         SaiObjectIdT,
         SaiObjectIdDefault>;
+    using QosExpToTcMap = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_QOS_MPLS_EXP_TO_TC_MAP,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
+    using QosTcToExpMap = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_QOS_TC_AND_COLOR_TO_MPLS_EXP_MAP,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
     using AclEntryMinimumPriority = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_ACL_ENTRY_MINIMUM_PRIORITY,
@@ -395,6 +405,8 @@ struct SaiSwitchTraits {
       std::optional<Attributes::SwitchRestartWarm>,
       std::optional<Attributes::QosDscpToTcMap>,
       std::optional<Attributes::QosTcToQueueMap>,
+      std::optional<Attributes::QosExpToTcMap>,
+      std::optional<Attributes::QosTcToExpMap>,
       std::optional<Attributes::MacAgingTime>,
       std::optional<Attributes::IngressAcl>,
       std::optional<Attributes::AclFieldList>,
@@ -440,6 +452,8 @@ SAI_ATTRIBUTE_NAME(Switch, LagHash)
 SAI_ATTRIBUTE_NAME(Switch, EcmpHash)
 SAI_ATTRIBUTE_NAME(Switch, QosDscpToTcMap)
 SAI_ATTRIBUTE_NAME(Switch, QosTcToQueueMap)
+SAI_ATTRIBUTE_NAME(Switch, QosExpToTcMap)
+SAI_ATTRIBUTE_NAME(Switch, QosTcToExpMap)
 
 SAI_ATTRIBUTE_NAME(Switch, AclEntryMinimumPriority)
 SAI_ATTRIBUTE_NAME(Switch, AclEntryMaximumPriority)

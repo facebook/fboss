@@ -182,6 +182,12 @@ sai_status_t set_switch_attribute_fn(
     case SAI_SWITCH_ATTR_QOS_TC_TO_QUEUE_MAP:
       sw.setTcToQueue(attr->value.oid);
       break;
+    case SAI_SWITCH_ATTR_QOS_MPLS_EXP_TO_TC_MAP:
+      sw.setExpToTc(attr->value.oid);
+      break;
+    case SAI_SWITCH_ATTR_QOS_TC_AND_COLOR_TO_MPLS_EXP_MAP:
+      sw.setTcToExp(attr->value.oid);
+      break;
     case SAI_SWITCH_ATTR_RESTART_WARM:
       sw.setRestartWarm(attr->value.booldata);
       break;
@@ -374,6 +380,12 @@ sai_status_t get_switch_attribute_fn(
         break;
       case SAI_SWITCH_ATTR_QOS_TC_TO_QUEUE_MAP:
         attr[i].value.oid = sw.tcToQueue();
+        break;
+      case SAI_SWITCH_ATTR_QOS_MPLS_EXP_TO_TC_MAP:
+        attr[i].value.oid = sw.expToTc();
+        break;
+      case SAI_SWITCH_ATTR_QOS_TC_AND_COLOR_TO_MPLS_EXP_MAP:
+        attr[i].value.oid = sw.tcToExp();
         break;
       case SAI_SWITCH_ATTR_ACL_ENTRY_MINIMUM_PRIORITY:
         attr[i].value.oid = kDefaultAclEntryMinimumPriority;
