@@ -22,6 +22,32 @@ namespace facebook::fboss {
 template <cfg::PortProfileID Profile>
 class HwPortProfileTest : public HwTest {
  private:
+  cfg::PortProfileID getMatchingIphyProfile() {
+    auto platform = getHwQsfpEnsemble()->getWedgeManager()->getPlatformMode();
+    static const std::set<PlatformMode> xphyPlatforms = {
+        PlatformMode::MINIPACK,
+        PlatformMode::YAMP,
+        PlatformMode::ELBERT,
+        PlatformMode::CLOUDRIPPER};
+    auto isXphyPlatform = xphyPlatforms.find(platform) != xphyPlatforms.end();
+    if (!isXphyPlatform) {
+      return Profile;
+    }
+    // Xphy platforms have non optical settings on the iphy side
+    // vs optical on the xphy line side
+    switch (Profile) {
+      case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL:
+        return cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528;
+      case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL:
+        return cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N;
+      case cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL:
+        return cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N;
+      default:
+        // Add switch cases as we add more tests
+        throw FbossError("Missing iphy profile for profile id: ", Profile);
+    };
+    return Profile;
+  }
   struct Ports {
     std::vector<PortID> xphyPorts;
     std::vector<PortID> iphyPorts;
@@ -35,7 +61,8 @@ class HwPortProfileTest : public HwTest {
     auto agentConfig = getHwQsfpEnsemble()->getWedgeManager()->getAgentConfig();
     auto& swConfig = *agentConfig->thrift.sw_ref();
     for (auto& port : *swConfig.ports_ref()) {
-      if (*port.profileID_ref() != Profile ||
+      if ((*port.profileID_ref() != Profile &&
+           *port.profileID_ref() != getMatchingIphyProfile()) ||
           *port.state_ref() != cfg::PortState::ENABLED) {
         continue;
       }
