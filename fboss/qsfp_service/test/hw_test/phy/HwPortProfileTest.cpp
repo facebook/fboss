@@ -22,36 +22,37 @@ namespace facebook::fboss {
 template <cfg::PortProfileID Profile>
 class HwPortProfileTest : public HwTest {
  private:
-  std::vector<PortID> findAvailablePort() {
+  struct Ports {
+    std::vector<PortID> xphyPorts;
+    std::vector<PortID> iphyPorts;
+  };
+  Ports findAvailablePorts() {
     std::set<PortID> xPhyPorts;
     const auto& platformPorts =
         getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
     const auto& chips = getHwQsfpEnsemble()->getPlatformMapping()->getChips();
-    for (auto idAndEntry : platformPorts) {
-      const auto& xphy = utility::getDataPlanePhyChips(
-          idAndEntry.second, chips, phy::DataPlanePhyChipType::XPHY);
-      if (xphy.empty()) {
-        continue;
-      }
-      xPhyPorts.emplace(PortID(idAndEntry.first));
-    }
-    std::vector<PortID> ports;
+    Ports ports;
     auto agentConfig = getHwQsfpEnsemble()->getWedgeManager()->getAgentConfig();
     auto& swConfig = *agentConfig->thrift.sw_ref();
     for (auto& port : *swConfig.ports_ref()) {
-      if (xPhyPorts.find(PortID(*port.logicalID_ref())) == xPhyPorts.end()) {
-        // TODO: expand to non xphy ports too
+      if (*port.profileID_ref() != Profile ||
+          *port.state_ref() != cfg::PortState::ENABLED) {
         continue;
       }
-      if (*port.profileID_ref() == Profile &&
-          *port.state_ref() == cfg::PortState::ENABLED) {
-        ports.emplace_back(PortID(*port.logicalID_ref()));
+      const auto& xphy = utility::getDataPlanePhyChips(
+          platformPorts.find(*port.logicalID_ref())->second,
+          chips,
+          phy::DataPlanePhyChipType::XPHY);
+      if (!xphy.empty()) {
+        ports.xphyPorts.emplace_back(PortID(*port.logicalID_ref()));
       }
+      // All ports have iphys
+      ports.iphyPorts.emplace_back(PortID(*port.logicalID_ref()));
     }
     return ports;
   }
 
-  void verifyPort(PortID portID) {
+  void verifyPhyPort(PortID portID) {
     utility::verifyPhyPortConfig(
         portID,
         Profile,
@@ -67,15 +68,22 @@ class HwPortProfileTest : public HwTest {
 
  protected:
   void runTest() {
-    auto ports = findAvailablePort();
-    EXPECT_TRUE(!ports.empty());
+    auto ports = findAvailablePorts();
+    EXPECT_TRUE(!(ports.xphyPorts.empty() && ports.iphyPorts.empty()));
     auto portMap = std::make_unique<WedgeManager::PortMap>();
-    for (auto port : ports) {
-      // Call PhyManager to program such port
-      getHwQsfpEnsemble()->getPhyManager()->programOnePort(port, Profile);
-      // Verify whether such profile has been programmed to the port
+    for (auto port : ports.xphyPorts) {
+      if (getHwQsfpEnsemble()->getWedgeManager()->getPlatformMode() ==
+          PlatformMode::ELBERT) {
+        // Right now only Elbert supports programming PHYs via phy manager in
+        // qsfp service.
+        getHwQsfpEnsemble()->getPhyManager()->programOnePort(port, Profile);
+        // Verify whether such profile has been programmed to the port
+        verifyPhyPort(port);
+      }
       portMap->emplace(port, getPortStatus(port));
-      verifyPort(port);
+    }
+    for (auto port : ports.iphyPorts) {
+      portMap->emplace(port, getPortStatus(port));
     }
     std::map<int32_t, TransceiverInfo> transceivers;
     getHwQsfpEnsemble()->getWedgeManager()->syncPorts(
