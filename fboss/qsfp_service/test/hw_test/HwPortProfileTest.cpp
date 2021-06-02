@@ -14,8 +14,8 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/phy/PhyManager.h"
+#include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
-#include "fboss/qsfp_service/test/hw_test/phy/HwPortUtils.h"
 
 namespace facebook::fboss {
 
