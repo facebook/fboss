@@ -87,6 +87,8 @@ SaiSwitchManager::SaiSwitchManager(
   if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
     initCpuPort();
   }
+  isMplsQosSupported_ =
+      platform_->getAsic()->isSupported(HwAsic::Feature::SAI_MPLS_QOS);
 }
 
 void SaiSwitchManager::initCpuPort() {
@@ -126,6 +128,12 @@ void SaiSwitchManager::resetQosMaps() {
         SaiSwitchTraits::Attributes::QosTcToQueueMap{SAI_NULL_OBJECT_ID});
     globalDscpToTcQosMap_.reset();
     globalTcToQueueQosMap_.reset();
+  }
+  if (isMplsQosSupported_) {
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::QosExpToTcMap{SAI_NULL_OBJECT_ID});
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::QosTcToExpMap{SAI_NULL_OBJECT_ID});
   }
 }
 
@@ -326,11 +334,24 @@ void SaiSwitchManager::setQosPolicy() {
   auto qosMapHandle = qosMapManager.getQosMap();
   globalDscpToTcQosMap_ = qosMapHandle->dscpToTcMap;
   globalTcToQueueQosMap_ = qosMapHandle->tcToQueueMap;
+  globalExpToTcQosMap_ = qosMapHandle->expToTcMap;
+  globalTcToExpQosMap_ = qosMapHandle->tcToExpMap;
   // set switch attrs to oids
   switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosDscpToTcMap{
       globalDscpToTcQosMap_->adapterKey()});
   switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosTcToQueueMap{
       globalTcToQueueQosMap_->adapterKey()});
+  if (!isMplsQosSupported_) {
+    return;
+  }
+  if (globalExpToTcQosMap_) {
+    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosExpToTcMap{
+        globalExpToTcQosMap_->adapterKey()});
+  }
+  if (globalTcToExpQosMap_) {
+    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosTcToExpMap{
+        globalTcToExpQosMap_->adapterKey()});
+  }
 }
 
 void SaiSwitchManager::clearQosPolicy() {

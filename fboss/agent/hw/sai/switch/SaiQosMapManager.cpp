@@ -14,6 +14,8 @@
 #include "fboss/agent/hw/sai/api/QosMapApi.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
@@ -37,6 +39,57 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setDscpToTcQosMap(
   }
   // set the dscp -> tc mapping in SAI
   SaiQosMapTraits::Attributes::Type typeAttribute{SAI_QOS_MAP_TYPE_DSCP_TO_TC};
+  SaiQosMapTraits::Attributes::MapToValueList mapToValueListAttribute{
+      mapToValueList};
+  auto& store = saiStore_->get<SaiQosMapTraits>();
+  SaiQosMapTraits::AdapterHostKey k{typeAttribute};
+  SaiQosMapTraits::CreateAttributes c{typeAttribute, mapToValueListAttribute};
+  return store.setObject(k, c);
+}
+
+std::shared_ptr<SaiQosMap> SaiQosMapManager::setExpToTcQosMap(
+    const ExpMap& newExpMap) {
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::SAI_MPLS_QOS)) {
+    return nullptr;
+  }
+  std::vector<sai_qos_map_t> mapToValueList;
+  const auto& entries = newExpMap.from();
+  mapToValueList.reserve(entries.size());
+  for (const auto& entry : entries) {
+    sai_qos_map_t mapping{};
+    mapping.key.mpls_exp = entry.attr();
+    mapping.value.tc = entry.trafficClass();
+    mapToValueList.push_back(mapping);
+  }
+  // set the exp -> tc mapping in SAI
+  SaiQosMapTraits::Attributes::Type typeAttribute{
+      SAI_QOS_MAP_TYPE_MPLS_EXP_TO_TC};
+  SaiQosMapTraits::Attributes::MapToValueList mapToValueListAttribute{
+      mapToValueList};
+  auto& store = saiStore_->get<SaiQosMapTraits>();
+  SaiQosMapTraits::AdapterHostKey k{typeAttribute};
+  SaiQosMapTraits::CreateAttributes c{typeAttribute, mapToValueListAttribute};
+  return store.setObject(k, c);
+}
+
+std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcToExpQosMap(
+    const ExpMap& newExpMap) {
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::SAI_MPLS_QOS)) {
+    return nullptr;
+  }
+  std::vector<sai_qos_map_t> mapToValueList;
+  const auto& entries = newExpMap.to();
+  mapToValueList.reserve(entries.size());
+  for (const auto& entry : entries) {
+    sai_qos_map_t mapping{};
+    mapping.key.mpls_exp = entry.attr();
+    mapping.key.color = SAI_PACKET_COLOR_GREEN;
+    mapping.value.tc = entry.trafficClass();
+    mapToValueList.push_back(mapping);
+  }
+  // set the tc -> exp mapping in SAI
+  SaiQosMapTraits::Attributes::Type typeAttribute{
+      SAI_QOS_MAP_TYPE_TC_AND_COLOR_TO_MPLS_EXP};
   SaiQosMapTraits::Attributes::MapToValueList mapToValueListAttribute{
       mapToValueList};
   auto& store = saiStore_->get<SaiQosMapTraits>();
@@ -73,6 +126,8 @@ void SaiQosMapManager::setQosMaps(
   handle_->dscpToTcMap = setDscpToTcQosMap(newQosPolicy->getDscpMap());
   handle_->tcToQueueMap =
       setTcToQueueQosMap(newQosPolicy->getTrafficClassToQueueId());
+  handle_->expToTcMap = setExpToTcQosMap(newQosPolicy->getExpMap());
+  handle_->tcToExpMap = setTcToExpQosMap(newQosPolicy->getExpMap());
 }
 
 void SaiQosMapManager::addQosMap(
