@@ -29,8 +29,8 @@ class SaiStore;
 using SaiQosMap = SaiObject<SaiQosMapTraits>;
 
 struct SaiQosMapHandle {
-  std::shared_ptr<SaiQosMap> dscpQosMap;
-  std::shared_ptr<SaiQosMap> tcQosMap;
+  std::shared_ptr<SaiQosMap> dscpToTcMap;
+  std::shared_ptr<SaiQosMap> tcToQueueMap;
 };
 
 class SaiQosMapManager {
@@ -49,10 +49,10 @@ class SaiQosMapManager {
   const SaiQosMapHandle* getQosMap() const;
 
  private:
-  std::shared_ptr<SaiQosMap> setDscpQosMap(const DscpMap& newDscpMap);
-  std::shared_ptr<SaiQosMap> setTcQosMap(
+  std::shared_ptr<SaiQosMap> setDscpToTcQosMap(const DscpMap& newDscpMap);
+  std::shared_ptr<SaiQosMap> setTcToQueueQosMap(
       const QosPolicy::TrafficClassToQueueId& newTcToQueueIdMap);
-  void setQosMap(const std::shared_ptr<QosPolicy>& newQosPolicy);
+  void setQosMaps(const std::shared_ptr<QosPolicy>& newQosPolicy);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;

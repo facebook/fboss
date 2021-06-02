@@ -793,8 +793,8 @@ void SaiPortManager::setQosPolicy() {
   auto& qosMapManager = managerTable_->qosMapManager();
   XLOG(INFO) << "Set default qos map";
   auto qosMapHandle = qosMapManager.getQosMap();
-  globalDscpToTcQosMap_ = qosMapHandle->dscpQosMap;
-  globalTcToQueueQosMap_ = qosMapHandle->tcQosMap;
+  globalDscpToTcQosMap_ = qosMapHandle->dscpToTcMap;
+  globalTcToQueueQosMap_ = qosMapHandle->tcToQueueMap;
   setQosMapsOnAllPorts(
       globalDscpToTcQosMap_->adapterKey(),
       globalTcToQueueQosMap_->adapterKey());

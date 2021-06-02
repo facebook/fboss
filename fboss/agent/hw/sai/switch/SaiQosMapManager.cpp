@@ -24,7 +24,7 @@ SaiQosMapManager::SaiQosMapManager(
     const SaiPlatform* platform)
     : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
-std::shared_ptr<SaiQosMap> SaiQosMapManager::setDscpQosMap(
+std::shared_ptr<SaiQosMap> SaiQosMapManager::setDscpToTcQosMap(
     const DscpMap& newDscpMap) {
   std::vector<sai_qos_map_t> mapToValueList;
   const auto& entries = newDscpMap.from();
@@ -45,7 +45,7 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setDscpQosMap(
   return store.setObject(k, c);
 }
 
-std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcQosMap(
+std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcToQueueQosMap(
     const QosPolicy::TrafficClassToQueueId& newTcToQueueIdMap) {
   std::vector<sai_qos_map_t> mapToValueList;
   mapToValueList.reserve(newTcToQueueIdMap.size());
@@ -66,12 +66,13 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcQosMap(
   return store.setObject(k, c);
 }
 
-void SaiQosMapManager::setQosMap(
+void SaiQosMapManager::setQosMaps(
     const std::shared_ptr<QosPolicy>& newQosPolicy) {
   XLOG(INFO) << "Setting global QoS map: " << newQosPolicy->getName();
   handle_ = std::make_unique<SaiQosMapHandle>();
-  handle_->dscpQosMap = setDscpQosMap(newQosPolicy->getDscpMap());
-  handle_->tcQosMap = setTcQosMap(newQosPolicy->getTrafficClassToQueueId());
+  handle_->dscpToTcMap = setDscpToTcQosMap(newQosPolicy->getDscpMap());
+  handle_->tcToQueueMap =
+      setTcToQueueQosMap(newQosPolicy->getTrafficClassToQueueId());
 }
 
 void SaiQosMapManager::addQosMap(
@@ -79,7 +80,7 @@ void SaiQosMapManager::addQosMap(
   if (handle_) {
     throw FbossError("Failed to add QoS map: already programmed");
   }
-  return setQosMap(newQosPolicy);
+  return setQosMaps(newQosPolicy);
 }
 
 void SaiQosMapManager::removeQosMap() {
@@ -95,7 +96,7 @@ void SaiQosMapManager::changeQosMap(
   if (!handle_) {
     throw FbossError("Failed to change QoS map: none programmed");
   }
-  return setQosMap(newQosPolicy);
+  return setQosMaps(newQosPolicy);
 }
 
 const SaiQosMapHandle* SaiQosMapManager::getQosMap() const {

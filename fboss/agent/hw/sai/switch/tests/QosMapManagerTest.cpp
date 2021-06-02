@@ -35,14 +35,14 @@ class QosMapManagerTest : public ManagerTestBase {
       SaiQosMapHandle* saiQosMapHandle,
       TestQosPolicy testQosPolicy) {
     EXPECT_TRUE(saiQosMapHandle);
-    EXPECT_TRUE(saiQosMapHandle->dscpQosMap);
-    EXPECT_TRUE(saiQosMapHandle->tcQosMap);
+    EXPECT_TRUE(saiQosMapHandle->dscpToTcMap);
+    EXPECT_TRUE(saiQosMapHandle->tcToQueueMap);
     auto& qosMapApi = SaiApiTable::getInstance()->qosMapApi();
     auto dscpMapToValueList = qosMapApi.getAttribute(
-        saiQosMapHandle->dscpQosMap->adapterKey(),
+        saiQosMapHandle->dscpToTcMap->adapterKey(),
         SaiQosMapTraits::Attributes::MapToValueList{});
     auto tcMapToValueList = qosMapApi.getAttribute(
-        saiQosMapHandle->tcQosMap->adapterKey(),
+        saiQosMapHandle->tcToQueueMap->adapterKey(),
         SaiQosMapTraits::Attributes::MapToValueList{});
     EXPECT_EQ(dscpMapToValueList.size(), testQosPolicy.size());
     EXPECT_EQ(tcMapToValueList.size(), testQosPolicy.size());

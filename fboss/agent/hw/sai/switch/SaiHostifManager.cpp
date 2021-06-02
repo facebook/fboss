@@ -471,8 +471,8 @@ void SaiHostifManager::setQosPolicy() {
   // We allow only a single QoS policy right now, so
   // pick that up.
   auto qosMapHandle = qosMapManager.getQosMap();
-  globalDscpToTcQosMap_ = qosMapHandle->dscpQosMap;
-  globalTcToQueueQosMap_ = qosMapHandle->tcQosMap;
+  globalDscpToTcQosMap_ = qosMapHandle->dscpToTcMap;
+  globalTcToQueueQosMap_ = qosMapHandle->tcToQueueMap;
   setCpuQosPolicy(
       globalDscpToTcQosMap_->adapterKey(),
       globalTcToQueueQosMap_->adapterKey());
