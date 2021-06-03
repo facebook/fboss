@@ -387,7 +387,8 @@ void QsfpModule::transceiverPortsChanged(
     needsCustomization_ = true;
     // safetocustomize helped confirmed that no port was up for this
     // transceiver. Record the time for future references.
-    lastDownTime_ = std::time(nullptr);
+    lastDownTime_ = std::time(nullptr) -
+        (FLAGS_remediate_interval - FLAGS_initial_remediate_interval);
   }
 
   if (dirty_) {
