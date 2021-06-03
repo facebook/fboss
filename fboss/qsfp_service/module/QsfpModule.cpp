@@ -514,9 +514,9 @@ bool QsfpModule::shouldRemediate(time_t cooldown) {
   // sharing a single optical module. Doing remediation on one port will
   // have side effect on the neighbor port as well. So we don't do
   // remediation as suggested by our HW optic team.
-  if (apache::thrift::can_throw(
-          *getTransceiverInfo().vendor_ref()->partNumber_ref()) ==
-      kMiniphotonPartNumber) {
+  if (getTransceiverInfo().vendor_ref().has_value() &&
+      *getTransceiverInfo().vendor_ref()->partNumber_ref() ==
+          kMiniphotonPartNumber) {
     return false;
   }
   bool remediationEnabled =
