@@ -411,6 +411,10 @@ LinkAggregationManager::getControllersFor(
   return controllers;
 }
 
-LinkAggregationManager::~LinkAggregationManager() {}
+LinkAggregationManager::~LinkAggregationManager() {
+  for (auto controller : portToController_) {
+    controller.second->stopMachines();
+  }
+}
 
 } // namespace facebook::fboss
