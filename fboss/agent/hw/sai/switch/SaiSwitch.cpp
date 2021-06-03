@@ -64,6 +64,8 @@
 #include <chrono>
 #include <optional>
 
+DECLARE_int32(update_watermark_stats_interval_s);
+
 extern "C" {
 #include <sai.h>
 }
@@ -738,11 +740,20 @@ bool SaiSwitch::sendPacketOutOfPortAsync(
 }
 
 void SaiSwitch::updateStatsImpl(SwitchStats* /* switchStats */) {
+  auto now =
+      std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+  bool updateWatermarks = now - watermarkStatsUpdateTime_ >=
+      FLAGS_update_watermark_stats_interval_s;
+  if (updateWatermarks) {
+    watermarkStatsUpdateTime_ = now;
+  }
+
   auto portsIter = concurrentIndices_->portIds.begin();
   while (portsIter != concurrentIndices_->portIds.end()) {
     {
       std::lock_guard<std::mutex> locked(saiSwitchMutex_);
-      managerTable_->portManager().updateStats(portsIter->second);
+      managerTable_->portManager().updateStats(
+          portsIter->second, updateWatermarks);
     }
     ++portsIter;
   }
@@ -756,7 +767,7 @@ void SaiSwitch::updateStatsImpl(SwitchStats* /* switchStats */) {
   }
   {
     std::lock_guard<std::mutex> locked(saiSwitchMutex_);
-    managerTable_->hostifManager().updateStats();
+    managerTable_->hostifManager().updateStats(updateWatermarks);
   }
   {
     std::lock_guard<std::mutex> locked(saiSwitchMutex_);

@@ -149,7 +149,7 @@ class SaiPortManager {
   std::shared_ptr<Port> swPortFromAttributes(
       SaiPortTraits::CreateAttributes attributees) const;
 
-  void updateStats(PortID portID);
+  void updateStats(PortID portID, bool updateWatermarks = false);
 
   void clearStats(PortID portID);
 

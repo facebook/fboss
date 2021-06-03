@@ -75,7 +75,7 @@ class SaiHostifManager {
   SaiQueueHandle* getQueueHandle(const SaiQueueConfig& saiQueueConfig);
   const SaiQueueHandle* getQueueHandle(
       const SaiQueueConfig& saiQueueConfig) const;
-  void updateStats();
+  void updateStats(bool updateWatermarks = false);
   HwPortStats getCpuPortStats() const;
   QueueConfig getQueueSettings() const;
   const HwCpuFb303Stats& getCpuFb303Stats() const {

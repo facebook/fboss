@@ -403,11 +403,11 @@ void SaiHostifManager::loadCpuPort() {
   loadCpuPortQueues();
 }
 
-void SaiHostifManager::updateStats() {
+void SaiHostifManager::updateStats(bool updateWatermarks) {
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   HwPortStats cpuQueueStats;
   managerTable_->queueManager().updateStats(
-      cpuPortHandle_->configuredQueues, cpuQueueStats);
+      cpuPortHandle_->configuredQueues, cpuQueueStats, updateWatermarks);
   cpuStats_.updateStats(cpuQueueStats, now);
 }
 

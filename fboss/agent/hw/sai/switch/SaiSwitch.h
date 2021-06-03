@@ -434,6 +434,8 @@ class SaiSwitch : public HwSwitch {
 
   HwResourceStats hwResourceStats_;
   std::atomic<SwitchRunState> runState_{SwitchRunState::UNINITIALIZED};
+
+  int64_t watermarkStatsUpdateTime_{0};
 };
 
 } // namespace facebook::fboss

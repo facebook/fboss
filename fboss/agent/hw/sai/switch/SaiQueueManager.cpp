@@ -18,8 +18,6 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/lib/TupleUtils.h"
 
-DECLARE_int32(update_watermark_stats_interval_s);
-
 namespace facebook::fboss {
 
 namespace {
@@ -214,12 +212,9 @@ SaiQueueHandles SaiQueueManager::loadQueues(
 
 void SaiQueueManager::updateStats(
     const std::vector<SaiQueueHandle*>& queueHandles,
-    HwPortStats& hwPortStats) {
+    HwPortStats& hwPortStats,
+    bool updateWatermarks) {
   hwPortStats.outCongestionDiscardPkts__ref() = 0;
-  auto now =
-      std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-  bool updateWatermarks = now - watermarkStatsUpdateTime_ >=
-      FLAGS_update_watermark_stats_interval_s;
   static std::vector<sai_stat_id_t> nonWatermarkStatsRead(
       SaiQueueTraits::NonWatermarkCounterIdsToRead.begin(),
       SaiQueueTraits::NonWatermarkCounterIdsToRead.end());
@@ -229,7 +224,6 @@ void SaiQueueManager::updateStats(
   for (auto queueHandle : queueHandles) {
     if (updateWatermarks) {
       queueHandle->queue->updateStats();
-      watermarkStatsUpdateTime_ = now;
     } else {
       queueHandle->queue->updateStats(
           nonWatermarkStatsRead, SAI_STATS_MODE_READ);

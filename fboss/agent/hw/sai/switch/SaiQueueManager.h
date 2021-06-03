@@ -64,7 +64,8 @@ class SaiQueueManager {
       const QueueConfig& queues);
   void updateStats(
       const std::vector<SaiQueueHandle*>& queues,
-      HwPortStats& stats);
+      HwPortStats& stats,
+      bool updateWatermarks);
   void getStats(SaiQueueHandles& queueHandles, HwPortStats& hwPortStats);
   QueueConfig getQueueSettings(const SaiQueueHandles& queueHandles) const;
 
@@ -72,7 +73,6 @@ class SaiQueueManager {
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
-  int64_t watermarkStatsUpdateTime_{0};
 };
 
 } // namespace facebook::fboss

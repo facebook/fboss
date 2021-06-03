@@ -661,7 +661,7 @@ const std::vector<sai_stat_id_t>& SaiPortManager::supportedStats() const {
   return counterIds;
 }
 
-void SaiPortManager::updateStats(PortID portId) {
+void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
   auto handlesItr = handles_.find(portId);
   if (handlesItr == handles_.end()) {
     return;
@@ -694,7 +694,7 @@ void SaiPortManager::updateStats(PortID portId) {
       {*prevPortStats.inDiscardsRaw__ref(), *curPortStats.inDiscardsRaw__ref()},
       toSubtractFromInDiscardsRaw);
   managerTable_->queueManager().updateStats(
-      handle->configuredQueues, curPortStats);
+      handle->configuredQueues, curPortStats, updateWatermarks);
   portStats_[portId]->updateStats(curPortStats, now);
 }
 
