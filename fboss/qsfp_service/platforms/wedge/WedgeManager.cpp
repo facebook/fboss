@@ -709,7 +709,8 @@ void WedgeManager::programXphyPort(
   if (phyManager_ == nullptr) {
     throw FbossError("Unable to program xphy port when PhyManager is not set");
   }
-  phyManager_->programOnePort(PortID(portId), portProfileId);
+  // TODO(joseph5wu) Prepare transceiverInfo before calling programOnePort
+  phyManager_->programOnePort(PortID(portId), portProfileId, std::nullopt);
 }
 
 } // namespace fboss

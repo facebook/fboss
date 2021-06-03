@@ -17,6 +17,7 @@ namespace fboss {
 class MultiPimPlatformSystemContainer;
 class MultiPimPlatformPimContainer;
 class PlatformMapping;
+class TransceiverInfo;
 
 class PhyManager {
  public:
@@ -81,7 +82,8 @@ class PhyManager {
 
   virtual void programOnePort(
       PortID /* portId */,
-      cfg::PortProfileID /* portProfileId */) {}
+      cfg::PortProfileID /* portProfileId */,
+      std::optional<TransceiverInfo> /* transceiverInfo */) {}
 
   /*
    * This function calls ExternalPhy function setPortPrbs for the given

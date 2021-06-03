@@ -128,7 +128,7 @@ class HwPortProfileTest : public HwTest {
           PlatformMode::ELBERT) {
         // Right now only Elbert supports programming PHYs via phy manager in
         // qsfp service.
-        getHwQsfpEnsemble()->getPhyManager()->programOnePort(port, Profile);
+        getHwQsfpEnsemble()->getWedgeManager()->programXphyPort(port, Profile);
         // Verify whether such profile has been programmed to the port
         verifyPhyPort(port);
       }
