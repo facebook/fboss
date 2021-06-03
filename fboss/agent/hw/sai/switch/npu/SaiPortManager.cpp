@@ -120,9 +120,18 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   auto globalFlowControlMode = utility::getSaiPortPauseMode(swPort->getPause());
   auto internalLoopbackMode =
       utility::getSaiPortInternalLoopbackMode(swPort->getLoopbackMode());
-  auto mediaType =
-      utility::getSaiPortMediaType(platformPort->getTransmitterTech(), speed);
 
+  auto transmitterTech = platformPort->getTransmitterTech();
+  if (transmitterTech == TransmitterTechnology::UNKNOWN) {
+    if (portProfileConfig.iphy_ref()->medium_ref()) {
+      transmitterTech = *portProfileConfig.iphy_ref()->medium_ref();
+      XLOG(DBG2) << "Port: " << swPort->getID()
+                 << " TransmitterTech fallback to: "
+                 << static_cast<int>(transmitterTech);
+    }
+  }
+
+  auto mediaType = utility::getSaiPortMediaType(transmitterTech, speed);
   auto enableFec =
       (speed >= cfg::PortSpeed::HUNDREDG) || !platformPort->shouldDisableFEC();
 
@@ -137,8 +146,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   uint16_t vlanId = swPort->getIngressVlan();
 
   std::optional<SaiPortTraits::Attributes::InterfaceType> interfaceType{};
-  if (auto saiInterfaceType = platform_->getInterfaceType(
-          platformPort->getTransmitterTech(), speed)) {
+  if (auto saiInterfaceType =
+          platform_->getInterfaceType(transmitterTech, speed)) {
     interfaceType = saiInterfaceType.value();
   }
   auto systemPortId = getSystemPortId(platform_, swPort->getID());
