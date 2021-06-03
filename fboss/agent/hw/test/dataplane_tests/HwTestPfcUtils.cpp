@@ -17,7 +17,7 @@ namespace facebook::fboss::utility {
 
 const std::vector<int> kLosslessPgs{0, 7};
 constexpr int kBytesInMMUCell = 254;
-constexpr int kGlobalSharedBufferCells = 119044 * kBytesInMMUCell;
+constexpr int kGlobalSharedBufferCells = 100000 * kBytesInMMUCell;
 constexpr int kGlobalHeadroomBufferCells = 12432 * kBytesInMMUCell;
 constexpr int kPgMinLimitCells = 19 * kBytesInMMUCell;
 constexpr int kPgHeadroomLimitCells = 1156 * kBytesInMMUCell;
