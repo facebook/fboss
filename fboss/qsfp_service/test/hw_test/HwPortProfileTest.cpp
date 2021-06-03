@@ -27,6 +27,7 @@ class HwPortProfileTest : public HwTest {
   cfg::PortProfileID getMatchingIphyProfile() {
     auto platform = getHwQsfpEnsemble()->getWedgeManager()->getPlatformMode();
     static const std::set<PlatformMode> xphyPlatforms = {
+        PlatformMode::FUJI,
         PlatformMode::MINIPACK,
         PlatformMode::YAMP,
         PlatformMode::ELBERT,
@@ -97,6 +98,23 @@ class HwPortProfileTest : public HwTest {
     for (auto idAndTransceiver : transceivers) {
       auto& transceiver = idAndTransceiver.second;
       EXPECT_TRUE(*transceiver.present_ref());
+      // Only testing QSFP transceivers right now
+      EXPECT_EQ(*transceiver.transceiver_ref(), TransceiverType::QSFP);
+      auto settings = transceiver.settings_ref().value();
+      switch (Profile) {
+        case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL:
+          EXPECT_EQ(
+              *settings.powerControl_ref(), PowerControlState::POWER_OVERRIDE);
+          EXPECT_EQ(*settings.cdrTx_ref(), FeatureState::ENABLED);
+          EXPECT_EQ(*settings.cdrRx_ref(), FeatureState::ENABLED);
+          break;
+        case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL:
+        case cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL:
+          // TODO
+          break;
+        default:
+          throw FbossError("Unhandled profile ", Profile);
+      }
     }
   }
 
