@@ -494,15 +494,8 @@ TxPacketMatcher::TxPacketMatcher(StringPiece name, TxMatchFn fn)
   return ::testing::MakeMatcher(new TxPacketMatcher(name, std::move(fn)));
 }
 
-// TODO(T69712535): Remove old googletest code
-#if defined(MOCK_METHOD)
-using GMTxPacketPtr = TxPacketPtr;
-#else
-using GMTxPacketPtr = const TxPacketPtr&;
-#endif
-
 bool TxPacketMatcher::MatchAndExplain(
-    GMTxPacketPtr pkt,
+    TxPacketPtr pkt,
     ::testing::MatchResultListener* l) const {
   try {
     fn_(pkt);
@@ -535,14 +528,8 @@ RxPacketMatcher::RxPacketMatcher(
       new RxPacketMatcher(name, dstIfID, std::move(fn)));
 }
 
-// TODO(T69712535): Remove old googletest code
-#if defined(MOCK_METHOD)
-using GMRxMatchFnArgs = RxMatchFnArgs;
-#else
-using GMRxMatchFnArgs = RxMatchFnArgs const&;
-#endif
 bool RxPacketMatcher::MatchAndExplain(
-    GMRxMatchFnArgs args,
+    RxMatchFnArgs args,
     ::testing::MatchResultListener* l) const {
   auto dstIfID = std::get<0>(args);
   auto pkt = std::get<1>(args);

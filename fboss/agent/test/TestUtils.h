@@ -346,14 +346,7 @@ class TxPacketMatcher : public ::testing::MatcherInterface<TxPacketPtr> {
       folly::StringPiece name,
       TxMatchFn&& fn);
 
-// TODO(T69712535): Remove old googletest code
-#if defined(MOCK_METHOD)
-  using GMTxPacketPtr = TxPacketPtr;
-#else
-  using GMTxPacketPtr = const TxPacketPtr&;
-#endif
-
-  bool MatchAndExplain(GMTxPacketPtr pkt, ::testing::MatchResultListener* l)
+  bool MatchAndExplain(TxPacketPtr pkt, ::testing::MatchResultListener* l)
       const override;
 
   void DescribeTo(std::ostream* os) const override;
@@ -375,13 +368,7 @@ class RxPacketMatcher : public ::testing::MatcherInterface<RxMatchFnArgs> {
   static ::testing::Matcher<RxMatchFnArgs>
   createMatcher(folly::StringPiece name, InterfaceID dstIfID, RxMatchFn&& fn);
 
-// TODO(T69712535): Remove old googletest code
-#if defined(MOCK_METHOD)
-  using GMRxMatchFnArgs = RxMatchFnArgs;
-#else
-  using GMRxMatchFnArgs = RxMatchFnArgs const&;
-#endif
-  bool MatchAndExplain(GMRxMatchFnArgs args, ::testing::MatchResultListener* l)
+  bool MatchAndExplain(RxMatchFnArgs args, ::testing::MatchResultListener* l)
       const override;
 
   void DescribeTo(std::ostream* os) const override;
