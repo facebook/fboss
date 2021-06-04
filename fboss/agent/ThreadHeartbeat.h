@@ -13,6 +13,7 @@
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
 #include <chrono>
+#include <map>
 
 namespace facebook::fboss {
 
@@ -42,6 +43,14 @@ class ThreadHeartbeat : private folly::AsyncTimeout {
         [this]() { cancelTimeout(); });
   }
 
+  std::chrono::time_point<std::chrono::steady_clock> getTimestamp() {
+    return lastTime_.load(std::memory_order_relaxed);
+  }
+
+  const std::string& getThreadName() const {
+    return threadName_;
+  }
+
  private:
   void timeoutExpired() noexcept override;
 
@@ -55,10 +64,69 @@ class ThreadHeartbeat : private folly::AsyncTimeout {
   std::string threadName_;
   std::chrono::milliseconds intervalMsecs_;
   std::function<void(int, int)> heartbeatStatsFunc_;
-  std::chrono::time_point<std::chrono::steady_clock> lastTime_;
+  std::atomic<std::chrono::time_point<std::chrono::steady_clock>> lastTime_{
+      std::chrono::steady_clock::time_point::min()};
   // XXX: these thresholds could be made configurable if needed
   int delayThresholdMsecs_ = 1000;
   int backlogThreshold_ = 10;
+};
+
+// monitor thread heartbeats, and alarm if heartbeat timestamp
+// not changed
+class ThreadHeartbeatWatchdog {
+ public:
+  // intervalMsecs should be longer than the interval of monitored thread
+  // heartbeats, e.g. at least 2 times
+  explicit ThreadHeartbeatWatchdog(std::chrono::milliseconds intervalMsecs) {
+    intervalMsecs_ = intervalMsecs;
+  }
+
+  virtual ~ThreadHeartbeatWatchdog() {
+    stop();
+    heartbeats_.clear();
+  }
+
+  // add the heartbeat of monitored threads
+  void addThreadHeartbeat(std::shared_ptr<ThreadHeartbeat> heartbeat) {
+    heartbeats_[heartbeat] = std::chrono::steady_clock::now();
+  }
+
+  // start to monitor
+  void start() {
+    if (!running_) {
+      running_ = true;
+      missedHeartbeats_ = 0;
+      thread_ = std::thread([this]() {
+        XLOG(INFO) << "Start thread heartbeat watchdog";
+        watchdogLoop();
+      });
+    }
+  }
+
+  // stop to monitor
+  void stop() {
+    if (running_) {
+      running_ = false;
+      XLOG(INFO) << "Stopping thread heartbeat watchdog";
+      thread_.join();
+    }
+  }
+
+  // only for testing purpose right now
+  int getMissedHeartbeats() {
+    return missedHeartbeats_;
+  }
+
+ private:
+  void watchdogLoop();
+  std::thread thread_;
+  std::atomic_bool running_{false};
+  std::chrono::milliseconds intervalMsecs_;
+  std::map<
+      std::shared_ptr<ThreadHeartbeat>,
+      std::chrono::time_point<std::chrono::steady_clock>>
+      heartbeats_;
+  std::atomic_int missedHeartbeats_{0};
 };
 
 } // namespace facebook::fboss

@@ -18,7 +18,8 @@ namespace facebook::fboss {
 void ThreadHeartbeat::timeoutExpired() noexcept {
   CHECK(evb_->inRunningEventBaseThread());
   auto now = steady_clock::now();
-  auto elapsed = duration_cast<milliseconds>(now - lastTime_);
+  auto elapsed = duration_cast<milliseconds>(
+      now - lastTime_.load(std::memory_order_relaxed));
   auto delay = elapsed - intervalMsecs_;
   auto evbQueueSize = evb_->getNotificationQueueSize();
   heartbeatStatsFunc_(delay.count(), evbQueueSize);
@@ -30,6 +31,21 @@ void ThreadHeartbeat::timeoutExpired() noexcept {
   }
   lastTime_ = now;
   scheduleTimeout(intervalMsecs_);
+}
+
+void ThreadHeartbeatWatchdog::watchdogLoop() {
+  while (running_) {
+    for (auto& heartbeat : heartbeats_) {
+      auto timestamp = heartbeat.first->getTimestamp();
+      if (timestamp <= heartbeat.second) {
+        XLOG(ERR) << heartbeat.first->getThreadName()
+                  << "thread heartbeat missed!";
+        missedHeartbeats_++;
+      }
+      heartbeat.second = timestamp;
+    }
+    std::this_thread::sleep_for(intervalMsecs_);
+  }
 }
 
 } // namespace facebook::fboss
