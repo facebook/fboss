@@ -100,13 +100,43 @@ class HwPortProfileTest : public HwTest {
       EXPECT_TRUE(*transceiver.present_ref());
       // Only testing QSFP transceivers right now
       EXPECT_EQ(*transceiver.transceiver_ref(), TransceiverType::QSFP);
-      auto settings = transceiver.settings_ref().value();
+      auto settings = apache::thrift::can_throw(*transceiver.settings_ref());
+      EXPECT_EQ(
+          *settings.powerControl_ref(), PowerControlState::POWER_OVERRIDE);
+      EXPECT_EQ(*settings.cdrTx_ref(), FeatureState::ENABLED);
+      EXPECT_EQ(*settings.cdrRx_ref(), FeatureState::ENABLED);
+      for (auto& mediaLane :
+           apache::thrift::can_throw(*settings.mediaLaneSettings_ref())) {
+        EXPECT_FALSE(mediaLane.txSquelch_ref().value());
+      }
+      for (auto& hostLane :
+           apache::thrift::can_throw(*settings.hostLaneSettings_ref())) {
+        EXPECT_FALSE(hostLane.rxSquelch_ref().value());
+      }
+      auto mgmtInterface = apache::thrift::can_throw(
+          *transceiver.transceiverManagementInterface_ref());
+      EXPECT_TRUE(
+          mgmtInterface == TransceiverManagementInterface::SFF ||
+          mgmtInterface == TransceiverManagementInterface::CMIS);
+      auto mediaIntefaces =
+          apache::thrift::can_throw(*settings.mediaInterface_ref());
       switch (Profile) {
         case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL:
-          EXPECT_EQ(
-              *settings.powerControl_ref(), PowerControlState::POWER_OVERRIDE);
-          EXPECT_EQ(*settings.cdrTx_ref(), FeatureState::ENABLED);
-          EXPECT_EQ(*settings.cdrRx_ref(), FeatureState::ENABLED);
+          for (const auto& mediaId : mediaIntefaces) {
+            if (mgmtInterface == TransceiverManagementInterface::SFF) {
+              auto specComplianceCode =
+                  *mediaId.media_ref()
+                       ->extendedSpecificationComplianceCode_ref();
+              EXPECT_TRUE(
+                  specComplianceCode ==
+                      ExtendedSpecComplianceCode::CWDM4_100G ||
+                  specComplianceCode == ExtendedSpecComplianceCode::FR1_100G);
+            } else if (mgmtInterface == TransceiverManagementInterface::CMIS) {
+              EXPECT_EQ(
+                  *mediaId.media_ref()->smfCode_ref(),
+                  SMFMediaInterfaceCode::CWDM4_100G);
+            }
+          }
           break;
         case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL:
         case cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL:
