@@ -156,7 +156,7 @@ TEST(LabelForwardingActionTests, MplsNextHopThrift) {
       LabelForwardingAction(LabelForwardingAction::LabelForwardingType::PHP),
   };
 
-  for (auto ip : {"1.0.0.1", "1::1"}) {
+  for (auto ip : {"1.0.0.1", "1::1", "fe80::1"}) {
     for (auto& action : actions) {
       auto nhopThrift =
           getMplsNextHop(folly::IPAddress(ip), InterfaceID(10), action);
@@ -164,8 +164,10 @@ TEST(LabelForwardingActionTests, MplsNextHopThrift) {
       EXPECT_EQ(nhop.labelForwardingAction(), action);
       if (action.type() !=
           LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP) {
-        EXPECT_EQ(nhop.intf(), InterfaceID(10));
         EXPECT_EQ(nhop.addr(), folly::IPAddress(ip));
+      }
+      if (folly::IPAddress(ip).isV6() && folly::IPAddress(ip).isLinkLocal()) {
+        EXPECT_EQ(nhop.intf(), InterfaceID(10));
       }
     }
   }
@@ -185,7 +187,7 @@ TEST(LabelForwardingActionTests, MplsNextHopThriftSet) {
     std::vector<NextHopThrift> nhops_vec;
     auto i = 1;
 
-    for (auto ip : {"1::1", "1::2"}) {
+    for (auto ip : {"fe80::1", "fe80::2"}) {
       nhops_vec.push_back(
           getMplsNextHop(folly::IPAddress(ip), InterfaceID(i++), action));
       if (action.type() ==

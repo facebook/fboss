@@ -31,8 +31,7 @@ NextHop fromThrift(const NextHopThrift& nht) {
   // Only honor interface specified over thrift if the address
   // is a v6 link-local. Otherwise, consume it as an unresolved
   // next hop and let route resolution populate the interface.
-  // for MPLS next hops accept interface specification
-  if (nht.address_ref()->get_ifName() and (v6LinkLocal or action.has_value())) {
+  if (nht.address_ref()->get_ifName() and v6LinkLocal) {
     InterfaceID intfID =
         util::getIDFromTunIntfName(*(nht.address_ref()->get_ifName()));
     return ResolvedNextHop(std::move(address), intfID, weight, action);
