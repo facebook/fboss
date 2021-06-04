@@ -19,7 +19,7 @@
 #include "fboss/cli/fboss2/commands/show/CmdShowNdp.h"
 #include "fboss/cli/fboss2/commands/show/CmdShowPort.h"
 #include "fboss/cli/fboss2/commands/show/CmdShowPortQueue.h"
-#include "fboss/cli/fboss2/commands/show/CmdShowTransceiver.h"
+#include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
 
 namespace facebook::fboss {
 

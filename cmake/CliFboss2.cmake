@@ -3,6 +3,11 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
+add_fbthrift_cpp_library(
+  show_transceiver_model
+  fboss/cli/fboss2/commands/show/transceiver/model.thrift
+)
+
 add_executable(fboss2
   fboss/cli/fboss2/CmdClientUtils.cpp
   fboss/cli/fboss2/oss/CmdClientUtils.cpp
@@ -18,7 +23,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/CmdShowNdp.h
   fboss/cli/fboss2/commands/show/CmdShowPort.h
   fboss/cli/fboss2/commands/show/CmdShowPortQueue.h
-  fboss/cli/fboss2/commands/show/CmdShowTransceiver.h
+  fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h
   fboss/cli/fboss2/CmdSubcommands.cpp
   fboss/cli/fboss2/CmdUtils.cpp
   fboss/cli/fboss2/Main.cpp
@@ -33,6 +38,7 @@ target_link_libraries(fboss2
   ctrl_cpp2
   qsfp_cpp2
   Folly::folly
+  show_transceiver_model
 )
 
 add_library(CLI11
