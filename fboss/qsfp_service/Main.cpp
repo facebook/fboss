@@ -5,6 +5,7 @@
 #include <folly/experimental/FunctionScheduler.h>
 #include <folly/logging/Init.h>
 
+#include "fboss/qsfp_service/QsfpServer.h"
 #include "fboss/qsfp_service/QsfpServiceHandler.h"
 #include "fboss/qsfp_service/StatsPublisher.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
@@ -23,12 +24,6 @@ DEFINE_int32(
     5,
     "Interval (in seconds) to run the main loop that determines "
     "if we need to change or fetch data for transceivers");
-
-int doServerLoop(
-    std::shared_ptr<apache::thrift::ThriftServer> thriftServer,
-    std::shared_ptr<QsfpServiceHandler> handler);
-
-int qsfpServiceInit(int* argc, char*** argv);
 
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 

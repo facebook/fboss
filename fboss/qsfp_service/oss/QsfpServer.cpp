@@ -1,12 +1,11 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
+#include "fboss/qsfp_service/QsfpServer.h"
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 #include "fboss/qsfp_service/QsfpServiceHandler.h"
 
 #include <folly/init/Init.h>
 
-using namespace facebook;
-using namespace facebook::fboss;
-
+namespace facebook::fboss {
 int qsfpServiceInit(int* argc, char*** argv) {
   folly::init(argc, argv, true);
   return 0;
@@ -20,3 +19,4 @@ int doServerLoop(
   evb->loopForever();
   return 0;
 }
+} // namespace facebook::fboss
