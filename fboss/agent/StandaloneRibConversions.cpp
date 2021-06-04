@@ -22,7 +22,7 @@
 
 DEFINE_bool(
     enable_standalone_rib,
-    true,
+    false,
     "Place the RIB under the control of the RoutingInformationBase object");
 
 namespace facebook::fboss {
