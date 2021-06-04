@@ -1083,14 +1083,16 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
     ethertype = c.readBE<uint16_t>();
   }
 
-  XLOG(DBG5) << "trapped packet: src_port=" << pkt->getSrcPort()
-             << " srcAggPort="
-             << (pkt->isFromAggregatePort()
-                     ? folly::to<string>(pkt->getSrcAggregatePort())
-                     : "None")
-             << " vlan=" << pkt->getSrcVlan() << " length=" << len
-             << " src=" << srcMac << " dst=" << dstMac << " ethertype=0x"
-             << std::hex << ethertype << " :: " << pkt->describeDetails();
+  std::stringstream ss;
+  ss << "trapped packet: src_port=" << pkt->getSrcPort() << " srcAggPort="
+     << (pkt->isFromAggregatePort()
+             ? folly::to<string>(pkt->getSrcAggregatePort())
+             : "None")
+     << " vlan=" << pkt->getSrcVlan() << " length=" << len << " src=" << srcMac
+     << " dst=" << dstMac << " ethertype=0x" << std::hex << ethertype
+     << " :: " << pkt->describeDetails();
+  XLOG(DBG5) << ss.str();
+  XLOG_EVERY_N(DBG2, 10000) << "sampled " << ss.str();
 
   switch (ethertype) {
     case ArpHandler::ETHERTYPE_ARP:
