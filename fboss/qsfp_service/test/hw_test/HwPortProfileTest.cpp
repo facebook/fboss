@@ -107,6 +107,7 @@ class HwPortProfileTest : public HwTest {
       EXPECT_EQ(*settings.cdrRx_ref(), FeatureState::ENABLED);
       for (auto& mediaLane :
            apache::thrift::can_throw(*settings.mediaLaneSettings_ref())) {
+        EXPECT_FALSE(mediaLane.txDisable_ref().value());
         EXPECT_FALSE(mediaLane.txSquelch_ref().value());
       }
       for (auto& hostLane :
@@ -170,6 +171,30 @@ class HwPortProfileTest : public HwTest {
     std::map<int32_t, TransceiverInfo> transceivers;
     getHwQsfpEnsemble()->getWedgeManager()->syncPorts(
         transceivers, std::move(portMap));
+    getHwQsfpEnsemble()->getWedgeManager()->refreshTransceivers();
+    auto transceiverIds = std::make_unique<std::vector<int32_t>>();
+    std::for_each(
+        transceivers.begin(),
+        transceivers.end(),
+        [&transceiverIds](const auto& idAndInfo) {
+          transceiverIds->push_back(idAndInfo.first);
+        });
+    std::map<int32_t, TransceiverInfo> transceiversAfterRefresh;
+    getHwQsfpEnsemble()->getWedgeManager()->getTransceiversInfo(
+        transceiversAfterRefresh, std::move(transceiverIds));
+
+    // Assert that refresh caused transceiver info to be pulled
+    // from HW
+    EXPECT_EQ(transceivers.size(), transceiversAfterRefresh.size());
+    std::for_each(
+        transceivers.begin(),
+        transceivers.end(),
+        [&transceiversAfterRefresh](const auto& idAndTransceiver) {
+          EXPECT_GT(
+              *transceiversAfterRefresh[idAndTransceiver.first]
+                   .timeCollected_ref(),
+              *idAndTransceiver.second.timeCollected_ref());
+        });
     verifyTransceiverSettings(transceivers);
   }
 
