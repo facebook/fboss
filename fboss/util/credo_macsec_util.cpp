@@ -17,6 +17,9 @@ using namespace facebook::fboss::mka;
 using namespace apache::thrift;
 
 DEFINE_bool(phy_port_map, false, "Print Phy Port map for this platform");
+DEFINE_bool(add_sa_rx, false, "Add SA rx, use with --sa_config, --sc_config");
+DEFINE_string(sa_config, "", "SA config JSON file");
+DEFINE_string(sc_config, "", "SC config JSON file");
 
 /*
  * getMacsecSaFromJson()
@@ -159,6 +162,53 @@ void printPhyPortMap(QsfpServiceAsyncClient* fbMacsecHandler) {
   }
 }
 
+/*
+ * addSaRx()
+ * Adds Macsec SA Rx on a given Phy. The syntax is:
+ * credo_macsec_util --add_sa_rx --sa_config <sa-json-file> --sc_config <sc-json-file>
+ * sa-json-file:
+ *  {
+ *       "sci": {
+ *               "macAddress": "<mac-address>",
+ *               "port": <port-id>
+ *       },
+ *       "l2Port": "<l2-port-string>",
+ *       "assocNum": <association-number>,
+ *       "keyHex": "<key-hex-value>",
+ *       "keyIdHex": "<Key-id-hex-value>",
+ *       "primary": <true/false>
+ *  }
+ * sc-json-file:
+ * {
+ *       "macAddress": "<mac-address>",
+ *       "port": <port-id>
+ * }
+ */
+void addSaRx(QsfpServiceAsyncClient* fbMacsecHandler) {
+    MKASak sak;
+    MKASci sci;
+
+    if (FLAGS_sa_config.empty() || FLAGS_sc_config.empty()) {
+        printf("SA and SC config requied\n");
+        return;
+    }
+
+    bool rc = getMacsecSaFromJson(FLAGS_sa_config, sak);
+    if (!rc) {
+        printf("SA config could not be read from file\n");
+        return;
+    }
+
+    rc = getMacsecScFromJson(FLAGS_sc_config, sci);
+    if (!rc) {
+        printf("SC config could not be read from file\n");
+        return;
+    }
+
+    rc = fbMacsecHandler->sync_sakInstallRx(sak, sci);
+    printf("sakInstallRx is %s\n", rc ? "Successful" : "Failed");
+}
+
 int main(int argc, char* argv[]) {
   folly::init(&argc, &argv, true);
   gflags::SetCommandLineOptionWithMode(
@@ -171,6 +221,10 @@ int main(int argc, char* argv[]) {
   if (FLAGS_phy_port_map) {
     printPhyPortMap(client.get());
     return 0;
+  }
+  if (FLAGS_add_sa_rx) {
+      addSaRx(client.get());
+      return 0;
   }
 
   return 0;
