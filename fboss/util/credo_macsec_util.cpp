@@ -19,6 +19,121 @@ using namespace apache::thrift;
 DEFINE_bool(phy_port_map, false, "Print Phy Port map for this platform");
 
 /*
+ * getMacsecSaFromJson()
+ * Reads MacSec SA information from JSON file to MKASak structure.
+ * sa-json-file:
+ *  {
+ *       "sci": {
+ *               "macAddress": "<mac-address>",
+ *               "port": <port-id>
+ *       },
+ *       "l2Port": "<l2-port-string>",
+ *       "assocNum": <association-number>,
+ *       "keyHex": "<key-hex-value>",
+ *       "keyIdHex": "<Key-id-hex-value>",
+ *       "primary": <true/false>
+ *  }
+ */
+bool getMacsecSaFromJson(std::string saJsonFile, MKASak& sak) {
+    std::string saJsonStr;
+    bool ret = folly::readFile(saJsonFile.c_str(), saJsonStr);
+    if (!ret) {
+        printf("SA config could not be read\n");
+        return false;
+    }
+    folly::dynamic saJsonObj = folly::parseJson(saJsonStr);
+
+    if (saJsonObj.find("assocNum") == saJsonObj.items().end()) {
+        sak.assocNum_ref() = 0;
+    } else {
+        sak.assocNum_ref() = saJsonObj["assocNum"].asInt();
+    }
+
+    if (saJsonObj.find("l2Port") == saJsonObj.items().end()) {
+        printf("l2Port not present in SA config\n");
+        return false;
+    } else {
+        sak.l2Port_ref() = saJsonObj["l2Port"].asString();
+    }
+
+    if (saJsonObj.find("keyHex") == saJsonObj.items().end()) {
+        printf("keyHex not present in SA config\n");
+        return false;
+    } else {
+        sak.keyHex_ref() = saJsonObj["keyHex"].asString();
+    }
+
+    if (saJsonObj.find("keyIdHex") == saJsonObj.items().end()) {
+        printf("keyIdHex not present in SA config\n");
+        return false;
+    } else {
+        sak.keyIdHex_ref() = saJsonObj["keyIdHex"].asString();
+    }
+
+    if (saJsonObj.find("primary") == saJsonObj.items().end()) {
+        printf("primary not present in SA config\n");
+        return false;
+    } else {
+        sak.primary_ref() = saJsonObj["primary"].asBool();
+    }
+
+    if (saJsonObj.find("sci") == saJsonObj.items().end()) {
+        printf("sci not present in SA config\n");
+        return false;
+    }
+    folly::dynamic scJsonObj = saJsonObj["sci"];
+
+    if (scJsonObj.find("macAddress") == scJsonObj.items().end()) {
+        printf("macAddress not present in SA config\n");
+        return false;
+    } else {
+        sak.sci_ref()->macAddress_ref() = scJsonObj["macAddress"].asString();
+    }
+
+    if (scJsonObj.find("port") == scJsonObj.items().end()) {
+        printf("port not present in SA config\n");
+        return false;
+    } else {
+        sak.sci_ref()->port_ref() = scJsonObj["port"].asInt();
+    }
+    return true;
+}
+
+/*
+ * getMacsecScFromJson()
+ * Reads MacSec SC information from JSON file to MKASci structure.
+ * sc-json-file:
+ * {
+ *       "macAddress": "<mac-address>",
+ *       "port": <port-id>
+ * }
+ */
+bool getMacsecScFromJson(std::string scJsonFile, MKASci& sci) {
+    std::string scJsonStr;
+    bool ret = folly::readFile(scJsonFile.c_str(), scJsonStr);
+    if (!ret) {
+        printf("SC config could not be read\n");
+        return false;
+    }
+    folly::dynamic scJsonObj = folly::parseJson(scJsonStr);
+
+    if (scJsonObj.find("port") == scJsonObj.items().end()) {
+        printf("port not present in SC config\n");
+        return false;
+    } else {
+        sci.port_ref() = scJsonObj["port"].asInt();
+    }
+
+    if (scJsonObj.find("macAddress") == scJsonObj.items().end()) {
+        printf("macAddress not present in SC config\n");
+        return false;
+    } else {
+        sci.macAddress_ref() = scJsonObj["macAddress"].asString();
+    }
+    return true;
+}
+
+/*
  * printPhyPortMap()
  * Print the Phy port mapping information from the macsec handling process.
  * This function will make the thrift call to the qsfp_service (or phy_service)
