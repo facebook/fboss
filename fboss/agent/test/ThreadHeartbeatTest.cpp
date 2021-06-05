@@ -22,7 +22,7 @@ TEST(ThreadHeartbeatTest, WatchDogTest) {
     folly::setThreadName("testThread");
     testEvb.loopForever();
   });
-  int heartbeats = 0;
+  std::atomic_int heartbeats = 0;
   auto statsFunc = [&heartbeats](int /*delay*/, int /*backLog*/) {
     heartbeats++;
   };
