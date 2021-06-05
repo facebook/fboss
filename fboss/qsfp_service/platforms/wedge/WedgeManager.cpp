@@ -48,6 +48,15 @@ WedgeManager::WedgeManager(
    * on FPGA managed platforms and the wedgeI2cBus_ will be used to control
    * the QSFP devices on I2C/CPLD managed platforms
    */
+  // Cache the map of port name (like eth2/1/1) to the software port id so that
+  // we don't have to do O(n) lookup everytime
+  if (platformMapping_.get()) {
+    auto allPlatformPorts = platformMapping_->getPlatformPorts();
+    for (auto platformPortIt : allPlatformPorts) {
+      portNameToSwPort_[*platformPortIt.second.mapping_ref()->name_ref()] =
+          platformPortIt.first;
+    }
+  }
 }
 
 void WedgeManager::loadConfig() {
@@ -711,6 +720,21 @@ void WedgeManager::programXphyPort(
   }
   // TODO(joseph5wu) Prepare transceiverInfo before calling programOnePort
   phyManager_->programOnePort(PortID(portId), portProfileId, std::nullopt);
+}
+
+/*
+ * getSwPortByPortName
+ *
+ * This function takes the port name string (eth2/1/1) and returns the software
+ * port id (or the agent port id) for that
+ */
+std::optional<int> WedgeManager::getSwPortByPortName(
+    const std::string& portName) {
+  auto portMapIt = portNameToSwPort_.find(portName);
+  if (portMapIt != portNameToSwPort_.end()) {
+    return portMapIt->second;
+  }
+  return std::nullopt;
 }
 
 } // namespace fboss

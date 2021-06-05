@@ -138,6 +138,9 @@ class WedgeManager : public TransceiverManager {
     return agentConfig_.get();
   }
 
+  // Function to convert port name string to software port id
+  std::optional<int> getSwPortByPortName(const std::string& portName);
+
  protected:
   virtual std::unique_ptr<TransceiverI2CApi> getI2CBus();
   void updateTransceiverMap();
@@ -162,6 +165,9 @@ class WedgeManager : public TransceiverManager {
 
  private:
   void loadConfig() override;
+
+  std::map<std::string, int> portNameToSwPort_;
+
   // Forbidden copy constructor and assignment operator
   WedgeManager(WedgeManager const&) = delete;
   WedgeManager& operator=(WedgeManager const&) = delete;
