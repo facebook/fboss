@@ -105,6 +105,9 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
 
   folly::coro::Task<std::unique_ptr<mka::MKASakHealthResponse>>
   co_sakHealthCheck(std::unique_ptr<mka::MKASak> sak) override;
+
+  folly::coro::Task<std::unique_ptr<mka::MacsecPortPhyMap>>
+  co_macsecGetPhyPortInfo() override;
 #endif
 
   /* TODO(rajank): Move/enable this for mka warmboot support

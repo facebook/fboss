@@ -286,6 +286,13 @@ QsfpServiceHandler::co_sakHealthCheck(std::unique_ptr<mka::MKASak> sak) {
       macsecHandler_->sakHealthCheck(*sak));
 }
 
+folly::coro::Task<std::unique_ptr<mka::MacsecPortPhyMap>>
+QsfpServiceHandler::co_macsecGetPhyPortInfo() {
+  validateHandler();
+  co_return std::make_unique<mka::MacsecPortPhyMap>(
+      macsecHandler_->macsecGetPhyPortInfo());
+}
+
 #endif
 
 } // namespace fboss

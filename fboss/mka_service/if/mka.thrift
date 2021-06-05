@@ -60,6 +60,16 @@ struct MKASakHealthResponse {
   2: i64 lowestAcceptablePN;
 }
 
+struct MacsecPortPhyInfo {
+  1: i32 slotId
+  2: i32 mdioId
+  3: i32 phyId
+}
+
+struct MacsecPortPhyMap {
+  1: map<i32, MacsecPortPhyInfo> macsecPortPhyMap;
+}
+
 enum MKAErrorLogType {
   INTERNAL_ERROR = 0,
   MKA_PARTICIPANT_ERROR = 1,

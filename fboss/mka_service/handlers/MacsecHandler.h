@@ -40,6 +40,13 @@ class MacsecHandler {
 
   virtual MKASakHealthResponse sakHealthCheck(const MKASak& sak) = 0;
 
+  /*
+   * Get the Phy port map from Macsec handler
+   */
+  virtual MacsecPortPhyMap macsecGetPhyPortInfo() {
+    return MacsecPortPhyMap{};
+  }
+
  private:
   MacsecHandler(const MacsecHandler&) = delete;
   MacsecHandler& operator=(const MacsecHandler&) = delete;
