@@ -20,6 +20,7 @@ DEFINE_bool(phy_port_map, false, "Print Phy Port map for this platform");
 DEFINE_bool(add_sa_rx, false, "Add SA rx, use with --sa_config, --sc_config");
 DEFINE_string(sa_config, "", "SA config JSON file");
 DEFINE_string(sc_config, "", "SC config JSON file");
+DEFINE_bool(add_sa_tx, false, "Add SA tx, use with --sa_config");
 
 /*
  * getMacsecSaFromJson()
@@ -209,6 +210,30 @@ void addSaRx(QsfpServiceAsyncClient* fbMacsecHandler) {
     printf("sakInstallRx is %s\n", rc ? "Successful" : "Failed");
 }
 
+/*
+ * addSaTx()
+ * Adds Macsec SA Tx on a given Phy. The syntax is:
+ * credo_macsec_util --add_sa_tx --sa_config <sa-json-file>
+ * sa-json-file is described in above command
+ */
+void addSaTx(QsfpServiceAsyncClient* fbMacsecHandler) {
+    MKASak sak;
+
+    if (FLAGS_sa_config.empty()) {
+        printf("SA config required\n");
+        return;
+    }
+
+    bool rc = getMacsecSaFromJson(FLAGS_sa_config, sak);
+    if (!rc) {
+        printf("SA config could not be read from file\n");
+        return;
+    }
+
+    rc = fbMacsecHandler->sync_sakInstallTx(sak);
+    printf("sakInstallTx is %s\n", rc ? "Successful" : "Failed");
+}
+
 int main(int argc, char* argv[]) {
   folly::init(&argc, &argv, true);
   gflags::SetCommandLineOptionWithMode(
@@ -224,6 +249,10 @@ int main(int argc, char* argv[]) {
   }
   if (FLAGS_add_sa_rx) {
       addSaRx(client.get());
+      return 0;
+  }
+  if (FLAGS_add_sa_tx) {
+      addSaTx(client.get());
       return 0;
   }
 
