@@ -110,27 +110,12 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
   co_macsecGetPhyPortInfo() override;
 #endif
 
-  /* TODO(rajank): Move/enable this for mka warmboot support
-  const mka::MKAActiveSakSessionSet& getSakSet() const {
-    return sakSet_;
-  }
-
-  const std::string& getWarmBootconfigFile() const {
-    return configFile_;
-  }
-  */
-
  private:
   // Forbidden copy constructor and assignment operator
   QsfpServiceHandler(QsfpServiceHandler const&) = delete;
   QsfpServiceHandler& operator=(QsfpServiceHandler const&) = delete;
 
   void validateHandler() const;
-
-  // TODO(rajank): Move/enable this for mka warmboot support
-  // void updateWarmBootConfig() const;
-  // mka::MKAActiveSakSessionSet sakSet_;
-  // std::string configFile_;
 
   std::unique_ptr<TransceiverManager> manager_{nullptr};
   std::shared_ptr<mka::MacsecHandler> macsecHandler_;
