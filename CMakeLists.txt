@@ -417,6 +417,7 @@ if (NOT SAI_ONLY)
   )
 
   add_executable(qsfp_service
+      fboss/qsfp_service/QsfpServer.cpp
       fboss/qsfp_service/oss/QsfpServer.cpp
       fboss/qsfp_service/Main.cpp
       fboss/qsfp_service/QsfpServiceHandler.cpp

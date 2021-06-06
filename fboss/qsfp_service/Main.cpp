@@ -14,7 +14,6 @@
 using namespace facebook;
 using namespace facebook::fboss;
 
-DEFINE_int32(port, 5910, "Port for the thrift service");
 DEFINE_int32(
     stats_publish_interval,
     300,
@@ -25,31 +24,24 @@ DEFINE_int32(
     "Interval (in seconds) to run the main loop that determines "
     "if we need to change or fetch data for transceivers");
 
+DECLARE_int32(port);
+
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 
 int main(int argc, char** argv) {
   qsfpServiceInit(&argc, &argv);
 
   auto transceiverManager = createWedgeManager();
-  auto pTransceiverManager = transceiverManager.get();
-
   StatsPublisher publisher(transceiverManager.get());
 
+  auto [server, handler] = setupThriftServer(std::move(transceiverManager));
   // Create Platform specific FbossMacsecHandler object
-  auto macsecHandler = createFbossMacsecHandler(pTransceiverManager);
-
-  auto handler = std::make_shared<QsfpServiceHandler>(
-      std::move(transceiverManager), macsecHandler);
-  handler->init();
-  auto server = std::make_shared<apache::thrift::ThriftServer>();
-  server->setPort(FLAGS_port);
-  server->setInterface(handler);
   folly::FunctionScheduler scheduler;
   // init after handler has been initted - this ensures everything is setup
   // before we try to retrieve stats for it
   publisher.init();
   scheduler.addFunction(
-      [&publisher, &server]() {
+      [&publisher, server = server]() {
         publisher.publishStats(
             server->getEventBaseManager()->getEventBase(),
             FLAGS_stats_publish_interval);
