@@ -20,7 +20,7 @@ namespace fboss {
 class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
                            public facebook::fb303::FacebookBase2 {
  public:
-  explicit QsfpServiceHandler(
+  QsfpServiceHandler(
       std::unique_ptr<TransceiverManager> manager,
       std::shared_ptr<mka::MacsecHandler> handler);
   ~QsfpServiceHandler() override = default;
