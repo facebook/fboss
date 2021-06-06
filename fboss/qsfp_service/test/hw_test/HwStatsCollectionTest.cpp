@@ -18,5 +18,6 @@ TEST_F(HwTest, publishStats) {
   StatsPublisher publisher(getHwQsfpEnsemble()->getWedgeManager());
   publisher.init();
   publisher.publishStats(nullptr, 0);
+  getHwQsfpEnsemble()->getWedgeManager()->publishI2cTransactionStats();
 }
 } // namespace facebook::fboss
