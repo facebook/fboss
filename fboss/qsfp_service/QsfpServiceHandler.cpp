@@ -42,24 +42,6 @@ QsfpServiceHandler::QsfpServiceHandler(
     : FacebookBase2("QsfpService"),
       manager_(std::move(manager)),
       macsecHandler_(handler) {
-  /* TODO(rajank): Move/enable this for mka warmboot support
-  if (FLAGS_sak_list_warmboot_config.empty() ||
-      FLAGS_sak_list_warmboot_filename.empty()) {
-    return;
-  }
-  configFile_ = facebook::files::FileUtil::joinPaths(
-      FLAGS_sak_list_warmboot_config, FLAGS_sak_list_warmboot_filename);
-  try {
-    if (mka::MKASerializer::getInstance()->getMKAActiveSessionSet(
-            configFile_, sakSet_, FLAGS_sak_config_validity_in_secs)) {
-      XLOG(INFO) << "Loaded SAK Configs from " << configFile_;
-    }
-  } catch (const std::exception& ex) {
-    XLOG(ERR) << "Failed to load warmbootconfig: ex:" << ex.what();
-  }
-  facebook::files::FileUtil::recursivelyCreateDir(
-      FLAGS_sak_list_warmboot_config);
-  */
   XLOG(INFO) << "FbossPhyMacsecService inside QsfpServiceHandler Started";
 }
 
