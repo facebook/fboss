@@ -50,6 +50,12 @@ class FbossMacsecHandler : public mka::MacsecHandler {
     return result;
   }
 
+  // Virtual function to get the phy port link info
+  virtual PortOperState macsecGetPhyLinkInfo(
+      const std::string& /* portName */) override {
+    return PortOperState::DOWN;
+  }
+
  protected:
   // TransceiverManager or WedgeManager object pointer passed by QsfpService
   // main

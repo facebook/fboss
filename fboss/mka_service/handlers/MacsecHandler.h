@@ -2,6 +2,7 @@
 #pragma once
 
 #include <fboss/mka_service/if/gen-cpp2/mka_types.h>
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
 namespace facebook {
 namespace fboss {
@@ -45,6 +46,13 @@ class MacsecHandler {
    */
   virtual MacsecPortPhyMap macsecGetPhyPortInfo() {
     return MacsecPortPhyMap{};
+  }
+
+  /*
+   * Get the Phy port link information from Macsec handler
+   */
+  virtual PortOperState macsecGetPhyLinkInfo(const std::string& /* portName */) {
+    return PortOperState::DOWN;
   }
 
  private:

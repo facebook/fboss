@@ -293,6 +293,12 @@ QsfpServiceHandler::co_macsecGetPhyPortInfo() {
       macsecHandler_->macsecGetPhyPortInfo());
 }
 
+folly::coro::Task<PortOperState> QsfpServiceHandler::co_macsecGetPhyLinkInfo(
+    std::unique_ptr<std::string> portName) {
+  validateHandler();
+  co_return macsecHandler_->macsecGetPhyLinkInfo(*portName);
+}
+
 #endif
 
 } // namespace fboss

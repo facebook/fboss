@@ -104,4 +104,6 @@ service QsfpService extends fb303.FacebookService {
   mka.MKASakHealthResponse sakHealthCheck(1: mka.MKASak sak)(cpp.coroutine)
 
   mka.MacsecPortPhyMap macsecGetPhyPortInfo() (cpp.coroutine)
+
+  ctrl.PortOperState macsecGetPhyLinkInfo(1: string portName) (cpp.coroutine)
 }
