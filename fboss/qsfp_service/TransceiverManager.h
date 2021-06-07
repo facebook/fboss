@@ -116,7 +116,7 @@ class TransceiverManager {
     return qsfpPlatApi_.get();
   }
 
-  const PlatformMapping* getPlatformMapping() {
+  const PlatformMapping* getPlatformMapping() const {
     return platformMapping_.get();
   }
   /*
