@@ -19,12 +19,16 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 
+namespace apache::thrift {
+class ThriftServer;
+}
 namespace facebook::fboss {
 
 class PhyManager;
 class WedgeManager;
 class MultiPimPlatformMapping;
 class PlatformMapping;
+class QsfpServiceHandler;
 
 namespace phy {
 class ExternalPhy;
@@ -55,19 +59,19 @@ class ExternalPhy;
 class HwQsfpEnsemble {
  public:
   void init();
+  ~HwQsfpEnsemble();
 
   PhyManager* getPhyManager();
   phy::ExternalPhy* getExternalPhy(PortID portID);
 
   const PlatformMapping* getPlatformMapping() const;
+  WedgeManager* getWedgeManager();
   const WedgeManager* getWedgeManager() const {
-    return wedgeManager_.get();
-  }
-  WedgeManager* getWedgeManager() {
-    return wedgeManager_.get();
+    return const_cast<HwQsfpEnsemble*>(this)->getWedgeManager();
   }
 
  private:
-  std::unique_ptr<WedgeManager> wedgeManager_;
+  std::shared_ptr<QsfpServiceHandler> qsfpServiceHandler_;
+  std::shared_ptr<apache::thrift::ThriftServer> server_;
 };
 } // namespace facebook::fboss
