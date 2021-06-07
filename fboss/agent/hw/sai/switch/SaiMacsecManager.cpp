@@ -74,7 +74,35 @@ SaiMacsecManager::SaiMacsecManager(
     SaiManagerTable* managerTable)
     : saiStore_(saiStore), managerTable_(managerTable) {}
 
-SaiMacsecManager::~SaiMacsecManager() {}
+SaiMacsecManager::~SaiMacsecManager() {
+  for (const auto& macsec : macsecHandles_) {
+    auto direction = macsec.first;
+    for (const auto& port : macsec.second->ports) {
+      // unbind acl tables from the port, and delete acl entries, since they
+      // reference our macsecport/flow objects that we're trying to destroy
+      auto portId = port.first;
+      auto portHandle = managerTable_->portManager().getPortHandle(portId);
+      portHandle->port->setOptionalAttribute(
+          SaiPortTraits::Attributes::IngressMacSecAcl{SAI_NULL_OBJECT_ID});
+      portHandle->port->setOptionalAttribute(
+          SaiPortTraits::Attributes::EgressMacSecAcl{SAI_NULL_OBJECT_ID});
+
+      std::string aclName = getAclName(portId, direction);
+      auto aclTable =
+          managerTable_->aclTableManager().getAclTableHandle(aclName);
+      if (aclTable) {
+        auto aclEntryHandle =
+            managerTable_->aclTableManager().getAclEntryHandle(
+                aclTable, kMacsecAclPriority);
+        if (aclEntryHandle) {
+          auto aclEntry =
+              std::make_shared<AclEntry>(kMacsecAclPriority, aclName);
+          managerTable_->aclTableManager().removeAclEntry(aclEntry, aclName);
+        }
+      }
+    }
+  }
+}
 
 MacsecSaiId SaiMacsecManager::addMacsec(
     sai_macsec_direction_t direction,
