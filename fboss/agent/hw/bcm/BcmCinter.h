@@ -724,6 +724,14 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       int* /*entries*/) override {
     return 0;
   }
+#ifdef SAI_FIXUP
+  int bcm_l3_alpm_resource_get(
+      int /*unit*/,
+      bcm_l3_route_group_t /*grp*/,
+      bcm_l3_alpm_resource_t* /*resource*/) override {
+    return 0;
+  }
+#endif
   int bcm_field_entry_multi_get(
       int /*unit*/,
       bcm_field_group_t /*group*/,

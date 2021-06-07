@@ -412,6 +412,15 @@ class BcmSdkInterface {
       bcm_switch_object_t object,
       int* entries) = 0;
 
+// workaround to make 6.5.17 build work
+// flag will be removed once 6.5.17 is gone
+#ifdef SAI_FIXUP
+  virtual int bcm_l3_alpm_resource_get(
+      int unit,
+      bcm_l3_route_group_t grp,
+      bcm_l3_alpm_resource_t* resource) = 0;
+#endif
+
   virtual int bcm_field_entry_multi_get(
       int unit,
       bcm_field_group_t group,

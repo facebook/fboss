@@ -253,6 +253,13 @@ int __real_bcm_switch_object_count_get(
     bcm_switch_object_t object,
     int* entries);
 
+#ifdef SAI_FIXUP
+int __real_bcm_l3_alpm_resource_get(
+    int unit,
+    bcm_l3_route_group_t grp,
+    bcm_l3_alpm_resource_t* resource);
+#endif
+
 int __real_bcm_field_entry_multi_get(
     int unit,
     bcm_field_group_t group,
@@ -1835,6 +1842,15 @@ int __wrap_bcm_switch_object_count_get(
     int* entries) {
   CALL_WRAPPERS_RV(bcm_switch_object_count_get(unit, object, entries));
 }
+
+#ifdef SAI_FIXUP
+int __wrap_bcm_l3_alpm_resource_get(
+    int unit,
+    bcm_l3_route_group_t grp,
+    bcm_l3_alpm_resource_t* resource) {
+  CALL_WRAPPERS_RV(bcm_l3_alpm_resource_get(unit, grp, resource));
+}
+#endif
 
 int __wrap_bcm_field_entry_multi_get(
     int unit,
