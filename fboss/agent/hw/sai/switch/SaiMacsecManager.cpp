@@ -9,6 +9,9 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiMacsecManager.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/sai/api/SaiDefaultAttributeValues.h"
+#include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 
@@ -20,8 +23,48 @@ extern "C" {
 }
 
 namespace {
+using namespace facebook::fboss;
 constexpr sai_uint8_t kSectagOffset = 12;
 constexpr sai_int32_t kReplayProtectionWindow = 100;
+
+static std::array<uint8_t, 12> kDefaultSaltValue{
+    0x9d,
+    0x00,
+    0x29,
+    0x02,
+    0x48,
+    0xde,
+    0x86,
+    0xa2,
+    0x1c,
+    0x66,
+    0xfa,
+    0x6d};
+const MacsecShortSecureChannelId kDefaultSsciValue =
+    MacsecShortSecureChannelId(0x01000000);
+constexpr int kMacsecAclPriority = 1;
+
+const std::shared_ptr<AclEntry> createMacsecAclEntry(
+    int priority,
+    std::string entryName,
+    MacsecFlowSaiId flowId,
+    std::optional<folly::MacAddress> mac,
+    std::optional<cfg::EtherType> etherType) {
+  auto entry = std::make_shared<AclEntry>(priority, entryName);
+  if (mac.has_value()) {
+    entry->setDstMac(*mac);
+  }
+  if (etherType.has_value()) {
+    entry->setEtherType(*etherType);
+  }
+  auto macsecAction = MatchAction();
+  auto macsecFlowAction = cfg::MacsecFlowAction();
+  macsecFlowAction.flowId_ref() = flowId;
+  macsecAction.setMacsecFlow(macsecFlowAction);
+  entry->setAclAction(macsecAction);
+
+  return entry;
+}
 } // namespace
 
 namespace facebook::fboss {
@@ -453,6 +496,152 @@ SaiMacsecSecureAssoc* FOLLY_NULLABLE SaiMacsecManager::getMacsecSecureAssocImpl(
       << "Invalid null std::shared_ptr<SaiMacsecSA> for secureChannelId:assocNum: "
       << secureChannelId << ":" << assocNum;
   return itr->second.get();
+}
+
+void SaiMacsecManager::setupMacsec(
+    PortID linePort,
+    const mka::MKASak& sak,
+    const mka::MKASci& sci,
+    sai_macsec_direction_t direction) {
+  auto portHandle = managerTable_->portManager().getPortHandle(linePort);
+  if (!portHandle) {
+    throw FbossError(
+        "Failed to get portHandle for non-existent linePort: ", linePort);
+  }
+
+  // Create macsec pipeline obj if it doesn't exist
+  if (!getMacsecHandle(SAI_MACSEC_DIRECTION_INGRESS)) {
+    auto macsecId =
+        addMacsec(SAI_MACSEC_DIRECTION_INGRESS, false /* phys bypass enable */);
+    XLOG(DBG2) << "For direction " << SAI_MACSEC_DIRECTION_INGRESS
+               << ", created macsec pipeline object w/ ID: " << macsecId;
+  }
+  if (!getMacsecHandle(SAI_MACSEC_DIRECTION_EGRESS)) {
+    auto macsecId =
+        addMacsec(SAI_MACSEC_DIRECTION_EGRESS, false /* phys bypass enable */);
+    XLOG(DBG2) << "For direction " << SAI_MACSEC_DIRECTION_EGRESS
+               << ", created macsec pipeline object w/ ID: " << macsecId;
+  }
+
+  // Check if the macsec port exists for lineport
+  if (!getMacsecPortHandle(linePort, direction)) {
+    // Step1: Create Macsec egress port (it is not present)
+    auto macsecPortId = addMacsecPort(linePort, direction);
+    XLOG(DBG2) << "For lineport: " << linePort << ", created macsec "
+               << direction << " port " << macsecPortId;
+  }
+
+  // Create the egress flow and ingress sc
+  std::string sciKeyString =
+      folly::to<std::string>(*sci.macAddress_ref(), ".", *sci.port_ref());
+
+  // First convert sci mac address string and the port id to a uint64
+  folly::MacAddress mac = folly::MacAddress(*sci.macAddress_ref());
+  auto scIdentifier = MacsecSecureChannelId(mac.u64NBO() | *sci.port_ref());
+
+  // Step2/3: Create flow and SC if it they do not exist
+  auto secureChannelHandle =
+      getMacsecSecureChannelHandle(linePort, scIdentifier, direction);
+  if (!secureChannelHandle) {
+    auto scSaiId =
+        addMacsecSecureChannel(linePort, direction, scIdentifier, true);
+    XLOG(DBG2) << "For SCI: " << sciKeyString << ", created macsec "
+               << direction << " SC " << scSaiId;
+    secureChannelHandle =
+        getMacsecSecureChannelHandle(linePort, scIdentifier, direction);
+  }
+  CHECK(secureChannelHandle);
+  auto flowId = secureChannelHandle->flow->adapterKey();
+
+  // Step4: Create the Macsec SA now
+  // Input macsec key is a string which needs to be converted to 32 bytes
+  // array for passing to sai
+  if (sak.keyHex_ref()->size() < 32) {
+    XLOG(ERR) << "Macsec key can't be lesser than 32 bytes";
+    return;
+  }
+  std::array<uint8_t, 32> key;
+  std::copy(sak.keyHex_ref()->begin(), sak.keyHex_ref()->end(), key.data());
+
+  // Input macsec keyid (auth key) is provided in string which needs to be
+  // converted to 16 byte array for passing to sai
+  if (sak.keyIdHex_ref()->size() < 16) {
+    XLOG(ERR) << "Macsec key Id can't be lesser than 16 bytes";
+    return;
+  }
+
+  std::array<uint8_t, 16> keyId;
+  std::copy(
+      sak.keyIdHex_ref()->begin(), sak.keyIdHex_ref()->end(), keyId.data());
+
+  auto secureAssoc = getMacsecSecureAssoc(
+      linePort, scIdentifier, direction, *sak.assocNum_ref() % 4);
+  if (!secureAssoc) {
+    auto secureAssocSaiId = addMacsecSecureAssoc(
+        linePort,
+        scIdentifier,
+        direction,
+        *sak.assocNum_ref() % 4,
+        key,
+        kDefaultSaltValue,
+        keyId,
+        kDefaultSsciValue);
+    XLOG(DBG2) << "For SCI: " << sciKeyString << ", created macsec "
+               << direction << " SA " << sciKeyString << secureAssocSaiId;
+  }
+
+  // // Step5: Create the ACL table if it does not exist
+  // Right now we're just using one entry per table, so we're using the same
+  // format for table and entry name
+  std::string aclName = getAclName(linePort, direction);
+  auto aclTable = managerTable_->aclTableManager().getAclTableHandle(aclName);
+  if (!aclTable) {
+    auto aclTableId = managerTable_->aclTableManager().addAclTable(
+        aclName,
+        direction == SAI_MACSEC_DIRECTION_INGRESS
+            ? SAI_ACL_STAGE_INGRESS_MACSEC
+            : SAI_ACL_STAGE_EGRESS_MACSEC);
+    XLOG(DBG2) << "For linePort: " << linePort << ", created " << direction
+               << " ACL table with sai ID " << aclTableId;
+    aclTable = managerTable_->aclTableManager().getAclTableHandle(aclName);
+  }
+  CHECK_NOTNULL(aclTable);
+  auto aclTableId = aclTable->aclTable->adapterKey();
+
+  // Step6: Create ACL entry (if does not exist)
+  auto aclEntryHandle = managerTable_->aclTableManager().getAclEntryHandle(
+      aclTable, kMacsecAclPriority);
+  if (!aclEntryHandle) {
+    auto etherType = (direction == SAI_MACSEC_DIRECTION_INGRESS)
+        ? std::make_optional(cfg::EtherType::MACSEC)
+        : std::nullopt;
+    auto aclEntry = createMacsecAclEntry(
+        kMacsecAclPriority, aclName, flowId, mac, etherType);
+    auto aclEntryId =
+        managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
+    XLOG(DBG2) << "For SCI: " << sciKeyString << ", created macsec "
+               << direction << " ACL entry " << aclEntryId;
+  }
+  // Step7: Bind ACL table to the line port
+  if (direction == SAI_MACSEC_DIRECTION_INGRESS) {
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::IngressMacSecAcl{aclTableId});
+  } else {
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::EgressMacSecAcl{aclTableId});
+  }
+  XLOG(DBG2) << "To linePort " << linePort << ", bound macsec " << direction
+             << " ACL table " << aclTableId;
+}
+
+std::string SaiMacsecManager::getAclName(
+    facebook::fboss::PortID port,
+    sai_macsec_direction_t direction) {
+  return folly::to<std::string>(
+      "macsec-",
+      direction == SAI_MACSEC_DIRECTION_INGRESS ? "ingress" : "egress",
+      "-port",
+      port);
 }
 
 } // namespace facebook::fboss

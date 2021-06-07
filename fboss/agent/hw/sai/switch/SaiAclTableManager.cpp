@@ -764,8 +764,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
          aclActionMirrorIngress.has_value() ||
          aclActionMirrorEgress.has_value() ||
          aclActionMacsecFlow.has_value()))) {
-    XLOG(DBG)
-        << "Unsupported field/action for aclEntry: addedAclEntry->getID())";
+    XLOG(DBG) << "Unsupported field/action for aclEntry: "
+              << addedAclEntry->getID();
     return AclEntrySaiId{0};
   }
 

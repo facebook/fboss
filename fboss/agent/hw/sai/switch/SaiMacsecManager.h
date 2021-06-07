@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <fboss/mka_service/if/gen-cpp2/mka_types.h>
 #include "fboss/agent/hw/sai/api/MacsecApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
@@ -57,6 +58,12 @@ class SaiMacsecManager {
  public:
   SaiMacsecManager(SaiStore* saiStore, SaiManagerTable* managerTable);
   ~SaiMacsecManager();
+
+  void setupMacsec(
+      PortID linePort,
+      const mka::MKASak& sak,
+      const mka::MKASci& sci,
+      sai_macsec_direction_t direction);
 
   SaiMacsecHandle* FOLLY_NULLABLE
   getMacsecHandle(sai_macsec_direction_t direction);
@@ -129,6 +136,11 @@ class SaiMacsecManager {
       MacsecSecureChannelId secureChannelId,
       sai_macsec_direction_t direction,
       uint8_t assocNum);
+
+  // TODO(ccpowers): it may be better to move this out into a utils file
+  std::string getAclName(
+      facebook::fboss::PortID port,
+      sai_macsec_direction_t direction);
 
  private:
   SaiMacsecHandle* FOLLY_NULLABLE

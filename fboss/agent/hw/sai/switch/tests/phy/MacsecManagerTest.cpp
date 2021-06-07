@@ -10,6 +10,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/api/Types.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiMacsecManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 #include "fboss/agent/types.h"
@@ -527,4 +528,76 @@ TEST_F(MacsecManagerTest, removeNonexistentMacsecSecureAssoc) {
           SAI_MACSEC_DIRECTION_INGRESS,
           *rxSak.assocNum_ref()),
       FbossError);
+}
+
+TEST_F(MacsecManagerTest, invalidLinePort) {
+  // If the linePort doesn't exist, throw an error.
+  EXPECT_THROW(
+      saiManagerTable->macsecManager().setupMacsec(
+          PortID(p0.id), rxSak, remoteSci, SAI_MACSEC_DIRECTION_INGRESS),
+      FbossError);
+  EXPECT_THROW(
+      saiManagerTable->macsecManager().setupMacsec(
+          PortID(p0.id), txSak, localSci, SAI_MACSEC_DIRECTION_EGRESS),
+      FbossError);
+}
+
+TEST_F(MacsecManagerTest, installKeys) {
+  std::shared_ptr<Port> swPort = makePort(p0);
+  saiManagerTable->portManager().addPort(swPort);
+
+  // Install RX
+  saiManagerTable->macsecManager().setupMacsec(
+      swPort->getID(), rxSak, remoteSci, SAI_MACSEC_DIRECTION_INGRESS);
+
+  // Install TX
+  saiManagerTable->macsecManager().setupMacsec(
+      swPort->getID(), txSak, *txSak.sci_ref(), SAI_MACSEC_DIRECTION_EGRESS);
+
+  auto verify = [this](
+                    auto direction,
+                    auto linePortId,
+                    auto secureChannelId,
+                    auto assocNum) {
+    auto macsecHandle =
+        saiManagerTable->macsecManager().getMacsecHandle(direction);
+    ASSERT_NE(macsecHandle, nullptr);
+    ASSERT_NE(macsecHandle->macsec, nullptr);
+
+    auto macsecPort = macsecHandle->ports.find(linePortId);
+    ASSERT_NE(macsecPort, macsecHandle->ports.end());
+    ASSERT_NE(macsecPort->second, nullptr);
+    ASSERT_NE(macsecPort->second->port, nullptr);
+
+    auto macsecSc = macsecPort->second->secureChannels.find(secureChannelId);
+    ASSERT_NE(macsecSc, macsecPort->second->secureChannels.end());
+    ASSERT_NE(macsecSc->second, nullptr);
+    ASSERT_NE(macsecSc->second->secureChannel, nullptr);
+    ASSERT_NE(macsecSc->second->flow, nullptr);
+
+    auto macsecSa = macsecSc->second->secureAssocs.find(assocNum);
+    ASSERT_NE(macsecSa, macsecSc->second->secureAssocs.end());
+    ASSERT_NE(macsecSa->second, nullptr);
+
+    auto aclName =
+        saiManagerTable->macsecManager().getAclName(linePortId, direction);
+    auto aclTable =
+        saiManagerTable->aclTableManager().getAclTableHandle(aclName);
+    ASSERT_NE(aclTable, nullptr);
+
+    auto aclEntry =
+        saiManagerTable->aclTableManager().getAclEntryHandle(aclTable, 1);
+    ASSERT_NE(aclEntry, nullptr);
+  };
+
+  verify(
+      SAI_MACSEC_DIRECTION_INGRESS,
+      swPort->getID(),
+      packSci(remoteSci),
+      *rxSak.assocNum_ref());
+  verify(
+      SAI_MACSEC_DIRECTION_EGRESS,
+      swPort->getID(),
+      packSci(localSci),
+      *txSak.assocNum_ref());
 }
