@@ -1,11 +1,13 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include <folly/ThreadLocal.h>
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
 #include <folly/init/Init.h>
 #include <folly/experimental/coro/BlockingWait.h>
 #include <folly/io/async/AsyncSocket.h>
 #include <thrift/lib/cpp2/async/HeaderClientChannel.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include <folly/json.h>
 #include <folly/FileUtil.h>
 #include <folly/Random.h>
@@ -21,6 +23,8 @@ DEFINE_bool(add_sa_rx, false, "Add SA rx, use with --sa_config, --sc_config");
 DEFINE_string(sa_config, "", "SA config JSON file");
 DEFINE_string(sc_config, "", "SC config JSON file");
 DEFINE_bool(add_sa_tx, false, "Add SA tx, use with --sa_config");
+DEFINE_bool(phy_link_info, false, "Print link info for a port in a phy, use with --port");
+DEFINE_string(port, "", "Switch port");
 
 /*
  * getMacsecSaFromJson()
@@ -234,6 +238,17 @@ void addSaTx(QsfpServiceAsyncClient* fbMacsecHandler) {
     printf("sakInstallTx is %s\n", rc ? "Successful" : "Failed");
 }
 
+void printPhyLinkInfo(QsfpServiceAsyncClient* fbMacsecHandler) {
+    if (FLAGS_port == "") {
+        printf("Port name is required\n");
+        return;
+    }
+
+    PortOperState phyLink = fbMacsecHandler->sync_macsecGetPhyLinkInfo(FLAGS_port);
+    printf("Port %s phy line status: %s\n", FLAGS_port.c_str(),
+        (apache::thrift::util::enumNameSafe(phyLink)).c_str());
+}
+
 int main(int argc, char* argv[]) {
   folly::init(&argc, &argv, true);
   gflags::SetCommandLineOptionWithMode(
@@ -253,6 +268,10 @@ int main(int argc, char* argv[]) {
   }
   if (FLAGS_add_sa_tx) {
       addSaTx(client.get());
+      return 0;
+  }
+  if (FLAGS_phy_link_info) {
+      printPhyLinkInfo(client.get());
       return 0;
   }
 
