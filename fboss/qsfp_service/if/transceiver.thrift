@@ -235,6 +235,8 @@ struct HostLaneSettings {
   4: optional i32 rxOutputAmplitude,
   5: optional bool rxOutput,
   6: optional bool rxSquelch,
+  7: optional i32 rxOutputPreCursor,
+  8: optional i32 rxOutputPostCursor,
 }
 
 struct MediaLaneSignals {

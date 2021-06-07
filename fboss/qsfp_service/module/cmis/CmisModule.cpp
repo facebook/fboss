@@ -488,18 +488,49 @@ bool CmisModule::getMediaLaneSettings(
 
 bool CmisModule::getHostLaneSettings(
     std::vector<HostLaneSettings>& laneSettings) {
+  const uint8_t* dataPre;
+  const uint8_t* dataPost;
+  const uint8_t* dataMain;
+  int offset;
+  int length;
+  int dataAddress;
+
   assert(laneSettings.size() == numHostLanes());
 
   auto rxOutput = getSettingsValue(CmisField::RX_DISABLE);
   auto rxSquelchDisable = getSettingsValue(CmisField::RX_SQUELCH_DISABLE);
+
+  getQsfpFieldAddress(
+      CmisField::RX_OUT_PRE_CURSOR, dataAddress, offset, length);
+  dataPre = getQsfpValuePtr(dataAddress, offset, length);
+
+  getQsfpFieldAddress(
+      CmisField::RX_OUT_POST_CURSOR, dataAddress, offset, length);
+  dataPost = getQsfpValuePtr(dataAddress, offset, length);
+
+  getQsfpFieldAddress(CmisField::RX_OUT_MAIN, dataAddress, offset, length);
+  dataMain = getQsfpValuePtr(dataAddress, offset, length);
 
   for (int lane = 0; lane < laneSettings.size(); lane++) {
     auto laneMask = (1 << lane);
     laneSettings[lane].lane_ref() = lane;
     laneSettings[lane].rxOutput_ref() = rxOutput & laneMask;
     laneSettings[lane].rxSquelch_ref() = rxSquelchDisable & laneMask;
-  }
 
+    uint8_t pre = (dataPre[lane / 2] >> ((lane % 2) * 4)) & 0x0f;
+    XLOG(DBG3) << folly::sformat("Port {} Pre = {}", qsfpImpl_->getName(), pre);
+    laneSettings[lane].rxOutputPreCursor_ref() = pre;
+
+    uint8_t post = (dataPost[lane / 2] >> ((lane % 2) * 4)) & 0x0f;
+    XLOG(DBG3) << folly::sformat(
+        "Port {} Post = {}", qsfpImpl_->getName(), post);
+    laneSettings[lane].rxOutputPostCursor_ref() = post;
+
+    uint8_t mainVal = (dataMain[lane / 2] >> ((lane % 2) * 4)) & 0x0f;
+    XLOG(DBG3) << folly::sformat(
+        "Port {} Main = {}", qsfpImpl_->getName(), mainVal);
+    laneSettings[lane].rxOutputAmplitude_ref() = mainVal;
+  }
   return true;
 }
 
