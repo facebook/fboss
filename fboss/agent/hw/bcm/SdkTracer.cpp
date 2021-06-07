@@ -248,6 +248,11 @@ int __real_bcm_switch_object_count_multi_get(
     bcm_switch_object_t* object_array,
     int* entries);
 
+int __real_bcm_switch_object_count_get(
+    int unit,
+    bcm_switch_object_t object,
+    int* entries);
+
 int __real_bcm_field_entry_multi_get(
     int unit,
     bcm_field_group_t group,
@@ -1822,6 +1827,13 @@ int __wrap_bcm_switch_object_count_multi_get(
     int* entries) {
   CALL_WRAPPERS_RV(bcm_switch_object_count_multi_get(
       unit, object_size, object_array, entries));
+}
+
+int __wrap_bcm_switch_object_count_get(
+    int unit,
+    bcm_switch_object_t object,
+    int* entries) {
+  CALL_WRAPPERS_RV(bcm_switch_object_count_get(unit, object, entries));
 }
 
 int __wrap_bcm_field_entry_multi_get(

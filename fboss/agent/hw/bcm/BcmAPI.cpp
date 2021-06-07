@@ -200,7 +200,8 @@ bool BcmAPI::is128ByteIpv6Enabled() {
   } else {
     auto state = BcmAPI::getConfigValue(kSDK6Is128ByteIpv6Enabled);
     if (!state) {
-      return false;
+      // also enable by default for FakeSDK
+      return true;
     }
     return std::stoul(state, nullptr, 0) == 1;
   }

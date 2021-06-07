@@ -407,6 +407,11 @@ class BcmSdkInterface {
       bcm_switch_object_t* object_array,
       int* entries) = 0;
 
+  virtual int bcm_switch_object_count_get(
+      int unit,
+      bcm_switch_object_t object,
+      int* entries) = 0;
+
   virtual int bcm_field_entry_multi_get(
       int unit,
       bcm_field_group_t group,

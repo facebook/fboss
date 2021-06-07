@@ -718,6 +718,12 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       int* /*entries*/) override {
     return 0;
   }
+  int bcm_switch_object_count_get(
+      int /*unit*/,
+      bcm_switch_object_t /*object*/,
+      int* /*entries*/) override {
+    return 0;
+  }
   int bcm_field_entry_multi_get(
       int /*unit*/,
       bcm_field_group_t /*group*/,
