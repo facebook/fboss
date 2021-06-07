@@ -91,7 +91,7 @@ class HwPacketFloodTest : public HwLinkStateDependentTest {
     return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX};
   }
 
-  void checkPacketFlooding(
+  bool checkPacketFlooding(
       std::map<PortID, HwPortStats>& portStatsBefore,
       bool v6) {
     auto portStatsAfter = getLatestPortStats(masterLogicalPortIds());
@@ -105,14 +105,17 @@ class HwPacketFloodTest : public HwLinkStateDependentTest {
                  << ", after pkts:" << packetsAfter << ", before bytes:"
                  << *portStatsBefore[portId].outBytes__ref()
                  << ", after bytes:" << *portStatsAfter[portId].outBytes__ref();
-      EXPECT_NE(
-          0,
-          *portStatsAfter[portId].outBytes__ref() -
-              *portStatsBefore[portId].outBytes__ref());
+      if (*portStatsAfter[portId].outBytes__ref() ==
+          *portStatsBefore[portId].outBytes__ref()) {
+        return false;
+      }
       if (getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_TAJO) {
-        EXPECT_NE(0, packetsAfter - packetsBefore);
+        if (packetsAfter <= packetsBefore) {
+          return false;
+        }
       }
     }
+    return true;
   }
 };
 
@@ -287,7 +290,7 @@ TEST_F(HwPacketFloodTest, ArpRequestFloodTest) {
         std::nullopt);
     getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
         std::move(txPacket), masterLogicalPortIds()[0], std::nullopt);
-    checkPacketFlooding(portStatsBefore, false);
+    EXPECT_TRUE(checkPacketFlooding(portStatsBefore, false));
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -295,18 +298,28 @@ TEST_F(HwPacketFloodTest, ArpRequestFloodTest) {
 TEST_F(HwPacketFloodTest, NdpFloodTest) {
   auto setup = [=]() {};
   auto verify = [=]() {
-    auto portStatsBefore = getLatestPortStats(masterLogicalPortIds());
+    auto retries = 5;
     auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
-    auto txPacket = utility::makeNeighborSolicitation(
-        getHwSwitch(),
-        vlanId,
-        intfMac,
-        folly::IPAddressV6(folly::IPAddressV6::LINK_LOCAL, intfMac),
-        folly::IPAddressV6("1::2"));
-    getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
-        std::move(txPacket), masterLogicalPortIds()[0], std::nullopt);
-    checkPacketFlooding(portStatsBefore, true);
+    auto suceess = false;
+    while (retries--) {
+      auto portStatsBefore = getLatestPortStats(masterLogicalPortIds());
+      auto txPacket = utility::makeNeighborSolicitation(
+          getHwSwitch(),
+          vlanId,
+          intfMac,
+          folly::IPAddressV6(folly::IPAddressV6::LINK_LOCAL, intfMac),
+          folly::IPAddressV6("1::2"));
+      getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
+          std::move(txPacket), masterLogicalPortIds()[0], std::nullopt);
+      if (checkPacketFlooding(portStatsBefore, true)) {
+        suceess = true;
+        break;
+      }
+      std::this_thread::sleep_for(1s);
+      XLOG(INFO) << " Retrying ... ";
+    }
+    EXPECT_TRUE(suceess);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
