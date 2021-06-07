@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/phy/ExternalPhy.h"
 #include "fboss/lib/phy/SaiPhyManager.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
@@ -113,5 +114,37 @@ void verifyPhyPortConnector(PortID portID, HwQsfpEnsemble* qsfpEnsemble) {
       saiPortHandle->sysPort->adapterKey(),
       SaiPortTraits::Attributes::AdminState{});
   EXPECT_TRUE(adminState);
+}
+
+std::optional<TransceiverID> getTranscieverIdx(
+    PortID portId,
+    const HwQsfpEnsemble* ensemble) {
+  const auto& platformPorts =
+      ensemble->getPlatformMapping()->getPlatformPorts();
+  const auto& chips = ensemble->getPlatformMapping()->getChips();
+  return utility::getTransceiverId(
+      platformPorts.find(static_cast<int32_t>(portId))->second, chips);
+}
+PortStatus getPortStatus(PortID portId, const HwQsfpEnsemble* ensemble) {
+  auto transceiverId = getTranscieverIdx(portId, ensemble);
+  EXPECT_TRUE(transceiverId);
+  auto config = *ensemble->getWedgeManager()->getAgentConfig()->thrift.sw_ref();
+  std::optional<cfg::Port> portCfg;
+  for (auto& port : *config.ports_ref()) {
+    if (*port.logicalID_ref() == static_cast<uint16_t>(portId)) {
+      portCfg = port;
+      break;
+    }
+  }
+  CHECK(portCfg);
+  PortStatus status;
+  status.enabled_ref() = *portCfg->state_ref() == cfg::PortState::ENABLED;
+  TransceiverIdxThrift idx;
+  idx.transceiverId_ref() = *transceiverId;
+  status.transceiverIdx_ref() = idx;
+  // Mark port down to force transceiver programming
+  status.up_ref() = false;
+  status.speedMbps_ref() = static_cast<int64_t>(*portCfg->speed_ref());
+  return status;
 }
 } // namespace facebook::fboss::utility

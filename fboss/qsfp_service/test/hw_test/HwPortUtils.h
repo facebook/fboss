@@ -11,6 +11,7 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
@@ -32,6 +33,10 @@ void verifyPhyPortConfig(
     phy::ExternalPhy* xphy);
 
 void verifyPhyPortConnector(PortID portID, HwQsfpEnsemble* qsfpEnsemble);
+std::optional<TransceiverID> getTranscieverIdx(
+    PortID portId,
+    const HwQsfpEnsemble* ensemble);
+PortStatus getPortStatus(PortID portId, const HwQsfpEnsemble* ensemble);
 } // namespace utility
 
 } // namespace facebook::fboss

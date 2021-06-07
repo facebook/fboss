@@ -163,10 +163,10 @@ class HwPortProfileTest : public HwTest {
         // Verify whether such profile has been programmed to the port
         verifyPhyPort(port);
       }
-      portMap->emplace(port, getPortStatus(port));
+      portMap->emplace(port, utility::getPortStatus(port, getHwQsfpEnsemble()));
     }
     for (auto port : ports.iphyPorts) {
-      portMap->emplace(port, getPortStatus(port));
+      portMap->emplace(port, utility::getPortStatus(port, getHwQsfpEnsemble()));
     }
     std::map<int32_t, TransceiverInfo> transceivers;
     getHwQsfpEnsemble()->getWedgeManager()->syncPorts(
@@ -196,40 +196,6 @@ class HwPortProfileTest : public HwTest {
               *idAndTransceiver.second.timeCollected_ref());
         });
     verifyTransceiverSettings(transceivers);
-  }
-
- private:
-  std::optional<TransceiverID> getTranscieverIdx(PortID portId) {
-    const auto& platformPorts =
-        getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
-    const auto& chips = getHwQsfpEnsemble()->getPlatformMapping()->getChips();
-    return utility::getTransceiverId(
-        platformPorts.find(static_cast<int32_t>(portId))->second, chips);
-  }
-  PortStatus getPortStatus(PortID portId) {
-    auto transceiverId = getTranscieverIdx(portId);
-    EXPECT_TRUE(transceiverId);
-    auto config = *getHwQsfpEnsemble()
-                       ->getWedgeManager()
-                       ->getAgentConfig()
-                       ->thrift.sw_ref();
-    std::optional<cfg::Port> portCfg;
-    for (auto& port : *config.ports_ref()) {
-      if (*port.logicalID_ref() == static_cast<uint16_t>(portId)) {
-        portCfg = port;
-        break;
-      }
-    }
-    CHECK(portCfg);
-    PortStatus status;
-    status.enabled_ref() = *portCfg->state_ref() == cfg::PortState::ENABLED;
-    TransceiverIdxThrift idx;
-    idx.transceiverId_ref() = *transceiverId;
-    status.transceiverIdx_ref() = idx;
-    // Mark port down to force transceiver programming
-    status.up_ref() = false;
-    status.speedMbps_ref() = static_cast<int64_t>(*portCfg->speed_ref());
-    return status;
   }
 };
 
