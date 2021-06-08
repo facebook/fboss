@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 
 #include <folly/CppAttributes.h>
+#include <gtest/gtest.h>
 #include "folly/container/F14Map.h"
 
 namespace facebook::fboss {
@@ -69,11 +70,6 @@ class SaiMacsecManager {
   getMacsecHandle(sai_macsec_direction_t direction);
   const SaiMacsecHandle* FOLLY_NULLABLE
   getMacsecHandle(sai_macsec_direction_t direction) const;
-  void removeMacsec(sai_macsec_direction_t direction);
-
-  MacsecSaiId addMacsec(
-      sai_macsec_direction_t direction,
-      bool physicalBypassEnable);
 
   const SaiMacsecFlow* getMacsecFlow(
       PortID linePort,
@@ -84,20 +80,11 @@ class SaiMacsecManager {
       MacsecSecureChannelId secureChannelId,
       sai_macsec_direction_t direction);
 
-  MacsecPortSaiId addMacsecPort(
-      PortID linePort,
-      sai_macsec_direction_t direction);
   const SaiMacsecPortHandle* FOLLY_NULLABLE
   getMacsecPortHandle(PortID linePort, sai_macsec_direction_t direction) const;
   SaiMacsecPortHandle* FOLLY_NULLABLE
   getMacsecPortHandle(PortID linePort, sai_macsec_direction_t direction);
-  void removeMacsecPort(PortID linePort, sai_macsec_direction_t direction);
 
-  MacsecSCSaiId addMacsecSecureChannel(
-      PortID linePort,
-      sai_macsec_direction_t direction,
-      MacsecSecureChannelId secureChannelId,
-      bool xpn64Enable);
   const SaiMacsecSecureChannelHandle* FOLLY_NULLABLE
   getMacsecSecureChannelHandle(
       PortID linePort,
@@ -107,31 +94,13 @@ class SaiMacsecManager {
       PortID linePort,
       MacsecSecureChannelId secureChannelId,
       sai_macsec_direction_t direction);
-  void removeMacsecSecureChannel(
-      PortID linePort,
-      MacsecSecureChannelId secureChannelId,
-      sai_macsec_direction_t direction);
 
-  MacsecSASaiId addMacsecSecureAssoc(
-      PortID linePort,
-      MacsecSecureChannelId secureChannelId,
-      sai_macsec_direction_t direction,
-      uint8_t assocNum,
-      SaiMacsecSak secureAssociationKey,
-      SaiMacsecSalt salt,
-      SaiMacsecAuthKey authKey,
-      MacsecShortSecureChannelId shortSecureChannelId);
   const SaiMacsecSecureAssoc* FOLLY_NULLABLE getMacsecSecureAssoc(
       PortID linePort,
       MacsecSecureChannelId secureChannelId,
       sai_macsec_direction_t direction,
       uint8_t assocNum) const;
   SaiMacsecSecureAssoc* FOLLY_NULLABLE getMacsecSecureAssoc(
-      PortID linePort,
-      MacsecSecureChannelId secureChannelId,
-      sai_macsec_direction_t direction,
-      uint8_t assocNum);
-  void removeMacsecSecureAssoc(
       PortID linePort,
       MacsecSecureChannelId secureChannelId,
       sai_macsec_direction_t direction,
@@ -164,11 +133,73 @@ class SaiMacsecManager {
   std::shared_ptr<SaiMacsecFlow> createMacsecFlow(
       sai_macsec_direction_t direction);
 
+  MacsecSaiId addMacsec(
+      sai_macsec_direction_t direction,
+      bool physicalBypassEnable);
+  MacsecPortSaiId addMacsecPort(
+      PortID linePort,
+      sai_macsec_direction_t direction);
+  MacsecSCSaiId addMacsecSecureChannel(
+      PortID linePort,
+      sai_macsec_direction_t direction,
+      MacsecSecureChannelId secureChannelId,
+      bool xpn64Enable);
+  MacsecSASaiId addMacsecSecureAssoc(
+      PortID linePort,
+      MacsecSecureChannelId secureChannelId,
+      sai_macsec_direction_t direction,
+      uint8_t assocNum,
+      SaiMacsecSak secureAssociationKey,
+      SaiMacsecSalt salt,
+      SaiMacsecAuthKey authKey,
+      MacsecShortSecureChannelId shortSecureChannelId);
+
+  void removeMacsec(sai_macsec_direction_t direction);
+  void removeMacsecPort(PortID linePort, sai_macsec_direction_t direction);
+  void removeMacsecSecureChannel(
+      PortID linePort,
+      MacsecSecureChannelId secureChannelId,
+      sai_macsec_direction_t direction);
+  void removeMacsecSecureAssoc(
+      PortID linePort,
+      MacsecSecureChannelId secureChannelId,
+      sai_macsec_direction_t direction,
+      uint8_t assocNum);
+
   SaiStore* saiStore_;
 
   MacsecHandles macsecHandles_;
 
   SaiManagerTable* managerTable_;
+
+  // TODO(ccpowers): It might make sense to just delete any of these tests that
+  // can't just be driven through the setupMacsec() interface
+  FRIEND_TEST(MacsecManagerTest, addMacsec);
+  FRIEND_TEST(MacsecManagerTest, addDuplicateMacsec);
+  FRIEND_TEST(MacsecManagerTest, removeMacsec);
+  FRIEND_TEST(MacsecManagerTest, removeNonexistentMacsec);
+  FRIEND_TEST(MacsecManagerTest, addMacsecPort);
+  FRIEND_TEST(MacsecManagerTest, addMacsecPortForNonexistentMacsec);
+  FRIEND_TEST(MacsecManagerTest, addMacsecPortForNonexistentPort);
+  FRIEND_TEST(MacsecManagerTest, addDuplicateMacsecPort);
+  FRIEND_TEST(MacsecManagerTest, removeMacsecPort);
+  FRIEND_TEST(MacsecManagerTest, removeNonexistentMacsecPort);
+  FRIEND_TEST(MacsecManagerTest, addMacsecSecureChannel);
+  FRIEND_TEST(MacsecManagerTest, addMacsecSecureChannelForNonexistentMacsec);
+  FRIEND_TEST(
+      MacsecManagerTest,
+      addMacsecSecureChannelForNonexistentMacsecPort);
+  FRIEND_TEST(MacsecManagerTest, addDuplicateMacsecSecureChannel);
+  FRIEND_TEST(MacsecManagerTest, removeMacsecSecureChannel);
+  FRIEND_TEST(MacsecManagerTest, removeNonexistentMacsecSecureChannel);
+  FRIEND_TEST(MacsecManagerTest, addMacsecSecureAssoc);
+  FRIEND_TEST(
+      MacsecManagerTest,
+      addMacsecSecureAssocForNonexistentSecureChannel);
+  FRIEND_TEST(MacsecManagerTest, addDuplicateMacsecSecureAssoc);
+  FRIEND_TEST(MacsecManagerTest, removeMacsecSecureAssoc);
+  FRIEND_TEST(MacsecManagerTest, removeNonexistentMacsecSecureAssoc);
+  FRIEND_TEST(MacsecManagerTest, invalidLinePort);
 };
 
 } // namespace facebook::fboss

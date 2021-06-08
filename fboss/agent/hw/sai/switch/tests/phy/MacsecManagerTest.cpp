@@ -66,6 +66,7 @@ MacsecSecureChannelId packSci(mka::MKASci& sci) {
 }
 } // namespace
 
+namespace facebook::fboss {
 class MacsecManagerTest : public ManagerTestBase {
  public:
   void SetUp() override {
@@ -601,3 +602,4 @@ TEST_F(MacsecManagerTest, installKeys) {
       packSci(localSci),
       *txSak.assocNum_ref());
 }
+} // namespace facebook::fboss
