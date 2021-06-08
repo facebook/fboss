@@ -17,6 +17,7 @@
 #include "fboss/cli/fboss2/commands/clear/CmdClearNdp.h"
 #include "fboss/cli/fboss2/commands/show/CmdShowAcl.h"
 #include "fboss/cli/fboss2/commands/show/CmdShowArp.h"
+#include "fboss/cli/fboss2/commands/show/CmdShowInterface.h"
 #include "fboss/cli/fboss2/commands/show/CmdShowLldp.h"
 #include "fboss/cli/fboss2/commands/show/CmdShowNdp.h"
 #include "fboss/cli/fboss2/commands/show/CmdShowPort.h"
@@ -37,6 +38,7 @@ template void CmdHandler<CmdShowLldp, CmdShowLldpTraits>::run();
 template void CmdHandler<CmdShowNdp, CmdShowNdpTraits>::run();
 template void CmdHandler<CmdShowPort, CmdShowPortTraits>::run();
 template void CmdHandler<CmdShowPortQueue, CmdShowPortQueueTraits>::run();
+template void CmdHandler<CmdShowInterface, CmdShowInterfaceTraits>::run();
 template void CmdHandler<CmdShowTransceiver, CmdShowTransceiverTraits>::run();
 
 template void CmdHandler<CmdClearArp, CmdClearArpTraits>::run();

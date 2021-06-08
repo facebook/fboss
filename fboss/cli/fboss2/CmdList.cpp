@@ -15,6 +15,7 @@
 #include "fboss/cli/fboss2/commands/clear/CmdClearNdp.h"
 #include "fboss/cli/fboss2/commands/show/CmdShowAcl.h"
 #include "fboss/cli/fboss2/commands/show/CmdShowArp.h"
+#include "fboss/cli/fboss2/commands/show/CmdShowInterface.h"
 #include "fboss/cli/fboss2/commands/show/CmdShowLldp.h"
 #include "fboss/cli/fboss2/commands/show/CmdShowNdp.h"
 #include "fboss/cli/fboss2/commands/show/CmdShowPort.h"
@@ -80,6 +81,13 @@ kListOfCommands() {
            "queue",
            "Show Port queue information",
            commandHandler<CmdShowPortQueue>},
+
+          {"show",
+           "interface",
+           utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
+           "",
+           "Show Interface information",
+           commandHandler<CmdShowInterface>},
 
           {"show",
            "transceiver",
