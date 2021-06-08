@@ -136,7 +136,7 @@ void SaiMacsecManager::removeMacsec(sai_macsec_direction_t direction) {
         direction);
   }
   macsecHandles_.erase(itr);
-  XLOG(INFO) << "removed macsec pipeline for direction " << direction;
+  XLOG(DBG2) << "removed macsec pipeline for direction " << direction;
 }
 
 const SaiMacsecHandle* FOLLY_NULLABLE
@@ -267,7 +267,7 @@ void SaiMacsecManager::removeMacsecPort(
         direction);
   }
   macsecHandle->ports.erase(itr);
-  XLOG(INFO) << "removed macsec port for lineport, direction: " << linePort
+  XLOG(DBG2) << "removed macsec port for lineport, direction: " << linePort
              << ", " << direction;
 }
 
@@ -390,7 +390,7 @@ void SaiMacsecManager::removeMacsecSecureChannel(
         direction);
   }
   portHandle->secureChannels.erase(itr);
-  XLOG(INFO) << "removed macsec SC for linePort:secureChannelId:direction: "
+  XLOG(DBG2) << "removed macsec SC for linePort:secureChannelId:direction: "
              << linePort << ":" << secureChannelId << ":" << direction;
 }
 
@@ -502,7 +502,7 @@ void SaiMacsecManager::removeMacsecSecureAssoc(
         assocNum);
   }
   scHandle->secureAssocs.erase(saHandle);
-  XLOG(INFO) << "removed macsec SA for secureChannelId:assocNum: "
+  XLOG(DBG2) << "removed macsec SA for secureChannelId:assocNum: "
              << secureChannelId << ":" << assocNum;
 }
 
