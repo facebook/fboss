@@ -39,10 +39,6 @@ class PhyManager {
    */
   virtual bool initExternalPhyMap() = 0;
 
-  virtual void initializeExternalPhy(
-      GlobalXphyID /* xphyID */,
-      bool /* warmBoot */) {}
-
   /*
    * A virtual function for the ExternalPhy obejcts. The sub-class needs to
    * implement this function. The implementation will be different for
