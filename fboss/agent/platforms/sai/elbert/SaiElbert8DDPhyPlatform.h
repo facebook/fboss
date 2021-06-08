@@ -37,7 +37,7 @@ class SaiElbert8DDPhyPlatform : public SaiHwPlatform {
   std::optional<sai_port_interface_type_t> getInterfaceType(
       TransmitterTechnology transmitterTech,
       cfg::PortSpeed speed) const override;
-  bool isSerdesApiSupported() override;
+  bool isSerdesApiSupported() const override;
   bool supportInterfaceType() const override;
   void initLEDs() override;
 

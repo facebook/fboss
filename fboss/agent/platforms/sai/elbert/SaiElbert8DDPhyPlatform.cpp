@@ -119,7 +119,7 @@ SaiElbert8DDPhyPlatform::getInterfaceType(
   throw FbossError(
       "SaiElbert8DDPhyPlatform doesn't support getInterfaceType()");
 }
-bool SaiElbert8DDPhyPlatform::isSerdesApiSupported() {
+bool SaiElbert8DDPhyPlatform::isSerdesApiSupported() const {
   return true;
 }
 bool SaiElbert8DDPhyPlatform::supportInterfaceType() const {

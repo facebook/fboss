@@ -28,7 +28,7 @@ class SaiBcmPlatform : public SaiHwPlatform {
   std::optional<sai_port_interface_type_t> getInterfaceType(
       TransmitterTechnology transmitterTech,
       cfg::PortSpeed speed) const override;
-  bool isSerdesApiSupported() override {
+  bool isSerdesApiSupported() const override {
     return true;
   }
   bool supportInterfaceType() const override {

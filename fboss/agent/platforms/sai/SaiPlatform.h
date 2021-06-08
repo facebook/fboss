@@ -88,7 +88,7 @@ class SaiPlatform : public Platform, public StateObserver {
       TransmitterTechnology transmitterTech,
       cfg::PortSpeed speed) const = 0;
 
-  virtual bool isSerdesApiSupported() = 0;
+  virtual bool isSerdesApiSupported() const = 0;
 
   std::vector<phy::TxSettings> getPlatformPortTxSettings(
       PortID port,

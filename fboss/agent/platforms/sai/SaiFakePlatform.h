@@ -45,7 +45,7 @@ class SaiFakePlatform : public SaiPlatform {
     return std::nullopt;
   }
 
-  bool isSerdesApiSupported() override {
+  bool isSerdesApiSupported() const override {
     return true;
   }
 

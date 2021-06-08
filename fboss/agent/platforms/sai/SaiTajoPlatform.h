@@ -41,7 +41,7 @@ class SaiTajoPlatform : public SaiHwPlatform {
       cfg::PortSpeed /*speed*/) const override {
     return std::nullopt;
   }
-  bool isSerdesApiSupported() override {
+  bool isSerdesApiSupported() const override {
     return true;
   }
 
