@@ -7,6 +7,7 @@
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/qsfp_service/QsfpConfig.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/module/QsfpModule.h"
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
 #include "fboss/qsfp_service/module/sff/SffModule.h"
@@ -718,8 +719,35 @@ void WedgeManager::programXphyPort(
   if (phyManager_ == nullptr) {
     throw FbossError("Unable to program xphy port when PhyManager is not set");
   }
-  // TODO(joseph5wu) Prepare transceiverInfo before calling programOnePort
-  phyManager_->programOnePort(PortID(portId), portProfileId, std::nullopt);
+
+  // Get the transceiver id for the given port id
+  auto platformPortEntry = platformMapping_->getPlatformPorts().find(portId);
+  if (platformPortEntry == platformMapping_->getPlatformPorts().end()) {
+    throw FbossError(
+        "Can't find the platform port entry in platform mapping for port:",
+        portId);
+  }
+  auto tcvrID = utility::getTransceiverId(
+      platformPortEntry->second, platformMapping_->getChips());
+  if (!tcvrID) {
+    throw FbossError(
+        "Can't find the transceiver id in platform mapping for port:", portId);
+  }
+  if (!isValidTransceiver(*tcvrID)) {
+    throw FbossError("Port:", portId, " has invalid transceiver id:", *tcvrID);
+  }
+
+  std::optional<TransceiverInfo> itTcvr;
+  auto lockedTransceivers = transceivers_.rlock();
+  if (auto it = lockedTransceivers->find(*tcvrID);
+      it != lockedTransceivers->end()) {
+    itTcvr = it->second->getTransceiverInfo();
+  } else {
+    XLOG(WARNING) << "Port:" << portId
+                  << " doesn't have transceiver info for transceiver id:"
+                  << *tcvrID;
+  }
+  phyManager_->programOnePort(PortID(portId), portProfileId, itTcvr);
 }
 
 /*
