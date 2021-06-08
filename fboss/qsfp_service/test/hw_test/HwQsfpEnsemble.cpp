@@ -53,6 +53,6 @@ const PlatformMapping* HwQsfpEnsemble::getPlatformMapping() const {
 
 phy::ExternalPhy* HwQsfpEnsemble::getExternalPhy(PortID port) {
   auto phyManager = getPhyManager();
-  return phyManager->getExternalPhy(phyManager->getGlobalXphyIDbyPortID(port));
+  return phyManager->getExternalPhy(port);
 }
 } // namespace facebook::fboss

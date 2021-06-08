@@ -2,17 +2,19 @@
 
 #include "fboss/lib/phy/PhyManager.h"
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <folly/logging/xlog.h>
-#include "fboss/agent/FbossError.h"
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 namespace facebook::fboss {
-PhyManager::PhyManager(const PlatformMapping* platformMapping) {
-  const auto& chips = platformMapping->getChips();
-  for (const auto& port : platformMapping->getPlatformPorts()) {
+PhyManager::PhyManager(const PlatformMapping* platformMapping)
+    : platformMapping_(platformMapping) {
+  const auto& chips = platformMapping_->getChips();
+  for (const auto& port : platformMapping_->getPlatformPorts()) {
     const auto& xphy = utility::getDataPlanePhyChips(
         port.second, chips, phy::DataPlanePhyChipType::XPHY);
     if (!xphy.empty()) {
@@ -192,6 +194,59 @@ GlobalXphyID PhyManager::getGlobalXphyID(
   // TODO(joseph5wu) Will make it pure virtual once we have all PhyManager
   // child classes to implement their own version.
   throw FbossError("getGlobalXphyID() is unsupported for such Phymanager");
+}
+
+phy::PhyPortConfig PhyManager::getDesiredPhyPortConfig(
+    PortID portId,
+    cfg::PortProfileID portProfileId,
+    std::optional<TransceiverInfo> transceiverInfo) {
+  auto platformPortEntry = platformMapping_->getPlatformPorts().find(portId);
+  if (platformPortEntry == platformMapping_->getPlatformPorts().end()) {
+    throw FbossError(
+        "Can't find the platform port entry in platform mapping for port:",
+        portId);
+  }
+  const auto& chips = platformMapping_->getChips();
+  if (chips.empty()) {
+    throw FbossError("No DataPlanePhyChips found");
+  }
+
+  std::optional<PlatformPortProfileConfigMatcher> matcher;
+  if (transceiverInfo) {
+    matcher = PlatformPortProfileConfigMatcher(
+        portProfileId, portId, *transceiverInfo);
+  } else {
+    matcher = PlatformPortProfileConfigMatcher(portProfileId, portId);
+  }
+  const auto& portPinConfig = platformMapping_->getPortXphyPinConfig(*matcher);
+  const auto& portProfileConfig =
+      platformMapping_->getPortProfileConfig(*matcher);
+  if (!portProfileConfig.has_value()) {
+    throw FbossError(
+        "No port profile with id ",
+        apache::thrift::util::enumNameSafe(portProfileId),
+        " found in PlatformConfig for port ",
+        portId);
+  }
+
+  phy::PhyPortConfig phyPortConfig;
+  phyPortConfig.config = phy::ExternalPhyConfig::fromConfigeratorTypes(
+      portPinConfig,
+      utility::getXphyLinePolaritySwapMap(
+          *platformPortEntry->second.mapping_ref()->pins_ref(), chips));
+  phyPortConfig.profile =
+      phy::ExternalPhyProfileConfig::fromPortProfileConfig(*portProfileConfig);
+  return phyPortConfig;
+}
+
+void PhyManager::programOnePort(
+    PortID portId,
+    cfg::PortProfileID portProfileId,
+    std::optional<TransceiverInfo> transceiverInfo) {
+  // This function will call ExternalPhy::programOnePort(phy::PhyPortConfig).
+  auto* xphy = getExternalPhy(portId);
+  xphy->programOnePort(
+      getDesiredPhyPortConfig(portId, portProfileId, transceiverInfo));
 }
 
 } // namespace facebook::fboss

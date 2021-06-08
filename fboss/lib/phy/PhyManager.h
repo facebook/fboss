@@ -68,10 +68,22 @@ class PhyManager {
   phy::ExternalPhy* getExternalPhy(int slotId, int mdioId, int phyId);
 
   /*
-   * This function returns the ExternalPhy object for the given slot number,
-   * mdio controller id and phy id.
+   * This function returns the ExternalPhy object for the giving global xphy id
    */
   phy::ExternalPhy* getExternalPhy(GlobalXphyID xphyID);
+
+  /*
+   * This function returns the ExternalPhy object for the giving software port
+   * id
+   */
+  phy::ExternalPhy* getExternalPhy(PortID portID) {
+    return getExternalPhy(getGlobalXphyIDbyPortID(portID));
+  }
+
+  phy::PhyPortConfig getDesiredPhyPortConfig(
+      PortID portId,
+      cfg::PortProfileID portProfileId,
+      std::optional<TransceiverInfo> transceiverInfo);
 
   /*
    * This function calls ExternalPhy function programOnePort for the given
@@ -81,9 +93,9 @@ class PhyManager {
   programOnePort(int slotId, int mdioId, int phyId, phy::PhyPortConfig config);
 
   virtual void programOnePort(
-      PortID /* portId */,
-      cfg::PortProfileID /* portProfileId */,
-      std::optional<TransceiverInfo> /* transceiverInfo */) {}
+      PortID portId,
+      cfg::PortProfileID portProfileId,
+      std::optional<TransceiverInfo> transceiverInfo);
 
   /*
    * This function calls ExternalPhy function setPortPrbs for the given
@@ -165,6 +177,7 @@ class PhyManager {
   // ExternalPhy so that we can call ExternalPhy apis to program the xphy.
   // This map will cache the two global ID: PortID and GlobalXphyID
   std::unordered_map<PortID, GlobalXphyID> portToGlobalXphyID_;
+  const PlatformMapping* platformMapping_;
 };
 
 } // namespace fboss
