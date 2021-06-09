@@ -26,12 +26,14 @@ class HwProdInvariantHelper {
 
   void setupEcmp();
   void setupEcmpWithNextHopMac(const folly::MacAddress& nextHop);
+  void disableTtl();
   void verifyInvariants() {
     verifySafeDiagCmds();
     verifyDscpToQueueMapping();
     verifyCopp();
     verifyLoadBalacing();
   }
+  void sendTraffic();
   static HwSwitchEnsemble::Features featuresDesired() {
     return {
         HwSwitchEnsemble::LINKSCAN,
@@ -47,8 +49,8 @@ class HwProdInvariantHelper {
   std::vector<std::string> getBcmCommandsToTest() const;
   void verifySafeDiagCmds();
   void verifyDscpToQueueMapping();
-  void verifyLoadBalacing();
   void verifyCopp();
+  void verifyLoadBalacing();
 
   std::unique_ptr<utility::HwIpV6EcmpDataPlaneTestUtil> ecmpHelper_;
   HwSwitchEnsemble* ensemble_;

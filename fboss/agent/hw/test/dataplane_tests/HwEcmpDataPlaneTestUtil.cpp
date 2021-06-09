@@ -123,6 +123,13 @@ void HwIpEcmpDataPlaneTestUtil<AddrT>::programRoutes(
 }
 
 template <typename AddrT>
+const std::vector<EcmpNextHop<AddrT>>
+HwIpEcmpDataPlaneTestUtil<AddrT>::getNextHops() {
+  auto* helper = BaseT::ecmpSetupHelper();
+  return helper->getNextHops();
+}
+
+template <typename AddrT>
 void HwIpEcmpDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
     std::optional<PortID> port) {
   auto* ensemble = BaseT::getEnsemble();

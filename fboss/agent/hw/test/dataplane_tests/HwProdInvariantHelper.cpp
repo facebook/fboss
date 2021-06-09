@@ -40,10 +40,14 @@ void HwProdInvariantHelper::setupEcmpWithNextHopMac(
       kEcmpWidth, std::vector<NextHopWeight>(kEcmpWidth, 1));
 }
 
-void HwProdInvariantHelper::verifyLoadBalacing() {
+void HwProdInvariantHelper::sendTraffic() {
   CHECK(ecmpHelper_);
   ecmpHelper_->pumpTrafficThroughPort(
       ensemble_->masterLogicalPortIds()[kEcmpWidth]);
+}
+
+void HwProdInvariantHelper::verifyLoadBalacing() {
+  sendTraffic();
   ecmpHelper_->isLoadBalanced(
       kEcmpWidth, std::vector<NextHopWeight>(kEcmpWidth, 1), 25);
 }
@@ -154,4 +158,12 @@ void HwProdInvariantHelper::verifyNoDiscards() {
   EXPECT_EQ(inDiscards, 0);
 }
 
+void HwProdInvariantHelper::disableTtl() {
+  for (size_t w = 0; w < kEcmpWidth; ++w) {
+    utility::disableTTLDecrements(
+        ensemble_->getHwSwitch(),
+        RouterID(0),
+        ecmpHelper_->getNextHops().at(w));
+  }
+}
 } // namespace facebook::fboss

@@ -86,9 +86,23 @@ class HwProdInvariantsMmuLosslessTest : public HwLinkStateDependentTest {
     prodInvariants_->verifyNoDiscards();
   }
 
+  void verifyNoDiscards() {
+    prodInvariants_->verifyNoDiscards();
+  }
+
   MacAddress dstMac() const {
     auto vlanId = utility::firstVlanID(initialConfig());
     return utility::getInterfaceMac(getProgrammedState(), vlanId);
+  }
+
+  void sendTrafficInLoop() {
+    prodInvariants_->disableTtl();
+    // send traffic from port which is not in ecmp
+    prodInvariants_->sendTraffic();
+    // since ports in ecmp width start from 0, just ensure atleast first port
+    // has attained the line rate
+    getHwSwitchEnsemble()->waitForLineRateOnPort(
+        getHwSwitchEnsemble()->masterLogicalPortIds()[0]);
   }
 
  private:
@@ -102,6 +116,19 @@ TEST_F(HwProdInvariantsMmuLosslessTest, ValidateMmuLosslessMode) {
     return;
   }
   verifyAcrossWarmBoots([]() {}, [this]() { verifyInvariants(); });
+}
+
+TEST_F(HwProdInvariantsMmuLosslessTest, ValidateWarmBootNoDiscards) {
+  if (!getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+    return;
+  }
+  auto setup = [=]() {
+    // run the loop, so traffic continues running
+    sendTrafficInLoop();
+  };
+
+  auto verify = [=]() { verifyNoDiscards(); };
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss
