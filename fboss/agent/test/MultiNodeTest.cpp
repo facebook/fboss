@@ -27,7 +27,7 @@ DEFINE_string(
     multiNodeTestRemoteSwitchName,
     "",
     "multinode test remote switch name");
-DEFINE_bool(run_forever, false, "run the test forever");
+DECLARE_bool(run_forever);
 
 namespace facebook::fboss {
 
@@ -78,11 +78,7 @@ void MultiNodeTest::checkForRemoteSideRun() {
   // completes tests. Test will be terminated by the starting script
   // by sending a SIGTERM.
   if (FLAGS_run_forever) {
-    XLOG(DBG2) << "MultiNodeLacpTest run forever...";
-    while (true) {
-      sleep(1);
-      XLOG_EVERY_MS(DBG2, 5000) << "MultiNodeLacpTest running forever";
-    }
+    runForever();
   }
 }
 

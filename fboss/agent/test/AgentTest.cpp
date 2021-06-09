@@ -12,6 +12,7 @@ facebook::fboss::PlatformInitFn initPlatform{nullptr};
 } // unnamed namespace
 
 DEFINE_bool(setup_for_warmboot, false, "Set up test for warmboot");
+DEFINE_bool(run_forever, false, "run the test forever");
 
 namespace facebook::fboss {
 
@@ -35,6 +36,21 @@ void AgentTest::setupAgent() {
 
 void AgentTest::stopAgent() {
   AgentInitializer::stopAgent(FLAGS_setup_for_warmboot);
+}
+
+void AgentTest::TearDown() {
+  if (FLAGS_run_forever) {
+    runForever();
+  }
+  stopAgent();
+}
+
+void AgentTest::runForever() const {
+  XLOG(DBG2) << "AgentTest run forever...";
+  while (true) {
+    sleep(1);
+    XLOG_EVERY_MS(DBG2, 5000) << "AgentTest running forever";
+  }
 }
 
 bool AgentTest::waitForSwitchStateCondition(
