@@ -213,19 +213,30 @@ class HwPortProfileTest : public HwTest {
     getHwQsfpEnsemble()->getWedgeManager()->getTransceiversInfo(
         transceiversAfterRefresh, std::move(transceiverIds));
 
-    // Assert that refresh caused transceiver info to be pulled
-    // from HW
-    EXPECT_EQ(transceivers.size(), transceiversAfterRefresh.size());
-    std::for_each(
-        transceivers.begin(),
-        transceivers.end(),
-        [&transceiversAfterRefresh](const auto& idAndTransceiver) {
-          EXPECT_GT(
-              *transceiversAfterRefresh[idAndTransceiver.first]
-                   .timeCollected_ref(),
-              *idAndTransceiver.second.timeCollected_ref());
-        });
-    verifyTransceiverSettings(transceivers);
+    // Only needs to verify transceivers if there're transceivers in the
+    // test system. getTransceiversInfo() will fetch all ports transceivers
+    // and set present to false if there's no transceiver on such front panel
+    // ports. But syncPorts won't set `transceivers` if there's no transceiver
+    // there.
+    if (transceivers.empty()) {
+      for (const auto& tcvrAfterRefresh : transceiversAfterRefresh) {
+        EXPECT_FALSE(tcvrAfterRefresh.second.get_present());
+      }
+    } else {
+      // Assert that refresh caused transceiver info to be pulled
+      // from HW
+      EXPECT_EQ(transceivers.size(), transceiversAfterRefresh.size());
+      std::for_each(
+          transceivers.begin(),
+          transceivers.end(),
+          [&transceiversAfterRefresh](const auto& idAndTransceiver) {
+            EXPECT_GT(
+                *transceiversAfterRefresh[idAndTransceiver.first]
+                     .timeCollected_ref(),
+                *idAndTransceiver.second.timeCollected_ref());
+          });
+      verifyTransceiverSettings(transceivers);
+    }
   }
 };
 
