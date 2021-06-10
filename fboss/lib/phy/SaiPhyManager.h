@@ -10,7 +10,9 @@
 
 #pragma once
 
+#include "fboss/agent/hw/sai/switch/SaiMacsecManager.h"
 #include "fboss/lib/phy/PhyManager.h"
+#include "fboss/mka_service/if/gen-cpp2/mka_types.h"
 
 #include "fboss/agent/types.h"
 
@@ -32,6 +34,9 @@ class SaiPhyManager : public PhyManager {
   SaiSwitch* getSaiSwitch(GlobalXphyID xphyID) const;
   SaiSwitch* getSaiSwitch(PortID portID) const;
 
+  void sakInstallTx(const mka::MKASak& sak);
+  void sakInstallRx(const mka::MKASak& sak, const mka::MKASci& sci);
+
  protected:
   void addSaiPlatform(
       GlobalXphyID xphyID,
@@ -41,6 +46,9 @@ class SaiPhyManager : public PhyManager {
   // Forbidden copy constructor and assignment operator
   SaiPhyManager(SaiPhyManager const&) = delete;
   SaiPhyManager& operator=(SaiPhyManager const&) = delete;
+
+  SaiMacsecManager* getMacsecManager(PortID portId);
+  PortID getPortId(std::string portName);
 
   std::map<PimID, std::map<GlobalXphyID, std::unique_ptr<SaiHwPlatform>>>
       saiPlatforms_;

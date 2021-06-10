@@ -135,6 +135,10 @@ class PhyManager {
       phy::Side side);
 
  protected:
+  const PlatformMapping* getPlatformMapping() {
+    return platformMapping_;
+  }
+
   // Number of slot in the platform
   int numOfSlot_;
   // Number of MDIO controller in each slot
