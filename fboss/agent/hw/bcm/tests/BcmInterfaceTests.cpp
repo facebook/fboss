@@ -126,7 +126,10 @@ int getHwHostCount(int unit) {
   return getHwHostCount(unit, false) + getHwHostCount(unit, true);
 }
 
-void checkSwHwIntfMatch(int unit, std::shared_ptr<SwitchState> state) {
+void checkSwHwIntfMatch(
+    int unit,
+    std::shared_ptr<SwitchState> state,
+    bool verifyIngress) {
   for (const auto& swIntf : *state->getInterfaces()) {
     bcm_l3_info_t l3HwStatus;
     auto rv = bcm_l3_info(unit, &l3HwStatus);
@@ -139,6 +142,20 @@ void checkSwHwIntfMatch(int unit, std::shared_ptr<SwitchState> state) {
     EXPECT_EQ(swIntf->getMac(), macFromBcm(intf.l3a_mac_addr));
     ASSERT_EQ(swIntf->getMtu(), intf.l3a_mtu);
     ASSERT_EQ(swIntf->getRouterID(), intf.l3a_vrf);
+
+    if (verifyIngress) {
+      bcm_l3_ingress_t ing_intf;
+      bcm_l3_ingress_t_init(&ing_intf);
+      rv = bcm_l3_ingress_get(unit, intf.l3a_intf_id, &ing_intf);
+      bcmCheckError(rv, "failed to get L3 ingress"); // FAILS
+      ASSERT_EQ(BcmSwitch::getBcmVrfId(swIntf->getRouterID()), ing_intf.vrf);
+
+      bcm_vlan_control_vlan_t vlan_ctrl;
+      bcm_vlan_control_vlan_t_init(&vlan_ctrl);
+      rv = bcm_vlan_control_vlan_get(unit, swIntf->getVlanID(), &vlan_ctrl);
+      bcmCheckError(rv, "failed to get bcm_vlan");
+      ASSERT_EQ(intf.l3a_intf_id, vlan_ctrl.ingress_if);
+    }
   }
 }
 
@@ -170,7 +187,11 @@ TEST_F(BcmInterfaceTest, InterfaceApplyConfig) {
     applyNewConfig(newCfg);
   };
   auto verify = [=]() {
-    checkSwHwIntfMatch(getUnit(), getProgrammedState());
+    // FakeAsic not supported (not all APIs are defined in FakeSDK) T92705046
+    bool verifyIngress = getHwSwitch()->getPlatform()->getAsic()->isSupported(
+                             HwAsic::Feature::INGRESS_L3_INTERFACE) &&
+        getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_FAKE;
+    checkSwHwIntfMatch(getUnit(), getProgrammedState(), verifyIngress);
     if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
             HwAsic::Feature::HOSTTABLE)) {
       // 4 + 1 fe80::/64 link local addresses
@@ -200,7 +221,12 @@ TEST_F(BcmInterfaceTest, fromJumboToNonJumboInterface) {
     bcm_l3_info_t l3HwStatus;
     auto rv = bcm_l3_info(getUnit(), &l3HwStatus);
     bcmCheckError(rv, "failed get L3 hw info");
-    checkSwHwIntfMatch(getUnit(), getProgrammedState());
+
+    // FakeAsic not supported (not all APIs are defined in FakeSDK) T92705046
+    bool verifyIngress = getHwSwitch()->getPlatform()->getAsic()->isSupported(
+                             HwAsic::Feature::INGRESS_L3_INTERFACE) &&
+        getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_FAKE;
+    checkSwHwIntfMatch(getUnit(), getProgrammedState(), verifyIngress);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
