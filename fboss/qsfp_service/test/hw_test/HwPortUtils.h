@@ -16,21 +16,19 @@
 
 namespace facebook::fboss {
 
-class PlatformMapping;
-class PhyManager;
 class HwQsfpEnsemble;
 
 namespace phy {
 class ExternalPhy;
+struct PhyPortConfig;
 } // namespace phy
 
 namespace utility {
 // Verify PhyPortConfig
 void verifyPhyPortConfig(
     PortID portID,
-    cfg::PortProfileID profileID,
-    const PlatformMapping* platformMapping,
-    phy::ExternalPhy* xphy);
+    phy::ExternalPhy* xphy,
+    const phy::PhyPortConfig& expectedConfig);
 
 void verifyPhyPortConnector(PortID portID, HwQsfpEnsemble* qsfpEnsemble);
 std::optional<TransceiverID> getTranscieverIdx(

@@ -7,6 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/test/hw_test/HwTest.h"
 
 #include "fboss/agent/AgentConfig.h"
@@ -74,15 +75,44 @@ class HwPortProfileTest : public HwTest {
     return ports;
   }
 
-  void verifyPhyPort(PortID portID) {
-    utility::verifyPhyPortConfig(
-        portID,
-        Profile,
-        getHwQsfpEnsemble()->getPlatformMapping(),
-        getHwQsfpEnsemble()->getExternalPhy(portID));
+  void verifyXphyPorts(
+      const std::vector<PortID>& xphyPorts,
+      const std::map<int32_t, TransceiverInfo>& transceivers) {
+    const auto* platformMapping = getHwQsfpEnsemble()->getPlatformMapping();
+    for (auto portID : xphyPorts) {
+      // Check whether transceiver exist, which will affect xphy config
+      // Get the transceiver id for the given port id
+      auto platformPortEntry = platformMapping->getPlatformPorts().find(portID);
+      if (platformPortEntry == platformMapping->getPlatformPorts().end()) {
+        throw FbossError(
+            "Can't find the platform port entry in platform mapping for port:",
+            portID);
+      }
+      auto tcvrID = utility::getTransceiverId(
+          platformPortEntry->second, platformMapping->getChips());
+      if (!tcvrID) {
+        throw FbossError(
+            "Can't find the transceiver id in platform mapping for port:",
+            portID);
+      }
+      std::optional<TransceiverInfo> tcvrOpt;
+      if (auto tcvr = transceivers.find(*tcvrID); tcvr != transceivers.end()) {
+        tcvrOpt = tcvr->second;
+      }
 
-    utility::verifyPhyPortConnector(portID, getHwQsfpEnsemble());
+      const auto& expectedPhyPortConfig =
+          getHwQsfpEnsemble()->getPhyManager()->getDesiredPhyPortConfig(
+              portID, Profile, tcvrOpt);
+
+      utility::verifyPhyPortConfig(
+          portID,
+          getHwQsfpEnsemble()->getExternalPhy(portID),
+          expectedPhyPortConfig);
+
+      utility::verifyPhyPortConnector(portID, getHwQsfpEnsemble());
+    }
   }
+
   void verifyTransceiverSettings(
       const std::map<int32_t, TransceiverInfo>& transceivers) {
     XLOG(INFO) << " Will verify transceiver settings for : "
@@ -157,18 +187,21 @@ class HwPortProfileTest : public HwTest {
         // Right now only Elbert supports programming PHYs via phy manager in
         // qsfp service.
         getHwQsfpEnsemble()->getWedgeManager()->programXphyPort(port, Profile);
-        // Verify whether such profile has been programmed to the port
-        verifyPhyPort(port);
       }
       portMap->emplace(port, utility::getPortStatus(port, getHwQsfpEnsemble()));
     }
     for (auto port : ports.iphyPorts) {
       portMap->emplace(port, utility::getPortStatus(port, getHwQsfpEnsemble()));
     }
+
     std::map<int32_t, TransceiverInfo> transceivers;
     getHwQsfpEnsemble()->getWedgeManager()->syncPorts(
         transceivers, std::move(portMap));
     getHwQsfpEnsemble()->getWedgeManager()->refreshTransceivers();
+
+    // Verify whether such profile has been programmed to all the xphy ports
+    verifyXphyPorts(ports.xphyPorts, transceivers);
+
     auto transceiverIds = std::make_unique<std::vector<int32_t>>();
     std::for_each(
         transceivers.begin(),

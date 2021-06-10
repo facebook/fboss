@@ -14,8 +14,6 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
-#include "fboss/agent/platforms/common/PlatformMapping.h"
-#include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/phy/ExternalPhy.h"
 #include "fboss/lib/phy/SaiPhyManager.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
@@ -28,29 +26,17 @@ namespace facebook::fboss::utility {
 
 void verifyPhyPortConfig(
     PortID portID,
-    cfg::PortProfileID profileID,
-    const PlatformMapping* platformMapping,
-    phy::ExternalPhy* xphy) {
-  // Expected config from PlatformMapping
-  const auto& expectedPinConfig = platformMapping->getPortXphyPinConfig(
-      PlatformPortProfileConfigMatcher(profileID, portID));
-  const auto& expectedProfileConfig = platformMapping->getPortProfileConfig(
-      PlatformPortProfileConfigMatcher(profileID, portID));
-  EXPECT_TRUE(expectedProfileConfig);
-
+    phy::ExternalPhy* xphy,
+    const phy::PhyPortConfig& expectedConfig) {
   // ExternalPhy needs to use lane list to get lane config
   std::vector<uint32_t> sysLanes;
-  if (auto xphySys = expectedPinConfig.xphySys_ref()) {
-    for (const auto& pinConfig : *xphySys) {
-      sysLanes.push_back(pinConfig.get_id().get_lane());
-    }
+  for (const auto& idAndLaneConfig : expectedConfig.config.system.lanes) {
+    sysLanes.push_back(idAndLaneConfig.first);
   }
   EXPECT_FALSE(sysLanes.empty());
   std::vector<uint32_t> lineLanes;
-  if (auto xphyLine = expectedPinConfig.xphyLine_ref()) {
-    for (const auto& pinConfig : *xphyLine) {
-      lineLanes.push_back(pinConfig.get_id().get_lane());
-    }
+  for (const auto& idAndLaneConfig : expectedConfig.config.line.lanes) {
+    lineLanes.push_back(idAndLaneConfig.first);
   }
   EXPECT_FALSE(lineLanes.empty());
 
@@ -58,7 +44,7 @@ void verifyPhyPortConfig(
   const auto& actualPortConfig = xphy->getConfigOnePort(sysLanes, lineLanes);
 
   // Check speed
-  EXPECT_EQ(expectedProfileConfig->get_speed(), actualPortConfig.profile.speed);
+  EXPECT_EQ(expectedConfig.profile.speed, actualPortConfig.profile.speed);
   // Check ProfileSideConfig. Due to we couldn't fetch all the config yet.
   // Just check the attribures we can get
   auto checkProfileSideConfig = [&](const phy::ProfileSideConfig& expected,
@@ -74,13 +60,10 @@ void verifyPhyPortConfig(
       EXPECT_EQ(expected.interfaceMode_ref(), interfaceMode);
     }
   };
-  CHECK(expectedProfileConfig->xphySystem_ref());
   checkProfileSideConfig(
-      *expectedProfileConfig->xphySystem_ref(),
-      actualPortConfig.profile.system);
-  CHECK(expectedProfileConfig->xphyLine_ref());
+      expectedConfig.profile.system, actualPortConfig.profile.system);
   checkProfileSideConfig(
-      *expectedProfileConfig->xphyLine_ref(), actualPortConfig.profile.line);
+      expectedConfig.profile.line, actualPortConfig.profile.line);
 
   // TODO(rajank) Add tx_settings check
 }
