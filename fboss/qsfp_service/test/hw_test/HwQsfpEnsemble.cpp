@@ -55,4 +55,16 @@ phy::ExternalPhy* HwQsfpEnsemble::getExternalPhy(PortID port) {
   auto phyManager = getPhyManager();
   return phyManager->getExternalPhy(port);
 }
+
+bool HwQsfpEnsemble::isXphyPlatform() const {
+  static const std::set<PlatformMode> xphyPlatforms = {
+      PlatformMode::MINIPACK,
+      PlatformMode::YAMP,
+      PlatformMode::FUJI,
+      PlatformMode::ELBERT,
+      PlatformMode::CLOUDRIPPER};
+
+  return xphyPlatforms.find(getWedgeManager()->getPlatformMode()) !=
+      xphyPlatforms.end();
+}
 } // namespace facebook::fboss

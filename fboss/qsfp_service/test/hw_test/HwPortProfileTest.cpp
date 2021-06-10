@@ -25,15 +25,7 @@ template <cfg::PortProfileID Profile>
 class HwPortProfileTest : public HwTest {
  private:
   cfg::PortProfileID getMatchingIphyProfile() {
-    auto platform = getHwQsfpEnsemble()->getWedgeManager()->getPlatformMode();
-    static const std::set<PlatformMode> xphyPlatforms = {
-        PlatformMode::FUJI,
-        PlatformMode::MINIPACK,
-        PlatformMode::YAMP,
-        PlatformMode::ELBERT,
-        PlatformMode::CLOUDRIPPER};
-    auto isXphyPlatform = xphyPlatforms.find(platform) != xphyPlatforms.end();
-    if (!isXphyPlatform) {
+    if (!getHwQsfpEnsemble()->isXphyPlatform()) {
       return Profile;
     }
     // Xphy platforms have non optical settings on the iphy side
@@ -154,12 +146,14 @@ class HwPortProfileTest : public HwTest {
 
  protected:
   void runTest() {
+    auto platformMode =
+        getHwQsfpEnsemble()->getWedgeManager()->getPlatformMode();
     auto ports = findAvailablePorts();
     EXPECT_TRUE(!(ports.xphyPorts.empty() && ports.iphyPorts.empty()));
     auto portMap = std::make_unique<WedgeManager::PortMap>();
     for (auto port : ports.xphyPorts) {
-      if (getHwQsfpEnsemble()->getWedgeManager()->getPlatformMode() ==
-          PlatformMode::ELBERT) {
+      if (platformMode == PlatformMode::ELBERT ||
+          platformMode == PlatformMode::FUJI) {
         // Right now only Elbert supports programming PHYs via phy manager in
         // qsfp service.
         getHwQsfpEnsemble()->getWedgeManager()->programXphyPort(port, Profile);

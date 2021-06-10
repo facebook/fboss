@@ -70,6 +70,8 @@ class HwQsfpEnsemble {
     return const_cast<HwQsfpEnsemble*>(this)->getWedgeManager();
   }
 
+  bool isXphyPlatform() const;
+
  private:
   std::shared_ptr<QsfpServiceHandler> qsfpServiceHandler_;
   std::shared_ptr<apache::thrift::ThriftServer> server_;
