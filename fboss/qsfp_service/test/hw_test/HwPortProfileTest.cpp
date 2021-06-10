@@ -101,8 +101,11 @@ class HwPortProfileTest : public HwTest {
       // Only testing QSFP transceivers right now
       EXPECT_EQ(*transceiver.transceiver_ref(), TransceiverType::QSFP);
       auto settings = apache::thrift::can_throw(*transceiver.settings_ref());
-      EXPECT_EQ(
-          *settings.powerControl_ref(), PowerControlState::POWER_OVERRIDE);
+      // Disable low power mode
+      EXPECT_TRUE(
+          *settings.powerControl_ref() == PowerControlState::POWER_OVERRIDE ||
+          *settings.powerControl_ref() ==
+              PowerControlState::HIGH_POWER_OVERRIDE);
       EXPECT_EQ(*settings.cdrTx_ref(), FeatureState::ENABLED);
       EXPECT_EQ(*settings.cdrRx_ref(), FeatureState::ENABLED);
       for (auto& mediaLane :
