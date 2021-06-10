@@ -75,7 +75,7 @@ struct SaiMacsecSATraits {
     using EnumType = sai_macsec_sa_attr_t;
     using SCID =
         SaiAttribute<EnumType, SAI_MACSEC_SA_ATTR_SC_ID, sai_object_id_t>;
-    using AuthNum = SaiAttribute<EnumType, SAI_MACSEC_SA_ATTR_AN, sai_uint8_t>;
+    using AssocNum = SaiAttribute<EnumType, SAI_MACSEC_SA_ATTR_AN, sai_uint8_t>;
     using AuthKey = SaiAttribute<
         EnumType,
         SAI_MACSEC_SA_ATTR_AUTH_KEY,
@@ -101,11 +101,13 @@ struct SaiMacsecSATraits {
   };
 
   using AdapterKey = MacsecSASaiId;
-  using AdapterHostKey = std::
-      tuple<Attributes::SCID, Attributes::AuthNum, Attributes::MacsecDirection>;
+  using AdapterHostKey = std::tuple<
+      Attributes::SCID,
+      Attributes::AssocNum,
+      Attributes::MacsecDirection>;
   using CreateAttributes = std::tuple<
       Attributes::SCID,
-      Attributes::AuthNum,
+      Attributes::AssocNum,
       Attributes::AuthKey,
       Attributes::MacsecDirection,
 #if SAI_API_VERSION >= SAI_VERSION(1, 7, 1)
@@ -133,7 +135,7 @@ struct SaiMacsecSATraits {
   };
 };
 
-SAI_ATTRIBUTE_NAME(MacsecSA, AuthNum)
+SAI_ATTRIBUTE_NAME(MacsecSA, AssocNum)
 SAI_ATTRIBUTE_NAME(MacsecSA, AuthKey)
 SAI_ATTRIBUTE_NAME(MacsecSA, MacsecDirection)
 #if SAI_API_VERSION >= SAI_VERSION(1, 7, 1)
