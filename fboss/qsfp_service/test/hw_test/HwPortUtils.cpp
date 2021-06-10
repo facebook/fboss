@@ -65,6 +65,14 @@ void verifyPhyPortConfig(
                                     const phy::ProfileSideConfig& actual) {
     EXPECT_EQ(expected.get_numLanes(), actual.get_numLanes());
     EXPECT_EQ(expected.get_fec(), actual.get_fec());
+    EXPECT_EQ(expected.get_modulation(), actual.get_modulation());
+    if (auto interfaceType = actual.interfaceType_ref()) {
+      EXPECT_EQ(expected.interfaceType_ref(), interfaceType);
+    }
+    // TODO(joseph5wu) Need to deprecate interfaceMode
+    if (auto interfaceMode = actual.interfaceMode_ref()) {
+      EXPECT_EQ(expected.interfaceMode_ref(), interfaceMode);
+    }
   };
   CHECK(expectedProfileConfig->xphySystem_ref());
   checkProfileSideConfig(
