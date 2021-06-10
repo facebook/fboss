@@ -37,12 +37,13 @@ void ThreadHeartbeatWatchdog::watchdogLoop() {
   while (running_) {
     for (auto& heartbeat : heartbeats_) {
       auto timestamp = heartbeat.first->getTimestamp();
-      if (timestamp <= heartbeat.second) {
+      if (timestamp <= heartbeat.second &&
+          timestamp != std::chrono::steady_clock::time_point::min()) {
         XLOG(ERR) << heartbeat.first->getThreadName()
                   << "thread heartbeat missed!";
         missedHeartbeats_++;
       }
-      heartbeat.second = timestamp;
+      heartbeats_.assign(heartbeat.first, timestamp);
     }
     std::this_thread::sleep_for(intervalMsecs_);
   }

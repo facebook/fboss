@@ -9,11 +9,11 @@
  */
 // Copyright 2014-present Facebook. All Rights Reserved.
 #pragma once
+#include <folly/concurrency/ConcurrentHashMap.h>
 #include <folly/io/async/AsyncTimeout.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
 #include <chrono>
-#include <map>
 
 namespace facebook::fboss {
 
@@ -87,8 +87,13 @@ class ThreadHeartbeatWatchdog {
   }
 
   // add the heartbeat of monitored threads
-  void addThreadHeartbeat(std::shared_ptr<ThreadHeartbeat> heartbeat) {
-    heartbeats_[heartbeat] = std::chrono::steady_clock::now();
+  void startMonitoringHeartbeat(std::shared_ptr<ThreadHeartbeat> heartbeat) {
+    if (heartbeats_.find(heartbeat) != heartbeats_.end()) {
+      throw std::runtime_error(
+          "Heartbeat already monitored for thread " +
+          heartbeat->getThreadName());
+    }
+    heartbeats_.insert(heartbeat, std::chrono::steady_clock::time_point::min());
   }
 
   // start to monitor
@@ -122,7 +127,7 @@ class ThreadHeartbeatWatchdog {
   std::thread thread_;
   std::atomic_bool running_{false};
   std::chrono::milliseconds intervalMsecs_;
-  std::map<
+  folly::ConcurrentHashMap<
       std::shared_ptr<ThreadHeartbeat>,
       std::chrono::time_point<std::chrono::steady_clock>>
       heartbeats_;

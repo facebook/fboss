@@ -32,7 +32,7 @@ TEST(ThreadHeartbeatTest, WatchDogTest) {
   // create a watchdog to monitor heartbeat timestamp change every 100ms
   ThreadHeartbeatWatchdog testWd(
       std::chrono::milliseconds(heartbeatInterval * 10));
-  testWd.addThreadHeartbeat(testHb);
+  testWd.startMonitoringHeartbeat(testHb);
   testWd.start();
 
   // monitor 1 second, should be no missed heartbeats
@@ -53,6 +53,7 @@ TEST(ThreadHeartbeatTest, WatchDogTest) {
   sleep(1.0);
   EXPECT_TRUE(testWd.getMissedHeartbeats() == missedHeartbeats);
 
+  testWd.stop();
   testHb.reset();
   testEvb.runInEventBaseThread([&testEvb] { testEvb.terminateLoopSoon(); });
   testThread.join();
