@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <string>
+
 namespace facebook::fboss {
 
 enum class PlatformMode : char {
@@ -27,6 +29,39 @@ enum class PlatformMode : char {
   ELBERT,
   CLOUDRIPPER
 };
+
+inline std::string toString(PlatformMode mode) {
+  switch (mode) {
+    case PlatformMode::WEDGE:
+      return "WEDGE";
+    case PlatformMode::WEDGE100:
+      return "WEDGE100";
+    case PlatformMode::GALAXY_LC:
+      return "GALAXY_LC";
+    case PlatformMode::GALAXY_FC:
+      return "GALAXY_FC";
+    case PlatformMode::FAKE_WEDGE:
+      return "FAKE_WEDGE";
+    case PlatformMode::MINIPACK:
+      return "MINIPACK";
+    case PlatformMode::YAMP:
+      return "YAMP";
+    case PlatformMode::FAKE_WEDGE40:
+      return "FAKE_WEDGE40";
+    case PlatformMode::WEDGE400C:
+      return "WEDGE400C";
+    case PlatformMode::WEDGE400C_SIM:
+      return "WEDGE400C_SIM";
+    case PlatformMode::WEDGE400:
+      return "WEDGE400";
+    case PlatformMode::FUJI:
+      return "FUJI";
+    case PlatformMode::ELBERT:
+      return "ELBERT";
+    case PlatformMode::CLOUDRIPPER:
+      return "CLOUDRIPPER";
+  }
+}
 
 enum class ExternalPhyVersion : char {
   MILN4_2,

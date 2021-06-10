@@ -15,27 +15,15 @@
 #include "fboss/lib/phy/PhyManager.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 
+#include <folly/logging/xlog.h>
+
 namespace facebook::fboss {
 
-TEST_F(HwTest, CheckDefaultFirmwareVersion) {
-  auto chips = getHwQsfpEnsemble()->getPlatformMapping()->getChips();
-  if (!chips.size()) {
-    return;
-  }
-
-  std::optional<phy::PhyFwVersion> desiredFw;
+TEST_F(HwTest, CheckDefaultXphyFirmwareVersion) {
   auto platformMode = getHwQsfpEnsemble()->getWedgeManager()->getPlatformMode();
+
+  phy::PhyFwVersion desiredFw;
   switch (platformMode) {
-    case PlatformMode::ELBERT:
-      desiredFw->version_ref() = 91;
-      desiredFw->versionStr_ref() = "91.1";
-      desiredFw->minorVersion_ref() = 1;
-      break;
-    case PlatformMode::MINIPACK:
-    case PlatformMode::FUJI:
-    case PlatformMode::CLOUDRIPPER:
-    case PlatformMode::YAMP:
-      throw FbossError("Fill in desired f/w version for: ", platformMode);
     case PlatformMode::WEDGE:
     case PlatformMode::WEDGE100:
     case PlatformMode::GALAXY_LC:
@@ -45,9 +33,27 @@ TEST_F(HwTest, CheckDefaultFirmwareVersion) {
     case PlatformMode::WEDGE400C:
     case PlatformMode::WEDGE400C_SIM:
     case PlatformMode::WEDGE400:
+      XLOG(INFO) << toString(platformMode)
+                 << " doesn't support xphy. Skip testing";
+      return;
+    case PlatformMode::ELBERT:
+      desiredFw.version_ref() = 91;
+      desiredFw.versionStr_ref() = "91.1";
+      desiredFw.minorVersion_ref() = 1;
       break;
+    case PlatformMode::FUJI:
+      desiredFw.version_ref() = 0xD006;
+      desiredFw.crc_ref() = 0x77265d92;
+      break;
+    case PlatformMode::MINIPACK:
+    case PlatformMode::CLOUDRIPPER:
+    case PlatformMode::YAMP:
+      throw FbossError(
+          "Fill in desired f/w version for: ", toString(platformMode));
   }
-  if (!desiredFw) {
+
+  auto chips = getHwQsfpEnsemble()->getPlatformMapping()->getChips();
+  if (!chips.size()) {
     return;
   }
   for (auto chip : chips) {
@@ -56,7 +62,8 @@ TEST_F(HwTest, CheckDefaultFirmwareVersion) {
     }
     auto xphy = getHwQsfpEnsemble()->getPhyManager()->getExternalPhy(
         GlobalXphyID(chip.second.get_physicalID()));
-    EXPECT_EQ(xphy->fwVersion(), *desiredFw);
+    EXPECT_EQ(xphy->fwVersion().get_version(), desiredFw.get_version());
+    EXPECT_EQ(xphy->fwVersion().get_crc(), desiredFw.get_crc());
   }
 }
 } // namespace facebook::fboss
