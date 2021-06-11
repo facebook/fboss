@@ -58,6 +58,9 @@ WedgeManager::WedgeManager(
           platformPortIt.first;
     }
   }
+
+  forceColdBoot_ = removeFile(
+      folly::to<std::string>(FLAGS_warmboot_dir, "/", kForceColdBootFileName));
 }
 
 void WedgeManager::loadConfig() {
@@ -125,8 +128,7 @@ void WedgeManager::initTransceiverMap() {
   }
 
   // Check if a cold boot has been forced
-  if (removeFile(folly::to<std::string>(
-          FLAGS_warmboot_dir, "/", kForceColdBootFileName))) {
+  if (!canWarmboot()) {
     XLOG(INFO) << "Forced cold boot";
     for (int idx = 0; idx < getNumQsfpModules(); idx++) {
       try {
