@@ -151,6 +151,7 @@ DEFINE_bool(
     false,
     "Used to print DOM data that is parsed by the client as opposed to parsed by the service(which is the default)");
 DEFINE_bool(verbose, false, "Print more details");
+DEFINE_bool(list_commands, false, "Print the list of commands");
 
 namespace {
 struct ModulePartInfo_s {
@@ -184,6 +185,19 @@ void fwUpgradeThreadHandler(
     std::vector<unsigned int> modlist,
     std::string firmwareFilename,
     uint32_t imageHdrLen);
+
+std::ostream& operator<<(std::ostream& os, const FlagCommand& cmd) {
+  gflags::CommandLineFlagInfo flagInfo;
+
+  os << "Command:\n"
+   << gflags::DescribeOneFlag(gflags::GetCommandLineFlagInfoOrDie(cmd.command.c_str()));
+  os << "Flags:\n";
+  for (auto flag: cmd.flags) {
+    os << gflags::DescribeOneFlag(gflags::GetCommandLineFlagInfoOrDie(flag.c_str()));
+  }
+
+  return os;
+}
 
 std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> getQsfpClient(folly::EventBase& evb) {
   return std::move(QsfpClient::createClient(&evb)).getVia(&evb);

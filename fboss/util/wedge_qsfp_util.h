@@ -49,6 +49,7 @@ DECLARE_string(port_range);
 DECLARE_bool(dsp_image);
 DECLARE_bool(client_parser);
 DECLARE_bool(verbose);
+DECLARE_bool(list_commands);
 
 enum LoopbackMode {
   noLoopback,
@@ -57,6 +58,13 @@ enum LoopbackMode {
 };
 
 namespace facebook::fboss {
+
+struct FlagCommand {
+  const std::string command;
+  const std::vector<std::string> flags;
+};
+
+std::ostream& operator<<(std::ostream& os, const FlagCommand& cmd);
 
 std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> getQsfpClient(folly::EventBase& evb);
 

@@ -8,6 +8,8 @@
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 
+#include <iostream>
+#include <iterator>
 #include <sysexits.h>
 
 using namespace facebook::fboss;
@@ -15,11 +17,55 @@ using std::make_pair;
 using std::chrono::seconds;
 using std::chrono::steady_clock;
 
+std::vector<FlagCommand> kCommands = {
+  {"pause_remediation", {}},
+  {"get_remediation_until_time", {}},
+  {"read_reg", {"offset", "length", "page"}},
+  {"write_reg", {"offset", "length", "page"}},
+  {"clear_low_power", {}},
+  {"set_low_power", {}},
+  {"tx_enable", {}},
+  {"tx_disable", {}},
+  {"set_40g", {}},
+  {"set_100g", {}},
+  {"app_sel", {}},
+  {"cdr_enable", {}},
+  {"cdr_disable", {}},
+  {"qsfp_hard_reset", {}},
+  {"electrical_loopback", {}},
+  {"optical_loopback", {}},
+  {"clear_loopback", {}},
+  {"update_module_firmware", {"firmware_filename"}},
+  {"cdb_command", {}},
+  {"get_module_fw_info", {}},
+  {"update_bulk_module_fw", {
+    "port_range", "firmware_filename", "module_type", "fw_version"}},
+};
+
+void listCommands() {
+    std::cerr << "Commands in this tool are flags so you can combine them "
+    "and for example set_40g and tx_enable on all ports specified.\n\n"
+    "Valid commands and their flags:\n";
+
+    std::cerr << "Command:\n    <None>: Print port details. Prints port "
+    "summary for all ports if no port specified.\nFlags:\n\n";
+
+    std::copy(
+      std::begin(kCommands),
+      std::end(kCommands),
+      std::ostream_iterator<FlagCommand>(std::cerr, "\n"));
+}
+
 int main(int argc, char* argv[]) {
   folly::init(&argc, &argv, true);
   gflags::SetCommandLineOptionWithMode(
       "minloglevel", "0", gflags::SET_FLAGS_DEFAULT);
   folly::EventBase evb;
+
+  if (FLAGS_list_commands) {
+    listCommands();
+    return EX_OK;
+  }
 
   if (FLAGS_set_100g && FLAGS_set_40g) {
     fprintf(stderr, "Cannot set both 40g and 100g\n");
