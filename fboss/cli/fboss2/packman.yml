@@ -1,0 +1,10 @@
+packages:
+  fb-fboss2-cli:
+    packager: fboss2_cli
+    summary: Cpp CLI to speak to fboss agent
+    rules:
+      buck:fboss/cli/fboss2:fboss2:
+        fboss/cli/fboss2/fboss2:
+          path: /usr/local/bin/fboss2
+    change_log_paths:
+      - 'fboss/cli/fboss2'
