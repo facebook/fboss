@@ -26,7 +26,8 @@ class PhyManager {
 
   GlobalXphyID getGlobalXphyIDbyPortID(PortID portID) const;
   virtual phy::PhyIDInfo getPhyIDInfo(GlobalXphyID xphyID) const = 0;
-  virtual GlobalXphyID getGlobalXphyID(const phy::PhyIDInfo& phyIDInfo) const;
+  virtual GlobalXphyID getGlobalXphyID(
+      const phy::PhyIDInfo& phyIDInfo) const = 0;
 
   /*
    * This function initializes all the PHY objects for a given chassis. The PHY
@@ -51,15 +52,6 @@ class PhyManager {
   }
 
   /*
-   * TODO(joseph5wu) Will deprecate the following logic once we can move all
-   * PhyManager to use XphyMap xphyMap_ instead of 3D array externalPhyMap_
-   * Check if the slot id is valid
-   * This function returns the ExternalPhy object for the given slot number,
-   * mdio controller id and phy id.
-   */
-  phy::ExternalPhy* getExternalPhy(int slotId, int mdioId, int phyId);
-
-  /*
    * This function returns the ExternalPhy object for the giving global xphy id
    */
   phy::ExternalPhy* getExternalPhy(GlobalXphyID xphyID);
@@ -77,58 +69,10 @@ class PhyManager {
       cfg::PortProfileID portProfileId,
       std::optional<TransceiverInfo> transceiverInfo);
 
-  /*
-   * This function calls ExternalPhy function programOnePort for the given
-   * slot id, mdio id, phy id
-   */
-  void
-  programOnePort(int slotId, int mdioId, int phyId, phy::PhyPortConfig config);
-
   virtual void programOnePort(
       PortID portId,
       cfg::PortProfileID portProfileId,
       std::optional<TransceiverInfo> transceiverInfo);
-
-  /*
-   * This function calls ExternalPhy function setPortPrbs for the given
-   * slot id, mdio id, phy id
-   */
-  void setPortPrbs(
-      int slotId,
-      int mdioId,
-      int phyId,
-      phy::PhyPortConfig config,
-      phy::Side side,
-      bool enable,
-      int32_t polynominal);
-
-  /*
-   * This function calls ExternalPhy function getPortStats for the given
-   * slot id, mdio id, phy id
-   */
-  phy::ExternalPhyPortStats
-  getPortStats(int slotId, int mdioId, int phyId, phy::PhyPortConfig config);
-
-  /*
-   * This function calls ExternalPhy function getPortPrbsStats for the given
-   * slot id, mdio id, phy id
-   */
-  phy::ExternalPhyPortStats getPortPrbsStats(
-      int slotId,
-      int mdioId,
-      int phyId,
-      phy::PhyPortConfig config);
-
-  /*
-   * This function calls ExternalPhy function getLaneSpeed for the given
-   * slot id, mdio id, phy id
-   */
-  float_t getLaneSpeed(
-      int slotId,
-      int mdioId,
-      int phyId,
-      phy::PhyPortConfig config,
-      phy::Side side);
 
  protected:
   const PlatformMapping* getPlatformMapping() {
@@ -137,14 +81,6 @@ class PhyManager {
 
   // Number of slot in the platform
   int numOfSlot_;
-  // Number of MDIO controller in each slot
-  std::map<int, int> numMdioController_;
-
-  // List of ExternalPhy objects for the chassis
-  // This is 3D array of ExternalPhy objects which is per PIM, per MDIO
-  // controller, Per PHY endpoint
-  std::map<int, std::vector<std::vector<std::unique_ptr<phy::ExternalPhy>>>>
-      externalPhyMap_;
 
   // Since we're planning to allow PhyManager to use SW PortID to change
   // the xphy config for a FBOSS port, and current PlatformMapping has this
