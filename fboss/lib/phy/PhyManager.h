@@ -166,8 +166,8 @@ class PhyManager {
 
  private:
   virtual void createExternalPhy(
-      const phy::PhyIDInfo& /* phyIDInfo */,
-      MultiPimPlatformPimContainer* /* pimContainer */) {}
+      const phy::PhyIDInfo& phyIDInfo,
+      MultiPimPlatformPimContainer* pimContainer) = 0;
 
   // PhyManager is in the middle of changing its apis to accept PortID instead
   // of asking users to get all three Pim/MDIO Controller/PHY id.
