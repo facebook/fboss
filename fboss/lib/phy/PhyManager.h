@@ -28,10 +28,6 @@ class PhyManager {
   virtual phy::PhyIDInfo getPhyIDInfo(GlobalXphyID xphyID) const = 0;
   virtual GlobalXphyID getGlobalXphyID(const phy::PhyIDInfo& phyIDInfo) const;
 
-  virtual void createExternalPhy(
-      GlobalXphyID /* xphyID */,
-      MultiPimPlatformPimContainer* /* pimContainer */) {}
-
   /*
    * This function initializes all the PHY objects for a given chassis. The PHY
    * objects are kept per slot, per MDIO controller, per phy address. This
@@ -169,6 +165,10 @@ class PhyManager {
   XphyMap xphyMap_;
 
  private:
+  virtual void createExternalPhy(
+      const phy::PhyIDInfo& /* phyIDInfo */,
+      MultiPimPlatformPimContainer* /* pimContainer */) {}
+
   // PhyManager is in the middle of changing its apis to accept PortID instead
   // of asking users to get all three Pim/MDIO Controller/PHY id.
   // Using a global PortID will make it easy for the communication b/w
