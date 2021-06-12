@@ -65,7 +65,15 @@ void verifyPhyPortConfig(
   checkProfileSideConfig(
       expectedConfig.profile.line, actualPortConfig.profile.line);
 
-  // TODO(rajank) Add tx_settings check
+  // Currently we don't return tx_settings for Elbert system yet.
+  // Only check phy::ExternalPhyConfig when the actual config exists
+  const auto& actualSysLanesConf = actualPortConfig.config.system.lanes;
+  const auto& acutualLineLanesConf = actualPortConfig.config.line.lanes;
+  if (!actualSysLanesConf.empty() && !acutualLineLanesConf.empty()) {
+    EXPECT_EQ(expectedConfig.config, actualPortConfig.config);
+  } else {
+    XLOG(DBG2) << "Actuall hardware config doesn't have ExternalPhyConfig";
+  }
 }
 
 void verifyPhyPortConnector(PortID portID, HwQsfpEnsemble* qsfpEnsemble) {
