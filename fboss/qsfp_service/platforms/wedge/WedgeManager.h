@@ -15,6 +15,7 @@
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 
 DECLARE_string(warmboot_dir);
+DECLARE_bool(init_pim_xphys);
 
 namespace facebook::fboss {
 
@@ -118,10 +119,7 @@ class WedgeManager : public TransceiverManager {
   /*
    * This function will call PhyManager to create all the ExternalPhy objects
    */
-  bool initExternalPhyMap() override {
-    // TODO(rajank): To  implement this function for each platform
-    return true;
-  }
+  bool initExternalPhyMap() override;
 
   /*
    * Virtual function to program a PHY port on external PHY. This is a dummy

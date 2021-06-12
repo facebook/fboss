@@ -5,6 +5,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/lib/fpga/MultiPimPlatformSystemContainer.h"
 #include "fboss/qsfp_service/QsfpConfig.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
@@ -25,6 +26,11 @@ DEFINE_string(
     warmboot_dir,
     "/dev/shm/fboss/warm_boot",
     "Path to the directory in which we store the warmboot flag");
+
+DEFINE_bool(
+    init_pim_xphys,
+    false,
+    "Initialize pim xphys after creating xphy map");
 
 namespace {
 
@@ -765,6 +771,26 @@ std::optional<int> WedgeManager::getSwPortByPortName(
     return portMapIt->second;
   }
   return std::nullopt;
+}
+
+bool WedgeManager::initExternalPhyMap() {
+  if (!phyManager_) {
+    // If there's no PhyManager for such platform, skip init xphy map
+    return true;
+  }
+
+  // First call PhyManager::initExternalPhyMap() to create xphy map
+  auto rb = phyManager_->initExternalPhyMap();
+  bool warmboot = canWarmboot();
+  // And then initialize the xphy for each pim
+  if (FLAGS_init_pim_xphys) {
+    for (int pimIndex = 0; pimIndex < phyManager_->getNumOfSlot(); ++pimIndex) {
+      phyManager_->initializeSlotPhys(
+          pimIndex + phyManager_->getSystemContainer()->getPimStartNum(),
+          warmboot);
+    }
+  }
+  return rb;
 }
 
 } // namespace fboss
