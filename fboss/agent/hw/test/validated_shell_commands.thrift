@@ -8,6 +8,8 @@ const set<string> _BCM_COMMON_TESTED_CMDS = [
   "show count",
   "soc 0",
   "show interrupts",
+  "xphy ver phy_id=0",
+  "xphy lw_dsc phy_id=0x40 if_side=1 lane_mask=0x11",
 ]
 // Wedge40
 const set<string> TD2_TESTED_CMDS = _BCM_COMMON_TESTED_CMDS
