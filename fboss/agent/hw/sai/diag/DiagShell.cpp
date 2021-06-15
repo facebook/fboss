@@ -30,7 +30,7 @@
 
 DEFINE_bool(
     sai_log_to_scribe,
-    false,
+    true,
     "Log SAI shell commands and output to scribe");
 
 namespace facebook::fboss {
