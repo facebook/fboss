@@ -216,7 +216,10 @@ FbFpgaI2cController::FbFpgaI2cController(
       thread_(new std::thread([&, pim, rtcId]() {
         initThread(folly::format("I2c_pim{:d}_rtc{:d}", pim, rtcId).str());
         eventBase_->loopForever();
-      })) {}
+      })) {
+  pim_ = pim;
+  rtc_ = rtcId;
+}
 
 FbFpgaI2cController::FbFpgaI2cController(
     std::unique_ptr<FpgaMemoryRegion> io,
@@ -228,7 +231,10 @@ FbFpgaI2cController::FbFpgaI2cController(
       thread_(new std::thread([&, pim, rtcId]() {
         initThread(folly::format("I2c_pim{:d}_rtc{:d}", pim, rtcId).str());
         eventBase_->loopForever();
-      })) {}
+      })) {
+  pim_ = pim;
+  rtc_ = rtcId;
+}
 
 FbFpgaI2cController::~FbFpgaI2cController() {
   eventBase_->runInEventBaseThread([&] { eventBase_->terminateLoopSoon(); });
@@ -237,6 +243,12 @@ FbFpgaI2cController::~FbFpgaI2cController() {
 
 uint8_t FbFpgaI2cController::readByte(uint8_t channel, uint8_t offset) {
   uint8_t buf;
+  XLOG(DBG5) << folly::sformat(
+      "FbFpgaI2cController::readByte pim {:d} rtc {:d} chan {:d} offset {:d}",
+      pim_,
+      rtc_,
+      channel,
+      offset);
   if (eventBase_->isInEventBaseThread()) {
     buf = syncedFbI2c_.lock()->readByte(channel, offset);
   } else {
@@ -253,6 +265,12 @@ void FbFpgaI2cController::read(
     uint8_t channel,
     uint8_t offset,
     folly::MutableByteRange buf) {
+  XLOG(DBG5) << folly::sformat(
+      "FbFpgaI2cController::read pim {:d} rtc {:d} chan {:d} offset {:d}",
+      pim_,
+      rtc_,
+      channel,
+      offset);
   if (eventBase_->isInEventBaseThread()) {
     syncedFbI2c_.lock()->read(channel, offset, buf);
   } else {
@@ -268,6 +286,13 @@ void FbFpgaI2cController::writeByte(
     uint8_t channel,
     uint8_t offset,
     uint8_t val) {
+  XLOG(DBG5) << folly::sformat(
+      "FbFpgaI2cController::writeByte pim {:d} rtc {:d} chan {:d} offset {:d} val {:d}",
+      pim_,
+      rtc_,
+      channel,
+      offset,
+      val);
   if (eventBase_->isInEventBaseThread()) {
     syncedFbI2c_.lock()->writeByte(channel, offset, val);
   } else {
@@ -283,6 +308,12 @@ void FbFpgaI2cController::write(
     uint8_t channel,
     uint8_t offset,
     folly::ByteRange buf) {
+  XLOG(DBG5) << folly::sformat(
+      "FbFpgaI2cController::write pim {:d} rtc {:d} chan {:d} offset {:d}",
+      pim_,
+      rtc_,
+      channel,
+      offset);
   if (eventBase_->isInEventBaseThread()) {
     syncedFbI2c_.lock()->write(channel, offset, buf);
   } else {

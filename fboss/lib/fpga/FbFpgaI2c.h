@@ -99,6 +99,8 @@ class FbFpgaI2cController {
   folly::Synchronized<FbFpgaI2c, std::mutex> syncedFbI2c_;
   std::unique_ptr<folly::EventBase> eventBase_;
   std::unique_ptr<std::thread> thread_;
+  uint32_t pim_;
+  uint32_t rtc_;
 };
 
 } // namespace facebook::fboss
