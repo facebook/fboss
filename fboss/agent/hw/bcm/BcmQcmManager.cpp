@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmQcmCollector.h"
+#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/state/QcmConfig.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -27,7 +28,7 @@ extern "C" {
 #include <bcm/port.h>
 #include <bcm/switch.h>
 #include <bcm/types.h>
-#if (!defined(BCM_VER_MAJOR))
+#if (defined(IS_OPENNSA))
 #define sal_memset memset
 #define BCM_WARM_BOOT_SUPPORT
 #include <soc/opensoc.h>

@@ -15,6 +15,8 @@
 #include <fstream>
 
 #include "fboss/agent/FbossError.h"
+
+#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
@@ -108,7 +110,7 @@ std::string BcmFwLoader::getFwFile(const BcmFirmware& fw) {
   }
 
   if (fw.sdkSpecific) {
-#if (!defined(BCM_VER_MAJOR))
+#if (defined(IS_OPENNSA))
     XLOG(WARNING) << "Firmware OpenNSA version missing";
 #else
     std::string sdkPostfix = folly::to<std::string>(

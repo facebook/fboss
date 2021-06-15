@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmFwLoader.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
+#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
@@ -36,7 +37,7 @@ extern "C" {
 #include <bcm/pktio.h>
 #endif
 
-#if (!defined(BCM_VER_MAJOR))
+#if (defined(IS_OPENNSA))
 #define BCM_WARM_BOOT_SUPPORT
 #include <soc/opensoc.h>
 #else

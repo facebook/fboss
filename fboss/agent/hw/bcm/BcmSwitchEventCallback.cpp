@@ -7,17 +7,20 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+
 #include "fboss/agent/hw/bcm/BcmSwitchEventCallback.h"
+
 #include "fboss/lib/AlertLogger.h"
 
 #include <folly/logging/xlog.h>
 #include <glog/logging.h>
+#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmSwitchEventUtils.h"
 
 extern "C" {
 #include <bcm/switch.h>
 
-#if (!defined(BCM_VER_MAJOR))
+#if (defined(IS_OPENNSA))
 #include <soc/opensoc.h>
 #else
 #include <soc/error.h>

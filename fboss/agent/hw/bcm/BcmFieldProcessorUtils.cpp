@@ -11,6 +11,7 @@
 #include "BcmFieldProcessorUtils.h"
 
 #include "fboss/agent/hw/bcm/BcmMirrorUtils.h"
+#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
 #include <boost/range/combine.hpp>
@@ -19,7 +20,7 @@
 extern "C" {
 #include <bcm/error.h>
 
-#if (!defined(BCM_VER_MAJOR))
+#if (defined(IS_OPENNSA))
 // TODO (skhare) Find OpenNSA method for this
 #define sal_memset memset
 #else

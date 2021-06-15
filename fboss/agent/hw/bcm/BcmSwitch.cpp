@@ -65,6 +65,7 @@
 #include "fboss/agent/hw/bcm/BcmRoute.h"
 #include "fboss/agent/hw/bcm/BcmRtag7LoadBalancer.h"
 #include "fboss/agent/hw/bcm/BcmRxPacket.h"
+#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmSflowExporter.h"
 #include "fboss/agent/hw/bcm/BcmStatUpdater.h"
 #include "fboss/agent/hw/bcm/BcmSwitchEventCallback.h"
@@ -121,7 +122,7 @@ extern "C" {
 #include <bcm/switch.h>
 #include <bcm/vlan.h>
 
-#if (!defined(BCM_VER_MAJOR))
+#if (defined(IS_OPENNSA))
 #define BCM_WARM_BOOT_SUPPORT
 #include <soc/opensoc.h>
 #else

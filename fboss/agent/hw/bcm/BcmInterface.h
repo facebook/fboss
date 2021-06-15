@@ -1,7 +1,9 @@
 #pragma once
 
+#include "fboss/agent/hw/bcm/BcmSdkVer.h"
+
 extern "C" {
-#if (!defined(BCM_VER_MAJOR))
+#if (defined(IS_OPENNSA))
 #define BCM_WARM_BOOT_SUPPORT
 #endif
 

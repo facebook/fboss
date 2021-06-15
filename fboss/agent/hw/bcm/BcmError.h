@@ -10,6 +10,8 @@
 #pragma once
 
 #include "fboss/agent/FbossError.h"
+
+#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
 #include <folly/Format.h>
@@ -19,7 +21,7 @@ extern "C" {
 #include <bcm/error.h>
 #include <shared/error.h>
 
-#if (!defined(BCM_VER_MAJOR))
+#if (defined(IS_OPENNSA))
 #define BCM_WARM_BOOT_SUPPORT
 #include <soc/opensoc.h>
 #else

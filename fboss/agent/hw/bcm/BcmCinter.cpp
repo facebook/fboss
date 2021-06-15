@@ -10,6 +10,8 @@
 
 #include "fboss/agent/hw/bcm/BcmCinter.h"
 
+#include "fboss/agent/hw/bcm/BcmSdkVer.h"
+
 #include <array>
 #include <iterator>
 #include <string>
@@ -26,7 +28,7 @@
 #include "fboss/agent/SysError.h"
 
 extern "C" {
-#if (!defined(BCM_VER_MAJOR))
+#if (defined(IS_OPENNSA))
 #define BCM_WARM_BOOT_SUPPORT
 #endif
 }
