@@ -50,12 +50,25 @@ class CmdShowTransceiver
   }
 
   void printOutput(const RetType& model) {
+    std::string fmtString = "{:<8}{:<10}{:<15}{:<18}{:<20}{:<15}\n";
+    std::cout << fmt::format(
+        fmtString,
+        "Port",
+        "Status",
+        "Present",
+        "Vendor",
+        "Serial",
+        "Part Number");
+
     for (const auto& [portId, details] : model.get_transceivers()) {
       std::cout << fmt::format(
-          "Port ID: {}, Status: {}, Present: {}\n",
+          fmtString,
           portId,
           details.get_isUp(),
-          details.get_isPresent());
+          details.get_isPresent(),
+          details.get_vendor(),
+          details.get_serial(),
+          details.get_partNumber());
     }
   }
 
@@ -119,8 +132,14 @@ class CmdShowTransceiver
       cli::TransceiverDetail details;
       const auto transceiverId =
           portEntry.transceiverIdx_ref()->get_transceiverId();
+      const auto& transceiver = transceiverEntries[transceiverId];
       details.isUp_ref() = portEntry.get_up();
-      details.isPresent_ref() = transceiverEntries[transceiverId].get_present();
+      details.isPresent_ref() = transceiver.get_present();
+      if (const auto& vendor = transceiver.vendor_ref()) {
+        details.vendor_ref() = vendor->get_name();
+        details.serial_ref() = vendor->get_serialNumber();
+        details.partNumber_ref() = vendor->get_partNumber();
+      }
       model.transceivers_ref()->emplace(portId, std::move(details));
     }
     return model;
