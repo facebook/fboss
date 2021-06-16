@@ -284,6 +284,8 @@ class CmisModule : public QsfpModule {
    */
   void remediateFlakyTransceiver() override;
 
+  virtual void moduleDiagsCapabilitySet() override;
+
  private:
   void getFieldValueLocked(CmisField fieldName, uint8_t* fieldValue) const;
   /*

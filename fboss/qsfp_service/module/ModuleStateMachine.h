@@ -68,6 +68,9 @@ fsm.get_attribute(qsfpModuleObjPtr)->addModulePortStateMachines();
 // Start a timer to keep a tab on the first Agent port sync up to this process.
 // If the timeout happens then we need to generate Timeout event
 fsm.get_attribute(qsfpModuleObjPtr)->scheduleAgentPortSyncupTimeout();
+
+// Set the module diagnostic capability
+fsm.get_attribute(qsfpModuleObjPtr)->moduleDiagsCapabilitySet();
 } // namespace fboss
 }; // namespace facebook
 

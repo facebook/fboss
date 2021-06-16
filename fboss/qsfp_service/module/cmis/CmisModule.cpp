@@ -93,8 +93,10 @@ static CmisFieldInfo::CmisFieldMap cmisFields = {
     {CmisField::LENGTH_OM4, {CmisPages::PAGE01, 134, 1}},
     {CmisField::LENGTH_OM3, {CmisPages::PAGE01, 135, 1}},
     {CmisField::LENGTH_OM2, {CmisPages::PAGE01, 136, 1}},
+    {CmisField::VDM_DIAG_SUPPORT, {CmisPages::PAGE01, 142, 1}},
     {CmisField::TX_SIG_INT_CONT_AD, {CmisPages::PAGE01, 161, 1}},
     {CmisField::RX_SIG_INT_CONT_AD, {CmisPages::PAGE01, 162, 1}},
+    {CmisField::CDB_SUPPORT, {CmisPages::PAGE01, 163, 1}},
     {CmisField::DSP_FW_VERSION, {CmisPages::PAGE01, 194, 2}},
     {CmisField::BUILD_REVISION, {CmisPages::PAGE01, 196, 2}},
     {CmisField::APPLICATION_ADVERTISING2, {CmisPages::PAGE01, 223, 4}},
@@ -1510,6 +1512,59 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
         changePre ? "Pre-cursor" : "",
         changePost ? "Post-cursor" : "",
         changeMain ? "Rx-out-main" : "");
+  }
+}
+
+/*
+ * moduleDiagsCapabilitySet
+ *
+ * This function reads the module register from cache and populates the
+ * diagnostic capability. This function is called from Module State Machine when
+ * the MSM enters Module Discovered state after EEPROM read.
+ */
+void CmisModule::moduleDiagsCapabilitySet() {
+  if (!diagsCapability_.has_value()) {
+    XLOG(INFO) << "Module diag capability is set for " << qsfpImpl_->getName();
+    DiagsCapability diags;
+    uint8_t data[4];
+    int offset;
+    int length;
+    int dataAddress;
+
+    getQsfpFieldAddress(
+        CmisField::VDM_DIAG_SUPPORT, dataAddress, offset, length);
+    qsfpImpl_->readTransceiver(
+        TransceiverI2CApi::ADDR_QSFP, offset, length, data);
+    diags.vdm_ref() = (data[0] & FieldMasks::VDM_SUPPORT_MASK) ? true : false;
+    diags.diagnostics_ref() =
+        (data[0] & FieldMasks::DIAGS_SUPPORT_MASK) ? true : false;
+
+    getQsfpFieldAddress(CmisField::CDB_SUPPORT, dataAddress, offset, length);
+    qsfpImpl_->readTransceiver(
+        TransceiverI2CApi::ADDR_QSFP, offset, length, data);
+    diags.cdb_ref() = (data[0] & FieldMasks::CDB_SUPPORT_MASK) ? true : false;
+
+    if (*diags.diagnostics_ref()) {
+      getQsfpFieldAddress(
+          CmisField::LOOPBACK_CAPABILITY, dataAddress, offset, length);
+      qsfpImpl_->readTransceiver(
+          TransceiverI2CApi::ADDR_QSFP, offset, length, data);
+      diags.loopbackSystem_ref() =
+          (data[0] & FieldMasks::LOOPBACK_SYS_SUPPOR_MASK) ? true : false;
+      diags.loopbackLine_ref() =
+          (data[0] & FieldMasks::LOOPBACK_LINE_SUPPORT_MASK) ? true : false;
+
+      getQsfpFieldAddress(
+          CmisField::PATTERN_CHECKER_CAPABILITY, dataAddress, offset, length);
+      qsfpImpl_->readTransceiver(
+          TransceiverI2CApi::ADDR_QSFP, offset, length, data);
+      diags.prbsLine_ref() =
+          (data[0] & FieldMasks::PRBS_LINE_SUPPRT_MASK) ? true : false;
+      diags.prbsSystem_ref() =
+          (data[0] & FieldMasks::PRBS_SYS_SUPPRT_MASK) ? true : false;
+    }
+
+    diagsCapability_ = diags;
   }
 }
 

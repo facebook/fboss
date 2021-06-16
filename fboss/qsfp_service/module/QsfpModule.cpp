@@ -723,6 +723,9 @@ void QsfpModule::addModulePortStateMachines() {
  */
 void QsfpModule::eraseModulePortStateMachines() {
   opticsModulePortStateMachine_.clear();
+  if (diagsCapability_.has_value()) {
+    diagsCapability_.reset();
+  }
 }
 
 /*

@@ -388,3 +388,13 @@ struct WriteRequest {
 struct WriteResponse {
   1: bool success,
 }
+
+struct DiagsCapability {
+  1: bool diagnostics = false,
+  2: bool vdm = false,
+  3: bool cdb = false,
+  4: bool prbsLine = false,
+  5: bool prbsSystem = false,
+  6: bool loopbackLine = false,
+  7: bool loopbackSystem = false,
+}

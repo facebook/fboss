@@ -210,6 +210,12 @@ class QsfpModule : public Transceiver {
 
   virtual void configureModule() {}
 
+  virtual void moduleDiagsCapabilitySet() {}
+
+  bool isVdmSupported() const {
+    return diagsCapability_.has_value() && *diagsCapability_.value().vdm_ref();
+  }
+
  protected:
   // no copy or assignment
   QsfpModule(QsfpModule const&) = delete;
@@ -260,6 +266,9 @@ class QsfpModule : public Transceiver {
   // module. The local port id is used to identify the Port State Machine
   // instance within the module
   std::map<uint32_t, uint32_t> systemPortToModulePortIdMap_;
+
+  // Diagnostic capabilities of the module
+  std::optional<DiagsCapability> diagsCapability_;
 
   /*
    * This function will return the local module port id for the given system
