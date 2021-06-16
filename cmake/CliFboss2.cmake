@@ -4,6 +4,11 @@
 # cmake/FooBar.cmake
 
 add_fbthrift_cpp_library(
+  show_arp_model
+  fboss/cli/fboss2/commands/show/arp/model.thrift
+)
+
+add_fbthrift_cpp_library(
   show_transceiver_model
   fboss/cli/fboss2/commands/show/transceiver/model.thrift
 )
@@ -17,7 +22,7 @@ add_executable(fboss2
   fboss/cli/fboss2/CmdHandler.cpp
   fboss/cli/fboss2/CmdList.cpp
   fboss/cli/fboss2/commands/show/CmdShowAcl.h
-  fboss/cli/fboss2/commands/show/CmdShowArp.h
+  fboss/cli/fboss2/commands/show/arp/CmdShowArp.h
   fboss/cli/fboss2/commands/show/CmdShowLldp.h
   fboss/cli/fboss2/commands/show/CmdShowNdp.h
   fboss/cli/fboss2/commands/show/CmdShowNdp.h
@@ -39,6 +44,7 @@ target_link_libraries(fboss2
   ctrl_cpp2
   qsfp_cpp2
   Folly::folly
+  show_arp_model
   show_transceiver_model
 )
 

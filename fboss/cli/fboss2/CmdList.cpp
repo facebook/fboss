@@ -14,12 +14,12 @@
 #include "fboss/cli/fboss2/commands/clear/CmdClearArp.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearNdp.h"
 #include "fboss/cli/fboss2/commands/show/CmdShowAcl.h"
-#include "fboss/cli/fboss2/commands/show/CmdShowArp.h"
 #include "fboss/cli/fboss2/commands/show/CmdShowInterface.h"
 #include "fboss/cli/fboss2/commands/show/CmdShowLldp.h"
 #include "fboss/cli/fboss2/commands/show/CmdShowNdp.h"
 #include "fboss/cli/fboss2/commands/show/CmdShowPort.h"
 #include "fboss/cli/fboss2/commands/show/CmdShowPortQueue.h"
+#include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
 
 namespace facebook::fboss {
