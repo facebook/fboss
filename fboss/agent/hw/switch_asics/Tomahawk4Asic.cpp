@@ -64,10 +64,13 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_TABLE_GROUP:
     case HwAsic::Feature::CPU_PORT:
     case HwAsic::Feature::VRF:
-    case HwAsic::Feature::NON_UNICAST_HASH:
-    case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
     case HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET:
       return true;
+    // TH4 bcmsim is still running A0 version and thus below
+    // features are not supported yet
+    case HwAsic::Feature::NON_UNICAST_HASH:
+    case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
+      return getAsicMode() != AsicMode::ASIC_MODE_SIM;
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
     case HwAsic::Feature::QOS_MAP_GLOBAL:
     case HwAsic::Feature::QCM:

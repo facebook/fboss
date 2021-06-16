@@ -13,6 +13,12 @@ class Tomahawk4Asic : public BroadcomAsic {
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_TOMAHAWK4;
   }
+  AsicMode getAsicMode() const override {
+    static const AsicMode asicMode = std::getenv("BCM_SIM_PATH")
+        ? AsicMode::ASIC_MODE_SIM
+        : AsicMode::ASIC_MODE_HW;
+    return asicMode;
+  }
   cfg::PortSpeed getMaxPortSpeed() const override {
     return cfg::PortSpeed::FOURHUNDREDG;
   }

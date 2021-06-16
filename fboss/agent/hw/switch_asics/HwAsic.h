@@ -92,9 +92,17 @@ class HwAsic {
     ASIC_TYPE_ELBERT_8DD,
   };
 
+  enum class AsicMode {
+    ASIC_MODE_SIM,
+    ASIC_MODE_HW,
+  };
+
   virtual ~HwAsic() {}
   virtual bool isSupported(Feature) const = 0;
   virtual AsicType getAsicType() const = 0;
+  virtual AsicMode getAsicMode() const {
+    return AsicMode::ASIC_MODE_HW;
+  }
   virtual std::string getVendor() const = 0;
   virtual cfg::PortSpeed getMaxPortSpeed() const = 0;
   virtual std::set<cfg::StreamType> getQueueStreamTypes(bool cpu) const = 0;
