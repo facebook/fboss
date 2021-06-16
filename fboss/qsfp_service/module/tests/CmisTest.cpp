@@ -88,6 +88,9 @@ TEST(CmisTest, transceiverInfoTest) {
   std::map<std::string, std::vector<uint8_t>> expectedHostLaneSettings = {
       {"RxOutDisable", {1, 1, 0, 0}},
       {"RxSqDisable", {0, 0, 1, 1}},
+      {"RxEqPrecursor", {2, 2, 2, 2}},
+      {"RxEqPostcursor", {0, 0, 0, 0}},
+      {"RxEqMain", {3, 3, 3, 3}},
   };
 
   auto settings = info.settings_ref().value_or({});

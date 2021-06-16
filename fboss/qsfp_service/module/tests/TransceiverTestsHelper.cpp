@@ -201,6 +201,23 @@ void TransceiverTestsHelper::verifyHostLaneSettings(
           expectedLaneSettings["RxSqDisable"][*setting.lane_ref()],
           setting.rxSquelch_ref().value_or({}));
     }
+    if (expectedLaneSettings.find("RxEqPrecursor") !=
+        expectedLaneSettings.end()) {
+      EXPECT_EQ(
+          expectedLaneSettings["RxEqPrecursor"][*setting.lane_ref()],
+          setting.rxOutputPreCursor_ref().value_or({}));
+    }
+    if (expectedLaneSettings.find("RxEqMain") != expectedLaneSettings.end()) {
+      EXPECT_EQ(
+          expectedLaneSettings["RxEqMain"][*setting.lane_ref()],
+          setting.rxOutputAmplitude_ref().value_or({}));
+    }
+    if (expectedLaneSettings.find("RxEqPostcursor") !=
+        expectedLaneSettings.end()) {
+      EXPECT_EQ(
+          expectedLaneSettings["RxEqPostcursor"][*setting.lane_ref()],
+          setting.rxOutputPostCursor_ref().value_or({}));
+    }
   }
 }
 
