@@ -1690,6 +1690,31 @@ int __real_bcm_flexctr_action_create(
 
 int __real_bcm_flexctr_action_destroy(int unit, uint32 stat_counter_id);
 
+int __real_bcm_l3_route_stat_attach(
+    int unit,
+    bcm_l3_route_t* info,
+    uint32 stat_counter_id);
+
+int __real_bcm_l3_route_stat_detach(int unit, bcm_l3_route_t* info);
+
+int __real_bcm_stat_custom_group_create(
+    int unit,
+    uint32 mode_id,
+    bcm_stat_object_t object,
+    uint32* stat_counter_id,
+    uint32* num_entries);
+
+int __real_bcm_stat_group_destroy(int unit, uint32 stat_counter_id);
+
+int __real_bcm_stat_group_mode_id_create(
+    int unit,
+    uint32 flags,
+    uint32 total_counters,
+    uint32 num_selectors,
+    bcm_stat_group_mode_attr_selector_t* attr_selectors,
+    uint32* mode_id);
+
+int __real_bcm_stat_group_mode_id_destroy(int unit, uint32 mode_id);
 } // extern "C"
 
 using namespace facebook::fboss;
@@ -4027,6 +4052,46 @@ int __wrap_bcm_field_entry_flexctr_detach(
 
 int __wrap_bcm_field_entry_remove(int unit, bcm_field_entry_t entry) {
   CALL_WRAPPERS_RV(bcm_field_entry_remove(unit, entry));
+}
+
+int __wrap_bcm_l3_route_stat_attach(
+    int unit,
+    bcm_l3_route_t* info,
+    uint32 stat_counter_id) {
+  CALL_WRAPPERS_RV(bcm_l3_route_stat_attach(unit, info, stat_counter_id));
+}
+
+int __wrap_bcm_l3_route_stat_detach(int unit, bcm_l3_route_t* info) {
+  CALL_WRAPPERS_RV(bcm_l3_route_stat_detach(unit, info));
+}
+
+int __wrap_bcm_stat_custom_group_create(
+    int unit,
+    uint32 mode_id,
+    bcm_stat_object_t object,
+    uint32* stat_counter_id,
+    uint32* num_entries) {
+  CALL_WRAPPERS_RV(bcm_stat_custom_group_create(
+      unit, mode_id, object, stat_counter_id, num_entries));
+}
+
+int __wrap_bcm_stat_group_destroy(int unit, uint32 stat_counter_id) {
+  CALL_WRAPPERS_RV(bcm_stat_group_destroy(unit, stat_counter_id));
+}
+
+int __wrap_bcm_stat_group_mode_id_create(
+    int unit,
+    uint32 flags,
+    uint32 total_counters,
+    uint32 num_selectors,
+    bcm_stat_group_mode_attr_selector_t* attr_selectors,
+    uint32* mode_id) {
+  CALL_WRAPPERS_RV(bcm_stat_group_mode_id_create(
+      unit, flags, total_counters, num_selectors, attr_selectors, mode_id));
+}
+
+int __wrap_bcm_stat_group_mode_id_destroy(int unit, uint32 mode_id) {
+  CALL_WRAPPERS_RV(bcm_stat_group_mode_id_destroy(unit, mode_id));
 }
 
 int __wrap_bcm_cosq_pfc_deadlock_control_set(

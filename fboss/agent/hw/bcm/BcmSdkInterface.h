@@ -1052,5 +1052,31 @@ class BcmSdkInterface {
       uint32* stat_counter_id) = 0;
 
   virtual int bcm_flexctr_action_destroy(int unit, uint32 stat_counter_id) = 0;
+
+  virtual int bcm_l3_route_stat_attach(
+      int unit,
+      bcm_l3_route_t* info,
+      uint32 stat_counter_id) = 0;
+
+  virtual int bcm_l3_route_stat_detach(int unit, bcm_l3_route_t* info) = 0;
+
+  virtual int bcm_stat_custom_group_create(
+      int unit,
+      uint32 mode_id,
+      bcm_stat_object_t object,
+      uint32* stat_counter_id,
+      uint32* num_entries) = 0;
+
+  virtual int bcm_stat_group_destroy(int unit, uint32 stat_counter_id) = 0;
+
+  virtual int bcm_stat_group_mode_id_create(
+      int unit,
+      uint32 flags,
+      uint32 total_counters,
+      uint32 num_selectors,
+      bcm_stat_group_mode_attr_selector_t* attr_selectors,
+      uint32* mode_id) = 0;
+
+  virtual int bcm_stat_group_mode_id_destroy(int unit, uint32 mode_id) = 0;
 };
 } // namespace facebook::fboss

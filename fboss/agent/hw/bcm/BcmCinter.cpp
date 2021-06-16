@@ -3476,4 +3476,114 @@ int BcmCinter::bcm_flexctr_action_destroy(int unit, uint32 stat_counter_id) {
   writeCintLines(std::move(cint));
   return 0;
 }
+
+int BcmCinter::bcm_l3_route_stat_attach(
+    int unit,
+    bcm_l3_route_t* l3_route,
+    uint32 stat_counter_id) {
+  auto cint = cintForL3Route(*l3_route);
+  auto cintForFn = wrapFunc(to<string>(
+      "bcm_l3_route_stat_attach(",
+      makeParamStr(unit, "&l3_route", stat_counter_id),
+      ")"));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(cintForFn.begin()),
+      make_move_iterator(cintForFn.end()));
+  writeCintLines(std::move(cint));
+  return 0;
+}
+
+int BcmCinter::bcm_l3_route_stat_detach(int unit, bcm_l3_route_t* l3_route) {
+  auto cint = cintForL3Route(*l3_route);
+  auto cintForFn = wrapFunc(to<string>(
+      "bcm_l3_route_stat_detach(", makeParamStr(unit, "&l3_route"), ")"));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(cintForFn.begin()),
+      make_move_iterator(cintForFn.end()));
+  writeCintLines(std::move(cint));
+  return 0;
+}
+
+int BcmCinter::bcm_stat_custom_group_create(
+    int unit,
+    uint32 mode_id,
+    bcm_stat_object_t stat_type,
+    uint32* stat_counter_id,
+    uint32* /* num_entries */) {
+  string statCounterVar = getNextStateCounterVar();
+  string numEntriesVar = "num_entries_" + statCounterVar;
+  vector<string> cintLines;
+  cintLines.push_back(to<string>("uint32 ", statCounterVar));
+  cintLines.push_back(to<string>("uint32 ", numEntriesVar));
+  { statCounterIdVars.wlock()->emplace(*stat_counter_id, statCounterVar); }
+  auto funcCint = wrapFunc(to<string>(
+      "bcm_stat_custom_group_create(",
+      makeParamStr(
+          unit,
+          mode_id,
+          stat_type,
+          to<string>("&", statCounterVar),
+          to<string>("&", numEntriesVar)),
+      ")"));
+  cintLines.insert(
+      cintLines.end(),
+      make_move_iterator(funcCint.begin()),
+      make_move_iterator(funcCint.end()));
+  writeCintLines(std::move(cintLines));
+  return 0;
+}
+
+int BcmCinter::bcm_stat_group_destroy(int unit, uint32 stat_counter_id) {
+  auto cint = wrapFunc(to<string>(
+      "bcm_stat_group_destroy(", makeParamStr(unit, stat_counter_id), ")"));
+  writeCintLines(std::move(cint));
+  return 0;
+}
+
+int BcmCinter::bcm_stat_group_mode_id_create(
+    int unit,
+    uint32 flags,
+    uint32 total_counters,
+    uint32 num_selectors,
+    bcm_stat_group_mode_attr_selector_t* attr_selectors,
+    uint32* /* mode_id */) {
+  vector<string> cintLines;
+  cintLines.push_back(to<string>(
+      "bcm_stat_group_mode_attr_selector_t selector[", num_selectors, "]"));
+  cintLines.push_back(to<string>("uint32 mode_id"));
+  for (int i = 0; i < num_selectors; i++) {
+    cintLines.push_back(to<string>(
+        "bcm_stat_group_mode_attr_selector_t_init(&selector[", i, "])"));
+    cintLines.push_back(to<string>(
+        "selector[",
+        i,
+        "].counter_offset = ",
+        attr_selectors[i].counter_offset));
+    cintLines.push_back(
+        to<string>("selector[", i, "].attr = ", attr_selectors[i].attr));
+    cintLines.push_back(to<string>(
+        "selector[", i, "].attr_value = ", attr_selectors[i].attr_value));
+  }
+  auto cintForFn = wrapFunc(to<string>(
+      "bcm_stat_group_mode_id_create(",
+      makeParamStr(
+          unit, flags, total_counters, num_selectors, "selector", "&mode_id"),
+      ")"));
+  cintLines.insert(
+      cintLines.end(),
+      make_move_iterator(cintForFn.begin()),
+      make_move_iterator(cintForFn.end()));
+  writeCintLines(std::move(cintLines));
+  return 0;
+}
+
+int BcmCinter::bcm_stat_group_mode_id_destroy(int unit, uint32 mode_id) {
+  auto cint = wrapFunc(to<string>(
+      "bcm_stat_group_mode_id_destroy(", makeParamStr(unit, mode_id), ")"));
+  writeCintLines(std::move(cint));
+  return 0;
+}
+
 } // namespace facebook::fboss
