@@ -996,10 +996,25 @@ void printHostLaneSettings(const std::vector<HostLaneSettings>& settings) {
       printf(" 0x%-10x", *(setting.rxOutputEmphasis_ref()));
     }
   }
-  if (settings[0].rxOutputAmplitude_ref()) {
-    printf("\n    %-22s", "Rx Output Amplitude");
+  if (settings[0].rxOutputPreCursor_ref()) {
+    printf("\n    %-22s", "Rx Out Precursor");
     for (const auto& setting : settings) {
-      printf(" 0x%-10x", *(setting.rxOutputAmplitude_ref()));
+      auto pre = *(setting.rxOutputPreCursor_ref());
+      printf(" %-12d", pre);
+    }
+  }
+  if (settings[0].rxOutputPostCursor_ref()) {
+    printf("\n    %-22s", "Rx Out Postcursor");
+    for (const auto& setting : settings) {
+      auto post = *(setting.rxOutputPostCursor_ref());
+      printf(" %-12d", post);
+    }
+  }
+  if (settings[0].rxOutputAmplitude_ref()) {
+    printf("\n    %-22s", "Rx Out Amplitude");
+    for (const auto& setting : settings) {
+      auto amp = *(setting.rxOutputAmplitude_ref());
+      printf(" %-12d", amp);
     }
   }
   if (settings[0].rxOutput_ref()) {
