@@ -451,8 +451,6 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
         port,
         trafficClass,
         payload);
-    XLOG(DBG0) << "Sending " << numPktsToSend << " TCP packets on port "
-               << (int)port << " / VLAN " << (int)vlanId;
   }
 
   void createLineRateTrafficOnPort(
@@ -472,11 +470,84 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
         utility::kNonSpecialPort1,
         utility::kNonSpecialPort2,
         dstMac);
+    XLOG(DBG0) << "Sent " << minPktsForLineRate << " TCP packets on port "
+               << (int)port << " / VLAN " << (int)vlanId;
 
     // Wait for packet loop buildup
     getHwSwitchEnsemble()->waitForLineRateOnPort(port);
     XLOG(DBG0) << "Created dataplane loop with packets for "
                << dstIpAddress.str();
+  }
+
+  /*
+   * Send packets as fast as possible from CPU in groups of
+   * packetsPerBurst every second. Once these many packets
+   * are sent, sleep for rest of the time (if any) in that
+   * second. This helps ensure that for a burst of packets
+   * that can be sent in a second, we dont exceed the number
+   * of packets sent in each second.
+   */
+  void sendPacketBursts(
+      const PortID& port,
+      const VlanID& vlanId,
+      const int packetCount,
+      const int packetsPerBurst,
+      const folly::IPAddress& dstIpAddress,
+      const int l4SrcPort,
+      const int l4DstPort) {
+    double waitTimeMsec = 1000;
+    int packetsSent = 0;
+    uint64_t hiPriWatermarkBytes{};
+    uint64_t hiPriorityCoppQueueDiscardStats{};
+
+    while (packetsSent < packetCount) {
+      auto loopStartTime(std::chrono::steady_clock::now());
+      auto pktsInThisBurst = (packetCount - packetsSent > packetsPerBurst)
+          ? packetsPerBurst
+          : packetCount - packetsSent;
+      sendTcpPktsOnPort(
+          port, vlanId, pktsInThisBurst, dstIpAddress, l4SrcPort, l4DstPort);
+      packetsSent += pktsInThisBurst;
+
+      std::chrono::duration<double, std::milli> msecUsed =
+          std::chrono::steady_clock::now() - loopStartTime;
+      if (waitTimeMsec > msecUsed.count()) {
+        auto remainingTimeMsec = waitTimeMsec - msecUsed.count();
+        std::this_thread::sleep_for(
+            std::chrono::milliseconds(static_cast<long>(remainingTimeMsec)));
+      } else {
+        XLOG(WARN) << "Not sleeping between bursts as time taken to send "
+                   << msecUsed.count() << "msec is higher than " << waitTimeMsec
+                   << "msec";
+      }
+
+      /*
+       * XXX: Debug code to be removed later.
+       * Keep checking the low and high priority watermarks for
+       * CPU queues, printing for now to help analyze the drops
+       * happening in HW!
+       */
+      auto loPriWatermarkBytes_1 = utility::getCpuQueueWatermarkBytes(
+          getHwSwitch(), utility::kCoppLowPriQueueId);
+      auto hiPriWatermarkBytes_1 = utility::getCpuQueueWatermarkBytes(
+          getHwSwitch(), utility::getCoppHighPriQueueId(getAsic()));
+      auto hiPriorityCoppQueueDiscardStats_1 =
+          utility::getCpuQueueOutDiscardPacketsAndBytes(
+              getHwSwitch(), utility::getCoppHighPriQueueId(getAsic()))
+              .first;
+      if (hiPriWatermarkBytes_1 != hiPriWatermarkBytes ||
+          hiPriorityCoppQueueDiscardStats_1 !=
+              hiPriorityCoppQueueDiscardStats) {
+        XLOG(DBG0) << "HiPri watermark: " << hiPriWatermarkBytes_1
+                   << ", LoPri watermark: " << loPriWatermarkBytes_1
+                   << ", HiPri Drops: " << hiPriorityCoppQueueDiscardStats_1;
+        hiPriWatermarkBytes = hiPriWatermarkBytes_1;
+        hiPriorityCoppQueueDiscardStats = hiPriorityCoppQueueDiscardStats_1;
+      }
+    }
+    XLOG(DBG0) << "Sent " << packetCount << " TCP packets on port " << (int)port
+               << " / VLAN " << (int)vlanId << " in bursts of "
+               << packetsPerBurst << " packets";
   }
 
  private:
@@ -958,6 +1029,7 @@ TEST_F(HwCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
   constexpr int kReceiveRetriesInSeconds = 2;
   constexpr int kTransmitRetriesInSeconds = 5;
   constexpr int kHighPriorityPacketCount = 30000;
+  constexpr int packetsPerBurst = 1000;
   std::map<folly::IPAddress, uint64_t> rxPktCountMap{};
 
   auto setup = [=]() { setupEcmpDataplaneLoop(); };
@@ -994,10 +1066,11 @@ TEST_F(HwCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
         getLatestPortStats(masterLogicalPortIds()[1]).get_outUnicastPkts_();
 
     // Send a fixed number of high priority packets on port1
-    sendTcpPktsOnPort(
+    sendPacketBursts(
         masterLogicalPortIds()[1],
         VlanID(baseVlan + 1),
         kHighPriorityPacketCount,
+        packetsPerBurst,
         ipForHighPriorityQueue,
         utility::kNonSpecialPort1,
         utility::kBgpPort);
