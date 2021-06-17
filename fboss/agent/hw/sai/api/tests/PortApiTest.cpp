@@ -269,6 +269,22 @@ TEST_F(PortApiTest, setGetOptionalAttributes) {
   auto gotSystemPortId =
       portApi->getAttribute(portId, SaiPortTraits::Attributes::SystemPortId{});
   EXPECT_EQ(gotSystemPortId, systemPortId);
+
+  // Prbs Polynomial
+  uint32_t prbsPolynomial{42};
+  portApi->setAttribute(
+      portId, SaiPortTraits::Attributes::PrbsPolynomial{prbsPolynomial});
+  auto gotPrbsPolynomial = portApi->getAttribute(
+      portId, SaiPortTraits::Attributes::PrbsPolynomial{});
+  EXPECT_EQ(gotPrbsPolynomial, prbsPolynomial);
+
+  // Prbs Config
+  int32_t prbsConfig = SAI_PORT_PRBS_CONFIG_ENABLE_TX_RX;
+  portApi->setAttribute(
+      portId, SaiPortTraits::Attributes::PrbsConfig{prbsConfig});
+  auto gotPrbsConfig =
+      portApi->getAttribute(portId, SaiPortTraits::Attributes::PrbsConfig{});
+  EXPECT_EQ(gotPrbsConfig, prbsConfig);
 }
 
 // ObjectApi tests
