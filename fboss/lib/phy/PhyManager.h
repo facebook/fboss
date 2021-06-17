@@ -7,6 +7,7 @@
 #include "fboss/agent/types.h"
 #include "fboss/lib/phy/ExternalPhy.h"
 #include "fboss/mdio/Mdio.h"
+#include "fboss/mka_service/if/gen-cpp2/mka_types.h"
 
 #include <map>
 #include <vector>
@@ -73,6 +74,18 @@ class PhyManager {
       PortID portId,
       cfg::PortProfileID portProfileId,
       std::optional<TransceiverInfo> transceiverInfo);
+
+  // Macsec is only supported on SAI, so only SaiPhyManager will override this.
+  virtual void sakInstallTx(const mka::MKASak& /* sak */) {
+    throw FbossError("Attempted to call sakInstallTx from non-SaiPhyManager");
+  }
+  virtual void sakInstallRx(
+      const mka::MKASak& /* sak */,
+      const mka::MKASci& /* sci */) {
+    throw FbossError("Attempted to call sakInstallRx from non-SaiPhyManager");
+  }
+
+  virtual std::vector<PortID> getMacsecCapablePorts() = 0;
 
  protected:
   const PlatformMapping* getPlatformMapping() {

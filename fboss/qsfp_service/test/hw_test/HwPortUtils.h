@@ -24,6 +24,10 @@ struct PhyPortConfig;
 } // namespace phy
 
 namespace utility {
+struct IphyAndXphyPorts {
+  std::vector<PortID> xphyPorts;
+  std::vector<PortID> iphyPorts;
+};
 // Verify PhyPortConfig
 void verifyPhyPortConfig(
     PortID portID,
@@ -35,6 +39,10 @@ std::optional<TransceiverID> getTranscieverIdx(
     PortID portId,
     const HwQsfpEnsemble* ensemble);
 PortStatus getPortStatus(PortID portId, const HwQsfpEnsemble* ensemble);
+
+IphyAndXphyPorts findAvailablePorts(
+    HwQsfpEnsemble* qsfpEnsemble,
+    cfg::PortProfileID profile);
 } // namespace utility
 
 } // namespace facebook::fboss

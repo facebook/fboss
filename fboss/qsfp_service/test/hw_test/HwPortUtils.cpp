@@ -146,4 +146,32 @@ PortStatus getPortStatus(PortID portId, const HwQsfpEnsemble* ensemble) {
   status.speedMbps_ref() = static_cast<int64_t>(*portCfg->speed_ref());
   return status;
 }
+
+IphyAndXphyPorts findAvailablePorts(
+    HwQsfpEnsemble* hwQsfpEnsemble,
+    cfg::PortProfileID profile) {
+  std::set<PortID> xPhyPorts;
+  const auto& platformPorts =
+      hwQsfpEnsemble->getPlatformMapping()->getPlatformPorts();
+  const auto& chips = hwQsfpEnsemble->getPlatformMapping()->getChips();
+  IphyAndXphyPorts ports;
+  auto agentConfig = hwQsfpEnsemble->getWedgeManager()->getAgentConfig();
+  auto& swConfig = *agentConfig->thrift.sw_ref();
+  for (auto& port : *swConfig.ports_ref()) {
+    if (*port.profileID_ref() != profile ||
+        *port.state_ref() != cfg::PortState::ENABLED) {
+      continue;
+    }
+    const auto& xphy = utility::getDataPlanePhyChips(
+        platformPorts.find(*port.logicalID_ref())->second,
+        chips,
+        phy::DataPlanePhyChipType::XPHY);
+    if (!xphy.empty()) {
+      ports.xphyPorts.emplace_back(*port.logicalID_ref());
+    }
+    // All ports have iphys
+    ports.iphyPorts.emplace_back(*port.logicalID_ref());
+  }
+  return ports;
+}
 } // namespace facebook::fboss::utility

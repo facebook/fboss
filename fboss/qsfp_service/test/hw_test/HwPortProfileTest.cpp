@@ -25,36 +25,6 @@ namespace facebook::fboss {
 template <cfg::PortProfileID Profile>
 class HwPortProfileTest : public HwTest {
  private:
-  struct Ports {
-    std::vector<PortID> xphyPorts;
-    std::vector<PortID> iphyPorts;
-  };
-  Ports findAvailablePorts() {
-    std::set<PortID> xPhyPorts;
-    const auto& platformPorts =
-        getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
-    const auto& chips = getHwQsfpEnsemble()->getPlatformMapping()->getChips();
-    Ports ports;
-    auto agentConfig = getHwQsfpEnsemble()->getWedgeManager()->getAgentConfig();
-    auto& swConfig = *agentConfig->thrift.sw_ref();
-    for (auto& port : *swConfig.ports_ref()) {
-      if (*port.profileID_ref() != Profile ||
-          *port.state_ref() != cfg::PortState::ENABLED) {
-        continue;
-      }
-      const auto& xphy = utility::getDataPlanePhyChips(
-          platformPorts.find(*port.logicalID_ref())->second,
-          chips,
-          phy::DataPlanePhyChipType::XPHY);
-      if (!xphy.empty()) {
-        ports.xphyPorts.emplace_back(PortID(*port.logicalID_ref()));
-      }
-      // All ports have iphys
-      ports.iphyPorts.emplace_back(PortID(*port.logicalID_ref()));
-    }
-    return ports;
-  }
-
   void verifyXphyPorts(
       const std::vector<PortID>& xphyPorts,
       const std::map<int32_t, TransceiverInfo>& transceivers) {
@@ -158,7 +128,7 @@ class HwPortProfileTest : public HwTest {
   void runTest() {
     auto platformMode =
         getHwQsfpEnsemble()->getWedgeManager()->getPlatformMode();
-    auto ports = findAvailablePorts();
+    auto ports = utility::findAvailablePorts(getHwQsfpEnsemble(), Profile);
     EXPECT_TRUE(!(ports.xphyPorts.empty() && ports.iphyPorts.empty()));
     auto portMap = std::make_unique<WedgeManager::PortMap>();
     // Program xphy

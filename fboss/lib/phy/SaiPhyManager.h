@@ -34,8 +34,8 @@ class SaiPhyManager : public PhyManager {
   SaiSwitch* getSaiSwitch(GlobalXphyID xphyID) const;
   SaiSwitch* getSaiSwitch(PortID portID) const;
 
-  void sakInstallTx(const mka::MKASak& sak);
-  void sakInstallRx(const mka::MKASak& sak, const mka::MKASci& sci);
+  void sakInstallTx(const mka::MKASak& sak) override;
+  void sakInstallRx(const mka::MKASak& sak, const mka::MKASci& sci) override;
 
  protected:
   void addSaiPlatform(
