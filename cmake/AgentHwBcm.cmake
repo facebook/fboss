@@ -20,9 +20,12 @@ add_library(bcm
   fboss/agent/hw/bcm/BcmEcmpUtils.cpp
   fboss/agent/hw/bcm/BcmEgress.cpp
   fboss/agent/hw/bcm/BcmEgressManager.cpp
+  fboss/agent/hw/bcm/BcmEgressQueueFlexCounter.cpp
   fboss/agent/hw/bcm/BcmFieldProcessorFBConvertors.cpp
   fboss/agent/hw/bcm/BcmFieldProcessorUtils.cpp
+  fboss/agent/hw/bcm/BcmFlexCounter.cpp
   fboss/agent/hw/bcm/BcmFwLoader.cpp
+  fboss/agent/hw/bcm/BcmIngressFieldProcessorFlexCounter.cpp
   fboss/agent/hw/bcm/BcmHost.cpp
   fboss/agent/hw/bcm/BcmHostKey.cpp
   fboss/agent/hw/bcm/BcmIntf.cpp
@@ -84,9 +87,6 @@ add_library(bcm
   fboss/agent/hw/bcm/oss/BcmAPI.cpp
   fboss/agent/hw/bcm/oss/BcmControlPlane.cpp
   fboss/agent/hw/bcm/oss/BcmFacebookAPI.cpp
-  fboss/agent/hw/bcm/oss/BcmFlexCounter.cpp
-  fboss/agent/hw/bcm/oss/BcmIngressFieldProcessorFlexCounter.cpp
-  fboss/agent/hw/bcm/oss/BcmEgressQueueFlexCounter.cpp
   fboss/agent/hw/bcm/oss/BcmPort.cpp
   fboss/agent/hw/bcm/oss/BcmBstStatsMgr.cpp
   fboss/agent/hw/bcm/oss/BcmQcmCollector.cpp
