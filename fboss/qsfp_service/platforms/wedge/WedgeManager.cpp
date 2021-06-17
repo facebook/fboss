@@ -19,6 +19,7 @@
 #include <folly/gen/Base.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
+#include <chrono>
 
 // allow us to configure the warmboot dir so that the qsfp cold boot test can
 // run concurrently with itself
@@ -784,11 +785,39 @@ bool WedgeManager::initExternalPhyMap() {
   bool warmboot = canWarmboot();
   // And then initialize the xphy for each pim
   if (FLAGS_init_pim_xphys) {
+    std::vector<folly::Future<folly::Unit>> initPimTasks;
+    std::chrono::steady_clock::time_point begin =
+        std::chrono::steady_clock::now();
     for (int pimIndex = 0; pimIndex < phyManager_->getNumOfSlot(); ++pimIndex) {
-      phyManager_->initializeSlotPhys(
-          pimIndex + phyManager_->getSystemContainer()->getPimStartNum(),
-          warmboot);
+      auto pimID =
+          PimID(pimIndex + phyManager_->getSystemContainer()->getPimStartNum());
+      XLOG(DBG1) << "Initializing PIM " << static_cast<int>(pimID);
+      if (auto* pimEventBase = phyManager_->getPimEventBase(pimID)) {
+        initPimTasks.push_back(
+            folly::via(pimEventBase)
+                .thenValue([&, pimID, warmboot](auto&&) {
+                  phyManager_->initializeSlotPhys(pimID, warmboot);
+                })
+                .thenError(
+                    folly::tag_t<std::exception>{},
+                    [pimID](const std::exception& e) {
+                      XLOG(WARNING)
+                          << "Exception in initializeSlotPhys() for pim:"
+                          << static_cast<int>(pimID) << ", "
+                          << folly::exceptionStr(e);
+                    }));
+      } else {
+        // If the pim EventBase doesn't exist, call such function directly
+        phyManager_->initializeSlotPhys(pimID, warmboot);
+      }
     }
+
+    folly::collectAll(initPimTasks).wait();
+    XLOG(DBG2) << "Initialized all pims xphy took "
+               << std::chrono::duration_cast<std::chrono::seconds>(
+                      std::chrono::steady_clock::now() - begin)
+                      .count()
+               << " seconds";
   }
   return rb;
 }

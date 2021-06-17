@@ -23,7 +23,7 @@ class TransceiverInfo;
 class PhyManager {
  public:
   explicit PhyManager(const PlatformMapping* platformMapping);
-  virtual ~PhyManager() {}
+  virtual ~PhyManager();
 
   GlobalXphyID getGlobalXphyIDbyPortID(PortID portID) const;
   virtual phy::PhyIDInfo getPhyIDInfo(GlobalXphyID xphyID) const = 0;
@@ -87,10 +87,14 @@ class PhyManager {
 
   virtual std::vector<PortID> getMacsecCapablePorts() = 0;
 
+  folly::EventBase* getPimEventBase(PimID pimID) const;
+
  protected:
   const PlatformMapping* getPlatformMapping() {
     return platformMapping_;
   }
+
+  void setupPimEventMultiThreading(PimID pimID);
 
   // Number of slot in the platform
   int numOfSlot_;
@@ -127,6 +131,19 @@ class PhyManager {
   // This map will cache the two global ID: PortID and GlobalXphyID
   std::unordered_map<PortID, GlobalXphyID> portToGlobalXphyID_;
   const PlatformMapping* platformMapping_;
+
+  // For PhyManager programming xphy, each pim can program their xphys at the
+  // same time without worrying affecting other pim's operation.
+  struct PimEventMultiThreading {
+    PimID pim;
+    std::unique_ptr<folly::EventBase> eventBase;
+    std::unique_ptr<std::thread> thread;
+
+    explicit PimEventMultiThreading(PimID pimID);
+    ~PimEventMultiThreading();
+  };
+  std::unordered_map<PimID, std::unique_ptr<PimEventMultiThreading>>
+      pimToThread_;
 };
 
 } // namespace fboss

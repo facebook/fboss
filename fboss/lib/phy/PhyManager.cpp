@@ -11,6 +11,7 @@
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
 namespace facebook::fboss {
+
 PhyManager::PhyManager(const PlatformMapping* platformMapping)
     : platformMapping_(platformMapping) {
   const auto& chips = platformMapping_->getChips();
@@ -24,6 +25,8 @@ PhyManager::PhyManager(const PlatformMapping* platformMapping)
     }
   }
 }
+
+PhyManager::~PhyManager() {}
 
 GlobalXphyID PhyManager::getGlobalXphyIDbyPortID(PortID portID) const {
   if (auto id = portToGlobalXphyID_.find(portID);
@@ -106,6 +109,34 @@ void PhyManager::programOnePort(
   auto* xphy = getExternalPhy(portId);
   xphy->programOnePort(
       getDesiredPhyPortConfig(portId, portProfileId, transceiverInfo));
+}
+
+folly::EventBase* FOLLY_NULLABLE
+PhyManager::getPimEventBase(PimID pimID) const {
+  if (auto pimEventMultiThread = pimToThread_.find(pimID);
+      pimEventMultiThread != pimToThread_.end()) {
+    return pimEventMultiThread->second->eventBase.get();
+  }
+  return nullptr;
+}
+
+PhyManager::PimEventMultiThreading::PimEventMultiThreading(PimID pimID) {
+  pim = pimID;
+  eventBase = std::make_unique<folly::EventBase>();
+  // start pim thread
+  thread = std::make_unique<std::thread>([=] { eventBase->loopForever(); });
+  XLOG(DBG2) << "Created PimEventMultiThreading for pim="
+             << static_cast<int>(pimID);
+}
+
+PhyManager::PimEventMultiThreading::~PimEventMultiThreading() {
+  eventBase->terminateLoopSoon();
+  thread->join();
+  XLOG(DBG2) << "Terminated multi-threading for pim=" << static_cast<int>(pim);
+}
+
+void PhyManager::setupPimEventMultiThreading(PimID pimID) {
+  pimToThread_.emplace(pimID, std::make_unique<PimEventMultiThreading>(pimID));
 }
 
 } // namespace facebook::fboss
