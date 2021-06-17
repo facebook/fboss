@@ -148,6 +148,12 @@ struct SaiPortTraits {
         SaiAttribute<EnumType, SAI_PORT_ATTR_PRBS_POLYNOMIAL, sai_uint32_t>;
     using PrbsConfig =
         SaiAttribute<EnumType, SAI_PORT_ATTR_PRBS_CONFIG, sai_int32_t>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
+    using PrbsRxState = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_PRBS_RX_STATE,
+        sai_prbs_rx_state_t>;
+#endif
     using IngressMacSecAcl = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_INGRESS_MACSEC_ACL,
@@ -246,6 +252,9 @@ SAI_ATTRIBUTE_NAME(Port, EgressSampleMirrorSession)
 
 SAI_ATTRIBUTE_NAME(Port, PrbsPolynomial)
 SAI_ATTRIBUTE_NAME(Port, PrbsConfig)
+#if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
+SAI_ATTRIBUTE_NAME(Port, PrbsRxState)
+#endif
 SAI_ATTRIBUTE_NAME(Port, IngressMacSecAcl)
 SAI_ATTRIBUTE_NAME(Port, EgressMacSecAcl)
 SAI_ATTRIBUTE_NAME(Port, SystemPortId)

@@ -328,6 +328,12 @@ sai_status_t set_port_attribute_fn(
       }
     } break;
 #endif
+    case SAI_PORT_ATTR_PRBS_POLYNOMIAL:
+      port.prbsPolynomial = attr->value.u32;
+      break;
+    case SAI_PORT_ATTR_PRBS_CONFIG:
+      port.prbsConfig = attr->value.s32;
+      break;
     case SAI_PORT_ATTR_INGRESS_MACSEC_ACL:
       port.ingressMacsecAcl = attr->value.oid;
       break;
@@ -475,6 +481,18 @@ sai_status_t get_port_attribute_fn(
           attr[i].value.objlist.list[j] = port.egressSampleMirrorList[j];
         }
         attr[i].value.objlist.count = port.egressSampleMirrorList.size();
+        break;
+#endif
+      case SAI_PORT_ATTR_PRBS_POLYNOMIAL:
+        attr[i].value.u32 = port.prbsPolynomial;
+        break;
+      case SAI_PORT_ATTR_PRBS_CONFIG:
+        attr[i].value.s32 = port.prbsConfig;
+        break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
+      case SAI_PORT_ATTR_PRBS_RX_STATE:
+        attr[i].value.rx_state.rx_status = port.prbsRxState.rx_status;
+        attr[i].value.rx_state.error_count = port.prbsRxState.error_count;
         break;
 #endif
       case SAI_PORT_ATTR_INGRESS_MACSEC_ACL:

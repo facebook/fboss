@@ -49,6 +49,11 @@ struct FakePort {
   sai_object_id_t egressSamplePacket{SAI_NULL_OBJECT_ID};
   std::vector<sai_object_id_t> ingressSampleMirrorList;
   std::vector<sai_object_id_t> egressSampleMirrorList;
+  uint32_t prbsPolynomial{0};
+  int32_t prbsConfig{0};
+#if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
+  sai_prbs_rx_state_t prbsRxState{SAI_PORT_PRBS_RX_STATUS_LOCK_WITH_ERRORS, 1};
+#endif
   sai_object_id_t ingressMacsecAcl{SAI_NULL_OBJECT_ID};
   sai_object_id_t egressMacsecAcl{SAI_NULL_OBJECT_ID};
   uint16_t systemPortId{0};
