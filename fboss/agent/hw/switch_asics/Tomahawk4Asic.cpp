@@ -44,8 +44,6 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER:
     case HwAsic::Feature::OBM_COUNTERS:
     case HwAsic::Feature::BUFFER_POOL:
-    case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
-    case HwAsic::Feature::SFLOW_SAMPLING:
     case HwAsic::Feature::TX_VLAN_STRIPPING_ON_PORT:
     case HwAsic::Feature::EGRESS_QUEUE_FLEX_COUNTER:
     case HwAsic::Feature::INGRESS_L3_INTERFACE:
@@ -70,6 +68,9 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     // features are not supported yet
     case HwAsic::Feature::NON_UNICAST_HASH:
     case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
+    // features not working well with bcmsim
+    case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
+    case HwAsic::Feature::SFLOW_SAMPLING:
       return getAsicMode() != AsicMode::ASIC_MODE_SIM;
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
     case HwAsic::Feature::QOS_MAP_GLOBAL:
