@@ -64,6 +64,12 @@ DEFINE_bool(
     "At runtime, it should be disabled to reduce logging overhead."
     "However, it's needed for testing e.g. HwL4PortBlackHolingTest");
 
+DEFINE_bool(
+    explicit_attr_name,
+    false,
+    "Flag to indicate whether Sai Replayer produces log with explicit "
+    "attribute name (e.g. SAI_ACL_ENTRY_ATTR_FIELD_SRC_IPV6) or int value.");
+
 DEFINE_string(
     sai_log,
     "/var/facebook/logs/fboss/sdk/sai_replayer.log",

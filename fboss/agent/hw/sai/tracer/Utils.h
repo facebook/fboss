@@ -156,4 +156,8 @@ void u8ArrGenericAttr(
     std::vector<std::string>& attrLines,
     const std::string& attrName);
 
+std::string attrNameToEnum(
+    const std::string& objType,
+    const std::string& attrName);
+
 } // namespace facebook::fboss

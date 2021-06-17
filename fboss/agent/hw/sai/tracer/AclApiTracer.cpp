@@ -8,8 +8,58 @@
  *
  */
 
+#include <typeindex>
+#include <utility>
+
+#include "fboss/agent/hw/sai/api/AclApi.h"
 #include "fboss/agent/hw/sai/tracer/AclApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
+
+using folly::to;
+
+namespace {
+std::map<int32_t, std::pair<std::string, std::size_t>> _AclTableMap{
+    SAI_ATTR_MAP(AclTable, Stage),
+    SAI_ATTR_MAP(AclTable, Stage),
+    SAI_ATTR_MAP(AclTable, BindPointTypeList),
+    SAI_ATTR_MAP(AclTable, ActionTypeList),
+    SAI_ATTR_MAP(AclTable, EntryList),
+    SAI_ATTR_MAP(AclTable, FieldSrcIpV6),
+    SAI_ATTR_MAP(AclTable, FieldDstIpV6),
+    SAI_ATTR_MAP(AclTable, FieldSrcIpV4),
+    SAI_ATTR_MAP(AclTable, FieldDstIpV4),
+    SAI_ATTR_MAP(AclTable, FieldL4SrcPort),
+    SAI_ATTR_MAP(AclTable, FieldL4DstPort),
+    SAI_ATTR_MAP(AclTable, FieldIpProtocol),
+    SAI_ATTR_MAP(AclTable, FieldTcpFlags),
+    SAI_ATTR_MAP(AclTable, FieldSrcPort),
+    SAI_ATTR_MAP(AclTable, FieldOutPort),
+    SAI_ATTR_MAP(AclTable, FieldIpFrag),
+    SAI_ATTR_MAP(AclTable, FieldIcmpV4Type),
+    SAI_ATTR_MAP(AclTable, FieldIcmpV4Code),
+    SAI_ATTR_MAP(AclTable, FieldIcmpV6Type),
+    SAI_ATTR_MAP(AclTable, FieldIcmpV6Code),
+    SAI_ATTR_MAP(AclTable, FieldDscp),
+    SAI_ATTR_MAP(AclTable, FieldDstMac),
+    SAI_ATTR_MAP(AclTable, FieldIpType),
+    SAI_ATTR_MAP(AclTable, FieldTtl),
+    SAI_ATTR_MAP(AclTable, FieldFdbDstUserMeta),
+    SAI_ATTR_MAP(AclTable, FieldRouteDstUserMeta),
+    SAI_ATTR_MAP(AclTable, FieldNeighborDstUserMeta),
+    SAI_ATTR_MAP(AclTable, AvailableEntry),
+    SAI_ATTR_MAP(AclTable, AvailableCounter),
+    SAI_ATTR_MAP(AclTable, FieldEthertype),
+};
+
+std::map<int32_t, std::pair<std::string, std::size_t>> _AclCounterMap{
+    SAI_ATTR_MAP(AclCounter, TableId),
+    SAI_ATTR_MAP(AclCounter, EnablePacketCount),
+    SAI_ATTR_MAP(AclCounter, EnableByteCount),
+    SAI_ATTR_MAP(AclCounter, CounterPackets),
+    SAI_ATTR_MAP(AclCounter, CounterBytes),
+};
+
+} // namespace
 
 namespace facebook::fboss {
 
@@ -119,28 +169,8 @@ sai_acl_api_t* wrappedAclApi() {
   return &aclWrappers;
 }
 
-void setAclCounterAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_ACL_COUNTER_ATTR_TABLE_ID:
-        attrLines.push_back(oidAttr(attr_list, i));
-        break;
-      case SAI_ACL_COUNTER_ATTR_ENABLE_PACKET_COUNT:
-      case SAI_ACL_COUNTER_ATTR_ENABLE_BYTE_COUNT:
-        attrLines.push_back(boolAttr(attr_list, i));
-        break;
-      case SAI_ACL_COUNTER_ATTR_PACKETS:
-      case SAI_ACL_COUNTER_ATTR_BYTES:
-        attrLines.push_back(u64Attr(attr_list, i));
-        break;
-      default:
-        break;
-    }
-  }
-}
+SET_SAI_ATTRIBUTES(AclCounter)
+SET_SAI_ATTRIBUTES(AclTable)
 
 void setAclEntryAttributes(
     const sai_attribute_t* attr_list,
@@ -207,63 +237,6 @@ void setAclEntryAttributes(
         aclEntryFieldMacAttr(attr_list, i, attrLines);
         break;
       default:
-        break;
-    }
-  }
-}
-
-void setAclTableAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  uint32_t listCount = 0;
-
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_ACL_TABLE_ATTR_ACL_STAGE:
-        attrLines.push_back(s32Attr(attr_list, i));
-        break;
-      case SAI_ACL_TABLE_ATTR_ACL_BIND_POINT_TYPE_LIST:
-      case SAI_ACL_TABLE_ATTR_ACL_ACTION_TYPE_LIST:
-        s32ListAttr(attr_list, i, listCount++, attrLines);
-        break;
-      case SAI_ACL_TABLE_ATTR_ENTRY_LIST:
-        oidListAttr(attr_list, i, listCount++, attrLines);
-        break;
-      case SAI_ACL_TABLE_ATTR_FIELD_SRC_IPV6:
-      case SAI_ACL_TABLE_ATTR_FIELD_DST_IPV6:
-      case SAI_ACL_TABLE_ATTR_FIELD_SRC_IP:
-      case SAI_ACL_TABLE_ATTR_FIELD_DST_IP:
-      case SAI_ACL_TABLE_ATTR_FIELD_L4_SRC_PORT:
-      case SAI_ACL_TABLE_ATTR_FIELD_L4_DST_PORT:
-      case SAI_ACL_TABLE_ATTR_FIELD_IP_PROTOCOL:
-      case SAI_ACL_TABLE_ATTR_FIELD_TCP_FLAGS:
-      case SAI_ACL_TABLE_ATTR_FIELD_SRC_PORT:
-      case SAI_ACL_TABLE_ATTR_FIELD_OUT_PORT:
-      case SAI_ACL_TABLE_ATTR_FIELD_ACL_IP_FRAG:
-      case SAI_ACL_TABLE_ATTR_FIELD_ICMP_TYPE:
-      case SAI_ACL_TABLE_ATTR_FIELD_ICMP_CODE:
-      case SAI_ACL_TABLE_ATTR_FIELD_ICMPV6_TYPE:
-      case SAI_ACL_TABLE_ATTR_FIELD_ICMPV6_CODE:
-      case SAI_ACL_TABLE_ATTR_FIELD_DSCP:
-      case SAI_ACL_TABLE_ATTR_FIELD_DST_MAC:
-      case SAI_ACL_TABLE_ATTR_FIELD_ACL_IP_TYPE:
-      case SAI_ACL_TABLE_ATTR_FIELD_TTL:
-      case SAI_ACL_TABLE_ATTR_FIELD_FDB_DST_USER_META:
-      case SAI_ACL_TABLE_ATTR_FIELD_ROUTE_DST_USER_META:
-      case SAI_ACL_TABLE_ATTR_FIELD_NEIGHBOR_DST_USER_META:
-        attrLines.push_back(boolAttr(attr_list, i));
-        break;
-      case SAI_ACL_TABLE_ATTR_AVAILABLE_ACL_ENTRY:
-      case SAI_ACL_TABLE_ATTR_AVAILABLE_ACL_COUNTER:
-        attrLines.push_back(u32Attr(attr_list, i));
-        break;
-      default:
-        // TODO(zecheng): What to do in this situation?
-        // We need a way to remind/flag an error when new attributes are added
-        // to Sai API. By default, this function is not going to set the
-        // attribute values, which should be caught by Sai Replayer tests.
-        // However, it would be better to have a compile time check (T69350100)
         break;
     }
   }

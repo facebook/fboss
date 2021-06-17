@@ -27,6 +27,7 @@ extern "C" {
 
 DECLARE_bool(enable_replayer);
 DECLARE_bool(enable_packet_log);
+DECLARE_bool(explicit_attr_name);
 
 namespace facebook::fboss {
 
@@ -449,6 +450,53 @@ class SaiTracer {
     return SaiTracer::getInstance()                          \
         ->api_type##Api_->get_##obj_type##_attribute(        \
             obj_type##_id, attr_count, attr_list);           \
+  }
+
+#define TYPE_INDEX(type) std::type_index(typeid(type)).hash_code()
+
+#define SAI_ATTR_MAP(obj_type, attr_name)                                   \
+  {                                                                         \
+    facebook::fboss::Sai##obj_type##Traits::Attributes::attr_name::Id,      \
+        std::make_pair(                                                     \
+            #attr_name,                                                     \
+            TYPE_INDEX(facebook::fboss::Sai##obj_type##Traits::Attributes:: \
+                           attr_name::ExtractSelectionType))                \
+  }
+
+#define SET_SAI_ATTRIBUTES(obj_type)                                           \
+  void set##obj_type##Attributes(                                              \
+      const sai_attribute_t* attr_list,                                        \
+      uint32_t attr_count,                                                     \
+      std::vector<std::string>& attrLines) {                                   \
+    uint32_t listCount = 0;                                                    \
+                                                                               \
+    for (int i = 0; i < attr_count; ++i) {                                     \
+      auto valuePair = _##obj_type##Map[attr_list[i].id];                      \
+      auto attrName = valuePair.first;                                         \
+      auto typeIndex = valuePair.second;                                       \
+      if (FLAGS_explicit_attr_name) {                                          \
+        attrLines.push_back(to<std::string>(                                   \
+            "//s_a[", i, "].id=", attrNameToEnum(#obj_type, attrName)));       \
+      }                                                                        \
+      if (typeIndex == TYPE_INDEX(sai_int32_t)) {                              \
+        attrLines.push_back(s32Attr(attr_list, i));                            \
+      } else if (typeIndex == TYPE_INDEX(sai_uint32_t)) {                      \
+        attrLines.push_back(u32Attr(attr_list, i));                            \
+      } else if (typeIndex == TYPE_INDEX(sai_uint64_t)) {                      \
+        attrLines.push_back(u64Attr(attr_list, i));                            \
+      } else if (typeIndex == TYPE_INDEX(sai_object_id_t)) {                   \
+        attrLines.push_back(oidAttr(attr_list, i));                            \
+      } else if (typeIndex == TYPE_INDEX(std::vector<sai_int32_t>)) {          \
+        s32ListAttr(attr_list, i, listCount++, attrLines);                     \
+      } else if (typeIndex == TYPE_INDEX(std::vector<sai_object_id_t>)) {      \
+        oidListAttr(attr_list, i, listCount++, attrLines);                     \
+      } else if (typeIndex == TYPE_INDEX(bool)) {                              \
+        attrLines.push_back(boolAttr(attr_list, i));                           \
+      } else {                                                                 \
+        XLOG(WARN) << "Unsupported object type " << #obj_type << " attribute " \
+                   << attrName << " in Sai Replayer";                          \
+      }                                                                        \
+    }                                                                          \
   }
 
 } // namespace facebook::fboss

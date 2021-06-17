@@ -36,8 +36,12 @@ add_library(sai_tracer
 
 target_link_libraries(sai_tracer
   fboss_error
+  fboss_types
   async_logger
   sai_version
+  function_call_time_reporter
+  tuple_utils
+  switch_config_cpp2
   Folly::folly
 )
 

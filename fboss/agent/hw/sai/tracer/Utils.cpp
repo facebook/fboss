@@ -538,4 +538,23 @@ void u8ArrGenericAttr(
   attrLines.push_back(outStringStream.str());
 }
 
+std::string toCapital(const std::string& input) {
+  std::string output;
+  for (int i = 0; i < input.length(); ++i) {
+    if (isupper(input[i])) {
+      output += "_";
+      output += input[i];
+    } else {
+      output += toupper(input[i]);
+    }
+  }
+  return output;
+}
+
+std::string attrNameToEnum(
+    const std::string& objType,
+    const std::string& attrName) {
+  return to<string>("SAI", toCapital(objType), "_ATTR", toCapital(attrName));
+}
+
 } // namespace facebook::fboss
