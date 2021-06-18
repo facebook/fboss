@@ -11,6 +11,7 @@
 #pragma once
 
 #include "fboss/agent/hw/sai/switch/SaiMacsecManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/lib/phy/PhyManager.h"
 #include "fboss/mka_service/if/gen-cpp2/mka_types.h"
 
@@ -21,7 +22,6 @@
 namespace facebook::fboss {
 
 class SaiHwPlatform;
-class SaiSwitch;
 
 class SaiPhyManager : public PhyManager {
  public:
@@ -36,6 +36,14 @@ class SaiPhyManager : public PhyManager {
 
   void sakInstallTx(const mka::MKASak& sak) override;
   void sakInstallRx(const mka::MKASak& sak, const mka::MKASci& sci) override;
+
+  void programOnePort(
+      PortID portId,
+      cfg::PortProfileID portProfileId,
+      std::optional<TransceiverInfo> transceiverInfo) override;
+
+  template <typename platformT, typename xphychipT>
+  void initializeSlotPhysImpl(int slotId);
 
  protected:
   void addSaiPlatform(
@@ -53,4 +61,30 @@ class SaiPhyManager : public PhyManager {
   std::map<PimID, std::map<GlobalXphyID, std::unique_ptr<SaiHwPlatform>>>
       saiPlatforms_;
 };
+
+template <typename platformT, typename xphychipT>
+void SaiPhyManager::initializeSlotPhysImpl(int slotId) {
+  if (const auto pimPhyMap = xphyMap_.find(PimID(slotId));
+      pimPhyMap != xphyMap_.end()) {
+    for (const auto& phy : pimPhyMap->second) {
+      auto saiPlatform = static_cast<platformT*>(getSaiPlatform(phy.first));
+
+      XLOG(DBG2) << "About to initialize phy of global phyId:" << phy.first;
+      // Create CredoF104 sai switch
+      auto credoF104 = static_cast<xphychipT*>(getExternalPhy(phy.first));
+      // Set SaiSwitchTraits::CreateAttributes for SaiElbert8DDPhyPlatform
+      // using CredoF104 before calling init
+      saiPlatform->setSwitchAttributes(credoF104->getSwitchAttributes());
+      saiPlatform->init(
+          nullptr /* No AgentConfig needed */,
+          0 /* No switch featured needed */);
+
+      // Now call HwSwitch to create the switch object in hardware
+      auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
+      saiSwitch->init(credoF104, true /* failHwCallsOnWarmboot */);
+      credoF104->setSwitchId(saiSwitch->getSwitchId());
+      credoF104->dump();
+    }
+  }
+}
 } // namespace facebook::fboss

@@ -2,6 +2,7 @@
 
 #pragma once
 
+// #include "fboss/lib/fpga/facebook/cloudripper/CloudRipperSystemContainer.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
@@ -19,6 +20,7 @@ class MultiPimPlatformSystemContainer;
 class MultiPimPlatformPimContainer;
 class PlatformMapping;
 class TransceiverInfo;
+class CloudRipperSystemContainer;
 
 class PhyManager {
  public:
@@ -40,7 +42,7 @@ class PhyManager {
   /*
    * A virtual function for the ExternalPhy obejcts. The sub-class needs to
    * implement this function. The implementation will be different for
-   * Minipack abd Yamp. If the Phy code is in same process then that should
+   * Minipack and Yamp. If the Phy code is in same process then that should
    * called PhyManager function otherwise it should  be a thrift call to port
    * service process
    */

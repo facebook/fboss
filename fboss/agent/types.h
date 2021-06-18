@@ -80,6 +80,7 @@ FBOSS_STRONG_TYPE(uint8_t, PfcPriority);
 FBOSS_STRONG_TYPE(uint8_t, MdioControllerID);
 FBOSS_STRONG_TYPE(uint8_t, PhyAddr);
 FBOSS_STRONG_TYPE(uint16_t, GlobalXphyID);
+FBOSS_STRONG_TYPE(uint16_t, XphyId);
 
 /*
  * A unique ID identifying a node in our state tree.

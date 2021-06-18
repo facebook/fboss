@@ -10,7 +10,7 @@
 
 #include "fboss/lib/phy/SaiPhyManager.h"
 
-#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/platforms/sai/SaiHwPlatform.h"
 
 namespace facebook::fboss {
@@ -81,4 +81,40 @@ PortID SaiPhyManager::getPortId(std::string portName) {
   }
   throw FbossError("Could not find port ID for port ", portName);
 }
+
+/*
+ * programOnePort
+ *
+ * This function programs one port in the PHY. The port and profile Id is
+ * passed to SaiPortManager which in turn uses platform mapping to get the
+ * system and line side lane list, speed, fec values. The SaiPortManager
+ * will create system port, line port, port connector and return the Sai
+ * object for line port. The called function also enables the sys/line port
+ */
+void SaiPhyManager::programOnePort(
+    PortID portId,
+    cfg::PortProfileID portProfileId,
+    std::optional<TransceiverInfo> /* transceiverInfo */) {
+  // Get phy platform
+  auto globalPhyID = getGlobalXphyIDbyPortID(portId);
+  auto saiPlatform = getSaiPlatform(globalPhyID);
+  auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
+
+  // Temporary object to pass port and profile id to SaiPortManager
+  auto portObj = std::make_shared<Port>(
+      PortID(portId),
+      saiPlatform->getPlatformPort(PortID(portId))
+          ->getPlatformPortEntry()
+          ->mapping_ref()
+          ->name_ref()
+          .value());
+  portObj->setProfileId(portProfileId);
+  portObj->setAdminState(cfg::PortState::ENABLED);
+
+  // Finally adding the port (sysport, lineport and port connector).
+  // Return value is line port
+  PortSaiId saiPort = saiSwitch->managerTable()->portManager().addPort(portObj);
+  XLOG(INFO) << "Created Sai port " << saiPort << " for id=" << portId;
+}
+
 } // namespace facebook::fboss
