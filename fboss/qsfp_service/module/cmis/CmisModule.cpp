@@ -33,6 +33,17 @@ constexpr int kUsecBetweenPowerModeFlap = 100000;
 constexpr int kUsecBetweenLaneInit = 10000;
 constexpr int kResetCounterLimit = 5;
 
+std::array<std::string, 9> channelConfigErrorMsg = {
+    "No status available, config under progress",
+    "Config accepted and applied",
+    "Config rejected due to unknown reason",
+    "Config rejected due to invalid ApSel code request",
+    "Config rejected due to ApSel requested on invalid lane combination",
+    "Config rejected due to invalid SI control set request",
+    "Config rejected due to some lanes currently in use by other application",
+    "Config rejected due to incomplete lane info",
+    "Config rejected due to other reasons"};
+
 } // namespace
 
 namespace facebook {
@@ -140,6 +151,7 @@ static CmisFieldInfo::CmisFieldMap cmisFields = {
     {CmisField::CHANNEL_TX_PWR, {CmisPages::PAGE11, 154, 16}},
     {CmisField::CHANNEL_TX_BIAS, {CmisPages::PAGE11, 170, 16}},
     {CmisField::CHANNEL_RX_PWR, {CmisPages::PAGE11, 186, 16}},
+    {CmisField::CONFIG_ERROR_LANES, {CmisPages::PAGE11, 202, 4}},
     {CmisField::ACTIVE_CTRL_LANE_1, {CmisPages::PAGE11, 206, 1}},
     {CmisField::ACTIVE_CTRL_LANE_2, {CmisPages::PAGE11, 207, 1}},
     {CmisField::ACTIVE_CTRL_LANE_3, {CmisPages::PAGE11, 208, 1}},
@@ -1219,6 +1231,31 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
   dataPathDeInit = 0x0;
   qsfpImpl_->writeTransceiver(
       TransceiverI2CApi::ADDR_QSFP, offset, length, &dataPathDeInit);
+
+  // Check if the config has been applied correctly or not
+  page = 0x11;
+  qsfpImpl_->writeTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+
+  uint8_t configErrors[4];
+  getQsfpFieldAddress(
+      CmisField::CONFIG_ERROR_LANES, dataAddress, offset, length);
+  qsfpImpl_->readTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, offset, length, configErrors);
+
+  for (int channel = 0; channel < numHostLanes(); channel++) {
+    uint8_t byte = channel / 2;
+    uint8_t cfgErr = configErrors[byte] >> ((channel % 2) * 4);
+    cfgErr &= 0x0f;
+    if (cfgErr >= 8) {
+      cfgErr = 8;
+    }
+    XLOG(INFO) << folly::sformat(
+        "Port {:s} Lane {:d} config stats: {:s}",
+        qsfpImpl_->getName(),
+        channel,
+        channelConfigErrorMsg[cfgErr]);
+  }
 }
 
 /*
