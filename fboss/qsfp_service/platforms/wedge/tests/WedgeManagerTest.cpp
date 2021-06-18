@@ -300,10 +300,10 @@ TEST_F(WedgeManagerTest, syncPorts) {
 }
 
 TEST_F(WedgeManagerTest, coldBootTest) {
-  auto warmbootDir = folly::test::TemporaryDirectory();
-  FLAGS_warmboot_dir = warmbootDir.path().string();
+  auto qsfpSvcDir = folly::test::TemporaryDirectory();
+  FLAGS_qsfp_service_volatile_dir = qsfpSvcDir.path().string();
   std::string coldBootFileName =
-      warmbootDir.path().string() + "/cold_boot_once_qsfp_service";
+      qsfpSvcDir.path().string() + "/cold_boot_once_qsfp_service";
 
   // Create the cold boot file
   EXPECT_EQ(facebook::files::FileUtil::touch(coldBootFileName), true);

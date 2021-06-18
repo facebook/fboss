@@ -21,12 +21,12 @@
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <chrono>
 
-// allow us to configure the warmboot dir so that the qsfp cold boot test can
-// run concurrently with itself
+// allow us to configure the qsfp_service dir so that the qsfp cold boot test
+// can run concurrently with itself
 DEFINE_string(
-    warmboot_dir,
-    "/dev/shm/fboss/warm_boot",
-    "Path to the directory in which we store the warmboot flag");
+    qsfp_service_volatile_dir,
+    "/dev/shm/fboss/qsfp_service",
+    "Path to the directory in which we store the qsfp_service's cold boot flag");
 
 DEFINE_bool(
     init_pim_xphys,
@@ -66,8 +66,8 @@ WedgeManager::WedgeManager(
     }
   }
 
-  forceColdBoot_ = removeFile(
-      folly::to<std::string>(FLAGS_warmboot_dir, "/", kForceColdBootFileName));
+  forceColdBoot_ = removeFile(folly::to<std::string>(
+      FLAGS_qsfp_service_volatile_dir, "/", kForceColdBootFileName));
 }
 
 void WedgeManager::loadConfig() {

@@ -14,7 +14,7 @@
 #include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 
-DECLARE_string(warmboot_dir);
+DECLARE_string(qsfp_service_volatile_dir);
 DECLARE_bool(init_pim_xphys);
 
 namespace facebook::fboss {
