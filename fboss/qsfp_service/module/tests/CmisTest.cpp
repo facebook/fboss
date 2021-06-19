@@ -127,6 +127,16 @@ TEST(CmisTest, transceiverInfoTest) {
         media.media_ref()->get_smfCode(), SMFMediaInterfaceCode::FR4_200G);
   }
   testCachedMediaSignals(xcvr.get());
+
+  auto diagsCap = xcvr->moduleDiagsCapabilityGet();
+  EXPECT_TRUE(diagsCap.has_value());
+  EXPECT_TRUE(*diagsCap->diagnostics_ref());
+  EXPECT_FALSE(*diagsCap->vdm_ref());
+  EXPECT_TRUE(*diagsCap->cdb_ref());
+  EXPECT_FALSE(*diagsCap->prbsLine_ref());
+  EXPECT_FALSE(*diagsCap->prbsSystem_ref());
+  EXPECT_FALSE(*diagsCap->loopbackLine_ref());
+  EXPECT_TRUE(*diagsCap->loopbackSystem_ref());
 }
 
 // MSM: Not_Present -> Present -> Discovered -> Inactive (on Agent timeout
