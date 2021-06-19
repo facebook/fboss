@@ -216,6 +216,10 @@ class QsfpModule : public Transceiver {
     return diagsCapability_.has_value() && *diagsCapability_.value().vdm_ref();
   }
 
+  std::optional<DiagsCapability> moduleDiagsCapabilityGet() const {
+    return diagsCapability_;
+  }
+
  protected:
   // no copy or assignment
   QsfpModule(QsfpModule const&) = delete;
