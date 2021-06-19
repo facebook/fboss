@@ -57,7 +57,11 @@ enum CmisPages {
   PAGE10,
   PAGE11,
   PAGE13,
-  PAGE14
+  PAGE14,
+  PAGE20,
+  PAGE21,
+  PAGE24,
+  PAGE25
 };
 
 enum DiagnosticFeatureEncoding {
@@ -953,6 +957,18 @@ CmisModule::getQsfpValuePtr(int dataAddress, int offset, int length) const {
       case CmisPages::PAGE14:
         CHECK_LE(offset + length, sizeof(page14_));
         return (page14_ + offset);
+      case CmisPages::PAGE20:
+        CHECK_LE(offset + length, sizeof(page20_));
+        return (page20_ + offset);
+      case CmisPages::PAGE21:
+        CHECK_LE(offset + length, sizeof(page21_));
+        return (page21_ + offset);
+      case CmisPages::PAGE24:
+        CHECK_LE(offset + length, sizeof(page24_));
+        return (page24_ + offset);
+      case CmisPages::PAGE25:
+        CHECK_LE(offset + length, sizeof(page25_));
+        return (page25_ + offset);
       default:
         throw FbossError("Invalid Data Address 0x%d", dataAddress);
     }
@@ -993,6 +1009,14 @@ DOMDataUnion CmisModule::getDOMDataUnion() {
           IOBuf::wrapBufferAsValue(page13_, MAX_QSFP_PAGE_SIZE);
       cmisData.page14_ref() =
           IOBuf::wrapBufferAsValue(page14_, MAX_QSFP_PAGE_SIZE);
+      cmisData.page20_ref() =
+          IOBuf::wrapBufferAsValue(page20_, MAX_QSFP_PAGE_SIZE);
+      cmisData.page21_ref() =
+          IOBuf::wrapBufferAsValue(page21_, MAX_QSFP_PAGE_SIZE);
+      cmisData.page24_ref() =
+          IOBuf::wrapBufferAsValue(page24_, MAX_QSFP_PAGE_SIZE);
+      cmisData.page25_ref() =
+          IOBuf::wrapBufferAsValue(page25_, MAX_QSFP_PAGE_SIZE);
     }
   }
   cmisData.timeCollected_ref() = lastRefreshTime_;
@@ -1074,6 +1098,32 @@ void CmisModule::updateQsfpData(bool allPages) {
             &diagFeature);
         qsfpImpl_->readTransceiver(
             TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page14_), page14_);
+
+        if (isVdmSupported()) {
+          page = 0x20;
+          qsfpImpl_->writeTransceiver(
+              TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+          qsfpImpl_->readTransceiver(
+              TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page20_), page20_);
+
+          page = 0x21;
+          qsfpImpl_->writeTransceiver(
+              TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+          qsfpImpl_->readTransceiver(
+              TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page21_), page21_);
+
+          page = 0x24;
+          qsfpImpl_->writeTransceiver(
+              TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+          qsfpImpl_->readTransceiver(
+              TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page24_), page24_);
+
+          page = 0x25;
+          qsfpImpl_->writeTransceiver(
+              TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+          qsfpImpl_->readTransceiver(
+              TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page25_), page25_);
+        }
       }
     }
 
@@ -1603,6 +1653,33 @@ void CmisModule::moduleDiagsCapabilitySet() {
     }
 
     diagsCapability_ = diags;
+  }
+
+  // If VDM capability has been identified then update VDM cache
+  if (diagsCapability_.has_value() && *diagsCapability_.value().vdm_ref()) {
+    uint8_t page = 0x20;
+    qsfpImpl_->writeTransceiver(
+        TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+    qsfpImpl_->readTransceiver(
+        TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page20_), page20_);
+
+    page = 0x21;
+    qsfpImpl_->writeTransceiver(
+        TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+    qsfpImpl_->readTransceiver(
+        TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page21_), page21_);
+
+    page = 0x24;
+    qsfpImpl_->writeTransceiver(
+        TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+    qsfpImpl_->readTransceiver(
+        TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page24_), page24_);
+
+    page = 0x25;
+    qsfpImpl_->writeTransceiver(
+        TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+    qsfpImpl_->readTransceiver(
+        TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page25_), page25_);
   }
 }
 

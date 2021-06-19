@@ -97,6 +97,10 @@ class CmisModule : public QsfpModule {
   uint8_t page11_[MAX_QSFP_PAGE_SIZE];
   uint8_t page13_[MAX_QSFP_PAGE_SIZE];
   uint8_t page14_[MAX_QSFP_PAGE_SIZE];
+  uint8_t page20_[MAX_QSFP_PAGE_SIZE];
+  uint8_t page21_[MAX_QSFP_PAGE_SIZE];
+  uint8_t page24_[MAX_QSFP_PAGE_SIZE];
+  uint8_t page25_[MAX_QSFP_PAGE_SIZE];
 
   /*
    * This function returns a pointer to the value in the static cached
