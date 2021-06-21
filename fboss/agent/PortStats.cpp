@@ -27,7 +27,11 @@ PortStats::PortStats(
     PortID portID,
     std::string portName,
     SwitchStats* switchStats)
-    : portID_(portID), portName_(portName), switchStats_(switchStats) {}
+    : portID_(portID), portName_(portName), switchStats_(switchStats) {
+  if (!portName_.empty()) {
+    tcData().addStatValue(getCounterKey(kLinkStateFlap), 0, SUM);
+  }
+}
 
 PortStats::~PortStats() {
   // clear counter
