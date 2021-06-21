@@ -23,10 +23,24 @@ extern "C" {
 #include <bcm/types.h>
 }
 
+using facebook::fboss::cfg::PacketRxReason;
 using facebook::stats::MonotonicCounter;
 using std::chrono::duration_cast;
 using std::chrono::seconds;
 using std::chrono::system_clock;
+namespace {
+
+const std::set<PacketRxReason> kSupportedRxReasons = {
+    PacketRxReason::UNMATCHED,
+    PacketRxReason::ARP,
+    PacketRxReason::DHCP,
+    PacketRxReason::BPDU,
+    PacketRxReason::L3_SLOW_PATH,
+    PacketRxReason::L3_DEST_MISS,
+    PacketRxReason::TTL_1,
+    PacketRxReason::CPU_IS_NHOP,
+    PacketRxReason::L3_MTU_ERROR};
+}
 
 namespace facebook::fboss {
 
@@ -240,6 +254,118 @@ void BcmControlPlane::setupIngressQosPolicy(
 void BcmControlPlane::updateQueueCounters(HwPortStats* portStats) {
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   queueManager_->updateQueueStats(now, portStats);
+}
+
+// wrapper for bcm_rx_cosq_mapping_extended_get
+int BcmControlPlane::rxCosqMappingExtendedGet(
+    int unit,
+    bcm_rx_cosq_mapping_t* rx_cosq_mapping) {
+#if (!defined(IS_OPENNSA)) && (!defined(BCM_SDK_VERSION_GTE_6_5_20))
+  return bcm_rx_cosq_mapping_get(
+      unit,
+      rx_cosq_mapping->index,
+      &rx_cosq_mapping->reasons,
+      &rx_cosq_mapping->reasons_mask,
+      &rx_cosq_mapping->int_prio,
+      &rx_cosq_mapping->int_prio_mask,
+      &rx_cosq_mapping->packet_type,
+      &rx_cosq_mapping->packet_type_mask,
+      &rx_cosq_mapping->cosq);
+#else
+  // (todo xiangzhu) At this point,
+  // bcm_rx_cosq_mapping_extended_get() supports querrying by reasons,
+  // but not querrying by index (CS00011589262).
+  // Loop over all FBOSS-used reasons to find the matching index.
+  // This is a temporary workaround.  Broadcom will provide a clean fix to
+  // support querrying by index.
+  bcm_rx_reasons_t reasons;
+  auto targetIndex = rx_cosq_mapping->index;
+  bcm_rx_cosq_mapping_t_init(rx_cosq_mapping);
+  int rv;
+
+  for (std::set<cfg::PacketRxReason>::iterator it = kSupportedRxReasons.begin();
+       it != kSupportedRxReasons.end();
+       ++it) {
+    reasons = configRxReasonToBcmReasons(*it);
+    rx_cosq_mapping->reasons = reasons;
+    rx_cosq_mapping->reasons_mask = reasons;
+    rv = bcm_rx_cosq_mapping_extended_get(unit, rx_cosq_mapping);
+
+    if (BCM_SUCCESS(rv) && (rx_cosq_mapping->index == targetIndex)) {
+      return rv;
+    }
+  }
+  return BCM_E_NOT_FOUND;
+#endif
+}
+
+// wrapper for bcm_rx_cosq_mapping_extended_set
+int BcmControlPlane::rxCosqMappingExtendedSet(
+    int unit,
+    int index,
+    bcm_rx_reasons_t reasons,
+    bcm_rx_reasons_t reasons_mask,
+    uint8 int_prio,
+    uint8 int_prio_mask,
+    uint32 packet_type,
+    uint32 packet_type_mask,
+    bcm_cos_queue_t cosq) {
+#if (!defined(IS_OPENNSA)) && (!defined(BCM_SDK_VERSION_GTE_6_5_20))
+  return bcm_rx_cosq_mapping_set(
+      unit,
+      index,
+      reasons,
+      reasons_mask,
+      int_prio,
+      int_prio_mask, // internal priority match & mask
+      packet_type,
+      packet_type_mask, // packet type match & mask
+      cosq);
+#else
+  bcm_rx_cosq_mapping_t cosqMap;
+  bcm_rx_cosq_mapping_t_init(&cosqMap);
+
+  // remove existing entry with the table index to be used
+  cosqMap.index = index;
+  auto rv = rxCosqMappingExtendedGet(unit, &cosqMap);
+  if (rv != BCM_E_NOT_FOUND) {
+    rxCosqMappingExtendedDelete(unit, &cosqMap);
+  }
+
+  // update existing reason if it exists
+  int options = 0;
+  bcm_rx_cosq_mapping_t_init(&cosqMap);
+  cosqMap.reasons = reasons;
+  cosqMap.reasons_mask = reasons_mask;
+  rv = bcm_rx_cosq_mapping_extended_get(unit, &cosqMap);
+  if (BCM_SUCCESS(rv)) {
+    options = BCM_RX_COSQ_MAPPING_OPTIONS_REPLACE;
+  }
+
+  bcm_rx_cosq_mapping_t_init(&cosqMap);
+  cosqMap.index = index;
+  cosqMap.reasons = reasons;
+  cosqMap.reasons_mask = reasons_mask;
+  cosqMap.int_prio = int_prio;
+  cosqMap.int_prio_mask = int_prio_mask;
+  cosqMap.packet_type = packet_type;
+  cosqMap.packet_type_mask = packet_type_mask;
+  cosqMap.cosq = cosq;
+  // bcm_rx_cosq_mapping_extended_set is not implemented yet.
+  // Use _add instead.
+  return bcm_rx_cosq_mapping_extended_add(unit, options, &cosqMap);
+#endif
+}
+
+// wrapper for bcm_rx_cosq_mapping_extended_delete
+int BcmControlPlane::rxCosqMappingExtendedDelete(
+    int unit,
+    bcm_rx_cosq_mapping_t* rx_cosq_mapping) {
+#if (!defined(IS_OPENNSA)) && (!defined(BCM_SDK_VERSION_GTE_6_5_20))
+  return bcm_rx_cosq_mapping_delete(unit, rx_cosq_mapping->index);
+#else
+  return bcm_rx_cosq_mapping_extended_delete(unit, rx_cosq_mapping);
+#endif
 }
 
 } // namespace facebook::fboss

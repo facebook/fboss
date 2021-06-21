@@ -38,6 +38,7 @@
 #include "fboss/agent/hw/bcm/BcmPortResourceBuilder.h"
 #include "fboss/agent/hw/bcm/BcmPortUtils.h"
 #include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
+#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
@@ -50,11 +51,17 @@
 
 extern "C" {
 #include <bcm/cosq.h>
+#include <bcm/init.h>
 #include <bcm/link.h>
 #include <bcm/port.h>
 #include <bcm/qos.h>
 #include <bcm/stat.h>
 #include <bcm/types.h>
+#if (defined(IS_OPENNSA))
+#include <soc/opensoc.h>
+#else
+#include <soc/drv.h>
+#endif
 }
 
 using std::shared_ptr;
@@ -659,6 +666,41 @@ cfg::PortSpeed BcmPort::getDesiredPortSpeed(
   } else {
     return swPort->getSpeed();
   }
+}
+
+uint8_t BcmPort::determinePipe() const {
+  // almost certainly open sourced since we updated bcm...
+  bcm_info_t info;
+  auto rv = bcm_info_get(unit_, &info);
+  bcmCheckError(rv, "failed to get unit info");
+
+#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_20))
+  if (info.num_pipes > BCM_PIPES_MAX) {
+    // Tomahawk4 has 16 data pipes larger than old BCM_PIPES_MAX(8)
+    bcm_pbmp_t pbmp;
+    for (int i = 0; i < info.num_pipes; ++i) {
+      rv = bcm_port_pipe_pbmp_get(unit_, i, &pbmp);
+      bcmCheckError(rv, "failed to get port pbmp for pipe ", i);
+      if (BCM_PBMP_MEMBER(pbmp, port_)) {
+        return i;
+      }
+    }
+    throw FbossError("Port ", port_, " not associated w/ any pipe");
+  }
+#endif
+
+  bcm_port_config_t portConfig;
+  bcm_port_config_t_init(&portConfig);
+  rv = bcm_port_config_get(unit_, &portConfig);
+  bcmCheckError(rv, "failed to get port configuration");
+
+  for (int i = 0; i < info.num_pipes; ++i) {
+    if (BCM_PBMP_MEMBER(portConfig.per_pipe[i], port_)) {
+      return i;
+    }
+  }
+
+  throw FbossError("Port ", port_, " not associated w/ any pipe");
 }
 
 void BcmPort::setInterfaceMode(const shared_ptr<Port>& swPort) {

@@ -26,24 +26,4 @@ cfg::PortSpeed BcmPort::getMaxSpeed() const {
   return cfg::PortSpeed(speed);
 }
 
-uint8_t BcmPort::determinePipe() const {
-  // almost certainly open sourced since we updated bcm...
-  bcm_info_t info;
-  auto rv = bcm_info_get(unit_, &info);
-  bcmCheckError(rv, "failed to get unit info");
-
-  bcm_port_config_t portConfig;
-  bcm_port_config_t_init(&portConfig);
-  rv = bcm_port_config_get(unit_, &portConfig);
-  bcmCheckError(rv, "failed to get port configuration");
-
-  for (int i = 0; i < info.num_pipes; ++i) {
-    if (BCM_PBMP_MEMBER(portConfig.per_pipe[i], port_)) {
-      return i;
-    }
-  }
-
-  throw FbossError("Port ", port_, " not associated w/ any pipe");
-}
-
 } // namespace facebook::fboss

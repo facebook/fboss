@@ -85,7 +85,6 @@ add_library(bcm
   fboss/agent/hw/bcm/RxUtils.cpp
   fboss/agent/hw/bcm/oss/BcmSwitch.cpp
   fboss/agent/hw/bcm/oss/BcmAPI.cpp
-  fboss/agent/hw/bcm/oss/BcmControlPlane.cpp
   fboss/agent/hw/bcm/oss/BcmFacebookAPI.cpp
   fboss/agent/hw/bcm/oss/BcmPort.cpp
   fboss/agent/hw/bcm/oss/BcmBstStatsMgr.cpp
