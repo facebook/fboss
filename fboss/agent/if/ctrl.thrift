@@ -401,11 +401,6 @@ enum PrbsComponent {
   GB_LINE = 2
 }
 
-struct PrbsState {
-  1: bool enabled = false,
-  2: i32 polynominal
-}
-
 struct PrbsLaneStats {
   1: i32 laneId,
   2: bool locked,

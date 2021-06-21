@@ -1145,7 +1145,7 @@ void ThriftHandler::setPortPrbs(
     throw FbossError("no such port ", portNum);
   }
 
-  PrbsState newPrbsState;
+  phy::PortPrbsState newPrbsState;
   *newPrbsState.enabled_ref() = enable;
   *newPrbsState.polynominal_ref() = polynominal;
 

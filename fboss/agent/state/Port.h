@@ -62,9 +62,9 @@ struct PortFields {
   std::string description;
   cfg::PortState adminState{cfg::PortState::DISABLED}; // is the port enabled
   OperState operState{OperState::DOWN}; // is the port actually up
-  PrbsState asicPrbs = PrbsState();
-  PrbsState gbSystemPrbs = PrbsState();
-  PrbsState gbLinePrbs = PrbsState();
+  phy::PortPrbsState asicPrbs = phy::PortPrbsState();
+  phy::PortPrbsState gbSystemPrbs = phy::PortPrbsState();
+  phy::PortPrbsState gbLinePrbs = phy::PortPrbsState();
   VlanID ingressVlan{0};
   cfg::PortSpeed speed{cfg::PortSpeed::DEFAULT};
   cfg::PortPause pause;
@@ -122,27 +122,27 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
     writableFields()->description = description;
   }
 
-  PrbsState getAsicPrbs() const {
+  phy::PortPrbsState getAsicPrbs() const {
     return getFields()->asicPrbs;
   }
 
-  void setAsicPrbs(PrbsState prbsState) {
+  void setAsicPrbs(phy::PortPrbsState prbsState) {
     writableFields()->asicPrbs = prbsState;
   }
 
-  PrbsState getGbSystemPrbs() const {
+  phy::PortPrbsState getGbSystemPrbs() const {
     return getFields()->gbSystemPrbs;
   }
 
-  void setGbSystemPrbs(PrbsState prbsState) {
+  void setGbSystemPrbs(phy::PortPrbsState prbsState) {
     writableFields()->gbSystemPrbs = prbsState;
   }
 
-  PrbsState getGbLinePrbs() const {
+  phy::PortPrbsState getGbLinePrbs() const {
     return getFields()->gbLinePrbs;
   }
 
-  void setGbLinePrbs(PrbsState prbsState) {
+  void setGbLinePrbs(phy::PortPrbsState prbsState) {
     writableFields()->gbLinePrbs = prbsState;
   }
 

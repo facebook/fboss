@@ -243,3 +243,8 @@ struct PortPinConfig {
   3: optional list<PinConfig> xphySys
   4: optional list<PinConfig> xphyLine
 }
+
+struct PortPrbsState {
+  1: bool enabled = false,
+  2: i32 polynominal
+}
