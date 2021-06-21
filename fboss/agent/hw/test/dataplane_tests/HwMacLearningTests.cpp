@@ -102,11 +102,11 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     return MacAddress("02:00:00:00:00:06");
   }
 
-  void sendPkt() {
+  void sendPkt(MacAddress srcMac = kSourceMac()) {
     auto txPacket = utility::makeEthTxPacket(
         getHwSwitch(),
         VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref()),
-        kSourceMac(),
+        srcMac,
         MacAddress::BROADCAST,
         ETHERTYPE::ETHERTYPE_LLDP);
 
