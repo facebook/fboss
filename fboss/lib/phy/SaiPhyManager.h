@@ -45,6 +45,9 @@ class SaiPhyManager : public PhyManager {
   template <typename platformT, typename xphychipT>
   void initializeSlotPhysImpl(int slotId);
 
+  PortOperState macsecGetPhyLinkInfo(PortID swPort);
+  std::vector<PortID> getMacsecCapablePorts() override;
+
  protected:
   void addSaiPlatform(
       GlobalXphyID xphyID,

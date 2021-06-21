@@ -12,6 +12,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/platforms/sai/SaiHwPlatform.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 
 namespace facebook::fboss {
 SaiPhyManager::SaiPhyManager(const PlatformMapping* platformMapping)
@@ -115,6 +116,49 @@ void SaiPhyManager::programOnePort(
   // Return value is line port
   PortSaiId saiPort = saiSwitch->managerTable()->portManager().addPort(portObj);
   XLOG(INFO) << "Created Sai port " << saiPort << " for id=" << portId;
+}
+
+/*
+ * macsecGetPhyLinkInfo
+ *
+ * Get the macsec phy line side link information from SaiPortManager
+ * SaiPortHandle attribute
+ */
+PortOperState SaiPhyManager::macsecGetPhyLinkInfo(PortID swPort) {
+  // Get phy platform
+  auto globalPhyID = getGlobalXphyIDbyPortID(swPort);
+  auto saiPlatform = getSaiPlatform(globalPhyID);
+  auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
+
+  // Get port handle and then get port attribute for oper state
+  auto portHandle =
+      saiSwitch->managerTable()->portManager().getPortHandle(swPort);
+
+  if (portHandle == nullptr) {
+    throw FbossError(folly::sformat(
+        "PortHandle not found for port {}", static_cast<int>(swPort)));
+  }
+
+  auto portOperStatus = SaiApiTable::getInstance()->portApi().getAttribute(
+      portHandle->port->adapterKey(), SaiPortTraits::Attributes::OperStatus{});
+
+  return (portOperStatus == SAI_PORT_OPER_STATUS_UP) ? PortOperState::UP
+                                                     : PortOperState::DOWN;
+}
+
+// Any xphy port on Elbert supports macsec
+std::vector<PortID> SaiPhyManager::getMacsecCapablePorts() {
+  std::vector<PortID> ports;
+  auto platPorts = getPlatformMapping()->getPlatformPorts();
+  const auto& chips = getPlatformMapping()->getChips();
+  for (const auto& port : platPorts) {
+    const auto& xphy = utility::getDataPlanePhyChips(
+        port.second, chips, phy::DataPlanePhyChipType::XPHY);
+    if (!xphy.empty()) {
+      ports.emplace_back(port.first);
+    }
+  }
+  return ports;
 }
 
 } // namespace facebook::fboss
