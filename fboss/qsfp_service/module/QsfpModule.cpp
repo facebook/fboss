@@ -358,66 +358,82 @@ void QsfpModule::cacheMediaLaneSignals(
 
 void QsfpModule::transceiverPortsChanged(
     const std::map<uint32_t, PortStatus>& ports) {
-  lock_guard<std::mutex> g(qsfpModuleMutex_);
-  // List of ports inside this module whose operation status has changed
-  std::vector<uint32_t> changedPortList;
+  auto transceiverPortsChangedHandler = [&ports, this]() {
+    lock_guard<std::mutex> g(qsfpModuleMutex_);
+    // List of ports inside this module whose operation status has changed
+    std::vector<uint32_t> changedPortList;
 
-  for (auto& it : ports) {
-    CHECK(
-        TransceiverID(
-            *it.second.transceiverIdx_ref().value_or({}).transceiverId_ref()) ==
-        getID());
+    for (auto& it : ports) {
+      CHECK(
+          TransceiverID(*it.second.transceiverIdx_ref()
+                             .value_or({})
+                             .transceiverId_ref()) == getID());
 
-    // Record this port in the changed port list if:
-    //  - The existing port status is empty (first time sync from agent)
-    //  - The new port status synced from Agent is different from existing port
-    //  status
-    if (ports_[it.first].profileID_ref()->empty() ||
-        (*ports_[it.first].up_ref() != *it.second.up_ref())) {
-      changedPortList.push_back(it.first);
+      // Record this port in the changed port list if:
+      //  - The existing port status is empty (first time sync from agent)
+      //  - The new port status synced from Agent is different from existing
+      //  port status
+      if (ports_[it.first].profileID_ref()->empty() ||
+          (*ports_[it.first].up_ref() != *it.second.up_ref())) {
+        changedPortList.push_back(it.first);
+      }
+
+      ports_[it.first] = std::move(it.second);
     }
 
-    ports_[it.first] = std::move(it.second);
-  }
+    // update the present_ field (and will set dirty_ if presence change
+    // detected)
+    detectPresenceLocked();
 
-  // update the present_ field (and will set dirty_ if presence change detected)
-  detectPresenceLocked();
+    if (safeToCustomize()) {
+      needsCustomization_ = true;
+      // safetocustomize helped confirmed that no port was up for this
+      // transceiver. Record the time for future references.
+      lastDownTime_ = std::time(nullptr) -
+          (FLAGS_remediate_interval - FLAGS_initial_remediate_interval);
+    }
 
-  if (safeToCustomize()) {
-    needsCustomization_ = true;
-    // safetocustomize helped confirmed that no port was up for this
-    // transceiver. Record the time for future references.
-    lastDownTime_ = std::time(nullptr) -
-        (FLAGS_remediate_interval - FLAGS_initial_remediate_interval);
-  }
+    if (dirty_) {
+      // data is stale. This could happen immediately after plugging a
+      // port in. Refresh inline in this case in order to not return
+      // stale data.
+      refreshLocked();
+    }
 
-  if (dirty_) {
-    // data is stale. This could happen immediately after plugging a
-    // port in. Refresh inline in this case in order to not return
-    // stale data.
-    refreshLocked();
-  }
+    // For the ports in the Changed Port List, generate the Port Up or Port Down
+    // event to the corresponding Port State Machine
+    for (auto& it : changedPortList) {
+      // Get the module port id so that we can index into port state machine
+      // instance
+      uint32_t modulePortId = getSystemPortToModulePortIdLocked(it);
 
-  // For the ports in the Changed Port List, generate the Port Up or Port Down
-  // event to the corresponding Port State Machine
-  for (auto& it : changedPortList) {
-    // Get the module port id so that we can index into port state machine
-    // instance
-    uint32_t modulePortId = getSystemPortToModulePortIdLocked(it);
-
-    if (*ports_[it].up_ref()) {
-      // Generate Port up event
-      if (modulePortId < opticsModulePortStateMachine_.size()) {
-        opticsModulePortStateMachine_[modulePortId].process_event(
-            MODULE_PORT_EVENT_AGENT_PORT_UP);
-      }
-    } else {
-      // Generate Port Down event
-      if (modulePortId < opticsModulePortStateMachine_.size()) {
-        opticsModulePortStateMachine_[modulePortId].process_event(
-            MODULE_PORT_EVENT_AGENT_PORT_DOWN);
+      if (*ports_[it].up_ref()) {
+        // Generate Port up event
+        if (modulePortId < opticsModulePortStateMachine_.size()) {
+          opticsModulePortStateMachine_[modulePortId].process_event(
+              MODULE_PORT_EVENT_AGENT_PORT_UP);
+        }
+      } else {
+        // Generate Port Down event
+        if (modulePortId < opticsModulePortStateMachine_.size()) {
+          opticsModulePortStateMachine_[modulePortId].process_event(
+              MODULE_PORT_EVENT_AGENT_PORT_DOWN);
+        }
       }
     }
+  };
+
+  auto i2cEvb = qsfpImpl_->getI2cEventBase();
+  if (!i2cEvb) {
+    // Certain platforms cannot execute multiple I2C transactions in parallel
+    // and therefore don't have an I2C evb thread
+    transceiverPortsChangedHandler();
+  } else {
+    via(i2cEvb)
+        .thenValue([transceiverPortsChangedHandler](auto&&) mutable {
+          transceiverPortsChangedHandler();
+        })
+        .get();
   }
 }
 
