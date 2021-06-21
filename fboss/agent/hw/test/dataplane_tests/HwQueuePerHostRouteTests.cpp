@@ -10,6 +10,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
+#include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestRouteUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
@@ -109,7 +110,7 @@ class HwQueuePerHostRouteTest : public HwLinkStateDependentTest {
         {{this->kGetRoutePrefix(), this->kLookupClass()}});
   }
 
-  std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt() {
+  std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(uint8_t ttl) {
     auto vlanId =
         VlanID(*this->initialConfig().vlanPorts_ref()[0].vlanID_ref());
     auto intfMac = utility::getInterfaceMac(this->getProgrammedState(), vlanId);
@@ -122,13 +123,20 @@ class HwQueuePerHostRouteTest : public HwLinkStateDependentTest {
         this->kSrcIP(),
         this->kDstIP(),
         8000, // l4 src port
-        8001 // l4 dst port
-    );
+        8001, // l4 dst port
+        48 << 2, // DSCP
+        ttl);
 
     return txPacket;
   }
 
   void verifyHelper(bool useFrontPanel) {
+    auto ttlAclName = utility::getQueuePerHostTtlAclName();
+    auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
+
+    auto statBefore = utility::getAclInOutPackets(
+        getHwSwitch(), this->getProgrammedState(), ttlAclName, ttlCounterName);
+
     std::map<int, int64_t> beforeQueueOutPkts;
     for (const auto& queueId : utility::kQueuePerhostQueueIds()) {
       beforeQueueOutPkts[queueId] =
@@ -137,13 +145,17 @@ class HwQueuePerHostRouteTest : public HwLinkStateDependentTest {
               .at(queueId);
     }
 
-    auto txPacket = createUdpPkt();
+    auto txPacket = createUdpPkt(64 /* ttl < 128 */);
+    auto txPacket2 = createUdpPkt(128 /* ttl >= 128 */);
 
     if (useFrontPanel) {
       getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
           std::move(txPacket), PortID(masterLogicalPortIds()[1]));
+      getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
+          std::move(txPacket2), PortID(masterLogicalPortIds()[1]));
     } else {
       getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
+      getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket2));
     }
 
     std::map<int, int64_t> afterQueueOutPkts;
@@ -179,13 +191,21 @@ class HwQueuePerHostRouteTest : public HwLinkStateDependentTest {
       XLOG(DBG0) << "queueId: " << qid << " pktsOnQueue: " << pktsOnQueue;
 
       if (qid == this->kQueueID()) {
-        EXPECT_EQ(pktsOnQueue, 1);
+        EXPECT_EQ(pktsOnQueue, 2);
       } else if (qid == 0) {
         EXPECT_GE(pktsOnQueue, 0);
       } else {
         EXPECT_EQ(pktsOnQueue, 0);
       }
     }
+
+    auto statAfter = utility::getAclInOutPackets(
+        getHwSwitch(), this->getProgrammedState(), ttlAclName, ttlCounterName);
+
+    /*
+     * counts ttl >= 128 packet only
+     */
+    EXPECT_EQ(statAfter - statBefore, 1);
   }
 };
 
