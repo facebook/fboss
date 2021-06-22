@@ -29,12 +29,12 @@ void verifyPhyPortConfig(
     phy::ExternalPhy* xphy,
     const phy::PhyPortConfig& expectedConfig) {
   // ExternalPhy needs to use lane list to get lane config
-  std::vector<uint32_t> sysLanes;
+  std::vector<LaneID> sysLanes;
   for (const auto& idAndLaneConfig : expectedConfig.config.system.lanes) {
     sysLanes.push_back(idAndLaneConfig.first);
   }
   EXPECT_FALSE(sysLanes.empty());
-  std::vector<uint32_t> lineLanes;
+  std::vector<LaneID> lineLanes;
   for (const auto& idAndLaneConfig : expectedConfig.config.line.lanes) {
     lineLanes.push_back(idAndLaneConfig.first);
   }
