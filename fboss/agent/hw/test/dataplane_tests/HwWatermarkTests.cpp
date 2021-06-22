@@ -107,10 +107,9 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
     }
   }
   template <typename ECMP_HELPER>
-  std::shared_ptr<SwitchState> programRoutes(const ECMP_HELPER& ecmpHelper) {
+  void programRoutes(const ECMP_HELPER& ecmpHelper) {
     auto kEcmpWidthForTest = 1;
     resolveNeigborAndProgramRoutes(ecmpHelper, kEcmpWidthForTest);
-    return getProgrammedState();
   }
   void assertDeviceWatermark(bool expectZero, int retries = 1) {
     EXPECT_TRUE(gotExpectedDeviceWatermark(expectZero, retries));
