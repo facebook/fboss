@@ -21,8 +21,8 @@ namespace facebook::fboss {
 class HwWatermarkTest : public HwLinkStateDependentTest {
  private:
   cfg::SwitchConfig initialConfig() const override {
-    auto cfg = utility::oneL3IntfConfig(
-        getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
+    auto cfg =
+        utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
     utility::addOlympicQosMaps(cfg);
     return cfg;
   }
@@ -30,8 +30,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
   MacAddress kDstMac() const {
     return getPlatform()->getLocalMac();
   }
-
-  void sendUdpPkt(uint8_t dscpVal) {
+  void sendUdpPkt(uint8_t dscpVal, const folly::IPAddressV6& dst) {
     auto vlanId = utility::firstVlanID(initialConfig());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
 
@@ -41,7 +40,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
         intfMac,
         intfMac,
         folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
-        folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
+        dst,
         8000,
         8001,
         // Trailing 2 bits are for ECN
@@ -62,7 +61,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
       auto queueWaterMarks = *getHwSwitchEnsemble()
                                   ->getLatestPortStats(port)
                                   .queueWatermarkBytes__ref();
-      XLOG(DBG0) << "queueId: " << queueId
+      XLOG(DBG0) << "Port: " << port << " queueId: " << queueId
                  << " Watermark: " << queueWaterMarks[queueId];
       auto watermarkAsExpected = (expectZero && !queueWaterMarks[queueId]) ||
           (!expectZero && queueWaterMarks[queueId]);
@@ -94,22 +93,43 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
     XLOG(INFO) << " Did not get expected device watermark value";
     return false;
   }
+  std::map<PortID, folly::IPAddressV6> getPort2DstIp() const {
+    return {
+        {masterLogicalPortIds()[0], kDestIp1()},
+        {masterLogicalPortIds()[1], kDestIp2()},
+    };
+  }
 
  protected:
+  folly::IPAddressV6 kDestIp1() const {
+    return folly::IPAddressV6("2620:0:1cfe:face:b00c::4");
+  }
+  folly::IPAddressV6 kDestIp2() const {
+    return folly::IPAddressV6("2620:0:1cfe:face:b00c::5");
+  }
+
   /*
    * In practice, sending single packet usually (but not always) returned BST
    * value > 0 (usually 2, but  other times it was 0). Thus, send a large
    * number of packets to try to avoid the risk of flakiness.
    */
-  void sendUdpPkts(uint8_t dscpVal, int cnt = 100) {
+  void
+  sendUdpPkts(uint8_t dscpVal, const folly::IPAddressV6& dstIp, int cnt = 100) {
     for (int i = 0; i < cnt; i++) {
-      sendUdpPkt(dscpVal);
+      sendUdpPkt(dscpVal, dstIp);
     }
   }
-  template <typename ECMP_HELPER>
-  void programRoutes(const ECMP_HELPER& ecmpHelper) {
-    auto kEcmpWidthForTest = 1;
-    resolveNeigborAndProgramRoutes(ecmpHelper, kEcmpWidthForTest);
+  void programRoutes() {
+    for (auto portAndIp : getPort2DstIp()) {
+      auto portDesc = PortDescriptor(portAndIp.first);
+      utility::EcmpSetupTargetedPorts6 ecmpHelper6{getProgrammedState()};
+      applyNewState(
+          ecmpHelper6.resolveNextHops(getProgrammedState(), {portDesc}));
+      ecmpHelper6.programRoutes(
+          getRouteUpdater(),
+          {portDesc},
+          {Route<folly::IPAddressV6>::Prefix{portAndIp.second, 128}});
+    }
   }
   void assertDeviceWatermark(bool expectZero, int retries = 1) {
     EXPECT_TRUE(gotExpectedDeviceWatermark(expectZero, retries));
@@ -119,19 +139,17 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
       return;
     }
 
-    auto setup = [this]() {
-      utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
-      programRoutes(ecmpHelper6);
-    };
+    auto setup = [this]() { programRoutes(); };
     auto verify = [this, queueId]() {
       auto dscpsForQueue = utility::kOlympicQueueToDscp().find(queueId)->second;
-      sendUdpPkts(dscpsForQueue[0]);
-      // Assert non zero watermark
-      assertWatermark(masterLogicalPortIds()[0], queueId, false);
-      // Assert zero watermark
-      assertWatermark(masterLogicalPortIds()[0], queueId, true, 5);
+      for (auto portAndIp : getPort2DstIp()) {
+        sendUdpPkts(dscpsForQueue[0], portAndIp.second);
+        // Assert non zero watermark
+        assertWatermark(portAndIp.first, queueId, false);
+        // Assert zero watermark
+        assertWatermark(portAndIp.first, queueId, true, 5);
+      }
     };
-
     verifyAcrossWarmBoots(setup, verify);
   }
 };
@@ -147,12 +165,9 @@ TEST_F(HwWatermarkTest, VerifyNonDefaultQueue) {
 // TODO - merge device watermark checking into the tests
 // above once all platforms support device watermarks
 TEST_F(HwWatermarkTest, VerifyDeviceWatermark) {
-  auto setup = [this]() {
-    utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
-    programRoutes(ecmpHelper6);
-  };
+  auto setup = [this]() { programRoutes(); };
   auto verify = [this]() {
-    sendUdpPkts(0);
+    sendUdpPkts(0, kDestIp1());
     // Assert non zero watermark
     assertDeviceWatermark(false);
     // Assert zero watermark
