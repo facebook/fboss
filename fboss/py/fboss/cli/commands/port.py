@@ -945,6 +945,15 @@ class PortStatusDetailCmd(object):
             return
 
         print("Transceiver:  {:>2}".format(info.port))
+        if info.identifier:
+            print(
+                "Optics type: {}".format(
+                    transceiver_ttypes.TransceiverModuleIdentifier._VALUES_TO_NAMES[
+                        info.identifier
+                    ]
+                )
+            )
+
         if info.vendor:
             self._print_vendor_details(info)
 
