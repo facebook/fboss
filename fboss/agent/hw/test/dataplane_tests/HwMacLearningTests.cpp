@@ -139,10 +139,10 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     int retries = 10;
     while (retries--) {
       if ((l2LearningMode == cfg::L2LearningMode::SOFTWARE &&
-           wasMacLearntInSwitchState(shouldExist) &&
+           wasMacLearntInSwitchState(shouldExist, mac) &&
            isInL2Table(portDescr, mac, shouldExist)) ||
           (l2LearningMode == cfg::L2LearningMode::HARDWARE &&
-           wasMacLearntInHw(shouldExist))) {
+           wasMacLearntInHw(shouldExist, mac))) {
         return true;
       }
 
@@ -354,7 +354,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
   HwTestLearningUpdateObserver l2LearningObserver_;
 
  private:
-  bool wasMacLearntInHw(bool shouldExist) {
+  bool wasMacLearntInHw(bool shouldExist, MacAddress mac) {
     bringUpPort(masterLogicalPortIds()[1]);
     auto origPortStats =
         getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[1]);
@@ -362,7 +362,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
         getHwSwitch(),
         VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref()),
         kSourceMac2(),
-        kSourceMac(),
+        mac,
         ETHERTYPE::ETHERTYPE_LLDP);
 
     getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
@@ -378,12 +378,12 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     return (shouldExist == (newPortBytes == 0));
   }
 
-  bool wasMacLearntInSwitchState(bool shouldExist) const {
+  bool wasMacLearntInSwitchState(bool shouldExist, MacAddress mac) const {
     auto vlanID = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
     auto state = getProgrammedState();
     auto vlan = state->getVlans()->getVlanIf(vlanID);
     auto* macTable = vlan->getMacTable().get();
-    return (shouldExist == (macTable->getNodeIf(kSourceMac()) != nullptr));
+    return (shouldExist == (macTable->getNodeIf(mac) != nullptr));
   }
   bool isInL2Table(
       const PortDescriptor& portDescr,
