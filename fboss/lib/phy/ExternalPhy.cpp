@@ -63,8 +63,7 @@ ExternalPhyConfig ExternalPhyConfig::fromConfigeratorTypes(
   auto fillLaneConfigs =
       [](const std::vector<PinConfig>& pinConfigs,
          const std::map<int32_t, PolaritySwap>& polaritySwapMap,
-         std::map<int32_t, LaneConfig>& laneConfigs) {
-        std::map<int32_t, TxSettings> txMap;
+         std::map<LaneID, LaneConfig>& laneConfigs) {
         for (auto pinCfg : pinConfigs) {
           LaneConfig laneCfg;
           if (pinCfg.tx_ref()) {

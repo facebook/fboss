@@ -79,7 +79,7 @@ struct LaneConfig {
 };
 
 struct PhySideConfig {
-  std::map<int32_t, LaneConfig> lanes;
+  std::map<LaneID, LaneConfig> lanes;
 
   bool operator==(const PhySideConfig& rhs) const;
   folly::dynamic toDynamic() const;
