@@ -34,10 +34,10 @@ class CmdShowArp : public CmdHandler<CmdShowArp, CmdShowArpTraits> {
     return createModel(entries);
   }
 
-  void printOutput(const RetType& model) {
+  void printOutput(const RetType& model, std::ostream& out = std::cout) {
     std::string fmtString = "{:<22}{:<19}{:<12}{:<19}{:<14}{:<9}{:<12}\n";
 
-    std::cout << fmt::format(
+    out << fmt::format(
         fmtString,
         "IP Address",
         "MAC Address",
@@ -48,7 +48,7 @@ class CmdShowArp : public CmdHandler<CmdShowArp, CmdShowArpTraits> {
         "CLASSID");
 
     for (const auto& entry : model.get_arpEntries()) {
-      std::cout << fmt::format(
+      out << fmt::format(
           fmtString,
           entry.get_ip(),
           entry.get_mac(),
@@ -58,10 +58,9 @@ class CmdShowArp : public CmdHandler<CmdShowArp, CmdShowArpTraits> {
           entry.get_ttl(),
           entry.get_classID());
     }
-    std::cout << std::endl;
+    out << std::endl;
   }
 
-  private:
    RetType createModel(std::vector<facebook::fboss::ArpEntryThrift> arpEntries) {
      RetType model;
 

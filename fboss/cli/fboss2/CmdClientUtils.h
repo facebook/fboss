@@ -46,4 +46,9 @@ std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createAgentClient(
 std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> createQsfpClient(
     const std::string& ip);
 
+// declaration of template specialization
+template <>
+std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createClient(
+    const std::string& ip);
+
 } // namespace facebook::fboss::utils
