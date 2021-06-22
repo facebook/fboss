@@ -108,4 +108,6 @@ service QsfpService extends fb303.FacebookService {
   ctrl.PortOperState macsecGetPhyLinkInfo(
     1: string portName
   ) throws (1: fboss.FbossBaseError error) (cpp.coroutine)
+
+  bool deleteAllSc(1: string portName) (cpp.coroutine)
 }

@@ -281,6 +281,11 @@ folly::coro::Task<PortOperState> QsfpServiceHandler::co_macsecGetPhyLinkInfo(
   co_return macsecHandler_->macsecGetPhyLinkInfo(*portName);
 }
 
+folly::coro::Task<bool> QsfpServiceHandler::co_deleteAllSc(
+    std::unique_ptr<std::string> portName) {
+  validateHandler();
+  co_return macsecHandler_->deleteAllSc(*portName);
+}
 #endif
 
 } // namespace fboss

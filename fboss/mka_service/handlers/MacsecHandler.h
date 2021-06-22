@@ -55,6 +55,13 @@ class MacsecHandler {
     return PortOperState::DOWN;
   }
 
+  /*
+   * Delete all SA, SC and related Acl/Flow entries from a Phy
+   */
+  virtual bool deleteAllSc(const std::string& /* portName */) {
+    return true;
+  }
+
  private:
   MacsecHandler(const MacsecHandler&) = delete;
   MacsecHandler& operator=(const MacsecHandler&) = delete;
