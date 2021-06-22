@@ -19,6 +19,7 @@ struct IFGSwap {
 
 struct DeviceProperty {
   1: bool poll_msi
+  2: i32 device_frequency
 }
 
 struct Device {
