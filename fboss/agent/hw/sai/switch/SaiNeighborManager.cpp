@@ -56,6 +56,11 @@ void SaiNeighborManager::changeNeighbor(
   if (oldSwEntry->isPending() && newSwEntry->isPending()) {
     // We don't maintain pending entries so nothing to do here
   }
+  if (newSwEntry->getIP().version() == 6 && newSwEntry->getIP().isLinkLocal()) {
+    /* TODO: investigate and fix adding link local neighbors */
+    XLOG(INFO) << "skip modify of link local neighbor " << newSwEntry->getIP();
+    return;
+  }
   if (oldSwEntry->isPending() && !newSwEntry->isPending()) {
     addNeighbor(newSwEntry);
   }
