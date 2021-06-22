@@ -43,7 +43,7 @@ class SaiPhyManager : public PhyManager {
       std::optional<TransceiverInfo> transceiverInfo) override;
 
   template <typename platformT, typename xphychipT>
-  void initializeSlotPhysImpl(int slotId);
+  void initializeSlotPhysImpl(PimID pimID);
 
   PortOperState macsecGetPhyLinkInfo(PortID swPort);
   std::vector<PortID> getMacsecCapablePorts() override;
@@ -66,8 +66,8 @@ class SaiPhyManager : public PhyManager {
 };
 
 template <typename platformT, typename xphychipT>
-void SaiPhyManager::initializeSlotPhysImpl(int slotId) {
-  if (const auto pimPhyMap = xphyMap_.find(PimID(slotId));
+void SaiPhyManager::initializeSlotPhysImpl(PimID pimID) {
+  if (const auto pimPhyMap = xphyMap_.find(pimID);
       pimPhyMap != xphyMap_.end()) {
     for (const auto& phy : pimPhyMap->second) {
       auto saiPlatform = static_cast<platformT*>(getSaiPlatform(phy.first));
@@ -75,8 +75,7 @@ void SaiPhyManager::initializeSlotPhysImpl(int slotId) {
       XLOG(DBG2) << "About to initialize phy of global phyId:" << phy.first;
       // Create CredoF104 sai switch
       auto credoF104 = static_cast<xphychipT*>(getExternalPhy(phy.first));
-      // Set SaiSwitchTraits::CreateAttributes for SaiElbert8DDPhyPlatform
-      // using CredoF104 before calling init
+      // Set CredoF104's customized switch attributes before calling init
       saiPlatform->setSwitchAttributes(credoF104->getSwitchAttributes());
       saiPlatform->init(
           nullptr /* No AgentConfig needed */,

@@ -43,10 +43,10 @@ class PhyManager {
    * A virtual function for the ExternalPhy obejcts. The sub-class needs to
    * implement this function. The implementation will be different for
    * Minipack and Yamp. If the Phy code is in same process then that should
-   * called PhyManager function otherwise it should  be a thrift call to port
+   * called PhyManager function otherwise it should be a thrift call to port
    * service process
    */
-  virtual void initializeSlotPhys(int /* slotId */, bool /* warmboot */) {}
+  virtual void initializeSlotPhys(PimID pimID, bool warmboot) = 0;
 
   virtual MultiPimPlatformSystemContainer* getSystemContainer() = 0;
 

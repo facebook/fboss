@@ -117,7 +117,7 @@ class PhyInterfaceHandler {
    * called PhyManager function otherwise it should  be a thrift call to port
    * service process
    */
-  virtual void initializeSlotPhys(int /* slotId */, bool /* warmboot */) = 0;
+  virtual void initializeSlotPhys(PimID pimID, bool warmboot) = 0;
 
   /*
    * This function provides the slot id, mdio id, phy id for a global xphy id
