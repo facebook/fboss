@@ -774,6 +774,10 @@ std::optional<int> WedgeManager::getSwPortByPortName(
   return std::nullopt;
 }
 
+bool WedgeManager::shouldInitializePimXphy() const {
+  return FLAGS_init_pim_xphys;
+}
+
 bool WedgeManager::initExternalPhyMap() {
   if (!phyManager_) {
     // If there's no PhyManager for such platform, skip init xphy map
@@ -784,7 +788,7 @@ bool WedgeManager::initExternalPhyMap() {
   auto rb = phyManager_->initExternalPhyMap();
   bool warmboot = canWarmboot();
   // And then initialize the xphy for each pim
-  if (FLAGS_init_pim_xphys) {
+  if (shouldInitializePimXphy()) {
     std::vector<folly::Future<folly::Unit>> initPimTasks;
     std::chrono::steady_clock::time_point begin =
         std::chrono::steady_clock::now();

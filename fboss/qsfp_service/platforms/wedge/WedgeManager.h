@@ -151,6 +151,8 @@ class WedgeManager : public TransceiverManager {
     phyManager_ = std::move(phyManager);
   }
 
+  virtual bool shouldInitializePimXphy() const;
+
   // thread safe handle to access bus
   std::unique_ptr<TransceiverI2CApi> wedgeI2cBus_;
 
