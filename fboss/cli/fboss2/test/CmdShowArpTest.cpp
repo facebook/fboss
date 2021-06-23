@@ -5,12 +5,11 @@
 
 #include <folly/IPAddressV4.h>
 
-#include "fboss/cli/fboss2/CmdClientUtils.h"
 #include "fboss/agent/AddressUtil.h"
+#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
 #include "fboss/cli/fboss2/commands/show/arp/gen-cpp2/model_types.h"
-
 
 using namespace ::testing;
 
@@ -18,7 +17,7 @@ namespace facebook::fboss {
 
 /*
  * Set up test data
-*/
+ */
 std::vector<facebook::fboss::ArpEntryThrift> createArpEntries() {
   facebook::fboss::ArpEntryThrift arpEntry1;
   folly::IPAddressV4 ip1("10.120.64.2");
@@ -52,7 +51,7 @@ std::vector<facebook::fboss::ArpEntryThrift> createArpEntries() {
   return entries;
 }
 
-class CmdShowArpTestFixture : public testing::Test{
+class CmdShowArpTestFixture : public testing::Test {
  public:
   std::vector<fboss::ArpEntryThrift> arpEntries;
   folly::IPAddressV4 hostIp;
@@ -88,7 +87,8 @@ TEST_F(CmdShowArpTestFixture, printOutput) {
   cmd.printOutput(model, ss);
 
   std::string output = ss.str();
-  std::string expectOutput = "IP Address            MAC Address        Port        VLAN               State         TTL      CLASSID     \n10.120.64.2           44:4c:a8:e4:1c:3f  102         vlan4001 (4001)    REACHABLE     27198    0           \n10.121.64.2           44:4c:a8:e4:1b:f1  106         vlan4002 (4002)    REACHABLE     33730    0           \n\n";
+  std::string expectOutput =
+      "IP Address            MAC Address        Port        VLAN               State         TTL      CLASSID     \n10.120.64.2           44:4c:a8:e4:1c:3f  102         vlan4001 (4001)    REACHABLE     27198    0           \n10.121.64.2           44:4c:a8:e4:1b:f1  106         vlan4002 (4002)    REACHABLE     33730    0           \n\n";
   EXPECT_EQ(output, expectOutput);
 }
 

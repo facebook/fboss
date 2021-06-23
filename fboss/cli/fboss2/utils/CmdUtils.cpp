@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/cli/fboss2/CmdUtils.h"
+#include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 #include <folly/logging/LogConfig.h>
 #include <folly/logging/LoggerDB.h>

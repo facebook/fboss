@@ -1,7 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
-#include "fboss/cli/fboss2/CmdClientUtils.h"
 #include "fboss/cli/fboss2/test/MockClients.h"
+#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 
 namespace facebook::fboss {
 

@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/cli/fboss2/CmdClientUtils.h"
+#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 
 #include <thrift/lib/cpp2/async/HeaderClientChannel.h>
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"

@@ -18,8 +18,6 @@ add_fbthrift_cpp_library(
 )
 
 add_executable(fboss2
-  fboss/cli/fboss2/CmdClientUtils.cpp
-  fboss/cli/fboss2/oss/CmdClientUtils.cpp
   fboss/cli/fboss2/commands/clear/CmdClearArp.h
   fboss/cli/fboss2/commands/clear/CmdClearNdp.h
   fboss/cli/fboss2/CmdGlobalOptions.cpp
@@ -35,11 +33,13 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/CmdShowInterface.h
   fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h
   fboss/cli/fboss2/CmdSubcommands.cpp
-  fboss/cli/fboss2/CmdUtils.cpp
   fboss/cli/fboss2/Main.cpp
   fboss/cli/fboss2/oss/CmdGlobalOptions.cpp
   fboss/cli/fboss2/oss/CmdList.cpp
-  fboss/cli/fboss2/oss/CmdUtils.cpp
+  fboss/cli/fboss2/utils/CmdUtils.cpp
+  fboss/cli/fboss2/utils/CmdClientUtils.cpp
+  fboss/cli/fboss2/utils/oss/CmdClientUtils.cpp
+  fboss/cli/fboss2/utils/oss/CmdUtils.cpp
   fboss/cli/fboss2/options/SSLPolicy.h
 )
 

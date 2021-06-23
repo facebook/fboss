@@ -13,9 +13,9 @@
 
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 
-#include "fboss/cli/fboss2/CmdClientUtils.h"
 #include "fboss/cli/fboss2/CmdSubcommands.h"
-#include "fboss/cli/fboss2/CmdUtils.h"
+#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
+#include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 #include <fmt/color.h>
 #include <fmt/format.h>

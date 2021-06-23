@@ -14,11 +14,11 @@
 #include <tuple>
 #include <vector>
 
-#include "fboss/cli/fboss2/CmdUtils.h"
+#include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 namespace facebook::fboss {
 
-using CommandHandlerFn = std::function<void ()>;
+using CommandHandlerFn = std::function<void()>;
 
 using CmdVerb = std::string;
 using CmdObject = std::string;
