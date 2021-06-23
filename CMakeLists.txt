@@ -295,6 +295,8 @@ add_fbthrift_cpp_library(
     platform_config_cpp2
     transceiver_cpp2
     common_cpp2
+  OPTIONS
+    json
 )
 add_fbthrift_cpp_library(
   packet_stream_cpp2

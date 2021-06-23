@@ -23,10 +23,59 @@
 #include "fboss/cli/fboss2/commands/show/CmdShowPort.h"
 #include "fboss/cli/fboss2/commands/show/CmdShowPortQueue.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
+#include "folly/futures/Future.h"
+#include "thrift/lib/cpp2/protocol/Serializer.h"
 
 #include <folly/Singleton.h>
 #include <folly/logging/xlog.h>
 #include <future>
+#include <iostream>
+
+template <typename CmdTypeT>
+void printTabular(
+    CmdTypeT& cmd,
+    std::vector<std::future<
+        std::tuple<std::string, typename CmdTypeT::RetType, std::string>>>&
+        results,
+    std::ostream& out,
+    std::ostream& err) {
+  for (auto& result : results) {
+    auto [host, data, errStr] = result.get();
+    if (results.size() != 1) {
+      out << host << "::" << std::endl << std::string(80, '=') << std::endl;
+    }
+
+    if (errStr.empty()) {
+      cmd.printOutput(data);
+    } else {
+      err << errStr << std::endl << std::endl;
+    }
+  }
+}
+
+template <typename CmdTypeT>
+void printJson(
+    const CmdTypeT& /* cmd */,
+    std::vector<std::future<
+        std::tuple<std::string, typename CmdTypeT::RetType, std::string>>>&
+        results,
+    std::ostream& out,
+    std::ostream& err) {
+  std::map<std::string, typename CmdTypeT::RetType> hostResults;
+  for (auto& result : results) {
+    auto [host, data, errStr] = result.get();
+    if (errStr.empty()) {
+      hostResults[host] = data;
+    } else {
+      err << host << "::" << std::endl << std::string(80, '=') << std::endl;
+      err << errStr << std::endl << std::endl;
+    }
+  }
+
+  out << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+             hostResults)
+      << std::endl;
+}
 
 namespace facebook::fboss {
 
@@ -87,19 +136,10 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
         host /*, inArgs*/));
   }
 
-  for (auto& f : futureList) {
-    auto [host, result, errStr] = f.get();
-
-    if (futureList.size() != 1) {
-      std::cout << host << "::" << std::endl
-                << std::string(80, '=') << std::endl;
-    }
-
-    if (errStr.empty()) {
-      impl().printOutput(result);
-    } else {
-      std::cerr << errStr << std::endl << std::endl;
-    }
+  if (CmdGlobalOptions::getInstance()->getFmt() == "tabular") {
+    printTabular(impl(), futureList, std::cout, std::cerr);
+  } else if (CmdGlobalOptions::getInstance()->getFmt() == "JSON") {
+    printJson(impl(), futureList, std::cout, std::cerr);
   }
 }
 

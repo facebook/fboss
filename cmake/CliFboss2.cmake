@@ -6,11 +6,15 @@
 add_fbthrift_cpp_library(
   show_arp_model
   fboss/cli/fboss2/commands/show/arp/model.thrift
+  OPTIONS
+    json
 )
 
 add_fbthrift_cpp_library(
   show_transceiver_model
   fboss/cli/fboss2/commands/show/transceiver/model.thrift
+  OPTIONS
+    json
 )
 
 add_executable(fboss2

@@ -15,6 +15,7 @@
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/gen-cpp2/model_types.h"
+#include "thrift/lib/cpp2/protocol/Serializer.h"
 
 #include <fmt/core.h>
 

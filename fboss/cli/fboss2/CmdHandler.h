@@ -48,16 +48,16 @@ class CmdHandler {
         utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST) {
       result = impl().queryClient(
           hostIp, CmdSubcommands::getInstance()->getIpv6Addrs());
-    }  else if constexpr (
+    } else if constexpr (
         ObjectArgTypeId ==
         utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST) {
-      result = impl().queryClient(
-          hostIp, CmdSubcommands::getInstance()->getPorts());
+      result =
+          impl().queryClient(hostIp, CmdSubcommands::getInstance()->getPorts());
     } else {
       result = impl().queryClient(hostIp);
     }
 
-     return result;
+    return result;
   }
 
   std::tuple<std::string, RetType, std::string> asyncHandler(
