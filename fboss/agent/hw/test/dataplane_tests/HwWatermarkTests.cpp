@@ -65,7 +65,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
                  << " Watermark: " << queueWaterMarks[queueId];
       auto watermarkAsExpected = (expectZero && !queueWaterMarks[queueId]) ||
           (!expectZero && queueWaterMarks[queueId]);
-      if (!retries || watermarkAsExpected) {
+      if (watermarkAsExpected) {
         return true;
       }
       XLOG(DBG0) << " Retry ...";
