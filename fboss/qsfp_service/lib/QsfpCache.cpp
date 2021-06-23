@@ -37,6 +37,8 @@ void QsfpCache::init(folly::EventBase* evb, const PortMapThrift& ports) {
 
   portsChanged(ports);
 
+  syncAllPresentTransceivers();
+
   attachEventBase(evb);
   scheduleTimeout(kLivenessCheckInterval);
 }
@@ -245,6 +247,33 @@ uint32_t QsfpCache::incrementGen() {
   // can use std::atomic_uint32_t in gcc7
   static std::atomic<std::uint32_t> gen{0};
   return ++gen;
+}
+
+void QsfpCache::syncAllPresentTransceivers() {
+  // Ask qsfp_service to get all the transceivers info
+  QsfpClient::createClient(evb_)
+      .thenValue([](auto&& client) {
+        // use empty list to fetch all transceivers
+        std::vector<int32_t> ids;
+        auto options = QsfpClient::getRpcOptions();
+        return client->future_getTransceiverInfo(options, ids);
+      })
+      .thenValue([this](auto&& tcvrs) mutable {
+        // sync transceivers map with results
+        auto writableTcvrs = this->tcvrs_.wlock();
+        for (auto& [id, info] : tcvrs) {
+          // Only store present transceivers
+          if (*info.present_ref()) {
+            writableTcvrs->emplace(TransceiverID(id), info);
+          }
+        }
+        XLOG(DBG1) << "Got " << writableTcvrs->size()
+                   << " present transceivers from qsfp_service";
+      })
+      .thenError(folly::tag_t<std::exception>{}, [](const std::exception& e) {
+        XLOG(ERR) << PlatformAlert() << "Exception talking to qsfp_service,"
+                  << " when trying to sync all transceiver info: " << e.what();
+      });
 }
 
 AutoInitQsfpCache::AutoInitQsfpCache() {

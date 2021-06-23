@@ -137,6 +137,8 @@ class QsfpCache : private folly::AsyncTimeout {
   // gets a new unique generation number
   uint32_t incrementGen();
 
+  void syncAllPresentTransceivers();
+
   struct PortCacheValue {
     PortStatus port;
     uint32_t generation{0};
