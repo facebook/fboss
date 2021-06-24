@@ -699,6 +699,10 @@ class SwSwitch : public HwSwitch::Callback {
   }
 
   void setFibSyncTimeForClient(ClientID clientId);
+  /*
+   * Public use only in tests
+   */
+  void stop();
 
  private:
   void updateStateBlockingImpl(
@@ -746,7 +750,6 @@ class SwSwitch : public HwSwitch::Callback {
 
   void startThreads();
   void stopThreads();
-  void stop();
   void threadLoop(folly::StringPiece name, folly::EventBase* eventBase);
 
   /*

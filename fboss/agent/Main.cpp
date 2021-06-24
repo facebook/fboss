@@ -329,6 +329,8 @@ void AgentInitializer::stopAgent(bool setupWarmboot) {
     __lsan_ignore_object(sw_);
 #endif
 #endif
+  } else {
+    sw_->stop();
   }
 }
 
