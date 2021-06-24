@@ -1,7 +1,9 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include <gtest/gtest.h>
+#include "fboss/agent/LldpManager.h"
 #include "fboss/agent/PlatformPort.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 
@@ -48,5 +50,25 @@ TEST_F(LinkTest, getTransceivers) {
       []() {},
       [allTransceiversPresent, this]() {
         checkWithRetry(allTransceiversPresent);
+      });
+}
+
+TEST_F(LinkTest, trafficRxTx) {
+  auto packetsFlowingOnAllPorts = [this]() {
+    sw()->getLldpMgr()->sendLldpOnAllPorts();
+    auto lldpDb = sw()->getLldpMgr()->getDB();
+    for (const auto& port : getCabledPorts()) {
+      if (!lldpDb->getNeighbors(port).size()) {
+        XLOG(INFO) << " No lldp neighbors on : " << port;
+        return false;
+      }
+    }
+    return true;
+  };
+
+  verifyAcrossWarmBoots(
+      []() {},
+      [packetsFlowingOnAllPorts, this]() {
+        checkWithRetry(packetsFlowingOnAllPorts);
       });
 }
