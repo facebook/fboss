@@ -34,15 +34,11 @@ void AgentTest::setupAgent() {
   XLOG(INFO) << "Agent has been setup and ready for the test";
 }
 
-void AgentTest::stopAgent() {
-  AgentInitializer::stopAgent(FLAGS_setup_for_warmboot);
-}
-
 void AgentTest::TearDown() {
   if (FLAGS_run_forever) {
     runForever();
   }
-  stopAgent();
+  AgentInitializer::stopAgent(FLAGS_setup_for_warmboot);
 }
 
 void AgentTest::runForever() const {

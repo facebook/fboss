@@ -18,7 +18,6 @@ class AgentTest : public ::testing::Test, public AgentInitializer {
   void TearDown() override;
 
  protected:
-  void stopAgent();
   void setupAgent();
   void runForever() const;
   virtual void setupConfigFlag();
