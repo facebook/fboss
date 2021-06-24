@@ -272,12 +272,11 @@ void AgentInitializer::createSwitch(
 
   // Create the SwSwitch and thrift handler
   sw_ = new SwSwitch(std::move(platform));
-  platform_ = sw_->getPlatform();
-  initializer_ = std::make_unique<Initializer>(sw_, platform_);
+  initializer_ = std::make_unique<Initializer>(sw_, sw_->getPlatform());
 }
 
 int AgentInitializer::initAgent() {
-  auto handler = std::shared_ptr<ThriftHandler>(platform_->createHandler(sw_));
+  auto handler = std::shared_ptr<ThriftHandler>(platform()->createHandler(sw_));
   handler->setIdleTimeout(FLAGS_thrift_idle_timeout);
   eventBase_ = new EventBase();
 

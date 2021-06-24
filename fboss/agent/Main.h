@@ -85,7 +85,7 @@ class AgentInitializer {
     return sw_;
   }
   Platform* platform() const {
-    return platform_;
+    return sw_->getPlatform();
   }
   Initializer* initializer() const {
     return initializer_.get();
@@ -93,7 +93,6 @@ class AgentInitializer {
 
  public:
   void stopServices();
-  AgentInitializer() {}
   void createSwitch(
       int argc,
       char** argv,
@@ -104,7 +103,6 @@ class AgentInitializer {
 
  private:
   SwSwitch* sw_;
-  Platform* platform_;
   std::unique_ptr<Initializer> initializer_;
   std::unique_ptr<apache::thrift::ThriftServer> server_;
   folly::EventBase* eventBase_;
