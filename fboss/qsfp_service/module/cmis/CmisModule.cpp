@@ -1176,7 +1176,9 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
   currentApplicationSel = currentApplicationSel >> 4;
 
   XLOG(INFO) << folly::sformat(
-      "currentApplicationSel: {:#x}", currentApplicationSel);
+      "Port {:s} currentApplicationSel: {:#x}",
+      qsfpImpl_->getName(),
+      currentApplicationSel);
 
   uint8_t currentApplication;
   int offset;
@@ -1190,13 +1192,18 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
   offset += (currentApplicationSel - 1) * length + 1;
   getQsfpValue(dataAddress, offset, 1, &currentApplication);
 
-  XLOG(INFO) << folly::sformat("currentApplication: {:#x}", currentApplication);
+  XLOG(INFO) << folly::sformat(
+      "Port {:s} currentApplication: {:#x}",
+      qsfpImpl_->getName(),
+      currentApplication);
 
   if (static_cast<uint8_t>(applicationIter->second) == currentApplication) {
-    XLOG(INFO) << "speed matches. Doing nothing.";
+    XLOG(INFO) << folly::sformat(
+        "Port {:s} speed matches. Doing nothing.", qsfpImpl_->getName());
     return;
   } else if (applicationIter == speedApplicationMapping.end()) {
-    XLOG(INFO) << "Unsupported Speed.";
+    XLOG(INFO) << folly::sformat(
+        "Port {:s} Unsupported Speed.", qsfpImpl_->getName());
     throw FbossError(folly::to<std::string>(
         "Port: ",
         qsfpImpl_->getName(),
@@ -1208,7 +1215,8 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
       moduleCapabilities_.find(static_cast<uint8_t>(applicationIter->second));
 
   if (capabilityIter == moduleCapabilities_.end()) {
-    XLOG(INFO) << "Unsupported Application";
+    XLOG(INFO) << folly::sformat(
+        "Port {:s} Unsupported Application", qsfpImpl_->getName());
     throw FbossError(folly::to<std::string>(
         "Port: ",
         qsfpImpl_->getName(),
@@ -1249,7 +1257,8 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
   numHostLanes_ = capabilityIter->second.hostLaneCount;
   numMediaLanes_ = capabilityIter->second.mediaLaneCount;
 
-  XLOG(INFO) << folly::sformat("newApSelCode: {:#x}", newApSelCode);
+  XLOG(INFO) << folly::sformat(
+      "Port {:s} newApSelCode: {:#x}", qsfpImpl_->getName(), newApSelCode);
 
   getQsfpFieldAddress(CmisField::APP_SEL_LANE_1, dataAddress, offset, length);
 
