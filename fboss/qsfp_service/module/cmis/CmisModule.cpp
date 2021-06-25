@@ -1640,18 +1640,19 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
     // Apply the change using stage 0 control
     getQsfpFieldAddress(CmisField::APP_SEL_LANE_1, dataAddress, offset, length);
     uint8_t stage0Control[8];
+    uint8_t numLanes = numHostLanes();
     qsfpImpl_->readTransceiver(
         TransceiverI2CApi::ADDR_QSFP, offset, 8, stage0Control);
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < numLanes; i++) {
       stage0Control[i] |= 1;
     }
     qsfpImpl_->writeTransceiver(
-        TransceiverI2CApi::ADDR_QSFP, offset, 8, stage0Control);
+        TransceiverI2CApi::ADDR_QSFP, offset, numLanes, stage0Control);
 
     // Trigger the stage 0 control values to be operational in optics
     getQsfpFieldAddress(
         CmisField::STAGE_CTRL_SET0_IMMEDIATE, dataAddress, offset, length);
-    uint8_t stage0ControlTrigger = 0xff;
+    uint8_t stage0ControlTrigger = (1 << numLanes) - 1;
     qsfpImpl_->writeTransceiver(
         TransceiverI2CApi::ADDR_QSFP, offset, length, &stage0ControlTrigger);
 
