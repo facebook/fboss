@@ -1402,7 +1402,7 @@ void SaiTracer::setupGlobals() {
 }
 
 void SaiTracer::writeFooter() {
-  string footer = "free(s_a);\n}\n} // namespace facebook::fboss";
+  string footer = "free(s_a);\n}\n} // namespace facebook::fboss\n";
 
   asyncLogger_->appendLog(footer.c_str(), footer.size());
 }
