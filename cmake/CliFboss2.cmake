@@ -18,6 +18,13 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  show_lldp_model
+  fboss/cli/fboss2/commands/show/lldp/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
   show_transceiver_model
   fboss/cli/fboss2/commands/show/transceiver/model.thrift
   OPTIONS
@@ -32,7 +39,7 @@ add_executable(fboss2
   fboss/cli/fboss2/CmdList.cpp
   fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h
   fboss/cli/fboss2/commands/show/arp/CmdShowArp.h
-  fboss/cli/fboss2/commands/show/CmdShowLldp.h
+  fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h
   fboss/cli/fboss2/commands/show/CmdShowNdp.h
   fboss/cli/fboss2/commands/show/CmdShowNdp.h
   fboss/cli/fboss2/commands/show/CmdShowPort.h
@@ -58,6 +65,7 @@ target_link_libraries(fboss2
   Folly::folly
   show_acl_model
   show_arp_model
+  show_lldp_model
   show_transceiver_model
 )
 
