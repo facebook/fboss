@@ -98,6 +98,8 @@ class PhyManager {
 
   void setupPimEventMultiThreading(PimID pimID);
 
+  void setPortToLanesInfo(PortID portID, const phy::PhyPortConfig& portConfig);
+
   // Number of slot in the platform
   int numOfSlot_;
 
@@ -146,6 +148,19 @@ class PhyManager {
   };
   std::unordered_map<PimID, std::unique_ptr<PimEventMultiThreading>>
       pimToThread_;
+
+  // Based on current ExternalPhy design, it's hard to get which lanes that
+  // a SW port is using. Because all the ExternalPhy are using lanes to program
+  // the configs directly instead of a software port.
+  // Since we always use PhyManager to programOnePort(), we can cache the
+  // LaneID list of both system and line sides in PhyManager. And then for
+  // all the following xphy related logic like, programming prbs, getting stats,
+  // we can just use this cached info to pass in the xphy lanes directly.
+  struct PortLanesInfo {
+    std::vector<LaneID> system;
+    std::vector<LaneID> line;
+  };
+  std::unordered_map<PortID, std::unique_ptr<PortLanesInfo>> portToLanesInfo_;
 };
 
 } // namespace fboss

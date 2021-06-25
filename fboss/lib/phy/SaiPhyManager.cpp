@@ -95,11 +95,13 @@ PortID SaiPhyManager::getPortId(std::string portName) {
 void SaiPhyManager::programOnePort(
     PortID portId,
     cfg::PortProfileID portProfileId,
-    std::optional<TransceiverInfo> /* transceiverInfo */) {
+    std::optional<TransceiverInfo> transceiverInfo) {
   // Get phy platform
   auto globalPhyID = getGlobalXphyIDbyPortID(portId);
   auto saiPlatform = getSaiPlatform(globalPhyID);
   auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
+  const auto& desiredPhyPortConfig =
+      getDesiredPhyPortConfig(portId, portProfileId, transceiverInfo);
 
   // Temporary object to pass port and profile id to SaiPortManager
   auto portObj = std::make_shared<Port>(
@@ -116,6 +118,9 @@ void SaiPhyManager::programOnePort(
   // Return value is line port
   PortSaiId saiPort = saiSwitch->managerTable()->portManager().addPort(portObj);
   XLOG(INFO) << "Created Sai port " << saiPort << " for id=" << portId;
+
+  // Once the port is programmed successfully, update the portToLanesInfo_
+  setPortToLanesInfo(portId, desiredPhyPortConfig);
 }
 
 /*

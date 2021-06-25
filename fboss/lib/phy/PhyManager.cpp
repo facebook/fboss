@@ -9,6 +9,7 @@
 
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
+#include <cstdlib>
 
 namespace facebook::fboss {
 
@@ -107,8 +108,11 @@ void PhyManager::programOnePort(
     std::optional<TransceiverInfo> transceiverInfo) {
   // This function will call ExternalPhy::programOnePort(phy::PhyPortConfig).
   auto* xphy = getExternalPhy(portId);
-  xphy->programOnePort(
-      getDesiredPhyPortConfig(portId, portProfileId, transceiverInfo));
+  const auto& desiredPhyPortConfig =
+      getDesiredPhyPortConfig(portId, portProfileId, transceiverInfo);
+  xphy->programOnePort(desiredPhyPortConfig);
+  // Once the port is programmed successfully, update the portToLanesInfo_
+  setPortToLanesInfo(portId, desiredPhyPortConfig);
 }
 
 folly::EventBase* FOLLY_NULLABLE
@@ -137,6 +141,55 @@ PhyManager::PimEventMultiThreading::~PimEventMultiThreading() {
 
 void PhyManager::setupPimEventMultiThreading(PimID pimID) {
   pimToThread_.emplace(pimID, std::make_unique<PimEventMultiThreading>(pimID));
+}
+
+void PhyManager::setPortToLanesInfo(
+    PortID portID,
+    const phy::PhyPortConfig& portConfig) {
+  // First check whether there's a cache already
+  bool matched = false;
+  if (const auto& cached = portToLanesInfo_.find(portID);
+      cached != portToLanesInfo_.end()) {
+    const auto& systemLanesConfig = portConfig.config.system.lanes;
+    const auto& lineLanesConfig = portConfig.config.line.lanes;
+    const auto& cachedLanesInfo = cached->second;
+    // check whether all the lanes match
+    matched = (cachedLanesInfo->system.size() == systemLanesConfig.size()) &&
+        (cachedLanesInfo->line.size() == lineLanesConfig.size());
+    // Now check system lane id
+    if (matched) {
+      for (auto i = 0; i < cachedLanesInfo->system.size(); ++i) {
+        if (systemLanesConfig.find(cachedLanesInfo->system[i]) ==
+            systemLanesConfig.end()) {
+          matched = false;
+          break;
+        }
+      }
+    }
+    // Now check line lane id
+    if (matched) {
+      for (auto i = 0; i < cachedLanesInfo->line.size(); ++i) {
+        if (lineLanesConfig.find(cachedLanesInfo->line[i]) ==
+            lineLanesConfig.end()) {
+          matched = false;
+          break;
+        }
+      }
+    }
+  }
+
+  if (matched) {
+    return;
+  }
+
+  auto portLanesInfo = std::make_unique<PortLanesInfo>();
+  for (const auto& it : portConfig.config.system.lanes) {
+    portLanesInfo->system.push_back(it.first);
+  }
+  for (const auto& it : portConfig.config.line.lanes) {
+    portLanesInfo->line.push_back(it.first);
+  }
+  portToLanesInfo_[portID] = std::move(portLanesInfo);
 }
 
 } // namespace facebook::fboss
