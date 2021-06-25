@@ -338,6 +338,13 @@ class CmisModule : public QsfpModule {
   void ensureRxOutputSquelchEnabled(
       const std::vector<HostLaneSettings>& hostLaneSettings) const override;
 
+  /*
+   * Check if the module has accepted the lane configuration specified by
+   * ApSel or other settings like RxEqualizer setting. In case of config
+   * rejection the function returns false
+   */
+  bool checkLaneConfigError();
+
   std::map<uint32_t, PortStatus> ports_;
   unsigned int portsPerTransceiver_{0};
 

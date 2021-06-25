@@ -1283,29 +1283,82 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
       TransceiverI2CApi::ADDR_QSFP, offset, length, &dataPathDeInit);
 
   // Check if the config has been applied correctly or not
-  page = 0x11;
+  if (!checkLaneConfigError()) {
+    XLOG(ERR) << folly::sformat(
+        "Port: {:s} application {:#x} could not be set",
+        qsfpImpl_->getName(),
+        capabilityIter->first);
+  }
+}
+
+/*
+ * This function checks if the previous lane configuration has been successul
+ * or rejected. It will log error and return false if config on a lane is
+ * rejected. This function should be run after ApSel setting or any other
+ * lane configuration like Rx Equalizer setting etc
+ */
+bool CmisModule::checkLaneConfigError() {
+  int offset;
+  int length;
+  int dataAddress;
+  bool success;
+
+  // Set the page to 0x11 for lane config status
+  uint8_t page = 0x11;
   qsfpImpl_->writeTransceiver(
       TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
 
   uint8_t configErrors[4];
   getQsfpFieldAddress(
       CmisField::CONFIG_ERROR_LANES, dataAddress, offset, length);
-  qsfpImpl_->readTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, offset, length, configErrors);
 
-  for (int channel = 0; channel < numHostLanes(); channel++) {
-    uint8_t byte = channel / 2;
-    uint8_t cfgErr = configErrors[byte] >> ((channel % 2) * 4);
-    cfgErr &= 0x0f;
-    if (cfgErr >= 8) {
-      cfgErr = 8;
+  // In case some channel information is not available then we can retry after
+  // lane init time
+  int retryCount = 2;
+  while (retryCount) {
+    retryCount--;
+    qsfpImpl_->readTransceiver(
+        TransceiverI2CApi::ADDR_QSFP, offset, length, configErrors);
+
+    bool allStatusAvailable = true;
+    success = true;
+
+    for (int channel = 0; channel < numHostLanes(); channel++) {
+      uint8_t byte = channel / 2;
+      uint8_t cfgErr = configErrors[byte] >> ((channel % 2) * 4);
+      cfgErr &= 0x0f;
+      if (cfgErr >= 8) {
+        cfgErr = 8;
+      }
+      // If some lane info is not available then we need to try again
+      if (cfgErr == 0) {
+        allStatusAvailable = false;
+      }
+      // Status other than 1 is considered failed
+      if (cfgErr != 1) {
+        success = false;
+      }
+      XLOG(INFO) << folly::sformat(
+          "Port {:s} Lane {:d} config stats: {:s}",
+          qsfpImpl_->getName(),
+          channel,
+          channelConfigErrorMsg[cfgErr]);
     }
-    XLOG(INFO) << folly::sformat(
-        "Port {:s} Lane {:d} config stats: {:s}",
-        qsfpImpl_->getName(),
-        channel,
-        channelConfigErrorMsg[cfgErr]);
-  }
+
+    // If all channel information is available then no need to retry and break
+    // from this loop, otherwise retry one more time after a wait period
+    if (allStatusAvailable) {
+      break;
+    } else if (retryCount) {
+      XLOG(INFO) << "Some lane status not available so trying again";
+      /* sleep override */
+      usleep(kUsecBetweenLaneInit);
+    } else {
+      XLOG(INFO) << "Some lane status not available even after retry";
+    }
+  };
+
+  return success;
 }
 
 /*
@@ -1599,6 +1652,12 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
         changePre ? "Pre-cursor" : "",
         changePost ? "Post-cursor" : "",
         changeMain ? "Rx-out-main" : "");
+
+    // Check if the config has been applied correctly or not
+    if (!checkLaneConfigError()) {
+      XLOG(ERR) << folly::sformat(
+          "Module {:s} customization config rejected", qsfpImpl_->getName());
+    }
   }
 }
 
