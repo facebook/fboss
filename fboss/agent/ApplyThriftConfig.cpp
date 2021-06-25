@@ -77,6 +77,11 @@ using folly::StringPiece;
 using std::make_shared;
 using std::shared_ptr;
 
+DEFINE_bool(
+    enable_acl_table_group,
+    false,
+    "Allow multiple acl tables (acl table group)");
+
 namespace {
 
 const uint8_t kV6LinkLocalAddrMask{64};
