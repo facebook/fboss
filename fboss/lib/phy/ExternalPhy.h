@@ -162,10 +162,9 @@ class ExternalPhy {
       Side /* side */) {}
 
   virtual void setPortPrbs(
-      const PhyPortConfig& /* config */,
-      Side /* side */,
-      bool /* enable */,
-      int32_t /* polynominal */) {}
+      Side side,
+      const std::vector<LaneID>& lanes,
+      const PortPrbsState& prbs) = 0;
 
   virtual std::vector<ExternalPhyLaneDiagInfo> getOnePortDiagInfo(
       uint32_t sysLanes,

@@ -125,6 +125,17 @@ class PhyInterfaceHandler {
   virtual phy::PhyIDInfo getPhyIDInfo(GlobalXphyID xphyID) = 0;
 
  protected:
+  std::vector<LaneID> getSideLanes(
+      const phy::PhyPortConfig& config,
+      phy::Side side) const {
+    const auto& lanes = (side == phy::Side::SYSTEM) ? config.config.system.lanes
+                                                    : config.config.line.lanes;
+    std::vector<LaneID> sideLanes;
+    for (const auto& it : lanes) {
+      sideLanes.push_back(it.first);
+    }
+    return sideLanes;
+  }
 };
 
 } // namespace facebook::fboss
