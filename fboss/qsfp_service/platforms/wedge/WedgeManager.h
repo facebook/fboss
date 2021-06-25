@@ -143,6 +143,10 @@ class WedgeManager : public TransceiverManager {
     return !forceColdBoot_;
   }
 
+  bool forcedColdBoot() const {
+    return forceColdBoot_;
+  }
+
  protected:
   virtual std::unique_ptr<TransceiverI2CApi> getI2CBus();
   void updateTransceiverMap();
