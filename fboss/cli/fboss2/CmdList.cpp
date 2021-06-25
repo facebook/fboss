@@ -17,7 +17,7 @@
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
 #include "fboss/cli/fboss2/commands/show/CmdShowInterface.h"
 #include "fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h"
-#include "fboss/cli/fboss2/commands/show/CmdShowNdp.h"
+#include "fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h"
 #include "fboss/cli/fboss2/commands/show/CmdShowPort.h"
 #include "fboss/cli/fboss2/commands/show/CmdShowPortQueue.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
