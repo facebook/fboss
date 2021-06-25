@@ -72,6 +72,8 @@ class PhyManager {
       cfg::PortProfileID portProfileId,
       std::optional<TransceiverInfo> transceiverInfo);
 
+  phy::PhyPortConfig getHwPhyPortConfig(PortID portId);
+
   virtual void programOnePort(
       PortID portId,
       cfg::PortProfileID portProfileId,

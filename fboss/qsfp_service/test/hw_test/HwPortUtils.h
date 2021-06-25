@@ -17,9 +17,9 @@
 namespace facebook::fboss {
 
 class HwQsfpEnsemble;
+class PhyManager;
 
 namespace phy {
-class ExternalPhy;
 struct PhyPortConfig;
 } // namespace phy
 
@@ -31,7 +31,7 @@ struct IphyAndXphyPorts {
 // Verify PhyPortConfig
 void verifyPhyPortConfig(
     PortID portID,
-    phy::ExternalPhy* xphy,
+    PhyManager* phyManager,
     const phy::PhyPortConfig& expectedConfig);
 
 void verifyPhyPortConnector(PortID portID, HwQsfpEnsemble* qsfpEnsemble);

@@ -14,7 +14,7 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
-#include "fboss/lib/phy/ExternalPhy.h"
+#include "fboss/lib/phy/PhyManager.h"
 #include "fboss/lib/phy/SaiPhyManager.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 
@@ -26,22 +26,10 @@ namespace facebook::fboss::utility {
 
 void verifyPhyPortConfig(
     PortID portID,
-    phy::ExternalPhy* xphy,
+    PhyManager* phyManager,
     const phy::PhyPortConfig& expectedConfig) {
-  // ExternalPhy needs to use lane list to get lane config
-  std::vector<LaneID> sysLanes;
-  for (const auto& idAndLaneConfig : expectedConfig.config.system.lanes) {
-    sysLanes.push_back(idAndLaneConfig.first);
-  }
-  EXPECT_FALSE(sysLanes.empty());
-  std::vector<LaneID> lineLanes;
-  for (const auto& idAndLaneConfig : expectedConfig.config.line.lanes) {
-    lineLanes.push_back(idAndLaneConfig.first);
-  }
-  EXPECT_FALSE(lineLanes.empty());
-
   // Now fetch the config actually programmed to the xphy
-  const auto& actualPortConfig = xphy->getConfigOnePort(sysLanes, lineLanes);
+  const auto& actualPortConfig = phyManager->getHwPhyPortConfig(portID);
 
   // Check speed
   EXPECT_EQ(expectedConfig.profile.speed, actualPortConfig.profile.speed);

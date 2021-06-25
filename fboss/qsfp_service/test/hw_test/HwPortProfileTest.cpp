@@ -55,9 +55,7 @@ class HwPortProfileTest : public HwTest {
               portID, Profile, tcvrOpt);
 
       utility::verifyPhyPortConfig(
-          portID,
-          getHwQsfpEnsemble()->getExternalPhy(portID),
-          expectedPhyPortConfig);
+          portID, getHwQsfpEnsemble()->getPhyManager(), expectedPhyPortConfig);
 
       utility::verifyPhyPortConnector(portID, getHwQsfpEnsemble());
     }

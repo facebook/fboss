@@ -102,6 +102,20 @@ phy::PhyPortConfig PhyManager::getDesiredPhyPortConfig(
   return phyPortConfig;
 }
 
+phy::PhyPortConfig PhyManager::getHwPhyPortConfig(PortID portId) {
+  // First check whether we have cached lane inf
+  const auto& portLanesInfo = portToLanesInfo_.find(portId);
+  if (portLanesInfo == portToLanesInfo_.end()) {
+    throw FbossError(
+        "Port:",
+        portId,
+        " has not program yet. Can't find the cached lane info");
+  }
+  auto* xphy = getExternalPhy(portId);
+  return xphy->getConfigOnePort(
+      portLanesInfo->second->system, portLanesInfo->second->line);
+}
+
 void PhyManager::programOnePort(
     PortID portId,
     cfg::PortProfileID portProfileId,
