@@ -21,7 +21,7 @@ bool removeFile(const std::string& filename) {
   }
   // Some other unexpected error.
   throw facebook::fboss::SysError(
-      errno, "error while trying to remove warm boot file ", filename);
+      errno, "error while trying to remove file: ", filename);
 }
 
 } // namespace facebook::fboss
