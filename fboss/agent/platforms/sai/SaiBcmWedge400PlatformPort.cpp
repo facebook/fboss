@@ -12,14 +12,22 @@
 
 namespace facebook::fboss {
 
-void SaiBcmWedge400PlatformPort::linkStatusChanged(
-    bool /*up*/,
-    bool /*adminUp*/) {
-  // TODO(skhare)
+void SaiBcmWedge400PlatformPort::linkStatusChanged(bool up, bool adminUp) {
+  currentLedState_ = Wedge400LedUtils::getLedState(
+      getHwPortLanes(getCurrentProfile()).size(), up, adminUp);
+  setLedStatus(currentLedState_);
 }
 
-void SaiBcmWedge400PlatformPort::externalState(PortLedExternalState /*lfs*/) {
-  // TODO(skhare)
+void SaiBcmWedge400PlatformPort::externalState(PortLedExternalState lfs) {
+  currentLedState_ =
+      (lfs == PortLedExternalState::NONE
+           ? currentLedState_
+           : Wedge400LedUtils::getLedExternalState(lfs));
+  setLedStatus(currentLedState_);
+}
+
+uint32_t SaiBcmWedge400PlatformPort::getCurrentLedState() const {
+  return static_cast<uint32_t>(currentLedState_);
 }
 
 } // namespace facebook::fboss
