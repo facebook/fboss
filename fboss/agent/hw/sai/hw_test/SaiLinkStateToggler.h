@@ -25,7 +25,8 @@ class SaiLinkStateToggler : public HwLinkStateToggler {
   SaiLinkStateToggler(
       SaiSwitchEnsemble* ensemble,
       cfg::PortLoopbackMode desiredLoopbackMode)
-      : HwLinkStateToggler(ensemble, desiredLoopbackMode) {}
+      : HwLinkStateToggler(ensemble, desiredLoopbackMode),
+        saiEnsemble_(ensemble) {}
 
  private:
   void invokeLinkScanIfNeeded(PortID /*port*/, bool /*isUp*/) override {
@@ -33,6 +34,7 @@ class SaiLinkStateToggler : public HwLinkStateToggler {
   }
   void setPortPreemphasis(const std::shared_ptr<Port>& port, int preemphasis)
       override;
+  SaiSwitchEnsemble* saiEnsemble_;
 };
 
 } // namespace facebook::fboss

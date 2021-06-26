@@ -39,6 +39,8 @@ void SaiLinkStateToggler::setPortPreemphasis(
       serDesAttributes) =
       std::vector<uint32_t>(numLanes, static_cast<uint32_t>(preemphasis));
 
-  portHandle->serdes->setAttributes(serDesAttributes);
+  if (saiEnsemble_->getPlatform()->isSerdesApiSupported()) {
+    portHandle->serdes->setAttributes(serDesAttributes);
+  }
 }
 } // namespace facebook::fboss
