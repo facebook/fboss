@@ -50,6 +50,7 @@ DECLARE_bool(dsp_image);
 DECLARE_bool(client_parser);
 DECLARE_bool(verbose);
 DECLARE_bool(list_commands);
+DECLARE_bool(vdm_info);
 
 enum LoopbackMode {
   noLoopback,
@@ -166,6 +167,8 @@ bool cliModulefirmwareUpgrade(TransceiverI2CApi* bus, std::string portRangeStr, 
 void get_module_fw_info(TransceiverI2CApi* bus, unsigned int moduleA, unsigned int moduleB);
 
 void doCdbCommand(TransceiverI2CApi* bus,  unsigned int  module);
+
+bool printVdmInfo(TransceiverI2CApi* bus, unsigned int port);
 
 std::pair<std::unique_ptr<facebook::fboss::TransceiverI2CApi>, int>
 getTransceiverAPI();

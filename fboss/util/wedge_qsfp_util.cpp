@@ -78,6 +78,64 @@ constexpr uint8_t kCMISOffsetStageCtrlSet0 = 143;
 constexpr uint8_t kCmisPowerModeMask = (0b101 << 4);
 
 constexpr int numRetryGetModuleType = 5;
+
+enum VdmDataType : uint8_t {
+  VDM_DATA_TYPE_U16 = 1,
+  VDM_DATA_TYPE_F16 = 2,
+};
+
+enum VdmConfigTypeKey : uint8_t {
+  VDM_CONFIG_UNSUPPORTED = 0,
+  VDM_CONFIG_LASER_AGE = 1,
+  VDM_CONFIG_TEC_CURRENT = 2,
+  VDM_CONFIG_LASER_FREQUENCY_ERROR = 3,
+  VDM_CONFIG_LASER_TEMPERATURE = 4,
+  VDM_CONFIG_ESNR_MEDIA_INPUT = 5,
+  VDM_CONFIG_ESNR_HOST_INPUT = 6,
+  VDM_CONFIG_PAM4_LTP_MEDIA_INPUT = 7,
+  VDM_CONFIG_PAM4_LTP_HOST_INPUT = 8,
+  VDM_CONFIG_PRE_FEC_BER_MEDIA_IN_MIN = 9,
+  VDM_CONFIG_PRE_FEC_BER_HOST_IN_MIN = 10,
+  VDM_CONFIG_PRE_FEC_BER_MEDIA_IN_MAX = 11,
+  VDM_CONFIG_PRE_FEC_BER_HOST_IN_MAX = 12,
+  VDM_CONFIG_PRE_FEC_BER_MEDIA_IN_AVG = 13,
+  VDM_CONFIG_PRE_FEC_BER_HOST_IN_AVG = 14,
+  VDM_CONFIG_PRE_FEC_BER_MEDIA_IN_CURR = 15,
+  VDM_CONFIG_PRE_FEC_BER_HOST_IN_CURR = 16,
+  VDM_CONFIG_ERR_FRAMES_MEDIA_IN_MIN = 17,
+  VDM_CONFIG_ERR_FRAMES_HOST_IN_MIN = 18,
+  VDM_CONFIG_ERR_FRAMES_MEDIA_IN_MAX = 19,
+  VDM_CONFIG_ERR_FRAMES_HOST_IN_MAX = 20,
+  VDM_CONFIG_ERR_FRAMES_MEDIA_IN_AVG = 21,
+  VDM_CONFIG_ERR_FRAMES_HOST_IN_AVG = 22,
+  VDM_CONFIG_ERR_FRAMES_MEDIA_IN_CURR = 23,
+  VDM_CONFIG_ERR_FRAMES_HOST_IN_CURR = 24,
+};
+
+struct VdmConfigType {
+  std::string description;
+  VdmDataType dataType;
+  float lsbScale;
+  std::string unit;
+};
+
+std::map<VdmConfigTypeKey, VdmConfigType> vdmConfigTypeMap = {
+  {VDM_CONFIG_LASER_AGE, {"Laser age", VDM_DATA_TYPE_U16, 1.0, "%"}},
+  // Media side
+  {VDM_CONFIG_ESNR_MEDIA_INPUT, {"eSNR Media Input", VDM_DATA_TYPE_U16, 1.0/256.0, "dB"}},
+  {VDM_CONFIG_PAM4_LTP_MEDIA_INPUT, {"PAM4 LTP Media Input", VDM_DATA_TYPE_U16, 1.0/256.0, "dB"}},
+  {VDM_CONFIG_PRE_FEC_BER_MEDIA_IN_MIN, {"Pre-FEC BER Media Input Minimum", VDM_DATA_TYPE_F16, 0, ""}},
+  {VDM_CONFIG_PRE_FEC_BER_MEDIA_IN_MAX, {"Pre-FEC BER Media Input Maximum", VDM_DATA_TYPE_F16, 0, ""}},
+  {VDM_CONFIG_PRE_FEC_BER_MEDIA_IN_AVG, {"Pre-FEC BER Media Input Average", VDM_DATA_TYPE_F16, 0, ""}},
+  {VDM_CONFIG_PRE_FEC_BER_MEDIA_IN_CURR, {"Pre-FEC BER Media Input Current", VDM_DATA_TYPE_F16, 0, ""}},
+  // Host side
+  {VDM_CONFIG_ESNR_HOST_INPUT, {"eSNR Host Input", VDM_DATA_TYPE_U16, 1.0/256.0, "dB"}},
+  {VDM_CONFIG_PAM4_LTP_HOST_INPUT, {"PAM4 LTP Host Input", VDM_DATA_TYPE_U16, 1.0/256.0, "dB"}},
+  {VDM_CONFIG_PRE_FEC_BER_HOST_IN_MIN, {"Pre-FEC BER Host Input Minimum", VDM_DATA_TYPE_F16, 0, ""}},
+  {VDM_CONFIG_PRE_FEC_BER_HOST_IN_MAX, {"Pre-FEC BER Host Input Maximum", VDM_DATA_TYPE_F16, 0, ""}},
+  {VDM_CONFIG_PRE_FEC_BER_HOST_IN_AVG, {"Pre-FEC BER Host Input Average", VDM_DATA_TYPE_F16, 0, ""}},
+  {VDM_CONFIG_PRE_FEC_BER_HOST_IN_CURR, {"Pre-FEC BER Host Input Current", VDM_DATA_TYPE_F16, 0, ""}},
+};
 }
 
 using folly::MutableByteRange;
@@ -152,6 +210,7 @@ DEFINE_bool(
     "Used to print DOM data that is parsed by the client as opposed to parsed by the service(which is the default)");
 DEFINE_bool(verbose, false, "Print more details");
 DEFINE_bool(list_commands, false, "Print the list of commands");
+DEFINE_bool(vdm_info, false, "get the VDM monitoring info");
 
 namespace {
 struct ModulePartInfo_s {
@@ -2414,6 +2473,118 @@ void doCdbCommand(TransceiverI2CApi* bus,  unsigned int  module) {
     printf("%.2x ", pResp[i]);
   }
   printf("\n");
+}
+
+/*
+ * printVdmInfo
+ *
+ * Read the VDM information and print. The VDM config is present in page 20
+ * (2 bytes per config entry) and the VDM values are present in page 24 (2
+ * bytes value).
+ */
+bool printVdmInfo(TransceiverI2CApi* bus, unsigned int port) {
+  DOMDataUnion domDataUnion;
+
+  printf("Displaying VDM info for module %d:\n", port);
+
+  if (!FLAGS_direct_i2c) {
+    // Read the optics data from qsfp_service
+    folly::EventBase evb;
+
+    int32_t idx = port - 1;
+    auto domDataUnionMap = fetchDataFromQsfpService({idx}, evb);
+    auto iter = domDataUnionMap.find(idx);
+    if(iter == domDataUnionMap.end()) {
+        fprintf(stderr, "Port %d is not present in QsfpService data\n", idx + 1);
+        return false;
+    } else {
+      domDataUnion = iter->second;
+    }
+  } else {
+    // Read the optics data directly from this process
+    try {
+      domDataUnion = fetchDataFromLocalI2CBus(bus, port);
+    } catch (const std::exception& ex) {
+      fprintf(stderr, "error reading QSFP data %u: %s\n", port, ex.what());
+      return false;
+    }
+  }
+
+  if (domDataUnion.getType() != DOMDataUnion::Type::cmis) {
+    printf("The VDM feature is available for CMIS optics only\n");
+    return false;
+  }
+
+  CmisData cmisData = domDataUnion.get_cmis();
+  auto page01Buf = can_throw(cmisData.page01_ref())->data();
+  auto page20Buf = can_throw(cmisData.page20_ref())->data();
+  auto page24Buf = can_throw(cmisData.page24_ref())->data();
+  auto page21Buf = can_throw(cmisData.page21_ref())->data();
+  auto page25Buf = can_throw(cmisData.page25_ref())->data();
+
+  // Check for VDM presence first
+  if (!(page01Buf[14] & 0x40)) {
+    fprintf(stderr, "VDM not supported on this module %d\n", port);
+    return false;
+  }
+
+  // Go over the list. Page 0x20/0x21 contains the config and page 0x24/0x25
+  // contains the values
+
+  auto findAndPrintVdmInfo = [] (const uint8_t* controlPageBuf, const uint8_t* dataPageBuf) {
+    for (int i = 0; i < 127; i += 2) {
+      uint8_t byteMsb = controlPageBuf[i];
+      uint8_t byteLsb = controlPageBuf[i+1];
+
+      if (!byteMsb && !byteLsb) {
+        // No more config present, break the loop
+        break;
+      }
+
+      uint8_t laneId = byteMsb & 0x0f;
+
+      // Get the config info
+      auto confType = VdmConfigTypeKey(byteLsb);
+      auto vdmConfIt = vdmConfigTypeMap.find(confType);
+      if (vdmConfIt == vdmConfigTypeMap.end()) {
+        continue;
+      }
+
+      auto vdmConfigInfo = vdmConfIt->second;
+      if (laneId > 7) {
+        printf("Module %s = ", vdmConfigInfo.description.c_str());
+      } else {
+        printf ("Lane %d %s = ", laneId, vdmConfigInfo.description.c_str());
+      }
+
+      // Get the VDM value corresponding to config type and convert it appropriately.
+      // The U16 value will be = byte0 + byte1 * lsbScale
+      // For F16 value:
+      //   exponent = (byte0 >> 3) - 24
+      //   mantissa = (byte0 & 0x7) << 8 | byte1
+      //   value = mantissa * 10^exponent
+      double vdmValue;
+      if (vdmConfigInfo.dataType == VDM_DATA_TYPE_U16) {
+        vdmValue = dataPageBuf[i] + (dataPageBuf[i+1] * vdmConfigInfo.lsbScale);
+        printf("%.2f %s\n", vdmValue, vdmConfigInfo.unit.c_str());
+      } else if (vdmConfigInfo.dataType == VDM_DATA_TYPE_F16) {
+        int expon = dataPageBuf[i] >> 3;
+        int mant = ((dataPageBuf[i] & 0x7) << 8) | dataPageBuf[i+1];
+        expon -= 24;
+        vdmValue = mant * exp10(expon);
+        printf("%.2e %s\n", vdmValue, vdmConfigInfo.unit.c_str());
+      } else {
+        printf("Unknown format\n");
+      }
+    }
+  };
+
+  // Media side info: control page = 0x20, data page = 0x24
+  findAndPrintVdmInfo(page20Buf, page24Buf);
+  // Host side info: control page = 0x20, data page = 0x24
+  findAndPrintVdmInfo(page21Buf, page25Buf);
+
+  return true;
 }
 
 } // namespace facebook::fboss

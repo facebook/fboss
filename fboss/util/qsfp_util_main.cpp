@@ -265,6 +265,11 @@ int main(int argc, char* argv[]) {
       }
     }
 
+    if (FLAGS_vdm_info && printVdmInfo(bus.get(), portNum)) {
+      printf("QSFP %d: printed module vdm info\n", portNum);
+      return EX_OK;
+    }
+
     if (FLAGS_direct_i2c && printInfo) {
       try {
         // Get the port details from the direct i2c read and then print out the
