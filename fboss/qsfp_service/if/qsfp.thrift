@@ -101,13 +101,19 @@ service QsfpService extends fb303.FacebookService {
     1: mka.MKASak sak
   ) throws (1: mka.MKAServiceException ex) (cpp.coroutine)
 
-  mka.MKASakHealthResponse sakHealthCheck(1: mka.MKASak sak)(cpp.coroutine)
+  mka.MKASakHealthResponse sakHealthCheck(
+    1: mka.MKASak sak
+  ) throws (1: mka.MKAServiceException ex)  (cpp.coroutine)
 
-  mka.MacsecPortPhyMap macsecGetPhyPortInfo() (cpp.coroutine)
+  mka.MacsecPortPhyMap macsecGetPhyPortInfo() throws (
+    1: fboss.FbossBaseError error
+  ) (cpp.coroutine)
 
   ctrl.PortOperState macsecGetPhyLinkInfo(
     1: string portName
   ) throws (1: fboss.FbossBaseError error) (cpp.coroutine)
 
-  bool deleteAllSc(1: string portName) (cpp.coroutine)
+  bool deleteAllSc(
+    1: string portName
+  ) throws (1: fboss.FbossBaseError error) (cpp.coroutine)
 }
