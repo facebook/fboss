@@ -27,6 +27,7 @@ DEFINE_bool(phy_link_info, false, "Print link info for a port in a phy, use with
 DEFINE_string(port, "", "Switch port");
 DEFINE_bool(delete_sa_rx, false, "Delete SA rx, use with --sa_config, --sc_config");
 DEFINE_bool(delete_sa_tx, false, "Delete SA tx, use with --sa_config");
+DEFINE_bool(delete_all_sc, false, "Delete all SA, SC on a Phy, use with --port");
 
 /*
  * getMacsecSaFromJson()
@@ -295,6 +296,16 @@ void deleteSaTx(QsfpServiceAsyncClient* fbMacsecHandler) {
     printf("sakDelete is %s\n", rc ? "Successful" : "Failed");
 }
 
+void deleteAllSc(QsfpServiceAsyncClient* fbMacsecHandler) {
+    if (FLAGS_port == "") {
+        printf("Port name is required\n");
+        return;
+    }
+
+    bool rc = fbMacsecHandler->sync_deleteAllSc(FLAGS_port);
+    printf("All SA, SC deletion %s\n", rc ? "Successful" : "Failed");
+}
+
 void printPhyLinkInfo(QsfpServiceAsyncClient* fbMacsecHandler) {
     if (FLAGS_port == "") {
         printf("Port name is required\n");
@@ -333,6 +344,10 @@ int main(int argc, char* argv[]) {
   }
   if (FLAGS_delete_sa_tx) {
       deleteSaTx(client.get());
+      return 0;
+  }
+  if (FLAGS_delete_all_sc) {
+      deleteAllSc(client.get());
       return 0;
   }
   if (FLAGS_phy_link_info) {
