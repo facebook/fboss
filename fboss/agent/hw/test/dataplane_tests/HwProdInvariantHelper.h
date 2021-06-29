@@ -51,6 +51,7 @@ class HwProdInvariantHelper {
   void verifyDscpToQueueMapping();
   void verifyCopp();
   void verifyLoadBalacing();
+  void sendAndVerifyPkts(uint16_t destPort, uint8_t queueId);
 
   std::unique_ptr<utility::HwIpV6EcmpDataPlaneTestUtil> ecmpHelper_;
   HwSwitchEnsemble* ensemble_;

@@ -52,8 +52,10 @@ void HwProdInvariantHelper::verifyLoadBalacing() {
       kEcmpWidth, std::vector<NextHopWeight>(kEcmpWidth, 1), 25);
 }
 
-void HwProdInvariantHelper::verifyCopp() {
-  auto sendPkts = [this] {
+void HwProdInvariantHelper::sendAndVerifyPkts(
+    uint16_t destPort,
+    uint8_t queueId) {
+  auto sendPkts = [this, destPort] {
     auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
     auto intfMac =
         utility::getInterfaceMac(ensemble_->getProgrammedState(), vlanId);
@@ -67,14 +69,19 @@ void HwProdInvariantHelper::verifyCopp() {
         intfMac,
         dstIp,
         utility::kNonSpecialPort1,
-        utility::kBgpPort,
+        destPort,
         ensemble_->masterLogicalPortIds()[0]);
   };
+
   utility::sendPktAndVerifyCpuQueue(
-      ensemble_->getHwSwitch(),
-      utility::getCoppHighPriQueueId(ensemble_->getPlatform()->getAsic()),
-      sendPkts,
-      1);
+      ensemble_->getHwSwitch(), queueId, sendPkts, 1);
+}
+
+void HwProdInvariantHelper::verifyCopp() {
+  sendAndVerifyPkts(
+      utility::kBgpPort,
+      utility::getCoppHighPriQueueId(ensemble_->getPlatform()->getAsic()));
+  sendAndVerifyPkts(utility::kNonSpecialPort2, utility::kCoppMidPriQueueId);
 }
 
 void HwProdInvariantHelper::verifyDscpToQueueMapping() {
