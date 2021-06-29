@@ -13,6 +13,17 @@
 
 namespace facebook::fboss {
 
+std::string l2EntryUpdateTypeStr(L2EntryUpdateType updateType) {
+  switch (updateType) {
+    case L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE:
+      return "DELETE";
+    case L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD:
+      return "ADD";
+  }
+  CHECK(false) << "Uknonwn l2 entry update type: "
+               << static_cast<int>(updateType);
+}
+
 L2Entry::L2Entry(
     folly::MacAddress mac,
     VlanID vlan,

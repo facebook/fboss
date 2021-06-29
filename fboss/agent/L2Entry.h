@@ -22,6 +22,7 @@ enum class L2EntryUpdateType : uint8_t {
   L2_ENTRY_UPDATE_TYPE_ADD,
 };
 
+std::string l2EntryUpdateTypeStr(L2EntryUpdateType updateType);
 /*
  * L2 entry represents an entry in the hardware L2 table
  */
