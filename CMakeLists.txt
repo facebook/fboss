@@ -841,6 +841,7 @@ if (NOT SAI_ONLY)
       qsfp_module
       fboss_agent
       qsfp_config
+      phy_management_base
   )
 
   add_executable(cp2112_util
@@ -874,6 +875,7 @@ if (NOT SAI_ONLY)
       qsfp_lib
       qsfp_module
       ${YAML-CPP}
+      phy_management_base
   )
 
   # Don't include fboss/agent/test/ArpBenchmark.cpp

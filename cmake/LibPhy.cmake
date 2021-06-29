@@ -11,3 +11,15 @@ target_link_libraries(external_phy
   platform_config_cpp2
   phy_cpp2
 )
+
+add_library(phy_management_base
+  fboss/lib/phy/PhyManager.cpp
+)
+
+target_link_libraries(phy_management_base
+  external_phy
+  error
+  platform_mapping
+  fboss_config_utils
+  Folly::folly
+)
