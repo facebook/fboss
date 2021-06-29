@@ -51,20 +51,23 @@ std::
     SaiAclTableManager::aclTableCreateAttributes(sai_acl_stage_t aclStage) {
   std::vector<sai_int32_t> bindPointList{SAI_ACL_BIND_POINT_TYPE_SWITCH};
   SaiAclTableTraits::Attributes::Stage tableStage = aclStage;
-  std::vector<sai_int32_t> actionTypeList{
-      SAI_ACL_ACTION_TYPE_PACKET_ACTION,
-      SAI_ACL_ACTION_TYPE_COUNTER,
-      SAI_ACL_ACTION_TYPE_SET_TC,
-      SAI_ACL_ACTION_TYPE_SET_DSCP,
-      SAI_ACL_ACTION_TYPE_MIRROR_INGRESS,
-      SAI_ACL_ACTION_TYPE_MIRROR_EGRESS};
-
   /*
    * Tajo either does not support following qualifier or enabling those
    * overflows max key width. Thus, disable those on Tajo for now.
    */
   bool isTajo =
       platform_->getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TAJO;
+
+  std::vector<sai_int32_t> actionTypeList{
+      SAI_ACL_ACTION_TYPE_PACKET_ACTION,
+      SAI_ACL_ACTION_TYPE_COUNTER,
+      SAI_ACL_ACTION_TYPE_SET_TC,
+      SAI_ACL_ACTION_TYPE_SET_DSCP,
+      SAI_ACL_ACTION_TYPE_MIRROR_INGRESS};
+  if (!isTajo) {
+    actionTypeList.push_back(SAI_ACL_ACTION_TYPE_MIRROR_EGRESS);
+  }
+
   auto fieldL4SrcPort = isTajo ? false : true;
   auto fieldL4DstPort = isTajo ? false : true;
   auto fieldTcpFlags = isTajo ? false : true;
