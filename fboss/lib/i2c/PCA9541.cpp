@@ -81,7 +81,7 @@ bool PCA9541::isBusControlOk() {
   // If the bus is On and requesting entity has the control over the bus
   // then retrun true from here
   if (isBusOn && hasBusControl) {
-    XLOG(DBG0) << "The current controller has control over PCA9541 I2C Bus";
+    XLOG(DBG3) << "The current controller has control over PCA9541 I2C Bus";
     return true;
   }
 
@@ -150,7 +150,7 @@ bool PCA9541::getBusControl() {
     // the current one then it means currently we have the access to the bus so
     // return true from here in this case
     if (writeBuf == readBuf) {
-      XLOG(DBG0)
+      XLOG(DBG3)
           << "The current controller has got control over PCA9541 bus now";
       return true;
     }
@@ -173,7 +173,7 @@ bool PCA9541::getBusControl() {
   // If the bus control is obtained by current controller then return true
   // from here otherwise retry again till the retry limit is reached
   if (isBusControlOk()) {
-    XLOG(DBG0) << "The current controller has got control over PCA9541 bus now";
+    XLOG(DBG3) << "The current controller has got control over PCA9541 bus now";
     return true;
   }
 
