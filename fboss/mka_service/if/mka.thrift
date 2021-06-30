@@ -117,6 +117,22 @@ struct MacsecFlowStats {
   20: i64 overrunPkts
 }
 
+struct MacsecSaStats {
+  1: bool directionIngress
+  2: i64 octetsEncrypted
+  3: i64 octetsProtected
+  4: i64 outEncryptedPkts
+  5: i64 outProtectedPkts
+  6: i64 inUncheckedPkts
+  7: i64 inDelayedPkts
+  8: i64 inLatePkts
+  9: i64 inInvalidPkts
+  10: i64 inNotValidPkts
+  11: i64 inNoSaPkts
+  12: i64 inUnusedSaPkts
+  13: i64 inOkPkts
+}
+
 enum MKAErrorLogType {
   INTERNAL_ERROR = 0,
   MKA_PARTICIPANT_ERROR = 1,
