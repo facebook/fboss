@@ -33,6 +33,7 @@ DEFINE_bool(get_port_stats, false, "Get Port stats, use with --port --ingress/--
 DEFINE_bool(ingress, false, "Ingress direction for port/SA/Flow stats");
 DEFINE_bool(egress, false, "Egress direction for port/SA/Flow stats");
 DEFINE_bool(get_flow_stats, false, "Get flow stats, use with --port --ingress/--egress");
+DEFINE_bool(get_sa_stats, false, "Get SA stats, use with --port --ingress/--egress");
 
 /*
  * getMacsecSaFromJson()
@@ -409,6 +410,40 @@ void getFlowStats(QsfpServiceAsyncClient* fbMacsecHandler) {
     }
 }
 
+void getSaStats(QsfpServiceAsyncClient* fbMacsecHandler) {
+    if (FLAGS_port == "") {
+        printf("Port name is required\n");
+        return;
+    }
+    if ((!FLAGS_ingress && !FLAGS_egress) || (FLAGS_ingress && FLAGS_egress)) {
+        printf("One direction (--ingress or --egress) is required\n");
+        return;
+    }
+
+    MacsecSaStats saStats;
+    fbMacsecHandler->sync_macsecGetSaStats(saStats, FLAGS_port, FLAGS_ingress);
+
+    printf("Printing stats for %s\n", FLAGS_port.c_str());
+    printf("Direction: %s\n", FLAGS_ingress ? "ingress" : "egress");
+    printf("  SA direction: %s\n", *saStats.directionIngress_ref() ? "Ingress" : "Egress");
+    printf("  OctetsEncrypted: %ld\n", *saStats.octetsEncrypted_ref());
+    printf("  OctetsProtected: %ld\n", *saStats.octetsProtected_ref());
+
+    if (*saStats.directionIngress_ref()) {
+        printf("  InUncheckedPacktes: %ld\n", *saStats.inUncheckedPkts_ref());
+        printf("  InDelayedPacktes: %ld\n", *saStats.inDelayedPkts_ref());
+        printf("  InLatePacktes: %ld\n", *saStats.inLatePkts_ref());
+        printf("  InInvalidPacktes: %ld\n", *saStats.inInvalidPkts_ref());
+        printf("  InNotValidPacktes: %ld\n", *saStats.inNotValidPkts_ref());
+        printf("  InNoSaPacktes: %ld\n", *saStats.inNoSaPkts_ref());
+        printf("  InUnusedSaPacktes: %ld\n", *saStats.inUnusedSaPkts_ref());
+        printf("  InOkPacktes: %ld\n", *saStats.inOkPkts_ref());
+    } else {
+        printf("  OutEncryptedPacktes: %ld\n", *saStats.outEncryptedPkts_ref());
+        printf("  OutProtectedPacktes: %ld\n", *saStats.outProtectedPkts_ref());
+    }
+}
+
 int main(int argc, char* argv[]) {
   folly::init(&argc, &argv, true);
   gflags::SetCommandLineOptionWithMode(
@@ -456,6 +491,10 @@ int main(int argc, char* argv[]) {
   }
   if (FLAGS_get_flow_stats) {
       getFlowStats(client.get());
+      return 0;
+  }
+  if (FLAGS_get_sa_stats) {
+      getSaStats(client.get());
       return 0;
   }
 
