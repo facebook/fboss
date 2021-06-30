@@ -8,4 +8,6 @@ namespace facebook::fboss {
 
 bool removeFile(const std::string& filename);
 
+int createFile(const std::string& filename);
+
 } // namespace facebook::fboss
