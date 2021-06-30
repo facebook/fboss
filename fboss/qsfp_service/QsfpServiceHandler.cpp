@@ -286,6 +286,14 @@ folly::coro::Task<bool> QsfpServiceHandler::co_deleteAllSc(
   validateHandler();
   co_return macsecHandler_->deleteAllSc(*portName);
 }
+
+folly::coro::Task<std::unique_ptr<mka::MacsecAllScInfo>>
+QsfpServiceHandler::co_macsecGetAllScInfo(
+    std::unique_ptr<std::string> portName) {
+  validateHandler();
+  co_return std::make_unique<mka::MacsecAllScInfo>(
+      macsecHandler_->macsecGetAllScInfo(*portName));
+}
 #endif
 
 } // namespace fboss

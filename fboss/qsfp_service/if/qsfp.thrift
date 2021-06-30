@@ -116,4 +116,8 @@ service QsfpService extends fb303.FacebookService {
   bool deleteAllSc(
     1: string portName
   ) throws (1: fboss.FbossBaseError error) (cpp.coroutine)
+
+  mka.MacsecAllScInfo macsecGetAllScInfo(
+    1: string portName
+  ) throws (1: fboss.FbossBaseError error) (cpp.coroutine)
 }

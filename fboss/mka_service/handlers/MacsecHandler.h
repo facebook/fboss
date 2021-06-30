@@ -62,6 +62,14 @@ class MacsecHandler {
     return true;
   }
 
+  /*
+   * Get the list of all SC SA on a phy
+   */
+  virtual MacsecAllScInfo
+  macsecGetAllScInfo(const std::string& /* portName */) {
+    return MacsecAllScInfo{};
+  }
+
  private:
   MacsecHandler(const MacsecHandler&) = delete;
   MacsecHandler& operator=(const MacsecHandler&) = delete;

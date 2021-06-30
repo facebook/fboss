@@ -70,6 +70,24 @@ struct MacsecPortPhyMap {
   1: map<i32, MacsecPortPhyInfo> macsecPortPhyMap;
 }
 
+struct MacsecScInfo {
+  1: i32 scId
+  2: i32 flowId
+  3: i32 aclId
+  4: bool directionIngress
+  5: list<i32> saList
+}
+
+struct MacsecPortInfo {
+  1: i32 ingressPort
+  2: i32 egressPort
+}
+
+struct MacsecAllScInfo {
+  1: list<MacsecScInfo> scList
+  2: map<i32, MacsecPortInfo> linePortInfo
+}
+
 enum MKAErrorLogType {
   INTERNAL_ERROR = 0,
   MKA_PARTICIPANT_ERROR = 1,
