@@ -139,11 +139,20 @@ struct PhyIDInfo {
 
 class ExternalPhy {
  public:
+  enum class Feature {
+    LOOPBACK,
+    PRBS,
+    PRBS_STATS,
+    MACSEC,
+  };
+
   virtual ~ExternalPhy() {}
 
   virtual PhyFwVersion fwVersion() = 0;
 
   virtual void programOnePort(PhyPortConfig config) = 0;
+
+  virtual bool isSupported(Feature feature) const = 0;
 
   virtual bool legalOnePortConfig(const PhyPortConfig& /* config */) {
     // optionally overridable by subclasses
