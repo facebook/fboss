@@ -120,4 +120,9 @@ service QsfpService extends fb303.FacebookService {
   mka.MacsecAllScInfo macsecGetAllScInfo(
     1: string portName
   ) throws (1: fboss.FbossBaseError error) (cpp.coroutine)
+
+  mka.MacsecPortStats macsecGetPortStats(
+    1: string portName
+    2: bool directionIngress
+  ) throws (1: fboss.FbossBaseError error) (cpp.coroutine)
 }

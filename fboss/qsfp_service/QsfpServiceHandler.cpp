@@ -294,6 +294,15 @@ QsfpServiceHandler::co_macsecGetAllScInfo(
   co_return std::make_unique<mka::MacsecAllScInfo>(
       macsecHandler_->macsecGetAllScInfo(*portName));
 }
+
+folly::coro::Task<std::unique_ptr<mka::MacsecPortStats>>
+QsfpServiceHandler::co_macsecGetPortStats(
+    std::unique_ptr<std::string> portName,
+    bool directionIngress) {
+  validateHandler();
+  co_return std::make_unique<mka::MacsecPortStats>(
+      macsecHandler_->macsecGetPortStats(*portName, directionIngress));
+}
 #endif
 
 } // namespace fboss

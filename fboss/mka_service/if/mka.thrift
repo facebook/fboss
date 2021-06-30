@@ -88,6 +88,12 @@ struct MacsecAllScInfo {
   2: map<i32, MacsecPortInfo> linePortInfo
 }
 
+struct MacsecPortStats {
+  1: i64 preMacsecDropPkts
+  2: i64 controlPkts
+  3: i64 dataPkts
+}
+
 enum MKAErrorLogType {
   INTERNAL_ERROR = 0,
   MKA_PARTICIPANT_ERROR = 1,
