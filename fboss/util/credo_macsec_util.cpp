@@ -28,6 +28,7 @@ DEFINE_string(port, "", "Switch port");
 DEFINE_bool(delete_sa_rx, false, "Delete SA rx, use with --sa_config, --sc_config");
 DEFINE_bool(delete_sa_tx, false, "Delete SA tx, use with --sa_config");
 DEFINE_bool(delete_all_sc, false, "Delete all SA, SC on a Phy, use with --port");
+DEFINE_bool(get_all_sc_info, false, "Get all SC, SA info for a Phy, use with --port");
 
 /*
  * getMacsecSaFromJson()
@@ -317,6 +318,33 @@ void printPhyLinkInfo(QsfpServiceAsyncClient* fbMacsecHandler) {
         (apache::thrift::util::enumNameSafe(phyLink)).c_str());
 }
 
+void getAllScInfo(QsfpServiceAsyncClient* fbMacsecHandler) {
+    if (FLAGS_port == "") {
+        printf("Port name is required\n");
+        return;
+    }
+
+    MacsecAllScInfo allScInfo;
+    fbMacsecHandler->sync_macsecGetAllScInfo(allScInfo, FLAGS_port);
+
+    printf("Printing all SC info for %s\n", FLAGS_port.c_str());
+    for (auto sc : *allScInfo.scList_ref()) {
+        printf("SC: %d\n", *sc.scId_ref());
+        printf("Flow: %d\n", *sc.flowId_ref());
+        printf("Acl: %d\n", *sc.aclId_ref());
+        printf("Direction: %s\n", *sc.directionIngress_ref() ? "Ingress" : "egress");
+        for (auto sa : *sc.saList_ref()) {
+            printf("    SA: %d\n", sa);
+        }
+    }
+    printf("Printing all Macsec port:\n");
+    for (auto it : *allScInfo.linePortInfo_ref()) {
+        printf("Lineport: %d\n", it.first);
+        printf("  Macsec Ingress Port: %d\n", *it.second.ingressPort_ref());
+        printf("  Macsec Egress Port: %d\n", *it.second.egressPort_ref());
+    }
+}
+
 int main(int argc, char* argv[]) {
   folly::init(&argc, &argv, true);
   gflags::SetCommandLineOptionWithMode(
@@ -352,6 +380,10 @@ int main(int argc, char* argv[]) {
   }
   if (FLAGS_phy_link_info) {
       printPhyLinkInfo(client.get());
+      return 0;
+  }
+  if (FLAGS_get_all_sc_info) {
+      getAllScInfo(client.get());
       return 0;
   }
 
