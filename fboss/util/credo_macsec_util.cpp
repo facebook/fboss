@@ -32,6 +32,7 @@ DEFINE_bool(get_all_sc_info, false, "Get all SC, SA info for a Phy, use with --p
 DEFINE_bool(get_port_stats, false, "Get Port stats, use with --port --ingress/--egress");
 DEFINE_bool(ingress, false, "Ingress direction for port/SA/Flow stats");
 DEFINE_bool(egress, false, "Egress direction for port/SA/Flow stats");
+DEFINE_bool(get_flow_stats, false, "Get flow stats, use with --port --ingress/--egress");
 
 /*
  * getMacsecSaFromJson()
@@ -368,6 +369,46 @@ void getPortStats(QsfpServiceAsyncClient* fbMacsecHandler) {
     printf("  DataPackets: %ld\n", *portStats.dataPkts_ref());
 }
 
+void getFlowStats(QsfpServiceAsyncClient* fbMacsecHandler) {
+    if (FLAGS_port == "") {
+        printf("Port name is required\n");
+        return;
+    }
+    if ((!FLAGS_ingress && !FLAGS_egress) || (FLAGS_ingress && FLAGS_egress)) {
+        printf("One direction (--ingress or --egress) is required\n");
+        return;
+    }
+
+    MacsecFlowStats flowStats;
+    fbMacsecHandler->sync_macsecGetFlowStats(flowStats, FLAGS_port, FLAGS_ingress);
+
+    printf("Printing stats for %s\n", FLAGS_port.c_str());
+    printf("Direction: %s\n", FLAGS_ingress ? "ingress" : "egress");
+    printf("  Flow direction: %s\n", *flowStats.directionIngress_ref() ? "Ingress" : "Egress");
+    printf("  UnicastControlledPackets: %ld\n", *flowStats.ucastUncontrolledPkts_ref());
+    printf("  UnicastControlledPackets: %ld\n", *flowStats.ucastControlledPkts_ref());
+    printf("  MulticastUncontrolledPackets: %ld\n", *flowStats.mcastUncontrolledPkts_ref());
+    printf("  MulticastControlledPackets: %ld\n", *flowStats.mcastControlledPkts_ref());
+    printf("  BroadcastUncontrolledPackets: %ld\n", *flowStats.bcastUncontrolledPkts_ref());
+    printf("  BroadcastControlledPackets: %ld\n", *flowStats.bcastControlledPkts_ref());
+    printf("  ControlPackets: %ld\n", *flowStats.controlPkts_ref());
+    printf("  UntaggedPackets: %ld\n", *flowStats.untaggedPkts_ref());
+    printf("  OtherErroredPackets: %ld\n", *flowStats.otherErrPkts_ref());
+    printf("  OctetsUncontrolled: %ld\n", *flowStats.octetsUncontrolled_ref());
+    printf("  OctetsControlled: %ld\n", *flowStats.octetsControlled_ref());
+    if (*flowStats.directionIngress_ref()) {
+        printf("  InTaggedControlledPackets: %ld\n", *flowStats.inTaggedControlledPkts_ref());
+        printf("  InUntaggedPackets: %ld\n", *flowStats.inUntaggedPkts_ref());
+        printf("  InBadTagPackets: %ld\n", *flowStats.inBadTagPkts_ref());
+        printf("  NoSciPackets: %ld\n", *flowStats.noSciPkts_ref());
+        printf("  UnknownSciPackets: %ld\n", *flowStats.unknownSciPkts_ref());
+        printf("  OverrunPkts: %ld\n", *flowStats.overrunPkts_ref());
+    } else {
+        printf("  OutCommonOctets: %ld\n", *flowStats.outCommonOctets_ref());
+        printf("  OutTooLongPackets: %ld\n", *flowStats.outTooLongPkts_ref());
+    }
+}
+
 int main(int argc, char* argv[]) {
   folly::init(&argc, &argv, true);
   gflags::SetCommandLineOptionWithMode(
@@ -411,6 +452,10 @@ int main(int argc, char* argv[]) {
   }
   if (FLAGS_get_port_stats) {
       getPortStats(client.get());
+      return 0;
+  }
+  if (FLAGS_get_flow_stats) {
+      getFlowStats(client.get());
       return 0;
   }
 
