@@ -151,19 +151,4 @@ PortOperState SaiPhyManager::macsecGetPhyLinkInfo(PortID swPort) {
                                                      : PortOperState::DOWN;
 }
 
-// Any xphy port on Elbert supports macsec
-std::vector<PortID> SaiPhyManager::getMacsecCapablePorts() {
-  std::vector<PortID> ports;
-  auto platPorts = getPlatformMapping()->getPlatformPorts();
-  const auto& chips = getPlatformMapping()->getChips();
-  for (const auto& port : platPorts) {
-    const auto& xphy = utility::getDataPlanePhyChips(
-        port.second, chips, phy::DataPlanePhyChipType::XPHY);
-    if (!xphy.empty()) {
-      ports.emplace_back(port.first);
-    }
-  }
-  return ports;
-}
-
 } // namespace facebook::fboss

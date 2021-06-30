@@ -89,8 +89,6 @@ class PhyManager {
     throw FbossError("Attempted to call sakInstallRx from non-SaiPhyManager");
   }
 
-  virtual std::vector<PortID> getMacsecCapablePorts() = 0;
-
   folly::EventBase* getPimEventBase(PimID pimID) const;
 
  protected:

@@ -46,7 +46,6 @@ class SaiPhyManager : public PhyManager {
   void initializeSlotPhysImpl(PimID pimID);
 
   PortOperState macsecGetPhyLinkInfo(PortID swPort);
-  std::vector<PortID> getMacsecCapablePorts() override;
 
  protected:
   void addSaiPlatform(
