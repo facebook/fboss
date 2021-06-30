@@ -94,6 +94,29 @@ struct MacsecPortStats {
   3: i64 dataPkts
 }
 
+struct MacsecFlowStats {
+  1: bool directionIngress
+  2: i64 ucastUncontrolledPkts
+  3: i64 ucastControlledPkts
+  4: i64 mcastUncontrolledPkts
+  5: i64 mcastControlledPkts
+  6: i64 bcastUncontrolledPkts
+  7: i64 bcastControlledPkts
+  8: i64 controlPkts
+  9: i64 untaggedPkts
+  10: i64 otherErrPkts
+  11: i64 octetsUncontrolled
+  12: i64 octetsControlled
+  13: i64 outCommonOctets
+  14: i64 outTooLongPkts
+  15: i64 inTaggedControlledPkts
+  16: i64 inUntaggedPkts
+  17: i64 inBadTagPkts
+  18: i64 noSciPkts
+  19: i64 unknownSciPkts
+  20: i64 overrunPkts
+}
+
 enum MKAErrorLogType {
   INTERNAL_ERROR = 0,
   MKA_PARTICIPANT_ERROR = 1,

@@ -79,6 +79,15 @@ class MacsecHandler {
     return MacsecPortStats{};
   }
 
+  /*
+   * Get the macsec Flow stats
+   */
+  virtual MacsecFlowStats macsecGetFlowStats(
+    const std::string& /* portName */,
+    bool /* directionIngress */) {
+    return MacsecFlowStats{};
+  }
+
  private:
   MacsecHandler(const MacsecHandler&) = delete;
   MacsecHandler& operator=(const MacsecHandler&) = delete;

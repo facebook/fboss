@@ -122,6 +122,11 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
   co_macsecGetPortStats(
       std::unique_ptr<std::string> portName,
       bool directionIngress) override;
+
+  folly::coro::Task<std::unique_ptr<mka::MacsecFlowStats>>
+  co_macsecGetFlowStats(
+      std::unique_ptr<std::string> portName,
+      bool directionIngress) override;
 #endif
 
  private:

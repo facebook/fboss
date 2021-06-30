@@ -303,6 +303,15 @@ QsfpServiceHandler::co_macsecGetPortStats(
   co_return std::make_unique<mka::MacsecPortStats>(
       macsecHandler_->macsecGetPortStats(*portName, directionIngress));
 }
+
+folly::coro::Task<std::unique_ptr<mka::MacsecFlowStats>>
+QsfpServiceHandler::co_macsecGetFlowStats(
+    std::unique_ptr<std::string> portName,
+    bool directionIngress) {
+  validateHandler();
+  co_return std::make_unique<mka::MacsecFlowStats>(
+      macsecHandler_->macsecGetFlowStats(*portName, directionIngress));
+}
 #endif
 
 } // namespace fboss
