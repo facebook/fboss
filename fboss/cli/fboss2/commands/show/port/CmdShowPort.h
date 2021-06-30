@@ -13,6 +13,7 @@
 #include "fboss/cli/fboss2/CmdHandler.h"
 
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
+#include "fboss/cli/fboss2/commands/show/port/gen-cpp2/model_types.h"
 
 #include <unistd.h>
 
@@ -22,7 +23,7 @@ struct CmdShowPortTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
   using ObjectArgType = std::vector<std::string>;
-  using RetType = std::map<int32_t, facebook::fboss::PortInfoThrift>;
+  using RetType = cli::ShowPortModel;
 };
 
 class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
@@ -33,30 +34,17 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
   RetType queryClient(
       const folly::IPAddress& hostIp,
       const ObjectArgType& queriedPorts) {
-    RetType portEntries;
+    std::map<int32_t, facebook::fboss::PortInfoThrift> entries;
 
     auto client = utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(
         hostIp.str());
 
-    client->sync_getAllPortInfo(portEntries);
+    client->sync_getAllPortInfo(entries);
 
-    if (queriedPorts.size() == 0) {
-      return portEntries;
-    }
-
-    RetType retVal;
-    for (auto const&[portId, portInfo] : portEntries) {
-      for (auto const& queriedPort : queriedPorts) {
-        if (portInfo.get_name() == queriedPort) {
-          retVal.insert(std::make_pair(portId, portInfo));
-        }
-      }
-    }
-
-    return retVal;
+    return createModel(entries, queriedPorts);
   }
 
-  void printOutput(const RetType& portId2PortInfoThrift) {
+  void printOutput(const RetType& model) {
     std::string fmtString = "{:<7}{:<15}{:<15}{:<15}{:<10}{:<20}\n";
 
     std::cout << fmt::format(
@@ -73,15 +61,14 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
     // by multiple subcommands
     // explore if fmt library offers simpler way to nest coloring with
     // indented formatting.
-    for (auto const&[portId, portInfo] : portId2PortInfoThrift) {
-      std::ignore = portId;
-      auto [operState, operColor] = getOperStateStr(portInfo.get_operState());
+    for (auto const& portInfo : model.get_portEntries()) {
+      auto [operState, operColor] = getOperStateColor(portInfo.get_operState());
 
       fmt::print(
           "{:<7}{:<15}{:<15}",
-          portInfo.get_portId(),
+          portInfo.get_id(),
           portInfo.get_name(),
-          getAdminStateStr(portInfo.get_adminState()));
+          portInfo.get_adminState());
 
       if ((CmdGlobalOptions::getInstance()->getColor() == "yes") &&
           isatty(fileno(stdout))) {
@@ -92,8 +79,8 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
 
       fmt::print(
           "{:<10}{:<20}\n",
-          getSpeedGbps(portInfo.get_speedMbps()),
-          portInfo.get_profileID());
+          portInfo.get_speed(),
+          portInfo.get_profileId());
     }
   }
 
@@ -110,13 +97,14 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
         std::to_string(static_cast<int>(adminState)));
   }
 
-  std::pair<std::string, fmt::color> getOperStateStr(
+
+  std::string getOperStateStr(
       PortOperState operState) {
     switch (operState) {
       case PortOperState::DOWN:
-        return std::make_pair("Down", fmt::color::red);
+        return "Down";
       case PortOperState::UP:
-        return std::make_pair("Up", fmt::color::green);
+        return "Up";
     }
 
     throw std::runtime_error(
@@ -124,8 +112,43 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
         std::to_string(static_cast<int>(operState)));
   }
 
+  std::pair<std::string, fmt::color> getOperStateColor(
+      std::string operState) {
+    if (operState == "Down") {
+        return std::make_pair("Down", fmt::color::red);
+    } else {
+        return std::make_pair("Up", fmt::color::green);
+    }
+  }
+
   std::string getSpeedGbps(int64_t speedMbps) {
     return std::to_string(speedMbps / 1000) + "G";
+  }
+
+  RetType createModel(
+    std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries,
+    const ObjectArgType& queriedPorts
+  ) {
+    RetType model;
+    std::unordered_set<std::string> queriedSet(queriedPorts.begin(), queriedPorts.end());
+
+    for (const auto& entry : portEntries) {
+      auto portInfo = entry.second;
+      auto portName = portInfo.get_name();
+
+      if (queriedPorts.size() == 0 || queriedSet.count(portName)) {
+        cli::PortEntry portDetails;
+        portDetails.id_ref() = portInfo.get_portId();
+        portDetails.name_ref() = portInfo.get_name();
+        portDetails.adminState_ref() = getAdminStateStr(portInfo.get_adminState());
+        portDetails.operState_ref() = getOperStateStr(portInfo.get_operState());
+        portDetails.speed_ref() = getSpeedGbps(portInfo.get_speedMbps());
+        portDetails.profileId_ref() = portInfo.get_profileID();
+
+        model.portEntries_ref()->push_back(portDetails);
+      }
+    }
+    return model;
   }
 };
 
