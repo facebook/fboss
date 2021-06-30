@@ -7,16 +7,13 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include <fboss/mka_service/if/gen-cpp2/mka_types.h>
-#include <thrift/lib/cpp/util/EnumUtils.h>
-#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
-#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+#include "fboss/qsfp_service/test/hw_test/HwTest.h"
+
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/lib/phy/PhyManager.h"
-#include "fboss/lib/phy/facebook/credo/elbert/ElbertPhyManager.h"
+#include "fboss/mka_service/if/gen-cpp2/mka_types.h"
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
-#include "fboss/qsfp_service/test/hw_test/HwTest.h"
 #include "fboss/qsfp_service/util/MacsecUtils.h"
 
 namespace {
@@ -27,39 +24,30 @@ auto kPortProfile =
 namespace facebook::fboss {
 class HwMacsecTest : public HwTest {
  public:
-  void setupPort(PortID port) {
-    XLOG(INFO) << "setupPort: programming port " << port;
-    const auto& platformPorts =
-        getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
-    auto iter = platformPorts.find(port);
-    CHECK(iter != platformPorts.end());
-    getHwQsfpEnsemble()->getWedgeManager()->programXphyPort(port, kPortProfile);
+  std::vector<std::pair<PortID, cfg::PortProfileID>> findAvailablePorts() {
+    auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
+    const auto& ports =
+        utility::findAvailablePorts(getHwQsfpEnsemble(), kPortProfile);
+    std::vector<std::pair<PortID, cfg::PortProfileID>> macsecSupportedPorts;
+    // Check whether the ExternalPhy of such xphy port support macsec feature
+    for (auto port : ports.xphyPorts) {
+      auto* xphy = phyManager->getExternalPhy(port);
+      if (xphy->isSupported(phy::ExternalPhy::Feature::MACSEC)) {
+        macsecSupportedPorts.push_back(std::make_pair(port, kPortProfile));
+      }
+    }
+    CHECK(!macsecSupportedPorts.empty())
+        << "Can't find Macsec-enabled xphy ports";
+    return macsecSupportedPorts;
   }
 };
 
 TEST_F(HwMacsecTest, installKeys) {
-  auto phyManager = getHwQsfpEnsemble()->getPhyManager();
-  auto ports = utility::findAvailablePorts(getHwQsfpEnsemble(), kPortProfile);
-  auto macsecPorts = phyManager->getMacsecCapablePorts();
-  std::vector<PortID> testPorts;
-
-  // intersect xphyPorts & macsecPorts
-  std::sort(ports.xphyPorts.begin(), ports.xphyPorts.end());
-  std::sort(macsecPorts.begin(), macsecPorts.end());
-  std::set_intersection(
-      ports.xphyPorts.begin(),
-      ports.xphyPorts.end(),
-      macsecPorts.begin(),
-      macsecPorts.end(),
-      back_inserter(testPorts));
-
-  ASSERT_GE(testPorts.size(), 0)
-      << "Macsec-enabled xphy ports found supporting the profile "
-      << apache::thrift::util::enumNameSafe(kPortProfile) << ". Skipping test.";
-
-  auto platPorts =
+  auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+  auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
+  const auto& platPorts =
       getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
-  for (const auto& port : testPorts) {
+  for (const auto& [port, profile] : findAvailablePorts()) {
     auto platPort = platPorts.find(port);
     CHECK(platPort != platPorts.end())
         << " Could not find platform port with ID " << port;
@@ -77,7 +65,7 @@ TEST_F(HwMacsecTest, installKeys) {
         "16151413121110090807060504030201",
         "0102030405060708",
         0);
-    setupPort(port);
+    wedgeManager->programXphyPort(port, profile);
 
     XLOG(INFO) << "installKeys: Installing Macsec TX for port " << port;
     phyManager->sakInstallTx(txSak);
