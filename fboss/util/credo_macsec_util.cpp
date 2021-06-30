@@ -29,6 +29,9 @@ DEFINE_bool(delete_sa_rx, false, "Delete SA rx, use with --sa_config, --sc_confi
 DEFINE_bool(delete_sa_tx, false, "Delete SA tx, use with --sa_config");
 DEFINE_bool(delete_all_sc, false, "Delete all SA, SC on a Phy, use with --port");
 DEFINE_bool(get_all_sc_info, false, "Get all SC, SA info for a Phy, use with --port");
+DEFINE_bool(get_port_stats, false, "Get Port stats, use with --port --ingress/--egress");
+DEFINE_bool(ingress, false, "Ingress direction for port/SA/Flow stats");
+DEFINE_bool(egress, false, "Egress direction for port/SA/Flow stats");
 
 /*
  * getMacsecSaFromJson()
@@ -345,6 +348,26 @@ void getAllScInfo(QsfpServiceAsyncClient* fbMacsecHandler) {
     }
 }
 
+void getPortStats(QsfpServiceAsyncClient* fbMacsecHandler) {
+    if (FLAGS_port == "") {
+        printf("Port name is required\n");
+        return;
+    }
+    if (!(FLAGS_ingress ^ FLAGS_egress)) {
+        printf("One direction (--ingress or --egress) is required\n");
+        return;
+    }
+
+    MacsecPortStats portStats;
+    fbMacsecHandler->sync_macsecGetPortStats(portStats, FLAGS_port, FLAGS_ingress);
+
+    printf("Printing stats for %s\n", FLAGS_port.c_str());
+    printf("Direction: %s\n", FLAGS_ingress ? "ingress" : "egress");
+    printf("  PreMacsecDropPackets: %ld\n", *portStats.preMacsecDropPkts_ref());
+    printf("  ControlPackets: %ld\n", *portStats.controlPkts_ref());
+    printf("  DataPackets: %ld\n", *portStats.dataPkts_ref());
+}
+
 int main(int argc, char* argv[]) {
   folly::init(&argc, &argv, true);
   gflags::SetCommandLineOptionWithMode(
@@ -384,6 +407,10 @@ int main(int argc, char* argv[]) {
   }
   if (FLAGS_get_all_sc_info) {
       getAllScInfo(client.get());
+      return 0;
+  }
+  if (FLAGS_get_port_stats) {
+      getPortStats(client.get());
       return 0;
   }
 
