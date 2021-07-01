@@ -23,7 +23,13 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
   cfg::SwitchConfig initialConfig() const override {
     auto cfg =
         utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
-    utility::addOlympicQosMaps(cfg);
+    if (isSupported(HwAsic::Feature::L3_QOS)) {
+      auto streamType =
+          *(getPlatform()->getAsic()->getQueueStreamTypes(false).begin());
+      utility::addOlympicQueueConfig(
+          &cfg, streamType, getPlatform()->getAsic());
+      utility::addOlympicQosMaps(cfg);
+    }
     return cfg;
   }
 
