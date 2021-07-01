@@ -59,16 +59,13 @@ IpPrefix ipPrefix(const folly::CIDRNetwork& nw) {
 }
 } // unnamed namespace
 
-template <typename StandaloneRib>
 class ThriftTest : public ::testing::Test {
  public:
-  static constexpr auto hasStandAloneRib = StandaloneRib::hasStandAloneRib;
+  static constexpr auto hasStandAloneRib = true;
 
   void SetUp() override {
     auto config = testConfigA();
-    auto flags = hasStandAloneRib ? SwitchFlags::ENABLE_STANDALONE_RIB
-                                  : SwitchFlags::DEFAULT;
-    handle_ = createTestHandle(&config, flags);
+    handle_ = createTestHandle(&config, SwitchFlags::ENABLE_STANDALONE_RIB);
     sw_ = handle_->getSw();
     sw_->initialConfigApplied(std::chrono::steady_clock::now());
   }
@@ -76,10 +73,7 @@ class ThriftTest : public ::testing::Test {
   std::unique_ptr<HwTestHandle> handle_;
 };
 
-using ThriftTestTypes = ::testing::Types<NoRib, Rib>;
-TYPED_TEST_CASE(ThriftTest, ThriftTestTypes);
-
-TYPED_TEST(ThriftTest, getInterfaceDetail) {
+TEST_F(ThriftTest, getInterfaceDetail) {
   ThriftHandler handler(this->sw_);
 
   // Query the two interfaces configured by testStateA()
@@ -117,7 +111,7 @@ TYPED_TEST(ThriftTest, getInterfaceDetail) {
   EXPECT_THROW(handler.getInterfaceDetail(info, 123), FbossError);
 }
 
-TYPED_TEST(ThriftTest, listHwObjects) {
+TEST_F(ThriftTest, listHwObjects) {
   ThriftHandler handler(this->sw_);
   std::string out;
   std::vector<HwObjectType> in{HwObjectType::PORT};
@@ -126,7 +120,7 @@ TYPED_TEST(ThriftTest, listHwObjects) {
       out, std::make_unique<std::vector<HwObjectType>>(in), false);
 }
 
-TYPED_TEST(ThriftTest, getHwDebugDump) {
+TEST_F(ThriftTest, getHwDebugDump) {
   ThriftHandler handler(this->sw_);
   std::string out;
   EXPECT_HW_CALL(this->sw_, dumpDebugState(testing::_)).Times(1);
@@ -172,7 +166,7 @@ TEST(ThriftEnum, assertPortSpeeds) {
   }
 }
 
-TYPED_TEST(ThriftTest, LinkLocalRoutes) {
+TEST_F(ThriftTest, LinkLocalRoutes) {
   // Link local addr.
   auto ip = IPAddressV6("fe80::");
   // Find longest match to link local addr.
@@ -185,7 +179,7 @@ TYPED_TEST(ThriftTest, LinkLocalRoutes) {
   ASSERT_EQ(longestMatchRoute->prefix().network, ip);
 }
 
-TYPED_TEST(ThriftTest, flushNonExistentNeighbor) {
+TEST_F(ThriftTest, flushNonExistentNeighbor) {
   ThriftHandler handler(this->sw_);
   EXPECT_EQ(
       handler.flushNeighborEntry(
@@ -201,7 +195,7 @@ TYPED_TEST(ThriftTest, flushNonExistentNeighbor) {
       0);
 }
 
-TYPED_TEST(ThriftTest, setPortState) {
+TEST_F(ThriftTest, setPortState) {
   const PortID port1{1};
   ThriftHandler handler(this->sw_);
   handler.setPortState(port1, true);
@@ -237,13 +231,13 @@ std::unique_ptr<UnicastRoute> makeUnicastRoute(
 }
 
 // Test for the ThriftHandler::syncFib method
-TYPED_TEST(ThriftTest, multipleClientSyncFib) {
+TEST_F(ThriftTest, multipleClientSyncFib) {
   RouterID rid = RouterID(0);
 
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
   ThriftHandler handler(this->sw_);
 
-  auto hasStandAloneRib = TypeParam::hasStandAloneRib;
+  auto hasStandAloneRib = true;
   auto kIntf1 = InterfaceID(1);
 
   // Two clients - BGP and OPENR
@@ -354,7 +348,7 @@ TYPED_TEST(ThriftTest, multipleClientSyncFib) {
 }
 
 // Test for the ThriftHandler::syncFib method
-TYPED_TEST(ThriftTest, syncFib) {
+TEST_F(ThriftTest, syncFib) {
   RouterID rid = RouterID(0);
 
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
@@ -411,7 +405,7 @@ TYPED_TEST(ThriftTest, syncFib) {
   //
 
   // Make sure all the static and link-local routes are there
-  auto hasStandAloneRib = TypeParam::hasStandAloneRib;
+  auto hasStandAloneRib = true;
   auto ensureConfigRoutes = [this, hasStandAloneRib, rid]() {
     auto state = this->sw_->getState();
     EXPECT_NE(
@@ -580,7 +574,7 @@ TYPED_TEST(ThriftTest, syncFib) {
 // This test is a replica of syncFib test from above, except that
 // when adding, deleting routes for a client it uses add, del
 // UnicastRoute APIs instead of syncFib
-TYPED_TEST(ThriftTest, addDelUnicastRoutes) {
+TEST_F(ThriftTest, addDelUnicastRoutes) {
   RouterID rid = RouterID(0);
 
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
@@ -637,7 +631,7 @@ TYPED_TEST(ThriftTest, addDelUnicastRoutes) {
   //
 
   // Make sure all the static and link-local routes are there
-  auto hasStandAloneRib = TypeParam::hasStandAloneRib;
+  auto hasStandAloneRib = true;
   auto ensureConfigRoutes = [this, hasStandAloneRib, rid]() {
     auto state = this->sw_->getState();
     EXPECT_NE(
@@ -808,7 +802,7 @@ TYPED_TEST(ThriftTest, addDelUnicastRoutes) {
   }
 }
 
-TYPED_TEST(ThriftTest, delUnicastRoutes) {
+TEST_F(ThriftTest, delUnicastRoutes) {
   RouterID rid = RouterID(0);
 
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
@@ -913,7 +907,7 @@ TYPED_TEST(ThriftTest, delUnicastRoutes) {
   assertRoute(true, cli3_nhop6);
 }
 
-TYPED_TEST(ThriftTest, syncFibIsHwProtected) {
+TEST_F(ThriftTest, syncFibIsHwProtected) {
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
   ThriftHandler handler(this->sw_);
   auto addRoutes = std::make_unique<std::vector<UnicastRoute>>();
@@ -945,7 +939,7 @@ TYPED_TEST(ThriftTest, syncFibIsHwProtected) {
       FbossFibUpdateError);
 }
 
-TYPED_TEST(ThriftTest, addUnicastRoutesIsHwProtected) {
+TEST_F(ThriftTest, addUnicastRoutesIsHwProtected) {
   ThriftHandler handler(this->sw_);
   auto newRoutes = std::make_unique<std::vector<UnicastRoute>>();
   UnicastRoute nr1 = *makeUnicastRoute("aaaa::/64", "42::42").get();
@@ -968,10 +962,9 @@ TYPED_TEST(ThriftTest, addUnicastRoutesIsHwProtected) {
       FbossFibUpdateError);
 }
 
-TYPED_TEST(ThriftTest, getRouteTable) {
+TEST_F(ThriftTest, getRouteTable) {
   ThriftHandler handler(this->sw_);
-  auto [v4Routes, v6Routes] =
-      getRouteCount(TypeParam::hasStandAloneRib, this->sw_->getState());
+  auto [v4Routes, v6Routes] = getRouteCount(true, this->sw_->getState());
   std::vector<UnicastRoute> routeTable;
   handler.getRouteTable(routeTable);
   // 6 intf routes + 2 default routes + 1 link local route
@@ -979,10 +972,9 @@ TYPED_TEST(ThriftTest, getRouteTable) {
   EXPECT_EQ(9, routeTable.size());
 }
 
-TYPED_TEST(ThriftTest, getRouteDetails) {
+TEST_F(ThriftTest, getRouteDetails) {
   ThriftHandler handler(this->sw_);
-  auto [v4Routes, v6Routes] =
-      getRouteCount(TypeParam::hasStandAloneRib, this->sw_->getState());
+  auto [v4Routes, v6Routes] = getRouteCount(true, this->sw_->getState());
   std::vector<RouteDetails> routeDetails;
   handler.getRouteTableDetails(routeDetails);
   // 6 intf routes + 2 default routes + 1 link local route
@@ -990,7 +982,7 @@ TYPED_TEST(ThriftTest, getRouteDetails) {
   EXPECT_EQ(9, routeDetails.size());
 }
 
-TYPED_TEST(ThriftTest, getRouteTableByClient) {
+TEST_F(ThriftTest, getRouteTableByClient) {
   ThriftHandler handler(this->sw_);
   std::vector<UnicastRoute> routeTable;
   handler.getRouteTableByClient(
@@ -1014,7 +1006,7 @@ std::unique_ptr<MplsRoute> makeMplsRoute(
   return nr;
 }
 
-TYPED_TEST(ThriftTest, syncMplsFibIsHwProtected) {
+TEST_F(ThriftTest, syncMplsFibIsHwProtected) {
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
   ThriftHandler handler(this->sw_);
   auto newRoutes = std::make_unique<std::vector<MplsRoute>>();
@@ -1036,7 +1028,7 @@ TYPED_TEST(ThriftTest, syncMplsFibIsHwProtected) {
       FbossFibUpdateError);
 }
 
-TYPED_TEST(ThriftTest, addMplsRoutesIsHwProtected) {
+TEST_F(ThriftTest, addMplsRoutesIsHwProtected) {
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
   ThriftHandler handler(this->sw_);
   auto newRoutes = std::make_unique<std::vector<MplsRoute>>();
@@ -1058,7 +1050,7 @@ TYPED_TEST(ThriftTest, addMplsRoutesIsHwProtected) {
       FbossFibUpdateError);
 }
 
-TYPED_TEST(ThriftTest, hwUpdateErrorAfterPartialUpdate) {
+TEST_F(ThriftTest, hwUpdateErrorAfterPartialUpdate) {
   ThriftHandler handler(this->sw_);
   std::vector<UnicastRoute>();
   UnicastRoute nr1 =
@@ -1100,7 +1092,7 @@ TYPED_TEST(ThriftTest, hwUpdateErrorAfterPartialUpdate) {
       FbossFibUpdateError);
 }
 
-TYPED_TEST(ThriftTest, routeUpdatesWithConcurrentReads) {
+TEST_F(ThriftTest, routeUpdatesWithConcurrentReads) {
   auto thriftHgridRoutes =
       utility::HgridDuRouteScaleGenerator(
           this->sw_->getState(), this->sw_->isStandaloneRibEnabled(), 100000)
