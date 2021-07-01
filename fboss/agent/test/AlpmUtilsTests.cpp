@@ -71,16 +71,12 @@ size_t getFibSize(
 }
 } // namespace
 
-template <typename StandAloneRib>
 class AlpmUtilsTest : public ::testing::Test {
  public:
-  static constexpr auto hasStandAloneRib = StandAloneRib::hasStandAloneRib;
+  static constexpr auto hasStandAloneRib = true;
 };
 
-using TestTypes = ::testing::Types<NoRib, Rib>;
-TYPED_TEST_SUITE(AlpmUtilsTest, TestTypes);
-
-TYPED_TEST(AlpmUtilsTest, DefaultNullRoutesAddedOnEmptyState) {
+TEST_F(AlpmUtilsTest, DefaultNullRoutesAddedOnEmptyState) {
   auto emptyState = std::make_shared<SwitchState>();
   auto alpmInitState =
       setupMinAlpmRouteState(this->hasStandAloneRib, emptyState);
@@ -109,7 +105,7 @@ TYPED_TEST(AlpmUtilsTest, DefaultNullRoutesAddedOnEmptyState) {
   assertNullRoute(v6Default);
 }
 
-TYPED_TEST(AlpmUtilsTest, DefaultNullRoutesNotReAdded) {
+TEST_F(AlpmUtilsTest, DefaultNullRoutesNotReAdded) {
   auto emptyState = std::make_shared<SwitchState>();
   auto alpmInitState =
       setupMinAlpmRouteState(this->hasStandAloneRib, emptyState);
@@ -124,15 +120,15 @@ TYPED_TEST(AlpmUtilsTest, DefaultNullRoutesNotReAdded) {
   EXPECT_EQ(1, v6RibSize);
 }
 
-TYPED_TEST(AlpmUtilsTest, minAlpmRouteCount) {
+TEST_F(AlpmUtilsTest, minAlpmRouteCount) {
   EXPECT_EQ(2, numMinAlpmRoutes());
 }
 
-TYPED_TEST(AlpmUtilsTest, minAlpmV4RouteCount) {
+TEST_F(AlpmUtilsTest, minAlpmV4RouteCount) {
   EXPECT_EQ(1, numMinAlpmV4Routes());
 }
 
-TYPED_TEST(AlpmUtilsTest, minAlpmV6RouteCount) {
+TEST_F(AlpmUtilsTest, minAlpmV6RouteCount) {
   EXPECT_EQ(1, numMinAlpmV6Routes());
 }
 
