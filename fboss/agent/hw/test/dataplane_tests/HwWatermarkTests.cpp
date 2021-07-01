@@ -195,6 +195,12 @@ TEST_F(HwWatermarkTest, VerifyDeviceWatermark) {
     assertDeviceWatermark(false);
     // Assert zero watermark
     assertDeviceWatermark(true, 5);
+    auto counters =
+        fb303::fbData->getSelectedCounters({"buffer_watermark_device.p100.60"});
+    EXPECT_EQ(1, counters.size());
+    // Unfortunately since  we use quantile stats, which compute
+    // a MAX over a period, we can't really assert on the exact
+    // value, just on its presence
   };
   verifyAcrossWarmBoots(setup, verify);
 }
