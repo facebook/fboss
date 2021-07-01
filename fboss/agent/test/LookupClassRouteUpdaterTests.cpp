@@ -29,22 +29,20 @@ using folly::IPAddressV6;
 
 namespace facebook::fboss {
 
-template <typename AddrTAndRib>
+template <typename AddressT>
 class LookupClassRouteUpdaterTest : public ::testing::Test {
  public:
   using Func = std::function<void()>;
   using StateUpdateFn = SwSwitch::StateUpdateFn;
-  using AddrT = typename AddrTAndRib::AddrT;
-  static constexpr auto hasStandAloneRib = AddrTAndRib::hasStandAloneRib;
+  using AddrT = AddressT;
+  static constexpr bool hasStandAloneRib = true;
 
   cfg::SwitchConfig getConfig() const {
     return testConfigAWithLookupClasses();
   }
   void SetUp() override {
     auto config = getConfig();
-    auto flags = hasStandAloneRib ? SwitchFlags::ENABLE_STANDALONE_RIB
-                                  : SwitchFlags::DEFAULT;
-    handle_ = createTestHandle(&config, flags);
+    handle_ = createTestHandle(&config, SwitchFlags::ENABLE_STANDALONE_RIB);
     sw_ = handle_->getSw();
   }
 
@@ -320,12 +318,8 @@ struct LookupClassRouteUpdaterTypeT {
   static constexpr auto hasStandAloneRib = StandAloneRib;
 };
 
-using V4NoRib = LookupClassRouteUpdaterTypeT<folly::IPAddressV4, false>;
-using V4Rib = LookupClassRouteUpdaterTypeT<folly::IPAddressV4, true>;
-using V6NoRib = LookupClassRouteUpdaterTypeT<folly::IPAddressV6, false>;
-using V6Rib = LookupClassRouteUpdaterTypeT<folly::IPAddressV6, true>;
 using TypeTypesLookupClassRouteUpdater =
-    ::testing::Types<V4NoRib, V4Rib, V6NoRib, V6Rib>;
+    ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
 
 TYPED_TEST_CASE(LookupClassRouteUpdaterTest, TypeTypesLookupClassRouteUpdater);
 
