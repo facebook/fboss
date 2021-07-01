@@ -36,16 +36,9 @@ constexpr auto kMirrorName = "mirror";
 constexpr AdminDistance DISTANCE = AdminDistance::STATIC_ROUTE;
 const PortID kMirrorEgressPort{5};
 
-template <typename AddrType, bool StandAloneRib>
-struct AddrAndRib {
-  using AddrT = AddrType;
-  static constexpr auto hasStandAloneRib = StandAloneRib;
-};
-
-template <typename AddrAndRib>
+template <typename AddressT>
 struct MirrorManagerTestParams {
-  using AddrT = typename AddrAndRib::AddrT;
-  static constexpr auto hasStandAloneRib = AddrAndRib::hasStandAloneRib;
+  using AddrT = AddressT;
 
   AddrT mirrorDestination;
   AddrT mirrorSource;
@@ -79,11 +72,10 @@ struct MirrorManagerTestParams {
   }
 };
 
-template <typename AddrAndRib>
-MirrorManagerTestParams<AddrAndRib> getParams() {
-  if constexpr (std::
-                    is_same_v<typename AddrAndRib::AddrT, folly::IPAddressV4>) {
-    return MirrorManagerTestParams<AddrAndRib>(
+template <typename AddressT>
+MirrorManagerTestParams<AddressT> getParams() {
+  if constexpr (std::is_same_v<AddressT, folly::IPAddressV4>) {
+    return MirrorManagerTestParams<AddressT>(
         IPAddressV4("10.0.10.101"),
         IPAddressV4("10.0.11.101"),
         {IPAddressV4("10.0.0.111"), IPAddressV4("10.0.55.111")},
@@ -93,7 +85,7 @@ MirrorManagerTestParams<AddrAndRib> getParams() {
         {IPAddressV4("10.0.10.100"), 31},
         {IPAddressV4("10.0.0.0"), 16});
   } else {
-    return MirrorManagerTestParams<AddrAndRib>(
+    return MirrorManagerTestParams<AddressT>(
         IPAddressV6("2401:db00:2110:10::1001"),
         IPAddressV6("2401:db00:2110:11::1001"),
         {IPAddressV6("2401:db00:2110:3001::0111"),
@@ -107,19 +99,16 @@ MirrorManagerTestParams<AddrAndRib> getParams() {
 }
 } // namespace
 
-template <typename AddrAndRib>
+template <typename AddressT>
 class MirrorManagerTest : public ::testing::Test {
  public:
   using Func = folly::Function<void()>;
   using StateUpdateFn = SwSwitch::StateUpdateFn;
-  using AddrT = typename AddrAndRib::AddrT;
-  static constexpr auto hasStandAloneRib = AddrAndRib::hasStandAloneRib;
+  using AddrT = AddressT;
 
   void SetUp() override {
     auto config = testConfigA();
-    auto flags = hasStandAloneRib ? SwitchFlags::ENABLE_STANDALONE_RIB
-                                  : SwitchFlags::DEFAULT;
-    handle_ = createTestHandle(&config, flags);
+    handle_ = createTestHandle(&config, SwitchFlags::ENABLE_STANDALONE_RIB);
     sw_ = handle_->getSw();
   }
 
@@ -256,12 +245,7 @@ class MirrorManagerTest : public ::testing::Test {
   SwSwitch* sw_;
 };
 
-using V4NoRib = AddrAndRib<folly::IPAddressV4, false>;
-using V4Rib = AddrAndRib<folly::IPAddressV4, true>;
-using V6NoRib = AddrAndRib<folly::IPAddressV6, false>;
-using V6Rib = AddrAndRib<folly::IPAddressV6, true>;
-
-using TestTypes = ::testing::Types<V4NoRib, V4Rib, V6NoRib, V6Rib>;
+using TestTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
 
 TYPED_TEST_SUITE(MirrorManagerTest, TestTypes);
 
