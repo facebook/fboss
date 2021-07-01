@@ -672,6 +672,7 @@ if (NOT SAI_ONLY)
       fboss/agent/state/AclEntry.cpp
       fboss/agent/state/AclMap.cpp
       fboss/agent/state/AclTable.cpp
+      fboss/agent/state/AclTableGroup.cpp
       fboss/agent/state/AclTableMap.cpp
       fboss/agent/state/AggregatePort.cpp
       fboss/agent/state/AggregatePortMap.cpp
