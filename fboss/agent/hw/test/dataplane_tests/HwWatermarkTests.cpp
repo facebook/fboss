@@ -8,10 +8,12 @@
  *
  */
 
+#include <fb303/ServiceData.h>
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
+#include "fboss/agent/state/Port.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include <folly/IPAddress.h>
@@ -67,8 +69,11 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
       auto queueWaterMarks = *getHwSwitchEnsemble()
                                   ->getLatestPortStats(port)
                                   .queueWatermarkBytes__ref();
-      XLOG(DBG0) << "Port: " << port << " queueId: " << queueId
+      auto portName =
+          getProgrammedState()->getPorts()->getPort(port)->getName();
+      XLOG(DBG0) << "Port: " << portName << " queueId: " << queueId
                  << " Watermark: " << queueWaterMarks[queueId];
+
       auto watermarkAsExpected = (expectZero && !queueWaterMarks[queueId]) ||
           (!expectZero && queueWaterMarks[queueId]);
       if (watermarkAsExpected) {
@@ -149,11 +154,23 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
     auto verify = [this, queueId]() {
       auto dscpsForQueue = utility::kOlympicQueueToDscp().find(queueId)->second;
       for (auto portAndIp : getPort2DstIp()) {
+        auto portName = getProgrammedState()
+                            ->getPorts()
+                            ->getPort(portAndIp.first)
+                            ->getName();
         sendUdpPkts(dscpsForQueue[0], portAndIp.second);
         // Assert non zero watermark
         assertWatermark(portAndIp.first, queueId, false);
         // Assert zero watermark
         assertWatermark(portAndIp.first, queueId, true, 5);
+        auto counters = fb303::fbData->getRegexCounters({folly::sformat(
+            "buffer_watermark_ucast.{}.queue{}.*.p100.60",
+            portName,
+            queueId)});
+        EXPECT_EQ(1, counters.size());
+        // Unfortunately since  we use quantile stats, which compute
+        // a MAX over a period, we can't really assert on the exact
+        // value, just on its presence
       }
     };
     verifyAcrossWarmBoots(setup, verify);
