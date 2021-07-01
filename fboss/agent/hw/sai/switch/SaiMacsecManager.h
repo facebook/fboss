@@ -106,6 +106,11 @@ class SaiMacsecManager {
       sai_macsec_direction_t direction,
       uint8_t assocNum);
 
+  // TODO(ccpowers): it may be better to move this out into a utils file
+  std::string getAclName(
+      facebook::fboss::PortID port,
+      sai_macsec_direction_t direction);
+
  private:
   SaiMacsecHandle* FOLLY_NULLABLE
   getMacsecHandleImpl(sai_macsec_direction_t direction) const;

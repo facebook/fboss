@@ -14,11 +14,35 @@
 #include "fboss/mka_service/if/gen-cpp2/mka_types.h"
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
-#include "fboss/qsfp_service/util/MacsecUtils.h"
+
+#include <folly/logging/xlog.h>
 
 namespace {
-auto kPortProfile =
-    facebook::fboss::cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL;
+using namespace facebook::fboss;
+
+mka::MKASci makeSci(std::string mac, PortID portId) {
+  mka::MKASci sci;
+  sci.macAddress_ref() = mac;
+  sci.port_ref() = portId;
+  return sci;
+}
+
+mka::MKASak makeSak(
+    mka::MKASci& sci,
+    std::string portName,
+    std::string keyHex,
+    std::string keyIdHex,
+    int assocNum) {
+  mka::MKASak sak;
+  sak.sci_ref() = sci;
+  sak.l2Port_ref() = portName;
+  sak.keyHex_ref() = keyHex;
+  sak.keyIdHex_ref() = keyIdHex;
+  sak.assocNum_ref() = assocNum;
+  return sak;
+}
+
+auto kPortProfile = cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL;
 } // namespace
 
 namespace facebook::fboss {
@@ -51,15 +75,15 @@ TEST_F(HwMacsecTest, installKeys) {
     auto platPort = platPorts.find(port);
     CHECK(platPort != platPorts.end())
         << " Could not find platform port with ID " << port;
-    auto localSci = utility::makeSci("00:00:00:00:00:00", port);
-    auto remoteSci = utility::makeSci("11:11:11:11:11:11", port);
-    auto rxSak = utility::makeSak(
+    auto localSci = makeSci("00:00:00:00:00:00", port);
+    auto remoteSci = makeSci("11:11:11:11:11:11", port);
+    auto rxSak = makeSak(
         remoteSci,
         *platPort->second.mapping_ref()->name_ref(),
         "01020304050607080910111213141516",
         "0807060504030201",
         0);
-    auto txSak = utility::makeSak(
+    auto txSak = makeSak(
         localSci,
         *platPort->second.mapping_ref()->name_ref(),
         "16151413121110090807060504030201",

@@ -14,7 +14,6 @@
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
-#include "fboss/qsfp_service/util/MacsecUtils.h"
 
 #include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
@@ -88,7 +87,7 @@ SaiMacsecManager::~SaiMacsecManager() {
       portHandle->port->setOptionalAttribute(
           SaiPortTraits::Attributes::EgressMacSecAcl{SAI_NULL_OBJECT_ID});
 
-      std::string aclName = utility::getAclName(portId, direction);
+      std::string aclName = getAclName(portId, direction);
       auto aclTable =
           managerTable_->aclTableManager().getAclTableHandle(aclName);
       if (aclTable) {
@@ -566,7 +565,7 @@ void SaiMacsecManager::setupMacsec(
 
   // First convert sci mac address string and the port id to a uint64
   folly::MacAddress mac = folly::MacAddress(*sci.macAddress_ref());
-  auto scIdentifier = utility::packSecureChannelId(sci);
+  auto scIdentifier = MacsecSecureChannelId(mac.u64NBO() | *sci.port_ref());
 
   // Step2/3: Create flow and SC if it they do not exist
   auto secureChannelHandle =
@@ -622,7 +621,7 @@ void SaiMacsecManager::setupMacsec(
   // // Step5: Create the ACL table if it does not exist
   // Right now we're just using one entry per table, so we're using the same
   // format for table and entry name
-  std::string aclName = utility::getAclName(linePort, direction);
+  std::string aclName = getAclName(linePort, direction);
   auto aclTable = managerTable_->aclTableManager().getAclTableHandle(aclName);
   if (!aclTable) {
     auto aclTableId = managerTable_->aclTableManager().addAclTable(
@@ -661,6 +660,16 @@ void SaiMacsecManager::setupMacsec(
   }
   XLOG(DBG2) << "To linePort " << linePort << ", bound macsec " << direction
              << " ACL table " << aclTableId;
+}
+
+std::string SaiMacsecManager::getAclName(
+    facebook::fboss::PortID port,
+    sai_macsec_direction_t direction) {
+  return folly::to<std::string>(
+      "macsec-",
+      direction == SAI_MACSEC_DIRECTION_INGRESS ? "ingress" : "egress",
+      "-port",
+      port);
 }
 
 } // namespace facebook::fboss

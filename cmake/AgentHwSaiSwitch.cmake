@@ -76,7 +76,6 @@ target_link_libraries(sai_switch
   ref_map
   Folly::folly
   -Wl,--unresolved-symbols=report-all
-  macsec_utils
 )
 
 set_target_properties(sai_switch PROPERTIES COMPILE_FLAGS
