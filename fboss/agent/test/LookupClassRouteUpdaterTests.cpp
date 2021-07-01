@@ -641,11 +641,4 @@ TYPED_TEST(LookupClassRouteUpdaterTest, CompeteClassIdUpdatesWithApplyConfig) {
   classIdUpdates.join();
   routeAddDel.join();
 }
-
-template <typename AddrType, bool StandAloneRib, bool RouteFix>
-struct LookupClassRouteUpdaterWarmbootTypeT
-    : public LookupClassRouteUpdaterTypeT<AddrType, StandAloneRib> {
-  using Base = LookupClassRouteUpdaterTypeT<AddrType, StandAloneRib>;
-  static constexpr auto hasRouteFix = RouteFix;
-};
 } // namespace facebook::fboss
