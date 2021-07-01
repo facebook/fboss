@@ -35,59 +35,58 @@ class CmdShowAcl : public CmdHandler<CmdShowAcl, CmdShowAclTraits> {
     return createModel(entries);
   }
 
-  void printOutput(const RetType& model) {
+  void printOutput(const RetType& model, std::ostream& out = std::cout) {
     for (const auto& aclEntry : model.get_aclEntries()) {
-      std::cout << "Acl: " << aclEntry.get_name() << std::endl;
-      std::cout << "   priority: " << aclEntry.get_priority() << std::endl;
+      out << "Acl: " << aclEntry.get_name() << std::endl;
+      out << "   priority: " << aclEntry.get_priority() << std::endl;
       if (aclEntry.get_proto()) {
-        std::cout << "   proto: " << aclEntry.get_proto() << std::endl;
+        out << "   proto: " << aclEntry.get_proto() << std::endl;
       }
       if (aclEntry.get_srcPort()) {
-        std::cout << "   src port: " << aclEntry.get_srcPort() << std::endl;
+        out << "   src port: " << aclEntry.get_srcPort() << std::endl;
       }
       if (aclEntry.get_dstPort()) {
-        std::cout << "   dst port: " << aclEntry.get_dstPort() << std::endl;
+        out << "   dst port: " << aclEntry.get_dstPort() << std::endl;
       }
       if (aclEntry.get_ipFrag()) {
-        std::cout << "   ip fragment: " << aclEntry.get_ipFrag() << std::endl;
+        out << "   ip fragment: " << aclEntry.get_ipFrag() << std::endl;
       }
       if (aclEntry.get_dscp()) {
-        std::cout << "   dscp: " << aclEntry.get_dscp() << std::endl;
+        out << "   dscp: " << aclEntry.get_dscp() << std::endl;
       }
       if (aclEntry.get_ipType()) {
-        std::cout << "   ip type: " << aclEntry.get_ipType() << std::endl;
+        out << "   ip type: " << aclEntry.get_ipType() << std::endl;
       }
       if (aclEntry.get_icmpType()) {
-        std::cout << "   icmp type: " << aclEntry.get_icmpType() << std::endl;
+        out << "   icmp type: " << aclEntry.get_icmpType() << std::endl;
       }
       if (aclEntry.get_icmpCode()) {
-        std::cout << "   icmp code: " << aclEntry.get_icmpCode() << std::endl;
+        out << "   icmp code: " << aclEntry.get_icmpCode() << std::endl;
       }
       if (aclEntry.get_ttl()) {
-        std::cout << "   ttl: " << aclEntry.get_ttl() << std::endl;
+        out << "   ttl: " << aclEntry.get_ttl() << std::endl;
       }
       if (aclEntry.get_l4SrcPort()) {
-        std::cout << "   L4 src port: " << aclEntry.get_l4SrcPort()
+        out << "   L4 src port: " << aclEntry.get_l4SrcPort()
                   << std::endl;
       }
       if (aclEntry.get_l4DstPort()) {
-        std::cout << "   L4 dst port: " << aclEntry.get_l4DstPort()
+        out << "   L4 dst port: " << aclEntry.get_l4DstPort()
                   << std::endl;
       }
       if (aclEntry.get_dstMac() != "") {
-        std::cout << "   dst mac: " << aclEntry.get_dstMac() << std::endl;
+        out << "   dst mac: " << aclEntry.get_dstMac() << std::endl;
       }
       if (aclEntry.get_lookupClassL2()) {
-        std::cout << "   lookup class L2: " << aclEntry.get_lookupClassL2()
+        out << "   lookup class L2: " << aclEntry.get_lookupClassL2()
                   << std::endl;
       }
-      std::cout << "   action: " << aclEntry.get_actionType() << std::endl;
-      std::cout << std::endl;
+      out << "   action: " << aclEntry.get_actionType() << std::endl;
+      out << std::endl;
     }
   }
 
-  private:
-   RetType createModel(std::vector<facebook::fboss::AclEntryThrift> aclEntries) {
+  RetType createModel(std::vector<facebook::fboss::AclEntryThrift> aclEntries) {
      RetType model;
 
      for (const auto& entry : aclEntries) {
