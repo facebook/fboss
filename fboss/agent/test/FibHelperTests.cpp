@@ -28,19 +28,17 @@ using folly::IPAddressV6;
 
 namespace facebook::fboss {
 
-template <typename AddrTAndRib>
+template <typename AddrType>
 class FibHelperTest : public ::testing::Test {
  public:
   using Func = std::function<void()>;
   using StateUpdateFn = SwSwitch::StateUpdateFn;
-  using AddrT = typename AddrTAndRib::AddrT;
-  static constexpr auto hasStandAloneRib = AddrTAndRib::hasStandAloneRib;
+  using AddrT = AddrType;
+  static constexpr bool hasStandAloneRib = true;
 
   void SetUp() override {
     auto config = testConfigA();
-    auto flags = hasStandAloneRib ? SwitchFlags::ENABLE_STANDALONE_RIB
-                                  : SwitchFlags::DEFAULT;
-    handle_ = createTestHandle(&config, flags);
+    handle_ = createTestHandle(&config, SwitchFlags::ENABLE_STANDALONE_RIB);
     sw_ = handle_->getSw();
     resolveNeighbor(kIpAddressA(), kMacAddressA());
     // Install kPrefix1 in FIB
@@ -160,17 +158,8 @@ class FibHelperTest : public ::testing::Test {
   SwSwitch* sw_;
 };
 
-template <typename AddrType, bool StandAloneRib>
-struct FibHelperTestTypeT {
-  using AddrT = AddrType;
-  static constexpr auto hasStandAloneRib = StandAloneRib;
-};
-
-using V4NoRib = FibHelperTestTypeT<folly::IPAddressV4, false>;
-using V4Rib = FibHelperTestTypeT<folly::IPAddressV4, true>;
-using V6NoRib = FibHelperTestTypeT<folly::IPAddressV6, false>;
-using V6Rib = FibHelperTestTypeT<folly::IPAddressV6, true>;
-using FibHelperTestTypes = ::testing::Types<V4NoRib, V4Rib, V6NoRib, V6Rib>;
+using FibHelperTestTypes =
+    ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
 
 TYPED_TEST_CASE(FibHelperTest, FibHelperTestTypes);
 
