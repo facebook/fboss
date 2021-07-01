@@ -34,7 +34,6 @@ using std::make_shared;
 
 auto kStaticClient = ClientID::STATIC_ROUTE;
 
-template <typename StandAloneRib>
 class StaticRouteTest : public ::testing::Test {
   cfg::SwitchConfig initialConfig() const {
     cfg::SwitchConfig config;
@@ -91,9 +90,7 @@ class StaticRouteTest : public ::testing::Test {
 
  public:
   void SetUp() override {
-    auto flags = StandAloneRib::hasStandAloneRib
-        ? SwitchFlags::ENABLE_STANDALONE_RIB
-        : SwitchFlags::DEFAULT;
+    auto flags = SwitchFlags::ENABLE_STANDALONE_RIB;
     auto config = initialConfig();
     handle_ = createTestHandle(&config, flags);
     sw_ = handle_->getSw();
@@ -112,11 +109,7 @@ class StaticRouteTest : public ::testing::Test {
   std::unique_ptr<HwTestHandle> handle_;
 };
 
-using StaticRouteTestTypes = ::testing::Types<NoRib, Rib>;
-
-TYPED_TEST_CASE(StaticRouteTest, StaticRouteTestTypes);
-
-TYPED_TEST(StaticRouteTest, configureUnconfigure) {
+TEST_F(StaticRouteTest, configureUnconfigure) {
   auto stateV1 = this->sw_->getState();
   ASSERT_NE(nullptr, stateV1);
   RouterID rid0(0);
