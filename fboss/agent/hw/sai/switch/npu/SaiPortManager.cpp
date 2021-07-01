@@ -51,6 +51,10 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
 
   loadPortQueues(handle.get());
   const auto asic = platform_->getAsic();
+  if (swPort->isEnabled()) {
+    portStats_.emplace(
+        swPort->getID(), std::make_unique<HwPortFb303Stats>(swPort->getName()));
+  }
   for (auto portQueue : swPort->getPortQueues()) {
     auto queueKey =
         std::make_pair(portQueue->getID(), portQueue->getStreamType());
@@ -66,6 +70,16 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
             ? *portQueue->getScalingFactor()
             : asic->getDefaultScalingFactor(
                   portQueue->getStreamType(), false /* not cpu port*/));
+    auto pitr = portStats_.find(swPort->getID());
+
+    if (pitr != portStats_.end()) {
+      auto queueName = portQueue->getName()
+          ? *portQueue->getName()
+          : folly::to<std::string>("queue", portQueue->getID());
+      // Port stats map is sparse, since we don't maintain/publish stats
+      // for disabled ports
+      pitr->second->queueChanged(portQueue->getID(), queueName);
+    }
   }
   managerTable_->queueManager().ensurePortQueueConfig(
       saiPort->adapterKey(), handle->queues, swPort->getPortQueues());
@@ -76,10 +90,6 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
       swPort->getIngressMirror(), swPort->getEgressMirror(), samplingMirror};
   handle->mirrorInfo = mirrorInfo;
   handles_.emplace(swPort->getID(), std::move(handle));
-  if (swPort->isEnabled()) {
-    portStats_.emplace(
-        swPort->getID(), std::make_unique<HwPortFb303Stats>(swPort->getName()));
-  }
   if (globalDscpToTcQosMap_) {
     // Both global maps must exist in one of them exists
     CHECK(globalTcToQueueQosMap_);
