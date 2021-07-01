@@ -19,7 +19,7 @@
 
 namespace facebook::fboss {
 
-TEST_F(HwTest, resetTransceverAndDetectPresence) {
+TEST_F(HwTest, resetTranscieverAndDetectPresence) {
   auto portMap = std::make_unique<WedgeManager::PortMap>();
   auto agentConfig = getHwQsfpEnsemble()->getWedgeManager()->getAgentConfig();
   auto& swConfig = *agentConfig->thrift.sw_ref();
