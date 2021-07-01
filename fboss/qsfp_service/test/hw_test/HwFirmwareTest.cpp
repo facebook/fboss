@@ -33,9 +33,7 @@ TEST_F(HwTest, CheckDefaultXphyFirmwareVersion) {
     case PlatformMode::WEDGE400C:
     case PlatformMode::WEDGE400C_SIM:
     case PlatformMode::WEDGE400:
-      XLOG(INFO) << toString(platformMode)
-                 << " doesn't support xphy. Skip testing";
-      return;
+      throw FbossError(" No xphys to check FW version on");
     case PlatformMode::ELBERT:
       desiredFw.version_ref() = 91;
       desiredFw.versionStr_ref() = "91.1";
