@@ -164,9 +164,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
         // Assert zero watermark
         assertWatermark(portAndIp.first, queueId, true, 5);
         auto counters = fb303::fbData->getRegexCounters({folly::sformat(
-            "buffer_watermark_ucast.{}.queue{}.*.p100.60",
-            portName,
-            queueId)});
+            "buffer_watermark_ucast.{}.queue{}.*.p100.60", portName, queueId)});
         EXPECT_EQ(1, counters.size());
         // Unfortunately since  we use quantile stats, which compute
         // a MAX over a period, we can't really assert on the exact
