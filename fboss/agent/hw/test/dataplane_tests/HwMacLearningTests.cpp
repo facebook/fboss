@@ -11,6 +11,7 @@
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/state/AggregatePort.h"
+#include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -24,6 +25,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
+#include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/hw/test/HwTestLearningUpdateObserver.h"
 #include "fboss/agent/hw/test/HwTestMacUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
@@ -533,6 +535,129 @@ TEST_F(HwMacLearningStaticEntriesTest, VerifyStaticDynamicTransformations) {
     EXPECT_TRUE(wasMacLearnt(physPortDescr(), kSourceMac()));
   };
   verifyAcrossWarmBoots(setup, verify);
+}
+
+class HwMacLearningAndMyStationInteractionTest : public HwMacLearningTest {
+ public:
+  cfg::SwitchConfig initialConfig() const override {
+    return utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
+  }
+  /*
+   * Tests added in response to S234435. We hit a vendor SDK bug,
+   * whereby when router MACs aged out on a particular VLAN, the
+   * MAC got pruned  from MY STATION table in addition to the L2
+   * table. This then broke routing on ports belonging to such a VLAN
+   * The test below induces MAC learning and aging of router MAC
+   * on ALL vlans, ingresses a packet on one such port, and asserts
+   * that the packet was actually routed correctly.
+   */
+  void testMyStationInteractionHelper(cfg::L2LearningMode mode) {
+    auto setup = [this, mode] {
+      setL2LearningMode(mode);
+      utility::EcmpSetupTargetedPorts6 ecmp6(getProgrammedState());
+      applyNewState(ecmp6.resolveNextHops(
+          getProgrammedState(), {PortDescriptor(masterLogicalPortIds()[0])}));
+      ecmp6.programRoutes(
+          getRouteUpdater(), {PortDescriptor(masterLogicalPortIds()[0])});
+    };
+    auto verify = [this]() {
+      utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), 0);
+      auto induceMacLearning = [this]() {
+        // Send gratuitous ARPs so intf/router MAC is learnt on all VLANs
+        // and ports
+        for (const auto port : masterLogicalPortIds()) {
+          auto vlanID = getProgrammedState()
+                            ->getPorts()
+                            ->getPort(port)
+                            ->getVlans()
+                            .begin()
+                            ->first;
+          auto intf =
+              getProgrammedState()->getInterfaces()->getInterfaceInVlan(vlanID);
+          for (const auto& addrEntry : intf->getAddresses()) {
+            if (!addrEntry.first.isV4()) {
+              continue;
+            }
+            auto v4Addr = addrEntry.first.asV4();
+            l2LearningObserver_.reset();
+            auto arpPacket = utility::makeARPTxPacket(
+                getHwSwitch(),
+                intf->getVlanID(),
+                intf->getMac(),
+                folly::MacAddress::BROADCAST,
+                v4Addr,
+                v4Addr,
+                ARP_OPER::ARP_OPER_REQUEST,
+                folly::MacAddress::BROADCAST);
+            getHwSwitch()->sendPacketOutOfPortSync(std::move(arpPacket), port);
+          }
+        }
+      };
+      induceMacLearning();
+      utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), kMinAgeInSecs());
+      // Let mac age out
+      sleep(kMinAgeInSecs() * 3);
+      // Re learn MAC so FDB entries are learnt and the packet
+      // below is not sacrificed to a MAC learning callback event.
+      // Secondly its important to WB with L2 entries learnt for
+      // the bug seen in S234435 to repro.
+      utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), 0);
+      induceMacLearning();
+      auto portStatsBefore =
+          getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds());
+      auto sendRoutedPkt = [this]() {
+        auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+        auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+        auto txPacket = utility::makeIpTxPacket(
+            getHwSwitch(),
+            vlanId,
+            intfMac,
+            intfMac,
+            folly::IPAddress("1000::1"),
+            folly::IPAddress("2000::1"));
+        getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
+            std::move(txPacket), masterLogicalPortIds()[1]);
+      };
+      sendRoutedPkt();
+      EXPECT_TRUE(getHwSwitchEnsemble()->waitPortStatsCondition(
+          [this, &portStatsBefore, &sendRoutedPkt](
+              const std::map<PortID, HwPortStats>& portStatsAfter) {
+            auto oldPortStats = portStatsBefore[masterLogicalPortIds()[0]];
+            auto newPortStats =
+                portStatsAfter.find(masterLogicalPortIds()[0])->second;
+            auto oldOutBytes = *oldPortStats.outBytes__ref();
+            auto newOutBytes = *newPortStats.outBytes__ref();
+            XLOG(INFO) << " Port Id: " << masterLogicalPortIds()[0]
+                       << " Old out bytes: " << oldOutBytes
+                       << " New out bytes: " << newOutBytes
+                       << " Delta : " << (newOutBytes - oldOutBytes);
+            if ((newOutBytes - oldOutBytes) > 0) {
+              return true;
+            }
+            /*
+             * Resend routed packet, with SW learning, we can get
+             * the first packet lost to MAC learning as the src mac
+             * may still be in PENDING state on some platforms. Resent
+             * here, we are looking for persisting my station breakage
+             * and not a single packet racing with mac learning
+             */
+            sendRoutedPkt();
+            return false;
+          }));
+    };
+    verifyAcrossWarmBoots(setup, verify);
+  }
+};
+
+TEST_F(
+    HwMacLearningAndMyStationInteractionTest,
+    verifyInteractionHwMacLearning) {
+  testMyStationInteractionHelper(cfg::L2LearningMode::HARDWARE);
+}
+TEST_F(
+    HwMacLearningAndMyStationInteractionTest,
+    verifyInteractionSwMacLearning) {
+  testMyStationInteractionHelper(cfg::L2LearningMode::SOFTWARE);
 }
 
 TEST_F(HwMacLearningTest, VerifyHwLearningForPort) {
