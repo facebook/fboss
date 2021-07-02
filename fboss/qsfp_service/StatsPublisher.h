@@ -21,6 +21,8 @@ class StatsPublisher {
       : transceiverManager_(transceiverManager) {}
   void init();
   void publishStats(folly::EventBase* evb, int32_t stats_publish_interval);
+  void publishFbagentCounters(
+      const std::map<int32_t, TransceiverInfo>& infoMap);
   static void bumpPciLockHeld();
   static void bumpReadFailure();
   static void bumpWriteFailure();
