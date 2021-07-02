@@ -11,6 +11,7 @@
 #pragma once
 
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/L2Entry.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
@@ -41,12 +42,37 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   class HwSwitchEventObserverIf {
    public:
     virtual ~HwSwitchEventObserverIf() = default;
+
+    void receivePacket(RxPacket* pkt) noexcept {
+      if (!stopped_.load()) {
+        packetReceived(pkt);
+      }
+    }
+    void changeLinkState(PortID port, bool up) {
+      if (!stopped_.load()) {
+        linkStateChanged(port, up);
+      }
+    }
+    void updateL2EntryState(
+        L2Entry l2Entry,
+        L2EntryUpdateType l2EntryUpdateType) {
+      if (!stopped_.load()) {
+        l2LearningUpdateReceived(l2Entry, l2EntryUpdateType);
+      }
+    }
+    virtual void stopObserving() {
+      stopped_.store(true);
+    }
+
+   private:
     virtual void packetReceived(RxPacket* pkt) noexcept = 0;
     virtual void linkStateChanged(PortID port, bool up) = 0;
     virtual void l2LearningUpdateReceived(
         L2Entry l2Entry,
         L2EntryUpdateType l2EntryUpdateType) = 0;
+    std::atomic<bool> stopped_{false};
   };
+  void stopObservers();
   struct HwSwitchEnsembleInitInfo {
     std::optional<std::map<PortID, TransceiverInfo>>
         port2OverrideTransceiverInfo{};

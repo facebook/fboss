@@ -95,6 +95,9 @@ HwSwitchEnsemble::~HwSwitchEnsemble() {
     // Unregister callbacks before we start destroying hwSwitch
     getHwSwitch()->unregisterCallbacks();
   }
+  // HwSwitch is about to go away, stop observers to let them finish any
+  // in flight events.
+  stopObservers();
 }
 
 uint32_t HwSwitchEnsemble::getHwSwitchFeatures() const {
@@ -192,7 +195,7 @@ void HwSwitchEnsemble::linkStateChanged(PortID port, bool up) {
   std::for_each(
       hwEventObservers->begin(),
       hwEventObservers->end(),
-      [port, up](auto observer) { observer->linkStateChanged(port, up); });
+      [port, up](auto observer) { observer->changeLinkState(port, up); });
 }
 
 void HwSwitchEnsemble::packetReceived(std::unique_ptr<RxPacket> pkt) noexcept {
@@ -200,7 +203,7 @@ void HwSwitchEnsemble::packetReceived(std::unique_ptr<RxPacket> pkt) noexcept {
   std::for_each(
       hwEventObservers->begin(),
       hwEventObservers->end(),
-      [&pkt](auto observer) { observer->packetReceived(pkt.get()); });
+      [&pkt](auto observer) { observer->receivePacket(pkt.get()); });
 }
 
 void HwSwitchEnsemble::l2LearningUpdateReceived(
@@ -211,7 +214,7 @@ void HwSwitchEnsemble::l2LearningUpdateReceived(
       hwEventObservers->begin(),
       hwEventObservers->end(),
       [l2Entry, l2EntryUpdateType](auto observer) {
-        observer->l2LearningUpdateReceived(l2Entry, l2EntryUpdateType);
+        observer->updateL2EntryState(l2Entry, l2EntryUpdateType);
       });
 }
 
@@ -377,6 +380,14 @@ folly::dynamic HwSwitchEnsemble::gracefulExitState() const {
   return switchState;
 }
 
+void HwSwitchEnsemble::stopObservers() {
+  auto hwEventObservers = hwEventObservers_.rlock();
+  std::for_each(
+      hwEventObservers->begin(), hwEventObservers->end(), [](auto observer) {
+        observer->stopObserving();
+      });
+}
+
 void HwSwitchEnsemble::gracefulExit() {
   if (thriftThread_) {
     // Join thrif thread. Thrift calls will fail post
@@ -388,6 +399,7 @@ void HwSwitchEnsemble::gracefulExit() {
   }
   // Initiate warm boot
   getHwSwitch()->unregisterCallbacks();
+  stopObservers();
   auto switchState = gracefulExitState();
   getHwSwitch()->gracefulExit(switchState);
 }

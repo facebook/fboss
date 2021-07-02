@@ -9,6 +9,7 @@
 namespace facebook::fboss {
 
 void HwTestLearningUpdateObserver::startObserving(HwSwitchEnsemble* ensemble) {
+  std::lock_guard<std::mutex> lock(mtx_);
   ensemble_ = ensemble;
 
   applyStateUpdateThread_ = std::make_unique<std::thread>([=]() {
@@ -20,16 +21,16 @@ void HwTestLearningUpdateObserver::startObserving(HwSwitchEnsemble* ensemble) {
 }
 
 void HwTestLearningUpdateObserver::stopObserving() {
-  if (ensemble_) {
-    ensemble_->removeHwEventObserver(this);
-    ensemble_ = nullptr;
-  }
+  std::lock_guard<std::mutex> lock(mtx_);
+  HwSwitchEnsemble::HwSwitchEventObserverIf::stopObserving();
 
   if (applyStateUpdateThread_) {
     applyStateUpdateEventBase_.runInEventBaseThreadAndWait(
         [this] { applyStateUpdateEventBase_.terminateLoopSoon(); });
     applyStateUpdateThread_->join();
+    applyStateUpdateThread_.reset();
   }
+  ensemble_ = nullptr;
 }
 
 void HwTestLearningUpdateObserver::reset() {

@@ -19,7 +19,7 @@ class HwTestLearningUpdateObserver
     : public HwSwitchEnsemble::HwSwitchEventObserverIf {
  public:
   void startObserving(HwSwitchEnsemble* ensemble);
-  void stopObserving();
+  void stopObserving() override;
 
   void reset();
 
