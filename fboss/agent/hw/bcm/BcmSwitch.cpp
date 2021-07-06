@@ -444,6 +444,18 @@ void BcmSwitch::unregisterCallbacks() {
     flags_ &= ~LINKSCAN_REGISTERED;
   }
 
+  if (flags_ & PFC_WATCHDOG_REGISTERED) {
+    // mostly to ensure that callback is not triggered while we are in
+    // "process" of shutting down
+    auto rv = bcm_cosq_pfc_deadlock_recovery_event_unregister(
+        unit_, pfcDeadlockRecoveryEventCallback, callback_);
+    CHECK(BCM_SUCCESS(rv)) << "failed to unregister BcmSwitch pfc watchdog"
+                              "callback: "
+                           << bcm_errmsg(rv);
+    flags_ &= ~PFC_WATCHDOG_REGISTERED;
+    XLOG(INFO) << "Unregistered pfc watchdog";
+  }
+
   /*
    * SOFTWARE L2 learning mode enables callback when there are updates to L2
    * table. Disable it: we don't want these callbacks (that call BcmSwitch
@@ -1332,11 +1344,13 @@ void BcmSwitch::processPfcWatchdogGlobalChanges(const StateDelta& delta) {
       rv = bcm_cosq_pfc_deadlock_recovery_event_register(
           unit_, pfcDeadlockRecoveryEventCallback, callback_);
       bcmCheckError(rv, "Failed to register PFC deadlock recovery event!");
+      flags_ |= PFC_WATCHDOG_REGISTERED;
     } else {
       // Unregister the PFC deadlock recovery callback function
       rv = bcm_cosq_pfc_deadlock_recovery_event_unregister(
           unit_, pfcDeadlockRecoveryEventCallback, callback_);
       bcmCheckError(rv, "Failed to unregister PFC deadlock recovery event!");
+      flags_ &= ~PFC_WATCHDOG_REGISTERED;
     }
     XLOG(DBG2) << "PFC watchdog deadlock_recovery_event " << std::boolalpha
                << newRecoveryAction.has_value();

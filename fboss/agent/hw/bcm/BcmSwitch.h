@@ -561,7 +561,11 @@ class BcmSwitch : public BcmSwitchIf {
   bool usePKTIO() const;
 
  private:
-  enum Flags : uint32_t { RX_REGISTERED = 0x01, LINKSCAN_REGISTERED = 0x02 };
+  enum Flags : uint32_t {
+    RX_REGISTERED = 0x01,
+    LINKSCAN_REGISTERED = 0x02,
+    PFC_WATCHDOG_REGISTERED = 0x04
+  };
   enum DeltaType { ADDED, REMOVED, CHANGED };
 
   // Forbidden copy constructor and assignment operator
