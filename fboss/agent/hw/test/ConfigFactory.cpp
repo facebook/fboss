@@ -90,13 +90,10 @@ cfg::Port createDefaultPortConfig(
     PortID id,
     cfg::PortProfileID defaultProfileID) {
   cfg::Port defaultConfig;
-  if (auto entry = platform->getPlatformPort(id)->getPlatformPortEntry()) {
-    defaultConfig.name_ref() = *entry->mapping_ref()->name_ref();
-    defaultConfig.speed_ref() = getSpeed(defaultProfileID);
-    defaultConfig.profileID_ref() = defaultProfileID;
-  } else {
-    throw FbossError("Can't find port:", id, " in PlatformMapping");
-  }
+  const auto& entry = platform->getPlatformPort(id)->getPlatformPortEntry();
+  defaultConfig.name_ref() = *entry.mapping_ref()->name_ref();
+  defaultConfig.speed_ref() = getSpeed(defaultProfileID);
+  defaultConfig.profileID_ref() = defaultProfileID;
 
   defaultConfig.logicalID_ref() = id;
   defaultConfig.ingressVlan_ref() = kDefaultVlanId;
@@ -475,16 +472,15 @@ void updatePortSpeed(
   auto platform = hwSwitch.getPlatform();
   auto supportsAddRemovePort = platform->supportsAddRemovePort();
   auto platformPort = platform->getPlatformPort(portID);
-  if (auto platPortEntry = platformPort->getPlatformPortEntry()) {
-    auto profileID = platformPort->getProfileIDBySpeed(speed);
-    const auto& supportedProfiles = *platPortEntry->supportedProfiles_ref();
-    auto profile = supportedProfiles.find(profileID);
-    if (profile == supportedProfiles.end()) {
-      throw FbossError("No profile ", profileID, " found for port ", portID);
-    }
-    cfgPort->profileID_ref() = profileID;
-    removeSubsumedPorts(cfg, profile->second, supportsAddRemovePort);
+  const auto& platPortEntry = platformPort->getPlatformPortEntry();
+  auto profileID = platformPort->getProfileIDBySpeed(speed);
+  const auto& supportedProfiles = *platPortEntry.supportedProfiles_ref();
+  auto profile = supportedProfiles.find(profileID);
+  if (profile == supportedProfiles.end()) {
+    throw FbossError("No profile ", profileID, " found for port ", portID);
   }
+  cfgPort->profileID_ref() = profileID;
+  removeSubsumedPorts(cfg, profile->second, supportsAddRemovePort);
   cfgPort->speed_ref() = speed;
 }
 
@@ -525,11 +521,7 @@ void configurePortGroup(
     }
 
     auto platformPort = platform->getPlatformPort(portID);
-    auto platPortEntry = platformPort->getPlatformPortEntry();
-    if (platPortEntry == std::nullopt) {
-      throw std::runtime_error(folly::to<std::string>(
-          "No platform port entry found for port ", portID));
-    }
+    const auto& platPortEntry = platformPort->getPlatformPortEntry();
     auto profileID = platformPort->getProfileIDBySpeedIf(speed);
     if (!profileID.has_value()) {
       XLOG(WARNING) << "Port " << static_cast<int>(portID)
@@ -541,7 +533,7 @@ void configurePortGroup(
       continue;
     }
 
-    auto supportedProfiles = *platPortEntry->supportedProfiles_ref();
+    auto supportedProfiles = *platPortEntry.supportedProfiles_ref();
     auto profile = supportedProfiles.find(profileID.value());
     if (profile == supportedProfiles.end()) {
       throw std::runtime_error(folly::to<std::string>(
@@ -573,12 +565,8 @@ void configurePortProfile(
     }
 
     auto platformPort = platform->getPlatformPort(portID);
-    auto platPortEntry = platformPort->getPlatformPortEntry();
-    if (platPortEntry == std::nullopt) {
-      throw std::runtime_error(folly::to<std::string>(
-          "No platform port entry found for port ", portID));
-    }
-    auto supportedProfiles = *platPortEntry->supportedProfiles_ref();
+    const auto& platPortEntry = platformPort->getPlatformPortEntry();
+    auto supportedProfiles = *platPortEntry.supportedProfiles_ref();
     auto profile = supportedProfiles.find(profileID);
     if (profile == supportedProfiles.end()) {
       XLOG(WARNING) << "Port " << static_cast<int>(portID)

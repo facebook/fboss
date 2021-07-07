@@ -205,10 +205,10 @@ PortStatus WedgePort::toThrift(const std::shared_ptr<Port>& port) {
 
 std::optional<std::vector<phy::PinID>> WedgePort::getTransceiverLanes(
     std::optional<cfg::PortProfileID> profileID) const {
-  auto platformPortEntry = getPlatformPortEntry();
+  const auto& platformPortEntry = getPlatformPortEntry();
   auto chips = getPlatform()->getDataPlanePhyChips();
-  if (platformPortEntry && !chips.empty()) {
-    return utility::getTransceiverLanes(*platformPortEntry, chips, profileID);
+  if (!chips.empty()) {
+    return utility::getTransceiverLanes(platformPortEntry, chips, profileID);
   }
   // If there's no platform port entry or chips from the config, fall back
   // to use old logic.

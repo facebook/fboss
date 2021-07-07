@@ -108,7 +108,7 @@ void SaiPhyManager::programOnePort(
       PortID(portId),
       saiPlatform->getPlatformPort(PortID(portId))
           ->getPlatformPortEntry()
-          ->mapping_ref()
+          .mapping_ref()
           ->name_ref()
           .value());
   portObj->setProfileId(portProfileId);

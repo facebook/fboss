@@ -160,17 +160,12 @@ void BcmStatUpdater::updatePrbsStats() {
 
 double BcmStatUpdater::calculateLaneRate(std::shared_ptr<Port> swPort) {
   auto profileID = swPort->getProfileID();
-  auto platformPortEntry = hw_->getPlatform()
-                               ->getPlatformPort(swPort->getID())
-                               ->getPlatformPortEntry();
-  if (!platformPortEntry.has_value()) {
-    throw FbossError("No PlatformPortEntry found for ", swPort->getName());
-  }
-
+  const auto& platformPortEntry = hw_->getPlatform()
+                                      ->getPlatformPort(swPort->getID())
+                                      ->getPlatformPortEntry();
   auto platformPortConfig =
-      platformPortEntry.value().supportedProfiles_ref()->find(profileID);
-  if (platformPortConfig ==
-      platformPortEntry.value().supportedProfiles_ref()->end()) {
+      platformPortEntry.supportedProfiles_ref()->find(profileID);
+  if (platformPortConfig == platformPortEntry.supportedProfiles_ref()->end()) {
     throw FbossError(
         "No speed profile with id ",
         apache::thrift::util::enumNameSafe(profileID),
@@ -370,15 +365,10 @@ void BcmStatUpdater::refreshPrbsStats(const StateDelta& delta) {
         const auto& platformPortEntry = hw_->getPlatform()
                                             ->getPlatformPort(newPort->getID())
                                             ->getPlatformPortEntry();
-        if (!platformPortEntry.has_value()) {
-          throw FbossError(
-              "No PlatformPortEntry found for ", newPort->getName());
-        }
-
         const auto& platformPortConfig =
-            platformPortEntry.value().supportedProfiles_ref()->find(profileID);
+            platformPortEntry.supportedProfiles_ref()->find(profileID);
         if (platformPortConfig ==
-            platformPortEntry.value().supportedProfiles_ref()->end()) {
+            platformPortEntry.supportedProfiles_ref()->end()) {
           throw FbossError(
               "No speed profile with id ",
               apache::thrift::util::enumNameSafe(profileID),

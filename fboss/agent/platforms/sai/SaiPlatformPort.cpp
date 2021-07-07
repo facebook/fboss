@@ -39,13 +39,9 @@ SaiPlatformPort::SaiPlatformPort(PortID id, SaiPlatform* platform)
 }
 
 std::vector<phy::PinID> SaiPlatformPort::getTransceiverLanes() const {
-  auto platformPortEntry = getPlatformPortEntry();
-  if (!platformPortEntry.has_value()) {
-    throw FbossError(
-        "Platform Port entry does not exist for port: ", getPortID());
-  }
+  const auto& platformPortEntry = getPlatformPortEntry();
   return utility::getTransceiverLanes(
-      *platformPortEntry, getPlatform()->getDataPlanePhyChips(), std::nullopt);
+      platformPortEntry, getPlatform()->getDataPlanePhyChips(), std::nullopt);
 }
 
 void SaiPlatformPort::preDisable(bool /* temporary */) {}
@@ -86,14 +82,10 @@ std::vector<uint32_t> SaiPlatformPort::getHwPortLanes(
 
 std::vector<uint32_t> SaiPlatformPort::getHwPortLanes(
     cfg::PortProfileID profileID) const {
-  auto platformPortEntry = getPlatformPortEntry();
-  if (!platformPortEntry.has_value()) {
-    throw FbossError(
-        "Platform Port entry does not exist for port: ", getPortID());
-  }
+  const auto& platformPortEntry = getPlatformPortEntry();
   auto& dataPlanePhyChips = getPlatform()->getDataPlanePhyChips();
   auto iphys = utility::getOrderedIphyLanes(
-      *platformPortEntry, dataPlanePhyChips, profileID);
+      platformPortEntry, dataPlanePhyChips, profileID);
   std::vector<uint32_t> hwLaneList;
   for (auto iphy : iphys) {
     auto chipIter = dataPlanePhyChips.find(*iphy.chip_ref());
@@ -110,18 +102,14 @@ std::vector<uint32_t> SaiPlatformPort::getHwPortLanes(
 std::vector<PortID> SaiPlatformPort::getSubsumedPorts(
     cfg::PortSpeed speed) const {
   auto profileID = getProfileIDBySpeed(speed);
-  auto platformPortEntry = getPlatformPortEntry();
-  if (!platformPortEntry.has_value()) {
-    throw FbossError(
-        "Platform Port entry does not exist for port: ", getPortID());
-  }
+  const auto& platformPortEntry = getPlatformPortEntry();
   auto supportedProfilesIter =
-      platformPortEntry->supportedProfiles_ref()->find(profileID);
+      platformPortEntry.supportedProfiles_ref()->find(profileID);
   if (supportedProfilesIter ==
-      platformPortEntry->supportedProfiles_ref()->end()) {
+      platformPortEntry.supportedProfiles_ref()->end()) {
     throw FbossError(
         "Port: ",
-        *platformPortEntry->mapping_ref()->name_ref(),
+        *platformPortEntry.mapping_ref()->name_ref(),
         " doesn't support the speed profile:");
   }
   std::vector<PortID> subsumedPortList;
@@ -165,14 +153,10 @@ TransceiverIdxThrift SaiPlatformPort::getTransceiverMapping(
     return TransceiverIdxThrift();
   }
   auto profileID = getProfileIDBySpeed(speed);
-  auto platformPortEntry = getPlatformPortEntry();
+  const auto& platformPortEntry = getPlatformPortEntry();
   std::vector<int32_t> lanes;
-  if (!platformPortEntry.has_value()) {
-    throw FbossError(
-        "Platform Port entry does not exist for port: ", getPortID());
-  }
   auto transceiverLanes = utility::getTransceiverLanes(
-      *platformPortEntry, getPlatform()->getDataPlanePhyChips(), profileID);
+      platformPortEntry, getPlatform()->getDataPlanePhyChips(), profileID);
   for (auto entry : transceiverLanes) {
     lanes.push_back(*entry.lane_ref());
   }

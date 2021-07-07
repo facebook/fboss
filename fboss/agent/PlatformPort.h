@@ -42,7 +42,7 @@ class PlatformPort {
     return platform_;
   }
 
-  const std::optional<cfg::PlatformPortEntry> getPlatformPortEntry() const;
+  const cfg::PlatformPortEntry& getPlatformPortEntry() const;
 
   virtual std::vector<phy::PinConfig> getIphyPinConfigs(
       cfg::PortProfileID profileID) const;

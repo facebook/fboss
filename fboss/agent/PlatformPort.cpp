@@ -39,14 +39,13 @@ std::ostream& operator<<(std::ostream& os, PortLedExternalState lfs) {
   return os;
 }
 
-const std::optional<cfg::PlatformPortEntry> PlatformPort::getPlatformPortEntry()
-    const {
+const cfg::PlatformPortEntry& PlatformPort::getPlatformPortEntry() const {
   const auto& platformPorts = platform_->getPlatformPorts();
   if (auto itPlatformPort = platformPorts.find(id_);
       itPlatformPort != platformPorts.end()) {
     return itPlatformPort->second;
   }
-  return std::nullopt;
+  throw FbossError("Can't find PlatformPortEntry for port=", id_);
 }
 
 std::vector<phy::PinConfig> PlatformPort::getIphyPinConfigs(
@@ -128,16 +127,12 @@ cfg::PortProfileID PlatformPort::getProfileIDBySpeed(
 
 std::optional<cfg::PortProfileID> PlatformPort::getProfileIDBySpeedIf(
     cfg::PortSpeed speed) const {
-  // If we don't have a platform config, just return a default profile
-  // (this prevents tests without a platform config from crashing, and
-  // an exception will still be thrown when trying to actually program
-  // platforms using the new config with PROFILE_DEFAULT in real use)
-  auto platformPortEntry = getPlatformPortEntry();
-  if (!platformPortEntry.has_value() || speed == cfg::PortSpeed::DEFAULT) {
+  if (speed == cfg::PortSpeed::DEFAULT) {
     return cfg::PortProfileID::PROFILE_DEFAULT;
   }
 
-  for (auto profile : *platformPortEntry->supportedProfiles_ref()) {
+  const auto& platformPortEntry = getPlatformPortEntry();
+  for (auto profile : *platformPortEntry.supportedProfiles_ref()) {
     auto profileID = profile.first;
     if (auto profileCfg = getPortProfileConfigIf(profileID)) {
       if (*profileCfg->speed_ref() == speed) {
@@ -205,18 +200,14 @@ const phy::PortProfileConfig PlatformPort::getPortProfileConfigFromCache(
 // This should only be called by platforms that actually have
 // an external phy
 std::optional<int32_t> PlatformPort::getExternalPhyID() {
-  auto platformPortEntry = getPlatformPortEntry();
-  if (!platformPortEntry) {
-    throw FbossError(
-        "No PlatformPortEntry found for port with ID ", getPortID());
-  }
+  const auto& platformPortEntry = getPlatformPortEntry();
   const auto& chips = getPlatform()->getDataPlanePhyChips();
   if (chips.empty()) {
     throw FbossError("Not platform data plane phy chips");
   }
 
   const auto& xphy = utility::getDataPlanePhyChips(
-      *platformPortEntry, chips, phy::DataPlanePhyChipType::XPHY);
+      platformPortEntry, chips, phy::DataPlanePhyChipType::XPHY);
   if (xphy.empty()) {
     return std::nullopt;
   } else {

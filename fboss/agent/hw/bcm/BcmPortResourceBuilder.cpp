@@ -84,20 +84,12 @@ std::vector<std::shared_ptr<Port>> BcmPortResourceBuilder::filterSubSumedPorts(
   std::set<PortID> subsumedPortSet;
   std::vector<std::shared_ptr<Port>> filteredPorts;
   for (const auto& port : ports) {
-    auto platformPortEntry = hw_->getPlatform()
-                                 ->getPlatformPort(port->getID())
-                                 ->getPlatformPortEntry();
-    if (!platformPortEntry) {
-      throw FbossError(
-          "Port: ",
-          port->getID(),
-          " doesn't have PlatformPortEntry. Not allowed to use flex port api");
-    }
-
-    const auto& itProfile = (*platformPortEntry)
-                                .supportedProfiles_ref()
-                                ->find(port->getProfileID());
-    if (itProfile != (*platformPortEntry).supportedProfiles_ref()->end()) {
+    const auto& platformPortEntry = hw_->getPlatform()
+                                        ->getPlatformPort(port->getID())
+                                        ->getPlatformPortEntry();
+    const auto& itProfile =
+        platformPortEntry.supportedProfiles_ref()->find(port->getProfileID());
+    if (itProfile != platformPortEntry.supportedProfiles_ref()->end()) {
       // Gather all subsumed ports in the same group and remove them later
       if (auto subsumedPorts = itProfile->second.subsumedPorts_ref()) {
         for (auto portID : *subsumedPorts) {
@@ -108,7 +100,7 @@ std::vector<std::shared_ptr<Port>> BcmPortResourceBuilder::filterSubSumedPorts(
       // Make sure enabled port profile is allowed in the supported profile
       throw FbossError(
           "Enabled Port: ",
-          *(*platformPortEntry).mapping_ref()->name_ref(),
+          *platformPortEntry.mapping_ref()->name_ref(),
           " does not support speed profile: ",
           apache::thrift::util::enumNameSafe(port->getProfileID()));
     }
@@ -125,17 +117,11 @@ std::vector<std::shared_ptr<Port>> BcmPortResourceBuilder::filterSubSumedPorts(
 }
 
 int BcmPortResourceBuilder::getBaseLane(std::shared_ptr<Port> port) {
-  auto platformPortEntry = hw_->getPlatform()
-                               ->getPlatformPort(port->getID())
-                               ->getPlatformPortEntry();
-  if (!platformPortEntry) {
-    throw FbossError(
-        "Port: ",
-        port->getID(),
-        " doesn't have PlatformPortEntry. Not allowed to use flex port api");
-  }
+  const auto& platformPortEntry = hw_->getPlatform()
+                                      ->getPlatformPort(port->getID())
+                                      ->getPlatformPortEntry();
   const auto& iphyLanes = utility::getOrderedIphyLanes(
-      *platformPortEntry,
+      platformPortEntry,
       hw_->getPlatform()->getDataPlanePhyChips(),
       port->getProfileID());
   return *iphyLanes[0].lane_ref();

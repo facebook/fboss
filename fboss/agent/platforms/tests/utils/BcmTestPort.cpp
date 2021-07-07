@@ -49,8 +49,8 @@ folly::Future<TransmitterTechnology> BcmTestPort::getTransmitterTech(
   if (auto info = getPlatform()->getOverrideTransceiverInfo()) {
     return *(info->cable_ref()->transmitterTech_ref());
   }
-  auto entry = getPlatformPortEntry();
-  if (entry && entry->mapping_ref()->name_ref()->find("fab") == 0) {
+  const auto& entry = getPlatformPortEntry();
+  if (entry.mapping_ref()->name_ref()->find("fab") == 0) {
     return folly::makeFuture<TransmitterTechnology>(
         TransmitterTechnology::COPPER);
   }

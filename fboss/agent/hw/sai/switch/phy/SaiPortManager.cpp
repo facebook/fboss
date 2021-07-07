@@ -117,14 +117,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   auto enabled = swPort->isEnabled();
   auto platPort = platform_->getPort(portId);
 
-  auto platformPortEntry = platPort->getPlatformPortEntry();
-  if (!platformPortEntry.has_value()) {
-    throw FbossError(
-        "For port ",
-        portId,
-        ", the platform port not found in platform mapping");
-  }
-
+  const auto& platformPortEntry = platPort->getPlatformPortEntry();
   const auto& portPinConfig = platPort->getPortXphyPinConfig(profileId);
   const auto& portProfileConfig = platPort->getPortProfileConfig(profileId);
 
@@ -136,7 +129,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   const auto& config = phy::ExternalPhyConfig::fromConfigeratorTypes(
       portPinConfig,
       utility::getXphyLinePolaritySwapMap(
-          *platformPortEntry->mapping_ref()->pins_ref(), chips));
+          *platformPortEntry.mapping_ref()->pins_ref(), chips));
   const auto& profile =
       phy::ExternalPhyProfileConfig::fromPortProfileConfig(portProfileConfig);
 

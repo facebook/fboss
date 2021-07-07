@@ -25,14 +25,10 @@ std::pair<std::string, cfg::PortProfileID> getMappingNameAndProfileID(
     PortID port,
     cfg::PortSpeed speed) {
   auto platformPort = platform->getPlatformPort(port);
-  if (auto entry = platformPort->getPlatformPortEntry()) {
-    return {
-        *entry->mapping_ref()->name_ref(),
-        platformPort->getProfileIDBySpeed(speed)};
-
-  } else {
-    throw FbossError("Port:", port, " doesn't have PlatformPortEntry");
-  }
+  const auto& entry = platformPort->getPlatformPortEntry();
+  return {
+      *entry.mapping_ref()->name_ref(),
+      platformPort->getProfileIDBySpeed(speed)};
 }
 } // namespace
 

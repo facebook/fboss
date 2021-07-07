@@ -57,11 +57,7 @@ void ExternalPhyPort<PlatformT, PortStatsT>::portChanged(
     return;
   }
 
-  auto platformPortEntry = platPort->getPlatformPortEntry();
-  if (!platformPortEntry.has_value()) {
-    throw FbossError("No PlatformPortEntry found for ", newPort->getName());
-  }
-
+  const auto& platformPortEntry = platPort->getPlatformPortEntry();
   auto portPinConfig = platPort->getPortXphyPinConfig(profileID);
   auto platform = dynamic_cast<PlatformT*>(platPort->getPlatform());
   auto portProfileConfig = platPort->getPortProfileConfig(profileID);
@@ -75,7 +71,7 @@ void ExternalPhyPort<PlatformT, PortStatsT>::portChanged(
   phyPortConfig.config = phy::ExternalPhyConfig::fromConfigeratorTypes(
       portPinConfig,
       utility::getXphyLinePolaritySwapMap(
-          *platformPortEntry->mapping_ref()->pins_ref(), chips));
+          *platformPortEntry.mapping_ref()->pins_ref(), chips));
   phyPortConfig.profile =
       phy::ExternalPhyProfileConfig::fromPortProfileConfig(portProfileConfig);
 
