@@ -179,7 +179,7 @@ class HwPortProfileTest : public HwTest {
                      .timeCollected_ref(),
                 *idAndTransceiver.second.timeCollected_ref());
           });
-      verifyTransceiverSettings(transceivers);
+      verifyTransceiverSettings(transceiversAfterRefresh);
     }
   }
 };
