@@ -153,8 +153,6 @@ class SaiPortManager {
 
   void clearStats(PortID portID);
 
-  void setL2LearningMode(cfg::L2LearningMode l2LearningMode);
-
   void programMirrorOnAllPorts(
       const std::string& mirrorName,
       MirrorAction action);
