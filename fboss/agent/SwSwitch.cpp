@@ -841,7 +841,25 @@ void SwSwitch::handlePendingUpdates() {
     newAppliedState =
         applyUpdate(oldAppliedState, newDesiredState, isTransaction);
     if (newDesiredState != newAppliedState) {
-      if (updates.size() == 1 && updates.begin()->hwFailureProtected()) {
+      if (isExiting()) {
+        /*
+         * If we started exit, applyUpdate will reject updates leading
+         * to a mismatch b/w applied and desired states. Log, but otherwise
+         * ignore this error. Ideally, we should throw this error back to
+         * the callers, but during exit with threads in various state of
+         * stoppage, it becomes hard to manage. Since we require a resync
+         * of state post restart anyways (through WB state replay, config
+         * application and FIB sync) this should not cause problems. Note
+         * that this sync is not optional, but required for external clients
+         * post restart - agent could COLD boot, or there could be a mismatch
+         * with the HW state.
+         * If we ever want to relax this requirement - viz. only require a
+         * resync from external clients on COLD boot, we will need to get
+         * more rigorous here.
+         */
+        XLOG(INFO) << " Failed to apply updates to HW since SwSwtich already "
+                      "started exit";
+      } else if (updates.size() == 1 && updates.begin()->hwFailureProtected()) {
         fb303::fbData->incrementCounter(kHwUpdateFailures);
         unique_ptr<StateUpdate> update(&updates.front());
         try {
@@ -856,17 +874,10 @@ void SwSwitch::handlePendingUpdates() {
           update->onError(ex);
         }
         return;
-      } else if (!isExiting()) {
+      } else {
         XLOG(FATAL)
             << " Failed to apply update to HW and the update is not marked for "
                "HW failure protection";
-      } else {
-        // We failed to non protected updates since SwSwitch started its
-        // exit sequence alongside these updates being scheduled. So ideally
-        // we should signal a error to these updates. However since these are
-        // non protected updates, if we signal error, these updates will FATAL.
-        // TODO: Modify such updates to handle errors due to SwSwitch exit
-        // overlap.
       }
     }
   }
