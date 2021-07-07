@@ -25,31 +25,28 @@
 namespace facebook::fboss {
 
 WedgePort::WedgePort(PortID id, WedgePlatform* platform)
-    : WedgePort(id, platform, std::nullopt) {}
+    : BcmPlatformPort(id, platform) {
+  const auto& tcvrList = getTransceiverLanes();
+  // If the platform port comes with transceiver lanes
+  if (!tcvrList.empty()) {
+    // All the transceiver lanes should use the same transceiver id
+    auto chipCfg = getPlatform()->getDataPlanePhyChip(*tcvrList[0].chip_ref());
+    if (!chipCfg) {
+      throw FbossError(
+          "Port ",
+          getPortID(),
+          " is using platform unsupported chip ",
+          *tcvrList[0].chip_ref());
+    }
+    transceiverID_.emplace(TransceiverID(*chipCfg->physicalID_ref()));
+  }
+}
 
 WedgePort::WedgePort(
     PortID id,
     WedgePlatform* platform,
     std::optional<FrontPanelResources> frontPanel)
-    : BcmPlatformPort(id, platform), frontPanel_(frontPanel) {
-  if (auto tcvrListOpt = getTransceiverLanes()) {
-    const auto& tcvrList = *tcvrListOpt;
-    // If the platform port comes with transceiver lanes
-    if (!tcvrList.empty()) {
-      // All the transceiver lanes should use the same transceiver id
-      auto chipCfg =
-          getPlatform()->getDataPlanePhyChip(*tcvrList[0].chip_ref());
-      if (!chipCfg) {
-        throw FbossError(
-            "Port ",
-            getPortID(),
-            " is using platform unsupported chip ",
-            *tcvrList[0].chip_ref());
-      }
-      transceiverID_.emplace(TransceiverID(*chipCfg->physicalID_ref()));
-    }
-  }
-}
+    : WedgePort(id, platform) {}
 
 void WedgePort::setBcmPort(BcmPort* port) {
   bcmPort_ = port;
@@ -127,65 +124,36 @@ bool WedgePort::isControllingPort() const {
 }
 
 bool WedgePort::supportsTransceiver() const {
-  auto tcvrListOpt = getTransceiverLanes();
-  if (tcvrListOpt) {
-    return !(*tcvrListOpt).empty();
-  }
-
-  // #TODO(joseph5wu) Will deprecate the frontPanel_ field once we switch to
-  // get all platform port info from config
-  return frontPanel_ != std::nullopt;
+  return transceiverID_.has_value();
 }
 
 std::optional<ChannelID> WedgePort::getChannel() const {
-  auto tcvrListOpt = getTransceiverLanes();
-  if (tcvrListOpt) {
-    const auto& tcvrList = *tcvrListOpt;
-    if (!tcvrList.empty()) {
-      // All the transceiver lanes should use the same transceiver id
-      return ChannelID(*tcvrList[0].lane_ref());
-    } else {
-      return std::nullopt;
-    }
-  }
-
-  // #TODO(joseph5wu) Will deprecate the frontPanel_ field once we switch to
-  // get all platform port info from config
-  if (!frontPanel_) {
+  const auto& tcvrList = getTransceiverLanes();
+  if (!tcvrList.empty()) {
+    // All the transceiver lanes should use the same transceiver id
+    return ChannelID(*tcvrList[0].lane_ref());
+  } else {
     return std::nullopt;
   }
-  return frontPanel_->channels[0];
 }
 
 std::vector<int32_t> WedgePort::getChannels() const {
   if (!port_) {
     return {};
   }
-  const auto tcvrListOpt = getTransceiverLanes(port_->getProfileID());
-  if (tcvrListOpt) {
-    return folly::gen::from(tcvrListOpt.value()) |
-        folly::gen::map(
-               [&](const phy::PinID& entry) { return *entry.lane_ref(); }) |
-        folly::gen::as<std::vector<int32_t>>();
-  }
-
-  // fallback to the frontPanel way of getting channels
-  // TODO: remove this when all platforms support platform mapping since
-  // getTransceiverLanes needs it
-  if (!frontPanel_) {
-    return {};
-  }
-  return std::vector<int32_t>(
-      frontPanel_->channels.begin(), frontPanel_->channels.end());
+  const auto& tcvrList = getTransceiverLanes(port_->getProfileID());
+  return folly::gen::from(tcvrList) |
+      folly::gen::map(
+             [&](const phy::PinID& entry) { return *entry.lane_ref(); }) |
+      folly::gen::as<std::vector<int32_t>>();
 }
 
 TransceiverIdxThrift WedgePort::getTransceiverMapping() const {
-  if (!supportsTransceiver()) {
-    return TransceiverIdxThrift();
-  }
   TransceiverIdxThrift xcvr;
-  xcvr.transceiverId_ref() = static_cast<int32_t>(*getTransceiverID());
-  xcvr.channels_ref() = getChannels();
+  if (transceiverID_) {
+    xcvr.transceiverId_ref() = static_cast<int32_t>(*transceiverID_);
+    xcvr.channels_ref() = getChannels();
+  }
   return xcvr;
 }
 
@@ -203,18 +171,10 @@ PortStatus WedgePort::toThrift(const std::shared_ptr<Port>& port) {
   return status;
 }
 
-std::optional<std::vector<phy::PinID>> WedgePort::getTransceiverLanes(
+std::vector<phy::PinID> WedgePort::getTransceiverLanes(
     std::optional<cfg::PortProfileID> profileID) const {
-  const auto& platformPortEntry = getPlatformPortEntry();
-  auto chips = getPlatform()->getDataPlanePhyChips();
-  if (!chips.empty()) {
-    return utility::getTransceiverLanes(platformPortEntry, chips, profileID);
-  }
-  // If there's no platform port entry or chips from the config, fall back
-  // to use old logic.
-  // TODO(joseph) Will throw exception if there's no config after we fully
-  // roll out the new config
-  return std::nullopt;
+  return utility::getTransceiverLanes(
+      getPlatformPortEntry(), getPlatform()->getDataPlanePhyChips(), profileID);
 }
 
 BcmPortGroup::LaneMode WedgePort::getLaneMode() const {

@@ -101,9 +101,6 @@ class WedgePort : public BcmPlatformPort {
  protected:
   bool isControllingPort() const;
 
-  // TODO(joseph5wu): deprecate front panel resource
-  std::optional<FrontPanelResources> frontPanel_;
-
   BcmPort* bcmPort_{nullptr};
   std::shared_ptr<Port> port_{nullptr};
 
@@ -113,10 +110,9 @@ class WedgePort : public BcmPlatformPort {
   WedgePort& operator=(WedgePort const&) = delete;
 
   // Get Transceiver lanes from config
-  // Return std::nullopt if there's no platform config
   // Return empty vector if the port doesn't support transceivers
   // Return non-empty vector to maintain the lanes of the transceivers
-  std::optional<std::vector<phy::PinID>> getTransceiverLanes(
+  std::vector<phy::PinID> getTransceiverLanes(
       std::optional<cfg::PortProfileID> profileID = std::nullopt) const;
 
   // transceiver id should be fixed once the PlatformPort is created
