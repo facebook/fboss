@@ -240,14 +240,16 @@ void SaiRouteManager::changeRoute(
     RouterID routerId) {
   SaiRouteTraits::RouteEntry entry =
       routeEntryFromSwRoute(routerId, newSwRoute);
+
+  if (!validRoute(newSwRoute)) {
+    return;
+  }
+
   auto itr = handles_.find(entry);
   if (itr == handles_.end()) {
     throw FbossError(
         "Failure to update route. Route does not exist ",
         newSwRoute->prefix().str());
-  }
-  if (!validRoute(newSwRoute)) {
-    return;
   }
   addOrUpdateRoute(itr->second.get(), routerId, oldSwRoute, newSwRoute);
 }
