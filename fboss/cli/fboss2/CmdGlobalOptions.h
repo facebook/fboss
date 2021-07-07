@@ -98,7 +98,7 @@ class CmdGlobalOptions {
   std::string logLevel_{"DBG0"};
   SSLPolicy sslPolicy_{"plaintext"};
   std::string fmt_{"tabular"};
-  std::string logUsage_;
+  std::string logUsage_{"scuba"};
   int agentThriftPort_{5909};
   int qsfpThriftPort_{5910};
   int bgpThriftPort_{6909};
