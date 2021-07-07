@@ -34,8 +34,6 @@ class WedgePortMapping {
   enum : uint8_t { CHANNELS_IN_QSFP28 = 4 };
 
   using PortTransceiverMap = std::map<PortID, std::optional<TransceiverID>>;
-  using PortFrontPanelResourceMap =
-      std::map<PortID, std::optional<FrontPanelResources>>;
   using MappingIterator =
       boost::container::flat_map<PortID, std::unique_ptr<WedgePort>>::iterator;
   using ConstMappingIterator = boost::container::
@@ -122,9 +120,8 @@ class WedgePortMappingT : public WedgePortMapping {
 
  private:
   std::unique_ptr<WedgePort> constructPort(PortID port) override {
-    // TODO(joseph5wu) Will remove frontPanel later
     return std::make_unique<WedgePortT>(
-        port, dynamic_cast<WedgePlatformT*>(platform_), std::nullopt);
+        port, dynamic_cast<WedgePlatformT*>(platform_));
   }
 };
 

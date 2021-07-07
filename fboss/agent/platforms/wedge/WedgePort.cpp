@@ -42,12 +42,6 @@ WedgePort::WedgePort(PortID id, WedgePlatform* platform)
   }
 }
 
-WedgePort::WedgePort(
-    PortID id,
-    WedgePlatform* platform,
-    std::optional<FrontPanelResources> frontPanel)
-    : WedgePort(id, platform) {}
-
 void WedgePort::setBcmPort(BcmPort* port) {
   bcmPort_ = port;
 }

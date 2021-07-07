@@ -14,10 +14,7 @@
 
 namespace facebook::fboss {
 
-GalaxyPort::GalaxyPort(
-    PortID id,
-    GalaxyPlatform* platform,
-    std::optional<FrontPanelResources> frontPanel)
-    : WedgePort(id, platform, frontPanel) {}
+GalaxyPort::GalaxyPort(PortID id, GalaxyPlatform* platform)
+    : WedgePort(id, platform) {}
 
 } // namespace facebook::fboss

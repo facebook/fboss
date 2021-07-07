@@ -27,25 +27,9 @@ namespace facebook::fboss {
 
 class WedgePlatform;
 
-struct FrontPanelResources {
-  FrontPanelResources(
-      TransceiverID transceiver,
-      std::vector<ChannelID> channels)
-      : transceiver(transceiver), channels(std::move(channels)) {}
-
-  TransceiverID transceiver;
-  std::vector<ChannelID> channels;
-};
-
 class WedgePort : public BcmPlatformPort {
  protected:
   WedgePort(PortID id, WedgePlatform* platform);
-
-  // TODO(joseph5wu) Will deprecate this constructor demanding front panel
-  WedgePort(
-      PortID id,
-      WedgePlatform* platform,
-      std::optional<FrontPanelResources> frontPanel);
 
  public:
   void setBcmPort(BcmPort* port) override;

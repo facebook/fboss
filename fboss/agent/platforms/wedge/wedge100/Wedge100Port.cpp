@@ -14,11 +14,8 @@
 
 namespace facebook::fboss {
 
-Wedge100Port::Wedge100Port(
-    PortID id,
-    Wedge100Platform* platform,
-    std::optional<FrontPanelResources> frontPanel)
-    : WedgePort(id, platform, frontPanel) {}
+Wedge100Port::Wedge100Port(PortID id, Wedge100Platform* platform)
+    : WedgePort(id, platform) {}
 
 std::vector<phy::PinConfig> Wedge100Port::getIphyPinConfigs(
     cfg::PortProfileID profileID) const {

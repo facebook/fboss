@@ -19,10 +19,7 @@ class GalaxyPlatform;
 
 class GalaxyPort : public WedgePort {
  public:
-  GalaxyPort(
-      PortID id,
-      GalaxyPlatform* platform,
-      std::optional<FrontPanelResources> frontPanel);
+  GalaxyPort(PortID id, GalaxyPlatform* platform);
 
   LaneSpeeds supportedLaneSpeeds() const override {
     LaneSpeeds speeds;
