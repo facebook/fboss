@@ -204,6 +204,40 @@ TEST_P(
   waitForStateUpdates(sw);
 }
 
+TEST_P(SwSwitchUpdateProcessingTest, HwFailureProtectedUpdatesDuringExit) {
+  auto startState = sw->getState();
+  startState->publish();
+  std::atomic<bool> updatesPaused{true};
+  auto protectedState = startState->clone();
+  protectedState->publish();
+  auto protectedStateUpdateFn = [&updatesPaused, protectedState, &startState](
+                                    const std::shared_ptr<SwitchState>& state) {
+    EXPECT_EQ(state, startState);
+    while (updatesPaused.load()) {
+    };
+    return protectedState;
+  };
+  // Queue a few updates
+  std::thread updateThread([&updatesPaused, this, &protectedStateUpdateFn]() {
+    try {
+      sw->updateStateWithHwFailureProtection(
+          "HwFailureProtectedUpdate update ", protectedStateUpdateFn);
+    } catch (const FbossHwUpdateError&) {
+    }
+  });
+  std::thread updateThread2([&updatesPaused, this, &protectedStateUpdateFn]() {
+    sw->updateStateWithHwFailureProtection(
+        "HwFailureProtectedUpdate update ", protectedStateUpdateFn);
+  });
+  // Stop SwSwitch
+  std::thread stopThread([this]() { sw->stop(); });
+  updatesPaused.store(false);
+  stopThread.join();
+  updateThread.join();
+  updateThread2.join();
+  EXPECT_EQ(startState, sw->getState());
+}
+
 INSTANTIATE_TEST_CASE_P(
     SwSwitchUpdateProcessingTest,
     SwSwitchUpdateProcessingTest,
