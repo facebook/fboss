@@ -180,5 +180,10 @@ class WedgeManager : public TransceiverManager {
 
   std::map<std::string, int> portNameToSwPort_;
   bool forceColdBoot_{false};
+  using LockedTransceiversPtr = folly::Synchronized<
+      std::map<TransceiverID, std::unique_ptr<Transceiver>>>::WLockedPtr;
+  void triggerQsfpHardResetLocked(
+      int idx,
+      LockedTransceiversPtr& lockedTransceivers);
 };
 } // namespace facebook::fboss

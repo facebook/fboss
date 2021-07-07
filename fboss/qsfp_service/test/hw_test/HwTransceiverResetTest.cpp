@@ -14,6 +14,7 @@
 
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
+#include "thrift/lib/cpp/util/EnumUtils.h"
 
 #include <folly/logging/xlog.h>
 
@@ -62,6 +63,18 @@ TEST_F(HwTest, resetTranscieverAndDetectPresence) {
       auto titr = transceiversAfterReset.find(idAndTransceiver.first);
       EXPECT_TRUE(titr != transceiversAfterReset.end());
       EXPECT_TRUE(*titr->second.present_ref());
+
+      XLOG(INFO)
+          << "Transceiver:" << idAndTransceiver.first
+          << " before hard reset, power control="
+          << apache::thrift::util::enumNameSafe(
+                 *idAndTransceiver.second.settings_ref()->powerControl_ref())
+          << ", after hard reset, power control="
+          << apache::thrift::util::enumNameSafe(
+                 *titr->second.settings_ref()->powerControl_ref());
+      EXPECT_EQ(
+          *idAndTransceiver.second.settings_ref()->powerControl_ref(),
+          *titr->second.settings_ref()->powerControl_ref());
     }
   }
 }

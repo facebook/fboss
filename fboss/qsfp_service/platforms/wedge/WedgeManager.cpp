@@ -43,6 +43,9 @@ constexpr auto kForceColdBootFileName = "cold_boot_once_qsfp_service";
 namespace facebook {
 namespace fboss {
 
+using LockedTransceiversPtr = folly::Synchronized<
+    std::map<TransceiverID, std::unique_ptr<Transceiver>>>::WLockedPtr;
+
 WedgeManager::WedgeManager(
     std::unique_ptr<TransceiverPlatformApi> api,
     std::unique_ptr<PlatformMapping> platformMapping,
@@ -426,9 +429,21 @@ void WedgeManager::clearAllTransceiverReset() {
 }
 
 void WedgeManager::triggerQsfpHardReset(int idx) {
+  auto lockedTransceivers = transceivers_.wlock();
+  triggerQsfpHardResetLocked(idx, lockedTransceivers);
+}
+
+void WedgeManager::triggerQsfpHardResetLocked(
+    int idx,
+    LockedTransceiversPtr& lockedTransceivers) {
   // This api accepts 1 based module id however the module id in
   // WedgeManager is 0 based.
   qsfpPlatApi_->triggerQsfpHardReset(idx + 1);
+
+  if (auto it = lockedTransceivers->find(TransceiverID(idx));
+      it != lockedTransceivers->end()) {
+    lockedTransceivers->erase(it);
+  }
 }
 
 std::unique_ptr<TransceiverI2CApi> WedgeManager::getI2CBus() {
@@ -519,7 +534,7 @@ void WedgeManager::updateTransceiverMap() {
         XLOG(INFO) << "A present transceiver with unknown interface at " << idx
                    << " Try reset.";
         try {
-          triggerQsfpHardReset(idx);
+          triggerQsfpHardResetLocked(idx, lockedTransceivers);
         } catch (const std::exception& ex) {
           XLOG(ERR) << "failed to triggerQsfpHardReset at idx " << idx << ": "
                     << ex.what();
