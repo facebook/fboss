@@ -56,7 +56,7 @@ to allow manual invocation of the agent's various thrift interfaces.
 
 ## Building
 
-See the BUILD.md document for instructions on how to build FBOSS.
+See the [BUILD.md](./BUILD.md) document for instructions on how to build FBOSS.
 
 ## Future Development
 
