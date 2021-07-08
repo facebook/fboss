@@ -1874,6 +1874,26 @@ void cmisHostInputLoopback(TransceiverI2CApi* bus, unsigned int port, LoopbackMo
   }
 }
 
+void cmisMediaInputLoopback(TransceiverI2CApi* bus, unsigned int port, LoopbackMode mode) {
+  try {
+    // Make sure we have page 0x13 selected.
+    uint8_t page = 0x13;
+    bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+
+    uint8_t data;
+    bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 128, sizeof(data), &data);
+    if (!(data & 0x02)) {
+      fprintf(stderr, "QSFP %d: Media side input loopback not supported\n", port);
+      return;
+    }
+
+    data = (mode == opticalLoopback) ? 0xff : 0;
+    bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 181, sizeof(data), &data);
+  } catch (const I2cError& ex) {
+    fprintf(stderr, "QSFP %d: fail to set loopback\n", port);
+  }
+}
+
 /*
  * getPidForProcess
  *

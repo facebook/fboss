@@ -160,6 +160,7 @@ bool doQsfpHardReset(
 bool doMiniphotonLoopback(TransceiverI2CApi* bus, unsigned int port, LoopbackMode mode);
 
 void cmisHostInputLoopback(TransceiverI2CApi* bus, unsigned int port, LoopbackMode mode);
+void cmisMediaInputLoopback(TransceiverI2CApi* bus, unsigned int port, LoopbackMode mode);
 
 bool cliModulefirmwareUpgrade(TransceiverI2CApi* bus, unsigned int port, std::string firmwareFilename);
 bool cliModulefirmwareUpgrade(TransceiverI2CApi* bus, std::string portRangeStr, std::string firmwareFilename);

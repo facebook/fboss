@@ -250,9 +250,14 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    if (FLAGS_optical_loopback &&
-        doMiniphotonLoopback(bus.get(), portNum, opticalLoopback)) {
-      printf("QSFP %d: done setting module to optical loopback.\n", portNum);
+    if (FLAGS_optical_loopback) {
+      if (getModuleType(bus.get(), portNum) != TransceiverManagementInterface::CMIS) {
+        if (doMiniphotonLoopback(bus.get(), portNum, opticalLoopback)) {
+          printf("QSFP %d: done setting module to optical loopback.\n", portNum);
+        }
+      } else {
+        cmisMediaInputLoopback(bus.get(), portNum, opticalLoopback);
+      }
     }
 
     if (FLAGS_clear_loopback) {
@@ -262,6 +267,7 @@ int main(int argc, char* argv[]) {
         }
       } else {
         cmisHostInputLoopback(bus.get(), portNum, noLoopback);
+        cmisMediaInputLoopback(bus.get(), portNum, noLoopback);
       }
     }
 
