@@ -20,6 +20,12 @@ namespace facebook::fboss {
 void HwTest::SetUp() {
   ensemble_ = std::make_unique<HwQsfpEnsemble>();
   ensemble_->init();
+
+  // Allow back to back refresh and customizations in test
+  gflags::SetCommandLineOptionWithMode(
+      "qsfp_data_refresh_interval", "0", gflags::SET_FLAGS_DEFAULT);
+  gflags::SetCommandLineOptionWithMode(
+      "customize_interval", "0", gflags::SET_FLAGS_DEFAULT);
 }
 
 void HwTest::TearDown() {
