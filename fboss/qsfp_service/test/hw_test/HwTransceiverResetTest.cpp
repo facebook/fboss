@@ -35,7 +35,35 @@ TEST_F(HwTest, resetTranscieverAndDetectPresence) {
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   std::map<int32_t, TransceiverInfo> transceivers;
   wedgeManager->syncPorts(transceivers, std::move(portMap));
-  // Reest all transceivers
+
+  // Validate that the power control register has been correctly set before we
+  // begin resetting the modules
+  std::vector<int32_t> transceiverIds;
+  std::for_each(
+      transceivers.begin(),
+      transceivers.end(),
+      [&transceiverIds](const auto& idAndInfo) {
+        transceiverIds.push_back(idAndInfo.first);
+      });
+  wedgeManager->refreshTransceivers();
+  wedgeManager->getTransceiversInfo(
+      transceivers, std::make_unique<std::vector<int32_t>>(transceiverIds));
+  for (auto idAndTransceiver : transceivers) {
+    if (*idAndTransceiver.second.present_ref()) {
+      XLOG(INFO)
+          << "Transceiver:" << idAndTransceiver.first
+          << " before hard reset, power control="
+          << apache::thrift::util::enumNameSafe(
+                 *idAndTransceiver.second.settings_ref()->powerControl_ref());
+      EXPECT_TRUE(
+          *idAndTransceiver.second.settings_ref()->powerControl_ref() ==
+              PowerControlState::POWER_OVERRIDE ||
+          *idAndTransceiver.second.settings_ref()->powerControl_ref() ==
+              PowerControlState::HIGH_POWER_OVERRIDE);
+    }
+  }
+
+  // Reset all transceivers
   for (auto idAndTransceiver : transceivers) {
     wedgeManager->triggerQsfpHardReset(idAndTransceiver.first);
   }
@@ -44,16 +72,10 @@ TEST_F(HwTest, resetTranscieverAndDetectPresence) {
   // Refresh
   wedgeManager->refreshTransceivers();
 
-  auto transceiverIds = std::make_unique<std::vector<int32_t>>();
-  std::for_each(
-      transceivers.begin(),
-      transceivers.end(),
-      [&transceiverIds](const auto& idAndInfo) {
-        transceiverIds->push_back(idAndInfo.first);
-      });
   std::map<int32_t, TransceiverInfo> transceiversAfterReset;
   wedgeManager->getTransceiversInfo(
-      transceiversAfterReset, std::move(transceiverIds));
+      transceiversAfterReset,
+      std::make_unique<std::vector<int32_t>>(transceiverIds));
   // Assert that we can detect all transceivers again
 
   for (auto idAndTransceiver : transceivers) {
