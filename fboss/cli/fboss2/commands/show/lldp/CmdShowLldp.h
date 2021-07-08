@@ -55,23 +55,22 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
     out << std::endl;
   }
 
-  private:
-   RetType createModel(std::vector<facebook::fboss::LinkNeighborThrift> lldpEntries) {
-     RetType model;
+  RetType createModel(std::vector<facebook::fboss::LinkNeighborThrift> lldpEntries) {
+    RetType model;
 
-     for (const auto& entry : lldpEntries) {
-       cli::LldpEntry lldpDetails;
+    for (const auto& entry : lldpEntries) {
+      cli::LldpEntry lldpDetails;
 
-       lldpDetails.localPort_ref() = std::to_string(entry.get_localPort());
-       lldpDetails.systemName_ref() = entry.get_systemName()
-          ? *entry.get_systemName()
-          : entry.get_printableChassisId();
-       lldpDetails.remotePort_ref() = entry.get_printablePortId();
+      lldpDetails.localPort_ref() = std::to_string(entry.get_localPort());
+      lldpDetails.systemName_ref() = entry.get_systemName()
+        ? *entry.get_systemName()
+        : entry.get_printableChassisId();
+      lldpDetails.remotePort_ref() = entry.get_printablePortId();
 
-       model.lldpEntries_ref()->push_back(lldpDetails);
+      model.lldpEntries_ref()->push_back(lldpDetails);
      }
      return model;
-   }
+  }
 };
 
 } // namespace facebook::fboss
