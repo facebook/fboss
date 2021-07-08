@@ -63,7 +63,6 @@ class SaiPlatform : public Platform, public StateObserver {
   virtual sai_service_method_table_t* getServiceMethodTable() const;
   void stop() override;
   HwSwitchWarmBootHelper* getWarmBootHelper();
-  virtual uint32_t numLanesPerCore() const = 0;
   void stateUpdated(const StateDelta& delta) override;
   QsfpCache* getQsfpCache() const override;
 

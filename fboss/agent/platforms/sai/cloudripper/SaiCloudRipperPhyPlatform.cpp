@@ -89,12 +89,6 @@ HwAsic* SaiCloudRipperPhyPlatform::getAsic() const {
   return asic_.get();
 }
 
-uint32_t SaiCloudRipperPhyPlatform::numLanesPerCore() const {
-  // TODO(vsp): Each core in GB has 16 or 24 lanes.
-  // IFG 3, 4, 7, and 8 have 16 lanes and rest have 24 lanes.
-  return 24;
-}
-
 std::vector<PortID> SaiCloudRipperPhyPlatform::getAllPortsInGroup(
     PortID /* portID */) const {
   throw FbossError("SaiCloudRipperPhyPlatform doesn't support FlexPort");

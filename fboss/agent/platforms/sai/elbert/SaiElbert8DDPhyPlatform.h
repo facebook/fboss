@@ -31,7 +31,6 @@ class SaiElbert8DDPhyPlatform : public SaiHwPlatform {
 
   std::string getHwConfig() override;
   HwAsic* getAsic() const override;
-  uint32_t numLanesPerCore() const override;
   std::vector<PortID> getAllPortsInGroup(PortID portID) const override;
   std::vector<FlexPortMode> getSupportedFlexPortModes() const override;
   std::optional<sai_port_interface_type_t> getInterfaceType(

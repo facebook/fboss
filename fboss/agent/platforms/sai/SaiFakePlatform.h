@@ -22,9 +22,6 @@ class SaiFakePlatform : public SaiPlatform {
   std::string getPersistentStateDir() const override;
   std::string getHwConfig() override;
   HwAsic* getAsic() const override;
-  uint32_t numLanesPerCore() const override {
-    return 4;
-  }
   std::vector<PortID> getAllPortsInGroup(PortID portID) const override {
     return {portID};
   }

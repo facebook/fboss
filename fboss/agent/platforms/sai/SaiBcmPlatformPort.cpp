@@ -8,19 +8,21 @@
  *
  */
 #include "fboss/agent/platforms/sai/SaiBcmPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiBcmPlatform.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+#include "fboss/agent/platforms/sai/SaiPlatformPort.h"
 
 namespace facebook::fboss {
 
 uint32_t SaiBcmPlatformPort::getPhysicalLaneId(
     uint32_t chipId,
     uint32_t logicalLane) const {
-  auto platform = static_cast<SaiPlatform*>(getPlatform());
+  auto platform = static_cast<SaiBcmPlatform*>(getPlatform());
   return chipId * platform->numLanesPerCore() + logicalLane + 1;
 }
 
