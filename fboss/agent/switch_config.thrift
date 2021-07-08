@@ -1351,10 +1351,21 @@ struct SwitchConfig {
   // These mappings map a ClientID to a AdminDistance
   // Predefined values for these can be found at
   // fboss/agent/if/ctrl.thrift
+  /*
+   * AdminDistance for each clientID. Lower AdminDistance means higher priority.
+   * If same prefix is requested for programming from multiple clientID, then
+   * clientID with lowest AdminDistance will be programmed.
+   * Predefined values for AdminDistance & ClientID can be found at
+   * fboss/agent/if/ctrl.thrift
+   * NOTE: Ordered as per increasing admin distance i.e most preferred to least
+   */
   19: map<i32, i32> clientIdToAdminDistance = {
-        0: 20,    // BGP
-        786: 10,  // OPENR
-        1: 1,     // Static routes from config
+        2: 0,      // INTERFACE_ROUTE
+        3: 0,      // LINKLOCAL_ROUTE
+        1: 1,      // STATIC_ROUTE
+        786: 10,   // OPENR
+        0: 20,     // BGPD
+        700: 255,  // STATIC_INTERNAL
       }
   /* Override source IP for DHCP relay packet to the DHCP server */
   20: optional string dhcpRelaySrcOverrideV4

@@ -505,11 +505,38 @@ struct LinkNeighborThrift {
 }
 
 enum ClientID {
+  /*
+   * Routes from BGP daemon on the box
+   */
   BGPD = 0,
+
+  /*
+   * Routes defined in Agent configuration. These are by definition static
+   */
   STATIC_ROUTE = 1,
+
+  /*
+   * Routes derived from interface addresses. Programmed for punting packets
+   * destined to interface address to CPU.
+   */
   INTERFACE_ROUTE = 2,
+
+  /*
+   * These are special interface routes that are link-local. Aka they are
+   * bounded by link scope. Routes here are exclusive to INTERFACE_ROUTE.
+   */
   LINKLOCAL_ROUTE = 3,
+
+  /*
+   * Auto generated routes by Agent. Agent by default programs default (v4 & v6)
+   * route pointing to NULL if they're not specified by any other clients. These
+   * routes should be least preferred and act as last resort.
+   */
   STATIC_INTERNAL = 700,
+
+  /**
+   * Routes from Open/R daemon on the box
+   */
   OPENR = 786,
 }
 
