@@ -137,7 +137,7 @@ PortStatus getPortStatus(PortID portId, const HwQsfpEnsemble* ensemble) {
 
 IphyAndXphyPorts findAvailablePorts(
     HwQsfpEnsemble* hwQsfpEnsemble,
-    cfg::PortProfileID profile) {
+    std::optional<cfg::PortProfileID> profile) {
   std::set<PortID> xPhyPorts;
   const auto& platformPorts =
       hwQsfpEnsemble->getPlatformMapping()->getPlatformPorts();
@@ -146,19 +146,24 @@ IphyAndXphyPorts findAvailablePorts(
   auto agentConfig = hwQsfpEnsemble->getWedgeManager()->getAgentConfig();
   auto& swConfig = *agentConfig->thrift.sw_ref();
   for (auto& port : *swConfig.ports_ref()) {
-    if (*port.profileID_ref() != profile ||
-        *port.state_ref() != cfg::PortState::ENABLED) {
+    if (*port.state_ref() != cfg::PortState::ENABLED) {
       continue;
     }
+    if (profile && *port.profileID_ref() != *profile) {
+      continue;
+    }
+
+    auto portIDAndProfile =
+        std::make_pair(*port.logicalID_ref(), *port.profileID_ref());
     const auto& xphy = utility::getDataPlanePhyChips(
         platformPorts.find(*port.logicalID_ref())->second,
         chips,
         phy::DataPlanePhyChipType::XPHY);
     if (!xphy.empty()) {
-      ports.xphyPorts.emplace_back(*port.logicalID_ref());
+      ports.xphyPorts.emplace_back(portIDAndProfile);
     }
     // All ports have iphys
-    ports.iphyPorts.emplace_back(*port.logicalID_ref());
+    ports.iphyPorts.emplace_back(portIDAndProfile);
   }
   return ports;
 }

@@ -14,6 +14,8 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/types.h"
 
+#include <optional>
+
 namespace facebook::fboss {
 
 class HwQsfpEnsemble;
@@ -25,8 +27,8 @@ struct PhyPortConfig;
 
 namespace utility {
 struct IphyAndXphyPorts {
-  std::vector<PortID> xphyPorts;
-  std::vector<PortID> iphyPorts;
+  std::vector<std::pair<PortID, cfg::PortProfileID>> xphyPorts;
+  std::vector<std::pair<PortID, cfg::PortProfileID>> iphyPorts;
 };
 // Verify PhyPortConfig
 void verifyPhyPortConfig(
@@ -40,9 +42,12 @@ std::optional<TransceiverID> getTranscieverIdx(
     const HwQsfpEnsemble* ensemble);
 PortStatus getPortStatus(PortID portId, const HwQsfpEnsemble* ensemble);
 
+// Find the available iphy ports and xphy ports from agent config.
+// If profile is set, we will also filter the ports based on profile
+// Otherwise, we're only looking for ENABLED ports from the config
 IphyAndXphyPorts findAvailablePorts(
     HwQsfpEnsemble* qsfpEnsemble,
-    cfg::PortProfileID profile);
+    std::optional<cfg::PortProfileID> profile = std::nullopt);
 } // namespace utility
 
 } // namespace facebook::fboss

@@ -26,10 +26,10 @@ template <cfg::PortProfileID Profile>
 class HwPortProfileTest : public HwTest {
  private:
   void verifyXphyPorts(
-      const std::vector<PortID>& xphyPorts,
+      const std::vector<std::pair<PortID, cfg::PortProfileID>>& xphyPorts,
       const std::map<int32_t, TransceiverInfo>& transceivers) {
     const auto* platformMapping = getHwQsfpEnsemble()->getPlatformMapping();
-    for (auto portID : xphyPorts) {
+    for (auto& [portID, profile] : xphyPorts) {
       // Check whether transceiver exist, which will affect xphy config
       // Get the transceiver id for the given port id
       auto platformPortEntry = platformMapping->getPlatformPorts().find(portID);
@@ -52,7 +52,7 @@ class HwPortProfileTest : public HwTest {
 
       const auto& expectedPhyPortConfig =
           getHwQsfpEnsemble()->getPhyManager()->getDesiredPhyPortConfig(
-              portID, Profile, tcvrOpt);
+              portID, profile, tcvrOpt);
 
       utility::verifyPhyPortConfig(
           portID, getHwQsfpEnsemble()->getPhyManager(), expectedPhyPortConfig);
@@ -126,15 +126,16 @@ class HwPortProfileTest : public HwTest {
   void runTest() {
     auto platformMode =
         getHwQsfpEnsemble()->getWedgeManager()->getPlatformMode();
-    auto ports = utility::findAvailablePorts(getHwQsfpEnsemble(), Profile);
+    const auto& ports =
+        utility::findAvailablePorts(getHwQsfpEnsemble(), Profile);
     EXPECT_TRUE(!(ports.xphyPorts.empty() && ports.iphyPorts.empty()));
     auto portMap = std::make_unique<WedgeManager::PortMap>();
     // Program xphy
-    for (auto port : ports.xphyPorts) {
-      getHwQsfpEnsemble()->getWedgeManager()->programXphyPort(port, Profile);
+    for (auto& [port, profile] : ports.xphyPorts) {
+      getHwQsfpEnsemble()->getWedgeManager()->programXphyPort(port, profile);
       portMap->emplace(port, utility::getPortStatus(port, getHwQsfpEnsemble()));
     }
-    for (auto port : ports.iphyPorts) {
+    for (auto& [port, _] : ports.iphyPorts) {
       portMap->emplace(port, utility::getPortStatus(port, getHwQsfpEnsemble()));
     }
 

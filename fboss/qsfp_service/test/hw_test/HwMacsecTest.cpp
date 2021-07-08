@@ -50,14 +50,13 @@ class HwMacsecTest : public HwTest {
  public:
   std::vector<std::pair<PortID, cfg::PortProfileID>> findAvailablePorts() {
     auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
-    const auto& ports =
-        utility::findAvailablePorts(getHwQsfpEnsemble(), kPortProfile);
+    const auto& ports = utility::findAvailablePorts(getHwQsfpEnsemble());
     std::vector<std::pair<PortID, cfg::PortProfileID>> macsecSupportedPorts;
     // Check whether the ExternalPhy of such xphy port support macsec feature
-    for (auto port : ports.xphyPorts) {
+    for (auto& [port, profile] : ports.xphyPorts) {
       auto* xphy = phyManager->getExternalPhy(port);
       if (xphy->isSupported(phy::ExternalPhy::Feature::MACSEC)) {
-        macsecSupportedPorts.push_back(std::make_pair(port, kPortProfile));
+        macsecSupportedPorts.push_back(std::make_pair(port, profile));
       }
     }
     CHECK(!macsecSupportedPorts.empty())
