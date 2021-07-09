@@ -173,8 +173,12 @@ void BcmSwitchEnsemble::init(
   } else {
     // Load from a local file
     if (!FLAGS_bcm_config.empty()) {
-      XLOG(INFO) << "Loading config from " << FLAGS_bcm_config;
-      cfg = BcmConfig::loadFromFile(FLAGS_bcm_config);
+      XLOG(INFO) << "Loading bcm config from " << FLAGS_bcm_config;
+      if (bcmTestPlatform->usesYamlConfig()) {
+        yamlCfg = BcmYamlConfig::loadFromFile(FLAGS_bcm_config);
+      } else {
+        cfg = BcmConfig::loadFromFile(FLAGS_bcm_config);
+      }
       agentConfig = createEmptyAgentConfig();
     } else if (!FLAGS_config.empty()) {
       XLOG(INFO) << "Loading config from " << FLAGS_config;

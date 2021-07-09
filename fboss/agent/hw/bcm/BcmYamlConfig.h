@@ -32,6 +32,8 @@ class BcmYamlConfig {
 
   void dumpConfig(const std::string& dumpFile);
 
+  static std::string loadFromFile(const std::string& path);
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmYamlConfig(BcmYamlConfig const&) = delete;
