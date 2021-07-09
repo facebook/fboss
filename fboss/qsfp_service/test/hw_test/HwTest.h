@@ -11,6 +11,8 @@
 
 #include <gtest/gtest.h>
 
+#include <folly/logging/xlog.h>
+
 namespace facebook::fboss {
 
 class HwQsfpEnsemble;
@@ -29,6 +31,16 @@ class HwTest : public ::testing::Test {
 
   void SetUp() override;
   void TearDown() override;
+  template <typename SETUP_FN, typename VERIFY_FN>
+  void verifyAcrossWarmBoots(SETUP_FN setup, VERIFY_FN verify) {
+    if (!warmBoot_) {
+      XLOG(INFO) << "STAGE: cold boot setup()";
+      setup();
+    }
+
+    XLOG(INFO) << " STAGE: verify";
+    verify();
+  }
 
  private:
   // Forbidden copy constructor and assignment operator
