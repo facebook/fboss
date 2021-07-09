@@ -68,9 +68,12 @@ WedgeManager::WedgeManager(
           platformPortIt.first;
     }
   }
+  forceColdBoot_ = removeFile(forceColdBootFileName());
+}
 
-  forceColdBoot_ = removeFile(folly::to<std::string>(
-      FLAGS_qsfp_service_volatile_dir, "/", kForceColdBootFileName));
+std::string WedgeManager::forceColdBootFileName() {
+  return folly::to<std::string>(
+      FLAGS_qsfp_service_volatile_dir, "/", kForceColdBootFileName);
 }
 
 void WedgeManager::loadConfig() {

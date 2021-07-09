@@ -36,5 +36,6 @@ class HwTest : public ::testing::Test {
   HwTest& operator=(HwTest const&) = delete;
 
   std::unique_ptr<HwQsfpEnsemble> ensemble_;
+  bool warmBoot_{false};
 };
 } // namespace facebook::fboss

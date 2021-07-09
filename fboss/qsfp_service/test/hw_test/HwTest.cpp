@@ -9,15 +9,33 @@
  */
 #include "fboss/qsfp_service/test/hw_test/HwTest.h"
 
+#include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
+#include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/fpga/MultiPimPlatformSystemContainer.h"
 #include "fboss/lib/phy/PhyManager.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 
+DEFINE_bool(
+    setup_for_warmboot,
+    false,
+    "Set up test for QSFP warmboot. Useful for testing individual "
+    "tests doing a full process warmboot and verifying expectations");
+
+DECLARE_string(qsfp_service_volatile_dir);
+
+namespace {
+auto constexpr kQsfpTestWarmnbootFile = "qsfp_test_warmboot";
+}
 namespace facebook::fboss {
 
 void HwTest::SetUp() {
+  warmBoot_ = removeFile(folly::to<std::string>(
+      FLAGS_qsfp_service_volatile_dir, "/", kQsfpTestWarmnbootFile));
+  if (!warmBoot_) {
+    createFile(WedgeManager::forceColdBootFileName());
+  }
   ensemble_ = std::make_unique<HwQsfpEnsemble>();
   ensemble_->init();
 
@@ -30,6 +48,10 @@ void HwTest::SetUp() {
 
 void HwTest::TearDown() {
   ensemble_.reset();
+  if (FLAGS_setup_for_warmboot) {
+    createFile(folly::to<std::string>(
+        FLAGS_qsfp_service_volatile_dir, "/", kQsfpTestWarmnbootFile));
+  }
 }
 
 MultiPimPlatformPimContainer* HwTest::getPimContainer(int pimID) {

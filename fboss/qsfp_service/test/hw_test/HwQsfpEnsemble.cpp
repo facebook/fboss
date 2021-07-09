@@ -26,6 +26,17 @@ DEFINE_bool(
     "Setup a thrift handler. Primarily useful for inspecting HW state,"
     "say for debugging things via a shell");
 
+DEFINE_bool(
+    setup_for_warmboot,
+    false,
+    "Set up test for QSFP warmboot. Useful for testing individual "
+    "tests doing a full process warmboot and verifying expectations");
+
+DECLARE_string(qsfp_service_volatile_dir);
+
+namespace {
+auto constexpr kQsfpTestWarmnbootFile = "can_warmboot";
+}
 namespace facebook::fboss {
 
 WedgeManager* HwQsfpEnsemble::getWedgeManager() {
