@@ -13,6 +13,8 @@
 
 #include <folly/logging/xlog.h>
 
+DECLARE_bool(setup_for_warmboot);
+
 namespace facebook::fboss {
 
 class HwQsfpEnsemble;
@@ -33,21 +35,26 @@ class HwTest : public ::testing::Test {
   void TearDown() override;
   template <typename SETUP_FN, typename VERIFY_FN>
   void verifyAcrossWarmBoots(SETUP_FN setup, VERIFY_FN verify) {
-    if (!warmBoot_) {
+    if (!didWarmBoot()) {
       XLOG(INFO) << "STAGE: cold boot setup()";
       setup();
     }
 
     XLOG(INFO) << " STAGE: verify";
     verify();
+    if (FLAGS_setup_for_warmboot) {
+      XLOG(INFO) << " STAGE: setupForWarmboot";
+      setupForWarmboot();
+    }
   }
 
  private:
+  bool didWarmBoot() const;
+  void setupForWarmboot() const;
   // Forbidden copy constructor and assignment operator
   HwTest(HwTest const&) = delete;
   HwTest& operator=(HwTest const&) = delete;
 
   std::unique_ptr<HwQsfpEnsemble> ensemble_;
-  bool warmBoot_{false};
 };
 } // namespace facebook::fboss

@@ -71,9 +71,14 @@ class HwQsfpEnsemble {
   }
 
   bool isXphyPlatform() const;
+  bool didWarmBoot() const {
+    return warmBoot_;
+  }
+  void setupForWarmboot() const;
 
  private:
   std::shared_ptr<QsfpServiceHandler> qsfpServiceHandler_;
   std::shared_ptr<apache::thrift::ThriftServer> server_;
+  bool warmBoot_{false};
 };
 } // namespace facebook::fboss

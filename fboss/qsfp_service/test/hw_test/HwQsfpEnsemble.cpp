@@ -12,6 +12,7 @@
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/MultiPimPlatformMapping.h"
+#include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/fpga/MultiPimPlatformSystemContainer.h"
 #include "fboss/lib/phy/PhyManager.h"
@@ -26,12 +27,6 @@ DEFINE_bool(
     "Setup a thrift handler. Primarily useful for inspecting HW state,"
     "say for debugging things via a shell");
 
-DEFINE_bool(
-    setup_for_warmboot,
-    false,
-    "Set up test for QSFP warmboot. Useful for testing individual "
-    "tests doing a full process warmboot and verifying expectations");
-
 DECLARE_string(qsfp_service_volatile_dir);
 
 namespace {
@@ -44,7 +39,9 @@ WedgeManager* HwQsfpEnsemble::getWedgeManager() {
       qsfpServiceHandler_->getTransceiverManager());
 }
 void HwQsfpEnsemble::init() {
-  auto wedgeManager = createWedgeManager();
+  warmBoot_ = removeFile(folly::to<std::string>(
+      FLAGS_qsfp_service_volatile_dir, "/", kQsfpTestWarmnbootFile));
+  auto wedgeManager = createWedgeManager(!warmBoot_);
   std::tie(server_, qsfpServiceHandler_) =
       setupThriftServer(std::move(wedgeManager));
 }
@@ -54,6 +51,11 @@ HwQsfpEnsemble::~HwQsfpEnsemble() {
     doServerLoop(server_, qsfpServiceHandler_);
   }
 }
+void HwQsfpEnsemble::setupForWarmboot() const {
+  createFile(folly::to<std::string>(
+      FLAGS_qsfp_service_volatile_dir, "/", kQsfpTestWarmnbootFile));
+}
+
 PhyManager* HwQsfpEnsemble::getPhyManager() {
   return getWedgeManager()->getPhyManager();
 }
