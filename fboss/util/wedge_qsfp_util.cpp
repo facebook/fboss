@@ -2557,8 +2557,8 @@ bool printVdmInfo(TransceiverI2CApi* bus, unsigned int port) {
       uint8_t byteLsb = controlPageBuf[i+1];
 
       if (!byteMsb && !byteLsb) {
-        // No more config present, break the loop
-        break;
+        // No config present, continue to next
+        continue;
       }
 
       uint8_t laneId = byteMsb & 0x0f;
