@@ -7,6 +7,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/phy/ExternalPhy.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/mdio/Mdio.h"
 #include "fboss/mka_service/if/gen-cpp2/mka_types.h"
 
@@ -91,6 +92,11 @@ class PhyManager {
 
   folly::EventBase* getPimEventBase(PimID pimID) const;
 
+  void
+  setPortPrbs(PortID portID, phy::Side side, const phy::PortPrbsState& prbs);
+
+  phy::PortPrbsState getPortPrbs(PortID portID, phy::Side side);
+
  protected:
   const PlatformMapping* getPlatformMapping() {
     return platformMapping_;
@@ -125,6 +131,9 @@ class PhyManager {
   virtual void createExternalPhy(
       const phy::PhyIDInfo& phyIDInfo,
       MultiPimPlatformPimContainer* pimContainer) = 0;
+
+  const std::vector<LaneID>& getCachedLanes(PortID portID, phy::Side side)
+      const;
 
   // PhyManager is in the middle of changing its apis to accept PortID instead
   // of asking users to get all three Pim/MDIO Controller/PHY id.

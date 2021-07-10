@@ -6,6 +6,8 @@
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/lib/phy/ExternalPhy.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
@@ -204,6 +206,39 @@ void PhyManager::setPortToLanesInfo(
     portLanesInfo->line.push_back(it.first);
   }
   portToLanesInfo_[portID] = std::move(portLanesInfo);
+}
+
+const std::vector<LaneID>& PhyManager::getCachedLanes(
+    PortID portID,
+    phy::Side side) const {
+  // Try to get the cached lanes list
+  const auto& cachedLanes = portToLanesInfo_.find(portID);
+  if (cachedLanes == portToLanesInfo_.end()) {
+    throw FbossError(
+        "Port:", portID, " is not programmed and can't find cached lanes");
+  }
+  return (
+      side == phy::Side::SYSTEM ? cachedLanes->second->system
+                                : cachedLanes->second->line);
+}
+
+void PhyManager::setPortPrbs(
+    PortID portID,
+    phy::Side side,
+    const phy::PortPrbsState& prbs) {
+  auto* xphy = getExternalPhy(portID);
+  if (!xphy->isSupported(phy::ExternalPhy::Feature::PRBS)) {
+    throw FbossError("Port:", portID, " xphy can't support PRBS");
+  }
+  xphy->setPortPrbs(side, getCachedLanes(portID, side), prbs);
+}
+
+phy::PortPrbsState PhyManager::getPortPrbs(PortID portID, phy::Side side) {
+  auto* xphy = getExternalPhy(portID);
+  if (!xphy->isSupported(phy::ExternalPhy::Feature::PRBS)) {
+    throw FbossError("Port:", portID, " xphy can't support PRBS");
+  }
+  return xphy->getPortPrbs(side, getCachedLanes(portID, side));
 }
 
 } // namespace facebook::fboss

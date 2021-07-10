@@ -844,5 +844,18 @@ bool WedgeManager::initExternalPhyMap() {
   return rb;
 }
 
+void WedgeManager::programXphyPortPrbs(
+    PortID portID,
+    phy::Side side,
+    const phy::PortPrbsState& prbs) {
+  phyManager_->setPortPrbs(portID, side, prbs);
+}
+
+phy::PortPrbsState WedgeManager::getXphyPortPrbs(
+    PortID portID,
+    phy::Side side) {
+  return phyManager_->getPortPrbs(portID, side);
+}
+
 } // namespace fboss
 } // namespace facebook
