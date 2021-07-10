@@ -176,6 +176,10 @@ class ExternalPhy {
       const std::vector<LaneID>& lanes,
       const PortPrbsState& prbs) = 0;
 
+  virtual PortPrbsState getPortPrbs(
+      Side side,
+      const std::vector<LaneID>& lanes) = 0;
+
   virtual std::vector<ExternalPhyLaneDiagInfo> getOnePortDiagInfo(
       uint32_t sysLanes,
       uint32_t lineLanes) {
