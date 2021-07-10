@@ -145,6 +145,7 @@ class ExternalPhy {
     PRBS_STATS,
     MACSEC,
   };
+  static std::string featureName(Feature feature);
 
   virtual ~ExternalPhy() {}
 

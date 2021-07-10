@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/qsfp_service/test/hw_test/HwTest.h"
+#include "fboss/qsfp_service/test/hw_test/HwExternalPhyPortTest.h"
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/lib/phy/PhyManager.h"
@@ -46,22 +46,13 @@ auto kPortProfile = cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL;
 } // namespace
 
 namespace facebook::fboss {
-class HwMacsecTest : public HwTest {
+class HwMacsecTest : public HwExternalPhyPortTest {
  public:
-  std::vector<std::pair<PortID, cfg::PortProfileID>> findAvailablePorts() {
-    auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
-    const auto& ports = utility::findAvailablePorts(getHwQsfpEnsemble());
-    std::vector<std::pair<PortID, cfg::PortProfileID>> macsecSupportedPorts;
-    // Check whether the ExternalPhy of such xphy port support macsec feature
-    for (auto& [port, profile] : ports.xphyPorts) {
-      auto* xphy = phyManager->getExternalPhy(port);
-      if (xphy->isSupported(phy::ExternalPhy::Feature::MACSEC)) {
-        macsecSupportedPorts.push_back(std::make_pair(port, profile));
-      }
-    }
-    CHECK(!macsecSupportedPorts.empty())
-        << "Can't find Macsec-enabled xphy ports";
-    return macsecSupportedPorts;
+  const std::vector<phy::ExternalPhy::Feature>& neededFeatures()
+      const override {
+    static const std::vector<phy::ExternalPhy::Feature> kNeededFeatures = {
+        phy::ExternalPhy::Feature::MACSEC};
+    return kNeededFeatures;
   }
 };
 
@@ -70,7 +61,7 @@ TEST_F(HwMacsecTest, installKeys) {
   auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
   const auto& platPorts =
       getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
-  for (const auto& [port, profile] : findAvailablePorts()) {
+  for (const auto& [port, profile] : findAvailableXphyPorts()) {
     auto platPort = platPorts.find(port);
     CHECK(platPort != platPorts.end())
         << " Could not find platform port with ID " << port;

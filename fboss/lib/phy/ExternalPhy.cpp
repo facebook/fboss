@@ -9,6 +9,8 @@
  */
 
 #include "fboss/lib/phy/ExternalPhy.h"
+
+#include "fboss/agent/FbossError.h"
 #include "fboss/mdio/MdioError.h"
 #include "folly/json.h"
 
@@ -167,6 +169,20 @@ float_t ExternalPhy::getLaneSpeed(const PhyPortConfig& config, Side side) {
 std::string PhyIDInfo::str() const {
   return folly::to<std::string>(
       "[PIM:", pimID, ", MDIO:", controllerID, ", PHY:", phyAddr, "]");
+}
+
+std::string ExternalPhy::featureName(Feature feature) {
+  switch (feature) {
+    case Feature::LOOPBACK:
+      return "LOOPBACK";
+    case Feature::MACSEC:
+      return "MACSEC";
+    case Feature::PRBS:
+      return "PRBS";
+    case Feature::PRBS_STATS:
+      return "PRBS_STATS";
+  }
+  throw FbossError("Unrecognized features");
 }
 
 } // namespace facebook::fboss::phy
