@@ -25,6 +25,23 @@ class AclMap : public NodeMapT<AclMap, AclMapTraits> {
   AclMap();
   ~AclMap() override;
 
+  bool operator==(const AclMap& aclMap) const {
+    if (numEntries() != aclMap.numEntries()) {
+      return false;
+    }
+    for (auto const& entry : *this) {
+      if (!aclMap.getEntryIf(entry->getID()) ||
+          *(aclMap.getEntry(entry->getID())) != *entry) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool operator!=(const AclMap& aclMap) const {
+    return !(*this == aclMap);
+  }
+
   const std::shared_ptr<AclEntry>& getEntry(const std::string& name) const {
     return getNode(name);
   }

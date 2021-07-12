@@ -61,7 +61,11 @@ class AclTableGroup : public NodeBaseT<AclTableGroup, AclTableGroupFields> {
 
   bool operator==(const AclTableGroup& aclTableGroup) const {
     return getFields()->name == aclTableGroup.getID() &&
-        getFields()->aclTableMap == aclTableGroup.getAclTableMap();
+        *(getFields()->aclTableMap) == *(aclTableGroup.getAclTableMap());
+  }
+
+  bool operator!=(const AclTableGroup& aclTableGroup) const {
+    return !(*this == aclTableGroup);
   }
 
   const std::string& getID() const {
@@ -70,6 +74,10 @@ class AclTableGroup : public NodeBaseT<AclTableGroup, AclTableGroupFields> {
 
   std::shared_ptr<AclTableMap> getAclTableMap() const {
     return getFields()->aclTableMap;
+  }
+
+  void setAclTableMap(std::shared_ptr<AclTableMap> aclTableMap) {
+    writableFields()->aclTableMap = aclTableMap;
   }
 
  private:

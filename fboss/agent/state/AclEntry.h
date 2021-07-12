@@ -171,6 +171,10 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
         getFields()->etherType == acl.getEtherType();
   }
 
+  bool operator!=(const AclEntry& acl) const {
+    return !(*this == acl);
+  }
+
   int getPriority() const {
     return getFields()->priority;
   }

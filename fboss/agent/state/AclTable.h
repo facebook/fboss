@@ -65,7 +65,11 @@ class AclTable : public NodeBaseT<AclTable, AclTableFields> {
   bool operator==(const AclTable& aclTable) const {
     return getFields()->priority == aclTable.getPriority() &&
         getFields()->name == aclTable.getID() &&
-        getFields()->aclMap == aclTable.getAclMap();
+        *(getFields()->aclMap) == *(aclTable.getAclMap());
+  }
+
+  bool operator!=(const AclTable& aclTable) const {
+    return !(*this == aclTable);
   }
 
   int getPriority() const {
@@ -82,6 +86,10 @@ class AclTable : public NodeBaseT<AclTable, AclTableFields> {
 
   std::shared_ptr<AclMap> getAclMap() const {
     return getFields()->aclMap;
+  }
+
+  void setAclMap(std::shared_ptr<AclMap> aclMap) {
+    writableFields()->aclMap = aclMap;
   }
 
  private:

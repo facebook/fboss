@@ -24,6 +24,23 @@ class AclTableMap : public NodeMapT<AclTableMap, AclTableMapTraits> {
   AclTableMap();
   ~AclTableMap() override;
 
+  bool operator==(const AclTableMap& aclTableMap) const {
+    if (numTables() != aclTableMap.numTables()) {
+      return false;
+    }
+    for (auto const& table : *this) {
+      if (!aclTableMap.getTableIf(table->getID()) ||
+          *(aclTableMap.getTable(table->getID())) != *table) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool operator!=(const AclTableMap& aclTableMap) const {
+    return !(*this == aclTableMap);
+  }
+
   const std::shared_ptr<AclTable>& getTable(
       const std::string& tableName) const {
     return getNode(tableName);
