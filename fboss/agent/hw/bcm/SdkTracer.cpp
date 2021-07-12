@@ -813,6 +813,13 @@ int __real_bcm_port_enable_set(int unit, bcm_port_t port, int enable);
 
 int __real_bcm_port_stat_enable_set(int unit, bcm_gport_t port, int enable);
 
+int __real_bcm_port_stat_attach(int unit, bcm_port_t port, uint32 counterID_);
+
+int __real_bcm_port_stat_detach_with_id(
+    int unit,
+    bcm_gport_t gPort,
+    uint32 counterID);
+
 bcm_ip_t __real_bcm_ip_mask_create(int len);
 
 int __real_bcm_l3_egress_multipath_add(
@@ -2966,6 +2973,17 @@ void __wrap_bcm_knet_netif_t_init(bcm_knet_netif_t* netif) {
 
 int __wrap_bcm_port_stat_enable_set(int unit, bcm_gport_t port, int enable) {
   CALL_WRAPPERS_RV(bcm_port_stat_enable_set(unit, port, enable));
+}
+
+int __wrap_bcm_port_stat_attach(int unit, bcm_port_t port, uint32 counterID_) {
+  CALL_WRAPPERS_RV(bcm_port_stat_attach(unit, port, counterID_));
+}
+
+int __wrap_bcm_port_stat_detach_with_id(
+    int unit,
+    bcm_gport_t gPort,
+    uint32 counterID) {
+  CALL_WRAPPERS_RV(bcm_port_stat_detach_with_id(unit, gPort, counterID));
 }
 
 int __wrap_bcm_stat_multi_get(

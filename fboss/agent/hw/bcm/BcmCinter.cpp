@@ -2744,6 +2744,26 @@ int BcmCinter::bcm_port_stat_enable_set(
   return 0;
 }
 
+int BcmCinter::bcm_port_stat_attach(
+    int unit,
+    bcm_port_t port,
+    uint32 counterID_) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_port_stat_attach(", makeParamStr(unit, port, counterID_), ")")));
+  return 0;
+}
+
+int BcmCinter::bcm_port_stat_detach_with_id(
+    int unit,
+    bcm_gport_t gPort,
+    uint32 counterID) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_port_stat_detach_with_id(",
+      makeParamStr(unit, gPort, counterID),
+      ")")));
+  return 0;
+}
+
 int BcmCinter::bcm_stat_clear(int unit, bcm_port_t port) {
   writeCintLines(
       wrapFunc(to<string>("bcm_stat_clear(", makeParamStr(unit, port), ")")));

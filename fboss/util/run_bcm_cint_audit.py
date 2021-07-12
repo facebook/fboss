@@ -101,8 +101,6 @@ KNOWN_MISSING_APIS = {
     "bcm_port_phy_tx_t_init",
     "bcm_port_priority_group_config_t_init",
     "bcm_port_resource_t_init",
-    "bcm_port_stat_attach",
-    "bcm_port_stat_detach_with_id",
     "bcm_qos_map_t_init",
     "bcm_rtag7_control_set",
     "bcm_rx_cosq_mapping_extended_add",

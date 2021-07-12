@@ -533,6 +533,12 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   int bcm_tx(int unit, bcm_pkt_t* tx_pkt, void* cookie) override;
   int bcm_pktio_tx(int unit, bcm_pktio_pkt_t* tx_pkt) override;
   int bcm_port_stat_enable_set(int unit, bcm_gport_t port, int enable) override;
+  int bcm_port_stat_attach(int unit, bcm_port_t port, uint32 counterID_)
+      override;
+  int bcm_port_stat_detach_with_id(
+      int unit,
+      bcm_gport_t gPort,
+      uint32 counterID) override;
   int bcm_stat_clear(int unit, bcm_port_t port) override;
   int bcm_port_speed_set(int unit, bcm_port_t port, int speed) override;
   int bcm_l3_egress_destroy(int unit, bcm_if_t intf) override;
