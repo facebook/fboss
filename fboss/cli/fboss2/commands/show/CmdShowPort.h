@@ -13,7 +13,6 @@
 #include "fboss/cli/fboss2/CmdHandler.h"
 
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
-#include "fboss/cli/fboss2/commands/show/port/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/utils/Table.h"
 
 #include <unistd.h>
@@ -26,7 +25,7 @@ struct CmdShowPortTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
   using ObjectArgType = std::vector<std::string>;
-  using RetType = cli::ShowPortModel;
+  using RetType = std::map<int32_t, facebook::fboss::PortInfoThrift>;
 };
 
 class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
@@ -37,29 +36,42 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
   RetType queryClient(
       const folly::IPAddress& hostIp,
       const ObjectArgType& queriedPorts) {
-    std::map<int32_t, facebook::fboss::PortInfoThrift> entries;
+    RetType portEntries;
 
     auto client = utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(
         hostIp.str());
 
-    client->sync_getAllPortInfo(entries);
+    client->sync_getAllPortInfo(portEntries);
 
-    return createModel(entries, queriedPorts);
+    if (queriedPorts.size() == 0) {
+      return portEntries;
+    }
+
+    RetType retVal;
+    for (auto const& [portId, portInfo] : portEntries) {
+      for (auto const& queriedPort : queriedPorts) {
+        if (portInfo.get_name() == queriedPort) {
+          retVal.insert(std::make_pair(portId, portInfo));
+        }
+      }
+    }
+
+    return retVal;
   }
 
-  void printOutput(const RetType& model) {
+  void printOutput(const RetType& portId2PortInfoThrift) {
     Table table;
     table.setHeader(
         {"ID", "Name", "AdminState", "LinkState", "Speed", "ProfileID"});
 
-    for (auto const& portInfo : model.get_portEntries()) {
+    for (auto const& [portId, portInfo] : portId2PortInfoThrift) {
       table.addRow({
-          folly::to<std::string>(portInfo.get_id()),
+          folly::to<std::string>(portId),
           portInfo.get_name(),
-          portInfo.get_adminState(),
+          getAdminStateStr(portInfo.get_adminState()),
           getStyledOperState(portInfo.get_operState()),
-          portInfo.get_speed(),
-          portInfo.get_profileId(),
+          getSpeedGbps(portInfo.get_speedMbps()),
+          portInfo.get_profileID(),
       });
     }
 
@@ -79,22 +91,12 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
         std::to_string(static_cast<int>(adminState)));
   }
 
-  Table::StyledCell getStyledOperState(std::string operState) {
-    if (operState == "Down") {
-      return Table::StyledCell("Down", Table::Style::ERROR);
-    } else {
-      return Table::StyledCell("Up", Table::Style::GOOD);
-    }
-
-    throw std::runtime_error("Unsupported LinkState: " + operState);
-  }
-
-  std::string getOperStateStr(PortOperState operState) {
+  Table::StyledCell getStyledOperState(PortOperState operState) {
     switch (operState) {
       case PortOperState::DOWN:
-        return "Down";
+        return Table::StyledCell("Down", Table::Style::WARN);
       case PortOperState::UP:
-        return "Up";
+        return Table::StyledCell("Up", Table::Style::GOOD);
     }
 
     throw std::runtime_error(
@@ -104,33 +106,6 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
 
   std::string getSpeedGbps(int64_t speedMbps) {
     return std::to_string(speedMbps / 1000) + "G";
-  }
-
-  RetType createModel(
-      std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries,
-      const ObjectArgType& queriedPorts) {
-    RetType model;
-    std::unordered_set<std::string> queriedSet(
-        queriedPorts.begin(), queriedPorts.end());
-
-    for (const auto& entry : portEntries) {
-      auto portInfo = entry.second;
-      auto portName = portInfo.get_name();
-
-      if (queriedPorts.size() == 0 || queriedSet.count(portName)) {
-        cli::PortEntry portDetails;
-        portDetails.id_ref() = portInfo.get_portId();
-        portDetails.name_ref() = portInfo.get_name();
-        portDetails.adminState_ref() =
-            getAdminStateStr(portInfo.get_adminState());
-        portDetails.operState_ref() = getOperStateStr(portInfo.get_operState());
-        portDetails.speed_ref() = getSpeedGbps(portInfo.get_speedMbps());
-        portDetails.profileId_ref() = portInfo.get_profileID();
-
-        model.portEntries_ref()->push_back(portDetails);
-      }
-    }
-    return model;
   }
 };
 
