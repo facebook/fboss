@@ -388,7 +388,8 @@ vector<string> BcmCinter::cintForL3Ecmp(const bcm_l3_egress_ecmp_t& ecmp) {
       "bcm_l3_egress_ecmp_t_init(&ecmp)",
       to<string>("ecmp.flags=", ecmp.flags),
       to<string>("ecmp.max_paths=", ecmp.max_paths),
-      to<string>("ecmp.ecmp_intf=", getCintVar(l3IntfIdVars, ecmp.ecmp_intf))};
+      to<string>("ecmp.ecmp_intf=", getCintVar(l3IntfIdVars, ecmp.ecmp_intf)),
+      to<string>("ecmp.ecmp_group_flags=", ecmp.ecmp_group_flags)};
   return cintLines;
 }
 
