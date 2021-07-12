@@ -8,8 +8,39 @@
  *
  */
 #include "fboss/cli/fboss2/utils/Table.h"
+#include "fboss/cli/fboss2/CmdGlobalOptions.h"
 
 #include <folly/Utility.h>
+
+namespace {
+using facebook::fboss::CmdGlobalOptions;
+using facebook::fboss::utils::Table;
+
+void setColor(tabulate::Format& format, tabulate::Color c) {
+  if (CmdGlobalOptions::getInstance()->getColor() == "yes") {
+    format.font_color(c);
+  }
+}
+
+void setStyleImpl(tabulate::Format& format, Table::Style style) {
+  switch (style) {
+    case Table::Style::NONE:
+      setColor(format, tabulate::Color::none);
+      return;
+    case Table::Style::GOOD:
+      setColor(format, tabulate::Color::green);
+      return;
+    case Table::Style::WARN:
+      setColor(format, tabulate::Color::yellow);
+      return;
+    case Table::Style::ERROR:
+      setColor(format, tabulate::Color::red);
+      format.font_style({tabulate::FontStyle::bold});
+      return;
+  }
+  throw std::runtime_error("Invalid Style");
+}
+} // namespace
 
 namespace facebook::fboss::utils {
 
@@ -17,7 +48,7 @@ Table::Table() {
   internalTable_.format().hide_border();
 }
 
-Table::Row& Table::setHeader(const std::vector<std::string>& data) {
+Table::Row& Table::setHeader(const std::vector<Table::RowData>& data) {
   if (rows_.size() != 0) {
     throw std::runtime_error(
         "Table::setHeader should be called once, before adding rows");
@@ -27,26 +58,49 @@ Table::Row& Table::setHeader(const std::vector<std::string>& data) {
   return row;
 }
 
-Table::Row& Table::addRow(const std::vector<std::string>& data) {
+Table::Row& Table::addRow(const std::vector<Table::RowData>& data) {
+  // transform all items to StyledCells, using StyledCell's implicit constructor
+  std::vector<StyledCell> cells;
+  cells.reserve(data.size());
+  std::transform(
+      data.begin(), data.end(), std::back_inserter(cells), [](auto& data) {
+        return std::visit([](auto&& cell) { return StyledCell(cell); }, data);
+      });
+
   // transform all items to variant type that tabulate will like
   std::vector<std::variant<std::string, const char*, tabulate::Table>>
-      tableCells;
+      tabulateCells;
+  tabulateCells.reserve(data.size());
   std::transform(
-      data.begin(),
-      data.end(),
-      std::back_inserter(tableCells),
-      folly::identity);
+      cells.begin(),
+      cells.end(),
+      std::back_inserter(tabulateCells),
+      [](auto& cell) { return cell.getData(); });
 
-  internalTable_.add_row(tableCells);
+  internalTable_.add_row(tabulateCells);
   auto& internalRow = internalTable_.row(rows_.size());
+  auto& newRow = rows_.emplace_back(internalRow);
 
   // Use top border on second row to get the line under header.
   // TODO: figure out why we can't use bottom_border on the header instead
   if (rows_.size() == 2) {
     internalRow.format().corner("-").show_border_top();
   }
-
-  return rows_.emplace_back(internalRow);
+  // apply extra styling, if provided
+  for (auto i = 0; i < cells.size(); i++) {
+    const auto& cell = cells[i];
+    if (cell.getStyle() != Table::Style::NONE) {
+      newRow.setCellStyle(i, cell.getStyle());
+    }
+  }
+  return newRow;
 }
 
+void Table::Row::setStyle(Style style) {
+  setStyleImpl(internalRow_.format(), style);
+}
+
+void Table::Row::setCellStyle(int cellIndex, Style style) {
+  setStyleImpl(internalRow_[cellIndex].format(), style);
+}
 } // namespace facebook::fboss::utils

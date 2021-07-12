@@ -20,19 +20,57 @@ namespace facebook::fboss::utils {
 */
 class Table {
  public:
+  enum Style {
+    NONE,
+    GOOD,
+    WARN,
+    ERROR,
+  };
+
   class Row {
    public:
     explicit Row(tabulate::Row& row) : internalRow_(row) {}
 
-   private:
+    void setStyle(Style style);
+
+    void setCellStyle(int cellIndex, Style style);
+
     friend class Table;
     tabulate::Row& internalRow_;
   };
 
+  class StyledCell {
+   public:
+    /* implicit */ StyledCell(const std::string& data)
+        : data_(data), style_(Style::NONE) {}
+    StyledCell(const std::string& data, Style style)
+        : data_(data), style_(style) {}
+    StyledCell(StyledCell const& cell) = default;
+    StyledCell& operator=(StyledCell& other) = default;
+
+    std::string getData() const {
+      return data_;
+    }
+
+    Style getStyle() const {
+      return style_;
+    }
+
+   private:
+    std::string data_;
+    Style style_;
+  };
+
   Table();
 
-  Row& setHeader(const std::vector<std::string>& data);
-  Row& addRow(const std::vector<std::string>& data);
+  using RowData = std::variant<std::string, StyledCell>;
+
+  /*
+    Add data to table. RowData can be in the form of a string, or a StyledCell:
+    table.addRow({"val1", StyledCell("val2", Style::WARN), "val3"});
+  */
+  Row& setHeader(const std::vector<RowData>& data);
+  Row& addRow(const std::vector<RowData>& data);
 
  private:
   friend std::ostream& operator<<(std::ostream& stream, const Table& table);
