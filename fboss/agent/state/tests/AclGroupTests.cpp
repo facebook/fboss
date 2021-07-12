@@ -117,3 +117,152 @@ TEST(AclGroup, TestEquality) {
   EXPECT_EQ(*tableGroup1, *tableGroup2);
   EXPECT_NE(*tableGroup1, *tableGroup3);
 }
+
+TEST(AclGroup, SerializeAclMap) {
+  auto entry1 = std::make_shared<AclEntry>(1, kDscp1);
+  auto entry2 = std::make_shared<AclEntry>(2, kDscp2);
+  entry1->setDscp(kDscpVal1);
+  entry2->setDscp(kDscpVal2);
+
+  auto map = std::make_shared<AclMap>();
+  map->addEntry(entry1);
+  map->addEntry(entry2);
+
+  auto serialized = map->toFollyDynamic();
+  auto mapBack = AclMap::fromFollyDynamic(serialized);
+
+  EXPECT_EQ(*map, *mapBack);
+  EXPECT_EQ(mapBack->getEntryIf(entry1->getID())->getID(), kDscp1);
+  EXPECT_EQ(mapBack->getEntryIf(entry2->getID())->getID(), kDscp2);
+  EXPECT_EQ(mapBack->getEntryIf(entry1->getID())->getDscp(), kDscpVal1);
+  EXPECT_EQ(mapBack->getEntryIf(entry2->getID())->getDscp(), kDscpVal2);
+
+  // remove an entry
+  map->removeEntry(entry1);
+  EXPECT_FALSE(map->getEntryIf(entry1->getID()));
+
+  serialized = map->toFollyDynamic();
+  mapBack = AclMap::fromFollyDynamic(serialized);
+
+  EXPECT_EQ(*map, *mapBack);
+  EXPECT_FALSE(mapBack->getEntryIf(entry1->getID()));
+  EXPECT_TRUE(mapBack->getEntryIf(entry2->getID()));
+  EXPECT_EQ(mapBack->getEntryIf(entry2->getID())->getDscp(), kDscpVal2);
+}
+
+TEST(AclGroup, SerializeAclTable) {
+  auto entry1 = std::make_shared<AclEntry>(1, kDscp1);
+  auto entry2 = std::make_shared<AclEntry>(2, kDscp2);
+  entry1->setDscp(kDscpVal1);
+  entry2->setDscp(kDscpVal2);
+
+  auto map = std::make_shared<AclMap>();
+  map->addEntry(entry1);
+  map->addEntry(entry2);
+
+  auto table = std::make_shared<AclTable>(1, kTable1);
+  table->setAclMap(map);
+
+  auto serialized = table->toFollyDynamic();
+  auto tableBack = AclTable::fromFollyDynamic(serialized);
+
+  EXPECT_EQ(*table, *tableBack);
+  EXPECT_EQ(tableBack->getPriority(), 1);
+  EXPECT_EQ(tableBack->getID(), kTable1);
+  EXPECT_EQ(*(tableBack->getAclMap()), *map);
+
+  // change the priority
+  table->setPriority(2);
+  EXPECT_EQ(table->getPriority(), 2);
+
+  serialized = table->toFollyDynamic();
+  tableBack = AclTable::fromFollyDynamic(serialized);
+
+  EXPECT_EQ(*table, *tableBack);
+  EXPECT_EQ(tableBack->getPriority(), 2);
+  EXPECT_EQ(tableBack->getID(), kTable1);
+  EXPECT_EQ(*(tableBack->getAclMap()), *map);
+}
+
+TEST(AclGroup, SerializeAclTableMap) {
+  auto entry1 = std::make_shared<AclEntry>(1, kDscp1);
+  auto entry2 = std::make_shared<AclEntry>(2, kDscp2);
+  auto entry3 = std::make_shared<AclEntry>(3, kDscp3);
+  entry1->setDscp(kDscpVal1);
+  entry2->setDscp(kDscpVal2);
+  entry3->setDscp(kDscpVal3);
+
+  auto map1 = std::make_shared<AclMap>();
+  map1->addEntry(entry1);
+  map1->addEntry(entry2);
+  auto map2 = std::make_shared<AclMap>();
+  map2->addEntry(entry3);
+
+  auto table1 = std::make_shared<AclTable>(1, kTable1);
+  table1->setAclMap(map1);
+  auto table2 = std::make_shared<AclTable>(2, kTable2);
+  table2->setAclMap(map2);
+
+  auto tableMap = std::make_shared<AclTableMap>();
+  tableMap->addTable(table1);
+  tableMap->addTable(table2);
+
+  auto serialized = tableMap->toFollyDynamic();
+  auto tableMapBack = AclTableMap::fromFollyDynamic(serialized);
+
+  EXPECT_EQ(*tableMap, *tableMapBack);
+  EXPECT_EQ(tableMapBack->getTableIf(kTable1)->getID(), kTable1);
+  EXPECT_EQ(tableMapBack->getTableIf(kTable2)->getID(), kTable2);
+
+  // add a table
+  auto entry4 = std::make_shared<AclEntry>(4, kDscp4);
+  entry4->setDscp(kDscpVal4);
+  auto map3 = std::make_shared<AclMap>();
+  map3->addEntry(entry4);
+  auto table3 = std::make_shared<AclTable>(3, "table3");
+  table3->setAclMap(map3);
+  tableMap->addTable(table3);
+
+  serialized = tableMap->toFollyDynamic();
+  tableMapBack = AclTableMap::fromFollyDynamic(serialized);
+
+  EXPECT_EQ(*tableMap, *tableMapBack);
+  EXPECT_EQ(tableMapBack->getTableIf(kTable1)->getID(), kTable1);
+  EXPECT_EQ(tableMapBack->getTableIf(kTable2)->getID(), kTable2);
+  EXPECT_EQ(tableMapBack->getTableIf(kTable3)->getID(), kTable3);
+}
+
+TEST(AclGroup, SerializeAclTableGroup) {
+  auto entry1 = std::make_shared<AclEntry>(1, kDscp1);
+  auto entry2 = std::make_shared<AclEntry>(2, kDscp2);
+  auto entry3 = std::make_shared<AclEntry>(3, kDscp3);
+  entry1->setDscp(kDscpVal1);
+  entry2->setDscp(kDscpVal2);
+  entry3->setDscp(kDscpVal3);
+
+  auto map1 = std::make_shared<AclMap>();
+  map1->addEntry(entry1);
+  map1->addEntry(entry2);
+  auto map2 = std::make_shared<AclMap>();
+  map2->addEntry(entry3);
+
+  auto table1 = std::make_shared<AclTable>(1, kTable1);
+  table1->setAclMap(map1);
+  auto table2 = std::make_shared<AclTable>(2, kTable2);
+  table2->setAclMap(map2);
+
+  auto tableMap = std::make_shared<AclTableMap>();
+  tableMap->addTable(table1);
+  tableMap->addTable(table2);
+
+  auto tableGroup = std::make_shared<AclTableGroup>(kGroup1);
+  tableGroup->setAclTableMap(tableMap);
+
+  auto serialized = tableGroup->toFollyDynamic();
+  auto tableGroupBack = AclTableGroup::fromFollyDynamic(serialized);
+
+  EXPECT_EQ(*tableGroup, *tableGroupBack);
+  EXPECT_EQ(tableGroupBack->getID(), kGroup1);
+  EXPECT_NE(tableGroupBack->getAclTableMap(), nullptr);
+  EXPECT_EQ(*(tableGroupBack->getAclTableMap()), *tableMap);
+}

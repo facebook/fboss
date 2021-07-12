@@ -35,7 +35,6 @@ struct AclTableFields {
 
   folly::dynamic toFollyDynamic() const;
   static AclTableFields fromFollyDynamic(const folly::dynamic& json);
-  static void checkFollyDynamic(const folly::dynamic& json);
   int priority;
   std::string name;
   std::shared_ptr<AclMap> aclMap;

@@ -20,23 +20,25 @@ using folly::IPAddress;
 namespace {
 constexpr auto kPriority = "priority";
 constexpr auto kName = "name";
+constexpr auto kAclMap = "aclMap";
 } // namespace
 
 namespace facebook::fboss {
 
 folly::dynamic AclTableFields::toFollyDynamic() const {
-  // TODO(saranicholas): write aclMap field to output json
   folly::dynamic aclTable = folly::dynamic::object;
   aclTable[kPriority] = priority;
   aclTable[kName] = name;
+  aclTable[kAclMap] = aclMap->toFollyDynamic();
   return aclTable;
 }
 
 AclTableFields AclTableFields::fromFollyDynamic(
     const folly::dynamic& aclTableJson) {
-  // TODO(saranicholas): read aclMap field from input json
   AclTableFields aclTable(
-      aclTableJson[kPriority].asInt(), aclTableJson[kName].asString());
+      aclTableJson[kPriority].asInt(),
+      aclTableJson[kName].asString(),
+      AclMap::fromFollyDynamic(aclTableJson[kAclMap]));
 
   return aclTable;
 }
