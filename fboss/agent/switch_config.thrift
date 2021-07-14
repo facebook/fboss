@@ -419,6 +419,17 @@ struct AclEntry {
   29: optional EtherType etherType
 }
 
+struct AclTable {
+  1: string name
+  2: i16 priority
+  3: list<AclEntry> aclEntries = []
+}
+
+struct AclTableGroup {
+  1: string name
+  2: list<AclTable> aclTables = []
+}
+
 /*
  * We only support unicast in FBOSS, but for completeness sake
  */
@@ -1406,4 +1417,8 @@ struct SwitchConfig {
   42: optional QcmConfig qcmConfig
   43: optional map<PortPgConfigName, list<PortPgConfig>> portPgConfigs
   44: optional map<BufferPoolConfigName, BufferPoolConfig> bufferPoolConfigs
+  // aclTableGroup does not need to be a list at this point, as we only expect to
+  // support a single group for the foreseeable future. This could be changed to
+  // list<AclTableGroup> later if the need arises to support multiple groups.
+  45: optional AclTableGroup aclTableGroup
 }
