@@ -244,6 +244,10 @@ class QsfpModule : public Transceiver {
   bool flatMem_{false};
   // This transceiver needs customization
   bool needsCustomization_{false};
+  /* This counter keeps track of the number of times
+   * the optics remediation is performed on a given port
+   */
+  uint64_t numRemediation_{0};
 
   folly::Synchronized<std::optional<TransceiverInfo>> info_;
   /*

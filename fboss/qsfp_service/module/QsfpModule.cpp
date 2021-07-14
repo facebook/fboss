@@ -249,6 +249,7 @@ TransceiverInfo QsfpModule::parseDataLocked() {
   info.status_ref() = getModuleStatus();
 
   info.timeCollected_ref() = lastRefreshTime_;
+  info.remediationCounter_ref() = numRemediation_;
   return info;
 }
 
@@ -499,6 +500,7 @@ void QsfpModule::refreshLocked() {
 
     if (shouldRemediate(FLAGS_remediate_interval)) {
       remediateFlakyTransceiver();
+      ++numRemediation_;
     }
   }
 

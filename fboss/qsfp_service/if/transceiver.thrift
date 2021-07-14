@@ -307,6 +307,7 @@ struct TransceiverInfo {
   20: optional list<MediaLaneSignals> mediaLaneSignals,
   21: optional list<HostLaneSignals> hostLaneSignals,
   22: optional i64 timeCollected,
+  23: optional i64 remediationCounter,
 }
 
 typedef binary (cpp2.type = "folly::IOBuf") IOBuf
