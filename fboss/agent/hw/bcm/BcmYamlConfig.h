@@ -29,6 +29,7 @@ class BcmYamlConfig {
   BcmMmuState getMmuState() const;
   bool is128ByteIpv6Enabled() const;
   bool isAlpmEnabled() const;
+  bool isPriorityKeyUsedInRxCosqMapping() const;
 
   void dumpConfig(const std::string& dumpFile);
 

@@ -146,6 +146,8 @@ class BcmAPI {
 
   static bool isAlpmEnabled();
 
+  static bool isPriorityKeyUsedInRxCosqMapping();
+
   static uint64_t getConfigStableSize();
 
   /*

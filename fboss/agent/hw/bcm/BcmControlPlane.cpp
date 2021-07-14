@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/BcmControlPlane.h"
 
+#include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmControlPlaneQueueManager.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
@@ -191,6 +192,7 @@ void BcmControlPlane::deleteReasonToQueueEntry(int index) {
     bcm_rx_cosq_mapping_t_init(&cosqMap);
 
     cosqMap.index = index;
+    cosqMap.priority = index;
     rv = rxCosqMappingExtendedDelete(hw_->getUnit(), &cosqMap);
   }
   if (rv != BCM_E_NOT_FOUND) {
@@ -259,7 +261,8 @@ void BcmControlPlane::updateQueueCounters(HwPortStats* portStats) {
 // wrapper for bcm_rx_cosq_mapping_extended_get
 int BcmControlPlane::rxCosqMappingExtendedGet(
     int unit,
-    bcm_rx_cosq_mapping_t* rx_cosq_mapping) {
+    bcm_rx_cosq_mapping_t* rx_cosq_mapping,
+    bool byIndex) {
 #if (!defined(IS_OPENNSA)) && (!defined(BCM_SDK_VERSION_GTE_6_5_20))
   return bcm_rx_cosq_mapping_get(
       unit,
@@ -272,16 +275,37 @@ int BcmControlPlane::rxCosqMappingExtendedGet(
       &rx_cosq_mapping->packet_type_mask,
       &rx_cosq_mapping->cosq);
 #else
-  // (todo xiangzhu) At this point,
-  // bcm_rx_cosq_mapping_extended_get() supports querrying by reasons,
-  // but not querrying by index (CS00011589262).
-  // Loop over all FBOSS-used reasons to find the matching index.
-  // This is a temporary workaround.  Broadcom will provide a clean fix to
-  // support querrying by index.
   bcm_rx_reasons_t reasons;
   auto targetIndex = rx_cosq_mapping->index;
+  bcm_rx_reasons_t targetReasons = rx_cosq_mapping->reasons;
   bcm_rx_cosq_mapping_t_init(rx_cosq_mapping);
   int rv;
+
+#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 22))
+  if (BcmAPI::isPriorityKeyUsedInRxCosqMapping()) {
+    if (byIndex) {
+      rx_cosq_mapping->priority = targetIndex;
+      rv = bcm_rx_cosq_mapping_extended_get(unit, rx_cosq_mapping);
+      if (BCM_SUCCESS(rv)) {
+        return rv;
+      }
+    } else {
+      int maxSize;
+      rv = bcm_rx_cosq_mapping_size_get(unit, &maxSize);
+      bcmCheckError(rv, "failed to get max CPU cos queue mappings");
+      for (int index = 0; index < maxSize; ++index) {
+        bcm_rx_cosq_mapping_t_init(rx_cosq_mapping);
+        rx_cosq_mapping->priority = index;
+        rv = bcm_rx_cosq_mapping_extended_get(unit, rx_cosq_mapping);
+        if (BCM_SUCCESS(rv) &&
+            BCM_RX_REASON_EQ(rx_cosq_mapping->reasons, targetReasons)) {
+          return rv;
+        }
+      }
+    }
+    return BCM_E_NOT_FOUND;
+  }
+#endif
 
   for (std::set<cfg::PacketRxReason>::iterator it = kSupportedRxReasons.begin();
        it != kSupportedRxReasons.end();
@@ -325,6 +349,27 @@ int BcmControlPlane::rxCosqMappingExtendedSet(
   bcm_rx_cosq_mapping_t cosqMap;
   bcm_rx_cosq_mapping_t_init(&cosqMap);
 
+#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 22))
+  if (BcmAPI::isPriorityKeyUsedInRxCosqMapping()) {
+    // use bcm_rx_cosq_mapping_extended_set
+    cosqMap.reasons = reasons;
+    auto rv = rxCosqMappingExtendedGet(unit, &cosqMap, false);
+    if (rv != BCM_E_NOT_FOUND) {
+      rxCosqMappingExtendedDelete(unit, &cosqMap);
+    }
+    bcm_rx_cosq_mapping_t_init(&cosqMap);
+    cosqMap.priority = index;
+    cosqMap.reasons = reasons;
+    cosqMap.reasons_mask = reasons_mask;
+    cosqMap.int_prio = int_prio;
+    cosqMap.int_prio_mask = int_prio_mask;
+    cosqMap.packet_type = packet_type;
+    cosqMap.packet_type_mask = packet_type_mask;
+    cosqMap.cosq = cosq;
+    return bcm_rx_cosq_mapping_extended_set(unit, 0, &cosqMap);
+  } // else use bcm_rx_cosq_mapping_extended_add
+#endif
+
   // remove existing entry with the table index to be used
   cosqMap.index = index;
   auto rv = rxCosqMappingExtendedGet(unit, &cosqMap);
@@ -351,8 +396,6 @@ int BcmControlPlane::rxCosqMappingExtendedSet(
   cosqMap.packet_type = packet_type;
   cosqMap.packet_type_mask = packet_type_mask;
   cosqMap.cosq = cosq;
-  // bcm_rx_cosq_mapping_extended_set is not implemented yet.
-  // Use _add instead.
   return bcm_rx_cosq_mapping_extended_add(unit, options, &cosqMap);
 #endif
 }

@@ -78,7 +78,8 @@ class BcmControlPlane {
 
   static int rxCosqMappingExtendedGet(
       int unit,
-      bcm_rx_cosq_mapping_t* rx_cosq_mapping);
+      bcm_rx_cosq_mapping_t* rx_cosq_mapping,
+      bool byIndex = true);
 
   static int rxCosqMappingExtendedSet(
       int unit,

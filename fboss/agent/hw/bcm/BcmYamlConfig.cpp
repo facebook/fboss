@@ -25,6 +25,8 @@ constexpr auto kTxPolaritySwapKey = "TX_POLARITY_FLIP";
 
 constexpr auto kHSDKL3ALPMState = "l3_alpm_template";
 constexpr auto kHSDKIs128ByteIpv6Enabled = "ipv6_lpm_128b_enable";
+constexpr auto kHSDKIsPriorityKeyUsedInRxCosqMapping =
+    "rx_cosq_mapping_management_mode";
 constexpr auto kHSDKThresholsModeKey = "THRESHOLD_MODE";
 
 struct CoreKey {
@@ -149,6 +151,15 @@ bool BcmYamlConfig::isAlpmEnabled() const {
     return false;
   }
   // 1: combined mode, 2: parallel mode. But both are alpm enabled
+  return true;
+}
+
+bool BcmYamlConfig::isPriorityKeyUsedInRxCosqMapping() const {
+  auto state =
+      getConfigValue<int>(globalNode_, kHSDKIsPriorityKeyUsedInRxCosqMapping);
+  if (!state || *state == 0) {
+    return false;
+  }
   return true;
 }
 

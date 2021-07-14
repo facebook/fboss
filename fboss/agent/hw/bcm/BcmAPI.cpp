@@ -221,6 +221,13 @@ bool BcmAPI::isAlpmEnabled() {
   }
 }
 
+bool BcmAPI::isPriorityKeyUsedInRxCosqMapping() {
+  if (BcmAPI::isHwUsingHSDK()) {
+    return getHwYamlConfig().isPriorityKeyUsedInRxCosqMapping();
+  }
+  return false;
+}
+
 uint64_t BcmAPI::getConfigStableSize() {
   auto stableSize = SOC_DEFAULT_LVL2_STABLE_SIZE;
   if (BcmAPI::isHwUsingHSDK()) {
