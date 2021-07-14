@@ -312,12 +312,6 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
   SwSwitch* sw_;
 };
 
-template <typename AddrType, bool StandAloneRib>
-struct LookupClassRouteUpdaterTypeT {
-  using AddrT = AddrType;
-  static constexpr auto hasStandAloneRib = StandAloneRib;
-};
-
 using TypeTypesLookupClassRouteUpdater =
     ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
 
