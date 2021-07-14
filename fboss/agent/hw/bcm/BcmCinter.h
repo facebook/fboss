@@ -256,6 +256,9 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       int unit,
       int options,
       bcm_rx_cosq_mapping_t* cosqMap) override;
+  int bcm_rx_cosq_mapping_extended_delete(
+      int unit,
+      bcm_rx_cosq_mapping_t* cosqMap) override;
   int bcm_field_qualify_IpFrag(
       int unit,
       bcm_field_entry_t entry,
