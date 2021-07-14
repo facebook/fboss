@@ -251,6 +251,11 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       uint32 packet_type_mask,
       bcm_cos_queue_t cosq) override;
   int bcm_rx_cosq_mapping_delete(int unit, int index) override;
+  std::vector<std::string> cintForRxCosqMapping(bcm_rx_cosq_mapping_t* cosqMap);
+  int bcm_rx_cosq_mapping_extended_add(
+      int unit,
+      int options,
+      bcm_rx_cosq_mapping_t* cosqMap) override;
   int bcm_field_qualify_IpFrag(
       int unit,
       bcm_field_entry_t entry,

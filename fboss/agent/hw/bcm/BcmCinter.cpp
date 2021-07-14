@@ -115,7 +115,7 @@ std::shared_ptr<BcmCinter> BcmCinter::getInstance() {
 }
 
 void BcmCinter::setupGlobals() {
-  array<string, 37> globals = {
+  array<string, 38> globals = {
       "_shr_pbmp_t pbmp",
       "_shr_rx_reasons_t reasons",
       "bcm_cosq_gport_discard_t discard",
@@ -140,6 +140,7 @@ void BcmCinter::setupGlobals() {
       "bcm_pkt_t *pkt",
       "bcm_qos_map_t qos_map_entry",
       "bcm_rx_cfg_t rx_cfg",
+      "bcm_rx_cosq_mapping_t cosqMap",
       "bcm_trunk_info_t trunk_info",
       "bcm_trunk_member_t trunk_member",
       "bcm_trunk_t tid",
@@ -2600,6 +2601,62 @@ int BcmCinter::bcm_rx_cosq_mapping_set(
 int BcmCinter::bcm_rx_cosq_mapping_delete(int unit, int index) {
   writeCintLines(wrapFunc(to<string>(
       "bcm_rx_cosq_mapping_delete(", makeParamStr(unit, index), ")")));
+  return 0;
+}
+
+vector<string> BcmCinter::cintForRxCosqMapping(bcm_rx_cosq_mapping_t* cosqMap) {
+  string reasonsVar, reasonsMaskVar;
+  vector<string> reasonsCint, reasonsMaskCint;
+
+  tie(reasonsVar, reasonsCint) = cintForReasons(cosqMap->reasons);
+  tie(reasonsMaskVar, reasonsMaskCint) = cintForReasons(cosqMap->reasons_mask);
+  vector<string> funcCint = {
+      "bcm_rx_cosq_mapping_t_init(&cosqMap)",
+      to<string>("cosqMap.reasons = ", reasonsVar),
+      to<string>("cosqMap.reasons_mask = ", reasonsMaskVar),
+      to<string>("cosqMap.index = ", cosqMap->index),
+      to<string>("cosqMap.int_prio = ", cosqMap->int_prio),
+      to<string>("cosqMap.int_prio_mask = ", cosqMap->int_prio_mask),
+      to<string>("cosqMap.packet_type = ", cosqMap->packet_type),
+      to<string>("cosqMap.packet_type_mask = ", cosqMap->packet_type_mask),
+  };
+
+  vector<string> cint;
+  cint.insert(
+      cint.end(),
+      make_move_iterator(reasonsCint.begin()),
+      make_move_iterator(reasonsCint.end()));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(reasonsMaskCint.begin()),
+      make_move_iterator(reasonsMaskCint.end()));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(funcCint.begin()),
+      make_move_iterator(funcCint.end()));
+  return cint;
+}
+
+int BcmCinter::bcm_rx_cosq_mapping_extended_add(
+    int unit,
+    int options,
+    bcm_rx_cosq_mapping_t* cosqMap) {
+  vector<string> cint;
+  vector<string> RxCosqMappingCint = cintForRxCosqMapping(cosqMap);
+  vector<string> funcCint = wrapFunc(to<string>(
+      "bcm_rx_cosq_mapping_extended_add(",
+      makeParamStr(unit, options, "&cosqMap"),
+      ")"));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(RxCosqMappingCint.begin()),
+      make_move_iterator(RxCosqMappingCint.end()));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(funcCint.begin()),
+      make_move_iterator(funcCint.end()));
+
+  writeCintLines(cint);
   return 0;
 }
 

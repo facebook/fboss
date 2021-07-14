@@ -103,7 +103,6 @@ KNOWN_MISSING_APIS = {
     "bcm_port_resource_t_init",
     "bcm_qos_map_t_init",
     "bcm_rtag7_control_set",
-    "bcm_rx_cosq_mapping_extended_add",
     "bcm_rx_cosq_mapping_extended_delete",
     "bcm_rx_cosq_mapping_t_init",
     "bcm_rx_queue_channel_set",
