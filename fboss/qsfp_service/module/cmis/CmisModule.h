@@ -290,6 +290,8 @@ class CmisModule : public QsfpModule {
 
   virtual void moduleDiagsCapabilitySet() override;
 
+  virtual std::optional<VdmDiagsStats> getVdmDiagsStatsInfo() override;
+
  private:
   void getFieldValueLocked(CmisField fieldName, uint8_t* fieldValue) const;
   /*

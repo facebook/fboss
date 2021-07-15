@@ -213,6 +213,28 @@ static CmisFieldInfo::CmisFieldMap cmisFields = {
     {CmisField::HOST_BER, {CmisPages::PAGE14, 192, 16}},
     {CmisField::MEDIA_BER_HOST_SNR, {CmisPages::PAGE14, 208, 16}},
     {CmisField::MEDIA_SNR, {CmisPages::PAGE14, 240, 16}},
+    // Page 20h
+    {CmisField::VDM_CONF_SNR_MEDIA_IN, {CmisPages::PAGE20, 128, 8}},
+    {CmisField::VDM_CONF_PRE_FEC_BER_MEDIA_IN_MIN, {CmisPages::PAGE20, 144, 2}},
+    {CmisField::VDM_CONF_PRE_FEC_BER_MEDIA_IN_MAX, {CmisPages::PAGE20, 146, 2}},
+    {CmisField::VDM_CONF_PRE_FEC_BER_MEDIA_IN_AVG, {CmisPages::PAGE20, 148, 2}},
+    {CmisField::VDM_CONF_PRE_FEC_BER_MEDIA_IN_CUR, {CmisPages::PAGE20, 150, 2}},
+    // Page 21h
+    {CmisField::VDM_CONF_PRE_FEC_BER_HOST_IN_MIN, {CmisPages::PAGE21, 160, 2}},
+    {CmisField::VDM_CONF_PRE_FEC_BER_HOST_IN_MAX, {CmisPages::PAGE21, 162, 2}},
+    {CmisField::VDM_CONF_PRE_FEC_BER_HOST_IN_AVG, {CmisPages::PAGE21, 164, 2}},
+    {CmisField::VDM_CONF_PRE_FEC_BER_HOST_IN_CUR, {CmisPages::PAGE21, 166, 2}},
+    // Page 24h
+    {CmisField::VDM_VAL_SNR_MEDIA_IN, {CmisPages::PAGE24, 128, 8}},
+    {CmisField::VDM_VAL_PRE_FEC_BER_MEDIA_IN_MIN, {CmisPages::PAGE24, 144, 2}},
+    {CmisField::VDM_VAL_PRE_FEC_BER_MEDIA_IN_MAX, {CmisPages::PAGE24, 146, 2}},
+    {CmisField::VDM_VAL_PRE_FEC_BER_MEDIA_IN_AVG, {CmisPages::PAGE24, 148, 2}},
+    {CmisField::VDM_VAL_PRE_FEC_BER_MEDIA_IN_CUR, {CmisPages::PAGE24, 150, 2}},
+    // Page 25h
+    {CmisField::VDM_VAL_PRE_FEC_BER_HOST_IN_MIN, {CmisPages::PAGE25, 160, 2}},
+    {CmisField::VDM_VAL_PRE_FEC_BER_HOST_IN_MAX, {CmisPages::PAGE25, 162, 2}},
+    {CmisField::VDM_VAL_PRE_FEC_BER_HOST_IN_AVG, {CmisPages::PAGE25, 164, 2}},
+    {CmisField::VDM_VAL_PRE_FEC_BER_HOST_IN_CUR, {CmisPages::PAGE25, 166, 2}},
 };
 
 static CmisFieldMultiplier qsfpMultiplier = {
@@ -881,6 +903,81 @@ SignalFlags CmisModule::getSignalFlagInfo() {
   signalFlags.rxLol_ref() = getSettingsValue(CmisField::RX_LOL_FLAG);
 
   return signalFlags;
+}
+
+std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
+  VdmDiagsStats vdmStats;
+  const uint8_t* data;
+  int offset;
+  int length;
+  int dataAddress;
+
+  if (!isVdmSupported() || !cacheIsValid()) {
+    return std::nullopt;
+  }
+
+  // Fill in channel SNR Media In
+  getQsfpFieldAddress(
+      CmisField::VDM_VAL_SNR_MEDIA_IN, dataAddress, offset, length);
+  data = getQsfpValuePtr(dataAddress, offset, length);
+  for (auto lanes = 0; lanes < length / 2; lanes++) {
+    double snr;
+    snr = data[lanes * 2] + (data[lanes * 2 + 1] / 256.0);
+    vdmStats.eSnrMediaChannel_ref()[lanes] = snr;
+  }
+
+  // Helper function to convert U16 format to double
+  auto u16ToDouble = [](uint8_t byte0, uint8_t byte1) -> double {
+    double ber;
+    int expon = byte0 >> 3;
+    int mant = ((byte0 & 0x7) << 8) | byte1;
+    ber = mant * exp10(expon);
+    return ber;
+  };
+
+  // Fill in Media Pre FEC BER values
+  getQsfpFieldAddress(
+      CmisField::VDM_VAL_PRE_FEC_BER_MEDIA_IN_MIN, dataAddress, offset, length);
+  data = getQsfpValuePtr(dataAddress, offset, length);
+  vdmStats.preFecBerMediaMin_ref() = u16ToDouble(data[0], data[1]);
+
+  getQsfpFieldAddress(
+      CmisField::VDM_VAL_PRE_FEC_BER_MEDIA_IN_MAX, dataAddress, offset, length);
+  data = getQsfpValuePtr(dataAddress, offset, length);
+  vdmStats.preFecBerMediaMax_ref() = u16ToDouble(data[0], data[1]);
+
+  getQsfpFieldAddress(
+      CmisField::VDM_VAL_PRE_FEC_BER_MEDIA_IN_AVG, dataAddress, offset, length);
+  data = getQsfpValuePtr(dataAddress, offset, length);
+  vdmStats.preFecBerMediaAvg_ref() = u16ToDouble(data[0], data[1]);
+
+  getQsfpFieldAddress(
+      CmisField::VDM_VAL_PRE_FEC_BER_MEDIA_IN_CUR, dataAddress, offset, length);
+  data = getQsfpValuePtr(dataAddress, offset, length);
+  vdmStats.preFecBerMediaCur_ref() = u16ToDouble(data[0], data[1]);
+
+  // Fill in Host Pre FEC BER values
+  getQsfpFieldAddress(
+      CmisField::VDM_VAL_PRE_FEC_BER_HOST_IN_MIN, dataAddress, offset, length);
+  data = getQsfpValuePtr(dataAddress, offset, length);
+  vdmStats.preFecBerHostMin_ref() = u16ToDouble(data[0], data[1]);
+
+  getQsfpFieldAddress(
+      CmisField::VDM_VAL_PRE_FEC_BER_HOST_IN_MAX, dataAddress, offset, length);
+  data = getQsfpValuePtr(dataAddress, offset, length);
+  vdmStats.preFecBerHostMax_ref() = u16ToDouble(data[0], data[1]);
+
+  getQsfpFieldAddress(
+      CmisField::VDM_VAL_PRE_FEC_BER_HOST_IN_AVG, dataAddress, offset, length);
+  data = getQsfpValuePtr(dataAddress, offset, length);
+  vdmStats.preFecBerHostAvg_ref() = u16ToDouble(data[0], data[1]);
+
+  getQsfpFieldAddress(
+      CmisField::VDM_VAL_PRE_FEC_BER_HOST_IN_CUR, dataAddress, offset, length);
+  data = getQsfpValuePtr(dataAddress, offset, length);
+  vdmStats.preFecBerHostCur_ref() = u16ToDouble(data[0], data[1]);
+
+  return vdmStats;
 }
 
 ExtendedSpecComplianceCode CmisModule::getExtendedSpecificationComplianceCode()

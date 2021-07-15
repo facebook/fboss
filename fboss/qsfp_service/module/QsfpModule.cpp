@@ -248,6 +248,8 @@ TransceiverInfo QsfpModule::parseDataLocked() {
   info.identifier_ref() = getIdentifier();
   info.status_ref() = getModuleStatus();
 
+  info.vdmDiagsStats_ref() = *getVdmDiagsStatsInfo();
+
   info.timeCollected_ref() = lastRefreshTime_;
   info.remediationCounter_ref() = numRemediation_;
   return info;

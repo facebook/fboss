@@ -261,6 +261,18 @@ struct RxEqualizerSettings {
   3: i32 mainAmplitude,
 }
 
+struct VdmDiagsStats {
+  1: double preFecBerMediaMin,
+  2: double preFecBerMediaMax,
+  3: double preFecBerMediaAvg,
+  4: double preFecBerMediaCur,
+  5: map<i32, double> eSnrMediaChannel,
+  6: double preFecBerHostMin,
+  7: double preFecBerHostMax,
+  8: double preFecBerHostAvg,
+  9: double preFecBerHostCur,
+}
+
 struct TransceiverSettings {
   1: FeatureState cdrTx,
   2: FeatureState cdrRx,
@@ -308,6 +320,7 @@ struct TransceiverInfo {
   21: optional list<HostLaneSignals> hostLaneSignals,
   22: optional i64 timeCollected,
   23: optional i64 remediationCounter,
+  24: optional VdmDiagsStats vdmDiagsStats,
 }
 
 typedef binary (cpp2.type = "folly::IOBuf") IOBuf
