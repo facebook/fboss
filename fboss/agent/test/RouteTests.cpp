@@ -155,13 +155,10 @@ RouteNextHopSet newNextHops(int n, std::string prefix) {
 
 } // namespace
 
-template <typename StandAloneRib>
 class RouteTest : public ::testing::Test {
  public:
   void SetUp() override {
-    auto flags = StandAloneRib::hasStandAloneRib
-        ? SwitchFlags::ENABLE_STANDALONE_RIB
-        : SwitchFlags::DEFAULT;
+    auto flags = SwitchFlags::ENABLE_STANDALONE_RIB;
     auto config = initialConfig();
     handle_ = createTestHandle(&config, flags);
     sw_ = handle_->getSw();
@@ -250,11 +247,7 @@ class RouteTest : public ::testing::Test {
   std::unique_ptr<HwTestHandle> handle_;
 };
 
-using RouteTestTypes = ::testing::Types<NoRib, Rib>;
-
-TYPED_TEST_CASE(RouteTest, RouteTestTypes);
-
-TYPED_TEST(RouteTest, routeApi) {
+TEST_F(RouteTest, routeApi) {
   RoutePrefixV6 pfx6{folly::IPAddressV6("2001::"), 64};
   RouteNextHopSet nhops = makeNextHops({"2::10"});
   RouteNextHopEntry nhopEntry(nhops, DISTANCE);
@@ -302,7 +295,7 @@ TYPED_TEST(RouteTest, routeApi) {
   testRouteApi(RouteV6(pfx6, kClientA, nhopEntry));
 }
 
-TYPED_TEST(RouteTest, dedup) {
+TEST_F(RouteTest, dedup) {
   EXPECT_NODEMAP_MATCH(this->sw_);
 
   auto stateV1 = this->sw_->getState();
@@ -377,7 +370,7 @@ TYPED_TEST(RouteTest, dedup) {
   EXPECT_EQ(stateV2r4, stateV4r4);
 }
 
-TYPED_TEST(RouteTest, resolve) {
+TEST_F(RouteTest, resolve) {
   auto rid = RouterID(0);
   auto stateV1 = this->sw_->getState();
   // recursive lookup
@@ -455,7 +448,7 @@ TYPED_TEST(RouteTest, resolve) {
 
     auto verifyPrefix = [&](std::string prefixStr) {
       auto route = this->findRoute4(stateV2, rid, prefixStr);
-      if (TypeParam::hasStandAloneRib) {
+      if (this->sw_->isStandaloneRibEnabled()) {
         // In standalone RIB, unresolved routes never make it to FIB
         EXPECT_EQ(route, nullptr);
       } else {
@@ -523,7 +516,7 @@ TYPED_TEST(RouteTest, resolve) {
   }
 }
 
-TYPED_TEST(RouteTest, resolveDropToCPUMix) {
+TEST_F(RouteTest, resolveDropToCPUMix) {
   auto rid = RouterID(0);
 
   // add a DROP route and a ToCPU route
@@ -616,7 +609,7 @@ TYPED_TEST(RouteTest, resolveDropToCPUMix) {
 }
 
 // Testing add and delete ECMP routes
-TYPED_TEST(RouteTest, addDel) {
+TEST_F(RouteTest, addDel) {
   auto rid = RouterID(0);
 
   RouteNextHopSet nexthops = makeNextHops(
@@ -742,7 +735,7 @@ TYPED_TEST(RouteTest, addDel) {
   EXPECT_EQ(RouteForwardAction::DROP, r6_2->getForwardInfo().getAction());
 }
 
-TYPED_TEST(RouteTest, InterfaceRoutes) {
+TEST_F(RouteTest, InterfaceRoutes) {
   RouterID rid = RouterID(0);
   auto stateV1 = this->sw_->getState();
   // verify the ipv4 interface route
@@ -807,7 +800,7 @@ TYPED_TEST(RouteTest, InterfaceRoutes) {
   }
 }
 
-TYPED_TEST(RouteTest, dropRoutes) {
+TEST_F(RouteTest, dropRoutes) {
   auto rid = RouterID(0);
   auto u1 = this->sw_->getRouteUpdater();
   u1.addRoute(
@@ -877,7 +870,7 @@ TYPED_TEST(RouteTest, dropRoutes) {
       RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE));
 }
 
-TYPED_TEST(RouteTest, toCPURoutes) {
+TEST_F(RouteTest, toCPURoutes) {
   auto rid = RouterID(0);
   auto u1 = this->sw_->getRouteUpdater();
   u1.addRoute(
@@ -1012,7 +1005,7 @@ void checkChangedRoute(
   EXPECT_EQ(removedIDs, foundRemoved);
 }
 
-TYPED_TEST(RouteTest, applyNewConfig) {
+TEST_F(RouteTest, applyNewConfig) {
   auto config = this->initialConfig();
   config.vlans_ref()->resize(6);
   config.vlans_ref()[4].id_ref() = 5;
@@ -1043,7 +1036,7 @@ TYPED_TEST(RouteTest, applyNewConfig) {
   ASSERT_NE(nullptr, stateV1);
 
   checkChangedRoute(
-      TypeParam::hasStandAloneRib,
+      this->sw_->isStandaloneRibEnabled(),
       stateV0,
       stateV1,
       {},
@@ -1063,7 +1056,7 @@ TYPED_TEST(RouteTest, applyNewConfig) {
   ASSERT_NE(nullptr, stateV2);
 
   checkChangedRoute(
-      TypeParam::hasStandAloneRib,
+      this->sw_->isStandaloneRibEnabled(),
       stateV1,
       stateV2,
       {},
@@ -1095,7 +1088,7 @@ TYPED_TEST(RouteTest, applyNewConfig) {
   auto stateV3 = this->sw_->getState();
   ASSERT_NE(nullptr, stateV3);
   checkChangedRoute(
-      TypeParam::hasStandAloneRib,
+      this->sw_->isStandaloneRibEnabled(),
       stateV2,
       stateV3,
       {},
@@ -1121,11 +1114,11 @@ TYPED_TEST(RouteTest, applyNewConfig) {
     // but it does result in new state. The state delta is empty though, so
     // no change will be programmed down
     checkChangedRoute(
-        TypeParam::hasStandAloneRib, stateV3, stateV4, {}, {}, {});
+        this->sw_->isStandaloneRibEnabled(), stateV3, stateV4, {}, {}, {});
   }
 }
 
-TYPED_TEST(RouteTest, changedRoutesPostUpdate) {
+TEST_F(RouteTest, changedRoutesPostUpdate) {
   auto rid = RouterID(0);
   RouteNextHopSet nexthops = makeNextHops(
       {"1.1.1.10", // resolved by intf 1
@@ -1157,7 +1150,7 @@ TYPED_TEST(RouteTest, changedRoutesPostUpdate) {
   EXPECT_TRUE(rtV6->isResolved());
   EXPECT_FALSE(rtV6->isConnected());
   checkChangedRoute(
-      TypeParam::hasStandAloneRib,
+      this->sw_->isStandaloneRibEnabled(),
       state1,
       state2,
       {},
@@ -1191,7 +1184,7 @@ TYPED_TEST(RouteTest, changedRoutesPostUpdate) {
   EXPECT_TRUE(rtV6->isResolved());
   EXPECT_FALSE(rtV6->isConnected());
   checkChangedRoute(
-      TypeParam::hasStandAloneRib,
+      this->sw_->isStandaloneRibEnabled(),
       state2,
       state3,
       {},
@@ -1202,7 +1195,7 @@ TYPED_TEST(RouteTest, changedRoutesPostUpdate) {
       {});
 }
 
-TYPED_TEST(RouteTest, PruneAddedRoutes) {
+TEST_F(RouteTest, PruneAddedRoutes) {
   auto rid0 = RouterID(0);
   auto updater = this->sw_->getRouteUpdater();
   auto r1prefix = IPAddressV4("20.0.1.51");
@@ -1219,7 +1212,7 @@ TYPED_TEST(RouteTest, PruneAddedRoutes) {
   RouteV4::Prefix prefix1{IPAddressV4("20.0.1.51"), 24};
 
   auto newRouteEntry = findRoute<IPAddressV4>(
-      TypeParam::hasStandAloneRib,
+      this->sw_->isStandaloneRibEnabled(),
       rid0,
       prefix1.toCidrNetwork(),
       this->sw_->getState());
@@ -1230,16 +1223,23 @@ TYPED_TEST(RouteTest, PruneAddedRoutes) {
   EXPECT_TRUE(newRouteEntry->isPublished());
   auto revertState = this->sw_->getState();
   SwitchState::revertNewRouteEntry<IPAddressV4>(
-      TypeParam::hasStandAloneRib, rid0, newRouteEntry, nullptr, &revertState);
+      this->sw_->isStandaloneRibEnabled(),
+      rid0,
+      newRouteEntry,
+      nullptr,
+      &revertState);
   // Make sure that state3 changes as a result of pruning
   auto remainingRouteEntry = findRoute<IPAddressV4>(
-      TypeParam::hasStandAloneRib, rid0, prefix1.toCidrNetwork(), revertState);
+      this->sw_->isStandaloneRibEnabled(),
+      rid0,
+      prefix1.toCidrNetwork(),
+      revertState);
   // Route removed after delete
   EXPECT_EQ(nullptr, remainingRouteEntry);
 }
 
 // Test that pruning of changed routes happens correctly.
-TYPED_TEST(RouteTest, PruneChangedRoutes) {
+TEST_F(RouteTest, PruneChangedRoutes) {
   // Add routes
   // Change one of them
   // Prune the changed one
@@ -1271,7 +1271,7 @@ TYPED_TEST(RouteTest, PruneChangedRoutes) {
   updater.program();
 
   auto oldEntry = findRoute<IPAddressV6>(
-      TypeParam::hasStandAloneRib,
+      this->sw_->isStandaloneRibEnabled(),
       rid0,
       prefix42.toCidrNetwork(),
       this->sw_->getState());
@@ -1292,7 +1292,7 @@ TYPED_TEST(RouteTest, PruneChangedRoutes) {
   updater.program();
 
   auto newEntry = findRoute<IPAddressV6>(
-      TypeParam::hasStandAloneRib,
+      this->sw_->isStandaloneRibEnabled(),
       rid0,
       prefix42.toCidrNetwork(),
       this->sw_->getState());
@@ -1303,15 +1303,22 @@ TYPED_TEST(RouteTest, PruneChangedRoutes) {
   // state4
   auto revertState = this->sw_->getState();
   SwitchState::revertNewRouteEntry(
-      TypeParam::hasStandAloneRib, rid0, newEntry, oldEntry, &revertState);
+      this->sw_->isStandaloneRibEnabled(),
+      rid0,
+      newEntry,
+      oldEntry,
+      &revertState);
 
   auto revertedEntry = findRoute<IPAddressV6>(
-      TypeParam::hasStandAloneRib, rid0, prefix42.toCidrNetwork(), revertState);
+      this->sw_->isStandaloneRibEnabled(),
+      rid0,
+      prefix42.toCidrNetwork(),
+      revertState);
   EXPECT_TRUE(revertedEntry->isToCPU());
 }
 
 // Test adding and deleting per-client nexthops lists
-TYPED_TEST(RouteTest, modRoutes) {
+TEST_F(RouteTest, modRoutes) {
   auto u1 = this->sw_->getRouteUpdater();
 
   RouteV4::Prefix prefix10{IPAddressV4("10.10.10.10"), 32};
@@ -1370,7 +1377,7 @@ TYPED_TEST(RouteTest, modRoutes) {
 }
 
 // Test adding empty nextHops lists
-TYPED_TEST(RouteTest, disallowEmptyNexthops) {
+TEST_F(RouteTest, disallowEmptyNexthops) {
   auto u1 = this->sw_->getRouteUpdater();
 
   // It's illegal to add an empty nextHops list to a route
@@ -1450,7 +1457,7 @@ void deleteNextHopsForClient(
 }
 // Add and remove per-client NextHop lists to the same route, and make sure
 // the lowest admin distance is the one that determines the forwarding info
-TYPED_TEST(RouteTest, fwdInfoRanking) {
+TEST_F(RouteTest, fwdInfoRanking) {
   // We'll be adding and removing a bunch of nexthops for this Network & Mask
   auto network = IPAddressV4("22.22.22.22");
   uint8_t mask = 32;
@@ -1517,7 +1524,7 @@ TYPED_TEST(RouteTest, fwdInfoRanking) {
   expectFwdInfo(this->sw_, prefix, "10.10.40.");
 }
 
-TYPED_TEST(RouteTest, StaticIp2MplsRoutes) {
+TEST_F(RouteTest, StaticIp2MplsRoutes) {
   auto config = this->initialConfig();
 
   config.staticIp2MplsRoutes_ref()->resize(2);
@@ -1578,8 +1585,7 @@ TYPED_TEST(RouteTest, StaticIp2MplsRoutes) {
 
 // Test interface routes when we have more than one address per
 // address family in an interface
-template <typename StandAloneRib>
-class MultipleAddressInterfaceTest : public RouteTest<StandAloneRib> {
+class MultipleAddressInterfaceTest : public RouteTest {
  public:
   cfg::SwitchConfig initialConfig() const override {
     cfg::SwitchConfig config;
@@ -1599,12 +1605,11 @@ class MultipleAddressInterfaceTest : public RouteTest<StandAloneRib> {
     return config;
   }
 };
-TYPED_TEST_CASE(MultipleAddressInterfaceTest, RouteTestTypes);
 
-TYPED_TEST(MultipleAddressInterfaceTest, twoAddrsForInterface) {
+TEST_F(MultipleAddressInterfaceTest, twoAddrsForInterface) {
   auto rid = RouterID(0);
   auto [v4Routes, v6Routes] =
-      getRouteCount(TypeParam::hasStandAloneRib, this->sw_->getState());
+      getRouteCount(this->sw_->isStandaloneRibEnabled(), this->sw_->getState());
 
   EXPECT_EQ(2, v4Routes); // ALPM default + intf routes
   EXPECT_EQ(3, v6Routes); // ALPM default + intf + link local routes
@@ -1628,7 +1633,7 @@ TYPED_TEST(MultipleAddressInterfaceTest, twoAddrsForInterface) {
   }
 }
 
-TYPED_TEST(RouteTest, withLabelForwardingAction) {
+TEST_F(RouteTest, withLabelForwardingAction) {
   auto rid = RouterID(0);
 
   std::array<folly::IPAddressV4, 4> nextHopAddrs{
@@ -1691,7 +1696,7 @@ TYPED_TEST(RouteTest, withLabelForwardingAction) {
   }
 }
 
-TYPED_TEST(RouteTest, unresolvedWithRouteLabels) {
+TEST_F(RouteTest, unresolvedWithRouteLabels) {
   auto rid = RouterID(0);
   RouteNextHopSet bgpNextHops;
   RouteNextHopSet bgpResolvedNextHops;
@@ -1729,7 +1734,7 @@ TYPED_TEST(RouteTest, unresolvedWithRouteLabels) {
   EXPECT_TRUE(route->isDrop());
 }
 
-TYPED_TEST(RouteTest, withTunnelAndRouteLabels) {
+TEST_F(RouteTest, withTunnelAndRouteLabels) {
   auto rid = RouterID(0);
   RouteNextHopSet bgpNextHops;
 
@@ -1816,7 +1821,7 @@ TYPED_TEST(RouteTest, withTunnelAndRouteLabels) {
   }
 }
 
-TYPED_TEST(RouteTest, withOnlyTunnelLabels) {
+TEST_F(RouteTest, withOnlyTunnelLabels) {
   auto rid = RouterID(0);
   RouteNextHopSet bgpNextHops;
 
@@ -1896,7 +1901,7 @@ TYPED_TEST(RouteTest, withOnlyTunnelLabels) {
   }
 }
 
-TYPED_TEST(RouteTest, updateTunnelLabels) {
+TEST_F(RouteTest, updateTunnelLabels) {
   auto rid = RouterID(0);
   RouteNextHopSet bgpNextHops;
   bgpNextHops.emplace(UnresolvedNextHop(
@@ -1984,7 +1989,7 @@ TYPED_TEST(RouteTest, updateTunnelLabels) {
   }
 }
 
-TYPED_TEST(RouteTest, updateRouteLabels) {
+TEST_F(RouteTest, updateRouteLabels) {
   auto rid = RouterID(0);
   RouteNextHopSet bgpNextHops;
   bgpNextHops.emplace(UnresolvedNextHop(
@@ -2074,7 +2079,7 @@ TYPED_TEST(RouteTest, updateRouteLabels) {
   }
 }
 
-TYPED_TEST(RouteTest, withNoLabelForwardingAction) {
+TEST_F(RouteTest, withNoLabelForwardingAction) {
   auto rid = RouterID(0);
 
   auto routeNextHopEntry = RouteNextHopEntry(
@@ -2098,7 +2103,7 @@ TYPED_TEST(RouteTest, withNoLabelForwardingAction) {
   EXPECT_EQ(*entry.second, routeNextHopEntry);
 }
 
-TYPED_TEST(RouteTest, withInvalidLabelForwardingAction) {
+TEST_F(RouteTest, withInvalidLabelForwardingAction) {
   auto rid = RouterID(0);
 
   std::array<folly::IPAddressV4, 5> nextHopAddrs{
@@ -2141,7 +2146,7 @@ TYPED_TEST(RouteTest, withInvalidLabelForwardingAction) {
   EXPECT_THROW(updater.program(), FbossError);
 }
 
-TYPED_TEST(RouteTest, serializeRouteTable) {
+TEST_F(RouteTest, serializeRouteTable) {
   auto rid = RouterID(0);
   // 2 different nexthops
   RouteNextHopSet nhop1 = makeNextHops({"1.1.1.10"}); // resolved by intf 1
@@ -2186,11 +2191,10 @@ TYPED_TEST(RouteTest, serializeRouteTable) {
   }
 }
 
-template <typename StandAloneRib>
-class StaticRoutesTest : public RouteTest<StandAloneRib> {
+class StaticRoutesTest : public RouteTest {
  public:
   cfg::SwitchConfig initialConfig() const override {
-    auto config = RouteTest<StandAloneRib>::initialConfig();
+    auto config = RouteTest::initialConfig();
     // Add v4/v6 static routes with nhops
     config.staticRoutesWithNhops_ref()->resize(2);
     config.staticRoutesWithNhops_ref()[0].nexthops_ref()->resize(1);
@@ -2215,11 +2219,10 @@ class StaticRoutesTest : public RouteTest<StandAloneRib> {
     return config;
   }
 };
-TYPED_TEST_CASE(StaticRoutesTest, RouteTestTypes);
 
-TYPED_TEST(StaticRoutesTest, staticRoutesGetApplied) {
+TEST_F(StaticRoutesTest, staticRoutesGetApplied) {
   auto [numV4Routes, numV6Routes] =
-      getRouteCount(TypeParam::hasStandAloneRib, this->sw_->getState());
+      getRouteCount(this->sw_->isStandaloneRibEnabled(), this->sw_->getState());
   EXPECT_EQ(8, numV4Routes);
   EXPECT_EQ(9, numV6Routes);
 }
@@ -2230,8 +2233,7 @@ TYPED_TEST(StaticRoutesTest, staticRoutesGetApplied) {
  * Four interfaces: I1, I2, I3, I4
  * Three routes which require resolution: R1, R2, R3
  */
-template <typename StandAloneRib>
-class UcmpTest : public RouteTest<StandAloneRib> {
+class UcmpTest : public RouteTest {
  public:
   void resolveRoutes(std::vector<std::pair<folly::IPAddress, RouteNextHopSet>>
                          networkAndNextHops) {
@@ -2328,7 +2330,6 @@ class UcmpTest : public RouteTest<StandAloneRib> {
   RouterID rid_{0};
 };
 
-TYPED_TEST_CASE(UcmpTest, RouteTestTypes);
 /*
  * Four interfaces: I1, I2, I3, I4
  * Three routes which require resolution: R1, R2, R3
@@ -2337,7 +2338,7 @@ TYPED_TEST_CASE(UcmpTest, RouteTestTypes);
  * R3 has I3 and I4 as next hops with weights 3 and 2
  * expect R1 to resolve to I1:25, I2:20, I3:18, I4:12
  */
-TYPED_TEST(UcmpTest, recursiveUcmp) {
+TEST_F(UcmpTest, recursiveUcmp) {
   this->runTwoDeepRecursiveTest({{3, 2}, {5, 4}, {3, 2}}, {25, 20, 18, 12});
 }
 
@@ -2349,7 +2350,7 @@ TYPED_TEST(UcmpTest, recursiveUcmp) {
  * R3 has I1 as next hop with weight 1
  * expect R1 to resolve to I1:2, I2:1
  */
-TYPED_TEST(UcmpTest, recursiveUcmpDuplicateIntf) {
+TEST_F(UcmpTest, recursiveUcmpDuplicateIntf) {
   this->runRecursiveTest(
       {{UnresolvedNextHop(this->r2Nh, 2), UnresolvedNextHop(this->r3Nh, 1)},
        {UnresolvedNextHop(this->intfIp1, 1),
@@ -2366,7 +2367,7 @@ TYPED_TEST(UcmpTest, recursiveUcmpDuplicateIntf) {
  * R3 has I1 as next hop with weight 1
  * expect R1 to resolve to ECMP
  */
-TYPED_TEST(UcmpTest, recursiveEcmpDuplicateIntf) {
+TEST_F(UcmpTest, recursiveEcmpDuplicateIntf) {
   this->runRecursiveTest(
       {{UnresolvedNextHop(this->r2Nh, ECMP_WEIGHT),
         UnresolvedNextHop(this->r3Nh, ECMP_WEIGHT)},
@@ -2382,7 +2383,7 @@ TYPED_TEST(UcmpTest, recursiveEcmpDuplicateIntf) {
  * R1 has I1 and I2 as next hops with weights 0 (ECMP) and 1
  * expect R1 to resolve to ECMP between I1, I2
  */
-TYPED_TEST(UcmpTest, mixedUcmpVsEcmp_EcmpWins) {
+TEST_F(UcmpTest, mixedUcmpVsEcmp_EcmpWins) {
   this->runRecursiveTest(
       {{UnresolvedNextHop(this->intfIp1, ECMP_WEIGHT),
         UnresolvedNextHop(this->intfIp2, 1)}},
@@ -2397,7 +2398,7 @@ TYPED_TEST(UcmpTest, mixedUcmpVsEcmp_EcmpWins) {
  * R3 has I3 and I4 as next hops with ECMP
  * expect R1 to resolve to ECMP between I1, I2, I3, I4
  */
-TYPED_TEST(UcmpTest, recursiveEcmpPropagatesUp) {
+TEST_F(UcmpTest, recursiveEcmpPropagatesUp) {
   this->runTwoDeepRecursiveTest({{3, 2}, {5, 4}, {0, 0}}, {0, 0, 0, 0});
 }
 
@@ -2409,7 +2410,7 @@ TYPED_TEST(UcmpTest, recursiveEcmpPropagatesUp) {
  * R3 has I3 and I4 as next hops with weights 0 (ECMP) and 1
  * expect R1 to resolve to ECMP between I1, I2, I3, I4
  */
-TYPED_TEST(UcmpTest, recursiveMixedEcmpPropagatesUp) {
+TEST_F(UcmpTest, recursiveMixedEcmpPropagatesUp) {
   this->runTwoDeepRecursiveTest({{3, 2}, {5, 4}, {0, 1}}, {0, 0, 0, 0});
 }
 
@@ -2421,7 +2422,7 @@ TYPED_TEST(UcmpTest, recursiveMixedEcmpPropagatesUp) {
  * R3 has I3 and I4 as next hops with weights 3 and 2
  * expect R1 to resolve to ECMP between I1, I2, I3, I4
  */
-TYPED_TEST(UcmpTest, recursiveEcmpPropagatesDown) {
+TEST_F(UcmpTest, recursiveEcmpPropagatesDown) {
   this->runTwoDeepRecursiveTest({{0, 0}, {5, 4}, {3, 2}}, {0, 0, 0, 0});
 }
 
@@ -2433,7 +2434,7 @@ TYPED_TEST(UcmpTest, recursiveEcmpPropagatesDown) {
  * expect R1 to resolve to ECMP between I1, I2
  * expect R2 to resolve to I1:2, I2: 1
  */
-TYPED_TEST(UcmpTest, separateEcmpUcmp) {
+TEST_F(UcmpTest, separateEcmpUcmp) {
   this->runRecursiveTest(
       {{UnresolvedNextHop(this->intfIp1, ECMP_WEIGHT),
         UnresolvedNextHop(this->intfIp2, ECMP_WEIGHT)},
@@ -2452,42 +2453,42 @@ TYPED_TEST(UcmpTest, separateEcmpUcmp) {
 // The following set of tests will start with 4 next hops all weight 100
 // then vary one next hop by 10 weight increments to 90, 80, ... , 10
 
-TYPED_TEST(UcmpTest, Hundred) {
+TEST_F(UcmpTest, Hundred) {
   this->runVaryFromHundredTest(100, {1, 1, 1, 1});
 }
 
-TYPED_TEST(UcmpTest, Ninety) {
+TEST_F(UcmpTest, Ninety) {
   this->runVaryFromHundredTest(90, {10, 10, 10, 9});
 }
 
-TYPED_TEST(UcmpTest, Eighty) {
+TEST_F(UcmpTest, Eighty) {
   this->runVaryFromHundredTest(80, {5, 5, 5, 4});
 }
 
-TYPED_TEST(UcmpTest, Seventy) {
+TEST_F(UcmpTest, Seventy) {
   this->runVaryFromHundredTest(70, {10, 10, 10, 7});
 }
 
-TYPED_TEST(UcmpTest, Sixty) {
+TEST_F(UcmpTest, Sixty) {
   this->runVaryFromHundredTest(60, {5, 5, 5, 3});
 }
 
-TYPED_TEST(UcmpTest, Fifty) {
+TEST_F(UcmpTest, Fifty) {
   this->runVaryFromHundredTest(50, {2, 2, 2, 1});
 }
 
-TYPED_TEST(UcmpTest, Forty) {
+TEST_F(UcmpTest, Forty) {
   this->runVaryFromHundredTest(40, {5, 5, 5, 2});
 }
 
-TYPED_TEST(UcmpTest, Thirty) {
+TEST_F(UcmpTest, Thirty) {
   this->runVaryFromHundredTest(30, {10, 10, 10, 3});
 }
 
-TYPED_TEST(UcmpTest, Twenty) {
+TEST_F(UcmpTest, Twenty) {
   this->runVaryFromHundredTest(20, {5, 5, 5, 1});
 }
 
-TYPED_TEST(UcmpTest, Ten) {
+TEST_F(UcmpTest, Ten) {
   this->runVaryFromHundredTest(10, {10, 10, 10, 1});
 }
