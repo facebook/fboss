@@ -110,40 +110,6 @@ void EXPECT_RESOLVED(std::shared_ptr<Route<AddrT>> rt) {
   EXPECT_FALSE(rt->needResolve());
 }
 
-template <typename AddrT>
-void EXPECT_NODEMAP_MATCH_LEGACY_RIB(
-    const std::shared_ptr<RouteTableRib<AddrT>>& rib) {
-  const auto& radixTree = rib->routesRadixTree();
-  EXPECT_EQ(rib->size(), radixTree.size());
-  for (const auto& route : *(rib->routes())) {
-    auto match =
-        radixTree.exactMatch(route->prefix().network, route->prefix().mask);
-    ASSERT_NE(match, radixTree.end());
-    // should be the same shared_ptr
-    EXPECT_EQ(route, match->value());
-  }
-}
-
-void EXPECT_NODEMAP_MATCH_LEGACY_RIB(
-    const std::shared_ptr<RouteTableMap>& routeTables) {
-  for (const auto& rt : *routeTables) {
-    if (rt->getRibV4()) {
-      EXPECT_NODEMAP_MATCH_LEGACY_RIB<IPAddressV4>(rt->getRibV4());
-    }
-    if (rt->getRibV6()) {
-      EXPECT_NODEMAP_MATCH_LEGACY_RIB<IPAddressV6>(rt->getRibV6());
-    }
-  }
-}
-
-void EXPECT_NODEMAP_MATCH(const SwSwitch* sw) {
-  if (sw->isStandaloneRibEnabled()) {
-    // TODO - compare RIB And FIB?
-    return;
-  } else {
-    EXPECT_NODEMAP_MATCH_LEGACY_RIB(sw->getState()->getRouteTables());
-  }
-}
 RouteNextHopSet newNextHops(int n, std::string prefix) {
   RouteNextHopSet h;
   for (int i = 0; i < n; i++) {
@@ -296,8 +262,6 @@ TEST_F(RouteTest, routeApi) {
 }
 
 TEST_F(RouteTest, dedup) {
-  EXPECT_NODEMAP_MATCH(this->sw_);
-
   auto stateV1 = this->sw_->getState();
   auto rid = RouterID(0);
   // 2 different nexthops
@@ -319,7 +283,6 @@ TEST_F(RouteTest, dedup) {
   u2.addRoute(
       rid, r4.network, r4.mask, kClientA, RouteNextHopEntry(nhop2, DISTANCE));
   u2.program();
-  EXPECT_NODEMAP_MATCH(this->sw_);
   auto stateV2 = this->sw_->getState();
   EXPECT_NE(stateV1, stateV2);
   // Re-add the same routes; expect no change
@@ -349,7 +312,6 @@ TEST_F(RouteTest, dedup) {
   u4.program();
   auto stateV4 = this->sw_->getState();
   EXPECT_NE(stateV4, stateV3);
-  EXPECT_NODEMAP_MATCH(this->sw_);
 
   // get all 4 routes from stateV2
   auto stateV2r1 = this->findRoute4(stateV2, rid, r1);
@@ -395,7 +357,6 @@ TEST_F(RouteTest, resolve) {
     u1.program();
     auto stateV2 = this->sw_->getState();
     EXPECT_NE(stateV1, stateV2);
-    EXPECT_NODEMAP_MATCH(this->sw_);
 
     auto r21 = this->findRoute4(stateV2, rid, "1.1.3.0/24");
     EXPECT_RESOLVED(r21);
@@ -444,7 +405,6 @@ TEST_F(RouteTest, resolve) {
     u1.program();
     auto stateV2 = this->sw_->getState();
     EXPECT_NE(stateV1, stateV2);
-    EXPECT_NODEMAP_MATCH(this->sw_);
 
     auto verifyPrefix = [&](std::string prefixStr) {
       auto route = this->findRoute4(stateV2, rid, prefixStr);
@@ -547,7 +507,6 @@ TEST_F(RouteTest, resolveDropToCPUMix) {
       kClientA,
       RouteNextHopEntry(nhops, DISTANCE));
   u1.program();
-  EXPECT_NODEMAP_MATCH(this->sw_);
   auto stateV2 = this->sw_->getState();
   {
     auto r2 = this->findRoute4(stateV2, rid, "8.8.8.0/24");
@@ -573,7 +532,6 @@ TEST_F(RouteTest, resolveDropToCPUMix) {
       RouteNextHopEntry(nhops2, DISTANCE));
   u2.program();
   auto stateV3 = this->sw_->getState();
-  EXPECT_NODEMAP_MATCH(this->sw_);
   {
     auto r2 = this->findRoute4(stateV3, rid, "8.8.8.0/24");
     EXPECT_RESOLVED(r2);
@@ -595,7 +553,6 @@ TEST_F(RouteTest, resolveDropToCPUMix) {
       RouteNextHopEntry(nhops3, DISTANCE));
   u3.program();
   auto stateV4 = this->sw_->getState();
-  EXPECT_NODEMAP_MATCH(this->sw_);
   {
     auto r2 = this->findRoute4(stateV4, rid, "8.8.8.0/24");
     EXPECT_RESOLVED(r2);
@@ -672,7 +629,6 @@ TEST_F(RouteTest, addDel) {
       kClientA,
       RouteNextHopEntry(nexthops2, DISTANCE));
   u2.program();
-  EXPECT_NODEMAP_MATCH(this->sw_);
   auto stateV3 = this->sw_->getState();
 
   auto r3 = this->findRoute4(stateV3, rid, "10.1.1.0/24");
@@ -697,7 +653,6 @@ TEST_F(RouteTest, addDel) {
   auto u4 = this->sw_->getRouteUpdater();
   u4.delRoute(rid, IPAddress("10.1.1.1"), 24, kClientA);
   u4.program();
-  EXPECT_NODEMAP_MATCH(this->sw_);
 
   auto r5 = this->findRoute4(this->sw_->getState(), rid, "10.1.1.0/24");
   EXPECT_EQ(nullptr, r5);
@@ -717,7 +672,6 @@ TEST_F(RouteTest, addDel) {
       kClientA,
       RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE));
   u5.program();
-  EXPECT_NODEMAP_MATCH(this->sw_);
   auto stateV6 = this->sw_->getState();
 
   auto r6_1 = this->findRoute4(stateV6, rid, "10.1.1.0/24");
@@ -965,7 +919,6 @@ struct Route {
 } // namespace TEMP
 
 void checkChangedRoute(
-    bool isStandaloneRibEnabled,
     const shared_ptr<SwitchState>& oldState,
     const shared_ptr<SwitchState>& newState,
     const std::set<TEMP::Route> changedIDs,
@@ -977,7 +930,7 @@ void checkChangedRoute(
   StateDelta delta(oldState, newState);
 
   forEachChangedRoute(
-      isStandaloneRibEnabled,
+      true /*isStandaloneRibEnabled*/,
       delta,
       [&](RouterID id, const auto& oldRt, const auto& newRt) {
         EXPECT_EQ(oldRt->prefix(), newRt->prefix());
@@ -1036,7 +989,6 @@ TEST_F(RouteTest, applyNewConfig) {
   ASSERT_NE(nullptr, stateV1);
 
   checkChangedRoute(
-      this->sw_->isStandaloneRibEnabled(),
       stateV0,
       stateV1,
       {},
@@ -1056,7 +1008,6 @@ TEST_F(RouteTest, applyNewConfig) {
   ASSERT_NE(nullptr, stateV2);
 
   checkChangedRoute(
-      this->sw_->isStandaloneRibEnabled(),
       stateV1,
       stateV2,
       {},
@@ -1088,7 +1039,6 @@ TEST_F(RouteTest, applyNewConfig) {
   auto stateV3 = this->sw_->getState();
   ASSERT_NE(nullptr, stateV3);
   checkChangedRoute(
-      this->sw_->isStandaloneRibEnabled(),
       stateV2,
       stateV3,
       {},
@@ -1113,8 +1063,7 @@ TEST_F(RouteTest, applyNewConfig) {
     // FIXME - reapplying the same config on standalone rib should yield null,
     // but it does result in new state. The state delta is empty though, so
     // no change will be programmed down
-    checkChangedRoute(
-        this->sw_->isStandaloneRibEnabled(), stateV3, stateV4, {}, {}, {});
+    checkChangedRoute(stateV3, stateV4, {}, {}, {});
   }
 }
 
@@ -1150,7 +1099,6 @@ TEST_F(RouteTest, changedRoutesPostUpdate) {
   EXPECT_TRUE(rtV6->isResolved());
   EXPECT_FALSE(rtV6->isConnected());
   checkChangedRoute(
-      this->sw_->isStandaloneRibEnabled(),
       state1,
       state2,
       {},
@@ -1184,7 +1132,6 @@ TEST_F(RouteTest, changedRoutesPostUpdate) {
   EXPECT_TRUE(rtV6->isResolved());
   EXPECT_FALSE(rtV6->isConnected());
   checkChangedRoute(
-      this->sw_->isStandaloneRibEnabled(),
       state2,
       state3,
       {},
