@@ -421,7 +421,6 @@ void sendNeighborAdvertisement(
 
 } // unnamed namespace
 
-template <typename StandaAloneRib>
 class NdpTest : public ::testing::Test {
  public:
   unique_ptr<HwTestHandle> setupTestHandle(
@@ -431,10 +430,8 @@ class NdpTest : public ::testing::Test {
 
     *config.maxNeighborProbes_ref() = 1;
     *config.staleEntryInterval_ref() = 1;
-    auto flags = StandaAloneRib::hasStandAloneRib
-        ? SwitchFlags::ENABLE_STANDALONE_RIB
-        : SwitchFlags::DEFAULT;
-    auto handle = createTestHandle(&config, kPlatformMac, flags);
+    auto handle = createTestHandle(
+        &config, kPlatformMac, SwitchFlags::ENABLE_STANDALONE_RIB);
     sw_ = handle->getSw();
     sw_->initialConfigApplied(std::chrono::steady_clock::now());
     return handle;
@@ -469,11 +466,7 @@ class NdpTest : public ::testing::Test {
   SwSwitch* sw_;
 };
 
-using NdpTestTypes = ::testing::Types<NoRib, Rib>;
-
-TYPED_TEST_CASE(NdpTest, NdpTestTypes);
-
-TYPED_TEST(NdpTest, UnsolicitedRequest) {
+TEST_F(NdpTest, UnsolicitedRequest) {
   auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
 
@@ -532,7 +525,7 @@ TYPED_TEST(NdpTest, UnsolicitedRequest) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.ndp.sum", 1);
 }
 
-TYPED_TEST(NdpTest, TriggerSolicitation) {
+TEST_F(NdpTest, TriggerSolicitation) {
   auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
 
@@ -668,7 +661,7 @@ TYPED_TEST(NdpTest, TriggerSolicitation) {
       sw, IPAddressV6("2401:db00:2110:3004::2"), VlanID(5));
 }
 
-TYPED_TEST(NdpTest, RouterAdvertisement) {
+TEST_F(NdpTest, RouterAdvertisement) {
   seconds raInterval(1);
   auto config = createSwitchConfig(raInterval, seconds(0));
   // Add an interface with a /128 mask, to make sure it isn't included
@@ -818,7 +811,7 @@ TYPED_TEST(NdpTest, RouterAdvertisement) {
           expectedPrefixes));
 }
 
-TYPED_TEST(NdpTest, receiveNeighborAdvertisementUnsolicited) {
+TEST_F(NdpTest, receiveNeighborAdvertisementUnsolicited) {
   auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
 
@@ -837,7 +830,7 @@ TYPED_TEST(NdpTest, receiveNeighborAdvertisementUnsolicited) {
   EXPECT_EQ(numFlushed, 1);
 }
 
-TYPED_TEST(NdpTest, FlushEntry) {
+TEST_F(NdpTest, FlushEntry) {
   auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
 
@@ -909,7 +902,7 @@ TYPED_TEST(NdpTest, FlushEntry) {
 
 // Ensure that NDP entries learned against a port are
 // flushed when the port become part of Aggregate
-TYPED_TEST(NdpTest, FlushOnAggPortTransition) {
+TEST_F(NdpTest, FlushOnAggPortTransition) {
   auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
 
@@ -981,7 +974,7 @@ TYPED_TEST(NdpTest, FlushOnAggPortTransition) {
       PortDescriptor(PortID(static_cast<uint16_t>(kAggregatePortID))));
 }
 
-TYPED_TEST(NdpTest, PendingNdp) {
+TEST_F(NdpTest, PendingNdp) {
   auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
 
@@ -1077,7 +1070,7 @@ TYPED_TEST(NdpTest, PendingNdp) {
   EXPECT_EQ(entry->isPending(), false);
 };
 
-TYPED_TEST(NdpTest, PendingNdpCleanup) {
+TEST_F(NdpTest, PendingNdpCleanup) {
   seconds ndpTimeout(1);
   auto handle = this->setupTestHandleWithNdpTimeout(ndpTimeout);
   auto sw = handle->getSw();
@@ -1251,7 +1244,7 @@ TYPED_TEST(NdpTest, PendingNdpCleanup) {
   EXPECT_NE(sw, nullptr);
 };
 
-TYPED_TEST(NdpTest, NdpExpiration) {
+TEST_F(NdpTest, NdpExpiration) {
   seconds ndpTimeout(1);
   auto handle = this->setupTestHandleWithNdpTimeout(ndpTimeout);
   auto sw = handle->getSw();
@@ -1522,7 +1515,7 @@ TYPED_TEST(NdpTest, NdpExpiration) {
   EXPECT_EQ(entry, nullptr);
 }
 
-TYPED_TEST(NdpTest, FlushEntryWithConcurrentUpdate) {
+TEST_F(NdpTest, FlushEntryWithConcurrentUpdate) {
   auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
   ThriftHandler thriftHandler(sw);
@@ -1576,7 +1569,7 @@ TYPED_TEST(NdpTest, FlushEntryWithConcurrentUpdate) {
   ndpReplies.join();
 }
 
-TYPED_TEST(NdpTest, PortFlapRecover) {
+TEST_F(NdpTest, PortFlapRecover) {
   auto handle = this->setupTestHandleWithNdpTimeout(seconds(0));
   auto sw = handle->getSw();
 
