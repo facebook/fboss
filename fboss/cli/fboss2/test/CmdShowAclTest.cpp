@@ -4,12 +4,9 @@
 #include <gtest/gtest.h>
 
 #include <folly/IPAddressV4.h>
-
-#include "fboss/agent/AddressUtil.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
-
 #include "fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h"
 #include "fboss/cli/fboss2/commands/show/acl/gen-cpp2/model_types.h"
+#include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 
 using namespace ::testing;
 
@@ -36,24 +33,26 @@ std::vector<facebook::fboss::AclEntryThrift> createAclEntries() {
   aclEntry3.dstMac_ref() = "01:80:c2:00:00:02";
   aclEntry3.actionType_ref() = "permit";
 
-  std::vector<fboss::AclEntryThrift> entries{aclEntry1, aclEntry2, aclEntry3};
-  return entries;
+  return {aclEntry1, aclEntry2, aclEntry3};
 }
 
-class CmdShowAclTestFixture : public testing::Test {
+class CmdShowAclTestFixture : public CmdHandlerTestBase {
  public:
   std::vector<fboss::AclEntryThrift> aclEntries;
-  folly::IPAddressV4 hostIp;
 
   void SetUp() override {
+    CmdHandlerTestBase::SetUp();
     aclEntries = createAclEntries();
-    hostIp = folly::IPAddressV4::tryFromString("127.0.0.1").value();
   }
 };
 
-TEST_F(CmdShowAclTestFixture, createModel) {
+TEST_F(CmdShowAclTestFixture, queryClient) {
+  setupMockedAgentServer();
+  EXPECT_CALL(getMockAgent(), getAclTable(_))
+      .WillOnce(Invoke([&](auto& entries) { entries = aclEntries; }));
+
   auto cmd = CmdShowAcl();
-  auto model = cmd.createModel(aclEntries);
+  auto model = cmd.queryClient(localhost());
   auto entries = model.get_aclEntries();
 
   EXPECT_EQ(entries.size(), 3);
@@ -82,7 +81,7 @@ TEST_F(CmdShowAclTestFixture, printOutput) {
 
   std::string output = ss.str();
   std::string expectOutput =
-R"(Acl: cpuPolicing-CPU-Port-Mcast-v6
+      R"(Acl: cpuPolicing-CPU-Port-Mcast-v6
    priority: 7
    action: permit
 
@@ -99,5 +98,4 @@ Acl: cpuPolicing-high-slow-protocols-mac
 )";
   EXPECT_EQ(output, expectOutput);
 }
-
 } // namespace facebook::fboss

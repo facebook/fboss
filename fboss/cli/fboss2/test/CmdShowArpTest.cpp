@@ -6,10 +6,10 @@
 #include <folly/IPAddressV4.h>
 
 #include "fboss/agent/AddressUtil.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
-
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
 #include "fboss/cli/fboss2/commands/show/arp/gen-cpp2/model_types.h"
+#include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
+#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 
 using namespace ::testing;
 
@@ -51,20 +51,23 @@ std::vector<facebook::fboss::ArpEntryThrift> createArpEntries() {
   return entries;
 }
 
-class CmdShowArpTestFixture : public testing::Test {
+class CmdShowArpTestFixture : public CmdHandlerTestBase {
  public:
   std::vector<fboss::ArpEntryThrift> arpEntries;
-  folly::IPAddressV4 hostIp;
 
   void SetUp() override {
+    CmdHandlerTestBase::SetUp();
     arpEntries = createArpEntries();
-    hostIp = folly::IPAddressV4::tryFromString("127.0.0.1").value();
   }
 };
 
 TEST_F(CmdShowArpTestFixture, queryClient) {
+  setupMockedAgentServer();
+  EXPECT_CALL(getMockAgent(), getArpTable(_))
+      .WillOnce(Invoke([&](auto& entries) { entries = arpEntries; }));
+
   auto cmd = CmdShowArp();
-  auto result = cmd.queryClient(hostIp);
+  auto result = cmd.queryClient(localhost());
   auto entries = result.get_arpEntries();
   EXPECT_EQ(entries.size(), 2);
 

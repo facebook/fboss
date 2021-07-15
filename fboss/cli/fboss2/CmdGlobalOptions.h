@@ -89,6 +89,11 @@ class CmdGlobalOptions {
     return color_;
   }
 
+  // Setters for testing purposes
+  void setAgentThriftPort(int port) {
+    agentThriftPort_ = port;
+  }
+
  private:
   void initAdditional(CLI::App& app);
 
