@@ -142,7 +142,8 @@ int main(int argc, char* argv[]) {
                      FLAGS_clear_loopback || FLAGS_read_reg ||
                      FLAGS_write_reg || FLAGS_update_module_firmware ||
                      FLAGS_get_module_fw_info || FLAGS_app_sel ||
-                     FLAGS_cdb_command || FLAGS_update_bulk_module_fw);
+                     FLAGS_cdb_command || FLAGS_update_bulk_module_fw ||
+                     FLAGS_vdm_info);
 
   if (FLAGS_direct_i2c || !printInfo) {
     try {
