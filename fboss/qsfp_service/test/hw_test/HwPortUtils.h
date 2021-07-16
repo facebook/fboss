@@ -55,6 +55,10 @@ std::vector<TransceiverID> getCabledPortTranceivers(
     const AgentConfig& conf,
     const HwQsfpEnsemble* ensemble);
 bool match(std::vector<TransceiverID> l, std::vector<TransceiverID> r);
+
+// Some parts of the code still use int32_t to represent TransceiverID
+std::vector<int32_t> legacyTransceiverIds(
+    const std::vector<TransceiverID>& ids);
 } // namespace utility
 
 } // namespace facebook::fboss

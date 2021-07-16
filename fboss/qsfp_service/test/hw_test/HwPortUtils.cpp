@@ -196,4 +196,13 @@ bool match(std::vector<TransceiverID> l, std::vector<TransceiverID> r) {
   std::sort(l.begin(), l.end());
   return l == r;
 }
+
+std::vector<int32_t> legacyTransceiverIds(
+    const std::vector<TransceiverID>& ids) {
+  std::vector<int32_t> legacyIds;
+  std::for_each(ids.begin(), ids.end(), [&legacyIds](auto id) {
+    legacyIds.push_back(id);
+  });
+  return legacyIds;
+}
 } // namespace facebook::fboss::utility

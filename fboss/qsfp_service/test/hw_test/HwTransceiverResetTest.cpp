@@ -38,16 +38,15 @@ TEST_F(HwTest, resetTranscieverAndDetectPresence) {
 
   // Validate that the power control register has been correctly set before we
   // begin resetting the modules
-  std::vector<int32_t> transceiverIds;
-  std::for_each(
-      transceivers.begin(),
-      transceivers.end(),
-      [&transceiverIds](const auto& idAndInfo) {
-        transceiverIds.push_back(idAndInfo.first);
-      });
-  wedgeManager->refreshTransceivers();
+  auto transceiverIds = wedgeManager->refreshTransceivers();
+  EXPECT_TRUE(utility::match(
+      utility::getCabledPortTranceivers(*agentConfig, getHwQsfpEnsemble()),
+      transceiverIds));
+
   wedgeManager->getTransceiversInfo(
-      transceivers, std::make_unique<std::vector<int32_t>>(transceiverIds));
+      transceivers,
+      std::make_unique<std::vector<int32_t>>(
+          utility::legacyTransceiverIds(transceiverIds)));
   for (auto idAndTransceiver : transceivers) {
     if (*idAndTransceiver.second.present_ref()) {
       XLOG(INFO)
@@ -75,7 +74,8 @@ TEST_F(HwTest, resetTranscieverAndDetectPresence) {
   std::map<int32_t, TransceiverInfo> transceiversAfterReset;
   wedgeManager->getTransceiversInfo(
       transceiversAfterReset,
-      std::make_unique<std::vector<int32_t>>(transceiverIds));
+      std::make_unique<std::vector<int32_t>>(
+          utility::legacyTransceiverIds(transceiverIds)));
   // Assert that we can detect all transceivers again
 
   for (auto idAndTransceiver : transceivers) {
