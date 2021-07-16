@@ -71,6 +71,20 @@ enum DiagnosticFeatureEncoding {
   LATCHED_BER = 0x11,
 };
 
+enum VdmConfigType {
+  UNSUPPORTED = 0,
+  SNR_MEDIA_IN = 5,
+  SNR_HOST_IN = 6,
+  PRE_FEC_BER_MEDIA_IN_MIN = 9,
+  PRE_FEC_BER_HOST_IN_MIN = 10,
+  PRE_FEC_BER_MEDIA_IN_MAX = 11,
+  PRE_FEC_BER_HOST_IN_MAX = 12,
+  PRE_FEC_BER_MEDIA_IN_AVG = 13,
+  PRE_FEC_BER_HOST_IN_AVG = 14,
+  PRE_FEC_BER_MEDIA_IN_CUR = 15,
+  PRE_FEC_BER_HOST_IN_CUR = 16,
+};
+
 // As per CMIS4.0
 static CmisFieldInfo::CmisFieldMap cmisFields = {
     // Lower Page
@@ -918,12 +932,18 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
 
   // Fill in channel SNR Media In
   getQsfpFieldAddress(
-      CmisField::VDM_VAL_SNR_MEDIA_IN, dataAddress, offset, length);
+      CmisField::VDM_CONF_SNR_MEDIA_IN, dataAddress, offset, length);
   data = getQsfpValuePtr(dataAddress, offset, length);
-  for (auto lanes = 0; lanes < length / 2; lanes++) {
-    double snr;
-    snr = data[lanes * 2] + (data[lanes * 2 + 1] / 256.0);
-    vdmStats.eSnrMediaChannel_ref()[lanes] = snr;
+  uint8_t vdmConfType = data[1];
+  if (vdmConfType == SNR_MEDIA_IN) {
+    getQsfpFieldAddress(
+        CmisField::VDM_VAL_SNR_MEDIA_IN, dataAddress, offset, length);
+    data = getQsfpValuePtr(dataAddress, offset, length);
+    for (auto lanes = 0; lanes < length / 2; lanes++) {
+      double snr;
+      snr = data[lanes * 2] + (data[lanes * 2 + 1] / 256.0);
+      vdmStats.eSnrMediaChannel_ref()[lanes] = snr;
+    }
   }
 
   // Helper function to convert U16 format to double
@@ -937,45 +957,129 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
 
   // Fill in Media Pre FEC BER values
   getQsfpFieldAddress(
-      CmisField::VDM_VAL_PRE_FEC_BER_MEDIA_IN_MIN, dataAddress, offset, length);
+      CmisField::VDM_CONF_PRE_FEC_BER_MEDIA_IN_MIN,
+      dataAddress,
+      offset,
+      length);
   data = getQsfpValuePtr(dataAddress, offset, length);
-  vdmStats.preFecBerMediaMin_ref() = u16ToDouble(data[0], data[1]);
+  vdmConfType = data[1];
+  if (vdmConfType == PRE_FEC_BER_MEDIA_IN_MIN) {
+    getQsfpFieldAddress(
+        CmisField::VDM_VAL_PRE_FEC_BER_MEDIA_IN_MIN,
+        dataAddress,
+        offset,
+        length);
+    data = getQsfpValuePtr(dataAddress, offset, length);
+    vdmStats.preFecBerMediaMin_ref() = u16ToDouble(data[0], data[1]);
+  }
 
   getQsfpFieldAddress(
-      CmisField::VDM_VAL_PRE_FEC_BER_MEDIA_IN_MAX, dataAddress, offset, length);
+      CmisField::VDM_CONF_PRE_FEC_BER_MEDIA_IN_MAX,
+      dataAddress,
+      offset,
+      length);
   data = getQsfpValuePtr(dataAddress, offset, length);
-  vdmStats.preFecBerMediaMax_ref() = u16ToDouble(data[0], data[1]);
+  vdmConfType = data[1];
+  if (vdmConfType == PRE_FEC_BER_MEDIA_IN_MAX) {
+    getQsfpFieldAddress(
+        CmisField::VDM_VAL_PRE_FEC_BER_MEDIA_IN_MAX,
+        dataAddress,
+        offset,
+        length);
+    data = getQsfpValuePtr(dataAddress, offset, length);
+    vdmStats.preFecBerMediaMax_ref() = u16ToDouble(data[0], data[1]);
+  }
 
   getQsfpFieldAddress(
-      CmisField::VDM_VAL_PRE_FEC_BER_MEDIA_IN_AVG, dataAddress, offset, length);
+      CmisField::VDM_CONF_PRE_FEC_BER_MEDIA_IN_AVG,
+      dataAddress,
+      offset,
+      length);
   data = getQsfpValuePtr(dataAddress, offset, length);
-  vdmStats.preFecBerMediaAvg_ref() = u16ToDouble(data[0], data[1]);
+  vdmConfType = data[1];
+  if (vdmConfType == PRE_FEC_BER_MEDIA_IN_AVG) {
+    getQsfpFieldAddress(
+        CmisField::VDM_VAL_PRE_FEC_BER_MEDIA_IN_AVG,
+        dataAddress,
+        offset,
+        length);
+    data = getQsfpValuePtr(dataAddress, offset, length);
+    vdmStats.preFecBerMediaAvg_ref() = u16ToDouble(data[0], data[1]);
+  }
 
   getQsfpFieldAddress(
-      CmisField::VDM_VAL_PRE_FEC_BER_MEDIA_IN_CUR, dataAddress, offset, length);
+      CmisField::VDM_CONF_PRE_FEC_BER_MEDIA_IN_CUR,
+      dataAddress,
+      offset,
+      length);
   data = getQsfpValuePtr(dataAddress, offset, length);
-  vdmStats.preFecBerMediaCur_ref() = u16ToDouble(data[0], data[1]);
+  vdmConfType = data[1];
+  if (vdmConfType == PRE_FEC_BER_MEDIA_IN_CUR) {
+    getQsfpFieldAddress(
+        CmisField::VDM_VAL_PRE_FEC_BER_MEDIA_IN_CUR,
+        dataAddress,
+        offset,
+        length);
+    data = getQsfpValuePtr(dataAddress, offset, length);
+    vdmStats.preFecBerMediaCur_ref() = u16ToDouble(data[0], data[1]);
+  }
 
   // Fill in Host Pre FEC BER values
   getQsfpFieldAddress(
-      CmisField::VDM_VAL_PRE_FEC_BER_HOST_IN_MIN, dataAddress, offset, length);
+      CmisField::VDM_CONF_PRE_FEC_BER_HOST_IN_MIN, dataAddress, offset, length);
   data = getQsfpValuePtr(dataAddress, offset, length);
-  vdmStats.preFecBerHostMin_ref() = u16ToDouble(data[0], data[1]);
+  vdmConfType = data[1];
+  if (vdmConfType == PRE_FEC_BER_HOST_IN_MIN) {
+    getQsfpFieldAddress(
+        CmisField::VDM_VAL_PRE_FEC_BER_HOST_IN_MIN,
+        dataAddress,
+        offset,
+        length);
+    data = getQsfpValuePtr(dataAddress, offset, length);
+    vdmStats.preFecBerHostMin_ref() = u16ToDouble(data[0], data[1]);
+  }
 
   getQsfpFieldAddress(
-      CmisField::VDM_VAL_PRE_FEC_BER_HOST_IN_MAX, dataAddress, offset, length);
+      CmisField::VDM_CONF_PRE_FEC_BER_HOST_IN_MAX, dataAddress, offset, length);
   data = getQsfpValuePtr(dataAddress, offset, length);
-  vdmStats.preFecBerHostMax_ref() = u16ToDouble(data[0], data[1]);
+  vdmConfType = data[1];
+  if (vdmConfType == PRE_FEC_BER_HOST_IN_MAX) {
+    getQsfpFieldAddress(
+        CmisField::VDM_VAL_PRE_FEC_BER_HOST_IN_MAX,
+        dataAddress,
+        offset,
+        length);
+    data = getQsfpValuePtr(dataAddress, offset, length);
+    vdmStats.preFecBerHostMax_ref() = u16ToDouble(data[0], data[1]);
+  }
 
   getQsfpFieldAddress(
-      CmisField::VDM_VAL_PRE_FEC_BER_HOST_IN_AVG, dataAddress, offset, length);
+      CmisField::VDM_CONF_PRE_FEC_BER_HOST_IN_AVG, dataAddress, offset, length);
   data = getQsfpValuePtr(dataAddress, offset, length);
-  vdmStats.preFecBerHostAvg_ref() = u16ToDouble(data[0], data[1]);
+  vdmConfType = data[1];
+  if (vdmConfType == PRE_FEC_BER_HOST_IN_AVG) {
+    getQsfpFieldAddress(
+        CmisField::VDM_VAL_PRE_FEC_BER_HOST_IN_AVG,
+        dataAddress,
+        offset,
+        length);
+    data = getQsfpValuePtr(dataAddress, offset, length);
+    vdmStats.preFecBerHostAvg_ref() = u16ToDouble(data[0], data[1]);
+  }
 
   getQsfpFieldAddress(
-      CmisField::VDM_VAL_PRE_FEC_BER_HOST_IN_CUR, dataAddress, offset, length);
+      CmisField::VDM_CONF_PRE_FEC_BER_HOST_IN_CUR, dataAddress, offset, length);
   data = getQsfpValuePtr(dataAddress, offset, length);
-  vdmStats.preFecBerHostCur_ref() = u16ToDouble(data[0], data[1]);
+  vdmConfType = data[1];
+  if (vdmConfType == PRE_FEC_BER_HOST_IN_CUR) {
+    getQsfpFieldAddress(
+        CmisField::VDM_VAL_PRE_FEC_BER_HOST_IN_CUR,
+        dataAddress,
+        offset,
+        length);
+    data = getQsfpValuePtr(dataAddress, offset, length);
+    vdmStats.preFecBerHostCur_ref() = u16ToDouble(data[0], data[1]);
+  }
 
   return vdmStats;
 }
