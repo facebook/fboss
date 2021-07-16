@@ -9,6 +9,8 @@
  */
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 
+#include "fboss/agent/AgentConfig.h"
+
 #include "fboss/agent/hw/sai/api/PortApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
@@ -166,5 +168,16 @@ IphyAndXphyPorts findAvailablePorts(
     ports.iphyPorts.emplace_back(portIDAndProfile);
   }
   return ports;
+}
+
+std::vector<PortID> getCabledPorts(const AgentConfig& config) {
+  std::vector<PortID> cabledPorts;
+  auto& swConfig = *config.thrift.sw_ref();
+  for (auto& port : *swConfig.ports_ref()) {
+    if (!(*port.expectedLLDPValues_ref()).empty()) {
+      cabledPorts.push_back(PortID(*port.logicalID_ref()));
+    }
+  }
+  return cabledPorts;
 }
 } // namespace facebook::fboss::utility

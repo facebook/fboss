@@ -20,6 +20,7 @@ namespace facebook::fboss {
 
 class HwQsfpEnsemble;
 class PhyManager;
+class AgentConfig;
 
 namespace phy {
 struct PhyPortConfig;
@@ -48,6 +49,8 @@ PortStatus getPortStatus(PortID portId, const HwQsfpEnsemble* ensemble);
 IphyAndXphyPorts findAvailablePorts(
     HwQsfpEnsemble* qsfpEnsemble,
     std::optional<cfg::PortProfileID> profile = std::nullopt);
+
+std::vector<PortID> getCabledPorts(const AgentConfig& conf);
 } // namespace utility
 
 } // namespace facebook::fboss
