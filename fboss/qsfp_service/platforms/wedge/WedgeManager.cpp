@@ -371,12 +371,13 @@ void WedgeManager::syncPorts(
   }
 }
 
-void WedgeManager::refreshTransceivers() {
+std::vector<TransceiverID> WedgeManager::refreshTransceivers() {
+  std::vector<TransceiverID> transceiverIds;
   try {
     wedgeI2cBus_->verifyBus(false);
   } catch (const std::exception& ex) {
     XLOG(ERR) << "Error calling verifyBus(): " << ex.what();
-    return;
+    return transceiverIds;
   }
 
   clearAllTransceiverReset();
@@ -393,11 +394,13 @@ void WedgeManager::refreshTransceivers() {
   for (const auto& transceiver : *lockedTransceivers) {
     XLOG(DBG3) << "Fired to refresh transceiver "
                << transceiver.second->getID();
+    transceiverIds.push_back(TransceiverID(transceiver.second->getID()));
     futs.push_back(transceiver.second->futureRefresh());
   }
 
   folly::collectAll(futs.begin(), futs.end()).wait();
   XLOG(INFO) << "Finished refreshing all transceivers";
+  return transceiverIds;
 }
 
 int WedgeManager::scanTransceiverPresence(

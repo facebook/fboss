@@ -62,7 +62,7 @@ class WedgeManager : public TransceiverManager {
     // most of our platforms specify a port per channel in a qsfp
     return 4;
   }
-  void refreshTransceivers() override;
+  std::vector<TransceiverID> refreshTransceivers() override;
 
   int scanTransceiverPresence(
       std::unique_ptr<std::vector<int32_t>> ids) override;
