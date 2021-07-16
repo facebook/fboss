@@ -73,7 +73,6 @@ KNOWN_MISSING_APIS = {
     "bcm_l2_addr_unregister",
     "bcm_l2_station_t_init",
     "bcm_l3_ecmp_member_t_init",
-    "bcm_l3_enable_set",
     "bcm_l3_host_t_init",
     "bcm_l3_info_t_init",
     "bcm_l3_ingress_t_init",

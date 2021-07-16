@@ -291,6 +291,8 @@ int __real_bcm_l3_egress_ecmp_get(
     bcm_if_t* intf_array,
     int* intf_count);
 
+int __real_bcm_l3_enable_set(int unit, int enable);
+
 int __real_bcm_rx_queue_max_get(int unit, bcm_cos_queue_t* cosq);
 
 int __real_bcm_field_group_get(
@@ -1930,6 +1932,10 @@ int __wrap_bcm_l3_egress_ecmp_get(
     int* intf_count) {
   CALL_WRAPPERS_RV(
       bcm_l3_egress_ecmp_get(unit, ecmp, intf_size, intf_array, intf_count));
+}
+
+int __wrap_bcm_l3_enable_set(int unit, int enable) {
+  CALL_WRAPPERS_RV(bcm_l3_enable_set(unit, enable));
 }
 
 int __wrap_bcm_rx_queue_max_get(int unit, bcm_cos_queue_t* cosq) {

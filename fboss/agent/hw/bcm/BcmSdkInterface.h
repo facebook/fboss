@@ -730,6 +730,8 @@ class BcmSdkInterface {
       bcm_if_t* intf_array,
       int* intf_count) = 0;
 
+  virtual int bcm_l3_enable_set(int unit, int enable) = 0;
+
   virtual int bcm_field_entry_install(int unit, bcm_field_entry_t entry) = 0;
 
   virtual int bcm_field_qualify_DstIp(

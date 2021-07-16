@@ -1176,6 +1176,12 @@ int BcmCinter::bcm_field_entry_create_id(
   return 0;
 }
 
+int BcmCinter::bcm_l3_enable_set(int unit, int enable) {
+  writeCintLines(wrapFunc(
+      to<string>("bcm_l3_enable_set(", makeParamStr(unit, enable), ")")));
+  return 0;
+}
+
 int BcmCinter::bcm_field_entry_install(int unit, bcm_field_entry_t entry) {
   writeCintLines(wrapFunc(to<string>(
       "bcm_field_entry_install(",

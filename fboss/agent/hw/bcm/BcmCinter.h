@@ -803,6 +803,9 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       int* /*intf_count*/) override {
     return 0;
   }
+
+  int bcm_l3_enable_set(int unit, int enable) override;
+
   int bcm_rx_queue_max_get(int /*unit*/, bcm_cos_queue_t* /*cosq*/) override {
     return 0;
   }
