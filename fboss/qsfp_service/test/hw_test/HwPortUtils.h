@@ -51,6 +51,10 @@ IphyAndXphyPorts findAvailablePorts(
     std::optional<cfg::PortProfileID> profile = std::nullopt);
 
 std::vector<PortID> getCabledPorts(const AgentConfig& conf);
+std::vector<TransceiverID> getCabledPortTranceivers(
+    const AgentConfig& conf,
+    const HwQsfpEnsemble* ensemble);
+bool match(std::vector<TransceiverID> l, std::vector<TransceiverID> r);
 } // namespace utility
 
 } // namespace facebook::fboss

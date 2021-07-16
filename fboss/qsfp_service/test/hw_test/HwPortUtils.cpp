@@ -180,4 +180,20 @@ std::vector<PortID> getCabledPorts(const AgentConfig& config) {
   }
   return cabledPorts;
 }
+
+std::vector<TransceiverID> getCabledPortTranceivers(
+    const AgentConfig& config,
+    const HwQsfpEnsemble* ensemble) {
+  std::vector<TransceiverID> transceivers;
+  for (auto port : getCabledPorts(config)) {
+    transceivers.push_back(*getTranscieverIdx(port, ensemble));
+  }
+  return transceivers;
+}
+
+bool match(std::vector<TransceiverID> l, std::vector<TransceiverID> r) {
+  std::sort(r.begin(), r.end());
+  std::sort(l.begin(), l.end());
+  return l == r;
+}
 } // namespace facebook::fboss::utility
