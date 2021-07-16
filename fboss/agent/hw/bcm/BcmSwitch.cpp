@@ -182,6 +182,9 @@ enum : uint8_t {
 namespace {
 constexpr auto kHostTable = "hostTable";
 constexpr int kLogBcmErrorFreqMs = 3000;
+// On new platforms we found sflow samplig rate to be inconsistent
+// BRCM found this seed provides better results (see CS00011944544)
+constexpr auto kHSDKSflowSamplingSeed = 0x2f64c448;
 
 void rethrowIfHwNotFull(const facebook::fboss::BcmError& error) {
   if (error.getBcmError() != BCM_E_FULL) {
@@ -2950,6 +2953,9 @@ void BcmSwitch::initMirrorModule() const {
     // optional but harmless to call to make sure we are cleaning any state
     auto rv = bcm_mirror_init(unit_);
     bcmCheckError(rv, "failed to set up Mirroring");
+    rv = bcm_switch_control_set(
+        unit_, bcmSwitchSampleIngressRandomSeed, kHSDKSflowSamplingSeed);
+    bcmCheckError(rv, "failed to set ingress mirror seed");
     return;
   }
 
