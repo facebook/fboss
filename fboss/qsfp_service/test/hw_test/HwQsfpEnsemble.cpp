@@ -30,7 +30,7 @@ DEFINE_bool(
 DECLARE_string(qsfp_service_volatile_dir);
 
 namespace {
-auto constexpr kQsfpTestWarmnbootFile = "can_warmboot";
+auto constexpr kQsfpTestWarmnbootFile = "can_warm_boot";
 }
 namespace facebook::fboss {
 
