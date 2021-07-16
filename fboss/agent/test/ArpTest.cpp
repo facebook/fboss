@@ -1144,10 +1144,21 @@ TEST(ArpTest, FlushEntryWithConcurrentUpdate) {
   }
 
   // populate arp entries first before flush
-  for (auto& ip : targetIPs) {
-    WaitForArpEntryReachable arpReachable(sw, ip);
-    sendArpReply(handle.get(), ip.str(), "02:10:20:30:40:22", portID);
-    EXPECT_TRUE(arpReachable.wait());
+  {
+    std::array<std::unique_ptr<WaitForArpEntryReachable>, 255> arpReachables;
+    std::transform(
+        targetIPs.begin(),
+        targetIPs.end(),
+        arpReachables.begin(),
+        [&](const IPAddressV4& ip) {
+          return make_unique<WaitForArpEntryReachable>(sw, ip);
+        });
+    for (auto& ip : targetIPs) {
+      sendArpReply(handle.get(), ip.str(), "02:10:20:30:40:22", portID);
+    }
+    for (auto& arpReachable : arpReachables) {
+      EXPECT_TRUE(arpReachable->wait());
+    }
   }
 
   std::atomic<bool> done{false};

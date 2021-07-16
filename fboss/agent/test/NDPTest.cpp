@@ -1532,11 +1532,22 @@ TEST_F(NdpTest, FlushEntryWithConcurrentUpdate) {
   }
 
   // populate ndp entries first before flush
-  for (auto& ip : targetIPs) {
-    WaitForNdpEntryReachable ndpReachable(sw, ip, vlanID);
-    sendNeighborAdvertisement(
-        handle.get(), ip.str(), "02:05:73:f9:46:fb", portID, vlanID, false);
-    EXPECT_TRUE(ndpReachable.wait());
+  {
+    std::array<std::unique_ptr<WaitForNdpEntryReachable>, 255> ndpReachables;
+    std::transform(
+        targetIPs.begin(),
+        targetIPs.end(),
+        ndpReachables.begin(),
+        [&](const IPAddressV6& ip) {
+          return make_unique<WaitForNdpEntryReachable>(sw, ip, vlanID);
+        });
+    for (auto& ip : targetIPs) {
+      sendNeighborAdvertisement(
+          handle.get(), ip.str(), "02:05:73:f9:46:fb", portID, vlanID, false);
+    }
+    for (auto& ndpReachable : ndpReachables) {
+      EXPECT_TRUE(ndpReachable->wait());
+    }
   }
 
   std::atomic<bool> done{false};
