@@ -19,7 +19,7 @@ include "fboss/lib/phy/phy.thrift"
 typedef binary (cpp2.type = "::folly::fbstring") fbbinary
 typedef string (cpp2.type = "::folly::fbstring") fbstring
 
-const i32 DEFAULT_CTRL_PORT = 5909
+const i32 DEFAULT_CTRL_PORT = 5909;
 
 // Using the defaults from here:
 // https://en.wikipedia.org/wiki/Administrative_distance
@@ -29,7 +29,7 @@ enum AdminDistance {
   OPENR = 10,
   EBGP = 20,
   IBGP = 200,
-  MAX_ADMIN_DISTANCE = 255
+  MAX_ADMIN_DISTANCE = 255,
 }
 
 // SwSwitch run states. SwSwitch moves forward from a
@@ -39,7 +39,7 @@ enum SwitchRunState {
   INITIALIZED = 1,
   CONFIGURED = 2,
   FIB_SYNCED = 3,
-  EXITING = 4
+  EXITING = 4,
 }
 
 enum SSLType {
@@ -56,88 +56,88 @@ enum PortLedExternalState {
 }
 
 struct IpPrefix {
-  1: required Address.BinaryAddress ip,
-  2: required i16 prefixLength,
+  1: required Address.BinaryAddress ip;
+  2: required i16 prefixLength;
 }
 
 enum RouteForwardAction {
   DROP = 0,
   TO_CPU = 1,
-  NEXTHOPS = 2
+  NEXTHOPS = 2,
 }
 
 typedef i16 RouteCounterID
 
 struct UnicastRoute {
-  1: required IpPrefix dest,
+  1: required IpPrefix dest;
   // NOTE: nextHopAddrs was once required. While we work on
   // fully deprecating it, we need to be extra careful and
   // ensure we don't crash clients/servers that still see it as required.
-  2: list<Address.BinaryAddress> nextHopAddrs,
-  3: optional AdminDistance adminDistance,
-  4: list<common.NextHopThrift> nextHops,
+  2: list<Address.BinaryAddress> nextHopAddrs;
+  3: optional AdminDistance adminDistance;
+  4: list<common.NextHopThrift> nextHops;
   // Optional forwarding action. If not specified (for backward compatibility)
   // infer from nexthops
-  5: optional RouteForwardAction action
+  5: optional RouteForwardAction action;
   // use this instead of next hops for using policy based routing or named next hop group
-  6: common.NamedRouteDestination namedRouteDestination
-  7: optional RouteCounterID counterID
+  6: common.NamedRouteDestination namedRouteDestination;
+  7: optional RouteCounterID counterID;
 }
 
 struct MplsRoute {
-  1: required mpls.MplsLabel topLabel,
-  3: optional AdminDistance adminDistance,
-  4: list<common.NextHopThrift> nextHops,
+  1: required mpls.MplsLabel topLabel;
+  3: optional AdminDistance adminDistance;
+  4: list<common.NextHopThrift> nextHops;
   // use this instead of next hops for using policy based routing or named next hop group
-  6: common.NamedRouteDestination namedRouteDestination
+  6: common.NamedRouteDestination namedRouteDestination;
 }
 
 struct ClientAndNextHops {
-  1: required i32 clientId,
+  1: required i32 clientId;
   // Deprecated in favor of '3: nextHops'
-  2: required list<Address.BinaryAddress> nextHopAddrs,
-  3: required list<common.NextHopThrift> nextHops,
+  2: required list<Address.BinaryAddress> nextHopAddrs;
+  3: required list<common.NextHopThrift> nextHops;
   // will be populated if policy based route or named next hop group is used
-  4: optional common.NamedRouteDestination namedRouteDestination,
+  4: optional common.NamedRouteDestination namedRouteDestination;
 }
 
 struct IfAndIP {
-  1: required i32 interfaceID,
-  2: required Address.BinaryAddress ip,
+  1: required i32 interfaceID;
+  2: required Address.BinaryAddress ip;
 }
 
 struct RouteDetails {
-  1: required IpPrefix dest,
-  2: required string action,
+  1: required IpPrefix dest;
+  2: required string action;
   // Deprecated in favor of '7: nextHops'
-  3: required list<IfAndIP> fwdInfo,
-  4: required list<ClientAndNextHops> nextHopMulti,
-  5: required bool isConnected,
-  6: optional AdminDistance adminDistance,
-  7: list<common.NextHopThrift> nextHops,
+  3: required list<IfAndIP> fwdInfo;
+  4: required list<ClientAndNextHops> nextHopMulti;
+  5: required bool isConnected;
+  6: optional AdminDistance adminDistance;
+  7: list<common.NextHopThrift> nextHops;
   // use this for policy based route or with named next hop groups
-  8: optional common.NamedRouteDestination namedRouteDestination,
+  8: optional common.NamedRouteDestination namedRouteDestination;
 }
 
 struct MplsRouteDetails {
-  1: mpls.MplsLabel topLabel
-  2: string action
-  3: list<ClientAndNextHops> nextHopMulti,
-  4: AdminDistance adminDistance,
-  5: list<common.NextHopThrift> nextHops,
+  1: mpls.MplsLabel topLabel;
+  2: string action;
+  3: list<ClientAndNextHops> nextHopMulti;
+  4: AdminDistance adminDistance;
+  5: list<common.NextHopThrift> nextHops;
   // use this for policy based route or with named next hop groups
-  6: optional common.NamedRouteDestination namedRouteDestination,
+  6: optional common.NamedRouteDestination namedRouteDestination;
 }
 
 struct ArpEntryThrift {
-  1: string mac,
-  2: i32 port,
-  3: string vlanName,
-  4: Address.BinaryAddress ip,
-  5: i32 vlanID,
-  6: string state,
-  7: i32 ttl,
-  8: i32 classID,
+  1: string mac;
+  2: i32 port;
+  3: string vlanName;
+  4: Address.BinaryAddress ip;
+  5: i32 vlanID;
+  6: string state;
+  7: i32 ttl;
+  8: i32 classID;
 }
 
 enum L2EntryType {
@@ -146,15 +146,15 @@ enum L2EntryType {
 }
 
 struct L2EntryThrift {
-  1: string mac,
-  2: i32 port,
-  3: i32 vlanID,
+  1: string mac;
+  2: i32 port;
+  3: i32 vlanID;
   // Add information about l2 entries associated with
   // trunk ports. Only one of port, trunk is valid. If
   // trunk is set we look at that.
-  4: optional i32 trunk
-  5: L2EntryType l2EntryType
-  6: optional i32 classID,
+  4: optional i32 trunk;
+  5: L2EntryType l2EntryType;
+  6: optional i32 classID;
 }
 
 enum LacpPortRateThrift {
@@ -168,82 +168,82 @@ enum LacpPortActivityThrift {
 }
 
 struct AggregatePortMemberThrift {
-  1: i32 memberPortID
-  2: bool isForwarding
-  3: i32 priority
-  4: LacpPortRateThrift rate
-  5: LacpPortActivityThrift activity
+  1: i32 memberPortID;
+  2: bool isForwarding;
+  3: i32 priority;
+  4: LacpPortRateThrift rate;
+  5: LacpPortActivityThrift activity;
 }
 
 struct AggregatePortThrift {
-  1: i32 key
-  2: list<AggregatePortMemberThrift> memberPorts
-  3: string name
-  4: string description
-  5: i32 systemPriority
-  6: string systemID
-  7: byte minimumLinkCount
-  8: bool isUp
+  1: i32 key;
+  2: list<AggregatePortMemberThrift> memberPorts;
+  3: string name;
+  4: string description;
+  5: i32 systemPriority;
+  6: string systemID;
+  7: byte minimumLinkCount;
+  8: bool isUp;
 }
 
 struct LacpStateThrift {
-  1: bool active      ,
-  2: bool shortTimeout,
-  3: bool aggregatable,
-  4: bool inSync      ,
-  5: bool collecting  ,
-  6: bool distributing,
-  7: bool defaulted   ,
-  8: bool expired     ,
+  1: bool active;
+  2: bool shortTimeout;
+  3: bool aggregatable;
+  4: bool inSync;
+  5: bool collecting;
+  6: bool distributing;
+  7: bool defaulted;
+  8: bool expired;
 }
 
 struct LacpEndpoint {
-  1: i32 systemPriority,
-  2: string systemID,
-  3: i32 key,
-  4: i32 portPriority,
-  5: i32 port,
-  6: LacpStateThrift state,
+  1: i32 systemPriority;
+  2: string systemID;
+  3: i32 key;
+  4: i32 portPriority;
+  5: i32 port;
+  6: LacpStateThrift state;
 }
 
 struct LacpPartnerPair {
-  1: LacpEndpoint localEndpoint,
-  2: LacpEndpoint remoteEndpoint,
+  1: LacpEndpoint localEndpoint;
+  2: LacpEndpoint remoteEndpoint;
 }
 
 struct InterfaceDetail {
-  1: string interfaceName,
-  2: i32 interfaceId,
-  3: i32 vlanId,
-  4: i32 routerId,
-  5: string mac,
-  6: list<IpPrefix> address,
-  7: i32 mtu,
+  1: string interfaceName;
+  2: i32 interfaceId;
+  3: i32 vlanId;
+  4: i32 routerId;
+  5: string mac;
+  6: list<IpPrefix> address;
+  7: i32 mtu;
 }
 
 struct ProductInfo {
-  1: string oem,
-  2: string product,
-  3: string serial,
-  4: string macRangeStart,
-  5: i16 macRangeSize,
-  6: string mfgDate,
-  7: string systemPartNumber,
-  8: string assembledAt,
-  9: string pcbManufacturer,
-  10: string assetTag,
-  11: string partNumber,
-  12: string odmPcbaPartNumber,
-  13: string odmPcbaSerial,
-  14: string fbPcbPartNumber,
-  15: i16 version,
-  16: i16 subVersion,
-  17: i16 productionState,
-  18: i16 productVersion,
-  19: string bmcMac,
-  20: string mgmtMac,
-  21: string fabricLocation,
-  22: string fbPcbaPartNumber,
+  1: string oem;
+  2: string product;
+  3: string serial;
+  4: string macRangeStart;
+  5: i16 macRangeSize;
+  6: string mfgDate;
+  7: string systemPartNumber;
+  8: string assembledAt;
+  9: string pcbManufacturer;
+  10: string assetTag;
+  11: string partNumber;
+  12: string odmPcbaPartNumber;
+  13: string odmPcbaSerial;
+  14: string fbPcbPartNumber;
+  15: i16 version;
+  16: i16 subVersion;
+  17: i16 productionState;
+  18: i16 productVersion;
+  19: string bmcMac;
+  20: string mgmtMac;
+  21: string fabricLocation;
+  22: string fbPcbaPartNumber;
 }
 
 /*
@@ -251,13 +251,13 @@ struct ProductInfo {
  * started.
  */
 struct PortErrors {
-  1: i64 errors,
-  2: i64 discards,
+  1: i64 errors;
+  2: i64 discards;
 }
 
 struct QueueStats {
-  1: i64 congestionDiscards,
-  2: i64 outBytes,
+  1: i64 congestionDiscards;
+  2: i64 outBytes;
 }
 
 /*
@@ -266,11 +266,11 @@ struct QueueStats {
  */
 struct PortCounters {
   // avoid typechecker error here as bytes is a py3 reserved keyword
-  1: i64 bytes (py3.name = "bytes_"),
-  2: i64 ucastPkts,
-  3: i64 multicastPkts,
-  4: i64 broadcastPkts,
-  5: PortErrors errors,
+  1: i64 bytes (py3.name = "bytes_");
+  2: i64 ucastPkts;
+  3: i64 multicastPkts;
+  4: i64 broadcastPkts;
+  5: PortErrors errors;
   6: list<QueueStats> unicast = [];
 }
 
@@ -285,12 +285,12 @@ enum PortOperState {
 }
 
 struct LinearQueueCongestionDetection {
-  1: i32 minimumLength
-  2: i32 maximumLength
+  1: i32 minimumLength;
+  2: i32 maximumLength;
 }
 
 struct QueueCongestionDetection {
-  1: optional LinearQueueCongestionDetection linear
+  1: optional LinearQueueCongestionDetection linear;
 }
 
 enum QueueCongestionBehavior {
@@ -299,141 +299,140 @@ enum QueueCongestionBehavior {
 }
 
 struct ActiveQueueManagement {
-  1: QueueCongestionDetection detection
-  2: QueueCongestionBehavior behavior
+  1: QueueCongestionDetection detection;
+  2: QueueCongestionBehavior behavior;
 }
 
 struct Range {
-  1: i32 minimum
-  2: i32 maximum
+  1: i32 minimum;
+  2: i32 maximum;
 }
 
 union PortQueueRate {
-  1: Range pktsPerSec
-  2: Range kbitsPerSec
+  1: Range pktsPerSec;
+  2: Range kbitsPerSec;
 }
 
 struct PortQueueThrift {
-  1: i32 id,
-  2: string name = "",
-  3: string mode,
-  4: optional i32 weight,
-  5: optional i32 reservedBytes,
-  6: optional string scalingFactor,
-  7: optional list<ActiveQueueManagement> aqms,
-  8: optional PortQueueRate portQueueRate,
-  9: optional i32 bandwidthBurstMinKbits,
-  10: optional i32 bandwidthBurstMaxKbits,
-  11: optional list<byte> dscps,
+  1: i32 id;
+  2: string name = "";
+  3: string mode;
+  4: optional i32 weight;
+  5: optional i32 reservedBytes;
+  6: optional string scalingFactor;
+  7: optional list<ActiveQueueManagement> aqms;
+  8: optional PortQueueRate portQueueRate;
+  9: optional i32 bandwidthBurstMinKbits;
+  10: optional i32 bandwidthBurstMaxKbits;
+  11: optional list<byte> dscps;
 }
 
 struct PfcConfig {
-  1: bool tx,
-  2: bool rx,
-  3: bool watchdog,
+  1: bool tx;
+  2: bool rx;
+  3: bool watchdog;
 }
 
 struct PortInfoThrift {
-  1: i32 portId,
-  2: i64 speedMbps,
-  3: PortAdminState adminState,
-  4: PortOperState operState,
-  5: list<i32> vlans,
+  1: i32 portId;
+  2: i64 speedMbps;
+  3: PortAdminState adminState;
+  4: PortOperState operState;
+  5: list<i32> vlans;
 
-  10: PortCounters output,
-  11: PortCounters input,
-  12: string name,
-  13: string description,
+  10: PortCounters output;
+  11: PortCounters input;
+  12: string name;
+  13: string description;
   // TODO(pgardideh): remove this in favor of fecMode
-  14: bool fecEnabled, // Forward Error Correction port setting
-  15: bool txPause = false,
-  16: bool rxPause = false,
-  17: list<PortQueueThrift> portQueues = [],
-  18: string fecMode,
-  19: string profileID,
-  20: optional PfcConfig pfc,
+  14: bool fecEnabled; // Forward Error Correction port setting
+  15: bool txPause = false;
+  16: bool rxPause = false;
+  17: list<PortQueueThrift> portQueues = [];
+  18: string fecMode;
+  19: string profileID;
+  20: optional PfcConfig pfc;
 
-  21: optional PortHardwareDetails hw,
+  21: optional PortHardwareDetails hw;
 }
 
 struct PortHardwareDetails {
-  1: switch_config.PortProfileID profile,
-  2: phy.PortProfileConfig profileConfig,
-  3: phy.PortPinConfig pinConfig,
-  4: map<string, phy.DataPlanePhyChip> chips,
+  1: switch_config.PortProfileID profile;
+  2: phy.PortProfileConfig profileConfig;
+  3: phy.PortPinConfig pinConfig;
+  4: map<string, phy.DataPlanePhyChip> chips;
 }
 
 struct NdpEntryThrift {
-  1: Address.BinaryAddress ip,
-  2: string mac,
-  3: i32 port,
-  4: string vlanName,
-  5: i32 vlanID,
-  6: string state,
-  7: i32 ttl,
-  8: i32 classID,
+  1: Address.BinaryAddress ip;
+  2: string mac;
+  3: i32 port;
+  4: string vlanName;
+  5: i32 vlanID;
+  6: string state;
+  7: i32 ttl;
+  8: i32 classID;
 }
 
 enum BootType {
   UNINITIALIZED = 0,
   COLD_BOOT = 1,
-  WARM_BOOT = 2
+  WARM_BOOT = 2,
 }
 
 struct TransceiverIdxThrift {
-  1: i32 transceiverId,
-  2: optional i32 channelId,  # deprecated
-  3: optional list<i32> channels,
+  1: i32 transceiverId;
+  2: optional i32 channelId; # deprecated
+  3: optional list<i32> channels;
 }
 
 struct PortStatus {
-  1: bool enabled,
-  2: bool up,
-  3: optional bool present,  # deprecated
-  4: optional TransceiverIdxThrift transceiverIdx,
-  5: i64 speedMbps,  // TODO: i32 (someone is optimistic about port speeds)
-  6: string profileID,
+  1: bool enabled;
+  2: bool up;
+  3: optional bool present; # deprecated
+  4: optional TransceiverIdxThrift transceiverIdx;
+  5: i64 speedMbps; // TODO: i32 (someone is optimistic about port speeds)
+  6: string profileID;
 }
 
 enum PrbsComponent {
   ASIC = 0,
   GB_SYSTEM = 1,
-  GB_LINE = 2
+  GB_LINE = 2,
 }
 
 struct PrbsLaneStats {
-  1: i32 laneId,
-  2: bool locked,
-  3: double ber,
-  4: double maxBer,
-  5: i32 numLossOfLock,
-  6: i32 timeSinceLastLocked,
-  7: i32 timeSinceLastClear,
+  1: i32 laneId;
+  2: bool locked;
+  3: double ber;
+  4: double maxBer;
+  5: i32 numLossOfLock;
+  6: i32 timeSinceLastLocked;
+  7: i32 timeSinceLastClear;
 }
 
 struct PrbsStats {
-  1: i32 portId,
-  2: PrbsComponent component,
-  3: list<PrbsLaneStats> laneStats,
+  1: i32 portId;
+  2: PrbsComponent component;
+  3: list<PrbsLaneStats> laneStats;
 }
 
 enum CaptureDirection {
   CAPTURE_ONLY_RX = 0,
   CAPTURE_ONLY_TX = 1,
-  CAPTURE_TX_RX = 2
+  CAPTURE_TX_RX = 2,
 }
-
 
 enum CpuCosQueueId {
   LOPRI = 0,
   DEFAULT = 1,
   MIDPRI = 2,
-  HIPRI = 9
+  HIPRI = 9,
 }
 
 struct RxCaptureFilter {
-  1: list<CpuCosQueueId> cosQueues
-  # can put additional Rx filters here if need be
+  1: list<CpuCosQueueId> cosQueues;
+# can put additional Rx filters here if need be
 }
 
 struct CaptureFilter {
@@ -442,7 +441,7 @@ struct CaptureFilter {
 
 struct CaptureInfo {
   // A name identifying the packet capture
-  1: string name
+  1: string name;
   /*
    * Stop capturing after the specified number of packets.
    *
@@ -451,57 +450,57 @@ struct CaptureInfo {
    * to consume lots of space and other resources by capturing an extremely
    * large number of packets.
    */
-  2: i32 maxPackets
-  3: CaptureDirection direction = CAPTURE_TX_RX
+  2: i32 maxPackets;
+  3: CaptureDirection direction = CAPTURE_TX_RX;
   /*
    * set of criteria that packet must meet to be captured
    */
-  4: CaptureFilter  filter
+  4: CaptureFilter filter;
 }
 
 struct RouteUpdateLoggingInfo {
   // The prefix to log route updates for
-  1: IpPrefix prefix
+  1: IpPrefix prefix;
   /*
    * A name to split up requests for logging. Allows two different clients
    * to separately request starting/stopping logging for the same prefixes
    * without affecting each other.
    */
-  2: string identifier
+  2: string identifier;
   // Should we log an update to a route to a more specific prefix than "prefix"
-  3: bool exact
+  3: bool exact;
 }
 
 struct MplsRouteUpdateLoggingInfo {
   // The label to log route updates for label, -1 for all labels
-  1: mpls.MplsLabel label
+  1: mpls.MplsLabel label;
   /*
    * A name to split up requests for logging. Allows two different clients
    * to separately request starting/stopping logging for the same prefixes
    * without affecting each other.
    */
-  2: string identifier
+  2: string identifier;
 }
 
 /*
  * Information about an LLDP neighbor
  */
 struct LinkNeighborThrift {
-  1: i32 localPort
-  2: i32 localVlan
-  3: i32 chassisIdType
-  4: i32 portIdType
-  5: i32 originalTTL
-  6: i32 ttlSecondsLeft
-  7: string srcMac
-  8: binary chassisId
-  9: string printableChassisId
-  10: binary portId
-  11: string printablePortId
-  12: optional string systemName
-  13: optional string systemDescription
-  14: optional string portDescription
-  15: optional string localPortName
+  1: i32 localPort;
+  2: i32 localVlan;
+  3: i32 chassisIdType;
+  4: i32 portIdType;
+  5: i32 originalTTL;
+  6: i32 ttlSecondsLeft;
+  7: string srcMac;
+  8: binary chassisId;
+  9: string printableChassisId;
+  10: binary portId;
+  11: string printablePortId;
+  12: optional string systemName;
+  13: optional string systemDescription;
+  14: optional string portDescription;
+  15: optional string localPortName;
 }
 
 enum ClientID {
@@ -541,33 +540,33 @@ enum ClientID {
 }
 
 struct AclEntryThrift {
-  1: i32 priority
-  2: string name
-  3: Address.BinaryAddress srcIp
-  4: i32 srcIpPrefixLength
-  5: Address.BinaryAddress dstIp
-  6: i32 dstIpPrefixLength
-  7: optional byte proto
-  8: optional byte tcpFlagsBitMap
-  9: optional i16 srcPort
-  10: optional i16 dstPort
-  11: optional byte ipFrag
-  12: optional byte icmpType
-  13: optional byte icmpCode
-  14: optional byte dscp
-  15: optional byte ipType
-  16: optional i16 ttl
-  17: optional string dstMac
-  18: optional i16 l4SrcPort
-  19: optional i16 l4DstPort
-  20: optional byte lookupClass
-  21: string actionType
-  22: optional byte lookupClassL2
+  1: i32 priority;
+  2: string name;
+  3: Address.BinaryAddress srcIp;
+  4: i32 srcIpPrefixLength;
+  5: Address.BinaryAddress dstIp;
+  6: i32 dstIpPrefixLength;
+  7: optional byte proto;
+  8: optional byte tcpFlagsBitMap;
+  9: optional i16 srcPort;
+  10: optional i16 dstPort;
+  11: optional byte ipFrag;
+  12: optional byte icmpType;
+  13: optional byte icmpCode;
+  14: optional byte dscp;
+  15: optional byte ipType;
+  16: optional i16 ttl;
+  17: optional string dstMac;
+  18: optional i16 l4SrcPort;
+  19: optional i16 l4DstPort;
+  20: optional byte lookupClass;
+  21: string actionType;
+  22: optional byte lookupClassL2;
 }
 
 struct ClientInformation {
-  1: optional fbstring username,
-  2: optional fbstring hostname,
+  1: optional fbstring username;
+  2: optional fbstring hostname;
 }
 
 enum HwObjectType {
@@ -596,10 +595,10 @@ enum HwObjectType {
 }
 
 exception FbossFibUpdateError {
-  1: map<i32, list<IpPrefix>> vrf2failedAddUpdatePrefixes
-  2: map<i32, list<IpPrefix>> vrf2failedDeletePrefixes
-  3: list<mpls.MplsLabel> failedAddUpdateMplsLabels
-  4: list<mpls.MplsLabel> failedDeleteMplsLabels
+  1: map<i32, list<IpPrefix>> vrf2failedAddUpdatePrefixes;
+  2: map<i32, list<IpPrefix>> vrf2failedDeletePrefixes;
+  3: list<mpls.MplsLabel> failedAddUpdateMplsLabels;
+  4: list<mpls.MplsLabel> failedDeleteMplsLabels;
 }
 
 service FbossCtrl extends fb303.FacebookService {
@@ -613,41 +612,57 @@ service FbossCtrl extends fb303.FacebookService {
    * However, some tests use this API to check for up-to-date statistics
    * immediately after an event has occurred.
    */
-  void flushCountersNow()
-    throws (1: fboss.FbossBaseError error)
+  void flushCountersNow() throws (1: fboss.FbossBaseError error);
 
   /*
    * Add/Delete IPv4/IPV6 routes
    * - decide if it is v4 or v6 from destination ip address
    * - using clientID to identify who is adding routes, BGP or static
    */
-  void addUnicastRoute(1: i16 clientId, 2: UnicastRoute r)
-    throws (1: fboss.FbossBaseError error, 2: FbossFibUpdateError fibError)
-  void deleteUnicastRoute(1: i16 clientId, 2: IpPrefix r)
-    throws (1: fboss.FbossBaseError error)
-  void addUnicastRoutes(1: i16 clientId, 2: list<UnicastRoute> r)
-    throws (1: fboss.FbossBaseError error, 2: FbossFibUpdateError fibError)
-  void deleteUnicastRoutes(1: i16 clientId, 2: list<IpPrefix> r)
-    throws (1: fboss.FbossBaseError error)
-  void syncFib(1: i16 clientId, 2: list<UnicastRoute> routes)
-    throws (1: fboss.FbossBaseError error, 2: FbossFibUpdateError fibError)
+  void addUnicastRoute(1: i16 clientId, 2: UnicastRoute r) throws (
+    1: fboss.FbossBaseError error,
+    2: FbossFibUpdateError fibError,
+  );
+  void deleteUnicastRoute(1: i16 clientId, 2: IpPrefix r) throws (
+    1: fboss.FbossBaseError error,
+  );
+  void addUnicastRoutes(1: i16 clientId, 2: list<UnicastRoute> r) throws (
+    1: fboss.FbossBaseError error,
+    2: FbossFibUpdateError fibError,
+  );
+  void deleteUnicastRoutes(1: i16 clientId, 2: list<IpPrefix> r) throws (
+    1: fboss.FbossBaseError error,
+  );
+  void syncFib(1: i16 clientId, 2: list<UnicastRoute> routes) throws (
+    1: fboss.FbossBaseError error,
+    2: FbossFibUpdateError fibError,
+  );
 
-  void addUnicastRouteInVrf(1: i16 clientId, 2: UnicastRoute r, 3: i32 vrf)
-    throws (1: fboss.FbossBaseError error, 2: FbossFibUpdateError fibError)
-  void deleteUnicastRouteInVrf(1: i16 clientId, 2: IpPrefix r, 3: i32 vrf)
-    throws (1: fboss.FbossBaseError error)
+  void addUnicastRouteInVrf(
+    1: i16 clientId,
+    2: UnicastRoute r,
+    3: i32 vrf,
+  ) throws (1: fboss.FbossBaseError error, 2: FbossFibUpdateError fibError);
+  void deleteUnicastRouteInVrf(
+    1: i16 clientId,
+    2: IpPrefix r,
+    3: i32 vrf,
+  ) throws (1: fboss.FbossBaseError error);
   void addUnicastRoutesInVrf(
     1: i16 clientId,
     2: list<UnicastRoute> r,
-    3: i32 vrf
-  ) throws (1: fboss.FbossBaseError error, 2: FbossFibUpdateError fibError)
+    3: i32 vrf,
+  ) throws (1: fboss.FbossBaseError error, 2: FbossFibUpdateError fibError);
   void deleteUnicastRoutesInVrf(
     1: i16 clientId,
     2: list<IpPrefix> r,
-    3: i32 vrf
-  ) throws (1: fboss.FbossBaseError error)
-  void syncFibInVrf(1: i16 clientId, 2: list<UnicastRoute> routes, 3: i32 vrf)
-    throws (1: fboss.FbossBaseError error, 2: FbossFibUpdateError fibError)
+    3: i32 vrf,
+  ) throws (1: fboss.FbossBaseError error);
+  void syncFibInVrf(
+    1: i16 clientId,
+    2: list<UnicastRoute> routes,
+    3: i32 vrf,
+  ) throws (1: fboss.FbossBaseError error, 2: FbossFibUpdateError fibError);
 
   /*
    * Send packets in binary or hex format to controller.
@@ -655,10 +670,12 @@ service FbossCtrl extends fb303.FacebookService {
    * This injects the packet into the controller, as if it had been received
    * from a front-panel port.
    */
-  void sendPkt(1: i32 port, 2: i32 vlan, 3: fbbinary data)
-    throws (1: fboss.FbossBaseError error)
-  void sendPktHex(1: i32 port, 2: i32 vlan, 3: fbstring hex)
-    throws (1: fboss.FbossBaseError error)
+  void sendPkt(1: i32 port, 2: i32 vlan, 3: fbbinary data) throws (
+    1: fboss.FbossBaseError error,
+  );
+  void sendPktHex(1: i32 port, 2: i32 vlan, 3: fbstring hex) throws (
+    1: fboss.FbossBaseError error,
+  );
 
   /*
    * Transmit a packet out a specific front panel port.
@@ -669,8 +686,9 @@ service FbossCtrl extends fb303.FacebookService {
    * packet actually sent by the hardware, based on the hardware VLAN tagging
    * configuration for this VLAN+port.)
    */
-  void txPkt(1: i32 port, 2: fbbinary data)
-    throws (1: fboss.FbossBaseError error)
+  void txPkt(1: i32 port, 2: fbbinary data) throws (
+    1: fboss.FbossBaseError error,
+  );
 
   /*
    * Transmit a packet out to a specific VLAN.
@@ -684,7 +702,7 @@ service FbossCtrl extends fb303.FacebookService {
    * packet actually sent by the hardware, based on the hardware VLAN tagging
    * configuration for this VLAN.)
    */
-  void txPktL2(1: fbbinary data) throws (1: fboss.FbossBaseError error)
+  void txPktL2(1: fbbinary data) throws (1: fboss.FbossBaseError error);
 
   /*
    * Transmit an L3 packet.
@@ -693,7 +711,7 @@ service FbossCtrl extends fb303.FacebookService {
    * The controller will add an appropriate ethernet frame header.  It will
    * contain the correct next hop information based on the layer 3 header.
    */
-  void txPktL3(1: fbbinary payload) throws (1: fboss.FbossBaseError error)
+  void txPktL3(1: fbbinary payload) throws (1: fboss.FbossBaseError error);
 
   /*
    * Flush the ARP/NDP entry with the specified IP address.
@@ -703,19 +721,23 @@ service FbossCtrl extends fb303.FacebookService {
    *
    * Returns the number of entries flushed.
    */
-  i32 flushNeighborEntry(1: Address.BinaryAddress ip, 2: i32 vlanId)
+  i32 flushNeighborEntry(1: Address.BinaryAddress ip, 2: i32 vlanId);
 
   /*
    * Inband addresses
    */
-  list<Address.Address> getVlanAddresses(1: i32 vlanId)
-    throws (1: fboss.FbossBaseError error)
-  list<Address.Address> getVlanAddressesByName(1: string vlan)
-    throws (1: fboss.FbossBaseError error)
-  list<Address.BinaryAddress> getVlanBinaryAddresses(1: i32 vlanId)
-    throws (1: fboss.FbossBaseError error)
-  list<Address.BinaryAddress> getVlanBinaryAddressesByName(1: string vlan)
-    throws (1: fboss.FbossBaseError error)
+  list<Address.Address> getVlanAddresses(1: i32 vlanId) throws (
+    1: fboss.FbossBaseError error,
+  );
+  list<Address.Address> getVlanAddressesByName(1: string vlan) throws (
+    1: fboss.FbossBaseError error,
+  );
+  list<Address.BinaryAddress> getVlanBinaryAddresses(1: i32 vlanId) throws (
+    1: fboss.FbossBaseError error,
+  );
+  list<Address.BinaryAddress> getVlanBinaryAddressesByName(
+    1: string vlan,
+  ) throws (1: fboss.FbossBaseError error);
   /*
    * Returns a list of IP route as per the route table for the
    * given address
@@ -723,70 +745,76 @@ service FbossCtrl extends fb303.FacebookService {
    * TODO (allwync): get rid of getIpRoute after agent code with thrift
    * implementation of getIpRouteDetails is pushed everywhere
    */
-  UnicastRoute getIpRoute(1: Address.Address addr 2: i32 vrfId)
-    throws (1: fboss.FbossBaseError error)
-  RouteDetails getIpRouteDetails(1: Address.Address addr 2: i32 vrfId)
-    throws (1: fboss.FbossBaseError error)
-  map<i32, InterfaceDetail> getAllInterfaces()
-    throws (1: fboss.FbossBaseError error)
-  void registerForNeighborChanged()
-    throws (1: fboss.FbossBaseError error) (thread='eb')
-  list<string> getInterfaceList()
-    throws (1: fboss.FbossBaseError error)
+  UnicastRoute getIpRoute(1: Address.Address addr, 2: i32 vrfId) throws (
+    1: fboss.FbossBaseError error,
+  );
+  RouteDetails getIpRouteDetails(1: Address.Address addr, 2: i32 vrfId) throws (
+    1: fboss.FbossBaseError error,
+  );
+  map<i32, InterfaceDetail> getAllInterfaces() throws (
+    1: fboss.FbossBaseError error,
+  );
+  void registerForNeighborChanged() throws (1: fboss.FbossBaseError error) (
+    thread = 'eb',
+  );
+  list<string> getInterfaceList() throws (1: fboss.FbossBaseError error);
   /*
    * TODO (allwync): get rid of getRouteTable after agent code with thrift
    * implementation of getRouteTableDetails is pushed everywhere
    */
-  list<UnicastRoute> getRouteTable()
-    throws (1: fboss.FbossBaseError error)
-  list<UnicastRoute> getRouteTableByClient(1: i16 clientId)
-    throws (1: fboss.FbossBaseError error)
-  list<RouteDetails> getRouteTableDetails()
-    throws (1: fboss.FbossBaseError error)
-  list<RouteDetails> getRouteTableDetailsByClients(1: list<i16> clientId)
-    throws (1: fboss.FbossBaseError error)
-  InterfaceDetail getInterfaceDetail(1: i32 interfaceId)
-    throws (1: fboss.FbossBaseError error)
+  list<UnicastRoute> getRouteTable() throws (1: fboss.FbossBaseError error);
+  list<UnicastRoute> getRouteTableByClient(1: i16 clientId) throws (
+    1: fboss.FbossBaseError error,
+  );
+  list<RouteDetails> getRouteTableDetails() throws (
+    1: fboss.FbossBaseError error,
+  );
+  list<RouteDetails> getRouteTableDetailsByClients(
+    1: list<i16> clientId,
+  ) throws (1: fboss.FbossBaseError error);
+  InterfaceDetail getInterfaceDetail(1: i32 interfaceId) throws (
+    1: fboss.FbossBaseError error,
+  );
 
   /* MPLS route API */
-   void addMplsRoutes(
-     1: i16 clientId,
-     2: list<MplsRoute> routes,
-   ) throws (1: fboss.FbossBaseError error, 2: FbossFibUpdateError fibError)
+  void addMplsRoutes(1: i16 clientId, 2: list<MplsRoute> routes) throws (
+    1: fboss.FbossBaseError error,
+    2: FbossFibUpdateError fibError,
+  );
 
-   void deleteMplsRoutes(
-     1: i16 clientId,
-     2: list<i32> topLabels,
-   ) throws (1: fboss.FbossBaseError error)
+  void deleteMplsRoutes(1: i16 clientId, 2: list<i32> topLabels) throws (
+    1: fboss.FbossBaseError error,
+  );
 
-   /* Flush previous routes and install new routes without disturbing traffic.
+  /* Flush previous routes and install new routes without disturbing traffic.
     * Similar to syncFib API */
-   void syncMplsFib(
-     1: i16 clientId,
-     2: list<MplsRoute> routes,
-   ) throws (1: fboss.FbossBaseError error, 2: FbossFibUpdateError fibError)
+  void syncMplsFib(1: i16 clientId, 2: list<MplsRoute> routes) throws (
+    1: fboss.FbossBaseError error,
+    2: FbossFibUpdateError fibError,
+  );
 
-   /* Retrieve list of MPLS routes per client */
-   list<MplsRoute> getMplsRouteTableByClient(
-     1: i16 clientId
-   ) throws (1: fboss.FbossBaseError error)
+  /* Retrieve list of MPLS routes per client */
+  list<MplsRoute> getMplsRouteTableByClient(1: i16 clientId) throws (
+    1: fboss.FbossBaseError error,
+  );
 
-   /* Retrieve list of MPLS entries */
-   list<MplsRouteDetails> getAllMplsRouteDetails() throws (
-      1: fboss.FbossBaseError error
-   )
+  /* Retrieve list of MPLS entries */
+  list<MplsRouteDetails> getAllMplsRouteDetails() throws (
+    1: fboss.FbossBaseError error,
+  );
 
-    /* Retrieve MPLS entry for given label */
-    MplsRouteDetails getMplsRouteDetails(1: mpls.MplsLabel topLabel) throws (
-       1: fboss.FbossBaseError error
-    )
+  /* Retrieve MPLS entry for given label */
+  MplsRouteDetails getMplsRouteDetails(1: mpls.MplsLabel topLabel) throws (
+    1: fboss.FbossBaseError error,
+  );
 
   /*
    * Return the admin and oper state of ports in the list (all ports
    * if list is empty).
    */
-  map<i32, PortStatus> getPortStatus(1: list<i32> ports)
-    throws (1: fboss.FbossBaseError error)
+  map<i32, PortStatus> getPortStatus(1: list<i32> ports) throws (
+    1: fboss.FbossBaseError error,
+  );
 
   /*
    * Administratively enable/disable a port.  Useful to temporarily change
@@ -794,8 +822,9 @@ service FbossCtrl extends fb303.FacebookService {
    * does not affect the configuraton, so the port will return to configured
    * state after, for example, restart.
    */
-  void setPortState(1: i32 portId, 2: bool enable)
-    throws (1: fboss.FbossBaseError error)
+  void setPortState(1: i32 portId, 2: bool enable) throws (
+    1: fboss.FbossBaseError error,
+  );
 
   /*
    * Change the PRBS setting on a port. Useful when debugging a link
@@ -805,17 +834,16 @@ service FbossCtrl extends fb303.FacebookService {
     1: i32 portId,
     2: PrbsComponent component,
     3: bool enable,
-    4: i32 polynominal
-  ) throws (1: fboss.FbossBaseError error)
+    4: i32 polynominal,
+  ) throws (1: fboss.FbossBaseError error);
 
   /*
    * Get the PRBS stats on a port. Useful when debugging a link
    * down or flapping issue.
    */
-  PrbsStats getPortPrbsStats(
-    1: i32 portId,
-    2: PrbsComponent component,
-  ) throws (1: fboss.FbossBaseError error)
+  PrbsStats getPortPrbsStats(1: i32 portId, 2: PrbsComponent component) throws (
+    1: fboss.FbossBaseError error,
+  );
 
   /*
    * Clear the PRBS stats counter on a port. Useful when debugging a link
@@ -829,143 +857,145 @@ service FbossCtrl extends fb303.FacebookService {
    * 6. locked status not changed
    * 7. timeLastCollect not changed
    */
-  void clearPortPrbsStats(
-    1: i32 portId,
-    2: PrbsComponent component,
-  ) throws (1: fboss.FbossBaseError error)
+  void clearPortPrbsStats(1: i32 portId, 2: PrbsComponent component) throws (
+    1: fboss.FbossBaseError error,
+  );
 
   /*
    * Return info related to the port including name, description, speed,
    * counters, ...
    */
-  PortInfoThrift getPortInfo(1: i32 portId)
-    throws (1: fboss.FbossBaseError error)
-  map<i32, PortInfoThrift> getAllPortInfo()
-    throws (1: fboss.FbossBaseError error)
+  PortInfoThrift getPortInfo(1: i32 portId) throws (
+    1: fboss.FbossBaseError error,
+  );
+  map<i32, PortInfoThrift> getAllPortInfo() throws (
+    1: fboss.FbossBaseError error,
+  );
 
   /* clear stats for specified port(s) */
-  void clearPortStats(1: list<i32> ports)
+  void clearPortStats(1: list<i32> ports);
 
   /* Legacy names for getPortInfo() and getAllPortInfo() */
-  PortInfoThrift getPortStats(1: i32 portId)
-    throws (1: fboss.FbossBaseError error)
-  map<i32, PortInfoThrift> getAllPortStats()
-    throws (1: fboss.FbossBaseError error)
+  PortInfoThrift getPortStats(1: i32 portId) throws (
+    1: fboss.FbossBaseError error,
+  );
+  map<i32, PortInfoThrift> getAllPortStats() throws (
+    1: fboss.FbossBaseError error,
+  );
 
   /* Return running config */
-  string getRunningConfig()
-    throws (1: fboss.FbossBaseError error)
+  string getRunningConfig() throws (1: fboss.FbossBaseError error);
 
-  list<ArpEntryThrift> getArpTable()
-    throws (1: fboss.FbossBaseError error)
-  list<NdpEntryThrift> getNdpTable()
-    throws (1: fboss.FbossBaseError error)
-  list<L2EntryThrift> getL2Table()
-    throws (1: fboss.FbossBaseError error)
-  list<AclEntryThrift> getAclTable()
-    throws (1: fboss.FbossBaseError error)
+  list<ArpEntryThrift> getArpTable() throws (1: fboss.FbossBaseError error);
+  list<NdpEntryThrift> getNdpTable() throws (1: fboss.FbossBaseError error);
+  list<L2EntryThrift> getL2Table() throws (1: fboss.FbossBaseError error);
+  list<AclEntryThrift> getAclTable() throws (1: fboss.FbossBaseError error);
 
-  AggregatePortThrift getAggregatePort(1: i32 aggregatePortID)
-    throws (1: fboss.FbossBaseError error)
-  list<AggregatePortThrift> getAggregatePortTable()
-    throws (1: fboss.FbossBaseError error)
+  AggregatePortThrift getAggregatePort(1: i32 aggregatePortID) throws (
+    1: fboss.FbossBaseError error,
+  );
+  list<AggregatePortThrift> getAggregatePortTable() throws (
+    1: fboss.FbossBaseError error,
+  );
 
-  LacpPartnerPair getLacpPartnerPair(1: i32 portID)
-    throws (1: fboss.FbossBaseError error)
-  list<LacpPartnerPair> getAllLacpPartnerPairs()
-    throws (1: fboss.FbossBaseError error)
+  LacpPartnerPair getLacpPartnerPair(1: i32 portID) throws (
+    1: fboss.FbossBaseError error,
+  );
+  list<LacpPartnerPair> getAllLacpPartnerPairs() throws (
+    1: fboss.FbossBaseError error,
+  );
 
   /*
    * Information about Hw state, often useful for debugging
    * on a box
    */
-  string getHwDebugDump()
+  string getHwDebugDump();
   /*
    * String formatted information of givens Hw Objects.
    */
-  string listHwObjects(1: list<HwObjectType> objects, 2: bool cached)
-    throws (1: fboss.FbossBaseError error)
+  string listHwObjects(1: list<HwObjectType> objects, 2: bool cached) throws (
+    1: fboss.FbossBaseError error,
+  );
 
   /*
    * Type of boot performed by the controller
    */
-  BootType getBootType()
+  BootType getBootType();
 
   /*
    * Get the list of neighbors discovered via LLDP
    */
-  list<LinkNeighborThrift> getLldpNeighbors()
-    throws (1: fboss.FbossBaseError error)
+  list<LinkNeighborThrift> getLldpNeighbors() throws (
+    1: fboss.FbossBaseError error,
+  );
 
   /*
    * Start a packet capture
    */
-  void startPktCapture(1: CaptureInfo info)
-    throws (1: fboss.FbossBaseError error)
-  void stopPktCapture(1: string name)
-    throws (1: fboss.FbossBaseError error)
-  void stopAllPktCaptures()
-    throws (1: fboss.FbossBaseError error)
+  void startPktCapture(1: CaptureInfo info) throws (
+    1: fboss.FbossBaseError error,
+  );
+  void stopPktCapture(1: string name) throws (1: fboss.FbossBaseError error);
+  void stopAllPktCaptures() throws (1: fboss.FbossBaseError error);
 
   /*
    * Log all updates to routes that match this prefix, or are more
    * specific.
    */
-  void startLoggingRouteUpdates(1: RouteUpdateLoggingInfo info)
-  void stopLoggingRouteUpdates(1: IpPrefix prefix, 2: string identifier)
-  void stopLoggingAnyRouteUpdates(1: string identifier)
+  void startLoggingRouteUpdates(1: RouteUpdateLoggingInfo info);
+  void stopLoggingRouteUpdates(1: IpPrefix prefix, 2: string identifier);
+  void stopLoggingAnyRouteUpdates(1: string identifier);
 
-  list<RouteUpdateLoggingInfo> getRouteUpdateLoggingTrackedPrefixes()
+  list<RouteUpdateLoggingInfo> getRouteUpdateLoggingTrackedPrefixes();
 
   /*
    * Log all updates to mpls routes for given label
    */
-  void startLoggingMplsRouteUpdates(1: MplsRouteUpdateLoggingInfo info)
-  void stopLoggingMplsRouteUpdates(1: MplsRouteUpdateLoggingInfo info)
-  void stopLoggingAnyMplsRouteUpdates(1: string identifier)
-  list<MplsRouteUpdateLoggingInfo> getMplsRouteUpdateLoggingTrackedLabels()
+  void startLoggingMplsRouteUpdates(1: MplsRouteUpdateLoggingInfo info);
+  void stopLoggingMplsRouteUpdates(1: MplsRouteUpdateLoggingInfo info);
+  void stopLoggingAnyMplsRouteUpdates(1: string identifier);
+  list<MplsRouteUpdateLoggingInfo> getMplsRouteUpdateLoggingTrackedLabels();
 
-  void keepalive()
+  void keepalive();
 
-  i32 getIdleTimeout()
-    throws (1: fboss.FbossBaseError error)
+  i32 getIdleTimeout() throws (1: fboss.FbossBaseError error);
 
   /*
    * Return product information
    */
-  ProductInfo getProductInfo()
-    throws (1: fboss.FbossBaseError error)
+  ProductInfo getProductInfo() throws (1: fboss.FbossBaseError error);
 
   /*
    * Force reload configurations from the config file. Useful when config file
    * has changed since the agent started.
    */
-  void reloadConfig()
+  void reloadConfig();
 
   /*
    * Serialize switch state at path pointed by JSON pointer
    */
-  string getCurrentStateJSON(1: string jsonPointer)
+  string getCurrentStateJSON(1: string jsonPointer);
 
   /*
    * Apply patch at given path within the state tree. jsonPatch must  be
    * a valid JSON object string
    */
-  void patchCurrentStateJSON(1: string jsonPointer, 2: string jsonPatch)
+  void patchCurrentStateJSON(1: string jsonPointer, 2: string jsonPatch);
 
   /*
   * Switch run state
   */
-  SwitchRunState getSwitchRunState()
+  SwitchRunState getSwitchRunState();
 
-  SSLType getSSLPolicy()
-    throws (1: fboss.FbossBaseError error)
+  SSLType getSSLPolicy() throws (1: fboss.FbossBaseError error);
 
   /*
   * Enable external control for port LED lights
   */
-  void setExternalLedState(1: i32 portNum, 2: PortLedExternalState ledState)
-    throws (1: fboss.FbossBaseError error)
+  void setExternalLedState(
+    1: i32 portNum,
+    2: PortLedExternalState ledState,
+  ) throws (1: fboss.FbossBaseError error);
 
   /*
    * Enables submitting diag cmds to the switch
@@ -974,85 +1004,115 @@ service FbossCtrl extends fb303.FacebookService {
     1: fbstring cmd,
     2: ClientInformation client,
     3: i16 serverTimeoutMsecs = 0,
-    4: bool bypassFilter = false
-  )
+    4: bool bypassFilter = false,
+  );
 
   /*
    * Get formatted string for diag cmd filters configuration
    */
-  fbstring cmdFiltersAsString() throws (1: fboss.FbossBaseError error)
+  fbstring cmdFiltersAsString() throws (1: fboss.FbossBaseError error);
 
   /*
   * Return the system's platform mapping (see platform_config.thrift)
   */
-  platform_config.PlatformMapping getPlatformMapping()
-    throws (1: fboss.FbossBaseError error)
+  platform_config.PlatformMapping getPlatformMapping() throws (
+    1: fboss.FbossBaseError error,
+  );
 
   /*
    * API to add named next hop groups, named next hop group with same name will be replaced
    */
-  void addOrUpdateNextHopGroups(1: list<common.NamedNextHopGroup> nextHopGroups) throws (1: fboss.FbossBaseError error)
+  void addOrUpdateNextHopGroups(
+    1: list<common.NamedNextHopGroup> nextHopGroups,
+  ) throws (1: fboss.FbossBaseError error);
 
   /*
    * API to remove named next hop groups
    */
-  void removeNextHopGroups(1: list<string> name) throws (1: fboss.FbossBaseError error)
+  void removeNextHopGroups(1: list<string> name) throws (
+    1: fboss.FbossBaseError error,
+  );
 
   /*
    * API to get named next hop groups
    */
-  list<common.NamedNextHopGroup> getNextHopGroups(1: list<string> name) throws (1: fboss.FbossBaseError error)
+  list<common.NamedNextHopGroup> getNextHopGroups(1: list<string> name) throws (
+    1: fboss.FbossBaseError error,
+  );
 
   /*
    * Set all DSCP values for a given forwarding class
    */
-  void setDscpToForwardingClass(1: list<byte> dscp, 2: common.ForwardingClass fc) throws (1: fboss.FbossBaseError error)
+  void setDscpToForwardingClass(
+    1: list<byte> dscp,
+    2: common.ForwardingClass fc,
+  ) throws (1: fboss.FbossBaseError error);
 
   /*
    * Clear all DSCP values for a given forwarding class, cleared DSCP values map to internal default forwarding class
    */
-  void clearForwardingClassForDscp(1: list<byte> dscp) throws (1: fboss.FbossBaseError error)
+  void clearForwardingClassForDscp(1: list<byte> dscp) throws (
+    1: fboss.FbossBaseError error,
+  );
 
   /*
    * Get forwarding class for a given DSCP
    */
-  common.ForwardingClass getForwardingClassForDscp(1: byte dscp) throws (1: fboss.FbossBaseError error)
+  common.ForwardingClass getForwardingClassForDscp(1: byte dscp) throws (
+    1: fboss.FbossBaseError error,
+  );
 
   /*
    * Get DSCP mapping to forwarding class
    */
-  common.DscpToForwardingClassMap getDscpToForwardingClassMap()
+  common.DscpToForwardingClassMap getDscpToForwardingClassMap();
 
   /*
    * Add one or multiple traffic redirection policy objects.
    */
-  void addOrUpdatePolicies(1: list<common.Policy> policy) throws (1: fboss.FbossBaseError error)
+  void addOrUpdatePolicies(1: list<common.Policy> policy) throws (
+    1: fboss.FbossBaseError error,
+  );
 
   /*
    * Remove one or multiple traffic redirection policy objects.
    */
-  void removePolicies(1: list<string> policyName) throws (1: fboss.FbossBaseError error)
+  void removePolicies(1: list<string> policyName) throws (
+    1: fboss.FbossBaseError error,
+  );
 
   /*
    * Get one or multiple traffic redirection policy objects.
    */
-  list<common.Policy> getPolicies(1: list<string> policyNames) throws (1: fboss.FbossBaseError error)
-  list<common.Policy> getAllPolicies()
+  list<common.Policy> getPolicies(1: list<string> policyNames) throws (
+    1: fboss.FbossBaseError error,
+  );
+  list<common.Policy> getAllPolicies();
 
   /*
    * Set named next hop groups for given class to a policy
    */
-  void setNextHopGroups(1: string policyName, 2: common.ForwardingClass fc, 3: list<string> nextHopGroups) throws (1: fboss.FbossBaseError error)
+  void setNextHopGroups(
+    1: string policyName,
+    2: common.ForwardingClass fc,
+    3: list<string> nextHopGroups,
+  ) throws (1: fboss.FbossBaseError error);
 
   /*
    * Clear all next hop groups for given class from a policy
    */
-  void clearNextHopGroups(1: string policyName, 2: common.ForwardingClass fc) throws (1: fboss.FbossBaseError error)
+  void clearNextHopGroups(
+    1: string policyName,
+    2: common.ForwardingClass fc,
+  ) throws (1: fboss.FbossBaseError error);
 
   /*
    * Get all next hop group names for class in a policy
    */
-  list<common.NamedNextHopGroup> getNextHopGroupsForPolicy(1: string policyName, 2: common.ForwardingClass fc) throws (1: fboss.FbossBaseError error)
+  list<common.NamedNextHopGroup> getNextHopGroupsForPolicy(
+    1: string policyName,
+    2: common.ForwardingClass fc,
+  ) throws (1: fboss.FbossBaseError error);
 }
 
 service NeighborListenerClient extends fb303.FacebookService {
@@ -1063,6 +1123,7 @@ service NeighborListenerClient extends fb303.FacebookService {
    * since the last notification. Changes are not queued between
    * subscriptions.
    */
-  void neighborsChanged(1: list<string> added, 2: list<string> removed)
-    throws (1: fboss.FbossBaseError error)
+  void neighborsChanged(1: list<string> added, 2: list<string> removed) throws (
+    1: fboss.FbossBaseError error,
+  );
 }
