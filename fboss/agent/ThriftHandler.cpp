@@ -329,6 +329,12 @@ void getPortInfoHelper(
     pc.watchdog_ref() = pfc->watchdog_ref().has_value();
     portInfo.pfc_ref() = pc;
   }
+  try {
+    portInfo.transceiverIdx_ref() =
+        sw.getPlatform()->getPortMapping(port->getID(), port->getSpeed());
+  } catch (const facebook::fboss::FbossError& err) {
+    // No problem, we just don't set the other info
+  }
 
   fillPortStats(portInfo, portInfo.portQueues_ref()->size());
 }

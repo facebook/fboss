@@ -354,6 +354,7 @@ struct PortInfoThrift {
   20: optional PfcConfig pfc;
 
   21: optional PortHardwareDetails hw;
+  22: optional TransceiverIdxThrift transceiverIdx;
 }
 
 struct PortHardwareDetails {
