@@ -114,6 +114,22 @@ std::optional<TransceiverID> getTranscieverIdx(
   return utility::getTransceiverId(
       platformPorts.find(static_cast<int32_t>(portId))->second, chips);
 }
+
+std::vector<TransceiverID> getTransceiverIds(
+    const std::vector<PortID>& ports,
+    const HwQsfpEnsemble* ensemble,
+    bool ignoreNotFound) {
+  std::vector<TransceiverID> transceivers;
+  for (auto port : ports) {
+    auto tid = getTranscieverIdx(port, ensemble);
+    CHECK(tid.has_value() || ignoreNotFound);
+    if (tid) {
+      transceivers.push_back(*tid);
+    }
+  }
+  return transceivers;
+}
+
 PortStatus getPortStatus(PortID portId, const HwQsfpEnsemble* ensemble) {
   auto transceiverId = getTranscieverIdx(portId, ensemble);
   EXPECT_TRUE(transceiverId);

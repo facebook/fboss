@@ -41,6 +41,10 @@ void verifyPhyPortConnector(PortID portID, HwQsfpEnsemble* qsfpEnsemble);
 std::optional<TransceiverID> getTranscieverIdx(
     PortID portId,
     const HwQsfpEnsemble* ensemble);
+std::vector<TransceiverID> getTransceiverIds(
+    const std::vector<PortID>& ports,
+    const HwQsfpEnsemble* ensemble,
+    bool ignoreNotFound = false);
 PortStatus getPortStatus(PortID portId, const HwQsfpEnsemble* ensemble);
 
 // Find the available iphy ports and xphy ports from agent config.
