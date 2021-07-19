@@ -801,19 +801,30 @@ vector<string> BcmCinter::cintForFlexctrConfig(
 vector<string> BcmCinter::cintForFlexCtrTrigger(
     bcm_flexctr_trigger_t& flexctr_trigger) {
   vector<string> cintLines = {
-      to<string>("flexctr_trigger.trigger_type=", flexctr_trigger.trigger_type),
-      to<string>("flexctr_trigger.period_num=", flexctr_trigger.period_num),
-      to<string>("flexctr_trigger.interval=", flexctr_trigger.interval),
-      to<string>("flexctr_trigger.object=", flexctr_trigger.object),
-      to<string>(
-          "flexctr_trigger.object_value_start=",
-          flexctr_trigger.object_value_start),
-      to<string>(
-          "flexctr_trigger.object_value_stop=",
-          flexctr_trigger.object_value_stop),
-      to<string>(
-          "flexctr_trigger.object_value_mask=",
-          flexctr_trigger.object_value_mask)};
+    to<string>("flexctr_trigger.trigger_type=", flexctr_trigger.trigger_type),
+    to<string>("flexctr_trigger.period_num=", flexctr_trigger.period_num),
+    to<string>("flexctr_trigger.interval=", flexctr_trigger.interval),
+    to<string>("flexctr_trigger.object=", flexctr_trigger.object),
+    to<string>(
+        "flexctr_trigger.object_value_start=",
+        flexctr_trigger.object_value_start),
+    to<string>(
+        "flexctr_trigger.object_value_stop=",
+        flexctr_trigger.object_value_stop),
+    to<string>(
+        "flexctr_trigger.object_value_mask=",
+        flexctr_trigger.object_value_mask),
+#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+    to<string>(
+        "flexctr_trigger.interval_shift=", flexctr_trigger.interval_shift),
+    to<string>("flexctr_trigger.interval_size=", flexctr_trigger.interval_size),
+    to<string>("flexctr_trigger.object_id=", flexctr_trigger.object_id),
+    to<string>(
+        "flexctr_trigger.action_count_stop=",
+        flexctr_trigger.action_count_stop),
+    to<string>("flexctr_trigger.flags=", flexctr_trigger.flags)
+#endif
+  };
   return cintLines;
 }
 
@@ -951,7 +962,6 @@ vector<string> BcmCinter::cintForFlexCtrAction(
       cintLines.end(),
       make_move_iterator(operationBCint.begin()),
       make_move_iterator(operationBCint.end()));
-
   // Flexctr_trigger
   vector<string> triggerCint = cintForFlexCtrTrigger(flexctr_action->trigger);
   cintLines.insert(
