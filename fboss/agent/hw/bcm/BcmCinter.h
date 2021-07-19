@@ -1856,6 +1856,10 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   std::vector<std::string> cintForFlexctrConfig(
       bcm_field_flexctr_config_t* flexctr_cfg);
 
+  std::vector<std::string> cintForFlexCtrValueOperation(
+      bcm_flexctr_value_operation_t* operation,
+      const std::string& varname);
+
   std::vector<std::string> cintForFlexCtrAction(
       bcm_flexctr_action_t* flexctr_action);
 

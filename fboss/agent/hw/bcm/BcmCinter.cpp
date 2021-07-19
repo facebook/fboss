@@ -817,6 +817,57 @@ vector<string> BcmCinter::cintForFlexCtrTrigger(
   return cintLines;
 }
 
+vector<string> BcmCinter::cintForFlexCtrValueOperation(
+    bcm_flexctr_value_operation_t* operation,
+    const string& varname) {
+  vector<string> cintLines = {
+      to<string>("flexctr_action.", varname, ".select=", operation->select),
+      to<string>("flexctr_action.", varname, ".type=", operation->type),
+  };
+  for (int i = 0; i < BCM_FLEXCTR_OPERATION_OBJECT_SIZE; i++) {
+    vector<string> operationCint = {
+      to<string>(
+          "flexctr_action.",
+          varname,
+          ".object[",
+          i,
+          "]=",
+          operation->object[i]),
+      to<string>(
+          "flexctr_action.",
+          varname,
+          ".quant_id[",
+          i,
+          "]=",
+          operation->quant_id[i]),
+      to<string>(
+          "flexctr_action.",
+          varname,
+          ".mask_size[",
+          i,
+          "]=",
+          operation->mask_size[i]),
+      to<string>(
+          "flexctr_action.", varname, ".shift[", i, "]=", operation->shift[i]),
+#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+      to<string>(
+          "flexctr_action.",
+          varname,
+          ".object_id[",
+          i,
+          "]=",
+          operation->object_id[i]),
+#endif
+    };
+    cintLines.insert(
+        cintLines.end(),
+        make_move_iterator(operationCint.begin()),
+        make_move_iterator(operationCint.end()));
+  }
+
+  return cintLines;
+}
+
 vector<string> BcmCinter::cintForFlexCtrAction(
     bcm_flexctr_action_t* flexctr_action) {
   string pbmp;
@@ -827,20 +878,24 @@ vector<string> BcmCinter::cintForFlexCtrAction(
       make_move_iterator(pbmpCint.begin()),
       make_move_iterator(pbmpCint.end()));
   vector<string> structLines = {
-      "bcm_flexctr_action_t_init(&flexctr_action)",
-      to<string>("flexctr_action.flags=", flexctr_action->flags),
-      to<string>("flexctr_action.source=", flexctr_action->source),
-      to<string>("flexctr_action.ports=", pbmp),
-      to<string>("flexctr_action.hint=", flexctr_action->hint),
-      to<string>(
-          "flexctr_action.drop_count_mode=", flexctr_action->drop_count_mode),
-      to<string>(
-          "flexctr_action.exception_drop_count_enable=",
-          flexctr_action->exception_drop_count_enable),
-      to<string>(
-          "flexctr_action.egress_mirror_count_enable=",
-          flexctr_action->egress_mirror_count_enable),
-      to<string>("flexctr_action.mode=", flexctr_action->mode),
+    "bcm_flexctr_action_t_init(&flexctr_action)",
+    to<string>("flexctr_action.flags=", flexctr_action->flags),
+    to<string>("flexctr_action.source=", flexctr_action->source),
+    to<string>("flexctr_action.ports=", pbmp),
+    to<string>("flexctr_action.hint=", flexctr_action->hint),
+    to<string>(
+        "flexctr_action.drop_count_mode=", flexctr_action->drop_count_mode),
+    to<string>(
+        "flexctr_action.exception_drop_count_enable=",
+        flexctr_action->exception_drop_count_enable),
+    to<string>(
+        "flexctr_action.egress_mirror_count_enable=",
+        flexctr_action->egress_mirror_count_enable),
+    to<string>("flexctr_action.mode=", flexctr_action->mode),
+#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+    to<string>("flexctr_action.hint_ext=", flexctr_action->hint_ext),
+    to<string>("flexctr_action.index_num=", flexctr_action->index_num),
+#endif
   };
   cintLines.insert(
       cintLines.end(),
@@ -849,26 +904,33 @@ vector<string> BcmCinter::cintForFlexCtrAction(
   // index_operation
   for (int i = 0; i < BCM_FLEXCTR_OPERATION_OBJECT_SIZE; i++) {
     vector<string> indexOperationCint = {
-        to<string>(
-            "flexctr_action.index_operation.object[",
-            i,
-            "]=",
-            flexctr_action->index_operation.object[i]),
-        to<string>(
-            "flexctr_action.index_operation.quant_id[",
-            i,
-            "]=",
-            flexctr_action->index_operation.quant_id[i]),
-        to<string>(
-            "flexctr_action.index_operation.mask_size[",
-            i,
-            "]=",
-            flexctr_action->index_operation.mask_size[i]),
-        to<string>(
-            "flexctr_action.index_operation.shift[",
-            i,
-            "]=",
-            flexctr_action->index_operation.shift[i]),
+      to<string>(
+          "flexctr_action.index_operation.object[",
+          i,
+          "]=",
+          flexctr_action->index_operation.object[i]),
+      to<string>(
+          "flexctr_action.index_operation.quant_id[",
+          i,
+          "]=",
+          flexctr_action->index_operation.quant_id[i]),
+      to<string>(
+          "flexctr_action.index_operation.mask_size[",
+          i,
+          "]=",
+          flexctr_action->index_operation.mask_size[i]),
+      to<string>(
+          "flexctr_action.index_operation.shift[",
+          i,
+          "]=",
+          flexctr_action->index_operation.shift[i]),
+#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+      to<string>(
+          "flexctr_action.index_operation.object_id[",
+          i,
+          "]=",
+          flexctr_action->index_operation.object_id[i]),
+#endif
     };
     cintLines.insert(
         cintLines.end(),
@@ -876,71 +938,38 @@ vector<string> BcmCinter::cintForFlexCtrAction(
         make_move_iterator(indexOperationCint.end()));
   }
   // operation_a
-  for (int i = 0; i < BCM_FLEXCTR_OPERATION_OBJECT_SIZE; i++) {
-    vector<string> operationACint = {
-        to<string>(
-            "flexctr_action.operation_a.object[",
-            i,
-            "]=",
-            flexctr_action->operation_a.object[i]),
-        to<string>(
-            "flexctr_action.operation_a.quant_id[",
-            i,
-            "]=",
-            flexctr_action->operation_a.quant_id[i]),
-        to<string>(
-            "flexctr_action.operation_a.mask_size[",
-            i,
-            "]=",
-            flexctr_action->operation_a.mask_size[i]),
-        to<string>(
-            "flexctr_action.operation_a.shift[",
-            i,
-            "]=",
-            flexctr_action->operation_a.shift[i]),
-    };
-    cintLines.insert(
-        cintLines.end(),
-        make_move_iterator(operationACint.begin()),
-        make_move_iterator(operationACint.end()));
-  }
+  vector<string> operationACint =
+      cintForFlexCtrValueOperation(&flexctr_action->operation_a, "operation_a");
+  cintLines.insert(
+      cintLines.end(),
+      make_move_iterator(operationACint.begin()),
+      make_move_iterator(operationACint.end()));
   // operation_b
-  for (int j = 0; j < BCM_FLEXCTR_OPERATION_OBJECT_SIZE; j++) {
-    vector<string> operationBCint = {
-        to<string>(
-            "flexctr_action.operation_b.object[",
-            j,
-            "]=",
-            flexctr_action->operation_b.object[j]),
-        to<string>(
-            "flexctr_action.operation_b.quant_id[",
-            j,
-            "]=",
-            flexctr_action->operation_b.quant_id[j]),
-        to<string>(
-            "flexctr_action.operation_b.mask_size[",
-            j,
-            "]=",
-            flexctr_action->operation_b.mask_size[j]),
-        to<string>(
-            "flexctr_action.operation_b.shift[",
-            j,
-            "]=",
-            flexctr_action->operation_b.shift[j]),
-    };
-    cintLines.insert(
-        cintLines.end(),
-        make_move_iterator(operationBCint.begin()),
-        make_move_iterator(operationBCint.end()));
-  }
+  vector<string> operationBCint = operationACint =
+      cintForFlexCtrValueOperation(&flexctr_action->operation_b, "operation_b");
+  cintLines.insert(
+      cintLines.end(),
+      make_move_iterator(operationBCint.begin()),
+      make_move_iterator(operationBCint.end()));
 
   // Flexctr_trigger
-  auto triggerCint = cintForFlexCtrTrigger(flexctr_action->trigger);
+  vector<string> triggerCint = cintForFlexCtrTrigger(flexctr_action->trigger);
   cintLines.insert(
       cintLines.end(),
       make_move_iterator(triggerCint.begin()),
       make_move_iterator(triggerCint.end()));
   cintLines.push_back(to<string>("flexctr_action.trigger=flexctr_trigger"));
+#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+  structLines = {
+      to<string>("flexctr_action.hint_type=", flexctr_action->hint_type),
+      to<string>("flexctr_action.base_pool_id=", flexctr_action->base_pool_id),
+      to<string>("flexctr_action.base_index=", flexctr_action->base_index),
+  };
+  cintLines.insert(
+      cintLines.end(),
+      make_move_iterator(structLines.begin()),
+      make_move_iterator(structLines.end()));
+#endif
   return cintLines;
 }
 
