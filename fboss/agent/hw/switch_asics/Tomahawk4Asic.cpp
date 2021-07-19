@@ -95,6 +95,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_LAG_HASH:
     case HwAsic::Feature::MACSEC:
     case HwAsic::Feature::SAI_MPLS_QOS:
+    case HwAsic::Feature::EMPTY_ACL_MATCHER:
       return false;
   }
   return false;

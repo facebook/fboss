@@ -9,6 +9,7 @@ bool CredoF104Asic::isSupported(Feature feature) const {
   switch (feature) {
     case HwAsic::Feature::MACSEC:
     case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT:
+    case HwAsic::Feature::EMPTY_ACL_MATCHER:
       return true;
     default:
       return false;

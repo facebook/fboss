@@ -747,25 +747,29 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   // TODO(skhare) At least one field and one action must be specified.
   // Once we add support for all fields and actions, throw error if that is not
   // honored.
-  if (!((fieldSrcIpV6.has_value() || fieldDstIpV6.has_value() ||
-         fieldSrcIpV4.has_value() || fieldDstIpV6.has_value() ||
-         fieldSrcPort.has_value() || fieldOutPort.has_value() ||
-         fieldL4SrcPort.has_value() || fieldL4DstPort.has_value() ||
-         fieldIpProtocol.has_value() || fieldTcpFlags.has_value() ||
-         fieldIpFrag.has_value() || fieldIcmpV4Type.has_value() ||
-         fieldIcmpV4Code.has_value() || fieldIcmpV6Type.has_value() ||
-         fieldIcmpV6Code.has_value() || fieldDscp.has_value() ||
-         fieldDstMac.has_value() || fieldIpType.has_value() ||
-         fieldTtl.has_value() || fieldFdbDstUserMeta.has_value() ||
-         fieldRouteDstUserMeta.has_value() || fieldEtherType.has_value() ||
-         fieldNeighborDstUserMeta.has_value()) &&
-        (aclActionPacketAction.has_value() || aclActionCounter.has_value() ||
-         aclActionSetTC.has_value() || aclActionSetDSCP.has_value() ||
-         aclActionMirrorIngress.has_value() ||
-         aclActionMirrorEgress.has_value() ||
-         aclActionMacsecFlow.has_value()))) {
-    XLOG(DBG) << "Unsupported field/action for aclEntry: "
-              << addedAclEntry->getID();
+  auto matcherIsValid =
+      (fieldSrcIpV6.has_value() || fieldDstIpV6.has_value() ||
+       fieldSrcIpV4.has_value() || fieldDstIpV6.has_value() ||
+       fieldSrcPort.has_value() || fieldOutPort.has_value() ||
+       fieldL4SrcPort.has_value() || fieldL4DstPort.has_value() ||
+       fieldIpProtocol.has_value() || fieldTcpFlags.has_value() ||
+       fieldIpFrag.has_value() || fieldIcmpV4Type.has_value() ||
+       fieldIcmpV4Code.has_value() || fieldIcmpV6Type.has_value() ||
+       fieldIcmpV6Code.has_value() || fieldDscp.has_value() ||
+       fieldDstMac.has_value() || fieldIpType.has_value() ||
+       fieldTtl.has_value() || fieldFdbDstUserMeta.has_value() ||
+       fieldRouteDstUserMeta.has_value() || fieldEtherType.has_value() ||
+       fieldNeighborDstUserMeta.has_value() ||
+       platform_->getAsic()->isSupported(HwAsic::Feature::EMPTY_ACL_MATCHER));
+  auto actionIsValid =
+      (aclActionPacketAction.has_value() || aclActionCounter.has_value() ||
+       aclActionSetTC.has_value() || aclActionSetDSCP.has_value() ||
+       aclActionMirrorIngress.has_value() ||
+       aclActionMirrorEgress.has_value() || aclActionMacsecFlow.has_value());
+
+  if (!(matcherIsValid && actionIsValid)) {
+    XLOG(WARNING) << "Unsupported field/action for aclEntry: "
+                  << addedAclEntry->getID();
     return AclEntrySaiId{0};
   }
 

@@ -80,6 +80,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::MACSEC:
     case HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET:
     case HwAsic::Feature::SAI_MPLS_QOS:
+    case HwAsic::Feature::EMPTY_ACL_MATCHER:
       return false;
   }
   return false;

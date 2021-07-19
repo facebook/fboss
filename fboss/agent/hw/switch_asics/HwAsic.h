@@ -76,6 +76,7 @@ class HwAsic {
     CPU_PORT,
     VRF,
     SAI_HASH_FIELDS_CLEAR_BEFORE_SET,
+    EMPTY_ACL_MATCHER,
   };
 
   enum class AsicType {
