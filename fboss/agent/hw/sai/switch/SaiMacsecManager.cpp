@@ -61,6 +61,7 @@ const std::shared_ptr<AclEntry> createMacsecAclEntry(
   auto macsecFlowAction = cfg::MacsecFlowAction();
   macsecFlowAction.flowId_ref() = flowId;
   macsecAction.setMacsecFlow(macsecFlowAction);
+  entry->setActionType(cfg::AclActionType::PERMIT);
   entry->setAclAction(macsecAction);
 
   return entry;
@@ -322,14 +323,12 @@ MacsecSCSaiId SaiMacsecManager::addMacsecSecureChannel(
   auto flowId = flow->adapterKey();
 
   std::optional<bool> secureChannelEnable;
-  std::optional<bool> replayProtectionEnable;
   std::optional<sai_int32_t> replayProtectionWindow;
 
   if (direction == SAI_MACSEC_DIRECTION_EGRESS) {
     secureChannelEnable = true;
   }
   if (direction == SAI_MACSEC_DIRECTION_INGRESS) {
-    replayProtectionEnable = true;
     replayProtectionWindow = kReplayProtectionWindow;
   }
 
@@ -339,8 +338,8 @@ MacsecSCSaiId SaiMacsecManager::addMacsecSecureChannel(
         xpn64Enable ? SAI_MACSEC_CIPHER_SUITE_GCM_AES_XPN_256
                     : SAI_MACSEC_CIPHER_SUITE_GCM_AES_256, /* ciphersuite */
 #endif
-        secureChannelEnable, replayProtectionEnable, replayProtectionWindow,
-        kSectagOffset
+        secureChannelEnable, replayProtectionWindow.has_value(),
+        replayProtectionWindow, kSectagOffset
   };
   SaiMacsecSCTraits::AdapterHostKey secureChannelKey{
       secureChannelId, direction};
@@ -640,11 +639,12 @@ void SaiMacsecManager::setupMacsec(
   auto aclEntryHandle = managerTable_->aclTableManager().getAclEntryHandle(
       aclTable, kMacsecAclPriority);
   if (!aclEntryHandle) {
-    auto etherType = (direction == SAI_MACSEC_DIRECTION_INGRESS)
-        ? std::make_optional(cfg::EtherType::MACSEC)
-        : std::nullopt;
     auto aclEntry = createMacsecAclEntry(
-        kMacsecAclPriority, aclName, flowId, mac, etherType);
+        kMacsecAclPriority,
+        aclName,
+        flowId,
+        std::nullopt /* dstMac */,
+        std::nullopt /* etherType */);
     auto aclEntryId =
         managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
     XLOG(DBG2) << "For SCI: " << sciKeyString << ", created macsec "
