@@ -7,6 +7,7 @@ constexpr uint32_t kQsfpManagementRegStart = 0x40;
 constexpr uint32_t kQsfpManagementRegSize = 0x40;
 constexpr uint32_t kPortLedStart = 0x0310;
 constexpr uint32_t kPortLedSize = 0x4;
+constexpr uint32_t kMdioBaseAddr = 0x200;
 } // namespace
 
 namespace facebook::fboss {
@@ -40,7 +41,7 @@ MinipackBasePimContainer::MinipackBasePimContainer(
       std::make_unique<FpgaMemoryRegion>(
           folly::format("pim{:d}-controller", pim).str(),
           device,
-          pimStart,
+          pimStart + kMdioBaseAddr,
           pimSize));
 }
 

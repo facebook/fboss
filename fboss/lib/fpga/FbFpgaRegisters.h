@@ -132,7 +132,7 @@ inline std::ostream& operator<<(std::ostream& os, const I2cRtcStatus& status) {
 }
 
 union MdioConfig {
-  using addr = std::integral_constant<uint32_t, 0x200>;
+  using addr = std::integral_constant<uint32_t, 0x0>;
 
   uint32_t reg;
   struct __attribute__((packed)) {
@@ -150,7 +150,7 @@ inline std::ostream& operator<<(std::ostream& os, const MdioConfig& config) {
 }
 
 union MdioCommand {
-  using addr = std::integral_constant<uint32_t, 0x204>;
+  using addr = std::integral_constant<uint32_t, 0x4>;
 
   uint32_t reg;
   struct __attribute__((packed)) {
@@ -171,7 +171,7 @@ inline std::ostream& operator<<(std::ostream& os, const MdioCommand& command) {
 }
 
 union MdioWrite {
-  using addr = std::integral_constant<uint32_t, 0x208>;
+  using addr = std::integral_constant<uint32_t, 0x8>;
 
   uint32_t reg;
   struct __attribute__((packed)) {
@@ -186,7 +186,7 @@ inline std::ostream& operator<<(std::ostream& os, const MdioWrite& write) {
 }
 
 union MdioRead {
-  using addr = std::integral_constant<uint32_t, 0x20c>;
+  using addr = std::integral_constant<uint32_t, 0xc>;
 
   uint32_t reg;
   struct __attribute__((packed)) {
@@ -201,7 +201,7 @@ inline std::ostream& operator<<(std::ostream& os, const MdioRead& read) {
 }
 
 union MdioStatus {
-  using addr = std::integral_constant<uint32_t, 0x210>;
+  using addr = std::integral_constant<uint32_t, 0x10>;
 
   uint32_t reg;
   struct __attribute__((packed)) {
