@@ -51,9 +51,16 @@ HwQsfpEnsemble::~HwQsfpEnsemble() {
     doServerLoop(server_, qsfpServiceHandler_);
   }
 }
+
+bool HwQsfpEnsemble::hasWarmbootCapability() const {
+  return getWedgeManager()->getPlatformMode() != PlatformMode::ELBERT;
+}
+
 void HwQsfpEnsemble::setupForWarmboot() const {
-  createFile(folly::to<std::string>(
-      FLAGS_qsfp_service_volatile_dir, "/", kQsfpTestWarmnbootFile));
+  if (hasWarmbootCapability()) {
+    createFile(folly::to<std::string>(
+        FLAGS_qsfp_service_volatile_dir, "/", kQsfpTestWarmnbootFile));
+  }
 }
 
 PhyManager* HwQsfpEnsemble::getPhyManager() {
