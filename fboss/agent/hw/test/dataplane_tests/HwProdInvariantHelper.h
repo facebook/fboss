@@ -17,6 +17,32 @@
 
 namespace facebook::fboss {
 
+/*
+ * Defines an enum to pass test options to functions - specifically, to check
+ * which features a given switch has enabled.
+ * For a function that takes such options, define an argument of type
+ * HwInvariantBitmask which can then be bit-masked with different HwInvariantOpt
+ * values.
+ */
+typedef uint32_t HwInvariantBitmask;
+enum HwInvariantOpt : HwInvariantBitmask {
+  OPT_NONE = 0x0000,
+  OPT_MMU_LOSSLESS = 0x0001,
+  OPT_MHNIC = 0x0002,
+  OPT_SFLOW = 0x0004,
+  OPT_COPP = 0x0008,
+  OPT_LOAD_BALANCER = 0x0010,
+  OPT_OLYMPIC_QOS = 0x0020,
+};
+
+/*
+ * Convenience function that checks if field `opt` is set within `opts`.
+ * Useful to avoid human error in checking bitmasks.
+ */
+inline bool isHwInvariantOptSet(HwInvariantBitmask opts, HwInvariantOpt opt) {
+  return ((opts & opt) == opt);
+}
+
 class HwProdInvariantHelper {
  public:
   HwProdInvariantHelper(
