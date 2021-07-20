@@ -8,18 +8,19 @@
  *
  */
 #include "fboss/agent/platforms/wedge/ExternalPhyPort.h"
+
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/platforms/wedge/facebook/ExternalPhyPlatform.h"
-#include "fboss/agent/platforms/wedge/facebook/ExternalPhyPortStatsUtils.h"
-#include "fboss/agent/platforms/wedge/facebook/NullPortStats.h"
 #include "fboss/agent/platforms/wedge/facebook/elbert/ElbertPlatform.h"
 #include "fboss/agent/platforms/wedge/facebook/fuji/FujiPlatform.h"
 #include "fboss/agent/platforms/wedge/facebook/minipack/MinipackPlatform.h"
-#include "fboss/agent/platforms/wedge/facebook/minipack/MinipackPortStats.h"
 #include "fboss/agent/platforms/wedge/facebook/yamp/YampPlatform.h"
-#include "fboss/agent/platforms/wedge/facebook/yamp/YampPortStats.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/lib/phy/ExternalPhyPortStatsUtils.h"
+#include "fboss/lib/phy/NullPortStats.h"
+#include "fboss/lib/phy/facebook/bcm/minipack/MinipackPortStats.h"
+#include "fboss/lib/phy/facebook/credo/yamp/YampPortStats.h"
 
 namespace facebook::fboss {
 template <typename PlatformT, typename PortStatsT>
