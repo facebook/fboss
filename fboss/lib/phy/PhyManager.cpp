@@ -22,9 +22,9 @@ PhyManager::PhyManager(const PlatformMapping* platformMapping)
     const auto& xphy = utility::getDataPlanePhyChips(
         port.second, chips, phy::DataPlanePhyChipType::XPHY);
     if (!xphy.empty()) {
-      portToGlobalXphyID_.emplace(
-          PortID(port.first),
-          GlobalXphyID(*xphy.begin()->second.physicalID_ref()));
+      auto cache = std::make_unique<PortCacheInfo>();
+      cache->xphyID = GlobalXphyID(*xphy.begin()->second.physicalID_ref());
+      portToCacheInfo_.emplace(PortID(port.first), std::move(cache));
     }
   }
 }
@@ -32,15 +32,14 @@ PhyManager::PhyManager(const PlatformMapping* platformMapping)
 PhyManager::~PhyManager() {}
 
 GlobalXphyID PhyManager::getGlobalXphyIDbyPortID(PortID portID) const {
-  if (auto id = portToGlobalXphyID_.find(portID);
-      id != portToGlobalXphyID_.end()) {
-    return id->second;
+  if (auto id = portToCacheInfo_.find(portID); id != portToCacheInfo_.end()) {
+    return id->second->xphyID;
   }
   throw FbossError(
       "Unable to get GlobalXphyID for port:",
       portID,
-      ", current portToGlobalXphyID_ size:",
-      portToGlobalXphyID_.size());
+      ", current portToCacheInfo_ size:",
+      portToCacheInfo_.size());
 }
 
 phy::ExternalPhy* PhyManager::getExternalPhy(GlobalXphyID xphyID) {
@@ -106,16 +105,16 @@ phy::PhyPortConfig PhyManager::getDesiredPhyPortConfig(
 
 phy::PhyPortConfig PhyManager::getHwPhyPortConfig(PortID portId) {
   // First check whether we have cached lane inf
-  const auto& portLanesInfo = portToLanesInfo_.find(portId);
-  if (portLanesInfo == portToLanesInfo_.end()) {
+  const auto& cacheInfo = portToCacheInfo_.find(portId);
+  if (cacheInfo == portToCacheInfo_.end() ||
+      cacheInfo->second->systemLanes.empty() ||
+      cacheInfo->second->lineLanes.empty()) {
     throw FbossError(
-        "Port:",
-        portId,
-        " has not program yet. Can't find the cached lane info");
+        "Port:", portId, " has not program yet. Can't find the cached info");
   }
   auto* xphy = getExternalPhy(portId);
   return xphy->getConfigOnePort(
-      portLanesInfo->second->system, portLanesInfo->second->line);
+      cacheInfo->second->systemLanes, cacheInfo->second->lineLanes);
 }
 
 void PhyManager::programOnePort(
@@ -162,64 +161,69 @@ void PhyManager::setupPimEventMultiThreading(PimID pimID) {
 void PhyManager::setPortToLanesInfo(
     PortID portID,
     const phy::PhyPortConfig& portConfig) {
-  // First check whether there's a cache already
-  bool matched = false;
-  if (const auto& cached = portToLanesInfo_.find(portID);
-      cached != portToLanesInfo_.end()) {
-    const auto& systemLanesConfig = portConfig.config.system.lanes;
-    const auto& lineLanesConfig = portConfig.config.line.lanes;
-    const auto& cachedLanesInfo = cached->second;
-    // check whether all the lanes match
-    matched = (cachedLanesInfo->system.size() == systemLanesConfig.size()) &&
-        (cachedLanesInfo->line.size() == lineLanesConfig.size());
-    // Now check system lane id
-    if (matched) {
-      for (auto i = 0; i < cachedLanesInfo->system.size(); ++i) {
-        if (systemLanesConfig.find(cachedLanesInfo->system[i]) ==
-            systemLanesConfig.end()) {
-          matched = false;
-          break;
-        }
-      }
-    }
-    // Now check line lane id
-    if (matched) {
-      for (auto i = 0; i < cachedLanesInfo->line.size(); ++i) {
-        if (lineLanesConfig.find(cachedLanesInfo->line[i]) ==
-            lineLanesConfig.end()) {
-          matched = false;
-          break;
-        }
+  // Due to PhyManager::PhyManager(), we always create the PortCacheInfo with
+  // the global xphy id for possible ports in PlatformMapping.
+  const auto& cache = portToCacheInfo_.find(portID);
+  if (cache == portToCacheInfo_.end()) {
+    throw FbossError(
+        "Unrecoginized port=", portID, ", which is not in PlatformMapping");
+  }
+
+  // First check whether there's a systemLanes and lineLanes cache already
+  const auto& systemLanesConfig = portConfig.config.system.lanes;
+  const auto& lineLanesConfig = portConfig.config.line.lanes;
+  const auto& cacheInfo = cache->second;
+  // check whether all the lanes match
+  bool matched = (cacheInfo->systemLanes.size() == systemLanesConfig.size()) &&
+      (cacheInfo->lineLanes.size() == lineLanesConfig.size());
+  // Now check system lane id
+  if (matched) {
+    for (auto i = 0; i < cacheInfo->systemLanes.size(); ++i) {
+      if (systemLanesConfig.find(cacheInfo->systemLanes[i]) ==
+          systemLanesConfig.end()) {
+        matched = false;
+        break;
       }
     }
   }
-
+  // Now check line lane id
+  if (matched) {
+    for (auto i = 0; i < cacheInfo->lineLanes.size(); ++i) {
+      if (lineLanesConfig.find(cacheInfo->lineLanes[i]) ==
+          lineLanesConfig.end()) {
+        matched = false;
+        break;
+      }
+    }
+  }
   if (matched) {
     return;
   }
 
-  auto portLanesInfo = std::make_unique<PortLanesInfo>();
+  // Now reset the cached lane info if there's no match
+  portToCacheInfo_[portID]->systemLanes.clear();
   for (const auto& it : portConfig.config.system.lanes) {
-    portLanesInfo->system.push_back(it.first);
+    portToCacheInfo_[portID]->systemLanes.push_back(it.first);
   }
+  portToCacheInfo_[portID]->lineLanes.clear();
   for (const auto& it : portConfig.config.line.lanes) {
-    portLanesInfo->line.push_back(it.first);
+    portToCacheInfo_[portID]->lineLanes.push_back(it.first);
   }
-  portToLanesInfo_[portID] = std::move(portLanesInfo);
 }
 
 const std::vector<LaneID>& PhyManager::getCachedLanes(
     PortID portID,
     phy::Side side) const {
   // Try to get the cached lanes list
-  const auto& cachedLanes = portToLanesInfo_.find(portID);
-  if (cachedLanes == portToLanesInfo_.end()) {
+  const auto& cache = portToCacheInfo_.find(portID);
+  if (cache == portToCacheInfo_.end() || cache->second->systemLanes.empty() ||
+      cache->second->lineLanes.empty()) {
     throw FbossError(
         "Port:", portID, " is not programmed and can't find cached lanes");
   }
   return (
-      side == phy::Side::SYSTEM ? cachedLanes->second->system
-                                : cachedLanes->second->line);
+      side == phy::Side::SYSTEM ? cache->second->systemLanes
+                                : cache->second->lineLanes);
 }
 
 void PhyManager::setPortPrbs(

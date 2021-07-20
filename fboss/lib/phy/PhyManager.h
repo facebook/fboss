@@ -135,14 +135,6 @@ class PhyManager {
   const std::vector<LaneID>& getCachedLanes(PortID portID, phy::Side side)
       const;
 
-  // PhyManager is in the middle of changing its apis to accept PortID instead
-  // of asking users to get all three Pim/MDIO Controller/PHY id.
-  // Using a global PortID will make it easy for the communication b/w
-  // wedge_agent and qsfp_service.
-  // As for PhyManager, we need to use the GlobalXphyID to locate the exact
-  // ExternalPhy so that we can call ExternalPhy apis to program the xphy.
-  // This map will cache the two global ID: PortID and GlobalXphyID
-  std::unordered_map<PortID, GlobalXphyID> portToGlobalXphyID_;
   const PlatformMapping* platformMapping_;
 
   // For PhyManager programming xphy, each pim can program their xphys at the
@@ -158,18 +150,26 @@ class PhyManager {
   std::unordered_map<PimID, std::unique_ptr<PimEventMultiThreading>>
       pimToThread_;
 
-  // Based on current ExternalPhy design, it's hard to get which lanes that
-  // a SW port is using. Because all the ExternalPhy are using lanes to program
-  // the configs directly instead of a software port.
-  // Since we always use PhyManager to programOnePort(), we can cache the
-  // LaneID list of both system and line sides in PhyManager. And then for
-  // all the following xphy related logic like, programming prbs, getting stats,
-  // we can just use this cached info to pass in the xphy lanes directly.
-  struct PortLanesInfo {
-    std::vector<LaneID> system;
-    std::vector<LaneID> line;
+  struct PortCacheInfo {
+    // PhyManager is in the middle of changing its apis to accept PortID instead
+    // of asking users to get all three Pim/MDIO Controller/PHY id.
+    // Using a global PortID will make it easy for the communication b/w
+    // wedge_agent and qsfp_service.
+    // As for PhyManager, we need to use the GlobalXphyID to locate the exact
+    // ExternalPhy so that we can call ExternalPhy apis to program the xphy.
+    // This map will cache the two global ID: PortID and GlobalXphyID
+    GlobalXphyID xphyID;
+    // Based on current ExternalPhy design, it's hard to get which lanes that
+    // a SW port is using. Because all the ExternalPhy are using lanes to
+    // program the configs directly instead of a software port. Since we always
+    // use PhyManager to programOnePort(), we can cache the LaneID list of both
+    // system and line sides in PhyManager. And then for all the following xphy
+    // related logic like, programming prbs, getting stats, we can just use this
+    // cached info to pass in the xphy lanes directly.
+    std::vector<LaneID> systemLanes;
+    std::vector<LaneID> lineLanes;
   };
-  std::unordered_map<PortID, std::unique_ptr<PortLanesInfo>> portToLanesInfo_;
+  std::unordered_map<PortID, std::unique_ptr<PortCacheInfo>> portToCacheInfo_;
 };
 
 } // namespace fboss
