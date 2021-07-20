@@ -248,3 +248,51 @@ struct PortPrbsState {
   1: bool enabled = false,
   2: i32 polynominal
 }
+
+// structs for Phy(both IPHY and XPHY) diagnostic info
+struct PhyInfo {
+  1: DataPlanePhyChip phyChip
+  2: optional PhyFwVersion fwVersion
+  3: switch_config.PortSpeed speed
+  4: string name  // port name
+  10: optional PhySideInfo system
+  11: PhySideInfo line
+  12: i32 timeCollected // Time the diagnostic info was collected at
+}
+
+struct PhySideInfo {
+  1: Side side
+  2: optional PcsInfo pcs
+  3: PmdInfo pmd
+  4: optional RsInfo rs // Reconciliation sub-layer
+}
+
+struct PcsInfo {
+  1: bool pcsRxStatusLive
+  2: bool pcsRxStatusLatched
+  20: optional RsFecInfo rsFec
+}
+
+struct RsFecInfo {
+  1: i64 correctedCodewords
+  2: i64 uncorrectedCodewords
+}
+
+struct PmdInfo {
+  1: map<i16, LaneInfo> lanes
+}
+
+struct LaneInfo {
+  1: i16 lane
+  2: bool signalDetectLive
+  3: bool signalDetectLatched
+  4: bool cdrLockLive
+  5: bool cdrLockLatched
+  6: optional list<i32> eyeMargins
+  7: TxSettings txSettings
+}
+
+struct RsInfo {
+  1: bool localFault
+  2: bool remoteFault
+}
