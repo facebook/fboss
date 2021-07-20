@@ -2,7 +2,6 @@
 
 #pragma once
 
-// #include "fboss/lib/fpga/facebook/cloudripper/CloudRipperSystemContainer.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
@@ -21,7 +20,6 @@ class MultiPimPlatformSystemContainer;
 class MultiPimPlatformPimContainer;
 class PlatformMapping;
 class TransceiverInfo;
-class CloudRipperSystemContainer;
 
 class PhyManager {
  public:
