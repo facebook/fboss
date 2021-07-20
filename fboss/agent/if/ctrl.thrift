@@ -66,6 +66,8 @@ enum RouteForwardAction {
   NEXTHOPS = 2,
 }
 
+typedef string RouteCounterID
+
 struct UnicastRoute {
   1: required IpPrefix dest;
   // NOTE: nextHopAddrs was once required. While we work on
@@ -79,6 +81,7 @@ struct UnicastRoute {
   5: optional RouteForwardAction action;
   // use this instead of next hops for using policy based routing or named next hop group
   6: common.NamedRouteDestination namedRouteDestination;
+  7: optional RouteCounterID counterID;
 }
 
 struct MplsRoute {
@@ -661,6 +664,13 @@ service FbossCtrl extends fb303.FacebookService {
     2: list<UnicastRoute> routes,
     3: i32 vrf,
   ) throws (1: fboss.FbossBaseError error, 2: FbossFibUpdateError fibError);
+
+  // Get route counter values
+  map<string, i64> getRouteCounterBytes(
+  1: list<string> counters)
+    throws (1: fboss.FbossBaseError error)
+  map<string, i64> getAllRouteCounterBytes()
+    throws (1: fboss.FbossBaseError error)
 
   /*
    * Send packets in binary or hex format to controller.

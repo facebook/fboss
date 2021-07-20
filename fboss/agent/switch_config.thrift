@@ -1421,4 +1421,5 @@ struct SwitchConfig {
   // support a single group for the foreseeable future. This could be changed to
   // list<AclTableGroup> later if the need arises to support multiple groups.
   45: optional AclTableGroup aclTableGroup
+  46: i32 maxRouteCounterIDs = 0
 }
