@@ -66,8 +66,6 @@ enum RouteForwardAction {
   NEXTHOPS = 2,
 }
 
-typedef i16 RouteCounterID
-
 struct UnicastRoute {
   1: required IpPrefix dest;
   // NOTE: nextHopAddrs was once required. While we work on
@@ -81,7 +79,6 @@ struct UnicastRoute {
   5: optional RouteForwardAction action;
   // use this instead of next hops for using policy based routing or named next hop group
   6: common.NamedRouteDestination namedRouteDestination;
-  7: optional RouteCounterID counterID;
 }
 
 struct MplsRoute {
