@@ -67,7 +67,12 @@ class HwPortProfileTest : public HwTest {
                << transceivers.size() << " ports.";
     for (auto idAndTransceiver : transceivers) {
       auto& transceiver = idAndTransceiver.second;
-      EXPECT_TRUE(*transceiver.present_ref());
+      auto id = idAndTransceiver.first;
+      if (!*transceiver.present_ref()) {
+        XLOG(INFO) << " Skip verifying: " << id << ", not present";
+        continue;
+      }
+      XLOG(INFO) << " Verifying: " << id;
       // Only testing QSFP transceivers right now
       EXPECT_EQ(*transceiver.transceiver_ref(), TransceiverType::QSFP);
       auto settings = apache::thrift::can_throw(*transceiver.settings_ref());
@@ -129,59 +134,49 @@ class HwPortProfileTest : public HwTest {
     const auto& ports =
         utility::findAvailablePorts(getHwQsfpEnsemble(), Profile);
     EXPECT_TRUE(!(ports.xphyPorts.empty() && ports.iphyPorts.empty()));
-    auto portMap = std::make_unique<WedgeManager::PortMap>();
+    WedgeManager::PortMap portMap;
+    std::vector<PortID> matchingPorts;
     // Program xphy
-    for (auto& [port, profile] : ports.xphyPorts) {
-      getHwQsfpEnsemble()->getWedgeManager()->programXphyPort(port, profile);
-      portMap->emplace(port, utility::getPortStatus(port, getHwQsfpEnsemble()));
+    for (auto& [port, _] : ports.xphyPorts) {
+      portMap.emplace(port, utility::getPortStatus(port, getHwQsfpEnsemble()));
+      matchingPorts.push_back(port);
     }
     for (auto& [port, _] : ports.iphyPorts) {
-      portMap->emplace(port, utility::getPortStatus(port, getHwQsfpEnsemble()));
+      portMap.emplace(port, utility::getPortStatus(port, getHwQsfpEnsemble()));
+      matchingPorts.push_back(port);
     }
 
-    std::map<int32_t, TransceiverInfo> transceivers;
-    getHwQsfpEnsemble()->getWedgeManager()->syncPorts(
-        transceivers, std::move(portMap));
-    getHwQsfpEnsemble()->getWedgeManager()->refreshTransceivers();
-
-    // Verify whether such profile has been programmed to all the xphy ports
-    verifyXphyPorts(ports.xphyPorts, transceivers);
-
-    auto transceiverIds = std::make_unique<std::vector<int32_t>>();
-    std::for_each(
-        transceivers.begin(),
-        transceivers.end(),
-        [&transceiverIds](const auto& idAndInfo) {
-          transceiverIds->push_back(idAndInfo.first);
-        });
-    std::map<int32_t, TransceiverInfo> transceiversAfterRefresh;
-    getHwQsfpEnsemble()->getWedgeManager()->getTransceiversInfo(
-        transceiversAfterRefresh, std::move(transceiverIds));
-
-    // Only needs to verify transceivers if there're transceivers in the
-    // test system. getTransceiversInfo() will fetch all ports transceivers
-    // and set present to false if there's no transceiver on such front panel
-    // ports. But syncPorts won't set `transceivers` if there's no transceiver
-    // there.
-    if (transceivers.empty()) {
-      for (const auto& tcvrAfterRefresh : transceiversAfterRefresh) {
-        EXPECT_FALSE(tcvrAfterRefresh.second.get_present());
+    auto setup = [this, &ports, &portMap]() {
+      std::map<int32_t, TransceiverInfo> transceivers;
+      for (auto& [port, profile] : ports.xphyPorts) {
+        getHwQsfpEnsemble()->getWedgeManager()->programXphyPort(port, profile);
       }
-    } else {
+      getHwQsfpEnsemble()->getWedgeManager()->syncPorts(
+          transceivers, std::make_unique<WedgeManager::PortMap>(portMap));
+    };
+    auto verify = [&]() {
+      auto transceiverIds =
+          utility::getTransceiverIds(matchingPorts, getHwQsfpEnsemble());
+      getHwQsfpEnsemble()->getWedgeManager()->refreshTransceivers();
+
+      std::map<int32_t, TransceiverInfo> transceiversAfterRefresh;
+      getHwQsfpEnsemble()->getWedgeManager()->getTransceiversInfo(
+          transceiversAfterRefresh,
+          std::make_unique<std::vector<int32_t>>(
+              utility::legacyTransceiverIds(transceiverIds)));
+      // Verify whether such profile has been programmed to all the xphy ports
+      verifyXphyPorts(ports.xphyPorts, transceiversAfterRefresh);
+
+      // Only needs to verify transceivers if there're transceivers in the
+      // test system. getTransceiversInfo() will fetch all ports transceivers
+      // and set present to false if there's no transceiver on such front panel
+      // ports. But syncPorts won't set `transceivers` if there's no transceiver
+      // there.
       // Assert that refresh caused transceiver info to be pulled
       // from HW
-      EXPECT_EQ(transceivers.size(), transceiversAfterRefresh.size());
-      std::for_each(
-          transceivers.begin(),
-          transceivers.end(),
-          [&transceiversAfterRefresh](const auto& idAndTransceiver) {
-            EXPECT_GT(
-                *transceiversAfterRefresh[idAndTransceiver.first]
-                     .timeCollected_ref(),
-                *idAndTransceiver.second.timeCollected_ref());
-          });
       verifyTransceiverSettings(transceiversAfterRefresh);
-    }
+    };
+    verifyAcrossWarmBoots(setup, verify);
   }
 };
 
