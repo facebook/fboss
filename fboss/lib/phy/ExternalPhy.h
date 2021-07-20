@@ -186,10 +186,13 @@ class ExternalPhy {
     return std::vector<ExternalPhyLaneDiagInfo>();
   };
 
-  virtual ExternalPhyPortStats getPortStats(const PhyPortConfig& config) = 0;
+  virtual ExternalPhyPortStats getPortStats(
+      const std::vector<LaneID>& sysLanes,
+      const std::vector<LaneID>& lineLanes) = 0;
 
   virtual ExternalPhyPortStats getPortPrbsStats(
-      const PhyPortConfig& /* config */) {
+      const std::vector<LaneID>& /* sysLanes */,
+      const std::vector<LaneID>& /* lineLanes */) {
     return ExternalPhyPortStats();
   }
 
