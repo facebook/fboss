@@ -843,6 +843,8 @@ bool WedgeManager::initExternalPhyMap() {
                       std::chrono::steady_clock::now() - begin)
                       .count()
                << " seconds";
+  } else {
+    XLOG(WARN) << "Skip intializing pim xphy";
   }
   return rb;
 }

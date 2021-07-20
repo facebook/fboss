@@ -25,6 +25,10 @@ DEFINE_bool(
 namespace facebook::fboss {
 
 void HwTest::SetUp() {
+  // Set initializing pim xphys to 1 so we always initialize xphy chips
+  gflags::SetCommandLineOptionWithMode(
+      "init_pim_xphys", "1", gflags::SET_FLAGS_DEFAULT);
+
   ensemble_ = std::make_unique<HwQsfpEnsemble>();
   ensemble_->init();
 
