@@ -2727,6 +2727,31 @@ int BcmCinter::bcm_rx_cosq_mapping_extended_delete(
   return 0;
 }
 
+int BcmCinter::bcm_rx_cosq_mapping_extended_set(
+    int unit,
+    uint32 options,
+    bcm_rx_cosq_mapping_t* cosqMap) {
+  vector<string> cint;
+
+  vector<string> cosqMapCint = cintForRxCosqMapping(cosqMap);
+  vector<string> funcCint = wrapFunc(to<string>(
+      "bcm_rx_cosq_mapping_extended_set(",
+      makeParamStr(unit, options, "&cosqMap"),
+      ")"));
+
+  cint.insert(
+      cint.end(),
+      make_move_iterator(cosqMapCint.begin()),
+      make_move_iterator(cosqMapCint.end()));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(funcCint.begin()),
+      make_move_iterator(funcCint.end()));
+
+  writeCintLines(cint);
+  return 0;
+}
+
 int BcmCinter::bcm_pkt_alloc(
     int /*unit*/,
     int /*size*/,

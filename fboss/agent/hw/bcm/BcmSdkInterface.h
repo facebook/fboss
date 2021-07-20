@@ -461,6 +461,11 @@ class BcmSdkInterface {
       int unit,
       bcm_rx_cosq_mapping_t* cosqMap) = 0;
 
+  virtual int bcm_rx_cosq_mapping_extended_set(
+      int unit,
+      uint32 options,
+      bcm_rx_cosq_mapping_t* cosqMap) = 0;
+
   virtual int bcm_cosq_bst_stat_get(
       int unit,
       bcm_gport_t gport,

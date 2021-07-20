@@ -154,6 +154,11 @@ int __real_bcm_rx_cosq_mapping_extended_delete(
     int unit,
     bcm_rx_cosq_mapping_t* cosqMap);
 
+int __real_bcm_rx_cosq_mapping_extended_set(
+    int unit,
+    uint32 options,
+    bcm_rx_cosq_mapping_t* cosqMap);
+
 int __real_bcm_cosq_bst_stat_sync(int unit, bcm_bst_stat_id_t bid);
 
 int __real_bcm_qos_map_create(int unit, uint32 flags, int* map_id);
@@ -2125,6 +2130,13 @@ int __wrap_bcm_rx_cosq_mapping_extended_delete(
     int unit,
     bcm_rx_cosq_mapping_t* cosqMap) {
   CALL_WRAPPERS_RV(bcm_rx_cosq_mapping_extended_delete(unit, cosqMap));
+}
+
+int __wrap_bcm_rx_cosq_mapping_extended_set(
+    int unit,
+    uint32 options,
+    bcm_rx_cosq_mapping_t* cosqMap) {
+  CALL_WRAPPERS_RV(bcm_rx_cosq_mapping_extended_set(unit, options, cosqMap));
 }
 
 int __wrap_bcm_cosq_bst_stat_sync(int unit, bcm_bst_stat_id_t bid) {
