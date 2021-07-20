@@ -267,7 +267,7 @@ int __real_bcm_switch_object_count_get(
     bcm_switch_object_t object,
     int* entries);
 
-#ifdef SAI_FIXUP
+#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 19))
 int __real_bcm_l3_alpm_resource_get(
     int unit,
     bcm_l3_route_group_t grp,
@@ -1891,7 +1891,7 @@ int __wrap_bcm_switch_object_count_get(
   CALL_WRAPPERS_RV(bcm_switch_object_count_get(unit, object, entries));
 }
 
-#ifdef SAI_FIXUP
+#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 19))
 int __wrap_bcm_l3_alpm_resource_get(
     int unit,
     bcm_l3_route_group_t grp,

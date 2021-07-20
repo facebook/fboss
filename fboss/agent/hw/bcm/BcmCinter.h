@@ -768,7 +768,7 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       int* /*entries*/) override {
     return 0;
   }
-#ifdef SAI_FIXUP
+#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 19))
   int bcm_l3_alpm_resource_get(
       int /*unit*/,
       bcm_l3_route_group_t /*grp*/,

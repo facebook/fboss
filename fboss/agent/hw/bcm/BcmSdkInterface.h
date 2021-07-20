@@ -414,7 +414,7 @@ class BcmSdkInterface {
 
 // workaround to make 6.5.17 build work
 // flag will be removed once 6.5.17 is gone
-#ifdef SAI_FIXUP
+#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 19))
   virtual int bcm_l3_alpm_resource_get(
       int unit,
       bcm_l3_route_group_t grp,
