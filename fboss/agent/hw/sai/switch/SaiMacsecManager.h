@@ -111,6 +111,12 @@ class SaiMacsecManager {
       facebook::fboss::PortID port,
       sai_macsec_direction_t direction);
 
+  void deleteMacsec(
+      PortID linePort,
+      const mka::MKASak& sak,
+      const mka::MKASci& sci,
+      sai_macsec_direction_t direction);
+
  private:
   SaiMacsecHandle* FOLLY_NULLABLE
   getMacsecHandleImpl(sai_macsec_direction_t direction) const;
@@ -165,6 +171,8 @@ class SaiMacsecManager {
       MacsecSecureChannelId secureChannelId,
       sai_macsec_direction_t direction,
       uint8_t assocNum);
+
+  void removeAcls(PortID linePort, sai_macsec_direction_t direction);
 
   SaiStore* saiStore_;
 

@@ -67,6 +67,22 @@ void SaiPhyManager::sakInstallRx(
   macsecManager->setupMacsec(portId, sak, sci, SAI_MACSEC_DIRECTION_INGRESS);
 }
 
+void SaiPhyManager::sakDeleteRx(
+    const mka::MKASak& sak,
+    const mka::MKASci& sci) {
+  auto portId = getPortId(*sak.l2Port_ref());
+  auto macsecManager = getMacsecManager(portId);
+  // Use the SCI of the peer
+  macsecManager->deleteMacsec(portId, sak, sci, SAI_MACSEC_DIRECTION_INGRESS);
+}
+
+void SaiPhyManager::sakDelete(const mka::MKASak& sak) {
+  auto portId = getPortId(*sak.l2Port_ref());
+  auto macsecManager = getMacsecManager(portId);
+  macsecManager->deleteMacsec(
+      portId, sak, *sak.sci_ref(), SAI_MACSEC_DIRECTION_EGRESS);
+}
+
 SaiMacsecManager* SaiPhyManager::getMacsecManager(PortID portId) {
   auto saiSwitch = getSaiSwitch(portId);
   return &saiSwitch->managerTable()->macsecManager();

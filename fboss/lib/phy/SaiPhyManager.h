@@ -36,6 +36,8 @@ class SaiPhyManager : public PhyManager {
 
   void sakInstallTx(const mka::MKASak& sak) override;
   void sakInstallRx(const mka::MKASak& sak, const mka::MKASci& sci) override;
+  void sakDeleteRx(const mka::MKASak& sak, const mka::MKASci& sci) override;
+  void sakDelete(const mka::MKASak& sak) override;
 
   void programOnePort(
       PortID portId,

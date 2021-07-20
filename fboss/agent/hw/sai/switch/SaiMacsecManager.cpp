@@ -79,8 +79,6 @@ SaiMacsecManager::~SaiMacsecManager() {
   for (const auto& macsec : macsecHandles_) {
     auto direction = macsec.first;
     for (const auto& port : macsec.second->ports) {
-      // unbind acl tables from the port, and delete acl entries, since they
-      // reference our macsecport/flow objects that we're trying to destroy
       auto portId = port.first;
       auto portHandle = managerTable_->portManager().getPortHandle(portId);
       portHandle->port->setOptionalAttribute(
@@ -101,6 +99,8 @@ SaiMacsecManager::~SaiMacsecManager() {
           managerTable_->aclTableManager().removeAclEntry(aclEntry, aclName);
         }
       }
+
+      removeAcls(portId, direction);
     }
   }
 }
@@ -391,6 +391,8 @@ void SaiMacsecManager::removeMacsecSecureChannel(
   portHandle->secureChannels.erase(itr);
   XLOG(DBG2) << "removed macsec SC for linePort:secureChannelId:direction: "
              << linePort << ":" << secureChannelId << ":" << direction;
+
+  removeAcls(linePort, direction);
 }
 
 SaiMacsecSecureChannelHandle* FOLLY_NULLABLE
@@ -670,6 +672,71 @@ std::string SaiMacsecManager::getAclName(
       direction == SAI_MACSEC_DIRECTION_INGRESS ? "ingress" : "egress",
       "-port",
       port);
+}
+
+/* Perform the following:
+  1. Delete the secure association
+  2. If we have no more secure associations on this secure channel:
+    * Delete the secure channel
+    * Delete the macsec flow for the channel
+    * Delete the acl entry for the channel
+*/
+void SaiMacsecManager::deleteMacsec(
+    PortID linePort,
+    const mka::MKASak& sak,
+    const mka::MKASci& sci,
+    sai_macsec_direction_t direction) {
+  std::string sciString =
+      folly::to<std::string>(*sci.macAddress_ref(), ".", *sci.port_ref());
+  // TODO(ccpowers): Break this back out into a helper method
+  auto mac = folly::MacAddress(*sci.macAddress_ref());
+  auto scIdentifier = MacsecSecureChannelId(mac.u64NBO() | *sci.port_ref());
+  auto assocNum = *sak.assocNum_ref() % 4;
+
+  auto secureChannelHandle =
+      getMacsecSecureChannelHandle(linePort, scIdentifier, direction);
+  if (!secureChannelHandle) {
+    throw FbossError(
+        "Secure Channel not found when deleting macsec keys for SCI ",
+        sciString);
+  }
+
+  auto secureAssoc =
+      getMacsecSecureAssoc(linePort, scIdentifier, direction, assocNum);
+  if (!secureAssoc) {
+    throw FbossError(
+        "Secure Association not found when deleting macsec keys for SCI ",
+        sciString);
+  }
+
+  removeMacsecSecureAssoc(linePort, scIdentifier, direction, assocNum);
+
+  // If there's no SA's on this SC, remove the SC
+  if (secureChannelHandle->secureAssocs.empty()) {
+    removeMacsecSecureChannel(linePort, scIdentifier, direction);
+  }
+}
+
+void SaiMacsecManager::removeAcls(
+    PortID linePort,
+    sai_macsec_direction_t direction) {
+  // unbind acl tables from the port, and delete acl entries
+  auto portHandle = managerTable_->portManager().getPortHandle(linePort);
+  portHandle->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::IngressMacSecAcl{SAI_NULL_OBJECT_ID});
+  portHandle->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::EgressMacSecAcl{SAI_NULL_OBJECT_ID});
+
+  std::string aclName = getAclName(linePort, direction);
+  auto aclTable = managerTable_->aclTableManager().getAclTableHandle(aclName);
+  if (aclTable) {
+    auto aclEntryHandle = managerTable_->aclTableManager().getAclEntryHandle(
+        aclTable, kMacsecAclPriority);
+    if (aclEntryHandle) {
+      auto aclEntry = std::make_shared<AclEntry>(kMacsecAclPriority, aclName);
+      managerTable_->aclTableManager().removeAclEntry(aclEntry, aclName);
+    }
+  }
 }
 
 } // namespace facebook::fboss

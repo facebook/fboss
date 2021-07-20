@@ -87,6 +87,14 @@ class PhyManager {
       const mka::MKASci& /* sci */) {
     throw FbossError("Attempted to call sakInstallRx from non-SaiPhyManager");
   }
+  virtual void sakDeleteRx(
+      const mka::MKASak& /* sak */,
+      const mka::MKASci& /* sci */) {
+    throw FbossError("Attempted to call sakDeleteRx from non-SaiPhyManager");
+  }
+  virtual void sakDelete(const mka::MKASak& /* sak */) {
+    throw FbossError("Attempted to call sakDelete from non-SaiPhyManager");
+  }
 
   folly::EventBase* getPimEventBase(PimID pimID) const;
 
