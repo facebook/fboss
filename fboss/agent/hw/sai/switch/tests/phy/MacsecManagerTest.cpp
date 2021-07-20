@@ -700,4 +700,28 @@ TEST_F(MacsecManagerTest, deleteKeysWithMultipleSecureAssoc) {
   ASSERT_NE(txChannel, nullptr);
   EXPECT_FALSE(txChannel->secureAssocs.empty());
 }
+
+TEST_F(MacsecManagerTest, deleteKeysWithSingleSecureAssoc) {
+  std::shared_ptr<Port> swPort = makePort(p0);
+  saiManagerTable->portManager().addPort(swPort);
+
+  saiManagerTable->macsecManager().setupMacsec(
+      swPort->getID(), rxSak1, remoteSci, SAI_MACSEC_DIRECTION_INGRESS);
+  saiManagerTable->macsecManager().setupMacsec(
+      swPort->getID(), txSak1, localSci, SAI_MACSEC_DIRECTION_EGRESS);
+
+  saiManagerTable->macsecManager().deleteMacsec(
+      swPort->getID(), rxSak1, remoteSci, SAI_MACSEC_DIRECTION_INGRESS);
+  auto rxChannel =
+      saiManagerTable->macsecManager().getMacsecSecureChannelHandle(
+          swPort->getID(), packSci(remoteSci), SAI_MACSEC_DIRECTION_INGRESS);
+  ASSERT_EQ(rxChannel, nullptr);
+
+  saiManagerTable->macsecManager().deleteMacsec(
+      swPort->getID(), txSak1, localSci, SAI_MACSEC_DIRECTION_EGRESS);
+  auto txChannel =
+      saiManagerTable->macsecManager().getMacsecSecureChannelHandle(
+          swPort->getID(), packSci(localSci), SAI_MACSEC_DIRECTION_EGRESS);
+  ASSERT_EQ(txChannel, nullptr);
+}
 } // namespace facebook::fboss
