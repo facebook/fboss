@@ -2656,14 +2656,25 @@ vector<string> BcmCinter::cintForRxCosqMapping(bcm_rx_cosq_mapping_t* cosqMap) {
   tie(reasonsVar, reasonsCint) = cintForReasons(cosqMap->reasons);
   tie(reasonsMaskVar, reasonsMaskCint) = cintForReasons(cosqMap->reasons_mask);
   vector<string> funcCint = {
-      "bcm_rx_cosq_mapping_t_init(&cosqMap)",
-      to<string>("cosqMap.reasons = ", reasonsVar),
-      to<string>("cosqMap.reasons_mask = ", reasonsMaskVar),
-      to<string>("cosqMap.index = ", cosqMap->index),
-      to<string>("cosqMap.int_prio = ", cosqMap->int_prio),
-      to<string>("cosqMap.int_prio_mask = ", cosqMap->int_prio_mask),
-      to<string>("cosqMap.packet_type = ", cosqMap->packet_type),
-      to<string>("cosqMap.packet_type_mask = ", cosqMap->packet_type_mask),
+    "bcm_rx_cosq_mapping_t_init(&cosqMap)",
+    to<string>("cosqMap.flags = ", cosqMap->flags),
+    to<string>("cosqMap.reasons = ", reasonsVar),
+    to<string>("cosqMap.reasons_mask = ", reasonsMaskVar),
+    to<string>("cosqMap.index = ", cosqMap->index),
+    to<string>("cosqMap.int_prio = ", cosqMap->int_prio),
+    to<string>("cosqMap.int_prio_mask = ", cosqMap->int_prio_mask),
+    to<string>("cosqMap.packet_type = ", cosqMap->packet_type),
+    to<string>("cosqMap.packet_type_mask = ", cosqMap->packet_type_mask),
+    to<string>("cosqMap.cosq = ", cosqMap->cosq),
+#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 19))
+    to<string>("cosqMap.flex_key1 = ", cosqMap->flex_key1),
+    to<string>("cosqMap.flex_key1_mask = ", cosqMap->flex_key1_mask),
+#endif
+    to<string>("cosqMap.flex_key2 = ", cosqMap->flex_key2),
+    to<string>("cosqMap.flex_key2_mask = ", cosqMap->flex_key2_mask),
+    to<string>("cosqMap.drop_event = ", cosqMap->drop_event),
+    to<string>("cosqMap.drop_event_mask = ", cosqMap->drop_event_mask),
+    to<string>("cosqMap.priority = ", cosqMap->priority),
   };
 
   vector<string> cint;
