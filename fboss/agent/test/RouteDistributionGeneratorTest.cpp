@@ -16,15 +16,13 @@
 #include "fboss/agent/test/RouteGeneratorTestUtils.h"
 #include "fboss/agent/test/TestUtils.h"
 
-namespace {
-// TODO parameterize tests to run for both old and new RIBs
-bool isStandaloneRibEnabled = false;
-} // namespace
+#include <gflags/gflags.h>
+
 namespace facebook::fboss {
 
 TEST(RouteDistributionGeneratorsTest, v4AndV6DistributionSingleChunk) {
   auto cfg = getTestConfig();
-  auto handle = createTestHandle(&cfg);
+  auto handle = createTestHandle(&cfg, SwitchFlags::ENABLE_STANDALONE_RIB);
   auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
       handle->getSw()->getState(),
       {
@@ -35,7 +33,7 @@ TEST(RouteDistributionGeneratorsTest, v4AndV6DistributionSingleChunk) {
           {25, 5},
           {32, 5},
       },
-      isStandaloneRibEnabled,
+      handle->getSw()->isStandaloneRibEnabled(),
       4000,
       2);
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 20);
@@ -44,7 +42,7 @@ TEST(RouteDistributionGeneratorsTest, v4AndV6DistributionSingleChunk) {
 
 TEST(RouteDistributionGeneratorsTest, v4AndV6DistributionMultipleChunks) {
   auto cfg = getTestConfig();
-  auto handle = createTestHandle(&cfg);
+  auto handle = createTestHandle(&cfg, SwitchFlags::ENABLE_STANDALONE_RIB);
   auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
       handle->getSw()->getState(),
       {
@@ -55,7 +53,7 @@ TEST(RouteDistributionGeneratorsTest, v4AndV6DistributionMultipleChunks) {
           {25, 5},
           {32, 5},
       },
-      isStandaloneRibEnabled,
+      handle->getSw()->isStandaloneRibEnabled(),
       10,
       2);
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 20);
@@ -66,7 +64,7 @@ TEST(
     RouteDistributionGeneratorsTest,
     v4AndV6DistributionChunksSpillOverMaskLens) {
   auto cfg = getTestConfig();
-  auto handle = createTestHandle(&cfg);
+  auto handle = createTestHandle(&cfg, SwitchFlags::ENABLE_STANDALONE_RIB);
   auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
       handle->getSw()->getState(),
       {
@@ -77,7 +75,7 @@ TEST(
           {25, 3},
           {32, 7},
       },
-      isStandaloneRibEnabled,
+      handle->getSw()->isStandaloneRibEnabled(),
       4,
       2);
 
@@ -89,7 +87,7 @@ TEST(
     RouteDistributionGeneratorsTest,
     v4AndV6DistributionChunksSpillOverAddressFamilies) {
   auto cfg = getTestConfig();
-  auto handle = createTestHandle(&cfg);
+  auto handle = createTestHandle(&cfg, SwitchFlags::ENABLE_STANDALONE_RIB);
   auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
       handle->getSw()->getState(),
       {
@@ -100,7 +98,7 @@ TEST(
           {25, 4},
           {32, 5},
       },
-      isStandaloneRibEnabled,
+      handle->getSw()->isStandaloneRibEnabled(),
       5,
       2);
 
@@ -110,14 +108,14 @@ TEST(
 
 TEST(RouteDistributionGeneratorsTest, emptyV4Distribution) {
   auto cfg = getTestConfig();
-  auto handle = createTestHandle(&cfg);
+  auto handle = createTestHandle(&cfg, SwitchFlags::ENABLE_STANDALONE_RIB);
   auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
       handle->getSw()->getState(),
       {
           {65, 5},
       },
       {},
-      isStandaloneRibEnabled,
+      handle->getSw()->isStandaloneRibEnabled(),
       5,
       2);
 
@@ -127,9 +125,14 @@ TEST(RouteDistributionGeneratorsTest, emptyV4Distribution) {
 
 TEST(RouteDistributionGeneratorsTest, emptyV6Distribution) {
   auto cfg = getTestConfig();
-  auto handle = createTestHandle(&cfg);
+  auto handle = createTestHandle(&cfg, SwitchFlags::ENABLE_STANDALONE_RIB);
   auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
-      handle->getSw()->getState(), {}, {{24, 5}}, isStandaloneRibEnabled, 5, 2);
+      handle->getSw()->getState(),
+      {},
+      {{24, 5}},
+      handle->getSw()->isStandaloneRibEnabled(),
+      5,
+      2);
 
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 5);
   verifyChunking(routeDistributionSwitchStatesGen, 5, 5);
@@ -137,9 +140,14 @@ TEST(RouteDistributionGeneratorsTest, emptyV6Distribution) {
 
 TEST(RouteDistributionGeneratorsTest, emptyV4AndV6Distribution) {
   auto cfg = getTestConfig();
-  auto handle = createTestHandle(&cfg);
+  auto handle = createTestHandle(&cfg, SwitchFlags::ENABLE_STANDALONE_RIB);
   auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
-      handle->getSw()->getState(), {}, {}, isStandaloneRibEnabled, 5, 2);
+      handle->getSw()->getState(),
+      {},
+      {},
+      handle->getSw()->isStandaloneRibEnabled(),
+      5,
+      2);
 
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 0);
   verifyChunking(routeDistributionSwitchStatesGen, 0, 5);
