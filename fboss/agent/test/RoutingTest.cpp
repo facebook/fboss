@@ -175,7 +175,10 @@ class RoutingFixture : public ::testing::Test {
  public:
   void SetUp() override {
     auto config = getSwitchConfig();
-    handle = createTestHandle(&config, kPlatformMac, SwitchFlags::ENABLE_TUN);
+    handle = createTestHandle(
+        &config,
+        kPlatformMac,
+        SwitchFlags::ENABLE_STANDALONE_RIB | SwitchFlags::ENABLE_TUN);
     sw = handle->getSw();
 
     // Get TunManager pointer

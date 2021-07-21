@@ -66,34 +66,43 @@ unique_ptr<HwTestHandle> setupTestHandle(
     uint32_t maxProbes = 1,
     std::chrono::seconds staleTimeout = std::chrono::seconds(1)) {
   // Setup a default state object
-  auto state = testStateA();
-  const auto& intfs = state->getInterfaces();
-  const auto& vlans = state->getVlans();
-  boost::container::flat_map<VlanID, std::shared_ptr<ArpResponseTable>> tables;
-  for (const auto& intf : *intfs) {
-    auto& table = tables[intf->getVlanID()];
-    if (table == nullptr) {
-      table = make_shared<ArpResponseTable>();
-    }
-    for (const auto& addr : intf->getAddresses()) {
-      if (addr.first.isV4()) {
-        table->setEntry(addr.first.asV4(), intf->getMac(), intf->getID());
-      }
-    }
-  }
-  for (auto& table : tables) {
-    vlans->getVlan(table.first)->setArpResponseTable(table.second);
-  }
+  auto cfg = testConfigA();
+  auto handle = createTestHandle(&cfg, SwitchFlags::ENABLE_STANDALONE_RIB);
+  auto updater = handle->getSw()->getRouteUpdater();
 
-  if (arpTimeout.count() > 0) {
-    state->setArpTimeout(arpTimeout);
-  }
+  RouteNextHopSet nexthops;
+  // resolved by intf 1
+  nexthops.emplace(
+      UnresolvedNextHop(folly::IPAddress("10.0.0.22"), UCMP_DEFAULT_WEIGHT));
+  // resolved by intf 1
+  nexthops.emplace(
+      UnresolvedNextHop(folly::IPAddress("10.0.0.23"), UCMP_DEFAULT_WEIGHT));
+  // un-resolvable
+  nexthops.emplace(
+      UnresolvedNextHop(folly::IPAddress("1.1.2.10"), UCMP_DEFAULT_WEIGHT));
 
-  state->setMaxNeighborProbes(maxProbes);
-  state->setStaleEntryInterval(staleTimeout);
+  updater.addRoute(
+      RouterID(0),
+      folly::IPAddress("10.1.1.0"),
+      24,
+      ClientID(1001),
+      RouteNextHopEntry(nexthops, AdminDistance::MAX_ADMIN_DISTANCE));
 
-  auto handle = createTestHandle(state);
+  updater.program();
+
   handle->getSw()->initialConfigApplied(std::chrono::steady_clock::now());
+  handle->getSw()->updateState(
+      " set timers", [arpTimeout, maxProbes, staleTimeout](auto inState) {
+        inState = inState->clone();
+        if (arpTimeout.count() > 0) {
+          inState->setArpTimeout(arpTimeout);
+        }
+        inState->setMaxNeighborProbes(maxProbes);
+        inState->setStaleEntryInterval(staleTimeout);
+        inState->publish();
+        return inState;
+      });
+
   waitForStateUpdates(handle->getSw());
   return handle;
 }
