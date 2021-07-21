@@ -598,38 +598,26 @@ void BcmPort::setIngressVlan(const shared_ptr<Port>& swPort) {
   }
 }
 
-TransmitterTechnology BcmPort::getTransmitterTechnology(
-    const std::string& name) {
-  // Since we are very unlikely to switch a port from copper to optical
-  // while the agent is running, don't make unnecessary attempts to figure
-  // out the transmitter technology when we already know what it is.
-  if (transmitterTechnology_ != TransmitterTechnology::UNKNOWN) {
-    return transmitterTechnology_;
-  }
-  // 6pack backplane ports will report tech as unknown because this
-  // information can't be retrieved via qsfp. These are actually copper,
-  // and so should use that instead of any potential default value
-  if (name.find("fab") == 0) {
-    transmitterTechnology_ = TransmitterTechnology::COPPER;
-  } else {
-    folly::EventBase evb;
-    transmitterTechnology_ =
-        getPlatformPort()->getTransmitterTech(&evb).getVia(&evb);
-  }
-  return transmitterTechnology_;
-}
-
 bcm_port_if_t BcmPort::getDesiredInterfaceMode(
     cfg::PortSpeed speed,
-    PortID id,
-    const std::string& name) {
-  TransmitterTechnology transmitterTech = getTransmitterTechnology(name);
+    const std::shared_ptr<Port>& swPort) {
+  const auto profileID = swPort->getProfileID();
+  const auto& portProfileConfig =
+      getPlatformPort()->getPortProfileConfig(profileID);
+  // All profiles should have medium info at this poin
+  if (!portProfileConfig.iphy_ref()->medium_ref()) {
+    throw FbossError(
+        "Missing medium info in profile ",
+        apache::thrift::util::enumNameSafe(profileID));
+  }
+  TransmitterTechnology transmitterTech =
+      *portProfileConfig.iphy_ref()->medium_ref();
 
   // If speed or transmitter type isn't in map
   try {
     auto result =
         getSpeedToTransmitterTechAndMode().at(speed).at(transmitterTech);
-    XLOG(DBG1) << "Getting desired interface mode for port " << id
+    XLOG(DBG1) << "Getting desired interface mode for port " << swPort->getID()
                << " (speed=" << static_cast<int>(speed)
                << ", tech=" << static_cast<int>(transmitterTech)
                << "). RESULT=" << result;
@@ -641,7 +629,7 @@ bcm_port_if_t BcmPort::getDesiredInterfaceMode(
         ") or transmitter technology (",
         transmitterTech,
         ") setting on port ",
-        id);
+        swPort->getID());
   }
 }
 
@@ -705,8 +693,7 @@ uint8_t BcmPort::determinePipe() const {
 
 void BcmPort::setInterfaceMode(const shared_ptr<Port>& swPort) {
   auto desiredPortSpeed = getDesiredPortSpeed(swPort);
-  bcm_port_if_t desiredMode = getDesiredInterfaceMode(
-      desiredPortSpeed, swPort->getID(), swPort->getName());
+  bcm_port_if_t desiredMode = getDesiredInterfaceMode(desiredPortSpeed, swPort);
 
   // Check whether we have the correct interface set
   bcm_port_if_t curMode = bcm_port_if_t(0);

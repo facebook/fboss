@@ -263,9 +263,7 @@ class BcmPort {
   cfg::PortSpeed getDesiredPortSpeed(const std::shared_ptr<Port>& swPort);
   bcm_port_if_t getDesiredInterfaceMode(
       cfg::PortSpeed speed,
-      PortID id,
-      const std::string& name);
-  TransmitterTechnology getTransmitterTechnology(const std::string& name);
+      const std::shared_ptr<Port>& swPort);
   void updateMirror(
       const std::optional<std::string>& swMirrorName,
       MirrorDirection direction,

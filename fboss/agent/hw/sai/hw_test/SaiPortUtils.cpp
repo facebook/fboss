@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/platforms/common/utils/GalaxyLedUtils.h"
@@ -170,7 +171,9 @@ void verifyInterfaceMode(
     cfg::PortProfileID /*profileID*/,
     Platform* platform) {
   auto* saiPlatform = static_cast<SaiPlatform*>(platform);
-  if (!saiPlatform->supportInterfaceType()) {
+  if (!saiPlatform->getAsic()->isSupported(
+          HwAsic::Feature::PORT_INTERFACE_TYPE) ||
+      !saiPlatform->supportInterfaceType()) {
     return;
   }
   auto* saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());

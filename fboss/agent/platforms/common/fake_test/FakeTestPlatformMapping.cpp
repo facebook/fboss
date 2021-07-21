@@ -51,7 +51,8 @@ static const std::unordered_map<
         int,
         phy::FecMode,
         TransmitterTechnology,
-        phy::InterfaceMode>>
+        phy::InterfaceMode,
+        phy::InterfaceType>>
     kProfiles = {
         {cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL,
          std::make_tuple(
@@ -59,35 +60,40 @@ static const std::unordered_map<
              4,
              phy::FecMode::CL91,
              TransmitterTechnology::OPTICAL,
-             phy::InterfaceMode::CAUI)},
+             phy::InterfaceMode::CAUI,
+             phy::InterfaceType::CAUI)},
         {cfg::PortProfileID::PROFILE_50G_2_NRZ_CL74_COPPER,
          std::make_tuple(
              cfg::PortSpeed::FIFTYG,
              2,
              phy::FecMode::CL74,
              TransmitterTechnology::COPPER,
-             phy::InterfaceMode::CR2)},
+             phy::InterfaceMode::CR2,
+             phy::InterfaceType::CR2)},
         {cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC_OPTICAL,
          std::make_tuple(
              cfg::PortSpeed::FORTYG,
              4,
              phy::FecMode::NONE,
              TransmitterTechnology::OPTICAL,
-             phy::InterfaceMode::XLAUI)},
+             phy::InterfaceMode::XLAUI,
+             phy::InterfaceType::XLAUI)},
         {cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
          std::make_tuple(
              cfg::PortSpeed::TWENTYFIVEG,
              1,
              phy::FecMode::NONE,
              TransmitterTechnology::OPTICAL,
-             phy::InterfaceMode::CAUI)},
+             phy::InterfaceMode::CAUI,
+             phy::InterfaceType::CAUI)},
         {cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
          std::make_tuple(
              cfg::PortSpeed::XG,
              1,
              phy::FecMode::NONE,
              TransmitterTechnology::OPTICAL,
-             phy::InterfaceMode::SFI)},
+             phy::InterfaceMode::SFI,
+             phy::InterfaceType::SFI)},
 };
 } // namespace
 
@@ -101,6 +107,9 @@ FakeTestPlatformMapping::FakeTestPlatformMapping(
     *profile.speed_ref() = std::get<0>(itProfile.second);
     *profile.iphy_ref()->numLanes_ref() = std::get<1>(itProfile.second);
     *profile.iphy_ref()->fec_ref() = std::get<2>(itProfile.second);
+    profile.iphy_ref()->medium_ref() = std::get<3>(itProfile.second);
+    profile.iphy_ref()->interfaceMode_ref() = std::get<4>(itProfile.second);
+    profile.iphy_ref()->interfaceType_ref() = std::get<5>(itProfile.second);
 
     phy::ProfileSideConfig xphySys;
     xphySys.numLanes_ref() = std::get<1>(itProfile.second);
