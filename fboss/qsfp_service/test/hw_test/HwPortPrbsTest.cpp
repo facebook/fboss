@@ -13,6 +13,7 @@
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 
 #include <boost/preprocessor/cat.hpp>
+#include <optional>
 
 namespace facebook::fboss {
 
@@ -24,6 +25,55 @@ class HwPortPrbsTest : public HwExternalPhyPortTest {
     static const std::vector<phy::ExternalPhy::Feature> kNeededFeatures = {
         phy::ExternalPhy::Feature::PRBS};
     return kNeededFeatures;
+  }
+
+  std::vector<std::pair<PortID, cfg::PortProfileID>> findAvailableXphyPorts()
+      override {
+    auto platformMode =
+        getHwQsfpEnsemble()->getWedgeManager()->getPlatformMode();
+    if (platformMode != PlatformMode::YAMP) {
+      return HwExternalPhyPortTest::findAvailableXphyPorts();
+    }
+    // YAMP can only support 5 different Polynominals
+    // PAM4: 9/13/15/31
+    // NRZ:  9/15/23/31
+    // We need to filter the port based on the profile and
+    // the required polynominal value
+    const auto& origAvailablePorts =
+        HwExternalPhyPortTest::findAvailableXphyPorts();
+    std::vector<std::pair<PortID, cfg::PortProfileID>> filteredPorts;
+    for (const auto& [port, profile] : origAvailablePorts) {
+      switch (Polynominal) {
+        // Both modes can support 9/15/31
+        case 9:
+        case 15:
+        case 31:
+          filteredPorts.push_back(std::make_pair(port, profile));
+          break;
+        case 13:
+        case 23: {
+          const auto& expectedPhyPortConfig =
+              getHwQsfpEnsemble()->getPhyManager()->getDesiredPhyPortConfig(
+                  port, profile, std::nullopt);
+          auto ipModulation =
+              (Side == phy::Side::SYSTEM
+                   ? *expectedPhyPortConfig.profile.system.modulation_ref()
+                   : *expectedPhyPortConfig.profile.line.modulation_ref());
+          if (Polynominal == 13 && ipModulation == phy::IpModulation::PAM4) {
+            filteredPorts.push_back(std::make_pair(port, profile));
+          }
+          if (Polynominal == 23 && ipModulation == phy::IpModulation::NRZ) {
+            filteredPorts.push_back(std::make_pair(port, profile));
+          }
+          break;
+        }
+        default:
+          throw FbossError("YAMP can't supoort Polynominal=", Polynominal);
+      }
+    }
+    CHECK(!filteredPorts.empty())
+        << "Can't find xphy ports to support features:" << neededFeatureNames();
+    return filteredPorts;
   }
 
  protected:

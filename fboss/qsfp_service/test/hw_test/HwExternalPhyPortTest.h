@@ -23,6 +23,7 @@ class HwExternalPhyPortTest : public HwTest {
       const = 0;
   std::string neededFeatureNames() const;
 
-  std::vector<std::pair<PortID, cfg::PortProfileID>> findAvailableXphyPorts();
+  virtual std::vector<std::pair<PortID, cfg::PortProfileID>>
+  findAvailableXphyPorts();
 };
 } // namespace facebook::fboss
