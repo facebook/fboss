@@ -9,6 +9,7 @@
  */
 
 #pragma once
+#include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -124,6 +125,17 @@ void sendTcpPkts(
     PortID outPort,
     uint8_t trafficClass = 0,
     std::optional<std::vector<uint8_t>> payload = std::nullopt);
+
+std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
+    HwSwitch* hwSwitch,
+    VlanID vlanId,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& srcIpAddress,
+    const folly::IPAddress& dstIpAddress,
+    int l4SrcPort,
+    int l4DstPort,
+    uint8_t ttl);
 
 uint64_t getQueueOutPacketsWithRetry(
     HwSwitch* hwSwitch,

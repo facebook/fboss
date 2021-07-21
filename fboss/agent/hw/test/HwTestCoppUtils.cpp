@@ -313,6 +313,31 @@ void sendTcpPkts(
   }
 }
 
+std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
+    HwSwitch* hwSwitch,
+    VlanID vlanId,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& srcIpAddress,
+    const folly::IPAddress& dstIpAddress,
+    int l4SrcPort,
+    int l4DstPort,
+    uint8_t ttl) {
+  auto txPacket = utility::makeUDPTxPacket(
+      hwSwitch,
+      vlanId,
+      srcMac,
+      dstMac,
+      srcIpAddress,
+      dstIpAddress,
+      l4SrcPort,
+      l4DstPort,
+      48 << 2, // DSCP
+      ttl);
+
+  return txPacket;
+}
+
 uint64_t getQueueOutPacketsWithRetry(
     HwSwitch* hwSwitch,
     int queueId,
