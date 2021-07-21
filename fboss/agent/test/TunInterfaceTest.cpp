@@ -25,7 +25,9 @@ using ::testing::_;
 
 TEST(TunInterfacesTest, Initialization) {
   auto sw = setupMockSwitchWithoutHW(
-      createMockPlatform(), nullptr, SwitchFlags::ENABLE_TUN);
+      createMockPlatform(),
+      nullptr,
+      SwitchFlags::ENABLE_STANDALONE_RIB | SwitchFlags::ENABLE_TUN);
   auto tunMgr = dynamic_cast<MockTunManager*>(sw->getTunManager());
   EXPECT_NE(nullptr, tunMgr);
   EXPECT_CALL(*tunMgr, sync(_)).Times(1);

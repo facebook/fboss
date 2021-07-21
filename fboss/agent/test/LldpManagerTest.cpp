@@ -52,6 +52,7 @@ unique_ptr<HwTestHandle> setupTestHandle(bool enableLldp = false) {
   // do any unit tests.
   auto switchFlags =
       enableLldp ? SwitchFlags::ENABLE_LLDP : SwitchFlags::DEFAULT;
+  switchFlags |= SwitchFlags::ENABLE_STANDALONE_RIB;
   auto state = testStateAWithPortsUp();
   return createTestHandle(state, testLocalMac, switchFlags);
 }
@@ -220,7 +221,8 @@ TEST(LldpManagerTest, LldpParse) {
   cfg::SwitchConfig config = testConfigA();
   *config.ports_ref()[0].routable_ref() = true;
 
-  auto handle = createTestHandle(&config, SwitchFlags::ENABLE_LLDP);
+  auto handle = createTestHandle(
+      &config, SwitchFlags::ENABLE_STANDALONE_RIB | SwitchFlags::ENABLE_LLDP);
   auto sw = handle->getSw();
 
   // Cache the current stats
@@ -257,7 +259,8 @@ TEST(LldpManagerTest, LldpValidationPass) {
   config.ports_ref()[0].expectedLLDPValues_ref()[cfg::LLDPTag::PORT_DESC] =
       "someportdesc0";
 
-  auto handle = createTestHandle(&config, SwitchFlags::ENABLE_LLDP);
+  auto handle = createTestHandle(
+      &config, SwitchFlags::ENABLE_STANDALONE_RIB | SwitchFlags::ENABLE_LLDP);
   auto sw = handle->getSw();
 
   // Cache the current stats
@@ -307,7 +310,8 @@ TEST(LldpManagerTest, LldpValidationFail) {
                << " -> " << v.second;
   }
 
-  auto handle = createTestHandle(&config, SwitchFlags::ENABLE_LLDP);
+  auto handle = createTestHandle(
+      &config, SwitchFlags::ENABLE_STANDALONE_RIB | SwitchFlags::ENABLE_LLDP);
   auto sw = handle->getSw();
 
   // Cache the current stats
