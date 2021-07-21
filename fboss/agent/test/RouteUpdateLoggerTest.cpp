@@ -9,9 +9,9 @@
  */
 #include "fboss/agent/RouteUpdateLogger.h"
 #include <folly/IPAddress.h>
+#include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/RouteTypes.h"
-#include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/HwTestHandle.h"
@@ -87,11 +87,12 @@ class MockMplsRouteLogger : public MplsRouteLogger {
 class RouteUpdateLoggerTest : public ::testing::Test {
  public:
   void SetUp() override {
-    handle = createTestHandle();
+    handle = createTestHandle(nullptr, SwitchFlags::ENABLE_STANDALONE_RIB);
     sw = handle->getSw();
     initState = sw->getState();
-    auto initialStateA = testStateA();
-    RouteUpdater updater(initialStateA->getRouteTables());
+    sw->applyConfig("init config", testConfigA());
+    auto initialStateA = sw->getState();
+    SwSwitchRouteUpdateWrapper updater = sw->getRouteUpdater();
 
     // Add default routes for consistency
     updater.addRoute(
@@ -108,10 +109,9 @@ class RouteUpdateLoggerTest : public ::testing::Test {
         ClientID::STATIC_ROUTE,
         RouteNextHopEntry(
             RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
-    auto newRt = updater.updateDone();
-    stateA = initialStateA->clone();
-    stateA->resetRouteTables(newRt);
+    updater.program();
 
+    auto stateA = sw->getState();
     deltaAdd = std::make_shared<StateDelta>(initState, stateA);
     deltaRemove = std::make_shared<StateDelta>(stateA, initState);
     routeUpdateLogger = std::make_unique<RouteUpdateLogger>(
@@ -240,7 +240,7 @@ class RouteUpdateLoggerTest : public ::testing::Test {
 TEST_F(RouteUpdateLoggerTest, LogAdded) {
   logAllRouteUpdates();
   routeUpdateLogger->stateUpdated(*deltaAdd);
-  EXPECT_EQ(5, mockRouteLoggerV4->added.size());
+  EXPECT_EQ(4, mockRouteLoggerV4->added.size());
   EXPECT_EQ(3, mockRouteLoggerV6->added.size());
   // Default route changes
   EXPECT_EQ(1, mockRouteLoggerV4->changed.size());
@@ -252,7 +252,7 @@ TEST_F(RouteUpdateLoggerTest, LogAdded) {
 TEST_F(RouteUpdateLoggerTest, LogRemoved) {
   logAllRouteUpdates();
   routeUpdateLogger->stateUpdated(*deltaRemove);
-  EXPECT_EQ(5, mockRouteLoggerV4->removed.size());
+  EXPECT_EQ(4, mockRouteLoggerV4->removed.size());
   EXPECT_EQ(3, mockRouteLoggerV6->removed.size());
   // Default route changes
   EXPECT_EQ(1, mockRouteLoggerV4->changed.size());
