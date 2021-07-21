@@ -39,9 +39,9 @@ TEST_F(HwTest, resetTranscieverAndDetectPresence) {
   // Validate that the power control register has been correctly set before we
   // begin resetting the modules
   auto transceiverIds = wedgeManager->refreshTransceivers();
-  EXPECT_TRUE(utility::match(
-      utility::getCabledPortTranceivers(*agentConfig, getHwQsfpEnsemble()),
-      transceiverIds));
+  auto expectedIds =
+      utility::getCabledPortTranceivers(*agentConfig, getHwQsfpEnsemble());
+  EXPECT_TRUE(utility::containsSubset(transceiverIds, expectedIds));
 
   wedgeManager->getTransceiversInfo(
       transceivers,

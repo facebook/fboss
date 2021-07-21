@@ -213,6 +213,15 @@ bool match(std::vector<TransceiverID> l, std::vector<TransceiverID> r) {
   return l == r;
 }
 
+bool containsSubset(
+    std::vector<TransceiverID> superset,
+    std::vector<TransceiverID> subset) {
+  std::sort(superset.begin(), superset.end());
+  std::sort(subset.begin(), subset.end());
+  return std::includes(
+      superset.begin(), superset.end(), subset.begin(), subset.end());
+}
+
 std::vector<int32_t> legacyTransceiverIds(
     const std::vector<TransceiverID>& ids) {
   std::vector<int32_t> legacyIds;

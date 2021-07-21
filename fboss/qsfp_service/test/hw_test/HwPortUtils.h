@@ -59,6 +59,9 @@ std::vector<TransceiverID> getCabledPortTranceivers(
     const AgentConfig& conf,
     const HwQsfpEnsemble* ensemble);
 bool match(std::vector<TransceiverID> l, std::vector<TransceiverID> r);
+bool containsSubset(
+    std::vector<TransceiverID> superset,
+    std::vector<TransceiverID> subset);
 
 // Some parts of the code still use int32_t to represent TransceiverID
 std::vector<int32_t> legacyTransceiverIds(
