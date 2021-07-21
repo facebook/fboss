@@ -233,8 +233,10 @@ createTestHandle(cfg::SwitchConfig* config, MacAddress mac, SwitchFlags flags) {
   // Create the initial state, which only has ports
   initialState = make_shared<SwitchState>();
   uint32_t maxPort{0};
-  for (const auto& port : *config->ports_ref()) {
-    maxPort = std::max(static_cast<int32_t>(maxPort), *port.logicalID_ref());
+  if (config) {
+    for (const auto& port : *config->ports_ref()) {
+      maxPort = std::max(static_cast<int32_t>(maxPort), *port.logicalID_ref());
+    }
   }
   for (uint32_t idx = 1; idx <= maxPort; ++idx) {
     initialState->registerPort(PortID(idx), folly::to<string>("port", idx));
@@ -243,8 +245,10 @@ createTestHandle(cfg::SwitchConfig* config, MacAddress mac, SwitchFlags flags) {
   auto handle = createTestHandle(initialState, mac, flags);
   auto sw = handle->getSw();
 
-  // Apply the thrift config
-  sw->applyConfig("test_setup", *config);
+  if (config) {
+    // Apply the thrift config
+    sw->applyConfig("test_setup", *config);
+  }
   return handle;
 }
 
