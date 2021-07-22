@@ -61,7 +61,7 @@ TransceiverID QsfpModule::getID() const {
 // Converts power from milliwatts to decibel-milliwatts
 double QsfpModule::mwToDb(double value) {
   if (value == 0) {
-    return -40;
+    return -45;
   }
   return 10 * log10(value);
 };
