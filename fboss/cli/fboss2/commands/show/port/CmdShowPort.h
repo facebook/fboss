@@ -47,7 +47,7 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
     return createModel(entries, queriedPorts);
   }
 
-  void printOutput(const RetType& model) {
+  void printOutput(const RetType& model, std::ostream& out = std::cout) {
     Table table;
     table.setHeader(
         {"ID", "Name", "AdminState", "LinkState", "Speed", "ProfileID"});
@@ -63,7 +63,7 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
       });
     }
 
-    std::cout << table << std::endl;
+    out << table << std::endl;
   }
 
   std::string getAdminStateStr(PortAdminState adminState) {

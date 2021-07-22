@@ -93,10 +93,7 @@ TEST_F(CmdShowPortTestFixture, createModel) {
   EXPECT_EQ(entries[2].get_profileId(), "PROFILE_100G_4_NRZ_CL91_COPPER");
 }
 
-/*
-// TODO. CmdShowPort.printOutput uses fmt::print for color format and output,
-// which does not work with ostream. Enable the test after investigating if
-// fmt::foramt can provide coloring output.
+
 TEST_F(CmdShowPortTestFixture, printOutput) {
   auto cmd = CmdShowPort();
   CmdShowPortTraits::ObjectArgType queriedEntries;
@@ -107,14 +104,14 @@ TEST_F(CmdShowPortTestFixture, printOutput) {
 
   std::string output = ss.str();
   std::string expectOutput =
-"ID     Name           AdminState     LinkState      Speed     ProfileID           \n"
-"------------------------------------------------------------------------------------------\n"
-"1      eth1/5/1       Enabled        Down           100G      PROFILE_100G_4_NRZ_CL91_COPPER\n"
-"2      eth1/5/2       Disabled       Down           25G       PROFILE_25G_1_NRZ_CL74_COPPER\n"
-"3      eth1/5/3       Enabled        Up             100G      PROFILE_100G_4_NRZ_CL91_COPPER\n\n";
+" ID  Name      AdminState  LinkState  Speed  ProfileID                      \n"
+"-----------------------------------------------------------------------------------\n"
+" 1   eth1/5/1  Enabled     Down       100G   PROFILE_100G_4_NRZ_CL91_COPPER \n"
+" 2   eth1/5/2  Disabled    Down       25G    PROFILE_25G_1_NRZ_CL74_COPPER  \n"
+" 3   eth1/5/3  Enabled     Up         100G   PROFILE_100G_4_NRZ_CL91_COPPER \n\n";
   EXPECT_EQ(output, expectOutput);
 }
-*/
+
 
 
 } // namespace facebook::fboss
