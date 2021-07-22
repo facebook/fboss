@@ -36,6 +36,11 @@ class SaiTracer {
   explicit SaiTracer();
   ~SaiTracer();
 
+  std::tuple<std::string, std::string> declareVariable(
+      sai_object_id_t* object_id,
+      sai_object_type_t object_type,
+      bool reloaded = false);
+
   static std::shared_ptr<SaiTracer> getInstance();
 
   void printHex(std::ostringstream& outStringStream, uint8_t u8);
@@ -143,6 +148,8 @@ class SaiTracer {
   uint32_t
   checkListCount(uint32_t list_count, uint32_t elem_size, uint32_t elem_count);
 
+  void writeToFile(const std::vector<std::string>& strVec);
+
   sai_acl_api_t* aclApi_;
   sai_bridge_api_t* bridgeApi_;
   sai_buffer_api_t* bufferApi_;
@@ -173,13 +180,7 @@ class SaiTracer {
   std::map<sai_api_t, std::string> init_api_;
 
  private:
-  void writeToFile(const std::vector<std::string>& strVec);
-
   // Helper methods for variables and attribute list
-  std::tuple<std::string, std::string> declareVariable(
-      sai_object_id_t* object_id,
-      sai_object_type_t object_type);
-
   std::vector<std::string> setAttrList(
       const sai_attribute_t* attr_list,
       uint32_t attr_count,

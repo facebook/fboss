@@ -106,7 +106,11 @@ sai_status_t __real_sai_api_initialize(
 sai_status_t __real_sai_api_query(
     sai_api_t sai_api_id,
     void** api_method_table);
-
+sai_status_t __real_sai_get_object_key(
+    sai_object_id_t switch_id,
+    sai_object_type_t object_type,
+    uint32_t* object_count,
+    sai_object_key_t* object_list);
 // Wrap function for Sai APIs
 sai_status_t __wrap_sai_api_initialize(
     uint64_t flags,
@@ -308,6 +312,35 @@ sai_status_t __wrap_sai_api_query(
       // TODO: For other APIs, create new API wrappers and invoke wrappedApi()
       // funtion here
       break;
+  }
+  return rv;
+}
+
+bool should_log(_In_ sai_object_type_t object_type) {
+  return object_type != SAI_OBJECT_TYPE_INSEG_ENTRY &&
+      object_type != SAI_OBJECT_TYPE_FDB_ENTRY &&
+      object_type != SAI_OBJECT_TYPE_NEIGHBOR_ENTRY &&
+      object_type != SAI_OBJECT_TYPE_ROUTE_ENTRY;
+}
+
+sai_status_t __wrap_sai_get_object_key(
+    sai_object_id_t switch_id,
+    sai_object_type_t object_type,
+    uint32_t* object_count,
+    sai_object_key_t* object_list) {
+  sai_status_t rv = __real_sai_get_object_key(
+      switch_id, object_type, object_count, object_list);
+
+  for (int i = 0; i < *object_count; ++i) {
+    sai_object_key_t object = object_list[i];
+
+    if (should_log(object_type)) {
+      string declaration =
+          std::get<0>(SaiTracer::getInstance()->declareVariable(
+              &object.key.object_id, object_type, true));
+      vector<string> line = {declaration};
+      SaiTracer::getInstance()->writeToFile(line);
+    }
   }
   return rv;
 }
@@ -981,7 +1014,8 @@ void SaiTracer::logSendHostifPacketFn(
 
 std::tuple<string, string> SaiTracer::declareVariable(
     sai_object_id_t* object_id,
-    sai_object_type_t object_type) {
+    sai_object_type_t object_type,
+    bool reloaded) {
   if (!FLAGS_enable_replayer) {
     return std::make_tuple("", "");
   }
@@ -999,6 +1033,10 @@ std::tuple<string, string> SaiTracer::declareVariable(
 
   // Add this variable to the variable map
   variables_.withWLock([&](auto& vars) { vars.emplace(*object_id, varName); });
+  if (reloaded) {
+    return std::make_tuple(
+        to<string>(varType, varName, "=", *object_id), varName);
+  }
   return std::make_tuple(to<string>(varType, varName), varName);
 }
 

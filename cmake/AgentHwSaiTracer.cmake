@@ -55,4 +55,5 @@ target_link_options(sai_tracer
   PUBLIC
   "LINKER:-wrap,sai_api_query"
   "LINKER:-wrap,sai_api_initialize"
+  "LINKER:-wrap,sai_get_object_key"
 )
