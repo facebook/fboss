@@ -562,7 +562,8 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
         rid);
   };
 
-  CHECK(FLAGS_enable_standalone_rib ? !legacyRibUsed(delta) : !fibUsed(delta));
+  // Only support new RIB
+  CHECK(FLAGS_enable_standalone_rib && !legacyRibUsed(delta));
 
   for (const auto& routeDelta : delta.getFibsDelta()) {
     auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
