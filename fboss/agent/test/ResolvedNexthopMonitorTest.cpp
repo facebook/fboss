@@ -35,13 +35,13 @@ const std::array<IPAddressV6, 2> kNexthopsV6{
 
 namespace facebook::fboss {
 
-template <typename StandAloneRib>
 class ResolvedNexthopMonitorTest : public ::testing::Test {
  public:
   using StateUpdateFn = SwSwitch::StateUpdateFn;
   using Func = folly::Function<void()>;
   void SetUp() override {
-    handle_ = createTestHandle(testStateA());
+    auto cfg = testConfigA();
+    handle_ = createTestHandle(&cfg, SwitchFlags::ENABLE_STANDALONE_RIB);
     sw_ = handle_->getSw();
   }
 
@@ -112,62 +112,58 @@ class ResolvedNexthopMonitorTest : public ::testing::Test {
   SwSwitch* sw_;
 };
 
-using ResolvedNexthopMonitorTestTypes = ::testing::Types<NoRib, Rib>;
-
-TYPED_TEST_CASE(ResolvedNexthopMonitorTest, ResolvedNexthopMonitorTestTypes);
-
-TYPED_TEST(ResolvedNexthopMonitorTest, AddUnresolvedRoutes) {
+TEST_F(ResolvedNexthopMonitorTest, AddUnresolvedRoutes) {
   RouteNextHopSet nhops{
       UnresolvedNextHop(kNexthopsV4[0], 1),
       UnresolvedNextHop(kNexthopsV4[1], 1)};
-  this->addRoute(kPrefixV4, nhops);
-  this->schedulePendingStateUpdates();
-  auto* monitor = this->sw_->getResolvedNexthopMonitor();
+  addRoute(kPrefixV4, nhops);
+  schedulePendingStateUpdates();
+  auto* monitor = sw_->getResolvedNexthopMonitor();
   EXPECT_FALSE(monitor->probesScheduled());
 }
 
-TYPED_TEST(ResolvedNexthopMonitorTest, AddResolvedRoutes) {
+TEST_F(ResolvedNexthopMonitorTest, AddResolvedRoutes) {
   RouteNextHopSet nhops{
       UnresolvedNextHop(folly::IPAddressV4("10.0.0.22"), 1),
       UnresolvedNextHop(folly::IPAddressV4("10.0.55.22"), 1)};
-  this->addRoute(kPrefixV4, nhops);
-  this->schedulePendingStateUpdates();
-  auto* monitor = this->sw_->getResolvedNexthopMonitor();
+  addRoute(kPrefixV4, nhops);
+  schedulePendingStateUpdates();
+  auto* monitor = sw_->getResolvedNexthopMonitor();
   EXPECT_TRUE(monitor->probesScheduled());
 }
 
-TYPED_TEST(ResolvedNexthopMonitorTest, RemoveResolvedRoutes) {
+TEST_F(ResolvedNexthopMonitorTest, RemoveResolvedRoutes) {
   RouteNextHopSet nhops{
       UnresolvedNextHop(folly::IPAddressV4("10.0.0.22"), 1),
       UnresolvedNextHop(folly::IPAddressV4("10.0.55.22"), 1)};
-  this->addRoute(kPrefixV4, nhops);
-  this->delRoute(kPrefixV4);
-  this->schedulePendingStateUpdates();
-  auto* monitor = this->sw_->getResolvedNexthopMonitor();
+  addRoute(kPrefixV4, nhops);
+  delRoute(kPrefixV4);
+  schedulePendingStateUpdates();
+  auto* monitor = sw_->getResolvedNexthopMonitor();
   EXPECT_TRUE(monitor->probesScheduled());
 }
-TYPED_TEST(ResolvedNexthopMonitorTest, ChangeUnresolvedRoutes) {
+TEST_F(ResolvedNexthopMonitorTest, ChangeUnresolvedRoutes) {
   RouteNextHopSet nhops1{
       UnresolvedNextHop(kNexthopsV4[0], 1),
       UnresolvedNextHop(kNexthopsV4[1], 1)};
-  this->addRoute(kPrefixV4, nhops1);
+  addRoute(kPrefixV4, nhops1);
   RouteNextHopSet nhops2{UnresolvedNextHop(kNexthopsV4[0], 1)};
-  this->addRoute(kPrefixV4, nhops2);
+  addRoute(kPrefixV4, nhops2);
 
-  this->schedulePendingStateUpdates();
-  auto* monitor = this->sw_->getResolvedNexthopMonitor();
+  schedulePendingStateUpdates();
+  auto* monitor = sw_->getResolvedNexthopMonitor();
   EXPECT_FALSE(monitor->probesScheduled());
 }
 
-TYPED_TEST(ResolvedNexthopMonitorTest, ProbeAddRemoveAdd) {
+TEST_F(ResolvedNexthopMonitorTest, ProbeAddRemoveAdd) {
   {
     RouteNextHopSet nhops{
         ResolvedNextHop(folly::IPAddressV6("fe80::22"), InterfaceID(1), 1),
         ResolvedNextHop(folly::IPAddressV6("fe80:55::22"), InterfaceID(55), 1)};
-    this->addRoute(kPrefixV6, nhops);
+    addRoute(kPrefixV6, nhops);
   }
-  this->schedulePendingStateUpdates();
-  auto* scheduler = this->sw_->getResolvedNexthopProbeScheduler();
+  schedulePendingStateUpdates();
+  auto* scheduler = sw_->getResolvedNexthopProbeScheduler();
   auto resolvedNextHop2UseCount = scheduler->resolvedNextHop2UseCount();
   auto resolvedNextHop2Probes = scheduler->resolvedNextHop2Probes();
 
@@ -187,9 +183,9 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeAddRemoveAdd) {
   {
     RouteNextHopSet nhops{
         ResolvedNextHop(folly::IPAddressV6("fe80::22"), InterfaceID(1), 1)};
-    this->addRoute(kPrefixV6, nhops);
+    addRoute(kPrefixV6, nhops);
   }
-  this->schedulePendingStateUpdates();
+  schedulePendingStateUpdates();
   resolvedNextHop2UseCount = scheduler->resolvedNextHop2UseCount();
   resolvedNextHop2Probes = scheduler->resolvedNextHop2Probes();
 
@@ -211,9 +207,9 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeAddRemoveAdd) {
     RouteNextHopSet nhops{
         ResolvedNextHop(folly::IPAddressV6("fe80::22"), InterfaceID(1), 1),
         ResolvedNextHop(folly::IPAddressV6("fe80:55::22"), InterfaceID(55), 1)};
-    this->addRoute(kPrefixV6, nhops);
+    addRoute(kPrefixV6, nhops);
   }
-  this->schedulePendingStateUpdates();
+  schedulePendingStateUpdates();
   resolvedNextHop2UseCount = scheduler->resolvedNextHop2UseCount();
   resolvedNextHop2Probes = scheduler->resolvedNextHop2Probes();
 
@@ -225,22 +221,22 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeAddRemoveAdd) {
   }
 }
 
-TYPED_TEST(ResolvedNexthopMonitorTest, RouteSharingProbeTwoUpdates) {
+TEST_F(ResolvedNexthopMonitorTest, RouteSharingProbeTwoUpdates) {
   {
     RouteNextHopSet nhops{
         ResolvedNextHop(folly::IPAddressV6("fe80::22"), InterfaceID(1), 1),
         ResolvedNextHop(folly::IPAddressV6("fe80:55::22"), InterfaceID(55), 1)};
-    this->addRoute(kPrefixV6, nhops);
+    addRoute(kPrefixV6, nhops);
   }
   {
     RouteNextHopSet nhops{
         ResolvedNextHop(folly::IPAddressV6("fe80::22"), InterfaceID(1), 1),
         ResolvedNextHop(folly::IPAddressV6("fe80:55::22"), InterfaceID(55), 1)};
-    this->addRoute(RoutePrefixV6{IPAddressV6("10:101::"), 64}, nhops);
+    addRoute(RoutePrefixV6{IPAddressV6("10:101::"), 64}, nhops);
   };
 
-  this->schedulePendingStateUpdates();
-  auto* scheduler = this->sw_->getResolvedNexthopProbeScheduler();
+  schedulePendingStateUpdates();
+  auto* scheduler = sw_->getResolvedNexthopProbeScheduler();
   auto resolvedNextHop2UseCount = scheduler->resolvedNextHop2UseCount();
   auto resolvedNextHop2Probes = scheduler->resolvedNextHop2Probes();
 
@@ -257,8 +253,8 @@ TYPED_TEST(ResolvedNexthopMonitorTest, RouteSharingProbeTwoUpdates) {
   }
 
   // removed route
-  this->delRoute(RoutePrefixV6{IPAddressV6("10:101::"), 64});
-  this->schedulePendingStateUpdates();
+  delRoute(RoutePrefixV6{IPAddressV6("10:101::"), 64});
+  schedulePendingStateUpdates();
   resolvedNextHop2UseCount = scheduler->resolvedNextHop2UseCount();
   resolvedNextHop2Probes = scheduler->resolvedNextHop2Probes();
 
@@ -270,8 +266,8 @@ TYPED_TEST(ResolvedNexthopMonitorTest, RouteSharingProbeTwoUpdates) {
   }
 
   // remove another route
-  this->delRoute(kPrefixV6);
-  this->schedulePendingStateUpdates();
+  delRoute(kPrefixV6);
+  schedulePendingStateUpdates();
   resolvedNextHop2UseCount = scheduler->resolvedNextHop2UseCount();
   resolvedNextHop2Probes = scheduler->resolvedNextHop2Probes();
 
@@ -283,17 +279,17 @@ TYPED_TEST(ResolvedNexthopMonitorTest, RouteSharingProbeTwoUpdates) {
   }
 }
 
-TYPED_TEST(ResolvedNexthopMonitorTest, RouteSharingProbeOneUpdate) {
+TEST_F(ResolvedNexthopMonitorTest, RouteSharingProbeOneUpdate) {
   {
     RouteNextHopSet nhops{
         ResolvedNextHop(folly::IPAddressV6("fe80::22"), InterfaceID(1), 1),
         ResolvedNextHop(folly::IPAddressV6("fe80:55::22"), InterfaceID(55), 1)};
-    this->addRoute(kPrefixV6, nhops);
-    this->addRoute(RoutePrefixV6{IPAddressV6("10:101::"), 64}, nhops);
+    addRoute(kPrefixV6, nhops);
+    addRoute(RoutePrefixV6{IPAddressV6("10:101::"), 64}, nhops);
   }
 
-  this->schedulePendingStateUpdates();
-  auto* scheduler = this->sw_->getResolvedNexthopProbeScheduler();
+  schedulePendingStateUpdates();
+  auto* scheduler = sw_->getResolvedNexthopProbeScheduler();
   auto resolvedNextHop2UseCount = scheduler->resolvedNextHop2UseCount();
   auto resolvedNextHop2Probes = scheduler->resolvedNextHop2Probes();
 
@@ -310,8 +306,8 @@ TYPED_TEST(ResolvedNexthopMonitorTest, RouteSharingProbeOneUpdate) {
   }
 
   // removed route
-  this->delRoute(RoutePrefixV6{IPAddressV6("10:101::"), 64});
-  this->schedulePendingStateUpdates();
+  delRoute(RoutePrefixV6{IPAddressV6("10:101::"), 64});
+  schedulePendingStateUpdates();
   resolvedNextHop2UseCount = scheduler->resolvedNextHop2UseCount();
   resolvedNextHop2Probes = scheduler->resolvedNextHop2Probes();
 
@@ -323,8 +319,8 @@ TYPED_TEST(ResolvedNexthopMonitorTest, RouteSharingProbeOneUpdate) {
   }
 
   // remove another route
-  this->delRoute(kPrefixV6);
-  this->schedulePendingStateUpdates();
+  delRoute(kPrefixV6);
+  schedulePendingStateUpdates();
   resolvedNextHop2UseCount = scheduler->resolvedNextHop2UseCount();
   resolvedNextHop2Probes = scheduler->resolvedNextHop2Probes();
 
@@ -336,12 +332,12 @@ TYPED_TEST(ResolvedNexthopMonitorTest, RouteSharingProbeOneUpdate) {
   }
 }
 
-TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredV4) {
+TEST_F(ResolvedNexthopMonitorTest, ProbeTriggeredV4) {
   auto arpTable =
-      this->sw_->getState()->getVlans()->getVlan(VlanID(1))->getArpTable();
+      sw_->getState()->getVlans()->getVlan(VlanID(1))->getArpTable();
   EXPECT_EQ(arpTable->getEntryIf(folly::IPAddressV4("10.0.0.22")), nullptr);
 
-  EXPECT_SWITCHED_PKT(this->sw_, "ARP request", [](const TxPacket* pkt) {
+  EXPECT_SWITCHED_PKT(sw_, "ARP request", [](const TxPacket* pkt) {
     const auto* buf = pkt->buf();
     EXPECT_EQ(68, buf->computeChainDataLength());
     folly::io::Cursor cursor(buf);
@@ -368,34 +364,32 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredV4) {
         folly::IPAddressV4("10.0.0.22")); // target ip
   });
   RouteNextHopSet nhops{UnresolvedNextHop(folly::IPAddressV4("10.0.0.22"), 1)};
-  this->addRoute(kPrefixV4, nhops);
-  this->schedulePendingStateUpdates();
-  this->waitForBackgroundAndNeighborCacheThreads();
-  this->schedulePendingStateUpdates();
+  addRoute(kPrefixV4, nhops);
+  schedulePendingStateUpdates();
+  waitForBackgroundAndNeighborCacheThreads();
+  schedulePendingStateUpdates();
   // pending entry must be created
-  arpTable =
-      this->sw_->getState()->getVlans()->getVlan(VlanID(1))->getArpTable();
+  arpTable = sw_->getState()->getVlans()->getVlan(VlanID(1))->getArpTable();
   auto entry = arpTable->getEntryIf(folly::IPAddressV4("10.0.0.22"));
   ASSERT_NE(entry, nullptr);
   EXPECT_EQ(entry->isPending(), true);
 }
 
-TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV4) {
-  this->updateState(
-      "add neighbor", [](const std::shared_ptr<SwitchState> state) {
-        auto newState = state->clone();
-        auto vlan = state->getVlans()->getVlan(VlanID(1));
-        auto arpTable = vlan->getArpTable()->modify(VlanID(1), &newState);
-        arpTable->addEntry(
-            folly::IPAddressV4("10.0.0.22"),
-            folly::MacAddress("02:09:00:00:00:22"),
-            PortDescriptor(PortID(1)),
-            InterfaceID(1),
-            NeighborState::REACHABLE);
-        return newState;
-      });
+TEST_F(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV4) {
+  updateState("add neighbor", [](const std::shared_ptr<SwitchState> state) {
+    auto newState = state->clone();
+    auto vlan = state->getVlans()->getVlan(VlanID(1));
+    auto arpTable = vlan->getArpTable()->modify(VlanID(1), &newState);
+    arpTable->addEntry(
+        folly::IPAddressV4("10.0.0.22"),
+        folly::MacAddress("02:09:00:00:00:22"),
+        PortDescriptor(PortID(1)),
+        InterfaceID(1),
+        NeighborState::REACHABLE);
+    return newState;
+  });
 
-  auto entry = this->sw_->getState()
+  auto entry = sw_->getState()
                    ->getVlans()
                    ->getVlan(VlanID(1))
                    ->getArpTable()
@@ -403,9 +397,9 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV4) {
   ASSERT_NE(entry, nullptr);
 
   RouteNextHopSet nhops{UnresolvedNextHop(folly::IPAddressV4("10.0.0.22"), 1)};
-  this->addRoute(kPrefixV4, nhops);
+  addRoute(kPrefixV4, nhops);
 
-  entry = this->sw_->getState()
+  entry = sw_->getState()
               ->getVlans()
               ->getVlan(VlanID(1))
               ->getArpTable()
@@ -413,7 +407,7 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV4) {
   ASSERT_NE(entry, nullptr);
   EXPECT_EQ(entry->isPending(), false); // no probe
 
-  EXPECT_SWITCHED_PKT(this->sw_, "ARP request", [](const TxPacket* pkt) {
+  EXPECT_SWITCHED_PKT(sw_, "ARP request", [](const TxPacket* pkt) {
     const auto* buf = pkt->buf();
     EXPECT_EQ(68, buf->computeChainDataLength());
     folly::io::Cursor cursor(buf);
@@ -440,20 +434,19 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV4) {
         folly::IPAddressV4("10.0.0.22")); // target ip
   });
 
-  this->updateState(
-      "remove neighbor", [](const std::shared_ptr<SwitchState> state) {
-        auto newState = state->clone();
-        auto vlan = state->getVlans()->getVlan(VlanID(1));
-        auto arpTable = vlan->getArpTable()->modify(VlanID(1), &newState);
-        arpTable->removeEntry(folly::IPAddressV4("10.0.0.22"));
-        return newState;
-      });
+  updateState("remove neighbor", [](const std::shared_ptr<SwitchState> state) {
+    auto newState = state->clone();
+    auto vlan = state->getVlans()->getVlan(VlanID(1));
+    auto arpTable = vlan->getArpTable()->modify(VlanID(1), &newState);
+    arpTable->removeEntry(folly::IPAddressV4("10.0.0.22"));
+    return newState;
+  });
 
-  this->schedulePendingStateUpdates();
-  this->waitForBackgroundAndNeighborCacheThreads();
-  this->schedulePendingStateUpdates();
+  schedulePendingStateUpdates();
+  waitForBackgroundAndNeighborCacheThreads();
+  schedulePendingStateUpdates();
   // pending entry must be created
-  entry = this->sw_->getState()
+  entry = sw_->getState()
               ->getVlans()
               ->getVlan(VlanID(1))
               ->getArpTable()
@@ -462,14 +455,14 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV4) {
   EXPECT_EQ(entry->isPending(), true);
 }
 
-TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredV6) {
+TEST_F(ResolvedNexthopMonitorTest, ProbeTriggeredV6) {
   auto ndpTable =
-      this->sw_->getState()->getVlans()->getVlan(VlanID(1))->getNdpTable();
+      sw_->getState()->getVlans()->getVlan(VlanID(1))->getNdpTable();
   EXPECT_EQ(
       ndpTable->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22")),
       nullptr);
 
-  EXPECT_SWITCHED_PKT(this->sw_, "NDP request", [](const TxPacket* pkt) {
+  EXPECT_SWITCHED_PKT(sw_, "NDP request", [](const TxPacket* pkt) {
     folly::io::Cursor cursor(pkt->buf());
 
     EXPECT_EQ(
@@ -509,36 +502,34 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredV6) {
   });
   RouteNextHopSet nhops{
       UnresolvedNextHop(folly::IPAddressV6("2401:db00:2110:3001::22"), 1)};
-  this->addRoute(kPrefixV6, nhops);
+  addRoute(kPrefixV6, nhops);
 
-  this->schedulePendingStateUpdates();
-  this->waitForBackgroundAndNeighborCacheThreads();
-  this->schedulePendingStateUpdates();
+  schedulePendingStateUpdates();
+  waitForBackgroundAndNeighborCacheThreads();
+  schedulePendingStateUpdates();
   // pending entry must be created
-  ndpTable =
-      this->sw_->getState()->getVlans()->getVlan(VlanID(1))->getNdpTable();
+  ndpTable = sw_->getState()->getVlans()->getVlan(VlanID(1))->getNdpTable();
   auto entry =
       ndpTable->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
   ASSERT_NE(entry, nullptr);
   EXPECT_EQ(entry->isPending(), true);
 }
 
-TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV6) {
-  this->updateState(
-      "add neighbor", [](const std::shared_ptr<SwitchState> state) {
-        auto newState = state->clone();
-        auto vlan = state->getVlans()->getVlan(VlanID(1));
-        auto ndpTable = vlan->getNdpTable()->modify(VlanID(1), &newState);
-        ndpTable->addEntry(
-            folly::IPAddressV6("2401:db00:2110:3001::22"),
-            folly::MacAddress("02:09:00:00:00:22"),
-            PortDescriptor(PortID(1)),
-            InterfaceID(1),
-            NeighborState::REACHABLE);
-        return newState;
-      });
+TEST_F(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV6) {
+  updateState("add neighbor", [](const std::shared_ptr<SwitchState> state) {
+    auto newState = state->clone();
+    auto vlan = state->getVlans()->getVlan(VlanID(1));
+    auto ndpTable = vlan->getNdpTable()->modify(VlanID(1), &newState);
+    ndpTable->addEntry(
+        folly::IPAddressV6("2401:db00:2110:3001::22"),
+        folly::MacAddress("02:09:00:00:00:22"),
+        PortDescriptor(PortID(1)),
+        InterfaceID(1),
+        NeighborState::REACHABLE);
+    return newState;
+  });
 
-  auto entry = this->sw_->getState()
+  auto entry = sw_->getState()
                    ->getVlans()
                    ->getVlan(VlanID(1))
                    ->getNdpTable()
@@ -547,9 +538,9 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV6) {
 
   RouteNextHopSet nhops{
       UnresolvedNextHop(folly::IPAddressV6("2401:db00:2110:3001::22"), 1)};
-  this->addRoute(kPrefixV6, nhops);
+  addRoute(kPrefixV6, nhops);
 
-  entry = this->sw_->getState()
+  entry = sw_->getState()
               ->getVlans()
               ->getVlan(VlanID(1))
               ->getNdpTable()
@@ -557,7 +548,7 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV6) {
   ASSERT_NE(entry, nullptr);
   EXPECT_EQ(entry->isPending(), false); // no probe
 
-  EXPECT_SWITCHED_PKT(this->sw_, "NDP request", [](const TxPacket* pkt) {
+  EXPECT_SWITCHED_PKT(sw_, "NDP request", [](const TxPacket* pkt) {
     folly::io::Cursor cursor(pkt->buf());
 
     EXPECT_EQ(
@@ -596,20 +587,19 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV6) {
         PktUtil::readMac(&cursor), folly::MacAddress("00:02:00:00:00:01"));
   });
 
-  this->updateState(
-      "remove neighbor", [](const std::shared_ptr<SwitchState> state) {
-        auto newState = state->clone();
-        auto vlan = state->getVlans()->getVlan(VlanID(1));
-        auto ndpTable = vlan->getNdpTable()->modify(VlanID(1), &newState);
-        ndpTable->removeEntry(folly::IPAddressV6("2401:db00:2110:3001::22"));
-        return newState;
-      });
+  updateState("remove neighbor", [](const std::shared_ptr<SwitchState> state) {
+    auto newState = state->clone();
+    auto vlan = state->getVlans()->getVlan(VlanID(1));
+    auto ndpTable = vlan->getNdpTable()->modify(VlanID(1), &newState);
+    ndpTable->removeEntry(folly::IPAddressV6("2401:db00:2110:3001::22"));
+    return newState;
+  });
 
-  this->schedulePendingStateUpdates();
-  this->waitForBackgroundAndNeighborCacheThreads();
-  this->schedulePendingStateUpdates();
+  schedulePendingStateUpdates();
+  waitForBackgroundAndNeighborCacheThreads();
+  schedulePendingStateUpdates();
   // pending entry must be created
-  entry = this->sw_->getState()
+  entry = sw_->getState()
               ->getVlans()
               ->getVlan(VlanID(1))
               ->getNdpTable()
