@@ -62,15 +62,18 @@ RouteFields<AddrT> RouteFields<AddrT>::fromFollyDynamic(
 }
 
 template <typename AddrT>
-RouteDetails RouteFields<AddrT>::toRouteDetails() const {
+RouteDetails RouteFields<AddrT>::toRouteDetails(
+    bool normalizedNhopWeights) const {
   RouteDetails rd;
   // Add the prefix
   rd.dest_ref()->ip_ref() = toBinaryAddress(prefix.network);
   rd.dest_ref()->prefixLength_ref() = prefix.mask;
   // Add the action
   rd.action_ref() = forwardActionStr(fwd.getAction());
+  auto nhopSet =
+      normalizedNhopWeights ? fwd.normalizedNextHops() : fwd.getNextHopSet();
   // Add the forwarding info
-  for (const auto& nh : fwd.getNextHopSet()) {
+  for (const auto& nh : nhopSet) {
     IfAndIP ifAndIp;
     ifAndIp.interfaceID = nh.intf();
     ifAndIp.ip = toBinaryAddress(nh.addr());

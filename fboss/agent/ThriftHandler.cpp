@@ -1234,7 +1234,7 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
         tempRoute.nextHopAddrs_ref() =
             util::fromFwdNextHops(fwdInfo.getNextHopSet());
         tempRoute.nextHops_ref() =
-            util::fromRouteNextHopSet(fwdInfo.getNextHopSet());
+            util::fromRouteNextHopSet(fwdInfo.normalizedNextHops());
         routes.emplace_back(std::move(tempRoute));
       });
 }
@@ -1273,7 +1273,7 @@ void ThriftHandler::getRouteTableDetails(std::vector<RouteDetails>& routes) {
       sw_->isStandaloneRibEnabled(),
       sw_->getState(),
       [&routes](RouterID /*rid*/, const auto& route) {
-        routes.emplace_back(route->toRouteDetails());
+        routes.emplace_back(route->toRouteDetails(true));
       });
 }
 
@@ -1323,12 +1323,12 @@ void ThriftHandler::getIpRouteDetails(
   if (ipAddr.isV4()) {
     auto match = sw_->longestMatch(state, ipAddr.asV4(), RouterID(vrfId));
     if (match && match->isResolved()) {
-      route = match->toRouteDetails();
+      route = match->toRouteDetails(true);
     }
   } else {
     auto match = sw_->longestMatch(state, ipAddr.asV6(), RouterID(vrfId));
     if (match && match->isResolved()) {
-      route = match->toRouteDetails();
+      route = match->toRouteDetails(true);
     }
   }
 }
