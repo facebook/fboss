@@ -100,6 +100,7 @@ class HwPortProfileTest : public HwTest {
       auto mediaIntefaces =
           apache::thrift::can_throw(*settings.mediaInterface_ref());
       switch (Profile) {
+        case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528:
         case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL:
           for (const auto& mediaId : mediaIntefaces) {
             if (mgmtInterface == TransceiverManagementInterface::SFF) {
@@ -117,6 +118,8 @@ class HwPortProfileTest : public HwTest {
             }
           }
           break;
+        case cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC:
+        case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N:
         case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL:
         case cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL:
           // TODO
