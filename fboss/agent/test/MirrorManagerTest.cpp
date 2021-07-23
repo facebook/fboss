@@ -891,7 +891,6 @@ TYPED_TEST(MirrorManagerTest, EmptyDelta) {
     const auto newState = this->sw_->getState();
     StateDelta delta(oldState, newState);
     EXPECT_FALSE(DeltaFunctions::isEmpty(delta.getVlansDelta()));
-    EXPECT_TRUE(DeltaFunctions::isEmpty(delta.getRouteTablesDelta()));
   });
 }
 
