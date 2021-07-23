@@ -408,16 +408,8 @@ TEST_F(RouteTest, resolve) {
 
     auto verifyPrefix = [&](std::string prefixStr) {
       auto route = this->findRoute4(stateV2, rid, prefixStr);
-      if (this->sw_->isStandaloneRibEnabled()) {
-        // In standalone RIB, unresolved routes never make it to FIB
-        EXPECT_EQ(route, nullptr);
-      } else {
-        EXPECT_FALSE(route->isResolved());
-        EXPECT_TRUE(route->isUnresolvable());
-        EXPECT_FALSE(route->isConnected());
-        EXPECT_FALSE(route->needResolve());
-        EXPECT_FALSE(route->isProcessing());
-      }
+      // In standalone RIB, unresolved routes never make it to FIB
+      EXPECT_EQ(route, nullptr);
     };
     verifyPrefix("10.0.0.0/8");
     verifyPrefix("20.0.0.0/8");
@@ -739,7 +731,7 @@ TEST_F(RouteTest, InterfaceRoutes) {
   // With standalone rib config application will cause us to first
   // blow away all the interface and static routes and then add them
   // back based on new config. So generation will set back to 0
-  auto expectedGen = this->sw_->isStandaloneRibEnabled() ? 0 : 1;
+  auto expectedGen = 0;
   // verify the ipv4 route
   {
     auto rt = this->findRoute4(stateV2, rid, "1.1.1.0/24");
@@ -1159,7 +1151,7 @@ TEST_F(RouteTest, PruneAddedRoutes) {
   RouteV4::Prefix prefix1{IPAddressV4("20.0.1.51"), 24};
 
   auto newRouteEntry = findRoute<IPAddressV4>(
-      this->sw_->isStandaloneRibEnabled(),
+      true /*standalone rib*/,
       rid0,
       prefix1.toCidrNetwork(),
       this->sw_->getState());
@@ -1170,17 +1162,10 @@ TEST_F(RouteTest, PruneAddedRoutes) {
   EXPECT_TRUE(newRouteEntry->isPublished());
   auto revertState = this->sw_->getState();
   SwitchState::revertNewRouteEntry<IPAddressV4>(
-      this->sw_->isStandaloneRibEnabled(),
-      rid0,
-      newRouteEntry,
-      nullptr,
-      &revertState);
+      true /*standalone rib*/, rid0, newRouteEntry, nullptr, &revertState);
   // Make sure that state3 changes as a result of pruning
   auto remainingRouteEntry = findRoute<IPAddressV4>(
-      this->sw_->isStandaloneRibEnabled(),
-      rid0,
-      prefix1.toCidrNetwork(),
-      revertState);
+      true /*standalone rib*/, rid0, prefix1.toCidrNetwork(), revertState);
   // Route removed after delete
   EXPECT_EQ(nullptr, remainingRouteEntry);
 }
@@ -1218,7 +1203,7 @@ TEST_F(RouteTest, PruneChangedRoutes) {
   updater.program();
 
   auto oldEntry = findRoute<IPAddressV6>(
-      this->sw_->isStandaloneRibEnabled(),
+      true /*standalone rib*/,
       rid0,
       prefix42.toCidrNetwork(),
       this->sw_->getState());
@@ -1239,7 +1224,7 @@ TEST_F(RouteTest, PruneChangedRoutes) {
   updater.program();
 
   auto newEntry = findRoute<IPAddressV6>(
-      this->sw_->isStandaloneRibEnabled(),
+      true /*standalone rib*/,
       rid0,
       prefix42.toCidrNetwork(),
       this->sw_->getState());
@@ -1250,17 +1235,10 @@ TEST_F(RouteTest, PruneChangedRoutes) {
   // state4
   auto revertState = this->sw_->getState();
   SwitchState::revertNewRouteEntry(
-      this->sw_->isStandaloneRibEnabled(),
-      rid0,
-      newEntry,
-      oldEntry,
-      &revertState);
+      true /*standalone rib*/, rid0, newEntry, oldEntry, &revertState);
 
   auto revertedEntry = findRoute<IPAddressV6>(
-      this->sw_->isStandaloneRibEnabled(),
-      rid0,
-      prefix42.toCidrNetwork(),
-      revertState);
+      true /*standalone rib*/, rid0, prefix42.toCidrNetwork(), revertState);
   EXPECT_TRUE(revertedEntry->isToCPU());
 }
 
@@ -1556,7 +1534,7 @@ class MultipleAddressInterfaceTest : public RouteTest {
 TEST_F(MultipleAddressInterfaceTest, twoAddrsForInterface) {
   auto rid = RouterID(0);
   auto [v4Routes, v6Routes] =
-      getRouteCount(this->sw_->isStandaloneRibEnabled(), this->sw_->getState());
+      getRouteCount(true /*standalone rib*/, this->sw_->getState());
 
   EXPECT_EQ(2, v4Routes); // ALPM default + intf routes
   EXPECT_EQ(3, v6Routes); // ALPM default + intf + link local routes
@@ -2125,17 +2103,10 @@ TEST_F(RouteTest, serializeRouteTable) {
   folly::dynamic obj2 = folly::parseJson(json, serOpts);
   // back to Route object
   auto deserState = SwitchState::fromFollyDynamic(obj2);
-  if (this->sw_->isStandaloneRibEnabled()) {
-    // In new rib  only FIB is part of the switch state
-    EXPECT_EQ(
-        this->sw_->getState()->getFibs()->toFollyDynamic(),
-        deserState->getFibs()->toFollyDynamic());
-  } else {
-    auto origRt = this->sw_->getState()->getRouteTables()->getRouteTable(rid);
-    auto desRt = deserState->getRouteTables()->getRouteTable(rid);
-    EXPECT_ROUTETABLERIB_MATCH(origRt->getRibV4(), desRt->getRibV4());
-    EXPECT_ROUTETABLERIB_MATCH(origRt->getRibV6(), desRt->getRibV6());
-  }
+  // In new rib  only FIB is part of the switch state
+  EXPECT_EQ(
+      this->sw_->getState()->getFibs()->toFollyDynamic(),
+      deserState->getFibs()->toFollyDynamic());
 }
 
 class StaticRoutesTest : public RouteTest {
@@ -2169,7 +2140,7 @@ class StaticRoutesTest : public RouteTest {
 
 TEST_F(StaticRoutesTest, staticRoutesGetApplied) {
   auto [numV4Routes, numV6Routes] =
-      getRouteCount(this->sw_->isStandaloneRibEnabled(), this->sw_->getState());
+      getRouteCount(true /*standalone rib*/, this->sw_->getState());
   EXPECT_EQ(8, numV4Routes);
   EXPECT_EQ(9, numV6Routes);
 }
