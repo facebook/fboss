@@ -32,18 +32,13 @@ namespace facebook::fboss {
 
 namespace {
 
-std::shared_ptr<SwitchState> getMinimumAlpmState() {
-  return setupMinAlpmRouteState(false, std::make_shared<SwitchState>());
-}
 std::pair<uint64_t, uint64_t> numMinV4AndV6AlpmRoutes() {
-  uint64_t v4Routes{0}, v6Routes{0};
-  getMinimumAlpmState()->getRouteTables()->getRouteCount(&v4Routes, &v6Routes);
+  uint64_t v4Routes{1}, v6Routes{1};
   return std::make_pair(v4Routes, v6Routes);
 }
 } // namespace
 
 std::shared_ptr<SwitchState> setupMinAlpmRouteState(
-    bool isStandaloneRibEnabled,
     std::shared_ptr<SwitchState> curState) {
   // In ALPM mode we need to make sure that the first route added is
   // the default route and that the route table always contains a default
@@ -52,62 +47,27 @@ std::shared_ptr<SwitchState> setupMinAlpmRouteState(
   RouterID rid(0);
   RoutePrefixV4 defaultPrefix4{folly::IPAddressV4("0.0.0.0"), 0};
   RoutePrefixV6 defaultPrefix6{folly::IPAddressV6("::"), 0};
-  if (isStandaloneRibEnabled) {
-    auto newFibs = newState->getFibs()->modify(&newState);
-    auto defaultVrf = std::make_shared<ForwardingInformationBaseContainer>(rid);
 
-    if (newFibs->getFibContainerIf(rid)) {
-      newFibs->updateForwardingInformationBaseContainer(defaultVrf);
-    } else {
-      newFibs->addNode(defaultVrf);
-    }
-    auto setupRoute = [](auto& route) {
-      RouteNextHopEntry entry(
-          RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE);
-      route->update(ClientID::STATIC_INTERNAL, entry);
-      route->setResolved(entry);
-    };
-    auto v4Route = std::make_shared<RouteV4>(defaultPrefix4);
-    auto v6Route = std::make_shared<RouteV6>(defaultPrefix6);
-    setupRoute(v4Route);
-    setupRoute(v6Route);
-    defaultVrf->getFibV4()->addNode(v4Route);
-    defaultVrf->getFibV6()->addNode(v6Route);
-    return newState;
-
+  auto newFibs = newState->getFibs()->modify(&newState);
+  auto defaultVrf = std::make_shared<ForwardingInformationBaseContainer>(rid);
+  if (newFibs->getFibContainerIf(rid)) {
+    newFibs->updateForwardingInformationBaseContainer(defaultVrf);
   } else {
-    auto newRouteTables = newState->getRouteTables()->modify(&newState);
-    if (newRouteTables->getRouteTableIf(rid)) {
-      newRouteTables->removeRouteTable(newRouteTables->getRouteTable(rid));
-    }
-    // For legacy RIB, both RIB and FIB are present in switch state so
-    // go through the RouteUpdater interface to update these together.
-    RouteUpdater updater(newState->getRouteTables());
-    updater.addRoute(
-        RouterID(0),
-        folly::IPAddressV4("0.0.0.0"),
-        0,
-        ClientID::STATIC_INTERNAL,
-        RouteNextHopEntry(
-            RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
-    updater.addRoute(
-        RouterID(0),
-        folly::IPAddressV6("::"),
-        0,
-        ClientID::STATIC_INTERNAL,
-        RouteNextHopEntry(
-            RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
-    auto newRt = updater.updateDone();
-    if (newRt) {
-      // If null default routes from above got added,
-      // reflect them in a new switch state
-      newState->resetRouteTables(std::move(newRt));
-      newState->publish();
-      return newState;
-    }
-    return nullptr;
+    newFibs->addNode(defaultVrf);
   }
-  return nullptr;
+  auto setupRoute = [](auto& route) {
+    RouteNextHopEntry entry(
+        RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE);
+    route->update(ClientID::STATIC_INTERNAL, entry);
+    route->setResolved(entry);
+  };
+  auto v4Route = std::make_shared<RouteV4>(defaultPrefix4);
+  auto v6Route = std::make_shared<RouteV6>(defaultPrefix6);
+  setupRoute(v4Route);
+  setupRoute(v6Route);
+  defaultVrf->getFibV4()->addNode(v4Route);
+  defaultVrf->getFibV6()->addNode(v6Route);
+  return newState;
 }
 
 uint64_t numMinAlpmRoutes() {

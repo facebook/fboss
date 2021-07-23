@@ -54,7 +54,7 @@ size_t getFibSize(const std::shared_ptr<SwitchState>& state) {
 
 TEST(AlpmUtilsTest, DefaultNullRoutesAddedOnEmptyState) {
   auto emptyState = std::make_shared<SwitchState>();
-  auto alpmInitState = setupMinAlpmRouteState(true, emptyState);
+  auto alpmInitState = setupMinAlpmRouteState(emptyState);
   EXPECT_NE(nullptr, alpmInitState);
   auto v4RibSize = getFibSize<folly::IPAddressV4>(alpmInitState);
   EXPECT_EQ(1, v4RibSize);
@@ -78,8 +78,8 @@ TEST(AlpmUtilsTest, DefaultNullRoutesAddedOnEmptyState) {
 
 TEST(AlpmUtilsTest, DefaultNullRoutesNotReAdded) {
   auto emptyState = std::make_shared<SwitchState>();
-  auto alpmInitState = setupMinAlpmRouteState(true, emptyState);
-  auto alpmAgainState = setupMinAlpmRouteState(true, alpmInitState);
+  auto alpmInitState = setupMinAlpmRouteState(emptyState);
+  auto alpmAgainState = setupMinAlpmRouteState(alpmInitState);
 
   auto v4RibSize = getFibSize<folly::IPAddressV4>(alpmAgainState);
   EXPECT_EQ(1, v4RibSize);

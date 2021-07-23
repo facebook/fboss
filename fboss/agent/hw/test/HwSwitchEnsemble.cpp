@@ -90,8 +90,7 @@ HwSwitchEnsemble::~HwSwitchEnsemble() {
       newIntfMap->updateNode(newIntf);
     }
     noRoutesState->resetIntfs(newIntfMap);
-    applyNewState(
-        setupMinAlpmRouteState(routingInformationBase_.get(), noRoutesState));
+    applyNewState(setupMinAlpmRouteState(noRoutesState));
     // Unregister callbacks before we start destroying hwSwitch
     getHwSwitch()->unregisterCallbacks();
   }

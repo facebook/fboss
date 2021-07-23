@@ -15,7 +15,6 @@ namespace facebook::fboss {
 class SwitchState;
 
 std::shared_ptr<SwitchState> setupMinAlpmRouteState(
-    bool isStandaloneRibEnabled,
     std::shared_ptr<SwitchState> curState);
 
 uint64_t numMinAlpmRoutes();
