@@ -50,6 +50,7 @@ TEST_F(PlatformMappingTest, VerifyWedge400PlatformMapping) {
   // supported profiles
   std::vector<cfg::PortProfileID> expectedProfiles = {
       cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
+      cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
       cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_COPPER,
       cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC_COPPER,
       cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC_COPPER,
@@ -95,7 +96,12 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
         if (*itProfileCfg->iphy_ref()->modulation_ref() ==
             phy::IpModulation::NRZ) {
           EXPECT_TRUE(tx.has_value());
-          verifyTxSettings(*tx, {0, -8, 89, 0, 0, 0});
+          if (profile.first ==
+              cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL) {
+            verifyTxSettings(*tx, {0, -6, 69, 0, 0, 0});
+          } else {
+            verifyTxSettings(*tx, {0, -8, 89, 0, 0, 0});
+          }
         } else if (
             *itProfileCfg->iphy_ref()->modulation_ref() ==
             phy::IpModulation::PAM4) {

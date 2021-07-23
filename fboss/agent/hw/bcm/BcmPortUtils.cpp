@@ -154,6 +154,7 @@ uint32_t getDesiredPhyLaneConfig(const phy::PortProfileConfig& profileCfg) {
       case phy::InterfaceMode::SR:
       case phy::InterfaceMode::SR4:
       case phy::InterfaceMode::XLAUI:
+      case phy::InterfaceMode::SFI:
         medium = BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_OPTICS;
         break;
       default:
