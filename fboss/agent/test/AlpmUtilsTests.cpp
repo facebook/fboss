@@ -27,24 +27,10 @@ namespace facebook::fboss {
 
 namespace {
 template <typename AddrType>
-std::shared_ptr<RouteTableRib<AddrType>> getLegacyFib(
-    const std::shared_ptr<SwitchState>& state) {
-  auto routeTable = state->getRouteTables()->getRouteTable(RouterID(0));
-  return routeTable->getRib<AddrType>();
-}
-
-template <typename AddrType>
 std::shared_ptr<ForwardingInformationBase<AddrType>> getStandAloneFib(
     const std::shared_ptr<SwitchState>& state) {
   auto fibContainer = state->getFibs()->getFibContainer(RouterID(0));
   return fibContainer->template getFib<AddrType>();
-}
-
-template <typename AddrType>
-std::shared_ptr<Route<AddrType>> getDefaultRouteLegacyRib(
-    const std::shared_ptr<SwitchState>& state) {
-  auto rib = getLegacyFib<AddrType>(state);
-  return rib->routes()->getRouteIf(RoutePrefix<AddrType>{AddrType(), 0});
 }
 
 template <typename AddrType>
@@ -56,42 +42,27 @@ std::shared_ptr<Route<AddrType>> getDefaultRouteStandAloneRib(
 
 template <typename AddrType>
 std::shared_ptr<Route<AddrType>> getDefaultRoute(
-    bool isStandAloneRibEnabled,
     const std::shared_ptr<SwitchState>& state) {
-  return isStandAloneRibEnabled ? getDefaultRouteStandAloneRib<AddrType>(state)
-                                : getDefaultRouteLegacyRib<AddrType>(state);
+  return getDefaultRouteStandAloneRib<AddrType>(state);
 }
 
 template <typename AddrType>
-size_t getFibSize(
-    bool isStandAloneRibEnabled,
-    const std::shared_ptr<SwitchState>& state) {
-  return isStandAloneRibEnabled ? getStandAloneFib<AddrType>(state)->size()
-                                : getLegacyFib<AddrType>(state)->size();
+size_t getFibSize(const std::shared_ptr<SwitchState>& state) {
+  return getStandAloneFib<AddrType>(state)->size();
 }
 } // namespace
 
-class AlpmUtilsTest : public ::testing::Test {
- public:
-  static constexpr auto hasStandAloneRib = true;
-};
-
-TEST_F(AlpmUtilsTest, DefaultNullRoutesAddedOnEmptyState) {
+TEST(AlpmUtilsTest, DefaultNullRoutesAddedOnEmptyState) {
   auto emptyState = std::make_shared<SwitchState>();
-  auto alpmInitState =
-      setupMinAlpmRouteState(this->hasStandAloneRib, emptyState);
+  auto alpmInitState = setupMinAlpmRouteState(true, emptyState);
   EXPECT_NE(nullptr, alpmInitState);
-  auto v4RibSize =
-      getFibSize<folly::IPAddressV4>(this->hasStandAloneRib, alpmInitState);
+  auto v4RibSize = getFibSize<folly::IPAddressV4>(alpmInitState);
   EXPECT_EQ(1, v4RibSize);
-  auto v6RibSize =
-      getFibSize<folly::IPAddressV6>(this->hasStandAloneRib, alpmInitState);
+  auto v6RibSize = getFibSize<folly::IPAddressV6>(alpmInitState);
   EXPECT_EQ(1, v6RibSize);
 
-  auto v4Default =
-      getDefaultRoute<IPAddressV4>(this->hasStandAloneRib, alpmInitState);
-  auto v6Default =
-      getDefaultRoute<IPAddressV6>(this->hasStandAloneRib, alpmInitState);
+  auto v4Default = getDefaultRoute<IPAddressV4>(alpmInitState);
+  auto v6Default = getDefaultRoute<IPAddressV6>(alpmInitState);
   auto assertNullRoute = [=](const auto& route) {
     EXPECT_NE(nullptr, route);
     EXPECT_TRUE(route->prefix().network.isZero());
@@ -105,30 +76,26 @@ TEST_F(AlpmUtilsTest, DefaultNullRoutesAddedOnEmptyState) {
   assertNullRoute(v6Default);
 }
 
-TEST_F(AlpmUtilsTest, DefaultNullRoutesNotReAdded) {
+TEST(AlpmUtilsTest, DefaultNullRoutesNotReAdded) {
   auto emptyState = std::make_shared<SwitchState>();
-  auto alpmInitState =
-      setupMinAlpmRouteState(this->hasStandAloneRib, emptyState);
-  auto alpmAgainState =
-      setupMinAlpmRouteState(this->hasStandAloneRib, alpmInitState);
+  auto alpmInitState = setupMinAlpmRouteState(true, emptyState);
+  auto alpmAgainState = setupMinAlpmRouteState(true, alpmInitState);
 
-  auto v4RibSize =
-      getFibSize<folly::IPAddressV4>(this->hasStandAloneRib, alpmAgainState);
+  auto v4RibSize = getFibSize<folly::IPAddressV4>(alpmAgainState);
   EXPECT_EQ(1, v4RibSize);
-  auto v6RibSize =
-      getFibSize<folly::IPAddressV6>(this->hasStandAloneRib, alpmAgainState);
+  auto v6RibSize = getFibSize<folly::IPAddressV6>(alpmAgainState);
   EXPECT_EQ(1, v6RibSize);
 }
 
-TEST_F(AlpmUtilsTest, minAlpmRouteCount) {
+TEST(AlpmUtilsTest, minAlpmRouteCount) {
   EXPECT_EQ(2, numMinAlpmRoutes());
 }
 
-TEST_F(AlpmUtilsTest, minAlpmV4RouteCount) {
+TEST(AlpmUtilsTest, minAlpmV4RouteCount) {
   EXPECT_EQ(1, numMinAlpmV4Routes());
 }
 
-TEST_F(AlpmUtilsTest, minAlpmV6RouteCount) {
+TEST(AlpmUtilsTest, minAlpmV6RouteCount) {
   EXPECT_EQ(1, numMinAlpmV6Routes());
 }
 
