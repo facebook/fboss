@@ -9,6 +9,7 @@
 #include "fboss/lib/phy/ExternalPhy.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
+#include <folly/json.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <cstdlib>
@@ -273,6 +274,49 @@ folly::dynamic PhyManager::getWarmbootState() const {
   }
   phyState[kPortToCacheInfoKey] = portToCacheInfoCache;
   return phyState;
+}
+
+void PhyManager::restoreFromWarmbootState(
+    const folly::dynamic& phyWarmbootState) {
+  if (phyWarmbootState.find(kPortToCacheInfoKey) ==
+      phyWarmbootState.items().end()) {
+    throw FbossError(
+        "Can't find ",
+        kPortToCacheInfoKey,
+        " in the phy warmboot state. Skip restoring portToCacheInfo_ map");
+  }
+
+  const auto& portToCacheInfoCache = phyWarmbootState[kPortToCacheInfoKey];
+  for (const auto& it : portToCacheInfo_) {
+    auto portID = static_cast<int>(it.first);
+    auto portIDStr = folly::to<std::string>(portID);
+    if (portToCacheInfoCache.find(portIDStr) ==
+        portToCacheInfoCache.items().end()) {
+      XLOG(WARN) << "Can't find port=" << portID
+                 << " in the phy warmboot portToCacheInfo map.";
+      continue;
+    }
+    const auto& portCacheInfo = portToCacheInfoCache[portIDStr];
+    if (portCacheInfo.find(kSystemLanesKey) == portCacheInfo.items().end() ||
+        portCacheInfo.find(kLineLanesKey) == portCacheInfo.items().end()) {
+      throw FbossError(
+          "Can't find the system and line lanes for port=",
+          portID,
+          " in the phy warmboot portToCacheInfo map.");
+    }
+    for (auto lane : portCacheInfo[kSystemLanesKey]) {
+      portToCacheInfo_[PortID(portID)]->systemLanes.push_back(
+          LaneID(lane.asInt()));
+    }
+    for (auto lane : portCacheInfo[kLineLanesKey]) {
+      portToCacheInfo_[PortID(portID)]->lineLanes.push_back(
+          LaneID(lane.asInt()));
+    }
+    XLOG(INFO) << "Restore port=" << portID
+               << ", systemLanes=" << portCacheInfo[kSystemLanesKey]
+               << ", lineLanes=" << portCacheInfo[kLineLanesKey]
+               << " from the phy warmboot state";
+  }
 }
 
 } // namespace facebook::fboss

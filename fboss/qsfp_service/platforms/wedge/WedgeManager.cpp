@@ -73,6 +73,14 @@ WedgeManager::WedgeManager(
     }
   }
   forceColdBoot_ = removeFile(forceColdBootFileName());
+
+  std::string warmBootJson;
+  if (folly::readFile(warmbootStateFileName().c_str(), warmBootJson)) {
+    qsfpServiceState_ = folly::parseJson(warmBootJson);
+  } else {
+    XLOG(INFO) << "Warmboot state filename:" << warmbootStateFileName()
+               << " doesn't exit.";
+  }
 }
 
 WedgeManager::~WedgeManager() {
@@ -867,6 +875,12 @@ bool WedgeManager::initExternalPhyMap() {
                       std::chrono::steady_clock::now() - begin)
                       .count()
                << " seconds";
+
+    if (warmboot &&
+        qsfpServiceState_.find(kPhyStateKey) !=
+            qsfpServiceState_.items().end()) {
+      phyManager_->restoreFromWarmbootState(qsfpServiceState_[kPhyStateKey]);
+    }
   } else {
     XLOG(WARN) << "Skip intializing pim xphy";
   }

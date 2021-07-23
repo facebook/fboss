@@ -109,6 +109,8 @@ class PhyManager {
   // warmboot state.
   folly::dynamic getWarmbootState() const;
 
+  void restoreFromWarmbootState(const folly::dynamic& phyWarmbootState);
+
  protected:
   const PlatformMapping* getPlatformMapping() {
     return platformMapping_;
