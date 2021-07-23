@@ -13,6 +13,13 @@
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <cstdlib>
 
+namespace {
+// Key of the portToCacheInfo map in warmboot state cache
+constexpr auto kPortToCacheInfoKey = "portToCacheInfo";
+constexpr auto kSystemLanesKey = "systemLanes";
+constexpr auto kLineLanesKey = "lineLanes";
+} // namespace
+
 namespace facebook::fboss {
 
 PhyManager::PhyManager(const PlatformMapping* platformMapping)
@@ -243,6 +250,29 @@ phy::PortPrbsState PhyManager::getPortPrbs(PortID portID, phy::Side side) {
     throw FbossError("Port:", portID, " xphy can't support PRBS");
   }
   return xphy->getPortPrbs(side, getCachedLanes(portID, side));
+}
+
+folly::dynamic PhyManager::getWarmbootState() const {
+  folly::dynamic phyState = folly::dynamic::object;
+  folly::dynamic portToCacheInfoCache = folly::dynamic::object;
+  // For now, we just need to cache the current system/line lanes
+  for (const auto& it : portToCacheInfo_) {
+    folly::dynamic portCacheInfo = folly::dynamic::object;
+    folly::dynamic systemLanes = folly::dynamic::array;
+    for (auto lane : it.second->systemLanes) {
+      systemLanes.push_back(static_cast<int>(lane));
+    }
+    folly::dynamic lineLanes = folly::dynamic::array;
+    for (auto lane : it.second->lineLanes) {
+      lineLanes.push_back(static_cast<int>(lane));
+    }
+    portCacheInfo[kSystemLanesKey] = systemLanes;
+    portCacheInfo[kLineLanesKey] = lineLanes;
+    portToCacheInfoCache[folly::to<std::string>(static_cast<int>(it.first))] =
+        portCacheInfo;
+  }
+  phyState[kPortToCacheInfoKey] = portToCacheInfoCache;
+  return phyState;
 }
 
 } // namespace facebook::fboss

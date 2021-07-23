@@ -16,7 +16,9 @@
 
 #include <fb303/ThreadCachedServiceData.h>
 
+#include <folly/FileUtil.h>
 #include <folly/gen/Base.h>
+#include <folly/json.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <chrono>
@@ -37,6 +39,8 @@ namespace {
 
 constexpr int kSecAfterModuleOutOfReset = 2;
 constexpr auto kForceColdBootFileName = "cold_boot_once_qsfp_service";
+constexpr auto kWarmbootStateFileName = "qsfp_service_state";
+constexpr auto kPhyStateKey = "phy";
 
 } // namespace
 
@@ -71,9 +75,29 @@ WedgeManager::WedgeManager(
   forceColdBoot_ = removeFile(forceColdBootFileName());
 }
 
+WedgeManager::~WedgeManager() {
+  // Store necessary information of qsfp_service state into the warmboot state
+  // file. This can be the lane id vector of each port from PhyManager or
+  // transciever info.
+  // Right now, we only need to store phy related info.
+  if (!phyManager_) {
+    return;
+  }
+  folly::dynamic qsfpServiceState = folly::dynamic::object;
+  qsfpServiceState[kPhyStateKey] = phyManager_->getWarmbootState();
+
+  folly::writeFile(
+      folly::toPrettyJson(qsfpServiceState), warmbootStateFileName().c_str());
+}
+
 std::string WedgeManager::forceColdBootFileName() {
   return folly::to<std::string>(
       FLAGS_qsfp_service_volatile_dir, "/", kForceColdBootFileName);
+}
+
+std::string WedgeManager::warmbootStateFileName() {
+  return folly::to<std::string>(
+      FLAGS_qsfp_service_volatile_dir, "/", kWarmbootStateFileName);
 }
 
 void WedgeManager::loadConfig() {

@@ -30,7 +30,7 @@ class WedgeManager : public TransceiverManager {
       std::unique_ptr<TransceiverPlatformApi> api,
       std::unique_ptr<PlatformMapping> platformMapping,
       PlatformMode mode);
-  ~WedgeManager() override {}
+  ~WedgeManager() override;
 
   void initTransceiverMap() override;
   void getTransceiversInfo(
@@ -155,6 +155,8 @@ class WedgeManager : public TransceiverManager {
   }
 
   static std::string forceColdBootFileName();
+
+  static std::string warmbootStateFileName();
 
  protected:
   virtual std::unique_ptr<TransceiverI2CApi> getI2CBus();
