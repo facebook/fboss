@@ -30,21 +30,6 @@ cfg::SwitchConfig getTestConfig();
 constexpr auto kExtraRoutes = 128 /*interface route*/ + 1 /*link local route*/;
 uint64_t getRouteCount(const std::shared_ptr<SwitchState>& state);
 
-template <typename AddrT>
-uint64_t getNewRouteCount(const StateDelta& delta) {
-  uint64_t newRoutes = 0;
-  using RouteT = Route<AddrT>;
-  for (const auto& rtDelta : delta.getRouteTablesDelta()) {
-    DeltaFunctions::forEachAdded(
-        rtDelta.template getRoutesDelta<AddrT>(),
-        [&newRoutes](const std::shared_ptr<RouteT>& /*addedRoute*/) {
-          ++newRoutes;
-        });
-  }
-  return newRoutes;
-}
-
-uint64_t getNewRouteCount(const StateDelta& delta);
 uint64_t getRouteCount(
     const utility::RouteDistributionGenerator::RouteChunks& routeChunks);
 uint64_t getRouteCount(

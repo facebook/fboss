@@ -69,11 +69,6 @@ cfg::SwitchConfig getTestConfig() {
   return cfg;
 }
 
-uint64_t getNewRouteCount(const StateDelta& delta) {
-  return getNewRouteCount<folly::IPAddressV6>(delta) +
-      getNewRouteCount<folly::IPAddressV4>(delta);
-}
-
 uint64_t getRouteCount(
     const utility::RouteDistributionGenerator::RouteChunks& routeChunks) {
   return getRouteCountImpl(routeChunks);
