@@ -364,30 +364,6 @@ shared_ptr<SwitchState> testStateA() {
   state->addIntf(intf55);
   vlan55->setInterfaceID(InterfaceID(55));
 
-  RouteUpdater updater(state->getRouteTables());
-  updater.addInterfaceAndLinkLocalRoutes(state->getInterfaces());
-
-  RouteNextHopSet nexthops;
-  // resolved by intf 1
-  nexthops.emplace(
-      UnresolvedNextHop(IPAddress("10.0.0.22"), UCMP_DEFAULT_WEIGHT));
-  // resolved by intf 1
-  nexthops.emplace(
-      UnresolvedNextHop(IPAddress("10.0.0.23"), UCMP_DEFAULT_WEIGHT));
-  // un-resolvable
-  nexthops.emplace(
-      UnresolvedNextHop(IPAddress("1.1.2.10"), UCMP_DEFAULT_WEIGHT));
-
-  updater.addRoute(
-      RouterID(0),
-      IPAddress("10.1.1.0"),
-      24,
-      ClientID(1001),
-      RouteNextHopEntry(nexthops, AdminDistance::MAX_ADMIN_DISTANCE));
-
-  auto newRt = updater.updateDone();
-  state->resetRouteTables(newRt);
-
   return state;
 }
 
@@ -442,10 +418,6 @@ shared_ptr<SwitchState> testStateB() {
   intf1->setAddresses(addrs1);
   state->addIntf(intf1);
   vlan1->setInterfaceID(InterfaceID(1));
-  RouteUpdater updater(state->getRouteTables());
-  updater.addInterfaceAndLinkLocalRoutes(state->getInterfaces());
-  auto newRt = updater.updateDone();
-  state->resetRouteTables(newRt);
   return state;
 }
 
