@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestTrunkUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -550,16 +551,12 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
                << packetsPerBurst << " packets";
   }
 
- private:
-  folly::Synchronized<pktReceivedCb, std::mutex> pktReceivedCallback_;
-  HwSwitchEnsemble::Features featuresDesired() const override {
-    return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX};
-  }
   /*
    * addCustomCpuQueueConfig() is a modified version of
    * utility::addCpuQueueConfig(), differences:
    *   1) CPU low pri queue is given the same weight as mid pri queue
    *   2) No rate limiting on queues
+   *   3) Optional param to specify ECN config on queue
    * The objective of the config is to make sure low priority queue
    * behaves just like the mid priority queue. Test here tries to
    * validate prioritization of CPU high priority queue traffic vs
@@ -570,8 +567,10 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
    * for all platforms, copying this traffic to low priority queue
    * and removing the rate limiting on low priority CPU queue.
    */
-  void addCustomCpuQueueConfig(cfg::SwitchConfig& config, const HwAsic* hwAsic)
-      const {
+  void addCustomCpuQueueConfig(
+      cfg::SwitchConfig& config,
+      const HwAsic* hwAsic,
+      bool addEcnConfig = false) const {
     std::vector<cfg::PortQueue> cpuQueues;
 
     cfg::PortQueue queue0;
@@ -581,6 +580,10 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
     queue0.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
     queue0.weight_ref() =
         utility::kCoppMidPriWeight; // Weight of mid priority queue
+    if (addEcnConfig) {
+      queue0.aqms_ref() = {};
+      queue0.aqms_ref()->push_back(utility::kGetOlympicEcnConfig());
+    }
     cpuQueues.push_back(queue0);
 
     cfg::PortQueue queue1;
@@ -589,6 +592,10 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
     queue1.streamType_ref() = utility::getCpuDefaultStreamType(hwAsic);
     queue1.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
     queue1.weight_ref() = utility::kCoppDefaultPriWeight;
+    if (addEcnConfig) {
+      queue1.aqms_ref() = {};
+      queue1.aqms_ref()->push_back(utility::kGetOlympicEcnConfig());
+    }
     cpuQueues.push_back(queue1);
 
     cfg::PortQueue queue2;
@@ -597,6 +604,10 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
     queue2.streamType_ref() = utility::getCpuDefaultStreamType(hwAsic);
     queue2.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
     queue2.weight_ref() = utility::kCoppMidPriWeight;
+    if (addEcnConfig) {
+      queue2.aqms_ref() = {};
+      queue2.aqms_ref()->push_back(utility::kGetOlympicEcnConfig());
+    }
     cpuQueues.push_back(queue2);
 
     cfg::PortQueue queue9;
@@ -605,9 +616,33 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
     queue9.streamType_ref() = utility::getCpuDefaultStreamType(hwAsic);
     queue9.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
     queue9.weight_ref() = utility::kCoppHighPriWeight;
+    if (addEcnConfig) {
+      queue9.aqms_ref() = {};
+      queue9.aqms_ref()->push_back(utility::kGetOlympicEcnConfig());
+    }
     cpuQueues.push_back(queue9);
 
     config.cpuQueues_ref() = cpuQueues;
+  }
+
+ private:
+  folly::Synchronized<pktReceivedCb, std::mutex> pktReceivedCallback_;
+  HwSwitchEnsemble::Features featuresDesired() const override {
+    return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX};
+  }
+};
+
+class HwCoppQueueStuckTest : public HwCoppQosTest {
+ protected:
+  cfg::SwitchConfig initialConfig() const override {
+    auto cfg = utility::twoL3IntfConfig(
+        getHwSwitch(),
+        masterLogicalPortIds()[0],
+        masterLogicalPortIds()[1],
+        cfg::PortLoopbackMode::MAC);
+    utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
+    addCustomCpuQueueConfig(cfg, getAsic(), true /*addEcnConfig*/);
+    return cfg;
   }
 };
 
@@ -1025,6 +1060,61 @@ TYPED_TEST(HwCoppTest, JumboFramesToQueues) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(HwCoppQueueStuckTest, CpuQueueHighRateTraffic) {
+  constexpr int kTestIterations = 6;
+  constexpr int kTestIterationWaitInSeconds = 5;
+
+  auto setup = [=]() { setupEcmpDataplaneLoop(); };
+
+  auto verify = [&]() {
+    const auto ipForLowPriorityQueue = folly::IPAddress("4::1");
+
+    // Create trap entry to punt data traffic to CPU low pri queue
+    auto ipAddress = folly::CIDRNetwork{ipForLowPriorityQueue, 128};
+    auto packetCapture = HwTestPacketTrapEntry(getHwSwitch(), ipAddress);
+
+    // Create dataplane loop with lowerPriority traffic on port0
+    auto baseVlan = utility::firstVlanID(initialConfig());
+    createLineRateTrafficOnPort(
+        masterLogicalPortIds()[0], baseVlan, ipForLowPriorityQueue);
+
+    bool lowPriorityTrafficMissing{false};
+    uint64_t previousLowPriorityPacketCount{};
+    /*
+     * Running the test for atleast kTestIterations. As we have
+     * traffic at close to line rate being received on CPU low
+     * priority queue, this is enough to validate possible queue
+     * stuck condition.
+     */
+    for (int iter = 0; iter < kTestIterations; iter++) {
+      std::this_thread::sleep_for(
+          std::chrono::seconds(kTestIterationWaitInSeconds));
+      // Read low priority copp queue counters
+      uint64_t lowPriorityPacketCount =
+          utility::getCpuQueueOutPacketsAndBytes(
+              getHwSwitch(), utility::kCoppLowPriQueueId)
+              .first;
+      XLOG(DBG0) << "Received packet count: " << lowPriorityPacketCount;
+      /*
+       * Make sure that COPP queue keeps moving! As we are sending
+       * close to line rate low priority packets, we dont expect it
+       * to be read without an increment.  Queue not incrementing in
+       * a single iteration is good enough to flag a stuck condition
+       * given each iteration waits long enough.
+       */
+      if (lowPriorityPacketCount == previousLowPriorityPacketCount) {
+        lowPriorityTrafficMissing = true;
+        break;
+      }
+      previousLowPriorityPacketCount = lowPriorityPacketCount;
+    }
+
+    EXPECT_FALSE(lowPriorityTrafficMissing);
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 TEST_F(HwCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
   constexpr int kReceiveRetriesInSeconds = 2;
   constexpr int kTransmitRetriesInSeconds = 5;
@@ -1089,7 +1179,6 @@ TEST_F(HwCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
         allHighPriorityPacketsSent,
         kTransmitRetriesInSeconds,
         std::chrono::milliseconds(std::chrono::seconds(1)));
-
     // Check high priority queue stats to see if all packets are received
     auto highPriorityCoppQueueStats = utility::getQueueOutPacketsWithRetry(
         getHwSwitch(),

@@ -14,15 +14,6 @@
 namespace facebook::fboss::utility {
 
 namespace {
-cfg::ActiveQueueManagement kGetOlympicEcnConfig() {
-  cfg::ActiveQueueManagement ecnAQM;
-  cfg::LinearQueueCongestionDetection ecnLQCD;
-  ecnLQCD.minimumLength_ref() = 41600;
-  ecnLQCD.maximumLength_ref() = 41600;
-  ecnAQM.detection_ref()->linear_ref() = ecnLQCD;
-  ecnAQM.behavior_ref() = cfg::QueueCongestionBehavior::ECN;
-  return ecnAQM;
-}
 cfg::ActiveQueueManagement kGetWredConfig() {
   cfg::ActiveQueueManagement wredAQM;
   cfg::LinearQueueCongestionDetection wredLQCD;
@@ -33,6 +24,16 @@ cfg::ActiveQueueManagement kGetWredConfig() {
   return wredAQM;
 }
 } // namespace
+
+cfg::ActiveQueueManagement kGetOlympicEcnConfig() {
+  cfg::ActiveQueueManagement ecnAQM;
+  cfg::LinearQueueCongestionDetection ecnLQCD;
+  ecnLQCD.minimumLength_ref() = 41600;
+  ecnLQCD.maximumLength_ref() = 41600;
+  ecnAQM.detection_ref()->linear_ref() = ecnLQCD;
+  ecnAQM.behavior_ref() = cfg::QueueCongestionBehavior::ECN;
+  return ecnAQM;
+}
 // XXX This is FSW config, add RSW config. Prefix queue names with portName
 void addOlympicQueueConfig(
     cfg::SwitchConfig* config,

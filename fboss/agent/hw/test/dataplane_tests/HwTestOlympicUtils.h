@@ -80,5 +80,6 @@ void addOlympicAllSPQosMaps(cfg::SwitchConfig& cfg);
 
 const std::map<int, std::vector<uint8_t>>& kOlympicAllSPQueueToDscp();
 const std::vector<int>& kOlympicAllSPQueueIds();
+cfg::ActiveQueueManagement kGetOlympicEcnConfig();
 
 } // namespace facebook::fboss::utility
