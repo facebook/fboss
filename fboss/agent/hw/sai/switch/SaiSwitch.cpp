@@ -573,12 +573,6 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
     processV6RoutesDelta(
         routerID, routeDelta.getFibDelta<folly::IPAddressV6>());
   }
-  for (const auto& routeDelta : delta.getRouteTablesDelta()) {
-    auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
-                                        : routeDelta.getNew()->getID();
-    processV4RoutesDelta(routerID, routeDelta.getRoutesV4Delta());
-    processV6RoutesDelta(routerID, routeDelta.getRoutesV6Delta());
-  }
   {
     auto controlPlaneDelta = delta.getControlPlaneDelta();
     if (*controlPlaneDelta.getOld() != *controlPlaneDelta.getNew()) {
