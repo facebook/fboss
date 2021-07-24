@@ -42,7 +42,7 @@ add_library(hw_copp_utils
 )
 
 target_link_libraries(hw_copp_utils
-  hw_switch_ensemble
+  switch_asics
   packet_factory
   Folly::folly
   resourcelibutil
