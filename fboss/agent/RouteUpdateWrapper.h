@@ -82,39 +82,21 @@ class RouteUpdateWrapper {
   RoutingInformationBase* getRib() {
     return rib_;
   }
-  virtual void programLegacyRib(const SyncFibFor& syncFibFor) = 0;
   void printStats(const UpdateStatistics& stats) const;
   void programStandAloneRib(const SyncFibFor& syncFibFor);
   virtual void updateStats(const UpdateStatistics& stats) = 0;
   virtual AdminDistance clientIdToAdminDistance(ClientID clientID) const = 0;
-  virtual void programClassIDLegacyRib(
-      RouterID rid,
-      const std::vector<folly::CIDRNetwork>& prefixes,
-      std::optional<cfg::AclLookupClass> classId,
-      bool async) = 0;
-  void programClassIDStandAloneRib(
-      RouterID rid,
-      const std::vector<folly::CIDRNetwork>& prefixes,
-      std::optional<cfg::AclLookupClass> classId,
-      bool async);
 
  protected:
-  std::shared_ptr<SwitchState> updateClassIdLegacyRibHelper(
-      const std::shared_ptr<SwitchState>& in,
-      RouterID rid,
-      const std::vector<folly::CIDRNetwork>& prefixes,
-      std::optional<cfg::AclLookupClass> classId);
-  std::pair<std::shared_ptr<SwitchState>, UpdateStatistics>
-  programLegacyRibHelper(
-      const std::shared_ptr<SwitchState>& in,
-      const SyncFibFor& syncFibFor) const;
   RouteUpdateWrapper(
       RoutingInformationBase* rib,
       std::optional<FibUpdateFunction> fibUpdateFn,
       void* fibUpdateCookie)
       : rib_(rib),
         fibUpdateFn_(fibUpdateFn),
-        fibUpdateCookie_(fibUpdateCookie) {}
+        fibUpdateCookie_(fibUpdateCookie) {
+    CHECK(rib_ && fibUpdateFn_ && fibUpdateCookie_);
+  }
 
   RouteUpdateWrapper(RouteUpdateWrapper&&) = default;
   RouteUpdateWrapper& operator=(RouteUpdateWrapper&&) = default;

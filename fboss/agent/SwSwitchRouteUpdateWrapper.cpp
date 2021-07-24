@@ -51,34 +51,9 @@ void SwSwitchRouteUpdateWrapper::updateStats(
   sw_->stats()->delRoutesV6(stats.v6RoutesDeleted);
 }
 
-void SwSwitchRouteUpdateWrapper::programLegacyRib(
-    const SyncFibFor& syncFibFor) {
-  auto updateFn = [this, &syncFibFor](const std::shared_ptr<SwitchState>& in) {
-    auto [newState, stats] = programLegacyRibHelper(in, syncFibFor);
-    updateStats(stats);
-    return newState;
-  };
-  sw_->updateStateWithHwFailureProtection("Add/Del routes", updateFn);
-}
-
 AdminDistance SwSwitchRouteUpdateWrapper::clientIdToAdminDistance(
     ClientID clientID) const {
   return sw_->clientIdToAdminDistance(static_cast<int>(clientID));
 }
 
-void SwSwitchRouteUpdateWrapper::programClassIDLegacyRib(
-    RouterID rid,
-    const std::vector<folly::CIDRNetwork>& prefixes,
-    std::optional<cfg::AclLookupClass> classId,
-    bool async) {
-  auto updateFn =
-      [this, rid, prefixes, classId](const std::shared_ptr<SwitchState>& in) {
-        return updateClassIdLegacyRibHelper(in, rid, prefixes, classId);
-      };
-  if (async) {
-    sw_->updateState("Update classId routes, async", updateFn);
-  } else {
-    sw_->updateStateBlocking("Update classId routes", updateFn);
-  }
-}
 } // namespace facebook::fboss

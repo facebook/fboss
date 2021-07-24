@@ -75,24 +75,13 @@ void RouteUpdateWrapper::program(const SyncFibFor& syncFibFor) {
       ribRoutesToAddDel_[ridAndClient] = AddDelRoutes{};
     }
   }
-  if (!rib_ && configRoutes_) {
-    throw FbossError(
-        "Applying route config via RouteUpdateWrapper not "
-        "supported for legacy rib");
-  }
-  if (rib_) {
-    programStandAloneRib(syncFibFor);
-  } else {
-    programLegacyRib(syncFibFor);
-  }
+  programStandAloneRib(syncFibFor);
   ribRoutesToAddDel_.clear();
   configRoutes_.reset();
 }
 
 void RouteUpdateWrapper::programMinAlpmState() {
-  if (rib_) {
-    getRib()->ensureVrf(RouterID(0));
-  }
+  getRib()->ensureVrf(RouterID(0));
   addRoute(
       RouterID(0),
       folly::IPAddressV4("0.0.0.0"),
@@ -108,86 +97,6 @@ void RouteUpdateWrapper::programMinAlpmState() {
       RouteNextHopEntry(
           RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
   program();
-}
-
-std::pair<std::shared_ptr<SwitchState>, RouteUpdateWrapper::UpdateStatistics>
-RouteUpdateWrapper::programLegacyRibHelper(
-    const std::shared_ptr<SwitchState>& in,
-    const SyncFibFor& syncFibFor) const {
-  UpdateStatistics stats;
-  auto state = in->clone();
-  RouteUpdater updater(state->getRouteTables());
-  for (auto [ridClientId, addDelRoutes] : ribRoutesToAddDel_) {
-    if (ridClientId.first != RouterID(0)) {
-      throw FbossError("Multi-VRF only supported with Stand-Alone RIB");
-    }
-    auto adminDistance = clientIdToAdminDistance(ridClientId.second);
-    auto& toAdd = addDelRoutes.toAdd;
-    auto& toDel = addDelRoutes.toDel;
-    RouterID routerId = ridClientId.first;
-    ClientID clientId = ridClientId.second;
-    if (syncFibFor.find(ridClientId) != syncFibFor.end()) {
-      updater.removeAllRoutesForClient(routerId, clientId);
-    }
-    for (auto& route : toAdd) {
-      std::vector<NextHopThrift> nhts;
-      folly::IPAddress network =
-          network::toIPAddress(*route.dest_ref()->ip_ref());
-      uint8_t mask =
-          static_cast<uint8_t>(*route.dest_ref()->prefixLength_ref());
-      if (route.nextHops_ref()->empty() && !route.nextHopAddrs_ref()->empty()) {
-        nhts = thriftNextHopsFromAddresses(*route.nextHopAddrs_ref());
-      } else {
-        nhts = *route.nextHops_ref();
-      }
-      RouteNextHopSet nexthops = util::toRouteNextHopSet(nhts);
-      if (nexthops.size()) {
-        updater.addRoute(
-            routerId,
-            network,
-            mask,
-            clientId,
-            RouteNextHopEntry(std::move(nexthops), adminDistance));
-      } else {
-        XLOG(DBG3) << "Blackhole route:" << network << "/"
-                   << static_cast<int>(mask);
-        updater.addRoute(
-            routerId,
-            network,
-            mask,
-            clientId,
-            RouteNextHopEntry(
-                route.action_ref() ? *route.action_ref()
-                                   : RouteForwardAction::DROP,
-                adminDistance));
-      }
-      if (network.isV4()) {
-        ++stats.v4RoutesAdded;
-      } else {
-        ++stats.v6RoutesAdded;
-      }
-    }
-    // Del routes
-    for (auto& prefix : toDel) {
-      auto network = network::toIPAddress(*prefix.ip_ref());
-      auto mask = static_cast<uint8_t>(*prefix.prefixLength_ref());
-      if (network.isV4()) {
-        ++stats.v4RoutesDeleted;
-      } else {
-        ++stats.v6RoutesDeleted;
-      }
-      updater.delRoute(routerId, network, mask, clientId);
-    }
-  }
-
-  auto newRt = updater.updateDone();
-  if (!newRt) {
-    return {std::shared_ptr<SwitchState>(), stats};
-  }
-  newRt->publish();
-  state->resetRouteTables(std::move(newRt));
-  printStats(stats);
-  return {state, stats};
 }
 
 void RouteUpdateWrapper::printStats(const UpdateStatistics& stats) const {
@@ -229,18 +138,6 @@ void RouteUpdateWrapper::programClassID(
     const std::vector<folly::CIDRNetwork>& prefixes,
     std::optional<cfg::AclLookupClass> classId,
     bool async) {
-  if (rib_) {
-    programClassIDStandAloneRib(rid, prefixes, classId, async);
-  } else {
-    programClassIDLegacyRib(rid, prefixes, classId, async);
-  }
-}
-
-void RouteUpdateWrapper::programClassIDStandAloneRib(
-    RouterID rid,
-    const std::vector<folly::CIDRNetwork>& prefixes,
-    std::optional<cfg::AclLookupClass> classId,
-    bool async) {
   if (async) {
     getRib()->setClassIDAsync(
         rid, prefixes, *fibUpdateFn_, classId, fibUpdateCookie_);
@@ -248,40 +145,6 @@ void RouteUpdateWrapper::programClassIDStandAloneRib(
     getRib()->setClassID(
         rid, prefixes, *fibUpdateFn_, classId, fibUpdateCookie_);
   }
-}
-
-std::shared_ptr<SwitchState> RouteUpdateWrapper::updateClassIdLegacyRibHelper(
-    const std::shared_ptr<SwitchState>& in,
-    RouterID rid,
-    const std::vector<folly::CIDRNetwork>& prefixes,
-    std::optional<cfg::AclLookupClass> classId) {
-  auto newState{in};
-
-  auto updateClassId = [classId](auto rib, auto& prefix) {
-    auto route = rib->routes()->getRouteIf(prefix);
-    if (route && route->getClassID() != classId) {
-      route = route->clone();
-      route->updateClassID(classId);
-      rib->updateRoute(route);
-    }
-  };
-  for (const auto& cidr : prefixes) {
-    auto routeTables = newState->getRouteTables();
-    auto routeTable = routeTables->getRouteTable(rid);
-
-    if (cidr.first.isV6()) {
-      RoutePrefix<folly::IPAddressV6> routePrefixV6{
-          cidr.first.asV6(), cidr.second};
-      auto rib = routeTable->getRibV6()->modify(rid, &newState);
-      updateClassId(rib, routePrefixV6);
-    } else {
-      RoutePrefix<folly::IPAddressV4> routePrefixV4{
-          cidr.first.asV4(), cidr.second};
-      auto rib = routeTable->getRibV4()->modify(rid, &newState);
-      updateClassId(rib, routePrefixV4);
-    }
-  }
-  return newState;
 }
 
 void RouteUpdateWrapper::setRoutesToConfig(
