@@ -18,11 +18,6 @@
 #include "fboss/agent/state/NodeMapDelta-defs.h"
 #include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/Route.h"
-#include "fboss/agent/state/RouteDelta.h"
-#include "fboss/agent/state/RouteTable.h"
-#include "fboss/agent/state/RouteTableMap.h"
-#include "fboss/agent/state/RouteTableRib.h"
-#include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState-defs.h"
@@ -44,30 +39,6 @@ using ::testing::Return;
 //
 // Helper functions
 //
-
-template <typename AddrT>
-void EXPECT_NODEMAP_MATCH(const std::shared_ptr<RouteTableRib<AddrT>>& rib) {
-  const auto& radixTree = rib->routesRadixTree();
-  EXPECT_EQ(rib->size(), radixTree.size());
-  for (const auto& route : *(rib->routes())) {
-    auto match =
-        radixTree.exactMatch(route->prefix().network, route->prefix().mask);
-    ASSERT_NE(match, radixTree.end());
-    // should be the same shared_ptr
-    EXPECT_EQ(route, match->value());
-  }
-}
-
-void EXPECT_NODEMAP_MATCH(const std::shared_ptr<RouteTableMap>& routeTables) {
-  for (const auto& rt : *routeTables) {
-    if (rt->getRibV4()) {
-      EXPECT_NODEMAP_MATCH<IPAddressV4>(rt->getRibV4());
-    }
-    if (rt->getRibV6()) {
-      EXPECT_NODEMAP_MATCH<IPAddressV6>(rt->getRibV6());
-    }
-  }
-}
 
 //
 // Tests
