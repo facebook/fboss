@@ -100,39 +100,13 @@ std::shared_ptr<ForwardingInformationBaseMap> fibFromStandaloneRib(
 void handleStandaloneRIBTransition(
     const folly::dynamic& switchStateJson,
     HwInitResult& ret) {
-  std::unique_ptr<RoutingInformationBase> deserializedRIB;
   if (switchStateJson.find(kRib) != switchStateJson.items().end()) {
-    deserializedRIB = RoutingInformationBase::fromFollyDynamic(
+    ret.rib = RoutingInformationBase::fromFollyDynamic(
         switchStateJson[kRib], ret.switchState->getFibs());
+  } else {
+    ret.rib = std::make_unique<RoutingInformationBase>();
   }
   ret.switchState = ret.switchState->clone();
-  if (FLAGS_enable_standalone_rib) {
-    if (deserializedRIB) {
-      // Common case - deser rib was successful
-      ret.rib = std::move(deserializedRIB);
-
-    } else {
-      // Transitioning from no standalone RIB to standalone RIB
-      // 1. Reconstruct new RIB from old rib
-      // 2. Build FIB from RIB
-      ret.rib = switchStateToStandaloneRib(ret.switchState->getRouteTables());
-      ret.switchState->resetForwardingInformationBases(
-          fibFromStandaloneRib(*ret.rib));
-    }
-    // reset old rib route tables
-    ret.switchState->resetRouteTables(std::make_shared<RouteTableMap>());
-
-  } else {
-    if (deserializedRIB) {
-      // Transitioning from standalone RIB to no standalone RIB
-      // Emergency rollback + canary on/off handling
-      ret.switchState->resetRouteTables(
-          standaloneToSwitchStateRib(*deserializedRIB));
-      ret.switchState->resetForwardingInformationBases(
-          std::make_shared<ForwardingInformationBaseMap>());
-    }
-    ret.rib = nullptr;
-  }
   ret.switchState->publish();
 }
 } // namespace facebook::fboss
