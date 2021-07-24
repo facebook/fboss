@@ -266,15 +266,16 @@ TEST(StaticRoutes, MplsStaticRoutes) {
   nexthops[0].address_ref() =
       toBinaryAddress(folly::IPAddress("fe80:abcd:1234:dcab::1"));
   config0.staticMplsRoutesWithNhops_ref()[0].nexthops_ref() = nexthops;
+  RoutingInformationBase rib;
   EXPECT_THROW(
-      publishAndApplyConfig(stateV0, &config0, platform.get(), nullptr),
+      publishAndApplyConfig(stateV0, &config0, platform.get(), &rib),
       FbossError);
 
   // try to set non-link local without interface and unreachable via interface
   nexthops[0].address_ref() = toBinaryAddress(folly::IPAddress("2::1"));
   config0.staticMplsRoutesWithNhops_ref()[0].nexthops_ref() = nexthops;
   EXPECT_THROW(
-      publishAndApplyConfig(stateV0, &config0, platform.get(), nullptr),
+      publishAndApplyConfig(stateV0, &config0, platform.get(), &rib),
       FbossError);
 
   // setup link local with interface and non-link local without interface
@@ -288,8 +289,7 @@ TEST(StaticRoutes, MplsStaticRoutes) {
   nexthops[1].mplsAction_ref() = swap;
   nexthops[1].address_ref() = toBinaryAddress(folly::IPAddress("1::10"));
   config0.staticMplsRoutesWithNhops_ref()[0].nexthops_ref() = nexthops;
-  auto stateV1 =
-      publishAndApplyConfig(stateV0, &config0, platform.get(), nullptr);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config0, platform.get(), &rib);
 
   // setup non-link local with interface, still valid
   nexthops.resize(3);
@@ -297,5 +297,5 @@ TEST(StaticRoutes, MplsStaticRoutes) {
   nexthops[2].mplsAction_ref() = swap;
   nexthops[2].address_ref() = toBinaryAddress(folly::IPAddress("2::1"));
   nexthops[0].address_ref()->ifName_ref() = *intfConfig->name_ref();
-  publishAndApplyConfig(stateV1, &config0, platform.get(), nullptr);
+  publishAndApplyConfig(stateV1, &config0, platform.get(), &rib);
 }

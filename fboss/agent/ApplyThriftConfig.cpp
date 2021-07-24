@@ -277,7 +277,6 @@ class ThriftConfigApplier {
   bool updateNeighborResponseTables(Vlan* vlan, const cfg::Vlan* config);
   bool updateDhcpOverrides(Vlan* vlan, const cfg::Vlan* config);
   std::shared_ptr<InterfaceMap> updateInterfaces();
-  std::shared_ptr<RouteTableMap> updateInterfaceRoutes();
   std::shared_ptr<RouteTableMap> syncStaticRoutes(
       const std::shared_ptr<RouteTableMap>& routes);
   shared_ptr<Interface> createInterface(
@@ -471,46 +470,25 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
         *cfg_->staticRoutesToNull_ref(),
         *cfg_->staticRoutesToCPU_ref(),
         *cfg_->staticIp2MplsRoutes_ref());
-  } else {
-    if (rib_) {
-      auto newFibs = updateForwardingInformationBaseContainers();
-      if (newFibs) {
-        new_->resetForwardingInformationBases(newFibs);
-        changed = true;
-      }
-
-      rib_->reconfigure(
-          intfRouteTables_,
-          *cfg_->staticRoutesWithNhops_ref(),
-          *cfg_->staticRoutesToNull_ref(),
-          *cfg_->staticRoutesToCPU_ref(),
-          *cfg_->staticIp2MplsRoutes_ref(),
-          &updateFibFromConfig,
-          static_cast<void*>(&new_));
-    } else {
-      // Note: updateInterfaces() must be called before updateInterfaceRoutes(),
-      // as updateInterfaces() populates the intfRouteTables_ data structure.
-      // Also, updateInterfaceRoutes() should be the first call for updating
-      // RouteTable as this will take the RouteTable from orig_ and add
-      // Interface routes. Calling this after other RouteTable updates will
-      // result in other routes getting removed during updateInterfaceRoutes()
-
-      auto newTables = updateInterfaceRoutes();
-      if (newTables) {
-        new_->resetRouteTables(newTables);
-        changed = true;
-      }
-
-      // Retrieve RouteTableMap from new_ as this will have
-      // all the routes updated until now. Pass this to syncStaticRoutes
-      // so that routes added until now would not be excluded.
-      auto updatedRoutes = new_->getRouteTables();
-      auto newerTables = syncStaticRoutes(updatedRoutes);
-      if (newerTables) {
-        new_->resetRouteTables(std::move(newerTables));
-        changed = true;
-      }
+  } else if (rib_) {
+    auto newFibs = updateForwardingInformationBaseContainers();
+    if (newFibs) {
+      new_->resetForwardingInformationBases(newFibs);
+      changed = true;
     }
+
+    rib_->reconfigure(
+        intfRouteTables_,
+        *cfg_->staticRoutesWithNhops_ref(),
+        *cfg_->staticRoutesToNull_ref(),
+        *cfg_->staticRoutesToCPU_ref(),
+        *cfg_->staticIp2MplsRoutes_ref(),
+        &updateFibFromConfig,
+        static_cast<void*>(&new_));
+  } else {
+    // switch state UTs don't necessary care about RIB updates
+    XLOG(WARNING)
+        << " Ignoring config updates to rib, should never happen outside of tests";
   }
 
   // resolving mpls next hops may need interfaces to be setup
@@ -2197,65 +2175,6 @@ bool ThriftConfigApplier::updateNeighborResponseTables(
     vlan->setNdpResponseTable(origNdp->clone(std::move(ndpTable)));
   }
   return changed;
-}
-
-shared_ptr<RouteTableMap> ThriftConfigApplier::updateInterfaceRoutes() {
-  flat_set<RouterID> newToAddTables;
-  flat_set<RouterID> oldToDeleteTables;
-  RouteUpdater updater(orig_->getRouteTables());
-  // add or update the interface routes
-  for (const auto& table : intfRouteTables_) {
-    for (const auto& entry : table.second) {
-      auto intf = entry.second.first;
-      const auto& addr = entry.second.second;
-      auto len = entry.first.second;
-      auto nhop = ResolvedNextHop(addr, intf, UCMP_DEFAULT_WEIGHT);
-      updater.addRoute(
-          table.first,
-          addr,
-          len,
-          ClientID::INTERFACE_ROUTE,
-          RouteNextHopEntry(
-              std::move(nhop), AdminDistance::DIRECTLY_CONNECTED));
-    }
-    newToAddTables.insert(table.first);
-  }
-
-  // need to go through all existing connected routes and delete those
-  // not there anymore
-  for (const auto& intf : orig_->getInterfaces()->getAllNodes()) {
-    auto id = intf.second->getRouterID();
-    auto iter = intfRouteTables_.find(id);
-    if (iter == intfRouteTables_.end()) {
-      // if the old router ID does not exist any more, need to remove the
-      // v6 link local route from it.
-      oldToDeleteTables.insert(id);
-    }
-    for (const auto& addr : intf.second->getAddresses()) {
-      auto prefix = std::make_pair(addr.first.mask(addr.second), addr.second);
-      bool found = false;
-      if (iter != intfRouteTables_.end()) {
-        const auto& newAddrs = iter->second;
-        auto iter2 = newAddrs.find(prefix);
-        if (iter2 != newAddrs.end()) {
-          found = true;
-        }
-      }
-      if (!found) {
-        updater.delRoute(
-            id, addr.first, addr.second, ClientID::INTERFACE_ROUTE);
-      }
-    }
-  }
-  // delete v6 link route from no long existing router ID
-  for (auto id : oldToDeleteTables) {
-    updater.delLinkLocalRoutes(id);
-  }
-  // add v6 link route to the new router
-  for (auto id : newToAddTables) {
-    updater.addLinkLocalRoutes(id);
-  }
-  return updater.updateDone();
 }
 
 /**
