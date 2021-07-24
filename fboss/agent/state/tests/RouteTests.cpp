@@ -80,56 +80,6 @@ void EXPECT_NODEMAP_MATCH(const std::shared_ptr<RouteTableMap>& routeTables) {
 
 constexpr AdminDistance DISTANCE = AdminDistance::MAX_ADMIN_DISTANCE;
 
-std::shared_ptr<SwitchState> applyInitConfig() {
-  auto platform = createMockPlatform();
-  auto stateV0 = make_shared<SwitchState>();
-  auto tablesV0 = stateV0->getRouteTables();
-
-  cfg::SwitchConfig config;
-  config.vlans_ref()->resize(4);
-  *config.vlans_ref()[0].id_ref() = 1;
-  *config.vlans_ref()[1].id_ref() = 2;
-  *config.vlans_ref()[2].id_ref() = 3;
-  *config.vlans_ref()[3].id_ref() = 4;
-
-  config.interfaces_ref()->resize(4);
-  *config.interfaces_ref()[0].intfID_ref() = 1;
-  *config.interfaces_ref()[0].vlanID_ref() = 1;
-  *config.interfaces_ref()[0].routerID_ref() = 0;
-  config.interfaces_ref()[0].mac_ref() = "00:00:00:00:00:11";
-  config.interfaces_ref()[0].ipAddresses_ref()->resize(2);
-  config.interfaces_ref()[0].ipAddresses_ref()[0] = "1.1.1.1/24";
-  config.interfaces_ref()[0].ipAddresses_ref()[1] = "1::1/48";
-
-  *config.interfaces_ref()[1].intfID_ref() = 2;
-  *config.interfaces_ref()[1].vlanID_ref() = 2;
-  *config.interfaces_ref()[1].routerID_ref() = 0;
-  config.interfaces_ref()[1].mac_ref() = "00:00:00:00:00:22";
-  config.interfaces_ref()[1].ipAddresses_ref()->resize(2);
-  config.interfaces_ref()[1].ipAddresses_ref()[0] = "2.2.2.2/24";
-  config.interfaces_ref()[1].ipAddresses_ref()[1] = "2::1/48";
-
-  *config.interfaces_ref()[2].intfID_ref() = 3;
-  *config.interfaces_ref()[2].vlanID_ref() = 3;
-  *config.interfaces_ref()[2].routerID_ref() = 0;
-  config.interfaces_ref()[2].mac_ref() = "00:00:00:00:00:33";
-  config.interfaces_ref()[2].ipAddresses_ref()->resize(2);
-  config.interfaces_ref()[2].ipAddresses_ref()[0] = "3.3.3.3/24";
-  config.interfaces_ref()[2].ipAddresses_ref()[1] = "3::1/48";
-
-  *config.interfaces_ref()[3].intfID_ref() = 4;
-  *config.interfaces_ref()[3].vlanID_ref() = 4;
-  *config.interfaces_ref()[3].routerID_ref() = 0;
-  config.interfaces_ref()[3].mac_ref() = "00:00:00:00:00:44";
-  config.interfaces_ref()[3].ipAddresses_ref()->resize(2);
-  config.interfaces_ref()[3].ipAddresses_ref()[0] = "4.4.4.4/24";
-  config.interfaces_ref()[3].ipAddresses_ref()[1] = "4::1/48";
-
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
-  stateV1->publish();
-  return stateV1;
-}
-
 // Utility function for creating a nexthops list of size n,
 // starting with the prefix.  For prefix "1.1.1.", first
 // IP in the list will be 1.1.1.10
@@ -397,68 +347,6 @@ TEST(Route, nextHopTest) {
   EXPECT_FALSE(rnh < unh && unh < rnh);
   EXPECT_TRUE(rnh < unh || unh < rnh);
   EXPECT_TRUE(unh < rnh && rnh > unh);
-}
-
-TEST(Route, nodeMapMatchesRadixTree) {
-  auto stateV1 = applyInitConfig();
-  ASSERT_NE(nullptr, stateV1);
-  auto tables1 = stateV1->getRouteTables();
-
-  auto rid = RouterID(0);
-  RouteNextHopSet nhop1 = makeNextHops({"1.1.1.10"}); // resolved by intf 1
-  RouteNextHopSet nhop2 = makeNextHops({"2.2.2.10"}); // resolved by intf 2
-  RouteNextHopSet nonResolvedHops = makeNextHops({"1.1.3.10"}); // Non-resolved
-
-  RouteV4::Prefix r1{IPAddressV4("10.1.1.0"), 24};
-  RouteV4::Prefix r2{IPAddressV4("20.1.1.0"), 24};
-  RouteV6::Prefix r3{IPAddressV6("1001::0"), 48};
-  RouteV6::Prefix r4{IPAddressV6("2001::0"), 48};
-  RouteV4::Prefix r5{IPAddressV4("8.8.8.0"), 24};
-  RouteV4::Prefix r6{IPAddressV4("1.1.3.0"), 24};
-
-  // add route case
-  RouteUpdater u1(tables1);
-  u1.addRoute(
-      rid, r1.network, r1.mask, CLIENT_A, RouteNextHopEntry(nhop1, DISTANCE));
-  u1.addRoute(
-      rid, r2.network, r2.mask, CLIENT_A, RouteNextHopEntry(nhop2, DISTANCE));
-  u1.addRoute(
-      rid, r3.network, r3.mask, CLIENT_A, RouteNextHopEntry(nhop1, DISTANCE));
-  u1.addRoute(
-      rid, r4.network, r4.mask, CLIENT_A, RouteNextHopEntry(nhop2, DISTANCE));
-  u1.addRoute(
-      rid,
-      r5.network,
-      r5.mask,
-      CLIENT_A,
-      RouteNextHopEntry(nonResolvedHops, DISTANCE));
-  auto tables2 = u1.updateDone();
-  ASSERT_NE(nullptr, tables2);
-  // check every node in nodeMap_ also matches node in rib_, and every node
-  // should be published after the routeTable is published
-  EXPECT_NODEMAP_MATCH(tables2);
-  // make sure new change won't affect the initial state
-  EXPECT_NO_ROUTE(tables1, rid, r5.str());
-
-  // del route case
-  RouteUpdater u2(tables2);
-  u2.delRoute(rid, r2.network, r2.mask, CLIENT_A);
-  auto tables3 = u2.updateDone();
-  ASSERT_NE(nullptr, tables3);
-  EXPECT_NODEMAP_MATCH(tables3);
-
-  // update route case, resolve previous nonResolved route with prefix r5
-  RouteUpdater u3(tables3);
-  u3.addRoute(
-      rid, r6.network, r6.mask, CLIENT_A, RouteNextHopEntry(nhop1, DISTANCE));
-  auto tables4 = u3.updateDone();
-  EXPECT_NODEMAP_MATCH(tables4);
-  ASSERT_NE(nullptr, tables4);
-  // make sure new change won't affect the initial state
-  EXPECT_NO_ROUTE(tables1, rid, r6.str());
-  // both r5 and r6 should be unpublished now
-  ASSERT_FALSE(GET_ROUTE_V4(tables4, rid, r5)->isPublished());
-  ASSERT_FALSE(GET_ROUTE_V4(tables4, rid, r6)->isPublished());
 }
 
 TEST(Route, nexthopFromThriftAndDynamic) {
