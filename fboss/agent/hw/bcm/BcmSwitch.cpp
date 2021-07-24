@@ -2383,8 +2383,7 @@ void BcmSwitch::processRouteTableDelta(
           id,
           prefix.toCidrNetwork(),
           delta.oldState());
-      SwitchState::revertNewRouteEntry(
-          FLAGS_enable_standalone_rib, id, newRoute, oldRoute, appliedState);
+      SwitchState::revertNewRouteEntry(id, newRoute, oldRoute, appliedState);
     }
   }
 }

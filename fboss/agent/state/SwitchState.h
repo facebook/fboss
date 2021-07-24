@@ -198,7 +198,6 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
 
   template <typename AddressT>
   static void revertNewRouteEntry(
-      bool isStandaloneRib,
       const RouterID& id,
       const std::shared_ptr<Route<AddressT>>& newRoute,
       const std::shared_ptr<Route<AddressT>>& oldRoute,

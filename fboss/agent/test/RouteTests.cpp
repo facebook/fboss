@@ -1162,7 +1162,7 @@ TEST_F(RouteTest, PruneAddedRoutes) {
   EXPECT_TRUE(newRouteEntry->isPublished());
   auto revertState = this->sw_->getState();
   SwitchState::revertNewRouteEntry<IPAddressV4>(
-      true /*standalone rib*/, rid0, newRouteEntry, nullptr, &revertState);
+      rid0, newRouteEntry, nullptr, &revertState);
   // Make sure that state3 changes as a result of pruning
   auto remainingRouteEntry = findRoute<IPAddressV4>(
       true /*standalone rib*/, rid0, prefix1.toCidrNetwork(), revertState);
@@ -1234,8 +1234,7 @@ TEST_F(RouteTest, PruneChangedRoutes) {
   //  ... revert route for prefix42
   // state4
   auto revertState = this->sw_->getState();
-  SwitchState::revertNewRouteEntry(
-      true /*standalone rib*/, rid0, newEntry, oldEntry, &revertState);
+  SwitchState::revertNewRouteEntry(rid0, newEntry, oldEntry, &revertState);
 
   auto revertedEntry = findRoute<IPAddressV6>(
       true /*standalone rib*/, rid0, prefix42.toCidrNetwork(), revertState);

@@ -43,36 +43,19 @@ void SwitchState::revertNewNeighborEntry(
 
 template <typename AddressT>
 void SwitchState::revertNewRouteEntry(
-    bool isStandAloneRib,
     const RouterID& id,
     const std::shared_ptr<Route<AddressT>>& newRoute,
     const std::shared_ptr<Route<AddressT>>& oldRoute,
     std::shared_ptr<SwitchState>* appliedState) {
-  if (isStandAloneRib) {
-    auto clonedFib = (*appliedState)
-                         ->getFibs()
-                         ->getFibContainer(id)
-                         ->template getFib<AddressT>()
-                         ->modify(id, appliedState);
-    if (oldRoute) {
-      clonedFib->updateNode(oldRoute);
-    } else {
-      clonedFib->removeNode(newRoute);
-    }
+  auto clonedFib = (*appliedState)
+                       ->getFibs()
+                       ->getFibContainer(id)
+                       ->template getFib<AddressT>()
+                       ->modify(id, appliedState);
+  if (oldRoute) {
+    clonedFib->updateNode(oldRoute);
   } else {
-    auto rib = (*appliedState)
-                   ->getRouteTables()
-                   ->getRouteTable(id)
-                   ->template getRib<AddressT>();
-    auto clonedRib = rib->modify(id, appliedState);
-    if (oldRoute) {
-      clonedRib->updateRoute(oldRoute);
-      clonedRib->updateRouteInRadixTree(oldRoute);
-    } else {
-      clonedRib->removeRoute(newRoute);
-      clonedRib->removeRouteInRadixTree(newRoute);
-    }
-    CHECK_EQ(clonedRib->size(), clonedRib->writableRoutesRadixTree().size());
+    clonedFib->removeNode(newRoute);
   }
 }
 
