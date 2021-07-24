@@ -135,7 +135,7 @@ class HwPortProfileTest : public HwTest {
     auto platformMode =
         getHwQsfpEnsemble()->getWedgeManager()->getPlatformMode();
     const auto& ports =
-        utility::findAvailablePorts(getHwQsfpEnsemble(), Profile);
+        utility::findAvailablePorts(getHwQsfpEnsemble(), Profile, true);
     EXPECT_TRUE(!(ports.xphyPorts.empty() && ports.iphyPorts.empty()));
     WedgeManager::PortMap portMap;
     std::vector<PortID> matchingPorts;

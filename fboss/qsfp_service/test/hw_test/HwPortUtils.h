@@ -50,11 +50,13 @@ PortStatus getPortStatus(PortID portId, const HwQsfpEnsemble* ensemble);
 // Find the available iphy ports and xphy ports from agent config.
 // If profile is set, we will also filter the ports based on profile
 // Otherwise, we're only looking for ENABLED ports from the config
+// We can also filter the cabled ports
 IphyAndXphyPorts findAvailablePorts(
     HwQsfpEnsemble* qsfpEnsemble,
-    std::optional<cfg::PortProfileID> profile = std::nullopt);
+    std::optional<cfg::PortProfileID> profile = std::nullopt,
+    bool onlyCabled = false);
 
-std::vector<PortID> getCabledPorts(const AgentConfig& conf);
+std::set<PortID> getCabledPorts(const AgentConfig& conf);
 std::vector<TransceiverID> getCabledPortTranceivers(
     const AgentConfig& conf,
     const HwQsfpEnsemble* ensemble);

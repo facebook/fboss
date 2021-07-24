@@ -155,15 +155,23 @@ PortStatus getPortStatus(PortID portId, const HwQsfpEnsemble* ensemble) {
 
 IphyAndXphyPorts findAvailablePorts(
     HwQsfpEnsemble* hwQsfpEnsemble,
-    std::optional<cfg::PortProfileID> profile) {
+    std::optional<cfg::PortProfileID> profile,
+    bool onlyCabled) {
   std::set<PortID> xPhyPorts;
   const auto& platformPorts =
       hwQsfpEnsemble->getPlatformMapping()->getPlatformPorts();
   const auto& chips = hwQsfpEnsemble->getPlatformMapping()->getChips();
   IphyAndXphyPorts ports;
   auto agentConfig = hwQsfpEnsemble->getWedgeManager()->getAgentConfig();
+  auto cabledPorts = getCabledPorts(*agentConfig);
   auto& swConfig = *agentConfig->thrift.sw_ref();
+  auto isPortCabled = [&cabledPorts](PortID port) -> bool {
+    return cabledPorts.find(port) != cabledPorts.end();
+  };
   for (auto& port : *swConfig.ports_ref()) {
+    if (onlyCabled && !isPortCabled(PortID(*port.logicalID_ref()))) {
+      continue;
+    }
     if (*port.state_ref() != cfg::PortState::ENABLED) {
       continue;
     }
@@ -186,12 +194,12 @@ IphyAndXphyPorts findAvailablePorts(
   return ports;
 }
 
-std::vector<PortID> getCabledPorts(const AgentConfig& config) {
-  std::vector<PortID> cabledPorts;
+std::set<PortID> getCabledPorts(const AgentConfig& config) {
+  std::set<PortID> cabledPorts;
   auto& swConfig = *config.thrift.sw_ref();
   for (auto& port : *swConfig.ports_ref()) {
     if (!(*port.expectedLLDPValues_ref()).empty()) {
-      cabledPorts.push_back(PortID(*port.logicalID_ref()));
+      cabledPorts.insert(PortID(*port.logicalID_ref()));
     }
   }
   return cabledPorts;
