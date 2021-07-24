@@ -26,7 +26,6 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/LacpTypes.h"
-#include "fboss/agent/StandaloneRibConversions.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/Utils.h"
@@ -729,6 +728,7 @@ HwInitResult BcmSwitch::init(
     Callback* callback,
     bool /*failHwCallsOnWarmboot*/) {
   HwInitResult ret;
+  ret.rib = std::make_unique<RoutingInformationBase>();
 
   std::lock_guard<std::mutex> g(lock_);
 
@@ -859,9 +859,6 @@ HwInitResult BcmSwitch::init(
     switchStateJson = getPlatform()->getWarmBootHelper()->getWarmBootState();
     warmBootCache_->populate(switchStateJson);
   }
-  if (FLAGS_enable_standalone_rib && !ret.rib) {
-    ret.rib = std::make_unique<RoutingInformationBase>();
-  }
   setupToCpuEgress();
   portTable_->initPorts(&pcfg, warmBoot);
 
@@ -884,8 +881,10 @@ HwInitResult BcmSwitch::init(
   if (warmBoot) {
     ret.switchState = warmBootCache_->getDumpedSwSwitchState().clone();
     getPlatform()->preWarmbootStateApplied();
-    handleStandaloneRIBTransition(switchStateJson, ret);
-
+    if (switchStateJson.find(kRib) != switchStateJson.items().end()) {
+      ret.rib = RoutingInformationBase::fromFollyDynamic(
+          switchStateJson[kRib], ret.switchState->getFibs());
+    }
     stateChangedImpl(StateDelta(make_shared<SwitchState>(), ret.switchState));
     hostTable_->warmBootHostEntriesSynced();
     // Done with warm boot, clear warm boot cache
@@ -905,13 +904,13 @@ HwInitResult BcmSwitch::init(
     ret.switchState = getColdBootSwitchState();
     setMacAging(std::chrono::seconds(
         ret.switchState->getSwitchSettings()->getL2AgeTimerSeconds()));
-    handleStandaloneRIBTransition(folly::dynamic::object(), ret);
   }
 
   macTable_ = std::make_unique<BcmMacTable>(this);
 
   ret.bootTime =
       duration_cast<duration<float>>(steady_clock::now() - begin).count();
+  ret.switchState->publish();
   return ret;
 }
 
@@ -1118,7 +1117,7 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   processLoadBalancerChanges(delta);
 
   // Only support for new RIB
-  CHECK(FLAGS_enable_standalone_rib && !legacyRibUsed(delta));
+  CHECK(!legacyRibUsed(delta));
 
   // remove all routes to be deleted
   processRemovedRoutes(delta);

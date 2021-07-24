@@ -12,7 +12,6 @@
 
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/LockPolicy.h"
-#include "fboss/agent/StandaloneRibConversions.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
 #include "fboss/agent/hw/HwResourceStatsPublisher.h"
@@ -563,7 +562,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
   };
 
   // Only support new RIB
-  CHECK(FLAGS_enable_standalone_rib && !legacyRibUsed(delta));
+  CHECK(!legacyRibUsed(delta));
 
   for (const auto& routeDelta : delta.getFibsDelta()) {
     auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
@@ -1027,6 +1026,7 @@ HwInitResult SaiSwitch::initLocked(
     HwWriteBehavior behavior,
     Callback* callback) noexcept {
   HwInitResult ret;
+  ret.rib = std::make_unique<RoutingInformationBase>();
   ret.bootType = bootType_;
   std::unique_ptr<folly::dynamic> adapterKeysJson;
   std::unique_ptr<folly::dynamic> adapterKeys2AdapterHostKeysJson;
@@ -1054,7 +1054,10 @@ HwInitResult SaiSwitch::initLocked(
       adapterKeys2AdapterHostKeysJson = std::make_unique<folly::dynamic>(
           switchStateJson[kHwSwitch][kAdapterKey2AdapterHostKey]);
     }
-    handleStandaloneRIBTransition(switchStateJson, ret);
+    if (switchStateJson.find(kRib) != switchStateJson.items().end()) {
+      ret.rib = RoutingInformationBase::fromFollyDynamic(
+          switchStateJson[kRib], ret.switchState->getFibs());
+    }
   }
   initStoreAndManagersLocked(
       lock,
@@ -1067,7 +1070,6 @@ HwInitResult SaiSwitch::initLocked(
       managerTable_->switchManager().setMacAgingSeconds(
           ret.switchState->getSwitchSettings()->getL2AgeTimerSeconds());
     }
-    handleStandaloneRIBTransition(folly::dynamic::object(), ret);
   }
   if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::L2_LEARNING)) {
     // for both cold and warm boot, recover l2 learning mode

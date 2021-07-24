@@ -97,9 +97,7 @@ std::shared_ptr<ForwardingInformationBaseMap> fibFromStandaloneRib(
   return state->getFibs();
 }
 
-void handleStandaloneRIBTransition(
-    const folly::dynamic& switchStateJson,
-    HwInitResult& ret) {
+void fillInRIB(const folly::dynamic& switchStateJson, HwInitResult& ret) {
   if (switchStateJson.find(kRib) != switchStateJson.items().end()) {
     ret.rib = RoutingInformationBase::fromFollyDynamic(
         switchStateJson[kRib], ret.switchState->getFibs());
