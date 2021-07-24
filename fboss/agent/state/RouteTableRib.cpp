@@ -70,37 +70,6 @@ std::shared_ptr<RouteTableRib<AddrT>> RouteTableRib<AddrT>::fromFollyDynamic(
 }
 
 template <typename AddrT>
-RouteTableRib<AddrT>* RouteTableRib<AddrT>::modify(
-    RouterID id,
-    std::shared_ptr<SwitchState>* state) {
-  if (!isPublished()) {
-    return this;
-  }
-
-  std::shared_ptr<RouteTable> routeTable =
-      (*state)->getRouteTables()->getRouteTable(id);
-  RouteTable* clonedRouteTable = routeTable->modify(state);
-
-  auto clonedRib = this->clone();
-  // Generate the radix tree from the cloned nodeMap_. Remember, we haven't
-  // clone every route yet. So we will still use the old route pointer.
-  // Right now only revertNewRouteEntry() needs modify(). The expected result of
-  // modify() is that we have a cloned RouteTableRib return if the current one
-  // is published. To make sure the cloned RouteTableRib works, we need to
-  // ensure radixTree_ and nodeMap_ in sync before we return a newly cloned rib.
-  for (const auto& node : nodeMap_->getAllNodes()) {
-    clonedRib->radixTree_.insert(
-        node.first.network, node.first.mask, node.second);
-  }
-  CHECK_EQ(clonedRib->size(), clonedRib->radixTree_.size());
-
-  auto clonedRibPtr = clonedRib.get();
-  clonedRouteTable->setRib(clonedRib);
-
-  return clonedRibPtr;
-}
-
-template <typename AddrT>
 void RouteTableRib<AddrT>::addRoute(
     const std::shared_ptr<Route<AddrT>>& route) {
   nodeMap_->addRoute(route);

@@ -44,8 +44,6 @@ class RouteTableMap : public NodeMapT<RouteTableMap, RouteTableMapTraits> {
     return getNodeIf(id);
   }
 
-  RouteTableMap* modify(std::shared_ptr<SwitchState>* state);
-
   /**
    * Get the v4 and v6 route count
    */

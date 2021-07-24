@@ -921,8 +921,6 @@ std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
 
   std::shared_ptr<SwitchState> newAppliedState;
 
-  CHECK(isStandaloneRibEnabled() ? !legacyRibUsed(delta) : !fibUsed(delta));
-
   // Inform the HwSwitch of the change.
   //
   // Note that at this point we have already updated the state pointer and

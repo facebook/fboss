@@ -54,10 +54,6 @@ NodeMapDelta<InterfaceMap> StateDelta::getIntfsDelta() const {
       old_->getInterfaces().get(), new_->getInterfaces().get());
 }
 
-RTMapDelta StateDelta::getRouteTablesDelta() const {
-  return RTMapDelta(old_->getRouteTables().get(), new_->getRouteTables().get());
-}
-
 AclMapDelta StateDelta::getAclsDelta() const {
   std::unique_ptr<PrioAclMap> oldAcls, newAcls;
   if (old_->getAcls()) {
@@ -155,26 +151,11 @@ std::ostream& operator<<(std::ostream& out, const StateDelta& stateDelta) {
   return out << diff;
 }
 
-bool legacyRibUsed(const StateDelta& delta) {
-  return delta.getRouteTablesDelta().begin() !=
-      delta.getRouteTablesDelta().end();
-}
-
-bool fibUsed(const StateDelta& delta) {
-  return delta.getFibsDelta().begin() != delta.getFibsDelta().end();
-}
-
-bool bothStandAloneRibOrRouteTableRibUsed(
-    const facebook::fboss::StateDelta& delta) {
-  return legacyRibUsed(delta) && fibUsed(delta);
-}
-
 // Explicit instantiations of NodeMapDelta that are used by StateDelta.
 // This prevents users of StateDelta from needing to include
 // NodeMapDelta-defs.h
 template class NodeMapDelta<InterfaceMap>;
 template class NodeMapDelta<PortMap>;
-template class NodeMapDelta<RouteTableMap>;
 template class NodeMapDelta<AclMap>;
 template class NodeMapDelta<QosPolicyMap>;
 template class NodeMapDelta<AggregatePortMap>;

@@ -62,7 +62,6 @@ class StateDelta {
   NodeMapDelta<PortMap> getPortsDelta() const;
   VlanMapDelta getVlansDelta() const;
   NodeMapDelta<InterfaceMap> getIntfsDelta() const;
-  RTMapDelta getRouteTablesDelta() const;
   DeltaValue<QosPolicy> getDefaultDataPlaneQosPolicyDelta() const;
   AclMapDelta getAclsDelta() const;
   QosPolicyMapDelta getQosPoliciesDelta() const;
@@ -86,9 +85,5 @@ class StateDelta {
 };
 
 std::ostream& operator<<(std::ostream& out, const StateDelta& stateDelta);
-
-bool legacyRibUsed(const StateDelta& delta);
-bool fibUsed(const StateDelta& delta);
-bool bothStandAloneRibOrRouteTableRibUsed(const StateDelta& delta);
 
 } // namespace facebook::fboss

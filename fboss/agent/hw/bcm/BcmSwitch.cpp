@@ -1116,9 +1116,6 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
 
   processLoadBalancerChanges(delta);
 
-  // Only support for new RIB
-  CHECK(!legacyRibUsed(delta));
-
   // remove all routes to be deleted
   processRemovedRoutes(delta);
 

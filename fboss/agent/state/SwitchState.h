@@ -30,7 +30,6 @@
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/QcmConfig.h"
 #include "fboss/agent/state/QosPolicyMap.h"
-#include "fboss/agent/state/RouteTableMap.h"
 #include "fboss/agent/state/SflowCollectorMap.h"
 #include "fboss/agent/state/SwitchSettings.h"
 #include "fboss/agent/state/VlanMap.h"
@@ -58,7 +57,6 @@ struct SwitchStateFields {
     fn(aggPorts.get());
     fn(vlans.get());
     fn(interfaces.get());
-    fn(routeTables.get());
     fn(acls.get());
     fn(sFlowCollectors.get());
     fn(qosPolicies.get());
@@ -82,7 +80,6 @@ struct SwitchStateFields {
   std::shared_ptr<AggregatePortMap> aggPorts;
   std::shared_ptr<VlanMap> vlans;
   std::shared_ptr<InterfaceMap> interfaces;
-  std::shared_ptr<RouteTableMap> routeTables;
   std::shared_ptr<AclMap> acls;
   std::shared_ptr<SflowCollectorMap> sFlowCollectors;
   std::shared_ptr<QosPolicyMap> qosPolicies;
@@ -232,9 +229,6 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   const std::shared_ptr<InterfaceMap>& getInterfaces() const {
     return getFields()->interfaces;
   }
-  const std::shared_ptr<RouteTableMap>& getRouteTables() const {
-    return getFields()->routeTables;
-  }
 
   std::shared_ptr<AclEntry> getAcl(const std::string& name) const;
 
@@ -362,8 +356,6 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   void addVlan(const std::shared_ptr<Vlan>& vlan);
   void addIntf(const std::shared_ptr<Interface>& intf);
   void resetIntfs(std::shared_ptr<InterfaceMap> intfs);
-  void addRouteTable(const std::shared_ptr<RouteTable>& rt);
-  void resetRouteTables(std::shared_ptr<RouteTableMap> rts);
   void addAcl(const std::shared_ptr<AclEntry>& acl);
   void resetAcls(std::shared_ptr<AclMap> acls);
   void resetSflowCollectors(

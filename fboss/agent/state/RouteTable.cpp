@@ -32,20 +32,6 @@ folly::dynamic RouteTableFields::toFollyDynamic() const {
   return rtable;
 }
 
-RouteTable* RouteTable::modify(std::shared_ptr<SwitchState>* state) {
-  if (!isPublished()) {
-    return this;
-    // We must never have a child that is published, but something up the chain
-    // is published.
-  }
-  auto clonedRouteTableMap = (*state)->getRouteTables()->modify(state);
-
-  auto clonedRT = this->clone();
-  auto it = clonedRouteTableMap->writableNodes().find(getID());
-  it->second = clonedRT;
-  return clonedRT.get();
-}
-
 RouteTableFields RouteTableFields::fromFollyDynamic(
     const folly::dynamic& rtableJson) {
   RouteTableFields rtable(RouterID(rtableJson[kRouterId].asInt()));

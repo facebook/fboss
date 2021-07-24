@@ -80,8 +80,6 @@ class RouteTable : public NodeBaseT<RouteTable, RouteTableFields> {
 
   bool empty() const;
 
-  RouteTable* modify(std::shared_ptr<SwitchState>* state);
-
   std::shared_ptr<RibTypeV4>& writableRibV4() {
     return writableFields()->ribV4;
   }

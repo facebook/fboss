@@ -103,8 +103,6 @@ class RouteTableRib : public NodeBase {
     NodeBase::publish();
   }
 
-  RouteTableRib* modify(RouterID id, std::shared_ptr<SwitchState>* state);
-
   std::shared_ptr<RouteTableRib> clone() const {
     // In this clone(), we make sure the root RouteTableRib version increased by
     // 1. And then we use the default NodeMap clone() to clone the childNode

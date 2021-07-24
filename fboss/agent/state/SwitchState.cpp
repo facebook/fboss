@@ -21,8 +21,6 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/QosPolicyMap.h"
-#include "fboss/agent/state/RouteTable.h"
-#include "fboss/agent/state/RouteTableMap.h"
 #include "fboss/agent/state/SflowCollectorMap.h"
 #include "fboss/agent/state/SwitchSettings.h"
 #include "fboss/agent/state/Vlan.h"
@@ -73,7 +71,6 @@ SwitchStateFields::SwitchStateFields()
       aggPorts(make_shared<AggregatePortMap>()),
       vlans(make_shared<VlanMap>()),
       interfaces(make_shared<InterfaceMap>()),
-      routeTables(make_shared<RouteTableMap>()),
       acls(make_shared<AclMap>()),
       sFlowCollectors(make_shared<SflowCollectorMap>()),
       qosPolicies(make_shared<QosPolicyMap>()),
@@ -89,7 +86,13 @@ folly::dynamic SwitchStateFields::toFollyDynamic() const {
   switchState[kInterfaces] = interfaces->toFollyDynamic();
   switchState[kPorts] = ports->toFollyDynamic();
   switchState[kVlans] = vlans->toFollyDynamic();
-  switchState[kRouteTables] = routeTables->toFollyDynamic();
+  // TODO - kill this when code for pruning route table map makes
+  // it to prod. We need to serialize a node map container, since
+  // prod pkg right now is unconditionally trying to deserialize
+  // route tables. So not having the information here will break
+  // canary off (trunk->prod rollback). Choice of a empty VlanMap
+  // to serialize is arbitrary, any empty NodeMap would do
+  switchState[kRouteTables] = VlanMap().toFollyDynamic();
   switchState[kAcls] = acls->toFollyDynamic();
   switchState[kSflowCollectors] = sFlowCollectors->toFollyDynamic();
   switchState[kDefaultVlan] = static_cast<uint32_t>(defaultVlan);
@@ -120,8 +123,6 @@ SwitchStateFields SwitchStateFields::fromFollyDynamic(
   switchState.interfaces = InterfaceMap::fromFollyDynamic(swJson[kInterfaces]);
   switchState.ports = PortMap::fromFollyDynamic(swJson[kPorts]);
   switchState.vlans = VlanMap::fromFollyDynamic(swJson[kVlans]);
-  switchState.routeTables =
-      RouteTableMap::fromFollyDynamic(swJson[kRouteTables]);
   switchState.acls = AclMap::fromFollyDynamic(swJson[kAcls]);
   if (swJson.count(kSflowCollectors) > 0) {
     switchState.sFlowCollectors =
@@ -260,14 +261,6 @@ void SwitchState::addIntf(const std::shared_ptr<Interface>& intf) {
 
 void SwitchState::resetIntfs(std::shared_ptr<InterfaceMap> intfs) {
   writableFields()->interfaces.swap(intfs);
-}
-
-void SwitchState::addRouteTable(const std::shared_ptr<RouteTable>& rt) {
-  writableFields()->routeTables->addRouteTable(rt);
-}
-
-void SwitchState::resetRouteTables(std::shared_ptr<RouteTableMap> rts) {
-  writableFields()->routeTables.swap(rts);
 }
 
 void SwitchState::addAcl(const std::shared_ptr<AclEntry>& acl) {
