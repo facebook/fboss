@@ -64,15 +64,7 @@ void forAllRoutes(
       }
     }
   } else {
-    for (const auto& routeTable : *state->getRouteTables()) {
-      auto rid = routeTable->getID();
-      for (const auto& route : *(routeTable->getRibV6()->routes())) {
-        func(rid, route);
-      }
-      for (const auto& route : *(routeTable->getRibV4()->routes())) {
-        func(rid, route);
-      }
-    }
+    CHECK(false) << " Legacy RIB no longer supported";
   }
 }
 
@@ -121,20 +113,8 @@ void forEachChangedRoute(
       processRoutesDelta(
           newFibContainer->getID(), fibContainerDelta.getFibDelta<AddrT>());
     }
-
   } else {
-    for (auto const& routeTableDelta : stateDelta.getRouteTablesDelta()) {
-      auto const& newRouteTable = routeTableDelta.getNew();
-      if (!newRouteTable) {
-        auto const& oldRouteTable = routeTableDelta.getOld();
-        removeAll(
-            oldRouteTable->getID(),
-            *oldRouteTable->template getRib<AddrT>()->routes());
-        continue;
-      }
-      processRoutesDelta(
-          newRouteTable->getID(), routeTableDelta.getRoutesDelta<AddrT>());
-    }
+    CHECK(false) << " Legacy RIB no longer supported";
   }
 }
 

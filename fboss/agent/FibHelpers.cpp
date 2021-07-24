@@ -66,9 +66,7 @@ std::shared_ptr<Route<AddrT>> findRouteInSwitchState(
     auto& fib = state->getFibs()->getFibContainer(rid)->getFib<AddrT>();
     return findInFib(prefix, fib);
   } else {
-    auto& rib =
-        state->getRouteTables()->getRouteTable(rid)->template getRib<AddrT>();
-    return findInFib(prefix, rib, exactMatch);
+    CHECK(false) << " Legacy RIB no longer supported";
   }
   CHECK(false) << " Should never get here, route lookup failed";
   return nullptr;
@@ -109,7 +107,7 @@ std::pair<uint64_t, uint64_t> getRouteCount(
   if (isStandaloneRib) {
     std::tie(v4Count, v6Count) = state->getFibs()->getRouteCount();
   } else {
-    state->getRouteTables()->getRouteCount(&v4Count, &v6Count);
+    CHECK(false) << " Legacy RIB no longer supported";
   }
   return std::make_pair(v4Count, v6Count);
 }
