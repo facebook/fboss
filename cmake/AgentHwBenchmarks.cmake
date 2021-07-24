@@ -166,16 +166,6 @@ add_library(hw_ecmp_shrink_speed
   fboss/agent/hw/benchmarks/HwEcmpShrinkSpeedBenchmark.cpp
 )
 
-add_library(hw_rib_conversion_speed
-  fboss/agent/hw/benchmarks/HwRibConversionBenchmark.cpp
-)
-
-target_link_libraries(hw_rib_conversion_speed
-  config_factory
-  hw_benchmark_main
-  Folly::folly
-)
-
 target_link_libraries(hw_ecmp_shrink_speed
   config_factory
   hw_packet_utils
