@@ -1213,26 +1213,21 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
   auto state = sw_->getState();
-  forAllRoutes(
-      sw_->isStandaloneRibEnabled(),
-      state,
-      [&routes](RouterID /*rid*/, const auto& route) {
-        UnicastRoute tempRoute;
-        if (!route->isResolved()) {
-          XLOG(INFO) << "Skipping unresolved route: "
-                     << route->toFollyDynamic();
-          return;
-        }
-        auto fwdInfo = route->getForwardInfo();
-        tempRoute.dest_ref()->ip_ref() =
-            toBinaryAddress(route->prefix().network);
-        tempRoute.dest_ref()->prefixLength_ref() = route->prefix().mask;
-        tempRoute.nextHopAddrs_ref() =
-            util::fromFwdNextHops(fwdInfo.getNextHopSet());
-        tempRoute.nextHops_ref() =
-            util::fromRouteNextHopSet(fwdInfo.normalizedNextHops());
-        routes.emplace_back(std::move(tempRoute));
-      });
+  forAllRoutes(state, [&routes](RouterID /*rid*/, const auto& route) {
+    UnicastRoute tempRoute;
+    if (!route->isResolved()) {
+      XLOG(INFO) << "Skipping unresolved route: " << route->toFollyDynamic();
+      return;
+    }
+    auto fwdInfo = route->getForwardInfo();
+    tempRoute.dest_ref()->ip_ref() = toBinaryAddress(route->prefix().network);
+    tempRoute.dest_ref()->prefixLength_ref() = route->prefix().mask;
+    tempRoute.nextHopAddrs_ref() =
+        util::fromFwdNextHops(fwdInfo.getNextHopSet());
+    tempRoute.nextHops_ref() =
+        util::fromRouteNextHopSet(fwdInfo.normalizedNextHops());
+    routes.emplace_back(std::move(tempRoute));
+  });
 }
 
 void ThriftHandler::getRouteTableByClient(
@@ -1241,36 +1236,29 @@ void ThriftHandler::getRouteTableByClient(
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
   auto state = sw_->getState();
-  forAllRoutes(
-      sw_->isStandaloneRibEnabled(),
-      state,
-      [&routes, client](RouterID /*rid*/, const auto& route) {
-        auto entry = route->getEntryForClient(ClientID(client));
-        if (not entry) {
-          return;
-        }
-        UnicastRoute tempRoute;
-        tempRoute.dest_ref()->ip_ref() =
-            toBinaryAddress(route->prefix().network);
-        tempRoute.dest_ref()->prefixLength_ref() = route->prefix().mask;
-        tempRoute.nextHops_ref() =
-            util::fromRouteNextHopSet(entry->getNextHopSet());
-        for (const auto& nh : *tempRoute.nextHops_ref()) {
-          tempRoute.nextHopAddrs_ref()->emplace_back(*nh.address_ref());
-        }
-        routes.emplace_back(std::move(tempRoute));
-      });
+  forAllRoutes(state, [&routes, client](RouterID /*rid*/, const auto& route) {
+    auto entry = route->getEntryForClient(ClientID(client));
+    if (not entry) {
+      return;
+    }
+    UnicastRoute tempRoute;
+    tempRoute.dest_ref()->ip_ref() = toBinaryAddress(route->prefix().network);
+    tempRoute.dest_ref()->prefixLength_ref() = route->prefix().mask;
+    tempRoute.nextHops_ref() =
+        util::fromRouteNextHopSet(entry->getNextHopSet());
+    for (const auto& nh : *tempRoute.nextHops_ref()) {
+      tempRoute.nextHopAddrs_ref()->emplace_back(*nh.address_ref());
+    }
+    routes.emplace_back(std::move(tempRoute));
+  });
 }
 
 void ThriftHandler::getRouteTableDetails(std::vector<RouteDetails>& routes) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  forAllRoutes(
-      sw_->isStandaloneRibEnabled(),
-      sw_->getState(),
-      [&routes](RouterID /*rid*/, const auto& route) {
-        routes.emplace_back(route->toRouteDetails(true));
-      });
+  forAllRoutes(sw_->getState(), [&routes](RouterID /*rid*/, const auto& route) {
+    routes.emplace_back(route->toRouteDetails(true));
+  });
 }
 
 void ThriftHandler::getIpRoute(

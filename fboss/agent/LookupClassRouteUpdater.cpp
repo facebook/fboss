@@ -36,8 +36,7 @@ void LookupClassRouteUpdater::reAddAllRoutes(const StateDelta& stateDelta) {
     }
   };
   if (!vlan2SubnetsCache_.empty()) {
-    forAllRoutes(
-        sw_->isStandaloneRibEnabled(), stateDelta.newState(), addRoute);
+    forAllRoutes(stateDelta.newState(), addRoute);
   }
 }
 

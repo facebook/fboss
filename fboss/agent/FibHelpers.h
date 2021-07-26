@@ -45,22 +45,15 @@ std::pair<uint64_t, uint64_t> getRouteCount(
     const std::shared_ptr<SwitchState>& state);
 
 template <typename Func>
-void forAllRoutes(
-    bool isStandaloneRib,
-    const std::shared_ptr<SwitchState>& state,
-    Func func) {
-  if (isStandaloneRib) {
-    for (const auto& fibContainer : *state->getFibs()) {
-      auto rid = fibContainer->getID();
-      for (const auto& route : *(fibContainer->getFibV6())) {
-        func(rid, route);
-      }
-      for (const auto& route : *(fibContainer->getFibV4())) {
-        func(rid, route);
-      }
+void forAllRoutes(const std::shared_ptr<SwitchState>& state, Func func) {
+  for (const auto& fibContainer : *state->getFibs()) {
+    auto rid = fibContainer->getID();
+    for (const auto& route : *(fibContainer->getFibV6())) {
+      func(rid, route);
     }
-  } else {
-    CHECK(false) << " Legacy RIB no longer supported";
+    for (const auto& route : *(fibContainer->getFibV4())) {
+      func(rid, route);
+    }
   }
 }
 

@@ -192,23 +192,21 @@ TYPED_TEST(FibHelperTest, findLongestMatchRoute) {
       this->sw_->getState());
   EXPECT_NE(route2, route3);
 }
+
 TYPED_TEST(FibHelperTest, forAllRoutes) {
   int count = 0;
   auto countRoutes = [&count](RouterID rid, auto& route) { ++count; };
-  forAllRoutes(
-      this->sw_->isStandaloneRibEnabled(), this->sw_->getState(), countRoutes);
+  forAllRoutes(this->sw_->getState(), countRoutes);
   auto prevCount = count;
   // Program prefix1 again, should not change the count
   this->programRoute(this->kPrefix1());
   count = 0;
-  forAllRoutes(
-      this->sw_->isStandaloneRibEnabled(), this->sw_->getState(), countRoutes);
+  forAllRoutes(this->sw_->getState(), countRoutes);
   EXPECT_EQ(count, prevCount);
   // Add one more route, now count should increment
   this->programRoute(this->kPrefix2());
   count = 0;
-  forAllRoutes(
-      this->sw_->isStandaloneRibEnabled(), this->sw_->getState(), countRoutes);
+  forAllRoutes(this->sw_->getState(), countRoutes);
   EXPECT_EQ(count, prevCount + 1);
 }
 } // namespace facebook::fboss
