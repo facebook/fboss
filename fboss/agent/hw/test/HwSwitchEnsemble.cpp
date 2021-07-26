@@ -43,8 +43,6 @@ DEFINE_int32(
 
 DEFINE_bool(mmu_lossless_mode, false, "Enable mmu lossless mode");
 
-DECLARE_bool(enable_standalone_rib);
-
 using namespace std::chrono_literals;
 
 namespace facebook::fboss {

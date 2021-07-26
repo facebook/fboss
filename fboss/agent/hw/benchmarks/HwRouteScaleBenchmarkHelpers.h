@@ -23,7 +23,6 @@
 #include "fboss/lib/FunctionCallTimeReporter.h"
 
 DECLARE_bool(json);
-DECLARE_bool(enable_standalone_rib);
 
 namespace facebook::fboss {
 

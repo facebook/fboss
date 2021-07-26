@@ -168,7 +168,6 @@ DEFINE_int32(
 // Put lowest priority for this group among all i.e. lower than acl_g_pri.
 DEFINE_int32(qcm_ifp_pri, -1, "Group priority for ACL field group");
 
-DECLARE_bool(enable_standalone_rib);
 DECLARE_int32(update_watermark_stats_interval_s);
 
 enum : uint8_t {
@@ -1697,7 +1696,7 @@ bool BcmSwitch::isRouteUpdateValid(const StateDelta& delta) const {
 
   bool isValid = true;
   forEachChangedRoute<AddrT>(
-      FLAGS_enable_standalone_rib,
+      true /*standalone rib*/,
       delta,
       [&isValid, validateLabeledRoute](
           RouterID /*rid*/,
@@ -2310,7 +2309,7 @@ void BcmSwitch::processRemovedRoute(
 
 void BcmSwitch::processRemovedRoutes(const StateDelta& delta) {
   forEachChangedRoute(
-      FLAGS_enable_standalone_rib,
+      true /*standalone rib*/,
       delta,
       [](RouterID /*id*/, const auto& /*oldRoute*/, const auto& /*newRoute*/) {
       },
@@ -2339,7 +2338,7 @@ void BcmSwitch::processRouteTableDelta(
     throw FbossError("invalid route update");
   }
   forEachChangedRoute<AddrT>(
-      FLAGS_enable_standalone_rib,
+      true /*standalone rib*/,
       delta,
       [&](RouterID id,
           const shared_ptr<RouteT>& oldRoute,
@@ -2368,12 +2367,12 @@ void BcmSwitch::processRouteTableDelta(
     const auto id = entry.first;
     for (const auto& prefix : entry.second) {
       const auto newRoute = findRoute<AddrT>(
-          FLAGS_enable_standalone_rib,
+          true /*standalone rib*/,
           id,
           prefix.toCidrNetwork(),
           delta.newState());
       const auto oldRoute = findRoute<AddrT>(
-          FLAGS_enable_standalone_rib,
+          true /*standalone rib*/,
           id,
           prefix.toCidrNetwork(),
           delta.oldState());

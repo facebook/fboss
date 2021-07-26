@@ -88,8 +88,6 @@ DEFINE_bool(
     false,
     "Fail if any warm boot handles are left unclaimed.");
 
-DECLARE_bool(enable_standalone_rib);
-
 namespace {
 /*
  * For the devices/SDK we use, the only events we should get (and process)

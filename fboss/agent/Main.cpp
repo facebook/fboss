@@ -79,7 +79,6 @@ DEFINE_int32(
     "Seconds to wait before flushing warm boot cache");
 DECLARE_int32(thrift_idle_timeout);
 DEFINE_bool(enable_macsec, false, "Enable Macsec functionality");
-DECLARE_bool(enable_standalone_rib);
 
 using facebook::fboss::SwSwitch;
 using facebook::fboss::ThriftHandler;

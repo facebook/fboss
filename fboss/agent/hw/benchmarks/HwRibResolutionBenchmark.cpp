@@ -19,13 +19,10 @@
 #include <folly/Benchmark.h>
 #include <folly/logging/xlog.h>
 
-DECLARE_bool(enable_standalone_rib);
-
 namespace facebook::fboss {
 
 BENCHMARK(RibResolutionBenchmark) {
   folly::BenchmarkSuspender suspender;
-  FLAGS_enable_standalone_rib = true;
   auto ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
   auto config = utility::onePortPerVlanConfig(
       ensemble->getHwSwitch(), ensemble->masterLogicalPortIds());
