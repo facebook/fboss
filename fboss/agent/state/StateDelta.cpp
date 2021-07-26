@@ -160,8 +160,6 @@ template class NodeMapDelta<AclMap>;
 template class NodeMapDelta<QosPolicyMap>;
 template class NodeMapDelta<AggregatePortMap>;
 template class NodeMapDelta<SflowCollectorMap>;
-template class NodeMapDelta<RouteTableRibNodeMap<folly::IPAddressV4>>;
-template class NodeMapDelta<RouteTableRibNodeMap<folly::IPAddressV6>>;
 template class NodeMapDelta<LoadBalancerMap>;
 template class NodeMapDelta<MirrorMap>;
 template class NodeMapDelta<

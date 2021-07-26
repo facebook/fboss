@@ -41,7 +41,6 @@ add_library(state
   fboss/agent/state/QosPolicy.cpp
   fboss/agent/state/QosPolicyMap.cpp
   fboss/agent/state/Route.cpp
-  fboss/agent/state/RouteDelta.cpp
   fboss/agent/state/RouteNextHop.cpp
   fboss/agent/state/RouteNextHopEntry.cpp
   fboss/agent/state/RouteNextHopsMulti.cpp

@@ -11,7 +11,7 @@
 
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/Route.h"
-#include "fboss/agent/state/RouteDelta.h"
+
 #include "fboss/agent/state/RouteTable.h"
 #include "fboss/agent/state/RouteTableMap.h"
 #include "fboss/agent/state/StateDelta.h"

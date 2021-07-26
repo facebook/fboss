@@ -26,7 +26,7 @@
 #include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/QosPolicyMap.h"
-#include "fboss/agent/state/RouteDelta.h"
+
 #include "fboss/agent/state/SflowCollectorMap.h"
 #include "fboss/agent/state/SwitchSettings.h"
 #include "fboss/agent/state/VlanMapDelta.h"
