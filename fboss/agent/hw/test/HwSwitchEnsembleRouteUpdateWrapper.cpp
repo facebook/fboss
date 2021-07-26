@@ -13,7 +13,7 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
-#include "fboss/agent/state/RouteUpdater.h"
+
 #include "fboss/agent/state/SwitchState.h"
 
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"

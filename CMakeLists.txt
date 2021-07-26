@@ -718,7 +718,6 @@ if (NOT SAI_ONLY)
       fboss/agent/state/RouteTableMap.cpp
       fboss/agent/state/RouteTableRib.cpp
       fboss/agent/state/RouteTypes.cpp
-      fboss/agent/state/RouteUpdater.cpp
       fboss/agent/state/SflowCollector.cpp
       fboss/agent/state/SflowCollectorMap.cpp
       fboss/agent/state/StateDelta.cpp

@@ -24,7 +24,7 @@
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteTable.h"
 #include "fboss/agent/state/RouteTableMap.h"
-#include "fboss/agent/state/RouteUpdater.h"
+
 #include "fboss/agent/state/SwitchState.h"
 
 #include <folly/logging/xlog.h>

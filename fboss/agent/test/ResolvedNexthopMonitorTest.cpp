@@ -11,7 +11,7 @@
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/Route.h"
-#include "fboss/agent/state/RouteUpdater.h"
+
 #include "fboss/agent/state/SwitchState.h"
 
 #include "folly/io/Cursor.h"

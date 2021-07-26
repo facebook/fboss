@@ -14,7 +14,7 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
-#include "fboss/agent/state/RouteUpdater.h"
+
 #include "fboss/agent/state/SwitchState.h"
 
 #include <memory>
