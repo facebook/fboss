@@ -23,7 +23,7 @@ namespace facebook::fboss {
 
 TEST(RouteScaleGeneratorsTest, RSWDistribution) {
   auto cfg = getTestConfig();
-  auto handle = createTestHandle(&cfg, SwitchFlags::ENABLE_STANDALONE_RIB);
+  auto handle = createTestHandle(&cfg);
   auto routeDistributionGen = utility::RSWRouteScaleGenerator(
       handle->getSw()->getState(),
       handle->getSw()->isStandaloneRibEnabled(),
@@ -36,7 +36,7 @@ TEST(RouteScaleGeneratorsTest, RSWDistribution) {
 
 TEST(RouteScaleGeneratorsTest, FSWDistribution) {
   auto cfg = getTestConfig();
-  auto handle = createTestHandle(&cfg, SwitchFlags::ENABLE_STANDALONE_RIB);
+  auto handle = createTestHandle(&cfg);
   auto routeDistributionGen = utility::FSWRouteScaleGenerator(
       handle->getSw()->getState(),
       handle->getSw()->isStandaloneRibEnabled(),
@@ -49,7 +49,7 @@ TEST(RouteScaleGeneratorsTest, FSWDistribution) {
 
 TEST(RouteScaleGeneratorsTest, THAlpmDistribution) {
   auto cfg = getTestConfig();
-  auto handle = createTestHandle(&cfg, SwitchFlags::ENABLE_STANDALONE_RIB);
+  auto handle = createTestHandle(&cfg);
   auto routeDistributionGen = utility::THAlpmRouteScaleGenerator(
       handle->getSw()->getState(),
       handle->getSw()->isStandaloneRibEnabled(),
@@ -62,7 +62,7 @@ TEST(RouteScaleGeneratorsTest, THAlpmDistribution) {
 
 TEST(RouteScaleGeneratorsTest, HgridDuRouteScaleGenerator) {
   auto cfg = getTestConfig();
-  auto handle = createTestHandle(&cfg, SwitchFlags::ENABLE_STANDALONE_RIB);
+  auto handle = createTestHandle(&cfg);
   auto routeDistributionGen = utility::HgridDuRouteScaleGenerator(
       handle->getSw()->getState(),
       handle->getSw()->isStandaloneRibEnabled(),
@@ -75,7 +75,7 @@ TEST(RouteScaleGeneratorsTest, HgridDuRouteScaleGenerator) {
 
 TEST(RouteScaleGeneratorsTest, HgridUuRouteScaleGenerator) {
   auto cfg = getTestConfig();
-  auto handle = createTestHandle(&cfg, SwitchFlags::ENABLE_STANDALONE_RIB);
+  auto handle = createTestHandle(&cfg);
   auto routeDistributionGen = utility::HgridUuRouteScaleGenerator(
       handle->getSw()->getState(),
       handle->getSw()->isStandaloneRibEnabled(),
@@ -88,7 +88,7 @@ TEST(RouteScaleGeneratorsTest, HgridUuRouteScaleGenerator) {
 
 TEST(RouteScaleGeneratorsTest, TurboFSWRouteScaleGenerator) {
   auto cfg = getTestConfig();
-  auto handle = createTestHandle(&cfg, SwitchFlags::ENABLE_STANDALONE_RIB);
+  auto handle = createTestHandle(&cfg);
   auto routeDistributionGen = utility::TurboFSWRouteScaleGenerator(
       handle->getSw()->getState(),
       handle->getSw()->isStandaloneRibEnabled(),

@@ -87,7 +87,7 @@ class MockMplsRouteLogger : public MplsRouteLogger {
 class RouteUpdateLoggerTest : public ::testing::Test {
  public:
   void SetUp() override {
-    handle = createTestHandle(nullptr, SwitchFlags::ENABLE_STANDALONE_RIB);
+    handle = createTestHandle(nullptr);
     sw = handle->getSw();
     initState = sw->getState();
     sw->applyConfig("init config", testConfigA());

@@ -90,9 +90,8 @@ class StaticRouteTest : public ::testing::Test {
 
  public:
   void SetUp() override {
-    auto flags = SwitchFlags::ENABLE_STANDALONE_RIB;
     auto config = initialConfig();
-    handle_ = createTestHandle(&config, flags);
+    handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();
   }
   template <typename AddrT>

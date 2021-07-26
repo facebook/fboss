@@ -72,8 +72,7 @@ enum class SwitchFlags : int {
   ENABLE_LLDP = 2,
   PUBLISH_STATS = 4,
   ENABLE_LACP = 8,
-  ENABLE_STANDALONE_RIB = 16,
-  ENABLE_MACSEC = 32,
+  ENABLE_MACSEC = 16,
 };
 
 inline SwitchFlags operator|(SwitchFlags lhs, SwitchFlags rhs) {

@@ -430,8 +430,7 @@ class NdpTest : public ::testing::Test {
 
     *config.maxNeighborProbes_ref() = 1;
     *config.staleEntryInterval_ref() = 1;
-    auto handle = createTestHandle(
-        &config, kPlatformMac, SwitchFlags::ENABLE_STANDALONE_RIB);
+    auto handle = createTestHandle(&config, kPlatformMac);
     sw_ = handle->getSw();
     sw_->initialConfigApplied(std::chrono::steady_clock::now());
     return handle;

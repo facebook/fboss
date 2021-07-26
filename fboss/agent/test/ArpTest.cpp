@@ -67,7 +67,7 @@ unique_ptr<HwTestHandle> setupTestHandle(
     std::chrono::seconds staleTimeout = std::chrono::seconds(1)) {
   // Setup a default state object
   auto cfg = testConfigA();
-  auto handle = createTestHandle(&cfg, SwitchFlags::ENABLE_STANDALONE_RIB);
+  auto handle = createTestHandle(&cfg);
   auto updater = handle->getSw()->getRouteUpdater();
 
   RouteNextHopSet nexthops;

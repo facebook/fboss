@@ -42,7 +42,7 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
   }
   void SetUp() override {
     auto config = getConfig();
-    handle_ = createTestHandle(&config, SwitchFlags::ENABLE_STANDALONE_RIB);
+    handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();
   }
 

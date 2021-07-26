@@ -41,7 +41,7 @@ class ResolvedNexthopMonitorTest : public ::testing::Test {
   using Func = folly::Function<void()>;
   void SetUp() override {
     auto cfg = testConfigA();
-    handle_ = createTestHandle(&cfg, SwitchFlags::ENABLE_STANDALONE_RIB);
+    handle_ = createTestHandle(&cfg);
     sw_ = handle_->getSw();
   }
 

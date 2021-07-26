@@ -71,14 +71,14 @@ std::shared_ptr<SwitchState> publishAndApplyConfig(
 std::unique_ptr<HwTestHandle> createTestHandle(
     const std::shared_ptr<SwitchState>& = nullptr,
     const std::optional<folly::MacAddress>& = std::nullopt,
-    SwitchFlags flags = SwitchFlags::ENABLE_STANDALONE_RIB);
+    SwitchFlags flags = SwitchFlags::DEFAULT);
 std::unique_ptr<HwTestHandle> createTestHandle(
     cfg::SwitchConfig* cfg,
     folly::MacAddress mac,
-    SwitchFlags flags = SwitchFlags::ENABLE_STANDALONE_RIB);
+    SwitchFlags flags = SwitchFlags::DEFAULT);
 std::unique_ptr<HwTestHandle> createTestHandle(
     cfg::SwitchConfig* cfg,
-    SwitchFlags flags = SwitchFlags::ENABLE_STANDALONE_RIB);
+    SwitchFlags flags = SwitchFlags::DEFAULT);
 
 std::unique_ptr<MockPlatform> createMockPlatform();
 std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(

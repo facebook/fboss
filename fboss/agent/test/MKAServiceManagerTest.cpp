@@ -62,7 +62,6 @@ class MKAServiceManagerTest : public testing::Test {
   std::unique_ptr<HwTestHandle> setupTestHandle(bool enableMacsec = true) {
     auto switchFlags =
         enableMacsec ? SwitchFlags::ENABLE_MACSEC : SwitchFlags::DEFAULT;
-    switchFlags |= SwitchFlags::ENABLE_STANDALONE_RIB;
     auto state = testStateAWithPortsUp();
     return createTestHandle(state, testLocalMac, switchFlags);
   }

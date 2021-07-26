@@ -219,8 +219,7 @@ TEST(Rib, Update) {
   config.interfaces_ref()[0].ipAddresses_ref()[1] = "192.168.0.19/24";
   config.interfaces_ref()[0].ipAddresses_ref()[2] = "::/0";
 
-  auto testHandle =
-      createTestHandle(&config, SwitchFlags::ENABLE_STANDALONE_RIB);
+  auto testHandle = createTestHandle(&config);
   auto sw = testHandle->getSw();
 
   EXPECT_FIB_SIZE(sw->getState(), vrfZero, 2, 2);
@@ -365,8 +364,7 @@ TEST(ForwardingInformationBaseUpdater, Deduplication) {
   config.interfaces_ref()[0].ipAddresses_ref()[1] =
       "2401:db00:e003:9100:1006::2c/127";
 
-  auto testHandle =
-      createTestHandle(&config, SwitchFlags::ENABLE_STANDALONE_RIB);
+  auto testHandle = createTestHandle(&config);
   auto sw = testHandle->getSw();
 
   std::vector<UnicastRoute> routesToAdd;

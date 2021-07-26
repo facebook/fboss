@@ -138,9 +138,6 @@ SwitchFlags Initializer::setupFlags() {
   if (FLAGS_publish_boot_type) {
     flags |= SwitchFlags::PUBLISH_STATS;
   }
-  if (FLAGS_enable_standalone_rib) {
-    flags |= SwitchFlags::ENABLE_STANDALONE_RIB;
-  }
   if (FLAGS_enable_macsec) {
     flags |= SwitchFlags::ENABLE_MACSEC;
   }

@@ -52,9 +52,7 @@ class ColdBootPacketHandlingFixture : public ::testing::Test {
  public:
   void SetUp() override {
     handle_ = createTestHandle(
-        getColdBootState(),
-        kPlatformMac,
-        SwitchFlags::ENABLE_STANDALONE_RIB | SwitchFlags::ENABLE_TUN);
+        getColdBootState(), kPlatformMac, SwitchFlags::ENABLE_TUN);
   }
   void TearDown() override {
     handle_.reset();

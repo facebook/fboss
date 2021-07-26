@@ -17,7 +17,7 @@ class LabelForwardingTest : public ::testing::Test {
   void SetUp() override {
     // Setup a default state object
     auto config = testConfigA();
-    handle = createTestHandle(&config, SwitchFlags::ENABLE_STANDALONE_RIB);
+    handle = createTestHandle(&config);
     sw = handle->getSw();
     thriftHandler = std::make_unique<ThriftHandler>(sw);
     ON_CALL(*getMockHw(sw), isValidStateUpdate(_))

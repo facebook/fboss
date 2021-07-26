@@ -108,7 +108,7 @@ class MirrorManagerTest : public ::testing::Test {
 
   void SetUp() override {
     auto config = testConfigA();
-    handle_ = createTestHandle(&config, SwitchFlags::ENABLE_STANDALONE_RIB);
+    handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();
   }
 

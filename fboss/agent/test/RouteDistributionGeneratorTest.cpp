@@ -22,7 +22,7 @@ namespace facebook::fboss {
 
 TEST(RouteDistributionGeneratorsTest, v4AndV6DistributionSingleChunk) {
   auto cfg = getTestConfig();
-  auto handle = createTestHandle(&cfg, SwitchFlags::ENABLE_STANDALONE_RIB);
+  auto handle = createTestHandle(&cfg);
   auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
       handle->getSw()->getState(),
       {
@@ -42,7 +42,7 @@ TEST(RouteDistributionGeneratorsTest, v4AndV6DistributionSingleChunk) {
 
 TEST(RouteDistributionGeneratorsTest, v4AndV6DistributionMultipleChunks) {
   auto cfg = getTestConfig();
-  auto handle = createTestHandle(&cfg, SwitchFlags::ENABLE_STANDALONE_RIB);
+  auto handle = createTestHandle(&cfg);
   auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
       handle->getSw()->getState(),
       {
@@ -64,7 +64,7 @@ TEST(
     RouteDistributionGeneratorsTest,
     v4AndV6DistributionChunksSpillOverMaskLens) {
   auto cfg = getTestConfig();
-  auto handle = createTestHandle(&cfg, SwitchFlags::ENABLE_STANDALONE_RIB);
+  auto handle = createTestHandle(&cfg);
   auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
       handle->getSw()->getState(),
       {
@@ -87,7 +87,7 @@ TEST(
     RouteDistributionGeneratorsTest,
     v4AndV6DistributionChunksSpillOverAddressFamilies) {
   auto cfg = getTestConfig();
-  auto handle = createTestHandle(&cfg, SwitchFlags::ENABLE_STANDALONE_RIB);
+  auto handle = createTestHandle(&cfg);
   auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
       handle->getSw()->getState(),
       {
@@ -108,7 +108,7 @@ TEST(
 
 TEST(RouteDistributionGeneratorsTest, emptyV4Distribution) {
   auto cfg = getTestConfig();
-  auto handle = createTestHandle(&cfg, SwitchFlags::ENABLE_STANDALONE_RIB);
+  auto handle = createTestHandle(&cfg);
   auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
       handle->getSw()->getState(),
       {
@@ -125,7 +125,7 @@ TEST(RouteDistributionGeneratorsTest, emptyV4Distribution) {
 
 TEST(RouteDistributionGeneratorsTest, emptyV6Distribution) {
   auto cfg = getTestConfig();
-  auto handle = createTestHandle(&cfg, SwitchFlags::ENABLE_STANDALONE_RIB);
+  auto handle = createTestHandle(&cfg);
   auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
       handle->getSw()->getState(),
       {},
@@ -140,7 +140,7 @@ TEST(RouteDistributionGeneratorsTest, emptyV6Distribution) {
 
 TEST(RouteDistributionGeneratorsTest, emptyV4AndV6Distribution) {
   auto cfg = getTestConfig();
-  auto handle = createTestHandle(&cfg, SwitchFlags::ENABLE_STANDALONE_RIB);
+  auto handle = createTestHandle(&cfg);
   auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
       handle->getSw()->getState(),
       {},
