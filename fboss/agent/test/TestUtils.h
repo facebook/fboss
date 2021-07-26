@@ -396,13 +396,6 @@ class WaitForSwitchState : public AutoRegisterStateObserver {
   std::string name_;
 };
 
-struct NoRib {
-  static constexpr bool hasStandAloneRib = false;
-};
-struct Rib {
-  static constexpr bool hasStandAloneRib = true;
-};
-
 void programRoutes(
     const utility::RouteDistributionGenerator::RouteChunks& routeChunks,
     SwSwitch* sw);
