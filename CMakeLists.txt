@@ -713,7 +713,6 @@ if (NOT SAI_ONLY)
       fboss/agent/state/RouteNextHop.cpp
       fboss/agent/state/RouteNextHopEntry.cpp
       fboss/agent/state/RouteNextHopsMulti.cpp
-      fboss/agent/state/RouteTableRib.cpp
       fboss/agent/state/RouteTypes.cpp
       fboss/agent/state/SflowCollector.cpp
       fboss/agent/state/SflowCollectorMap.cpp

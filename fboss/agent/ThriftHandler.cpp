@@ -47,7 +47,6 @@
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/Route.h"
 
-#include "fboss/agent/state/RouteTableRib.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"

@@ -14,7 +14,6 @@
 #include "fboss/agent/GtestDefs.h"
 #include "fboss/agent/state/Route.h"
 
-#include "fboss/agent/state/RouteTableRib.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"

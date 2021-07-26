@@ -39,18 +39,6 @@ const auto kDestPrefix =
     RouteV6::Prefix{folly::IPAddressV6("2401:bad:cad:dad::"), 64};
 const auto kDestAddress = folly::IPAddressV6("2401:bad:cad:dad::beef");
 
-template <typename AddrT>
-void EXPECT_ROUTETABLERIB_MATCH(
-    const std::shared_ptr<RouteTableRib<AddrT>>& rib1,
-    const std::shared_ptr<RouteTableRib<AddrT>>& rib2) {
-  EXPECT_EQ(rib1->size(), rib2->size());
-  EXPECT_EQ(rib1->routesRadixTree().size(), rib2->routesRadixTree().size());
-  for (const auto& route : *(rib1->routes())) {
-    auto match = rib2->exactMatch(route->prefix());
-    ASSERT_NE(nullptr, match);
-    EXPECT_TRUE(match->isSame(route.get()));
-  }
-}
 // bgp next hops
 const std::array<folly::IPAddressV6, 4> kBgpNextHopAddrs{
     folly::IPAddressV6("2801::1"),

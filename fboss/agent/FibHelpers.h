@@ -13,7 +13,7 @@
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/ForwardingInformationBaseDelta.h"
 #include "fboss/agent/state/Route.h"
-#include "fboss/agent/state/RouteTableRib.h"
+
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/types.h"
 

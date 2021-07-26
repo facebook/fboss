@@ -15,8 +15,6 @@
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 
-#include "fboss/agent/state/RouteTableRib.h"
-
 #include "fboss/agent/state/SwitchState.h"
 
 #include <folly/logging/xlog.h>

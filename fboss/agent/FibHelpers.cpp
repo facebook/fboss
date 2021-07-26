@@ -13,28 +13,12 @@
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
-#include "fboss/agent/state/RouteTableRib.h"
+
 #include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
 
 namespace {
-
-template <typename AddrT>
-std::shared_ptr<Route<AddrT>> findInFib(
-    const folly::CIDRNetwork& prefix,
-    const std::shared_ptr<RouteTableRib<AddrT>>& fibRoutes,
-    bool exactMatch) {
-  if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
-    return exactMatch
-        ? fibRoutes->exactMatch({prefix.first.asV6(), prefix.second})
-        : fibRoutes->longestMatch(prefix.first.asV6());
-  } else {
-    return exactMatch
-        ? fibRoutes->exactMatch({prefix.first.asV4(), prefix.second})
-        : fibRoutes->longestMatch(prefix.first.asV4());
-  }
-}
 
 template <typename AddrT>
 std::shared_ptr<Route<AddrT>> findInFib(

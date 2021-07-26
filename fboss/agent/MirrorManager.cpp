@@ -8,7 +8,6 @@
 #include "fboss/agent/state/Mirror.h"
 #include "fboss/agent/state/Route.h"
 
-#include "fboss/agent/state/RouteTableRib.h"
 #include "fboss/agent/state/SwitchState.h"
 
 using boost::container::flat_set;
