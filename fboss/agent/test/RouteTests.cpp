@@ -909,7 +909,6 @@ void checkChangedRoute(
   StateDelta delta(oldState, newState);
 
   forEachChangedRoute(
-      true /*isStandaloneRibEnabled*/,
       delta,
       [&](RouterID id, const auto& oldRt, const auto& newRt) {
         EXPECT_EQ(oldRt->prefix(), newRt->prefix());

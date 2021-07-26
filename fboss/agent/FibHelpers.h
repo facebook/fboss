@@ -71,7 +71,6 @@ template <
     typename RemoveFn,
     typename... Args>
 void forEachChangedRoute(
-    bool isStandaloneRib,
     const StateDelta& stateDelta,
     ChangedFn changedFn,
     AddFn addedFn,
@@ -96,21 +95,16 @@ void forEachChangedRoute(
       }
     }
   };
-  if (isStandaloneRib) {
-    for (const auto& fibContainerDelta : stateDelta.getFibsDelta()) {
-      auto const& newFibContainer = fibContainerDelta.getNew();
-      if (!newFibContainer) {
-        auto const& oldFibContainer = fibContainerDelta.getOld();
-        removeAll(
-            oldFibContainer->getID(),
-            *oldFibContainer->template getFib<AddrT>());
-        continue;
-      }
-      processRoutesDelta(
-          newFibContainer->getID(), fibContainerDelta.getFibDelta<AddrT>());
+  for (const auto& fibContainerDelta : stateDelta.getFibsDelta()) {
+    auto const& newFibContainer = fibContainerDelta.getNew();
+    if (!newFibContainer) {
+      auto const& oldFibContainer = fibContainerDelta.getOld();
+      removeAll(
+          oldFibContainer->getID(), *oldFibContainer->template getFib<AddrT>());
+      continue;
     }
-  } else {
-    CHECK(false) << " Legacy RIB no longer supported";
+    processRoutesDelta(
+        newFibContainer->getID(), fibContainerDelta.getFibDelta<AddrT>());
   }
 }
 
@@ -120,16 +114,15 @@ template <
     typename RemoveFn,
     typename... Args>
 void forEachChangedRoute(
-    bool isStandaloneRib,
     const StateDelta& delta,
     ChangedFn changedFn,
     AddFn addedFn,
     RemoveFn removedFn,
     const Args&... args) {
   forEachChangedRoute<folly::IPAddressV4>(
-      isStandaloneRib, delta, changedFn, addedFn, removedFn, args...);
+      delta, changedFn, addedFn, removedFn, args...);
   forEachChangedRoute<folly::IPAddressV6>(
-      isStandaloneRib, delta, changedFn, addedFn, removedFn, args...);
+      delta, changedFn, addedFn, removedFn, args...);
 }
 
 } // namespace facebook::fboss

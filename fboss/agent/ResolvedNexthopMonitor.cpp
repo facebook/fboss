@@ -64,7 +64,6 @@ ResolvedNexthopMonitor::ResolvedNexthopMonitor(SwSwitch* sw)
 void ResolvedNexthopMonitor::stateUpdated(const StateDelta& delta) {
   scheduleProbes_ = false;
   forEachChangedRoute(
-      sw_->isStandaloneRibEnabled(),
       delta,
       [this](auto rid, const auto& oldRoute, const auto& newRoute) {
         processChangedRouteNextHops(oldRoute, newRoute);

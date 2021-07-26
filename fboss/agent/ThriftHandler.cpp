@@ -478,13 +478,10 @@ IpPrefix getIpPrefix(const Route<AddrT>& route) {
   return pfx;
 }
 
-void translateToFibError(
-    bool isStandaloneRibEnabled,
-    const FbossHwUpdateError& updError) {
+void translateToFibError(const FbossHwUpdateError& updError) {
   StateDelta delta(updError.appliedState, updError.desiredState);
   FbossFibUpdateError fibError;
   forEachChangedRoute(
-      isStandaloneRibEnabled,
       delta,
       [&](RouterID rid, const auto& removed, const auto& added) {
         if (!removed->isSame(added.get())) {
@@ -742,7 +739,7 @@ void ThriftHandler::updateUnicastRoutesImpl(
   try {
     updater.program(syncFibs);
   } catch (const FbossHwUpdateError& ex) {
-    translateToFibError(sw_->isStandaloneRibEnabled(), ex);
+    translateToFibError(ex);
   }
 }
 
@@ -1756,7 +1753,7 @@ void ThriftHandler::addMplsRoutes(
   try {
     sw_->updateStateWithHwFailureProtection("addMplsRoutes", updateFn);
   } catch (const FbossHwUpdateError& ex) {
-    translateToFibError(sw_->isStandaloneRibEnabled(), ex);
+    translateToFibError(ex);
   }
 }
 
@@ -1892,7 +1889,7 @@ void ThriftHandler::syncMplsFib(
   try {
     sw_->updateStateWithHwFailureProtection("syncMplsFib", updateFn);
   } catch (const FbossHwUpdateError& ex) {
-    translateToFibError(sw_->isStandaloneRibEnabled(), ex);
+    translateToFibError(ex);
   }
 }
 

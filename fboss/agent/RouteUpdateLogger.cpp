@@ -76,7 +76,6 @@ RouteUpdateLogger::RouteUpdateLogger(
 
 void RouteUpdateLogger::stateUpdated(const StateDelta& delta) {
   forEachChangedRoute<folly::IPAddressV4>(
-      swSwitch_->isStandaloneRibEnabled(),
       delta,
       &handleChangedRoute<folly::IPAddressV4>,
       &handleAddedRoute<folly::IPAddressV4>,
@@ -84,7 +83,6 @@ void RouteUpdateLogger::stateUpdated(const StateDelta& delta) {
       prefixTracker_,
       routeLoggerV4_);
   forEachChangedRoute<folly::IPAddressV6>(
-      swSwitch_->isStandaloneRibEnabled(),
       delta,
       &handleChangedRoute<folly::IPAddressV6>,
       &handleAddedRoute<folly::IPAddressV6>,

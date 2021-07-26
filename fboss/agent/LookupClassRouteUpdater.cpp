@@ -768,8 +768,7 @@ void LookupClassRouteUpdater::processRouteUpdates(
   auto removedFn = [&stateDelta, this](RouterID rid, const auto& oldRoute) {
     processRouteRemoved(stateDelta, rid, oldRoute);
   };
-  forEachChangedRoute<AddrT>(
-      sw_->isStandaloneRibEnabled(), stateDelta, changedFn, addedFn, removedFn);
+  forEachChangedRoute<AddrT>(stateDelta, changedFn, addedFn, removedFn);
 }
 
 // Methods for scheduling state updates

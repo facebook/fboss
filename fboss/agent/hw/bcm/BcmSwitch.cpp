@@ -1696,7 +1696,6 @@ bool BcmSwitch::isRouteUpdateValid(const StateDelta& delta) const {
 
   bool isValid = true;
   forEachChangedRoute<AddrT>(
-      true /*standalone rib*/,
       delta,
       [&isValid, validateLabeledRoute](
           RouterID /*rid*/,
@@ -2309,7 +2308,6 @@ void BcmSwitch::processRemovedRoute(
 
 void BcmSwitch::processRemovedRoutes(const StateDelta& delta) {
   forEachChangedRoute(
-      true /*standalone rib*/,
       delta,
       [](RouterID /*id*/, const auto& /*oldRoute*/, const auto& /*newRoute*/) {
       },
@@ -2338,7 +2336,6 @@ void BcmSwitch::processRouteTableDelta(
     throw FbossError("invalid route update");
   }
   forEachChangedRoute<AddrT>(
-      true /*standalone rib*/,
       delta,
       [&](RouterID id,
           const shared_ptr<RouteT>& oldRoute,
