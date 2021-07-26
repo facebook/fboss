@@ -23,7 +23,6 @@
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteTable.h"
-#include "fboss/agent/state/RouteTableMap.h"
 
 #include "fboss/agent/state/SwitchState.h"
 

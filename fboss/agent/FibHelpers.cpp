@@ -14,7 +14,7 @@
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/RouteTable.h"
-#include "fboss/agent/state/RouteTableMap.h"
+
 #include "fboss/agent/state/RouteTableRib.h"
 #include "fboss/agent/state/SwitchState.h"
 

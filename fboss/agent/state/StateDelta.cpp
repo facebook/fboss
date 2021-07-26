@@ -23,7 +23,7 @@
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteTable.h"
-#include "fboss/agent/state/RouteTableMap.h"
+
 #include "fboss/agent/state/RouteTableRib.h"
 #include "fboss/agent/state/SflowCollector.h"
 #include "fboss/agent/state/SwitchState.h"

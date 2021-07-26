@@ -50,7 +50,6 @@ class BcmSwitchIf;
 class InterfaceMap;
 class LoadBalancerMap;
 class QosPolicyMap;
-class RouteTableMap;
 class SwitchState;
 class Vlan;
 struct MirrorTunnel;

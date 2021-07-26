@@ -13,7 +13,7 @@
 #include "fboss/agent/state/Route.h"
 
 #include "fboss/agent/state/RouteTable.h"
-#include "fboss/agent/state/RouteTableMap.h"
+
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/RouteDistributionGenerator.h"
