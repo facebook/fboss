@@ -68,7 +68,6 @@ void runBenchmark() {
                        {26, 6},
                        {27, 26},
                        {31, 40}},
-                      ensemble->isStandaloneRibEnabled(),
                       4000,
                       4)
                       .getThriftRoutes();

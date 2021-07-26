@@ -23,7 +23,6 @@ TEST_F(HwOverflowTest, overflowRoutes) {
   applyNewState(
       utility::EcmpSetupAnyNPorts4(getProgrammedState())
           .resolveNextHops(getProgrammedState(), utility::kDefaulEcmpWidth));
-  bool isStandaloneRibEnabled = getHwSwitchEnsemble()->isStandaloneRibEnabled();
   utility::RouteDistributionGenerator::ThriftRouteChunks routeChunks;
   auto updater = getHwSwitchEnsemble()->getRouteUpdater();
   const RouterID kRid(0);
@@ -38,23 +37,16 @@ TEST_F(HwOverflowTest, overflowRoutes) {
           kRid,
           ClientID::BGPD,
           utility::RouteDistributionGenerator(
-              getProgrammedState(),
-              {{64, 10000}},
-              {{24, 1000}},
-              isStandaloneRibEnabled,
-              20000,
-              4)
+              getProgrammedState(), {{64, 10000}}, {{24, 1000}}, 20000, 4)
               .getThriftRoutes());
-      routeChunks = utility::HgridUuRouteScaleGenerator(
-                        getProgrammedState(), isStandaloneRibEnabled)
+      routeChunks = utility::HgridUuRouteScaleGenerator(getProgrammedState())
                         .getThriftRoutes();
       break;
 
     case PlatformMode::GALAXY_FC:
     case PlatformMode::GALAXY_LC:
     case PlatformMode::WEDGE100:
-      routeChunks = utility::HgridUuRouteScaleGenerator(
-                        getProgrammedState(), isStandaloneRibEnabled)
+      routeChunks = utility::HgridUuRouteScaleGenerator(getProgrammedState())
                         .getThriftRoutes();
       break;
     case PlatformMode::WEDGE400:

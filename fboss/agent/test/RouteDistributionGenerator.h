@@ -33,12 +33,14 @@ template <typename AddrT>
 folly::CIDRNetwork getNewPrefix(
     PrefixGenerator<AddrT>& prefixGenerator,
     const std::shared_ptr<facebook::fboss::SwitchState>& state,
-    facebook::fboss::RouterID routerId,
-    bool isStandaloneRibEnabled) {
+    facebook::fboss::RouterID routerId) {
   // Obtain a new prefix.
   auto prefix = prefixGenerator.getNext();
   while (findRoute<AddrT>(
-      isStandaloneRibEnabled, routerId, {prefix.network, prefix.mask}, state)) {
+      true /*isStandaloneRib*/,
+      routerId,
+      {prefix.network, prefix.mask},
+      state)) {
     prefix = prefixGenerator.getNext();
   }
   return folly::CIDRNetwork{{prefix.network}, prefix.mask};
@@ -66,7 +68,6 @@ class RouteDistributionGenerator {
       const std::shared_ptr<SwitchState>& startingState,
       const Masklen2NumPrefixes& v6DistributionSpec,
       const Masklen2NumPrefixes& v4DistributionSpec,
-      bool isStandaloneRibEnabled,
       unsigned int chunkSize,
       unsigned int ecmpWidth,
       RouterID routerId = RouterID(0));
@@ -104,9 +105,6 @@ class RouteDistributionGenerator {
   const RouterID getRouterID() const {
     return routerId_;
   }
-  bool isStandaloneRibEnabled() const {
-    return isStandaloneRibEnabled_;
-  }
 
  private:
   template <typename AddrT>
@@ -115,7 +113,6 @@ class RouteDistributionGenerator {
   const std::shared_ptr<SwitchState> startingState_;
   const Masklen2NumPrefixes v6DistributionSpec_;
   const Masklen2NumPrefixes v4DistributionSpec_;
-  bool isStandaloneRibEnabled_{false};
   const unsigned int chunkSize_;
   const unsigned int ecmpWidth_;
   const RouterID routerId_{0};

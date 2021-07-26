@@ -1094,12 +1094,10 @@ TEST_F(ThriftTest, hwUpdateErrorAfterPartialUpdate) {
 
 TEST_F(ThriftTest, routeUpdatesWithConcurrentReads) {
   auto thriftHgridRoutes =
-      utility::HgridDuRouteScaleGenerator(
-          this->sw_->getState(), this->sw_->isStandaloneRibEnabled(), 100000)
+      utility::HgridDuRouteScaleGenerator(this->sw_->getState(), 100000)
           .getThriftRoutes()[0];
   auto thriftRswRoutes =
-      utility::RSWRouteScaleGenerator(
-          this->sw_->getState(), this->sw_->isStandaloneRibEnabled(), 10000)
+      utility::RSWRouteScaleGenerator(this->sw_->getState(), 10000)
           .getThriftRoutes()[0];
   std::atomic<bool> done{false};
 

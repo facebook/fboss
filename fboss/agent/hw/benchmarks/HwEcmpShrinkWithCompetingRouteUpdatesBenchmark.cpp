@@ -58,7 +58,6 @@ BENCHMARK(HwEcmpGroupShrinkWithCompetingRouteUpdates) {
                          ensemble->getProgrammedState(),
                          {{64, 10'000}},
                          {{}},
-                         ensemble->isStandaloneRibEnabled(),
                          10'000,
                          4,
                          RouterID(0))

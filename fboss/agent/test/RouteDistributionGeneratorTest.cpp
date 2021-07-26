@@ -33,7 +33,6 @@ TEST(RouteDistributionGeneratorsTest, v4AndV6DistributionSingleChunk) {
           {25, 5},
           {32, 5},
       },
-      handle->getSw()->isStandaloneRibEnabled(),
       4000,
       2);
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 20);
@@ -53,7 +52,6 @@ TEST(RouteDistributionGeneratorsTest, v4AndV6DistributionMultipleChunks) {
           {25, 5},
           {32, 5},
       },
-      handle->getSw()->isStandaloneRibEnabled(),
       10,
       2);
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 20);
@@ -75,7 +73,6 @@ TEST(
           {25, 3},
           {32, 7},
       },
-      handle->getSw()->isStandaloneRibEnabled(),
       4,
       2);
 
@@ -98,7 +95,6 @@ TEST(
           {25, 4},
           {32, 5},
       },
-      handle->getSw()->isStandaloneRibEnabled(),
       5,
       2);
 
@@ -115,7 +111,6 @@ TEST(RouteDistributionGeneratorsTest, emptyV4Distribution) {
           {65, 5},
       },
       {},
-      handle->getSw()->isStandaloneRibEnabled(),
       5,
       2);
 
@@ -127,12 +122,7 @@ TEST(RouteDistributionGeneratorsTest, emptyV6Distribution) {
   auto cfg = getTestConfig();
   auto handle = createTestHandle(&cfg);
   auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
-      handle->getSw()->getState(),
-      {},
-      {{24, 5}},
-      handle->getSw()->isStandaloneRibEnabled(),
-      5,
-      2);
+      handle->getSw()->getState(), {}, {{24, 5}}, 5, 2);
 
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 5);
   verifyChunking(routeDistributionSwitchStatesGen, 5, 5);
@@ -142,12 +132,7 @@ TEST(RouteDistributionGeneratorsTest, emptyV4AndV6Distribution) {
   auto cfg = getTestConfig();
   auto handle = createTestHandle(&cfg);
   auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
-      handle->getSw()->getState(),
-      {},
-      {},
-      handle->getSw()->isStandaloneRibEnabled(),
-      5,
-      2);
+      handle->getSw()->getState(), {}, {}, 5, 2);
 
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 0);
   verifyChunking(routeDistributionSwitchStatesGen, 0, 5);

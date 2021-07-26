@@ -34,9 +34,7 @@ class HwRouteScaleTest : public HwTest {
     auto setup = [this]() {
       applyNewConfig(
           utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds()));
-      auto routeGen = RouteScaleGeneratorT(
-          getProgrammedState(),
-          getHwSwitchEnsemble()->isStandaloneRibEnabled());
+      auto routeGen = RouteScaleGeneratorT(getProgrammedState());
 
       applyNewState(routeGen.resolveNextHops(
           getHwSwitchEnsemble()->getProgrammedState()));

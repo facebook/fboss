@@ -43,14 +43,12 @@ RouteDistributionGenerator::RouteDistributionGenerator(
     const std::shared_ptr<SwitchState>& startingState,
     const Masklen2NumPrefixes& v6DistributionSpec,
     const Masklen2NumPrefixes& v4DistributionSpec,
-    bool isStandaloneRibEnabled,
     unsigned int chunkSize,
     unsigned int ecmpWidth,
     RouterID routerId)
     : startingState_(startingState),
       v6DistributionSpec_(v6DistributionSpec),
       v4DistributionSpec_(v4DistributionSpec),
-      isStandaloneRibEnabled_(isStandaloneRibEnabled),
       chunkSize_(chunkSize),
       ecmpWidth_(ecmpWidth),
       routerId_(routerId) {
@@ -150,11 +148,7 @@ void RouteDistributionGenerator::genRouteDistribution(
         generatedRouteChunks_->emplace_back(RouteChunk{});
       }
       generatedRouteChunks_->back().emplace_back(Route{
-          getNewPrefix(
-              prefixGenerator,
-              startingState_,
-              routerId_,
-              isStandaloneRibEnabled_),
+          getNewPrefix(prefixGenerator, startingState_, routerId_),
           getNhops<AddrT>()});
     }
   }
