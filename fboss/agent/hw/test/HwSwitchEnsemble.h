@@ -192,9 +192,6 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   virtual void runDiagCommand(
       const std::string& input,
       std::string& output) = 0;
-  bool isStandaloneRibEnabled() const {
-    return routingInformationBase_.get() != nullptr;
-  }
   HwSwitchEnsembleRouteUpdateWrapper getRouteUpdater() {
     return HwSwitchEnsembleRouteUpdateWrapper(
         this, routingInformationBase_.get());

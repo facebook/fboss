@@ -73,8 +73,7 @@ void runBenchmark() {
                       .getThriftRoutes();
   } else {
     routeChunks =
-        utility::FSWRouteScaleGenerator(
-            ensemble->getProgrammedState(), ensemble->isStandaloneRibEnabled())
+        utility::FSWRouteScaleGenerator(ensemble->getProgrammedState())
             .getThriftRoutes();
   }
   auto updater = ensemble->getRouteUpdater();

@@ -101,11 +101,6 @@ class SaiRouteRollbackTest : public SaiRollbackTest {
         getProgrammedState(), RouterID(0));
   }
   void rollbackStandaloneRib(const std::vector<folly::CIDRNetwork>& prefixes) {
-    // Since we are forcing a rollback (as opposed to a overflow causing a
-    // rollback) we need to rollback routes in rib too.
-    if (!getHwSwitchEnsemble()->isStandaloneRibEnabled()) {
-      return;
-    }
     auto updater = getHwSwitchEnsemble()->getRouteUpdater();
     std::vector<IpPrefix> ipPfxs;
     for (const auto& prefix : prefixes) {
