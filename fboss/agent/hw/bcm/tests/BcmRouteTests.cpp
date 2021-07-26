@@ -793,8 +793,7 @@ TEST_F(BcmRouteTest, RemoveHWNonexistentNonHostRoute) {
     }
 
     // Check whether route is removed from SW
-    auto [v4Count, v6Count] = getRouteCount(
-        getHwSwitchEnsemble()->isStandaloneRibEnabled(), getProgrammedState());
+    auto [v4Count, v6Count] = getRouteCount(getProgrammedState());
     int v4NonHostInterfaceRoutes, v6NonHostInterfaceRoutes;
     std::tie(v4NonHostInterfaceRoutes, v6NonHostInterfaceRoutes) =
         computeNonHostInterfaceRoutes();

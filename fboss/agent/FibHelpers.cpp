@@ -66,18 +66,13 @@ std::shared_ptr<Route<AddrT>> findLongestMatchRoute(
 }
 
 std::pair<uint64_t, uint64_t> getRouteCount(
-    bool isStandaloneRib,
     const std::shared_ptr<SwitchState>& state) {
   uint64_t v6Count{0}, v4Count{0};
-  if (isStandaloneRib) {
-    std::tie(v4Count, v6Count) = state->getFibs()->getRouteCount();
-  } else {
-    CHECK(false) << " Legacy RIB no longer supported";
-  }
+  std::tie(v4Count, v6Count) = state->getFibs()->getRouteCount();
   return std::make_pair(v4Count, v6Count);
 }
 
-// Explicit instantitions
+// Explicit instantiations
 template std::shared_ptr<Route<folly::IPAddressV6>> findRoute(
     RouterID rid,
     const folly::CIDRNetwork& prefix,

@@ -1507,8 +1507,7 @@ class MultipleAddressInterfaceTest : public RouteTest {
 
 TEST_F(MultipleAddressInterfaceTest, twoAddrsForInterface) {
   auto rid = RouterID(0);
-  auto [v4Routes, v6Routes] =
-      getRouteCount(true /*standalone rib*/, this->sw_->getState());
+  auto [v4Routes, v6Routes] = getRouteCount(this->sw_->getState());
 
   EXPECT_EQ(2, v4Routes); // ALPM default + intf routes
   EXPECT_EQ(3, v6Routes); // ALPM default + intf + link local routes
@@ -2113,8 +2112,7 @@ class StaticRoutesTest : public RouteTest {
 };
 
 TEST_F(StaticRoutesTest, staticRoutesGetApplied) {
-  auto [numV4Routes, numV6Routes] =
-      getRouteCount(true /*standalone rib*/, this->sw_->getState());
+  auto [numV4Routes, numV6Routes] = getRouteCount(this->sw_->getState());
   EXPECT_EQ(8, numV4Routes);
   EXPECT_EQ(9, numV6Routes);
 }

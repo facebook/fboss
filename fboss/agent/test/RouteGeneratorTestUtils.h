@@ -25,8 +25,6 @@ class Platform;
 // Random test state with 2 ports and 2 vlans
 cfg::SwitchConfig getTestConfig();
 constexpr auto kExtraRoutes = 128 /*interface route*/ + 1 /*link local route*/;
-uint64_t getRouteCount(const std::shared_ptr<SwitchState>& state);
-
 uint64_t getRouteCount(
     const utility::RouteDistributionGenerator::RouteChunks& routeChunks);
 uint64_t getRouteCount(

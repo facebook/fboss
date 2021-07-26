@@ -226,8 +226,7 @@ TEST_F(StaticRouteTest, configureUnconfigure) {
   // Now blow away the static routes from config.
   cfg::SwitchConfig emptyConfig;
   this->sw_->applyConfig("Empty config", emptyConfig);
-  auto [v4Routes, v6Routes] =
-      getRouteCount(this->sw_->isStandaloneRibEnabled(), this->sw_->getState());
+  auto [v4Routes, v6Routes] = getRouteCount(this->sw_->getState());
   // Only null routes remain
   EXPECT_EQ(1, v4Routes);
   EXPECT_EQ(1, v6Routes);

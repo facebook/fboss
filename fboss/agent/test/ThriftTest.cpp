@@ -468,7 +468,7 @@ TEST_F(ThriftTest, syncFib) {
         RouteNextHopEntry(
             makeResolvedNextHops({{kIntf1, cli3_nhop6}}),
             AdminDistance::MAX_ADMIN_DISTANCE));
-    auto [v4Routes, v6Routes] = getRouteCount(hasStandAloneRib, state);
+    auto [v4Routes, v6Routes] = getRouteCount(state);
     EXPECT_EQ(
         7, v4Routes); // 4 intf routes + 2 routes from above + 1 default routes
     EXPECT_EQ(
@@ -552,7 +552,7 @@ TEST_F(ThriftTest, syncFib) {
             makeResolvedNextHops({{kIntf1, cli1_nhop6}}),
             AdminDistance::MAX_ADMIN_DISTANCE));
     // A4, A6 removed, D4, D6 added. Count should remain same
-    auto [v4Routes, v6Routes] = getRouteCount(hasStandAloneRib, state);
+    auto [v4Routes, v6Routes] = getRouteCount(state);
     EXPECT_EQ(7, v4Routes);
     EXPECT_EQ(6, v6Routes);
   }
@@ -686,7 +686,7 @@ TEST_F(ThriftTest, addDelUnicastRoutes) {
         RouteNextHopEntry(
             makeResolvedNextHops({{kIntf1, cli3_nhop6}}),
             AdminDistance::MAX_ADMIN_DISTANCE));
-    auto [v4Routes, v6Routes] = getRouteCount(hasStandAloneRib, state);
+    auto [v4Routes, v6Routes] = getRouteCount(state);
     EXPECT_EQ(
         7, v4Routes); // 4 intf routes + 2 routes from above + 1 default routes
     EXPECT_EQ(
@@ -776,7 +776,7 @@ TEST_F(ThriftTest, addDelUnicastRoutes) {
             makeResolvedNextHops({{kIntf1, cli1_nhop6}}),
             AdminDistance::MAX_ADMIN_DISTANCE));
     // A4, A6 removed, D4, D6 added. Count should remain same
-    auto [v4Routes, v6Routes] = getRouteCount(hasStandAloneRib, state);
+    auto [v4Routes, v6Routes] = getRouteCount(state);
     EXPECT_EQ(7, v4Routes);
     EXPECT_EQ(6, v6Routes);
   }
@@ -941,7 +941,7 @@ TEST_F(ThriftTest, addUnicastRoutesIsHwProtected) {
 
 TEST_F(ThriftTest, getRouteTable) {
   ThriftHandler handler(this->sw_);
-  auto [v4Routes, v6Routes] = getRouteCount(true, this->sw_->getState());
+  auto [v4Routes, v6Routes] = getRouteCount(this->sw_->getState());
   std::vector<UnicastRoute> routeTable;
   handler.getRouteTable(routeTable);
   // 6 intf routes + 2 default routes + 1 link local route
@@ -951,7 +951,7 @@ TEST_F(ThriftTest, getRouteTable) {
 
 TEST_F(ThriftTest, getRouteDetails) {
   ThriftHandler handler(this->sw_);
-  auto [v4Routes, v6Routes] = getRouteCount(true, this->sw_->getState());
+  auto [v4Routes, v6Routes] = getRouteCount(this->sw_->getState());
   std::vector<RouteDetails> routeDetails;
   handler.getRouteTableDetails(routeDetails);
   // 6 intf routes + 2 default routes + 1 link local route
