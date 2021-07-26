@@ -36,11 +36,7 @@ folly::CIDRNetwork getNewPrefix(
     facebook::fboss::RouterID routerId) {
   // Obtain a new prefix.
   auto prefix = prefixGenerator.getNext();
-  while (findRoute<AddrT>(
-      true /*isStandaloneRib*/,
-      routerId,
-      {prefix.network, prefix.mask},
-      state)) {
+  while (findRoute<AddrT>(routerId, {prefix.network, prefix.mask}, state)) {
     prefix = prefixGenerator.getNext();
   }
   return folly::CIDRNetwork{{prefix.network}, prefix.mask};

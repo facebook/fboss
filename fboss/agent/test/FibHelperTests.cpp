@@ -165,26 +165,17 @@ TYPED_TEST_CASE(FibHelperTest, FibHelperTestTypes);
 
 TYPED_TEST(FibHelperTest, findRoute) {
   auto route = findRoute<typename TestFixture::AddrT>(
-      this->sw_->isStandaloneRibEnabled(),
-      this->kRid(),
-      this->kPrefix1(),
-      this->sw_->getState());
+      this->kRid(), this->kPrefix1(), this->sw_->getState());
   EXPECT_NE(route, nullptr);
 
   route = findRoute<typename TestFixture::AddrT>(
-      this->sw_->isStandaloneRibEnabled(),
-      this->kRid(),
-      this->kPrefix2(),
-      this->sw_->getState());
+      this->kRid(), this->kPrefix2(), this->sw_->getState());
   EXPECT_EQ(route, nullptr);
 }
 
 TYPED_TEST(FibHelperTest, findLongestMatchRoute) {
   auto route = findRoute<typename TestFixture::AddrT>(
-      this->sw_->isStandaloneRibEnabled(),
-      this->kRid(),
-      this->kPrefix1(),
-      this->sw_->getState());
+      this->kRid(), this->kPrefix1(), this->sw_->getState());
   EXPECT_NE(route, nullptr);
   auto route2 = findLongestMatchRoute<typename TestFixture::AddrT>(
       this->sw_->getRib(),

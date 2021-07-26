@@ -30,7 +30,6 @@ class RoutingInformationBase;
 
 template <typename AddrT>
 std::shared_ptr<Route<AddrT>> findRoute(
-    bool isStandaloneRib,
     RouterID rid,
     const folly::CIDRNetwork& prefix,
     const std::shared_ptr<SwitchState>& state);

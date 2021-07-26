@@ -280,7 +280,7 @@ TEST_F(ThriftTest, multipleClientSyncFib) {
   auto verifyPrefixesPresent = [&](const auto& prefix4, const auto& prefix6) {
     auto state = this->sw_->getState();
     auto rtA4 = findRoute<folly::IPAddressV4>(
-        hasStandAloneRib, rid, IPAddress::createNetwork(prefix4), state);
+        rid, IPAddress::createNetwork(prefix4), state);
     EXPECT_NE(nullptr, rtA4);
     EXPECT_EQ(
         rtA4->getForwardInfo(),
@@ -289,7 +289,7 @@ TEST_F(ThriftTest, multipleClientSyncFib) {
             AdminDistance::MAX_ADMIN_DISTANCE));
 
     auto rtA6 = findRoute<folly::IPAddressV6>(
-        hasStandAloneRib, rid, IPAddress::createNetwork(prefix6), state);
+        rid, IPAddress::createNetwork(prefix6), state);
     EXPECT_NE(nullptr, rtA6);
     EXPECT_EQ(
         rtA6->getForwardInfo(),
@@ -303,10 +303,10 @@ TEST_F(ThriftTest, multipleClientSyncFib) {
   auto verifyPrefixesRemoved = [&](const auto& prefix4, const auto& prefix6) {
     auto state = this->sw_->getState();
     auto rtA4 = findRoute<folly::IPAddressV4>(
-        hasStandAloneRib, rid, IPAddress::createNetwork(prefix4), state);
+        rid, IPAddress::createNetwork(prefix4), state);
     EXPECT_EQ(nullptr, rtA4);
     auto rtA6 = findRoute<folly::IPAddressV6>(
-        hasStandAloneRib, rid, IPAddress::createNetwork(prefix6), state);
+        rid, IPAddress::createNetwork(prefix6), state);
     EXPECT_EQ(nullptr, rtA6);
   };
 
@@ -406,36 +406,24 @@ TEST_F(ThriftTest, syncFib) {
 
   // Make sure all the static and link-local routes are there
   auto hasStandAloneRib = true;
-  auto ensureConfigRoutes = [this, hasStandAloneRib, rid]() {
+  auto ensureConfigRoutes = [this, rid]() {
     auto state = this->sw_->getState();
     EXPECT_NE(
         nullptr,
         findRoute<folly::IPAddressV4>(
-            hasStandAloneRib,
-            rid,
-            IPAddress::createNetwork("10.0.0.0/24"),
-            state));
+            rid, IPAddress::createNetwork("10.0.0.0/24"), state));
     EXPECT_NE(
         nullptr,
         findRoute<folly::IPAddressV4>(
-            hasStandAloneRib,
-            rid,
-            IPAddress::createNetwork("192.168.0.0/24"),
-            state));
+            rid, IPAddress::createNetwork("192.168.0.0/24"), state));
     EXPECT_NE(
         nullptr,
         findRoute<folly::IPAddressV6>(
-            hasStandAloneRib,
-            rid,
-            IPAddress::createNetwork("2401:db00:2110:3001::/64"),
-            state));
+            rid, IPAddress::createNetwork("2401:db00:2110:3001::/64"), state));
     EXPECT_NE(
         nullptr,
         findRoute<folly::IPAddressV6>(
-            hasStandAloneRib,
-            rid,
-            IPAddress::createNetwork("fe80::/64"),
-            state));
+            rid, IPAddress::createNetwork("fe80::/64"), state));
   };
   auto kIntf1 = InterfaceID(1);
   ensureConfigRoutes();
@@ -446,7 +434,7 @@ TEST_F(ThriftTest, syncFib) {
     auto state = this->sw_->getState();
     // Only random client routes
     auto rtA4 = findRoute<folly::IPAddressV4>(
-        hasStandAloneRib, rid, IPAddress::createNetwork(prefixA4), state);
+        rid, IPAddress::createNetwork(prefixA4), state);
     EXPECT_NE(nullptr, rtA4);
     EXPECT_EQ(
         rtA4->getForwardInfo(),
@@ -455,7 +443,7 @@ TEST_F(ThriftTest, syncFib) {
             AdminDistance::MAX_ADMIN_DISTANCE));
 
     auto rtA6 = findRoute<folly::IPAddressV6>(
-        hasStandAloneRib, rid, IPAddress::createNetwork(prefixA6), state);
+        rid, IPAddress::createNetwork(prefixA6), state);
     EXPECT_NE(nullptr, rtA6);
     EXPECT_EQ(
         rtA6->getForwardInfo(),
@@ -464,7 +452,7 @@ TEST_F(ThriftTest, syncFib) {
             AdminDistance::MAX_ADMIN_DISTANCE));
     // Random client and BGP routes - bgp should win
     auto rtB4 = findRoute<folly::IPAddressV4>(
-        hasStandAloneRib, rid, IPAddress::createNetwork(prefixB4), state);
+        rid, IPAddress::createNetwork(prefixB4), state);
     EXPECT_NE(nullptr, rtB4);
     EXPECT_EQ(
         rtB4->getForwardInfo(),
@@ -473,7 +461,7 @@ TEST_F(ThriftTest, syncFib) {
             AdminDistance::MAX_ADMIN_DISTANCE));
     // Random client, bgp, static routes. Static shouold win
     auto rtC6 = findRoute<folly::IPAddressV6>(
-        hasStandAloneRib, rid, IPAddress::createNetwork(prefixC6), state);
+        rid, IPAddress::createNetwork(prefixC6), state);
     EXPECT_NE(nullptr, rtC6);
     EXPECT_EQ(
         rtC6->getForwardInfo(),
@@ -490,11 +478,11 @@ TEST_F(ThriftTest, syncFib) {
     EXPECT_EQ(
         nullptr,
         findRoute<folly::IPAddressV4>(
-            hasStandAloneRib, rid, IPAddress::createNetwork(prefixD4), state));
+            rid, IPAddress::createNetwork(prefixD4), state));
     EXPECT_EQ(
         nullptr,
         findRoute<folly::IPAddressV6>(
-            hasStandAloneRib, rid, IPAddress::createNetwork(prefixD6), state));
+            rid, IPAddress::createNetwork(prefixD6), state));
   }
   //
   // Now use syncFib to remove all the routes for randomClient and add
@@ -524,22 +512,22 @@ TEST_F(ThriftTest, syncFib) {
     // Only random client routes from before are gone, since we did not syncFib
     // with them
     auto rtA4 = findRoute<folly::IPAddressV4>(
-        hasStandAloneRib, rid, IPAddress::createNetwork(prefixA4), state);
+        rid, IPAddress::createNetwork(prefixA4), state);
     EXPECT_EQ(nullptr, rtA4);
 
     auto rtA6 = findRoute<folly::IPAddressV6>(
-        hasStandAloneRib, rid, IPAddress::createNetwork(prefixA6), state);
+        rid, IPAddress::createNetwork(prefixA6), state);
     EXPECT_EQ(nullptr, rtA6);
     // random client and bgp routes. Bgp should continue to win
     auto rtB4 = findRoute<folly::IPAddressV4>(
-        hasStandAloneRib, rid, IPAddress::createNetwork(prefixB4), state);
+        rid, IPAddress::createNetwork(prefixB4), state);
     EXPECT_TRUE(rtB4->getForwardInfo().isSame(RouteNextHopEntry(
         makeResolvedNextHops({{InterfaceID(1), cli2_nhop4}}),
         AdminDistance::MAX_ADMIN_DISTANCE)));
 
     // Random client, bgp, static routes. Static should win
     auto rtC6 = findRoute<folly::IPAddressV6>(
-        hasStandAloneRib, rid, IPAddress::createNetwork(prefixC6), state);
+        rid, IPAddress::createNetwork(prefixC6), state);
     EXPECT_NE(nullptr, rtC6);
     EXPECT_EQ(
         rtC6->getForwardInfo(),
@@ -548,7 +536,7 @@ TEST_F(ThriftTest, syncFib) {
             AdminDistance::MAX_ADMIN_DISTANCE));
     // D6 and D4 should now be found and resolved by random client nhops
     auto rtD4 = findRoute<folly::IPAddressV4>(
-        hasStandAloneRib, rid, IPAddress::createNetwork(prefixD4), state);
+        rid, IPAddress::createNetwork(prefixD4), state);
     EXPECT_NE(nullptr, rtD4);
     EXPECT_EQ(
         rtD4->getForwardInfo(),
@@ -556,7 +544,7 @@ TEST_F(ThriftTest, syncFib) {
             makeResolvedNextHops({{kIntf1, cli1_nhop4}}),
             AdminDistance::MAX_ADMIN_DISTANCE));
     auto rtD6 = findRoute<folly::IPAddressV6>(
-        hasStandAloneRib, rid, IPAddress::createNetwork(prefixD6), state);
+        rid, IPAddress::createNetwork(prefixD6), state);
     EXPECT_NE(nullptr, rtD6);
     EXPECT_EQ(
         rtD6->getForwardInfo(),
@@ -632,36 +620,28 @@ TEST_F(ThriftTest, addDelUnicastRoutes) {
 
   // Make sure all the static and link-local routes are there
   auto hasStandAloneRib = true;
-  auto ensureConfigRoutes = [this, hasStandAloneRib, rid]() {
+  auto ensureConfigRoutes = [this, rid]() {
     auto state = this->sw_->getState();
     EXPECT_NE(
         nullptr,
         findRoute<folly::IPAddressV4>(
-            hasStandAloneRib,
-            rid,
-            IPAddress::createNetwork("10.0.0.0/24"),
-            state));
+
+            rid, IPAddress::createNetwork("10.0.0.0/24"), state));
     EXPECT_NE(
         nullptr,
         findRoute<folly::IPAddressV4>(
-            hasStandAloneRib,
-            rid,
-            IPAddress::createNetwork("192.168.0.0/24"),
-            state));
+
+            rid, IPAddress::createNetwork("192.168.0.0/24"), state));
     EXPECT_NE(
         nullptr,
         findRoute<folly::IPAddressV6>(
-            hasStandAloneRib,
-            rid,
-            IPAddress::createNetwork("2401:db00:2110:3001::/64"),
-            state));
+
+            rid, IPAddress::createNetwork("2401:db00:2110:3001::/64"), state));
     EXPECT_NE(
         nullptr,
         findRoute<folly::IPAddressV6>(
-            hasStandAloneRib,
-            rid,
-            IPAddress::createNetwork("fe80::/64"),
-            state));
+
+            rid, IPAddress::createNetwork("fe80::/64"), state));
   };
   auto kIntf1 = InterfaceID(1);
   ensureConfigRoutes();
@@ -672,7 +652,7 @@ TEST_F(ThriftTest, addDelUnicastRoutes) {
     auto state = this->sw_->getState();
     // Only random client routes
     auto rtA4 = findRoute<folly::IPAddressV4>(
-        hasStandAloneRib, rid, IPAddress::createNetwork(prefixA4), state);
+        rid, IPAddress::createNetwork(prefixA4), state);
     EXPECT_NE(nullptr, rtA4);
     EXPECT_EQ(
         rtA4->getForwardInfo(),
@@ -681,7 +661,7 @@ TEST_F(ThriftTest, addDelUnicastRoutes) {
             AdminDistance::MAX_ADMIN_DISTANCE));
 
     auto rtA6 = findRoute<folly::IPAddressV6>(
-        hasStandAloneRib, rid, IPAddress::createNetwork(prefixA6), state);
+        rid, IPAddress::createNetwork(prefixA6), state);
     EXPECT_NE(nullptr, rtA6);
     EXPECT_EQ(
         rtA6->getForwardInfo(),
@@ -690,7 +670,7 @@ TEST_F(ThriftTest, addDelUnicastRoutes) {
             AdminDistance::MAX_ADMIN_DISTANCE));
     // Random client and BGP routes - bgp should win
     auto rtB4 = findRoute<folly::IPAddressV4>(
-        hasStandAloneRib, rid, IPAddress::createNetwork(prefixB4), state);
+        rid, IPAddress::createNetwork(prefixB4), state);
     EXPECT_NE(nullptr, rtB4);
     EXPECT_EQ(
         rtB4->getForwardInfo(),
@@ -699,7 +679,7 @@ TEST_F(ThriftTest, addDelUnicastRoutes) {
             AdminDistance::MAX_ADMIN_DISTANCE));
     // Random client, bgp, static routes. Static should win
     auto rtC6 = findRoute<folly::IPAddressV6>(
-        hasStandAloneRib, rid, IPAddress::createNetwork(prefixC6), state);
+        rid, IPAddress::createNetwork(prefixC6), state);
     EXPECT_NE(nullptr, rtC6);
     EXPECT_EQ(
         rtC6->getForwardInfo(),
@@ -716,11 +696,11 @@ TEST_F(ThriftTest, addDelUnicastRoutes) {
     EXPECT_EQ(
         nullptr,
         findRoute<folly::IPAddressV4>(
-            hasStandAloneRib, rid, IPAddress::createNetwork(prefixD4), state));
+            rid, IPAddress::createNetwork(prefixD4), state));
     EXPECT_EQ(
         nullptr,
         findRoute<folly::IPAddressV6>(
-            hasStandAloneRib, rid, IPAddress::createNetwork(prefixD6), state));
+            rid, IPAddress::createNetwork(prefixD6), state));
   }
   //
   // Now use deleteUnicastRoute to remove all the routes for randomClient and
@@ -756,22 +736,22 @@ TEST_F(ThriftTest, addDelUnicastRoutes) {
     // Only random client routes from before are gone, since we did not syncFib
     // with them
     auto rtA4 = findRoute<folly::IPAddressV4>(
-        hasStandAloneRib, rid, IPAddress::createNetwork(prefixA4), state);
+        rid, IPAddress::createNetwork(prefixA4), state);
     EXPECT_EQ(nullptr, rtA4);
 
     auto rtA6 = findRoute<folly::IPAddressV6>(
-        hasStandAloneRib, rid, IPAddress::createNetwork(prefixA6), state);
+        rid, IPAddress::createNetwork(prefixA6), state);
     EXPECT_EQ(nullptr, rtA6);
     // random client and bgp routes. Bgp should continue to win
     auto rtB4 = findRoute<folly::IPAddressV4>(
-        hasStandAloneRib, rid, IPAddress::createNetwork(prefixB4), state);
+        rid, IPAddress::createNetwork(prefixB4), state);
     EXPECT_TRUE(rtB4->getForwardInfo().isSame(RouteNextHopEntry(
         makeResolvedNextHops({{InterfaceID(1), cli2_nhop4}}),
         AdminDistance::MAX_ADMIN_DISTANCE)));
 
     // Random client, bgp, static routes. Static should win
     auto rtC6 = findRoute<folly::IPAddressV6>(
-        hasStandAloneRib, rid, IPAddress::createNetwork(prefixC6), state);
+        rid, IPAddress::createNetwork(prefixC6), state);
     EXPECT_NE(nullptr, rtC6);
     EXPECT_EQ(
         rtC6->getForwardInfo(),
@@ -780,7 +760,7 @@ TEST_F(ThriftTest, addDelUnicastRoutes) {
             AdminDistance::MAX_ADMIN_DISTANCE));
     // D6 and D4 should now be found and resolved by random client nhops
     auto rtD4 = findRoute<folly::IPAddressV4>(
-        hasStandAloneRib, rid, IPAddress::createNetwork(prefixD4), state);
+        rid, IPAddress::createNetwork(prefixD4), state);
     EXPECT_NE(nullptr, rtD4);
     EXPECT_EQ(
         rtD4->getForwardInfo(),
@@ -788,7 +768,7 @@ TEST_F(ThriftTest, addDelUnicastRoutes) {
             makeResolvedNextHops({{kIntf1, cli1_nhop4}}),
             AdminDistance::MAX_ADMIN_DISTANCE));
     auto rtD6 = findRoute<folly::IPAddressV6>(
-        hasStandAloneRib, rid, IPAddress::createNetwork(prefixD6), state);
+        rid, IPAddress::createNetwork(prefixD6), state);
     EXPECT_NE(nullptr, rtD6);
     EXPECT_EQ(
         rtD6->getForwardInfo(),
@@ -854,10 +834,7 @@ TEST_F(ThriftTest, delUnicastRoutes) {
                          bool expectPresent, const std::string& nhop) {
     auto kIntf1 = InterfaceID(1);
     auto rtC6 = findRoute<folly::IPAddressV6>(
-        this->sw_->isStandaloneRibEnabled(),
-        rid,
-        IPAddress::createNetwork(prefixC6),
-        this->sw_->getState());
+        rid, IPAddress::createNetwork(prefixC6), this->sw_->getState());
     if (!expectPresent) {
       EXPECT_EQ(nullptr, rtC6);
       return;

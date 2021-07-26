@@ -97,10 +97,7 @@ class StaticRouteTest : public ::testing::Test {
   template <typename AddrT>
   std::shared_ptr<Route<AddrT>> findRoute(const RoutePrefix<AddrT>& nw) {
     return ::findRoute<AddrT>(
-        this->sw_->isStandaloneRibEnabled(),
-        RouterID(0),
-        nw.toCidrNetwork(),
-        this->sw_->getState());
+        RouterID(0), nw.toCidrNetwork(), this->sw_->getState());
   }
 
  protected:

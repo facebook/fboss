@@ -956,13 +956,11 @@ TEST_F(BcmRouteTest, EgressUpdateOnHostRouteUpdateOneHopToManyHops) {
 
   auto verify = [=]() {
     auto v4SwRoute = findRoute<folly::IPAddressV4>(
-        getHwSwitchEnsemble()->isStandaloneRibEnabled(),
         RouterID(0),
         {hostRouteV4.first, hostRouteV4.second},
         getProgrammedState());
 
     auto v6SwRoute = findRoute<folly::IPAddressV6>(
-        getHwSwitchEnsemble()->isStandaloneRibEnabled(),
         RouterID(0),
         {hostRouteV6.first, hostRouteV6.second},
         getProgrammedState());

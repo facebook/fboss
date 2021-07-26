@@ -80,10 +80,7 @@ void BcmEcmpTest::programRouteWithUnresolvedNhops() {
 
 const BcmMultiPathNextHop* BcmEcmpTest::getBcmMultiPathNextHop() const {
   auto resolvedRoute = findRoute<folly::IPAddressV6>(
-      getHwSwitchEnsemble()->isStandaloneRibEnabled(),
-      kRid,
-      kDefaultRoutePrefix,
-      getProgrammedState());
+      kRid, kDefaultRoutePrefix, getProgrammedState());
   const auto multiPathTable = getHwSwitch()->getMultiPathNextHopTable();
   RouteNextHopSet nhops;
   std::unordered_map<IPAddress, NextHopWeight> ws;

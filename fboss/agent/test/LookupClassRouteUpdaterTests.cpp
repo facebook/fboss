@@ -198,7 +198,6 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
       std::optional<cfg ::AclLookupClass> classID) {
     this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
       auto route = findRoute<AddrT>(
-          sw_->isStandaloneRibEnabled(),
           kRid(),
           {folly::IPAddress(routePrefix.network), routePrefix.mask},
           sw_->getState());

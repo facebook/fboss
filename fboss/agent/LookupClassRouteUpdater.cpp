@@ -438,8 +438,7 @@ void LookupClassRouteUpdater::processNeighborRemoved(
      * passing to addRouteAndFindClassID.
      */
     if (cidr.first.isV6()) {
-      auto route = findRoute<folly::IPAddressV6>(
-          sw_->isStandaloneRibEnabled(), rid, cidr, newState);
+      auto route = findRoute<folly::IPAddressV6>(rid, cidr, newState);
       if (route) {
         routeClassID = addRouteAndFindClassID(
             stateDelta,
@@ -448,8 +447,7 @@ void LookupClassRouteUpdater::processNeighborRemoved(
             std::make_pair(removedNeighbor->getIP(), vlanID));
       }
     } else {
-      auto route = findRoute<folly::IPAddressV4>(
-          sw_->isStandaloneRibEnabled(), rid, cidr, newState);
+      auto route = findRoute<folly::IPAddressV4>(rid, cidr, newState);
       if (route) {
         routeClassID = addRouteAndFindClassID(
             stateDelta,

@@ -192,7 +192,7 @@ class RouteTest : public ::testing::Test {
       RouterID rid,
       const folly::CIDRNetwork& prefix,
       const std::shared_ptr<SwitchState>& state) {
-    return findRoute<AddrT>(sw_->isStandaloneRibEnabled(), rid, prefix, state);
+    return findRoute<AddrT>(rid, prefix, state);
   }
 
  protected:
@@ -1138,10 +1138,7 @@ TEST_F(RouteTest, PruneAddedRoutes) {
   RouteV4::Prefix prefix1{IPAddressV4("20.0.1.51"), 24};
 
   auto newRouteEntry = findRoute<IPAddressV4>(
-      true /*standalone rib*/,
-      rid0,
-      prefix1.toCidrNetwork(),
-      this->sw_->getState());
+      rid0, prefix1.toCidrNetwork(), this->sw_->getState());
   EXPECT_NE(nullptr, newRouteEntry);
   EXPECT_EQ(
       newRouteEntry->prefix(), (RouteV4::Prefix{IPAddressV4("20.0.1.0"), 24}));
@@ -1151,8 +1148,8 @@ TEST_F(RouteTest, PruneAddedRoutes) {
   SwitchState::revertNewRouteEntry<IPAddressV4>(
       rid0, newRouteEntry, nullptr, &revertState);
   // Make sure that state3 changes as a result of pruning
-  auto remainingRouteEntry = findRoute<IPAddressV4>(
-      true /*standalone rib*/, rid0, prefix1.toCidrNetwork(), revertState);
+  auto remainingRouteEntry =
+      findRoute<IPAddressV4>(rid0, prefix1.toCidrNetwork(), revertState);
   // Route removed after delete
   EXPECT_EQ(nullptr, remainingRouteEntry);
 }
@@ -1190,10 +1187,7 @@ TEST_F(RouteTest, PruneChangedRoutes) {
   updater.program();
 
   auto oldEntry = findRoute<IPAddressV6>(
-      true /*standalone rib*/,
-      rid0,
-      prefix42.toCidrNetwork(),
-      this->sw_->getState());
+      rid0, prefix42.toCidrNetwork(), this->sw_->getState());
   EXPECT_NE(nullptr, oldEntry);
   EXPECT_TRUE(oldEntry->isToCPU());
 
@@ -1211,10 +1205,7 @@ TEST_F(RouteTest, PruneChangedRoutes) {
   updater.program();
 
   auto newEntry = findRoute<IPAddressV6>(
-      true /*standalone rib*/,
-      rid0,
-      prefix42.toCidrNetwork(),
-      this->sw_->getState());
+      rid0, prefix42.toCidrNetwork(), this->sw_->getState());
 
   EXPECT_FALSE(newEntry->isToCPU());
   // state3
@@ -1223,8 +1214,8 @@ TEST_F(RouteTest, PruneChangedRoutes) {
   auto revertState = this->sw_->getState();
   SwitchState::revertNewRouteEntry(rid0, newEntry, oldEntry, &revertState);
 
-  auto revertedEntry = findRoute<IPAddressV6>(
-      true /*standalone rib*/, rid0, prefix42.toCidrNetwork(), revertState);
+  auto revertedEntry =
+      findRoute<IPAddressV6>(rid0, prefix42.toCidrNetwork(), revertState);
   EXPECT_TRUE(revertedEntry->isToCPU());
 }
 
@@ -1328,12 +1319,9 @@ void expectFwdInfo(
     const SwSwitch* sw,
     RouteV4::Prefix prefix,
     std::string ipPrefix) {
-  const auto& fwd = findRoute<IPAddressV4>(
-                        sw->isStandaloneRibEnabled(),
-                        kRid0,
-                        prefix.toCidrNetwork(),
-                        sw->getState())
-                        ->getForwardInfo();
+  const auto& fwd =
+      findRoute<IPAddressV4>(kRid0, prefix.toCidrNetwork(), sw->getState())
+          ->getForwardInfo();
   const auto& nhops = fwd.getNextHopSet();
   // Expect the fwd'ing info to be 3 IPs all starting with 'ipPrefix'
   EXPECT_EQ(3, nhops.size());

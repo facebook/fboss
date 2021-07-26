@@ -50,7 +50,6 @@ std::shared_ptr<Route<AddrT>> findRouteInSwitchState(
 
 template <typename AddrT>
 std::shared_ptr<Route<AddrT>> findRoute(
-    bool isStandaloneRib,
     RouterID rid,
     const folly::CIDRNetwork& prefix,
     const std::shared_ptr<SwitchState>& state) {
@@ -63,11 +62,7 @@ std::shared_ptr<Route<AddrT>> findLongestMatchRoute(
     RouterID rid,
     const AddrT& addr,
     const std::shared_ptr<SwitchState>& state) {
-  if (rib) {
-    return rib->longestMatch(addr, rid);
-  }
-  return findRouteInSwitchState<AddrT>(
-      rid, {addr, addr.bitCount()}, state, false /*longest match*/);
+  return rib->longestMatch(addr, rid);
 }
 
 std::pair<uint64_t, uint64_t> getRouteCount(
@@ -82,14 +77,13 @@ std::pair<uint64_t, uint64_t> getRouteCount(
   return std::make_pair(v4Count, v6Count);
 }
 
+// Explicit instantitions
 template std::shared_ptr<Route<folly::IPAddressV6>> findRoute(
-    bool isStandaloneRib,
     RouterID rid,
     const folly::CIDRNetwork& prefix,
     const std::shared_ptr<SwitchState>& state);
 
 template std::shared_ptr<Route<folly::IPAddressV4>> findRoute(
-    bool isStandaloneRib,
     RouterID rid,
     const folly::CIDRNetwork& prefix,
     const std::shared_ptr<SwitchState>& state);

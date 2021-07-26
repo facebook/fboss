@@ -2366,16 +2366,10 @@ void BcmSwitch::processRouteTableDelta(
   for (const auto& entry : discardedPrefixes) {
     const auto id = entry.first;
     for (const auto& prefix : entry.second) {
-      const auto newRoute = findRoute<AddrT>(
-          true /*standalone rib*/,
-          id,
-          prefix.toCidrNetwork(),
-          delta.newState());
-      const auto oldRoute = findRoute<AddrT>(
-          true /*standalone rib*/,
-          id,
-          prefix.toCidrNetwork(),
-          delta.oldState());
+      const auto newRoute =
+          findRoute<AddrT>(id, prefix.toCidrNetwork(), delta.newState());
+      const auto oldRoute =
+          findRoute<AddrT>(id, prefix.toCidrNetwork(), delta.oldState());
       SwitchState::revertNewRouteEntry(id, newRoute, oldRoute, appliedState);
     }
   }

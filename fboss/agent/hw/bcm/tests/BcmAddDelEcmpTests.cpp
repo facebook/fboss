@@ -111,19 +111,13 @@ class BcmAddDelEcmpTest : public BcmTest {
         bool deleted = false;
         if (network.first.isV6()) {
           if (findRoute<folly::IPAddressV6>(
-                  getHwSwitchEnsemble()->isStandaloneRibEnabled(),
-                  kRid,
-                  network,
-                  getProgrammedState())) {
+                  kRid, network, getProgrammedState())) {
             delRoute(network);
             deleted = true;
           }
         } else {
           if (findRoute<folly::IPAddressV4>(
-                  getHwSwitchEnsemble()->isStandaloneRibEnabled(),
-                  kRid,
-                  network,
-                  getProgrammedState())) {
+                  kRid, network, getProgrammedState())) {
             delRoute(network);
             deleted = true;
           }
