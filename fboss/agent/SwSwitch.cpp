@@ -1707,10 +1707,6 @@ void SwSwitch::clearPortGearboxPrbsStats(int32_t portId, phy::Side side) {
   getHw()->clearPortGearboxPrbsStats(portId, side);
 }
 
-bool SwSwitch::isStandaloneRibEnabled() const {
-  return true;
-}
-
 template <typename AddressT>
 std::shared_ptr<Route<AddressT>> SwSwitch::longestMatch(
     std::shared_ptr<SwitchState> state,

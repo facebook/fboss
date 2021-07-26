@@ -299,9 +299,7 @@ void waitForNeighborCacheThread(SwSwitch* sw) {
 }
 
 void waitForRibUpdates(SwSwitch* sw) {
-  if (sw->isStandaloneRibEnabled()) {
-    sw->getRouteUpdater().program();
-  }
+  sw->getRouteUpdater().program();
 }
 
 shared_ptr<SwitchState> testStateA() {

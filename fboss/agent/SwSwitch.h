@@ -622,8 +622,6 @@ class SwSwitch : public HwSwitch::Callback {
     return flags_;
   }
 
-  bool isStandaloneRibEnabled() const;
-
   /*
    * Allow hardware to perform any cleanup needed to gracefully restart the
    * agent before we exit application.
