@@ -35,7 +35,6 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
   using Func = std::function<void()>;
   using StateUpdateFn = SwSwitch::StateUpdateFn;
   using AddrT = AddressT;
-  static constexpr bool hasStandAloneRib = true;
 
   cfg::SwitchConfig getConfig() const {
     return testConfigAWithLookupClasses();

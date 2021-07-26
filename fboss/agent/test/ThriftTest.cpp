@@ -61,8 +61,6 @@ IpPrefix ipPrefix(const folly::CIDRNetwork& nw) {
 
 class ThriftTest : public ::testing::Test {
  public:
-  static constexpr auto hasStandAloneRib = true;
-
   void SetUp() override {
     auto config = testConfigA();
     handle_ = createTestHandle(&config);
@@ -237,7 +235,6 @@ TEST_F(ThriftTest, multipleClientSyncFib) {
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
   ThriftHandler handler(this->sw_);
 
-  auto hasStandAloneRib = true;
   auto kIntf1 = InterfaceID(1);
 
   // Two clients - BGP and OPENR
@@ -405,7 +402,6 @@ TEST_F(ThriftTest, syncFib) {
   //
 
   // Make sure all the static and link-local routes are there
-  auto hasStandAloneRib = true;
   auto ensureConfigRoutes = [this, rid]() {
     auto state = this->sw_->getState();
     EXPECT_NE(
@@ -619,7 +615,6 @@ TEST_F(ThriftTest, addDelUnicastRoutes) {
   //
 
   // Make sure all the static and link-local routes are there
-  auto hasStandAloneRib = true;
   auto ensureConfigRoutes = [this, rid]() {
     auto state = this->sw_->getState();
     EXPECT_NE(
