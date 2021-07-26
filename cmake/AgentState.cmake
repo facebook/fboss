@@ -44,7 +44,6 @@ add_library(state
   fboss/agent/state/RouteNextHop.cpp
   fboss/agent/state/RouteNextHopEntry.cpp
   fboss/agent/state/RouteNextHopsMulti.cpp
-  fboss/agent/state/RouteTable.cpp
   fboss/agent/state/RouteTableRib.cpp
   fboss/agent/state/RouteTypes.cpp
   fboss/agent/state/SflowCollector.cpp

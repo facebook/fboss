@@ -11,7 +11,7 @@
 
 #include "fboss/agent/state/NodeMap-defs.h"
 #include "fboss/agent/state/Route.h"
-#include "fboss/agent/state/RouteTable.h"
+
 #include "fboss/agent/state/SwitchState.h"
 
 namespace {
