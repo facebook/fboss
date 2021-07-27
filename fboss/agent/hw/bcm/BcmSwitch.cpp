@@ -62,6 +62,7 @@
 #include "fboss/agent/hw/bcm/BcmQcmManager.h"
 #include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
 #include "fboss/agent/hw/bcm/BcmRoute.h"
+#include "fboss/agent/hw/bcm/BcmRouteCounter.h"
 #include "fboss/agent/hw/bcm/BcmRtag7LoadBalancer.h"
 #include "fboss/agent/hw/bcm/BcmRxPacket.h"
 #include "fboss/agent/hw/bcm/BcmSdkVer.h"
@@ -342,6 +343,7 @@ BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
       mplsNextHopTable_(new BcmMplsNextHopTable(this)),
       multiPathNextHopTable_(new BcmMultiPathNextHopTable(this)),
       labelMap_(new BcmLabelMap(this)),
+      routeCounterTable_(new BcmRouteCounterTable(this)),
       routeTable_(new BcmRouteTable(this)),
       qosPolicyTable_(new BcmQosPolicyTable(this)),
       aclTable_(new BcmAclTable(this)),
@@ -378,6 +380,7 @@ void BcmSwitch::resetTables() {
   // via the BCM switch during their destruction the pointer
   // access is still valid.
   hostTable_->releaseHosts();
+  routeCounterTable_.reset();
   // reset neighbors before resetting host table
   neighborTable_.reset();
   // reset interfaces before host table, as interfaces have
