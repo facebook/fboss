@@ -814,7 +814,7 @@ vector<string> BcmCinter::cintForFlexCtrTrigger(
     to<string>(
         "flexctr_trigger.object_value_mask=",
         flexctr_trigger.object_value_mask),
-#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
     to<string>(
         "flexctr_trigger.interval_shift=", flexctr_trigger.interval_shift),
     to<string>("flexctr_trigger.interval_size=", flexctr_trigger.interval_size),
@@ -860,7 +860,7 @@ vector<string> BcmCinter::cintForFlexCtrValueOperation(
           operation->mask_size[i]),
       to<string>(
           "flexctr_action.", varname, ".shift[", i, "]=", operation->shift[i]),
-#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
       to<string>(
           "flexctr_action.",
           varname,
@@ -903,7 +903,7 @@ vector<string> BcmCinter::cintForFlexCtrAction(
         "flexctr_action.egress_mirror_count_enable=",
         flexctr_action->egress_mirror_count_enable),
     to<string>("flexctr_action.mode=", flexctr_action->mode),
-#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
     to<string>("flexctr_action.hint_ext=", flexctr_action->hint_ext),
     to<string>("flexctr_action.index_num=", flexctr_action->index_num),
 #endif
@@ -935,7 +935,7 @@ vector<string> BcmCinter::cintForFlexCtrAction(
           i,
           "]=",
           flexctr_action->index_operation.shift[i]),
-#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
       to<string>(
           "flexctr_action.index_operation.object_id[",
           i,
@@ -969,7 +969,7 @@ vector<string> BcmCinter::cintForFlexCtrAction(
       make_move_iterator(triggerCint.begin()),
       make_move_iterator(triggerCint.end()));
   cintLines.push_back(to<string>("flexctr_action.trigger=flexctr_trigger"));
-#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
   structLines = {
       to<string>("flexctr_action.hint_type=", flexctr_action->hint_type),
       to<string>("flexctr_action.base_pool_id=", flexctr_action->base_pool_id),
@@ -2666,7 +2666,7 @@ vector<string> BcmCinter::cintForRxCosqMapping(bcm_rx_cosq_mapping_t* cosqMap) {
     to<string>("cosqMap.packet_type = ", cosqMap->packet_type),
     to<string>("cosqMap.packet_type_mask = ", cosqMap->packet_type_mask),
     to<string>("cosqMap.cosq = ", cosqMap->cosq),
-#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 19))
+#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_19))
     to<string>("cosqMap.flex_key1 = ", cosqMap->flex_key1),
     to<string>("cosqMap.flex_key1_mask = ", cosqMap->flex_key1_mask),
 #endif

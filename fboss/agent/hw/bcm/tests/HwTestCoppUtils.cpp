@@ -158,7 +158,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
       acl.packetLookupResult_ref() =
           cfg::PacketLookupResultType::PACKET_LOOKUP_RESULT_MPLS_NO_MATCH;
       utility::addTrafficCounter(&config, kMplsDestNoMatchCounterName);
-#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 22))
+#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_22))
       auto queue = utility::kCoppLowPriQueueId;
 #else
       // TODO: Due to an sdk bug (CS00012171265), cannot use queue 0 (low pri)

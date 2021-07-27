@@ -280,8 +280,7 @@ int BcmControlPlane::rxCosqMappingExtendedGet(
   bcm_rx_reasons_t targetReasons = rx_cosq_mapping->reasons;
   bcm_rx_cosq_mapping_t_init(rx_cosq_mapping);
   int rv;
-
-#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 22))
+#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_22))
   if (BcmAPI::isPriorityKeyUsedInRxCosqMapping()) {
     if (byIndex) {
       rx_cosq_mapping->priority = targetIndex;
@@ -349,7 +348,7 @@ int BcmControlPlane::rxCosqMappingExtendedSet(
   bcm_rx_cosq_mapping_t cosqMap;
   bcm_rx_cosq_mapping_t_init(&cosqMap);
 
-#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 22))
+#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_22))
   if (BcmAPI::isPriorityKeyUsedInRxCosqMapping()) {
     // use bcm_rx_cosq_mapping_extended_set
     cosqMap.reasons = reasons;
