@@ -22,3 +22,12 @@ target_link_libraries(qsfp_cache
     transceiver_cpp2
     alert_logger
 )
+
+add_library(qsfp_config_parser
+    fboss/qsfp_service/lib/QsfpConfigParserHelper.cpp
+)
+
+target_link_libraries(qsfp_config_parser
+    transceiver_cpp2
+    qsfp_config_cpp2
+)

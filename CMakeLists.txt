@@ -831,7 +831,10 @@ if (NOT SAI_ONLY)
     "-DINCLUDE_L3 -DBCM_ESW_SUPPORT"
   )
 
-  target_link_libraries(qsfp_module fboss_i2c_lib)
+  target_link_libraries(qsfp_module
+    fboss_i2c_lib
+    qsfp_config_parser
+  )
 
   target_link_libraries(switch_asics_old fboss_agent)
   target_link_libraries(wedge_agent fboss_agent)
