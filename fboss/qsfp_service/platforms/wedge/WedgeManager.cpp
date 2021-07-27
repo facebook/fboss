@@ -80,6 +80,8 @@ WedgeManager::WedgeManager(
   } else {
     XLOG(INFO) << "Warmboot state filename:" << warmbootStateFileName()
                << " doesn't exit.";
+    // Simply assign cached state to an empty object
+    qsfpServiceState_ = folly::dynamic::object;
   }
 }
 
