@@ -22,6 +22,7 @@
 #include "fboss/lib/i2c/gen-cpp2/i2c_controller_stats_types.h"
 #include "fboss/lib/phy/PhyManager.h"
 #include "fboss/lib/usb/TransceiverPlatformApi.h"
+#include "fboss/qsfp_service/QsfpConfig.h"
 #include "fboss/qsfp_service/module/Transceiver.h"
 
 namespace facebook {
@@ -141,6 +142,10 @@ class TransceiverManager {
 
   const PortNameMap& getPortNameToModuleMap() const;
 
+  const QsfpConfig* getQsfpConfig() const {
+    return qsfpConfig_.get();
+  };
+
  private:
   // Forbidden copy constructor and assignment operator
   TransceiverManager(TransceiverManager const&) = delete;
@@ -167,6 +172,7 @@ class TransceiverManager {
 
   mutable PortNameMap portNameToModule_;
   PortGroups portGroupMap_;
+  std::unique_ptr<QsfpConfig> qsfpConfig_;
 };
 } // namespace fboss
 } // namespace facebook

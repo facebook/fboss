@@ -10,7 +10,6 @@
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/i2c/gen-cpp2/i2c_controller_stats_types.h"
 #include "fboss/lib/usb/WedgeI2CBus.h"
-#include "fboss/qsfp_service/QsfpConfig.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 
@@ -172,7 +171,6 @@ class WedgeManager : public TransceiverManager {
   std::unique_ptr<TransceiverI2CApi> wedgeI2cBus_;
 
   std::unique_ptr<AgentConfig> agentConfig_;
-  std::unique_ptr<QsfpConfig> qsfpConfig_;
 
   folly::Synchronized<std::map<TransceiverID, std::map<uint32_t, PortStatus>>>
       ports_;
