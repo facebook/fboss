@@ -1246,6 +1246,7 @@ struct SwitchSettings {
    * Time to transition L2 from hit -> miss -> removed
    */
   4: i32 l2AgeTimerSeconds = 300
+  5: i32 maxRouteCounterIDs = 0
 }
 
 enum PfcWatchdogRecoveryAction {
@@ -1421,5 +1422,4 @@ struct SwitchConfig {
   // support a single group for the foreseeable future. This could be changed to
   // list<AclTableGroup> later if the need arises to support multiple groups.
   45: optional AclTableGroup aclTableGroup
-  46: i32 maxRouteCounterIDs = 0
 }

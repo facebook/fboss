@@ -27,6 +27,7 @@ struct SwitchSettingsFields {
   bool qcmEnable = false;
   bool ptpTcEnable = false;
   uint32_t l2AgeTimerSeconds{300};
+  uint32_t maxRouteCounterIDs{0};
 };
 
 /*
@@ -75,6 +76,14 @@ class SwitchSettings : public NodeBaseT<SwitchSettings, SwitchSettingsFields> {
 
   void setL2AgeTimerSeconds(uint32_t val) {
     writableFields()->l2AgeTimerSeconds = val;
+  }
+
+  void setMaxRouteCounterIDs(uint32_t numCounterIDs) {
+    writableFields()->maxRouteCounterIDs = numCounterIDs;
+  }
+
+  uint32_t getMaxRouteCounterIDs() {
+    return getFields()->maxRouteCounterIDs;
   }
 
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
