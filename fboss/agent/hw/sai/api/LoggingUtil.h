@@ -299,4 +299,19 @@ struct formatter<SaiCharArray32> {
   }
 };
 
+template <>
+struct formatter<facebook::fboss::SaiPortDescriptor> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(
+      const facebook::fboss::SaiPortDescriptor& port,
+      FormatContext& ctx) {
+    return format_to(ctx.out(), "{}", port.str());
+  }
+};
+
 } // namespace fmt

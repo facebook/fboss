@@ -136,6 +136,10 @@ class SaiObjectEventPublisher {
     subscription->removeSignal_.connect(
         removeSignalSlot.track_foreign(subscriberWeakPtr));
     subscriber->saveSubscription(subscription);
+    XLOGF(
+        DBG3,
+        "subscription added for publisher {}",
+        subscriber->getPublisherKey());
     // check if publisher is already live
     auto publisher = livePublishers_.find(subscriber->getPublisherKey());
     if (publisher != livePublishers_.end()) {
@@ -150,10 +154,12 @@ class SaiObjectEventPublisher {
     if (!subscription) {
       return;
     }
+    XLOGF(DBG3, "publisher object {} notify create", key);
     subscription->createSignal_(object);
   }
 
   void notifyDelete(Key key) {
+    XLOGF(DBG3, "publisher object {} notify remove", key);
     livePublishers_.erase(key);
     auto subscription = subscriptions_.get(key);
     if (!subscription) {

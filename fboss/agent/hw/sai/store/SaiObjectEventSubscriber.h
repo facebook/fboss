@@ -81,6 +81,7 @@ class SaiObjectEventSingleSubscriber
 
   /* Publisher object created, dispatch call to aggregate subscriber */
   void afterCreate(PublisherObjectSharedPtr object) override {
+    XLOGF(DBG3, "publisher object alive {}", *object);
     this->setPublisherObject(object);
     auto* aggregateSubscriber = static_cast<AggregateSubscriber*>(this);
     aggregateSubscriber
@@ -89,6 +90,7 @@ class SaiObjectEventSingleSubscriber
 
   /* Publisher object removed, dispatch call  to aggregate subscriber */
   void beforeRemove() override {
+    XLOGF(DBG3, "publisher object expiring {}", this->getPublisherKey());
     auto* aggregateSubscriber = static_cast<AggregateSubscriber*>(this);
     aggregateSubscriber->template beforeRemoveNotifyAggregateSubscriber<
         PublishedObjectTrait>();
@@ -200,6 +202,7 @@ class SaiObjectEventAggregateSubscriber
  protected:
   void setObject(SubscriberSharedPtr object) {
     object_ = object;
+    XLOGF(DBG3, "subscriber object created {}", *object);
   }
 
   SubscriberSharedPtr getObject() const {

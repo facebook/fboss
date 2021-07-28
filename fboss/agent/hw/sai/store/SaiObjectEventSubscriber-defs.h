@@ -48,6 +48,10 @@ void SaiObjectEventAggregateSubscriber<
     SubscriberImpl,
     SubscriberTraits,
     PublisherObjectTraits...>::resetObject() {
+  if (!object_) {
+    return;
+  }
+  XLOGF(DBG3, "subscriber object destroyed {}", *object_);
   object_.reset();
 }
 
