@@ -94,3 +94,27 @@ TEST_F(LinkTest, warmbootIsHitLess) {
             ecmpSizeInSw);
       });
 }
+
+TEST_F(LinkTest, ptpEnableIsHitless) {
+  createL3DataplaneFlood();
+  assertNoInDiscards();
+  sw()->updateStateBlocking("ptp enable", [](auto state) {
+    auto newState = state->clone();
+    auto switchSettings = newState->getSwitchSettings()->modify(&newState);
+    EXPECT_FALSE(switchSettings->isPtpTcEnable());
+    switchSettings->setPtpTcEnable(true);
+    return newState;
+  });
+
+  // Assert no traffic loss and no ecmp shrink. If ports flap
+  // these conditions will not be true
+  assertNoInDiscards();
+  auto ecmpSizeInSw = getVlanOwningCabledPorts().size();
+  EXPECT_EQ(
+      utility::getEcmpSizeInHw(
+          sw()->getHw(),
+          {folly::IPAddress("::"), 0},
+          RouterID(0),
+          ecmpSizeInSw),
+      ecmpSizeInSw);
+}
