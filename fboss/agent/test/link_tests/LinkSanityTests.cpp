@@ -4,6 +4,7 @@
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/hw/test/HwTestEcmpUtils.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 
@@ -79,5 +80,17 @@ TEST_F(LinkTest, warmbootIsHitLess) {
   // TODO: Assert that all (non downlink) cabled ports get traffic.
   verifyAcrossWarmBoots(
       [this]() { createL3DataplaneFlood(); },
-      [this]() { assertNoInDiscards(); });
+      [this]() {
+        // Assert no traffic loss and no ecmp shrink. If ports flap
+        // these conditions will not be true
+        assertNoInDiscards();
+        auto ecmpSizeInSw = getVlanOwningCabledPorts().size();
+        EXPECT_EQ(
+            utility::getEcmpSizeInHw(
+                sw()->getHw(),
+                {folly::IPAddress("::"), 0},
+                RouterID(0),
+                ecmpSizeInSw),
+            ecmpSizeInSw);
+      });
 }
