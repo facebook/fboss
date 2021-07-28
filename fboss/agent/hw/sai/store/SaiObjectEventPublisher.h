@@ -65,16 +65,6 @@ template <>
 struct IsPublisherKeyCustomType<SaiFdbTraits> : std::true_type {};
 
 template <>
-struct IsObjectPublisher<SaiPortTraits> : std::true_type {};
-
-template <>
-struct IsPublisherKeyCustomType<SaiPortTraits> : std::true_type {};
-
-template <>
-struct PublisherKey<SaiPortTraits>
-    : detail::PublisherKeyInternal<SaiPortTraits, PortID> {};
-
-template <>
 struct PublisherKey<SaiFdbTraits>
     : detail::PublisherKeyInternal<
           SaiFdbTraits,
@@ -216,8 +206,7 @@ class SaiObjectEventPublisher {
       detail::SaiObjectEventPublisher<SaiNeighborTraits>,
       detail::SaiObjectEventPublisher<SaiIpNextHopTraits>,
       detail::SaiObjectEventPublisher<SaiMplsNextHopTraits>,
-      detail::SaiObjectEventPublisher<SaiVlanRouterInterfaceTraits>,
-      detail::SaiObjectEventPublisher<SaiPortTraits>>
+      detail::SaiObjectEventPublisher<SaiVlanRouterInterfaceTraits>>
       publishers_;
 };
 

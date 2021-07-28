@@ -38,7 +38,6 @@ void SaiPortManager::addRemovedHandle(PortID portID) {
   itr->second->bridgePort.reset();
   itr->second->serdes.reset();
   // instead of removing port, retain it
-  itr->second->port->notifyBeforeDestroy();
   removedHandles_.emplace(itr->first, std::move(itr->second));
 }
 

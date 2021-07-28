@@ -502,7 +502,7 @@ void SaiPortManager::changePort(
   SaiPortTraits::AdapterHostKey portKey{
       GET_ATTR(Port, HwLaneList, newAttributes)};
   auto& portStore = saiStore_->get<SaiPortTraits>();
-  auto saiPort = portStore.setObject(portKey, newAttributes, newPort->getID());
+  auto saiPort = portStore.setObject(portKey, newAttributes);
   existingPort->serdes = programSerdes(saiPort, newPort);
   // if vlan changed update it, this is important for rx processing
   if (newPort->getIngressVlan() != oldPort->getIngressVlan()) {
