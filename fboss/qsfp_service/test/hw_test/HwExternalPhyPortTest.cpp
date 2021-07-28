@@ -39,10 +39,14 @@ HwExternalPhyPortTest::findAvailableXphyPorts() {
   const auto& features = neededFeatures();
   for (auto& [port, profile] : ports.xphyPorts) {
     auto* xphy = phyManager->getExternalPhy(port);
+    bool isSupported = true;
     for (auto feature : features) {
       if (!xphy->isSupported(feature)) {
+        isSupported = false;
         continue;
       }
+    }
+    if (isSupported) {
       xphyPortAndProfiles.push_back(std::make_pair(port, profile));
     }
   }
