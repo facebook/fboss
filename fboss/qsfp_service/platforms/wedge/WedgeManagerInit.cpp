@@ -43,7 +43,8 @@ std::unique_ptr<WedgeManager> createWedgeManager(bool forceColdBoot) {
     return createElbertWedgeManager();
   } else if (
       mode == PlatformMode::FUJI || mode == PlatformMode::MINIPACK ||
-      mode == PlatformMode::WEDGE400 || mode == PlatformMode::WEDGE400C) {
+      mode == PlatformMode::WEDGE400 || mode == PlatformMode::WEDGE400C ||
+      mode == PlatformMode::CLOUDRIPPER) {
     return createFBWedgeManager(std::move(productInfo));
   }
   return std::make_unique<Wedge40Manager>();

@@ -68,8 +68,8 @@ class FpgaDevice {
   }
 
   virtual void write(uint32_t offset, uint32_t value) {
-    CHECK(offset >= 0 && offset < phyMem_->getSize() - 3);
     XLOG(DBG5) << folly::format("FPGA write {:#x} to {:#x}", value, offset);
+    CHECK(offset >= 0 && offset < phyMem_->getSize() - 3);
     phyMem_->write(offset, value);
   }
 

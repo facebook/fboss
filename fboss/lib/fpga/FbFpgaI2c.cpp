@@ -30,7 +30,7 @@ FbFpgaI2c::FbFpgaI2c(
       fpga_(fpga),
       rtcId_(rtcId),
       version_(version) {
-  XLOG(DBG4, "Initialized I2C controller for rtcId={:d}", rtcId);
+  XLOG(DBG4, "Initialized I2C controller for rtcId=", rtcId);
 }
 
 FbFpgaI2c::FbFpgaI2c(
@@ -44,7 +44,7 @@ FbFpgaI2c::FbFpgaI2c(
       rtcId_(rtcId),
       version_(version) {
   fpga_ = io_.get();
-  XLOG(DBG4, "Initialized I2C controller for rtcId={:d}", rtcId);
+  XLOG(DBG4, "Initialized I2C controller for rtcId=", rtcId);
 }
 
 bool FbFpgaI2c::waitForResponse(size_t len) {

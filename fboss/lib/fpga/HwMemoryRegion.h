@@ -27,18 +27,29 @@ class HwMemoryRegion {
   }
 
   uint32_t read(uint32_t offset) const {
+    XLOG(DBG5) << folly::format(
+        "Request to read Memory region {} offset: {:#x}", name_, offset);
+    XLOG(DBG5) << folly::format("start: {:#x} size_: {:#x}", start_, size_);
     CHECK(offset >= 0 && offset < size_ - 3);
     const uint32_t ret = device_->read(start_ + offset);
     XLOG(DBG5) << folly::format(
-        "Memory region {} read {:#x}={:#x}", name_, offset, ret);
+        "Memory region {} read from {:#x}={:#x}", name_, start_ + offset, ret);
     return ret;
   }
 
   void write(uint32_t offset, uint32_t value) {
+    XLOG(DBG5) << folly::format(
+        "Request to write Memory region {} offset: {:#x} value: {:#x}",
+        name_,
+        offset,
+        value);
+    XLOG(DBG5) << folly::format("start: {:#x} size_: {:#x}", start_, size_);
     CHECK(offset >= 0 && offset < size_ - 3);
     XLOG(DBG5) << folly::format(
         "Memory region {} write {:#x} to {:#x}", name_, value, offset);
     device_->write(start_ + offset, value);
+    XLOG(DBG5) << folly::format(
+        "Memory {} wrote to {:#x}={:#x}", name_, start_ + offset, value);
   }
 
   const std::string& getName() const {

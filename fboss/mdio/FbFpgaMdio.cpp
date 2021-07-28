@@ -35,6 +35,11 @@ FbFpgaMdio::FbFpgaMdio(
   }
 }
 
+void FbFpgaMdio::init(bool forceReset) {
+  Mdio::init(forceReset);
+  reset();
+}
+
 void FbFpgaMdio::reset() {
   auto config = readReg<MdioConfig>();
 
