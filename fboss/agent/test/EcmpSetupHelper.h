@@ -65,6 +65,14 @@ struct EcmpMplsNextHop {
   LabelForwardingAction action;
 };
 
+/*
+ * Find ports in VLANS where the port in question is the only port in that
+ * VLAN. Useful in setting up ECMP paths with loopbacks, without the risk of
+ * creating dataplane floods
+ */
+boost::container::flat_set<PortDescriptor> getPortsWithExclusiveVlanMembership(
+    const std::shared_ptr<SwitchState>& state);
+
 template <typename AddrT, typename NextHopT>
 class BaseEcmpSetupHelper {
  public:

@@ -86,6 +86,18 @@ flat_map<VlanID, folly::CIDRNetwork> computeVlan2Subnet(
 
 namespace facebook::fboss::utility {
 
+boost::container::flat_set<PortDescriptor> getPortsWithExclusiveVlanMembership(
+    const std::shared_ptr<SwitchState>& state) {
+  boost::container::flat_set<PortDescriptor> ports;
+  for (auto vlan : *state->getVlans()) {
+    auto memberPorts = vlan->getPorts();
+    if (memberPorts.size() == 1) {
+      ports.insert(PortDescriptor{memberPorts.begin()->first});
+    }
+  }
+  return ports;
+}
+
 template <typename AddrT, typename NextHopT>
 BaseEcmpSetupHelper<AddrT, NextHopT>::BaseEcmpSetupHelper() {}
 
