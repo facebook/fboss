@@ -270,24 +270,28 @@ class SaiObject {
   }
 
   void setAttributes(
-      const typename SaiObjectTraits::CreateAttributes& newAttributes) {
+      const typename SaiObjectTraits::CreateAttributes& newAttributes,
+      bool skipHwWrite = false) {
     if (UNLIKELY(!live_)) {
       XLOG(FATAL) << "Attempted to setAttributes on non-live SaiObject";
     }
     tupleForEach(
-        [this](const auto& attr) { checkAndSetAttribute(attr); },
+        [this, skipHwWrite](const auto& attr) {
+          checkAndSetAttribute(attr, skipHwWrite);
+        },
         newAttributes);
     attributes_ = newAttributes;
   }
 
   template <typename AttrT>
-  void setAttribute(AttrT&& attr) {
-    checkAndSetAttribute(std::forward<AttrT>(attr));
+  void setAttribute(AttrT&& attr, bool skipHwWrite = false) {
+    checkAndSetAttribute(std::forward<AttrT>(attr), skipHwWrite);
   }
 
   template <typename AttrT>
-  void setOptionalAttribute(AttrT&& attr) {
-    checkAndSetAttribute(std::optional<AttrT>{std::forward<AttrT>(attr)});
+  void setOptionalAttribute(AttrT&& attr, bool skipHwWrite = false) {
+    checkAndSetAttribute(
+        std::optional<AttrT>{std::forward<AttrT>(attr)}, skipHwWrite);
   }
 
   void release() {
@@ -377,7 +381,7 @@ class SaiObject {
 
  protected:
   template <typename AttrT>
-  void checkAndSetAttribute(AttrT&& newAttr) {
+  void checkAndSetAttribute(AttrT&& newAttr, bool skipHwWrite) {
     auto& oldAttr = std::get<std::decay_t<AttrT>>(attributes_);
     XLOGF(
         DBG5,
@@ -386,7 +390,9 @@ class SaiObject {
         oldAttr,
         newAttr);
     if (oldAttr != newAttr) {
-      setAttributeInHardware(newAttr);
+      if (!skipHwWrite) {
+        setAttributeInHardware(newAttr);
+      }
       oldAttr = std::forward<AttrT>(newAttr);
     }
   }

@@ -428,7 +428,8 @@ void ManagedRouteNextHop<NextHopTraitsT>::updateMetadata() const {
      * expectedMetadata value
      */
     route->setOptionalAttribute(
-        SaiRouteTraits::Attributes::Metadata{actualMetadata});
+        SaiRouteTraits::Attributes::Metadata{actualMetadata},
+        true /*skip HW write*/);
     route->setAttribute(expectedMetadata);
   }
 }
