@@ -14,6 +14,8 @@ target_link_libraries(link_tests
   fboss_agent
   config_factory
   fboss_config_utils
+  load_balancer_utils
+  hw_qos_utils
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
@@ -26,6 +28,8 @@ target_link_libraries(bcm_link_test
   link_tests
   platform
   bcm
+  bcm_ecmp_utils
+  bcm_qos_utils
 )
 
 function(BUILD_SAI_LINK_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
@@ -44,6 +48,8 @@ function(BUILD_SAI_LINK_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     link_tests
     agent_config_cpp2
     sai_platform
+    sai_ecmp_utils
+    sai_qos_utils
     -Wl,--no-whole-archive
     ref_map
     ${GTEST}

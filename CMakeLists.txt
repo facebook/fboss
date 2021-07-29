@@ -533,6 +533,7 @@ if (NOT SAI_ONLY)
       fboss/agent/hw/bcm/BcmQosPolicyTable.cpp
       fboss/agent/hw/bcm/BcmQosUtils.cpp
       fboss/agent/hw/bcm/BcmRoute.cpp
+      fboss/agent/hw/bcm/BcmRouteCounter.cpp
       fboss/agent/hw/bcm/BcmRtag7LoadBalancer.cpp
       fboss/agent/hw/bcm/BcmRtag7Module.cpp
       fboss/agent/hw/bcm/BcmRxPacket.cpp
