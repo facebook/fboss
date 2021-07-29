@@ -208,7 +208,12 @@ void EcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
   auto baseMac = folly::MacAddress("06:00:00:00:00:00").u64HBO();
   for (const auto& portDescAndVlan : BaseEcmpSetupHelperT::portDesc2Vlan_) {
     auto vlan = portDescAndVlan.second;
-    auto subnetIp = IPAddrT(vlan2Subnet[vlan].first.str());
+    auto ipAddrStr = vlan2Subnet[vlan].first.str();
+    if (ipAddrStr.empty()) {
+      // Ignore vlans without ip addresses
+      continue;
+    }
+    auto subnetIp = IPAddrT(ipAddrStr);
     auto bytes = subnetIp.toByteArray();
     // Add a offset to compute next in subnet next hop IP.
     // Essentially for vlan/l3 intf with subnet X, we
