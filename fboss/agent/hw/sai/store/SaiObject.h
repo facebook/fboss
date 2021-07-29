@@ -386,7 +386,7 @@ class SaiObject {
         oldAttr,
         newAttr);
     if (oldAttr != newAttr) {
-      setNewAttributeHelper(newAttr);
+      setAttributeInHardware(newAttr);
       oldAttr = std::forward<AttrT>(newAttr);
     }
   }
@@ -455,16 +455,16 @@ class SaiObject {
 
  private:
   template <typename AttrT>
-  void setNewAttributeHelper(const AttrT& newAttr) {
+  void setAttributeInHardware(const AttrT& newAttr) {
     auto& api =
         SaiApiTable::getInstance()->getApi<typename SaiObjectTraits::SaiApiT>();
     api.setAttribute(adapterKey(), newAttr);
   }
   template <typename AttrT>
-  void setNewAttributeHelper(const std::optional<AttrT>& newAttrOpt) {
+  void setAttributeInHardware(const std::optional<AttrT>& newAttrOpt) {
     if (newAttrOpt) {
       // set only if optional attribute is provided
-      setNewAttributeHelper(newAttrOpt.value());
+      setAttributeInHardware(newAttrOpt.value());
     }
   }
   bool live_{false};
