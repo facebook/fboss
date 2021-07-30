@@ -39,8 +39,8 @@ class ExternalPhyPortStatsUtils {
       const phy::ExternalPhyPortStats& stats,
       std::optional<std::chrono::seconds> now = std::nullopt);
   virtual void updateXphyPrbsStats(
-      const phy::ExternalPhyPortStats& /*stats*/,
-      std::optional<std::chrono::seconds> /*now*/ = std::nullopt) {}
+      const phy::ExternalPhyPortStats& stats,
+      std::optional<std::chrono::seconds> now = std::nullopt) = 0;
 
   virtual void setupPrbsCollection(
       const phy::PhyPortConfig& phyPortConfig,
