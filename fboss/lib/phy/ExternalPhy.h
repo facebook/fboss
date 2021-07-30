@@ -192,10 +192,8 @@ class ExternalPhy {
       const std::vector<LaneID>& lineLanes) = 0;
 
   virtual ExternalPhyPortStats getPortPrbsStats(
-      const std::vector<LaneID>& /* sysLanes */,
-      const std::vector<LaneID>& /* lineLanes */) {
-    return ExternalPhyPortStats();
-  }
+      const std::vector<LaneID>& sysLanes,
+      const std::vector<LaneID>& lineLanes) = 0;
 
   virtual float_t getLaneSpeed(const PhyPortConfig& config, Side side);
 
