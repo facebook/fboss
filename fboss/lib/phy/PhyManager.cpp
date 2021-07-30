@@ -319,14 +319,25 @@ void PhyManager::restoreFromWarmbootState(
           portID,
           " in the phy warmboot portToCacheInfo map.");
     }
+    bool isProgrammed = false;
     for (auto lane : portCacheInfo[kSystemLanesKey]) {
       portToCacheInfo_[PortID(portID)]->systemLanes.push_back(
           LaneID(lane.asInt()));
+      isProgrammed = true;
     }
     for (auto lane : portCacheInfo[kLineLanesKey]) {
       portToCacheInfo_[PortID(portID)]->lineLanes.push_back(
           LaneID(lane.asInt()));
     }
+
+    // If the port has programmed lane info, we also need to restore the
+    // ExternalPhyPortStatsUtils
+    if (isProgrammed &&
+        getExternalPhy(it.first)->isSupported(
+            phy::ExternalPhy::Feature::PORT_STATS)) {
+      setupExternalPhyPortStats(it.first);
+    }
+
     XLOG(INFO) << "Restore port=" << portID
                << ", systemLanes=" << portCacheInfo[kSystemLanesKey]
                << ", lineLanes=" << portCacheInfo[kLineLanesKey]
