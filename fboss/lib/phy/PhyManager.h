@@ -6,11 +6,15 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/phy/ExternalPhy.h"
+#include "fboss/lib/phy/ExternalPhyPortStatsUtils.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/mdio/Mdio.h"
 #include "fboss/mka_service/if/gen-cpp2/mka_types.h"
 
+#include <folly/Synchronized.h>
+#include <folly/futures/Future.h>
 #include <map>
+#include <optional>
 #include <vector>
 
 namespace facebook {
@@ -149,6 +153,9 @@ class PhyManager {
   const std::vector<LaneID>& getCachedLanes(PortID portID, phy::Side side)
       const;
 
+  // Update PortCacheInfo::stats
+  void updateStats(PortID portID);
+
   const PlatformMapping* platformMapping_;
 
   // For PhyManager programming xphy, each pim can program their xphys at the
@@ -182,6 +189,10 @@ class PhyManager {
     // cached info to pass in the xphy lanes directly.
     std::vector<LaneID> systemLanes;
     std::vector<LaneID> lineLanes;
+    // Xphy port related stats and prbs stats
+    folly::Synchronized<std::unique_ptr<ExternalPhyPortStatsUtils>> stats;
+    std::optional<folly::Future<folly::Unit>> ongoingStatCollection;
+    std::optional<folly::Future<folly::Unit>> ongoingPrbsStatCollection;
   };
   std::unordered_map<PortID, std::unique_ptr<PortCacheInfo>> portToCacheInfo_;
 };

@@ -319,4 +319,29 @@ void PhyManager::restoreFromWarmbootState(
   }
 }
 
+void PhyManager::updateStats(PortID portID) {
+  auto* xphy = getExternalPhy(portID);
+  // If the xphy doesn't support either port or prbs stats, no-op
+  if (!xphy->isSupported(phy::ExternalPhy::Feature::PORT_STATS) &&
+      !xphy->isSupported(phy::ExternalPhy::Feature::PRBS_STATS)) {
+    return;
+  }
+
+  // Try to get the cached lanes list
+  const auto& cache = portToCacheInfo_.find(portID);
+  if (cache == portToCacheInfo_.end() || cache->second->systemLanes.empty() ||
+      cache->second->lineLanes.empty()) {
+    throw FbossError(
+        "Port:", portID, " is not programmed and can't find cached lanes");
+  }
+
+  // TODO(joseph5wu) Fetch the pim EventBase to get port and prbs stats
+  if (xphy->isSupported(phy::ExternalPhy::Feature::PORT_STATS)) {
+    // Collect xphy port stats
+  }
+  if (xphy->isSupported(phy::ExternalPhy::Feature::PRBS_STATS)) {
+    // Collect xphy prbs stats
+  }
+}
+
 } // namespace facebook::fboss

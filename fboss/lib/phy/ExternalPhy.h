@@ -144,6 +144,7 @@ class ExternalPhy {
     PRBS,
     PRBS_STATS,
     MACSEC,
+    PORT_STATS,
   };
   static std::string featureName(Feature feature);
 

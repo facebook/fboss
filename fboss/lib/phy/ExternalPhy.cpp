@@ -181,6 +181,8 @@ std::string ExternalPhy::featureName(Feature feature) {
       return "PRBS";
     case Feature::PRBS_STATS:
       return "PRBS_STATS";
+    case Feature::PORT_STATS:
+      return "PORT_STATS";
   }
   throw FbossError("Unrecognized features");
 }
