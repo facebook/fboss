@@ -17,9 +17,14 @@
 #include <memory>
 
 DEFINE_int32(
-    xphy_port_stat_interval,
+    xphy_port_stat_interval_secs,
     200,
     "Interval to collect xphy port statistics (seconds)");
+
+DEFINE_int32(
+    xphy_prbs_stat_interval_secs,
+    10,
+    "Interval to collect xphy prbs statistics (seconds)");
 
 namespace {
 // Key of the portToCacheInfo map in warmboot state cache
@@ -330,7 +335,7 @@ void PhyManager::restoreFromWarmbootState(
 }
 
 int32_t PhyManager::getXphyPortStatsUpdateIntervalInSec() const {
-  return FLAGS_xphy_port_stat_interval;
+  return FLAGS_xphy_port_stat_interval_secs;
 }
 
 void PhyManager::setPortToExternalPhyPortStats(
@@ -368,7 +373,7 @@ void PhyManager::updateStats(PortID portID) {
   if (xphy->isSupported(phy::ExternalPhy::Feature::PORT_STATS)) {
     if (portToCacheInfo_[portID]->ongoingStatCollection.has_value() &&
         !portToCacheInfo_[portID]->ongoingStatCollection->isReady()) {
-      XLOG(DBG4) << "Stat collection for Port:" << portID
+      XLOG(DBG4) << "XPHY Port Stat collection for Port:" << portID
                  << " still underway...";
     } else {
       // Collect xphy port stats
@@ -380,7 +385,8 @@ void PhyManager::updateStats(PortID portID) {
                     cache->second->systemLanes, cache->second->lineLanes);
                 auto lockedStats = portToCacheInfo_[portID]->stats.wlock();
                 (*lockedStats)->updateXphyStats(stats);
-                XLOG(DBG3) << "Port " << portID << ": stat collection took "
+                XLOG(DBG3) << "Port " << portID
+                           << ": xphy port stat collection took "
                            << duration_cast<milliseconds>(
                                   steady_clock::now() - begin)
                                   .count()
@@ -390,7 +396,29 @@ void PhyManager::updateStats(PortID portID) {
     }
   }
   if (xphy->isSupported(phy::ExternalPhy::Feature::PRBS_STATS)) {
-    // Collect xphy prbs stats
+    if (portToCacheInfo_[portID]->ongoingPrbsStatCollection.has_value() &&
+        !portToCacheInfo_[portID]->ongoingPrbsStatCollection->isReady()) {
+      XLOG(DBG4) << "XPHY PRBS Stat collection for Port:" << portID
+                 << " still underway...";
+    } else {
+      // Collect xphy prbs stats
+      steady_clock::time_point begin = steady_clock::now();
+      portToCacheInfo_[portID]->ongoingPrbsStatCollection =
+          folly::via(evb)
+              .thenValue([this, portID, cache, xphy, begin](auto&&) {
+                const auto& stats = xphy->getPortPrbsStats(
+                    cache->second->systemLanes, cache->second->lineLanes);
+                auto lockedStats = portToCacheInfo_[portID]->stats.wlock();
+                (*lockedStats)->updateXphyPrbsStats(stats);
+                XLOG(DBG3) << "Port " << portID
+                           << ": xphy prbs stat collection took "
+                           << duration_cast<milliseconds>(
+                                  steady_clock::now() - begin)
+                                  .count()
+                           << "ms";
+              })
+              .delayed(seconds(FLAGS_xphy_prbs_stat_interval_secs));
+    }
   }
 }
 
