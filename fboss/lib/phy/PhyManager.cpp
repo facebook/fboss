@@ -344,4 +344,12 @@ void PhyManager::updateStats(PortID portID) {
   }
 }
 
+const std::string& PhyManager::getPortName(PortID portID) const {
+  const auto& portEntry = platformMapping_->getPlatformPorts().find(portID);
+  if (portEntry == platformMapping_->getPlatformPorts().end()) {
+    throw FbossError(
+        "Unrecoginized port=", portID, ", which is not in PlatformMapping");
+  }
+  return *portEntry->second.mapping_ref()->name_ref();
+}
 } // namespace facebook::fboss

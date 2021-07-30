@@ -119,6 +119,7 @@ class PhyManager {
   const PlatformMapping* getPlatformMapping() {
     return platformMapping_;
   }
+  const std::string& getPortName(PortID portID) const;
 
   void setupPimEventMultiThreading(PimID pimID);
 
