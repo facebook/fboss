@@ -12,7 +12,14 @@
 #include <folly/json.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
+#include <chrono>
 #include <cstdlib>
+#include <memory>
+
+DEFINE_int32(
+    xphy_port_stat_interval,
+    200,
+    "Interval to collect xphy port statistics (seconds)");
 
 namespace {
 // Key of the portToCacheInfo map in warmboot state cache
@@ -136,6 +143,9 @@ void PhyManager::programOnePort(
   xphy->programOnePort(desiredPhyPortConfig);
   // Once the port is programmed successfully, update the portToLanesInfo_
   setPortToLanesInfo(portId, desiredPhyPortConfig);
+  if (xphy->isSupported(phy::ExternalPhy::Feature::PORT_STATS)) {
+    setupExternalPhyPortStats(portId);
+  }
 }
 
 folly::EventBase* FOLLY_NULLABLE
@@ -319,6 +329,24 @@ void PhyManager::restoreFromWarmbootState(
   }
 }
 
+int32_t PhyManager::getXphyPortStatsUpdateIntervalInSec() const {
+  return FLAGS_xphy_port_stat_interval;
+}
+
+void PhyManager::setPortToExternalPhyPortStats(
+    PortID portID,
+    std::unique_ptr<ExternalPhyPortStatsUtils> stats) {
+  const auto& cache = portToCacheInfo_.find(portID);
+  if (cache == portToCacheInfo_.end()) {
+    throw FbossError(
+        "Unrecoginized port=", portID, ", which is not in PlatformMapping");
+  }
+
+  auto lockedStats = portToCacheInfo_[portID]->stats.wlock();
+  *lockedStats = std::move(stats);
+}
+
+using namespace std::chrono;
 void PhyManager::updateStats(PortID portID) {
   auto* xphy = getExternalPhy(portID);
   // If the xphy doesn't support either port or prbs stats, no-op
@@ -335,9 +363,31 @@ void PhyManager::updateStats(PortID portID) {
         "Port:", portID, " is not programmed and can't find cached lanes");
   }
 
-  // TODO(joseph5wu) Fetch the pim EventBase to get port and prbs stats
+  auto pimID = getPhyIDInfo(getGlobalXphyIDbyPortID(portID)).pimID;
+  auto evb = getPimEventBase(pimID);
   if (xphy->isSupported(phy::ExternalPhy::Feature::PORT_STATS)) {
-    // Collect xphy port stats
+    if (portToCacheInfo_[portID]->ongoingStatCollection.has_value() &&
+        !portToCacheInfo_[portID]->ongoingStatCollection->isReady()) {
+      XLOG(DBG4) << "Stat collection for Port:" << portID
+                 << " still underway...";
+    } else {
+      // Collect xphy port stats
+      steady_clock::time_point begin = steady_clock::now();
+      portToCacheInfo_[portID]->ongoingStatCollection =
+          folly::via(evb)
+              .thenValue([this, portID, cache, xphy, begin](auto&&) {
+                const auto& stats = xphy->getPortStats(
+                    cache->second->systemLanes, cache->second->lineLanes);
+                auto lockedStats = portToCacheInfo_[portID]->stats.wlock();
+                (*lockedStats)->updateXphyStats(stats);
+                XLOG(DBG3) << "Port " << portID << ": stat collection took "
+                           << duration_cast<milliseconds>(
+                                  steady_clock::now() - begin)
+                                  .count()
+                           << "ms";
+              })
+              .delayed(seconds(getXphyPortStatsUpdateIntervalInSec()));
+    }
   }
   if (xphy->isSupported(phy::ExternalPhy::Feature::PRBS_STATS)) {
     // Collect xphy prbs stats

@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/platforms/sai/SaiHwPlatform.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/lib/phy/NullPortStats.h"
 
 namespace facebook::fboss {
 SaiPhyManager::SaiPhyManager(const PlatformMapping* platformMapping)
@@ -137,6 +138,10 @@ void SaiPhyManager::programOnePort(
 
   // Once the port is programmed successfully, update the portToLanesInfo_
   setPortToLanesInfo(portId, desiredPhyPortConfig);
+  if (getExternalPhy(portId)->isSupported(
+          phy::ExternalPhy::Feature::PORT_STATS)) {
+    setupExternalPhyPortStats(portId);
+  }
 }
 
 /*
@@ -165,6 +170,13 @@ PortOperState SaiPhyManager::macsecGetPhyLinkInfo(PortID swPort) {
 
   return (portOperStatus == SAI_PORT_OPER_STATUS_UP) ? PortOperState::UP
                                                      : PortOperState::DOWN;
+}
+
+void SaiPhyManager::setupExternalPhyPortStats(PortID portID) {
+  // TODO(joseph5wu) Need to check what kinda stas we can get from
+  // SaiPhyManager here
+  setPortToExternalPhyPortStats(
+      portID, std::make_unique<NullPortStats>(getPortName(portID)));
 }
 
 } // namespace facebook::fboss

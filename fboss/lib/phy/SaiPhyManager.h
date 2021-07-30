@@ -54,6 +54,8 @@ class SaiPhyManager : public PhyManager {
       GlobalXphyID xphyID,
       std::unique_ptr<SaiHwPlatform> platform);
 
+  void setupExternalPhyPortStats(PortID portID) override;
+
  private:
   // Forbidden copy constructor and assignment operator
   SaiPhyManager(SaiPhyManager const&) = delete;

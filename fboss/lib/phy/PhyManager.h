@@ -125,6 +125,14 @@ class PhyManager {
 
   void setPortToLanesInfo(PortID portID, const phy::PhyPortConfig& portConfig);
 
+  virtual int32_t getXphyPortStatsUpdateIntervalInSec() const;
+
+  virtual void setupExternalPhyPortStats(PortID portID) = 0;
+
+  void setPortToExternalPhyPortStats(
+      PortID portID,
+      std::unique_ptr<ExternalPhyPortStatsUtils> stats);
+
   // Number of slot in the platform
   int numOfSlot_;
 
