@@ -168,10 +168,6 @@ class ExternalPhy {
   virtual Loopback getLoopback(Side side) = 0;
   virtual void setLoopback(Side side, Loopback loopback) = 0;
 
-  virtual void clearPrbsErrorCounter(
-      const PhyPortConfig& /* config */,
-      Side /* side */) {}
-
   virtual void setPortPrbs(
       Side side,
       const std::vector<LaneID>& lanes,
