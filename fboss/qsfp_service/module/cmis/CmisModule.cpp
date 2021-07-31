@@ -947,9 +947,10 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
   }
 
   // Helper function to convert U16 format to double
-  auto u16ToDouble = [](uint8_t byte0, uint8_t byte1) -> double {
+  auto f16ToDouble = [](uint8_t byte0, uint8_t byte1) -> double {
     double ber;
     int expon = byte0 >> 3;
+    expon -= 24;
     int mant = ((byte0 & 0x7) << 8) | byte1;
     ber = mant * exp10(expon);
     return ber;
@@ -970,7 +971,7 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
         offset,
         length);
     data = getQsfpValuePtr(dataAddress, offset, length);
-    vdmStats.preFecBerMediaMin_ref() = u16ToDouble(data[0], data[1]);
+    vdmStats.preFecBerMediaMin_ref() = f16ToDouble(data[0], data[1]);
   }
 
   getQsfpFieldAddress(
@@ -987,7 +988,7 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
         offset,
         length);
     data = getQsfpValuePtr(dataAddress, offset, length);
-    vdmStats.preFecBerMediaMax_ref() = u16ToDouble(data[0], data[1]);
+    vdmStats.preFecBerMediaMax_ref() = f16ToDouble(data[0], data[1]);
   }
 
   getQsfpFieldAddress(
@@ -1004,7 +1005,7 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
         offset,
         length);
     data = getQsfpValuePtr(dataAddress, offset, length);
-    vdmStats.preFecBerMediaAvg_ref() = u16ToDouble(data[0], data[1]);
+    vdmStats.preFecBerMediaAvg_ref() = f16ToDouble(data[0], data[1]);
   }
 
   getQsfpFieldAddress(
@@ -1021,7 +1022,7 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
         offset,
         length);
     data = getQsfpValuePtr(dataAddress, offset, length);
-    vdmStats.preFecBerMediaCur_ref() = u16ToDouble(data[0], data[1]);
+    vdmStats.preFecBerMediaCur_ref() = f16ToDouble(data[0], data[1]);
   }
 
   // Fill in Host Pre FEC BER values
@@ -1036,7 +1037,7 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
         offset,
         length);
     data = getQsfpValuePtr(dataAddress, offset, length);
-    vdmStats.preFecBerHostMin_ref() = u16ToDouble(data[0], data[1]);
+    vdmStats.preFecBerHostMin_ref() = f16ToDouble(data[0], data[1]);
   }
 
   getQsfpFieldAddress(
@@ -1050,7 +1051,7 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
         offset,
         length);
     data = getQsfpValuePtr(dataAddress, offset, length);
-    vdmStats.preFecBerHostMax_ref() = u16ToDouble(data[0], data[1]);
+    vdmStats.preFecBerHostMax_ref() = f16ToDouble(data[0], data[1]);
   }
 
   getQsfpFieldAddress(
@@ -1064,7 +1065,7 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
         offset,
         length);
     data = getQsfpValuePtr(dataAddress, offset, length);
-    vdmStats.preFecBerHostAvg_ref() = u16ToDouble(data[0], data[1]);
+    vdmStats.preFecBerHostAvg_ref() = f16ToDouble(data[0], data[1]);
   }
 
   getQsfpFieldAddress(
@@ -1078,7 +1079,7 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
         offset,
         length);
     data = getQsfpValuePtr(dataAddress, offset, length);
-    vdmStats.preFecBerHostCur_ref() = u16ToDouble(data[0], data[1]);
+    vdmStats.preFecBerHostCur_ref() = f16ToDouble(data[0], data[1]);
   }
 
   return vdmStats;
