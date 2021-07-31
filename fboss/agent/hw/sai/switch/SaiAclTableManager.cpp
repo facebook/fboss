@@ -749,7 +749,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   // honored.
   auto matcherIsValid =
       (fieldSrcIpV6.has_value() || fieldDstIpV6.has_value() ||
-       fieldSrcIpV4.has_value() || fieldDstIpV6.has_value() ||
+       fieldSrcIpV4.has_value() || fieldDstIpV4.has_value() ||
        fieldSrcPort.has_value() || fieldOutPort.has_value() ||
        fieldL4SrcPort.has_value() || fieldL4DstPort.has_value() ||
        fieldIpProtocol.has_value() || fieldTcpFlags.has_value() ||
