@@ -36,6 +36,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::CPU_PORT:
     case HwAsic::Feature::VRF:
     case HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET:
+    case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
       return true;
 
     case HwAsic::Feature::ERSPANv6:
@@ -55,7 +56,6 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::L3_EGRESS_MODE_AUTO_ENABLED:
     case HwAsic::Feature::SAI_ECN_WRED:
     case HwAsic::Feature::PKTIO:
-    case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL: // CS00011272352
     case HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER:
     case HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT:
     case HwAsic::Feature::OBM_COUNTERS:
