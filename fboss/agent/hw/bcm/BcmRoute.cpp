@@ -69,7 +69,10 @@ void programLpmRoute(
     std::optional<bcm_l3_route_t> cachedRoute,
     bool isMultipath,
     bool discard,
-    bool replace) {
+    bool replace,
+    std::optional<facebook::fboss::BcmRouteCounterID> counterID = std::nullopt,
+    std::optional<facebook::fboss::BcmRouteCounterID> oldCounterID =
+        std::nullopt) {
   bcm_l3_route_t rt;
   initL3RouteFromArgs(&rt, vrf, prefix, prefixLength);
   if (classID.has_value()) {
@@ -128,10 +131,26 @@ void programLpmRoute(
         replace,
         " in cache: ",
         cachedRoute.has_value());
+    if (oldCounterID.has_value() && (oldCounterID != counterID)) {
+      rc = bcm_l3_route_stat_detach(unit, &rt);
+      bcmCheckError(rc, "failed to detach stat from route ", prefix);
+    }
+    if (counterID.has_value() && (counterID != oldCounterID)) {
+      rc = bcm_l3_route_stat_attach(unit, &rt, *counterID);
+      bcmCheckError(
+          rc,
+          "failed to attach stat to route ",
+          prefix,
+          " counter ",
+          *counterID);
+    }
     XLOG(DBG3) << "created a route entry for " << prefix.str() << "/"
                << static_cast<int>(prefixLength) << " @egress " << egressId
                << " class id "
-               << (classID.has_value() ? static_cast<int>(classID.value()) : 0);
+               << (classID.has_value() ? static_cast<int>(classID.value()) : 0)
+               << " counter id "
+               << (counterID.has_value() ? static_cast<int>(counterID.value())
+                                         : -1);
   }
 }
 
@@ -139,12 +158,23 @@ bool deleteLpmRoute(
     int unitNumber,
     bcm_vrf_t vrf,
     const folly::IPAddress& prefix,
-    uint8_t prefixLength) {
+    uint8_t prefixLength,
+    bool counterAttached = false) {
   bcm_l3_route_t rt;
   initL3RouteFromArgs(&rt, vrf, prefix, prefixLength);
-  auto rc = bcm_l3_route_delete(unitNumber, &rt);
   const std::string& routeInfo = folly::to<std::string>(
       "route entry for ", prefix, "/", static_cast<int>(prefixLength));
+  if (counterAttached) {
+    auto rc = bcm_l3_route_stat_detach(unitNumber, &rt);
+    XLOG_IF(WARNING, rc == BCM_E_NOT_FOUND)
+        << "Trying to detach stat from a nonexistent" << routeInfo
+        << ", ignore it.";
+    if (rc != BCM_E_NOT_FOUND && BCM_FAILURE(rc)) {
+      XLOG(ERR) << "Failed to detach counter from " << routeInfo
+                << " Error: " << bcm_errmsg(rc);
+    }
+  }
+  auto rc = bcm_l3_route_delete(unitNumber, &rt);
   XLOG_IF(WARNING, rc == BCM_E_NOT_FOUND)
       << "Trying to delete a nonexistent" << routeInfo << ", ignore it.";
   if (rc != BCM_E_NOT_FOUND && BCM_FAILURE(rc)) {
@@ -180,9 +210,27 @@ bool BcmRoute::canUseHostTable() const {
 void BcmRoute::program(
     const RouteNextHopEntry& fwd,
     std::optional<cfg::AclLookupClass> classID) {
-  // if the route has been programmed to the HW, check if the forward info or
-  // classID has changed or not. If not, nothing to do.
-  if (added_ && fwd == fwd_ && classID == classID_) {
+  auto routeCounterID = fwd.getCounterID();
+  std::optional<BcmRouteCounterID> counterID;
+  std::shared_ptr<BcmRouteCounter> counterIDReference{nullptr};
+  if (routeCounterID.has_value()) {
+    counterIDReference =
+        hw_->writableRouteCounterTable()->referenceOrEmplaceCounterID(
+            *routeCounterID);
+    counterID =
+        std::optional<BcmRouteCounterID>(counterIDReference->getHwCounterID());
+  }
+  std::optional<BcmRouteCounterID> oldCounterID;
+  if (counterIDReference_) {
+    oldCounterID =
+        std::optional<BcmRouteCounterID>(counterIDReference_->getHwCounterID());
+  }
+
+  // if the route has been programmed to the HW, check if the forward info,
+  // classID or counterID has changed or not. If not, nothing to do.
+  if (added_ &&
+      std::tie(fwd, classID, counterID) ==
+          std::tie(fwd_, classID_, oldCounterID)) {
     return;
   }
 
@@ -253,7 +301,9 @@ void BcmRoute::program(
           cachedRoute,
           fwd.getNextHopSet().size() > 1,
           fwd.getAction() == RouteForwardAction::DROP,
-          added_);
+          added_,
+          counterID,
+          oldCounterID);
       if (routeCitr != warmBootCache->vrfAndPrefix2Route_end()) {
         warmBootCache->programmed(routeCitr);
       }
@@ -263,6 +313,7 @@ void BcmRoute::program(
   egressId_ = egressId;
   fwd_ = fwd;
   classID_ = classID;
+  counterIDReference_ = std::move(counterIDReference);
 
   // new nexthop has been stored in fwd_. From now on, it is up to
   // ~BcmRoute() to clean up such nexthop.
@@ -300,7 +351,12 @@ BcmRoute::~BcmRoute() {
     XLOG(DBG3) << "Deleting host route; derefrence host prefix for : "
                << prefix_ << "/" << static_cast<int>(len_) << " host: " << host;
   } else {
-    deleteLpmRoute(hw_->getUnit(), vrf_, prefix_, len_);
+    deleteLpmRoute(
+        hw_->getUnit(),
+        vrf_,
+        prefix_,
+        len_,
+        counterIDReference_ ? true : false);
   }
 }
 
@@ -413,7 +469,8 @@ void BcmRouteTable::addRoute(bcm_vrf_t vrf, const RouteT* route) {
   CHECK(route->isResolved());
   RouteNextHopEntry fwd(route->getForwardInfo());
   if (fwd.getAction() == RouteForwardAction::NEXTHOPS) {
-    fwd = RouteNextHopEntry(fwd.normalizedNextHops(), fwd.getAdminDistance());
+    fwd = RouteNextHopEntry(
+        fwd.normalizedNextHops(), fwd.getAdminDistance(), fwd.getCounterID());
   }
   ret.first->second->program(fwd, route->getClassID());
 }

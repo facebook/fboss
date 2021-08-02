@@ -17,6 +17,7 @@ extern "C" {
 #include <folly/IPAddress.h>
 #include <folly/dynamic.h>
 #include "fboss/agent/hw/bcm/BcmHost.h"
+#include "fboss/agent/hw/bcm/BcmRouteCounter.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/types.h"
@@ -82,6 +83,7 @@ class BcmRoute {
       nextHopHostReference_; // reference to nexthops
   std::shared_ptr<BcmHostIf> hostRouteEntry_; // for host routes
   std::optional<cfg::AclLookupClass> classID_{std::nullopt};
+  std::shared_ptr<BcmRouteCounter> counterIDReference_;
 };
 
 /**
