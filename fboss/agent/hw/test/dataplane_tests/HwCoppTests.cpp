@@ -1013,6 +1013,27 @@ TYPED_TEST(HwCoppTest, NdpAdvertisementToHighPriQ) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(HwCoppTest, UnresolvedRoutesToLowPriQueue) {
+  auto setup = [=]() {
+    this->setup();
+    utility::EcmpSetupAnyNPorts6 ecmp6(this->getProgrammedState());
+    ecmp6.programRoutes(this->getRouteUpdater(), 1);
+  };
+  auto randomIP = folly::IPAddressV6("2::2");
+  auto verify = [=]() {
+    this->sendPktAndVerifyCpuQueue(
+        utility::kCoppLowPriQueueId,
+        randomIP,
+        utility::kNonSpecialPort1,
+        utility::kNonSpecialPort2,
+        std::nullopt,
+        0,
+        1, /* num pkts to send */
+        1 /* num pkts to excepted to be captured */);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 TYPED_TEST(HwCoppTest, JumboFramesToQueues) {
   auto setup = [=]() { this->setup(); };
 
