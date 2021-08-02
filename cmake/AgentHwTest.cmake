@@ -229,3 +229,12 @@ target_link_libraries(hw_switch_test
   Folly::folly
   validated_shell_commands_cpp2
 )
+
+add_library(prod_config_factory
+  fboss/agent/hw/test/ProdConfigFactory.cpp
+)
+
+target_link_libraries(prod_config_factory
+  config_factory
+  hw_qos_utils
+)
