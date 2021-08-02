@@ -26,15 +26,26 @@ class RouteNextHopEntry {
   using Action = RouteForwardAction;
   using NextHopSet = boost::container::flat_set<NextHop>;
 
-  RouteNextHopEntry(Action action, AdminDistance distance)
-      : adminDistance_(distance), action_(action) {
+  RouteNextHopEntry(
+      Action action,
+      AdminDistance distance,
+      std::optional<RouteCounterID> counterID = std::nullopt)
+      : adminDistance_(distance), action_(action), counterID_(counterID) {
     CHECK_NE(action_, Action::NEXTHOPS);
   }
 
-  RouteNextHopEntry(NextHopSet nhopSet, AdminDistance distance);
+  RouteNextHopEntry(
+      NextHopSet nhopSet,
+      AdminDistance distance,
+      std::optional<RouteCounterID> counterID = std::nullopt);
 
-  RouteNextHopEntry(NextHop nhop, AdminDistance distance)
-      : adminDistance_(distance), action_(Action::NEXTHOPS) {
+  RouteNextHopEntry(
+      NextHop nhop,
+      AdminDistance distance,
+      std::optional<RouteCounterID> counterID = std::nullopt)
+      : adminDistance_(distance),
+        action_(Action::NEXTHOPS),
+        counterID_(counterID) {
     nhopSet_.emplace(std::move(nhop));
   }
 
@@ -48,6 +59,10 @@ class RouteNextHopEntry {
 
   const NextHopSet& getNextHopSet() const {
     return nhopSet_;
+  }
+
+  const std::optional<RouteCounterID> getCounterID() const {
+    return counterID_;
   }
 
   NextHopSet normalizedNextHops() const;
@@ -82,13 +97,15 @@ class RouteNextHopEntry {
   void reset() {
     nhopSet_.clear();
     action_ = Action::DROP;
+    counterID_ = std::nullopt;
   }
 
   bool isValid(bool forMplsRoute = false) const;
 
   static RouteNextHopEntry from(
       const facebook::fboss::UnicastRoute& route,
-      AdminDistance defaultAdminDistance);
+      AdminDistance defaultAdminDistance,
+      std::optional<RouteCounterID> counterID);
   static facebook::fboss::RouteNextHopEntry createDrop(
       AdminDistance adminDistance = AdminDistance::STATIC_ROUTE);
   static facebook::fboss::RouteNextHopEntry createToCpu(
@@ -102,6 +119,7 @@ class RouteNextHopEntry {
  private:
   AdminDistance adminDistance_;
   Action action_{Action::DROP};
+  std::optional<RouteCounterID> counterID_;
   NextHopSet nhopSet_;
 };
 

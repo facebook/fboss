@@ -22,6 +22,7 @@ namespace {
 constexpr auto kNexthops = "nexthops";
 constexpr auto kAction = "action";
 constexpr auto kAdminDistance = "adminDistance";
+constexpr auto kCounterID = "counterID";
 static constexpr int kMinSizeForWideEcmp{128};
 
 std::vector<facebook::fboss::NextHopThrift> thriftNextHopsFromAddresses(
@@ -69,6 +70,9 @@ UnicastRoute toUnicastRoute(
   thriftRoute.dest_ref()->ip_ref() = network::toBinaryAddress(nw.first);
   thriftRoute.dest_ref()->prefixLength_ref() = nw.second;
   thriftRoute.action_ref() = nhopEntry.getAction();
+  if (nhopEntry.getCounterID().has_value()) {
+    thriftRoute.counterID_ref() = nhopEntry.getCounterID().value();
+  }
   if (nhopEntry.getAction() == RouteForwardAction::NEXTHOPS) {
     thriftRoute.nextHops_ref() = fromRouteNextHopSet(nhopEntry.getNextHopSet());
   }
@@ -77,9 +81,13 @@ UnicastRoute toUnicastRoute(
 
 } // namespace util
 
-RouteNextHopEntry::RouteNextHopEntry(NextHopSet nhopSet, AdminDistance distance)
+RouteNextHopEntry::RouteNextHopEntry(
+    NextHopSet nhopSet,
+    AdminDistance distance,
+    std::optional<RouteCounterID> counterID)
     : adminDistance_(distance),
       action_(Action::NEXTHOPS),
+      counterID_(counterID),
       nhopSet_(std::move(nhopSet)) {
   if (nhopSet_.size() == 0) {
     throw FbossError("Empty nexthop set is passed to the RouteNextHopEntry");
@@ -108,6 +116,8 @@ std::string RouteNextHopEntry::str() const {
   }
   result +=
       folly::to<std::string>(";admin=", static_cast<int32_t>(adminDistance_));
+  result += folly::to<std::string>(
+      ";counterID=", counterID_.has_value() ? *counterID_ : "none");
   return result;
 }
 
@@ -115,7 +125,8 @@ bool operator==(const RouteNextHopEntry& a, const RouteNextHopEntry& b) {
   return (
       a.getAction() == b.getAction() and
       a.getNextHopSet() == b.getNextHopSet() and
-      a.getAdminDistance() == b.getAdminDistance());
+      a.getAdminDistance() == b.getAdminDistance() and
+      a.getCounterID() == b.getCounterID());
 }
 
 bool operator<(const RouteNextHopEntry& a, const RouteNextHopEntry& b) {
@@ -168,6 +179,9 @@ folly::dynamic RouteNextHopEntry::toFollyDynamic() const {
   }
   entry[kNexthops] = std::move(nhops);
   entry[kAdminDistance] = static_cast<int32_t>(adminDistance_);
+  if (counterID_.has_value()) {
+    entry[kCounterID] = counterID_.value();
+  }
   return entry;
 }
 
@@ -182,6 +196,9 @@ RouteNextHopEntry RouteNextHopEntry::fromFollyDynamic(
   entry.action_ = action;
   for (const auto& nhop : entryJson[kNexthops]) {
     entry.nhopSet_.insert(util::nextHopFromFollyDynamic(nhop));
+  }
+  if (entryJson.find(kCounterID) != entryJson.items().end()) {
+    entry.counterID_ = RouteCounterID(entryJson[kCounterID].asString());
   }
   return entry;
 }
@@ -315,7 +332,8 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHops() const {
 
 RouteNextHopEntry RouteNextHopEntry::from(
     const facebook::fboss::UnicastRoute& route,
-    AdminDistance defaultAdminDistance) {
+    AdminDistance defaultAdminDistance,
+    std::optional<RouteCounterID> counterID) {
   std::vector<NextHopThrift> nhts;
   if (route.nextHops_ref()->empty() && !route.nextHopAddrs_ref()->empty()) {
     nhts = thriftNextHopsFromAddresses(*route.nextHopAddrs_ref());
@@ -333,14 +351,16 @@ RouteNextHopEntry RouteNextHopEntry::from(
       throw FbossError(
           "Nexthops specified, but action is set to : ", *route.action_ref());
     }
-    return RouteNextHopEntry(std::move(nexthops), adminDistance);
+    return RouteNextHopEntry(std::move(nexthops), adminDistance, counterID);
   }
 
   if (!route.action_ref() ||
       *route.action_ref() == facebook::fboss::RouteForwardAction::DROP) {
-    return RouteNextHopEntry(RouteForwardAction::DROP, adminDistance);
+    return RouteNextHopEntry(
+        RouteForwardAction::DROP, adminDistance, counterID);
   }
-  return RouteNextHopEntry(RouteForwardAction::TO_CPU, adminDistance);
+  return RouteNextHopEntry(
+      RouteForwardAction::TO_CPU, adminDistance, counterID);
 }
 
 RouteNextHopEntry RouteNextHopEntry::createDrop(AdminDistance adminDistance) {

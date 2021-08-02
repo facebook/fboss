@@ -396,9 +396,11 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
           } else {
             ++stats.v6RoutesAdded;
           }
+          // TODO - fill counter id
           toAddRoutes.push_back(
               {{network, mask},
-               RouteNextHopEntry::from(route, adminDistanceFromClientID)});
+               RouteNextHopEntry::from(
+                   route, adminDistanceFromClientID, std::nullopt)});
         });
     std::vector<folly::CIDRNetwork> toDelPrefixes;
     toDelPrefixes.reserve(toDelete.size());

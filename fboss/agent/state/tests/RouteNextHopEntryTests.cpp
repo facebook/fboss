@@ -99,11 +99,14 @@ TEST(RouteNextHopEntry, FromNextHopsThrift) {
   UnicastRoute route;
   route.dest_ref() = kDestPrefix;
   route.nextHops_ref() = nextHopsThrift();
+  std::optional<RouteCounterID> counterID("route.counter.0");
 
-  auto nextHopEntry = RouteNextHopEntry::from(route, kDefaultAdminDistance);
+  auto nextHopEntry =
+      RouteNextHopEntry::from(route, kDefaultAdminDistance, counterID);
 
   ASSERT_EQ(nextHopEntry.getAction(), RouteForwardAction::NEXTHOPS);
   ASSERT_EQ(nextHopEntry.getAdminDistance(), kDefaultAdminDistance);
+  ASSERT_EQ(nextHopEntry.getCounterID(), counterID);
 
   std::sort(nextHops.begin(), nextHops.end());
   ASSERT_TRUE(std::equal(
@@ -121,11 +124,14 @@ TEST(RouteNextHopEntry, FromBinaryAddresses) {
   UnicastRoute route;
   route.dest_ref() = kDestPrefix;
   route.nextHopAddrs_ref() = nextHopsBinaryAddress;
+  std::optional<RouteCounterID> counterID("route.counter.0");
 
-  auto nextHopEntry = RouteNextHopEntry::from(route, kDefaultAdminDistance);
+  auto nextHopEntry =
+      RouteNextHopEntry::from(route, kDefaultAdminDistance, counterID);
 
   ASSERT_EQ(nextHopEntry.getAction(), RouteForwardAction::NEXTHOPS);
   ASSERT_EQ(nextHopEntry.getAdminDistance(), kDefaultAdminDistance);
+  ASSERT_EQ(nextHopEntry.getCounterID(), counterID);
 
   std::sort(nextHops.begin(), nextHops.end());
   ASSERT_TRUE(std::equal(
@@ -140,7 +146,8 @@ TEST(RouteNextHopEntry, OverrideDefaultAdminDistance) {
   route.nextHops_ref() = nextHopsThrift();
   route.adminDistance_ref() = AdminDistance::IBGP;
 
-  auto nextHopEntry = RouteNextHopEntry::from(route, kDefaultAdminDistance);
+  auto nextHopEntry =
+      RouteNextHopEntry::from(route, kDefaultAdminDistance, std::nullopt);
 
   ASSERT_EQ(nextHopEntry.getAdminDistance(), AdminDistance::IBGP);
 }
@@ -154,7 +161,8 @@ TEST(RouteNextHopEntry, EmptyListIsDrop) {
   route.dest_ref() = kDestPrefix;
   route.nextHops_ref() = noNextHops;
 
-  auto nextHopEntry = RouteNextHopEntry::from(route, kDefaultAdminDistance);
+  auto nextHopEntry =
+      RouteNextHopEntry::from(route, kDefaultAdminDistance, std::nullopt);
 
   ASSERT_EQ(nextHopEntry.getAction(), RouteForwardAction::DROP);
   ASSERT_EQ(nextHopEntry.getAdminDistance(), kDefaultAdminDistance);

@@ -493,6 +493,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
   const auto clientId = bestPair.first;
   const auto bestEntry = bestPair.second;
   const auto action = bestEntry->getAction();
+  const auto counterID = bestEntry->getCounterID();
   if (action == RouteForwardAction::DROP) {
     hasDrop = true;
   } else if (action == RouteForwardAction::TO_CPU) {
@@ -566,23 +567,32 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
                << " route " << updatedRoute->str();
   };
   if (fwd && !fwd->empty()) {
-    if (route->getForwardInfo().getNextHopSet() != *fwd) {
+    if (route->getForwardInfo().getNextHopSet() != *fwd ||
+        route->getForwardInfo().getCounterID() != counterID) {
       updateRoute(
-          ritr, RouteNextHopEntry(*fwd, AdminDistance::MAX_ADMIN_DISTANCE));
+          ritr,
+          RouteNextHopEntry(
+              *fwd, AdminDistance::MAX_ADMIN_DISTANCE, counterID));
     }
   } else if (hasToCpu) {
-    if (!route->isToCPU()) {
+    if (!route->isToCPU() ||
+        route->getForwardInfo().getCounterID() != counterID) {
       updateRoute(
           ritr,
           RouteNextHopEntry(
-              RouteForwardAction::TO_CPU, AdminDistance::MAX_ADMIN_DISTANCE));
+              RouteForwardAction::TO_CPU,
+              AdminDistance::MAX_ADMIN_DISTANCE,
+              counterID));
     }
   } else if (hasDrop) {
-    if (!route->isDrop()) {
+    if (!route->isDrop() ||
+        route->getForwardInfo().getCounterID() != counterID) {
       updateRoute(
           ritr,
           RouteNextHopEntry(
-              RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
+              RouteForwardAction::DROP,
+              AdminDistance::MAX_ADMIN_DISTANCE,
+              counterID));
     }
   } else {
     updateRoute(ritr, std::nullopt);
