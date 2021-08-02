@@ -272,12 +272,21 @@ void SwitchState::addAcl(const std::shared_ptr<AclEntry>& acl) {
   fields->acls->addEntry(acl);
 }
 
+void SwitchState::addAclTable(const std::shared_ptr<AclTable>& aclTable) {
+  writableFields()->aclTableGroup->getAclTableMap()->addTable(aclTable);
+}
+
 std::shared_ptr<AclEntry> SwitchState::getAcl(const std::string& name) const {
   return getFields()->acls->getEntryIf(name);
 }
 
 void SwitchState::resetAcls(std::shared_ptr<AclMap> acls) {
   writableFields()->acls.swap(acls);
+}
+
+void SwitchState::resetAclTableGroup(
+    std::shared_ptr<AclTableGroup> aclTableGroup) {
+  writableFields()->aclTableGroup.swap(aclTableGroup);
 }
 
 void SwitchState::resetAggregatePorts(

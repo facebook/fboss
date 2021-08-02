@@ -12,6 +12,9 @@
 #include <folly/FileUtil.h>
 #include <folly/gen/Base.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
+#include <memory>
+#include <optional>
+#include <string>
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/LacpTypes.h"
@@ -23,6 +26,9 @@
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
+#include "fboss/agent/state/AclTable.h"
+#include "fboss/agent/state/AclTableGroup.h"
+#include "fboss/agent/state/AclTableMap.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/ArpResponseTable.h"
@@ -249,7 +255,17 @@ class ThriftConfigApplier {
   std::shared_ptr<Vlan> updateVlan(
       const std::shared_ptr<Vlan>& orig,
       const cfg::Vlan* config);
-  std::shared_ptr<AclMap> updateAcls();
+  std::shared_ptr<AclTableGroup> updateAclTableGroup();
+  flat_map<std::string, const cfg::AclEntry*> getAllAclsByName();
+  void checkTrafficPolicyAclsExistInConfig(
+      const cfg::TrafficPolicyConfig& policy,
+      flat_map<std::string, const cfg::AclEntry*> aclByName);
+  std::shared_ptr<AclTable> updateAclTable(
+      const cfg::AclTable& configTable,
+      int* numExistingTablesProcessed);
+  std::shared_ptr<AclMap> updateAcls(
+      std::vector<cfg::AclEntry> configEntries,
+      std::optional<std::string> tableName = std::nullopt);
   std::shared_ptr<AclEntry> createAcl(
       const cfg::AclEntry* config,
       int priority,
@@ -259,6 +275,7 @@ class ThriftConfigApplier {
       int priority,
       int* numExistingProcessed,
       bool* changed,
+      std::optional<std::string> tableName,
       const MatchAction* action = nullptr);
   // check the acl provided by config is valid
   void checkAcl(const cfg::AclEntry* config) const;
@@ -415,10 +432,18 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
 
   // updateAcls must be called after updateMirrors, acls may need mirror!
   {
-    auto newAcls = updateAcls();
-    if (newAcls) {
-      new_->resetAcls(std::move(newAcls));
-      changed = true;
+    if (FLAGS_enable_acl_table_group) {
+      auto newAclGroup = updateAclTableGroup();
+      if (newAclGroup) {
+        new_->resetAclTableGroup(std::move(newAclGroup));
+        changed = true;
+      }
+    } else {
+      auto newAcls = updateAcls(*cfg_->acls_ref());
+      if (newAcls) {
+        new_->resetAcls(std::move(newAcls));
+        changed = true;
+      }
     }
   }
 
@@ -1818,7 +1843,121 @@ shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
       QosPolicy::TrafficClassToQueueId());
 }
 
-std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
+std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup() {
+  auto newAclTableMap = std::make_shared<AclTableMap>();
+  bool changed = false;
+  int numExistingTablesProcessed = 0;
+
+  if (!cfg_->aclTableGroup_ref()) {
+    throw FbossError(
+        "Multiple acl tables flag set to true, but acl tables not set using new config format");
+  }
+
+  auto aclByName = getAllAclsByName();
+  // Check for controlPlane traffic acls
+  if (cfg_->cpuTrafficPolicy_ref() &&
+      cfg_->cpuTrafficPolicy_ref()->trafficPolicy_ref()) {
+    checkTrafficPolicyAclsExistInConfig(
+        *cfg_->cpuTrafficPolicy_ref()->trafficPolicy_ref(), aclByName);
+  }
+  // Check for dataPlane traffic acls
+  if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy_ref()) {
+    checkTrafficPolicyAclsExistInConfig(*dataPlaneTrafficPolicy, aclByName);
+  }
+
+  // For each table in the config, update the table entries and priority
+  for (const auto& aclTable : *cfg_->aclTableGroup_ref()->aclTables_ref()) {
+    auto newTable = updateAclTable(aclTable, &numExistingTablesProcessed);
+    if (newTable) {
+      changed = true;
+      newAclTableMap->addTable(newTable);
+    } else {
+      newAclTableMap->addTable(
+          orig_->getAclTableGroup()->getAclTableMap()->getTableIf(
+              *(aclTable.name_ref())));
+    }
+  }
+
+  if (orig_->getAclTableGroup() &&
+      numExistingTablesProcessed !=
+          orig_->getAclTableGroup()->getAclTableMap()->numTables()) {
+    // Some existing tables were removed.
+    changed = true;
+  }
+
+  if (!changed) {
+    return nullptr;
+  }
+
+  auto newAclTableGroup =
+      std::make_shared<AclTableGroup>(*cfg_->aclTableGroup_ref()->name_ref());
+  newAclTableGroup->setAclTableMap(newAclTableMap);
+
+  return newAclTableGroup;
+}
+
+flat_map<std::string, const cfg::AclEntry*>
+ThriftConfigApplier::getAllAclsByName() {
+  flat_map<std::string, const cfg::AclEntry*> aclByName;
+  for (const auto& aclTable : *cfg_->aclTableGroup_ref()->aclTables_ref()) {
+    auto aclEntries = *(aclTable.aclEntries_ref());
+    folly::gen::from(aclEntries) |
+        folly::gen::map([](const cfg::AclEntry& acl) {
+          return std::make_pair(*acl.name_ref(), &acl);
+        }) |
+        folly::gen::appendTo(aclByName);
+  }
+  return aclByName;
+}
+
+void ThriftConfigApplier::checkTrafficPolicyAclsExistInConfig(
+    const cfg::TrafficPolicyConfig& policy,
+    flat_map<std::string, const cfg::AclEntry*> aclByName) {
+  for (const auto& mta : *policy.matchToAction_ref()) {
+    auto a = aclByName.find(*mta.matcher_ref());
+    if (a == aclByName.end()) {
+      throw FbossError(
+          "Invalid config: No acl named ", *mta.matcher_ref(), " found.");
+    }
+  }
+}
+
+std::shared_ptr<AclTable> ThriftConfigApplier::updateAclTable(
+    const cfg::AclTable& configTable,
+    int* numExistingTablesProcessed) {
+  auto tableName = *configTable.name_ref();
+  std::shared_ptr<AclTable> origTable;
+  if (orig_->getAclTableGroup()) {
+    origTable =
+        orig_->getAclTableGroup()->getAclTableMap()->getTableIf(tableName);
+  }
+
+  auto newTableEntries = updateAcls(
+      *(configTable.aclEntries_ref()), std::make_optional(tableName));
+  auto newTablePriority = *configTable.priority_ref();
+
+  if (origTable) {
+    ++(*numExistingTablesProcessed);
+    if (!newTableEntries &&
+        newTablePriority ==
+            origTable->getPriority()) { // Original table exists with same
+                                        // entries and priority
+      return nullptr;
+    }
+  }
+
+  auto newTable = std::make_shared<AclTable>(newTablePriority, tableName);
+  if (newTableEntries) {
+    newTable->setAclMap(newTableEntries);
+  } else {
+    newTable->setAclMap(origTable->getAclMap());
+  }
+  return newTable;
+}
+
+std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls(
+    std::vector<cfg::AclEntry> configEntries,
+    std::optional<std::string> tableName) {
   AclMap::NodeContainer newAcls;
   bool changed = false;
   int numExistingProcessed = 0;
@@ -1826,21 +1965,22 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
   int cpuPriority = 1;
 
   // Start with the DROP acls, these should have highest priority
-  auto acls = folly::gen::from(*cfg_->acls_ref()) |
+  auto acls =
+      folly::gen::from(configEntries) |
       folly::gen::filter([](const cfg::AclEntry& entry) {
-                return *entry.actionType_ref() == cfg::AclActionType::DENY;
-              }) |
+        return *entry.actionType_ref() == cfg::AclActionType::DENY;
+      }) |
       folly::gen::map([&](const cfg::AclEntry& entry) {
-                auto acl = updateAcl(
-                    entry, priority++, &numExistingProcessed, &changed);
-                return std::make_pair(acl->getID(), acl);
-              }) |
+        auto acl = updateAcl(
+            entry, priority++, &numExistingProcessed, &changed, tableName);
+        return std::make_pair(acl->getID(), acl);
+      }) |
       folly::gen::appendTo(newAcls);
 
   // Let's get a map of acls to name so we don't have to search the acl list
   // for every new use
   flat_map<std::string, const cfg::AclEntry*> aclByName;
-  folly::gen::from(*cfg_->acls_ref()) |
+  folly::gen::from(configEntries) |
       folly::gen::map([](const cfg::AclEntry& acl) {
         return std::make_pair(*acl.name_ref(), &acl);
       }) |
@@ -1860,66 +2000,64 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
     std::vector<std::pair<std::string, std::shared_ptr<AclEntry>>> entries;
     for (const auto& mta : *policy.matchToAction_ref()) {
       auto a = aclByName.find(*mta.matcher_ref());
-      if (a == aclByName.end()) {
-        throw FbossError(
-            "Invalid config: No acl named ", *mta.matcher_ref(), " found.");
-      }
+      if (a != aclByName.end()) {
+        auto aclCfg = *(a->second);
 
-      auto aclCfg = *(a->second);
-
-      // We've already added any DENY acls
-      if (*aclCfg.actionType_ref() == cfg::AclActionType::DENY) {
-        continue;
-      }
-
-      // Here is sending to regular port queue action
-      MatchAction matchAction = MatchAction();
-      if (auto sendToQueue = mta.action_ref()->sendToQueue_ref()) {
-        matchAction.setSendToQueue(std::make_pair(*sendToQueue, isCoppAcl));
-      }
-      if (auto actionCounter = mta.action_ref()->counter_ref()) {
-        auto counter = counterByName.find(*actionCounter);
-        if (counter == counterByName.end()) {
-          throw FbossError(
-              "Invalid config: No counter named ",
-              *mta.action_ref()->counter_ref(),
-              " found.");
+        // We've already added any DENY acls
+        if (*aclCfg.actionType_ref() == cfg::AclActionType::DENY) {
+          continue;
         }
-        matchAction.setTrafficCounter(*(counter->second));
-      }
-      if (auto setDscp = mta.action_ref()->setDscp_ref()) {
-        matchAction.setSetDscp(*setDscp);
-      }
-      if (auto ingressMirror = mta.action_ref()->ingressMirror_ref()) {
-        matchAction.setIngressMirror(*ingressMirror);
-      }
-      if (auto egressMirror = mta.action_ref()->egressMirror_ref()) {
-        matchAction.setEgressMirror(*egressMirror);
-      }
-      if (auto toCpuAction = mta.action_ref()->toCpuAction_ref()) {
-        matchAction.setToCpuAction(*toCpuAction);
-      }
 
-      auto acl = updateAcl(
-          aclCfg,
-          isCoppAcl ? cpuPriority++ : priority++,
-          &numExistingProcessed,
-          &changed,
-          &matchAction);
+        // Here is sending to regular port queue action
+        MatchAction matchAction = MatchAction();
+        if (auto sendToQueue = mta.action_ref()->sendToQueue_ref()) {
+          matchAction.setSendToQueue(std::make_pair(*sendToQueue, isCoppAcl));
+        }
+        if (auto actionCounter = mta.action_ref()->counter_ref()) {
+          auto counter = counterByName.find(*actionCounter);
+          if (counter == counterByName.end()) {
+            throw FbossError(
+                "Invalid config: No counter named ",
+                *mta.action_ref()->counter_ref(),
+                " found.");
+          }
+          matchAction.setTrafficCounter(*(counter->second));
+        }
+        if (auto setDscp = mta.action_ref()->setDscp_ref()) {
+          matchAction.setSetDscp(*setDscp);
+        }
+        if (auto ingressMirror = mta.action_ref()->ingressMirror_ref()) {
+          matchAction.setIngressMirror(*ingressMirror);
+        }
+        if (auto egressMirror = mta.action_ref()->egressMirror_ref()) {
+          matchAction.setEgressMirror(*egressMirror);
+        }
+        if (auto toCpuAction = mta.action_ref()->toCpuAction_ref()) {
+          matchAction.setToCpuAction(*toCpuAction);
+        }
 
-      if (acl->getAclAction().has_value()) {
-        const auto& inMirror = acl->getAclAction().value().getIngressMirror();
-        const auto& egMirror = acl->getAclAction().value().getIngressMirror();
-        if (inMirror.has_value() &&
-            !new_->getMirrors()->getMirrorIf(inMirror.value())) {
-          throw FbossError("Mirror ", inMirror.value(), " is undefined");
+        auto acl = updateAcl(
+            aclCfg,
+            isCoppAcl ? cpuPriority++ : priority++,
+            &numExistingProcessed,
+            &changed,
+            tableName,
+            &matchAction);
+
+        if (acl->getAclAction().has_value()) {
+          const auto& inMirror = acl->getAclAction().value().getIngressMirror();
+          const auto& egMirror = acl->getAclAction().value().getIngressMirror();
+          if (inMirror.has_value() &&
+              !new_->getMirrors()->getMirrorIf(inMirror.value())) {
+            throw FbossError("Mirror ", inMirror.value(), " is undefined");
+          }
+          if (egMirror.has_value() &&
+              !new_->getMirrors()->getMirrorIf(egMirror.value())) {
+            throw FbossError("Mirror ", egMirror.value(), " is undefined");
+          }
         }
-        if (egMirror.has_value() &&
-            !new_->getMirrors()->getMirrorIf(egMirror.value())) {
-          throw FbossError("Mirror ", egMirror.value(), " is undefined");
-        }
+        entries.push_back(std::make_pair(acl->getID(), acl));
       }
-      entries.push_back(std::make_pair(acl->getID(), acl));
     }
     return entries;
   };
@@ -1937,13 +2075,41 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
     folly::gen::from(addToAcls(*dataPlaneTrafficPolicy)) |
         folly::gen::appendTo(newAcls);
   }
-  if (numExistingProcessed != orig_->getAcls()->size()) {
-    // Some existing ACLs were removed.
-    changed = true;
+
+  if (FLAGS_enable_acl_table_group) {
+    if (orig_->getAclTableGroup() &&
+        orig_->getAclTableGroup()->getAclTableMap()->getTableIf(
+            tableName.value()) &&
+        numExistingProcessed !=
+            orig_->getAclTableGroup()
+                ->getAclTableMap()
+                ->getTableIf(tableName.value())
+                ->getAclMap()
+                ->size()) {
+      // Some existing ACLs were removed from the table (multiple acl tables
+      // implementation).
+      changed = true;
+    }
+  } else {
+    if (numExistingProcessed != orig_->getAcls()->size()) {
+      // Some existing ACLs were removed (single acl table implementation).
+      changed = true;
+    }
   }
 
   if (!changed) {
     return nullptr;
+  }
+
+  if (tableName.has_value() && orig_->getAclTableGroup()) {
+    if (orig_->getAclTableGroup()->getAclTableMap()->getTableIf(
+            tableName.value())) {
+      return orig_->getAclTableGroup()
+          ->getAclTableMap()
+          ->getTable(tableName.value())
+          ->getAclMap()
+          ->clone(std::move(newAcls));
+    }
   }
   return orig_->getAcls()->clone(std::move(newAcls));
 }
@@ -1953,15 +2119,39 @@ std::shared_ptr<AclEntry> ThriftConfigApplier::updateAcl(
     int priority,
     int* numExistingProcessed,
     bool* changed,
+    std::optional<std::string> tableName,
     const MatchAction* action) {
-  auto origAcl = orig_->getAcls()->getEntryIf(*acl.name_ref());
-  auto newAcl = createAcl(&acl, priority, action);
+  std::shared_ptr<AclEntry> origAcl;
+
+  if (FLAGS_enable_acl_table_group) { // multiple acl tables implementation
+    XLOG(ERR) << "Table name: " << tableName.value();
+    CHECK(tableName.has_value());
+    if (orig_->getAclTableGroup() &&
+        orig_->getAclTableGroup()->getAclTableMap()->getTableIf(
+            tableName.value())) {
+      origAcl = orig_->getAclTableGroup()
+                    ->getAclTableMap()
+                    ->getTableIf(tableName.value())
+                    ->getAclMap()
+                    ->getEntryIf(*acl.name_ref());
+    }
+  } else { // single acl table implementation
+    CHECK(!tableName.has_value());
+    origAcl = orig_->getAcls()->getEntryIf(
+        *acl.name_ref()); // orig_ empty in coldboot, or comes from
+                          // follydynamic in warmboot
+  }
+
+  auto newAcl =
+      createAcl(&acl, priority, action); // new always comes from config
+
   if (origAcl) {
     ++(*numExistingProcessed);
     if (*origAcl == *newAcl) {
       return origAcl;
     }
   }
+
   *changed = true;
   return newAcl;
 }

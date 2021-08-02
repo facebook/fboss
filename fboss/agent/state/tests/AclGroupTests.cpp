@@ -27,6 +27,10 @@ using std::make_pair;
 using std::make_shared;
 using std::shared_ptr;
 
+DECLARE_bool(enable_acl_table_group);
+
+const int kAclStartPriority = 100000;
+
 const std::string kDscp1 = "dscp1";
 const std::string kDscp2 = "dscp2";
 const std::string kDscp3 = "dscp3";
@@ -42,6 +46,12 @@ const std::string kTable3 = "table3";
 
 const std::string kGroup1 = "group1";
 const std::string kGroup2 = "group2";
+
+const std::string kAcl1a = "acl1a";
+const std::string kAcl1b = "acl1b";
+const std::string kAcl2a = "acl2a";
+const std::string kAcl2b = "acl2b";
+const std::string kAcl3a = "acl3a";
 
 TEST(AclGroup, TestEquality) {
   // test AclEntry equality
@@ -265,4 +275,290 @@ TEST(AclGroup, SerializeAclTableGroup) {
   EXPECT_EQ(tableGroupBack->getID(), kGroup1);
   EXPECT_NE(tableGroupBack->getAclTableMap(), nullptr);
   EXPECT_EQ(*(tableGroupBack->getAclTableMap()), *tableMap);
+}
+
+TEST(AclGroup, ApplyConfigColdbootMultipleAclTable) {
+  FLAGS_enable_acl_table_group = true;
+  int priority1 = kAclStartPriority;
+  int priority2 = kAclStartPriority;
+
+  auto platform = createMockPlatform();
+  auto stateEmpty = make_shared<SwitchState>();
+
+  // Config contains single acl table
+  auto entry1a = make_shared<AclEntry>(priority1++, kAcl1a);
+  entry1a->setActionType(cfg::AclActionType::DENY);
+  auto entry1b = make_shared<AclEntry>(priority1++, kAcl1b);
+  entry1b->setAclAction(MatchAction());
+  auto map1 = std::make_shared<AclMap>();
+  map1->addEntry(entry1a);
+  map1->addEntry(entry1b);
+  auto table1 = std::make_shared<AclTable>(1, kTable1);
+  table1->setAclMap(map1);
+  auto tableMap = make_shared<AclTableMap>();
+  tableMap->addTable(table1);
+  auto tableGroup = make_shared<AclTableGroup>(kGroup1);
+  tableGroup->setAclTableMap(tableMap);
+
+  cfg::AclTable cfgTable1;
+  cfgTable1.name_ref() = kTable1;
+  cfgTable1.priority_ref() = 1;
+  cfgTable1.aclEntries_ref()->resize(2);
+  cfgTable1.aclEntries_ref()[0].name_ref() = kAcl1a;
+  cfgTable1.aclEntries_ref()[0].actionType_ref() = cfg::AclActionType::DENY;
+  cfgTable1.aclEntries_ref()[1].name_ref() = kAcl1b;
+
+  cfg::SwitchConfig config;
+  cfg::AclTableGroup cfgTableGroup;
+  config.aclTableGroup_ref() = cfgTableGroup;
+  config.aclTableGroup_ref()->name_ref() = kGroup1;
+  config.aclTableGroup_ref()->aclTables_ref()->resize(1);
+  config.aclTableGroup_ref()->aclTables_ref()[0] = cfgTable1;
+  // Make sure acl1b used so that it isn't ignored
+  config.dataPlaneTrafficPolicy_ref() = cfg::TrafficPolicyConfig();
+  config.dataPlaneTrafficPolicy_ref()->matchToAction_ref()->resize(
+      1, cfg::MatchToAction());
+  *config.dataPlaneTrafficPolicy_ref()->matchToAction_ref()[0].matcher_ref() =
+      kAcl1b;
+
+  auto stateV1 = publishAndApplyConfig(stateEmpty, &config, platform.get());
+
+  EXPECT_NE(nullptr, stateV1);
+  EXPECT_TRUE(stateV1->getAclTableGroup()->getAclTableMap()->getTableIf(
+      table1->getID()));
+  EXPECT_EQ(
+      *(stateV1->getAclTableGroup()->getAclTableMap()->getTableIf(
+          table1->getID())),
+      *table1);
+  EXPECT_EQ(stateV1->getAclTableGroup()->getID(), kGroup1);
+  EXPECT_EQ(*(stateV1->getAclTableGroup()), *tableGroup);
+
+  // Config contains 2 acl tables
+  auto entry2a = make_shared<AclEntry>(priority2, kAcl2a);
+  entry2a->setActionType(cfg::AclActionType::DENY);
+  auto map2 = std::make_shared<AclMap>();
+  map2->addEntry(entry2a);
+  auto table2 = std::make_shared<AclTable>(2, kTable2);
+  table2->setAclMap(map2);
+  tableGroup->getAclTableMap()->addTable(table2);
+
+  cfg::AclTable cfgTable2;
+  cfgTable2.name_ref() = kTable2;
+  cfgTable2.priority_ref() = 2;
+  cfgTable2.aclEntries_ref()->resize(1);
+  cfgTable2.aclEntries_ref()[0].name_ref() = kAcl2a;
+  cfgTable2.aclEntries_ref()[0].actionType_ref() = cfg::AclActionType::DENY;
+  config.aclTableGroup_ref()->aclTables_ref()->resize(2);
+  config.aclTableGroup_ref()->aclTables_ref()[1] = cfgTable2;
+
+  auto stateV2 = publishAndApplyConfig(stateEmpty, &config, platform.get());
+
+  EXPECT_NE(nullptr, stateV2);
+  EXPECT_TRUE(stateV2->getAclTableGroup()->getAclTableMap()->getTableIf(
+      table1->getID()));
+  EXPECT_EQ(
+      *(stateV2->getAclTableGroup()->getAclTableMap()->getTableIf(
+          table1->getID())),
+      *table1);
+  EXPECT_TRUE(stateV2->getAclTableGroup()->getAclTableMap()->getTableIf(
+      table2->getID()));
+  EXPECT_EQ(
+      *(stateV2->getAclTableGroup()->getAclTableMap()->getTableIf(
+          table2->getID())),
+      *table2);
+  EXPECT_EQ(*(stateV2->getAclTableGroup()), *tableGroup);
+}
+
+TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
+  FLAGS_enable_acl_table_group = true;
+  int priority1 = kAclStartPriority;
+  int priority2 = kAclStartPriority;
+  auto platform = createMockPlatform();
+
+  // State unchanged
+  auto entry1a = make_shared<AclEntry>(priority1++, kAcl1a);
+  entry1a->setActionType(cfg::AclActionType::DENY);
+  auto entry1b = make_shared<AclEntry>(priority1++, kAcl1b);
+  entry1b->setActionType(cfg::AclActionType::DENY);
+  auto map1 = std::make_shared<AclMap>();
+  map1->addEntry(entry1a);
+  map1->addEntry(entry1b);
+  auto table1 = std::make_shared<AclTable>(1, kTable1);
+  table1->setAclMap(map1);
+
+  auto entry2a = make_shared<AclEntry>(priority2++, kAcl2a);
+  entry2a->setActionType(cfg::AclActionType::DENY);
+  auto map2 = std::make_shared<AclMap>();
+  map2->addEntry(entry2a);
+  auto table2 = std::make_shared<AclTable>(2, kTable2);
+  table2->setAclMap(map2);
+
+  auto tableMap = make_shared<AclTableMap>();
+  tableMap->addTable(table1);
+  tableMap->addTable(table2);
+  auto tableGroup = make_shared<AclTableGroup>(kGroup1);
+  tableGroup->setAclTableMap(tableMap);
+
+  cfg::AclTable cfgTable1;
+  cfgTable1.name_ref() = kTable1;
+  cfgTable1.priority_ref() = 1;
+  cfgTable1.aclEntries_ref()->resize(2);
+  cfgTable1.aclEntries_ref()[0].name_ref() = kAcl1a;
+  cfgTable1.aclEntries_ref()[0].actionType_ref() = cfg::AclActionType::DENY;
+  cfgTable1.aclEntries_ref()[1].name_ref() = kAcl1b;
+  cfgTable1.aclEntries_ref()[1].actionType_ref() = cfg::AclActionType::DENY;
+  cfg::AclTable cfgTable2;
+  cfgTable2.name_ref() = kTable2;
+  cfgTable2.priority_ref() = 2;
+  cfgTable2.aclEntries_ref()->resize(1);
+  cfgTable2.aclEntries_ref()[0].name_ref() = kAcl2a;
+  cfgTable2.aclEntries_ref()[0].actionType_ref() = cfg::AclActionType::DENY;
+
+  cfg::SwitchConfig config;
+  cfg::AclTableGroup cfgTableGroup;
+  config.aclTableGroup_ref() = cfgTableGroup;
+  config.aclTableGroup_ref()->name_ref() = kGroup1;
+  config.aclTableGroup_ref()->aclTables_ref()->resize(2);
+  config.aclTableGroup_ref()->aclTables_ref()[0] = cfgTable1;
+  config.aclTableGroup_ref()->aclTables_ref()[1] = cfgTable2;
+
+  auto stateV0 = make_shared<SwitchState>();
+  stateV0->resetAclTableGroup(tableGroup);
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_EQ(nullptr, stateV1);
+
+  // Add a table
+  int priority3 = kAclStartPriority;
+  cfg::AclTable cfgTable3;
+  cfgTable3.name_ref() = kTable3;
+  cfgTable3.priority_ref() = 3;
+  cfgTable3.aclEntries_ref()->resize(1);
+  cfgTable3.aclEntries_ref()[0].name_ref() = kAcl3a;
+  cfgTable3.aclEntries_ref()[0].actionType_ref() = cfg::AclActionType::DENY;
+
+  config.aclTableGroup_ref()->aclTables_ref()->resize(3);
+  config.aclTableGroup_ref()->aclTables_ref()[2] = cfgTable3;
+
+  auto stateV2 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV2);
+  EXPECT_NE(*(stateV2->getAclTableGroup()), *tableGroup);
+
+  auto entry3a = make_shared<AclEntry>(priority3++, kAcl3a);
+  entry3a->setActionType(cfg::AclActionType::DENY);
+  auto map3 = std::make_shared<AclMap>();
+  map3->addEntry(entry3a);
+  auto table3 = std::make_shared<AclTable>(3, kTable3);
+  table3->setAclMap(map3);
+  tableGroup->getAclTableMap()->addTable(table3);
+
+  EXPECT_EQ(*(stateV2->getAclTableGroup()), *tableGroup);
+
+  // Remove a table
+  config.aclTableGroup_ref()->aclTables_ref()->resize(2);
+
+  auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
+  EXPECT_NE(nullptr, stateV3);
+  EXPECT_NE(*(stateV3->getAclTableGroup()), *tableGroup);
+
+  tableGroup->getAclTableMap()->removeTable(table3->getID());
+
+  EXPECT_EQ(*(stateV3->getAclTableGroup()), *tableGroup);
+
+  // Change the priority of a table
+  config.aclTableGroup_ref()->aclTables_ref()[1].priority_ref() = 5;
+
+  auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
+  EXPECT_NE(nullptr, stateV4);
+  EXPECT_NE(*(stateV4->getAclTableGroup()), *tableGroup);
+
+  tableGroup->getAclTableMap()->getTable(table2->getID())->setPriority(5);
+
+  EXPECT_EQ(*(stateV4->getAclTableGroup()), *tableGroup);
+
+  // Add an entry to a table
+  config.aclTableGroup_ref()->aclTables_ref()[1].aclEntries_ref()->resize(2);
+  config.aclTableGroup_ref()
+      ->aclTables_ref()[1]
+      .aclEntries_ref()[1]
+      .name_ref() = kAcl2b;
+  config.aclTableGroup_ref()
+      ->aclTables_ref()[1]
+      .aclEntries_ref()[1]
+      .actionType_ref() = cfg::AclActionType::DENY;
+
+  auto stateV5 = publishAndApplyConfig(stateV4, &config, platform.get());
+  EXPECT_NE(nullptr, stateV5);
+  EXPECT_NE(*(stateV5->getAclTableGroup()), *tableGroup);
+
+  auto entry2b = make_shared<AclEntry>(priority2++, kAcl2b);
+  entry2b->setActionType(cfg::AclActionType::DENY);
+  tableGroup->getAclTableMap()
+      ->getTable(table2->getID())
+      ->getAclMap()
+      ->addEntry(entry2b);
+
+  EXPECT_EQ(*(stateV5->getAclTableGroup()), *tableGroup);
+
+  // Remove an entry from a table
+  config.aclTableGroup_ref()->aclTables_ref()[0].aclEntries_ref()->resize(1);
+
+  auto stateV6 = publishAndApplyConfig(stateV5, &config, platform.get());
+  EXPECT_NE(nullptr, stateV6);
+  EXPECT_NE(*(stateV6->getAclTableGroup()), *tableGroup);
+
+  tableGroup->getAclTableMap()
+      ->getTable(table1->getID())
+      ->getAclMap()
+      ->removeEntry(entry1b->getID());
+
+  EXPECT_EQ(*(stateV6->getAclTableGroup()), *tableGroup);
+
+  // Change an entry in a table
+  auto proto = 6;
+  config.aclTableGroup_ref()
+      ->aclTables_ref()[1]
+      .aclEntries_ref()[0]
+      .proto_ref() = proto;
+
+  auto stateV7 = publishAndApplyConfig(stateV6, &config, platform.get());
+  EXPECT_NE(nullptr, stateV7);
+  EXPECT_NE(*(stateV7->getAclTableGroup()), *tableGroup);
+
+  tableGroup->getAclTableMap()
+      ->getTable(table2->getID())
+      ->getAclMap()
+      ->getEntryIf(entry2a->getID())
+      ->setProto(proto);
+
+  EXPECT_EQ(*(stateV7->getAclTableGroup()), *tableGroup);
+
+  // Move an entry between tables
+  config.aclTableGroup_ref()->aclTables_ref()[1].aclEntries_ref()->resize(
+      1); // delete entry2b from table 2
+  config.aclTableGroup_ref()->aclTables_ref()[0].aclEntries_ref()->resize(2);
+  config.aclTableGroup_ref()
+      ->aclTables_ref()[0]
+      .aclEntries_ref()[1]
+      .name_ref() = kAcl2b; // add entry2b to table 1
+  config.aclTableGroup_ref()
+      ->aclTables_ref()[0]
+      .aclEntries_ref()[1]
+      .actionType_ref() = cfg::AclActionType::DENY;
+
+  auto stateV8 = publishAndApplyConfig(stateV7, &config, platform.get());
+  EXPECT_NE(nullptr, stateV8);
+  EXPECT_NE(*(stateV8->getAclTableGroup()), *tableGroup);
+
+  tableGroup->getAclTableMap()
+      ->getTable(table2->getID())
+      ->getAclMap()
+      ->removeEntry(entry2b->getID());
+  tableGroup->getAclTableMap()
+      ->getTable(table1->getID())
+      ->getAclMap()
+      ->addEntry(entry2b); // 2b will be the second entry in table1, so priority
+                           // unchanged (originally second entry in table2)
+
+  EXPECT_EQ(*(stateV8->getAclTableGroup()), *tableGroup);
 }

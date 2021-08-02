@@ -17,6 +17,7 @@
 #include <folly/dynamic.h>
 
 #include "fboss/agent/state/AclMap.h"
+#include "fboss/agent/state/AclTableGroup.h"
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/BufferPoolConfig.h"
 #include "fboss/agent/state/BufferPoolConfigMap.h"
@@ -81,6 +82,7 @@ struct SwitchStateFields {
   std::shared_ptr<VlanMap> vlans;
   std::shared_ptr<InterfaceMap> interfaces;
   std::shared_ptr<AclMap> acls;
+  std::shared_ptr<AclTableGroup> aclTableGroup;
   std::shared_ptr<SflowCollectorMap> sFlowCollectors;
   std::shared_ptr<QosPolicyMap> qosPolicies;
   std::shared_ptr<ControlPlane> controlPlane;
@@ -236,6 +238,10 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
     return getFields()->acls;
   }
 
+  const std::shared_ptr<AclTableGroup>& getAclTableGroup() const {
+    return getFields()->aclTableGroup;
+  }
+
   std::chrono::seconds getArpTimeout() const {
     return getFields()->arpTimeout;
   }
@@ -357,7 +363,9 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   void addIntf(const std::shared_ptr<Interface>& intf);
   void resetIntfs(std::shared_ptr<InterfaceMap> intfs);
   void addAcl(const std::shared_ptr<AclEntry>& acl);
+  void addAclTable(const std::shared_ptr<AclTable>& aclTable);
   void resetAcls(std::shared_ptr<AclMap> acls);
+  void resetAclTableGroup(std::shared_ptr<AclTableGroup> acls);
   void resetSflowCollectors(
       const std::shared_ptr<SflowCollectorMap>& collectors);
   void resetQosPolicies(std::shared_ptr<QosPolicyMap> qosPolicyMap);

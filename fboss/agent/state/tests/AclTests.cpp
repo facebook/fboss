@@ -27,12 +27,15 @@ using std::make_pair;
 using std::make_shared;
 using std::shared_ptr;
 
+DECLARE_bool(enable_acl_table_group);
+
 namespace {
 // We offset the start point in ApplyThriftConfig
 constexpr auto kAclStartPriority = 100000;
 } // namespace
 
 TEST(Acl, applyConfig) {
+  FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
   auto aclEntry = make_shared<AclEntry>(0, "acl0");
@@ -220,6 +223,7 @@ TEST(Acl, applyConfig) {
 }
 
 TEST(Acl, stateDelta) {
+  FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
 
@@ -285,6 +289,7 @@ TEST(Acl, stateDelta) {
 }
 
 TEST(Acl, Icmp) {
+  FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
 
@@ -332,6 +337,7 @@ TEST(Acl, aclModifyPublished) {
 }
 
 TEST(Acl, AclGeneration) {
+  FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
   stateV0->registerPort(PortID(1), "port1");
@@ -539,6 +545,7 @@ TEST(Acl, SerializePacketCounter) {
 }
 
 TEST(Acl, Ttl) {
+  FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
 
@@ -623,6 +630,7 @@ TEST(Acl, PacketLookupResultSerialization) {
 }
 
 TEST(Acl, IpType) {
+  FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
 
@@ -643,6 +651,7 @@ TEST(Acl, IpType) {
 }
 
 TEST(Acl, LookupClass) {
+  FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
 
@@ -763,6 +772,7 @@ TEST(Acl, LookupClassSerialization) {
 }
 
 TEST(Acl, InvalidTrafficCounter) {
+  FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
 
@@ -785,6 +795,7 @@ TEST(Acl, InvalidTrafficCounter) {
 
 // TODO(adrs): deprecate packetCounter and remove this test
 TEST(Acl, TrafficCounterCompatibility) {
+  FLAGS_enable_acl_table_group = false;
   cfg::SwitchConfig config;
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
