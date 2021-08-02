@@ -33,4 +33,6 @@ void addLoadBalancerToConfig(
     const HwSwitch* hwSwitch,
     LBHash hashType);
 
+uint16_t uplinksCountFromSwitch(const HwSwitch* hwSwitch);
+
 } // namespace facebook::fboss::utility

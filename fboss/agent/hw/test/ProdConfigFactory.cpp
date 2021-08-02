@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
+#include "fboss/agent/platforms/common/PlatformMode.h"
 
 namespace facebook::fboss::utility {
 
@@ -55,6 +56,36 @@ void addLoadBalancerToConfig(
       break;
     default:
       throw FbossError("invalid hashing option ", hashType);
+      break;
+  }
+}
+
+/*
+ * Straightforward convenience function. Uses values defined in getUplinksCount,
+ * from HwInitAndExitBenchmarkHelper.cpp, to return the number of uplinks for
+ * each platform.
+ */
+uint16_t uplinksCountFromSwitch(const HwSwitch* hwSwitch) {
+  auto mode = hwSwitch->getPlatform()->getMode();
+  using PM = PlatformMode;
+  switch (mode) {
+    case PM::WEDGE:
+    case PM::WEDGE100:
+    case PM::WEDGE400C:
+    case PM::WEDGE400:
+    case PM::YAMP:
+    case PM::MINIPACK:
+    case PM::ELBERT:
+    case PM::FUJI:
+    case PM::CLOUDRIPPER:
+    case PM::GALAXY_LC:
+    case PM::GALAXY_FC:
+      return 4;
+    default:
+      throw FbossError(
+          "provided PlatformMode: ",
+          mode,
+          " has not been defined for uplinksCountFromSwitch");
       break;
   }
 }
