@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
+#include "fboss/agent/hw/test/ProdConfigFactory.h"
 
 #include "fboss/agent/hw/test/HwTestProdConfigUtils.h"
 #include "fboss/agent/hw/test/gen-cpp2/validated_shell_commands_constants.h"
@@ -66,9 +67,31 @@ class HwProdInvariantsTest : public HwLinkStateDependentTest {
   std::unique_ptr<HwProdInvariantHelper> prodInvariants_;
 };
 
-class HwProdInvariantsRswTest : public HwProdInvariantsTest {};
+class HwProdInvariantsRswTest : public HwProdInvariantsTest {
+ protected:
+  cfg::SwitchConfig initialConfig() const override {
+    auto config =
+        utility::createProdRswConfig(getHwSwitch(), masterLogicalPortIds());
+    return config;
+  }
 
-class HwProdInvariantsFswTest : public HwProdInvariantsTest {};
+  HwInvariantBitmask getInvariantOptions() const override {
+    return (COPP_INVARIANT | OLYMPIC_QOS_INVARIANT | LOAD_BALANCER_INVARIANT);
+  }
+};
+
+class HwProdInvariantsFswTest : public HwProdInvariantsTest {
+ protected:
+  cfg::SwitchConfig initialConfig() const override {
+    auto config =
+        utility::createProdFswConfig(getHwSwitch(), masterLogicalPortIds());
+    return config;
+  }
+
+  HwInvariantBitmask getInvariantOptions() const override {
+    return (COPP_INVARIANT | OLYMPIC_QOS_INVARIANT | LOAD_BALANCER_INVARIANT);
+  }
+};
 
 class HwProdInvariantsRswMhnicTest : public HwProdInvariantsTest {};
 

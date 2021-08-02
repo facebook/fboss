@@ -219,6 +219,7 @@ target_link_libraries(hw_switch_test
   hw_packet_utils
   hw_switch_ensemble
   load_balancer_utils
+  prod_config_factory
   prod_config_utils
   traffic_policy_utils
   core
