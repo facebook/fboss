@@ -1347,7 +1347,7 @@ void SaiSwitch::unregisterCallbacksLocked(
     switchApi.unregisterRxCallback(switchId_);
   }
   if (isFeatureSetupLocked(FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED, lock)) {
-#if defined(SAI_VERSION_5_0_0_6_ODP)
+#if defined(SAI_VERSION_5_0_0_7_ODP)
     switchApi.unregisterParityErrorSwitchEventCallback(switchId_);
 #else
     switchApi.unregisterTamEventCallback(switchId_);
@@ -1619,7 +1619,7 @@ void SaiSwitch::switchRunStateChangedImplLocked(
       }
       if (getFeaturesDesired() & FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED) {
         auto& switchApi = SaiApiTable::getInstance()->switchApi();
-#if defined(SAI_VERSION_5_0_0_6_ODP)
+#if defined(SAI_VERSION_5_0_0_7_ODP)
         switchApi.registerParityErrorSwitchEventCallback(
             switchId_, (void*)__gParityErrorSwitchEventCallback);
 #else

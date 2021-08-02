@@ -8,7 +8,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
 extern "C" {
-#if !defined(SAI_VERSION_5_0_0_6_ODP)
+#if !defined(SAI_VERSION_5_0_0_7_ODP)
 #include <experimental/saiexperimentalswitch.h>
 #include <experimental/saitamextensions.h>
 #endif
@@ -27,7 +27,7 @@ SaiTamManager::SaiTamManager(
       managerTable_(managerTable),
       platform_(platform),
       tamHandle_(std::make_unique<SaiTamHandle>()) {
-#if !defined(SAI_VERSION_5_0_0_6_ODP)
+#if !defined(SAI_VERSION_5_0_0_7_ODP)
   // create report
   auto& reportStore = saiStore_->get<SaiTamReportTraits>();
   auto reportTraits =
