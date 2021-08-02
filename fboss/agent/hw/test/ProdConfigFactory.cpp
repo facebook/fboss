@@ -12,9 +12,12 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/platforms/common/PlatformMode.h"
+
+#include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
-#include "fboss/agent/platforms/common/PlatformMode.h"
 
 namespace facebook::fboss::utility {
 
@@ -88,6 +91,79 @@ uint16_t uplinksCountFromSwitch(const HwSwitch* hwSwitch) {
           " has not been defined for uplinksCountFromSwitch");
       break;
   }
+}
+
+/*
+ * Creates and returns a SwitchConfig which is as close to what you would find
+ * in a production RSW as possible. If more features are desired, they can be
+ * added in this function.
+ *
+ * Mainly to be called from HwProdInvariantsTest for config setup, and can be
+ * used anywhere else it might be useful to have a prod RSW config.
+ */
+cfg::SwitchConfig createProdRswConfig(
+    const HwSwitch* hwSwitch,
+    const std::vector<PortID>& masterLogicalPortIds) {
+  auto platform = hwSwitch->getPlatform();
+  auto hwAsic = platform->getAsic();
+
+  auto numUplinks = uplinksCountFromSwitch(hwSwitch);
+  auto uplinkSpeed = cfg::PortSpeed::HUNDREDG;
+  auto downlinkSpeed = cfg::PortSpeed::XG;
+
+  // Create initial config to which we can add the rest of the features.
+  auto config = createUplinkDownlinkConfig(
+      hwSwitch,
+      masterLogicalPortIds,
+      numUplinks,
+      uplinkSpeed,
+      downlinkSpeed,
+      cfg::PortLoopbackMode::MAC);
+
+  addCpuQueueConfig(config, hwAsic);
+  addOlympicQosToConfig(config, hwSwitch);
+  setDefaultCpuTrafficPolicyConfig(config, hwAsic);
+  addLoadBalancerToConfig(config, hwSwitch, LBHash::FULL_HASH);
+
+  return config;
+}
+
+/*
+ * Returns a prod-setting FSW config. Can be modified as desired for more
+ * features to be added to config.
+ */
+cfg::SwitchConfig createProdFswConfig(
+    const HwSwitch* hwSwitch,
+    const std::vector<PortID>& masterLogicalPortIds) {
+  auto platform = hwSwitch->getPlatform();
+  auto hwAsic = platform->getAsic();
+
+  auto numUplinks = uplinksCountFromSwitch(hwSwitch);
+
+  using cfg::PortSpeed;
+  auto uplinkSpeed = PortSpeed::HUNDREDG;
+  auto downlinkSpeed = PortSpeed::HUNDREDG;
+
+  auto pMode = platform->getMode();
+  if (pMode == PlatformMode::FUJI || pMode == PlatformMode::ELBERT) {
+    uplinkSpeed = PortSpeed::TWOHUNDREDG;
+    downlinkSpeed = PortSpeed::TWOHUNDREDG;
+  }
+
+  auto config = createUplinkDownlinkConfig(
+      hwSwitch,
+      masterLogicalPortIds,
+      numUplinks,
+      uplinkSpeed,
+      downlinkSpeed,
+      cfg::PortLoopbackMode::MAC);
+
+  addCpuQueueConfig(config, hwAsic);
+  addOlympicQosToConfig(config, hwSwitch);
+  setDefaultCpuTrafficPolicyConfig(config, hwAsic);
+  addLoadBalancerToConfig(config, hwSwitch, LBHash::HALF_HASH);
+
+  return config;
 }
 
 } // namespace facebook::fboss::utility

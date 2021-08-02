@@ -35,4 +35,12 @@ void addLoadBalancerToConfig(
 
 uint16_t uplinksCountFromSwitch(const HwSwitch* hwSwitch);
 
+cfg::SwitchConfig createProdRswConfig(
+    const HwSwitch* hwSwitch,
+    const std::vector<PortID>& masterLogicalPortIds);
+
+cfg::SwitchConfig createProdFswConfig(
+    const HwSwitch* hwSwitch,
+    const std::vector<PortID>& masterLogicalPortIds);
+
 } // namespace facebook::fboss::utility

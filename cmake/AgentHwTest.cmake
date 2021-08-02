@@ -236,6 +236,7 @@ add_library(prod_config_factory
 
 target_link_libraries(prod_config_factory
   config_factory
+  hw_copp_utils
   hw_qos_utils
   load_balancer_utils
 )
