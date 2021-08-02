@@ -2477,6 +2477,13 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
     switchSettingsChange = true;
   }
 
+  if (origSwitchSettings->getMaxRouteCounterIDs() !=
+      *cfg_->switchSettings_ref()->maxRouteCounterIDs_ref()) {
+    newSwitchSettings->setMaxRouteCounterIDs(
+        *cfg_->switchSettings_ref()->maxRouteCounterIDs_ref());
+    switchSettingsChange = true;
+  }
+
   return switchSettingsChange ? newSwitchSettings : nullptr;
 }
 

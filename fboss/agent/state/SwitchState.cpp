@@ -179,7 +179,6 @@ SwitchStateFields SwitchStateFields::fromFollyDynamic(
     switchState.fibs =
         ForwardingInformationBaseMap::fromFollyDynamic(swJson[kFibs]);
   }
-
   // TODO verify that created state here is internally consistent t4155406
   return switchState;
 }

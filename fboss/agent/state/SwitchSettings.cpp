@@ -17,6 +17,7 @@ constexpr auto kL2LearningMode = "l2LearningMode";
 constexpr auto kQcmEnable = "qcmEnable";
 constexpr auto kPtpTcEnable = "ptpTcEnable";
 constexpr auto kL2AgeTimerSeconds = "l2AgeTimerSeconds";
+constexpr auto kMaxRouteCounterIDs = "maxRouteCounterIDs";
 } // namespace
 
 namespace facebook::fboss {
@@ -28,6 +29,7 @@ folly::dynamic SwitchSettingsFields::toFollyDynamic() const {
   switchSettings[kQcmEnable] = static_cast<bool>(qcmEnable);
   switchSettings[kPtpTcEnable] = static_cast<bool>(ptpTcEnable);
   switchSettings[kL2AgeTimerSeconds] = static_cast<int>(l2AgeTimerSeconds);
+  switchSettings[kMaxRouteCounterIDs] = static_cast<int>(maxRouteCounterIDs);
 
   return switchSettings;
 }
@@ -49,7 +51,9 @@ SwitchSettingsFields SwitchSettingsFields::fromFollyDynamic(
   if (json.find(kL2AgeTimerSeconds) != json.items().end()) {
     switchSettings.l2AgeTimerSeconds = json[kL2AgeTimerSeconds].asInt();
   }
-
+  if (json.find(kMaxRouteCounterIDs) != json.items().end()) {
+    switchSettings.maxRouteCounterIDs = json[kMaxRouteCounterIDs].asInt();
+  }
   return switchSettings;
 }
 

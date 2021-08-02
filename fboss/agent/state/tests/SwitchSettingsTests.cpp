@@ -130,7 +130,8 @@ TEST(SwitchSettingsTest, ToFromJSON) {
           "l2LearningMode": 1,
           "qcmEnable": true,
           "ptpTcEnable": true,
-          "l2AgeTimerSeconds": 600
+          "l2AgeTimerSeconds": 600,
+          "maxRouteCounterIDs": 10
         }
   )";
 
@@ -140,6 +141,7 @@ TEST(SwitchSettingsTest, ToFromJSON) {
   EXPECT_TRUE(switchSettings->isQcmEnable());
   EXPECT_TRUE(switchSettings->isPtpTcEnable());
   EXPECT_EQ(600, switchSettings->getL2AgeTimerSeconds());
+  EXPECT_EQ(10, switchSettings->getMaxRouteCounterIDs());
 
   auto dyn1 = switchSettings->toFollyDynamic();
   auto dyn2 = folly::parseJson(jsonStr);
