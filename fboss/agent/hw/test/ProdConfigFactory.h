@@ -17,4 +17,20 @@ namespace facebook::fboss::utility {
 
 void addOlympicQosToConfig(cfg::SwitchConfig& config, const HwSwitch* hwSwitch);
 
+/*
+ * Used to determine whether full-hash or half-hash config should be used when
+ * enabling load balancing via addLoadBalancerToConfig().
+ *
+ * (LBHash = Load Balancer Hash)
+ */
+enum class LBHash : uint8_t {
+  FULL_HASH = 0,
+  HALF_HASH = 1,
+};
+
+void addLoadBalancerToConfig(
+    cfg::SwitchConfig& config,
+    const HwSwitch* hwSwitch,
+    LBHash hashType);
+
 } // namespace facebook::fboss::utility
