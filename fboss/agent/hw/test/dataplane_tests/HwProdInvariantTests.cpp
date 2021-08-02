@@ -66,10 +66,11 @@ class HwProdInvariantsTest : public HwLinkStateDependentTest {
   std::unique_ptr<HwProdInvariantHelper> prodInvariants_;
 };
 
-TEST_F(HwProdInvariantsTest, verifyInvariants) {
-  verifyAcrossWarmBoots(
-      []() {}, [this]() { verifyInvariants(getInvariantOptions()); });
-}
+class HwProdInvariantsRswTest : public HwProdInvariantsTest {};
+
+class HwProdInvariantsFswTest : public HwProdInvariantsTest {};
+
+class HwProdInvariantsRswMhnicTest : public HwProdInvariantsTest {};
 
 class HwProdInvariantsMmuLosslessTest : public HwProdInvariantsTest {
  protected:
@@ -125,6 +126,11 @@ class HwProdInvariantsMmuLosslessTest : public HwProdInvariantsTest {
  private:
   std::unique_ptr<HwProdInvariantHelper> prodInvariants_;
 };
+
+TEST_F(HwProdInvariantsTest, verifyInvariants) {
+  verifyAcrossWarmBoots(
+      []() {}, [this]() { verifyInvariants(getInvariantOptions()); });
+}
 
 // validate that running there are no discards during line rate run
 // of traffic while doing warm boot
