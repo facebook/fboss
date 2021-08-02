@@ -183,9 +183,10 @@ class SaiPortManager {
       PortID swId,
       const SaiQueueConfig& saiQueueConfig) const;
   void loadPortQueues(SaiPortHandle* portHandle);
-  std::shared_ptr<SaiPortSerdes> programSerdes(
+  void programSerdes(
       std::shared_ptr<SaiPort> saiPort,
-      std::shared_ptr<Port> swPort);
+      std::shared_ptr<Port> swPort,
+      SaiPortHandle* portHandle);
   void programSampling(
       PortID portId,
       SamplePacketDirection direction,

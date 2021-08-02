@@ -502,8 +502,8 @@ void SaiPortManager::changePort(
   SaiPortTraits::AdapterHostKey portKey{
       GET_ATTR(Port, HwLaneList, newAttributes)};
   auto& portStore = saiStore_->get<SaiPortTraits>();
-  auto saiPort = portStore.setObject(portKey, newAttributes);
-  existingPort->serdes = programSerdes(saiPort, newPort);
+  auto saiPort = portStore.setObject(portKey, newAttributes, newPort->getID());
+  programSerdes(saiPort, newPort, existingPort);
   // if vlan changed update it, this is important for rx processing
   if (newPort->getIngressVlan() != oldPort->getIngressVlan()) {
     concurrentIndices_->vlanIds.insert_or_assign(
@@ -807,11 +807,12 @@ void SaiPortManager::clearQosPolicy() {
   globalTcToQueueQosMap_.reset();
 }
 
-std::shared_ptr<SaiPortSerdes> SaiPortManager::programSerdes(
+void SaiPortManager::programSerdes(
     std::shared_ptr<SaiPort> saiPort,
-    std::shared_ptr<Port> swPort) {
+    std::shared_ptr<Port> swPort,
+    SaiPortHandle* portHandle) {
   if (!platform_->isSerdesApiSupported()) {
-    return nullptr;
+    return;
   }
   auto txSettings = platform_->getPlatformPortTxSettings(
       swPort->getID(), swPort->getProfileID());
@@ -851,9 +852,19 @@ std::shared_ptr<SaiPortSerdes> SaiPortManager::programSerdes(
   }
   SaiPortSerdesTraits::CreateAttributes serdesAttributes =
       serdesAttributesFromSwPort(saiPort->adapterKey(), swPort);
+  // Currently TH3 requires setting sixtap attributes at once, but sai
+  // interface only suppports setAttribute() one at a time. Therefore, we'll
+  // need to remove the serdes object and then recreate with the sixtap
+  // attributes.
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_PORT_SERDES_FIELDS_CLEAR_BEFORE_SET) &&
+      serdes && serdes->attributes() != serdesAttributes) {
+    // Give up all references to the serdes object to delete the serdes object.
+    portHandle->serdes.reset();
+    serdes.reset();
+  }
   // create if serdes doesn't exist or update existing serdes
-  serdes = store.setObject(serdesKey, serdesAttributes);
-  return serdes;
+  portHandle->serdes = store.setObject(serdesKey, serdesAttributes);
 }
 
 SaiPortSerdesTraits::CreateAttributes

@@ -34,7 +34,7 @@ class SaiBcmWedge400Platform : public SaiBcmPlatform {
   }
 
   bool isSerdesApiSupported() const override {
-    return false;
+    return true;
   }
 
   void initLEDs() override;

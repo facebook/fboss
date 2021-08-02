@@ -47,7 +47,7 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   auto& portStore = saiStore_->get<SaiPortTraits>();
   auto saiPort = portStore.setObject(portKey, attributes, swPort->getID());
   handle->port = saiPort;
-  handle->serdes = programSerdes(saiPort, swPort);
+  programSerdes(saiPort, swPort, handle.get());
 
   loadPortQueues(handle.get());
   const auto asic = platform_->getAsic();
