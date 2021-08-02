@@ -22,7 +22,7 @@ class HwOverflowTest : public HwLinkStateDependentTest {
   cfg::SwitchConfig initialConfig() const override;
   void SetUp() override;
   void verifyInvariants() {
-    prodInvariants_->verifyInvariants();
+    prodInvariants_->verifyInvariants(DEFAULT_INVARIANTS);
   }
   HwSwitchEnsemble::Features featuresDesired() const override {
     return HwProdInvariantHelper::featuresDesired();

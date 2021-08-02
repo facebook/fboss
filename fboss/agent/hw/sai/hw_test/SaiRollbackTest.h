@@ -21,7 +21,7 @@ class SaiRollbackTest : public HwLinkStateDependentTest {
   void SetUp() override;
   cfg::SwitchConfig initialConfig() const override;
   void verifyInvariants() {
-    prodInvariants_->verifyInvariants();
+    prodInvariants_->verifyInvariants(DEFAULT_INVARIANTS);
   }
   HwSwitchEnsemble::Features featuresDesired() const override {
     return HwProdInvariantHelper::featuresDesired();

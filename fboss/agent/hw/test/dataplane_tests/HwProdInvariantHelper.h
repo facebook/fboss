@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 
@@ -26,14 +27,18 @@ namespace facebook::fboss {
  */
 typedef uint32_t HwInvariantBitmask;
 enum HwInvariantOpt : HwInvariantBitmask {
-  OPT_NONE = 0x0000,
-  OPT_MMU_LOSSLESS = 0x0001,
-  OPT_MHNIC = 0x0002,
-  OPT_SFLOW = 0x0004,
-  OPT_COPP = 0x0008,
-  OPT_LOAD_BALANCER = 0x0010,
-  OPT_OLYMPIC_QOS = 0x0020,
+  EMPTY_INVARIANT = 0x0000,
+  MMU_LOSSLESS_INVARIANT = 0x0001,
+  MHNIC_INVARIANT = 0x0002,
+  SFLOW_INVARIANT = 0x0004,
+  COPP_INVARIANT = 0x0008,
+  LOAD_BALANCER_INVARIANT = 0x0010,
+  OLYMPIC_QOS_INVARIANT = 0x0020,
+  DIAG_CMDS_INVARIANT = 0x0040,
 };
+// Useful/common combinations can be defined here as one sees fit
+const HwInvariantBitmask DEFAULT_INVARIANTS = DIAG_CMDS_INVARIANT |
+    COPP_INVARIANT | LOAD_BALANCER_INVARIANT | OLYMPIC_QOS_INVARIANT;
 
 /*
  * Convenience function that checks if field `opt` is set within `opts`.
@@ -53,11 +58,25 @@ class HwProdInvariantHelper {
   void setupEcmp();
   void setupEcmpWithNextHopMac(const folly::MacAddress& nextHop);
   void disableTtl();
-  void verifyInvariants() {
-    verifySafeDiagCmds();
-    verifyDscpToQueueMapping();
-    verifyCopp();
-    verifyLoadBalacing();
+  void verifyInvariants(HwInvariantBitmask options) {
+    // No point if we're gonna skip all the tests, should receive at least one
+    // field in 'options'.
+    if (options == EMPTY_INVARIANT) {
+      throw FbossError(
+          "no options passed to verifyInvariants, got EMPTY_INVARIANT");
+    }
+    if (isHwInvariantOptSet(options, DIAG_CMDS_INVARIANT)) {
+      verifySafeDiagCmds();
+    }
+    if (isHwInvariantOptSet(options, COPP_INVARIANT)) {
+      verifyCopp();
+    }
+    if (isHwInvariantOptSet(options, LOAD_BALANCER_INVARIANT)) {
+      verifyLoadBalacing();
+    }
+    if (isHwInvariantOptSet(options, OLYMPIC_QOS_INVARIANT)) {
+      verifyDscpToQueueMapping();
+    }
   }
   void sendTraffic();
   static HwSwitchEnsemble::Features featuresDesired() {

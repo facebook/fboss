@@ -42,11 +42,24 @@ class HwProdInvariantsTest : public HwLinkStateDependentTest {
         getHwSwitchEnsemble(), initialConfig());
     prodInvariants_->setupEcmp();
   }
-  void verifyInvariants() {
-    prodInvariants_->verifyInvariants();
+
+  virtual void verifyInvariants(HwInvariantBitmask options) {
+    prodInvariants_->verifyInvariants(options);
   }
+
   HwSwitchEnsemble::Features featuresDesired() const override {
     return HwProdInvariantHelper::featuresDesired();
+  }
+
+  /*
+   * When overridden by subclasses, will return the set of HwInvariantOpts that
+   * should be enabled for that role.
+   *
+   * For example, for HwProdInvariantsRswTest, would return
+   * COPP_INVARIANT|OLYMPIC_QOS_INVARIANT|LOAD_BALANCER_INVARIANT.
+   */
+  virtual HwInvariantBitmask getInvariantOptions() const {
+    return DEFAULT_INVARIANTS;
   }
 
  private:
@@ -54,10 +67,11 @@ class HwProdInvariantsTest : public HwLinkStateDependentTest {
 };
 
 TEST_F(HwProdInvariantsTest, verifyInvariants) {
-  verifyAcrossWarmBoots([]() {}, [this]() { verifyInvariants(); });
+  verifyAcrossWarmBoots(
+      []() {}, [this]() { verifyInvariants(getInvariantOptions()); });
 }
 
-class HwProdInvariantsMmuLosslessTest : public HwLinkStateDependentTest {
+class HwProdInvariantsMmuLosslessTest : public HwProdInvariantsTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
     auto cfg =
@@ -68,7 +82,6 @@ class HwProdInvariantsMmuLosslessTest : public HwLinkStateDependentTest {
   }
 
   void SetUp() override {
-    FLAGS_mmu_lossless_mode = true;
     HwLinkStateDependentTest::SetUp();
     prodInvariants_ = std::make_unique<HwProdInvariantHelper>(
         getHwSwitchEnsemble(), initialConfig());
@@ -81,8 +94,8 @@ class HwProdInvariantsMmuLosslessTest : public HwLinkStateDependentTest {
     return HwProdInvariantHelper::featuresDesired();
   }
 
-  void verifyInvariants() {
-    prodInvariants_->verifyInvariants();
+  void verifyInvariants(HwInvariantBitmask options) override {
+    prodInvariants_->verifyInvariants(options);
     prodInvariants_->verifyNoDiscards();
   }
 
@@ -105,6 +118,10 @@ class HwProdInvariantsMmuLosslessTest : public HwLinkStateDependentTest {
         getHwSwitchEnsemble()->masterLogicalPortIds()[0]);
   }
 
+  HwInvariantBitmask getInvariantOptions() const override {
+    return DEFAULT_INVARIANTS | MMU_LOSSLESS_INVARIANT;
+  }
+
  private:
   std::unique_ptr<HwProdInvariantHelper> prodInvariants_;
 };
@@ -115,7 +132,8 @@ TEST_F(HwProdInvariantsMmuLosslessTest, ValidateMmuLosslessMode) {
   if (!getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
     return;
   }
-  verifyAcrossWarmBoots([]() {}, [this]() { verifyInvariants(); });
+  verifyAcrossWarmBoots(
+      []() {}, [this]() { verifyInvariants(getInvariantOptions()); });
 }
 
 TEST_F(HwProdInvariantsMmuLosslessTest, ValidateWarmBootNoDiscards) {
