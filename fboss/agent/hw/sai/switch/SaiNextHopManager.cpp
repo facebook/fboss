@@ -80,6 +80,8 @@ ManagedSaiNextHop SaiNextHopManager::addManagedSaiNextHop(
   auto nexthopKey = getAdapterHostKey(swNextHop);
   folly::IPAddress ip = swNextHop.addr();
 
+  XLOG(DBG2) << "SaiNextHopManager::addManagedSaiNextHop: " << ip.str();
+
   if (auto ipNextHopKey =
           std::get_if<typename SaiIpNextHopTraits::AdapterHostKey>(
               &nexthopKey)) {
@@ -152,6 +154,27 @@ void ManagedNextHop<NextHopTraits>::createObject(PublishedObjects /*added*/) {
          std::nullopt});
   }
   this->setObject(object);
+
+  XLOG(DBG2) << "ManagedNeighbor::createObject: " << toString();
+}
+
+template <typename NextHopTraits>
+std::string ManagedNextHop<NextHopTraits>::toString() const {
+  if (!this->getObject()) {
+    return {};
+  }
+
+  if constexpr (std::is_same_v<NextHopTraits, SaiIpNextHopTraits>) {
+    return folly::to<std::string>(
+        "ip: ",
+        GET_ATTR(IpNextHop, Ip, this->getObject()->adapterHostKey()).str(),
+        " routerInterfaceId:",
+        GET_ATTR(
+            IpNextHop, RouterInterfaceId, this->getObject()->adapterHostKey()));
+  } else {
+    // TODO MPLS
+    return {};
+  }
 }
 
 } // namespace facebook::fboss

@@ -59,6 +59,7 @@ class ManagedNextHop : public SaiObjectEventAggregateSubscriber<
   void createObject(PublishedObjects /*added*/);
 
   void removeObject(size_t index, PublishedObjects removed) {
+    XLOG(DBG2) << "ManagedNeighbor::removeObject: " << toString();
     /* when neighbor is removed remove next hop */
     this->resetObject();
   }
@@ -68,6 +69,8 @@ class ManagedNextHop : public SaiObjectEventAggregateSubscriber<
   }
 
  private:
+  std::string toString() const;
+
   SaiNextHopManager* manager_;
   typename NextHopTraits::AdapterHostKey key_;
 };
