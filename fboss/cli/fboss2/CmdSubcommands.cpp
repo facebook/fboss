@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/CmdSubcommands.h"
+#include "fboss/cli/fboss2/utils/CLIParserUtils.h"
 
 #include <folly/Singleton.h>
 
@@ -47,14 +48,14 @@ void CmdSubcommands::initHelper(
   for (
       const auto& [verb, object, objectArgType, subCmd, helpMsg, commandHandlerFn] :
       listOfCommands) {
-    auto* verbCmd = app.get_subcommand_if(verb);
+    auto* verbCmd = utils::getSubcommandIf(app, verb);
 
     // TODO explore moving this check to a compile time check
     if (!verbCmd) {
       throw std::runtime_error("unsupported verb " + verb);
     }
 
-    auto* objectCmd = verbCmd->get_subcommand_if(object);
+    auto* objectCmd = utils::getSubcommandIf(*verbCmd, object);
     if (!objectCmd) {
       objectCmd = verbCmd->add_subcommand(object, helpMsg);
       objectCmd->callback(commandHandlerFn);
