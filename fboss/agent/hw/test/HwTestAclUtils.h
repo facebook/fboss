@@ -66,6 +66,17 @@ cfg::AclEntry* addAcl(
 
 void delAcl(cfg::SwitchConfig* cfg, const std::string& aclName);
 
+void addAclTableGroup(
+    cfg::SwitchConfig* cfg,
+    const std::string& aclTableGroupName = "AclTableGroup1");
+
+cfg::AclTable* addAclTable(
+    cfg::SwitchConfig* cfg,
+    const std::string& aclTableName,
+    const int aclTablePriority);
+
+void delAclTable(cfg::SwitchConfig* cfg, const std::string& aclTableName);
+
 void addAclStat(
     cfg::SwitchConfig* cfg,
     const std::string& matcher,

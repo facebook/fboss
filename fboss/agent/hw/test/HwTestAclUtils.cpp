@@ -45,6 +45,49 @@ void delAcl(cfg::SwitchConfig* cfg, const std::string& aclName) {
       acls.end());
 }
 
+void addAclTableGroup(
+    cfg::SwitchConfig* cfg,
+    const std::string& aclTableGroupName) {
+  cfg::AclTableGroup cfgTableGroup;
+  cfg->aclTableGroup_ref() = cfgTableGroup;
+  cfg->aclTableGroup_ref()->name_ref() = aclTableGroupName;
+}
+
+cfg::AclTable* addAclTable(
+    cfg::SwitchConfig* cfg,
+    const std::string& aclTableName,
+    const int aclTablePriority) {
+  if (!cfg->aclTableGroup_ref()) {
+    throw FbossError(
+        "Attempted to add acl table without first creating acl table group");
+  }
+
+  cfg::AclTable aclTable;
+  aclTable.name_ref() = aclTableName;
+  aclTable.priority_ref() = aclTablePriority;
+
+  cfg->aclTableGroup_ref()->aclTables_ref()->push_back(aclTable);
+  return &cfg->aclTableGroup_ref()->aclTables_ref()->back();
+}
+
+void delAclTable(cfg::SwitchConfig* cfg, const std::string& aclTableName) {
+  if (!cfg->aclTableGroup_ref()) {
+    throw FbossError(
+        "Attempted to delete acl table (",
+        aclTableName,
+        ") from uninstantiated table group");
+  }
+  auto& aclTables = *cfg->aclTableGroup_ref()->aclTables_ref();
+  aclTables.erase(
+      std::remove_if(
+          aclTables.begin(),
+          aclTables.end(),
+          [&](cfg::AclTable const& aclTable) {
+            return *aclTable.name_ref() == aclTableName;
+          }),
+      aclTables.end());
+}
+
 void addAclStat(
     cfg::SwitchConfig* cfg,
     const std::string& matcher,
