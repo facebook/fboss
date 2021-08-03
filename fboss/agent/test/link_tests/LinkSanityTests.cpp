@@ -57,14 +57,7 @@ TEST_F(LinkTest, getTransceivers) {
 TEST_F(LinkTest, trafficRxTx) {
   auto packetsFlowingOnAllPorts = [this]() {
     sw()->getLldpMgr()->sendLldpOnAllPorts();
-    auto lldpDb = sw()->getLldpMgr()->getDB();
-    for (const auto& port : getCabledPorts()) {
-      if (!lldpDb->getNeighbors(port).size()) {
-        XLOG(INFO) << " No lldp neighbors on : " << port;
-        return false;
-      }
-    }
-    return true;
+    return lldpNeighborsOnAllCabledPorts();
   };
 
   verifyAcrossWarmBoots(

@@ -23,6 +23,7 @@ class LinkTest : public AgentTest {
       uint32_t retries = 60,
       std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
           std::chrono::milliseconds(1000)) const;
+  bool lldpNeighborsOnAllCabledPorts() const;
   /*
    * Ports where we expect optics to be plugged in.
    * In link tests this information is conveyed in config via non

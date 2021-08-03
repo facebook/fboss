@@ -5,6 +5,7 @@
 #include <gflags/gflags.h>
 
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/LldpManager.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
@@ -146,6 +147,17 @@ void LinkTest::createL3DataplaneFlood() {
       sw()->getPlatform()->getLocalMac(),
       (*sw()->getState()->getVlans()->begin())->getID());
   // TODO: Assert that traffic reached a certain rate
+}
+
+bool LinkTest::lldpNeighborsOnAllCabledPorts() const {
+  auto lldpDb = sw()->getLldpMgr()->getDB();
+  for (const auto& port : getCabledPorts()) {
+    if (!lldpDb->getNeighbors(port).size()) {
+      XLOG(INFO) << " No lldp neighbors on : " << port;
+      return false;
+    }
+  }
+  return true;
 }
 
 int linkTestMain(int argc, char** argv, PlatformInitFn initPlatformFn) {
