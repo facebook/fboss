@@ -78,6 +78,7 @@ class HwAsic {
     SAI_HASH_FIELDS_CLEAR_BEFORE_SET,
     EMPTY_ACL_MATCHER,
     SAI_PORT_SERDES_FIELDS_CLEAR_BEFORE_SET,
+    ROUTE_COUNTERS,
   };
 
   enum class AsicType {

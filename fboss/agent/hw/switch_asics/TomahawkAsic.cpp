@@ -78,6 +78,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_MPLS_QOS:
     case HwAsic::Feature::EMPTY_ACL_MATCHER:
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_CLEAR_BEFORE_SET:
+    case HwAsic::Feature::ROUTE_COUNTERS:
       return false;
   }
   return false;

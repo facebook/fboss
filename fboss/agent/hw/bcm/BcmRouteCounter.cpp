@@ -17,6 +17,7 @@ extern "C" {
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmRouteCounter.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
 namespace facebook::fboss {
@@ -47,6 +48,11 @@ uint32_t BcmRouteCounterTable::createStatGroupModeId() {
   int numSelectors = 1;
   bcm_stat_group_mode_attr_selector_t attrSelectors[1];
   uint32 modeId = 0;
+
+  if (!hw_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::ROUTE_COUNTERS)) {
+    throw FbossError("Route counters are not supported on this platform");
+  }
 
   /* Selector for non-drop packets  */
   bcm_stat_group_mode_attr_selector_t_init(&attrSelectors[0]);
