@@ -233,6 +233,12 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getMplsRouteUpdateLoggingTrackedLabels(
       std::vector<MplsRouteUpdateLoggingInfo>& infos) override;
 
+  void getRouteCounterBytes(
+      std::map<std::string, std::int64_t>& routeCounters,
+      std::unique_ptr<std::vector<std::string>> counters) override;
+  void getAllRouteCounterBytes(
+      std::map<std::string, std::int64_t>& routeCounters) override;
+
   /*
    * Event handler for when a connection is destroyed.  When there is an ongoing
    * duplex connection, there may be other threads that depend on the connection

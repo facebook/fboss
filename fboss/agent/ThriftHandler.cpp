@@ -1317,6 +1317,45 @@ void ThriftHandler::getIpRouteDetails(
   }
 }
 
+void ThriftHandler::getRouteCounterBytes(
+    std::map<std::string, std::int64_t>& routeCounters,
+    std::unique_ptr<std::vector<std::string>> counters) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
+  auto statMap = facebook::fb303::fbData->getStatMap();
+  for (const auto& statName : *counters) {
+    // returns default stat if statName does not exists
+    auto statPtr = statMap->getStatPtrNoExport(statName);
+    auto lockedStatPtr = statPtr->lock();
+    auto numLevels = lockedStatPtr->numLevels();
+    // Cumulative (ALLTIME) counters are at (numLevels - 1)
+    auto value = lockedStatPtr->sum(numLevels - 1);
+    routeCounters.insert(make_pair(statName, value));
+  }
+}
+
+void ThriftHandler::getAllRouteCounterBytes(
+    std::map<std::string, std::int64_t>& routeCounters) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
+  auto state = sw_->getState();
+  std::unordered_set<std::string> countersUsed;
+  forAllRoutes(state, [&countersUsed](RouterID /*rid*/, const auto& route) {
+    if (route->isResolved()) {
+      auto counterID = route->getForwardInfo().getCounterID();
+      if (counterID.has_value()) {
+        std::string statName = counterID.value();
+        countersUsed.emplace(statName);
+      }
+    }
+  });
+  auto counters = std::make_unique<std::vector<std::string>>();
+  for (const auto& counter : countersUsed) {
+    counters->emplace_back(counter);
+  }
+  return getRouteCounterBytes(routeCounters, std::move(counters));
+}
+
 void ThriftHandler::getLldpNeighbors(vector<LinkNeighborThrift>& results) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
