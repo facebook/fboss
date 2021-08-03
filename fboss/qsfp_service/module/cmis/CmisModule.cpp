@@ -130,12 +130,14 @@ static CmisFieldInfo::CmisFieldMap cmisFields = {
     {CmisField::DSP_FW_VERSION, {CmisPages::PAGE01, 194, 2}},
     {CmisField::BUILD_REVISION, {CmisPages::PAGE01, 196, 2}},
     {CmisField::APPLICATION_ADVERTISING2, {CmisPages::PAGE01, 223, 4}},
+    {CmisField::PAGE1_CSUM, {CmisPages::PAGE01, 255, 1}},
     // Page 02h
     {CmisField::TEMPERATURE_THRESH, {CmisPages::PAGE02, 128, 8}},
     {CmisField::VCC_THRESH, {CmisPages::PAGE02, 136, 8}},
     {CmisField::TX_PWR_THRESH, {CmisPages::PAGE02, 176, 8}},
     {CmisField::TX_BIAS_THRESH, {CmisPages::PAGE02, 184, 8}},
     {CmisField::RX_PWR_THRESH, {CmisPages::PAGE02, 192, 8}},
+    {CmisField::PAGE2_CSUM, {CmisPages::PAGE02, 255, 1}},
     // Page 10h
     {CmisField::DATA_PATH_DEINIT, {CmisPages::PAGE10, 128, 1}},
     {CmisField::TX_POLARITY_FLIP, {CmisPages::PAGE10, 129, 1}},
@@ -269,6 +271,10 @@ static SpeedApplicationMapping speedApplicationMapping = {
 
 constexpr uint8_t kPage0CsumRangeStart = 128;
 constexpr uint8_t kPage0CsumRangeLength = 94;
+constexpr uint8_t kPage1CsumRangeStart = 130;
+constexpr uint8_t kPage1CsumRangeLength = 125;
+constexpr uint8_t kPage2CsumRangeStart = 128;
+constexpr uint8_t kPage2CsumRangeLength = 127;
 
 struct checksumInfoStruct {
   uint8_t checksumRangeStartOffset;
@@ -278,7 +284,12 @@ struct checksumInfoStruct {
 
 static std::map<int, checksumInfoStruct> checksumInfoCmis = {
     {CmisPages::PAGE00,
-     {kPage0CsumRangeStart, kPage0CsumRangeLength, CmisField::PAGE0_CSUM}}};
+     {kPage0CsumRangeStart, kPage0CsumRangeLength, CmisField::PAGE0_CSUM}},
+    {CmisPages::PAGE01,
+     {kPage1CsumRangeStart, kPage1CsumRangeLength, CmisField::PAGE1_CSUM}},
+    {CmisPages::PAGE02,
+     {kPage2CsumRangeStart, kPage2CsumRangeLength, CmisField::PAGE2_CSUM}},
+};
 
 void getQsfpFieldAddress(
     CmisField field,
@@ -1980,7 +1991,12 @@ void CmisModule::moduleDiagsCapabilitySet() {
  */
 bool CmisModule::verifyEepromChecksums() {
   bool rc = true;
+  // Verify checksum for all pages
   for (auto& csumInfoIt : checksumInfoCmis) {
+    // For flat memory module, check for page 0 only
+    if (flatMem_ && csumInfoIt.first != CmisPages::PAGE00) {
+      continue;
+    }
     rc |= verifyEepromChecksum(csumInfoIt.first);
   }
   XLOG(INFO) << folly::sformat(
@@ -2038,7 +2054,7 @@ bool CmisModule::verifyEepromChecksum(int pageId) {
 
   if (checkSum != expectedChecksum) {
     XLOG(ERR) << folly::sformat(
-        "Module {}: Page {:d}: expected checksum {:d}, actual {:d}",
+        "Module {}: Page {:d}: expected checksum {:#x}, actual {:#x}",
         qsfpImpl_->getName(),
         pageId,
         expectedChecksum,
@@ -2046,7 +2062,7 @@ bool CmisModule::verifyEepromChecksum(int pageId) {
     return false;
   } else {
     XLOG(INFO) << folly::sformat(
-        "Module {}: Page {:d}: checksum verified successfully {:d}",
+        "Module {}: Page {:d}: checksum verified successfully {:#x}",
         qsfpImpl_->getName(),
         pageId,
         checkSum);
