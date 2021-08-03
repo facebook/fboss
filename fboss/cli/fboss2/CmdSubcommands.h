@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "fboss/cli/fboss2/CLI11/CLI.hpp"
+#include <CLI/CLI.hpp>
 
 #include "fboss/cli/fboss2/CmdList.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"

@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/cli/fboss2/CLI11/CLI.hpp"
+#include <CLI/CLI.hpp>
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/CmdSubcommands.h"
 
@@ -21,19 +21,19 @@ FOLLY_INIT_LOGGING_CONFIG("fboss=DBG0; default:async=true");
 namespace facebook::fboss {
 
 int cliMain(int argc, char* argv[]) {
-   int one = 1;
-   folly::init(&one, &argv, /* removeFlags = */ false);
+  int one = 1;
+  folly::init(&one, &argv, /* removeFlags = */ false);
 
-   CLI::App app{"FBOSS CLI"};
+  CLI::App app{"FBOSS CLI"};
 
-   app.require_subcommand();
+  app.require_subcommand();
 
-   CmdGlobalOptions::getInstance()->init(app);
-   CmdSubcommands::getInstance()->init(app);
+  CmdGlobalOptions::getInstance()->init(app);
+  CmdSubcommands::getInstance()->init(app);
 
-   CLI11_PARSE(app, argc, argv);
+  CLI11_PARSE(app, argc, argv);
 
-   return 0;
+  return 0;
 }
 
 } // namespace facebook::fboss

@@ -9,7 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
-#include "fboss/cli/fboss2/CLI11/Validators.hpp"
+#include <CLI/Validators.hpp>
 
 #include <folly/Singleton.h>
 

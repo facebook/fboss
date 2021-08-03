@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "fboss/cli/fboss2/CLI11/Validators.hpp"
+#include <CLI/Validators.hpp>
 
 #include <fmt/format.h>
 #include <set>

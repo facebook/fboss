@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/cli/fboss2/CLI11/CLI.hpp"
+#include <CLI/CLI.hpp>
 #pragma once
 
 namespace facebook::fboss::utils {
