@@ -462,7 +462,6 @@ vector<string> BcmCinter::cintForMirrorDestination(
   }
   cintLines.push_back(
       to<string>("mirror_dest.version = ", mirror_dest->version));
-
   cintLines.push_back(
       to<string>("mirror_dest.gre_protocol = ", mirror_dest->gre_protocol));
   cintLines.push_back(to<string>("mirror_dest.ttl = ", mirror_dest->ttl));
@@ -470,6 +469,90 @@ vector<string> BcmCinter::cintForMirrorDestination(
       to<string>("mirror_dest.udp_src_port = ", mirror_dest->udp_src_port));
   cintLines.push_back(
       to<string>("mirror_dest.udp_dst_port = ", mirror_dest->udp_dst_port));
+  cintLines.push_back(
+      to<string>("mirror_dest.flow_label = ", mirror_dest->flow_label));
+  cintLines.push_back(to<string>("mirror_dest.tpid = ", mirror_dest->tpid));
+  cintLines.push_back(
+      to<string>("mirror_dest.vlan_id = ", mirror_dest->vlan_id));
+  cintLines.push_back(
+      to<string>("mirror_dest.stat_id = ", mirror_dest->stat_id));
+  cintLines.push_back(
+      to<string>("mirror_dest.stat_id2 = ", mirror_dest->stat_id2));
+
+  cintLines.push_back(
+      to<string>("mirror_dest.niv_src_vif = ", mirror_dest->niv_src_vif));
+  cintLines.push_back(
+      to<string>("mirror_dest.niv_dst_vif = ", mirror_dest->niv_dst_vif));
+  cintLines.push_back(
+      to<string>("mirror_dest.niv_flags = ", mirror_dest->niv_flags));
+  cintLines.push_back(
+      to<string>("mirror_dest.pkt_prio = ", mirror_dest->pkt_prio));
+  cintLines.push_back(to<string>(
+      "mirror_dest.sample_rate_dividend = ",
+      mirror_dest->sample_rate_dividend));
+  cintLines.push_back(to<string>(
+      "mirror_dest.sample_rate_divisor = ", mirror_dest->sample_rate_divisor));
+
+  cintLines.push_back(
+      to<string>("mirror_dest.int_pri = ", mirror_dest->int_pri));
+  cintLines.push_back(
+      to<string>("mirror_dest.etag_src_vid = ", mirror_dest->etag_src_vid));
+  cintLines.push_back(
+      to<string>("mirror_dest.etag_dst_vid = ", mirror_dest->etag_dst_vid));
+  cintLines.push_back(to<string>(
+      "mirror_dest.egress_sample_rate_dividend = ",
+      mirror_dest->egress_sample_rate_dividend));
+  cintLines.push_back(to<string>(
+      "mirror_dest.egress_sample_rate_divisor = ",
+      mirror_dest->egress_sample_rate_divisor));
+  cintLines.push_back(to<string>(
+      "mirror_dest.recycle_context = ", mirror_dest->recycle_context));
+  cintLines.push_back(to<string>(
+      "mirror_dest.packet_copy_size = ", mirror_dest->packet_copy_size));
+  cintLines.push_back(to<string>(
+      "mirror_dest.egress_packet_copy_size = ",
+      mirror_dest->egress_packet_copy_size));
+  cintLines.push_back(to<string>("mirror_dest.df = ", mirror_dest->df));
+  cintLines.push_back(
+      to<string>("mirror_dest.truncate = ", mirror_dest->truncate));
+  cintLines.push_back(
+      to<string>("mirror_dest.template_id = ", mirror_dest->template_id));
+  cintLines.push_back(to<string>(
+      "mirror_dest.observation_domain = ", mirror_dest->observation_domain));
+  cintLines.push_back(to<string>(
+      "mirror_dest.is_recycle_strict_priority = ",
+      mirror_dest->is_recycle_strict_priority));
+  cintLines.push_back(to<string>("mirror_dest.flags2 = ", mirror_dest->flags2));
+  cintLines.push_back(to<string>("mirror_dest.vni = ", mirror_dest->vni));
+  cintLines.push_back(
+      to<string>("mirror_dest.gre_seq_number = ", mirror_dest->gre_seq_number));
+  cintLines.push_back(to<string>(
+      "mirror_dest.initial_seq_number = ", mirror_dest->initial_seq_number));
+  cintLines.push_back(
+      to<string>("mirror_dest.meta_data = ", mirror_dest->meta_data));
+  cintLines.push_back(
+      to<string>("mirror_dest.ext_stat_valid = ", mirror_dest->ext_stat_valid));
+  cintLines.push_back(
+      to<string>("mirror_dest.ipfix_version = ", mirror_dest->ipfix_version));
+  cintLines.push_back(
+      to<string>("mirror_dest.psamp_epoch = ", mirror_dest->psamp_epoch));
+  cintLines.push_back(to<string>("mirror_dest.cosq = ", mirror_dest->cosq));
+#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_19))
+  cintLines.push_back(to<string>("mirror_dest.cfi = ", mirror_dest->cfi));
+  cintLines.push_back(
+      to<string>("mirror_dest.drop_group_bmp = ", mirror_dest->drop_group_bmp));
+  cintLines.push_back(to<string>(
+      "mirror_dest.encap_truncate_profile_id = ",
+      mirror_dest->encap_truncate_profile_id));
+#endif
+#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
+  cintLines.push_back(
+      to<string>("mirror_dest.duplicate_pri = ", mirror_dest->duplicate_pri));
+  cintLines.push_back(
+      to<string>("mirror_dest.ip_proto = ", mirror_dest->ip_proto));
+  cintLines.push_back(
+      to<string>("mirror_dest.switch_id = ", mirror_dest->switch_id));
+#endif
 
   string srcMac, dstMac;
   string srcMacName, dstMacName;
