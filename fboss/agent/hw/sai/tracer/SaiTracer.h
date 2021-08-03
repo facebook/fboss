@@ -38,8 +38,7 @@ class SaiTracer {
 
   std::tuple<std::string, std::string> declareVariable(
       sai_object_id_t* object_id,
-      sai_object_type_t object_type,
-      bool reloaded = false);
+      sai_object_type_t object_type);
 
   static std::shared_ptr<SaiTracer> getInstance();
 
@@ -343,6 +342,7 @@ class SaiTracer {
       "\n"
       "#include <string>\n"
       "#include <unordered_map>\n"
+      "#include <vector>\n"
       "\n"
       "#include \"fboss/agent/hw/sai/tracer/run/SaiLog.h\"\n"
       "\n"
@@ -386,6 +386,13 @@ class SaiTracer {
       "\n"
       "inline void rvCheck(int rv, int expected, int count) {\n"
       "  if (rv != expected) printf(\"Unexpected rv at %d with status %d\\n\", count, rv);\n"
+      "}\n"
+      "\n"
+      "sai_object_id_t assignObject(sai_object_key_t* object_list, int object_count, int i, sai_object_id_t default_id) {\n"
+      "  if (i < object_count) {\n"
+      "    return object_list[i].key.object_id;\n"
+      "  }\n"
+      "  return default_id;\n"
       "}\n"
       "\n"
       "} //namespace\n"

@@ -14,6 +14,7 @@
 #include <tuple>
 
 #include "fboss/agent/SysError.h"
+#include "fboss/agent/hw/sai/api/LoggingUtil.h"
 #include "fboss/agent/hw/sai/tracer/AclApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/BridgeApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/BufferApiTracer.h"
@@ -316,7 +317,7 @@ sai_status_t __wrap_sai_api_query(
   return rv;
 }
 
-bool should_log(_In_ sai_object_type_t object_type) {
+bool should_log(sai_object_type_t object_type) {
   return object_type != SAI_OBJECT_TYPE_INSEG_ENTRY &&
       object_type != SAI_OBJECT_TYPE_FDB_ENTRY &&
       object_type != SAI_OBJECT_TYPE_NEIGHBOR_ENTRY &&
@@ -331,17 +332,45 @@ sai_status_t __wrap_sai_get_object_key(
   sai_status_t rv = __real_sai_get_object_key(
       switch_id, object_type, object_count, object_list);
 
+  if (*object_count == 0 || !should_log(object_type)) {
+    return rv;
+  }
+
+  vector<string> getObjectKeyLines = {
+      to<string>("expected_object_count=", *object_count),
+      to<string>(
+          "sai_get_object_count(switch_0, (_sai_object_type_t)",
+          object_type,
+          ", &object_count)"),
+      "object_list.resize(object_count)",
+      to<string>(
+          "sai_get_object_key(switch_0, (_sai_object_type_t)",
+          object_type,
+          ", &object_count, object_list.data())"),
+      to<string>(
+          "if (object_count < expected_object_count) { printf(\"[WARNING] current switch reloaded %u ",
+          facebook::fboss::saiObjectTypeToString(object_type),
+          " objects, expected %u\\n\", expected_object_count, object_count); }"),
+  };
+
+  vector<string> declarationLines;
+  declarationLines.reserve(*object_count);
   for (int i = 0; i < *object_count; ++i) {
     sai_object_key_t object = object_list[i];
-
-    if (should_log(object_type)) {
-      string declaration =
-          std::get<0>(SaiTracer::getInstance()->declareVariable(
-              &object.key.object_id, object_type, true));
-      vector<string> line = {declaration};
-      SaiTracer::getInstance()->writeToFile(line);
-    }
+    string declaration = std::get<0>(SaiTracer::getInstance()->declareVariable(
+        &object.key.object_id, object_type));
+    declarationLines.push_back(to<string>(
+        declaration,
+        "=assignObject(object_list.data(), object_count, ",
+        i,
+        ", ",
+        object.key.object_id,
+        ")"));
   }
+  vector<string> lines;
+  lines.insert(lines.end(), getObjectKeyLines.begin(), getObjectKeyLines.end());
+  lines.insert(lines.end(), declarationLines.begin(), declarationLines.end());
+  SaiTracer::getInstance()->writeToFile(lines);
   return rv;
 }
 
@@ -1014,8 +1043,7 @@ void SaiTracer::logSendHostifPacketFn(
 
 std::tuple<string, string> SaiTracer::declareVariable(
     sai_object_id_t* object_id,
-    sai_object_type_t object_type,
-    bool reloaded) {
+    sai_object_type_t object_type) {
   if (!FLAGS_enable_replayer) {
     return std::make_tuple("", "");
   }
@@ -1033,10 +1061,6 @@ std::tuple<string, string> SaiTracer::declareVariable(
 
   // Add this variable to the variable map
   variables_.withWLock([&](auto& vars) { vars.emplace(*object_id, varName); });
-  if (reloaded) {
-    return std::make_tuple(
-        to<string>(varType, varName, "=", *object_id), varName);
-  }
   return std::make_tuple(to<string>(varType, varName), varName);
 }
 
@@ -1432,6 +1456,9 @@ void SaiTracer::setupGlobals() {
   globalVar.push_back("sai_neighbor_entry_t n_e");
   globalVar.push_back("sai_fdb_entry_t f_e");
   globalVar.push_back("sai_inseg_entry_t i_e");
+  globalVar.push_back("uint32_t expected_object_count");
+  globalVar.push_back("uint32_t object_count");
+  globalVar.push_back("std::vector<sai_object_key_t> object_list");
   writeToFile(globalVar);
 
   maxAttrCount_ = FLAGS_default_list_size;
