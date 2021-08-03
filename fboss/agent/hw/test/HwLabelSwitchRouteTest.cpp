@@ -41,7 +41,7 @@ class HwLabelSwitchRouteTest : public HwLinkStateDependentTest {
     auto& route = config.staticMplsRoutesWithNhops_ref()[0];
     route.ingressLabel_ref() = kTopLabel;
 
-    setupECMPHelper(kTopLabel, labelAction);
+    auto helper = setupECMPHelper(kTopLabel, labelAction);
 
     if (labelAction ==
         LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP) {
@@ -56,7 +56,7 @@ class HwLabelSwitchRouteTest : public HwLinkStateDependentTest {
 
     for (auto i = 0; i < kWidth; i++) {
       NextHopThrift nexthop;
-      auto ecmpHelperNhop = getNextHop(i);
+      auto ecmpHelperNhop = getNextHop(helper.get(), i);
       nexthop.address_ref() = network::toBinaryAddress(ecmpHelperNhop.ip);
       nexthop.mplsAction_ref() = ecmpHelperNhop.action.toThrift();
       nexthop.address_ref()->ifName_ref() =
@@ -74,41 +74,38 @@ class HwLabelSwitchRouteTest : public HwLinkStateDependentTest {
     applyNewState(helper.resolveNextHops(getProgrammedState(), ports));
   }
 
-  void setupECMPHelper(
+  std::unique_ptr<EcmpSetupHelper> setupECMPHelper(
       LabelForwardingEntry::Label topLabel,
       LabelForwardingAction::LabelForwardingType labelAction) {
-    if (helper_) {
-      return;
-    }
-    helper_ = std::make_unique<EcmpSetupHelper>(
+    return std::make_unique<EcmpSetupHelper>(
         getProgrammedState(), topLabel, labelAction);
   }
 
-  void setupECMPForwarding() {
+  void setupECMPForwarding(EcmpSetupHelper* helper) {
     boost::container::flat_set<PortDescriptor> ports;
     for (auto i = 0; i < kWidth; i++) {
       ports.insert(PortDescriptor(masterLogicalPortIds()[i]));
     }
-    helper_->setupECMPForwarding(getProgrammedState(), std::move(ports));
+    helper->setupECMPForwarding(getProgrammedState(), std::move(ports));
   }
 
-  EcmpNextHop getNextHop(int i) {
+  EcmpNextHop getNextHop(EcmpSetupHelper* helper, int i) {
     CHECK_LT(i, kWidth);
-    return helper_->nhop(PortDescriptor(masterLogicalPortIds()[i]));
+    return helper->nhop(PortDescriptor(masterLogicalPortIds()[i]));
   }
 
   void setupLabelSwitchActionWithOneNextHop(
       LabelForwardingAction::LabelForwardingType action) {
-    setupECMPHelper(kTopLabel, action);
+    auto helper = setupECMPHelper(kTopLabel, action);
     LabelNextHopSet nhops;
-    auto testNhop = getNextHop(0);
+    auto testNhop = getNextHop(helper.get(), 0);
     LabelNextHop nexthop{
         testNhop.ip,
         InterfaceID(utility::kBaseVlanId),
         ECMP_WEIGHT,
         testNhop.action};
     nhops.insert(nexthop);
-    applyNewState(helper_->resolveNextHop(getProgrammedState(), testNhop));
+    applyNewState(helper->resolveNextHop(getProgrammedState(), testNhop));
     auto newState = getProgrammedState()->clone();
     newState->getLabelForwardingInformationBase()->programLabel(
         &newState,
@@ -122,11 +119,11 @@ class HwLabelSwitchRouteTest : public HwLinkStateDependentTest {
   void setupLabelSwitchActionWithMultiNextHop(
       LabelForwardingAction::LabelForwardingType action,
       int width = kWidth) {
-    setupECMPHelper(kTopLabel, action);
+    auto helper = setupECMPHelper(kTopLabel, action);
     LabelNextHopSet nhops;
     for (auto i = 0; i < width; i++) {
-      auto testNhop = getNextHop(i);
-      applyNewState(helper_->resolveNextHop(getProgrammedState(), testNhop));
+      auto testNhop = getNextHop(helper.get(), i);
+      applyNewState(helper->resolveNextHop(getProgrammedState(), testNhop));
       nhops.insert(LabelNextHop{
           testNhop.ip,
           InterfaceID(utility::kBaseVlanId + i),
@@ -145,24 +142,21 @@ class HwLabelSwitchRouteTest : public HwLinkStateDependentTest {
 
   void verifyLabelSwitchAction(
       LabelForwardingAction::LabelForwardingType action) {
-    setupECMPHelper(kTopLabel, action);
+    auto helper = setupECMPHelper(kTopLabel, action);
     utility::verifyLabelSwitchAction(
-        getHwSwitch(), kTopLabel, action, this->getNextHop(0));
+        getHwSwitch(), kTopLabel, action, this->getNextHop(helper.get(), 0));
   }
 
   void verifyMultiPathLabelSwitchAction(
       LabelForwardingAction::LabelForwardingType action) {
-    setupECMPHelper(kTopLabel, action);
+    auto helper = setupECMPHelper(kTopLabel, action);
     std::vector<EcmpNextHop> nexthops;
     for (auto i = 0; i < kWidth; i++) {
-      nexthops.push_back(this->getNextHop(i));
+      nexthops.push_back(this->getNextHop(helper.get(), i));
     }
     utility::verifyMultiPathLabelSwitchAction(
         getHwSwitch(), kTopLabel, action, nexthops);
   }
-
- private:
-  std::unique_ptr<EcmpSetupHelper> helper_;
 };
 
 TYPED_TEST_SUITE(HwLabelSwitchRouteTest, TestTypes);
@@ -339,6 +333,26 @@ TYPED_TEST(HwLabelSwitchRouteTest, ConfigPop) {
   auto verify = [=]() {
     this->verifyLabelSwitchAction(
         LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(HwLabelSwitchRouteTest, Swap2Php) {
+  if (!this->isSupported(HwAsic::Feature::MPLS_ECMP)) {
+    return;
+  }
+  auto setup = [=]() {
+    // set up initial ecmp with width 2
+    this->setupLabelSwitchActionWithMultiNextHop(
+        LabelForwardingAction::LabelForwardingType::SWAP);
+
+    // change to default ecmp with width 4
+    this->setupLabelSwitchActionWithMultiNextHop(
+        LabelForwardingAction::LabelForwardingType::PHP);
+  };
+  auto verify = [=]() {
+    this->verifyMultiPathLabelSwitchAction(
+        LabelForwardingAction::LabelForwardingType::PHP);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
