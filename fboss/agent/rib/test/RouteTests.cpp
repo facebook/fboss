@@ -111,14 +111,19 @@ TEST(Route, serializeRouteTable) {
   RouteV6::Prefix r3{IPAddressV6("1001::0"), 48};
   RouteV6::Prefix r4{IPAddressV6("2001::0"), 48};
 
+  std::optional<RouteCounterID> counterID1("route.counter.0");
+  std::optional<RouteCounterID> counterID2("route.counter.1");
+
   RibRouteUpdater u2(&v4Routes, &v6Routes);
   u2.update(
       kClientA,
       {
           {{r1.network, r1.mask}, RouteNextHopEntry(nhop1, kDistance)},
-          {{r2.network, r2.mask}, RouteNextHopEntry(nhop2, kDistance)},
+          {{r2.network, r2.mask},
+           RouteNextHopEntry(nhop2, kDistance, counterID1)},
           {{r3.network, r3.mask}, RouteNextHopEntry(nhop1, kDistance)},
-          {{r4.network, r4.mask}, RouteNextHopEntry(nhop2, kDistance)},
+          {{r4.network, r4.mask},
+           RouteNextHopEntry(nhop2, kDistance, counterID2)},
       },
       {},
       false);

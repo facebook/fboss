@@ -71,6 +71,9 @@ const std::array<InterfaceID, 4> kInterfaces{
 const ClientID kClientA = ClientID(1001);
 const ClientID kClientB = ClientID(2001);
 
+const std::optional<RouteCounterID> kCounterID1("route.counter.0");
+const std::optional<RouteCounterID> kCounterID2("route.counter.1");
+
 constexpr AdminDistance DISTANCE = AdminDistance::MAX_ADMIN_DISTANCE;
 constexpr AdminDistance EBGP_DISTANCE = AdminDistance::EBGP;
 const RouterID kRid0 = RouterID(0);
@@ -244,6 +247,22 @@ TEST_F(RouteTest, routeApi) {
     route.updateClassID(cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
     EXPECT_EQ(
         cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1, route.getClassID());
+    // check counterID
+    route.update(kClientA, nhopEntry);
+    route.update(kClientB, nhopEntry2);
+    EXPECT_EQ(std::nullopt, route.getForwardInfo().getCounterID());
+    EXPECT_EQ(std::nullopt, route.getEntryForClient(kClientA)->getCounterID());
+    EXPECT_EQ(std::nullopt, route.getEntryForClient(kClientB)->getCounterID());
+    RouteNextHopEntry nhopEntry3(
+        makeNextHops({"1.1.1.1"}), EBGP_DISTANCE, kCounterID1);
+    RouteNextHopEntry nhopEntry4(
+        makeNextHops({"2.2.2.2"}), EBGP_DISTANCE, kCounterID2);
+    route.update(kClientA, nhopEntry3);
+    route.update(kClientB, nhopEntry4);
+    route.setResolved(nhopEntry3);
+    EXPECT_EQ(kCounterID1, route.getForwardInfo().getCounterID());
+    EXPECT_EQ(kCounterID1, route.getEntryForClient(kClientA)->getCounterID());
+    EXPECT_EQ(kCounterID2, route.getEntryForClient(kClientB)->getCounterID());
   };
   testRouteApi(RouteV6(pfx6, kClientA, nhopEntry));
 }
@@ -2390,21 +2409,18 @@ TEST_F(RouteTest, CounterIDTest) {
   RouteNextHopSet nexthops1 =
       makeResolvedNextHops({{InterfaceID(1), "1.1.1.1"}});
 
-  std::optional<RouteCounterID> counterID1("route.counter.0");
-  std::optional<RouteCounterID> counterID2("route.counter.1");
-
   // Add route with counter id
   u1.addRoute(
       kRid0,
       IPAddress("10.10.10.10"),
       32,
       kClientA,
-      RouteNextHopEntry(nexthops1, DISTANCE, counterID1));
+      RouteNextHopEntry(nexthops1, DISTANCE, kCounterID1));
   u1.program();
 
   auto rt10 = this->findRoute4(this->sw_->getState(), kRid0, prefix10);
-  EXPECT_EQ(rt10->getForwardInfo().getCounterID(), counterID1);
-  EXPECT_EQ(rt10->getEntryForClient(kClientA)->getCounterID(), counterID1);
+  EXPECT_EQ(rt10->getForwardInfo().getCounterID(), kCounterID1);
+  EXPECT_EQ(rt10->getEntryForClient(kClientA)->getCounterID(), kCounterID1);
 
   // Modify counter id
   u1.addRoute(
@@ -2412,12 +2428,12 @@ TEST_F(RouteTest, CounterIDTest) {
       IPAddress("10.10.10.10"),
       32,
       kClientA,
-      RouteNextHopEntry(nexthops1, DISTANCE, counterID2));
+      RouteNextHopEntry(nexthops1, DISTANCE, kCounterID2));
   u1.program();
 
   rt10 = this->findRoute4(this->sw_->getState(), kRid0, prefix10);
-  EXPECT_EQ(rt10->getForwardInfo().getCounterID(), counterID2);
-  EXPECT_EQ(rt10->getEntryForClient(kClientA)->getCounterID(), counterID2);
+  EXPECT_EQ(rt10->getForwardInfo().getCounterID(), kCounterID2);
+  EXPECT_EQ(rt10->getEntryForClient(kClientA)->getCounterID(), kCounterID2);
 
   // Modify route to remove counter id
   u1.addRoute(
