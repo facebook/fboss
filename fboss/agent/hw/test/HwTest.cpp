@@ -103,6 +103,14 @@ void HwTest::SetUp() {
 
 void HwTest::TearDown() {
   tearDownSwitchEnsemble();
+  /*
+   * Work around to avoid long singleton cleanup
+   * during atexit. TODO: figure out why extra time
+   * is spent in at exit cleanups
+   */
+  XLOG(INFO) << " Destroy singleton instances ";
+  folly::SingletonVault::singleton()->destroyInstances();
+  XLOG(INFO) << " Done destroying singleton instances";
 }
 
 void HwTest::logStage(folly::StringPiece msg) {
