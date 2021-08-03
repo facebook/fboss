@@ -1041,6 +1041,12 @@ void BcmSwitch::processSwitchSettingsChanged(const StateDelta& delta) {
     setMacAging(std::chrono::seconds(newVal));
     switchSettings_->setL2AgeTimerSeconds(newVal);
   }
+
+  if (oldSwitchSettings->getMaxRouteCounterIDs() !=
+      newSwitchSettings->getMaxRouteCounterIDs()) {
+    routeCounterTable_->setMaxRouteCounterIDs(
+        newSwitchSettings->getMaxRouteCounterIDs());
+  }
 }
 
 void BcmSwitch::processMacTableChanges(const StateDelta& stateDelta) {
