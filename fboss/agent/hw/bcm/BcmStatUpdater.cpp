@@ -107,16 +107,28 @@ void BcmStatUpdater::toBeRemovedAclStat(BcmAclStatHandle handle) {
   toBeRemovedAclStats_.emplace(handle);
 }
 
+void BcmStatUpdater::toBeAddedRouteCounter(
+    BcmRouteCounterID id,
+    const std::string& routeStatName) {
+  toBeProcessedRouteCounters_.emplace(id, routeStatName, true);
+}
+
+void BcmStatUpdater::toBeRemovedRouteCounter(BcmRouteCounterID id) {
+  toBeProcessedRouteCounters_.emplace(id, "", false);
+}
+
 void BcmStatUpdater::refreshPostBcmStateChange(const StateDelta& delta) {
   refreshHwTableStats(delta);
   refreshAclStats();
   refreshPrbsStats(delta);
+  refreshRouteCounters();
 }
 
 void BcmStatUpdater::updateStats() {
   updateAclStats();
   updateHwTableStats();
   updatePrbsStats();
+  updateRouteCounters();
 }
 
 void BcmStatUpdater::updateAclStats() {
@@ -133,6 +145,57 @@ void BcmStatUpdater::updateAclStats() {
     }
   }
 }
+
+void BcmStatUpdater::updateRouteCounters() {
+  auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+  auto lockedRouteCounters = routeStats_.wlock();
+  for (auto& entry : *lockedRouteCounters) {
+    entry.second->updateValue(now, getRouteTrafficStats(entry.first));
+  }
+}
+
+uint64_t BcmStatUpdater::getRouteTrafficStats(BcmRouteCounterID id) {
+  uint32 entry = 0;
+  bcm_stat_value_t routeCounter;
+  auto rc = bcm_stat_flex_counter_get(
+      hw_->getUnit(), id, bcmStatFlexStatBytes, 1, &entry, &routeCounter);
+  // SDK returns error if counter is not attached to any route
+  return rc ? 0 : routeCounter.bytes;
+}
+
+void BcmStatUpdater::refreshRouteCounters() {
+  if (toBeProcessedRouteCounters_.empty()) {
+    return;
+  }
+
+  auto lockedRouteCounters = routeStats_.wlock();
+
+  while (!toBeProcessedRouteCounters_.empty()) {
+    // Check whether route stat already exists
+    auto id = toBeProcessedRouteCounters_.front().id;
+    const auto& routeStatName =
+        toBeProcessedRouteCounters_.front().routeStatName;
+    auto addCounter = toBeProcessedRouteCounters_.front().addCounter;
+    auto itr = lockedRouteCounters->find(id);
+    if (addCounter) {
+      if (itr != lockedRouteCounters->end()) {
+        throw FbossError("Duplicate Route stat, id=", id);
+      } else {
+        lockedRouteCounters->operator[](id) =
+            std::make_unique<MonotonicCounter>(
+                routeStatName, fb303::SUM, fb303::RATE);
+      }
+    } else {
+      if (itr != lockedRouteCounters->end()) {
+        lockedRouteCounters->erase(itr++);
+      } else {
+        throw FbossError("Cannot find Route stat, id=", id);
+      }
+    }
+    toBeProcessedRouteCounters_.pop();
+  }
+}
+
 void BcmStatUpdater::updateHwTableStats() {
   HwResourceStatsPublisher().publish(*resourceStats_.rlock());
 }

@@ -10,6 +10,7 @@
 #pragma once
 
 #include "common/stats/MonotonicCounter.h"
+#include "fboss/agent/hw/bcm/BcmRouteCounter.h"
 #include "fboss/agent/hw/bcm/BcmTableStats.h"
 #include "fboss/agent/hw/bcm/types.h"
 #include "fboss/agent/hw/common/LanePrbsStatsEntry.h"
@@ -83,6 +84,11 @@ class BcmStatUpdater {
   std::vector<PrbsLaneStats> getPortAsicPrbsStats(int32_t portId);
   void clearPortAsicPrbsStats(int32_t portId);
 
+  void toBeAddedRouteCounter(
+      BcmRouteCounterID id,
+      const std::string& routeStatName);
+  void toBeRemovedRouteCounter(BcmRouteCounterID id);
+
   HwResourceStats getHwTableStats() {
     return *resourceStats_.rlock();
   }
@@ -100,6 +106,9 @@ class BcmStatUpdater {
   void refreshPrbsStats(const StateDelta& delta);
 
   double calculateLaneRate(std::shared_ptr<Port> swPort);
+
+  void updateRouteCounters();
+  void refreshRouteCounters();
 
   BcmSwitch* hw_;
   std::unique_ptr<BcmHwTableStatManager> bcmTableStatsManager_;
@@ -130,6 +139,23 @@ class BcmStatUpdater {
       aclStats_;
 
   folly::Synchronized<std::map<int32_t, LanePrbsStatsTable>> portAsicPrbsStats_;
+
+  /* Route stats */
+  uint64_t getRouteTrafficStats(BcmRouteCounterID id);
+  struct BcmRouteCounterActionDescriptor {
+    BcmRouteCounterActionDescriptor(
+        BcmRouteCounterID ID,
+        const std::string& routeStatName,
+        bool addCounterID)
+        : id(ID), routeStatName(routeStatName), addCounter(addCounterID) {}
+    BcmRouteCounterID id;
+    std::string routeStatName;
+    bool addCounter;
+  };
+  std::queue<BcmRouteCounterActionDescriptor> toBeProcessedRouteCounters_;
+  folly::Synchronized<
+      std::map<BcmRouteCounterID, std::unique_ptr<MonotonicCounter>>>
+      routeStats_;
 }; // namespace facebook::fboss
 
 } // namespace facebook::fboss
