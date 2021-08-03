@@ -76,6 +76,8 @@ class ManagedNeighbor : public SaiObjectEventAggregateSubscriber<
   void notifySubscribers() const;
 
  private:
+  std::string toString() const;
+
   SaiNeighborManager* manager_;
   SaiPortDescriptor port_;
   folly::IPAddress ip_;

@@ -79,6 +79,9 @@ void SaiNeighborManager::changeNeighbor(
       iter->second->notifySubscribers();
     }
   }
+
+  XLOG(DBG2) << "Change Neighbor:: old Neighbor: " << oldSwEntry->str()
+             << " new Neighbor: " << newSwEntry->str();
 }
 
 template <typename NeighborEntryT>
@@ -123,6 +126,7 @@ void SaiNeighborManager::addNeighbor(
   SaiObjectEventPublisher::getInstance()->get<SaiFdbTraits>().subscribe(
       subscriber);
   managedNeighbors_.emplace(subscriberKey, std::move(subscriber));
+  XLOG(DBG2) << "Add Neighbor: create ManagedNeighbor" << swEntry->str();
 }
 
 template <typename NeighborEntryT>
@@ -144,6 +148,7 @@ void SaiNeighborManager::removeNeighbor(
         "Attempted to remove non-existent neighbor: ", swEntry->getIP());
   }
   managedNeighbors_.erase(subscriberKey);
+  XLOG(DBG2) << "Remove Neighbor: " << swEntry->str();
 }
 
 void SaiNeighborManager::clear() {
@@ -212,9 +217,14 @@ void ManagedNeighbor::createObject(PublisherObjects objects) {
   this->setObject(object);
   handle_->neighbor = getSaiObject();
   handle_->fdbEntry = fdbEntry.get();
+
+  XLOG(DBG2) << "ManagedNeigbhor::createObject: " << toString()
+             << " resolveNextHop: " << static_cast<int>(resolveNexthop);
 }
 
 void ManagedNeighbor::removeObject(size_t, PublisherObjects) {
+  XLOG(DBG2) << "ManagedNeigbhor::removeObject: " << toString();
+
   this->resetObject();
   handle_->neighbor = nullptr;
   handle_->fdbEntry = nullptr;
@@ -226,6 +236,28 @@ void ManagedNeighbor::notifySubscribers() const {
     return;
   }
   neighbor->notifyAfterCreate(neighbor);
+}
+
+std::string ManagedNeighbor::toString() const {
+  auto metadataStr =
+      metadata_.has_value() ? std::to_string(metadata_.value()) : "none";
+  auto neighborStr = handle_->neighbor
+      ? handle_->neighbor->adapterKey().toString()
+      : "NeighborEntry: none";
+  auto fdbEntryStr = handle_->fdbEntry
+      ? handle_->fdbEntry->adapterKey().toString()
+      : "FdbEntry: none";
+
+  return folly::to<std::string>(
+      "ip: ",
+      ip_.str(),
+      port_.str(),
+      " metadata: ",
+      metadataStr,
+      " ",
+      neighborStr,
+      " ",
+      fdbEntryStr);
 }
 
 template SaiNeighborTraits::NeighborEntry
