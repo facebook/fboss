@@ -15,9 +15,18 @@
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
 
 #include <folly/Benchmark.h>
+#include <folly/IPAddress.h>
 #include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
+
+RouteNextHopSet makeNextHops(std::vector<std::string> ipsAsStrings) {
+  RouteNextHopSet nhops;
+  for (const std::string& ipAsString : ipsAsStrings) {
+    nhops.emplace(UnresolvedNextHop(folly::IPAddress(ipAsString), ECMP_WEIGHT));
+  }
+  return nhops;
+}
 
 /*
  * Collect stats 10K times and benchmark that.
@@ -42,7 +51,24 @@ BENCHMARK(HwStatsCollection) {
   int numPortsToCollectStats = 48;
   ports.resize(std::min((int)ports.size(), numPortsToCollectStats));
   auto config = utility::onePortPerVlanConfig(hwSwitch, ports);
+  // route counters in hardware is currently limited to 255.
+  // this is due to the fact that in some platforms, route class id
+  // (8 bits) is overloaded to support counter id.
+  int numRouteCounters = 255;
+  config.switchSettings_ref()->maxRouteCounterIDs_ref() = numRouteCounters;
   ensemble->applyInitialConfig(config);
+  auto updater = ensemble->getRouteUpdater();
+  for (auto i = 0; i < numRouteCounters; i++) {
+    folly::CIDRNetwork nw{
+        folly::IPAddress(folly::sformat("2401:db00:0021:{:x}::", i)), 64};
+    std::optional<RouteCounterID> counterID(std::to_string(i));
+    UnicastRoute route = util::toUnicastRoute(
+        nw,
+        RouteNextHopEntry(
+            makeNextHops({"1::"}), AdminDistance::EBGP, counterID));
+    updater.addRoute(RouterID(0), ClientID::BGPD, route);
+  }
+  updater.program();
   SwitchStats dummy;
   suspender.dismiss();
   for (auto i = 0; i < 10'000; ++i) {
