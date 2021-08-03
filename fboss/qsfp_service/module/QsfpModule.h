@@ -220,6 +220,13 @@ class QsfpModule : public Transceiver {
     return diagsCapability_;
   }
 
+  /*
+   * Verifies the Optics module register checksum from EEPROM
+   */
+  virtual bool verifyEepromChecksums() {
+    return true;
+  }
+
  protected:
   // no copy or assignment
   QsfpModule(QsfpModule const&) = delete;

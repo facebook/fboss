@@ -62,6 +62,10 @@ BOOST_MSM_EUML_ACTION(moduleDiscoveredStateEntryFn){
                    << "Entering state MODULE_STATE_DISCOVERED, "
                    << "need to create Port State Machines";
 
+// After discovery check if the EEPROM content is correct by verifying the
+// checksum in various pages
+fsm.get_attribute(qsfpModuleObjPtr)->verifyEepromChecksums();
+
 // Module is discovered, now create port state machines
 fsm.get_attribute(qsfpModuleObjPtr)->addModulePortStateMachines();
 
