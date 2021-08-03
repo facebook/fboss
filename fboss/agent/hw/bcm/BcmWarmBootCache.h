@@ -34,6 +34,7 @@ extern "C" {
 
 #include "fboss/agent/hw/bcm/BcmMirror.h"
 #include "fboss/agent/hw/bcm/BcmQosMap.h"
+#include "fboss/agent/hw/bcm/BcmRouteCounter.h"
 #include "fboss/agent/hw/bcm/BcmRtag7Module.h"
 #include "fboss/agent/hw/bcm/BcmTrunk.h"
 #include "fboss/agent/hw/bcm/BcmTypes.h"
@@ -172,6 +173,11 @@ class BcmWarmBootCache {
   using QosMapId2QosMap =
       std::map<BcmQosPolicyHandle, std::unique_ptr<BcmQosMap>>;
   using QosMapId2QosMapItr = typename QosMapId2QosMap::iterator;
+
+  // Route counter id to hw counter id map
+  typedef boost::container::flat_map<RouteCounterID, BcmRouteCounterID>
+      RouteCounterIDMap;
+  using RouteCounterIDMapItr = typename RouteCounterIDMap::const_iterator;
 
   /*
    * Callbacks for traversing entries in BCM h/w tables
@@ -597,6 +603,22 @@ class BcmWarmBootCache {
     return l2LearningMode_;
   }
 
+  int getRouteCounterModeId() const {
+    return routeCounterModeId_;
+  }
+
+  RouteCounterIDMapItr findRouteCounterID(RouteCounterID counterID) const {
+    return routeCounterIDs_.find(counterID);
+  }
+
+  RouteCounterIDMapItr RouteCounterIDMapEnd() {
+    return routeCounterIDs_.end();
+  }
+
+  void programmed(RouteCounterIDMapItr itr) {
+    routeCounterIDs_.erase(itr);
+  }
+
  private:
   /*
    * Get egress ids for a ECMP Id. Will throw FbossError
@@ -687,6 +709,9 @@ class BcmWarmBootCache {
   QosMapId2QosMap qosMapId2QosMap_;
 
   cfg::L2LearningMode l2LearningMode_;
+
+  RouteCounterIDMap routeCounterIDs_;
+  int routeCounterModeId_{-1};
 };
 
 } // namespace facebook::fboss

@@ -15,7 +15,8 @@ extern "C" {
 }
 
 #include <folly/dynamic.h>
-#include "fboss/agent/hw/bcm/BcmHost.h"
+#include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/lib/RefMap.h"
 
 #define STAT_MODEID_INVALID -1
 
@@ -28,7 +29,7 @@ using BcmRouteCounterID = uint32_t;
  */
 class BcmRouteCounter {
  public:
-  BcmRouteCounter(BcmSwitch* hw, int modeId);
+  BcmRouteCounter(BcmSwitch* hw, RouteCounterID id, int modeId);
   ~BcmRouteCounter();
   BcmRouteCounterID getHwCounterID() const {
     return hwCounterId_;
@@ -54,6 +55,11 @@ class BcmRouteCounterTable {
   // used for testing purpose
   std::optional<BcmRouteCounterID> getHwCounterID(
       std::optional<RouteCounterID> counterID) const;
+  folly::dynamic toFollyDynamic() const;
+
+  static constexpr folly::StringPiece kRouteCounters{"routeCounters"};
+  static constexpr folly::StringPiece kRouteCounterIDs{"routeCounterIDs"};
+  static constexpr folly::StringPiece kGlobalModeId{"globalModeId"};
 
  private:
   uint32_t createStatGroupModeId();

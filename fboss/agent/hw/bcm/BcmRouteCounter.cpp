@@ -17,22 +17,36 @@ extern "C" {
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmRouteCounter.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
 namespace facebook::fboss {
 
-BcmRouteCounter::BcmRouteCounter(BcmSwitch* hw, int modeId) : hw_(hw) {
+BcmRouteCounter::BcmRouteCounter(
+    BcmSwitch* hw,
+    RouteCounterID counterID,
+    int modeId)
+    : hw_(hw) {
   uint32 numCounters;
-  /* Attach stat to customized group mode */
-  auto rc = bcm_stat_custom_group_create(
-      hw_->getUnit(),
-      modeId,
-      bcmStatObjectIngL3Route,
-      &hwCounterId_,
-      &numCounters);
-  bcmCheckError(rc, "failed to create bcm stat custom group ");
-  XLOG(DBG2) << "Allocated route counter id " << hwCounterId_;
+  const auto counterFromWBCache =
+      hw_->getWarmBootCache()->findRouteCounterID(counterID);
+  if (counterFromWBCache != hw_->getWarmBootCache()->RouteCounterIDMapEnd()) {
+    hwCounterId_ = counterFromWBCache->second;
+    XLOG(DBG2) << "Restored route counter id " << counterID << " hwId "
+               << hwCounterId_;
+    hw_->getWarmBootCache()->programmed(counterFromWBCache);
+  } else {
+    /* Attach stat to customized group mode */
+    auto rc = bcm_stat_custom_group_create(
+        hw_->getUnit(),
+        modeId,
+        bcmStatObjectIngL3Route,
+        &hwCounterId_,
+        &numCounters);
+    bcmCheckError(rc, "failed to create bcm stat custom group ");
+    XLOG(DBG2) << "Allocated route counter id " << hwCounterId_;
+  }
 }
 
 BcmRouteCounter::~BcmRouteCounter() {
@@ -86,10 +100,19 @@ std::optional<BcmRouteCounterID> BcmRouteCounterTable::getHwCounterID(
 std::shared_ptr<BcmRouteCounter>
 BcmRouteCounterTable::referenceOrEmplaceCounterID(RouteCounterID id) {
   if (globalIngressModeId_ == STAT_MODEID_INVALID) {
-    globalIngressModeId_ = createStatGroupModeId();
+    const auto idFromWBCache = hw_->getWarmBootCache()->getRouteCounterModeId();
+    if (idFromWBCache != STAT_MODEID_INVALID) {
+      globalIngressModeId_ = idFromWBCache;
+      XLOG(DBG2) << "Restored route counter global mode id "
+                 << globalIngressModeId_ << " from warmboot cache";
+    } else {
+      globalIngressModeId_ = createStatGroupModeId();
+      XLOG(DBG2) << "Allocated route counter global mode id "
+                 << globalIngressModeId_;
+    }
   }
   std::shared_ptr<BcmRouteCounter> counterRef =
-      counterIDs_.refOrEmplace(id, hw_, globalIngressModeId_).first;
+      counterIDs_.refOrEmplace(id, hw_, id, globalIngressModeId_).first;
   if (counterIDs_.size() > maxRouteCounterIDs_) {
     throw FbossError(
         "RouteCounterIDs in use ",
@@ -98,6 +121,18 @@ BcmRouteCounterTable::referenceOrEmplaceCounterID(RouteCounterID id) {
         maxRouteCounterIDs_);
   }
   return counterRef;
+}
+
+folly::dynamic BcmRouteCounterTable::toFollyDynamic() const {
+  folly::dynamic routeCounterIDs = folly::dynamic::object;
+  for (const auto entry : counterIDs_) {
+    auto counter = entry.second.lock();
+    routeCounterIDs[entry.first] = counter->getHwCounterID();
+  }
+  folly::dynamic routeCounterInfo = folly::dynamic::object;
+  routeCounterInfo[kRouteCounterIDs] = std::move(routeCounterIDs);
+  routeCounterInfo[kGlobalModeId] = std::to_string(globalIngressModeId_);
+  return routeCounterInfo;
 }
 
 BcmRouteCounterTable::~BcmRouteCounterTable() {

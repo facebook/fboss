@@ -38,6 +38,7 @@
 #include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
 #include "fboss/agent/hw/bcm/BcmQosMap.h"
 #include "fboss/agent/hw/bcm/BcmQosUtils.h"
+#include "fboss/agent/hw/bcm/BcmRouteCounter.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
 #include "fboss/agent/hw/bcm/BcmTypes.h"
@@ -202,6 +203,10 @@ folly::dynamic BcmWarmBootCache::toFollyDynamic() const {
     trunks[std::to_string(e.first)] = e.second->id();
   }
   warmBootCache[kTrunks] = std::move(trunks);
+
+  warmBootCache[BcmRouteCounterTable::kRouteCounters] =
+      hw_->routeCounterTable()->toFollyDynamic();
+
   return warmBootCache;
 }
 
@@ -256,6 +261,22 @@ void BcmWarmBootCache::populateFromWarmBootState(
     XLOG(DBG1) << "Reconstructed following list of trunks ";
     for (const auto& e : trunks_) {
       XLOG(DBG0) << "Aggregate port " << e.first << " => trunk ID " << e.second;
+    }
+  }
+
+  if (wbCache.find(BcmRouteCounterTable::kRouteCounters) !=
+      wbCache.items().end()) {
+    auto& routeCounterInfo = wbCache[BcmRouteCounterTable::kRouteCounters];
+    routeCounterModeId_ =
+        routeCounterInfo[BcmRouteCounterTable::kGlobalModeId].asInt();
+    XLOG(DBG2) << "Found route counter mode id " << routeCounterModeId_;
+    auto& routeCounterIDs =
+        routeCounterInfo[BcmRouteCounterTable::kRouteCounterIDs];
+    for (const auto& e : routeCounterIDs.items()) {
+      routeCounterIDs_[e.first.asString()] = e.second.asInt();
+    }
+    for (const auto& e : routeCounterIDs_) {
+      XLOG(DBG2) << "Route counter id " << e.first << " Hwid " << e.second;
     }
   }
 
