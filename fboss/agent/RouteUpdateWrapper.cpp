@@ -38,6 +38,9 @@ void RouteUpdateWrapper::addRoute(
         ? RouteForwardAction::DROP
         : RouteForwardAction::TO_CPU;
   }
+  if (nhop.getCounterID().has_value()) {
+    tempRoute.counterID_ref() = *nhop.getCounterID();
+  }
   addRoute(vrf, clientId, std::move(tempRoute));
 }
 
