@@ -2448,3 +2448,63 @@ TEST_F(RouteTest, CounterIDTest) {
   EXPECT_EQ(rt10->getForwardInfo().getCounterID(), std::nullopt);
   EXPECT_EQ(rt10->getEntryForClient(kClientA)->getCounterID(), std::nullopt);
 }
+
+TEST_F(RouteTest, DropAndPuntRouteCounterID) {
+  auto verifyCounter = [&](const auto& fwdAction) {
+    auto u1 = sw_->getRouteUpdater();
+    RouteV4::Prefix prefix10{IPAddressV4("10.10.10.10"), 32};
+    // Add route with counter id
+    u1.addRoute(
+        kRid0,
+        IPAddress("10.10.10.10"),
+        32,
+        kClientA,
+        RouteNextHopEntry(fwdAction, DISTANCE, std::nullopt));
+    u1.program();
+
+    auto rt10 = findRoute4(sw_->getState(), kRid0, prefix10);
+    EXPECT_EQ(rt10->getForwardInfo().getCounterID(), std::nullopt);
+    EXPECT_EQ(rt10->getEntryForClient(kClientA)->getCounterID(), std::nullopt);
+
+    // Add counter id
+    u1.addRoute(
+        kRid0,
+        IPAddress("10.10.10.10"),
+        32,
+        kClientA,
+        RouteNextHopEntry(fwdAction, DISTANCE, kCounterID1));
+    u1.program();
+
+    rt10 = findRoute4(sw_->getState(), kRid0, prefix10);
+    EXPECT_EQ(rt10->getForwardInfo().getCounterID(), kCounterID1);
+    EXPECT_EQ(rt10->getEntryForClient(kClientA)->getCounterID(), kCounterID1);
+
+    // Modify counter id
+    u1.addRoute(
+        kRid0,
+        IPAddress("10.10.10.10"),
+        32,
+        kClientA,
+        RouteNextHopEntry(fwdAction, DISTANCE, kCounterID2));
+    u1.program();
+
+    rt10 = findRoute4(sw_->getState(), kRid0, prefix10);
+    EXPECT_EQ(rt10->getForwardInfo().getCounterID(), kCounterID2);
+    EXPECT_EQ(rt10->getEntryForClient(kClientA)->getCounterID(), kCounterID2);
+
+    // Modify route to remove counter id
+    u1.addRoute(
+        kRid0,
+        IPAddress("10.10.10.10"),
+        32,
+        kClientA,
+        RouteNextHopEntry(fwdAction, DISTANCE, std::nullopt));
+    u1.program();
+
+    rt10 = findRoute4(sw_->getState(), kRid0, prefix10);
+    EXPECT_EQ(rt10->getForwardInfo().getCounterID(), std::nullopt);
+    EXPECT_EQ(rt10->getEntryForClient(kClientA)->getCounterID(), std::nullopt);
+  };
+  verifyCounter(RouteForwardAction::DROP);
+  verifyCounter(RouteForwardAction::TO_CPU);
+}
