@@ -157,8 +157,8 @@ class EcmpSetupTargetedPorts
       std::unique_ptr<RouteUpdateWrapper> wrapper,
       const boost::container::flat_set<PortDescriptor>& nhops,
       const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
-      const std::vector<NextHopWeight>& weights =
-          std::vector<NextHopWeight>()) const;
+      const std::vector<NextHopWeight>& weights = std::vector<NextHopWeight>(),
+      std::optional<RouteCounterID> counterID = std::nullopt) const;
 
   void programIp2MplsRoutes(
       std::unique_ptr<RouteUpdateWrapper> wrapper,

@@ -250,7 +250,8 @@ void EcmpSetupTargetedPorts<IPAddrT>::programRoutes(
     std::unique_ptr<RouteUpdateWrapper> updater,
     const flat_set<PortDescriptor>& portDescriptors,
     const std::vector<RouteT>& prefixes,
-    const std::vector<NextHopWeight>& weights) const {
+    const std::vector<NextHopWeight>& weights,
+    std::optional<RouteCounterID> counterID) const {
   if (prefixes.empty()) {
     return;
   }
@@ -278,7 +279,7 @@ void EcmpSetupTargetedPorts<IPAddrT>::programRoutes(
         folly::IPAddress(prefix.network),
         prefix.mask,
         ClientID::BGPD,
-        RouteNextHopEntry(nhops, AdminDistance::EBGP));
+        RouteNextHopEntry(nhops, AdminDistance::EBGP, counterID));
   }
   updater->program();
 }
