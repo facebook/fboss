@@ -14,6 +14,7 @@
 #include <ostream>
 
 #include "fboss/agent/state/AclMap.h"
+#include "fboss/agent/state/AclTableMap.h"
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/ForwardingInformationBaseDelta.h"
@@ -64,6 +65,7 @@ class StateDelta {
   NodeMapDelta<InterfaceMap> getIntfsDelta() const;
   DeltaValue<QosPolicy> getDefaultDataPlaneQosPolicyDelta() const;
   AclMapDelta getAclsDelta() const;
+  NodeMapDelta<AclTableMap> getAclTablesDelta() const;
   QosPolicyMapDelta getQosPoliciesDelta() const;
   NodeMapDelta<AggregatePortMap> getAggregatePortsDelta() const;
   NodeMapDelta<SflowCollectorMap> getSflowCollectorsDelta() const;

@@ -11,6 +11,7 @@
 
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
+#include "fboss/agent/state/AclTableGroup.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/ArpTable.h"
@@ -63,6 +64,12 @@ AclMapDelta StateDelta::getAclsDelta() const {
     newAcls->addAcls(new_->getAcls());
   }
   return AclMapDelta(std::move(oldAcls), std::move(newAcls));
+}
+
+NodeMapDelta<AclTableMap> StateDelta::getAclTablesDelta() const {
+  return NodeMapDelta<AclTableMap>(
+      old_->getAclTableGroup()->getAclTableMap().get(),
+      new_->getAclTableGroup()->getAclTableMap().get());
 }
 
 QosPolicyMapDelta StateDelta::getQosPoliciesDelta() const {
@@ -155,6 +162,7 @@ std::ostream& operator<<(std::ostream& out, const StateDelta& stateDelta) {
 template class NodeMapDelta<InterfaceMap>;
 template class NodeMapDelta<PortMap>;
 template class NodeMapDelta<AclMap>;
+template class NodeMapDelta<AclTableMap>;
 template class NodeMapDelta<QosPolicyMap>;
 template class NodeMapDelta<AggregatePortMap>;
 template class NodeMapDelta<SflowCollectorMap>;
