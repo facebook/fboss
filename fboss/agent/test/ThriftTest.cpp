@@ -8,6 +8,7 @@
  *
  */
 #include "common/network/if/gen-cpp2/Address_types.h"
+#include "common/stats/MonotonicCounter.h"
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/FbossHwUpdateError.h"
@@ -19,6 +20,7 @@
 #include "fboss/agent/state/Route.h"
 
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -28,6 +30,7 @@
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
 using namespace facebook::fboss;
+using namespace facebook::stats;
 using apache::thrift::TEnumTraits;
 using cfg::PortSpeed;
 using facebook::network::toBinaryAddress;
@@ -38,6 +41,7 @@ using folly::IPAddressV6;
 using folly::StringPiece;
 using std::shared_ptr;
 using std::unique_ptr;
+using std::chrono::duration_cast;
 using ::testing::_;
 using ::testing::Return;
 using testing::UnorderedElementsAreArray;
@@ -1206,4 +1210,91 @@ TEST_F(ThriftTest, UnicastRoutesWithCounterID) {
       rtA6->getEntryForClient(static_cast<ClientID>(randomClient))
           ->getCounterID(),
       std::nullopt);
+}
+
+TEST_F(ThriftTest, CounterIDThriftReadTest) {
+  RouterID rid = RouterID(0);
+
+  // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
+  ThriftHandler handler(this->sw_);
+
+  auto bgpClient = static_cast<int16_t>(ClientID::BGPD);
+  auto bgpClientAdmin = this->sw_->clientIdToAdminDistance(bgpClient);
+
+  auto cli1_nhop4 = "10.0.0.11";
+  auto cli1_nhop6 = "2401:db00:2110:3001::0011";
+
+  // These routes will include nexthops from client 10 only
+  auto prefixA4 = "7.1.0.0/16";
+  auto prefixA6 = "aaaa:1::0/64";
+  auto prefixB6 = "aaaa:2::0/64";
+
+  std::optional<RouteCounterID> counterID1("route.counter.0");
+  std::optional<RouteCounterID> counterID2("route.counter.1");
+
+  // Add BGP routes with counter ID
+  handler.addUnicastRoute(
+      bgpClient,
+      makeUnicastRoute(prefixA4, cli1_nhop4, bgpClientAdmin, counterID1));
+  handler.addUnicastRoute(
+      bgpClient,
+      makeUnicastRoute(prefixA6, cli1_nhop6, bgpClientAdmin, counterID2));
+  // This route shares counterID
+  handler.addUnicastRoute(
+      bgpClient,
+      makeUnicastRoute(prefixB6, cli1_nhop6, bgpClientAdmin, counterID2));
+
+  auto state = this->sw_->getState();
+  auto rtA4 = findRoute<folly::IPAddressV4>(
+      rid, IPAddress::createNetwork(prefixA4), state);
+  EXPECT_NE(nullptr, rtA4);
+  auto rtA6 = findRoute<folly::IPAddressV6>(
+      rid, IPAddress::createNetwork(prefixA6), state);
+  EXPECT_NE(nullptr, rtA6);
+  auto rtB6 = findRoute<folly::IPAddressV6>(
+      rid, IPAddress::createNetwork(prefixB6), state);
+  EXPECT_NE(nullptr, rtB6);
+
+  auto updateCounter = [](auto counterID) {
+    auto counter = std::make_unique<MonotonicCounter>(
+        *counterID, facebook::fb303::SUM, facebook::fb303::RATE);
+    auto now = duration_cast<std::chrono::seconds>(
+        std::chrono::system_clock::now().time_since_epoch());
+    counter->updateValue(now, 0);
+    now = duration_cast<std::chrono::seconds>(
+        std::chrono::system_clock::now().time_since_epoch());
+    counter->updateValue(now, 64);
+  };
+  // create and update route counters
+  updateCounter(counterID1);
+  updateCounter(counterID2);
+  CounterCache counters(sw_);
+  counters.update();
+
+  std::map<std::string, std::int64_t> routeCounters;
+  auto counterIDs = std::make_unique<std::vector<std::string>>();
+  auto verifyCounters = [&routeCounters]() {
+    EXPECT_EQ(routeCounters.size(), 2);
+    for (const auto& counterAndBytes : routeCounters) {
+      EXPECT_EQ(counterAndBytes.second, 64);
+    }
+  };
+  handler.getAllRouteCounterBytes(routeCounters);
+  verifyCounters();
+
+  routeCounters.clear();
+  counterIDs->emplace_back(*counterID1);
+  counterIDs->emplace_back(*counterID2);
+  handler.getRouteCounterBytes(routeCounters, std::move(counterIDs));
+  verifyCounters();
+
+  routeCounters.clear();
+  counterIDs = std::make_unique<std::vector<std::string>>();
+  // invalid counter should return 0
+  counterIDs->emplace_back("invalid");
+  handler.getRouteCounterBytes(routeCounters, std::move(counterIDs));
+  EXPECT_EQ(routeCounters.size(), 1);
+  auto counterBytes = routeCounters.find("invalid");
+  EXPECT_NE(counterBytes, routeCounters.end());
+  EXPECT_EQ(counterBytes->second, 0);
 }
