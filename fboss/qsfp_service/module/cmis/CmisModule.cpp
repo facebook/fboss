@@ -116,6 +116,7 @@ static CmisFieldInfo::CmisFieldMap cmisFields = {
     {CmisField::EXTENDED_SPECIFICATION_COMPLIANCE, {CmisPages::PAGE00, 192, 1}},
     {CmisField::LENGTH_COPPER, {CmisPages::PAGE00, 202, 1}},
     {CmisField::MEDIA_INTERFACE_TECHNOLOGY, {CmisPages::PAGE00, 212, 1}},
+    {CmisField::PAGE0_CSUM, {CmisPages::PAGE00, 222, 1}},
     // Page 01h
     {CmisField::LENGTH_SMF, {CmisPages::PAGE01, 132, 1}},
     {CmisField::LENGTH_OM5, {CmisPages::PAGE01, 133, 1}},
@@ -265,6 +266,19 @@ static SpeedApplicationMapping speedApplicationMapping = {
     {cfg::PortSpeed::TWOHUNDREDG, SMFMediaInterfaceCode::FR4_200G},
     {cfg::PortSpeed::FOURHUNDREDG, SMFMediaInterfaceCode::FR4_400G},
 };
+
+constexpr uint8_t kPage0CsumRangeStart = 128;
+constexpr uint8_t kPage0CsumRangeLength = 94;
+
+struct checksumInfoStruct {
+  uint8_t checksumRangeStartOffset;
+  uint8_t checksumRangeLength;
+  CmisField checksumValOffset;
+};
+
+static std::map<int, checksumInfoStruct> checksumInfoCmis = {
+    {CmisPages::PAGE00,
+     {kPage0CsumRangeStart, kPage0CsumRangeLength, CmisField::PAGE0_CSUM}}};
 
 void getQsfpFieldAddress(
     CmisField field,
@@ -1952,6 +1966,92 @@ void CmisModule::moduleDiagsCapabilitySet() {
     qsfpImpl_->readTransceiver(
         TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page25_), page25_);
   }
+}
+
+/*
+ * verifyEepromChecksums
+ *
+ * This function verifies the module's eeprom register checksum in various
+ * pages. For CMIS module the checksums are kept in 3 pages:
+ *   Page 0: Register 222 contains checksum for values in register 128 to 221
+ *   Page 1: Register 255 contains checksum for values in register 130 to 254
+ *   Page 2: Register 255 contains checksum for values in register 128 to 254
+ * These checksums are 8 bit sum of all the 8 bit values
+ */
+bool CmisModule::verifyEepromChecksums() {
+  bool rc = true;
+  for (auto& csumInfoIt : checksumInfoCmis) {
+    rc |= verifyEepromChecksum(csumInfoIt.first);
+  }
+  XLOG(INFO) << folly::sformat(
+      "Module {} EEPROM Checksum {:s}",
+      qsfpImpl_->getName(),
+      rc ? "Passed" : "Failed");
+  return rc;
+}
+
+/*
+ * verifyEepromChecksums
+ *
+ * This function verifies the module's eeprom register checksum for a given
+ * page. The checksum is 8 bit sum of all the 8 bit values in range of
+ * registers
+ */
+bool CmisModule::verifyEepromChecksum(int pageId) {
+  int offset;
+  int length;
+  int dataAddress;
+  const uint8_t* data;
+  uint8_t checkSum = 0, expectedChecksum;
+
+  // Return false if the registers are not cached yet (this is not expected)
+  if (!cacheIsValid()) {
+    XLOG(INFO) << folly::sformat(
+        "Module {} can't do eeprom checksum as the register cache is not populated",
+        qsfpImpl_->getName());
+    return false;
+  }
+  // Return false if we don't know range of registers to validate the checksum
+  // on this page
+  if (checksumInfoCmis.find(pageId) == checksumInfoCmis.end()) {
+    XLOG(INFO) << folly::sformat(
+        "Module {} can't do eeprom checksum for page {:d}",
+        qsfpImpl_->getName(),
+        pageId);
+    return false;
+  }
+
+  // Get the range of registers, compute checksum and compare
+  dataAddress = pageId;
+  offset = checksumInfoCmis[pageId].checksumRangeStartOffset;
+  length = checksumInfoCmis[pageId].checksumRangeLength;
+  data = getQsfpValuePtr(dataAddress, offset, length);
+
+  for (int i = 0; i < length; i++) {
+    checkSum += data[i];
+  }
+
+  getQsfpFieldAddress(
+      checksumInfoCmis[pageId].checksumValOffset, dataAddress, offset, length);
+  data = getQsfpValuePtr(dataAddress, offset, length);
+  expectedChecksum = data[0];
+
+  if (checkSum != expectedChecksum) {
+    XLOG(ERR) << folly::sformat(
+        "Module {}: Page {:d}: expected checksum {:d}, actual {:d}",
+        qsfpImpl_->getName(),
+        pageId,
+        expectedChecksum,
+        checkSum);
+    return false;
+  } else {
+    XLOG(INFO) << folly::sformat(
+        "Module {}: Page {:d}: checksum verified successfully {:d}",
+        qsfpImpl_->getName(),
+        pageId,
+        checkSum);
+  }
+  return true;
 }
 
 } // namespace fboss

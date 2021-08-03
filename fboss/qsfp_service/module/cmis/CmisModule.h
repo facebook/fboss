@@ -292,6 +292,12 @@ class CmisModule : public QsfpModule {
 
   virtual std::optional<VdmDiagsStats> getVdmDiagsStatsInfo() override;
 
+  /*
+   * This function veifies the Module eeprom register checksum for various
+   * pages.
+   */
+  bool verifyEepromChecksums() override;
+
  private:
   void getFieldValueLocked(CmisField fieldName, uint8_t* fieldValue) const;
   /*
@@ -346,6 +352,11 @@ class CmisModule : public QsfpModule {
    * rejection the function returns false
    */
   bool checkLaneConfigError();
+
+  /*
+   * This function veifies the Module eeprom register checksum for a given page
+   */
+  bool verifyEepromChecksum(int pageId);
 
   std::map<uint32_t, PortStatus> ports_;
   unsigned int portsPerTransceiver_{0};
