@@ -20,12 +20,25 @@
 #include <gtest/gtest.h>
 
 namespace facebook::fboss::utility {
-int getAclTableNumAclEntries(const HwSwitch* hwSwitch) {
+
+std::string getActualAclTableName(
+    const std::optional<std::string>& aclTableName) {
+  // Previously hardcoded kAclTable1 in all use cases since only supported
+  // single acl table. Now support multiple tables so can accept table name. If
+  // table name not provided we are still using single table, so continue using
+  // kAclTable1.
+  return aclTableName.has_value() ? aclTableName.value()
+                                  : SaiSwitch::kAclTable1;
+}
+int getAclTableNumAclEntries(
+    const HwSwitch* hwSwitch,
+    const std::optional<std::string>& aclTableName) {
   const auto& aclTableManager = static_cast<const SaiSwitch*>(hwSwitch)
                                     ->managerTable()
                                     ->aclTableManager();
-  auto aclTableId = aclTableManager.getAclTableHandle(SaiSwitch::kAclTable1)
-                        ->aclTable->adapterKey();
+  auto aclTableId =
+      aclTableManager.getAclTableHandle(getActualAclTableName(aclTableName))
+          ->aclTable->adapterKey();
 
   auto aclTableEntryListGot = SaiApiTable::getInstance()->aclApi().getAttribute(
       aclTableId, SaiAclTableTraits::Attributes::EntryList());
@@ -36,13 +49,14 @@ int getAclTableNumAclEntries(const HwSwitch* hwSwitch) {
 void checkSwHwAclMatch(
     const HwSwitch* hw,
     std::shared_ptr<SwitchState> state,
-    const std::string& aclName) {
+    const std::string& aclName,
+    const std::optional<std::string>& aclTableName) {
   auto swAcl = state->getAcl(aclName);
 
   const auto& aclTableManager =
       static_cast<const SaiSwitch*>(hw)->managerTable()->aclTableManager();
   auto aclTableHandle =
-      aclTableManager.getAclTableHandle(SaiSwitch::kAclTable1);
+      aclTableManager.getAclTableHandle(getActualAclTableName(aclTableName));
   auto aclEntryHandle =
       aclTableManager.getAclEntryHandle(aclTableHandle, swAcl->getPriority());
   auto aclEntryId = aclEntryHandle->aclEntry->adapterKey();
@@ -330,12 +344,14 @@ void checkSwHwAclMatch(
   }
 }
 
-bool isAclTableEnabled(const HwSwitch* hwSwitch) {
+bool isAclTableEnabled(
+    const HwSwitch* hwSwitch,
+    const std::optional<std::string>& aclTableName) {
   const auto& aclTableManager = static_cast<const SaiSwitch*>(hwSwitch)
                                     ->managerTable()
                                     ->aclTableManager();
   auto aclTableHandle =
-      aclTableManager.getAclTableHandle(SaiSwitch::kAclTable1);
+      aclTableManager.getAclTableHandle(getActualAclTableName(aclTableName));
 
   return aclTableHandle != nullptr;
 }
@@ -358,12 +374,14 @@ void checkAclEntryAndStatCount(
     const HwSwitch* hwSwitch,
     int aclCount,
     int aclStatCount,
-    int counterCount) {
+    int counterCount,
+    const std::optional<std::string>& aclTableName) {
   const auto& aclTableManager = static_cast<const SaiSwitch*>(hwSwitch)
                                     ->managerTable()
                                     ->aclTableManager();
-  auto aclTableId = aclTableManager.getAclTableHandle(SaiSwitch::kAclTable1)
-                        ->aclTable->adapterKey();
+  auto aclTableId =
+      aclTableManager.getAclTableHandle(getActualAclTableName(aclTableName))
+          ->aclTable->adapterKey();
 
   auto aclTableEntryListGot = SaiApiTable::getInstance()->aclApi().getAttribute(
       aclTableId, SaiAclTableTraits::Attributes::EntryList());
@@ -412,7 +430,8 @@ void checkAclStat(
     std::shared_ptr<SwitchState> state,
     std::vector<std::string> acls,
     const std::string& statName,
-    std::vector<cfg::CounterType> counterTypes) {
+    std::vector<cfg::CounterType> counterTypes,
+    const std::optional<std::string>& aclTableName) {
   for (const auto& aclName : acls) {
     auto swAcl = state->getAcl(aclName);
     auto swTrafficCounter = getAclTrafficCounter(state, aclName);
@@ -422,7 +441,7 @@ void checkAclStat(
     const auto& aclTableManager =
         static_cast<const SaiSwitch*>(hw)->managerTable()->aclTableManager();
     auto aclTableHandle =
-        aclTableManager.getAclTableHandle(SaiSwitch::kAclTable1);
+        aclTableManager.getAclTableHandle(getActualAclTableName(aclTableName));
     auto aclEntryHandle =
         aclTableManager.getAclEntryHandle(aclTableHandle, swAcl->getPriority());
     auto aclEntryId = aclEntryHandle->aclEntry->adapterKey();
@@ -478,12 +497,13 @@ uint64_t getAclInOutPackets(
     const HwSwitch* hw,
     std::shared_ptr<SwitchState> state,
     const std::string& aclName,
-    const std::string& /*statName*/) {
+    const std::string& /*statName*/,
+    const std::optional<std::string>& aclTableName) {
   auto swAcl = state->getAcl(aclName);
   const auto& aclTableManager =
       static_cast<const SaiSwitch*>(hw)->managerTable()->aclTableManager();
   auto aclTableHandle =
-      aclTableManager.getAclTableHandle(SaiSwitch::kAclTable1);
+      aclTableManager.getAclTableHandle(getActualAclTableName(aclTableName));
   auto aclEntryHandle =
       aclTableManager.getAclEntryHandle(aclTableHandle, swAcl->getPriority());
   auto aclEntryId = aclEntryHandle->aclEntry->adapterKey();

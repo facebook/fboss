@@ -16,14 +16,19 @@ namespace facebook::fboss::utility {
 // TODO (skhare)
 // When SwitchState is extended to carry AclTable, pass AclTable handle to
 // getAclTableNumAclEntries.
-int getAclTableNumAclEntries(const HwSwitch* hwSwitch);
+int getAclTableNumAclEntries(
+    const HwSwitch* hwSwitch,
+    const std::optional<std::string>& aclTableName = std::nullopt);
 
 void checkSwHwAclMatch(
     const HwSwitch* hw,
     std::shared_ptr<SwitchState> state,
-    const std::string& aclName);
+    const std::string& aclName,
+    const std::optional<std::string>& aclTableName = std::nullopt);
 
-bool isAclTableEnabled(const HwSwitch* hwSwitch);
+bool isAclTableEnabled(
+    const HwSwitch* hwSwitch,
+    const std::optional<std::string>& aclTableName = std::nullopt);
 
 template <typename T>
 bool isQualifierPresent(
@@ -35,7 +40,8 @@ void checkAclEntryAndStatCount(
     const HwSwitch* hwSwitch,
     int aclCount,
     int aclStatCount,
-    int counterCount);
+    int counterCount,
+    const std::optional<std::string>& aclTableName = std::nullopt);
 
 std::optional<cfg::TrafficCounter> getAclTrafficCounter(
     const std::shared_ptr<SwitchState> state,
@@ -46,7 +52,8 @@ void checkAclStat(
     std::shared_ptr<SwitchState> state,
     std::vector<std::string> acls,
     const std::string& statName,
-    std::vector<cfg::CounterType> counterTypes = {cfg::CounterType::PACKETS});
+    std::vector<cfg::CounterType> counterTypes = {cfg::CounterType::PACKETS},
+    const std::optional<std::string>& aclTableName = std::nullopt);
 
 void checkAclStatDeleted(const HwSwitch* hwSwitch, const std::string& statName);
 
@@ -80,6 +87,7 @@ uint64_t getAclInOutPackets(
     const HwSwitch* hwSwitch,
     std::shared_ptr<SwitchState> state,
     const std::string& aclName,
-    const std::string& statName);
+    const std::string& statName,
+    const std::optional<std::string>& aclTableName = std::nullopt);
 
 } // namespace facebook::fboss::utility

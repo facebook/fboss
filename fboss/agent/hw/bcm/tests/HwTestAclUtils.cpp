@@ -32,7 +32,9 @@ static const std::vector<facebook::fboss::cfg::CounterType> kPacketCounters = {
 }
 
 namespace facebook::fboss::utility {
-int getAclTableNumAclEntries(const HwSwitch* hwSwitch) {
+int getAclTableNumAclEntries(
+    const HwSwitch* hwSwitch,
+    const std::optional<std::string>& /*aclTableName*/) {
   auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch);
 
   bcm_field_group_t gid =
@@ -51,7 +53,8 @@ int getAclTableNumAclEntries(const HwSwitch* hwSwitch) {
 void checkSwHwAclMatch(
     const HwSwitch* hwSwitch,
     std::shared_ptr<SwitchState> state,
-    const std::string& aclName) {
+    const std::string& aclName,
+    const std::optional<std::string>& /*aclTableName*/) {
   auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch);
 
   auto swAcl = state->getAcl(aclName);
@@ -65,7 +68,9 @@ void checkSwHwAclMatch(
       swAcl));
 }
 
-bool isAclTableEnabled(const HwSwitch* hwSwitch) {
+bool isAclTableEnabled(
+    const HwSwitch* hwSwitch,
+    const std::optional<std::string>& /*aclTableName*/) {
   auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch);
 
   bcm_field_group_t gid =
@@ -106,7 +111,8 @@ void checkAclEntryAndStatCount(
     const HwSwitch* hwSwitch,
     int aclCount,
     int aclStatCount,
-    int counterCount) {
+    int counterCount,
+    const std::optional<std::string>& /*aclTableName*/) {
   auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch);
   auto defaultGroupID =
       bcmSwitch->getPlatform()->getAsic()->getDefaultACLGroupID();
@@ -128,7 +134,8 @@ void checkAclStat(
     std::shared_ptr<SwitchState> state,
     std::vector<std::string> acls,
     const std::string& statName,
-    std::vector<cfg::CounterType> counterTypes) {
+    std::vector<cfg::CounterType> counterTypes,
+    const std::optional<std::string>& /*aclTableName*/) {
   auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch);
   auto aclTable = bcmSwitch->getAclTable();
 
@@ -208,7 +215,8 @@ uint64_t getAclInOutPackets(
     const HwSwitch* hw,
     std::shared_ptr<SwitchState> /*state*/,
     const std::string& /*aclName*/,
-    const std::string& statName) {
+    const std::string& statName,
+    const std::optional<std::string>& /*aclTableName*/) {
   auto bcmSwitch = static_cast<const BcmSwitch*>(hw);
   auto statHandle = bcmSwitch->getAclTable()->getAclStat(statName)->getHandle();
 
