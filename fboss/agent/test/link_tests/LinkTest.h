@@ -44,6 +44,7 @@ class LinkTest : public AgentTest {
   void createL3DataplaneFlood();
 
  private:
+  void setupFlags() const override;
   void initializeCabledPorts();
   std::vector<PortID> cabledPorts_;
 };

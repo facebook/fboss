@@ -53,10 +53,6 @@ void MultiNodeTest::setupConfigFlag() {
   platform()->reloadConfig();
 }
 
-void MultiNodeTest::setupFlags() {
-  // no common flag to set yet
-}
-
 void MultiNodeTest::SetUp() {
   AgentTest::SetUp();
   XLOG(DBG0) << "Multinode setup ready";

@@ -44,7 +44,9 @@ class MultiNodeLacpTest : public MultiNodeTest {
   cfg::SwitchConfig initialConfig() const override {
     return getConfigWithAggPort();
   }
-  void setupFlags() override {
+
+ private:
+  void setupFlags() const override {
     FLAGS_enable_lacp = true;
     MultiNodeTest::setupFlags();
   }

@@ -21,7 +21,7 @@ class AgentTest : public ::testing::Test, public AgentInitializer {
   void setupAgent();
   void runForever() const;
   virtual void setupConfigFlag();
-  virtual void setupFlags();
+  virtual void setupFlags() const;
   bool waitForSwitchStateCondition(
       std::function<bool(const std::shared_ptr<SwitchState>&)> conditionFn,
       uint32_t retries = 10,

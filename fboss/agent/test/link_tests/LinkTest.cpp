@@ -17,7 +17,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
 
-using namespace facebook::fboss;
+DECLARE_bool(enable_macsec);
 
 namespace facebook::fboss {
 
@@ -27,6 +27,11 @@ void LinkTest::SetUp() {
   // Wait for all the cabled ports to link up before finishing the setup
   waitForAllCabledPorts(true);
   XLOG(INFO) << "Link Test setup ready";
+}
+
+void LinkTest::setupFlags() const {
+  FLAGS_enable_macsec = true;
+  AgentTest::setupFlags();
 }
 
 // Waits till the link status of the ports in cabledPorts vector reaches

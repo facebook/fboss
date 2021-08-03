@@ -83,7 +83,7 @@ void AgentTest::setupConfigFlag() {
   // Nothing to setup by default
 }
 
-void AgentTest::setupFlags() {
+void AgentTest::setupFlags() const {
   // Nothing to setup by default
 }
 
