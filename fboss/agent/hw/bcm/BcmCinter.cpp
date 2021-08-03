@@ -492,7 +492,7 @@ vector<string> BcmCinter::cintForMirrorDestination(
     tie(cintDstV6Addr, cintDstV6Name) = cintForIp6(mirror_dest->dst6_addr);
     cintLines.push_back(cintSrcV6Addr);
     cintLines.push_back(to<string>("mirror_dest.src6_addr = ", cintSrcV6Name));
-    cintLines.push_back(cintDstV6Name);
+    cintLines.push_back(cintDstV6Addr);
     cintLines.push_back(to<string>("mirror_dest.dst6_addr = ", cintDstV6Name));
   }
   return cintLines;
