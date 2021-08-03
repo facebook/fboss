@@ -172,6 +172,9 @@ void SaiRouteManager::addOrUpdateRoute(
           routerInterfaceHandle->routerInterface->adapterKey()};
       attributes = SaiRouteTraits::CreateAttributes{
           packetAction, std::move(routerInterfaceId), metadata};
+
+      XLOG(DBG3) << "Connected route: " << newRoute->str()
+                 << " routerInterfaceId: " << routerInterfaceId;
     } else if (fwd.getNextHopSet().size() > 1) {
       /*
        * A Route which has more than one NextHops will create or reference an
@@ -187,6 +190,9 @@ void SaiRouteManager::addOrUpdateRoute(
       attributes = SaiRouteTraits::CreateAttributes{
           packetAction, std::move(nextHopGroupId), metadata};
       nextHopHandle = nextHopGroupHandle;
+
+      XLOG(DBG3) << "Route nhops > 1: " << newRoute->str()
+                 << " nextHopGroupId: " << nextHopGroupId;
     } else {
       CHECK_EQ(fwd.getNextHopSet().size(), 1);
       /* A route which has oonly one next hop, create a subscriber for next hop
@@ -216,16 +222,24 @@ void SaiRouteManager::addOrUpdateRoute(
 
       attributes =
           SaiRouteTraits::CreateAttributes{packetAction, nextHopId, metadata};
+
+      XLOG(DBG3) << "Route nhops == 1: " << newRoute->str()
+                 << " nextHopId: " << nextHopId;
     }
   } else if (fwd.getAction() == RouteForwardAction::TO_CPU) {
     packetAction = SAI_PACKET_ACTION_FORWARD;
     PortSaiId cpuPortId = managerTable_->switchManager().getCpuPort();
     attributes = SaiRouteTraits::CreateAttributes{
         packetAction, std::move(cpuPortId), metadata};
+
+    XLOG(DBG3) << "Route action TO CPU: " << newRoute->str()
+               << " cpuPortId: " << cpuPortId;
   } else if (fwd.getAction() == RouteForwardAction::DROP) {
     packetAction = SAI_PACKET_ACTION_DROP;
     attributes = SaiRouteTraits::CreateAttributes{
         packetAction, SAI_NULL_OBJECT_ID, metadata};
+
+    XLOG(DBG3) << "Route action DROP: " << newRoute->str();
   }
   auto& store = saiStore_->get<SaiRouteTraits>();
   auto route = store.setObject(entry, attributes.value());
@@ -242,6 +256,8 @@ void SaiRouteManager::changeRoute(
       routeEntryFromSwRoute(routerId, newSwRoute);
 
   if (!validRoute(newSwRoute)) {
+    XLOG(DBG3) << "Not a valid route, don't change:: old: " << oldSwRoute->str()
+               << " new: " << newSwRoute->str();
     return;
   }
 
@@ -266,6 +282,7 @@ void SaiRouteManager::addRoute(
         swRoute->prefix().str());
   }
   if (!validRoute(swRoute)) {
+    XLOG(DBG3) << "Not a valid route, don't add: " << swRoute->str();
     return;
   }
   auto routeHandle = std::make_unique<SaiRouteHandle>();
@@ -278,6 +295,7 @@ template <typename AddrT>
 void SaiRouteManager::removeRoute(
     const std::shared_ptr<Route<AddrT>>& swRoute,
     RouterID routerId) {
+  XLOG(DBG3) << "Remove route: " << swRoute->str();
   SaiRouteTraits::RouteEntry entry = routeEntryFromSwRoute(routerId, swRoute);
   size_t count = handles_.erase(entry);
   if (!count) {
@@ -368,6 +386,8 @@ void ManagedRouteNextHop<NextHopTraitsT>::afterCreate(
   // set route to next hop
   auto route = routeManager_->getRouteObject(routeKey_);
   if (!route) {
+    XLOG(DBG2) << "ManagedRouteNextHop afterCreate , route not yet created: "
+               << routeKey_.toString();
     // route is not yet created.
     return;
   }
@@ -379,10 +399,15 @@ void ManagedRouteNextHop<NextHopTraitsT>::afterCreate(
   currentNextHop = nextHopId;
   route->setAttributes(attributes);
   updateMetadata();
+  XLOG(DBG2) << "ManagedRouteNextHop afterCreate: " << routeKey_.toString()
+             << " assign nextHopId: " << nextHopId;
 }
 
 template <typename NextHopTraitsT>
 void ManagedRouteNextHop<NextHopTraitsT>::beforeRemove() {
+  XLOG(DBG2) << "ManagedRouteNextHop beforeRemove, set route to CPU: "
+             << routeKey_.toString();
+
   // set route to CPU
   auto route = routeManager_->getRouteObject(routeKey_);
   auto attributes = route->attributes();
