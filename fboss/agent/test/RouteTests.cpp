@@ -2381,3 +2381,54 @@ TEST_F(UcmpTest, Twenty) {
 TEST_F(UcmpTest, Ten) {
   this->runVaryFromHundredTest(10, {10, 10, 10, 1});
 }
+
+TEST_F(RouteTest, CounterIDTest) {
+  auto u1 = this->sw_->getRouteUpdater();
+
+  RouteV4::Prefix prefix10{IPAddressV4("10.10.10.10"), 32};
+
+  RouteNextHopSet nexthops1 =
+      makeResolvedNextHops({{InterfaceID(1), "1.1.1.1"}});
+
+  std::optional<RouteCounterID> counterID1("route.counter.0");
+  std::optional<RouteCounterID> counterID2("route.counter.1");
+
+  // Add route with counter id
+  u1.addRoute(
+      kRid0,
+      IPAddress("10.10.10.10"),
+      32,
+      kClientA,
+      RouteNextHopEntry(nexthops1, DISTANCE, counterID1));
+  u1.program();
+
+  auto rt10 = this->findRoute4(this->sw_->getState(), kRid0, prefix10);
+  EXPECT_EQ(rt10->getForwardInfo().getCounterID(), counterID1);
+  EXPECT_EQ(rt10->getEntryForClient(kClientA)->getCounterID(), counterID1);
+
+  // Modify counter id
+  u1.addRoute(
+      kRid0,
+      IPAddress("10.10.10.10"),
+      32,
+      kClientA,
+      RouteNextHopEntry(nexthops1, DISTANCE, counterID2));
+  u1.program();
+
+  rt10 = this->findRoute4(this->sw_->getState(), kRid0, prefix10);
+  EXPECT_EQ(rt10->getForwardInfo().getCounterID(), counterID2);
+  EXPECT_EQ(rt10->getEntryForClient(kClientA)->getCounterID(), counterID2);
+
+  // Modify route to remove counter id
+  u1.addRoute(
+      kRid0,
+      IPAddress("10.10.10.10"),
+      32,
+      kClientA,
+      RouteNextHopEntry(nexthops1, DISTANCE, std::nullopt));
+  u1.program();
+
+  rt10 = this->findRoute4(this->sw_->getState(), kRid0, prefix10);
+  EXPECT_EQ(rt10->getForwardInfo().getCounterID(), std::nullopt);
+  EXPECT_EQ(rt10->getEntryForClient(kClientA)->getCounterID(), std::nullopt);
+}
