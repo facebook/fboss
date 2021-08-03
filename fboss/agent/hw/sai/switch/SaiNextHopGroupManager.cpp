@@ -67,6 +67,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
       store.setObject(nextHopGroupAdapterHostKey, nextHopGroupAttributes);
   NextHopGroupSaiId nextHopGroupId =
       nextHopGroupHandle->nextHopGroup->adapterKey();
+  XLOG(DBG2) << "Created NexthopGroup OID: " << nextHopGroupId;
 
   for (const auto& swNextHop : swNextHops) {
     auto resolvedNextHop = folly::poly_cast<ResolvedNextHop>(swNextHop);
@@ -126,6 +127,7 @@ void ManagedSaiNextHopGroupMember<NextHopTraits>::createObject(
 
   auto object = manager_->createSaiObject(adapterHostKey, createAttributes);
   this->setObject(object);
+  XLOG(DBG2) << "ManagedSaiNextHopGroupMember::createObject: " << toString();
 }
 
 size_t SaiNextHopGroupHandle::nextHopGroupSize() const {
@@ -134,4 +136,17 @@ size_t SaiNextHopGroupHandle::nextHopGroupSize() const {
         return member->isProgrammed();
       });
 }
+
+template <typename NextHopTraits>
+std::string ManagedSaiNextHopGroupMember<NextHopTraits>::toString() const {
+  auto nextHopGroupMemberIdStr = this->getObject()
+      ? std::to_string(this->getObject()->adapterKey())
+      : "none";
+  return folly::to<std::string>(
+      "NextHopGroupId: ",
+      nexthopGroupId_,
+      "NextHopGroupMemberId:",
+      nextHopGroupMemberIdStr);
+}
+
 } // namespace facebook::fboss

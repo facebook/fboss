@@ -77,11 +77,14 @@ class ManagedSaiNextHopGroupMember
   void createObject(PublisherObjects added);
 
   void removeObject(size_t /*index*/, PublisherObjects /*removed*/) {
+    XLOG(DBG2) << "ManagedSaiNextHopGroupMember::removeObject: " << toString();
     /* remove nexthop group member if next hop is removed */
     this->resetObject();
   }
 
  private:
+  std::string toString() const;
+
   SaiNextHopGroupManager* manager_;
   std::shared_ptr<ManagedNextHop<NextHopTraits>> managedNextHop_;
   SaiNextHopGroupTraits::AdapterKey nexthopGroupId_;
