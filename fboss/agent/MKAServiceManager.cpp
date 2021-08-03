@@ -11,6 +11,7 @@
 #include "fboss/agent/MKAServiceManager.h"
 #include <folly/io/Cursor.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
+#include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/RxPacket.h"
@@ -69,7 +70,7 @@ void MKAServiceManager::handlePacket(std::unique_ptr<RxPacket> packet) {
 
   if (!stream_->isPortRegistered(portStr)) {
     CHECK_STATS(stats, stats->MkPduPortNotRegistered());
-    VLOG(3) << "Port '" << portStr << "' not registered by mka service";
+    XLOG(DBG3) << "Port '" << portStr << "' not registered by mka service";
     return;
   }
   folly::IOBuf* buf = packet->buf();
@@ -80,8 +81,8 @@ void MKAServiceManager::handlePacket(std::unique_ptr<RxPacket> packet) {
   size_t len = pktToSend.buf_ref()->size();
   if (len != stream_->send(std::move(pktToSend))) {
     CHECK_STATS(stats, stats->MKAServiceSendFailue());
-    LOG(ERROR) << "Failed to send MkPdu packet received on Port:'"
-               << packet->getSrcPort() << "' to mka_service";
+    XLOG(ERR) << "Failed to send MkPdu packet received on Port:'"
+              << packet->getSrcPort() << "' to mka_service";
     return;
   }
   stats->MKAServiceSendSuccess();
@@ -89,14 +90,14 @@ void MKAServiceManager::handlePacket(std::unique_ptr<RxPacket> packet) {
 
 void MKAServiceManager::recvPacket(TPacket&& packet) {
   if (!packet.l2Port_ref()->size() || !packet.buf_ref()->size()) {
-    LOG(ERROR) << "Invalid packet received from MKA Service";
+    XLOG(ERR) << "Invalid packet received from MKA Service";
     return;
   }
   PortID port;
   try {
     port = PortID(folly::to<uint16_t>(*packet.l2Port_ref()));
   } catch (const std::exception& ex) {
-    LOG(ERROR) << "Invalid MkPdu Port:  " << ex.what();
+    XLOG(ERR) << "Invalid MkPdu Port:  " << ex.what();
     return;
   }
   auto txPkt = swSwitch_->allocatePacket(packet.buf_ref()->size());
@@ -111,8 +112,8 @@ void MKAServiceManager::recvPacket(TPacket&& packet) {
     swSwitch_->sendPacketOutOfPortAsync(std::move(txPkt), port);
     CHECK_STATS(stats, stats->MkPduSendPkt());
   } catch (const std::exception& ex) {
-    LOG(ERROR) << "Failed to MkPdu Packet to the switch, port:"
-               << *packet.l2Port_ref() << " ex: " << ex.what();
+    XLOG(ERR) << "Failed to MkPdu Packet to the switch, port:"
+              << *packet.l2Port_ref() << " ex: " << ex.what();
     CHECK_STATS(stats, stats->MkPduSendFailure());
   }
 }
