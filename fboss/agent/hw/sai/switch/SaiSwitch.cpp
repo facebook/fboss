@@ -1727,6 +1727,7 @@ void SaiSwitch::fdbEventCallbackLockedBottomHalf(
     if (ditr != kL2AddrUpdateOperationsOfInterest.end()) {
       auto l2Entry = getL2Entry(fdbNotification);
       if (l2Entry) {
+        XLOG(DBG2) << "Received FDB notification for: " << l2Entry->str();
         callback_->l2LearningUpdateReceived(l2Entry.value(), ditr->second);
       }
     }

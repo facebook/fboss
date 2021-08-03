@@ -61,9 +61,11 @@ void ManagedFdbEntry::createObject(PublisherObjects objects) {
   // delete the dynamic entry before adding static entry
   fdbEntry->setIgnoreMissingInHwOnDelete(true);
   setObject(fdbEntry);
+  XLOG(DBG2) << "ManagedFdbEntry::createObject: " << toL2Entry().str();
 }
 
 void ManagedFdbEntry::removeObject(size_t, PublisherObjects) {
+  XLOG(DBG2) << "ManagedFdbEntry::removeObject: " << toL2Entry().str();
   /* either interface is removed or bridge port is removed, delete fdb entry */
   this->resetObject();
 }
