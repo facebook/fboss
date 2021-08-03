@@ -59,12 +59,20 @@ void checkAclStatDeleted(const HwSwitch* hwSwitch, const std::string& statName);
 
 void checkAclStatSize(const HwSwitch* hwSwitch, const std::string& statName);
 
+int getAclTableIndex(
+    cfg::SwitchConfig* cfg,
+    const std::optional<std::string>& tableName);
+
 cfg::AclEntry* addAcl(
     cfg::SwitchConfig* cfg,
     const std::string& aclName,
-    const cfg::AclActionType& aclActionType = cfg::AclActionType::PERMIT);
+    const cfg::AclActionType& aclActionType = cfg::AclActionType::PERMIT,
+    const std::optional<std::string>& tableName = std::nullopt);
 
-void delAcl(cfg::SwitchConfig* cfg, const std::string& aclName);
+void delAcl(
+    cfg::SwitchConfig* cfg,
+    const std::string& aclName,
+    const std::optional<std::string>& tableName = std::nullopt);
 
 void addAclTableGroup(
     cfg::SwitchConfig* cfg,
