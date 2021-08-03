@@ -16,6 +16,7 @@ extern "C" {
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmRouteCounter.h"
+#include "fboss/agent/hw/bcm/BcmStatUpdater.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -47,12 +48,14 @@ BcmRouteCounter::BcmRouteCounter(
     bcmCheckError(rc, "failed to create bcm stat custom group ");
     XLOG(DBG2) << "Allocated route counter id " << hwCounterId_;
   }
+  hw_->getStatUpdater()->toBeAddedRouteCounter(hwCounterId_, counterID);
 }
 
 BcmRouteCounter::~BcmRouteCounter() {
   XLOG(DBG2) << "Destroying route counter id " << hwCounterId_;
   auto rc = bcm_stat_group_destroy(hw_->getUnit(), hwCounterId_);
   bcmLogFatal(rc, hw_, "failed to destroy counter id ", hwCounterId_);
+  hw_->getStatUpdater()->toBeRemovedRouteCounter(hwCounterId_);
 }
 
 BcmRouteCounterTable::BcmRouteCounterTable(BcmSwitch* hw) : hw_(hw) {}

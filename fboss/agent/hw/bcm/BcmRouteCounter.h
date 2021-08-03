@@ -68,5 +68,4 @@ class BcmRouteCounterTable {
   int globalIngressModeId_{STAT_MODEID_INVALID};
   uint32_t maxRouteCounterIDs_{0};
 };
-
 } // namespace facebook::fboss

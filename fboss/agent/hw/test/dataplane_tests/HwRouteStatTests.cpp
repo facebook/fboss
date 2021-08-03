@@ -27,6 +27,8 @@
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
+#include <fb303/ServiceData.h>
+
 namespace {
 folly::IPAddressV6 kAddr1{"2401::201:ab00"};
 folly::IPAddressV6 kAddr2{"2401::201:ac00"};
@@ -144,6 +146,10 @@ TEST_F(HwRouteStatTest, RouteEntryTest) {
     sendL3Packet(kAddr3, masterLogicalPortIds()[1]);
     auto countAfter = utility::getRouteStat(getHwSwitch(), kCounterID2);
     EXPECT_EQ(countAfter - countBefore, 2);
+
+    auto statMap = facebook::fb303::fbData->getStatMap();
+    EXPECT_TRUE(statMap->contains(*kCounterID1));
+    EXPECT_TRUE(statMap->contains(*kCounterID2));
   };
   setup();
   verify();
