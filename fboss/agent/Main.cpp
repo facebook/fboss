@@ -73,10 +73,6 @@ DEFINE_bool(
 DEFINE_bool(enable_lacp, false, "Run LACP in agent");
 DEFINE_bool(enable_lldp, true, "Run LLDP protocol in agent");
 DEFINE_bool(publish_boot_type, true, "Publish boot type on startup");
-DEFINE_int32(
-    flush_warmboot_cache_secs,
-    60,
-    "Seconds to wait before flushing warm boot cache");
 DECLARE_int32(thrift_idle_timeout);
 DEFINE_bool(enable_macsec, false, "Enable Macsec functionality");
 
