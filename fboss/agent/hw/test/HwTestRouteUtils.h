@@ -10,6 +10,7 @@
 
 #pragma once
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
 #include "fboss/agent/HwSwitch.h"
 
@@ -48,5 +49,9 @@ void clearHwRouteHit(
     const HwSwitch* hwSwitch,
     RouterID rid,
     const folly::CIDRNetwork& cidrNetwork);
+
+uint64_t getRouteStat(
+    const HwSwitch* hwSwitch,
+    std::optional<RouteCounterID> counterID);
 
 } // namespace facebook::fboss::utility

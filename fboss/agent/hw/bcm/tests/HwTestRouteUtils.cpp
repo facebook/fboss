@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/test/HwTestRouteUtils.h"
 
 #include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
+#include "fboss/agent/hw/bcm/BcmRouteCounter.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
@@ -41,6 +42,24 @@ getBcmRoute(int unit, const folly::CIDRNetwork& cidrNetwork, uint32_t flags) {
   route.l3a_flags |= flags;
   CHECK_EQ(bcm_l3_route_get(unit, &route), 0);
   return route;
+}
+
+uint64_t getBcmRouteCounter(
+    const HwSwitch* hwSwitch,
+    std::optional<RouteCounterID> id) {
+  auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch);
+  uint32 entry = 0;
+  bcm_stat_value_t routeCounter;
+  auto unit = bcmSwitch->getUnit();
+  CHECK(bcmSwitch->routeCounterTable()->getHwCounterID(id).has_value());
+  auto counterId = *bcmSwitch->routeCounterTable()->getHwCounterID(id);
+  CHECK_EQ(
+      bcm_stat_flex_counter_sync_get(
+          unit, counterId, bcmStatFlexStatPackets, 1, &entry, &routeCounter),
+      0);
+  XLOG(DBG2) << "Route counter id: " << counterId
+             << " pkts: " << COMPILER_64_LO(routeCounter.packets64);
+  return COMPILER_64_LO(routeCounter.packets64);
 }
 
 bool isEgressToIp(
@@ -182,6 +201,12 @@ bool isHwRouteToNextHop(
   }
   // check for next hop
   return isEgressToIp(bcmSwitch, rid, ip, route.l3a_intf);
+}
+
+uint64_t getRouteStat(
+    const HwSwitch* hwSwitch,
+    std::optional<RouteCounterID> counterID) {
+  return getBcmRouteCounter(hwSwitch, counterID);
 }
 
 } // namespace facebook::fboss::utility

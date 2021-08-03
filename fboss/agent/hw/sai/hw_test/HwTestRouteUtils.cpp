@@ -149,4 +149,9 @@ bool isHwRouteToNextHop(
   return false;
 }
 
+uint64_t getRouteStat(
+    FOLLY_MAYBE_UNUSED const HwSwitch* hwSwitch,
+    FOLLY_MAYBE_UNUSED std::optional<RouteCounterID> counterID) {
+  throw FbossError("read hw route stats is unsupported for SAI");
+}
 } // namespace facebook::fboss::utility
