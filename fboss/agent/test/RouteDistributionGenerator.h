@@ -75,7 +75,8 @@ class RouteDistributionGenerator {
    * Compute, cache and return route distribution
    */
   const RouteChunks& get() const;
-  const ThriftRouteChunks& getThriftRoutes() const;
+  const ThriftRouteChunks& getThriftRoutes(
+      std::optional<RouteCounterID> counterID = std::nullopt) const;
 
   /*
    * All routes as a single chunk

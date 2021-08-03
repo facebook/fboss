@@ -117,7 +117,11 @@ BcmRouteCounterTable::referenceOrEmplaceCounterID(RouteCounterID id) {
   std::shared_ptr<BcmRouteCounter> counterRef =
       counterIDs_.refOrEmplace(id, hw_, id, globalIngressModeId_).first;
   if (counterIDs_.size() > maxRouteCounterIDs_) {
-    throw FbossError(
+    XLOG(ERR) << "RouteCounterIDs in use " << counterIDs_.size()
+              << " exceed max count " << maxRouteCounterIDs_;
+    // throw Bcm full error so that overflow error handling kicks in
+    throw BcmError(
+        BCM_E_FULL,
         "RouteCounterIDs in use ",
         counterIDs_.size(),
         " exceed max count ",

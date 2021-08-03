@@ -99,4 +99,55 @@ TEST_F(HwOverflowTest, overflowRoutes) {
   verifyInvariants();
 }
 
+class HwRouteCounterOverflowTest : public HwOverflowTest {
+ protected:
+  cfg::SwitchConfig initialConfig() const override {
+    auto cfg = HwOverflowTest::initialConfig();
+    cfg.switchSettings_ref()->maxRouteCounterIDs_ref() = 1;
+    return cfg;
+  }
+};
+
+TEST_F(HwRouteCounterOverflowTest, overflowRouteCounters) {
+  if (!getPlatform()->getAsic()->isSupported(HwAsic::Feature::ROUTE_COUNTERS)) {
+    return;
+  }
+  applyNewState(
+      utility::EcmpSetupAnyNPorts6(getProgrammedState())
+          .resolveNextHops(getProgrammedState(), utility::kDefaulEcmpWidth));
+  applyNewState(
+      utility::EcmpSetupAnyNPorts4(getProgrammedState())
+          .resolveNextHops(getProgrammedState(), utility::kDefaulEcmpWidth));
+  utility::RouteDistributionGenerator::ThriftRouteChunks routeChunks;
+  auto updater = getHwSwitchEnsemble()->getRouteUpdater();
+  const RouterID kRid(0);
+  auto counterID1 = std::optional<RouteCounterID>("route.counter.0");
+  auto counterID2 = std::optional<RouteCounterID>("route.counter.1");
+  updater.programRoutes(
+      kRid,
+      ClientID::BGPD,
+      utility::RouteDistributionGenerator(
+          getProgrammedState(), {{64, 5}}, {}, 4000, 4)
+          .getThriftRoutes(counterID1));
+  routeChunks = utility::RouteDistributionGenerator(
+                    getProgrammedState(), {}, {{24, 5}}, 4000, 4)
+                    .getThriftRoutes(counterID2);
+
+  {
+    startPacketTxRxVerify();
+    SCOPE_EXIT {
+      stopPacketTxRxVerify();
+    };
+    EXPECT_THROW(
+        updater.programRoutes(kRid, ClientID::BGPD, routeChunks),
+        FbossHwUpdateError);
+
+    auto programmedState = getProgrammedState();
+    EXPECT_TRUE(programmedState->isPublished());
+    auto updater2 = getHwSwitchEnsemble()->getRouteUpdater();
+    updater2.program();
+    EXPECT_EQ(programmedState, getProgrammedState());
+  }
+  verifyInvariants();
+}
 } // namespace facebook::fboss

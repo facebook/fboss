@@ -21,7 +21,8 @@ namespace {
 UnicastRoute makeUnicastRoute(
     const folly::CIDRNetwork& nw,
     const std::vector<UnresolvedNextHop>& nhops,
-    AdminDistance admin = AdminDistance::EBGP) {
+    AdminDistance admin = AdminDistance::EBGP,
+    std::optional<RouteCounterID> counterID = std::nullopt) {
   UnicastRoute route;
   route.dest_ref() = facebook::fboss::toIpPrefix(nw);
   route.action_ref() = RouteForwardAction::NEXTHOPS;
@@ -32,6 +33,9 @@ UnicastRoute makeUnicastRoute(
     nhopsThrift.emplace_back(NextHop(nhop).toThrift());
   });
   route.nextHops_ref() = nhopsThrift;
+  if (counterID.has_value()) {
+    route.counterID_ref() = *counterID;
+  }
   return route;
 }
 } // namespace
@@ -79,7 +83,8 @@ void RouteDistributionGenerator::genRoutes() const {
 }
 
 const RouteDistributionGenerator::ThriftRouteChunks&
-RouteDistributionGenerator::getThriftRoutes() const {
+RouteDistributionGenerator::getThriftRoutes(
+    std::optional<RouteCounterID> counterID) const {
   if (generatedThriftRoutes_) {
     return *generatedThriftRoutes_;
   }
@@ -89,9 +94,9 @@ RouteDistributionGenerator::getThriftRoutes() const {
     std::for_each(
         routeChunk.begin(),
         routeChunk.end(),
-        [&thriftRoutes](const auto& route) {
-          thriftRoutes.emplace_back(
-              makeUnicastRoute(route.prefix, route.nhops));
+        [&thriftRoutes, &counterID](const auto& route) {
+          thriftRoutes.emplace_back(makeUnicastRoute(
+              route.prefix, route.nhops, AdminDistance::EBGP, counterID));
         });
     generatedThriftRoutes_->push_back(std::move(thriftRoutes));
   }
