@@ -45,14 +45,13 @@ void BcmLabelSwitchAction::program(
   // vrf gets supported, next hop address or label forwarding info  entry base
   // must carry which vrf to use to resolve next hop l3 address
 
+  bcm_mpls_tunnel_switch_t_init(&action_);
+  action_.label = topLabel;
+  action_.flags |= BCM_MPLS_SWITCH_TTL_DECREMENT;
   if (replace) {
     action_.flags |= BCM_MPLS_SWITCH_REPLACE;
-  } else {
-    bcm_mpls_tunnel_switch_t_init(&action_);
-    action_.label = topLabel;
-    action_.flags |= BCM_MPLS_SWITCH_TTL_DECREMENT; // decrement TTL by 1
-    action_.port = BCM_GPORT_INVALID; // platform label space
   }
+  action_.port = BCM_GPORT_INVALID; // platform label space
   action_.action = utility::getLabelSwitchAction(
       entry.getAction(),
       entry.getNextHopSet().begin()->labelForwardingAction()->type());
@@ -112,9 +111,11 @@ void BcmLabelSwitchAction::program(
     action_.flags |= BCM_MPLS_SWITCH_REPLACE;
   }
   if (action_.flags & BCM_MPLS_SWITCH_REPLACE) {
-    XLOG(DBG3) << "replacing label switch action for label " << topLabel;
+    XLOG(DBG3) << "replacing label switch action for label " << topLabel
+               << " with action " << action_.action;
   } else {
-    XLOG(DBG3) << "adding label switch action for label " << topLabel;
+    XLOG(DBG3) << "adding label switch action for label " << topLabel
+               << " with action " << action_.action;
   }
   if (!exists) {
     bcmCheckError(
