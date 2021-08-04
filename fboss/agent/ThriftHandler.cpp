@@ -1226,6 +1226,9 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
         util::fromFwdNextHops(fwdInfo.getNextHopSet());
     tempRoute.nextHops_ref() =
         util::fromRouteNextHopSet(fwdInfo.normalizedNextHops());
+    if (fwdInfo.getCounterID().has_value()) {
+      tempRoute.counterID_ref() = *fwdInfo.getCounterID();
+    }
     routes.emplace_back(std::move(tempRoute));
   });
 }
@@ -1246,6 +1249,9 @@ void ThriftHandler::getRouteTableByClient(
     tempRoute.dest_ref()->prefixLength_ref() = route->prefix().mask;
     tempRoute.nextHops_ref() =
         util::fromRouteNextHopSet(entry->getNextHopSet());
+    if (entry->getCounterID().has_value()) {
+      tempRoute.counterID_ref() = *entry->getCounterID();
+    }
     for (const auto& nh : *tempRoute.nextHops_ref()) {
       tempRoute.nextHopAddrs_ref()->emplace_back(*nh.address_ref());
     }
@@ -1281,6 +1287,10 @@ void ThriftHandler::getIpRoute(
     route.dest.ip = toBinaryAddress(match->prefix().network);
     route.dest.prefixLength = match->prefix().mask;
     *route.nextHopAddrs_ref() = util::fromFwdNextHops(fwdInfo.getNextHopSet());
+    auto counterID = fwdInfo.getCounterID();
+    if (counterID.has_value()) {
+      route.counterID_ref() = *counterID;
+    }
   } else {
     auto match = sw_->longestMatch(state, ipAddr.asV6(), RouterID(vrfId));
     if (!match || !match->isResolved()) {
@@ -1292,6 +1302,10 @@ void ThriftHandler::getIpRoute(
     route.dest.ip = toBinaryAddress(match->prefix().network);
     route.dest.prefixLength = match->prefix().mask;
     *route.nextHopAddrs_ref() = util::fromFwdNextHops(fwdInfo.getNextHopSet());
+    auto counterID = fwdInfo.getCounterID();
+    if (counterID.has_value()) {
+      route.counterID_ref() = *counterID;
+    }
   }
 }
 

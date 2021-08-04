@@ -84,6 +84,10 @@ RouteDetails RouteFields<AddrT>::toRouteDetails(
   // Add the multi-nexthops
   rd.nextHopMulti_ref() = nexthopsmulti.toThrift();
   rd.isConnected_ref() = isConnected();
+  // add counter id
+  if (fwd.getCounterID().has_value()) {
+    rd.counterID_ref() = *fwd.getCounterID();
+  }
   return rd;
 }
 

@@ -117,6 +117,7 @@ struct RouteDetails {
   7: list<common.NextHopThrift> nextHops;
   // use this for policy based route or with named next hop groups
   8: optional common.NamedRouteDestination namedRouteDestination;
+  9: optional RouteCounterID counterID;
 }
 
 struct MplsRouteDetails {
