@@ -31,6 +31,13 @@ using std::chrono::seconds;
 using std::chrono::system_clock;
 namespace {
 
+constexpr int kPriorityMaxValue = 127;
+
+int getPriorityFromIndex(int index) {
+  // larger value means higher priority
+  return kPriorityMaxValue - index;
+}
+
 const std::set<PacketRxReason> kSupportedRxReasons = {
     PacketRxReason::UNMATCHED,
     PacketRxReason::ARP,
@@ -41,7 +48,7 @@ const std::set<PacketRxReason> kSupportedRxReasons = {
     PacketRxReason::TTL_1,
     PacketRxReason::CPU_IS_NHOP,
     PacketRxReason::L3_MTU_ERROR};
-}
+} // namespace
 
 namespace facebook::fboss {
 
@@ -192,7 +199,7 @@ void BcmControlPlane::deleteReasonToQueueEntry(int index) {
     bcm_rx_cosq_mapping_t_init(&cosqMap);
 
     cosqMap.index = index;
-    cosqMap.priority = index;
+    cosqMap.priority = getPriorityFromIndex(index);
     rv = rxCosqMappingExtendedDelete(hw_->getUnit(), &cosqMap);
   }
   if (rv != BCM_E_NOT_FOUND) {
@@ -283,7 +290,7 @@ int BcmControlPlane::rxCosqMappingExtendedGet(
 #if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_22))
   if (BcmAPI::isPriorityKeyUsedInRxCosqMapping()) {
     if (byIndex) {
-      rx_cosq_mapping->priority = targetIndex;
+      rx_cosq_mapping->priority = getPriorityFromIndex(targetIndex);
       rv = bcm_rx_cosq_mapping_extended_get(unit, rx_cosq_mapping);
       if (BCM_SUCCESS(rv)) {
         return rv;
@@ -294,7 +301,7 @@ int BcmControlPlane::rxCosqMappingExtendedGet(
       bcmCheckError(rv, "failed to get max CPU cos queue mappings");
       for (int index = 0; index < maxSize; ++index) {
         bcm_rx_cosq_mapping_t_init(rx_cosq_mapping);
-        rx_cosq_mapping->priority = index;
+        rx_cosq_mapping->priority = getPriorityFromIndex(index);
         rv = bcm_rx_cosq_mapping_extended_get(unit, rx_cosq_mapping);
         if (BCM_SUCCESS(rv) &&
             BCM_RX_REASON_EQ(rx_cosq_mapping->reasons, targetReasons)) {
@@ -357,7 +364,7 @@ int BcmControlPlane::rxCosqMappingExtendedSet(
       rxCosqMappingExtendedDelete(unit, &cosqMap);
     }
     bcm_rx_cosq_mapping_t_init(&cosqMap);
-    cosqMap.priority = index;
+    cosqMap.priority = getPriorityFromIndex(index);
     cosqMap.reasons = reasons;
     cosqMap.reasons_mask = reasons_mask;
     cosqMap.int_prio = int_prio;
