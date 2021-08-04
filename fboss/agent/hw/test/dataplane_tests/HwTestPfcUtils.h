@@ -10,13 +10,21 @@
 
 #pragma once
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/types.h"
 
 /*
  * This utility is to provide utils for hw pfc tests.
  */
 
-namespace facebook::fboss::utility {
-void addPfcConfig(cfg::SwitchConfig& config, const std::vector<PortID>& ports);
+namespace facebook::fboss {
+class HwSwitch;
 
-} // namespace facebook::fboss::utility
+namespace utility {
+
+void addPfcConfig(
+    cfg::SwitchConfig& config,
+    const HwSwitch* hwSwitch,
+    const std::vector<PortID>& ports);
+} // namespace utility
+} // namespace facebook::fboss

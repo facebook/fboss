@@ -58,7 +58,7 @@ void addProdFeaturesToConfig(
 
   if (hwAsic->isSupported(HwAsic::Feature::PFC) && mmuLossless) {
     // pfc works reliably only in mmu lossless mode
-    utility::addPfcConfig(config, ports);
+    utility::addPfcConfig(config, hwSwitch, ports);
   }
 }
 } // namespace facebook::fboss::utility

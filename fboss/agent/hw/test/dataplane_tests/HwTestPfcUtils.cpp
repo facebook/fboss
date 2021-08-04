@@ -15,13 +15,25 @@
 
 namespace facebook::fboss::utility {
 
-const std::vector<int> kLosslessPgs{0, 7};
-constexpr int kBytesInMMUCell = 254;
-constexpr int kGlobalSharedBufferCells = 100000 * kBytesInMMUCell;
-constexpr int kGlobalHeadroomBufferCells = 12432 * kBytesInMMUCell;
-constexpr int kPgMinLimitCells = 19 * kBytesInMMUCell;
-constexpr int kPgHeadroomLimitCells = 1156 * kBytesInMMUCell;
-constexpr int kPgResumeLimitCells = 19 * kBytesInMMUCell;
+std::vector<int> kLosslessPgs() {
+  return {6, 7};
+}
+
+int kPgMinLimitCells() {
+  return 19;
+}
+int kGlobalSharedBufferCells() {
+  return 100000;
+}
+int kGlobalHeadroomBufferCells() {
+  return 12432;
+}
+int kPgHeadroomLimitCells() {
+  return 1156;
+}
+int kPgResumeLimitCells() {
+  return 19;
+}
 
 void enablePfcConfig(cfg::SwitchConfig& cfg, const std::vector<PortID>& ports) {
   cfg::PortPfc pfc;
@@ -60,19 +72,19 @@ void enablePfcMapsConfig(cfg::SwitchConfig& cfg) {
   }
 }
 
-void enablePgConfigConfig(cfg::SwitchConfig& cfg) {
+void enablePgConfigConfig(cfg::SwitchConfig& cfg, const int mmuCellBytes) {
   std::vector<cfg::PortPgConfig> portPgConfigs;
   std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
-  for (const auto& pgId : kLosslessPgs) {
+  for (const auto& pgId : kLosslessPgs()) {
     cfg::PortPgConfig pgConfig;
     CHECK_LE(pgId, cfg::switch_config_constants::PORT_PG_VALUE_MAX());
     pgConfig.id_ref() = pgId;
     pgConfig.bufferPoolName_ref() = "bufferNew";
     // provide atleast 1 cell worth of minLimit
-    pgConfig.minLimitBytes_ref() = kPgMinLimitCells;
-    pgConfig.headroomLimitBytes_ref() = kPgHeadroomLimitCells;
+    pgConfig.minLimitBytes_ref() = kPgMinLimitCells() * mmuCellBytes;
+    pgConfig.headroomLimitBytes_ref() = kPgHeadroomLimitCells() * mmuCellBytes;
     pgConfig.scalingFactor_ref() = cfg::MMUScalingFactor::ONE;
-    pgConfig.resumeOffsetBytes_ref() = kPgResumeLimitCells;
+    pgConfig.resumeOffsetBytes_ref() = kPgResumeLimitCells() * mmuCellBytes;
     portPgConfigs.emplace_back(pgConfig);
   }
 
@@ -80,21 +92,25 @@ void enablePgConfigConfig(cfg::SwitchConfig& cfg) {
   cfg.portPgConfigs_ref() = portPgConfigMap;
 }
 
-void enableBufferPoolConfig(cfg::SwitchConfig& cfg) {
+void enableBufferPoolConfig(cfg::SwitchConfig& cfg, const int mmuCellBytes) {
   // create buffer pool
   std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
   cfg::BufferPoolConfig poolConfig;
-  poolConfig.sharedBytes_ref() = kGlobalSharedBufferCells;
-  poolConfig.headroomBytes_ref() = kGlobalHeadroomBufferCells;
+  poolConfig.sharedBytes_ref() = kGlobalSharedBufferCells() * mmuCellBytes;
+  poolConfig.headroomBytes_ref() = kGlobalHeadroomBufferCells() * mmuCellBytes;
   bufferPoolCfgMap.insert({"bufferNew", poolConfig});
   cfg.bufferPoolConfigs_ref() = bufferPoolCfgMap;
 }
 
-void addPfcConfig(cfg::SwitchConfig& cfg, const std::vector<PortID>& ports) {
+void addPfcConfig(
+    cfg::SwitchConfig& cfg,
+    const HwSwitch* hwSwitch,
+    const std::vector<PortID>& ports) {
+  const int mmuCellBytes = hwSwitch->getPlatform()->getMMUCellBytes();
   enablePfcConfig(cfg, ports);
   enablePfcMapsConfig(cfg);
-  enablePgConfigConfig(cfg);
-  enableBufferPoolConfig(cfg);
+  enablePgConfigConfig(cfg, mmuCellBytes);
+  enableBufferPoolConfig(cfg, mmuCellBytes);
 }
 
 }; // namespace facebook::fboss::utility

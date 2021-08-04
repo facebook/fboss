@@ -53,12 +53,12 @@ class BcmPortIngressBufferManager {
   void setPgIdListInHw(PgIdSet& newPgIdList);
   int getProgrammedPgLosslessMode(const int pgId) const;
   int getProgrammedPfcStatusInPg(const int pgId) const;
+  int getPgMinLimitBytes(const int pgId) const;
 
  private:
   /* read APIs to the BCM SDK */
   std::optional<cfg::MMUScalingFactor> getIngressAlpha(
       bcm_cos_queue_t cosq) const;
-  int getPgMinLimitBytes(bcm_cos_queue_t cosQ) const;
   int getPgResumeOffsetBytes(bcm_cos_queue_t cosQ) const;
   int getPgHeadroomLimitBytes(bcm_cos_queue_t cosQ) const;
   void programPg(const PortPgConfig* pgConfig, const int cosq);

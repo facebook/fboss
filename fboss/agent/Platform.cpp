@@ -212,4 +212,9 @@ int Platform::getLaneCount(cfg::PortProfileID profile) const {
   }
   return 1;
 }
+
+uint32_t Platform::getMMUCellBytes() const {
+  throw FbossError("MMU Cell bytes not defined for this platform");
+}
+
 } // namespace facebook::fboss

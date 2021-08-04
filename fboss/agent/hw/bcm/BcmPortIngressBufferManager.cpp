@@ -612,9 +612,9 @@ BcmPortIngressBufferManager::getIngressAlpha(bcm_cos_queue_t cosQ) const {
   return std::nullopt;
 }
 
-int BcmPortIngressBufferManager::getPgMinLimitBytes(
-    bcm_cos_queue_t cosQ) const {
+int BcmPortIngressBufferManager::getPgMinLimitBytes(const int pgId) const {
   int minBytes = 0;
+  bcm_cos_queue_t cosQ = pgId;
   readCosqTypeFromHw(
       cosQ,
       bcmCosqControlIngressPortPGMinLimitBytes,

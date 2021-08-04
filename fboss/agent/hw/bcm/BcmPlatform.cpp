@@ -51,6 +51,10 @@ void BcmPlatform::dumpHwConfig() const {
   }
 }
 
+uint32_t BcmPlatform::getMMUCellBytes() const {
+  throw FbossError("Unsupported platform for retrieving MMU cell bytes");
+}
+
 int BcmPlatform::getPortItm(BcmPort* /*bcmPort*/) const {
   throw FbossError("Unsupported platform for retrieving ITM for port");
 }

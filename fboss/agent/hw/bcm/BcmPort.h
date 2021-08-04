@@ -208,6 +208,7 @@ class BcmPort {
   const PortPgConfig& getDefaultPgSettings() const;
   const BufferPoolCfg& getDefaultIngressPoolSettings() const;
   uint8_t determinePipe() const;
+  int getPgMinLimitBytes(const int pgId) const;
 
  private:
   class BcmPortStats {

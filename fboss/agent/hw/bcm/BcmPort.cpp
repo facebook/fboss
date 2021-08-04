@@ -2400,4 +2400,8 @@ int BcmPort::getProgrammedPfcStatusInPg(const int pgId) const {
   return ingressBufferManager_->getProgrammedPfcStatusInPg(pgId);
 }
 
+int BcmPort::getPgMinLimitBytes(const int pgId) const {
+  return ingressBufferManager_->getPgMinLimitBytes(pgId);
+}
+
 } // namespace facebook::fboss

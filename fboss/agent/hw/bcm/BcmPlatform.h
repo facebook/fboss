@@ -98,7 +98,7 @@ class BcmPlatform : public Platform {
    * X bytes. Cells then serve as units of for allocation
    * and accounting of MMU resources.
    */
-  virtual uint32_t getMMUCellBytes() const = 0;
+  virtual uint32_t getMMUCellBytes() const override;
 
   virtual const PortQueue& getDefaultPortQueueSettings(
       cfg::StreamType streamType) const = 0;

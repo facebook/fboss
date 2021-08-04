@@ -279,6 +279,8 @@ class Platform {
     return false;
   }
 
+  virtual uint32_t getMMUCellBytes() const;
+
  private:
   /*
    * Subclasses can override this to do custom initialization. This is
