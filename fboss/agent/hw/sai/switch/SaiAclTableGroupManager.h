@@ -53,7 +53,6 @@ class SaiAclTableGroupManager {
       const std::string& aclTableName);
   void removeAclTableGroupMember(
       sai_acl_stage_t aclStage,
-      AclTableSaiId aclTableSaiId,
       const std::string& aclTableName);
 
   const SaiAclTableGroupHandle* FOLLY_NULLABLE

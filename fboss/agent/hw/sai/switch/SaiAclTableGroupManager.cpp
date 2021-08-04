@@ -137,13 +137,28 @@ AclTableGroupMemberSaiId SaiAclTableGroupManager::addAclTableGroupMember(
 }
 
 void SaiAclTableGroupManager::removeAclTableGroupMember(
-    sai_acl_stage_t /*aclStage*/,
-    AclTableSaiId /*aclTableSaiId*/,
-    const std::string& /*aclTableName*/) {
-  /*
-   * TODO(skhare)
-   * Remove given aclTableSaiId from group for aclStage
-   */
+    sai_acl_stage_t aclStage,
+    const std::string& aclTableName) {
+  CHECK(platform_->getAsic()->isSupported(HwAsic::Feature::ACL_TABLE_GROUP));
+  // If we attempt to remove member from a group that does not exist, fail.
+  auto aclTableGroupHandle = getAclTableGroupHandle(aclStage);
+  if (!aclTableGroupHandle) {
+    throw FbossError(
+        "attempted to remove AclTable from a group that does not exist: ",
+        aclStage);
+  }
+
+  // If we don't store a handle for this this Acl Table group member, fail to
+  // remove.
+  auto aclTableGroupMemberHandle =
+      getAclTableGroupMemberHandle(aclTableGroupHandle, aclTableName);
+  if (!aclTableGroupMemberHandle) {
+    throw FbossError(
+        "attempted to remove non-existing aclTableGroup member: ",
+        aclTableName);
+  }
+
+  aclTableGroupHandle->aclTableGroupMembers.erase(aclTableName);
 }
 
 const SaiAclTableGroupMemberHandle* FOLLY_NULLABLE
