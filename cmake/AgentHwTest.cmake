@@ -212,6 +212,7 @@ add_library(hw_switch_test
   fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTrunkLoadBalancerTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwWatermarkTests.cpp
+  fboss/agent/hw/test/dataplane_tests/HwRouteStatTests.cpp
 )
 
 target_link_libraries(hw_switch_test
