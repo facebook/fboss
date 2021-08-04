@@ -63,68 +63,16 @@ DEFINE_bool(
  *  }
  */
 bool CredoMacsecUtil::getMacsecSaFromJson(std::string saJsonFile, MKASak& sak) {
-  std::string saJsonStr;
-  bool ret = folly::readFile(saJsonFile.c_str(), saJsonStr);
-  if (!ret) {
+  bool retVal = false;
+
+  if (std::string saJsonStr; folly::readFile(saJsonFile.c_str(), saJsonStr)) {
+    sak = apache::thrift::SimpleJSONSerializer::deserialize<MKASak>(saJsonStr);
+    retVal = true;
+  } else {
     printf("SA config could not be read\n");
-    return false;
-  }
-  folly::dynamic saJsonObj = folly::parseJson(saJsonStr);
-
-  if (saJsonObj.find("assocNum") == saJsonObj.items().end()) {
-    sak.assocNum_ref() = 0;
-  } else {
-    sak.assocNum_ref() = saJsonObj["assocNum"].asInt();
   }
 
-  if (saJsonObj.find("l2Port") == saJsonObj.items().end()) {
-    printf("l2Port not present in SA config\n");
-    return false;
-  } else {
-    sak.l2Port_ref() = saJsonObj["l2Port"].asString();
-  }
-
-  if (saJsonObj.find("keyHex") == saJsonObj.items().end()) {
-    printf("keyHex not present in SA config\n");
-    return false;
-  } else {
-    sak.keyHex_ref() = saJsonObj["keyHex"].asString();
-  }
-
-  if (saJsonObj.find("keyIdHex") == saJsonObj.items().end()) {
-    printf("keyIdHex not present in SA config\n");
-    return false;
-  } else {
-    sak.keyIdHex_ref() = saJsonObj["keyIdHex"].asString();
-  }
-
-  if (saJsonObj.find("primary") == saJsonObj.items().end()) {
-    printf("primary not present in SA config\n");
-    return false;
-  } else {
-    sak.primary_ref() = saJsonObj["primary"].asBool();
-  }
-
-  if (saJsonObj.find("sci") == saJsonObj.items().end()) {
-    printf("sci not present in SA config\n");
-    return false;
-  }
-  folly::dynamic scJsonObj = saJsonObj["sci"];
-
-  if (scJsonObj.find("macAddress") == scJsonObj.items().end()) {
-    printf("macAddress not present in SA config\n");
-    return false;
-  } else {
-    sak.sci_ref()->macAddress_ref() = scJsonObj["macAddress"].asString();
-  }
-
-  if (scJsonObj.find("port") == scJsonObj.items().end()) {
-    printf("port not present in SA config\n");
-    return false;
-  } else {
-    sak.sci_ref()->port_ref() = scJsonObj["port"].asInt();
-  }
-  return true;
+  return retVal;
 }
 
 /*
@@ -137,28 +85,16 @@ bool CredoMacsecUtil::getMacsecSaFromJson(std::string saJsonFile, MKASak& sak) {
  * }
  */
 bool CredoMacsecUtil::getMacsecScFromJson(std::string scJsonFile, MKASci& sci) {
-  std::string scJsonStr;
-  bool ret = folly::readFile(scJsonFile.c_str(), scJsonStr);
-  if (!ret) {
+  bool retVal = false;
+
+  if (std::string scJsonStr; folly::readFile(scJsonFile.c_str(), scJsonStr)) {
+    sci = apache::thrift::SimpleJSONSerializer::deserialize<MKASci>(scJsonStr);
+    retVal = true;
+  } else {
     printf("SC config could not be read\n");
-    return false;
-  }
-  folly::dynamic scJsonObj = folly::parseJson(scJsonStr);
-
-  if (scJsonObj.find("port") == scJsonObj.items().end()) {
-    printf("port not present in SC config\n");
-    return false;
-  } else {
-    sci.port_ref() = scJsonObj["port"].asInt();
   }
 
-  if (scJsonObj.find("macAddress") == scJsonObj.items().end()) {
-    printf("macAddress not present in SC config\n");
-    return false;
-  } else {
-    sci.macAddress_ref() = scJsonObj["macAddress"].asString();
-  }
-  return true;
+  return retVal;
 }
 
 /*
