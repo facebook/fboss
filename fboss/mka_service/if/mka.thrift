@@ -143,6 +143,148 @@ enum MKAErrorLogType {
   MKA_SERIALIZER_ERROR = 6,
 }
 
+/*
+ * This structure will be used to return the key hash values from the
+ * interface
+ */
+struct KeyHash {
+  // The CKN is send by called (key-server) while updating the profile on
+  // interface. This will be typically the Unix timestamp when the key is
+  // created (KeyUpdate.primaryCak.ckn).
+  1: string ckn;
+  // Hashed MacSec Key, the original key cannot be extracted
+  2: string hashedKey;
+}
+
+/*
+ * Traffic policy tells about the interface macsec status - if it has active
+ * SA to encrypt/decrypt traffic or some other state
+ */
+enum TrafficPolicy {
+  // Unable to determine traffic policy (init state)
+  POLICY_UNKNOWN = 0,
+  // Profile Not set
+  POLICY_NULL = 1,
+  // allow transmit/receipt of encrypted traffic using operation SAK,
+  // block otherwise
+  POLICY_ACTIVE_SAK = 2,
+  // Allow transmit/receipt of unprotected traffic (macsec bypass)
+  POLICY_UNPROTECTED = 3,
+  // block transmit/receipt of unprotected traffic
+  POLICY_BLOCKED = 4,
+}
+
+/*
+ * This structure returns macsec profile for an interface. The profile is set
+ * by updateKey() function.
+ */
+struct InterfaceProfile {
+  // Profile Name ie: Ethernet1234 (translates to eth1/23/4)
+  1: string profileName;
+  // Primary key hash
+  2: KeyHash primaryKeyHash;
+  // Seconday key hash
+  3: KeyHash secondaryKeyHash;
+  // Fallback key hash. The fallback key will eventually point to primary
+  // or secondary key
+  4: KeyHash fallbackKeyHash;
+  // MKA timers (hello timer, life time of the key, sak timeout) in masec
+  5: mka_config.MKATimers timers;
+  // traffic policy for the profile, default to unknown
+  6: TrafficPolicy trafficPolicy = TrafficPolicy.POLICY_UNKNOWN;
+  // Cipher suite for the key
+  7: mka_config.MKACipherSuite cipherSuite;
+}
+
+/*
+ * Key Type will be used by Key Server to tell whether to program primary key
+ * or the secondary key
+ */
+enum KeyType {
+  // Primary key, this will be active
+  PRIMARY_KEY = 0,
+  // Secondary key is for backup or rollover
+  SECONDARY_KEY = 1,
+}
+
+/*
+ * Struct used to by thrift interface to update the keys for a profile. The
+ * profile is associated with a port in our implementation
+ */
+struct KeyUpdate {
+  // The profile name, this is something like Ethernet1234 which will get
+  // translated to eth1/23/4 for Fboss switch
+  1: string profileName;
+  // Key server priority
+  2: i16 priority = mka_config.DEFAULT_KEYSERVER_PRIORITY;
+  // The primary or secondary keys to use
+  3: optional mka_config.Cak primaryCak;
+  // Secondary key
+  4: optional mka_config.Cak secondaryCak;
+  // Key selector to choose primary or secondary key
+  5: KeyType keySelect = KeyType.PRIMARY_KEY;
+  // Traffic policy, Active SAK is the default/existing behavior
+  6: TrafficPolicy trafficPolicy = TrafficPolicy.POLICY_ACTIVE_SAK;
+  // Various timers (hello timer, life time of the key, sak timeout) in masec
+  // for a key
+  7: mka_config.MKATimers timers;
+  // Cipher suite for the key
+  8: mka_config.MKACipherSuite cipherSuite = mka_config.MKACipherSuite.GCM_AES_XPN_128;
+}
+
+/*
+ * Status of the macsec key for a profile. This tells whether port is using
+ * primary/fallback key or no key
+ */
+enum ProfileKeyStatus {
+  // Unable to determine what is the key status
+  KEY_UNKNOWN = 0,
+  // Profile is not attached to the interface. Hence, there is no meaningful
+  // key status
+  KEY_NO_PROFILE = 1,
+  // No key is being used
+  KEY_NONE = 2,
+  // Primary key is being used
+  KEY_PRIMARY = 3,
+  // Secondary key is being used
+  KEY_SECONDARY = 4,
+  // Fallback key is being used
+  KEY_FALLBACK = 5,
+}
+
+/*
+ * Macsec operational status of the profile on a given interface. This will
+ * translate to if Macsec is enabled or not
+ */
+enum OperStatus {
+  OPER_UNKNOWN = 0,
+  OPER_NULL = 1,
+  OPER_UP = 2,
+  OPER_DOWN = 3,
+}
+
+/*
+ * Struct returning the Macsec status of an interface
+ */
+struct EthernetStatus {
+  // Profile name associated with a port. The profile name for the interface
+  // "eth1/23/4" will be "Ethernet1234" if the macsec profile has been
+  // created/updated for it earlier
+  1: string profileName = "";
+  // Currently we support cipher suite XPN_128 and XPN_256
+  2: mka_config.MKACipherSuite cipher = mka_config.MKACipherSuite.GCM_AES_XPN_128;
+  // Macsec profile's key status
+  3: ProfileKeyStatus keyStatus = ProfileKeyStatus.KEY_UNKNOWN;
+  // Macsec operational status
+  4: OperStatus operStatus = OperStatus.OPER_UNKNOWN;
+}
+
+/*
+ * MKAService provides interface to the user or mka_service process through
+ * thrift interface. The users are key_server and other test code. The
+ * key_server will be the remote user and it will make thrift call using
+ * inband and out of band management interface.
+ */
 service MKAService extends fb303.FacebookService {
   // provisionCAK
   MKAResponse provisionCAK(1: mka_config.MKAConfig config) throws (
@@ -157,4 +299,75 @@ service MKAService extends fb303.FacebookService {
   );
 
   list<string> getActivePorts() (cpp.coroutine);
+
+  /*
+   * This function creates/updates the macsec profile on a given interface. The
+   * KeyUpdate structure contains all the information like the profile name,
+   * macsec key information etc. The port name is derived from profile name and
+   * the macsec configuration is applied there. The update of the existing
+   * profile configuration will lead to calling the create Macsec configuration
+   * with updated parameters. If the profile does not exist already then also
+   * it will lead to call for Create macsec configuration
+   */
+  void updateKey(
+    // The KeyUpdate structure for adding Macsec profile on the interface
+    1: KeyUpdate update,
+    // Hostname of the switch being queried
+    101: string targetedRouterName,
+  ) throws (
+    1: MKAServiceException error
+  );
+
+  /*
+   * This function removes the Macsec profile from a given interface. This
+   * will result in calling the delete Macsec config for a port and remove
+   * the profile from the port
+   */
+  void removeProfile(
+    // Port name, ie "eth1/23/4"
+    1: string interfaceName,
+    // Hostname of the switch being queried
+    101: string targetedRouterName,
+  ) throws (1: MKAServiceException error);
+
+  /*
+   * This function returns the interface's Macsec profile information. The
+   * returned struct contains all the Macsec config information of the profile
+   * associated with the port.
+   */
+  InterfaceProfile getProfile(
+    // Macsec profile name, ie: "Ethernet1234"
+    1: string name,
+    // Hostname of the switch being queried
+    101: string targetedRouterName,
+  ) throws (1: MKAServiceException error);
+
+  /*
+   * This function returns list of all the profiles existing on this switch.
+   * The returned map contains the Interface profile info per profile name
+   */
+  map<string, InterfaceProfile> getAllProfiles(
+    // Hostname of the switch being queried
+    101: string targetedRouterName,
+  ) throws (1: MKAServiceException error);
+
+  /*
+   * This function returns the port Macsec status for a given interface.
+   */
+  map<string, EthernetStatus> getEthernetStatus(
+    // The interface name is in format like "eth1/23/4"
+    1: string interfaceName,
+    // The target router name is the hostname of the switch running
+    // mka_service. This is just to validate the request
+    101: string targetedRouterName,
+  ) throws (1: MKAServiceException error);
+
+  /*
+   * This function returns the macsec status information of all the ports on
+   * the given switch.
+   */
+  map<string, EthernetStatus> getAllEthernetStatus(
+    // Hostname of the switch being queried
+    101: string targetedRouterName,
+  ) throws (1: MKAServiceException error);
 }
