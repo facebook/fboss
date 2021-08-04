@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <mutex>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/lib/RingBuffer-defs.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/module/ModuleStateMachine.h"
 #include "fboss/qsfp_service/module/Transceiver.h"
@@ -53,6 +54,11 @@ class QsfpModuleError : public std::exception {
  */
 class QsfpModule : public Transceiver {
  public:
+  static constexpr auto kNumCachedSnapshots = 20;
+  using TransceiverSnapshotCache =
+      RingBuffer<TransceiverInfo, kNumCachedSnapshots>;
+  using LengthAndGauge = std::pair<double, uint8_t>;
+
   explicit QsfpModule(
       TransceiverManager* transceiverManager,
       std::unique_ptr<TransceiverImpl> qsfpImpl,
@@ -195,8 +201,6 @@ class QsfpModule : public Transceiver {
    */
   std::map<int, MediaLaneSignals> readAndClearCachedMediaLaneSignals() override;
 
-  using LengthAndGauge = std::pair<double, uint8_t>;
-
   /*
    * Returns the number of host lanes. Should be overridden by the appropriate
    * module's subclass
@@ -225,6 +229,11 @@ class QsfpModule : public Transceiver {
    */
   virtual bool verifyEepromChecksums() {
     return true;
+  }
+
+  TransceiverSnapshotCache getTransceiverSnapshots() const {
+    // return a copy to avoid needing a lock in the caller
+    return snapshots_.copy();
   }
 
  protected:
@@ -256,6 +265,7 @@ class QsfpModule : public Transceiver {
    */
   uint64_t numRemediation_{0};
 
+  folly::Synchronized<TransceiverSnapshotCache> snapshots_;
   folly::Synchronized<std::optional<TransceiverInfo>> info_;
   /*
    * qsfpModuleMutex_ is held around all the read and writes to the qsfpModule

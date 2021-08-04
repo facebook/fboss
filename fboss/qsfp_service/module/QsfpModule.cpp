@@ -528,7 +528,9 @@ void QsfpModule::refreshLocked() {
   }
 
   // assign
-  *info_.wlock() = parseDataLocked();
+  auto info = parseDataLocked();
+  snapshots_.wlock()->write(info);
+  *info_.wlock() = info;
 }
 
 bool QsfpModule::shouldRemediate(time_t cooldown) {

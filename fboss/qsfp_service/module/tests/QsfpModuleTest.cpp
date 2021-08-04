@@ -515,5 +515,25 @@ TEST_F(QsfpModuleTest, writeTransceiver) {
   qsfp_->detectPresence();
   EXPECT_EQ(qsfp_->writeTransceiver(param, 0xac), false);
 }
+
+TEST_F(QsfpModuleTest, populateSnapshots) {
+  auto snapshots = qsfp_->getTransceiverSnapshots();
+  EXPECT_TRUE(snapshots.empty());
+  qsfp_->refresh();
+  snapshots = qsfp_->getTransceiverSnapshots();
+  EXPECT_FALSE(snapshots.empty());
+
+  // fill the buffer
+  for (auto i = 1; i < snapshots.maxSize(); i++) {
+    qsfp_->refresh();
+  }
+  snapshots = qsfp_->getTransceiverSnapshots();
+
+  // Verify that we stay at the max size
+  EXPECT_EQ(snapshots.size(), snapshots.maxSize());
+  qsfp_->refresh();
+  snapshots = qsfp_->getTransceiverSnapshots();
+  EXPECT_EQ(snapshots.size(), snapshots.maxSize());
+}
 } // namespace fboss
 } // namespace facebook
