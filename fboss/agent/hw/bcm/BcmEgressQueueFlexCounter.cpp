@@ -310,6 +310,15 @@ BcmEgressQueueFlexCounter::BcmEgressQueueFlexCounter(
       totalIndexes);
   XLOG(DBG1) << "Successfully created Egress Queue FlexCounter:" << counterID_
              << " for total index num:" << totalIndexes;
+#if defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_22)
+  if (!isForCPU_) {
+    rv = bcm_pktio_txpmd_stat_attach(unit_, counterID_);
+    bcmCheckError(
+        rv,
+        "Failed to attach egress queue flex counter to SOBMH packets sent from control plane");
+  }
+#endif
+
 #else
   throw FbossError(
       "Current SDK version doesn't support creating Egress Queue FlexCounter");
@@ -350,6 +359,13 @@ BcmEgressQueueFlexCounter::~BcmEgressQueueFlexCounter() {
     bcmCheckError(rv, "Failed to get gport for BCM port ", idx);
     detachFromHW(hw_->getUnit(), gPort, counterID_);
   }
+#if defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_22)
+  if (!isForCPU_) {
+    rv = bcm_pktio_txpmd_stat_detach(hw_->getUnit());
+    bcmCheckError(
+        rv, "Failed to detach egress queue flex counter from SOBMH packets");
+  }
+#endif
 #endif
 }
 
