@@ -1144,4 +1144,12 @@ bool SaiPortManager::isUp(PortSaiId saiPortId) const {
       saiPortId, SaiPortTraits::Attributes::OperStatus{});
   return adminState && (operStatus == SAI_PORT_OPER_STATUS_UP);
 }
+
+void SaiPortManager::setPtpTcEnable(bool enable) {
+  for (const auto& portIdAndHandle : handles_) {
+    portIdAndHandle.second->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::PtpMode{utility::getSaiPortPtpMode(enable)});
+  }
+}
+
 } // namespace facebook::fboss

@@ -39,7 +39,8 @@ class PortManagerTest : public ManagerTestBase {
       const PortID& swId,
       const SaiPortHandle* handle,
       bool enabled,
-      sai_uint32_t mtu = 9412) {
+      sai_uint32_t mtu = 9412,
+      bool ptpTcEnable = false) {
     // Check SaiPortApi perspective
     auto& portApi = saiApiTable->portApi();
     auto saiId = handle->port->adapterKey();
@@ -65,6 +66,13 @@ class PortManagerTest : public ManagerTestBase {
     EXPECT_EQ(mtu, gotMtu);
     ASSERT_NE(handle->serdes.get(), nullptr);
     checkPortSerdes(handle->serdes.get(), saiId);
+
+    // ptp mode
+    SaiPortTraits::Attributes::PtpMode ptpMode;
+    auto gotPtpMode = portApi.getAttribute(saiId, ptpMode);
+    EXPECT_NE(gotPtpMode, SAI_PORT_PTP_MODE_TWO_STEP_TIMESTAMP);
+    EXPECT_EQ(
+        ptpTcEnable, (gotPtpMode == SAI_PORT_PTP_MODE_SINGLE_STEP_TIMESTAMP));
   }
 
   void checkPortSerdes(SaiPortSerdes* serdes, PortSaiId portId) {
@@ -109,7 +117,8 @@ class PortManagerTest : public ManagerTestBase {
 #endif
           std::nullopt, // Ingress macsec acl
           std::nullopt, // Egress macsec acl
-          std::nullopt
+          std::nullopt, // System Port Id
+          std::nullopt // PTP Mode
     };
     return portApi.create<SaiPortTraits>(a, 0);
   }
@@ -401,4 +410,14 @@ TEST_F(PortManagerTest, swPortFromAttributes) {
   auto attrs = portMgr.attributesFromSwPort(swPort);
   auto newPort = portMgr.swPortFromAttributes(attrs);
   EXPECT_EQ(attrs, portMgr.attributesFromSwPort(newPort));
+}
+
+TEST_F(PortManagerTest, togglePtpTcEnable) {
+  std::shared_ptr<Port> swPort = makePort(p0);
+  saiManagerTable->portManager().addPort(swPort);
+  auto handle = saiManagerTable->portManager().getPortHandle(swPort->getID());
+  for (const auto ptpTcEnable : {false, true, false}) {
+    saiManagerTable->portManager().setPtpTcEnable(ptpTcEnable);
+    checkPort(swPort->getID(), handle, true, 9412, ptpTcEnable);
+  }
 }

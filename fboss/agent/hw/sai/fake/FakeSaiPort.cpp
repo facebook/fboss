@@ -47,6 +47,7 @@ sai_status_t create_port_fn(
   std::optional<sai_object_id_t> ingressMacsecAcl;
   std::optional<sai_object_id_t> egressMacsecAcl;
   std::optional<uint16_t> systemPortId;
+  std::optional<sai_port_ptp_mode_t> ptpMode;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_PORT_ATTR_ADMIN_STATE:
@@ -138,6 +139,9 @@ sai_status_t create_port_fn(
       case SAI_PORT_ATTR_EXT_FAKE_SYSTEM_PORT_ID:
         systemPortId = attr_list[i].value.u16;
         break;
+      case SAI_PORT_ATTR_PTP_MODE:
+        ptpMode = static_cast<sai_port_ptp_mode_t>(attr_list[i].value.s32);
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -188,6 +192,9 @@ sai_status_t create_port_fn(
   }
   if (systemPortId.has_value()) {
     port.systemPortId = systemPortId.value();
+  }
+  if (ptpMode.has_value()) {
+    port.ptpMode = ptpMode.value();
   }
   port.mtu = mtu;
   port.qosDscpToTcMap = qosDscpToTcMap;
@@ -342,6 +349,9 @@ sai_status_t set_port_attribute_fn(
       break;
     case SAI_PORT_ATTR_EXT_FAKE_SYSTEM_PORT_ID:
       port.systemPortId = attr->value.u16;
+      break;
+    case SAI_PORT_ATTR_PTP_MODE:
+      port.ptpMode = static_cast<sai_port_ptp_mode_t>(attr->value.s32);
       break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
@@ -503,6 +513,9 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_EXT_FAKE_SYSTEM_PORT_ID:
         attr[i].value.u16 = port.systemPortId;
+        break;
+      case SAI_PORT_ATTR_PTP_MODE:
+        attr[i].value.s32 = static_cast<int32_t>(port.ptpMode);
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

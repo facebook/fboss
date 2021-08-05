@@ -182,6 +182,7 @@ void setPortAttributes(
       case SAI_PORT_ATTR_INTERFACE_TYPE:
       case SAI_PORT_ATTR_GLOBAL_FLOW_CONTROL_MODE:
       case SAI_PORT_ATTR_PRBS_CONFIG:
+      case SAI_PORT_ATTR_PTP_MODE:
         attrLines.push_back(s32Attr(attr_list, i));
         break;
       case SAI_PORT_ATTR_PORT_VLAN_ID:

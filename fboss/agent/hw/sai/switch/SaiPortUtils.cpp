@@ -98,4 +98,10 @@ sai_port_fec_mode_t getSaiPortFecMode(phy::FecMode fec) {
   return mode;
 }
 
+sai_port_ptp_mode_t getSaiPortPtpMode(bool enable) {
+  // NOTE: SAI_PORT_PTP_MODE_TWO_STEP_TIMESTAMP is not supported
+  return enable ? SAI_PORT_PTP_MODE_SINGLE_STEP_TIMESTAMP
+                : SAI_PORT_PTP_MODE_NONE;
+}
+
 } // namespace facebook::fboss::utility

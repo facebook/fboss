@@ -45,7 +45,8 @@ class PortApiTest : public ::testing::Test {
 #endif
           std::nullopt, // Ingress macsec acl
           std::nullopt, // Egress macsec acl
-          std::nullopt
+          std::nullopt, // System Port Id
+          std::nullopt // PTP Mode
     };
     return portApi->create<SaiPortTraits>(a, 0);
   }
@@ -285,6 +286,13 @@ TEST_F(PortApiTest, setGetOptionalAttributes) {
   auto gotPrbsConfig =
       portApi->getAttribute(portId, SaiPortTraits::Attributes::PrbsConfig{});
   EXPECT_EQ(gotPrbsConfig, prbsConfig);
+
+  // PTP Mode get/set
+  int32_t saiPtpMode = SAI_PORT_PTP_MODE_NONE;
+  SaiPortTraits::Attributes::PtpMode ptpMode{saiPtpMode};
+  portApi->setAttribute(portId, ptpMode);
+  auto gotPtpMode = portApi->getAttribute(portId, ptpMode);
+  EXPECT_EQ(gotPtpMode, saiPtpMode);
 }
 
 // ObjectApi tests

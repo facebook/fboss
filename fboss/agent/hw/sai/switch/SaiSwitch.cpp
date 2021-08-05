@@ -676,13 +676,25 @@ void SaiSwitch::processSwitchSettingsChangedLocked(
         newSwitchSettings->getL2LearningMode());
   }
 
-  const auto oldVal = oldSwitchSettings->getL2AgeTimerSeconds();
-  const auto newVal = newSwitchSettings->getL2AgeTimerSeconds();
-  if (oldVal != newVal) {
-    XLOG(DBG3) << "Configuring l2AgeTimerSeconds old: "
-               << static_cast<int>(oldVal)
-               << " new: " << static_cast<int>(newVal);
-    managerTable_->switchManager().setMacAgingSeconds(newVal);
+  {
+    const auto oldVal = oldSwitchSettings->getL2AgeTimerSeconds();
+    const auto newVal = newSwitchSettings->getL2AgeTimerSeconds();
+    if (oldVal != newVal) {
+      XLOG(DBG3) << "Configuring l2AgeTimerSeconds old: "
+                 << static_cast<int>(oldVal)
+                 << " new: " << static_cast<int>(newVal);
+      managerTable_->switchManager().setMacAgingSeconds(newVal);
+    }
+  }
+
+  {
+    const auto oldVal = oldSwitchSettings->isPtpTcEnable();
+    const auto newVal = newSwitchSettings->isPtpTcEnable();
+    if (oldVal != newVal) {
+      XLOG(DBG3) << "Configuring ptpTcEnable old: " << oldVal
+                 << " new: " << newVal;
+      managerTable_->portManager().setPtpTcEnable(newVal);
+    }
   }
 }
 

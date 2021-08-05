@@ -166,6 +166,8 @@ class SaiPortManager {
 
   bool isUp(PortSaiId saiPortId) const;
 
+  void setPtpTcEnable(bool enable);
+
  private:
   void addRemovedHandle(PortID portID);
   void removeRemovedHandleIf(PortID portID);

@@ -57,6 +57,7 @@ struct FakePort {
   sai_object_id_t ingressMacsecAcl{SAI_NULL_OBJECT_ID};
   sai_object_id_t egressMacsecAcl{SAI_NULL_OBJECT_ID};
   uint16_t systemPortId{0};
+  sai_port_ptp_mode_t ptpMode{SAI_PORT_PTP_MODE_NONE};
 };
 
 struct FakePortSerdes {

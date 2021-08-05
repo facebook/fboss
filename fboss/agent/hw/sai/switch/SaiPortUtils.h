@@ -30,6 +30,8 @@ sai_port_media_type_t getSaiPortMediaType(
 
 sai_port_fec_mode_t getSaiPortFecMode(phy::FecMode fec);
 
+sai_port_ptp_mode_t getSaiPortPtpMode(bool enable);
+
 cfg::PortLoopbackMode getCfgPortInternalLoopbackMode(
     sai_port_internal_loopback_mode_t mode);
 

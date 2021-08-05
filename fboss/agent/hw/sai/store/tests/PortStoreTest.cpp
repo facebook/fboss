@@ -39,7 +39,8 @@ class PortStoreTest : public SaiStoreTest {
 #endif
           std::nullopt, // Ingress macsec acl
           std::nullopt, // Egress macsec acl
-          std::nullopt
+          std::nullopt, // System Port Id
+          std::nullopt // PTP Mode
     };
   }
 
@@ -242,4 +243,21 @@ TEST_F(PortStoreTest, serDeserStore) {
 TEST_F(PortStoreTest, toStrStore) {
   std::ignore = createPort(0);
   verifyToStr<SaiPortTraits>();
+}
+
+TEST_F(PortStoreTest, portSetPtpMode) {
+  auto portId = createPort(0);
+  SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);
+  EXPECT_EQ(
+      GET_OPT_ATTR(Port, PtpMode, portObj.attributes()),
+      SAI_PORT_PTP_MODE_NONE);
+  auto newAttrs = makeAttrs(0, 25000);
+  constexpr sai_uint32_t kPtpMode{SAI_PORT_PTP_MODE_SINGLE_STEP_TIMESTAMP};
+  std::get<std::optional<SaiPortTraits::Attributes::PtpMode>>(newAttrs) =
+      kPtpMode;
+  portObj.setAttributes(newAttrs);
+  EXPECT_EQ(GET_OPT_ATTR(Port, PtpMode, portObj.attributes()), kPtpMode);
+  auto apiPtpMode = saiApiTable->portApi().getAttribute(
+      portId, SaiPortTraits::Attributes::PtpMode{});
+  EXPECT_EQ(apiPtpMode, kPtpMode);
 }

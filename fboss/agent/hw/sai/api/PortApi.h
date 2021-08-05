@@ -169,6 +169,11 @@ struct SaiPortTraits {
     };
     using SystemPortId =
         SaiExtensionAttribute<sai_uint16_t, AttributeSystemPortId>;
+    using PtpMode = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_PTP_MODE,
+        sai_int32_t,
+        SaiIntDefault<sai_int32_t>>;
   };
   using AdapterKey = PortSaiId;
   using AdapterHostKey = Attributes::HwLaneList;
@@ -198,7 +203,8 @@ struct SaiPortTraits {
 #endif
       std::optional<Attributes::IngressMacSecAcl>,
       std::optional<Attributes::EgressMacSecAcl>,
-      std::optional<Attributes::SystemPortId>>;
+      std::optional<Attributes::SystemPortId>,
+      std::optional<Attributes::PtpMode>>;
 
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
@@ -258,6 +264,7 @@ SAI_ATTRIBUTE_NAME(Port, PrbsRxState)
 SAI_ATTRIBUTE_NAME(Port, IngressMacSecAcl)
 SAI_ATTRIBUTE_NAME(Port, EgressMacSecAcl)
 SAI_ATTRIBUTE_NAME(Port, SystemPortId)
+SAI_ATTRIBUTE_NAME(Port, PtpMode)
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};
