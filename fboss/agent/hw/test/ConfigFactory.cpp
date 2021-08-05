@@ -72,7 +72,7 @@ bool isRswPlatform(PlatformMode mode) {
       PlatformMode::WEDGE100,
       PlatformMode::WEDGE400,
       PlatformMode::WEDGE400C};
-  return rswPlatforms.find(mode) == rswPlatforms.end();
+  return rswPlatforms.find(mode) != rswPlatforms.end();
 }
 } // unnamed namespace
 
@@ -615,7 +615,7 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
    * config factory utility to generate the config, update the port
    * speed and return the config.
    */
-  if (isRswPlatform(platform->getMode())) {
+  if (!isRswPlatform(platform->getMode())) {
     auto config =
         utility::onePortPerVlanConfig(hwSwitch, masterLogicalPortIds, lbMode);
     for (auto portId : masterLogicalPortIds) {

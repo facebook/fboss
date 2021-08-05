@@ -67,6 +67,11 @@ class HwProdInvariantsTest : public HwLinkStateDependentTest {
   std::unique_ptr<HwProdInvariantHelper> prodInvariants_;
 };
 
+TEST_F(HwProdInvariantsTest, verifyInvariants) {
+  verifyAcrossWarmBoots(
+      []() {}, [this]() { verifyInvariants(getInvariantOptions()); });
+}
+
 class HwProdInvariantsRswTest : public HwProdInvariantsTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
@@ -80,6 +85,11 @@ class HwProdInvariantsRswTest : public HwProdInvariantsTest {
   }
 };
 
+TEST_F(HwProdInvariantsRswTest, verifyInvariants) {
+  auto verify = [this]() { this->verifyInvariants(getInvariantOptions()); };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
+
 class HwProdInvariantsFswTest : public HwProdInvariantsTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
@@ -92,6 +102,11 @@ class HwProdInvariantsFswTest : public HwProdInvariantsTest {
     return (COPP_INVARIANT | OLYMPIC_QOS_INVARIANT | LOAD_BALANCER_INVARIANT);
   }
 };
+
+TEST_F(HwProdInvariantsFswTest, verifyInvariants) {
+  auto verify = [this]() { this->verifyInvariants(getInvariantOptions()); };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
 
 class HwProdInvariantsRswMhnicTest : public HwProdInvariantsTest {};
 
@@ -149,11 +164,6 @@ class HwProdInvariantsMmuLosslessTest : public HwProdInvariantsTest {
  private:
   std::unique_ptr<HwProdInvariantHelper> prodInvariants_;
 };
-
-TEST_F(HwProdInvariantsTest, verifyInvariants) {
-  verifyAcrossWarmBoots(
-      []() {}, [this]() { verifyInvariants(getInvariantOptions()); });
-}
 
 // validate that running there are no discards during line rate run
 // of traffic while doing warm boot
