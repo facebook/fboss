@@ -209,6 +209,8 @@ void BcmSwitchEnsemble::init(
       platform->getAsic()->isSupported(HwAsic::Feature::PFC)) {
     XLOG(INFO) << "Modify the bcm cfg as mmu_lossless mode is enabled";
     cfg["mmu_lossless"] = "0x2";
+    cfg["buf.mqueue.guarantee.0"] = "0C";
+    cfg["mmu_config_override"] = "0";
   }
   if (FLAGS_load_qcm_fw &&
       platform->getAsic()->isSupported(HwAsic::Feature::QCM)) {

@@ -667,4 +667,11 @@ void BcmCosQueueManager::getCosQueueGportsFromHw() {
              << ", multicast: " << cosQueueGports_.multicast.size();
 }
 
+int BcmCosQueueManager::getReservedBytes(
+    cfg::StreamType streamType,
+    bcm_gport_t gport,
+    const bcm_cos_queue_t cosQ) {
+  return getControlValue(
+      streamType, gport, cosQ, BcmCosQueueControlType::RESERVED_BYTES);
+}
 } // namespace facebook::fboss

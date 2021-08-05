@@ -96,6 +96,9 @@ class BcmControlPlane {
       int unit,
       bcm_rx_cosq_mapping_t* rx_cosq_mapping);
 
+  int getReservedBytes(const bcm_cos_queue_t queueId);
+  int getCPUQueues();
+
  private:
   // no copy or assignment
   BcmControlPlane(BcmControlPlane const&) = delete;

@@ -136,6 +136,12 @@ ControlPlane::RxReasonToQueue BcmControlPlane::getRxReasonToQueue() const {
   return reasonToQueue;
 }
 
+int BcmControlPlane::getReservedBytes(const bcm_cos_queue_t queueId) {
+  // cpu queues are mcast
+  return queueManager_->getReservedBytes(
+      cfg::StreamType::MULTICAST, gport_, queueId);
+}
+
 void BcmControlPlane::setReasonToQueueEntry(
     int index,
     cfg::PacketRxReasonToQueue entry) {
@@ -263,6 +269,10 @@ void BcmControlPlane::setupIngressQosPolicy(
 void BcmControlPlane::updateQueueCounters(HwPortStats* portStats) {
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   queueManager_->updateQueueStats(now, portStats);
+}
+
+int BcmControlPlane::getCPUQueues() {
+  return queueManager_->getNumQueues(cfg::StreamType::MULTICAST);
 }
 
 // wrapper for bcm_rx_cosq_mapping_extended_get

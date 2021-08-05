@@ -70,6 +70,11 @@ class BcmCosQueueManager {
 
   virtual int getNumQueues(cfg::StreamType streamType) const = 0;
 
+  int getReservedBytes(
+      cfg::StreamType streamType,
+      bcm_gport_t gport,
+      const bcm_cos_queue_t cosQ);
+
   bcm_cos_queue_t getCosQueue(cfg::StreamType streamType, bcm_gport_t gport)
       const;
 
