@@ -67,8 +67,7 @@ void verifyPhyPortConfig(
 }
 
 void verifyPhyPortConnector(PortID portID, HwQsfpEnsemble* qsfpEnsemble) {
-  if (qsfpEnsemble->getWedgeManager()->getPlatformMode() !=
-      PlatformMode::ELBERT) {
+  if (!qsfpEnsemble->isSaiPlatform()) {
     return;
   }
 

@@ -76,6 +76,8 @@ class HwQsfpEnsemble {
   }
   void setupForWarmboot() const;
 
+  bool isSaiPlatform() const;
+
  private:
   bool hasWarmbootCapability() const;
   std::shared_ptr<QsfpServiceHandler> qsfpServiceHandler_;

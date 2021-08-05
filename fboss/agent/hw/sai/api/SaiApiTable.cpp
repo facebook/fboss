@@ -245,6 +245,14 @@ const LagApi& SaiApiTable::lagApi() const {
   return getApi<LagApi>();
 }
 
+MacsecApi& SaiApiTable::macsecApi() {
+  return getApi<MacsecApi>();
+}
+
+const MacsecApi& SaiApiTable::macsecApi() const {
+  return getApi<MacsecApi>();
+}
+
 void SaiApiTable::enableLogging(const std::string& logLevelStr) const {
   auto logLevel = saiLogLevelFromString(logLevelStr);
   for (uint32_t api = SAI_API_UNSPECIFIED; api < SAI_API_MAX; api++) {

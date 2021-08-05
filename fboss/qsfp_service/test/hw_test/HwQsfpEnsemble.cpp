@@ -87,4 +87,12 @@ bool HwQsfpEnsemble::isXphyPlatform() const {
   return xphyPlatforms.find(getWedgeManager()->getPlatformMode()) !=
       xphyPlatforms.end();
 }
+
+bool HwQsfpEnsemble::isSaiPlatform() const {
+  static const std::set<PlatformMode> saiPlatforms = {
+      PlatformMode::ELBERT, PlatformMode::CLOUDRIPPER};
+
+  return saiPlatforms.find(getWedgeManager()->getPlatformMode()) !=
+      saiPlatforms.end();
+}
 } // namespace facebook::fboss
