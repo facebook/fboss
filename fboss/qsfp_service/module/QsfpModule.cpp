@@ -109,6 +109,7 @@ QsfpModule::QsfpModule(
 
 QsfpModule::~QsfpModule() {
   // The transceiver has been removed
+  lock_guard<std::mutex> g(qsfpModuleMutex_);
   opticsModuleStateMachine_.process_event(MODULE_EVENT_OPTICS_REMOVED);
 }
 
@@ -800,6 +801,7 @@ void QsfpModule::scheduleAgentPortSyncupTimeout() {
   // Schedule a function to do bring up / remediate after some time
   opticsMsmFunctionScheduler_.addFunctionOnce(
       [&]() {
+        lock_guard<std::mutex> g(qsfpModuleMutex_);
         // Trigger the timeout event to MSM
         opticsModuleStateMachine_.process_event(
             MODULE_EVENT_AGENT_SYNC_TIMEOUT);
@@ -844,6 +846,7 @@ void QsfpModule::scheduleBringupRemediateFunction() {
   // Schedule a function to do bring up / remediate after some time
   opticsMsmFunctionScheduler_.addFunctionOnce(
       [&]() {
+        lock_guard<std::mutex> g(qsfpModuleMutex_);
         if (opticsModuleStateMachine_.get_attribute(moduleBringupDone)) {
           // Do the remediate function second time onwards
           opticsModuleStateMachine_.process_event(MODULE_EVENT_REMEDIATE_DONE);
