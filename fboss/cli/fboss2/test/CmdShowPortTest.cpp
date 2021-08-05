@@ -10,6 +10,7 @@
 
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
 #include "fboss/cli/fboss2/commands/show/port/gen-cpp2/model_types.h"
+#include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 
 using namespace ::testing;
 
@@ -45,28 +46,30 @@ std::map<int32_t, facebook::fboss::PortInfoThrift> createPortEntries() {
   portEntry3.speedMbps_ref() = 100000;
   portEntry3.profileID_ref() = "PROFILE_100G_4_NRZ_CL91_COPPER";
 
-
   portMap[portEntry1.get_portId()] = portEntry1;
   portMap[portEntry2.get_portId()] = portEntry2;
   portMap[portEntry3.get_portId()] = portEntry3;
   return portMap;
 }
 
-class CmdShowPortTestFixture : public testing::Test {
+class CmdShowPortTestFixture : public CmdHandlerTestBase {
  public:
   std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries;
-  folly::IPAddressV4 hostIp;
 
   void SetUp() override {
+    CmdHandlerTestBase::SetUp();
     portEntries = createPortEntries();
-    hostIp = folly::IPAddressV4::tryFromString("127.0.0.1").value();
   }
 };
 
-TEST_F(CmdShowPortTestFixture, createModel) {
+TEST_F(CmdShowPortTestFixture, queryClient) {
+  setupMockedAgentServer();
+  EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
+      .WillOnce(Invoke([&](auto& entries) { entries = portEntries; }));
+
   auto cmd = CmdShowPort();
   CmdShowPortTraits::ObjectArgType queriedEntries;
-  auto model = cmd.createModel(portEntries, queriedEntries);
+  auto model = cmd.queryClient(localhost(), queriedEntries);
   auto entries = model.get_portEntries();
 
   EXPECT_EQ(entries.size(), 3);
@@ -93,7 +96,6 @@ TEST_F(CmdShowPortTestFixture, createModel) {
   EXPECT_EQ(entries[2].get_profileId(), "PROFILE_100G_4_NRZ_CL91_COPPER");
 }
 
-
 TEST_F(CmdShowPortTestFixture, printOutput) {
   auto cmd = CmdShowPort();
   CmdShowPortTraits::ObjectArgType queriedEntries;
@@ -104,14 +106,12 @@ TEST_F(CmdShowPortTestFixture, printOutput) {
 
   std::string output = ss.str();
   std::string expectOutput =
-" ID  Name      AdminState  LinkState  Speed  ProfileID                      \n"
-"-----------------------------------------------------------------------------------\n"
-" 1   eth1/5/1  Enabled     Down       100G   PROFILE_100G_4_NRZ_CL91_COPPER \n"
-" 2   eth1/5/2  Disabled    Down       25G    PROFILE_25G_1_NRZ_CL74_COPPER  \n"
-" 3   eth1/5/3  Enabled     Up         100G   PROFILE_100G_4_NRZ_CL91_COPPER \n\n";
+      " ID  Name      AdminState  LinkState  Speed  ProfileID                      \n"
+      "-----------------------------------------------------------------------------------\n"
+      " 1   eth1/5/1  Enabled     Down       100G   PROFILE_100G_4_NRZ_CL91_COPPER \n"
+      " 2   eth1/5/2  Disabled    Down       25G    PROFILE_25G_1_NRZ_CL74_COPPER  \n"
+      " 3   eth1/5/3  Enabled     Up         100G   PROFILE_100G_4_NRZ_CL91_COPPER \n\n";
   EXPECT_EQ(output, expectOutput);
 }
-
-
 
 } // namespace facebook::fboss

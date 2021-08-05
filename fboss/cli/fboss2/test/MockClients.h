@@ -10,6 +10,7 @@
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 
 #include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
 namespace facebook::fboss {
 using namespace ::testing;
@@ -24,5 +25,8 @@ class MockFbossCtrlAgent : public FbossCtrlSvIf {
       void,
       getArpTable,
       (std::vector<facebook::fboss::ArpEntryThrift>&));
+
+  using PortInfoMap = std::map<int, facebook::fboss::PortInfoThrift>&;
+  MOCK_METHOD(void, getAllPortInfo, (PortInfoMap));
 };
 } // namespace facebook::fboss
