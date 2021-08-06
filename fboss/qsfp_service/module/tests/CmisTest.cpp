@@ -430,4 +430,24 @@ TEST(CmisTest, testOpticsRemoval) {
   EXPECT_EQ(CurrState, 0);
 }
 
+TEST(Cmis400GLr4Test, transceiverInfoTest) {
+  int idx = 1;
+  std::unique_ptr<Cmis400GLr4Transceiver> qsfpImpl =
+      std::make_unique<Cmis400GLr4Transceiver>(idx);
+
+  std::unique_ptr<CmisModule> xcvr =
+      std::make_unique<CmisModule>(nullptr, std::move(qsfpImpl), 4);
+  xcvr->refresh();
+
+  TransceiverInfo info = xcvr->getTransceiverInfo();
+
+  TransceiverTestsHelper tests(info);
+
+  tests.verifyVendorName("FACETEST");
+  for (auto& media : *info.settings_ref()->mediaInterface_ref()) {
+    EXPECT_EQ(
+        media.media_ref()->get_smfCode(), SMFMediaInterfaceCode::LR4_10_400G);
+  }
+}
+
 } // namespace
