@@ -3534,9 +3534,17 @@ int BcmCinter::bcm_vlan_control_vlan_set(
     int unit,
     bcm_vlan_t vlan,
     bcm_vlan_control_vlan_t control) {
-  vector<string> cint = {
-      to<string>("vlan_ctrl.ingress_if = ", control.ingress_if)};
+  vector<string> cint;
   auto funcCint = wrapFunc(to<string>(
+      "bcm_vlan_control_vlan_get(",
+      makeParamStr(unit, vlan, "&vlan_ctrl"),
+      ")"));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(funcCint.begin()),
+      make_move_iterator(funcCint.end()));
+  cint.emplace_back(to<string>("vlan_ctrl.ingress_if = ", control.ingress_if));
+  funcCint = wrapFunc(to<string>(
       "bcm_vlan_control_vlan_set(",
       makeParamStr(unit, vlan, "vlan_ctrl"),
       ")"));
