@@ -43,8 +43,12 @@ TEST_F(HwTest, CheckDefaultXphyFirmwareVersion) {
       desiredFw.version_ref() = 0xD006;
       desiredFw.crc_ref() = 0x77265d92;
       break;
-    case PlatformMode::MINIPACK:
     case PlatformMode::CLOUDRIPPER:
+      desiredFw.version_ref() = 1;
+      desiredFw.versionStr_ref() = "1.92";
+      desiredFw.minorVersion_ref() = 92;
+      break;
+    case PlatformMode::MINIPACK:
     case PlatformMode::YAMP:
       throw FbossError(
           "Fill in desired f/w version for: ", toString(platformMode));
