@@ -75,6 +75,10 @@ enum class SffField {
   TXRX_OUTPUT_CONTROL,
   EXTENDED_SPECIFICATION_COMPLIANCE,
 
+  PAGE0_CSUM,
+  PAGE0_EXTCSUM,
+  PAGE1_CSUM,
+
   // SFP-specific Fields
   /* 0xA0 Address Fields */
   EXT_IDENTIFIER, // Extended type of transceiver

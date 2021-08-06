@@ -66,6 +66,12 @@ class SffModule : public QsfpModule {
    */
   unsigned int numMediaLanes() const override;
 
+  /*
+   * This function veifies the Module eeprom register checksum for various
+   * pages.
+   */
+  bool verifyEepromChecksums() override;
+
  protected:
   // no copy or assignment
   SffModule(SffModule const&) = delete;
@@ -314,6 +320,11 @@ class SffModule : public QsfpModule {
    * Determine set speed of enabled member ports.
    */
   cfg::PortSpeed getPortSpeed() const;
+
+  /*
+   * This function veifies the Module eeprom register checksum for a given page
+   */
+  bool verifyEepromChecksum(int pageId);
 
   std::map<uint32_t, PortStatus> ports_;
   unsigned int portsPerTransceiver_{0};

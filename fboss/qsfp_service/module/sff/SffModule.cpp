@@ -90,12 +90,14 @@ static SffFieldInfo::SffFieldMap qsfpFields = {
     {SffField::VENDOR_OUI, {SffPages::PAGE0, 165, 3}},
     {SffField::PART_NUMBER, {SffPages::PAGE0, 168, 16}},
     {SffField::REVISION_NUMBER, {SffPages::PAGE0, 184, 2}},
+    {SffField::PAGE0_CSUM, {SffPages::PAGE0, 191, 1}},
     {SffField::EXTENDED_SPECIFICATION_COMPLIANCE, {SffPages::PAGE0, 192, 1}},
     {SffField::OPTIONS, {SffPages::PAGE0, 195, 1}},
     {SffField::VENDOR_SERIAL_NUMBER, {SffPages::PAGE0, 196, 16}},
     {SffField::MFG_DATE, {SffPages::PAGE0, 212, 8}},
     {SffField::DIAGNOSTIC_MONITORING_TYPE, {SffPages::PAGE0, 220, 1}},
     {SffField::ENHANCED_OPTIONS, {SffPages::PAGE0, 221, 1}},
+    {SffField::PAGE0_EXTCSUM, {SffPages::PAGE0, 223, 1}},
 
     // These are custom fields FB gets cable vendors to populate.
     // TODO: add support for turning off these fields via a command-line flag
@@ -122,6 +124,29 @@ static SffFieldMultiplier qsfpMultiplier = {
     {SffField::LENGTH_OM1, 1},
     {SffField::LENGTH_COPPER, 1},
     {SffField::LENGTH_COPPER_DECIMETERS, 0.1},
+};
+
+constexpr uint8_t kPage0CsumRangeStart = 128;
+constexpr uint8_t kPage0CsumRangeLength = 63;
+constexpr uint8_t kPage0ExtCsumRangeStart = 192;
+constexpr uint8_t kPage0ExtCsumRangeLength = 31;
+
+struct checksumInfoStruct {
+  uint8_t checksumRangeStartOffset;
+  uint8_t checksumRangeStartLength;
+  SffField checksumValOffset;
+};
+
+static std::map<int, std::vector<checksumInfoStruct>> checksumInfoSff = {
+    {
+        SffPages::PAGE0,
+        {
+            {kPage0CsumRangeStart, kPage0CsumRangeLength, SffField::PAGE0_CSUM},
+            {kPage0ExtCsumRangeStart,
+             kPage0ExtCsumRangeLength,
+             SffField::PAGE0_EXTCSUM},
+        },
+    },
 };
 
 void getQsfpFieldAddress(
@@ -1221,6 +1246,100 @@ void SffModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
 
   lastCustomizeTime_ = std::time(nullptr);
   needsCustomization_ = false;
+}
+
+/*
+ * verifyEepromChecksums
+ *
+ * This function verifies the module's eeprom register checksum in various
+ * pages. For SFF8636 module the checksums are kept in 2 pages:
+ *   Page 0: Register 191 contains checksum for values in register 128 to 190
+ *   Page 0: Register 223 contains checksum for values in register 192 to 222
+ *   Page 1: Register 128 contains checksum for values in register 129 to 255
+ * These checksums are 8 bit sum of all the 8 bit values
+ */
+bool SffModule::verifyEepromChecksums() {
+  bool rc = true;
+  // Verify checksum for all pages
+  for (auto& csumInfoIt : checksumInfoSff) {
+    // For flat memory module, check for page 0 only
+    if (flatMem_ && csumInfoIt.first != SffPages::PAGE0) {
+      continue;
+    }
+    rc |= verifyEepromChecksum(csumInfoIt.first);
+  }
+  XLOG(INFO) << folly::sformat(
+      "Module {} EEPROM Checksum {:s}",
+      qsfpImpl_->getName(),
+      rc ? "Passed" : "Failed");
+  return rc;
+}
+
+/*
+ * verifyEepromChecksums
+ *
+ * This function verifies the module's eeprom register checksum for a given
+ * page. The checksum is 8 bit sum of all the 8 bit values in range of
+ * registers
+ */
+bool SffModule::verifyEepromChecksum(int pageId) {
+  int offset;
+  int length;
+  int dataAddress;
+  const uint8_t* data;
+  uint8_t checkSum, expectedChecksum;
+
+  // Return false if the registers are not cached yet (this is not expected)
+  if (!cacheIsValid()) {
+    XLOG(INFO) << folly::sformat(
+        "Module {} can't do eeprom checksum as the register cache is not populated",
+        qsfpImpl_->getName());
+    return false;
+  }
+  // Return false if we don't know range of registers to validate the checksum
+  // on this page
+  if (checksumInfoSff.find(pageId) == checksumInfoSff.end()) {
+    XLOG(INFO) << folly::sformat(
+        "Module {} can't do eeprom checksum for page {:d}",
+        qsfpImpl_->getName(),
+        pageId);
+    return false;
+  }
+
+  // Get the range of registers, compute checksum and compare
+  for (auto& csumRange : checksumInfoSff[pageId]) {
+    dataAddress = pageId;
+    offset = csumRange.checksumRangeStartOffset;
+    length = csumRange.checksumRangeStartLength;
+    data = getQsfpValuePtr(dataAddress, offset, length);
+
+    checkSum = 0;
+    for (int i = 0; i < length; i++) {
+      checkSum += data[i];
+    }
+
+    getQsfpFieldAddress(
+        csumRange.checksumValOffset, dataAddress, offset, length);
+    data = getQsfpValuePtr(dataAddress, offset, length);
+    expectedChecksum = data[0];
+
+    if (checkSum != expectedChecksum) {
+      XLOG(ERR) << folly::sformat(
+          "Module {}: Page {:d}: expected checksum {:#x}, actual {:#x}",
+          qsfpImpl_->getName(),
+          pageId,
+          expectedChecksum,
+          checkSum);
+      return false;
+    } else {
+      XLOG(INFO) << folly::sformat(
+          "Module {}: Page {:d}: checksum verified successfully {:#x}",
+          qsfpImpl_->getName(),
+          pageId,
+          checkSum);
+    }
+  }
+  return true;
 }
 
 } // namespace fboss
