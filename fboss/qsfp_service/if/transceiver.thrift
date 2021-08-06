@@ -183,6 +183,7 @@ enum SMFMediaInterfaceCode {
   CWDM4_100G = 0x10,
   FR4_200G = 0x18,
   FR4_400G = 0x1D,
+  LR4_10_400G = 0x1E,
 }
 
 union MediaInterfaceUnion {

@@ -266,7 +266,8 @@ static CmisFieldMultiplier qsfpMultiplier = {
 static SpeedApplicationMapping speedApplicationMapping = {
     {cfg::PortSpeed::HUNDREDG, {SMFMediaInterfaceCode::CWDM4_100G}},
     {cfg::PortSpeed::TWOHUNDREDG, {SMFMediaInterfaceCode::FR4_200G}},
-    {cfg::PortSpeed::FOURHUNDREDG, {SMFMediaInterfaceCode::FR4_400G}},
+    {cfg::PortSpeed::FOURHUNDREDG,
+     {SMFMediaInterfaceCode::FR4_400G, SMFMediaInterfaceCode::LR4_10_400G}},
 };
 
 constexpr uint8_t kPage0CsumRangeStart = 128;
