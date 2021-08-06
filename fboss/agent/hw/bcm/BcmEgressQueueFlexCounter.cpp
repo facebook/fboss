@@ -310,7 +310,7 @@ BcmEgressQueueFlexCounter::BcmEgressQueueFlexCounter(
       totalIndexes);
   XLOG(DBG1) << "Successfully created Egress Queue FlexCounter:" << counterID_
              << " for total index num:" << totalIndexes;
-#if defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_22)
+#if !defined(IS_OPENNSA) && defined(BCM_SDK_VERSION_GTE_6_5_22)
   if (!isForCPU_) {
     rv = bcm_pktio_txpmd_stat_attach(unit_, counterID_);
     bcmCheckError(
@@ -359,7 +359,7 @@ BcmEgressQueueFlexCounter::~BcmEgressQueueFlexCounter() {
     bcmCheckError(rv, "Failed to get gport for BCM port ", idx);
     detachFromHW(hw_->getUnit(), gPort, counterID_);
   }
-#if defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_22)
+#if !defined(IS_OPENNSA) && defined(BCM_SDK_VERSION_GTE_6_5_22)
   if (!isForCPU_) {
     rv = bcm_pktio_txpmd_stat_detach(hw_->getUnit());
     bcmCheckError(
