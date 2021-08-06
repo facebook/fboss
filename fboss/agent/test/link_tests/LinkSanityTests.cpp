@@ -11,6 +11,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/test/HwTestEcmpUtils.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
+#include "fboss/mka_service/if/gen-cpp2/mka_config_constants.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 
 using namespace ::testing;
@@ -153,6 +154,7 @@ TEST_F(LinkTest, setupMkaSession) {
       evbThread.reset();
     };
     auto ckn = "2b7e151628aed2a6abf7158809cf4f3c";
+    auto priority = mka_config_constants::DEFAULT_KEYSERVER_PRIORITY();
     for (auto port : {port, *neighborPort}) {
       MKAConfig config;
       config.l2Port_ref() = folly::to<std::string>(port);
@@ -161,6 +163,8 @@ TEST_F(LinkTest, setupMkaSession) {
       config.srcMac_ref() = sw()->getPlatform()->getLocalMac().toString();
       config.primaryCak_ref()->key_ref() = "135bd758b0ee5c11c55ff6ab19fdb199";
       config.primaryCak_ref()->ckn_ref() = ckn;
+      // Different priorities to allow for key server election
+      config.priority_ref() = priority--;
       auto result = folly::coro::blockingWait(client->co_provisionCAK(config));
       ASSERT_EQ(result, MKAResponse::SUCCESS);
     }
