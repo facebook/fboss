@@ -264,9 +264,9 @@ static CmisFieldMultiplier qsfpMultiplier = {
 };
 
 static SpeedApplicationMapping speedApplicationMapping = {
-    {cfg::PortSpeed::HUNDREDG, SMFMediaInterfaceCode::CWDM4_100G},
-    {cfg::PortSpeed::TWOHUNDREDG, SMFMediaInterfaceCode::FR4_200G},
-    {cfg::PortSpeed::FOURHUNDREDG, SMFMediaInterfaceCode::FR4_400G},
+    {cfg::PortSpeed::HUNDREDG, {SMFMediaInterfaceCode::CWDM4_100G}},
+    {cfg::PortSpeed::TWOHUNDREDG, {SMFMediaInterfaceCode::FR4_200G}},
+    {cfg::PortSpeed::FOURHUNDREDG, {SMFMediaInterfaceCode::FR4_400G}},
 };
 
 constexpr uint8_t kPage0CsumRangeStart = 128;
@@ -1394,6 +1394,16 @@ void CmisModule::updateQsfpData(bool allPages) {
 void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
   auto applicationIter = speedApplicationMapping.find(speed);
 
+  if (applicationIter == speedApplicationMapping.end()) {
+    XLOG(INFO) << folly::sformat(
+        "Port {:s} Unsupported Speed.", qsfpImpl_->getName());
+    throw FbossError(folly::to<std::string>(
+        "Port: ",
+        qsfpImpl_->getName(),
+        " Unsupported speed: ",
+        apache::thrift::util::enumNameSafe(speed)));
+  }
+
   // Currently we will have the same application across all the lanes. So here
   // we only take one of them to look at.
   uint8_t currentApplicationSel =
@@ -1424,107 +1434,104 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
       qsfpImpl_->getName(),
       currentApplication);
 
-  if (static_cast<uint8_t>(applicationIter->second) == currentApplication) {
-    XLOG(INFO) << folly::sformat(
-        "Port {:s} speed matches. Doing nothing.", qsfpImpl_->getName());
-    return;
-  } else if (applicationIter == speedApplicationMapping.end()) {
-    XLOG(INFO) << folly::sformat(
-        "Port {:s} Unsupported Speed.", qsfpImpl_->getName());
-    throw FbossError(folly::to<std::string>(
-        "Port: ",
-        qsfpImpl_->getName(),
-        " Unsupported speed: ",
-        apache::thrift::util::enumNameSafe(speed)));
-  }
+  // Loop through all the applications that we support for the given speed and
+  // check if any of those are present in the moduleCapabilities. We configure
+  // the first application that both we support and the module supports
+  for (auto application : applicationIter->second) {
+    // If the currently configured application is the same as what we are trying
+    // to configure, then skip the configuration
+    if (static_cast<uint8_t>(application) == currentApplication) {
+      XLOG(INFO) << folly::sformat(
+          "Port {:s} speed matches. Doing nothing.", qsfpImpl_->getName());
+      return;
+    }
 
-  auto capabilityIter =
-      moduleCapabilities_.find(static_cast<uint8_t>(applicationIter->second));
+    auto capabilityIter =
+        moduleCapabilities_.find(static_cast<uint8_t>(application));
 
-  if (capabilityIter == moduleCapabilities_.end()) {
-    XLOG(INFO) << folly::sformat(
-        "Port {:s} Unsupported Application", qsfpImpl_->getName());
-    throw FbossError(folly::to<std::string>(
-        "Port: ",
-        qsfpImpl_->getName(),
-        " Unsupported Application by the module: ",
-        applicationIter->second));
-  } else if (capabilityIter->second.ApSelCode == currentApplicationSel) {
-    // There shouldn't be a valid path to get here. But just to be safe, having
-    // another check here.
-    throw FbossError(folly::to<std::string>(
-        "Port: ",
-        qsfpImpl_->getName(),
-        " confused about the application settings, currentApplicationSel: ",
-        currentApplicationSel,
-        ". Trying to switch to ",
-        capabilityIter->second.ApSelCode));
-  }
+    // Check if the module supports the application
+    if (capabilityIter == moduleCapabilities_.end()) {
+      continue;
+    }
 
-  // Flip to page 0x10 to get prepared.
-  uint8_t page = 0x10;
-  qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
-
-  // In 400G-FR4 case we will have 8 host lanes instead of 4. Further more,
-  // we need to deactivate all the lanes when we switch to an application with
-  // a different lane count. CMIS4.0-8.8.4
-  getQsfpFieldAddress(CmisField::DATA_PATH_DEINIT, dataAddress, offset, length);
-  uint8_t dataPathDeInit = 0xff;
-  qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, offset, length, &dataPathDeInit);
-  /* sleep override */
-  usleep(kUsecBetweenLaneInit);
-
-  // Currently we will have only one data path and apply the default settings.
-  // So assume the lower four bits are all zero here. CMIS4.0-8.7.3
-  uint8_t newApSelCode = capabilityIter->second.ApSelCode << 4;
-
-  // Update the numHostLanes and numMediaLanes of the module.
-  numHostLanes_ = capabilityIter->second.hostLaneCount;
-  numMediaLanes_ = capabilityIter->second.mediaLaneCount;
-
-  XLOG(INFO) << folly::sformat(
-      "Port {:s} newApSelCode: {:#x}", qsfpImpl_->getName(), newApSelCode);
-
-  getQsfpFieldAddress(CmisField::APP_SEL_LANE_1, dataAddress, offset, length);
-
-  for (int channel = 0; channel < numHostLanes(); channel++) {
-    // For now we don't have complicated lane assignment. Either using first
-    // four lanes for 100G/200G or all eight lanes for 400G.
-    uint8_t laneApSelCode =
-        (channel < capabilityIter->second.hostLaneCount) ? newApSelCode : 0;
+    // Flip to page 0x10 to get prepared.
+    uint8_t page = 0x10;
     qsfpImpl_->writeTransceiver(
-        TransceiverI2CApi::ADDR_QSFP,
-        offset + channel,
-        sizeof(laneApSelCode),
-        &laneApSelCode);
-  }
+        TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
 
-  uint8_t applySet0 = (capabilityIter->second.hostLaneCount == 8) ? 0xff : 0x0f;
+    // In 400G-FR4 case we will have 8 host lanes instead of 4. Further more,
+    // we need to deactivate all the lanes when we switch to an application with
+    // a different lane count. CMIS4.0-8.8.4
+    getQsfpFieldAddress(
+        CmisField::DATA_PATH_DEINIT, dataAddress, offset, length);
+    uint8_t dataPathDeInit = 0xff;
+    qsfpImpl_->writeTransceiver(
+        TransceiverI2CApi::ADDR_QSFP, offset, length, &dataPathDeInit);
+    /* sleep override */
+    usleep(kUsecBetweenLaneInit);
 
-  getQsfpFieldAddress(CmisField::STAGE_CTRL_SET_0, dataAddress, offset, length);
-  qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, offset, sizeof(applySet0), &applySet0);
+    // Currently we will have only one data path and apply the default settings.
+    // So assume the lower four bits are all zero here. CMIS4.0-8.7.3
+    uint8_t newApSelCode = capabilityIter->second.ApSelCode << 4;
 
-  XLOG(INFO) << folly::sformat(
-      "Port: {:s} set application to {:#x}",
-      qsfpImpl_->getName(),
-      capabilityIter->first);
+    // Update the numHostLanes and numMediaLanes of the module.
+    numHostLanes_ = capabilityIter->second.hostLaneCount;
+    numMediaLanes_ = capabilityIter->second.mediaLaneCount;
 
-  // Release the lanes from DeInit.
-  getQsfpFieldAddress(CmisField::DATA_PATH_DEINIT, dataAddress, offset, length);
-  dataPathDeInit = 0x0;
-  qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, offset, length, &dataPathDeInit);
+    XLOG(INFO) << folly::sformat(
+        "Port {:s} newApSelCode: {:#x}", qsfpImpl_->getName(), newApSelCode);
 
-  // Check if the config has been applied correctly or not
-  if (!checkLaneConfigError()) {
-    XLOG(ERR) << folly::sformat(
-        "Port: {:s} application {:#x} could not be set",
+    getQsfpFieldAddress(CmisField::APP_SEL_LANE_1, dataAddress, offset, length);
+
+    for (int channel = 0; channel < numHostLanes(); channel++) {
+      // For now we don't have complicated lane assignment. Either using first
+      // four lanes for 100G/200G or all eight lanes for 400G.
+      uint8_t laneApSelCode =
+          (channel < capabilityIter->second.hostLaneCount) ? newApSelCode : 0;
+      qsfpImpl_->writeTransceiver(
+          TransceiverI2CApi::ADDR_QSFP,
+          offset + channel,
+          sizeof(laneApSelCode),
+          &laneApSelCode);
+    }
+
+    uint8_t applySet0 =
+        (capabilityIter->second.hostLaneCount == 8) ? 0xff : 0x0f;
+
+    getQsfpFieldAddress(
+        CmisField::STAGE_CTRL_SET_0, dataAddress, offset, length);
+    qsfpImpl_->writeTransceiver(
+        TransceiverI2CApi::ADDR_QSFP, offset, sizeof(applySet0), &applySet0);
+
+    XLOG(INFO) << folly::sformat(
+        "Port: {:s} set application to {:#x}",
         qsfpImpl_->getName(),
         capabilityIter->first);
+
+    // Release the lanes from DeInit.
+    getQsfpFieldAddress(
+        CmisField::DATA_PATH_DEINIT, dataAddress, offset, length);
+    dataPathDeInit = 0x0;
+    qsfpImpl_->writeTransceiver(
+        TransceiverI2CApi::ADDR_QSFP, offset, length, &dataPathDeInit);
+
+    // Check if the config has been applied correctly or not
+    if (!checkLaneConfigError()) {
+      XLOG(ERR) << folly::sformat(
+          "Port: {:s} application {:#x} could not be set",
+          qsfpImpl_->getName(),
+          capabilityIter->first);
+    }
+    // Done with application configuration
+    return;
   }
+  // We didn't find an application that both we support and the module supports
+  XLOG(INFO) << folly::sformat(
+      "Port {:s} Unsupported Application", qsfpImpl_->getName());
+  throw FbossError(folly::to<std::string>(
+      "Port: ",
+      qsfpImpl_->getName(),
+      " Unsupported Application by the module: "));
 }
 
 /*

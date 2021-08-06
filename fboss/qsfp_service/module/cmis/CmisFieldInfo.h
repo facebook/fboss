@@ -260,7 +260,8 @@ typedef std::map<CmisField, std::uint32_t> CmisFieldMultiplier;
 // of the APPLICATION_ADVERTISING field, as Application ID here, which is the
 // code from Table4-7 SM media interface codes in Sff-8024.
 
-using SpeedApplicationMapping = std::map<cfg::PortSpeed, SMFMediaInterfaceCode>;
+using SpeedApplicationMapping =
+    std::map<cfg::PortSpeed, std::vector<SMFMediaInterfaceCode>>;
 
 } // namespace fboss
 } // namespace facebook
