@@ -17,7 +17,9 @@
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/SwitchState.h"
 
 DEFINE_double(
     mka_reconnect_timer,
@@ -94,18 +96,37 @@ void MKAServiceManager::recvPacket(TPacket&& packet) {
     return;
   }
   PortID port;
+  VlanID vlan;
   try {
     port = PortID(folly::to<uint16_t>(*packet.l2Port_ref()));
+    vlan = swSwitch_->getState()
+               ->getPorts()
+               ->getPort(port)
+               ->getVlans()
+               .begin()
+               ->first;
   } catch (const std::exception& ex) {
     XLOG(ERR) << "Invalid MkPdu Port:  " << ex.what();
     return;
   }
-  auto txPkt = swSwitch_->allocatePacket(packet.buf_ref()->size());
-  folly::io::RWPrivateCursor cursor(txPkt->buf());
-  cursor.push(
+
+  auto txPkt =
+      swSwitch_->allocatePacket(packet.buf_ref()->size() + 4 /*802.1q header*/);
+  auto mkPduBuffer = folly::IOBuf::wrapBuffer(
       reinterpret_cast<const uint8_t*>(packet.buf_ref()->data()),
       packet.buf_ref()->size());
+  folly::io::Cursor mkPduCursor(mkPduBuffer.get());
+  auto dstMac = PktUtil::readMac(&mkPduCursor);
+  auto srcMac = PktUtil::readMac(&mkPduCursor);
+  auto mkEtherType = mkPduCursor.readBE<uint16_t>();
 
+  folly::io::RWPrivateCursor cursor(txPkt->buf());
+  TxPacket::writeEthHeader(&cursor, dstMac, srcMac, vlan, mkEtherType);
+
+  cursor.push(
+      mkPduCursor,
+      packet.buf_ref()->size() -
+          14 /*dmac + smac + ethertype written as part of eth header above*/);
   PortStats* stats = swSwitch_->portStats(port);
   CHECK_STATS(stats, stats->MKAServiceRecvSuccess());
   try {
