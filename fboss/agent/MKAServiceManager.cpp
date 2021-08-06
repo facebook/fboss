@@ -19,6 +19,7 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/SwitchState.h"
 
 DEFINE_double(
@@ -130,7 +131,8 @@ void MKAServiceManager::recvPacket(TPacket&& packet) {
   PortStats* stats = swSwitch_->portStats(port);
   CHECK_STATS(stats, stats->MKAServiceRecvSuccess());
   try {
-    swSwitch_->sendPacketOutOfPortAsync(std::move(txPkt), port);
+    swSwitch_->sendNetworkControlPacketAsync(
+        std::move(txPkt), PortDescriptor(port));
     CHECK_STATS(stats, stats->MkPduSendPkt());
   } catch (const std::exception& ex) {
     XLOG(ERR) << "Failed to MkPdu Packet to the switch, port:"
