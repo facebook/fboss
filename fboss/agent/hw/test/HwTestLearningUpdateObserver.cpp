@@ -87,4 +87,16 @@ HwTestLearningUpdateObserver::waitForLearningUpdates(
   return data_;
 }
 
+HwTestLearningUpdateAutoObserver::HwTestLearningUpdateAutoObserver(
+    HwSwitchEnsemble* ensemble)
+    : ensemble_(ensemble) {
+  reset();
+  startObserving(ensemble_);
+}
+
+HwTestLearningUpdateAutoObserver::~HwTestLearningUpdateAutoObserver() {
+  stopObserving();
+  ensemble_->removeHwEventObserver(this);
+}
+
 } // namespace facebook::fboss

@@ -47,4 +47,13 @@ class HwTestLearningUpdateObserver
   folly::EventBase applyStateUpdateEventBase_;
 };
 
+class HwTestLearningUpdateAutoObserver : public HwTestLearningUpdateObserver {
+ public:
+  explicit HwTestLearningUpdateAutoObserver(HwSwitchEnsemble* ensemble);
+  ~HwTestLearningUpdateAutoObserver();
+
+ private:
+  HwSwitchEnsemble* ensemble_;
+};
+
 } // namespace facebook::fboss

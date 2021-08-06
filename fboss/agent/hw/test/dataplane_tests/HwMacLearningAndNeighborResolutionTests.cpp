@@ -13,6 +13,7 @@
 #include "fboss/agent/GtestDefs.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
+#include "fboss/agent/hw/test/HwTestLearningUpdateObserver.h"
 #include "fboss/agent/hw/test/HwTestMacUtils.h"
 #include "fboss/agent/hw/test/HwTestNeighborUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
@@ -111,15 +112,23 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
     applyNewState(utility::enableTrunkPorts(this->getProgrammedState()));
   }
 
-  void learnMacAndProgramNeighbors(
-      PortDescriptor port,
-      std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
+  void learnMac(PortDescriptor port, bool wait = false) {
+    HwTestLearningUpdateAutoObserver observer(this->getHwSwitchEnsemble());
     bringUpPorts(physicalPortsFor(port));
     bringDownPorts(physicalPortsExcluding(port));
 
     // Disable aging, so entry stays in L2 table when we verify.
     utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), 0);
     triggerMacLearning(port);
+    if (wait) {
+      observer.waitForLearningUpdates(1, 1);
+    }
+  }
+
+  void learnMacAndProgramNeighbors(
+      PortDescriptor port,
+      std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
+    learnMac(port);
     programNeighbors(port, lookupClass);
   }
   void updateMacEntry(std::optional<cfg::AclLookupClass> lookupClass) {
@@ -143,12 +152,13 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
     removeNeighbor(neighborAddr<folly::IPAddressV6>());
   }
 
- private:
-  std::vector<PortID> allConfigPorts() const {
-    auto masterLogicalPorts = masterLogicalPortIds();
-    return std::vector<PortID>(
-        masterLogicalPorts.begin(), masterLogicalPorts.begin() + 4);
+  void programNeighbors(
+      PortDescriptor port,
+      std::optional<cfg::AclLookupClass> lookupClass) {
+    programNeighbor(port, neighborAddr<folly::IPAddressV4>(), lookupClass);
+    programNeighbor(port, neighborAddr<folly::IPAddressV6>(), lookupClass);
   }
+
   std::vector<PortID> physicalPortsFor(PortDescriptor port) const {
     if (!port.isAggregatePort()) {
       return {port.phyPortID()};
@@ -170,12 +180,13 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
     return otherPorts;
   }
 
-  void programNeighbors(
-      PortDescriptor port,
-      std::optional<cfg::AclLookupClass> lookupClass) {
-    programNeighbor(port, neighborAddr<folly::IPAddressV4>(), lookupClass);
-    programNeighbor(port, neighborAddr<folly::IPAddressV6>(), lookupClass);
+ private:
+  std::vector<PortID> allConfigPorts() const {
+    auto masterLogicalPorts = masterLogicalPortIds();
+    return std::vector<PortID>(
+        masterLogicalPorts.begin(), masterLogicalPorts.begin() + 4);
   }
+
   void triggerMacLearning(PortDescriptor port) {
     auto phyPort = *physicalPortsFor(port).begin();
     auto vlanID =
@@ -363,6 +374,32 @@ TYPED_TEST(
     program(this->portDescriptor2());
   };
   auto verify = [this]() { this->verifyForwarding(); };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(
+    HwMacLearningAndNeighborResolutionTest,
+    learnMacLinkDownNeighborResolve) {
+  if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+  }
+
+  auto program = [this](auto port) {
+    this->learnMac(port, true /* wait */);
+    this->bringDownPorts(this->physicalPortsFor(port));
+    this->bringUpPorts(this->physicalPortsFor(port));
+  };
+
+  auto setup = [this, program]() {
+    auto port = this->portDescriptor();
+    program(port);
+    this->programNeighbors(port, kLookupClass);
+  };
+
+  auto verify = [this]() { this->verifyForwarding(); };
+
   this->verifyAcrossWarmBoots(setup, verify);
 }
 } // namespace facebook::fboss

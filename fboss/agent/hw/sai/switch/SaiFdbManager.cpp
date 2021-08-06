@@ -154,9 +154,7 @@ void ManagedFdbEntry::update(const std::shared_ptr<MacEntry>& updated) {
   }
   CHECK_EQ(mac_, updated->getMac());
   auto fdbEntry = getSaiObject();
-  if (!fdbEntry) {
-    return;
-  }
+  CHECK(fdbEntry != nullptr) << "updating non-programmed fdb entry";
   fdbEntry->setAttribute(SaiFdbTraits::Attributes::Type(
       updated->getType() == MacEntryType::STATIC_ENTRY
           ? SAI_FDB_ENTRY_TYPE_STATIC
@@ -218,16 +216,21 @@ void SaiFdbManager::changeMac(
     const std::shared_ptr<MacEntry>& newEntry) {
   if (*oldEntry != *newEntry) {
     CHECK_EQ(oldEntry->getMac(), newEntry->getMac());
-    if (oldEntry->getPort() != newEntry->getPort()) {
+    auto newIntfId = getInterfaceId(newEntry);
+    auto key =
+        PublisherKey<SaiFdbTraits>::custom_type{newIntfId, newEntry->getMac()};
+    auto iter = managedFdbEntries_.find(key);
+    CHECK(iter != managedFdbEntries_.end())
+        << "updating non-existing mac entry";
+
+    if (oldEntry->getPort() != newEntry->getPort() ||
+        !iter->second->isAlive()) {
       removeMac(oldEntry);
       addMac(newEntry);
     } else {
       XLOGF(INFO, "Change fdb entry {}, {}", oldEntry->str(), newEntry->str());
-      auto newIntfId = getInterfaceId(newEntry);
-      auto key = PublisherKey<SaiFdbTraits>::custom_type{
-          newIntfId, newEntry->getMac()};
       try {
-        managedFdbEntries_.find(key)->second->update(newEntry);
+        iter->second->update(newEntry);
       } catch (const SaiApiError& e) {
         // For change of MAC entry there is a possibility that the
         // previous entry was dynamic and got aged out
