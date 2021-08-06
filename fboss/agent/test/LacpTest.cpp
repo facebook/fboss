@@ -959,7 +959,7 @@ void selfInteroperabilityHelper(
   // cross the boundary for wait time and now rx should expire
   period = (rate == cfg::LacpPortRate::SLOW)
       ? PeriodicTransmissionMachine::LONG_PERIOD * 2
-      : PeriodicTransmissionMachine::SHORT_PERIOD * 2;
+      : PeriodicTransmissionMachine::SHORT_PERIOD * 3;
   std::this_thread::sleep_for(period);
   ASSERT_NE(duEventInterceptor.lastActorStateTransmitted(duPort), state);
   ASSERT_NE(uuEventInterceptor.lastActorStateTransmitted(uuPort), state);
