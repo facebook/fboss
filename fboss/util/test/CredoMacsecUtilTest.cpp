@@ -34,8 +34,7 @@ void CredoMacsecUtilTest::TearDown() {}
 
 TEST_F(CredoMacsecUtilTest, getMacsecSaFromJsonTest) {
   const std::string jsonTestFile =
-      std::filesystem::temp_directory_path().string() + "/" +
-      "getMacsecSaFromJsonTest";
+      tmpDir.path().string() + "/getMacsecSaFromJsonTest";
   int fd = folly::openNoInt(jsonTestFile.c_str(), O_CREAT | O_RDWR | O_TRUNC);
   ASSERT_NE(fd, -1);
 
@@ -69,8 +68,7 @@ TEST_F(CredoMacsecUtilTest, getMacsecSaFromJsonTest) {
 
 TEST_F(CredoMacsecUtilTest, getMacsecScFromJsonTest) {
   const std::string jsonTestFile =
-      std::filesystem::temp_directory_path().string() + "/" +
-      "getMacsecScFromJsonTest";
+      tmpDir.path().string() + "/getMacsecScFromJsonTest";
   int fd = folly::openNoInt(jsonTestFile.c_str(), O_CREAT | O_RDWR | O_TRUNC);
   ASSERT_NE(fd, -1);
 

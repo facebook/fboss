@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <folly/experimental/TestUtil.h>
 #include <gtest/gtest.h>
 #include <memory>
 #include <utility>
@@ -16,6 +17,8 @@ class CredoMacsecUtilTest : public ::testing::Test {
 
   void SetUp() override;
   void TearDown() override;
+
+  folly::test::TemporaryDirectory tmpDir = folly::test::TemporaryDirectory();
 
  private:
   // Forbidden copy constructor and assignment operator
