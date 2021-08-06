@@ -520,9 +520,6 @@ class QsfpModule : public Transceiver {
   unsigned int portsPerTransceiver_{0};
   unsigned int moduleResetCounter_{0};
 
-  unsigned int numHostLanes_{4};
-  unsigned int numMediaLanes_{4};
-
   // Due to the mismatch of ODS reporting frequency and the interval of us
   // reading transceiver data, some of the clear on read information may
   // be lost in this process and not being captured in the ODS time series.

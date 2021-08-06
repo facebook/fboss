@@ -615,14 +615,24 @@ bool CmisModule::getHostLaneSettings(
 }
 
 unsigned int CmisModule::numHostLanes() const {
-  return numHostLanes_;
+  auto application = static_cast<uint8_t>(getSmfMediaInterface());
+  auto capabilityIter = moduleCapabilities_.find(application);
+  if (capabilityIter == moduleCapabilities_.end()) {
+    return 4;
+  }
+  return capabilityIter->second.hostLaneCount;
 }
 
 unsigned int CmisModule::numMediaLanes() const {
-  return numMediaLanes_;
+  auto application = static_cast<uint8_t>(getSmfMediaInterface());
+  auto capabilityIter = moduleCapabilities_.find(application);
+  if (capabilityIter == moduleCapabilities_.end()) {
+    return 4;
+  }
+  return capabilityIter->second.mediaLaneCount;
 }
 
-SMFMediaInterfaceCode CmisModule::getSmfMediaInterface() {
+SMFMediaInterfaceCode CmisModule::getSmfMediaInterface() const {
   uint8_t currentApplicationSel =
       getSettingsValue(CmisField::ACTIVE_CTRL_LANE_1, APP_SEL_MASK);
   // The application sel code is at the higher four bits of the field.
@@ -1475,20 +1485,19 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
     // So assume the lower four bits are all zero here. CMIS4.0-8.7.3
     uint8_t newApSelCode = capabilityIter->second.ApSelCode << 4;
 
-    // Update the numHostLanes and numMediaLanes of the module.
-    numHostLanes_ = capabilityIter->second.hostLaneCount;
-    numMediaLanes_ = capabilityIter->second.mediaLaneCount;
-
     XLOG(INFO) << folly::sformat(
         "Port {:s} newApSelCode: {:#x}", qsfpImpl_->getName(), newApSelCode);
 
     getQsfpFieldAddress(CmisField::APP_SEL_LANE_1, dataAddress, offset, length);
+    // We can't use numHostLanes() to get the hostLaneCount here since that
+    // function relies on the configured application select but at this point
+    // appSel hasn't been updated.
+    auto hostLanes = capabilityIter->second.hostLaneCount;
 
-    for (int channel = 0; channel < numHostLanes(); channel++) {
+    for (int channel = 0; channel < hostLanes; channel++) {
       // For now we don't have complicated lane assignment. Either using first
       // four lanes for 100G/200G or all eight lanes for 400G.
-      uint8_t laneApSelCode =
-          (channel < capabilityIter->second.hostLaneCount) ? newApSelCode : 0;
+      uint8_t laneApSelCode = (channel < hostLanes) ? newApSelCode : 0;
       qsfpImpl_->writeTransceiver(
           TransceiverI2CApi::ADDR_QSFP,
           offset + channel,
@@ -1496,8 +1505,7 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
           &laneApSelCode);
     }
 
-    uint8_t applySet0 =
-        (capabilityIter->second.hostLaneCount == 8) ? 0xff : 0x0f;
+    uint8_t applySet0 = (hostLanes == 8) ? 0xff : 0x0f;
 
     getQsfpFieldAddress(
         CmisField::STAGE_CTRL_SET_0, dataAddress, offset, length);
