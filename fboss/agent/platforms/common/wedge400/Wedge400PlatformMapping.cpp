@@ -3574,48 +3574,112 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC0",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC0",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC0",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC0",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC0",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC0",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC0",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC0",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   }
                 ],
@@ -4049,48 +4113,112 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC2",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC2",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC2",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC2",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC2",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC2",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC2",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC2",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   }
                 ],
@@ -7708,48 +7836,112 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC4",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC4",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC4",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC4",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC4",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC4",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC4",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC4",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   }
                 ],
@@ -8183,48 +8375,112 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC6",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC6",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC6",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC6",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC6",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC6",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC6",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC6",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   }
                 ],
@@ -9372,67 +9628,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "24": {
-              "subsumedPorts": [
-                45,
-                46,
-                47
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC9",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC9",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC9",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC9",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/22",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/22",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/22",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/22",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "25": {
               "subsumedPorts": [
                 45,
                 46,
@@ -11145,67 +11340,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "25": {
-              "subsumedPorts": [
-                53,
-                54,
-                55
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC11",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC11",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC11",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC11",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/24",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/24",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/24",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/24",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -11964,48 +12098,112 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC8",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC8",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC8",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC8",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC8",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC8",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC8",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC8",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   }
                 ],
@@ -12439,48 +12637,112 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC10",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC10",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC10",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC10",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC10",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC10",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC10",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC10",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   }
                 ],
@@ -16066,48 +16328,112 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC12",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC12",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC12",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC12",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC12",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC12",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC12",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC12",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   }
                 ],
@@ -16509,48 +16835,112 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC14",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC14",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC14",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 128,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC14",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC14",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC14",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC14",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC14",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     }
                   }
                 ],
@@ -18614,67 +19004,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "25": {
-              "subsumedPorts": [
-                89,
-                90,
-                91
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC19",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC19",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC19",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC19",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/35",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/35",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/35",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/35",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -19351,67 +19680,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "24": {
-              "subsumedPorts": [
-                93,
-                94,
-                95
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC19",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC19",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC19",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC19",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/36",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/36",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/36",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/36",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "25": {
               "subsumedPorts": [
                 93,
                 94,
@@ -20258,48 +20526,112 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC16",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC16",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC16",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC16",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC16",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC16",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC16",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC16",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     }
                   }
                 ],
@@ -20701,48 +21033,112 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC18",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC18",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC18",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC18",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC18",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC18",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC18",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC18",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     }
                   }
                 ],
@@ -21094,67 +21490,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "24": {
-              "subsumedPorts": [
-                101,
-                102,
-                103
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC20",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC20",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC20",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC20",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/41",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/41",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/41",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/41",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "25": {
               "subsumedPorts": [
                 101,
                 102,
@@ -23663,67 +23998,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "25": {
-              "subsumedPorts": [
-                113,
-                114,
-                115
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC22",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC22",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC22",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC22",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/44",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/44",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/44",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/44",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -24482,48 +24756,112 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC21",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC21",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC21",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC21",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC21",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC21",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC21",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC21",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   }
                 ],
@@ -24957,48 +25295,112 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC23",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC23",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC23",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC23",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC23",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC23",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC23",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC23",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   }
                 ],
@@ -27858,67 +28260,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "25": {
-              "subsumedPorts": [
-                133,
-                134,
-                135
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC26",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC26",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC26",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC26",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/48",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/48",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/48",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/48",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -28677,48 +29018,112 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC25",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC25",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC25",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC25",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC25",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC25",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC25",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC25",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   }
                 ],
@@ -29152,48 +29557,112 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC27",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC27",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 128,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC27",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC27",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC27",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC27",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC27",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC27",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   }
                 ],
@@ -30341,67 +30810,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "24": {
-              "subsumedPorts": [
-                145,
-                146,
-                147
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC28",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC28",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC28",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC28",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/38",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/38",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/38",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/38",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "25": {
               "subsumedPorts": [
                 145,
                 146,
@@ -32114,67 +32522,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "25": {
-              "subsumedPorts": [
-                153,
-                154,
-                155
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC30",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC30",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC30",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC30",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/40",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/40",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/40",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/40",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -32933,48 +33280,112 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC29",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC29",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC29",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC29",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC29",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC29",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC29",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC29",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   }
                 ],
@@ -33408,48 +33819,112 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC31",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC31",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC31",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC31",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC31",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC31",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC31",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC31",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0
                     }
                   }
                 ],
