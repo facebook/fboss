@@ -81,7 +81,15 @@ class HwProdInvariantsRswTest : public HwProdInvariantsTest {
   }
 
   HwInvariantBitmask getInvariantOptions() const override {
-    return (COPP_INVARIANT | OLYMPIC_QOS_INVARIANT | LOAD_BALANCER_INVARIANT);
+    auto hwAsic = getHwSwitch()->getPlatform()->getAsic();
+    HwInvariantBitmask bitmask = COPP_INVARIANT;
+    if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
+      bitmask |= OLYMPIC_QOS_INVARIANT;
+    }
+    if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
+      bitmask |= LOAD_BALANCER_INVARIANT;
+    }
+    return bitmask;
   }
 };
 
@@ -99,7 +107,15 @@ class HwProdInvariantsFswTest : public HwProdInvariantsTest {
   }
 
   HwInvariantBitmask getInvariantOptions() const override {
-    return (COPP_INVARIANT | OLYMPIC_QOS_INVARIANT | LOAD_BALANCER_INVARIANT);
+    auto hwAsic = getHwSwitch()->getPlatform()->getAsic();
+    HwInvariantBitmask bitmask = COPP_INVARIANT;
+    if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
+      bitmask |= OLYMPIC_QOS_INVARIANT;
+    }
+    if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
+      bitmask |= LOAD_BALANCER_INVARIANT;
+    }
+    return bitmask;
   }
 };
 

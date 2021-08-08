@@ -93,6 +93,41 @@ uint16_t uplinksCountFromSwitch(const HwSwitch* hwSwitch) {
   }
 }
 
+cfg::PortSpeed getPortSpeed(const HwSwitch* hwSwitch) {
+  auto hwAsicType = hwSwitch->getPlatform()->getAsic()->getAsicType();
+  auto platformMode = hwSwitch->getPlatform()->getMode();
+  cfg::PortSpeed portSpeed = cfg::PortSpeed::DEFAULT;
+
+  switch (hwAsicType) {
+    case HwAsic::AsicType::ASIC_TYPE_TRIDENT2:
+      portSpeed = cfg::PortSpeed::FORTYG;
+      break;
+    default:
+      portSpeed = cfg::PortSpeed::HUNDREDG;
+      break;
+  }
+
+  // override speed for certain platforms based on the
+  // mode of the asic
+  switch (platformMode) {
+    case PlatformMode::FUJI:
+    case PlatformMode::ELBERT:
+      portSpeed = cfg::PortSpeed::TWOHUNDREDG;
+      break;
+    default:
+      /* do nothing */
+      break;
+  }
+  if (portSpeed == cfg::PortSpeed::DEFAULT) {
+    throw FbossError(
+        "port speed not set for asic: ",
+        hwAsicType,
+        " platform mode: ",
+        platformMode);
+  }
+  return portSpeed;
+}
+
 /*
  * Creates and returns a SwitchConfig which is as close to what you would find
  * in a production RSW as possible. If more features are desired, they can be
@@ -108,8 +143,10 @@ cfg::SwitchConfig createProdRswConfig(
   auto hwAsic = platform->getAsic();
 
   auto numUplinks = uplinksCountFromSwitch(hwSwitch);
-  auto uplinkSpeed = cfg::PortSpeed::HUNDREDG;
-  auto downlinkSpeed = cfg::PortSpeed::XG;
+
+  // its the same speed used for the uplink and downlink for now
+  auto uplinkSpeed = getPortSpeed(hwSwitch);
+  auto downlinkSpeed = getPortSpeed(hwSwitch);
 
   // Create initial config to which we can add the rest of the features.
   auto config = createUplinkDownlinkConfig(
@@ -121,9 +158,14 @@ cfg::SwitchConfig createProdRswConfig(
       cfg::PortLoopbackMode::MAC);
 
   addCpuQueueConfig(config, hwAsic);
-  addOlympicQosToConfig(config, hwSwitch);
+
+  if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
+    addOlympicQosToConfig(config, hwSwitch);
+  }
   setDefaultCpuTrafficPolicyConfig(config, hwAsic);
-  addLoadBalancerToConfig(config, hwSwitch, LBHash::FULL_HASH);
+  if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
+    addLoadBalancerToConfig(config, hwSwitch, LBHash::FULL_HASH);
+  }
 
   return config;
 }
@@ -140,15 +182,9 @@ cfg::SwitchConfig createProdFswConfig(
 
   auto numUplinks = uplinksCountFromSwitch(hwSwitch);
 
-  using cfg::PortSpeed;
-  auto uplinkSpeed = PortSpeed::HUNDREDG;
-  auto downlinkSpeed = PortSpeed::HUNDREDG;
-
-  auto pMode = platform->getMode();
-  if (pMode == PlatformMode::FUJI || pMode == PlatformMode::ELBERT) {
-    uplinkSpeed = PortSpeed::TWOHUNDREDG;
-    downlinkSpeed = PortSpeed::TWOHUNDREDG;
-  }
+  // its the same speed used for the uplink and downlink for now
+  auto uplinkSpeed = getPortSpeed(hwSwitch);
+  auto downlinkSpeed = getPortSpeed(hwSwitch);
 
   auto config = createUplinkDownlinkConfig(
       hwSwitch,
@@ -159,10 +195,13 @@ cfg::SwitchConfig createProdFswConfig(
       cfg::PortLoopbackMode::MAC);
 
   addCpuQueueConfig(config, hwAsic);
-  addOlympicQosToConfig(config, hwSwitch);
+  if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
+    addOlympicQosToConfig(config, hwSwitch);
+  }
   setDefaultCpuTrafficPolicyConfig(config, hwAsic);
-  addLoadBalancerToConfig(config, hwSwitch, LBHash::HALF_HASH);
-
+  if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
+    addLoadBalancerToConfig(config, hwSwitch, LBHash::HALF_HASH);
+  }
   return config;
 }
 
