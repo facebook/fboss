@@ -11,7 +11,6 @@
 
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
-#include "fboss/agent/platforms/wedge/facebook/ExternalPhyPlatform.h"
 #include "fboss/agent/platforms/wedge/facebook/elbert/ElbertPlatform.h"
 #include "fboss/agent/platforms/wedge/facebook/fuji/FujiPlatform.h"
 #include "fboss/agent/platforms/wedge/facebook/minipack/MinipackPlatform.h"
