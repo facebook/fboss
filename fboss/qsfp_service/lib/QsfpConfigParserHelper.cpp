@@ -29,18 +29,20 @@ bool overrideFactorMatchFound(
 
 std::optional<RxEqualizerSettings> cmisRxEqualizerSettingOverride(
     const cfg::TransceiverOverrides& overrides) {
-  auto cmisOverride = overrides.get_cmis();
-  if (auto rxEqSetting = cmisOverride.rxEqualizerSettings_ref()) {
-    return *rxEqSetting;
+  if (auto cmisOverride = overrides.cmis_ref()) {
+    if (auto rxEqSetting = cmisOverride->rxEqualizerSettings_ref()) {
+      return *rxEqSetting;
+    }
   }
   return std::nullopt;
 }
 
 std::optional<unsigned int> sffRxPreemphasisOverride(
     const cfg::TransceiverOverrides& overrides) {
-  auto sffOverride = overrides.get_sff();
-  if (auto preemph = sffOverride.rxPreemphasis_ref()) {
-    return *preemph;
+  if (auto sffOverride = overrides.sff_ref()) {
+    if (auto preemph = sffOverride->rxPreemphasis_ref()) {
+      return *preemph;
+    }
   }
   return std::nullopt;
 }

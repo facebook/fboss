@@ -27,8 +27,11 @@ TEST(QsfpConfigParserTest, matchFound) {
 
 TEST(QsfpConfigParserTest, rxEqSettingOverride) {
   cfg::TransceiverOverrides cfgOverride;
+  cfg::Sff8636Overrides sffOverride;
   cfg::CmisOverrides cmisOverride;
 
+  cfgOverride.sff_ref() = sffOverride;
+  EXPECT_EQ(cmisRxEqualizerSettingOverride(cfgOverride), std::nullopt);
   cfgOverride.cmis_ref() = cmisOverride;
   EXPECT_EQ(cmisRxEqualizerSettingOverride(cfgOverride), std::nullopt);
 
@@ -43,7 +46,10 @@ TEST(QsfpConfigParserTest, rxEqSettingOverride) {
 TEST(QsfpConfigParserTest, preemphOverride) {
   cfg::TransceiverOverrides cfgOverride;
   cfg::Sff8636Overrides sffOverride;
+  cfg::CmisOverrides cmisOverride;
 
+  cfgOverride.cmis_ref() = cmisOverride;
+  EXPECT_EQ(sffRxPreemphasisOverride(cfgOverride), std::nullopt);
   cfgOverride.sff_ref() = sffOverride;
   EXPECT_EQ(sffRxPreemphasisOverride(cfgOverride), std::nullopt);
 
