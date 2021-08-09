@@ -396,12 +396,12 @@ std::pair<uint64_t, uint64_t> getCpuQueueOutDiscardPacketsAndBytes(
   return std::pair(outDiscardPackets, outDiscardBytes);
 }
 
-uint64_t getCpuQueueWatermarkBytes(HwSwitch* hwSwitch, int queueId) {
-  auto hwPortStats = getCpuQueueStats(hwSwitch);
-  /*
-   * XXX: Native Broadcom does not have queueWatermarkBytes being
-   * collected for CPU queues, this needs to be enabled - T92835680.
-   */
+/*
+ * This API is invoked once HwPortStats for all queues is collected
+ * with getCpuQueueWatermarkStats() which does a clear-on-read. The
+ * purpose is to return per queue WatermarkBytes from HwPortStats.
+ */
+uint64_t getCpuQueueWatermarkBytes(HwPortStats& hwPortStats, int queueId) {
   auto queueIter = hwPortStats.queueWatermarkBytes__ref()->find(queueId);
   return (
       (queueIter != hwPortStats.queueWatermarkBytes__ref()->end())

@@ -107,8 +107,9 @@ std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
 std::pair<uint64_t, uint64_t> getCpuQueueOutDiscardPacketsAndBytes(
     HwSwitch* hwSwitch,
     int queueId);
-uint64_t getCpuQueueWatermarkBytes(HwSwitch* hwSwitch, int queueId);
+uint64_t getCpuQueueWatermarkBytes(HwPortStats& stats, int queueId);
 HwPortStats getCpuQueueStats(HwSwitch* hwSwitch);
+HwPortStats getCpuQueueWatermarkStats(HwSwitch* hwSwitch);
 std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
     const HwAsic* hwAsic);
 

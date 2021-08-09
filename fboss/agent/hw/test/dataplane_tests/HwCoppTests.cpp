@@ -528,10 +528,12 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
        * CPU queues, printing for now to help analyze the drops
        * happening in HW!
        */
+      auto watermarkStats = utility::getCpuQueueWatermarkStats(getHwSwitch());
       auto loPriWatermarkBytes_1 = utility::getCpuQueueWatermarkBytes(
-          getHwSwitch(), utility::kCoppLowPriQueueId);
+          watermarkStats, utility::kCoppLowPriQueueId);
       auto hiPriWatermarkBytes_1 = utility::getCpuQueueWatermarkBytes(
-          getHwSwitch(), utility::getCoppHighPriQueueId(getAsic()));
+          watermarkStats, utility::getCoppHighPriQueueId(getAsic()));
+
       auto hiPriorityCoppQueueDiscardStats_1 =
           utility::getCpuQueueOutDiscardPacketsAndBytes(
               getHwSwitch(), utility::getCoppHighPriQueueId(getAsic()))
@@ -1168,13 +1170,13 @@ TEST_F(HwCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
     auto ipAddress = folly::CIDRNetwork{ipForLowPriorityQueue, 128};
     auto packetCapture = HwTestPacketTrapEntry(getHwSwitch(), ipAddress);
 
-    // Create dataplane loop with lowerPriority traffic on port0
-    createLineRateTrafficOnPort(
-        masterLogicalPortIds()[0], baseVlan, ipForLowPriorityQueue);
-
     // Get initial packet count on port1 for high priority traffic
     auto initialHighPriorityPacketCount =
         getLatestPortStats(masterLogicalPortIds()[1]).get_outUnicastPkts_();
+
+    // Create dataplane loop with lowerPriority traffic on port0
+    createLineRateTrafficOnPort(
+        masterLogicalPortIds()[0], baseVlan, ipForLowPriorityQueue);
 
     // Send a fixed number of high priority packets on port1
     sendPacketBursts(
