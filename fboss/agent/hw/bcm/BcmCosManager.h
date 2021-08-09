@@ -45,6 +45,9 @@ class BcmCosManager {
   uint64_t
   statGet(PortID port, int32_t cosq, int32_t bid, bool clearAfter = true);
 
+  uint64_t cpuStatGet(int32_t cosq, int32_t bid, bool clearAfter = true);
+  void cpuStatClear(int32_t cosq, int32_t bid);
+
   void deviceStatClear(int32_t bid);
   uint64_t deviceStatGet(int32_t bid, bool clearAfter = true);
 

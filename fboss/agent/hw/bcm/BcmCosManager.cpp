@@ -99,6 +99,23 @@ uint64_t BcmCosManager::statGet(
   return value;
 }
 
+uint64_t BcmCosManager::cpuStatGet(int32_t cosq, int32_t bid, bool clearAfter) {
+  uint64_t value;
+  uint32_t options = clearAfter ? BCM_COSQ_STAT_CLEAR : 0;
+  auto rv = bcm_cosq_bst_stat_sync(hw_->getUnit(), (bcm_bst_stat_id_t)bid);
+  bcmCheckError(rv, "Failed to sync BST stat ", bid, " for CPU port");
+  rv = bcm_cosq_bst_stat_get(
+      hw_->getUnit(), 0, cosq, (bcm_bst_stat_id_t)bid, options, &value);
+  bcmCheckError(rv, "Failed to get BST stat ", bid, " for CPU cosq ", cosq);
+  return value;
+}
+
+void BcmCosManager::cpuStatClear(int32_t cosq, int32_t bid) {
+  auto rv =
+      bcm_cosq_bst_stat_clear(hw_->getUnit(), 0, cosq, (bcm_bst_stat_id_t)bid);
+  bcmCheckError(rv, "Failed to clear BST stat ", bid, " for CPU cosq ", cosq);
+}
+
 uint64_t BcmCosManager::deviceStatGet(int32_t bid, bool clearAfter) {
   uint64_t value;
   auto rv = bcm_cosq_bst_stat_sync(hw_->getUnit(), (bcm_bst_stat_id_t)bid);
