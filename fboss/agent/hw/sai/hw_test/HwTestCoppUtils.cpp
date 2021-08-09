@@ -28,6 +28,11 @@ HwPortStats getCpuQueueStats(HwSwitch* hwSwitch) {
   return saiSwitch->managerTable()->hostifManager().getCpuPortStats();
 }
 
+HwPortStats getCpuQueueWatermarkStats(HwSwitch* hwSwitch) {
+  // CPU Queue stats include watermark stats as well
+  return getCpuQueueStats(hwSwitch);
+}
+
 std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
     const HwAsic* hwAsic,
     cfg::SwitchConfig& /* unused */) {

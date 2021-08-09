@@ -35,6 +35,13 @@ HwPortStats getCpuQueueStats(HwSwitch* hwSwitch) {
   return portStats;
 }
 
+HwPortStats getCpuQueueWatermarkStats(HwSwitch* hwSwitch) {
+  HwPortStats portStats;
+  auto* bcmSwitch = static_cast<BcmSwitch*>(hwSwitch);
+  bcmSwitch->getControlPlane()->updateQueueWatermarks(&portStats);
+  return portStats;
+}
+
 std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
     const HwAsic* hwAsic,
     cfg::SwitchConfig& config) {
