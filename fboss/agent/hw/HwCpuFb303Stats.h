@@ -33,6 +33,9 @@ class HwCpuFb303Stats {
 
   void queueChanged(int queueId, const std::string& queueName);
   void queueRemoved(int queueId);
+  const folly::F14FastMap<int, std::string>& getQueueId2Name() const {
+    return queueId2Name_;
+  }
 
   /*
    * Cpu queue stat name

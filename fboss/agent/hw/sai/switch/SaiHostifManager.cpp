@@ -352,11 +352,11 @@ void SaiHostifManager::changeCpuQueue(
             : asic->getDefaultScalingFactor(
                   newPortQueue->getStreamType(), true /*cpu port*/));
     managerTable_->queueManager().changeQueue(queueHandle, *newPortQueue);
-    auto queueName = newPortQueue->getName()
-        ? *newPortQueue->getName()
-        : folly::to<std::string>("cpuQueue", newPortQueue->getID());
-    cpuStats_.queueChanged(newPortQueue->getID(), queueName);
-    cpuPortHandle_->configuredQueues.push_back(queueHandle);
+    if (newPortQueue->getName().has_value()) {
+      auto queueName = *newPortQueue->getName();
+      cpuStats_.queueChanged(newPortQueue->getID(), queueName);
+      cpuPortHandle_->configuredQueues.push_back(queueHandle);
+    }
   }
   for (auto oldPortQueue : oldQueueConfig) {
     auto portQueueIter = std::find_if(
