@@ -211,6 +211,7 @@ void BcmSwitchEnsemble::init(
     cfg["mmu_lossless"] = "0x2";
     cfg["buf.mqueue.guarantee.0"] = "0C";
     cfg["mmu_config_override"] = "0";
+    cfg["buf.prigroup7.guarantee"] = "0C";
   }
   if (FLAGS_load_qcm_fw &&
       platform->getAsic()->isSupported(HwAsic::Feature::QCM)) {

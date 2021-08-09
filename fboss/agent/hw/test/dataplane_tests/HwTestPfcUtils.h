@@ -22,6 +22,13 @@ class HwSwitch;
 
 namespace utility {
 
+std::vector<int> kLosslessPgs();
+int kPgMinLimitCells();
+int kGlobalSharedBufferCells();
+int kGlobalHeadroomBufferCells();
+int kPgHeadroomLimitCells();
+int kPgResumeLimitCells();
+
 void addPfcConfig(
     cfg::SwitchConfig& config,
     const HwSwitch* hwSwitch,

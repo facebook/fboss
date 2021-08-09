@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/bcm/BcmPortUtils.h"
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
 #include "fboss/agent/types.h"
 
@@ -67,6 +68,14 @@ class BcmMmuTests : public BcmTest {
     applyNewConfig(cfg_);
   }
 
+  void setupPfcConfig() {
+    cfg_ = initialConfig();
+    std::vector<PortID> cfgPorts = {
+        masterLogicalPortIds()[0], masterLogicalPortIds()[1]};
+    utility::addPfcConfig(cfg_, getHwSwitch(), cfgPorts);
+    applyNewConfig(cfg_);
+  }
+
  private:
   cfg::SwitchConfig cfg_;
 };
@@ -74,6 +83,8 @@ class BcmMmuTests : public BcmTest {
 // intent of this test is to validate that
 // other than first 10 (maxConfiguredCpuQueues) CPU queues
 // all other queues have 0 reserved bytes allocated
+// this is achieved using the following bcm cfg knobs
+// (1) buf.mqueue.guarantee.0 (2) mmu_config_override
 TEST_F(BcmMmuTests, CpuQueueReservedBytes) {
   if (!isSupported(HwAsic::Feature::PFC)) {
     XLOG(WARNING) << "Platform doesn't support MMU lossless mode/PFC";
@@ -98,6 +109,40 @@ TEST_F(BcmMmuTests, CpuQueueReservedBytes) {
         EXPECT_EQ(defaultCpuReservedBytes, bytes);
       } else {
         EXPECT_EQ(0, bytes);
+      }
+    }
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// validate that pgMin limits on every port are set to 0
+// except the ones are expicitly programmed.
+// this is done using buf.prigroup7.guarantee bcm cfg knob
+TEST_F(BcmMmuTests, PgMinLimitBytes) {
+  if (!isSupported(HwAsic::Feature::PFC)) {
+    XLOG(WARNING) << "Platform doesn't support MMU lossless mode/PFC";
+    return;
+  }
+  auto setup = [&]() { setupPfcConfig(); };
+  auto verify = [&]() {
+    std::set<PortID> cfgPorts{
+        masterLogicalPortIds()[0], masterLogicalPortIds()[1]};
+    const int mmuBytesPerCell = getPlatform()->getMMUCellBytes();
+    for (const auto& portId : masterLogicalPortIds()) {
+      std::array<int, cfg::switch_config_constants::PORT_PG_VALUE_MAX() + 1>
+          expectedValues = {0};
+      if (cfgPorts.find(portId) != cfgPorts.end()) {
+        // we expect PGMin values ot be set only for the lossless PGs
+        // on programmed ports only
+        for (const auto pgId : utility::kLosslessPgs()) {
+          EXPECT_LE(pgId, cfg::switch_config_constants::PORT_PG_VALUE_MAX());
+          expectedValues[pgId] = utility::kPgMinLimitCells() * mmuBytesPerCell;
+        }
+      }
+      auto bcmPort = getHwSwitch()->getPortTable()->getBcmPort(portId);
+      for (int i = 0; i < cfg::switch_config_constants::PORT_PG_VALUE_MAX() + 1;
+           ++i) {
+        EXPECT_EQ(bcmPort->getPgMinLimitBytes(i), expectedValues[i]);
       }
     }
   };
