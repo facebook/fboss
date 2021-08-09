@@ -125,6 +125,7 @@ std::unique_ptr<PortQueue> BcmControlPlaneQueueManager::getCurrentQueueSettings(
 void BcmControlPlaneQueueManager::program(const PortQueue& queue) {
   bcm_cos_queue_t cosQ = queue.getID();
 
+  updateNamedQueue(queue);
   programSchedulingAndWeight(portGport_, cosQ, queue);
 
   // program control value

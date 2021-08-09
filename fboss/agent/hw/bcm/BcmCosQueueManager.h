@@ -90,6 +90,8 @@ class BcmCosQueueManager {
 
   virtual void program(const PortQueue& queue) = 0;
 
+  std::set<bcm_cos_queue_t> getNamedQueues(cfg::StreamType streamType) const;
+
   struct QueueStatCounters {
     std::unique_ptr<facebook::stats::MonotonicCounter> aggregated = nullptr;
     boost::container::
@@ -165,6 +167,8 @@ class BcmCosQueueManager {
       bcm_cos_queue_t cosQ,
       const PortQueue& queue);
 
+  void updateNamedQueue(const PortQueue& queue);
+
   virtual const PortQueue& getDefaultQueueSettings(
       cfg::StreamType streamType) const = 0;
 
@@ -211,6 +215,7 @@ class BcmCosQueueManager {
       bcm_cos_queue_t cosQ,
       cfg::StreamType streamType) = 0;
 
+  std::map<cfg::StreamType, std::set<bcm_cos_queue_t>> namedQueues_;
   std::map<BcmCosQueueCounterType, QueueStatCounters> queueCounters_;
   folly::Synchronized<BcmEgressQueueTrafficCounterStats> queueFlexCounterStats_;
 };

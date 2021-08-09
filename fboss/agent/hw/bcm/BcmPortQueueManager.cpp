@@ -416,6 +416,7 @@ void BcmPortQueueManager::program(const PortQueue& queue) {
   auto streamType = queue.getStreamType();
   bcm_gport_t queueGport = getQueueGPort(streamType, cosQ);
 
+  updateNamedQueue(queue);
   /*
    * TODO: Scheduling params require using portGport instead of queueGport due
    * to Broadcom bug. Refer T37398023 for details.

@@ -674,4 +674,33 @@ int BcmCosQueueManager::getReservedBytes(
   return getControlValue(
       streamType, gport, cosQ, BcmCosQueueControlType::RESERVED_BYTES);
 }
+
+std::set<bcm_cos_queue_t> BcmCosQueueManager::getNamedQueues(
+    cfg::StreamType streamType) const {
+  std::set<bcm_cos_queue_t> named;
+  auto namedQueue = namedQueues_.find(streamType);
+  if (namedQueue != namedQueues_.end()) {
+    named = namedQueue->second;
+  }
+  return named;
+}
+
+void BcmCosQueueManager::updateNamedQueue(const PortQueue& queue) {
+  auto cosQ = queue.getID();
+  auto streamType = queue.getStreamType();
+  bool queueHasName = queue.getName().has_value();
+
+  if (namedQueues_.find(streamType) != namedQueues_.end()) {
+    std::set<bcm_cos_queue_t>& namedQueue = namedQueues_.at(streamType);
+    // Add to named queues if the queue has a name, delete if not!
+    if (queueHasName) {
+      namedQueue.insert(cosQ);
+    } else {
+      namedQueue.erase(cosQ);
+    }
+  } else if (queueHasName) {
+    namedQueues_.insert({streamType, std::set<bcm_cos_queue_t>{cosQ}});
+  }
+}
+
 } // namespace facebook::fboss
