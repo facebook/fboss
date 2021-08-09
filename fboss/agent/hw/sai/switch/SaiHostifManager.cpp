@@ -409,6 +409,13 @@ void SaiHostifManager::updateStats(bool updateWatermarks) {
   managerTable_->queueManager().updateStats(
       cpuPortHandle_->configuredQueues, cpuQueueStats, updateWatermarks);
   cpuStats_.updateStats(cpuQueueStats, now);
+  if (updateWatermarks) {
+    for (const auto& queueId2Name : cpuStats_.getQueueId2Name()) {
+      publishCpuQueueWatermark(
+          queueId2Name.first,
+          cpuQueueStats.queueWatermarkBytes__ref()->at(queueId2Name.first));
+    }
+  }
 }
 
 HwPortStats SaiHostifManager::getCpuPortStats() const {

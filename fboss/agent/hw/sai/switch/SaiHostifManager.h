@@ -104,6 +104,7 @@ class SaiHostifManager {
       const SaiQueueConfig& saiQueueConfig) const;
   SaiHostifTrapHandle* getHostifTrapHandleImpl(
       cfg::PacketRxReason rxReason) const;
+  void publishCpuQueueWatermark(int cosq, uint64_t peakBytes) const;
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
