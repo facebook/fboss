@@ -57,6 +57,7 @@ class BcmBstStatsMgr {
   void syncStats() const;
   void getAndPublishDeviceWatermark();
   void publishDeviceWatermark(uint64_t peakBytes) const;
+  void publishCpuQueueWatermark(int queue, uint64_t peakBytes) const;
   void publishQueueuWatermark(
       const std::string& portName,
       int queue,

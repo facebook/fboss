@@ -30,4 +30,7 @@ void BcmBstStatsMgr::publishGlobalWatermarks(
     const uint64_t& /*globalSharedBytes*/) const {}
 
 void BcmBstStatsMgr::publishDeviceWatermark(uint64_t /*peakBytes*/) const {}
+void BcmBstStatsMgr::publishCpuQueueWatermark(
+    int /*queue*/,
+    uint64_t /*peakBytes*/) const {}
 } // namespace facebook::fboss

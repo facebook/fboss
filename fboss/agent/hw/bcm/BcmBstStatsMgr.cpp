@@ -11,6 +11,7 @@
 #include <folly/logging/xlog.h>
 
 #include "fboss/agent/hw/bcm/BcmBstStatsMgr.h"
+#include "fboss/agent/hw/bcm/BcmControlPlane.h"
 #include "fboss/agent/hw/bcm/BcmCosManager.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
@@ -125,6 +126,8 @@ void BcmBstStatsMgr::updateStats() {
 
   // Track if PG is enabled on any port in the system
   bool pgEnabled = false;
+  auto qosSupported =
+      hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::L3_QOS);
   for (const auto& entry : *hw_->getPortTable()) {
     BcmPort* bcmPort = entry.second;
 
@@ -137,8 +140,6 @@ void BcmBstStatsMgr::updateStats() {
     auto cosMgr = hw_->getCosMgr();
 
     std::map<int16_t, int64_t> queueId2WatermarkBytes;
-    auto qosSupported =
-        hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::L3_QOS);
     auto maxQueueId = qosSupported
         ? bcmPort->getQueueManager()->getNumQueues(cfg::StreamType::UNICAST) - 1
         : 0;
@@ -192,6 +193,16 @@ void BcmBstStatsMgr::updateStats() {
     static std::map<int, bcm_port_t> itmToPortMap;
     createItmToPortMap(itmToPortMap);
     getAndPublishGlobalWatermarks(itmToPortMap);
+  }
+
+  // Get watermark stats for CPU queues
+  if (qosSupported) {
+    auto controlPlane = hw_->getControlPlane();
+    HwPortStats cpuStats;
+    controlPlane->updateQueueWatermarks(&cpuStats);
+    for (const auto& [cosQ, stats] : *cpuStats.queueWatermarkBytes__ref()) {
+      publishCpuQueueWatermark(cosQ, stats);
+    }
   }
 
   getAndPublishDeviceWatermark();
