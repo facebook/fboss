@@ -11,10 +11,12 @@
 
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmControlPlaneQueueManager.h"
+#include "fboss/agent/hw/bcm/BcmCosManager.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/PortQueue.h"
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
@@ -425,6 +427,19 @@ int BcmControlPlane::rxCosqMappingExtendedDelete(
 #else
   return bcm_rx_cosq_mapping_extended_delete(unit, rx_cosq_mapping);
 #endif
+}
+
+void BcmControlPlane::updateQueueWatermarks(HwPortStats* portStats) {
+  if (!portStats ||
+      !hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
+    return;
+  }
+  for (const auto cosQ :
+       queueManager_->getNamedQueues(cfg::StreamType::MULTICAST)) {
+    uint64_t peakCells = hw_->getCosMgr()->cpuStatGet(cosQ, bcmBstStatIdMcast);
+    portStats->queueWatermarkBytes__ref()[cosQ] =
+        peakCells * hw_->getMMUCellBytes();
+  }
 }
 
 } // namespace facebook::fboss
