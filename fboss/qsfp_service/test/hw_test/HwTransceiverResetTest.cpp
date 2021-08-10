@@ -46,7 +46,7 @@ TEST_F(HwTest, resetTranscieverAndDetectPresence) {
   wedgeManager->getTransceiversInfo(
       transceivers,
       std::make_unique<std::vector<int32_t>>(
-          utility::legacyTransceiverIds(transceiverIds)));
+          utility::legacyTransceiverIds(expectedIds)));
   for (auto idAndTransceiver : transceivers) {
     if (*idAndTransceiver.second.present_ref()) {
       XLOG(INFO)
@@ -75,7 +75,7 @@ TEST_F(HwTest, resetTranscieverAndDetectPresence) {
   wedgeManager->getTransceiversInfo(
       transceiversAfterReset,
       std::make_unique<std::vector<int32_t>>(
-          utility::legacyTransceiverIds(transceiverIds)));
+          utility::legacyTransceiverIds(expectedIds)));
   // Assert that we can detect all transceivers again
 
   for (auto idAndTransceiver : transceivers) {
