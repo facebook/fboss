@@ -81,7 +81,7 @@ sai_uint32_t SaiAclTableManager::getMetaDataMask(
 }
 
 AclTableSaiId SaiAclTableManager::addAclTable(
-    const std::string& aclTableName,
+    const std::shared_ptr<AclTable>& addedAclTable,
     sai_acl_stage_t aclStage) {
   /*
    * TODO(skhare)
@@ -95,6 +95,7 @@ AclTableSaiId SaiAclTableManager::addAclTable(
    */
 
   // If we already store a handle for this this Acl Table, fail to add a new one
+  auto aclTableName = addedAclTable->getID();
   auto handle = getAclTableHandle(aclTableName);
   if (handle) {
     throw FbossError("attempted to add a duplicate aclTable: ", aclTableName);
@@ -125,20 +126,25 @@ AclTableSaiId SaiAclTableManager::addAclTable(
   return aclTableSaiId;
 }
 
-void SaiAclTableManager::removeAclTable() {
-  /*
-   * TODO(skhare)
-   * Extend SwitchState to carry AclTable, and then process it to remove
-   * AclTable.
-   *
-   * Before ACL table is removed, remove it from appropriate ACL group:
-   * managerTable_->switchManager().removeTableGroupMember(SAI_ACL_STAGE_INGRESS,
-   * aclTableSaiId);
-   */
-  CHECK(false);
+void SaiAclTableManager::removeAclTable(
+    const std::shared_ptr<AclTable>& removedAclTable,
+    sai_acl_stage_t /*aclStage*/) {
+  auto aclTableName = removedAclTable->getID();
+
+  // remove from acl table group
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::ACL_TABLE_GROUP)) {
+    managerTable_->aclTableGroupManager().removeAclTableGroupMember(
+        SAI_ACL_STAGE_INGRESS, aclTableName);
+  }
+
+  // remove from handles
+  handles_.erase(aclTableName);
 }
 
-void SaiAclTableManager::changedAclTable() {
+void SaiAclTableManager::changedAclTable(
+    const std::shared_ptr<AclTable>& oldAclTable,
+    const std::shared_ptr<AclTable>& newAclTable,
+    sai_acl_stage_t aclStage) {
   /*
    * TODO(skhare)
    * Extend SwitchState to carry AclTable, and then process it to change
@@ -146,7 +152,13 @@ void SaiAclTableManager::changedAclTable() {
    * (We would likely have to removeAclTable() and re addAclTable() due to ASIC
    * limitations.
    */
-  CHECK(false);
+
+  /*
+   * TODO(saranicholas)
+   * Modify this to process acl entries delta, instead of removing and re adding
+   */
+  removeAclTable(oldAclTable, aclStage);
+  addAclTable(newAclTable, aclStage);
 }
 
 const SaiAclTableHandle* FOLLY_NULLABLE

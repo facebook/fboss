@@ -625,8 +625,10 @@ void SaiMacsecManager::setupMacsec(
   std::string aclName = getAclName(linePort, direction);
   auto aclTable = managerTable_->aclTableManager().getAclTableHandle(aclName);
   if (!aclTable) {
+    auto table = std::make_shared<AclTable>(
+        0, aclName); // TODO(saranicholas): set appropriate table priority
     auto aclTableId = managerTable_->aclTableManager().addAclTable(
-        aclName,
+        table,
         direction == SAI_MACSEC_DIRECTION_INGRESS
             ? SAI_ACL_STAGE_INGRESS_MACSEC
             : SAI_ACL_STAGE_EGRESS_MACSEC);

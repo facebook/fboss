@@ -88,6 +88,8 @@ DEFINE_bool(
     false,
     "Fail if any warm boot handles are left unclaimed.");
 
+DECLARE_bool(enable_acl_table_group);
+
 namespace {
 /*
  * For the devices/SDK we use, the only events we should get (and process)
@@ -1133,8 +1135,13 @@ void SaiSwitch::initStoreAndManagersLocked(
         HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD) {
       managerTable_->aclTableGroupManager().addAclTableGroup(
           SAI_ACL_STAGE_INGRESS);
-      managerTable_->aclTableManager().addAclTable(
-          kAclTable1, SAI_ACL_STAGE_INGRESS);
+      if (!FLAGS_enable_acl_table_group) {
+        auto table1 = std::make_shared<AclTable>(
+            0,
+            kAclTable1); // TODO(saranicholas): set appropriate table priority
+        managerTable_->aclTableManager().addAclTable(
+            table1, SAI_ACL_STAGE_INGRESS);
+      }
     }
 
     if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::DEBUG_COUNTER)) {

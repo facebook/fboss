@@ -63,8 +63,9 @@ TEST_F(AclTableManagerTest, addTwoAclTable) {
   auto aclTableId = saiManagerTable->aclTableManager()
                         .getAclTableHandle(SaiSwitch::kAclTable1)
                         ->aclTable->adapterKey();
+  auto table2 = std::make_shared<AclTable>(0, kAclTable2);
   AclTableSaiId aclTableId2 = saiManagerTable->aclTableManager().addAclTable(
-      kAclTable2, SAI_ACL_STAGE_INGRESS);
+      table2, SAI_ACL_STAGE_INGRESS);
 
   auto stageGot = saiApiTable->aclApi().getAttribute(
       aclTableId, SaiAclTableTraits::Attributes::Stage());
@@ -76,9 +77,10 @@ TEST_F(AclTableManagerTest, addTwoAclTable) {
 }
 
 TEST_F(AclTableManagerTest, addDupAclTable) {
+  auto table1 = std::make_shared<AclTable>(0, SaiSwitch::kAclTable1);
   EXPECT_THROW(
       saiManagerTable->aclTableManager().addAclTable(
-          SaiSwitch::kAclTable1, SAI_ACL_STAGE_INGRESS),
+          table1, SAI_ACL_STAGE_INGRESS),
       FbossError);
 }
 

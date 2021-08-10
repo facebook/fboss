@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/api/Types.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/state/AclEntry.h"
+#include "fboss/agent/state/AclTable.h"
 #include "fboss/agent/state/Mirror.h"
 #include "fboss/agent/types.h"
 
@@ -97,17 +98,16 @@ class SaiAclTableManager {
     return macMask;
   }
 
-  /*
-   * TODO(skhare)
-   * Extend SwitchState to carry AclTable, and then pass and process following
-   * data type for {add, remove, changed}AclTable:
-   * const std:shared_ptr<AclTable>&.
-   */
   AclTableSaiId addAclTable(
-      const std::string& aclTableName,
+      const std::shared_ptr<AclTable>& addedAclTable,
       sai_acl_stage_t aclStage);
-  void removeAclTable();
-  void changedAclTable();
+  void removeAclTable(
+      const std::shared_ptr<AclTable>& removedAclTable,
+      sai_acl_stage_t aclStage);
+  void changedAclTable(
+      const std::shared_ptr<AclTable>& oldAclTable,
+      const std::shared_ptr<AclTable>& newAclTable,
+      sai_acl_stage_t aclStage);
 
   const SaiAclTableHandle* FOLLY_NULLABLE
   getAclTableHandle(const std::string& aclTableName) const;

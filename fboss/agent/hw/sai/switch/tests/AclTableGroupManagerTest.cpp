@@ -96,8 +96,9 @@ TEST_F(AclTableGroupManagerTest, addAclTableGroupMember) {
 
 TEST_F(AclTableGroupManagerTest, addTwoAclTableGroupMember) {
   // When an ACL table is created, it is implicitly added to a group.
+  auto table2 = std::make_shared<AclTable>(0, kAclTable2);
   AclTableSaiId aclTableId2 = saiManagerTable->aclTableManager().addAclTable(
-      kAclTable2, SAI_ACL_STAGE_INGRESS);
+      table2, SAI_ACL_STAGE_INGRESS);
 
   auto aclTableGroupHandle =
       saiManagerTable->aclTableGroupManager().getAclTableGroupHandle(
