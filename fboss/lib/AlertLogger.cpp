@@ -16,6 +16,7 @@ namespace facebook::fboss {
 // Prefix for fboss alert tag
 constexpr auto kFbossAlertPrefix("FBOSS_EVENT");
 constexpr auto kBgpAlertPrefix("BGP_EVENT");
+constexpr auto kMkaAlertPrefix("MKA_EVENT");
 
 // Sub-types for alert logging
 constexpr auto kFbossMiscAlert("MISC");
@@ -43,6 +44,7 @@ KernelAlert::KernelAlert() : AlertTag(kFbossAlertPrefix, kFbossKernelAlert){};
 PortAlert::PortAlert() : AlertTag(kFbossAlertPrefix, kFbossPortAlert){};
 RouteAlert::RouteAlert() : AlertTag(kFbossAlertPrefix, kFbossRouteAlert){};
 BGPAlert::BGPAlert() : AlertTag(kBgpAlertPrefix){};
+MKAAlert::MKAAlert() : AlertTag(kMkaAlertPrefix){};
 
 // Alert param types
 constexpr auto kFbossPort("port");

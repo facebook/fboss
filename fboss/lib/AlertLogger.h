@@ -96,6 +96,10 @@ class BGPAlert : public AlertTag {
  public:
   BGPAlert();
 };
+class MKAAlert : public AlertTag {
+ public:
+  MKAAlert();
+};
 
 // Alert parameter types
 struct AlertParam {
