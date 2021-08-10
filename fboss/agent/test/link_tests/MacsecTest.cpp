@@ -74,13 +74,22 @@ TEST_F(MacsecTest, setupMkaSession) {
     checkWithRetry([&client, port, neighborPort, ckn]() {
       auto activeSessions =
           folly::coro::blockingWait(client->co_numActiveMKASessions());
-      auto portCkn = folly::coro::blockingWait(
-          client->co_getActiveCKN(folly::to<std::string>(port)));
-      auto nbrCkn = folly::coro::blockingWait(
-          client->co_getActiveCKN(folly::to<std::string>(*neighborPort)));
-      XLOG(INFO) << " Active sessions: " << activeSessions
-                 << " port ckn: " << portCkn << " nbr ckn: " << nbrCkn;
-      return activeSessions == 2 && portCkn == nbrCkn && portCkn == ckn;
+      XLOG(INFO) << " Active sessions: " << activeSessions;
+      if (activeSessions != 2) {
+        return false;
+      }
+      for (auto p : {port, *neighborPort}) {
+        auto portCkn = folly::coro::blockingWait(
+            client->co_getActiveCKN(folly::to<std::string>(p)));
+        auto sakInstalled = folly::coro::blockingWait(
+            client->co_isSAKInstalled(folly::to<std::string>(p)));
+        XLOG(INFO) << " port ckn: " << portCkn
+                   << " SAK installed: " << sakInstalled;
+        if (portCkn != ckn || !sakInstalled) {
+          return false;
+        }
+      }
+      return true;
     });
 #endif
   };
