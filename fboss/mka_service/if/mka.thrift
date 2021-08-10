@@ -298,6 +298,10 @@ service MKAService extends fb303.FacebookService {
     cpp.coroutine,
   );
 
+  bool isSAKInstalled(1: string l2Port) throws (1: MKAServiceException ex) (
+    cpp.coroutine,
+  );
+
   list<string> getActivePorts() (cpp.coroutine);
 
   /*
