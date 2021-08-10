@@ -38,11 +38,10 @@ namespace facebook::fboss {
 PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   SaiPortHandle* portHandle = getPortHandle(swPort->getID());
   if (portHandle) {
-    throw FbossError(
-        "Attempted to add port which already exists: ",
-        swPort->getID(),
-        " SAI id: ",
-        portHandle->port->adapterKey());
+    // TODO(ccpowers): We should throw an error here once we have a
+    // changePort() implementation for phys: T97090413.
+    XLOG(WARNING) << "Adding port which already exists: " << swPort->getID()
+                  << " SAI id: " << portHandle->port->adapterKey();
   }
 
   // Create the system port first
