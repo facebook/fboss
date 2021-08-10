@@ -178,6 +178,7 @@ void QsfpServiceHandler::updateWarmBootConfig() const {
 folly::coro::Task<bool> QsfpServiceHandler::co_sakInstallRx(
     std::unique_ptr<mka::MKASak> sak,
     std::unique_ptr<mka::MKASci> sciToAdd) {
+  auto log = LOG_THRIFT_CALL(INFO);
   validateHandler();
   valid<decltype(sak)>(sak);
   valid<decltype(sciToAdd)>(sciToAdd);
@@ -196,6 +197,7 @@ folly::coro::Task<bool> QsfpServiceHandler::co_sakInstallRx(
 
 folly::coro::Task<bool> QsfpServiceHandler::co_sakInstallTx(
     std::unique_ptr<mka::MKASak> sak) {
+  auto log = LOG_THRIFT_CALL(INFO);
   validateHandler();
   valid<decltype(sak)>(sak);
   bool ret = macsecHandler_->sakInstallTx(*sak);
@@ -210,6 +212,7 @@ folly::coro::Task<bool> QsfpServiceHandler::co_sakInstallTx(
 folly::coro::Task<bool> QsfpServiceHandler::co_sakDeleteRx(
     std::unique_ptr<mka::MKASak> sak,
     std::unique_ptr<mka::MKASci> sciToRemove) {
+  auto log = LOG_THRIFT_CALL(INFO);
   validateHandler();
   valid<decltype(sak)>(sak);
   valid<decltype(sciToRemove)>(sciToRemove);
@@ -245,6 +248,7 @@ folly::coro::Task<bool> QsfpServiceHandler::co_sakDeleteRx(
 
 folly::coro::Task<bool> QsfpServiceHandler::co_sakDelete(
     std::unique_ptr<mka::MKASak> sak) {
+  auto log = LOG_THRIFT_CALL(INFO);
   validateHandler();
   valid<decltype(sak)>(sak);
   bool ret = macsecHandler_->sakDelete(*sak);
@@ -261,6 +265,7 @@ folly::coro::Task<bool> QsfpServiceHandler::co_sakDelete(
 
 folly::coro::Task<std::unique_ptr<mka::MKASakHealthResponse>>
 QsfpServiceHandler::co_sakHealthCheck(std::unique_ptr<mka::MKASak> sak) {
+  auto log = LOG_THRIFT_CALL(INFO);
   validateHandler();
   valid<decltype(sak)>(sak);
   // TODO:(shankaran) - when healthcheck fails remove the sak from set.
@@ -270,6 +275,7 @@ QsfpServiceHandler::co_sakHealthCheck(std::unique_ptr<mka::MKASak> sak) {
 
 folly::coro::Task<std::unique_ptr<mka::MacsecPortPhyMap>>
 QsfpServiceHandler::co_macsecGetPhyPortInfo() {
+  auto log = LOG_THRIFT_CALL(INFO);
   validateHandler();
   co_return std::make_unique<mka::MacsecPortPhyMap>(
       macsecHandler_->macsecGetPhyPortInfo());
@@ -277,12 +283,14 @@ QsfpServiceHandler::co_macsecGetPhyPortInfo() {
 
 folly::coro::Task<PortOperState> QsfpServiceHandler::co_macsecGetPhyLinkInfo(
     std::unique_ptr<std::string> portName) {
+  auto log = LOG_THRIFT_CALL(INFO);
   validateHandler();
   co_return macsecHandler_->macsecGetPhyLinkInfo(*portName);
 }
 
 folly::coro::Task<bool> QsfpServiceHandler::co_deleteAllSc(
     std::unique_ptr<std::string> portName) {
+  auto log = LOG_THRIFT_CALL(INFO);
   validateHandler();
   co_return macsecHandler_->deleteAllSc(*portName);
 }
@@ -290,6 +298,7 @@ folly::coro::Task<bool> QsfpServiceHandler::co_deleteAllSc(
 folly::coro::Task<std::unique_ptr<mka::MacsecAllScInfo>>
 QsfpServiceHandler::co_macsecGetAllScInfo(
     std::unique_ptr<std::string> portName) {
+  auto log = LOG_THRIFT_CALL(INFO);
   validateHandler();
   co_return std::make_unique<mka::MacsecAllScInfo>(
       macsecHandler_->macsecGetAllScInfo(*portName));
@@ -299,6 +308,7 @@ folly::coro::Task<std::unique_ptr<mka::MacsecPortStats>>
 QsfpServiceHandler::co_macsecGetPortStats(
     std::unique_ptr<std::string> portName,
     bool directionIngress) {
+  auto log = LOG_THRIFT_CALL(INFO);
   validateHandler();
   co_return std::make_unique<mka::MacsecPortStats>(
       macsecHandler_->macsecGetPortStats(*portName, directionIngress));
@@ -308,6 +318,7 @@ folly::coro::Task<std::unique_ptr<mka::MacsecFlowStats>>
 QsfpServiceHandler::co_macsecGetFlowStats(
     std::unique_ptr<std::string> portName,
     bool directionIngress) {
+  auto log = LOG_THRIFT_CALL(INFO);
   validateHandler();
   co_return std::make_unique<mka::MacsecFlowStats>(
       macsecHandler_->macsecGetFlowStats(*portName, directionIngress));
@@ -317,6 +328,7 @@ folly::coro::Task<std::unique_ptr<mka::MacsecSaStats>>
 QsfpServiceHandler::co_macsecGetSaStats(
     std::unique_ptr<std::string> portName,
     bool directionIngress) {
+  auto log = LOG_THRIFT_CALL(INFO);
   validateHandler();
   co_return std::make_unique<mka::MacsecSaStats>(
       macsecHandler_->macsecGetSaStats(*portName, directionIngress));
