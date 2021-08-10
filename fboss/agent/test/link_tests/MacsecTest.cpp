@@ -1,3 +1,5 @@
+// Copyright 2004-present Facebook. All Rights Reserved.
+
 #include <fboss/mka_service/if/gen-cpp2/MKAService.h>
 #include <folly/dynamic.h>
 #include <folly/experimental/coro/BlockingWait.h>
@@ -7,6 +9,7 @@
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
 #include "fboss/mka_service/if/gen-cpp2/mka_config_constants.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
@@ -53,12 +56,14 @@ TEST_F(MacsecTest, setupMkaSession) {
     };
     auto ckn = "2b7e151628aed2a6abf7158809cf4f3c";
     auto priority = mka_config_constants::DEFAULT_KEYSERVER_PRIORITY();
+    auto srcMac = sw()->getPlatform()->getLocalMac().u64NBO();
+    auto macGen = facebook::fboss::utility::MacAddressGenerator();
     for (auto port : {port, *neighborPort}) {
       MKAConfig config;
       config.l2Port_ref() = folly::to<std::string>(port);
       config.transport_ref() = MKATransport::THRIFT_TRANSPORT;
       config.capability_ref() = MACSecCapability::CAPABILITY_INGTY_CONF;
-      config.srcMac_ref() = sw()->getPlatform()->getLocalMac().toString();
+      config.srcMac_ref() = macGen.get(srcMac++).toString();
       config.primaryCak_ref()->key_ref() = "135bd758b0ee5c11c55ff6ab19fdb199";
       config.primaryCak_ref()->ckn_ref() = ckn;
       // Different priorities to allow for key server election
