@@ -43,6 +43,7 @@ TEST_F(HwTest, resetTranscieverAndDetectPresence) {
       utility::getCabledPortTranceivers(*agentConfig, getHwQsfpEnsemble());
   EXPECT_TRUE(utility::containsSubset(transceiverIds, expectedIds));
 
+  transceivers.clear();
   wedgeManager->getTransceiversInfo(
       transceivers,
       std::make_unique<std::vector<int32_t>>(
