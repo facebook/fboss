@@ -43,12 +43,12 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
     auto portIds = masterLogicalPortIds();
     /*
      * Tajo does not share sample packet session yet and creates
-     * one per port and the maximum is 29. Configure 24 ports
+     * one per port and the maximum is 16. Configure 16 ports
      * for now on Tajo to enable sflow with mirroring.
      */
     return getPlatform()->getAsic()->getAsicType() ==
             HwAsic::AsicType::ASIC_TYPE_TAJO
-        ? std::vector<PortID>(portIds.begin(), portIds.begin() + 24)
+        ? std::vector<PortID>(portIds.begin(), portIds.begin() + 16)
         : portIds;
   }
 
@@ -57,18 +57,35 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
     getHwSwitchEnsemble()->ensureSendPacketOutOfPort(std::move(pkt), port);
   }
 
-  PortID getSlfowPacketSrcPort(const std::vector<uint8_t>& sflowPayloud) {
-    // sflow shim format:
-    //    version field (if applicable): 32, sport : 8, smod : 8, dport : 8,
-    //    dmod : 8, source_sample : 1, dest_sample : 1, flex_sample : 1
-    //    multicast : 1, discarded : 1, truncated : 1,
-    //    dest_port_encoding : 3, reserved : 23
-    auto sourcePortOffset = 0;
-    if (getPlatform()->getAsic()->isSupported(
-            HwAsic::Feature::SFLOW_SHIM_VERSION_FIELD)) {
-      sourcePortOffset += 4;
+  PortID getSlfowPacketSrcPort(const std::vector<uint8_t>& sflowPayload) {
+    /*
+     * sflow shim format for Tajo:
+     *
+     * Source system port GID - 16 bits
+     * Destination system port GID - 16 bits
+     * Source logical port GID - 20 bits
+     * Destination logical port GID - 20 bits
+     *
+     * sflow shim format for BCM:
+     *
+     * version field (if applicable): 32, sport : 8, smod : 8, dport : 8,
+     * dmod : 8, source_sample : 1, dest_sample : 1, flex_sample : 1
+     * multicast : 1, discarded : 1, truncated : 1,
+     * dest_port_encoding : 3, reserved : 23
+     */
+    if (getPlatform()->getAsic()->getAsicType() ==
+        HwAsic::AsicType::ASIC_TYPE_TAJO) {
+      auto systemPortId = sflowPayload[0] << 8 | sflowPayload[1];
+      return static_cast<PortID>(
+          systemPortId - getPlatform()->getAsic()->getSystemPortIDOffset());
+    } else {
+      auto sourcePortOffset = 0;
+      if (getPlatform()->getAsic()->isSupported(
+              HwAsic::Feature::SFLOW_SHIM_VERSION_FIELD)) {
+        sourcePortOffset += 4;
+      }
+      return static_cast<PortID>(sflowPayload[sourcePortOffset]);
     }
-    return static_cast<PortID>(sflowPayloud[sourcePortOffset]);
   }
 
   int getSflowPacketHeaderLength(bool isV6 = false) {
