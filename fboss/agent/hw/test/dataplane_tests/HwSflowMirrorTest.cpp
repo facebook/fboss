@@ -73,10 +73,16 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
 
   int getSflowPacketHeaderLength(bool isV6 = false) {
     auto ipHeader = isV6 ? 40 : 20;
-    auto slfowShimHeaderLength = 8;
-    if (getPlatform()->getAsic()->isSupported(
-            HwAsic::Feature::SFLOW_SHIM_VERSION_FIELD)) {
-      slfowShimHeaderLength += 4;
+    int slfowShimHeaderLength;
+    if (getPlatform()->getAsic()->getAsicType() ==
+        HwAsic::AsicType::ASIC_TYPE_TAJO) {
+      slfowShimHeaderLength = 9;
+    } else {
+      slfowShimHeaderLength = 8;
+      if (getPlatform()->getAsic()->isSupported(
+              HwAsic::Feature::SFLOW_SHIM_VERSION_FIELD)) {
+        slfowShimHeaderLength += 4;
+      }
     }
     return 18 /* ethernet header */ + ipHeader + 8 /* udp header */ +
         slfowShimHeaderLength;
