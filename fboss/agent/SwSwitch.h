@@ -825,7 +825,7 @@ class SwSwitch : public HwSwitch::Callback {
    */
   std::unique_ptr<std::thread> backgroundThread_;
   folly::EventBase backgroundEventBase_;
-  std::shared_ptr<ThreadHeartbeat> bgThreadHeartbeat_;
+  std::unique_ptr<ThreadHeartbeat> bgThreadHeartbeat_;
 
   /*
    * A thread for processing packets received from
@@ -834,12 +834,12 @@ class SwSwitch : public HwSwitch::Callback {
    */
   std::unique_ptr<std::thread> packetTxThread_;
   folly::EventBase packetTxEventBase_;
-  std::shared_ptr<ThreadHeartbeat> packetTxThreadHeartbeat_;
+  std::unique_ptr<ThreadHeartbeat> packetTxThreadHeartbeat_;
 
   /*
    * A thread for sending packets to the distribution process
    */
-  std::shared_ptr<std::thread> pcapDistributionThread_;
+  std::unique_ptr<std::thread> pcapDistributionThread_;
   folly::EventBase pcapDistributionEventBase_;
 
   /*
@@ -847,26 +847,21 @@ class SwSwitch : public HwSwitch::Callback {
    */
   std::unique_ptr<std::thread> updateThread_;
   folly::EventBase updateEventBase_;
-  std::shared_ptr<ThreadHeartbeat> updThreadHeartbeat_;
+  std::unique_ptr<ThreadHeartbeat> updThreadHeartbeat_;
 
   /*
    * A thread dedicated to LACP processing.
    */
   std::unique_ptr<std::thread> lacpThread_;
   folly::EventBase lacpEventBase_;
-  std::shared_ptr<ThreadHeartbeat> lacpThreadHeartbeat_;
+  std::unique_ptr<ThreadHeartbeat> lacpThreadHeartbeat_;
 
   /*
    * A thread dedicated to Arp and Ndp cache entry processing.
    */
   std::unique_ptr<std::thread> neighborCacheThread_;
   folly::EventBase neighborCacheEventBase_;
-  std::shared_ptr<ThreadHeartbeat> neighborCacheThreadHeartbeat_;
-
-  /*
-   * A thread dedicated to monitor above thread heartbeats
-   */
-  std::unique_ptr<ThreadHeartbeatWatchdog> heartbeatWatchdog_;
+  std::unique_ptr<ThreadHeartbeat> neighborCacheThreadHeartbeat_;
 
   /*
    * A callback for listening to neighbors coming and going.
