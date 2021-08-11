@@ -13,6 +13,7 @@
 #include <iomanip>
 #include <string>
 #include "fboss/agent/FbossError.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 #include "fboss/qsfp_service/StatsPublisher.h"
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
@@ -530,7 +531,9 @@ void QsfpModule::refreshLocked() {
 
   // assign
   auto info = parseDataLocked();
-  snapshots_.wlock()->write(info);
+  phy::LinkSnapshot snapshot;
+  snapshot.transceiverInfo_ref() = info;
+  snapshots_.wlock()->addSnapshot(snapshot);
   *info_.wlock() = info;
 }
 

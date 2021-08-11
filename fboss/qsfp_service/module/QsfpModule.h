@@ -11,7 +11,7 @@
 #include <cstdint>
 #include <mutex>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/lib/RingBuffer-defs.h"
+#include "fboss/lib/SnapshotManager-defs.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/module/ModuleStateMachine.h"
 #include "fboss/qsfp_service/module/Transceiver.h"
@@ -55,8 +55,7 @@ class QsfpModuleError : public std::exception {
 class QsfpModule : public Transceiver {
  public:
   static constexpr auto kNumCachedSnapshots = 20;
-  using TransceiverSnapshotCache =
-      RingBuffer<TransceiverInfo, kNumCachedSnapshots>;
+  using TransceiverSnapshotCache = SnapshotManager<kNumCachedSnapshots>;
   using LengthAndGauge = std::pair<double, uint8_t>;
 
   explicit QsfpModule(

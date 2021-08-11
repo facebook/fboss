@@ -517,22 +517,22 @@ TEST_F(QsfpModuleTest, writeTransceiver) {
 }
 
 TEST_F(QsfpModuleTest, populateSnapshots) {
-  auto snapshots = qsfp_->getTransceiverSnapshots();
+  auto snapshots = qsfp_->getTransceiverSnapshots().getSnapshots();
   EXPECT_TRUE(snapshots.empty());
   qsfp_->refresh();
-  snapshots = qsfp_->getTransceiverSnapshots();
+  snapshots = qsfp_->getTransceiverSnapshots().getSnapshots();
   EXPECT_FALSE(snapshots.empty());
 
   // fill the buffer
   for (auto i = 1; i < snapshots.maxSize(); i++) {
     qsfp_->refresh();
   }
-  snapshots = qsfp_->getTransceiverSnapshots();
+  snapshots = qsfp_->getTransceiverSnapshots().getSnapshots();
 
   // Verify that we stay at the max size
   EXPECT_EQ(snapshots.size(), snapshots.maxSize());
   qsfp_->refresh();
-  snapshots = qsfp_->getTransceiverSnapshots();
+  snapshots = qsfp_->getTransceiverSnapshots().getSnapshots();
   EXPECT_EQ(snapshots.size(), snapshots.maxSize());
 }
 } // namespace fboss

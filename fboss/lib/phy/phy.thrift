@@ -296,3 +296,8 @@ struct RsInfo {
   1: bool localFault
   2: bool remoteFault
 }
+
+union LinkSnapshot {
+  1: transceiver.TransceiverInfo transceiverInfo;
+  2: PhyInfo phyInfo;
+}
