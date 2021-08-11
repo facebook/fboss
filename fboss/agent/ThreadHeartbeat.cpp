@@ -45,7 +45,8 @@ void ThreadHeartbeatWatchdog::watchdogLoop() {
       }
       heartbeats_.assign(heartbeat.first, timestamp);
     }
-    std::this_thread::sleep_for(intervalMsecs_);
+    std::unique_lock<std::mutex> l(m_);
+    cv_.wait_for(l, intervalMsecs_, [this]() { return !running_; });
   }
 }
 

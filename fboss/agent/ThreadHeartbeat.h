@@ -84,6 +84,7 @@ class ThreadHeartbeatWatchdog {
   virtual ~ThreadHeartbeatWatchdog() {
     stop();
     heartbeats_.clear();
+    XLOG(DBG2) << "Thread heartbeat watchdog destroyed";
   }
 
   // add the heartbeat of monitored threads
@@ -113,6 +114,7 @@ class ThreadHeartbeatWatchdog {
     if (running_) {
       running_ = false;
       XLOG(INFO) << "Stopping thread heartbeat watchdog";
+      cv_.notify_one();
       thread_.join();
     }
   }
@@ -132,6 +134,8 @@ class ThreadHeartbeatWatchdog {
       std::chrono::time_point<std::chrono::steady_clock>>
       heartbeats_;
   std::atomic_int missedHeartbeats_{0};
+  std::mutex m_;
+  std::condition_variable cv_;
 };
 
 } // namespace facebook::fboss
