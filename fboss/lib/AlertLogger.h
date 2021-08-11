@@ -100,6 +100,10 @@ class MKAAlert : public AlertTag {
  public:
   MKAAlert();
 };
+class LinkSnapshotAlert : public AlertTag {
+ public:
+  LinkSnapshotAlert();
+};
 
 // Alert parameter types
 struct AlertParam {
@@ -138,6 +142,10 @@ class Ipv6Param : public AlertParam {
 class MacParam : public AlertParam {
  public:
   explicit MacParam(std::string value);
+};
+class LinkSnapshotParam : public AlertParam {
+ public:
+  explicit LinkSnapshotParam(std::string value);
 };
 
 } // namespace facebook::fboss

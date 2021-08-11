@@ -28,6 +28,7 @@ constexpr auto kFbossKernelAlert("KERNEL");
 constexpr auto kFbossPortAlert("PORT");
 constexpr auto kFbossRouteAlert("ROUTE");
 constexpr auto kFbossBGPAlert("BGP");
+constexpr auto kFbossLinkSnapshotAlert("LINK_SNAPSHOT");
 
 // Alert tag by type
 AlertTag::AlertTag(std::string prefix, std::string sub_type)
@@ -45,6 +46,8 @@ PortAlert::PortAlert() : AlertTag(kFbossAlertPrefix, kFbossPortAlert){};
 RouteAlert::RouteAlert() : AlertTag(kFbossAlertPrefix, kFbossRouteAlert){};
 BGPAlert::BGPAlert() : AlertTag(kBgpAlertPrefix){};
 MKAAlert::MKAAlert() : AlertTag(kMkaAlertPrefix){};
+LinkSnapshotAlert::LinkSnapshotAlert()
+    : AlertTag(kFbossAlertPrefix, kFbossLinkSnapshotAlert){};
 
 // Alert param types
 constexpr auto kFbossPort("port");
@@ -52,6 +55,7 @@ constexpr auto kFbossVlan("vlan");
 constexpr auto kFbossIpv4Addr("ipv4");
 constexpr auto kFbossIpv6Addr("ipv6");
 constexpr auto kFbossMacAddr("mac");
+constexpr auto kFbossLinkSnapshot("linkSnapshot");
 
 // Alert parameter types
 AlertParam::AlertParam(std::string type, std::string value)
@@ -62,5 +66,7 @@ VlanParam::VlanParam(std::string value) : AlertParam(kFbossVlan, value){};
 Ipv4Param::Ipv4Param(std::string value) : AlertParam(kFbossIpv4Addr, value){};
 Ipv6Param::Ipv6Param(std::string value) : AlertParam(kFbossIpv6Addr, value){};
 MacParam::MacParam(std::string value) : AlertParam(kFbossMacAddr, value){};
+LinkSnapshotParam::LinkSnapshotParam(std::string value)
+    : AlertParam(kFbossLinkSnapshot, value){};
 
 } // namespace facebook::fboss

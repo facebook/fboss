@@ -9,6 +9,7 @@
  */
 
 #include "fboss/lib/SnapshotManager.h"
+#include "fboss/lib/AlertLogger.h"
 
 using namespace std::chrono;
 
@@ -19,6 +20,14 @@ DEFINE_int32(
 
 namespace facebook::fboss {
 
-void SnapshotWrapper::publish() {}
+void SnapshotWrapper::publish() {
+  auto serializedSnapshot =
+      apache::thrift::SimpleJSONSerializer::serialize<std::string>(snapshot_);
+  if (!published_) {
+    XLOG(INFO) << LinkSnapshotAlert() << "Collected snapshot "
+               << LinkSnapshotParam(serializedSnapshot);
+    published_ = true;
+  }
+}
 
 } // namespace facebook::fboss

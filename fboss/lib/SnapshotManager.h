@@ -28,6 +28,7 @@ class SnapshotWrapper {
   void publish();
 
   LinkSnapshot snapshot_;
+  bool published_;
 };
 
 // length is the number of snapshots we keep stored at any given time
