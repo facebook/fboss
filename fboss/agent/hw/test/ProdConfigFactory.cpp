@@ -18,6 +18,7 @@
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.h"
 
 namespace facebook::fboss::utility {
 
@@ -129,6 +130,16 @@ cfg::PortSpeed getPortSpeed(const HwSwitch* hwSwitch) {
 }
 
 /*
+ * Adds queue-per-host mapping to config, based on HwQueuePerHostRouteTests.cpp.
+ * Other helper functions (i.e. addRoutes, updateRoutesClassID) are called on
+ * the test fixture's setup() phase.
+ */
+void addQueuePerHostToConfig(cfg::SwitchConfig& config) {
+  utility::addQueuePerHostQueueConfig(&config);
+  utility::addQueuePerHostAcls(&config);
+}
+
+/*
  * Creates and returns a SwitchConfig which is as close to what you would find
  * in a production RSW as possible. If more features are desired, they can be
  * added in this function.
@@ -202,6 +213,32 @@ cfg::SwitchConfig createProdFswConfig(
   if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
     addLoadBalancerToConfig(config, hwSwitch, LBHash::HALF_HASH);
   }
+  return config;
+}
+
+cfg::SwitchConfig createProdRswMhnicConfig(
+    const HwSwitch* hwSwitch,
+    const std::vector<PortID>& masterLogicalPortIds) {
+  auto platform = hwSwitch->getPlatform();
+  auto hwAsic = platform->getAsic();
+
+  auto numUplinks = uplinksCountFromSwitch(hwSwitch);
+  auto uplinkSpeed = getPortSpeed(hwSwitch);
+  auto downlinkSpeed = getPortSpeed(hwSwitch);
+
+  auto config = createUplinkDownlinkConfig(
+      hwSwitch,
+      masterLogicalPortIds,
+      numUplinks,
+      uplinkSpeed,
+      downlinkSpeed,
+      cfg::PortLoopbackMode::MAC);
+
+  addCpuQueueConfig(config, hwAsic);
+  setDefaultCpuTrafficPolicyConfig(config, hwAsic);
+  addQueuePerHostToConfig(config);
+  addLoadBalancerToConfig(config, hwSwitch, LBHash::FULL_HASH);
+
   return config;
 }
 

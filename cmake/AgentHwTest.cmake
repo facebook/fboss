@@ -54,6 +54,7 @@ add_library(hw_qos_utils
 )
 
 target_link_libraries(hw_qos_utils
+  fboss_types
   hw_switch_ensemble
   packet_factory
   Folly::folly
@@ -241,5 +242,18 @@ target_link_libraries(prod_config_factory
   config_factory
   hw_copp_utils
   hw_qos_utils
+  hw_queue_per_host_utils
   load_balancer_utils
+)
+
+add_library(hw_queue_per_host_utils
+  fboss/agent/hw/test/HwTestAclUtils.cpp
+  fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.cpp
+)
+
+target_link_libraries(hw_queue_per_host_utils
+  traffic_policy_utils
+  fboss_types
+  hw_switch
+  switch_config_cpp2
 )

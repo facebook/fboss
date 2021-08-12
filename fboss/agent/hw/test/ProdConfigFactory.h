@@ -45,4 +45,8 @@ cfg::SwitchConfig createProdFswConfig(
 
 cfg::PortSpeed getPortSpeed(const HwSwitch* hwSwitch);
 
+cfg::SwitchConfig createProdRswMhnicConfig(
+    const HwSwitch* hwSwitch,
+    const std::vector<PortID>& masterLogicalPortIds);
+
 } // namespace facebook::fboss::utility
