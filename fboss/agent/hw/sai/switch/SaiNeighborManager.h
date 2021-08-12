@@ -68,7 +68,7 @@ class ManagedNeighbor : public SaiObjectEventAggregateSubscriber<
 
   void createObject(PublisherObjects objects);
   void removeObject(size_t index, PublisherObjects objects);
-  void handleLinkDown() {}
+  void handleLinkDown();
 
   SaiNeighborHandle* getHandle() const {
     return handle_.get();

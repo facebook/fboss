@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
+#include "fboss/agent/hw/sai/api/NeighborApi.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiLagManager.h"
@@ -258,6 +259,22 @@ std::string ManagedNeighbor::toString() const {
       neighborStr,
       " ",
       fdbEntryStr);
+}
+
+void ManagedNeighbor::handleLinkDown() {
+  auto* object = getSaiObject();
+  if (!object) {
+    XLOG(DBG2)
+        << "neighbor is already unresolved, skip notifying link down to subscribed next hops";
+    return;
+  }
+  XLOGF(
+      DBG2,
+      "neighbor {} notifying link down to subscribed next hops",
+      object->adapterHostKey());
+  SaiObjectEventPublisher::getInstance()
+      ->get<SaiNeighborTraits>()
+      .notifyLinkDown(object->adapterHostKey());
 }
 
 template SaiNeighborTraits::NeighborEntry

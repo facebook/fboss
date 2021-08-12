@@ -102,6 +102,13 @@ SaiFdbTraits::FdbEntry ManagedFdbEntry::makeFdbEntry(
   return SaiFdbTraits::FdbEntry{switchId_, vlan, mac_};
 }
 
+void ManagedFdbEntry::handleLinkDown() {
+  XLOG(DBG2) << "fdb entry (" << interfaceId_ << ", " << mac_.toString()
+             << ") notifying link down to subscribed neighbors";
+  SaiObjectEventPublisher::getInstance()->get<SaiFdbTraits>().notifyLinkDown(
+      std::make_tuple(interfaceId_, mac_));
+}
+
 void SaiFdbManager::addFdbEntry(
     SaiPortDescriptor port,
     InterfaceID interfaceId,
