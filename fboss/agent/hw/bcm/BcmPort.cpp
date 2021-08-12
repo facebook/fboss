@@ -237,15 +237,19 @@ void BcmPort::removePortStat(folly::StringPiece statKey) {
   }
 }
 
-void BcmPort::removePortPfcStats(const std::shared_ptr<Port>& swPort) {
+void BcmPort::removePortPfcStats(
+    const std::shared_ptr<Port>& swPort,
+    std::optional<std::vector<PfcPriority>> priorities) {
   XLOG(DBG3) << "Destroy PFC stats for " << swPort->getName();
 
   auto lockedPortStatsPtr = lastPortStats_.wlock();
   // Destroy per priority PFC statistics
-  for (auto pri : enabledPfcPriorities_) {
-    removePortStat(getPfcPriorityStatsKey(kInPfc(), pri));
-    removePortStat(getPfcPriorityStatsKey(kInPfcXon(), pri));
-    removePortStat(getPfcPriorityStatsKey(kOutPfc(), pri));
+  if (priorities.has_value()) {
+    for (auto pri : priorities.value()) {
+      removePortStat(getPfcPriorityStatsKey(kInPfc(), pri));
+      removePortStat(getPfcPriorityStatsKey(kInPfcXon(), pri));
+      removePortStat(getPfcPriorityStatsKey(kOutPfc(), pri));
+    }
   }
 
   // Destroy per port PFC statistics
@@ -253,14 +257,18 @@ void BcmPort::removePortPfcStats(const std::shared_ptr<Port>& swPort) {
   removePortStat(kOutPfc());
 }
 
-void BcmPort::reinitPortPfcStats(std::string portName) {
-  XLOG(DBG3) << "Reinitializing PFC stats for " << portName;
+void BcmPort::reinitPortPfcStats(const std::shared_ptr<Port>& swPort) {
+  auto& portName = swPort->getName();
 
+  XLOG(DBG3) << "Reinitializing PFC stats for " << portName;
   // Reinit per priority PFC statistics
-  for (auto pri : enabledPfcPriorities_) {
-    reinitPortStat(getPfcPriorityStatsKey(kInPfc(), pri), portName);
-    reinitPortStat(getPfcPriorityStatsKey(kInPfcXon(), pri), portName);
-    reinitPortStat(getPfcPriorityStatsKey(kOutPfc(), pri), portName);
+  std::optional<std::vector<PfcPriority>> pfcPri = swPort->getPfcPriorities();
+  if (pfcPri.has_value()) {
+    for (auto pri : pfcPri.value()) {
+      reinitPortStat(getPfcPriorityStatsKey(kInPfc(), pri), portName);
+      reinitPortStat(getPfcPriorityStatsKey(kInPfcXon(), pri), portName);
+      reinitPortStat(getPfcPriorityStatsKey(kOutPfc(), pri), portName);
+    }
   }
 
   // Reinit per port PFC statistics
@@ -299,7 +307,7 @@ void BcmPort::reinitPortStats(const std::shared_ptr<Port>& swPort) {
 
   if (swPort->getPfc().has_value()) {
     // Init port PFC stats only if PFC is enabled on the port!
-    reinitPortPfcStats(portName);
+    reinitPortPfcStats(swPort);
   }
 
   if (swPort) {
@@ -880,8 +888,8 @@ void BcmPort::setupStatsIfNeeded(const std::shared_ptr<Port>& swPort) {
     reinitPortStats(swPort);
   }
   if (savedPort && hasPfcStatusChangedToDisabled(savedPort, swPort)) {
-    // Remove stats in case PFC is disabled
-    removePortPfcStats(swPort);
+    // Remove stats in case PFC is disabled for previously enabled priorities
+    removePortPfcStats(swPort, savedPort->getPfcPriorities());
   }
 
   // Set bcmPortControlStatOversize to max frame size so that we don't trigger
@@ -1103,7 +1111,7 @@ void BcmPort::updateStats() {
 
   auto settings = getProgrammedSettings();
   if (settings && settings->getPfc().has_value()) {
-    updatePortPfcStats(now, curPortStats);
+    updatePortPfcStats(now, curPortStats, settings->getPfcPriorities());
   }
   updateFecStats(now, curPortStats);
   updateWredStats(now, &(*curPortStats.wredDroppedPackets__ref()));
@@ -1224,31 +1232,34 @@ void BcmPort::setQueueWaterMarks(
 
 std::string BcmPort::getPfcPriorityStatsKey(
     folly::StringPiece statKey,
-    int priority) {
+    PfcPriority priority) {
   return folly::to<std::string>(statKey, ".priority", priority);
 }
 
 void BcmPort::updatePortPfcStats(
     std::chrono::seconds now,
-    HwPortStats& portStats) {
+    HwPortStats& portStats,
+    std::optional<std::vector<PfcPriority>> pfcPriorities) {
   // Update per priority statistics for the priorities
   // which are enabled for PFC!
-  for (auto pri : enabledPfcPriorities_) {
-    updateStat(
-        now,
-        getPfcPriorityStatsKey(kInPfc(), pri),
-        kInPfcStats.at(pri),
-        &(portStats.inPfc__ref()[pri]));
-    updateStat(
-        now,
-        getPfcPriorityStatsKey(kInPfcXon(), pri),
-        kInPfcXonStats.at(pri),
-        &(portStats.inPfcXon__ref()[pri]));
-    updateStat(
-        now,
-        getPfcPriorityStatsKey(kOutPfc(), pri),
-        kOutPfcStats.at(pri),
-        &(portStats.outPfc__ref()[pri]));
+  if (pfcPriorities.has_value()) {
+    for (auto pri : pfcPriorities.value()) {
+      updateStat(
+          now,
+          getPfcPriorityStatsKey(kInPfc(), pri),
+          kInPfcStats.at(pri),
+          &(portStats.inPfc__ref()[pri]));
+      updateStat(
+          now,
+          getPfcPriorityStatsKey(kInPfcXon(), pri),
+          kInPfcXonStats.at(pri),
+          &(portStats.inPfcXon__ref()[pri]));
+      updateStat(
+          now,
+          getPfcPriorityStatsKey(kOutPfc(), pri),
+          kOutPfcStats.at(pri),
+          &(portStats.outPfc__ref()[pri]));
+    }
   }
 
   // Update per port PFC statistics
@@ -1965,16 +1976,20 @@ void BcmPort::getProgrammedPfcWatchdogParams(
   pfcWatchdogControls[bcmCosqPFCDeadlockDetectionAndRecoveryEnable] = value;
 }
 
+std::vector<PfcPriority> BcmPort::getLastConfiguredPfcPriorities() {
+  std::vector<PfcPriority> enabledPfcPriorities;
+  auto savedPort = getProgrammedSettings();
+  if (savedPort && savedPort->getPfcPriorities().has_value()) {
+    enabledPfcPriorities = savedPort->getPfcPriorities().value();
+  }
+  return enabledPfcPriorities;
+}
+
 bool BcmPort::pfcWatchdogNeedsReprogramming(const std::shared_ptr<Port>& port) {
   int pfcWatchdogEnabledInSw = 0;
   int newPfcDeadlockRecoveryTimer{};
   int newPfcDeadlockDetectionTimer{};
   std::map<bcm_cosq_pfc_deadlock_control_t, int> programmedPfcWatchdogMap;
-
-  // Assuming the programmed PFC watchdog configs are the
-  // same for all enabled priorities
-  getProgrammedPfcWatchdogParams(
-      enabledPfcPriorities_[0], programmedPfcWatchdogMap);
 
   if (port->getPfc().has_value() &&
       port->getPfc()->watchdog_ref().has_value()) {
@@ -1985,6 +2000,24 @@ bool BcmPort::pfcWatchdogNeedsReprogramming(const std::shared_ptr<Port>& port) {
     newPfcDeadlockRecoveryTimer = *pfcWatchdog.recoveryTimeMsecs_ref();
     pfcWatchdogEnabledInSw = 1;
   }
+
+  /*
+   * Assuming the programmed PFC watchdog configs are the
+   * same for all enabled priorities. Also, a change in
+   * enabled PFC priorites is not something that is being
+   * handled here, that would need a cold boot and should
+   * not hit unconfig flow.
+   */
+  int enabledPfcPriority = 0;
+  if (port->getPfcPriorities().has_value()) {
+    enabledPfcPriority = *port->getPfcPriorities().value().begin();
+  } else {
+    auto lastPfcPriorities = getLastConfiguredPfcPriorities();
+    if (!lastPfcPriorities.empty()) {
+      enabledPfcPriority = lastPfcPriorities[0];
+    }
+  }
+  getProgrammedPfcWatchdogParams(enabledPfcPriority, programmedPfcWatchdogMap);
 
   if ((pfcWatchdogEnabledInSw !=
        programmedPfcWatchdogMap
@@ -2105,11 +2138,14 @@ void BcmPort::programPfcWatchdog(const std::shared_ptr<Port>& swPort) {
     }
   };
 
+  std::vector<PfcPriority> enabledPfcPriorities;
   if (swPort->getPfc().has_value() &&
       swPort->getPfc()->watchdog_ref().has_value()) {
     populatePfcWatchdogParams(swPort->getPfc()->watchdog_ref().value());
+    enabledPfcPriorities = swPort->getPfcPriorities().value();
   } else {
     // Default values initialized will be used, expected for unconfig cases.
+    enabledPfcPriorities = getLastConfiguredPfcPriorities();
   }
 
   XLOG(DBG2) << "PFC watchdog being programmed, port: " << port_
@@ -2121,7 +2157,7 @@ void BcmPort::programPfcWatchdog(const std::shared_ptr<Port>& swPort) {
              << pfcDeadlockDetectionAndRecoveryEnable;
 
   // Program per priority PFC watchdog configurations
-  for (auto pri : enabledPfcPriorities_) {
+  for (auto pri : enabledPfcPriorities) {
     programPerPriorityPfcWatchdog(pri);
   }
 }

@@ -249,10 +249,17 @@ class BcmPort {
       int64_t* portStatVal);
   void updateFecStats(std::chrono::seconds now, HwPortStats& curPortStats);
   void removePortStat(folly::StringPiece statKey);
-  void removePortPfcStats(const std::shared_ptr<Port>& swPort);
-  void reinitPortPfcStats(std::string portName);
-  void updatePortPfcStats(std::chrono::seconds now, HwPortStats& curPortStats);
-  std::string getPfcPriorityStatsKey(folly::StringPiece statKey, int priority);
+  void removePortPfcStats(
+      const std::shared_ptr<Port>& swPort,
+      std::optional<std::vector<PfcPriority>> priorities);
+  void reinitPortPfcStats(const std::shared_ptr<Port>& swPort);
+  void updatePortPfcStats(
+      std::chrono::seconds now,
+      HwPortStats& curPortStats,
+      std::optional<std::vector<PfcPriority>> pfcPriorities);
+  std::string getPfcPriorityStatsKey(
+      folly::StringPiece statKey,
+      PfcPriority priority);
   void updatePktLenHist(
       std::chrono::seconds now,
       fb303::ExportedHistogramMapImpl::LockableHistogram* hist,
@@ -289,6 +296,7 @@ class BcmPort {
       const bcm_cosq_pfc_deadlock_control_t control,
       const int value,
       const std::string& controlStr);
+  std::vector<PfcPriority> getLastConfiguredPfcPriorities();
 
   void setTxSetting(const std::shared_ptr<Port>& swPort);
   void setTxSettingViaPhyControl(
@@ -343,7 +351,6 @@ class BcmPort {
 
   std::atomic<bool> statCollectionEnabled_{false};
   std::atomic<bool> destroyed_{false};
-  std::vector<int> enabledPfcPriorities_{0, 7};
 };
 
 } // namespace facebook::fboss

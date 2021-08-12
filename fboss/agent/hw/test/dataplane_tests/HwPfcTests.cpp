@@ -354,30 +354,30 @@ TEST_F(HwPfcTest, verifyPfcDefault) {
 }
 
 // intent of this test is to send traffic so that it maps to
-// tc 0 which maps to PG0. Now map PG0 to pfc priority 7
+// tc 0, now map tc 0 to PG 1. Mapping from PG to pfc priority
+// is 1:1, which means PG 1 is mapped to pfc priority 1.
 // Generate traffic to fire off PFC with smaller shared buffer
 TEST_F(HwPfcTest, verifyPfcWithMapChanges_0) {
   if (!HwTest::isSupported(HwAsic::Feature::PFC)) {
     return;
   }
   const int trafficClass = 0;
-  const int pfcPriority = 7;
-  pfcPri2PgIdOverride.insert(std::make_pair(7, 0));
+  const int pfcPriority = 1;
+  tc2PgOverride.insert(std::make_pair(0, 1));
   runTest(trafficClass, pfcPriority);
 }
 
 // intent of this test is to send traffic so that it maps to
-// tc 7. Now we map tc 7 -> PG 1
-// and map PG 1 -> PFC Priority 7
+// tc 7. Now we map tc 7 -> PG 0. Mapping from PG to pfc
+// priority is 1:1, which means PG 0 is mapped to pfc priority 0.
 // Generate traffic to fire off PFC with smaller shared buffer
 TEST_F(HwPfcTest, verifyPfcWithMapChanges_1) {
   if (!HwTest::isSupported(HwAsic::Feature::PFC)) {
     return;
   }
   const int trafficClass = 7;
-  const int pfcPriority = 7;
-  tc2PgOverride.insert(std::make_pair(7, 1));
-  pfcPri2PgIdOverride.insert(std::make_pair(7, 1));
+  const int pfcPriority = 0;
+  tc2PgOverride.insert(std::make_pair(7, 0));
   runTest(trafficClass, pfcPriority);
 }
 
