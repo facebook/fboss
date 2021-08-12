@@ -82,7 +82,7 @@ class HwProdInvariantsRswTest : public HwProdInvariantsTest {
 
   HwInvariantBitmask getInvariantOptions() const override {
     auto hwAsic = getHwSwitch()->getPlatform()->getAsic();
-    HwInvariantBitmask bitmask = COPP_INVARIANT;
+    HwInvariantBitmask bitmask = DIAG_CMDS_INVARIANT | COPP_INVARIANT;
     if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
       bitmask |= OLYMPIC_QOS_INVARIANT;
     }
@@ -108,7 +108,7 @@ class HwProdInvariantsFswTest : public HwProdInvariantsTest {
 
   HwInvariantBitmask getInvariantOptions() const override {
     auto hwAsic = getHwSwitch()->getPlatform()->getAsic();
-    HwInvariantBitmask bitmask = COPP_INVARIANT;
+    HwInvariantBitmask bitmask = DIAG_CMDS_INVARIANT | COPP_INVARIANT;
     if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
       bitmask |= OLYMPIC_QOS_INVARIANT;
     }

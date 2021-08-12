@@ -77,6 +77,9 @@ class HwProdInvariantHelper {
     if (isHwInvariantOptSet(options, OLYMPIC_QOS_INVARIANT)) {
       verifyDscpToQueueMapping();
     }
+    if (isHwInvariantOptSet(options, MHNIC_INVARIANT)) {
+      verifyQueuePerHostMapping();
+    }
   }
   void sendTraffic();
   static HwSwitchEnsemble::Features featuresDesired() {
@@ -97,6 +100,7 @@ class HwProdInvariantHelper {
   void verifyCopp();
   void verifyLoadBalacing();
   void sendAndVerifyPkts(uint16_t destPort, uint8_t queueId);
+  void verifyQueuePerHostMapping();
 
   std::unique_ptr<utility::HwIpV6EcmpDataPlaneTestUtil> ecmpHelper_;
   HwSwitchEnsemble* ensemble_;

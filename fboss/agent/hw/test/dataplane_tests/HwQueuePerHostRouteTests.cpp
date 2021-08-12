@@ -131,81 +131,20 @@ class HwQueuePerHostRouteTest : public HwLinkStateDependentTest {
   }
 
   void verifyHelper(bool useFrontPanel) {
-    auto ttlAclName = utility::getQueuePerHostTtlAclName();
-    auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
+    auto vlanId =
+        VlanID(*this->initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto intfMac = utility::getInterfaceMac(this->getProgrammedState(), vlanId);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 
-    auto statBefore = utility::getAclInOutPackets(
-        getHwSwitch(), this->getProgrammedState(), ttlAclName, ttlCounterName);
-
-    std::map<int, int64_t> beforeQueueOutPkts;
-    for (const auto& queueId : utility::kQueuePerhostQueueIds()) {
-      beforeQueueOutPkts[queueId] =
-          this->getLatestPortStats(this->masterLogicalPortIds()[0])
-              .get_queueOutPackets_()
-              .at(queueId);
-    }
-
-    auto txPacket = createUdpPkt(64 /* ttl < 128 */);
-    auto txPacket2 = createUdpPkt(128 /* ttl >= 128 */);
-
-    if (useFrontPanel) {
-      getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
-          std::move(txPacket), PortID(masterLogicalPortIds()[1]));
-      getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
-          std::move(txPacket2), PortID(masterLogicalPortIds()[1]));
-    } else {
-      getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
-      getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket2));
-    }
-
-    std::map<int, int64_t> afterQueueOutPkts;
-    for (const auto& queueId : utility::kQueuePerhostQueueIds()) {
-      afterQueueOutPkts[queueId] =
-          this->getLatestPortStats(this->masterLogicalPortIds()[0])
-              .get_queueOutPackets_()
-              .at(queueId);
-    }
-
-    /*
-     *  Consider ACL with action to egress pkts through queue 2.
-     *
-     *  CPU originated packets:
-     *     - Hits ACL (queue2Cnt = 1), egress through queue 2 of port0.
-     *     - port0 is in loopback mode, so the packet gets looped back.
-     *     - When packet is routed, its dstMAC gets overwritten. Thus, the
-     *       looped back packet is not routed, and thus does not hit the ACL.
-     *     - On some platforms, looped back packets for unknown MACs are
-     *       flooded and counted on queue *before* the split horizon check
-     *       (drop when srcPort == dstPort). This flooding always happens on
-     *       queue 0, so expect one or more packets on queue 0.
-     *
-     *  Front panel packets (injected with pipeline bypass):
-     *     - Egress out of port1 queue0 (pipeline bypass).
-     *     - port1 is in loopback mode, so the packet gets looped back.
-     *     - Rest of the workflow is same as above when CPU originated packet
-     *       gets injected for switching.
-     */
-    for (auto [qid, beforePkts] : beforeQueueOutPkts) {
-      auto pktsOnQueue = afterQueueOutPkts[qid] - beforePkts;
-
-      XLOG(DBG0) << "queueId: " << qid << " pktsOnQueue: " << pktsOnQueue;
-
-      if (qid == this->kQueueID()) {
-        EXPECT_EQ(pktsOnQueue, 2);
-      } else if (qid == 0) {
-        EXPECT_GE(pktsOnQueue, 0);
-      } else {
-        EXPECT_EQ(pktsOnQueue, 0);
-      }
-    }
-
-    auto statAfter = utility::getAclInOutPackets(
-        getHwSwitch(), this->getProgrammedState(), ttlAclName, ttlCounterName);
-
-    /*
-     * counts ttl >= 128 packet only
-     */
-    EXPECT_EQ(statAfter - statBefore, 1);
+    utility::verifyQueuePerHostMapping(
+        getHwSwitch(),
+        getHwSwitchEnsemble(),
+        vlanId,
+        srcMac,
+        intfMac,
+        this->kSrcIP(),
+        this->kDstIP(),
+        useFrontPanel);
   }
 };
 

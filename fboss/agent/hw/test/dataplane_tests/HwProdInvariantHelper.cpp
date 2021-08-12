@@ -16,9 +16,12 @@
 #include "fboss/agent/hw/test/dataplane_tests/HwEcmpDataPlaneTestUtil.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include "fboss/agent/hw/test/gen-cpp2/validated_shell_commands_constants.h"
+
+#include "folly/IPAddressV4.h"
 
 namespace {
 auto constexpr kEcmpWidth = 4;
@@ -173,4 +176,22 @@ void HwProdInvariantHelper::disableTtl() {
         ecmpHelper_->getNextHops().at(w));
   }
 }
+
+void HwProdInvariantHelper::verifyQueuePerHostMapping() {
+  auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+  auto intfMac =
+      utility::getInterfaceMac(ensemble_->getProgrammedState(), vlanId);
+  auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO());
+
+  utility::verifyQueuePerHostMapping(
+      ensemble_->getHwSwitch(),
+      ensemble_,
+      vlanId,
+      srcMac,
+      intfMac,
+      folly::IPAddressV4("1.0.0.1"),
+      folly::IPAddressV4("10.10.1.2"),
+      true);
+}
+
 } // namespace facebook::fboss

@@ -130,7 +130,7 @@ void sendTcpPkts(
     std::optional<std::vector<uint8_t>> payload = std::nullopt);
 
 std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
-    HwSwitch* hwSwitch,
+    const HwSwitch* hwSwitch,
     VlanID vlanId,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,

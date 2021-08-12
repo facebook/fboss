@@ -318,7 +318,7 @@ void sendTcpPkts(
 }
 
 std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
-    HwSwitch* hwSwitch,
+    const HwSwitch* hwSwitch,
     VlanID vlanId,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
