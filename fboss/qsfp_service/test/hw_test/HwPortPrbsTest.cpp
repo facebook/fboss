@@ -78,45 +78,51 @@ class HwPortPrbsTest : public HwExternalPhyPortTest {
 
  protected:
   void runTest(bool enable) {
-    auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
-    const auto& availableXphyPorts = findAvailableXphyPorts();
     // Find any available xphy port
-    for (const auto& [port, profile] : availableXphyPorts) {
-      // First program the xphy port
-      wedgeManager->programXphyPort(port, profile);
+    const auto& availableXphyPorts = findAvailableXphyPorts();
+    auto setup = [this, enable, &availableXphyPorts]() {
+      auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+      for (const auto& [port, profile] : availableXphyPorts) {
+        // First program the xphy port
+        wedgeManager->programXphyPort(port, profile);
 
-      // Then try to program xphy prbs
-      phy::PortPrbsState prbs;
-      prbs.enabled_ref() = enable;
-      prbs.polynominal_ref() = Polynominal;
-      wedgeManager->programXphyPortPrbs(port, Side, prbs);
-    }
-
-    // Verify all programmed xphy prbs matching with the desired values
-    for (const auto& [port, _] : availableXphyPorts) {
-      const auto& hwPrbs = wedgeManager->getXphyPortPrbs(port, Side);
-      EXPECT_EQ(*hwPrbs.enabled_ref(), enable)
-          << "Port:" << port << " has undesired prbs enable state";
-      EXPECT_EQ(*hwPrbs.polynominal_ref(), Polynominal)
-          << "Port:" << port << " has undesired prbs polynominal";
-
-      // Verify prbs stats collection is enabled or not
-      auto* phyManager = wedgeManager->getPhyManager();
-      const auto& prbsStats = phyManager->getPortPrbsStats(port, Side);
-      if (enable) {
-        const auto& actualPortConfig = phyManager->getHwPhyPortConfig(port);
-        const auto& lanes = (Side == phy::Side::SYSTEM)
-            ? actualPortConfig.config.system.lanes
-            : actualPortConfig.config.line.lanes;
-        EXPECT_EQ(lanes.size(), prbsStats.size());
-        int laneStatsIdx = 0;
-        for (const auto& laneIt : lanes) {
-          EXPECT_EQ(laneIt.first, *prbsStats[laneStatsIdx++].laneId_ref());
-        }
-      } else {
-        EXPECT_TRUE(prbsStats.empty());
+        // Then try to program xphy prbs
+        phy::PortPrbsState prbs;
+        prbs.enabled_ref() = enable;
+        prbs.polynominal_ref() = Polynominal;
+        wedgeManager->programXphyPortPrbs(port, Side, prbs);
       }
-    }
+    };
+
+    auto verify = [&]() {
+      // Verify all programmed xphy prbs matching with the desired values
+      for (const auto& [port, _] : availableXphyPorts) {
+        auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+        const auto& hwPrbs = wedgeManager->getXphyPortPrbs(port, Side);
+        EXPECT_EQ(*hwPrbs.enabled_ref(), enable)
+            << "Port:" << port << " has undesired prbs enable state";
+        EXPECT_EQ(*hwPrbs.polynominal_ref(), Polynominal)
+            << "Port:" << port << " has undesired prbs polynominal";
+
+        // Verify prbs stats collection is enabled or not
+        auto* phyManager = wedgeManager->getPhyManager();
+        const auto& prbsStats = phyManager->getPortPrbsStats(port, Side);
+        if (enable) {
+          const auto& actualPortConfig = phyManager->getHwPhyPortConfig(port);
+          const auto& lanes = (Side == phy::Side::SYSTEM)
+              ? actualPortConfig.config.system.lanes
+              : actualPortConfig.config.line.lanes;
+          EXPECT_EQ(lanes.size(), prbsStats.size());
+          int laneStatsIdx = 0;
+          for (const auto& laneIt : lanes) {
+            EXPECT_EQ(laneIt.first, *prbsStats[laneStatsIdx++].laneId_ref());
+          }
+        } else {
+          EXPECT_TRUE(prbsStats.empty());
+        }
+      }
+    };
+    verifyAcrossWarmBoots(setup, verify);
   }
 };
 

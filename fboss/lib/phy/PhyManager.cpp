@@ -343,6 +343,7 @@ void PhyManager::restoreFromWarmbootState(
           " in the phy warmboot portToCacheInfo map.");
     }
     bool isProgrammed = false;
+    PortID portIDStrong = PortID(portID);
     const auto& wLockedCache = it.second->wlock();
     for (auto lane : portCacheInfo[kSystemLanesKey]) {
       wLockedCache->systemLanes.push_back(LaneID(lane.asInt()));
@@ -352,13 +353,37 @@ void PhyManager::restoreFromWarmbootState(
       wLockedCache->lineLanes.push_back(LaneID(lane.asInt()));
     }
 
-    // If the port has programmed lane info, we also need to restore the
-    // ExternalPhyPortStatsUtils
-    if (isProgrammed &&
-        getExternalPhyLocked(wLockedCache)
-            ->isSupported(phy::ExternalPhy::Feature::PORT_STATS)) {
-      setPortToExternalPhyPortStatsLocked(
-          wLockedCache, createExternalPhyPortStats(PortID(portID)));
+    if (isProgrammed) {
+      auto* xphy = getExternalPhyLocked(wLockedCache);
+      // If the port has programmed lane info, we also need to restore the
+      // ExternalPhyPortStatsUtils
+      if (xphy->isSupported(phy::ExternalPhy::Feature::PORT_STATS)) {
+        setPortToExternalPhyPortStatsLocked(
+            wLockedCache, createExternalPhyPortStats(portIDStrong));
+      }
+      // If the prbs is enabled in HW, we also need to setup prbs stats
+      if (xphy->isSupported(phy::ExternalPhy::Feature::PRBS_STATS)) {
+        const auto& sysPrbsState =
+            xphy->getPortPrbs(phy::Side::SYSTEM, wLockedCache->systemLanes);
+        const auto& linePrbsState =
+            xphy->getPortPrbs(phy::Side::LINE, wLockedCache->lineLanes);
+        if (*sysPrbsState.enabled_ref() || *linePrbsState.enabled_ref()) {
+          const auto& phyPortConfig =
+              getHwPhyPortConfigLocked(wLockedCache, portIDStrong);
+          if (*sysPrbsState.enabled_ref()) {
+            wLockedCache->stats->setupPrbsCollection(
+                phy::Side::SYSTEM,
+                wLockedCache->systemLanes,
+                phyPortConfig.getLaneSpeedInMb(phy::Side::SYSTEM));
+          }
+          if (*linePrbsState.enabled_ref()) {
+            wLockedCache->stats->setupPrbsCollection(
+                phy::Side::LINE,
+                wLockedCache->lineLanes,
+                phyPortConfig.getLaneSpeedInMb(phy::Side::LINE));
+          }
+        }
+      }
     }
 
     XLOG(INFO) << "Restore port=" << portID
