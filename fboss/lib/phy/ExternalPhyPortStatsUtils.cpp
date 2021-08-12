@@ -125,14 +125,20 @@ void ExternalPhyPortStatsUtils::clearPrbsStats(phy::Side side) {
 void ExternalPhyPortStatsUtils::updateXphyPrbsStats(
     const phy::ExternalPhyPortStats& stats,
     std::optional<std::chrono::seconds> /* now */) {
-  for (const auto& kv : stats.system.lanes) {
-    if (kv.second.prbsErrorCounts) {
-      updateLanePrbsStats(phy::Side::SYSTEM, LaneID(kv.first), kv.second);
+  if (sideToLanePrbsStats_.find(phy::Side::SYSTEM) !=
+      sideToLanePrbsStats_.end()) {
+    for (const auto& kv : stats.system.lanes) {
+      if (kv.second.prbsErrorCounts) {
+        updateLanePrbsStats(phy::Side::SYSTEM, LaneID(kv.first), kv.second);
+      }
     }
   }
-  for (const auto& kv : stats.line.lanes) {
-    if (kv.second.prbsErrorCounts) {
-      updateLanePrbsStats(phy::Side::LINE, LaneID(kv.first), kv.second);
+  if (sideToLanePrbsStats_.find(phy::Side::LINE) !=
+      sideToLanePrbsStats_.end()) {
+    for (const auto& kv : stats.line.lanes) {
+      if (kv.second.prbsErrorCounts) {
+        updateLanePrbsStats(phy::Side::LINE, LaneID(kv.first), kv.second);
+      }
     }
   }
 }
@@ -149,6 +155,10 @@ void ExternalPhyPortStatsUtils::disablePrbsCollection(phy::Side side) {
         << prefix_ << ", side=" << apache::thrift::util::enumNameSafe(side)
         << " hasn't set up externalPhyLanePrbsStatsEntry yet. Skip disabling";
   }
+}
+
+bool ExternalPhyPortStatsUtils::isPrbsCollectionEnabled(phy::Side side) {
+  return sideToLanePrbsStats_.find(side) != sideToLanePrbsStats_.end();
 }
 
 } // namespace facebook::fboss

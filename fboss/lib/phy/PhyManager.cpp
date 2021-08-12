@@ -460,31 +460,36 @@ void PhyManager::updateStatsLocked(
               .delayed(seconds(getXphyPortStatsUpdateIntervalInSec()));
     }
   }
+
   if (xphy->isSupported(phy::ExternalPhy::Feature::PRBS_STATS)) {
-    if (wLockedCache->ongoingPrbsStatCollection.has_value() &&
-        !wLockedCache->ongoingPrbsStatCollection->isReady()) {
-      XLOG(DBG4) << "XPHY PRBS Stat collection for Port:" << portID
-                 << " still underway...";
-    } else {
-      // Collect xphy prbs stats
-      steady_clock::time_point begin = steady_clock::now();
-      wLockedCache->ongoingPrbsStatCollection =
-          folly::via(evb)
-              .thenValue([this, portID, xphy, begin](auto&&) {
-                // Since this is delay future job, we need to fetch the
-                // cache with wlock again
-                const auto& wCache = getWLockedCache(portID);
-                const auto& stats = xphy->getPortPrbsStats(
-                    wCache->systemLanes, wCache->lineLanes);
-                wCache->stats->updateXphyPrbsStats(stats);
-                XLOG(DBG3) << "Port " << portID
-                           << ": xphy prbs stat collection took "
-                           << duration_cast<milliseconds>(
-                                  steady_clock::now() - begin)
-                                  .count()
-                           << "ms";
-              })
-              .delayed(seconds(FLAGS_xphy_prbs_stat_interval_secs));
+    // Only needs to update prbs stats as long as there's one side enabled
+    if (wLockedCache->stats->isPrbsCollectionEnabled(phy::Side::SYSTEM) ||
+        wLockedCache->stats->isPrbsCollectionEnabled(phy::Side::LINE)) {
+      if (wLockedCache->ongoingPrbsStatCollection.has_value() &&
+          !wLockedCache->ongoingPrbsStatCollection->isReady()) {
+        XLOG(DBG4) << "XPHY PRBS Stat collection for Port:" << portID
+                   << " still underway...";
+      } else {
+        // Collect xphy prbs stats
+        steady_clock::time_point begin = steady_clock::now();
+        wLockedCache->ongoingPrbsStatCollection =
+            folly::via(evb)
+                .thenValue([this, portID, xphy, begin](auto&&) {
+                  // Since this is delay future job, we need to fetch the
+                  // cache with wlock again
+                  const auto& wCache = getWLockedCache(portID);
+                  const auto& stats = xphy->getPortPrbsStats(
+                      wCache->systemLanes, wCache->lineLanes);
+                  wCache->stats->updateXphyPrbsStats(stats);
+                  XLOG(DBG3) << "Port " << portID
+                             << ": xphy prbs stat collection took "
+                             << duration_cast<milliseconds>(
+                                    steady_clock::now() - begin)
+                                    .count()
+                             << "ms";
+                })
+                .delayed(seconds(FLAGS_xphy_prbs_stat_interval_secs));
+      }
     }
   }
 }

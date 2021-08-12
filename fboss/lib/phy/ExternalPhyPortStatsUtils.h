@@ -49,6 +49,7 @@ class ExternalPhyPortStatsUtils {
       const std::vector<LaneID>& lanes,
       int laneSpeedInMb);
   void disablePrbsCollection(phy::Side side);
+  bool isPrbsCollectionEnabled(phy::Side side);
 
   virtual std::vector<PrbsLaneStats> getPrbsStats(phy::Side side) const = 0;
 
