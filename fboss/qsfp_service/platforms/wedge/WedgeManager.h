@@ -135,6 +135,8 @@ class WedgeManager : public TransceiverManager {
 
   phy::PortPrbsState getXphyPortPrbs(PortID portID, phy::Side side);
 
+  void updateAllXphyPortsStats() override;
+
   PhyManager* getPhyManager() override {
     return phyManager_.get();
   }

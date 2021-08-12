@@ -118,6 +118,8 @@ class PhyManager {
 
   void restoreFromWarmbootState(const folly::dynamic& phyWarmbootState);
 
+  void updateAllXphyPortsStats();
+
  protected:
   struct PortCacheInfo {
     // PhyManager is in the middle of changing its apis to accept PortID instead
@@ -197,7 +199,9 @@ class PhyManager {
       MultiPimPlatformPimContainer* pimContainer) = 0;
 
   // Update PortCacheInfo::stats
-  void updateStats(PortID portID);
+  void updateStatsLocked(
+      const PortCacheWLockedPtr& wLockedCache,
+      PortID portID);
 
   template <typename LockedPtr>
   phy::PhyPortConfig getHwPhyPortConfigLocked(

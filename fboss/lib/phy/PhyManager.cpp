@@ -378,9 +378,21 @@ void PhyManager::setPortToExternalPhyPortStatsLocked(
   lockedCache->stats = std::move(stats);
 }
 
+void PhyManager::updateAllXphyPortsStats() {
+  for (const auto& portCacheInfo : portToCacheInfo_) {
+    const auto& wLockedCache = portCacheInfo.second->wlock();
+    // If the port is not programmed yet, skip updating xphy stats for it
+    if (wLockedCache->systemLanes.empty() || wLockedCache->lineLanes.empty()) {
+      continue;
+    }
+    updateStatsLocked(wLockedCache, portCacheInfo.first);
+  }
+}
+
 using namespace std::chrono;
-void PhyManager::updateStats(PortID portID) {
-  const auto& wLockedCache = getWLockedCache(portID);
+void PhyManager::updateStatsLocked(
+    const PortCacheWLockedPtr& wLockedCache,
+    PortID portID) {
   if (wLockedCache->systemLanes.empty() || wLockedCache->lineLanes.empty()) {
     throw FbossError(
         "Port:", portID, " is not programmed and can't find cached lanes");

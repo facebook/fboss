@@ -902,5 +902,21 @@ phy::PortPrbsState WedgeManager::getXphyPortPrbs(
   return phyManager_->getPortPrbs(portID, side);
 }
 
+void WedgeManager::updateAllXphyPortsStats() {
+  if (!phyManager_) {
+    // If there's no PhyManager for such platform, skip updating xphy stats
+    return;
+  }
+  // For now, we only need to update xphy ports stats if we support
+  // initializing the pim xphy so that if this flag is still disabled, which
+  // means wedge_agent is still the service to program xphy, we don't need
+  // to collect xphy stats in qsfp_service
+  if (!shouldInitializePimXphy()) {
+    return;
+  }
+  // Then we need to update all the programmed port xphy stats
+  phyManager_->updateAllXphyPortsStats();
+}
+
 } // namespace fboss
 } // namespace facebook

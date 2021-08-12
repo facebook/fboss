@@ -23,6 +23,10 @@ DEFINE_int32(
     5,
     "Interval (in seconds) to run the main loop that determines "
     "if we need to change or fetch data for transceivers");
+DEFINE_int32(
+    xphy_stats_loop_interval,
+    60,
+    "Interval (in seconds) to run the loop that updates all xphy ports stats");
 
 DECLARE_int32(port);
 
@@ -66,6 +70,15 @@ int main(int argc, char** argv) {
       },
       std::chrono::seconds(FLAGS_loop_interval),
       "publishI2cTransactionStats");
+
+  // Schedule the function to periodically collect xphy stats if there's a
+  // PhyManager
+  if (auto* mgr = handler->getTransceiverManager(); mgr->getPhyManager()) {
+    scheduler.addFunction(
+        [mgr]() { mgr->updateAllXphyPortsStats(); },
+        std::chrono::seconds(FLAGS_xphy_stats_loop_interval),
+        "updateAllXphyPortsStats");
+  }
 
   // Note: This doesn't block, this merely starts it's own thread
   scheduler.start();

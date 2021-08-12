@@ -136,6 +136,8 @@ class TransceiverManager {
       int32_t portId,
       cfg::PortProfileID portProfileId) = 0;
 
+  virtual void updateAllXphyPortsStats() = 0;
+
   const PortGroups& getModuleToPortMap() const {
     return portGroupMap_;
   }
