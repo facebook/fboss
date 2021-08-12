@@ -38,22 +38,18 @@ class ExternalPhyPortStatsUtils {
   virtual void updateXphyStats(
       const phy::ExternalPhyPortStats& stats,
       std::optional<std::chrono::seconds> now = std::nullopt);
-  virtual void updateXphyPrbsStats(
+  void updateXphyPrbsStats(
       const phy::ExternalPhyPortStats& stats,
-      std::optional<std::chrono::seconds> now = std::nullopt) = 0;
+      std::optional<std::chrono::seconds> now = std::nullopt);
 
   virtual void setupPrbsCollection(
-      const phy::PhyPortConfig& phyPortConfig,
       phy::Side side,
+      const std::vector<LaneID>& lanes,
       float_t laneSpeed);
 
-  virtual std::vector<PrbsLaneStats> getPrbsStats(
-      const phy::PhyPortConfig& phyPortConfig,
-      phy::Side side) const = 0;
+  virtual std::vector<PrbsLaneStats> getPrbsStats(phy::Side side) const = 0;
 
-  virtual void clearPrbsStats(
-      const phy::PhyPortConfig& phyPortConfig,
-      phy::Side side) = 0;
+  void clearPrbsStats(phy::Side side);
 
  protected:
   template <typename KeyT>
@@ -70,8 +66,16 @@ class ExternalPhyPortStatsUtils {
   facebook::stats::MonotonicCounter systemFecCorr_;
   facebook::stats::MonotonicCounter lineFecCorr_;
 
-  folly::Synchronized<std::map<int32_t, ExternalPhyLanePrbsStatsEntry>>
-      lanePrbsStatsMap_;
+  // System and Line side lanes might use the same id, hence use phy::Side
+  // to saperate both sides lane to prbs stats mapping
+  std::unordered_map<phy::Side, std::map<LaneID, ExternalPhyLanePrbsStatsEntry>>
+      sideToLanePrbsStats_;
+
+ private:
+  virtual void updateLanePrbsStats(
+      phy::Side side,
+      LaneID lane,
+      const phy::ExternalPhyLaneStats& laneStats) = 0;
 };
 
 } // namespace facebook::fboss

@@ -27,13 +27,7 @@ class NullPortStats : public ExternalPhyPortStatsUtils {
   explicit NullPortStats(std::string prefix)
       : ExternalPhyPortStatsUtils(prefix) {}
 
-  void clearPrbsStats(
-      const phy::PhyPortConfig& /* phyPortConfig */,
-      phy::Side /* side */) override {}
-
-  std::vector<PrbsLaneStats> getPrbsStats(
-      const phy::PhyPortConfig& /* phyPortConfig */,
-      phy::Side /* side */) const override {
+  std::vector<PrbsLaneStats> getPrbsStats(phy::Side /* side */) const override {
     return {};
   }
 
@@ -41,9 +35,11 @@ class NullPortStats : public ExternalPhyPortStatsUtils {
       const phy::ExternalPhyPortStats& /* stats */,
       std::optional<std::chrono::seconds> /* now */) override {}
 
-  void updateXphyPrbsStats(
-      const phy::ExternalPhyPortStats& /* stats */,
-      std::optional<std::chrono::seconds> /* now */) override {}
+ private:
+  void updateLanePrbsStats(
+      phy::Side /* side */,
+      LaneID /* lane */,
+      const phy::ExternalPhyLaneStats& /* laneStats */) override {}
 };
 
 } // namespace facebook::fboss

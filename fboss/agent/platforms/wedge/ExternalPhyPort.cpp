@@ -101,7 +101,15 @@ void ExternalPhyPort<PlatformT, PortStatsT>::portChanged(
           if (!lockedStats->has_value()) {
             lockedStats->emplace(newPort->getName());
           }
-          (*lockedStats)->setupPrbsCollection(phyPortConfig, side, laneSpeed);
+
+          const auto& lanes = (side == phy::Side::SYSTEM)
+              ? phyPortConfig.config.system.lanes
+              : phyPortConfig.config.line.lanes;
+          std::vector<LaneID> sideLanes;
+          for (const auto& it : lanes) {
+            sideLanes.push_back(it.first);
+          }
+          (*lockedStats)->setupPrbsCollection(side, sideLanes, laneSpeed);
         };
 
     if (oldPort->getGbSystemPrbs() != newPort->getGbSystemPrbs()) {

@@ -75,29 +75,56 @@ void ExternalPhyPortStatsUtils::updateXphyStats(
 }
 
 void ExternalPhyPortStatsUtils::setupPrbsCollection(
-    const phy::PhyPortConfig& phyPortConfig,
     phy::Side side,
+    const std::vector<LaneID>& lanes,
     float_t laneSpeed) {
   auto now = steady_clock::now();
-  const auto& lanes = (side == phy::Side::SYSTEM)
-      ? phyPortConfig.config.system.lanes
-      : phyPortConfig.config.line.lanes;
-  auto lockedlanePrbsStatsMap = lanePrbsStatsMap_.wlock();
-  for (const auto& it : lanes) {
-    auto lane = it.first;
-    auto statIter = lockedlanePrbsStatsMap->find(lane);
-    if (statIter != lockedlanePrbsStatsMap->end()) {
-      XLOG(INFO) << "ExternalPhyLanePrbsStats already exists for lane " << lane;
-      lockedlanePrbsStatsMap->erase(lane);
-    }
+  std::map<LaneID, ExternalPhyLanePrbsStatsEntry> newSideLanePrbsStatsMap;
+  for (auto lane : lanes) {
     ExternalPhyLanePrbsStatsEntry externalPhyLanePrbsStatsEntry;
     externalPhyLanePrbsStatsEntry.laneSpeed = laneSpeed;
     externalPhyLanePrbsStatsEntry.timeLastCleared = now;
     externalPhyLanePrbsStatsEntry.timeLastCollect = now;
-    lockedlanePrbsStatsMap->emplace(
-        lane, std::move(externalPhyLanePrbsStatsEntry));
-    XLOG(INFO) << "Emplaced externalPhyLanePrbsStatsEntry for lane " << lane
-               << " at " << prefix_;
+    newSideLanePrbsStatsMap[lane] = externalPhyLanePrbsStatsEntry;
+    XLOG(DBG2) << "Setup externalPhyLanePrbsStatsEntry for side="
+               << apache::thrift::util::enumNameSafe(side) << ", lane "
+               << static_cast<int>(lane) << " at " << prefix_;
+  }
+  // Always replace existing prbs stats entry
+  sideToLanePrbsStats_[side] = std::move(newSideLanePrbsStatsMap);
+}
+
+void ExternalPhyPortStatsUtils::clearPrbsStats(phy::Side side) {
+  auto sideLanesStats = sideToLanePrbsStats_.find(side);
+  if (sideLanesStats == sideToLanePrbsStats_.end()) {
+    XLOG(WARN) << "LanePrbsStats wasn't setup for side "
+               << apache::thrift::util::enumNameSafe(side) << " at " << prefix_;
+    return;
+  }
+
+  for (auto& statsIter : sideLanesStats->second) {
+    statsIter.second.accuErrorCount = 0;
+    statsIter.second.numLinkLoss = 0;
+    statsIter.second.maxBer = -1.;
+    statsIter.second.timeLastLocked = statsIter.second.locked
+        ? statsIter.second.timeLastCollect
+        : steady_clock::time_point();
+    statsIter.second.timeLastCleared = steady_clock::now();
+  }
+}
+
+void ExternalPhyPortStatsUtils::updateXphyPrbsStats(
+    const phy::ExternalPhyPortStats& stats,
+    std::optional<std::chrono::seconds> /* now */) {
+  for (const auto& kv : stats.system.lanes) {
+    if (kv.second.prbsErrorCounts) {
+      updateLanePrbsStats(phy::Side::SYSTEM, LaneID(kv.first), kv.second);
+    }
+  }
+  for (const auto& kv : stats.line.lanes) {
+    if (kv.second.prbsErrorCounts) {
+      updateLanePrbsStats(phy::Side::LINE, LaneID(kv.first), kv.second);
+    }
   }
 }
 
