@@ -32,6 +32,8 @@
 
 #include <chrono>
 
+#include <fmt/ranges.h>
+
 using namespace std::chrono;
 
 namespace facebook::fboss {
@@ -1145,7 +1147,39 @@ bool SaiPortManager::isUp(PortSaiId saiPortId) const {
   return adminState && (operStatus == SAI_PORT_OPER_STATUS_UP);
 }
 
+std::optional<SaiPortTraits::Attributes::PtpMode> SaiPortManager::getPtpMode()
+    const {
+  std::set<SaiPortTraits::Attributes::PtpMode> ptpModes;
+  for (const auto& portIdAndHandle : handles_) {
+    const auto ptpMode = SaiApiTable::getInstance()->portApi().getAttribute(
+        portIdAndHandle.second->port->adapterKey(),
+        SaiPortTraits::Attributes::PtpMode());
+    ptpModes.insert(ptpMode);
+  }
+
+  if (ptpModes.size() > 1) {
+    XLOG(WARN) << fmt::format(
+        "all ports do not have same ptpMode: {}", ptpModes);
+    return {};
+  }
+
+  // if handles_ is empty, treat as ptp disabled
+  return ptpModes.empty() ? SAI_PORT_PTP_MODE_NONE : *ptpModes.begin();
+}
+
+bool SaiPortManager::isPtpTcEnabled() const {
+  auto ptpMode = getPtpMode();
+  return ptpMode && *ptpMode == SAI_PORT_PTP_MODE_SINGLE_STEP_TIMESTAMP;
+}
+
 void SaiPortManager::setPtpTcEnable(bool enable) {
+  if (enable == isPtpTcEnabled()) {
+    ptpTcNoTransition_ = true;
+    XLOG(INFO) << fmt::format(
+        "Ignore PTP TC no-op transition: {0} -> {0}", (enable ? "ON" : "OFF"));
+    return;
+  }
+
   for (const auto& portIdAndHandle : handles_) {
     portIdAndHandle.second->port->setOptionalAttribute(
         SaiPortTraits::Attributes::PtpMode{utility::getSaiPortPtpMode(enable)});

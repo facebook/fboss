@@ -13,6 +13,7 @@ add_executable(bcm_test
   fboss/agent/hw/bcm/tests/HwTestTamUtils.cpp
   fboss/agent/hw/bcm/tests/HwTestAclUtils.cpp
   fboss/agent/hw/bcm/tests/HwTestEcmpUtils.cpp
+  fboss/agent/hw/bcm/tests/HwTestPtpTcUtils.cpp
   fboss/agent/hw/bcm/tests/HwTestNeighborUtils.cpp
   fboss/agent/hw/bcm/tests/HwTestMirrorUtils.cpp
   fboss/agent/hw/bcm/tests/HwTestMplsUtils.cpp
@@ -134,6 +135,14 @@ add_library(bcm_ecmp_utils
 )
 
 target_link_libraries(bcm_ecmp_utils
+  bcm
+)
+
+add_library(bcm_ptp_tc_utils
+  fboss/agent/hw/bcm/tests/HwTestPtpTcUtils.cpp
+)
+
+target_link_libraries(bcm_ptp_tc_utils
   bcm
 )
 

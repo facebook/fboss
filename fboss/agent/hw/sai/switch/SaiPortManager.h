@@ -167,6 +167,10 @@ class SaiPortManager {
   bool isUp(PortSaiId saiPortId) const;
 
   void setPtpTcEnable(bool enable);
+  bool isPtpTcEnabled() const;
+  bool getPtpTcNoTransition() const {
+    return ptpTcNoTransition_;
+  }
 
  private:
   void addRemovedHandle(PortID portID);
@@ -223,12 +227,18 @@ class SaiPortManager {
   bool removePortsAtExit_;
   ConcurrentIndices* concurrentIndices_;
   Handles handles_;
-  // on some platforms port can not be removed freely. on such platforms retain
-  // removed port handle so it does not invoke remove port api.
+  // on some platforms port can not be removed freely. on such platforms
+  // retain removed port handle so it does not invoke remove port api.
   Handles removedHandles_;
   Stats portStats_;
   std::shared_ptr<SaiQosMap> globalDscpToTcQosMap_;
   std::shared_ptr<SaiQosMap> globalTcToQueueQosMap_;
+
+  std::optional<SaiPortTraits::Attributes::PtpMode> getPtpMode() const;
+
+  // used by test to check that warmboot indeed
+  // results in a no-op transition that is detected and skipped
+  bool ptpTcNoTransition_{false};
 };
 
 } // namespace facebook::fboss
