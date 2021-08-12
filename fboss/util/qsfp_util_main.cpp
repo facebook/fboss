@@ -3,6 +3,7 @@
 #include "fboss/util/wedge_qsfp_util.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
+#include "folly/gen/Base.h"
 
 #include <folly/init/Init.h>
 #include <gflags/gflags.h>
@@ -104,25 +105,30 @@ int main(int argc, char* argv[]) {
   std::vector<unsigned int> ports;
   bool good = true;
   std::unique_ptr<WedgeManager> wedgeManager = nullptr;
-  for (int n = 1; n < argc; ++n) {
-    unsigned int portNum;
-    auto& portStr = argv[n];
-    try {
-      if (argv[n][0] == 'x' && argv[n][1] == 'e') {
-        portNum = 1 + folly::to<unsigned int>(argv[n] + 2);
-      } else if (isalpha(portStr[0])) {
-        if (!wedgeManager) {
-          wedgeManager = createWedgeManager();
+  if (argc == 1) {
+    wedgeManager = createWedgeManager();
+    folly::gen::range(0, wedgeManager->getNumQsfpModules()) | folly::gen::appendTo(ports);
+  } else {
+    for (int n = 1; n < argc; ++n) {
+      unsigned int portNum;
+      auto& portStr = argv[n];
+      try {
+        if (argv[n][0] == 'x' && argv[n][1] == 'e') {
+          portNum = 1 + folly::to<unsigned int>(argv[n] + 2);
+        } else if (isalpha(portStr[0])) {
+          if (!wedgeManager) {
+            wedgeManager = createWedgeManager();
+          }
+          portNum = wedgeManager->getPortNameToModuleMap().at(portStr) + 1;
+        } else {
+          portNum = folly::to<unsigned int>(argv[n]);
         }
-        portNum = wedgeManager->getPortNameToModuleMap().at(portStr) + 1;
-      } else {
-        portNum = folly::to<unsigned int>(argv[n]);
+        ports.push_back(portNum);
+      } catch (const std::exception& ex) {
+        fprintf(stderr, "error: invalid port name/number \"%s\": %s\n",
+                argv[n], ex.what());
+        good = false;
       }
-      ports.push_back(portNum);
-    } catch (const std::exception& ex) {
-      fprintf(stderr, "error: invalid port name/number \"%s\": %s\n",
-              argv[n], ex.what());
-      good = false;
     }
   }
   if (!good) {
@@ -182,16 +188,6 @@ int main(int argc, char* argv[]) {
       fprintf(stderr, "Exception talking to qsfp_service: %s\n", e.what());
       return EX_SOFTWARE;
     }
-  }
-
-  if (ports.empty() && !FLAGS_update_bulk_module_fw) {
-    try {
-      printPortSummary(bus.get());
-    } catch (const std::exception& ex) {
-      fprintf(stderr, "error: %s\n", ex.what());
-      return EX_SOFTWARE;
-    }
-    return EX_OK;
   }
 
   if (FLAGS_read_reg) {

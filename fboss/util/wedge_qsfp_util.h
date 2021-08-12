@@ -111,8 +111,6 @@ std::map<int32_t, TransceiverInfo> fetchInfoFromQsfpService(
 
 DOMDataUnion fetchDataFromLocalI2CBus(TransceiverI2CApi* bus, unsigned int port);
 
-void printPortSummary(TransceiverI2CApi*);
-
 folly::StringPiece sfpString(const uint8_t* buf, size_t offset, size_t len);
 
 void printThresholds(

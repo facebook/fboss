@@ -753,15 +753,6 @@ DOMDataUnion fetchDataFromLocalI2CBus(TransceiverI2CApi* bus, unsigned int port)
     }
 }
 
-void printPortSummary(TransceiverI2CApi*) {
-  // TODO: Implement code for showing a summary of all ports.
-  // At the moment I haven't tested this since my test switch has some
-  // 3M modules plugged in that hang up the bus sometimes when accessed by our
-  // CP2112 switch.  I'll implement this in a subsequent diff.
-  fprintf(stderr, "Please specify a port number\n");
-  exit(1);
-}
-
 StringPiece sfpString(const uint8_t* buf, size_t offset, size_t len) {
   const uint8_t* start = buf + offset;
   while (len > 0 && start[len - 1] == ' ') {
