@@ -23,7 +23,7 @@ class ExternalPhyPortStatsUtils {
  public:
   struct ExternalPhyLanePrbsStatsEntry {
     bool locked{false};
-    double laneSpeed{0.};
+    int laneSpeedInMb{0};
     uint64_t accuErrorCount{0};
     double maxBer{-1.};
     uint32_t numLinkLoss{0};
@@ -47,7 +47,8 @@ class ExternalPhyPortStatsUtils {
   virtual void setupPrbsCollection(
       phy::Side side,
       const std::vector<LaneID>& lanes,
-      float_t laneSpeed);
+      int laneSpeedInMb);
+  void disablePrbsCollection(phy::Side side);
 
   virtual std::vector<PrbsLaneStats> getPrbsStats(phy::Side side) const = 0;
 

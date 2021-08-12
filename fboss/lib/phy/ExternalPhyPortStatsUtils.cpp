@@ -20,10 +20,9 @@ namespace facebook::fboss {
 float_t ExternalPhyPortStatsUtils::ExternalPhyLanePrbsStatsEntry::calculateBer(
     uint64_t numErrors,
     uint64_t microseconds) const {
-  // Current laneSpeed is in Gb
   // The time duration in the following equation is in microseconds so that
   // balances the 10^6 for Megabits to bits conversion
-  float_t numBitsInSec = laneSpeed * 1000.0 * microseconds;
+  float_t numBitsInSec = laneSpeedInMb * microseconds;
   return static_cast<float_t>(numErrors) / numBitsInSec;
 }
 
@@ -87,12 +86,12 @@ void ExternalPhyPortStatsUtils::updateXphyStats(
 void ExternalPhyPortStatsUtils::setupPrbsCollection(
     phy::Side side,
     const std::vector<LaneID>& lanes,
-    float_t laneSpeed) {
+    int laneSpeedInMb) {
   auto now = steady_clock::now();
   std::map<LaneID, ExternalPhyLanePrbsStatsEntry> newSideLanePrbsStatsMap;
   for (auto lane : lanes) {
     ExternalPhyLanePrbsStatsEntry externalPhyLanePrbsStatsEntry;
-    externalPhyLanePrbsStatsEntry.laneSpeed = laneSpeed;
+    externalPhyLanePrbsStatsEntry.laneSpeedInMb = laneSpeedInMb;
     externalPhyLanePrbsStatsEntry.timeLastCleared = now;
     externalPhyLanePrbsStatsEntry.timeLastCollect = now;
     newSideLanePrbsStatsMap[lane] = externalPhyLanePrbsStatsEntry;

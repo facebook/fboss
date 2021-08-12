@@ -116,6 +116,8 @@ struct PhyPortConfig {
   bool operator==(const PhyPortConfig& rhs) const;
   bool operator!=(const PhyPortConfig& rhs) const;
   folly::dynamic toDynamic() const;
+
+  int getLaneSpeedInMb(Side side) const;
 };
 
 // Structure for keeping port phy information for a port
@@ -190,8 +192,6 @@ class ExternalPhy {
   virtual ExternalPhyPortStats getPortPrbsStats(
       const std::vector<LaneID>& sysLanes,
       const std::vector<LaneID>& lineLanes) = 0;
-
-  virtual float_t getLaneSpeed(const PhyPortConfig& config, Side side);
 
   virtual void reset() = 0;
 

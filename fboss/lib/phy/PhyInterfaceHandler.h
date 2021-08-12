@@ -92,24 +92,6 @@ class PhyInterfaceHandler {
       phy::PhyPortConfig /* config */) = 0;
 
   /*
-   * getLaneSpeed
-   * A virtual function for the ExternalPhy obejcts. The inheriting class
-   * need to implement this function. If the Phy code is in same process
-   * then that should called PhyManager function otherwise it should  be
-   * a thrift call to port service process
-   *
-   * Note: PhyPortConfig needs to be removed once all Phy code is moved to
-   * qsfp_service as based on portId, profileID the qsfp_service can construct
-   * the phyPortConfig
-   */
-  virtual float_t getLaneSpeed(
-      int /* phyPortIdentifier */,
-      int32_t /* portId */,
-      cfg::PortProfileID /* portProfileId */,
-      phy::PhyPortConfig /* config */,
-      phy::Side /* side */) = 0;
-
-  /*
    * initializeSlotPhys
    * A virtual function for the ExternalPhy obejcts. The sub-class needs to
    * implement this function. The implementation will be different for

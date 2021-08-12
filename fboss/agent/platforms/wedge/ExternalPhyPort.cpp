@@ -94,8 +94,7 @@ void ExternalPhyPort<PlatformT, PortStatsT>::portChanged(
               enable,
               polynominal);
           // Use PhyInterfaceHandler to access Phy functions
-          auto laneSpeed = platform->getPhyInterfaceHandler()->getLaneSpeed(
-              phyID_, newPort->getID().t, profileID, phyPortConfig, side);
+          auto laneSpeed = phyPortConfig.getLaneSpeedInMb(side);
 
           auto lockedStats = portStats_.wlock();
           if (!lockedStats->has_value()) {
