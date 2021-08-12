@@ -62,6 +62,8 @@ class ManagedVlanMember : public SaiObjectEventAggregateSubscriber<
 
   void removeObject(size_t index, PublisherObjects removed);
 
+  void handleLinkDown() {}
+
  private:
   SaiVlanManager* manager_;
   VlanID vlanId_;

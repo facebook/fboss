@@ -82,6 +82,8 @@ class ManagedSaiNextHopGroupMember
     this->resetObject();
   }
 
+  void handleLinkDown() {}
+
  private:
   std::string toString() const;
 

@@ -186,7 +186,10 @@ class SaiObjectEventAggregateSubscriber
   }
 
   template <typename PublishedObjectTrait>
-  void notifyLinkDownAggregateSubscriber() {}
+  void notifyLinkDownAggregateSubscriber() {
+    auto* subscriber = static_cast<SubscriberImpl*>(this);
+    subscriber->handleLinkDown();
+  }
 
   bool allPublishedObjectsAlive() const {
     return std::all_of(

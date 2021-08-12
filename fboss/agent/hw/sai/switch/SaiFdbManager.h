@@ -77,6 +77,7 @@ class ManagedFdbEntry : public SaiObjectEventAggregateSubscriber<
   void removeObject(size_t, PublisherObjects);
   SaiFdbTraits::FdbEntry makeFdbEntry(
       const SaiManagerTable* managerTable) const;
+  void handleLinkDown() {}
 
   SaiPortDescriptor getPortId() const;
   L2Entry toL2Entry() const;

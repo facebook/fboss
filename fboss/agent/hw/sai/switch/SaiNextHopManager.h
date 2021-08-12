@@ -64,6 +64,8 @@ class ManagedNextHop : public SaiObjectEventAggregateSubscriber<
     this->resetObject();
   }
 
+  void handleLinkDown() {}
+
   typename NextHopTraits::AdapterHostKey adapterHostKey() const {
     return key_;
   }
