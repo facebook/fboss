@@ -24,12 +24,14 @@ class ExternalPhyPortStatsUtils {
   struct ExternalPhyLanePrbsStatsEntry {
     bool locked{false};
     double laneSpeed{0.};
-    int64_t accuErrorCount{0};
+    uint64_t accuErrorCount{0};
     double maxBer{-1.};
-    int32_t numLinkLoss{0};
+    uint32_t numLinkLoss{0};
     steady_clock::time_point timeLastLocked;
     steady_clock::time_point timeLastCleared;
     steady_clock::time_point timeLastCollect;
+
+    float_t calculateBer(uint64_t numErrors, uint64_t microseconds) const;
   };
 
   explicit ExternalPhyPortStatsUtils(std::string prefix);

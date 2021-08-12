@@ -17,6 +17,16 @@
 
 namespace facebook::fboss {
 
+float_t ExternalPhyPortStatsUtils::ExternalPhyLanePrbsStatsEntry::calculateBer(
+    uint64_t numErrors,
+    uint64_t microseconds) const {
+  // Current laneSpeed is in Gb
+  // The time duration in the following equation is in microseconds so that
+  // balances the 10^6 for Megabits to bits conversion
+  float_t numBitsInSec = laneSpeed * 1000.0 * microseconds;
+  return static_cast<float_t>(numErrors) / numBitsInSec;
+}
+
 ExternalPhyPortStatsUtils::ExternalPhyPortStatsUtils(std::string prefix)
     : prefix_(std::move(prefix)),
       systemFecUncorr_(
