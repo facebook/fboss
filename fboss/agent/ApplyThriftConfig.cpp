@@ -218,6 +218,8 @@ class ThriftConfigApplier {
   void setPortQueue(
       std::shared_ptr<PortQueue> newQueue,
       const cfg::PortQueue* cfg);
+  std::optional<std::vector<PfcPriority>> findEnabledPfcPriorities(
+      PortPgConfigs& portPgConfigs);
   std::shared_ptr<PortQueue> updatePortQueue(
       const std::shared_ptr<PortQueue>& orig,
       const cfg::PortQueue* cfg,
@@ -1005,6 +1007,24 @@ PortPgConfigs ThriftConfigApplier::updatePortPgConfigs(
   return newPortPgConfigs;
 }
 
+std::optional<std::vector<PfcPriority>>
+ThriftConfigApplier::findEnabledPfcPriorities(PortPgConfigs& portPgCfgs) {
+  if (portPgCfgs.empty()) {
+    return std::nullopt;
+  }
+
+  std::vector<PfcPriority> tmpPfcPri;
+  for (auto& portPgCfg : portPgCfgs) {
+    // We have a 1:1 mapping between PG id and PFC priority
+    tmpPfcPri.push_back(static_cast<PfcPriority>(portPgCfg->getID()));
+  }
+  if (tmpPfcPri.empty()) {
+    return std::nullopt;
+  }
+
+  return tmpPfcPri;
+}
+
 QueueConfig ThriftConfigApplier::updatePortQueues(
     const QueueConfig& origPortQueues,
     const std::vector<cfg::PortQueue>& cfgPortQueues,
@@ -1255,6 +1275,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   }
 
   auto newPfc = std::optional<cfg::PortPfc>();
+  auto newPfcPriorities = std::optional<std::vector<PfcPriority>>();
   std::optional<PortPgConfigs> portPgCfgs;
   // lets compare the portPgConfigs
   bool portPgConfigUnchanged = true;
@@ -1298,6 +1319,12 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       // buffer pool
       validateUpdatePgBufferPoolName(
           portPgCfgs.value(), orig, *portPgConfigName);
+
+      /*
+       * Keep track of enabled pfcPriorities which are 1:1
+       * mapped to PG id.
+       */
+      newPfcPriorities = findEnabledPfcPriorities(portPgCfgs.value());
     } else if (!(*portPgConfigName).empty()) {
       throw FbossError(
           "Port: ",
@@ -1330,6 +1357,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       *portConf->speed_ref() == orig->getSpeed() &&
       *portConf->profileID_ref() == orig->getProfileID() &&
       *portConf->pause_ref() == orig->getPause() && newPfc == orig->getPfc() &&
+      newPfcPriorities == orig->getPfcPriorities() &&
       *portConf->sFlowIngressRate_ref() == orig->getSflowIngressRate() &&
       *portConf->sFlowEgressRate_ref() == orig->getSflowEgressRate() &&
       newSampleDest == orig->getSampleDestination() &&
@@ -1372,6 +1400,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       *portConf->lookupClasses_ref());
   newPort->setMaxFrameSize(*portConf->maxFrameSize_ref());
   newPort->setPfc(newPfc);
+  newPort->setPfcPriorities(newPfcPriorities);
   newPort->resetPgConfigs(portPgCfgs);
   return newPort;
 }
