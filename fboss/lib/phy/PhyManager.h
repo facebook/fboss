@@ -107,6 +107,9 @@ class PhyManager {
 
   phy::PortPrbsState getPortPrbs(PortID portID, phy::Side side);
 
+  std::vector<PrbsLaneStats> getPortPrbsStats(PortID portID, phy::Side side);
+  void clearPortPrbsStats(PortID portID, phy::Side side);
+
   // This is to provide the to-be cached warmboot state, which should include
   // the current portToCacheInfo_ map, so that during warmboot, we can use that
   // to recover the already programmed lane vector information from the cached

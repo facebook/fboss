@@ -266,6 +266,30 @@ phy::PortPrbsState PhyManager::getPortPrbs(PortID portID, phy::Side side) {
   return xphy->getPortPrbs(side, sideLanes);
 }
 
+std::vector<PrbsLaneStats> PhyManager::getPortPrbsStats(
+    PortID portID,
+    phy::Side side) {
+  const auto& rLockedCache = getRLockedCache(portID);
+
+  auto* xphy = getExternalPhyLocked(rLockedCache);
+  if (!xphy->isSupported(phy::ExternalPhy::Feature::PRBS_STATS)) {
+    throw FbossError("Port:", portID, " xphy can't support PRBS_STATS");
+  }
+
+  return rLockedCache->stats->getPrbsStats(side);
+}
+
+void PhyManager::clearPortPrbsStats(PortID portID, phy::Side side) {
+  const auto& wLockedCache = getWLockedCache(portID);
+
+  auto* xphy = getExternalPhyLocked(wLockedCache);
+  if (!xphy->isSupported(phy::ExternalPhy::Feature::PRBS_STATS)) {
+    throw FbossError("Port:", portID, " xphy can't support PRBS_STATS");
+  }
+
+  return wLockedCache->stats->clearPrbsStats(side);
+}
+
 folly::dynamic PhyManager::getWarmbootState() const {
   folly::dynamic phyState = folly::dynamic::object;
   folly::dynamic portToCacheInfoCache = folly::dynamic::object;

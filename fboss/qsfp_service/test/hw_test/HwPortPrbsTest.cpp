@@ -23,7 +23,7 @@ class HwPortPrbsTest : public HwExternalPhyPortTest {
   const std::vector<phy::ExternalPhy::Feature>& neededFeatures()
       const override {
     static const std::vector<phy::ExternalPhy::Feature> kNeededFeatures = {
-        phy::ExternalPhy::Feature::PRBS};
+        phy::ExternalPhy::Feature::PRBS, phy::ExternalPhy::Feature::PRBS_STATS};
     return kNeededFeatures;
   }
 
@@ -99,6 +99,23 @@ class HwPortPrbsTest : public HwExternalPhyPortTest {
           << "Port:" << port << " has undesired prbs enable state";
       EXPECT_EQ(*hwPrbs.polynominal_ref(), Polynominal)
           << "Port:" << port << " has undesired prbs polynominal";
+
+      // Verify prbs stats collection is enabled or not
+      auto* phyManager = wedgeManager->getPhyManager();
+      const auto& prbsStats = phyManager->getPortPrbsStats(port, Side);
+      if (enable) {
+        const auto& actualPortConfig = phyManager->getHwPhyPortConfig(port);
+        const auto& lanes = (Side == phy::Side::SYSTEM)
+            ? actualPortConfig.config.system.lanes
+            : actualPortConfig.config.line.lanes;
+        EXPECT_EQ(lanes.size(), prbsStats.size());
+        int laneStatsIdx = 0;
+        for (const auto& laneIt : lanes) {
+          EXPECT_EQ(laneIt.first, *prbsStats[laneStatsIdx++].laneId_ref());
+        }
+      } else {
+        EXPECT_TRUE(prbsStats.empty());
+      }
     }
   }
 };
