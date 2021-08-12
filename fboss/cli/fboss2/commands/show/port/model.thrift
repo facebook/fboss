@@ -11,4 +11,5 @@ struct PortEntry {
   4: string operState;
   5: string speed;
   6: string profileId;
+  7: i32 tcvrID;
 }

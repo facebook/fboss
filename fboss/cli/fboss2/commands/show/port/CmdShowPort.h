@@ -50,7 +50,13 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
     Table table;
     table.setHeader(
-        {"ID", "Name", "AdminState", "LinkState", "Speed", "ProfileID"});
+        {"ID",
+         "Name",
+         "AdminState",
+         "LinkState",
+         "TcvrID",
+         "Speed",
+         "ProfileID"});
 
     for (auto const& portInfo : model.get_portEntries()) {
       table.addRow({
@@ -58,6 +64,7 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
           portInfo.get_name(),
           portInfo.get_adminState(),
           getStyledOperState(portInfo.get_operState()),
+          folly::to<std::string>(portInfo.get_tcvrID()),
           portInfo.get_speed(),
           portInfo.get_profileId(),
       });
@@ -126,6 +133,9 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
         portDetails.operState_ref() = getOperStateStr(portInfo.get_operState());
         portDetails.speed_ref() = getSpeedGbps(portInfo.get_speedMbps());
         portDetails.profileId_ref() = portInfo.get_profileID();
+        if (auto tcvrId = portInfo.transceiverIdx_ref()) {
+          portDetails.tcvrID_ref() = tcvrId->get_transceiverId();
+        }
 
         model.portEntries_ref()->push_back(portDetails);
       }
