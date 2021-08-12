@@ -120,6 +120,12 @@ class PhyManager {
 
   void updateAllXphyPortsStats();
 
+  // The following two functions return whether the future job of xphy or prbs
+  // stats collection is done.
+  // NOTE: The following two functions are only used in testing.
+  bool isXphyStatsCollectionDone(PortID portID) const;
+  bool isPrbsStatsCollectionDone(PortID portID) const;
+
  protected:
   struct PortCacheInfo {
     // PhyManager is in the middle of changing its apis to accept PortID instead

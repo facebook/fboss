@@ -540,4 +540,24 @@ PhyManager::PortCacheWLockedPtr PhyManager::getWLockedCache(
   }
   return cache->second->wlock();
 }
+
+bool PhyManager::isXphyStatsCollectionDone(PortID portID) const {
+  const auto& rLockedCache = getRLockedCache(portID);
+  if (rLockedCache->systemLanes.empty() || rLockedCache->lineLanes.empty()) {
+    throw FbossError(
+        "Port:", portID, " is not programmed and can't find cached lanes");
+  }
+  return rLockedCache->ongoingStatCollection.has_value() &&
+      rLockedCache->ongoingStatCollection->isReady();
+}
+
+bool PhyManager::isPrbsStatsCollectionDone(PortID portID) const {
+  const auto& rLockedCache = getRLockedCache(portID);
+  if (rLockedCache->systemLanes.empty() || rLockedCache->lineLanes.empty()) {
+    throw FbossError(
+        "Port:", portID, " is not programmed and can't find cached lanes");
+  }
+  return rLockedCache->ongoingPrbsStatCollection.has_value() &&
+      rLockedCache->ongoingPrbsStatCollection->isReady();
+}
 } // namespace facebook::fboss
