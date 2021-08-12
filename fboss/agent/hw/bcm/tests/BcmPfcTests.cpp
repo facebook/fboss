@@ -29,8 +29,6 @@ constexpr int kDefaultPfcDeadlockTimerGranularity =
 namespace facebook::fboss {
 class BcmPfcTests : public BcmTest {
  protected:
-  std::vector<int> enabledPfcPriorities_{0, 7};
-
   cfg::SwitchConfig initialConfig() const override {
     return utility::twoL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], masterLogicalPortIds()[1]);
@@ -53,17 +51,72 @@ class BcmPfcTests : public BcmTest {
     watchdog.detectionTimeMsecs_ref() = detectionTime;
   }
 
-  // Setup and apply the new config with passed in PFC
-  // watchdog config and have PFC RX/TX enabled
+  /*
+   * XXX: This is to be removed in a future commit, consolidating
+   * PFC config additions to a single API for migration to
+   * utility::addPfcConfig(), which will be integrated in one of
+   * the next commits. Both kLosslessPgs and addPfcConfig will
+   * need to be replaced with utility:: equivalents.
+   */
+  std::vector<int> kLosslessPgs() {
+    return {0, 7};
+  }
+
+  void addPfcConfig(
+      cfg::SwitchConfig& cfg,
+      const HwSwitch* /*hwSwitch*/,
+      const std::vector<PortID>& ports,
+      bool rxEnable = true,
+      bool txEnable = true) {
+    cfg::PortPfc pfc;
+    pfc.tx_ref() = txEnable;
+    pfc.rx_ref() = rxEnable;
+    pfc.portPgConfigName_ref() = "foo";
+
+    for (const auto& portID : ports) {
+      auto portCfg = utility::findCfgPort(cfg, portID);
+      portCfg->pfc_ref() = pfc;
+    }
+
+    // Copied from enablePgConfigConfig
+    std::vector<cfg::PortPgConfig> portPgConfigs;
+    std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
+    for (const auto& pgId : kLosslessPgs()) {
+      cfg::PortPgConfig pgConfig;
+      pgConfig.id_ref() = pgId;
+      pgConfig.bufferPoolName_ref() = "bufferNew";
+      // provide atleast 1 cell worth of minLimit
+      pgConfig.minLimitBytes_ref() = 300;
+      portPgConfigs.emplace_back(pgConfig);
+    }
+
+    // create buffer pool
+    std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
+    cfg::BufferPoolConfig poolConfig;
+    poolConfig.sharedBytes_ref() = 10000;
+    bufferPoolCfgMap.insert(std::make_pair("bufferNew", poolConfig));
+    currentConfig.bufferPoolConfigs_ref() = bufferPoolCfgMap;
+
+    portPgConfigMap.insert({"foo", portPgConfigs});
+    cfg.portPgConfigs_ref() = portPgConfigMap;
+  }
+
   void setupPfcAndPfcWatchdog(
       const PortID& portId,
       const cfg::PfcWatchdog& watchdog) {
-    cfg::PortPfc pfc;
+    addPfcConfig(
+        currentConfig,
+        getHwSwitch(),
+        {portId},
+        true /* RX enable */,
+        true /* TX enable */);
     auto portCfg = utility::findCfgPort(currentConfig, portId);
-    pfc.tx_ref() = true;
-    pfc.rx_ref() = true;
-    pfc.watchdog_ref() = watchdog;
-    portCfg->pfc_ref() = pfc;
+    if (portCfg->pfc_ref().has_value()) {
+      portCfg->pfc_ref()->watchdog_ref() = watchdog;
+    } else {
+      XLOG(ERR) << "PFC is not enabled on port " << portId
+                << " during PFC and watchdog setup!";
+    }
     applyNewConfig(currentConfig);
   }
 
@@ -74,9 +127,7 @@ class BcmPfcTests : public BcmTest {
     auto portCfg = utility::findCfgPort(currentConfig, portId);
 
     if (portCfg->pfc_ref().has_value()) {
-      cfg::PortPfc pfc = *portCfg->pfc_ref();
-      pfc.watchdog_ref() = watchdog;
-      portCfg->pfc_ref() = pfc;
+      portCfg->pfc_ref()->watchdog_ref() = watchdog;
     } else {
       XLOG(ERR) << "PFC is not enabled on port " << portId
                 << " during PFC watchdog setup!";
@@ -150,7 +201,7 @@ class BcmPfcTests : public BcmTest {
     auto bcmPort = getHwSwitch()->getPortTable()->getBcmPort(portId);
     getExpectedPfcWatchdogHwConfigParams(
         expectedHwConfig, watchdogEnabled, watchdog);
-    for (auto pri : enabledPfcPriorities_) {
+    for (auto pri : kLosslessPgs()) {
       std::map<bcm_cosq_pfc_deadlock_control_t, int> readHwConfig;
       bcmPort->getProgrammedPfcWatchdogParams(pri, readHwConfig);
       // Compare the expected params and params read from hardware
@@ -189,8 +240,7 @@ class BcmPfcTests : public BcmTest {
     std::map<bcm_cosq_pfc_deadlock_control_t, int> readHwConfig;
     auto bcmPort = getHwSwitch()->getPortTable()->getBcmPort(portId);
     // Get the specified param for the first enabled PFC priorities
-    bcmPort->getProgrammedPfcWatchdogParams(
-        enabledPfcPriorities_.at(0), readHwConfig);
+    bcmPort->getProgrammedPfcWatchdogParams(kLosslessPgs().at(0), readHwConfig);
     return readHwConfig[param];
   }
 
@@ -213,10 +263,8 @@ class BcmPfcTests : public BcmTest {
     auto portCfg = utility::findCfgPort(currentConfig, portId);
 
     // setup pfc
-    cfg::PortPfc pfc;
-    pfc.tx_ref() = pfcTxEnable;
-    pfc.rx_ref() = pfcRxEnable;
-    portCfg->pfc_ref() = pfc;
+    addPfcConfig(
+        currentConfig, getHwSwitch(), {portId}, pfcRxEnable, pfcTxEnable);
     applyNewConfig(currentConfig);
   }
 
