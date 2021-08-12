@@ -835,6 +835,7 @@ if (NOT SAI_ONLY)
   target_link_libraries(qsfp_module
     fboss_i2c_lib
     qsfp_config_parser
+    snapshot_manager
   )
 
   target_link_libraries(switch_asics_old fboss_agent)
