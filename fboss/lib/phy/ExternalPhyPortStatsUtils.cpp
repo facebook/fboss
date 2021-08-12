@@ -95,9 +95,9 @@ void ExternalPhyPortStatsUtils::setupPrbsCollection(
     externalPhyLanePrbsStatsEntry.timeLastCleared = now;
     externalPhyLanePrbsStatsEntry.timeLastCollect = now;
     newSideLanePrbsStatsMap[lane] = externalPhyLanePrbsStatsEntry;
-    XLOG(DBG2) << "Setup externalPhyLanePrbsStatsEntry for side="
-               << apache::thrift::util::enumNameSafe(side) << ", lane "
-               << static_cast<int>(lane) << " at " << prefix_;
+    XLOG(DBG2) << "Setup externalPhyLanePrbsStatsEntry for " << prefix_
+               << ", side=" << apache::thrift::util::enumNameSafe(side)
+               << ", lane " << static_cast<int>(lane) << " at " << prefix_;
   }
   // Always replace existing prbs stats entry
   sideToLanePrbsStats_[side] = std::move(newSideLanePrbsStatsMap);
@@ -134,6 +134,20 @@ void ExternalPhyPortStatsUtils::updateXphyPrbsStats(
     if (kv.second.prbsErrorCounts) {
       updateLanePrbsStats(phy::Side::LINE, LaneID(kv.first), kv.second);
     }
+  }
+}
+
+void ExternalPhyPortStatsUtils::disablePrbsCollection(phy::Side side) {
+  if (auto it = sideToLanePrbsStats_.find(side);
+      it != sideToLanePrbsStats_.end()) {
+    sideToLanePrbsStats_.erase(it);
+    XLOG(DBG2) << "Disabled " << prefix_
+               << ", side=" << apache::thrift::util::enumNameSafe(side)
+               << " prbs collection.";
+  } else {
+    XLOG(WARN)
+        << prefix_ << ", side=" << apache::thrift::util::enumNameSafe(side)
+        << " hasn't set up externalPhyLanePrbsStatsEntry yet. Skip disabling";
   }
 }
 

@@ -222,36 +222,48 @@ void PhyManager::setPortToLanesInfoLocked(
   }
 }
 
-const std::vector<LaneID>& PhyManager::getCachedLanes(
-    PortID portID,
-    phy::Side side) const {
-  const auto& rLockedCache = getRLockedCache(portID);
-  if (rLockedCache->systemLanes.empty() || rLockedCache->lineLanes.empty()) {
-    throw FbossError(
-        "Port:", portID, " is not programmed and can't find cached lanes");
-  }
-  return (
-      side == phy::Side::SYSTEM ? rLockedCache->systemLanes
-                                : rLockedCache->lineLanes);
-}
-
 void PhyManager::setPortPrbs(
     PortID portID,
     phy::Side side,
     const phy::PortPrbsState& prbs) {
-  auto* xphy = getExternalPhy(portID);
+  const auto& wLockedCache = getWLockedCache(portID);
+
+  auto* xphy = getExternalPhyLocked(wLockedCache);
   if (!xphy->isSupported(phy::ExternalPhy::Feature::PRBS)) {
     throw FbossError("Port:", portID, " xphy can't support PRBS");
   }
-  xphy->setPortPrbs(side, getCachedLanes(portID, side), prbs);
+  if (wLockedCache->systemLanes.empty() || wLockedCache->lineLanes.empty()) {
+    throw FbossError(
+        "Port:", portID, " is not programmed and can't find cached lanes");
+  }
+  const auto& sideLanes = side == phy::Side::SYSTEM ? wLockedCache->systemLanes
+                                                    : wLockedCache->lineLanes;
+  xphy->setPortPrbs(side, sideLanes, prbs);
+
+  if (*prbs.enabled_ref()) {
+    const auto& phyPortConfig = getHwPhyPortConfigLocked(wLockedCache, portID);
+    wLockedCache->stats->setupPrbsCollection(
+        side, sideLanes, phyPortConfig.getLaneSpeedInMb(side));
+  } else {
+    wLockedCache->stats->disablePrbsCollection(side);
+  }
 }
 
 phy::PortPrbsState PhyManager::getPortPrbs(PortID portID, phy::Side side) {
-  auto* xphy = getExternalPhy(portID);
+  const auto& rLockedCache = getRLockedCache(portID);
+
+  auto* xphy = getExternalPhyLocked(rLockedCache);
   if (!xphy->isSupported(phy::ExternalPhy::Feature::PRBS)) {
     throw FbossError("Port:", portID, " xphy can't support PRBS");
   }
-  return xphy->getPortPrbs(side, getCachedLanes(portID, side));
+  if (rLockedCache->systemLanes.empty() || rLockedCache->lineLanes.empty()) {
+    throw FbossError(
+        "Port:", portID, " is not programmed and can't find cached lanes");
+  }
+  const auto& sideLanes = side == phy::Side::SYSTEM ? rLockedCache->systemLanes
+                                                    : rLockedCache->lineLanes;
+
+  return xphy->getPortPrbs(side, sideLanes);
 }
 
 folly::dynamic PhyManager::getWarmbootState() const {

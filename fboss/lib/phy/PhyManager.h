@@ -193,9 +193,6 @@ class PhyManager {
       const phy::PhyIDInfo& phyIDInfo,
       MultiPimPlatformPimContainer* pimContainer) = 0;
 
-  const std::vector<LaneID>& getCachedLanes(PortID portID, phy::Side side)
-      const;
-
   // Update PortCacheInfo::stats
   void updateStats(PortID portID);
 

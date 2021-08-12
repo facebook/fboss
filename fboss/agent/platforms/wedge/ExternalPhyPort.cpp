@@ -108,7 +108,12 @@ void ExternalPhyPort<PlatformT, PortStatsT>::portChanged(
           for (const auto& it : lanes) {
             sideLanes.push_back(it.first);
           }
-          (*lockedStats)->setupPrbsCollection(side, sideLanes, laneSpeed);
+
+          if (enable) {
+            (*lockedStats)->setupPrbsCollection(side, sideLanes, laneSpeed);
+          } else {
+            (*lockedStats)->disablePrbsCollection(side);
+          }
         };
 
     if (oldPort->getGbSystemPrbs() != newPort->getGbSystemPrbs()) {
