@@ -44,7 +44,7 @@ struct SaiObjectEventSubscriber {
 
   virtual void afterCreate(PublisherObjectSharedPtr) = 0;
   virtual void beforeRemove() = 0;
-  virtual void linkDown() {}
+  virtual void linkDown() = 0;
 
   void saveSubscription(std::any subscription) {
     subscription_ = std::move(subscription);
@@ -96,6 +96,13 @@ class SaiObjectEventSingleSubscriber
     aggregateSubscriber->template beforeRemoveNotifyAggregateSubscriber<
         PublishedObjectTrait>();
     this->setPublisherObject(nullptr);
+  }
+
+  void linkDown() override {
+    XLOGF(DBG3, "publisher object link down {}", this->getPublisherKey());
+    auto* aggregateSubscriber = static_cast<AggregateSubscriber*>(this);
+    aggregateSubscriber
+        ->template notifyLinkDownAggregateSubscriber<PublishedObjectTrait>();
   }
 };
 } // namespace detail
@@ -177,6 +184,9 @@ class SaiObjectEventAggregateSubscriber
     auto* subscriber = static_cast<SubscriberImpl*>(this);
     subscriber->removeObject(index, tuple);
   }
+
+  template <typename PublishedObjectTrait>
+  void notifyLinkDownAggregateSubscriber() {}
 
   bool allPublishedObjectsAlive() const {
     return std::all_of(
