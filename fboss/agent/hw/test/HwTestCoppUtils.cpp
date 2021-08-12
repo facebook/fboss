@@ -30,6 +30,10 @@ folly::CIDRNetwork kIPv6LinkLocalUcastNetwork() {
   return folly::IPAddress::createNetwork("fe80::/10");
 }
 
+folly::CIDRNetwork kIPv6NdpSolicitNetwork() {
+  return folly::IPAddress::createNetwork("ff02:0:0:0:0:1:ff00::/104");
+}
+
 cfg::Range getRange(uint32_t minimum, uint32_t maximum) {
   cfg::Range range;
   range.minimum_ref() = minimum;

@@ -128,6 +128,20 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
   addHighPriLinkLocalV6NetworkControlAcl(kIPv6LinkLocalMcastNetwork());
   addHighPriLinkLocalV6NetworkControlAcl(kIPv6LinkLocalUcastNetwork());
 
+  // add ACL to trap NDP solicit to high priority queue
+  {
+    cfg::AclEntry acl;
+    auto dstNetwork = kIPv6NdpSolicitNetwork();
+    auto dstNetworkStr =
+        folly::to<std::string>(dstNetwork.first, "/", dstNetwork.second);
+    acl.name_ref() = "cpuPolicing-high-ndp-solicit";
+    acl.dstIp_ref() = dstNetworkStr;
+    acls.push_back(std::make_pair(
+        acl,
+        createQueueMatchAction(
+            getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic))));
+  }
+
   // Now steer traffic destined to this (local) interface IP
   // to mid pri queue. Note that we add this Acl entry *after*
   // (with a higher Acl ID) than locally destined protocol

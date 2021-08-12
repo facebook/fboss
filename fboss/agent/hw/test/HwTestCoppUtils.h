@@ -62,6 +62,8 @@ folly::CIDRNetwork kIPv6LinkLocalMcastNetwork();
 
 folly::CIDRNetwork kIPv6LinkLocalUcastNetwork();
 
+folly::CIDRNetwork kIPv6NdpSolicitNetwork();
+
 cfg::MatchAction createQueueMatchAction(
     int queueId,
     cfg::ToCpuAction toCpuAction);
