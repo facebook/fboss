@@ -36,30 +36,31 @@ constexpr auto kLineLanesKey = "lineLanes";
 namespace facebook::fboss {
 
 PhyManager::PhyManager(const PlatformMapping* platformMapping)
-    : platformMapping_(platformMapping) {
-  const auto& chips = platformMapping_->getChips();
-  for (const auto& port : platformMapping_->getPlatformPorts()) {
-    const auto& xphy = utility::getDataPlanePhyChips(
-        port.second, chips, phy::DataPlanePhyChipType::XPHY);
-    if (!xphy.empty()) {
-      auto cache = std::make_unique<PortCacheInfo>();
-      cache->xphyID = GlobalXphyID(*xphy.begin()->second.physicalID_ref());
-      portToCacheInfo_.emplace(PortID(port.first), std::move(cache));
-    }
-  }
-}
+    : platformMapping_(platformMapping),
+      portToCacheInfo_(setupPortToCacheInfo(platformMapping)) {}
 
 PhyManager::~PhyManager() {}
 
-GlobalXphyID PhyManager::getGlobalXphyIDbyPortID(PortID portID) const {
-  if (auto id = portToCacheInfo_.find(portID); id != portToCacheInfo_.end()) {
-    return id->second->xphyID;
+PhyManager::PortToCacheInfo PhyManager::setupPortToCacheInfo(
+    const PlatformMapping* platformMapping) {
+  PortToCacheInfo cacheMap;
+  const auto& chips = platformMapping->getChips();
+  for (const auto& port : platformMapping->getPlatformPorts()) {
+    const auto& xphy = utility::getDataPlanePhyChips(
+        port.second, chips, phy::DataPlanePhyChipType::XPHY);
+    if (!xphy.empty()) {
+      auto cache = std::make_unique<folly::Synchronized<PortCacheInfo>>();
+      auto wLockedCache = cache->wlock();
+      wLockedCache->xphyID =
+          GlobalXphyID(*xphy.begin()->second.physicalID_ref());
+      cacheMap.emplace(PortID(port.first), std::move(cache));
+    }
   }
-  throw FbossError(
-      "Unable to get GlobalXphyID for port:",
-      portID,
-      ", current portToCacheInfo_ size:",
-      portToCacheInfo_.size());
+  return cacheMap;
+}
+
+GlobalXphyID PhyManager::getGlobalXphyIDbyPortID(PortID portID) const {
+  return getGlobalXphyIDbyPortIDLocked(getRLockedCache(portID));
 }
 
 phy::ExternalPhy* PhyManager::getExternalPhy(GlobalXphyID xphyID) {
@@ -69,15 +70,15 @@ phy::ExternalPhy* PhyManager::getExternalPhy(GlobalXphyID xphyID) {
     throw FbossError(
         "getExternalPhy: Invalid Slot Id ", pimID, " is not in xphyMap_");
   }
-  if (pimXphyMap->second.find(xphyID) == pimXphyMap->second.end()) {
+  const auto& xphyIt = pimXphyMap->second.find(xphyID);
+  if (xphyIt == pimXphyMap->second.end()) {
     throw FbossError(
         "getExternalPhy: Invalid Global Xphy Id ",
         xphyID,
         " is not in xphyMap_ for Pim Id ",
         pimID);
   }
-  // Return the externalPhy object for this slot, mdio, phy
-  return xphyMap_[pimID][xphyID].get();
+  return xphyIt->second.get();
 }
 
 phy::PhyPortConfig PhyManager::getDesiredPhyPortConfig(
@@ -123,33 +124,27 @@ phy::PhyPortConfig PhyManager::getDesiredPhyPortConfig(
   return phyPortConfig;
 }
 
-phy::PhyPortConfig PhyManager::getHwPhyPortConfig(PortID portId) {
-  // First check whether we have cached lane inf
-  const auto& cacheInfo = portToCacheInfo_.find(portId);
-  if (cacheInfo == portToCacheInfo_.end() ||
-      cacheInfo->second->systemLanes.empty() ||
-      cacheInfo->second->lineLanes.empty()) {
-    throw FbossError(
-        "Port:", portId, " has not program yet. Can't find the cached info");
-  }
-  auto* xphy = getExternalPhy(portId);
-  return xphy->getConfigOnePort(
-      cacheInfo->second->systemLanes, cacheInfo->second->lineLanes);
+phy::PhyPortConfig PhyManager::getHwPhyPortConfig(PortID portID) {
+  return getHwPhyPortConfigLocked(getRLockedCache(portID), portID);
 }
 
 void PhyManager::programOnePort(
     PortID portId,
     cfg::PortProfileID portProfileId,
     std::optional<TransceiverInfo> transceiverInfo) {
+  const auto& wLockedCache = getWLockedCache(portId);
+
   // This function will call ExternalPhy::programOnePort(phy::PhyPortConfig).
-  auto* xphy = getExternalPhy(portId);
+  auto* xphy = getExternalPhyLocked(wLockedCache);
   const auto& desiredPhyPortConfig =
       getDesiredPhyPortConfig(portId, portProfileId, transceiverInfo);
   xphy->programOnePort(desiredPhyPortConfig);
+
   // Once the port is programmed successfully, update the portToLanesInfo_
-  setPortToLanesInfo(portId, desiredPhyPortConfig);
+  setPortToLanesInfoLocked(wLockedCache, portId, desiredPhyPortConfig);
   if (xphy->isSupported(phy::ExternalPhy::Feature::PORT_STATS)) {
-    setupExternalPhyPortStats(portId);
+    setPortToExternalPhyPortStatsLocked(
+        wLockedCache, createExternalPhyPortStats(PortID(portId)));
   }
 }
 
@@ -181,28 +176,21 @@ void PhyManager::setupPimEventMultiThreading(PimID pimID) {
   pimToThread_.emplace(pimID, std::make_unique<PimEventMultiThreading>(pimID));
 }
 
-void PhyManager::setPortToLanesInfo(
+void PhyManager::setPortToLanesInfoLocked(
+    const PortCacheWLockedPtr& lockedCache,
     PortID portID,
     const phy::PhyPortConfig& portConfig) {
-  // Due to PhyManager::PhyManager(), we always create the PortCacheInfo with
-  // the global xphy id for possible ports in PlatformMapping.
-  const auto& cache = portToCacheInfo_.find(portID);
-  if (cache == portToCacheInfo_.end()) {
-    throw FbossError(
-        "Unrecoginized port=", portID, ", which is not in PlatformMapping");
-  }
-
   // First check whether there's a systemLanes and lineLanes cache already
   const auto& systemLanesConfig = portConfig.config.system.lanes;
   const auto& lineLanesConfig = portConfig.config.line.lanes;
-  const auto& cacheInfo = cache->second;
   // check whether all the lanes match
-  bool matched = (cacheInfo->systemLanes.size() == systemLanesConfig.size()) &&
-      (cacheInfo->lineLanes.size() == lineLanesConfig.size());
+  bool matched =
+      (lockedCache->systemLanes.size() == systemLanesConfig.size()) &&
+      (lockedCache->lineLanes.size() == lineLanesConfig.size());
   // Now check system lane id
   if (matched) {
-    for (auto i = 0; i < cacheInfo->systemLanes.size(); ++i) {
-      if (systemLanesConfig.find(cacheInfo->systemLanes[i]) ==
+    for (auto i = 0; i < lockedCache->systemLanes.size(); ++i) {
+      if (systemLanesConfig.find(lockedCache->systemLanes[i]) ==
           systemLanesConfig.end()) {
         matched = false;
         break;
@@ -211,8 +199,8 @@ void PhyManager::setPortToLanesInfo(
   }
   // Now check line lane id
   if (matched) {
-    for (auto i = 0; i < cacheInfo->lineLanes.size(); ++i) {
-      if (lineLanesConfig.find(cacheInfo->lineLanes[i]) ==
+    for (auto i = 0; i < lockedCache->lineLanes.size(); ++i) {
+      if (lineLanesConfig.find(lockedCache->lineLanes[i]) ==
           lineLanesConfig.end()) {
         matched = false;
         break;
@@ -224,29 +212,27 @@ void PhyManager::setPortToLanesInfo(
   }
 
   // Now reset the cached lane info if there's no match
-  portToCacheInfo_[portID]->systemLanes.clear();
+  lockedCache->systemLanes.clear();
   for (const auto& it : portConfig.config.system.lanes) {
-    portToCacheInfo_[portID]->systemLanes.push_back(it.first);
+    lockedCache->systemLanes.push_back(it.first);
   }
-  portToCacheInfo_[portID]->lineLanes.clear();
+  lockedCache->lineLanes.clear();
   for (const auto& it : portConfig.config.line.lanes) {
-    portToCacheInfo_[portID]->lineLanes.push_back(it.first);
+    lockedCache->lineLanes.push_back(it.first);
   }
 }
 
 const std::vector<LaneID>& PhyManager::getCachedLanes(
     PortID portID,
     phy::Side side) const {
-  // Try to get the cached lanes list
-  const auto& cache = portToCacheInfo_.find(portID);
-  if (cache == portToCacheInfo_.end() || cache->second->systemLanes.empty() ||
-      cache->second->lineLanes.empty()) {
+  const auto& rLockedCache = getRLockedCache(portID);
+  if (rLockedCache->systemLanes.empty() || rLockedCache->lineLanes.empty()) {
     throw FbossError(
         "Port:", portID, " is not programmed and can't find cached lanes");
   }
   return (
-      side == phy::Side::SYSTEM ? cache->second->systemLanes
-                                : cache->second->lineLanes);
+      side == phy::Side::SYSTEM ? rLockedCache->systemLanes
+                                : rLockedCache->lineLanes);
 }
 
 void PhyManager::setPortPrbs(
@@ -275,11 +261,12 @@ folly::dynamic PhyManager::getWarmbootState() const {
   for (const auto& it : portToCacheInfo_) {
     folly::dynamic portCacheInfo = folly::dynamic::object;
     folly::dynamic systemLanes = folly::dynamic::array;
-    for (auto lane : it.second->systemLanes) {
+    const auto& rLockedCache = it.second->rlock();
+    for (auto lane : rLockedCache->systemLanes) {
       systemLanes.push_back(static_cast<int>(lane));
     }
     folly::dynamic lineLanes = folly::dynamic::array;
-    for (auto lane : it.second->lineLanes) {
+    for (auto lane : rLockedCache->lineLanes) {
       lineLanes.push_back(static_cast<int>(lane));
     }
     portCacheInfo[kSystemLanesKey] = systemLanes;
@@ -320,22 +307,22 @@ void PhyManager::restoreFromWarmbootState(
           " in the phy warmboot portToCacheInfo map.");
     }
     bool isProgrammed = false;
+    const auto& wLockedCache = it.second->wlock();
     for (auto lane : portCacheInfo[kSystemLanesKey]) {
-      portToCacheInfo_[PortID(portID)]->systemLanes.push_back(
-          LaneID(lane.asInt()));
+      wLockedCache->systemLanes.push_back(LaneID(lane.asInt()));
       isProgrammed = true;
     }
     for (auto lane : portCacheInfo[kLineLanesKey]) {
-      portToCacheInfo_[PortID(portID)]->lineLanes.push_back(
-          LaneID(lane.asInt()));
+      wLockedCache->lineLanes.push_back(LaneID(lane.asInt()));
     }
 
     // If the port has programmed lane info, we also need to restore the
     // ExternalPhyPortStatsUtils
     if (isProgrammed &&
-        getExternalPhy(it.first)->isSupported(
-            phy::ExternalPhy::Feature::PORT_STATS)) {
-      setupExternalPhyPortStats(it.first);
+        getExternalPhyLocked(wLockedCache)
+            ->isSupported(phy::ExternalPhy::Feature::PORT_STATS)) {
+      setPortToExternalPhyPortStatsLocked(
+          wLockedCache, createExternalPhyPortStats(PortID(portID)));
     }
 
     XLOG(INFO) << "Restore port=" << portID
@@ -349,53 +336,47 @@ int32_t PhyManager::getXphyPortStatsUpdateIntervalInSec() const {
   return FLAGS_xphy_port_stat_interval_secs;
 }
 
-void PhyManager::setPortToExternalPhyPortStats(
-    PortID portID,
+void PhyManager::setPortToExternalPhyPortStatsLocked(
+    const PortCacheWLockedPtr& lockedCache,
     std::unique_ptr<ExternalPhyPortStatsUtils> stats) {
-  const auto& cache = portToCacheInfo_.find(portID);
-  if (cache == portToCacheInfo_.end()) {
-    throw FbossError(
-        "Unrecoginized port=", portID, ", which is not in PlatformMapping");
-  }
-
-  auto lockedStats = portToCacheInfo_[portID]->stats.wlock();
-  *lockedStats = std::move(stats);
+  lockedCache->stats = std::move(stats);
 }
 
 using namespace std::chrono;
 void PhyManager::updateStats(PortID portID) {
-  auto* xphy = getExternalPhy(portID);
+  const auto& wLockedCache = getWLockedCache(portID);
+  if (wLockedCache->systemLanes.empty() || wLockedCache->lineLanes.empty()) {
+    throw FbossError(
+        "Port:", portID, " is not programmed and can't find cached lanes");
+  }
+
+  auto xphyID = getGlobalXphyIDbyPortIDLocked(wLockedCache);
+  auto* xphy = getExternalPhyLocked(wLockedCache);
   // If the xphy doesn't support either port or prbs stats, no-op
   if (!xphy->isSupported(phy::ExternalPhy::Feature::PORT_STATS) &&
       !xphy->isSupported(phy::ExternalPhy::Feature::PRBS_STATS)) {
     return;
   }
 
-  // Try to get the cached lanes list
-  const auto& cache = portToCacheInfo_.find(portID);
-  if (cache == portToCacheInfo_.end() || cache->second->systemLanes.empty() ||
-      cache->second->lineLanes.empty()) {
-    throw FbossError(
-        "Port:", portID, " is not programmed and can't find cached lanes");
-  }
-
-  auto pimID = getPhyIDInfo(getGlobalXphyIDbyPortID(portID)).pimID;
+  auto pimID = getPhyIDInfo(xphyID).pimID;
   auto evb = getPimEventBase(pimID);
   if (xphy->isSupported(phy::ExternalPhy::Feature::PORT_STATS)) {
-    if (portToCacheInfo_[portID]->ongoingStatCollection.has_value() &&
-        !portToCacheInfo_[portID]->ongoingStatCollection->isReady()) {
+    if (wLockedCache->ongoingStatCollection.has_value() &&
+        !wLockedCache->ongoingStatCollection->isReady()) {
       XLOG(DBG4) << "XPHY Port Stat collection for Port:" << portID
                  << " still underway...";
     } else {
       // Collect xphy port stats
       steady_clock::time_point begin = steady_clock::now();
-      portToCacheInfo_[portID]->ongoingStatCollection =
+      wLockedCache->ongoingStatCollection =
           folly::via(evb)
-              .thenValue([this, portID, cache, xphy, begin](auto&&) {
-                const auto& stats = xphy->getPortStats(
-                    cache->second->systemLanes, cache->second->lineLanes);
-                auto lockedStats = portToCacheInfo_[portID]->stats.wlock();
-                (*lockedStats)->updateXphyStats(stats);
+              .thenValue([this, portID, xphy, begin](auto&&) {
+                // Since this is delay future job, we need to fetch the
+                // cache with wlock again
+                const auto& wCache = getWLockedCache(portID);
+                const auto& stats =
+                    xphy->getPortStats(wCache->systemLanes, wCache->lineLanes);
+                wCache->stats->updateXphyStats(stats);
                 XLOG(DBG3) << "Port " << portID
                            << ": xphy port stat collection took "
                            << duration_cast<milliseconds>(
@@ -407,20 +388,22 @@ void PhyManager::updateStats(PortID portID) {
     }
   }
   if (xphy->isSupported(phy::ExternalPhy::Feature::PRBS_STATS)) {
-    if (portToCacheInfo_[portID]->ongoingPrbsStatCollection.has_value() &&
-        !portToCacheInfo_[portID]->ongoingPrbsStatCollection->isReady()) {
+    if (wLockedCache->ongoingPrbsStatCollection.has_value() &&
+        !wLockedCache->ongoingPrbsStatCollection->isReady()) {
       XLOG(DBG4) << "XPHY PRBS Stat collection for Port:" << portID
                  << " still underway...";
     } else {
       // Collect xphy prbs stats
       steady_clock::time_point begin = steady_clock::now();
-      portToCacheInfo_[portID]->ongoingPrbsStatCollection =
+      wLockedCache->ongoingPrbsStatCollection =
           folly::via(evb)
-              .thenValue([this, portID, cache, xphy, begin](auto&&) {
+              .thenValue([this, portID, xphy, begin](auto&&) {
+                // Since this is delay future job, we need to fetch the
+                // cache with wlock again
+                const auto& wCache = getWLockedCache(portID);
                 const auto& stats = xphy->getPortPrbsStats(
-                    cache->second->systemLanes, cache->second->lineLanes);
-                auto lockedStats = portToCacheInfo_[portID]->stats.wlock();
-                (*lockedStats)->updateXphyPrbsStats(stats);
+                    wCache->systemLanes, wCache->lineLanes);
+                wCache->stats->updateXphyPrbsStats(stats);
                 XLOG(DBG3) << "Port " << portID
                            << ": xphy prbs stat collection took "
                            << duration_cast<milliseconds>(
@@ -440,5 +423,43 @@ const std::string& PhyManager::getPortName(PortID portID) const {
         "Unrecoginized port=", portID, ", which is not in PlatformMapping");
   }
   return *portEntry->second.mapping_ref()->name_ref();
+}
+
+template <typename LockedPtr>
+phy::PhyPortConfig PhyManager::getHwPhyPortConfigLocked(
+    const LockedPtr& lockedCache,
+    PortID portID) {
+  if (lockedCache->systemLanes.empty() || lockedCache->lineLanes.empty()) {
+    throw FbossError(
+        "Port:", portID, " has not program yet. Can't find the cached info");
+  }
+  auto* xphy = getExternalPhyLocked(lockedCache);
+  return xphy->getConfigOnePort(
+      lockedCache->systemLanes, lockedCache->lineLanes);
+}
+
+template <typename LockedPtr>
+GlobalXphyID PhyManager::getGlobalXphyIDbyPortIDLocked(
+    const LockedPtr& lockedCache) const {
+  return lockedCache->xphyID;
+}
+
+PhyManager::PortCacheRLockedPtr PhyManager::getRLockedCache(
+    PortID portID) const {
+  const auto& cache = portToCacheInfo_.find(portID);
+  if (cache == portToCacheInfo_.end()) {
+    throw FbossError(
+        "Unrecoginized port=", portID, ", which is not in PlatformMapping");
+  }
+  return cache->second->rlock();
+}
+PhyManager::PortCacheWLockedPtr PhyManager::getWLockedCache(
+    PortID portID) const {
+  const auto& cache = portToCacheInfo_.find(portID);
+  if (cache == portToCacheInfo_.end()) {
+    throw FbossError(
+        "Unrecoginized port=", portID, ", which is not in PlatformMapping");
+  }
+  return cache->second->wlock();
 }
 } // namespace facebook::fboss

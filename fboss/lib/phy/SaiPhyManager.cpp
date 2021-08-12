@@ -113,6 +113,8 @@ void SaiPhyManager::programOnePort(
     PortID portId,
     cfg::PortProfileID portProfileId,
     std::optional<TransceiverInfo> transceiverInfo) {
+  const auto& wLockedCache = getWLockedCache(portId);
+
   // Get phy platform
   auto globalPhyID = getGlobalXphyIDbyPortID(portId);
   auto saiPlatform = getSaiPlatform(globalPhyID);
@@ -137,10 +139,11 @@ void SaiPhyManager::programOnePort(
   XLOG(INFO) << "Created Sai port " << saiPort << " for id=" << portId;
 
   // Once the port is programmed successfully, update the portToLanesInfo_
-  setPortToLanesInfo(portId, desiredPhyPortConfig);
-  if (getExternalPhy(portId)->isSupported(
-          phy::ExternalPhy::Feature::PORT_STATS)) {
-    setupExternalPhyPortStats(portId);
+  setPortToLanesInfoLocked(wLockedCache, portId, desiredPhyPortConfig);
+  if (getExternalPhyLocked(wLockedCache)
+          ->isSupported(phy::ExternalPhy::Feature::PORT_STATS)) {
+    setPortToExternalPhyPortStatsLocked(
+        wLockedCache, createExternalPhyPortStats(PortID(portId)));
   }
 }
 
@@ -172,11 +175,11 @@ PortOperState SaiPhyManager::macsecGetPhyLinkInfo(PortID swPort) {
                                                      : PortOperState::DOWN;
 }
 
-void SaiPhyManager::setupExternalPhyPortStats(PortID portID) {
+std::unique_ptr<ExternalPhyPortStatsUtils>
+SaiPhyManager::createExternalPhyPortStats(PortID portID) {
   // TODO(joseph5wu) Need to check what kinda stas we can get from
   // SaiPhyManager here
-  setPortToExternalPhyPortStats(
-      portID, std::make_unique<NullPortStats>(getPortName(portID)));
+  return std::make_unique<NullPortStats>(getPortName(portID));
 }
 
 } // namespace facebook::fboss

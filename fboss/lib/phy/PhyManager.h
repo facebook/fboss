@@ -116,6 +116,34 @@ class PhyManager {
   void restoreFromWarmbootState(const folly::dynamic& phyWarmbootState);
 
  protected:
+  struct PortCacheInfo {
+    // PhyManager is in the middle of changing its apis to accept PortID instead
+    // of asking users to get all three Pim/MDIO Controller/PHY id.
+    // Using a global PortID will make it easy for the communication b/w
+    // wedge_agent and qsfp_service.
+    // As for PhyManager, we need to use the GlobalXphyID to locate the exact
+    // ExternalPhy so that we can call ExternalPhy apis to program the xphy.
+    // This map will cache the two global ID: PortID and GlobalXphyID
+    GlobalXphyID xphyID;
+    // Based on current ExternalPhy design, it's hard to get which lanes that
+    // a SW port is using. Because all the ExternalPhy are using lanes to
+    // program the configs directly instead of a software port. Since we always
+    // use PhyManager to programOnePort(), we can cache the LaneID list of both
+    // system and line sides in PhyManager. And then for all the following xphy
+    // related logic like, programming prbs, getting stats, we can just use this
+    // cached info to pass in the xphy lanes directly.
+    std::vector<LaneID> systemLanes;
+    std::vector<LaneID> lineLanes;
+    // Xphy port related stats and prbs stats
+    std::unique_ptr<ExternalPhyPortStatsUtils> stats;
+    std::optional<folly::Future<folly::Unit>> ongoingStatCollection;
+    std::optional<folly::Future<folly::Unit>> ongoingPrbsStatCollection;
+  };
+  using PortCacheRLockedPtr = folly::Synchronized<PortCacheInfo>::RLockedPtr;
+  using PortCacheWLockedPtr = folly::Synchronized<PortCacheInfo>::WLockedPtr;
+  PortCacheRLockedPtr getRLockedCache(PortID portID) const;
+  PortCacheWLockedPtr getWLockedCache(PortID portID) const;
+
   const PlatformMapping* getPlatformMapping() {
     return platformMapping_;
   }
@@ -123,14 +151,20 @@ class PhyManager {
 
   void setupPimEventMultiThreading(PimID pimID);
 
-  void setPortToLanesInfo(PortID portID, const phy::PhyPortConfig& portConfig);
+  template <typename LockedPtr>
+  phy::ExternalPhy* getExternalPhyLocked(const LockedPtr& lockedCache) {
+    return getExternalPhy(lockedCache->xphyID);
+  }
+
+  void setPortToLanesInfoLocked(
+      const PortCacheWLockedPtr& lockedCache,
+      PortID portID,
+      const phy::PhyPortConfig& portConfig);
 
   virtual int32_t getXphyPortStatsUpdateIntervalInSec() const;
 
-  virtual void setupExternalPhyPortStats(PortID portID) = 0;
-
-  void setPortToExternalPhyPortStats(
-      PortID portID,
+  void setPortToExternalPhyPortStatsLocked(
+      const PortCacheWLockedPtr& lockedCache,
       std::unique_ptr<ExternalPhyPortStatsUtils> stats);
 
   // Number of slot in the platform
@@ -165,6 +199,23 @@ class PhyManager {
   // Update PortCacheInfo::stats
   void updateStats(PortID portID);
 
+  template <typename LockedPtr>
+  phy::PhyPortConfig getHwPhyPortConfigLocked(
+      const LockedPtr& lockedCache,
+      PortID portID);
+
+  template <typename LockedPtr>
+  GlobalXphyID getGlobalXphyIDbyPortIDLocked(
+      const LockedPtr& lockedCache) const;
+
+  virtual std::unique_ptr<ExternalPhyPortStatsUtils> createExternalPhyPortStats(
+      PortID portID) = 0;
+
+  using PortToCacheInfo = std::unordered_map<
+      PortID,
+      std::unique_ptr<folly::Synchronized<PortCacheInfo>>>;
+  PortToCacheInfo setupPortToCacheInfo(const PlatformMapping* platformMapping);
+
   const PlatformMapping* platformMapping_;
 
   // For PhyManager programming xphy, each pim can program their xphys at the
@@ -180,30 +231,17 @@ class PhyManager {
   std::unordered_map<PimID, std::unique_ptr<PimEventMultiThreading>>
       pimToThread_;
 
-  struct PortCacheInfo {
-    // PhyManager is in the middle of changing its apis to accept PortID instead
-    // of asking users to get all three Pim/MDIO Controller/PHY id.
-    // Using a global PortID will make it easy for the communication b/w
-    // wedge_agent and qsfp_service.
-    // As for PhyManager, we need to use the GlobalXphyID to locate the exact
-    // ExternalPhy so that we can call ExternalPhy apis to program the xphy.
-    // This map will cache the two global ID: PortID and GlobalXphyID
-    GlobalXphyID xphyID;
-    // Based on current ExternalPhy design, it's hard to get which lanes that
-    // a SW port is using. Because all the ExternalPhy are using lanes to
-    // program the configs directly instead of a software port. Since we always
-    // use PhyManager to programOnePort(), we can cache the LaneID list of both
-    // system and line sides in PhyManager. And then for all the following xphy
-    // related logic like, programming prbs, getting stats, we can just use this
-    // cached info to pass in the xphy lanes directly.
-    std::vector<LaneID> systemLanes;
-    std::vector<LaneID> lineLanes;
-    // Xphy port related stats and prbs stats
-    folly::Synchronized<std::unique_ptr<ExternalPhyPortStatsUtils>> stats;
-    std::optional<folly::Future<folly::Unit>> ongoingStatCollection;
-    std::optional<folly::Future<folly::Unit>> ongoingPrbsStatCollection;
-  };
-  std::unordered_map<PortID, std::unique_ptr<PortCacheInfo>> portToCacheInfo_;
+  // In the constructor function, we create this portToCacheInfo_ based on the
+  // PlatformMapping, which should have all xphy ports. But their default
+  // PortCacheInfo has empty `systemLanes` and `lineLanes` as they're not
+  // programmed on xphy yet.
+  // As a controlling port can subsume the subsumed ports' lanes to reach a
+  // higher speed, therefore, a port can be "deleted" by clearing systemLanes
+  // and lineLanes. And both systemLanes and lineLanes are important for
+  // ExternalPhy functions.
+  // Thus, we need to make the whole PortCacheInfo as synchronized to protect
+  // multi-threading accessing the cache info.
+  const PortToCacheInfo portToCacheInfo_;
 };
 
 } // namespace fboss

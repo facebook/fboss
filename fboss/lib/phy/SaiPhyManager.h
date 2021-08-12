@@ -54,8 +54,6 @@ class SaiPhyManager : public PhyManager {
       GlobalXphyID xphyID,
       std::unique_ptr<SaiHwPlatform> platform);
 
-  void setupExternalPhyPortStats(PortID portID) override;
-
  private:
   // Forbidden copy constructor and assignment operator
   SaiPhyManager(SaiPhyManager const&) = delete;
@@ -63,6 +61,9 @@ class SaiPhyManager : public PhyManager {
 
   SaiMacsecManager* getMacsecManager(PortID portId);
   PortID getPortId(std::string portName);
+
+  std::unique_ptr<ExternalPhyPortStatsUtils> createExternalPhyPortStats(
+      PortID portID) override;
 
   std::map<PimID, std::map<GlobalXphyID, std::unique_ptr<SaiHwPlatform>>>
       saiPlatforms_;
