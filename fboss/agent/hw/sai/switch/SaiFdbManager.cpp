@@ -284,15 +284,16 @@ void SaiFdbManager::handleLinkDown(SaiPortDescriptor portId) {
             key);
       }
       /*
-       * remove the fdb entry object, which will trigger removing a chain of
-       * subscribed dependent objects:
-       * fdb_entry->neighbor->next_hop->next_hop_group_member
+       * notify link down event which propagate all the way to next hop group
+       * and next hop. next hop is removed and next hop group shrinks.
        *
-       * Removing the next hop group member will effectively shrink
-       * each affected ECMP group which will minimize blackholing while
-       * ARP/NDP converge.
+       * instead of resetting fdb entry, propagate link down event. fdb entry
+       * (if static and related to neighbor) will  be purged  by  sw switch's
+       * neighbor updater mechanism.
+       *
+       * this retains hw switch in sync with sw switch
        */
-      fdbEntryItr->second->resetObject();
+      fdbEntryItr->second->handleLinkDown();
     }
   }
 }

@@ -63,8 +63,6 @@ class NeighborManagerTest : public ManagerTestBase {
     auto saiNeighborHandle =
         saiManagerTable->neighborManager().getNeighborHandle(saiEntry);
     EXPECT_TRUE(saiNeighborHandle);
-    EXPECT_FALSE(saiNeighborHandle->neighbor);
-    EXPECT_FALSE(saiNeighborHandle->fdbEntry);
   }
 
   TestInterface intf0;
