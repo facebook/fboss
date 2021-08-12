@@ -44,6 +44,7 @@ struct SaiObjectEventSubscriber {
 
   virtual void afterCreate(PublisherObjectSharedPtr) = 0;
   virtual void beforeRemove() = 0;
+  virtual void linkDown() {}
 
   void saveSubscription(std::any subscription) {
     subscription_ = std::move(subscription);

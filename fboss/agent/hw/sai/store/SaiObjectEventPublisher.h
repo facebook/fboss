@@ -106,6 +106,10 @@ class SaiObjectEventPublisher {
     RemoveSignal removeSignal_;
     using RemoveSignalSlot = typename RemoveSignal::slot_type;
 
+    using LinkDownSignal = boost::signals2::signal<void()>;
+    LinkDownSignal linkDownSignal_;
+    using LinkDownSignalSlot = typename LinkDownSignal::slot_type;
+
     friend class SaiObjectEventPublisher<PublishedObjectTrait>;
   };
 
@@ -135,6 +139,12 @@ class SaiObjectEventPublisher {
         std::bind(&Subscriber::beforeRemove, subscriber.get());
     subscription->removeSignal_.connect(
         removeSignalSlot.track_foreign(subscriberWeakPtr));
+
+    typename Subscription::LinkDownSignalSlot linkDownSignalSlot =
+        std::bind(&Subscriber::linkDown, subscriber.get());
+    subscription->linkDownSignal_.connect(
+        linkDownSignalSlot.track_foreign(subscriberWeakPtr));
+
     subscriber->saveSubscription(subscription);
     XLOGF(
         DBG3,
@@ -166,6 +176,15 @@ class SaiObjectEventPublisher {
       return;
     }
     subscription->removeSignal_();
+  }
+
+  void notifyLinkDown(Key key) {
+    XLOGF(DBG3, "publisher object {} notify link down", key);
+    auto subscription = subscriptions_.get(key);
+    if (!subscription) {
+      return;
+    }
+    subscription->linkDownSignal_();
   }
 
  private:
