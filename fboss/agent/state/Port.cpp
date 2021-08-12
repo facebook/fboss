@@ -116,12 +116,15 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
   }
 
   if (auto pgConfigs = portThrift.pgConfigs_ref()) {
+    std::vector<PfcPriority> tmpPfcPriorities;
     PortPgConfigs tmpPgConfigs;
     for (const auto& pgConfig : pgConfigs.value()) {
       tmpPgConfigs.push_back(
           std::make_shared<PortPgConfig>(PortPgFields::fromThrift(pgConfig)));
+      tmpPfcPriorities.push_back(static_cast<PfcPriority>(*pgConfig.id_ref()));
     }
     port.pgConfigs = tmpPgConfigs;
+    port.pfcPriorities = tmpPfcPriorities;
   }
 
   if (portThrift.ingressMirror_ref()) {

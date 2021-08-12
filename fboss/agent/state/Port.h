@@ -69,6 +69,7 @@ struct PortFields {
   cfg::PortSpeed speed{cfg::PortSpeed::DEFAULT};
   cfg::PortPause pause;
   std::optional<cfg::PortPfc> pfc;
+  std::optional<std::vector<PfcPriority>> pfcPriorities;
   VlanMembership vlans;
   // settings for ingress/egress sFlow sampling rate; we sample every 1:N'th
   // packets randomly based on those settings. Zero means no sampling.
@@ -237,6 +238,13 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
   }
   void setPfc(std::optional<cfg::PortPfc>& pfc) {
     writableFields()->pfc = pfc;
+  }
+
+  std::optional<std::vector<PfcPriority>> getPfcPriorities() const {
+    return getFields()->pfcPriorities;
+  }
+  void setPfcPriorities(std::optional<std::vector<PfcPriority>>& pri) {
+    writableFields()->pfcPriorities = pri;
   }
 
   int32_t getMaxFrameSize() const {
