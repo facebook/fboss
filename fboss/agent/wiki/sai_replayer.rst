@@ -1,6 +1,7 @@
 .. fb:display_title::
   Sai Replayer
 
+NOTE: USE LATEST SUPPORTED VERSIONS - :fb:wiki:`Fboss/wiki/latest_versions`
 
 As FBOSS wedge agent is moving towards SAI switch, a tool is needed to log SAI API calls and recreate certain problematic ASIC states.
 Such “replaying” of the issue would help joint Facebook-vendor debugging when an error occurs in FBOSS production environment,
