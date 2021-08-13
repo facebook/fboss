@@ -34,5 +34,8 @@ class CredoF104Asic : public HwAsic {
   int getMaxNumLogicalPorts() const override;
   uint16_t getMirrorTruncateSize() const override;
   uint32_t getMaxWideEcmpSize() const override;
+  uint32_t getSflowShimHeaderSize() const override {
+    return 0;
+  }
 };
 } // namespace facebook::fboss

@@ -14,5 +14,8 @@ class BroadcomAsic : public HwAsic {
   uint32_t getMaxMirrors() const override {
     return 4;
   }
+  uint32_t getSflowShimHeaderSize() const override {
+    return 8;
+  }
 };
 } // namespace facebook::fboss

@@ -67,6 +67,9 @@ class TajoAsic : public HwAsic {
   int getSystemPortIDOffset() const override {
     return 1000;
   }
+  uint32_t getSflowShimHeaderSize() const override {
+    return 9;
+  }
 };
 
 } // namespace facebook::fboss

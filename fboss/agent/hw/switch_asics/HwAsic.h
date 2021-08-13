@@ -163,6 +163,8 @@ class HwAsic {
   virtual int getSystemPortIDOffset() const {
     return 0;
   }
+
+  virtual uint32_t getSflowShimHeaderSize() const = 0;
 };
 
 } // namespace facebook::fboss

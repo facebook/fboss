@@ -83,6 +83,9 @@ class FakeAsic : public HwAsic {
   uint32_t getMaxWideEcmpSize() const override {
     return 128;
   }
+  uint32_t getSflowShimHeaderSize() const override {
+    return 0;
+  }
 };
 
 } // namespace facebook::fboss
