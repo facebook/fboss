@@ -76,6 +76,9 @@ class BcmSdkInterface {
       bcm_port_phy_control_t type,
       uint32* value) = 0;
 
+#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_22))
+  virtual int bcm_pktio_txpmd_stat_attach(int unit, uint32 counter_id) = 0;
+#endif
   virtual int bcm_cosq_gport_traverse(
       int unit,
       bcm_cosq_gport_traverse_cb cb,

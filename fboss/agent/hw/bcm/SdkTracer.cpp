@@ -952,6 +952,10 @@ int __real_bcm_tx(int unit, bcm_pkt_t* tx_pkt, void* cookie);
 
 int __real_bcm_pktio_tx(int unit, bcm_pktio_pkt_t* tx_pkt);
 
+#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_22))
+int __real_bcm_pktio_txpmd_stat_attach(int unit, uint32 counter_id);
+#endif
+
 int __real_bcm_l3_egress_destroy(int unit, bcm_if_t intf);
 
 int __real_bcm_port_control_get(
@@ -2859,6 +2863,12 @@ int __wrap_bcm_pktio_tx(int unit, bcm_pktio_pkt_t* tx_pkt) {
   // access to packet data in order to log it.
   CALL_WRAPPERS_RV_CINTER_FIRST(bcm_pktio_tx(unit, tx_pkt));
 }
+
+#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 22))
+int __wrap_bcm_pktio_txpmd_stat_attach(int unit, uint32 counter_id) {
+  CALL_WRAPPERS_RV(bcm_pktio_txpmd_stat_attach(unit, counter_id));
+}
+#endif
 
 int __wrap_bcm_rx_stop(int unit, bcm_rx_cfg_t* cfg) {
   CALL_WRAPPERS_RV(bcm_rx_stop(unit, cfg));

@@ -544,6 +544,9 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   int bcm_l2_station_delete(int unit, int station_id) override;
   int bcm_tx(int unit, bcm_pkt_t* tx_pkt, void* cookie) override;
   int bcm_pktio_tx(int unit, bcm_pktio_pkt_t* tx_pkt) override;
+#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_22))
+  int bcm_pktio_txpmd_stat_attach(int unit, uint32 counter_id) override;
+#endif
   int bcm_port_stat_enable_set(int unit, bcm_gport_t port, int enable) override;
   int bcm_port_stat_attach(int unit, bcm_port_t port, uint32 counterID_)
       override;
