@@ -954,6 +954,8 @@ int __real_bcm_pktio_tx(int unit, bcm_pktio_pkt_t* tx_pkt);
 
 #if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_22))
 int __real_bcm_pktio_txpmd_stat_attach(int unit, uint32 counter_id);
+
+int __real_bcm_pktio_txpmd_stat_detach(int unit);
 #endif
 
 int __real_bcm_l3_egress_destroy(int unit, bcm_if_t intf);
@@ -2864,9 +2866,13 @@ int __wrap_bcm_pktio_tx(int unit, bcm_pktio_pkt_t* tx_pkt) {
   CALL_WRAPPERS_RV_CINTER_FIRST(bcm_pktio_tx(unit, tx_pkt));
 }
 
-#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 22))
+#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_22))
 int __wrap_bcm_pktio_txpmd_stat_attach(int unit, uint32 counter_id) {
   CALL_WRAPPERS_RV(bcm_pktio_txpmd_stat_attach(unit, counter_id));
+}
+
+int __wrap_bcm_pktio_txpmd_stat_detach(int unit) {
+  CALL_WRAPPERS_RV(bcm_pktio_txpmd_stat_detach(unit));
 }
 #endif
 

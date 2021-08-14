@@ -2981,6 +2981,12 @@ int BcmCinter::bcm_pktio_txpmd_stat_attach(int unit, uint32 counter_id) {
       "bcm_pktio_txpmd_stat_attach(", makeParamStr(unit, counter_id), ")")));
   return 0;
 }
+
+int BcmCinter::bcm_pktio_txpmd_stat_detach(int unit) {
+  writeCintLines(wrapFunc(
+      to<string>("bcm_pktio_txpmd_stat_detach(", makeParamStr(unit), ")")));
+  return 0;
+}
 #endif
 
 int BcmCinter::bcm_pkt_free(int /*unit*/, bcm_pkt_t* /*pkt*/) {

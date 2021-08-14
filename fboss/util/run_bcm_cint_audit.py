@@ -111,7 +111,6 @@ KNOWN_MISSING_APIS = {
     "bcm_trunk_member_t_init",
     "bcm_vlan_control_vlan_t_init",
     "bcm_warmboot_set",
-    "bcm_pktio_txpmd_stat_detach",
     # init calls don't need to be wrapped.
     "bcm_cosq_pfc_class_map_config_t_init",
     "bcm_field_entry_config_t_init",
