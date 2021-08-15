@@ -24,14 +24,22 @@ namespace utility {
 
 std::vector<int> kLosslessPgs();
 int kPgMinLimitCells();
-int kGlobalSharedBufferCells();
+int kGlobalSharedBufferCells(const HwSwitch* hwSwitch);
 int kGlobalHeadroomBufferCells();
-int kPgHeadroomLimitCells();
+int kUplinkPgHeadroomLimitCells();
+int kDownlinkPgHeadroomLimitCells();
 int kPgResumeLimitCells();
 
 void addPfcConfig(
     cfg::SwitchConfig& config,
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& ports);
+
+void addUplinkDownlinkPfcConfig(
+    cfg::SwitchConfig& cfg,
+    const HwSwitch* hwSwitch,
+    const std::vector<PortID>& uplinkPorts,
+    const std::vector<PortID>& downllinkPorts);
+
 } // namespace utility
 } // namespace facebook::fboss
