@@ -257,7 +257,7 @@ IPv6RouteAdvertiser& IPv6RouteAdvertiser::operator=(
 
   IPAddressV6 srcIP(IPAddressV6::LINK_LOCAL, intf->getMac());
   IPv6Hdr ipv6(srcIP, dstIP);
-  ipv6.trafficClass = 0xe0; // CS7 precedence (network control)
+  ipv6.trafficClass = kGetNetworkControlTrafficClass();
   ipv6.payloadLength = ICMPHdr::SIZE + bodyLength;
   ipv6.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
   ipv6.hopLimit = 255;

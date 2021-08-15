@@ -157,4 +157,10 @@ class StopWatch {
   bool json_;
   std::chrono::time_point<std::chrono::steady_clock> startTime_;
 };
+
+inline constexpr uint8_t kGetNetworkControlTrafficClass() {
+  // Network Control << ECN-bits
+  return 48 << 2;
+}
+
 } // namespace facebook::fboss
