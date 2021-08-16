@@ -174,6 +174,22 @@ PortID LinkTest::getPortID(const std::string& portName) const {
   throw FbossError("No port named: ", portName);
 }
 
+std::set<std::pair<PortID, PortID>> LinkTest::getConnectedPairs() const {
+  std::set<std::pair<PortID, PortID>> connectedPairs;
+  for (auto cabledPort : cabledPorts_) {
+    auto lldpNeighbors = sw()->getLldpMgr()->getDB()->getNeighbors(cabledPort);
+    CHECK_EQ(lldpNeighbors.size(), 1);
+    auto neighborPort = getPortID(lldpNeighbors.begin()->getPortId());
+    // Insert sorted pairs, so that the same pair does not show up twice in the
+    // set
+    auto connectedPair = cabledPort < neighborPort
+        ? std::make_pair(cabledPort, neighborPort)
+        : std::make_pair(neighborPort, cabledPort);
+    connectedPairs.insert(connectedPair);
+  }
+  return connectedPairs;
+}
+
 int linkTestMain(int argc, char** argv, PlatformInitFn initPlatformFn) {
   ::testing::InitGoogleTest(&argc, argv);
   initAgentTest(argc, argv, initPlatformFn);

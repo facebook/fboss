@@ -25,6 +25,10 @@ class LinkTest : public AgentTest {
           std::chrono::milliseconds(1000)) const;
   bool lldpNeighborsOnAllCabledPorts() const;
   /*
+   * Get pairs of ports connected to each other
+   */
+  std::set<std::pair<PortID, PortID>> getConnectedPairs() const;
+  /*
    * Ports where we expect optics to be plugged in.
    * In link tests this information is conveyed in config via non
    * null LLDP neighbors. We pick that up here to extract cabled ports

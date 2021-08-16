@@ -23,9 +23,10 @@ class MacsecTest : public LinkTest {};
 TEST_F(MacsecTest, setupMkaSession) {
   auto verify = [this]() {
     checkWithRetry([this] { return lldpNeighborsOnAllCabledPorts(); });
-    auto port = getCabledPorts()[0];
-    auto lldpNeighbor = sw()->getLldpMgr()->getDB()->getNeighbors(port)[0];
-    auto neighborPort = getPortID(lldpNeighbor.getPortId());
+    auto connectedPairs = getConnectedPairs();
+    CHECK(connectedPairs.size() > 1);
+    auto port = connectedPairs.begin()->first;
+    auto neighborPort = connectedPairs.begin()->second;
     XLOG(INFO) << " Port: " << port << " neighbor: " << neighborPort;
 #if FOLLY_HAS_COROUTINES
     auto evbThread = std::make_unique<folly::ScopedEventBaseThread>();
