@@ -2703,6 +2703,18 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
     switchSettingsChange = true;
   }
 
+  std::vector<std::pair<VlanID, folly::IPAddress>> cfgBlockNeighbors;
+  for (const auto& blockNeighbor :
+       *cfg_->switchSettings_ref()->blockNeighbors_ref()) {
+    cfgBlockNeighbors.emplace_back(
+        VlanID(*blockNeighbor.vlanID_ref()),
+        folly::IPAddress(*blockNeighbor.ipAddress_ref()));
+  }
+  if (origSwitchSettings->getBlockNeighbors() != cfgBlockNeighbors) {
+    newSwitchSettings->setBlockNeighbors(cfgBlockNeighbors);
+    switchSettingsChange = true;
+  }
+
   return switchSettingsChange ? newSwitchSettings : nullptr;
 }
 
