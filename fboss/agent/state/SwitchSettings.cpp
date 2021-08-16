@@ -18,6 +18,9 @@ constexpr auto kQcmEnable = "qcmEnable";
 constexpr auto kPtpTcEnable = "ptpTcEnable";
 constexpr auto kL2AgeTimerSeconds = "l2AgeTimerSeconds";
 constexpr auto kMaxRouteCounterIDs = "maxRouteCounterIDs";
+constexpr auto kBlockNeighbors = "blockNeighbors";
+constexpr auto kBlockNeighborVlanID = "blockNeighborVlanID";
+constexpr auto kBlockNeighborIP = "blockNeighborIP";
 } // namespace
 
 namespace facebook::fboss {
@@ -30,6 +33,14 @@ folly::dynamic SwitchSettingsFields::toFollyDynamic() const {
   switchSettings[kPtpTcEnable] = static_cast<bool>(ptpTcEnable);
   switchSettings[kL2AgeTimerSeconds] = static_cast<int>(l2AgeTimerSeconds);
   switchSettings[kMaxRouteCounterIDs] = static_cast<int>(maxRouteCounterIDs);
+
+  switchSettings[kBlockNeighbors] = folly::dynamic::array;
+  for (const auto& [vlanID, ipAddress] : blockNeighbors) {
+    folly::dynamic jsonEntry = folly::dynamic::object;
+    jsonEntry[kBlockNeighborVlanID] = folly::to<std::string>(vlanID);
+    jsonEntry[kBlockNeighborIP] = folly::to<std::string>(ipAddress);
+    switchSettings[kBlockNeighbors].push_back(jsonEntry);
+  }
 
   return switchSettings;
 }
@@ -54,6 +65,15 @@ SwitchSettingsFields SwitchSettingsFields::fromFollyDynamic(
   if (json.find(kMaxRouteCounterIDs) != json.items().end()) {
     switchSettings.maxRouteCounterIDs = json[kMaxRouteCounterIDs].asInt();
   }
+
+  if (json.find(kBlockNeighbors) != json.items().end()) {
+    for (const auto& entry : json[kBlockNeighbors]) {
+      switchSettings.blockNeighbors.emplace_back(
+          entry[kBlockNeighborVlanID].asInt(),
+          entry[kBlockNeighborIP].asString());
+    }
+  }
+
   return switchSettings;
 }
 
@@ -77,7 +97,8 @@ bool SwitchSettings::operator==(const SwitchSettings& switchSettings) const {
       (getFields()->ptpTcEnable == switchSettings.isPtpTcEnable()) &&
       (getFields()->qcmEnable == switchSettings.isQcmEnable()) &&
       (getFields()->l2AgeTimerSeconds ==
-       switchSettings.getL2AgeTimerSeconds()));
+       switchSettings.getL2AgeTimerSeconds()) &&
+      getFields()->blockNeighbors == switchSettings.getBlockNeighbors());
 }
 
 template class NodeBaseT<SwitchSettings, SwitchSettingsFields>;

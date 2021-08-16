@@ -154,7 +154,8 @@ TEST(SwitchSettingsTest, ToFromJSON) {
           "qcmEnable": true,
           "ptpTcEnable": true,
           "l2AgeTimerSeconds": 600,
-          "maxRouteCounterIDs": 10
+          "maxRouteCounterIDs": 10,
+          "blockNeighbors": []
         }
   )";
 

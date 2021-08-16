@@ -28,6 +28,7 @@ struct SwitchSettingsFields {
   bool ptpTcEnable = false;
   uint32_t l2AgeTimerSeconds{300};
   uint32_t maxRouteCounterIDs{0};
+  std::vector<std::pair<VlanID, folly::IPAddress>> blockNeighbors;
 };
 
 /*
@@ -84,6 +85,15 @@ class SwitchSettings : public NodeBaseT<SwitchSettings, SwitchSettingsFields> {
 
   uint32_t getMaxRouteCounterIDs() {
     return getFields()->maxRouteCounterIDs;
+  }
+
+  std::vector<std::pair<VlanID, folly::IPAddress>> getBlockNeighbors() const {
+    return getFields()->blockNeighbors;
+  }
+
+  void setBlockNeighbors(
+      const std::vector<std::pair<VlanID, folly::IPAddress>>& blockNeighbors) {
+    writableFields()->blockNeighbors = blockNeighbors;
   }
 
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
