@@ -260,8 +260,6 @@ class BcmPfcTests : public BcmTest {
       const PortID& portId,
       const bool pfcRxEnable,
       const bool pfcTxEnable) {
-    auto portCfg = utility::findCfgPort(currentConfig, portId);
-
     // setup pfc
     addPfcConfig(
         currentConfig, getHwSwitch(), {portId}, pfcRxEnable, pfcTxEnable);
