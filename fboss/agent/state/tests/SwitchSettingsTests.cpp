@@ -147,6 +147,38 @@ TEST(SwitchSettingsTest, applyMaxRouteCounterIDs) {
   EXPECT_EQ(maxRouteCounterIDs, switchSettingsV1->getMaxRouteCounterIDs());
 }
 
+TEST(SwitchSettingsTest, applyBlockNeighbors) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  // Check default value
+  auto switchSettingsV0 = stateV0->getSwitchSettings();
+  ASSERT_NE(nullptr, switchSettingsV0);
+  EXPECT_EQ(switchSettingsV0->getBlockNeighbors().size(), 0);
+
+  // Check if value is updated
+  cfg::SwitchConfig config;
+
+  cfg::Neighbor blockNeighbor;
+  blockNeighbor.vlanID_ref() = 1;
+  blockNeighbor.ipAddress_ref() = "1.1.1.1";
+
+  config.switchSettings_ref()->blockNeighbors_ref() = {blockNeighbor};
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+  auto switchSettingsV1 = stateV1->getSwitchSettings();
+  ASSERT_NE(nullptr, switchSettingsV1);
+  EXPECT_FALSE(switchSettingsV1->isPublished());
+  EXPECT_EQ(switchSettingsV1->getBlockNeighbors().size(), 1);
+
+  EXPECT_EQ(
+      switchSettingsV1->getBlockNeighbors()[0].first,
+      blockNeighbor.vlanID_ref());
+  EXPECT_EQ(
+      switchSettingsV1->getBlockNeighbors()[0].second.str(),
+      blockNeighbor.ipAddress_ref());
+}
+
 TEST(SwitchSettingsTest, ToFromJSON) {
   std::string jsonStr = R"(
         {
