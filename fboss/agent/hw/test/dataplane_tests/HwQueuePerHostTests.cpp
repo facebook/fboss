@@ -120,14 +120,16 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
 
   std::shared_ptr<SwitchState> updateNeighbors(
       const std::shared_ptr<SwitchState>& inState,
-      bool setClassIDs) {
+      bool setClassIDs,
+      bool blockNeighbor) {
     auto outState{inState->clone()};
 
     for (const auto& ipToMacAndClassID : getIpToMacAndClassID()) {
       auto ip = ipToMacAndClassID.first;
       auto macAndClassID = ipToMacAndClassID.second;
       auto neighborMac = macAndClassID.first;
-      auto classID = macAndClassID.second;
+      auto classID = blockNeighbor ? cfg::AclLookupClass::CLASS_DROP
+                                   : macAndClassID.second;
       auto neighborTable = outState->getVlans()
                                ->getVlan(kVlanID)
                                ->template getNeighborTable<NeighborTableT>()
@@ -154,12 +156,14 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
 
   std::shared_ptr<SwitchState> resolveNeighbors(
       const std::shared_ptr<SwitchState>& inState) {
-    return updateNeighbors(inState, false /* setClassIDs */);
+    return updateNeighbors(
+        inState, false /* setClassIDs */, false /* blockNeighbors */);
   }
 
   std::shared_ptr<SwitchState> updateClassID(
-      const std::shared_ptr<SwitchState>& inState) {
-    return updateNeighbors(inState, true /* setClassIDs */);
+      const std::shared_ptr<SwitchState>& inState,
+      bool blockNeighbor) {
+    return updateNeighbors(inState, true /* setClassIDs */, blockNeighbor);
   }
 
   void _setupHelper() {
@@ -170,7 +174,7 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
     applyNewConfig(newCfg);
   }
 
-  void _verifyHelper(bool frontPanel) {
+  void _verifyHelper(bool frontPanel, bool blockNeighbor) {
     auto ttlAclName = utility::getQueuePerHostTtlAclName();
     auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
 
@@ -221,21 +225,33 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
     for (auto [qid, beforePkts] : beforeQueueOutPkts) {
       auto pktsOnQueue = afterQueueOutPkts[qid] - beforePkts;
       XLOG(INFO) << " Pkts on queue : " << qid << " pkts: " << pktsOnQueue;
-      if (qid == 0) {
-        EXPECT_GE(pktsOnQueue, 1);
+
+      if (blockNeighbor) {
+        // if the neighbor is blocked, all pkts are dropped
+        EXPECT_EQ(pktsOnQueue, 0);
       } else {
-        EXPECT_EQ(pktsOnQueue, 2 /* 1 pkt each for ttl < 128 and ttl >= 128 */);
+        if (qid == 0) {
+          EXPECT_GE(pktsOnQueue, 1);
+        } else {
+          EXPECT_EQ(
+              pktsOnQueue, 2 /* 1 pkt each for ttl < 128 and ttl >= 128 */);
+        }
       }
     }
 
     auto statAfter = utility::getAclInOutPackets(
         getHwSwitch(), this->getProgrammedState(), ttlAclName, ttlCounterName);
 
-    // counts ttl >= 128 packet only
-    EXPECT_EQ(statAfter - statBefore, getIpToMacAndClassID().size());
+    if (blockNeighbor) {
+      // if the neighbor is blocked, all pkts are dropped
+      EXPECT_EQ(statAfter - statBefore, 0);
+    } else {
+      // counts ttl >= 128 packet only
+      EXPECT_EQ(statAfter - statBefore, getIpToMacAndClassID().size());
+    }
   }
 
-  void classIDAfterNeighborResolveHelper() {
+  void classIDAfterNeighborResolveHelper(bool blockNeighbor) {
     this->_setupHelper();
 
     /*
@@ -248,38 +264,51 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
     auto state2 = this->resolveNeighbors(state1);
     this->applyNewState(state2);
 
-    auto state3 = this->updateClassID(this->getProgrammedState());
+    auto state3 =
+        this->updateClassID(this->getProgrammedState(), blockNeighbor);
     this->applyNewState(state3);
   }
 
-  void classIDWithResolveHelper() {
+  void classIDWithResolveHelper(bool blockNeighbor) {
     this->_setupHelper();
 
     auto state1 = this->addNeighbors(this->getProgrammedState());
     auto state2 = this->resolveNeighbors(state1);
-    auto state3 = this->updateClassID(state2);
+    auto state3 = this->updateClassID(state2, blockNeighbor);
 
     this->applyNewState(state3);
   }
 
-  void verifyHostToQueueMappingClassIDsAfterResolveHelper(bool frontPanel) {
+  void verifyHostToQueueMappingClassIDsAfterResolveHelper(
+      bool frontPanel,
+      bool blockNeighbor) {
     if (!isSupported(HwAsic::Feature::L3_QOS)) {
       return;
     }
 
-    auto setup = [this]() { this->classIDAfterNeighborResolveHelper(); };
-    auto verify = [this, frontPanel]() { this->_verifyHelper(frontPanel); };
+    auto setup = [this, blockNeighbor]() {
+      this->classIDAfterNeighborResolveHelper(blockNeighbor);
+    };
+    auto verify = [this, frontPanel, blockNeighbor]() {
+      this->_verifyHelper(frontPanel, blockNeighbor);
+    };
 
     verifyAcrossWarmBoots(setup, verify);
   }
 
-  void verifyHostToQueueMappingClassIDsWithResolveHelper(bool frontPanel) {
+  void verifyHostToQueueMappingClassIDsWithResolveHelper(
+      bool frontPanel,
+      bool blockNeighbor) {
     if (!isSupported(HwAsic::Feature::L3_QOS)) {
       return;
     }
 
-    auto setup = [this]() { this->classIDWithResolveHelper(); };
-    auto verify = [this, frontPanel]() { this->_verifyHelper(frontPanel); };
+    auto setup = [this, blockNeighbor]() {
+      this->classIDWithResolveHelper(blockNeighbor);
+    };
+    auto verify = [this, frontPanel, blockNeighbor]() {
+      this->_verifyHelper(frontPanel, blockNeighbor);
+    };
 
     verifyAcrossWarmBoots(setup, verify);
   }
@@ -378,7 +407,16 @@ TYPED_TEST(
     HwQueuePerHostTest,
     VerifyHostToQueueMappingClassIDsAfterResolveFrontPanel) {
   this->verifyHostToQueueMappingClassIDsAfterResolveHelper(
-      true /* front panel port */);
+      true /* front panel port */, false /* block neighbor */);
+}
+
+// Verify that traffic arriving on a front panel port to a blocked neighbor gets
+// dropped.
+TYPED_TEST(
+    HwQueuePerHostTest,
+    VerifyHostToQueueMappingClassIDsAfterResolveFrontPanelBlock) {
+  this->verifyHostToQueueMappingClassIDsAfterResolveHelper(
+      true /* front panel port */, true /* block neighbor */);
 }
 
 // Verify that traffic originating on the CPU is gets right queue-per-host
@@ -387,7 +425,7 @@ TYPED_TEST(
     HwQueuePerHostTest,
     VerifyHostToQueueMappingClassIDsAfterResolveCpu) {
   this->verifyHostToQueueMappingClassIDsAfterResolveHelper(
-      false /* cpu port */);
+      false /* cpu port */, false /* block neighbor */);
 }
 
 // Verify that traffic arriving on a front panel port gets right queue-per-host
@@ -396,13 +434,14 @@ TYPED_TEST(
     HwQueuePerHostTest,
     VerifyHostToQueueMappingClassIDsWithResolveFrontPanel) {
   this->verifyHostToQueueMappingClassIDsWithResolveHelper(
-      true /* front panel port */);
+      true /* front panel port */, false /* block neighbor */);
 }
 
 // Verify that traffic originating on the CPU is gets right queue-per-host
 // queue.
 TYPED_TEST(HwQueuePerHostTest, VerifyHostToQueueMappingClassIDsWithResolveCpu) {
-  this->verifyHostToQueueMappingClassIDsWithResolveHelper(false /* cpu port */);
+  this->verifyHostToQueueMappingClassIDsWithResolveHelper(
+      false /* cpu port */, false /* block neighbor */);
 }
 
 // Verify that TTLd traffic not going to queue-per-host has TTLd counter
