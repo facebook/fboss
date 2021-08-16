@@ -79,12 +79,12 @@ class SwitchSettings : public NodeBaseT<SwitchSettings, SwitchSettingsFields> {
     writableFields()->l2AgeTimerSeconds = val;
   }
 
-  void setMaxRouteCounterIDs(uint32_t numCounterIDs) {
-    writableFields()->maxRouteCounterIDs = numCounterIDs;
+  uint32_t getMaxRouteCounterIDs() const {
+    return getFields()->maxRouteCounterIDs;
   }
 
-  uint32_t getMaxRouteCounterIDs() {
-    return getFields()->maxRouteCounterIDs;
+  void setMaxRouteCounterIDs(uint32_t numCounterIDs) {
+    writableFields()->maxRouteCounterIDs = numCounterIDs;
   }
 
   std::vector<std::pair<VlanID, folly::IPAddress>> getBlockNeighbors() const {

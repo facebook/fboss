@@ -98,6 +98,8 @@ bool SwitchSettings::operator==(const SwitchSettings& switchSettings) const {
       (getFields()->qcmEnable == switchSettings.isQcmEnable()) &&
       (getFields()->l2AgeTimerSeconds ==
        switchSettings.getL2AgeTimerSeconds()) &&
+      (getFields()->maxRouteCounterIDs ==
+       switchSettings.getMaxRouteCounterIDs()) &&
       getFields()->blockNeighbors == switchSettings.getBlockNeighbors());
 }
 
