@@ -165,6 +165,15 @@ bool LinkTest::lldpNeighborsOnAllCabledPorts() const {
   return true;
 }
 
+PortID LinkTest::getPortID(const std::string& portName) const {
+  for (auto port : *sw()->getState()->getPorts()) {
+    if (port->getName() == portName) {
+      return port->getID();
+    }
+  }
+  throw FbossError("No port named: ", portName);
+}
+
 int linkTestMain(int argc, char** argv, PlatformInitFn initPlatformFn) {
   ::testing::InitGoogleTest(&argc, argv);
   initAgentTest(argc, argv, initPlatformFn);

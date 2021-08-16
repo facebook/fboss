@@ -24,16 +24,9 @@ TEST_F(MacsecTest, setupMkaSession) {
   auto verify = [this]() {
     checkWithRetry([this] { return lldpNeighborsOnAllCabledPorts(); });
     auto port = getCabledPorts()[0];
-    std::optional<PortID> neighborPort;
     auto lldpNeighbor = sw()->getLldpMgr()->getDB()->getNeighbors(port)[0];
-    for (auto port : *sw()->getState()->getPorts()) {
-      if (port->getName() == lldpNeighbor.getPortId()) {
-        neighborPort = port->getID();
-        break;
-      }
-    }
-    CHECK(neighborPort);
-    XLOG(INFO) << " Port: " << port << " neighbor: " << *neighborPort;
+    auto neighborPort = getPortID(lldpNeighbor.getPortId());
+    XLOG(INFO) << " Port: " << port << " neighbor: " << neighborPort;
 #if FOLLY_HAS_COROUTINES
     auto evbThread = std::make_unique<folly::ScopedEventBaseThread>();
     std::unique_ptr<facebook::fboss::mka::MKAServiceAsyncClient> client;
@@ -58,9 +51,9 @@ TEST_F(MacsecTest, setupMkaSession) {
     auto priority = mka_config_constants::DEFAULT_KEYSERVER_PRIORITY();
     auto srcMac = sw()->getPlatform()->getLocalMac().u64NBO();
     auto macGen = facebook::fboss::utility::MacAddressGenerator();
-    for (auto port : {port, *neighborPort}) {
+    for (auto p : {port, neighborPort}) {
       MKAConfig config;
-      config.l2Port_ref() = folly::to<std::string>(port);
+      config.l2Port_ref() = folly::to<std::string>(p);
       config.transport_ref() = MKATransport::THRIFT_TRANSPORT;
       config.capability_ref() = MACSecCapability::CAPABILITY_INGTY_CONF;
       config.srcMac_ref() = macGen.get(srcMac++).toString();
@@ -78,7 +71,7 @@ TEST_F(MacsecTest, setupMkaSession) {
       if (activeSessions != 2) {
         return false;
       }
-      for (auto p : {port, *neighborPort}) {
+      for (auto p : {port, neighborPort}) {
         auto portCkn = folly::coro::blockingWait(
             client->co_getActiveCKN(folly::to<std::string>(p)));
         auto sakInstalled = folly::coro::blockingWait(

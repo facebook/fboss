@@ -42,6 +42,7 @@ class LinkTest : public AgentTest {
    * Create a L3 data plane loop and seed it with traffic
    */
   void createL3DataplaneFlood();
+  PortID getPortID(const std::string& portName) const;
 
  private:
   void setupFlags() const override;
