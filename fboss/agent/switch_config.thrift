@@ -297,6 +297,9 @@ enum AclLookupClass {
   DST_CLASS_L3_LOCAL_IP4 = 1
   DST_CLASS_L3_LOCAL_IP6 = 2
 
+  // Class for DROP ACL
+  CLASS_DROP = 9
+
   /*
    * RSW Downlink ports connected to MH-NIC setups configure a queue per host
    * using ACLs. These ACLs use following classes.
@@ -1231,6 +1234,11 @@ struct QcmConfig {
   17: bool monitorQcmCfgPortsOnly = false
 }
 
+struct Neighbor {
+  1: i32 vlanID
+  2: string ipAddress
+}
+
 /*
  * Switch specific settings: global to the switch
  */
@@ -1247,6 +1255,9 @@ struct SwitchSettings {
    */
   4: i32 l2AgeTimerSeconds = 300
   5: i32 maxRouteCounterIDs = 0
+
+  // neighbors to block egress traffic to
+  6: list<Neighbor> blockNeighbors = []
 }
 
 enum PfcWatchdogRecoveryAction {
