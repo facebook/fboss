@@ -155,6 +155,24 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
   boost::container::flat_map<PortID, MacAndVlan2ClassIDAndRefCnt>
       port2MacAndVlanEntries_;
 
+  /*
+   * Some use cases (e.g. DR) requires blocking traffic to specific neighbors.
+   * This solution has two parts viz.:
+   *
+   * static configuration:
+   *  ACL:: matcher: CLASS_DROP action: Drop. One each for L2, neighbor and
+   * route.
+   *
+   * dynamic configuration:
+   *  Dynamically associate/disassociate CLASS_DROP with provided neighbors to
+   *  block/unblock traffic egress to them.
+   *  LookupClassUpdater implements this.
+   *
+   *  blockedNeighbors_ maintains the current set of neighbors to block traffic
+   *  to.
+   */
+  std::set<std::pair<VlanID, folly::IPAddress>> blockedNeighbors_;
+
   friend class VlanTableDeltaCallbackGenerator;
   bool inited_{false};
 };
