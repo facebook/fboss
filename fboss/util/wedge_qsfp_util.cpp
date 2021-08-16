@@ -1132,6 +1132,9 @@ void printGlobalDomMonitors(const GlobalSensors& sensors) {
 }
 
 void printLaneDomMonitors(const std::vector<Channel>& channels) {
+  if (channels.empty()) {
+    return;
+  }
   int numChannels = channels.size();
   printLaneLine("  Lane Dom Monitors:", numChannels);
 
