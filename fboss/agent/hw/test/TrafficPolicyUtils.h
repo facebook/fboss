@@ -41,6 +41,21 @@ void addRouteClassIDAndTtlAcl(
     cfg::AclLookupClass lookupClassRoute,
     std::optional<cfg::Ttl> ttl = std::nullopt);
 
+void addL2ClassIDDropAcl(
+    cfg::SwitchConfig* config,
+    const std::string& aclName,
+    cfg::AclLookupClass lookupClassL2);
+
+void addNeighborClassIDDropAcl(
+    cfg::SwitchConfig* config,
+    const std::string& aclName,
+    cfg::AclLookupClass lookupClassNeighbor);
+
+void addRouteClassIDDropAcl(
+    cfg::SwitchConfig* config,
+    const std::string& aclName,
+    cfg::AclLookupClass lookupClassRoute);
+
 void addQueueMatcher(
     cfg::SwitchConfig* config,
     const std::string& matcherName,

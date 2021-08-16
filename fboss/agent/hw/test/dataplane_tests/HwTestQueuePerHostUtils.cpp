@@ -99,6 +99,18 @@ std::string getQueuePerHostTtlCounterName() {
   return "ttlCounter";
 }
 
+std::string getL2DropAclName() {
+  return "l2-drop-acl";
+}
+
+std::string getNeighborDropAclName() {
+  return "neighbor-drop-acl";
+}
+
+std::string getRouteDropAclName() {
+  return "route-drop-acl";
+}
+
 void addQueuePerHostAcls(cfg::SwitchConfig* config) {
   cfg::Ttl ttl;
   std::tie(*ttl.value_ref(), *ttl.mask_ref()) = std::make_tuple(0x80, 0x80);
@@ -150,6 +162,13 @@ void addQueuePerHostAcls(cfg::SwitchConfig* config) {
   auto* ttlAcl = utility::addAcl(config, getQueuePerHostTtlAclName());
   ttlAcl->ttl_ref() = ttl;
   utility::addAclStat(config, getQueuePerHostTtlAclName(), ttlCounterName);
+
+  utility::addL2ClassIDDropAcl(
+      config, getL2DropAclName(), cfg::AclLookupClass::CLASS_DROP);
+  utility::addNeighborClassIDDropAcl(
+      config, getNeighborDropAclName(), cfg::AclLookupClass::CLASS_DROP);
+  utility::addRouteClassIDDropAcl(
+      config, getRouteDropAclName(), cfg::AclLookupClass::CLASS_DROP);
 }
 
 void verifyQueuePerHostMapping(

@@ -53,6 +53,40 @@ void addNeighborClassIDAndTtlAcl(
   }
 }
 
+void addL2ClassIDDropAcl(
+    cfg::SwitchConfig* config,
+    const std::string& aclName,
+    cfg::AclLookupClass lookupClassL2) {
+  auto numCfgAcls = config->acls_ref()->size();
+  config->acls_ref()->resize(numCfgAcls + 1);
+  config->acls_ref()[numCfgAcls].name_ref() = aclName;
+  config->acls_ref()[numCfgAcls].lookupClassL2_ref() = lookupClassL2;
+  config->acls_ref()[numCfgAcls].actionType_ref() = cfg::AclActionType::DENY;
+}
+
+void addNeighborClassIDDropAcl(
+    cfg::SwitchConfig* config,
+    const std::string& aclName,
+    cfg::AclLookupClass lookupClassNeighbor) {
+  auto numCfgAcls = config->acls_ref()->size();
+  config->acls_ref()->resize(numCfgAcls + 1);
+  config->acls_ref()[numCfgAcls].name_ref() = aclName;
+  config->acls_ref()[numCfgAcls].lookupClassNeighbor_ref() =
+      lookupClassNeighbor;
+  config->acls_ref()[numCfgAcls].actionType_ref() = cfg::AclActionType::DENY;
+}
+
+void addRouteClassIDDropAcl(
+    cfg::SwitchConfig* config,
+    const std::string& aclName,
+    cfg::AclLookupClass lookupClassRoute) {
+  auto numCfgAcls = config->acls_ref()->size();
+  config->acls_ref()->resize(numCfgAcls + 1);
+  config->acls_ref()[numCfgAcls].name_ref() = aclName;
+  config->acls_ref()[numCfgAcls].lookupClassRoute_ref() = lookupClassRoute;
+  config->acls_ref()[numCfgAcls].actionType_ref() = cfg::AclActionType::DENY;
+}
+
 void addRouteClassIDAndTtlAcl(
     cfg::SwitchConfig* config,
     const std::string& aclName,
