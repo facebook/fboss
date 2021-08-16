@@ -428,6 +428,15 @@ TYPED_TEST(
       false /* cpu port */, false /* block neighbor */);
 }
 
+// Verify that traffic originating on the CPU to a blocked neighbor gets
+// dropped.
+TYPED_TEST(
+    HwQueuePerHostTest,
+    VerifyHostToQueueMappingClassIDsAfterResolveCpuBlock) {
+  this->verifyHostToQueueMappingClassIDsAfterResolveHelper(
+      false /* cpu port */, true /* block neighbor */);
+}
+
 // Verify that traffic arriving on a front panel port gets right queue-per-host
 // queue.
 TYPED_TEST(
@@ -437,11 +446,29 @@ TYPED_TEST(
       true /* front panel port */, false /* block neighbor */);
 }
 
+// Verify that traffic arriving on a front panel port to a blocked neighbor gets
+// dropped.
+TYPED_TEST(
+    HwQueuePerHostTest,
+    VerifyHostToQueueMappingClassIDsWithResolveFrontPanelBlock) {
+  this->verifyHostToQueueMappingClassIDsWithResolveHelper(
+      true /* front panel port */, true /* block neighbor */);
+}
+
 // Verify that traffic originating on the CPU is gets right queue-per-host
 // queue.
 TYPED_TEST(HwQueuePerHostTest, VerifyHostToQueueMappingClassIDsWithResolveCpu) {
   this->verifyHostToQueueMappingClassIDsWithResolveHelper(
       false /* cpu port */, false /* block neighbor */);
+}
+
+// Verify that traffic originating on the CPU to a blocked neighbor gets
+// dropped.
+TYPED_TEST(
+    HwQueuePerHostTest,
+    VerifyHostToQueueMappingClassIDsWithResolveCpuBlock) {
+  this->verifyHostToQueueMappingClassIDsWithResolveHelper(
+      false /* cpu port */, true /* block neighbor */);
 }
 
 // Verify that TTLd traffic not going to queue-per-host has TTLd counter
