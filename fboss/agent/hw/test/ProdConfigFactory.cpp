@@ -236,8 +236,12 @@ cfg::SwitchConfig createProdRswMhnicConfig(
 
   addCpuQueueConfig(config, hwAsic);
   setDefaultCpuTrafficPolicyConfig(config, hwAsic);
-  addQueuePerHostToConfig(config);
-  addLoadBalancerToConfig(config, hwSwitch, LBHash::FULL_HASH);
+  if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
+    addQueuePerHostToConfig(config);
+  }
+  if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
+    addLoadBalancerToConfig(config, hwSwitch, LBHash::FULL_HASH);
+  }
 
   return config;
 }

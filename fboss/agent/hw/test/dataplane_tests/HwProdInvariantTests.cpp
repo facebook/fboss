@@ -124,7 +124,70 @@ TEST_F(HwProdInvariantsFswTest, verifyInvariants) {
   verifyAcrossWarmBoots([]() {}, verify);
 }
 
-class HwProdInvariantsRswMhnicTest : public HwProdInvariantsTest {};
+class HwProdInvariantsRswMhnicTest : public HwProdInvariantsTest {
+ protected:
+  cfg::SwitchConfig initialConfig() const override {
+    auto config = utility::createProdRswMhnicConfig(
+        getHwSwitch(), masterLogicalPortIds());
+    return config;
+  }
+
+  HwInvariantBitmask getInvariantOptions() const override {
+    auto hwAsic = getHwSwitch()->getPlatform()->getAsic();
+    auto bitmask = DIAG_CMDS_INVARIANT | COPP_INVARIANT;
+    if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
+      bitmask |= MHNIC_INVARIANT;
+    }
+    if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
+      bitmask |= LOAD_BALANCER_INVARIANT;
+    }
+    return bitmask;
+  }
+
+  void addRoutes(
+      const std::vector<RoutePrefix<folly::IPAddressV4>>& routePrefixes) {
+    auto kEcmpWidth = 1;
+    utility::EcmpSetupAnyNPorts<folly::IPAddressV4> ecmpHelper(
+        getProgrammedState(), RouterID(0));
+
+    applyNewState(ecmpHelper.resolveNextHops(getProgrammedState(), kEcmpWidth));
+
+    ecmpHelper.programRoutes(getRouteUpdater(), kEcmpWidth, routePrefixes);
+  }
+
+  RoutePrefix<folly::IPAddressV4> kGetRoutePrefix() {
+    // Currently hardcoded to IPv4. Enabling IPv6 testing for all classes is on
+    // the to-do list, after which we can choose v4 or v6 with the same model as
+    // kGetRoutePrefix in HwQueuePerHostRouteTests.
+    return RoutePrefix<folly::IPAddressV4>{folly::IPAddressV4{"10.10.1.0"}, 24};
+  }
+
+  void updateRoutesClassID(
+      const std::map<
+          RoutePrefix<folly::IPAddressV4>,
+          std::optional<cfg::AclLookupClass>>& routePrefix2ClassID) {
+    auto updater = getRouteUpdater();
+
+    for (const auto& [routePrefix, classID] : routePrefix2ClassID) {
+      updater->programClassID(
+          RouterID(0),
+          {{folly::IPAddress(routePrefix.network), routePrefix.mask}},
+          classID,
+          false /* sync*/);
+    }
+  }
+};
+
+TEST_F(HwProdInvariantsRswMhnicTest, verifyInvariants) {
+  auto setup = [this]() {
+    addRoutes({kGetRoutePrefix()});
+    updateRoutesClassID(
+        {{kGetRoutePrefix(),
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2}});
+  };
+  auto verify = [this]() { this->verifyInvariants(getInvariantOptions()); };
+  verifyAcrossWarmBoots(setup, verify);
+}
 
 class HwProdInvariantsMmuLosslessTest : public HwProdInvariantsTest {
  protected:
