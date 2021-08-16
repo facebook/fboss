@@ -98,7 +98,7 @@ class HwQueuePerHostRouteTest : public HwLinkStateDependentTest {
     }
   }
 
-  void setupHelper() {
+  void setupHelper(bool blockNeighbor) {
     auto newCfg{initialConfig()};
     utility::addQueuePerHostQueueConfig(&newCfg);
     utility::addQueuePerHostAcls(&newCfg);
@@ -107,7 +107,9 @@ class HwQueuePerHostRouteTest : public HwLinkStateDependentTest {
     this->addRoutes({this->kGetRoutePrefix()});
 
     this->updateRoutesClassID(
-        {{this->kGetRoutePrefix(), this->kLookupClass()}});
+        {{this->kGetRoutePrefix(),
+          blockNeighbor ? cfg::AclLookupClass::CLASS_DROP
+                        : this->kLookupClass()}});
   }
 
   std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(uint8_t ttl) {
@@ -130,7 +132,7 @@ class HwQueuePerHostRouteTest : public HwLinkStateDependentTest {
     return txPacket;
   }
 
-  void verifyHelper(bool useFrontPanel) {
+  void verifyHelper(bool useFrontPanel, bool blockNeighbor) {
     auto vlanId =
         VlanID(*this->initialConfig().vlanPorts_ref()[0].vlanID_ref());
     auto intfMac = utility::getInterfaceMac(this->getProgrammedState(), vlanId);
@@ -144,7 +146,8 @@ class HwQueuePerHostRouteTest : public HwLinkStateDependentTest {
         intfMac,
         this->kSrcIP(),
         this->kDstIP(),
-        useFrontPanel);
+        useFrontPanel,
+        blockNeighbor);
   }
 };
 
@@ -158,11 +161,12 @@ TYPED_TEST(HwQueuePerHostRouteTest, VerifyHostToQueueMappingClassIDCpu) {
   }
 
   auto setup = [=]() {
-    this->setupHelper();
+    this->setupHelper(false /* blockNeighbor */);
     this->bringDownPort(this->masterLogicalPortIds()[1]);
   };
-
-  auto verify = [=]() { this->verifyHelper(false /* cpu port */); };
+  auto verify = [=]() {
+    this->verifyHelper(false /* cpu port */, false /* block neighbor */);
+  };
 
   this->verifyAcrossWarmBoots(setup, verify);
 }
@@ -172,9 +176,41 @@ TYPED_TEST(HwQueuePerHostRouteTest, VerifyHostToQueueMappingClassIDFrontPanel) {
     return;
   }
 
-  auto setup = [=]() { this->setupHelper(); };
+  auto setup = [=]() { this->setupHelper(false /*blockNeighbor */); };
+  auto verify = [=]() {
+    this->verifyHelper(true /* front panel port */, false /* block neighbor */);
+  };
 
-  auto verify = [=]() { this->verifyHelper(true /* front panel port */); };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(HwQueuePerHostRouteTest, VerifyHostToQueueMappingClassIDCpuBlock) {
+  if (!this->isSupported(HwAsic::Feature::L3_QOS)) {
+    return;
+  }
+
+  auto setup = [=]() {
+    this->setupHelper(true /* blockNeighbor */);
+    this->bringDownPort(this->masterLogicalPortIds()[1]);
+  };
+  auto verify = [=]() {
+    this->verifyHelper(false /* cpu port */, true /* block neighbor */);
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(
+    HwQueuePerHostRouteTest,
+    VerifyHostToQueueMappingClassIDFrontPanelBlock) {
+  if (!this->isSupported(HwAsic::Feature::L3_QOS)) {
+    return;
+  }
+
+  auto setup = [=]() { this->setupHelper(true /*blockNeighbor */); };
+  auto verify = [=]() {
+    this->verifyHelper(true /* front panel port */, true /*block neighbor */);
+  };
 
   this->verifyAcrossWarmBoots(setup, verify);
 }

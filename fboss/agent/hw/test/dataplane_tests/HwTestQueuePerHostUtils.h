@@ -58,6 +58,7 @@ void verifyQueuePerHostMapping(
     folly::MacAddress dstMac,
     const folly::IPAddress& srcIp,
     const folly::IPAddress& dstIp,
-    bool useFrontPanel);
+    bool useFrontPanel,
+    bool blockNeighbor);
 
 } // namespace facebook::fboss::utility

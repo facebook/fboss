@@ -191,7 +191,8 @@ void HwProdInvariantHelper::verifyQueuePerHostMapping() {
       intfMac,
       folly::IPAddressV4("1.0.0.1"),
       folly::IPAddressV4("10.10.1.2"),
-      true);
+      true /* useFrontPanel */,
+      false /* blockNeighbor */);
 }
 
 } // namespace facebook::fboss

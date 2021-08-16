@@ -179,7 +179,8 @@ void verifyQueuePerHostMapping(
     folly::MacAddress dstMac,
     const folly::IPAddress& srcIp,
     const folly::IPAddress& dstIp,
-    bool useFrontPanel) {
+    bool useFrontPanel,
+    bool blockNeighbor) {
   auto ttlAclName = utility::getQueuePerHostTtlAclName();
   auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
 
@@ -257,22 +258,32 @@ void verifyQueuePerHostMapping(
 
     XLOG(INFO) << "queueId: " << qid << " pktsOnQueue: " << pktsOnQueue;
 
-    if (qid == kQueueId) {
-      EXPECT_EQ(pktsOnQueue, 2);
-    } else if (qid == 0) {
-      EXPECT_GE(pktsOnQueue, 0);
-    } else {
+    if (blockNeighbor) {
+      // if the neighbor is blocked, all pkts are dropped
       EXPECT_EQ(pktsOnQueue, 0);
+    } else {
+      if (qid == kQueueId) {
+        EXPECT_EQ(pktsOnQueue, 2);
+      } else if (qid == 0) {
+        EXPECT_GE(pktsOnQueue, 0);
+      } else {
+        EXPECT_EQ(pktsOnQueue, 0);
+      }
     }
   }
 
   auto statAfter = utility::getAclInOutPackets(
       hwSwitch, ensemble->getProgrammedState(), ttlAclName, ttlCounterName);
 
-  /*
-   * counts ttl >= 128 packet only
-   */
-  EXPECT_EQ(statAfter - statBefore, 1);
+  if (blockNeighbor) {
+    // if the neighbor is blocked, all pkts are dropped
+    EXPECT_EQ(statAfter - statBefore, 0);
+  } else {
+    /*
+     * counts ttl >= 128 packet only
+     */
+    EXPECT_EQ(statAfter - statBefore, 1);
+  }
 }
 
 } // namespace facebook::fboss::utility
