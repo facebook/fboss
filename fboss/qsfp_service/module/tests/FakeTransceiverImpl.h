@@ -84,5 +84,10 @@ class Cmis400GLr4Transceiver : public FakeTransceiverImpl {
   explicit Cmis400GLr4Transceiver(int module);
 };
 
+class CmisFlatMemTransceiver : public FakeTransceiverImpl {
+ public:
+  explicit CmisFlatMemTransceiver(int module);
+};
+
 } // namespace fboss
 } // namespace facebook

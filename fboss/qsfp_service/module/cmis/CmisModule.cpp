@@ -343,6 +343,9 @@ double CmisModule::getQsfpDACLength() const {
 }
 
 double CmisModule::getQsfpSMFLength() const {
+  if (flatMem_) {
+    return 0;
+  }
   uint8_t value;
   getFieldValueLocked(CmisField::LENGTH_SMF, &value);
   auto base = value & FieldMasks::CABLE_LENGTH_MASK;
@@ -352,6 +355,9 @@ double CmisModule::getQsfpSMFLength() const {
 }
 
 double CmisModule::getQsfpOMLength(CmisField field) const {
+  if (flatMem_) {
+    return 0;
+  }
   uint8_t value;
   getFieldValueLocked(field, &value);
   return value * qsfpMultiplier.at(field);
@@ -390,14 +396,19 @@ std::array<std::string, 3> CmisModule::getFwRevisions() {
       CmisField::FIRMWARE_REVISION, dataAddress, offset, length);
   const uint8_t* data = getQsfpValuePtr(dataAddress, offset, length);
   fwVersions[0] = fmt::format("{}.{}", data[0], data[1]);
-  // Get DSP f/w version
-  getQsfpFieldAddress(CmisField::DSP_FW_VERSION, dataAddress, offset, length);
-  data = getQsfpValuePtr(dataAddress, offset, length);
-  fwVersions[1] = fmt::format("{}.{}", data[0], data[1]);
-  // Get the build revision
-  getQsfpFieldAddress(CmisField::BUILD_REVISION, dataAddress, offset, length);
-  data = getQsfpValuePtr(dataAddress, offset, length);
-  fwVersions[2] = fmt::format("{}.{}", data[0], data[1]);
+  if (!flatMem_) {
+    // Get DSP f/w version
+    getQsfpFieldAddress(CmisField::DSP_FW_VERSION, dataAddress, offset, length);
+    data = getQsfpValuePtr(dataAddress, offset, length);
+    fwVersions[1] = fmt::format("{}.{}", data[0], data[1]);
+    // Get the build revision
+    getQsfpFieldAddress(CmisField::BUILD_REVISION, dataAddress, offset, length);
+    data = getQsfpValuePtr(dataAddress, offset, length);
+    fwVersions[2] = fmt::format("{}.{}", data[0], data[1]);
+  } else {
+    fwVersions[1] = "";
+    fwVersions[2] = "";
+  }
   return fwVersions;
 }
 
@@ -504,13 +515,17 @@ uint8_t CmisModule::getSettingsValue(CmisField field, uint8_t mask) const {
 
 TransceiverSettings CmisModule::getTransceiverSettingsInfo() {
   TransceiverSettings settings = TransceiverSettings();
-  settings.cdrTx_ref() = CmisFieldInfo::getFeatureState(
-      getSettingsValue(CmisField::TX_SIG_INT_CONT_AD, CDR_IMPL_MASK),
-      getSettingsValue(CmisField::TX_CDR_CONTROL));
-  settings.cdrRx_ref() = CmisFieldInfo::getFeatureState(
-      getSettingsValue(CmisField::RX_SIG_INT_CONT_AD, CDR_IMPL_MASK),
-      getSettingsValue(CmisField::RX_CDR_CONTROL));
-
+  if (!flatMem_) {
+    settings.cdrTx_ref() = CmisFieldInfo::getFeatureState(
+        getSettingsValue(CmisField::TX_SIG_INT_CONT_AD, CDR_IMPL_MASK),
+        getSettingsValue(CmisField::TX_CDR_CONTROL));
+    settings.cdrRx_ref() = CmisFieldInfo::getFeatureState(
+        getSettingsValue(CmisField::RX_SIG_INT_CONT_AD, CDR_IMPL_MASK),
+        getSettingsValue(CmisField::RX_CDR_CONTROL));
+  } else {
+    settings.cdrTx_ref() = FeatureState::UNSUPPORTED;
+    settings.cdrRx_ref() = FeatureState::UNSUPPORTED;
+  }
   settings.powerMeasurement_ref() =
       flatMem_ ? FeatureState::UNSUPPORTED : FeatureState::ENABLED;
 
@@ -551,6 +566,9 @@ bool CmisModule::getMediaLaneSettings(
     std::vector<MediaLaneSettings>& laneSettings) {
   assert(laneSettings.size() == numMediaLanes());
 
+  if (flatMem_) {
+    return false;
+  }
   auto txDisable = getSettingsValue(CmisField::TX_DISABLE);
   auto txSquelchDisable = getSettingsValue(CmisField::TX_SQUELCH_DISABLE);
   auto txSquelchForce = getSettingsValue(CmisField::TX_FORCE_SQUELCH);
@@ -577,6 +595,9 @@ bool CmisModule::getHostLaneSettings(
 
   assert(laneSettings.size() == numHostLanes());
 
+  if (flatMem_) {
+    return false;
+  }
   auto rxOutput = getSettingsValue(CmisField::RX_DISABLE);
   auto rxSquelchDisable = getSettingsValue(CmisField::RX_SQUELCH_DISABLE);
 
@@ -633,8 +654,11 @@ unsigned int CmisModule::numMediaLanes() const {
 }
 
 SMFMediaInterfaceCode CmisModule::getSmfMediaInterface() const {
-  uint8_t currentApplicationSel =
-      getSettingsValue(CmisField::ACTIVE_CTRL_LANE_1, APP_SEL_MASK);
+  // Pick the first application for flatMem modules. FlatMem modules don't
+  // support page11h that contains the current operational app sel code
+  uint8_t currentApplicationSel = flatMem_
+      ? 1
+      : getSettingsValue(CmisField::ACTIVE_CTRL_LANE_1, APP_SEL_MASK);
   // The application sel code is at the higher four bits of the field.
   currentApplicationSel = currentApplicationSel >> 4;
 
@@ -755,6 +779,9 @@ FlagLevels CmisModule::getChannelFlags(CmisField field, int channel) {
 bool CmisModule::getSignalsPerMediaLane(
     std::vector<MediaLaneSignals>& signals) {
   assert(signals.size() == numMediaLanes());
+  if (flatMem_) {
+    return false;
+  }
 
   auto txLos = getSettingsValue(CmisField::TX_LOS_FLAG);
   auto rxLos = getSettingsValue(CmisField::RX_LOS_FLAG);
@@ -788,6 +815,9 @@ bool CmisModule::getSignalsPerHostLane(std::vector<HostLaneSignals>& signals) {
   int dataAddress;
 
   assert(signals.size() == numHostLanes());
+  if (flatMem_) {
+    return false;
+  }
 
   auto dataPathDeInit = getSettingsValue(CmisField::DATA_PATH_DEINIT);
   getQsfpFieldAddress(CmisField::DATA_PATH_STATE, dataAddress, offset, length);
@@ -810,6 +840,9 @@ bool CmisModule::getSignalsPerHostLane(std::vector<HostLaneSignals>& signals) {
  */
 
 bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
+  if (flatMem_) {
+    return false;
+  }
   const uint8_t* data;
   int offset;
   int length;
@@ -947,11 +980,12 @@ TransmitterTechnology CmisModule::getQsfpTransmitterTechnology() const {
 SignalFlags CmisModule::getSignalFlagInfo() {
   SignalFlags signalFlags = SignalFlags();
 
-  signalFlags.txLos_ref() = getSettingsValue(CmisField::TX_LOS_FLAG);
-  signalFlags.rxLos_ref() = getSettingsValue(CmisField::RX_LOS_FLAG);
-  signalFlags.txLol_ref() = getSettingsValue(CmisField::TX_LOL_FLAG);
-  signalFlags.rxLol_ref() = getSettingsValue(CmisField::RX_LOL_FLAG);
-
+  if (!flatMem_) {
+    signalFlags.txLos_ref() = getSettingsValue(CmisField::TX_LOS_FLAG);
+    signalFlags.rxLos_ref() = getSettingsValue(CmisField::RX_LOS_FLAG);
+    signalFlags.txLol_ref() = getSettingsValue(CmisField::TX_LOL_FLAG);
+    signalFlags.rxLol_ref() = getSettingsValue(CmisField::RX_LOL_FLAG);
+  }
   return signalFlags;
 }
 

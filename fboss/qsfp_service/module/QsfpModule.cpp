@@ -232,7 +232,9 @@ TransceiverInfo QsfpModule::parseDataLocked() {
     info.mediaLaneSignals_ref()->clear();
     info.mediaLaneSignals_ref().reset();
   }
-  cacheMediaLaneSignals(*info.mediaLaneSignals_ref());
+  if (auto mediaLaneSignals = info.mediaLaneSignals_ref()) {
+    cacheMediaLaneSignals(*mediaLaneSignals);
+  }
   if (!getSignalsPerHostLane(*info.hostLaneSignals_ref())) {
     info.hostLaneSignals_ref()->clear();
     info.hostLaneSignals_ref().reset();

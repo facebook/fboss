@@ -454,4 +454,22 @@ TEST(Cmis400GLr4Test, transceiverInfoTest) {
   EXPECT_EQ(xcvr->numMediaLanes(), 4);
 }
 
+TEST(CmisFlatMemTest, transceiverInfoTest) {
+  int idx = 1;
+  std::unique_ptr<CmisFlatMemTransceiver> qsfpImpl =
+      std::make_unique<CmisFlatMemTransceiver>(idx);
+
+  std::unique_ptr<CmisModule> xcvr =
+      std::make_unique<CmisModule>(nullptr, std::move(qsfpImpl), 4);
+  xcvr->refresh();
+
+  TransceiverInfo info = xcvr->getTransceiverInfo();
+
+  TransceiverTestsHelper tests(info);
+
+  tests.verifyVendorName("FACETEST");
+  EXPECT_EQ(xcvr->numHostLanes(), 4);
+  EXPECT_EQ(xcvr->numMediaLanes(), 0);
+}
+
 } // namespace
