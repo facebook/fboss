@@ -235,48 +235,50 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
     EXPECT_EQ(statAfter - statBefore, getIpToMacAndClassID().size());
   }
 
+  void classIDAfterNeighborResolveHelper() {
+    this->_setupHelper();
+
+    /*
+     * Resolve neighbors, then apply classID
+     * Prod will typically follow this sequence as LookupClassUpdater is
+     * implemented as a state observer which would update resolved neighbors
+     * with classIDs.
+     */
+    auto state1 = this->addNeighbors(this->getProgrammedState());
+    auto state2 = this->resolveNeighbors(state1);
+    this->applyNewState(state2);
+
+    auto state3 = this->updateClassID(this->getProgrammedState());
+    this->applyNewState(state3);
+  }
+
+  void classIDWithResolveHelper() {
+    this->_setupHelper();
+
+    auto state1 = this->addNeighbors(this->getProgrammedState());
+    auto state2 = this->resolveNeighbors(state1);
+    auto state3 = this->updateClassID(state2);
+
+    this->applyNewState(state3);
+  }
+
   void verifyHostToQueueMappingClassIDsAfterResolveHelper(bool frontPanel) {
     if (!isSupported(HwAsic::Feature::L3_QOS)) {
       return;
     }
 
-    auto setup = [this]() {
-      this->_setupHelper();
-
-      /*
-       * Resolve neighbors, then apply classID
-       * Prod will typically follow this sequence as LookupClassUpdater is
-       * implemented as a state observer which would update resolved neighbors
-       * with classIDs.
-       */
-      auto state1 = this->addNeighbors(this->getProgrammedState());
-      auto state2 = this->resolveNeighbors(state1);
-      this->applyNewState(state2);
-
-      auto state3 = this->updateClassID(this->getProgrammedState());
-      this->applyNewState(state3);
-    };
-
+    auto setup = [this]() { this->classIDAfterNeighborResolveHelper(); };
     auto verify = [this, frontPanel]() { this->_verifyHelper(frontPanel); };
 
     verifyAcrossWarmBoots(setup, verify);
   }
 
-  void VerifyHostToQueueMappingClassIDsWithResolve(bool frontPanel) {
+  void verifyHostToQueueMappingClassIDsWithResolveHelper(bool frontPanel) {
     if (!isSupported(HwAsic::Feature::L3_QOS)) {
       return;
     }
 
-    auto setup = [this]() {
-      this->_setupHelper();
-
-      auto state1 = this->addNeighbors(this->getProgrammedState());
-      auto state2 = this->resolveNeighbors(state1);
-      auto state3 = this->updateClassID(state2);
-
-      this->applyNewState(state3);
-    };
-
+    auto setup = [this]() { this->classIDWithResolveHelper(); };
     auto verify = [this, frontPanel]() { this->_verifyHelper(frontPanel); };
 
     verifyAcrossWarmBoots(setup, verify);
@@ -393,14 +395,14 @@ TYPED_TEST(
 TYPED_TEST(
     HwQueuePerHostTest,
     VerifyHostToQueueMappingClassIDsWithResolveFrontPanel) {
-  this->VerifyHostToQueueMappingClassIDsWithResolve(
+  this->verifyHostToQueueMappingClassIDsWithResolveHelper(
       true /* front panel port */);
 }
 
 // Verify that traffic originating on the CPU is gets right queue-per-host
 // queue.
 TYPED_TEST(HwQueuePerHostTest, VerifyHostToQueueMappingClassIDsWithResolveCpu) {
-  this->VerifyHostToQueueMappingClassIDsWithResolve(false /* cpu port */);
+  this->verifyHostToQueueMappingClassIDsWithResolveHelper(false /* cpu port */);
 }
 
 // Verify that TTLd traffic not going to queue-per-host has TTLd counter
