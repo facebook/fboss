@@ -15,6 +15,7 @@ namespace {
 using facebook::fboss::cfg::AclLookupClass;
 
 const std::set<AclLookupClass> kQueuePerHostLookupClasses = {
+    AclLookupClass::CLASS_DROP,
     AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
     AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1,
     AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2,
