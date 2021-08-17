@@ -6,7 +6,6 @@
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
-#include "fboss/lib/phy/ExternalPhy.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 #include <folly/json.h>
@@ -561,7 +560,7 @@ bool PhyManager::isPrbsStatsCollectionDone(PortID portID) const {
       rLockedCache->ongoingPrbsStatCollection->isReady();
 }
 
-std::vector<PortID> PhyManager::getAllXphyPorts() const {
+std::vector<PortID> PhyManager::getXphyPorts() const {
   std::vector<PortID> xphyPorts;
   std::for_each(
       portToCacheInfo_.begin(),
@@ -570,5 +569,35 @@ std::vector<PortID> PhyManager::getAllXphyPorts() const {
         xphyPorts.push_back(portAndInfo.first);
       });
   return xphyPorts;
+}
+
+std::vector<PortID> PhyManager::getPortsSupportingFeature(
+    phy::ExternalPhy::Feature feature) const {
+  std::vector<PortID> ports;
+  auto xphysSupportingFeature = getXphysSupportingFeature(feature);
+  std::for_each(
+      portToCacheInfo_.begin(),
+      portToCacheInfo_.end(),
+      [&ports, this, &xphysSupportingFeature](auto& portAndInfo) {
+        auto portXphy = getRLockedCache(portAndInfo.first)->xphyID;
+        if (xphysSupportingFeature.find(portXphy) !=
+            xphysSupportingFeature.end()) {
+          ports.push_back(portAndInfo.first);
+        }
+      });
+  return ports;
+}
+
+std::set<GlobalXphyID> PhyManager::getXphysSupportingFeature(
+    phy::ExternalPhy::Feature feature) const {
+  std::set<GlobalXphyID> phys;
+  for (const auto& pimAndXphy : xphyMap_) {
+    for (const auto& idAndXphy : pimAndXphy.second) {
+      if (idAndXphy.second->isSupported(feature)) {
+        phys.insert(idAndXphy.first);
+      }
+    }
+  }
+  return phys;
 }
 } // namespace facebook::fboss
