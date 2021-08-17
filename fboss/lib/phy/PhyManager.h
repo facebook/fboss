@@ -109,6 +109,7 @@ class PhyManager {
 
   std::vector<PrbsLaneStats> getPortPrbsStats(PortID portID, phy::Side side);
   void clearPortPrbsStats(PortID portID, phy::Side side);
+  std::vector<PortID> getAllXphyPorts() const;
 
   // This is to provide the to-be cached warmboot state, which should include
   // the current portToCacheInfo_ map, so that during warmboot, we can use that

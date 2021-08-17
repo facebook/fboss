@@ -560,4 +560,15 @@ bool PhyManager::isPrbsStatsCollectionDone(PortID portID) const {
   return rLockedCache->ongoingPrbsStatCollection.has_value() &&
       rLockedCache->ongoingPrbsStatCollection->isReady();
 }
+
+std::vector<PortID> PhyManager::getAllXphyPorts() const {
+  std::vector<PortID> xphyPorts;
+  std::for_each(
+      portToCacheInfo_.begin(),
+      portToCacheInfo_.end(),
+      [&xphyPorts](auto& portAndInfo) {
+        xphyPorts.push_back(portAndInfo.first);
+      });
+  return xphyPorts;
+}
 } // namespace facebook::fboss
