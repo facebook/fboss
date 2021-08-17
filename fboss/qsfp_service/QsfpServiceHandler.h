@@ -88,6 +88,8 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
   void programXphyPort(int32_t portId, cfg::PortProfileID portProfileId)
       override;
 
+  void getMacsecCapablePorts(std::vector<int32_t>& ports) override;
+
 #if FOLLY_HAS_COROUTINES
   folly::coro::Task<bool> co_sakInstallRx(
       std::unique_ptr<mka::MKASak> sak,

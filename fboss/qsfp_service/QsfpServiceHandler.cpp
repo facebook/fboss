@@ -155,6 +155,13 @@ void QsfpServiceHandler::programXphyPort(
   manager_->programXphyPort(portId, portProfileId);
 }
 
+void QsfpServiceHandler::getMacsecCapablePorts(std::vector<int32_t>& ports) {
+  auto macsecPorts = manager_->getMacsecCapablePorts();
+  std::for_each(macsecPorts.begin(), macsecPorts.end(), [&ports](auto portId) {
+    ports.push_back(static_cast<int32_t>(portId));
+  });
+}
+
 void QsfpServiceHandler::validateHandler() const {
   if (!macsecHandler_) {
     throw FbossError("Macsec handler not initialized");

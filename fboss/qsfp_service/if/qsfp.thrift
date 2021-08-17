@@ -78,6 +78,10 @@ service QsfpService extends fb303.FacebookService {
   ) throws (1: fboss.FbossBaseError error)
 
   /*
+   * MACSEC capable port ids
+  */
+  list<i32> getMacsecCapablePorts() throws (1: fboss.FbossBaseError error)
+  /*
    * Thrift call to program one PHY port. This call will be made by agent to
    * qsfp_service
    */
