@@ -5,9 +5,11 @@
 
 add_library(external_phy
   fboss/lib/phy/ExternalPhy.cpp
+  fboss/lib/phy/ExternalPhyPortStatsUtils.cpp
 )
 
 target_link_libraries(external_phy
+  ctrl_cpp2
   platform_config_cpp2
   phy_cpp2
 )
