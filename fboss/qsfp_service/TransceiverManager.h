@@ -147,6 +147,7 @@ class TransceiverManager {
   const QsfpConfig* getQsfpConfig() const {
     return qsfpConfig_.get();
   };
+  virtual std::vector<PortID> getMacsecCapablePorts() const = 0;
 
  private:
   // Forbidden copy constructor and assignment operator

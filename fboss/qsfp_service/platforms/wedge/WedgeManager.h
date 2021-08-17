@@ -155,6 +155,7 @@ class WedgeManager : public TransceiverManager {
     return forceColdBoot_;
   }
 
+  virtual std::vector<PortID> getMacsecCapablePorts() const override;
   static std::string forceColdBootFileName();
 
   static std::string warmbootStateFileName();

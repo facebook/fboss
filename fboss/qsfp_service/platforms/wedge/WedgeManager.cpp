@@ -917,6 +917,12 @@ void WedgeManager::updateAllXphyPortsStats() {
   // Then we need to update all the programmed port xphy stats
   phyManager_->updateAllXphyPortsStats();
 }
-
+std::vector<PortID> WedgeManager::getMacsecCapablePorts() const {
+  if (!phyManager_) {
+    return {};
+  }
+  return phyManager_->getPortsSupportingFeature(
+      phy::ExternalPhy::Feature::MACSEC);
+}
 } // namespace fboss
 } // namespace facebook
