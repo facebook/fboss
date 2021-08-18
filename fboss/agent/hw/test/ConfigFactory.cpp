@@ -705,4 +705,24 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
 
   return config;
 }
+
+/*
+ * This function pertains to RSW platforms, where all downlink ports are
+ * configured to be on ingressVlan 2000. To be used anywhere it's useful, but
+ * created to apply queue-per-host mapping only on downlinks during static
+ * config testing.
+ */
+std::vector<PortID> getRswDownlinkPorts(cfg::SwitchConfig& config) {
+  std::vector<PortID> downlinks;
+
+  for (const auto& vlanPort : *config.vlanPorts_ref()) {
+    auto portID = PortID(*vlanPort.logicalPort_ref());
+    if (portID == kDownlinkBaseVlanId) {
+      downlinks.push_back(portID);
+    }
+  }
+
+  return downlinks;
+}
+
 } // namespace facebook::fboss::utility
