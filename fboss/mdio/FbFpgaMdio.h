@@ -23,14 +23,6 @@ enum class FbFpgaMdioVersion {
 
 class FbFpgaMdio : public Mdio {
  public:
-
-  /**
-   * Initialize the MDIO controller
-   *
-   * 'forceReset' will force the MDIO to be reset first, and then out of reset.
-   */
-  void init(bool forceReset) override;
-
   // TODO: use a static factory method when we add more versions
   explicit FbFpgaMdio(
       FpgaMemoryRegion* io,
