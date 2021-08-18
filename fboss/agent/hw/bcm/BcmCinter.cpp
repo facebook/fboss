@@ -2919,6 +2919,7 @@ int BcmCinter::bcm_pktio_tx(int unit, bcm_pktio_pkt_t* tx_pkt) {
 
   bcm_pktio_pkt_data_get(unit, tx_pkt, &data, &length);
 
+  cint.push_back("pktio_pkt = NULL");
   auto allocFuncCint = wrapFunc(to<string>(
       "bcm_pktio_alloc(", makeParamStr(unit, length, 0, "&pktio_pkt"), ")"));
 
