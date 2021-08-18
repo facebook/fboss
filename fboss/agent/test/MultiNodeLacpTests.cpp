@@ -38,9 +38,6 @@ constexpr int kLacpLongTimeout{30};
 } // unnamed namespace
 
 class MultiNodeLacpTest : public MultiNodeTest {
-  void SetUp() override {
-    MultiNodeTest::SetUp();
-  }
   cfg::SwitchConfig initialConfig() const override {
     return getConfigWithAggPort();
   }
