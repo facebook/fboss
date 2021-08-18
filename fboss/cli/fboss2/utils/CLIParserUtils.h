@@ -13,6 +13,6 @@
 
 namespace facebook::fboss::utils {
 
-CLI::App* getSubcommandIf(const CLI::App& cmd, const std::string& subcommand);
+CLI::App* getSubcommandIf(CLI::App& cmd, const std::string& subcommand);
 
 } // namespace facebook::fboss::utils

@@ -11,11 +11,10 @@
 #include "fboss/cli/fboss2/utils/CLIParserUtils.h"
 
 namespace facebook::fboss::utils {
-CLI::App* getSubcommandIf(const CLI::App& cmd, const std::string& subcommand) {
-  try {
-    return cmd.get_subcommand(subcommand);
-  } catch (CLI::OptionNotFound& ex) {
-    return nullptr;
-  }
+CLI::App* getSubcommandIf(CLI::App& cmd, const std::string& subcommand) {
+  auto subcommands = cmd.get_subcommands([subcommand](CLI::App* app) {
+      return app->get_name().compare(subcommand) == 0; });
+
+  return subcommands.empty() ? nullptr : subcommands.front();
 }
 } // namespace facebook::fboss::utils
