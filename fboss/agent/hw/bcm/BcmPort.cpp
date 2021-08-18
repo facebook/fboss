@@ -2440,4 +2440,8 @@ int BcmPort::getPgMinLimitBytes(const int pgId) const {
   return ingressBufferManager_->getPgMinLimitBytes(pgId);
 }
 
+int BcmPort::getIngressSharedBytes(const int pgId) const {
+  return ingressBufferManager_->getIngressSharedBytes(pgId);
+}
+
 } // namespace facebook::fboss
