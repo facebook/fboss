@@ -502,25 +502,6 @@ const std::string& PhyManager::getPortName(PortID portID) const {
   return *portEntry->second.mapping_ref()->name_ref();
 }
 
-template <typename LockedPtr>
-phy::PhyPortConfig PhyManager::getHwPhyPortConfigLocked(
-    const LockedPtr& lockedCache,
-    PortID portID) {
-  if (lockedCache->systemLanes.empty() || lockedCache->lineLanes.empty()) {
-    throw FbossError(
-        "Port:", portID, " has not program yet. Can't find the cached info");
-  }
-  auto* xphy = getExternalPhyLocked(lockedCache);
-  return xphy->getConfigOnePort(
-      lockedCache->systemLanes, lockedCache->lineLanes);
-}
-
-template <typename LockedPtr>
-GlobalXphyID PhyManager::getGlobalXphyIDbyPortIDLocked(
-    const LockedPtr& lockedCache) const {
-  return lockedCache->xphyID;
-}
-
 PhyManager::PortCacheRLockedPtr PhyManager::getRLockedCache(
     PortID portID) const {
   const auto& cache = portToCacheInfo_.find(portID);

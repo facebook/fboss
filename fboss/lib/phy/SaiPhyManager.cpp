@@ -15,6 +15,8 @@
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/phy/NullPortStats.h"
 
+#include <thrift/lib/cpp/util/EnumUtils.h>
+
 namespace facebook::fboss {
 SaiPhyManager::SaiPhyManager(const PlatformMapping* platformMapping)
     : PhyManager(platformMapping) {}
@@ -116,11 +118,30 @@ void SaiPhyManager::programOnePort(
   const auto& wLockedCache = getWLockedCache(portId);
 
   // Get phy platform
-  auto globalPhyID = getGlobalXphyIDbyPortID(portId);
+  auto globalPhyID = getGlobalXphyIDbyPortIDLocked(wLockedCache);
   auto saiPlatform = getSaiPlatform(globalPhyID);
   auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
   const auto& desiredPhyPortConfig =
       getDesiredPhyPortConfig(portId, portProfileId, transceiverInfo);
+
+  // Before actually calling sai sdk to program the port again, we should check
+  // whether the port has been programmed in HW with the same config.
+  if (!(wLockedCache->systemLanes.empty() || wLockedCache->lineLanes.empty())) {
+    const auto& actualPhyPortConfig =
+        getHwPhyPortConfigLocked(wLockedCache, portId);
+    if (actualPhyPortConfig == desiredPhyPortConfig) {
+      XLOG(DBG2) << "External phy config match. Skip reprogramming for port:"
+                 << portId << " with profile:"
+                 << apache::thrift::util::enumNameSafe(portProfileId);
+      return;
+    } else {
+      XLOG(DBG2) << "External phy config mismatch. Port:" << portId
+                 << " with profile:"
+                 << apache::thrift::util::enumNameSafe(portProfileId)
+                 << " current config:" << actualPhyPortConfig.toDynamic()
+                 << ", desired config:" << desiredPhyPortConfig.toDynamic();
+    }
+  }
 
   // Temporary object to pass port and profile id to SaiPortManager
   auto portObj = std::make_shared<Port>(

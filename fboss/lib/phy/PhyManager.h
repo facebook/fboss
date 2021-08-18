@@ -183,6 +183,25 @@ class PhyManager {
       const PortCacheWLockedPtr& lockedCache,
       std::unique_ptr<ExternalPhyPortStatsUtils> stats);
 
+  template <typename LockedPtr>
+  GlobalXphyID getGlobalXphyIDbyPortIDLocked(
+      const LockedPtr& lockedCache) const {
+    return lockedCache->xphyID;
+  }
+
+  template <typename LockedPtr>
+  phy::PhyPortConfig getHwPhyPortConfigLocked(
+      const LockedPtr& lockedCache,
+      PortID portID) {
+    if (lockedCache->systemLanes.empty() || lockedCache->lineLanes.empty()) {
+      throw FbossError(
+          "Port:", portID, " has not program yet. Can't find the cached info");
+    }
+    auto* xphy = getExternalPhyLocked(lockedCache);
+    return xphy->getConfigOnePort(
+        lockedCache->systemLanes, lockedCache->lineLanes);
+  }
+
   // Number of slot in the platform
   int numOfSlot_;
 
@@ -213,15 +232,6 @@ class PhyManager {
   void updateStatsLocked(
       const PortCacheWLockedPtr& wLockedCache,
       PortID portID);
-
-  template <typename LockedPtr>
-  phy::PhyPortConfig getHwPhyPortConfigLocked(
-      const LockedPtr& lockedCache,
-      PortID portID);
-
-  template <typename LockedPtr>
-  GlobalXphyID getGlobalXphyIDbyPortIDLocked(
-      const LockedPtr& lockedCache) const;
 
   virtual std::unique_ptr<ExternalPhyPortStatsUtils> createExternalPhyPortStats(
       PortID portID) = 0;

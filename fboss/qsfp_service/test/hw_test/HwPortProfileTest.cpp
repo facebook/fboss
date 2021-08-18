@@ -153,6 +153,9 @@ class HwPortProfileTest : public HwTest {
       std::map<int32_t, TransceiverInfo> transceivers;
       for (auto& [port, profile] : ports.xphyPorts) {
         getHwQsfpEnsemble()->getWedgeManager()->programXphyPort(port, profile);
+        // Program the same port with the same profile twice, the second time
+        // should be idempotent.
+        getHwQsfpEnsemble()->getWedgeManager()->programXphyPort(port, profile);
       }
       getHwQsfpEnsemble()->getWedgeManager()->syncPorts(
           transceivers, std::make_unique<WedgeManager::PortMap>(portMap));
