@@ -322,6 +322,7 @@ struct TransceiverInfo {
   22: optional i64 timeCollected,
   23: optional i64 remediationCounter,
   24: optional VdmDiagsStats vdmDiagsStats,
+  25: optional bool eepromCsumValid,
 }
 
 typedef binary (cpp2.type = "folly::IOBuf") IOBuf

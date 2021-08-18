@@ -258,6 +258,8 @@ TransceiverInfo QsfpModule::parseDataLocked() {
 
   info.timeCollected_ref() = lastRefreshTime_;
   info.remediationCounter_ref() = numRemediation_;
+  info.eepromCsumValid_ref() = verifyEepromChecksums();
+
   return info;
 }
 
