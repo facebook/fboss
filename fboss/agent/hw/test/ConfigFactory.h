@@ -134,4 +134,8 @@ std::unordered_map<PortID, cfg::PortProfileID>& getPortToDefaultProfileIDMap();
 void setPortToDefaultProfileIDMap(
     const std::shared_ptr<PortMap>& ports,
     const Platform* platform);
+
+std::map<int, std::vector<uint8_t>> getOlympicQosMaps(
+    const cfg::SwitchConfig& config);
+
 } // namespace facebook::fboss::utility

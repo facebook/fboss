@@ -725,4 +725,44 @@ std::vector<PortID> getRswDownlinkPorts(cfg::SwitchConfig& config) {
   return downlinks;
 }
 
+/*
+ * Takes a SwitchConfig and returns a map of queue IDs to DSCPs.
+ * Particularly useful in verifyQueueMappings, where we don't have a guarantee
+ * of what the QoS policies look like and we can't rely on something like
+ * kOlympicQueueToDscp().
+ */
+std::map<int, std::vector<uint8_t>> getOlympicQosMaps(
+    const cfg::SwitchConfig& config) {
+  std::map<int, std::vector<uint8_t>> queueToDscp;
+
+  for (const auto& qosPolicy : *config.qosPolicies_ref()) {
+    auto qosName = qosPolicy.get_name();
+    XLOG(INFO) << "Iterating over QoS policies: found qosPolicy " << qosName;
+
+    // Optional thrift field access
+    if (auto qosMap = qosPolicy.qosMap_ref()) {
+      auto dscpMaps = *qosMap->dscpMaps_ref();
+
+      for (const auto& dscpMap : dscpMaps) {
+        auto queueId = dscpMap.get_internalTrafficClass();
+        // Internally (i.e. in thrift), the mapping is implemented as a
+        // map<int16_t, vector<int8_t>>; however, in functions like
+        // verifyQueueMapping in HwTestQosUtils, the argument used is of the
+        // form map<int, uint8_t>.
+        // Trying to assign vector<uint8_t> to a vector<int8_t> makes the STL
+        // unhappy, so we can just loop through and construct one on our own.
+        std::vector<uint8_t> dscps;
+        for (auto val : *dscpMap.fromDscpToTrafficClass_ref()) {
+          dscps.push_back((uint8_t)val);
+        }
+        queueToDscp[(int)queueId] = std::move(dscps);
+      }
+    } else {
+      XLOG(ERR) << "qosMap not found in qosPolicy: " << qosName;
+    }
+  }
+
+  return queueToDscp;
+}
+
 } // namespace facebook::fboss::utility

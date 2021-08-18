@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/test/dataplane_tests/HwProdInvariantHelper.h"
 
+#include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
@@ -96,7 +97,9 @@ void HwProdInvariantHelper::verifyDscpToQueueMapping() {
   auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
   auto intfMac =
       utility::getInterfaceMac(ensemble_->getProgrammedState(), vlanId);
-  for (const auto& q2dscps : utility::kOlympicQueueToDscp()) {
+
+  auto q2dscpMap = utility::getOlympicQosMaps(initialConfig());
+  for (const auto& q2dscps : q2dscpMap) {
     for (auto dscp : q2dscps.second) {
       utility::sendTcpPkts(
           ensemble_->getHwSwitch(),
@@ -121,10 +124,7 @@ void HwProdInvariantHelper::verifyDscpToQueueMapping() {
     auto portId =
         ecmpHelper_->ecmpSetupHelper()->ecmpPortDescriptorAt(i).phyPortID();
     mappingVerified = utility::verifyQueueMappings(
-        portStatsBefore[portId],
-        utility::kOlympicQueueToDscp(),
-        ensemble_,
-        portId);
+        portStatsBefore[portId], q2dscpMap, ensemble_, portId);
   }
   EXPECT_TRUE(mappingVerified);
 }
