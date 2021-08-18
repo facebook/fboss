@@ -21,7 +21,9 @@ class PlatformProductInfo;
 
 class Wedge100Platform : public WedgeTomahawkPlatform {
  public:
-  explicit Wedge100Platform(std::unique_ptr<PlatformProductInfo> productInfo);
+  explicit Wedge100Platform(
+      std::unique_ptr<PlatformProductInfo> productInfo,
+      folly::MacAddress localMac);
 
   std::unique_ptr<WedgePortMapping> createPortMapping() override;
   void onHwInitialized(SwSwitch* sw) override;

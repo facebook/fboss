@@ -25,6 +25,8 @@ std::vector<int> getControllingPortIDs() {
   }
   return results;
 }
+
+const folly::MacAddress kLocalMac("02:00:00:00:00:01");
 } // namespace
 
 namespace facebook::fboss {
@@ -33,7 +35,8 @@ SaiFakePlatform::SaiFakePlatform(
     std::unique_ptr<PlatformProductInfo> productInfo)
     : SaiPlatform(
           std::move(productInfo),
-          std::make_unique<FakeTestPlatformMapping>(getControllingPortIDs())) {
+          std::make_unique<FakeTestPlatformMapping>(getControllingPortIDs()),
+          kLocalMac) {
   asic_ = std::make_unique<FakeAsic>();
 }
 

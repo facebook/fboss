@@ -27,28 +27,38 @@
 namespace facebook::fboss {
 
 std::unique_ptr<SaiPlatform> chooseSaiPlatform(
-    std::unique_ptr<PlatformProductInfo> productInfo) {
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    folly::MacAddress localMac) {
   if (productInfo->getMode() == PlatformMode::WEDGE100) {
-    return std::make_unique<SaiBcmWedge100Platform>(std::move(productInfo));
+    return std::make_unique<SaiBcmWedge100Platform>(
+        std::move(productInfo), localMac);
   } else if (productInfo->getMode() == PlatformMode::WEDGE) {
-    return std::make_unique<SaiBcmWedge40Platform>(std::move(productInfo));
+    return std::make_unique<SaiBcmWedge40Platform>(
+        std::move(productInfo), localMac);
   } else if (productInfo->getMode() == PlatformMode::GALAXY_FC) {
-    return std::make_unique<SaiBcmGalaxyFCPlatform>(std::move(productInfo));
+    return std::make_unique<SaiBcmGalaxyFCPlatform>(
+        std::move(productInfo), localMac);
   } else if (productInfo->getMode() == PlatformMode::GALAXY_LC) {
-    return std::make_unique<SaiBcmGalaxyLCPlatform>(std::move(productInfo));
+    return std::make_unique<SaiBcmGalaxyLCPlatform>(
+        std::move(productInfo), localMac);
   } else if (productInfo->getMode() == PlatformMode::WEDGE400) {
-    return std::make_unique<SaiBcmWedge400Platform>(std::move(productInfo));
+    return std::make_unique<SaiBcmWedge400Platform>(
+        std::move(productInfo), localMac);
   } else if (productInfo->getMode() == PlatformMode::MINIPACK) {
-    return std::make_unique<SaiBcmMinipackPlatform>(std::move(productInfo));
+    return std::make_unique<SaiBcmMinipackPlatform>(
+        std::move(productInfo), localMac);
   } else if (productInfo->getMode() == PlatformMode::YAMP) {
-    return std::make_unique<SaiBcmYampPlatform>(std::move(productInfo));
+    return std::make_unique<SaiBcmYampPlatform>(
+        std::move(productInfo), localMac);
   } else if (productInfo->getMode() == PlatformMode::WEDGE400C) {
     if (isLEB()) {
-      return getLEBPlatform(std::move(productInfo));
+      return getLEBPlatform(std::move(productInfo), localMac);
     }
-    return std::make_unique<SaiWedge400CPlatform>(std::move(productInfo));
+    return std::make_unique<SaiWedge400CPlatform>(
+        std::move(productInfo), localMac);
   } else if (productInfo->getMode() == PlatformMode::CLOUDRIPPER) {
-    return std::make_unique<SaiCloudRipperPlatform>(std::move(productInfo));
+    return std::make_unique<SaiCloudRipperPlatform>(
+        std::move(productInfo), localMac);
   }
 
   return nullptr;
@@ -60,7 +70,9 @@ std::unique_ptr<Platform> initSaiPlatform(
   auto productInfo =
       std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
   productInfo->initialize();
-  auto platform = chooseSaiPlatform(std::move(productInfo));
+  auto localMac = getLocalMacAddress();
+
+  auto platform = chooseSaiPlatform(std::move(productInfo), localMac);
   platform->init(std::move(config), hwFeaturesDesired);
   return std::move(platform);
 }

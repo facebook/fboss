@@ -27,23 +27,25 @@ std::unique_ptr<WedgePlatform> createWedgePlatform() {
   auto productInfo =
       std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
   productInfo->initialize();
+  auto localMac = getLocalMacAddress();
 
   auto mode = productInfo->getMode();
   if (mode == PlatformMode::WEDGE) {
-    return std::make_unique<Wedge40Platform>(std::move(productInfo));
+    return std::make_unique<Wedge40Platform>(std::move(productInfo), localMac);
   } else if (mode == PlatformMode::WEDGE100) {
-    return std::make_unique<Wedge100Platform>(std::move(productInfo));
+    return std::make_unique<Wedge100Platform>(std::move(productInfo), localMac);
   } else if (mode == PlatformMode::GALAXY_LC) {
-    return std::make_unique<GalaxyLCPlatform>(std::move(productInfo));
+    return std::make_unique<GalaxyLCPlatform>(std::move(productInfo), localMac);
   } else if (mode == PlatformMode::GALAXY_FC) {
-    return std::make_unique<GalaxyFCPlatform>(std::move(productInfo));
+    return std::make_unique<GalaxyFCPlatform>(std::move(productInfo), localMac);
   } else if (mode == PlatformMode::FAKE_WEDGE40) {
-    return std::make_unique<FakeWedge40Platform>(std::move(productInfo));
+    return std::make_unique<FakeWedge40Platform>(
+        std::move(productInfo), localMac);
   }
 
   // mode is neither of the offical platforms above, consider it as a Facebook
   // dev platform
-  return createFBWedgePlatform(std::move(productInfo));
+  return createFBWedgePlatform(std::move(productInfo), localMac);
 }
 
 std::unique_ptr<Platform> initWedgePlatform(

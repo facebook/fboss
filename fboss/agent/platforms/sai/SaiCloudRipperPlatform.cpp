@@ -17,10 +17,12 @@
 namespace facebook::fboss {
 
 SaiCloudRipperPlatform::SaiCloudRipperPlatform(
-    std::unique_ptr<PlatformProductInfo> productInfo)
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    folly::MacAddress localMac)
     : SaiTajoPlatform(
           std::move(productInfo),
-          std::make_unique<CloudRipperPlatformMapping>()) {}
+          std::make_unique<CloudRipperPlatformMapping>(),
+          localMac) {}
 
 std::string SaiCloudRipperPlatform::getHwConfig() {
   return *config()->thrift.platform_ref()->get_chip().get_asic().config_ref();

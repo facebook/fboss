@@ -75,7 +75,8 @@ SaiCloudRipperPhyPlatform::SaiCloudRipperPhyPlatform(
     int phyId)
     : SaiHwPlatform(
           std::move(productInfo),
-          std::make_unique<CloudRipperPlatformMapping>()),
+          std::make_unique<CloudRipperPlatformMapping>(),
+          getLocalMacAddress()),
       phyId_(phyId) {
   asic_ = std::make_unique<CredoF104Asic>();
 }

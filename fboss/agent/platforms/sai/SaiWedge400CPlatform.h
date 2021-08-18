@@ -18,20 +18,23 @@ class Wedge400CEbbLabPlatformMapping;
 class SaiWedge400CPlatform : public SaiTajoPlatform {
  public:
   explicit SaiWedge400CPlatform(
-      std::unique_ptr<PlatformProductInfo> productInfo);
+      std::unique_ptr<PlatformProductInfo> productInfo,
+      folly::MacAddress localMac);
   ~SaiWedge400CPlatform() override;
   std::string getHwConfig() override;
 
  protected:
   SaiWedge400CPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
-      std::unique_ptr<Wedge400CEbbLabPlatformMapping> mapping);
+      std::unique_ptr<Wedge400CEbbLabPlatformMapping> mapping,
+      folly::MacAddress localMac);
 };
 
 class SaiWedge400CEbbLabPlatform : public SaiWedge400CPlatform {
  public:
   explicit SaiWedge400CEbbLabPlatform(
-      std::unique_ptr<PlatformProductInfo> productInfo);
+      std::unique_ptr<PlatformProductInfo> productInfo,
+      folly::MacAddress localMac);
 };
 
 } // namespace facebook::fboss

@@ -19,7 +19,9 @@ class PlatformProductInfo;
 
 class Wedge40Platform : public WedgePlatform {
  public:
-  explicit Wedge40Platform(std::unique_ptr<PlatformProductInfo> productInfo);
+  explicit Wedge40Platform(
+      std::unique_ptr<PlatformProductInfo> productInfo,
+      folly::MacAddress localMac);
 
   std::unique_ptr<WedgePortMapping> createPortMapping() override;
 

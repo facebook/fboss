@@ -43,7 +43,8 @@ class SaiPlatform : public Platform, public StateObserver {
  public:
   explicit SaiPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
-      std::unique_ptr<PlatformMapping> platformMapping);
+      std::unique_ptr<PlatformMapping> platformMapping,
+      folly::MacAddress localMac);
   ~SaiPlatform() override;
 
   HwSwitch* getHwSwitch() const override;

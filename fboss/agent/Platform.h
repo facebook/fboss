@@ -51,7 +51,8 @@ class Platform {
  public:
   explicit Platform(
       std::unique_ptr<PlatformProductInfo> productInfo,
-      std::unique_ptr<PlatformMapping> platformMapping);
+      std::unique_ptr<PlatformMapping> platformMapping,
+      folly::MacAddress localMac);
   virtual ~Platform();
 
   /*
@@ -164,6 +165,7 @@ class Platform {
    *
    * This method must be thread safe.  It may be called simultaneously from
    * various different threads.
+   * TODO(joseph5wu) Will use private const localMac_ directly
    */
   virtual folly::MacAddress getLocalMac() const;
 
@@ -299,6 +301,8 @@ class Platform {
 
   const std::unique_ptr<PlatformProductInfo> productInfo_;
   const std::unique_ptr<PlatformMapping> platformMapping_;
+  const folly::MacAddress localMac_;
+
   // the map to transceiver info for ports, this is to be used only for HwTests
   // under test environment, qsfp may be unavailable and this map is to mock
   // possible transceiver info data qsfp may returns

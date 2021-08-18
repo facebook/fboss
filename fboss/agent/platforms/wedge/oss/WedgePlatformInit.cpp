@@ -14,7 +14,8 @@
 namespace facebook::fboss {
 
 std::unique_ptr<WedgePlatform> createFBWedgePlatform(
-    std::unique_ptr<PlatformProductInfo> /*productInfo*/) {
+    std::unique_ptr<PlatformProductInfo> /*productInfo*/,
+    folly::MacAddress /* localMac */) {
   return std::unique_ptr<WedgePlatform>{};
 }
 

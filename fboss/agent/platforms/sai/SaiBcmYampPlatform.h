@@ -16,7 +16,9 @@ class Tomahawk3Asic;
 
 class SaiBcmYampPlatform : public SaiBcmPlatform {
  public:
-  explicit SaiBcmYampPlatform(std::unique_ptr<PlatformProductInfo> productInfo);
+  explicit SaiBcmYampPlatform(
+      std::unique_ptr<PlatformProductInfo> productInfo,
+      folly::MacAddress localMac);
   ~SaiBcmYampPlatform() override;
   HwAsic* getAsic() const override;
   uint32_t numLanesPerCore() const override {

@@ -45,8 +45,9 @@ namespace facebook::fboss {
 
 WedgePlatform::WedgePlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
-    std::unique_ptr<PlatformMapping> platformMapping)
-    : BcmPlatform(std::move(productInfo), std::move(platformMapping)),
+    std::unique_ptr<PlatformMapping> platformMapping,
+    folly::MacAddress localMac)
+    : BcmPlatform(std::move(productInfo), std::move(platformMapping), localMac),
       qsfpCache_(std::make_unique<AutoInitQsfpCache>()) {}
 
 void WedgePlatform::initImpl(uint32_t hwFeaturesDesired) {

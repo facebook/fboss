@@ -24,14 +24,16 @@ class PlatformProductInfo;
 class SaiWedge400CPlatform;
 
 std::unique_ptr<SaiPlatform> chooseSaiPlatform(
-    std::unique_ptr<PlatformProductInfo> productIfo);
+    std::unique_ptr<PlatformProductInfo> productIfo,
+    folly::MacAddress localMac);
 
 std::unique_ptr<Platform> initSaiPlatform(
     std::unique_ptr<AgentConfig> config,
     uint32_t hwFeaturesDesired);
 
 std::unique_ptr<SaiPlatform> getLEBPlatform(
-    std::unique_ptr<PlatformProductInfo> productInfo);
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    folly::MacAddress localMac);
 bool isLEB();
 
 } // namespace facebook::fboss

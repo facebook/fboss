@@ -27,10 +27,14 @@
 #include <boost/filesystem/operations.hpp>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
+#include <chrono>
 #include <iostream>
 
 using folly::IPAddressV4;
 using folly::IPAddressV6;
+using std::chrono::duration_cast;
+using std::chrono::milliseconds;
+using std::chrono::steady_clock;
 
 DEFINE_string(mac, "", "The local MAC address for this switch");
 DEFINE_string(mgmt_if, "eth0", "name of management interface");
@@ -150,6 +154,7 @@ folly::MacAddress getLocalMacAddress() {
   // For now, we take the MAC address from eth0, and enable the
   // "locally administered" bit.  This MAC should be unique, and it's fine for
   // us to use a locally administered address for now.
+  steady_clock::time_point begin = steady_clock::now();
   std::vector<std::string> cmd{"/sbin/ip", "address", "ls", FLAGS_mgmt_if};
   folly::Subprocess p(cmd, folly::Subprocess::Options().pipeStdout());
   auto out = p.communicate();
@@ -159,7 +164,12 @@ folly::MacAddress getLocalMacAddress() {
     throw std::runtime_error("unable to determine local mac address");
   }
   folly::MacAddress eth0Mac(out.first.substr(idx + 11, 17));
-  return folly::MacAddress::fromHBO(eth0Mac.u64HBO() | 0x0000020000000000);
+  folly::MacAddress localMac =
+      folly::MacAddress::fromHBO(eth0Mac.u64HBO() | 0x0000020000000000);
+  XLOG(DBG2) << "Calculating local mac address=" << localMac << " took "
+             << duration_cast<milliseconds>(steady_clock::now() - begin).count()
+             << "ms";
+  return localMac;
 }
 
 std::vector<NextHopThrift> thriftNextHopsFromAddresses(

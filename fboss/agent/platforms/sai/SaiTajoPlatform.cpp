@@ -14,8 +14,12 @@
 namespace facebook::fboss {
 SaiTajoPlatform::SaiTajoPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
-    std::unique_ptr<PlatformMapping> platformMapping)
-    : SaiHwPlatform(std::move(productInfo), std::move(platformMapping)) {
+    std::unique_ptr<PlatformMapping> platformMapping,
+    folly::MacAddress localMac)
+    : SaiHwPlatform(
+          std::move(productInfo),
+          std::move(platformMapping),
+          localMac) {
   asic_ = std::make_unique<TajoAsic>();
 }
 

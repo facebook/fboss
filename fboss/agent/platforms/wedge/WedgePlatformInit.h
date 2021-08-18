@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include <folly/MacAddress.h>
 #include <memory>
 
 namespace facebook::fboss {
@@ -29,6 +30,7 @@ std::unique_ptr<Platform> initWedgePlatform(
  * well-tested WedgePlatform in createWedgePlatform().
  */
 std::unique_ptr<WedgePlatform> createFBWedgePlatform(
-    std::unique_ptr<PlatformProductInfo> productInfo);
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    folly::MacAddress localMac);
 
 } // namespace facebook::fboss

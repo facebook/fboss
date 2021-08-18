@@ -38,7 +38,8 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
  public:
   explicit WedgePlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
-      std::unique_ptr<PlatformMapping> platformMapping = nullptr);
+      std::unique_ptr<PlatformMapping> platformMapping,
+      folly::MacAddress localMac);
   ~WedgePlatform() override;
 
   void initPorts() override;

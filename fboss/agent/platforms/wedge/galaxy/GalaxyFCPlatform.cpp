@@ -17,11 +17,13 @@
 namespace facebook::fboss {
 
 GalaxyFCPlatform::GalaxyFCPlatform(
-    std::unique_ptr<PlatformProductInfo> productInfo)
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    folly::MacAddress localMac)
     : GalaxyPlatform(
           std::move(productInfo),
           std::make_unique<GalaxyFCPlatformMapping>(
-              GalaxyFCPlatformMapping::getFabriccardName())) {}
+              GalaxyFCPlatformMapping::getFabriccardName()),
+          localMac) {}
 
 std::unique_ptr<WedgePortMapping> GalaxyFCPlatform::createPortMapping() {
   return WedgePortMapping::createFromConfig<

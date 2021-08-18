@@ -18,10 +18,12 @@
 namespace facebook::fboss {
 
 SaiBcmYampPlatform::SaiBcmYampPlatform(
-    std::unique_ptr<PlatformProductInfo> productInfo)
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    folly::MacAddress localMac)
     : SaiBcmPlatform(
           std::move(productInfo),
-          std::make_unique<YampPlatformMapping>()) {
+          std::make_unique<YampPlatformMapping>(),
+          localMac) {
   asic_ = std::make_unique<Tomahawk3Asic>();
 }
 

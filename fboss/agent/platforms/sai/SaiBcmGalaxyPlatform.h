@@ -16,8 +16,12 @@ class SaiBcmGalaxyPlatform : public SaiBcmPlatform {
  public:
   explicit SaiBcmGalaxyPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
-      std::unique_ptr<PlatformMapping> platformMapping)
-      : SaiBcmPlatform(std::move(productInfo), std::move(platformMapping)) {}
+      std::unique_ptr<PlatformMapping> platformMapping,
+      folly::MacAddress localMac)
+      : SaiBcmPlatform(
+            std::move(productInfo),
+            std::move(platformMapping),
+            localMac) {}
   uint32_t numLanesPerCore() const override {
     return 4;
   }

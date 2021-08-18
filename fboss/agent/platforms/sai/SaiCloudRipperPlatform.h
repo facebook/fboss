@@ -16,7 +16,8 @@ namespace facebook::fboss {
 class SaiCloudRipperPlatform : public SaiTajoPlatform {
  public:
   explicit SaiCloudRipperPlatform(
-      std::unique_ptr<PlatformProductInfo> productInfo);
+      std::unique_ptr<PlatformProductInfo> productInfo,
+      folly::MacAddress localMac);
   ~SaiCloudRipperPlatform() override;
 
   std::string getHwConfig() override;

@@ -85,7 +85,8 @@ SaiElbert8DDPhyPlatform::SaiElbert8DDPhyPlatform(
     : SaiHwPlatform(
           std::move(productInfo),
           std::make_unique<Elbert8DDPimPlatformMapping>()
-              ->getPimPlatformMappingUniquePtr(pimId)),
+              ->getPimPlatformMappingUniquePtr(pimId),
+          getLocalMacAddress()),
       pimId_(pimId),
       phyId_(phyId) {
   asic_ = std::make_unique<CredoF104Asic>();

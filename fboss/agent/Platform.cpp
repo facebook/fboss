@@ -45,9 +45,11 @@ namespace facebook::fboss {
 
 Platform::Platform(
     std::unique_ptr<PlatformProductInfo> productInfo,
-    std::unique_ptr<PlatformMapping> platformMapping)
+    std::unique_ptr<PlatformMapping> platformMapping,
+    folly::MacAddress localMac)
     : productInfo_(std::move(productInfo)),
-      platformMapping_(std::move(platformMapping)) {}
+      platformMapping_(std::move(platformMapping)),
+      localMac_(localMac) {}
 Platform::~Platform() {}
 
 std::string Platform::getCrashHwStateFile() const {

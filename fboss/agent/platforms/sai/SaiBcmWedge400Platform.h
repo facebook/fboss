@@ -17,7 +17,8 @@ class Tomahawk3Asic;
 class SaiBcmWedge400Platform : public SaiBcmPlatform {
  public:
   explicit SaiBcmWedge400Platform(
-      std::unique_ptr<PlatformProductInfo> productInfo);
+      std::unique_ptr<PlatformProductInfo> productInfo,
+      folly::MacAddress localMac);
   ~SaiBcmWedge400Platform() override;
   HwAsic* getAsic() const override;
   uint32_t numLanesPerCore() const override {

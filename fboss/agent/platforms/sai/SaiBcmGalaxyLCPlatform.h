@@ -17,7 +17,8 @@ class TomahawkAsic;
 class SaiBcmGalaxyLCPlatform : public SaiBcmGalaxyPlatform {
  public:
   explicit SaiBcmGalaxyLCPlatform(
-      std::unique_ptr<PlatformProductInfo> productInfo);
+      std::unique_ptr<PlatformProductInfo> productInfo,
+      folly::MacAddress localMac);
   ~SaiBcmGalaxyLCPlatform() override;
   HwAsic* getAsic() const override;
   std::vector<FlexPortMode> getSupportedFlexPortModes() const override {

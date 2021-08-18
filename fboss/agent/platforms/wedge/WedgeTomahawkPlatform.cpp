@@ -16,8 +16,12 @@ namespace facebook::fboss {
 
 WedgeTomahawkPlatform::WedgeTomahawkPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
-    std::unique_ptr<PlatformMapping> platformMapping)
-    : WedgePlatform(std::move(productInfo), std::move(platformMapping)) {
+    std::unique_ptr<PlatformMapping> platformMapping,
+    folly::MacAddress localMac)
+    : WedgePlatform(
+          std::move(productInfo),
+          std::move(platformMapping),
+          localMac) {
   asic_ = std::make_unique<TomahawkAsic>();
 }
 

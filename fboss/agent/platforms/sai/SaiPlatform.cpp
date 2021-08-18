@@ -86,8 +86,9 @@ namespace facebook::fboss {
 
 SaiPlatform::SaiPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
-    std::unique_ptr<PlatformMapping> platformMapping)
-    : Platform(std::move(productInfo), std::move(platformMapping)),
+    std::unique_ptr<PlatformMapping> platformMapping,
+    folly::MacAddress localMac)
+    : Platform(std::move(productInfo), std::move(platformMapping), localMac),
       qsfpCache_(std::make_unique<AutoInitQsfpCache>()) {
   const auto& portsByMasterPort =
       utility::getSubsidiaryPortIDs(getPlatformPorts());

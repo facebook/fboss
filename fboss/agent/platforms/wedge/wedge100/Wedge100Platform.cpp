@@ -33,10 +33,12 @@ constexpr auto kMaxSetLedTime = std::chrono::seconds(1);
 namespace facebook::fboss {
 
 Wedge100Platform::Wedge100Platform(
-    std::unique_ptr<PlatformProductInfo> productInfo)
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    folly::MacAddress localMac)
     : WedgeTomahawkPlatform(
           std::move(productInfo),
-          std::make_unique<Wedge100PlatformMapping>()) {}
+          std::make_unique<Wedge100PlatformMapping>(),
+          localMac) {}
 
 std::unique_ptr<BaseWedgeI2CBus> Wedge100Platform::getI2CBus() {
   return std::make_unique<Wedge100I2CBus>();

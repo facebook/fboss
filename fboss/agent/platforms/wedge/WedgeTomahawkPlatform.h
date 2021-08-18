@@ -22,7 +22,8 @@ class WedgeTomahawkPlatform : public WedgePlatform {
  public:
   explicit WedgeTomahawkPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
-      std::unique_ptr<PlatformMapping> platformMapping = nullptr);
+      std::unique_ptr<PlatformMapping> platformMapping,
+      folly::MacAddress localMac);
 
   uint32_t getMMUBufferBytes() const override {
     // All WedgeTomahawk platforms have 16MB MMU buffer

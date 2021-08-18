@@ -30,7 +30,10 @@ namespace facebook::fboss {
 BcmTestPlatform::BcmTestPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
     std::unique_ptr<PlatformMapping> platformMapping)
-    : BcmPlatform(std::move(productInfo), std::move(platformMapping)) {
+    : BcmPlatform(
+          std::move(productInfo),
+          std::move(platformMapping),
+          utility::kLocalCpuMac()) {
   const auto& portsByMasterPort =
       utility::getSubsidiaryPortIDs(getPlatformPorts());
   CHECK(portsByMasterPort.size() > 1);

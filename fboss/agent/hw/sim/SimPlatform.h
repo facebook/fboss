@@ -32,6 +32,8 @@ class SimPlatform : public Platform {
   std::unique_ptr<ThriftHandler> createHandler(SwSwitch* sw) override;
 
   folly::MacAddress getLocalMac() const override {
+    // TODO(joseph5wu) Will deprecate the override version to use
+    // Platform::localMac_ directly
     return mac_;
   }
   std::string getVolatileStateDir() const override;

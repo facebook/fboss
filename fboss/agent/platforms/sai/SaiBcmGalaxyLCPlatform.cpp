@@ -15,11 +15,13 @@
 namespace facebook::fboss {
 
 SaiBcmGalaxyLCPlatform::SaiBcmGalaxyLCPlatform(
-    std::unique_ptr<PlatformProductInfo> productInfo)
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    folly::MacAddress localMac)
     : SaiBcmGalaxyPlatform(
           std::move(productInfo),
           std::make_unique<GalaxyLCPlatformMapping>(
-              GalaxyLCPlatformMapping::getLinecardName())) {
+              GalaxyLCPlatformMapping::getLinecardName()),
+          localMac) {
   asic_ = std::make_unique<TomahawkAsic>();
 }
 

@@ -28,10 +28,24 @@ using testing::WithArg;
 
 namespace facebook::fboss {
 
+const folly::MacAddress& MockPlatform::getMockLocalMac() {
+  static const folly::MacAddress kMockLocalMac("00:02:00:ab:cd:ef");
+  return kMockLocalMac;
+}
+
+const folly::IPAddressV6& MockPlatform::getMockLinkLocalIp6() {
+  static const folly::IPAddressV6 kMockLinkLocalIp6(
+      folly::IPAddressV6::LINK_LOCAL, getMockLocalMac());
+  return kMockLinkLocalIp6;
+}
+
 MockPlatform::MockPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
     std::unique_ptr<MockHwSwitch> hw)
-    : Platform(std::move(productInfo), std::make_unique<PlatformMapping>()),
+    : Platform(
+          std::move(productInfo),
+          std::make_unique<PlatformMapping>(),
+          getMockLocalMac()),
       tmpDir_("fboss_mock_state"),
       hw_(std::move(hw)) {
   ON_CALL(*hw_, stateChanged(_))

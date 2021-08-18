@@ -18,7 +18,9 @@ class PlatformProductInfo;
 
 class GalaxyFCPlatform : public GalaxyPlatform {
  public:
-  explicit GalaxyFCPlatform(std::unique_ptr<PlatformProductInfo> productInfo);
+  explicit GalaxyFCPlatform(
+      std::unique_ptr<PlatformProductInfo> productInfo,
+      folly::MacAddress localMac);
 
  private:
   std::unique_ptr<WedgePortMapping> createPortMapping() override;
