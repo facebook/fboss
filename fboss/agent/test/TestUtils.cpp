@@ -83,7 +83,6 @@ void initSwSwitchWithFlags(SwSwitch* sw, SwitchFlags flags) {
 
 unique_ptr<SwSwitch> createMockSw(
     const shared_ptr<SwitchState>& state,
-    const std::optional<MacAddress>& mac,
     SwitchFlags flags) {
   auto platform = createMockPlatform();
   return setupMockSwitchWithoutHW(std::move(platform), state, flags);
@@ -212,17 +211,17 @@ unique_ptr<MockPlatform> createMockPlatform() {
 
 unique_ptr<HwTestHandle> createTestHandle(
     const shared_ptr<SwitchState>& state,
-    const std::optional<MacAddress>& mac,
     SwitchFlags flags) {
-  auto sw = createMockSw(state, mac, flags);
+  auto sw = createMockSw(state, flags);
   auto platform = static_cast<MockPlatform*>(sw->getPlatform());
   auto handle = platform->createTestHandle(std::move(sw));
   handle->prepareForTesting();
   return handle;
 }
 
-unique_ptr<HwTestHandle>
-createTestHandle(cfg::SwitchConfig* config, MacAddress mac, SwitchFlags flags) {
+unique_ptr<HwTestHandle> createTestHandle(
+    cfg::SwitchConfig* config,
+    SwitchFlags flags) {
   shared_ptr<SwitchState> initialState{nullptr};
   // Create the initial state, which only has ports
   initialState = make_shared<SwitchState>();
@@ -236,7 +235,7 @@ createTestHandle(cfg::SwitchConfig* config, MacAddress mac, SwitchFlags flags) {
     initialState->registerPort(PortID(idx), folly::to<string>("port", idx));
   }
 
-  auto handle = createTestHandle(initialState, mac, flags);
+  auto handle = createTestHandle(initialState, flags);
   auto sw = handle->getSw();
 
   if (config) {
@@ -244,12 +243,6 @@ createTestHandle(cfg::SwitchConfig* config, MacAddress mac, SwitchFlags flags) {
     sw->applyConfig("test_setup", *config);
   }
   return handle;
-}
-
-unique_ptr<HwTestHandle> createTestHandle(
-    cfg::SwitchConfig* config,
-    SwitchFlags flags) {
-  return createTestHandle(config, MacAddress("02:00:00:00:00:01"), flags);
 }
 
 MockHwSwitch* getMockHw(SwSwitch* sw) {

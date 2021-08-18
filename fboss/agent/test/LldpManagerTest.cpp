@@ -52,7 +52,7 @@ unique_ptr<HwTestHandle> setupTestHandle(bool enableLldp = false) {
   auto switchFlags =
       enableLldp ? SwitchFlags::ENABLE_LLDP : SwitchFlags::DEFAULT;
   auto state = testStateAWithPortsUp();
-  return createTestHandle(state, MockPlatform::getMockLocalMac(), switchFlags);
+  return createTestHandle(state, switchFlags);
 }
 
 TxMatchFn checkLldpPDU() {

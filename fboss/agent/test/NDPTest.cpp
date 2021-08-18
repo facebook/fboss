@@ -429,7 +429,7 @@ class NdpTest : public ::testing::Test {
 
     *config.maxNeighborProbes_ref() = 1;
     *config.staleEntryInterval_ref() = 1;
-    auto handle = createTestHandle(&config, MockPlatform::getMockLocalMac());
+    auto handle = createTestHandle(&config);
     sw_ = handle->getSw();
     sw_->initialConfigApplied(std::chrono::steady_clock::now());
     return handle;
@@ -666,7 +666,7 @@ TEST_F(NdpTest, RouterAdvertisement) {
   // in the generated RA packets.
   config.interfaces_ref()[0].ipAddresses_ref()->push_back(
       "2401:db00:2000:1234:1::/128");
-  auto handle = createTestHandle(&config, MockPlatform::getMockLocalMac());
+  auto handle = createTestHandle(&config);
   auto sw = handle->getSw();
   sw->initialConfigApplied(std::chrono::steady_clock::now());
 

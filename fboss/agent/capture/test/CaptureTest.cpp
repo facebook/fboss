@@ -75,7 +75,7 @@ unique_ptr<HwTestHandle> setupTestHandle() {
     thriftCfg.vlanPorts_ref()->push_back(thriftVlanPort);
   }
 
-  auto handle = createTestHandle(&thriftCfg, MockPlatform::getMockLocalMac());
+  auto handle = createTestHandle(&thriftCfg);
   handle->getSw()->initialConfigApplied(std::chrono::steady_clock::now());
 
   return handle;

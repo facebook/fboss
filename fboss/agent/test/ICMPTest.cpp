@@ -368,8 +368,6 @@ TEST(ICMPTest, TTLExceededV4) {
   CounterCache counters(sw);
 
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac())
-      .WillRepeatedly(Return(MockPlatform::getMockLocalMac()));
 
   // We should get a ICMPv4 TTL exceeded back
   EXPECT_SWITCHED_PKT(
@@ -444,8 +442,6 @@ TEST(ICMPTest, TTLExceededV4IPExtraOptions) {
       "00 00 00 00" + ipHdr + udpHdr + payload);
 
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac())
-      .WillRepeatedly(Return(MockPlatform::getMockLocalMac()));
 
   // We should get a ICMPv4 TTL exceeded back
   EXPECT_SWITCHED_PKT(
@@ -543,8 +539,6 @@ void runTTLExceededV6Test(size_t requestedPayloadSize) {
   CounterCache counters(sw);
 
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac())
-      .WillRepeatedly(Return(MockPlatform::getMockLocalMac()));
 
   // We should get a ICMPv6 TTL exceeded back
   EXPECT_SWITCHED_PKT(
@@ -678,8 +672,6 @@ TEST(ICMPTest, PacketTooBigV6) {
   CounterCache counters(sw);
 
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac())
-      .WillRepeatedly(Return(MockPlatform::getMockLocalMac()));
   EXPECT_SWITCHED_PKT(
       sw,
       "ICMPv6 Packet Too Big",

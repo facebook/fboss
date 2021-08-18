@@ -56,21 +56,21 @@ class PacketAcceptor
 
 class MKAServiceManagerTest : public testing::Test {
  public:
-  const MacAddress testLocalMac = MacAddress("00:00:00:00:00:02");
   static constexpr std::array<uint8_t, 6> DSTMAC =
       {0x01, 0x80, 0xc2, 0x00, 0x00, 0x03};
   std::unique_ptr<HwTestHandle> setupTestHandle(bool enableMacsec = true) {
     auto switchFlags =
         enableMacsec ? SwitchFlags::ENABLE_MACSEC : SwitchFlags::DEFAULT;
     auto state = testStateAWithPortsUp();
-    return createTestHandle(state, testLocalMac, switchFlags);
+    return createTestHandle(state, switchFlags);
   }
   std::unique_ptr<folly::IOBuf> createEapol() {
     auto iobuf = folly::IOBuf::create(64);
     iobuf->append(64);
     folly::io::RWPrivateCursor cursor(iobuf.get());
     cursor.push(DSTMAC.data(), folly::MacAddress::SIZE);
-    cursor.push(testLocalMac.bytes(), folly::MacAddress::SIZE);
+    cursor.push(
+        MockPlatform::getMockLocalMac().bytes(), folly::MacAddress::SIZE);
     cursor.writeBE<uint16_t>(MKAServiceManager::ETHERTYPE_EAPOL);
     return iobuf;
   }

@@ -50,7 +50,6 @@ class MockPlatform : public Platform {
       getPortMapping,
       TransceiverIdxThrift(PortID port, cfg::PortSpeed speed));
   MOCK_CONST_METHOD1(getPlatformPort, PlatformPort*(PortID port));
-  MOCK_CONST_METHOD0(getLocalMac, folly::MacAddress());
   MOCK_METHOD0(stop, void());
   MOCK_METHOD1(onHwInitialized, void(SwSwitch* sw));
   MOCK_METHOD1(onInitialConfigApplied, void(SwSwitch* sw));

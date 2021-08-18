@@ -177,8 +177,6 @@ TEST(Interface, applyConfig) {
   EXPECT_EQ(MacAddress("00:02:00:12:34:56"), interface->getMac());
   // Use the platform supplied MAC
   config.interfaces_ref()[0].mac_ref().reset();
-  EXPECT_CALL(*platform, getLocalMac())
-      .WillRepeatedly(Return(MockPlatform::getMockLocalMac()));
   updateState();
   EXPECT_EQ(nodeID, interface->getNodeID());
   EXPECT_EQ(oldInterface->getGeneration() + 1, interface->getGeneration());
