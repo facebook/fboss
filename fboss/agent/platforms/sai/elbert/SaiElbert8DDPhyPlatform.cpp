@@ -80,13 +80,14 @@ sai_service_method_table_t kSaiServiceMethodTable = {
 
 SaiElbert8DDPhyPlatform::SaiElbert8DDPhyPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
+    folly::MacAddress localMac,
     uint8_t pimId,
     int phyId)
     : SaiHwPlatform(
           std::move(productInfo),
           std::make_unique<Elbert8DDPimPlatformMapping>()
               ->getPimPlatformMappingUniquePtr(pimId),
-          getLocalMacAddress()),
+          localMac),
       pimId_(pimId),
       phyId_(phyId) {
   asic_ = std::make_unique<CredoF104Asic>();

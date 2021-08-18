@@ -21,6 +21,7 @@ class SaiCloudRipperPhyPlatform : public SaiHwPlatform {
 
   SaiCloudRipperPhyPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
+      folly::MacAddress localMac,
       int phyId);
   ~SaiCloudRipperPhyPlatform() override;
 

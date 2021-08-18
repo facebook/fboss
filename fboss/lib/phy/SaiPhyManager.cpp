@@ -10,6 +10,7 @@
 
 #include "fboss/lib/phy/SaiPhyManager.h"
 
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/platforms/sai/SaiHwPlatform.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
@@ -19,7 +20,7 @@
 
 namespace facebook::fboss {
 SaiPhyManager::SaiPhyManager(const PlatformMapping* platformMapping)
-    : PhyManager(platformMapping) {}
+    : PhyManager(platformMapping), localMac_(getLocalMacAddress()) {}
 
 SaiPhyManager::~SaiPhyManager() {}
 

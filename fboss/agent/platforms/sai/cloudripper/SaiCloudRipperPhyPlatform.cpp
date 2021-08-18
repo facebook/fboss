@@ -72,11 +72,12 @@ sai_service_method_table_t kSaiServiceMethodTable = {
 
 SaiCloudRipperPhyPlatform::SaiCloudRipperPhyPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
+    folly::MacAddress localMac,
     int phyId)
     : SaiHwPlatform(
           std::move(productInfo),
           std::make_unique<CloudRipperPlatformMapping>(),
-          getLocalMacAddress()),
+          localMac),
       phyId_(phyId) {
   asic_ = std::make_unique<CredoF104Asic>();
 }

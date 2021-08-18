@@ -21,6 +21,7 @@ class SaiElbert8DDPhyPlatform : public SaiHwPlatform {
 
   SaiElbert8DDPhyPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
+      folly::MacAddress localMac,
       uint8_t pimId,
       int phyId);
   ~SaiElbert8DDPhyPlatform() override;

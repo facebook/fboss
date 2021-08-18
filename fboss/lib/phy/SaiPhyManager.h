@@ -54,6 +54,10 @@ class SaiPhyManager : public PhyManager {
       GlobalXphyID xphyID,
       std::unique_ptr<SaiHwPlatform> platform);
 
+  folly::MacAddress getLocalMac() const {
+    return localMac_;
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   SaiPhyManager(SaiPhyManager const&) = delete;
@@ -65,6 +69,14 @@ class SaiPhyManager : public PhyManager {
   std::unique_ptr<ExternalPhyPortStatsUtils> createExternalPhyPortStats(
       PortID portID) override;
 
+  // Due to SaiPhyManager usually has more than one phy, and each phy has its
+  // own SaiHwPlatform, which needs a local mac address. As local mac address
+  // will be the same mac address for the running system, all these phys and
+  // their Platforms will share the same local mac.
+  // Therefore, to avoid calling the getLocalMacAddress() too frequently,
+  // use a const private member to store the local mac once, and then pass this
+  // mac address when creating each single SaiHwPlatform
+  const folly::MacAddress localMac_;
   std::map<PimID, std::map<GlobalXphyID, std::unique_ptr<SaiHwPlatform>>>
       saiPlatforms_;
 };
