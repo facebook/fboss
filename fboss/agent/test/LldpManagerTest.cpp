@@ -45,7 +45,6 @@ using ::testing::_;
 namespace {
 // TODO(joseph5wu) Network control strict priority queue
 const uint8_t kNCStrictPriorityQueue = 7;
-const MacAddress testLocalMac = MacAddress("00:00:00:00:00:02");
 unique_ptr<HwTestHandle> setupTestHandle(bool enableLldp = false) {
   // Setup a default state object
   // reusing this, as this seems to be legit RSW config under which we should
@@ -53,7 +52,7 @@ unique_ptr<HwTestHandle> setupTestHandle(bool enableLldp = false) {
   auto switchFlags =
       enableLldp ? SwitchFlags::ENABLE_LLDP : SwitchFlags::DEFAULT;
   auto state = testStateAWithPortsUp();
-  return createTestHandle(state, testLocalMac, switchFlags);
+  return createTestHandle(state, MockPlatform::getMockLocalMac(), switchFlags);
 }
 
 TxMatchFn checkLldpPDU() {
@@ -88,9 +87,12 @@ TxMatchFn checkLldpPDU() {
     }
 
     auto srcMac = PktUtil::readMac(&c);
-    if (srcMac.toString() != testLocalMac.toString()) {
+    if (srcMac.toString() != MockPlatform::getMockLocalMac().toString()) {
       throw FbossError(
-          "expected source MAC to be ", testLocalMac, "; got ", srcMac);
+          "expected source MAC to be ",
+          MockPlatform::getMockLocalMac(),
+          "; got ",
+          srcMac);
     }
     auto ethertype = c.readBE<uint16_t>();
     XLOG(DBG0) << "\ndstMac is " << dstMac.toString() << " srcMac is "

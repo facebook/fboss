@@ -50,14 +50,12 @@ using folly::IPAddressV6;
 
 namespace {
 
-// Platform mac address
-const folly::MacAddress kPlatformMac("02:01:02:03:04:05");
 const folly::MacAddress kEmptyMac("00:00:00:00:00:00");
 
 // Link-local addresses automatically assigned on all interfaces.
 const folly::IPAddressV6 kIPv6LinkLocalAddr(
     IPAddressV6::LINK_LOCAL,
-    kPlatformMac);
+    MockPlatform::getMockLocalMac());
 
 // Interface addresses
 const folly::IPAddressV4 kIPv4IntfAddr1("10.0.0.11");
@@ -94,8 +92,8 @@ const folly::MacAddress kIPv6MacAddr("33:33:00:00:00:01");
 const IOBuf createV4UnicastPacket(
     const folly::IPAddressV4& srcAddr,
     const folly::IPAddressV4& dstAddr,
-    const folly::MacAddress& srcMac = kPlatformMac,
-    const folly::MacAddress& dstMac = kPlatformMac) {
+    const folly::MacAddress& srcMac = MockPlatform::getMockLocalMac(),
+    const folly::MacAddress& dstMac = MockPlatform::getMockLocalMac()) {
   return createV4Packet(srcAddr, dstAddr, srcMac, dstMac);
 }
 
@@ -105,8 +103,8 @@ const IOBuf createV4UnicastPacket(
 const IOBuf createV6UnicastPacket(
     const folly::IPAddressV6& srcAddr,
     const folly::IPAddressV6& dstAddr,
-    const folly::MacAddress& srcMac = kPlatformMac,
-    const folly::MacAddress& dstMac = kPlatformMac) {
+    const folly::MacAddress& srcMac = MockPlatform::getMockLocalMac(),
+    const folly::MacAddress& dstMac = MockPlatform::getMockLocalMac()) {
   return createV6Packet(srcAddr, dstAddr, srcMac, dstMac);
 }
 
@@ -115,10 +113,12 @@ const IOBuf createV6UnicastPacket(
  * address.
  */
 const IOBuf createV4MulticastPacket(const folly::IPAddressV4& srcAddr) {
-  return createV4Packet(srcAddr, kIPv4McastAddr, kPlatformMac, kIPv4MacAddr);
+  return createV4Packet(
+      srcAddr, kIPv4McastAddr, MockPlatform::getMockLocalMac(), kIPv4MacAddr);
 }
 const IOBuf createV6MulticastPacket(const folly::IPAddressV6& srcAddr) {
-  return createV6Packet(srcAddr, kIPv6McastAddr, kPlatformMac, kIPv6MacAddr);
+  return createV6Packet(
+      srcAddr, kIPv6McastAddr, MockPlatform::getMockLocalMac(), kIPv6MacAddr);
 }
 
 /**
@@ -175,7 +175,8 @@ class RoutingFixture : public ::testing::Test {
  public:
   void SetUp() override {
     auto config = getSwitchConfig();
-    handle = createTestHandle(&config, kPlatformMac, SwitchFlags::ENABLE_TUN);
+    handle = createTestHandle(
+        &config, MockPlatform::getMockLocalMac(), SwitchFlags::ENABLE_TUN);
     sw = handle->getSw();
 
     // Get TunManager pointer
@@ -551,8 +552,8 @@ TEST_F(RoutingFixture, HostToSwitchUnicast) {
         sw,
         "V4 UcastPkt",
         matchTxPacket(
-            kPlatformMac,
-            kPlatformMac,
+            MockPlatform::getMockLocalMac(),
+            MockPlatform::getMockLocalMac(),
             VlanID(1),
             IPv4Handler::ETHERTYPE_IPV4,
             std::move(bufCopy)))
@@ -576,8 +577,8 @@ TEST_F(RoutingFixture, HostToSwitchUnicast) {
         sw,
         "V6 UcastPkt",
         matchTxPacket(
-            kPlatformMac,
-            kPlatformMac,
+            MockPlatform::getMockLocalMac(),
+            MockPlatform::getMockLocalMac(),
             VlanID(2),
             IPv6Handler::ETHERTYPE_IPV6,
             std::move(bufCopy)))
@@ -610,8 +611,9 @@ TEST_F(RoutingFixture, HostToSwitchLinkLocal) {
         sw,
         "V4 UcastPkt",
         matchTxPacket(
-            kPlatformMac,
-            kPlatformMac, // NOTE: no neighbor mac address resolution like v6
+            MockPlatform::getMockLocalMac(),
+            MockPlatform::getMockLocalMac(), // NOTE: no neighbor mac address
+                                             // resolution like v6
             VlanID(1),
             IPv4Handler::ETHERTYPE_IPV4,
             std::move(bufCopy)))
@@ -635,7 +637,7 @@ TEST_F(RoutingFixture, HostToSwitchLinkLocal) {
         sw,
         "V6 UcastPkt",
         matchTxPacket(
-            kPlatformMac,
+            MockPlatform::getMockLocalMac(),
             kNbhMacAddr2, // because vlan-id = 2
             VlanID(2),
             IPv6Handler::ETHERTYPE_IPV6,
@@ -680,8 +682,9 @@ TEST_F(RoutingFixture, HostToSwitchLinkLocal) {
         sw,
         "V4 UcastPkt",
         matchTxPacket(
-            kPlatformMac,
-            kPlatformMac, // NOTE: no neighbor mac address resolution like v6
+            MockPlatform::getMockLocalMac(),
+            MockPlatform::getMockLocalMac(), // NOTE: no neighbor mac address
+                                             // resolution like v6
             VlanID(1),
             IPv4Handler::ETHERTYPE_IPV4,
             std::move(bufCopy)))
@@ -717,7 +720,7 @@ TEST_F(RoutingFixture, HostToSwitchMulticast) {
         sw,
         "V4 McastPkt",
         matchTxPacket(
-            kPlatformMac,
+            MockPlatform::getMockLocalMac(),
             kIPv4MacAddr,
             VlanID(1),
             IPv4Handler::ETHERTYPE_IPV4,
@@ -742,7 +745,7 @@ TEST_F(RoutingFixture, HostToSwitchMulticast) {
         sw,
         "V6 McastPkt",
         matchTxPacket(
-            kPlatformMac,
+            MockPlatform::getMockLocalMac(),
             kIPv6MacAddr,
             VlanID(2),
             IPv6Handler::ETHERTYPE_IPV6,

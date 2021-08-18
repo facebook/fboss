@@ -167,7 +167,9 @@ class Platform {
    * various different threads.
    * TODO(joseph5wu) Will use private const localMac_ directly
    */
-  virtual folly::MacAddress getLocalMac() const;
+  folly::MacAddress getLocalMac() const {
+    return localMac_;
+  }
 
   /*
    * Get the path to a directory where persistent state can be stored.

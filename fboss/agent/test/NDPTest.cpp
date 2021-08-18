@@ -60,7 +60,6 @@ using ::testing::_;
 namespace {
 // TODO(joseph5wu) Network control strict priority queue
 const uint8_t kNCStrictPriorityQueue = 7;
-const MacAddress kPlatformMac("02:01:02:03:04:05");
 const AggregatePortID kAggregatePortID = AggregatePortID(300);
 const int kSubportCount = 2;
 
@@ -387,7 +386,7 @@ void sendNeighborAdvertisement(
   VlanID vlan(vlanID);
 
   // The destination MAC and IP are specific to the mock switch we setup
-  MacAddress dstMac(kPlatformMac);
+  MacAddress dstMac(MockPlatform::getMockLocalMac());
   IPAddressV6 dstIP("2401:db00:2110:3004::a");
   size_t plen = 20;
 
@@ -430,7 +429,7 @@ class NdpTest : public ::testing::Test {
 
     *config.maxNeighborProbes_ref() = 1;
     *config.staleEntryInterval_ref() = 1;
-    auto handle = createTestHandle(&config, kPlatformMac);
+    auto handle = createTestHandle(&config, MockPlatform::getMockLocalMac());
     sw_ = handle->getSw();
     sw_->initialConfigApplied(std::chrono::steady_clock::now());
     return handle;
@@ -506,7 +505,7 @@ TEST_F(NdpTest, UnsolicitedRequest) {
       sw,
       "neighbor advertisement",
       checkNeighborAdvert(
-          kPlatformMac,
+          MockPlatform::getMockLocalMac(),
           IPAddressV6("2401:db00:2110:3004::a"),
           MacAddress("02:05:73:f9:46:fc"),
           IPAddressV6("ff01::1"),
@@ -533,7 +532,7 @@ TEST_F(NdpTest, TriggerSolicitation) {
   // Create a packet to a node in the attached IPv6 subnet
   auto pkt = PktUtil::parseHexData(
       // dst mac, src mac
-      "02 01 02 03 04 05  02 05 73 f9 46 fc"
+      "00 02 00 ab cd ef  02 05 73 f9 46 fc"
       // 802.1q, VLAN 5
       "81 00 00 05"
       // IPv6
@@ -565,8 +564,8 @@ TEST_F(NdpTest, TriggerSolicitation) {
       sw,
       "neighbor solicitation",
       checkNeighborSolicitation(
-          MacAddress("02:01:02:03:04:05"),
-          IPAddressV6("fe80::0001:02ff:fe03:0405"),
+          MockPlatform::getMockLocalMac(),
+          MockPlatform::getMockLinkLocalIp6(),
           MacAddress("33:33:ff:01:00:00"),
           IPAddressV6("ff02::1:ff01:0"),
           IPAddressV6("2401:db00:2110:3004::1:0"),
@@ -587,7 +586,7 @@ TEST_F(NdpTest, TriggerSolicitation) {
   // Create a packet to a node not in attached subnet, but in route table
   pkt = PktUtil::parseHexData(
       // dst mac, src mac
-      "02 01 02 03 04 05  02 05 73 f9 46 fc"
+      "00 02 00 ab cd ef  02 05 73 f9 46 fc"
       // 802.1q, VLAN 5
       "81 00 00 05"
       // IPv6
@@ -616,8 +615,8 @@ TEST_F(NdpTest, TriggerSolicitation) {
       sw,
       "neighbor solicitation",
       checkNeighborSolicitation(
-          MacAddress("02:01:02:03:04:05"),
-          IPAddressV6("fe80::0001:02ff:fe03:0405"),
+          MockPlatform::getMockLocalMac(),
+          MockPlatform::getMockLinkLocalIp6(),
           MacAddress("33:33:ff:00:00:01"),
           IPAddressV6("ff02::1:ff00:1"),
           IPAddressV6("2401:db00:2110:3004::1"),
@@ -627,8 +626,8 @@ TEST_F(NdpTest, TriggerSolicitation) {
       sw,
       "neighbor solicitation",
       checkNeighborSolicitation(
-          MacAddress("02:01:02:03:04:05"),
-          IPAddressV6("fe80::0001:02ff:fe03:0405"),
+          MockPlatform::getMockLocalMac(),
+          MockPlatform::getMockLinkLocalIp6(),
           MacAddress("33:33:ff:00:00:02"),
           IPAddressV6("ff02::1:ff00:2"),
           IPAddressV6("2401:db00:2110:3004::2"),
@@ -667,7 +666,7 @@ TEST_F(NdpTest, RouterAdvertisement) {
   // in the generated RA packets.
   config.interfaces_ref()[0].ipAddresses_ref()->push_back(
       "2401:db00:2000:1234:1::/128");
-  auto handle = createTestHandle(&config, kPlatformMac);
+  auto handle = createTestHandle(&config, MockPlatform::getMockLocalMac());
   auto sw = handle->getSw();
   sw->initialConfigApplied(std::chrono::steady_clock::now());
 
@@ -682,8 +681,8 @@ TEST_F(NdpTest, RouterAdvertisement) {
       sw,
       "router advertisement",
       checkRouterAdvert(
-          kPlatformMac,
-          IPAddressV6("fe80::1:02ff:fe03:0405"),
+          MockPlatform::getMockLocalMac(),
+          MockPlatform::getMockLinkLocalIp6(),
           MacAddress("33:33:00:00:00:01"),
           IPAddressV6("ff02::1"),
           VlanID(5),
@@ -696,8 +695,8 @@ TEST_F(NdpTest, RouterAdvertisement) {
       sw,
       "router advertisement",
       checkRouterAdvert(
-          kPlatformMac,
-          IPAddressV6("fe80::1:02ff:fe03:0405"),
+          MockPlatform::getMockLocalMac(),
+          MockPlatform::getMockLinkLocalIp6(),
           MacAddress("02:05:73:f9:46:fc"),
           IPAddressV6("2401:db00:2110:1234::1:0"),
           VlanID(5),
@@ -742,8 +741,8 @@ TEST_F(NdpTest, RouterAdvertisement) {
       sw,
       "router advertisement",
       checkRouterAdvert(
-          kPlatformMac,
-          IPAddressV6("fe80::1:02ff:fe03:0405"),
+          MockPlatform::getMockLocalMac(),
+          MockPlatform::getMockLinkLocalIp6(),
           MacAddress("02:ab:73:f9:46:fc"),
           IPAddressV6("2401:db00:2110:1234::1:0"),
           VlanID(5),
@@ -800,8 +799,8 @@ TEST_F(NdpTest, RouterAdvertisement) {
       sw,
       "router advertisement",
       checkRouterAdvert(
-          kPlatformMac,
-          IPAddressV6("fe80::1:02ff:fe03:0405"),
+          MockPlatform::getMockLocalMac(),
+          MockPlatform::getMockLinkLocalIp6(),
           MacAddress("33:33:00:00:00:01"),
           IPAddressV6("ff02::1"),
           VlanID(5),
@@ -982,7 +981,7 @@ TEST_F(NdpTest, PendingNdp) {
   // Create a packet to a node in the attached IPv6 subnet
   auto pkt = PktUtil::parseHexData(
       // dst mac, src mac
-      "02 01 02 03 04 05  02 05 73 f9 46 fc"
+      "00 02 00 ab cd ef  02 05 73 f9 46 fc"
       // 802.1q, VLAN 5
       "81 00 00 05"
       // IPv6
@@ -1017,8 +1016,8 @@ TEST_F(NdpTest, PendingNdp) {
       sw,
       "neighbor solicitation",
       checkNeighborSolicitation(
-          MacAddress("02:01:02:03:04:05"),
-          IPAddressV6("fe80::0001:02ff:fe03:0405"),
+          MockPlatform::getMockLocalMac(),
+          MockPlatform::getMockLinkLocalIp6(),
           MacAddress("33:33:ff:01:00:00"),
           IPAddressV6("ff02::1:ff01:0"),
           IPAddressV6("2401:db00:2110:3004::1:0"),
@@ -1081,7 +1080,7 @@ TEST_F(NdpTest, PendingNdpCleanup) {
   // Create a packet to a node in the attached IPv6 subnet
   auto pkt = PktUtil::parseHexData(
       // dst mac, src mac
-      "02 01 02 03 04 05  02 05 73 f9 46 fc"
+      "00 02 00 ab cd ef  02 05 73 f9 46 fc"
       // 802.1q, VLAN 5
       "81 00 00 05"
       // IPv6
@@ -1116,8 +1115,8 @@ TEST_F(NdpTest, PendingNdpCleanup) {
       sw,
       "neighbor solicitation",
       checkNeighborSolicitation(
-          MacAddress("02:01:02:03:04:05"),
-          IPAddressV6("fe80::0001:02ff:fe03:0405"),
+          MockPlatform::getMockLocalMac(),
+          MockPlatform::getMockLinkLocalIp6(),
           MacAddress("33:33:ff:01:00:00"),
           IPAddressV6("ff02::1:ff01:0"),
           IPAddressV6("2401:db00:2110:3004::1:0"),
@@ -1141,7 +1140,7 @@ TEST_F(NdpTest, PendingNdpCleanup) {
   // Create a second packet to a node not in attached subnet, but in route table
   pkt = PktUtil::parseHexData(
       // dst mac, src mac
-      "02 01 02 03 04 05  02 05 73 f9 46 fc"
+      "00 02 00 ab cd ef  02 05 73 f9 46 fc"
       // 802.1q, VLAN 5
       "81 00 00 05"
       // IPv6
@@ -1175,8 +1174,8 @@ TEST_F(NdpTest, PendingNdpCleanup) {
       sw,
       "neighbor solicitation",
       checkNeighborSolicitation(
-          MacAddress("02:01:02:03:04:05"),
-          IPAddressV6("fe80::0001:02ff:fe03:0405"),
+          MockPlatform::getMockLocalMac(),
+          MockPlatform::getMockLinkLocalIp6(),
           MacAddress("33:33:ff:00:00:01"),
           IPAddressV6("ff02::1:ff00:1"),
           IPAddressV6("2401:db00:2110:3004::1"),
@@ -1186,8 +1185,8 @@ TEST_F(NdpTest, PendingNdpCleanup) {
       sw,
       "neighbor solicitation",
       checkNeighborSolicitation(
-          MacAddress("02:01:02:03:04:05"),
-          IPAddressV6("fe80::0001:02ff:fe03:0405"),
+          MockPlatform::getMockLocalMac(),
+          MockPlatform::getMockLinkLocalIp6(),
           MacAddress("33:33:ff:00:00:02"),
           IPAddressV6("ff02::1:ff00:2"),
           IPAddressV6("2401:db00:2110:3004::2"),
@@ -1259,7 +1258,7 @@ TEST_F(NdpTest, NdpExpiration) {
   // Create a packet to a node in the attached IPv6 subnet
   auto pkt = PktUtil::parseHexData(
       // dst mac, src mac
-      "02 01 02 03 04 05  02 05 73 f9 46 fc"
+      "00 02 00 ab cd ef  02 05 73 f9 46 fc"
       // 802.1q, VLAN 5
       "81 00 00 05"
       // IPv6
@@ -1293,8 +1292,8 @@ TEST_F(NdpTest, NdpExpiration) {
       sw,
       "neighbor solicitation",
       checkNeighborSolicitation(
-          MacAddress("02:01:02:03:04:05"),
-          IPAddressV6("fe80::0001:02ff:fe03:0405"),
+          MockPlatform::getMockLocalMac(),
+          MockPlatform::getMockLinkLocalIp6(),
           MacAddress("33:33:ff:01:00:00"),
           IPAddressV6("ff02::1:ff01:0"),
           targetIP,
@@ -1317,7 +1316,7 @@ TEST_F(NdpTest, NdpExpiration) {
   // Create a second packet to a node not in attached subnet, but in route table
   pkt = PktUtil::parseHexData(
       // dst mac, src mac
-      "02 01 02 03 04 05  02 05 73 f9 46 fc"
+      "00 02 00 ab cd ef  02 05 73 f9 46 fc"
       // 802.1q, VLAN 5
       "81 00 00 05"
       // IPv6
@@ -1349,8 +1348,8 @@ TEST_F(NdpTest, NdpExpiration) {
       sw,
       "neighbor solicitation",
       checkNeighborSolicitation(
-          MacAddress("02:01:02:03:04:05"),
-          IPAddressV6("fe80::0001:02ff:fe03:0405"),
+          MockPlatform::getMockLocalMac(),
+          MockPlatform::getMockLinkLocalIp6(),
           MacAddress("33:33:ff:00:00:01"),
           IPAddressV6("ff02::1:ff00:1"),
           targetIP2,
@@ -1360,8 +1359,8 @@ TEST_F(NdpTest, NdpExpiration) {
       sw,
       "neighbor solicitation",
       checkNeighborSolicitation(
-          MacAddress("02:01:02:03:04:05"),
-          IPAddressV6("fe80::0001:02ff:fe03:0405"),
+          MockPlatform::getMockLocalMac(),
+          MockPlatform::getMockLinkLocalIp6(),
           MacAddress("33:33:ff:00:00:02"),
           IPAddressV6("ff02::1:ff00:2"),
           targetIP3,
@@ -1432,7 +1431,7 @@ TEST_F(NdpTest, NdpExpiration) {
       sw,
       "neighbor solicitation",
       checkNeighborSolicitation(
-          MacAddress("02:01:02:03:04:05"),
+          MockPlatform::getMockLocalMac(),
           IPAddressV6("2401:db00:2110:3004::"),
           MacAddress("02:10:20:30:40:23"),
           targetIP2,
@@ -1446,7 +1445,7 @@ TEST_F(NdpTest, NdpExpiration) {
       sw,
       "neighbor solicitation",
       checkNeighborSolicitation(
-          MacAddress("02:01:02:03:04:05"),
+          MockPlatform::getMockLocalMac(),
           IPAddressV6("2401:db00:2110:3004::"),
           MacAddress("02:10:20:30:40:24"),
           targetIP3,
@@ -1490,7 +1489,7 @@ TEST_F(NdpTest, NdpExpiration) {
       sw,
       "neighbor solicitation",
       checkNeighborSolicitation(
-          MacAddress("02:01:02:03:04:05"),
+          MockPlatform::getMockLocalMac(),
           IPAddressV6("2401:db00:2110:3004::"),
           MacAddress("02:10:20:30:40:22"),
           targetIP,
@@ -1597,7 +1596,7 @@ TEST_F(NdpTest, PortFlapRecover) {
   // Create a packet to a node in the attached IPv6 subnet
   auto pkt = PktUtil::parseHexData(
       // dst mac, src mac
-      "02 01 02 03 04 05  02 05 73 f9 46 fc"
+      "00 02 00 ab cd ef  02 05 73 f9 46 fc"
       // 802.1q, VLAN 5
       "81 00 00 05"
       // IPv6
@@ -1631,8 +1630,8 @@ TEST_F(NdpTest, PortFlapRecover) {
       sw,
       "neighbor solicitation",
       checkNeighborSolicitation(
-          MacAddress("02:01:02:03:04:05"),
-          IPAddressV6("fe80::0001:02ff:fe03:0405"),
+          MockPlatform::getMockLocalMac(),
+          MockPlatform::getMockLinkLocalIp6(),
           MacAddress("33:33:ff:01:00:00"),
           IPAddressV6("ff02::1:ff01:0"),
           targetIP,
@@ -1656,7 +1655,7 @@ TEST_F(NdpTest, PortFlapRecover) {
   // Create a second packet to a node not in attached subnet, but in route table
   pkt = PktUtil::parseHexData(
       // dst mac, src mac
-      "02 01 02 03 04 05  02 05 73 f9 46 fc"
+      "00 02 00 ab cd ef  02 05 73 f9 46 fc"
       // 802.1q, VLAN 5
       "81 00 00 05"
       // IPv6
@@ -1687,8 +1686,8 @@ TEST_F(NdpTest, PortFlapRecover) {
       sw,
       "neighbor solicitation",
       checkNeighborSolicitation(
-          MacAddress("02:01:02:03:04:05"),
-          IPAddressV6("fe80::0001:02ff:fe03:0405"),
+          MockPlatform::getMockLocalMac(),
+          MockPlatform::getMockLinkLocalIp6(),
           MacAddress("33:33:ff:00:00:01"),
           IPAddressV6("ff02::1:ff00:1"),
           targetIP2,
@@ -1698,8 +1697,8 @@ TEST_F(NdpTest, PortFlapRecover) {
       sw,
       "neighbor solicitation",
       checkNeighborSolicitation(
-          MacAddress("02:01:02:03:04:05"),
-          IPAddressV6("fe80::0001:02ff:fe03:0405"),
+          MockPlatform::getMockLocalMac(),
+          MockPlatform::getMockLinkLocalIp6(),
           MacAddress("33:33:ff:00:00:02"),
           IPAddressV6("ff02::1:ff00:2"),
           targetIP3,

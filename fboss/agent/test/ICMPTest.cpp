@@ -58,10 +58,7 @@ using testing::Return;
 
 namespace {
 
-const MacAddress kPlatformMac("02:01:02:03:04:05");
 const IPAddressV4 kVlanInterfaceIP("10.0.0.1");
-
-namespace {
 
 unique_ptr<HwTestHandle> setupTestHandle() {
   // Setup a default state object
@@ -70,7 +67,8 @@ unique_ptr<HwTestHandle> setupTestHandle() {
   // Set up an arp response entry for VLAN 1, 10.0.0.1,
   // so that we can detect the packet to 10.0.0.1 is for myself
   auto respTable1 = make_shared<ArpResponseTable>();
-  respTable1->setEntry(kVlanInterfaceIP, kPlatformMac, InterfaceID(1));
+  respTable1->setEntry(
+      kVlanInterfaceIP, MockPlatform::getMockLocalMac(), InterfaceID(1));
   vlans->getVlan(VlanID(1))->setArpResponseTable(respTable1);
   return createTestHandle(state);
 }
@@ -100,8 +98,6 @@ std::string genICMPv6EchoRequest(int hopLimit, size_t payloadSize) {
       "20 04 00 01" +
       payload);
 }
-
-} // unnamed namespace
 
 typedef std::function<void(Cursor* cursor, uint32_t length)> PayloadCheckFn;
 
@@ -324,6 +320,7 @@ TxMatchFn checkICMPv6PacketTooBig(
       ICMPv6Code::ICMPV6_CODE_PACKET_TOO_BIG,
       checkPayload);
 }
+} // unnamed namespace
 
 TEST(ICMPTest, TTLExceededV4) {
   auto handle = setupTestHandle();
@@ -371,16 +368,17 @@ TEST(ICMPTest, TTLExceededV4) {
   CounterCache counters(sw);
 
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
+  EXPECT_PLATFORM_CALL(sw, getLocalMac())
+      .WillRepeatedly(Return(MockPlatform::getMockLocalMac()));
 
   // We should get a ICMPv4 TTL exceeded back
   EXPECT_SWITCHED_PKT(
       sw,
       "ICMP TTL Exceeded",
       checkICMPv4TTLExceeded(
-          kPlatformMac,
+          MockPlatform::getMockLocalMac(),
           IPAddressV4("10.0.0.1"),
-          kPlatformMac,
+          MockPlatform::getMockLocalMac(),
           IPAddressV4("1.2.3.4"),
           VlanID(1),
           icmpPayload.data(),
@@ -446,16 +444,17 @@ TEST(ICMPTest, TTLExceededV4IPExtraOptions) {
       "00 00 00 00" + ipHdr + udpHdr + payload);
 
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
+  EXPECT_PLATFORM_CALL(sw, getLocalMac())
+      .WillRepeatedly(Return(MockPlatform::getMockLocalMac()));
 
   // We should get a ICMPv4 TTL exceeded back
   EXPECT_SWITCHED_PKT(
       sw,
       "ICMP TTL Exceeded",
       checkICMPv4TTLExceeded(
-          kPlatformMac,
+          MockPlatform::getMockLocalMac(),
           IPAddressV4("10.0.0.1"),
-          kPlatformMac,
+          MockPlatform::getMockLocalMac(),
           IPAddressV4("1.2.3.4"),
           VlanID(1),
           icmpPayload.data(),
@@ -544,16 +543,17 @@ void runTTLExceededV6Test(size_t requestedPayloadSize) {
   CounterCache counters(sw);
 
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
+  EXPECT_PLATFORM_CALL(sw, getLocalMac())
+      .WillRepeatedly(Return(MockPlatform::getMockLocalMac()));
 
   // We should get a ICMPv6 TTL exceeded back
   EXPECT_SWITCHED_PKT(
       sw,
       "ICMP TTL Exceeded",
       checkICMPv6TTLExceeded(
-          kPlatformMac,
+          MockPlatform::getMockLocalMac(),
           IPAddressV6("2401:db00:2110:3001::0001"),
-          kPlatformMac,
+          MockPlatform::getMockLocalMac(),
           IPAddressV6("2401:db00:2110:3004::a"),
           VlanID(1),
           expectedPayload.data(),
@@ -678,7 +678,8 @@ TEST(ICMPTest, PacketTooBigV6) {
   CounterCache counters(sw);
 
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
+  EXPECT_PLATFORM_CALL(sw, getLocalMac())
+      .WillRepeatedly(Return(MockPlatform::getMockLocalMac()));
   EXPECT_SWITCHED_PKT(
       sw,
       "ICMPv6 Packet Too Big",
@@ -700,5 +701,3 @@ TEST(ICMPTest, PacketTooBigV6) {
   counters.checkDelta(
       SwitchStats::kCounterPrefix + "trapped.packet_too_big.sum", 1);
 }
-
-} // namespace

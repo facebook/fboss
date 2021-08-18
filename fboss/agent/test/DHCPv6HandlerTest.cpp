@@ -50,8 +50,6 @@ namespace {
 
 // Address constants to be used to simulate DHCPV6 client and server
 
-// System's MAC address
-const MacAddress kPlatformMac("00:02:00:ab:cd:ef");
 // DHCP client's MAC Address
 const string kClientMacStr{"02 00 00 93 b5 1a"};
 const MacAddress kClientMac("02:00:00:93:b5:1a");
@@ -250,8 +248,8 @@ TxMatchFn checkDHCPV6Request(
     IPAddressV6 dhcpV6RelaySrc,
     IPAddressV6 dhcpV6Relay = kDhcpV6Relay) {
   // Initialize expected Ethernet and IPv6 addresses
-  MacAddress dstMac = kPlatformMac;
-  MacAddress srcMac = kPlatformMac;
+  MacAddress dstMac = MockPlatform::getMockLocalMac();
+  MacAddress srcMac = MockPlatform::getMockLocalMac();
   VlanID vlan(1);
   IPAddressV6 srcIp = dhcpV6RelaySrc;
   IPAddressV6 dstIp = dhcpV6Relay;
@@ -323,7 +321,7 @@ TxMatchFn checkDHCPV6RelayReply(
     VlanID vlan = VlanID(1)) {
   // Initialize expected Ethernet and IPv6 addresses
   MacAddress dstMac = kClientMac;
-  MacAddress srcMac = kPlatformMac;
+  MacAddress srcMac = MockPlatform::getMockLocalMac();
   IPAddressV6 srcIp = replySrc;
   IPAddressV6 dstIp = kDhcpV6ClientLocalIp;
 
@@ -459,7 +457,6 @@ TEST(DHCPv6HandlerTest, DHCPV6Request) {
 
   // Sending an DHCP request should not trigger state update
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
 
   // Construct the DHCPV6 packet structure to pass into the validator routine
   auto dhcp6RawPktBuf = PktUtil::parseHexData(
@@ -551,7 +548,6 @@ TEST(DHCPv6HandlerOverrideTest, DHCPV6Request) {
 
   // Sending an DHCP request should not trigger state update
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
 
   // Construct the DHCPV6 packet structure to pass into the validator routine
   auto dhcp6RawPktBuf = PktUtil::parseHexData(
@@ -645,7 +641,6 @@ TEST(DHCPv6HandlerRelaySrcTest, DHCPV6Request) {
 
   // Sending an DHCP request should not trigger state update
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
 
   // Construct the DHCPV6 packet structure to pass into the validator routine
   auto dhcp6RawPktBuf = PktUtil::parseHexData(
@@ -700,7 +695,7 @@ TEST(DHCPv6HandlerTest, DHCPV6RelayReply) {
   // Server IP
   auto senderIP = kDhcpV6RelayStr;
   // Dest Router MAC
-  auto targetMac = kPlatformMac.toString();
+  auto targetMac = MockPlatform::getMockLocalMac().toString();
   std::replace(targetMac.begin(), targetMac.end(), ':', ' ');
   // Relay VLAN IP
   auto targetIP = kVlanInterfaceIPStr;
@@ -758,7 +753,6 @@ TEST(DHCPv6HandlerTest, DHCPV6RelayReply) {
 
   // Sending an DHCP request should not trigger state update
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
 
   // Construct the DHCPV6 reply packet structure to pass into the validator
   // routine
@@ -808,7 +802,7 @@ TEST(DHCPv6HandlerReplySrcTest, DHCPV6RelayReply) {
   // Server IP
   auto senderIP = kDhcpV6RelayStr;
   // Dest Router MAC
-  auto targetMac = kPlatformMac.toString();
+  auto targetMac = MockPlatform::getMockLocalMac().toString();
   std::replace(targetMac.begin(), targetMac.end(), ':', ' ');
   // Relay VLAN IP
   auto targetIP = kVlanInterfaceIPStr;
@@ -866,7 +860,6 @@ TEST(DHCPv6HandlerReplySrcTest, DHCPV6RelayReply) {
 
   // Sending an DHCP request should not trigger state update
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
 
   // Construct the DHCPV6 reply packet structure to pass into the validator
   // routine
@@ -915,12 +908,12 @@ TEST(DHCPv6HandlerTest, DHCPV6RelayForward) {
   auto vlanID = kClientVlan;
   const string vlan = kClientVlanStr;
   // Router MAC (dummy)
-  auto senderMac = kPlatformMac.toString();
+  auto senderMac = MockPlatform::getMockLocalMac().toString();
   std::replace(senderMac.begin(), senderMac.end(), ':', ' ');
   // Server IP
   auto senderIP = kDhcpV6RelaySrcStr;
   // Dest Router MAC
-  auto targetMac = kPlatformMac.toString();
+  auto targetMac = MockPlatform::getMockLocalMac().toString();
   std::replace(targetMac.begin(), targetMac.end(), ':', ' ');
   // Relay VLAN IP
   auto targetIP = kDhcpV6RelayStr;
@@ -978,7 +971,6 @@ TEST(DHCPv6HandlerTest, DHCPV6RelayForward) {
 
   // Sending an DHCP request should not trigger state update
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
 
   // Construct the DHCPV6 reply packet structure to pass into the validator
   // routine
@@ -993,8 +985,8 @@ TEST(DHCPv6HandlerTest, DHCPV6RelayForward) {
       sw,
       "DHCPV6 Relay Forward",
       checkDHCPV6RelayForward(
-          kPlatformMac,
-          kPlatformMac,
+          MockPlatform::getMockLocalMac(),
+          MockPlatform::getMockLocalMac(),
           kClientVlan,
           kDhcpV6RelaySrc,
           kDhcpV6Relay,
@@ -1079,7 +1071,6 @@ TEST(DHCPv6HandlerTest, DHCPV6BadRequest) {
 
   // Sending an DHCP request should not trigger state update
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
 
   // Inject the test packet
   sendDHCPV6Packet(
@@ -1120,7 +1111,7 @@ TEST(DHCPv6HandlerTest, DHCPV6DropRelayReply) {
   // Server IP
   auto senderIP = kDhcpV6RelayStr;
   // Dest Router MAC
-  auto targetMac = kPlatformMac.toString();
+  auto targetMac = MockPlatform::getMockLocalMac().toString();
   std::replace(targetMac.begin(), targetMac.end(), ':', ' ');
   // Relay VLAN IP
   auto targetIP = kVlanInterfaceIPStr;
@@ -1180,7 +1171,6 @@ TEST(DHCPv6HandlerTest, DHCPV6DropRelayReply) {
 
   // Sending an DHCP request should not trigger state update
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
 
   // Inject the test packet
   sendDHCPV6Packet(
@@ -1216,12 +1206,12 @@ TEST(DHCPv6HandlerTest, DHCPV6BadRelayForward) {
   auto vlanID = kClientVlan;
   const string vlan = kClientVlanStr;
   // Router MAC (dummy)
-  auto senderMac = kPlatformMac.toString();
+  auto senderMac = MockPlatform::getMockLocalMac().toString();
   std::replace(senderMac.begin(), senderMac.end(), ':', ' ');
   // Server IP
   auto senderIP = kDhcpV6RelaySrcStr;
   // Dest Router MAC
-  auto targetMac = kPlatformMac.toString();
+  auto targetMac = MockPlatform::getMockLocalMac().toString();
   std::replace(targetMac.begin(), targetMac.end(), ':', ' ');
   // Relay VLAN IP
   auto targetIP = kDhcpV6RelayStr;
@@ -1282,7 +1272,6 @@ TEST(DHCPv6HandlerTest, DHCPV6BadRelayForward) {
 
   // Sending an DHCP request should not trigger state update
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
 
   // Inject the test packet
   sendDHCPV6Packet(

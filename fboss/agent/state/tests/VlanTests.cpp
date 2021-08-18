@@ -119,8 +119,6 @@ TEST(Vlan, applyConfig) {
   config.interfaces_ref()[0].ipAddresses_ref()[0] = "10.1.1.1/24";
   config.interfaces_ref()[0].ipAddresses_ref()[1] =
       "2a03:2880:10:1f07:face:b00c:0:0/96";
-  MacAddress platformMac("82:02:00:ab:cd:ef");
-  EXPECT_CALL(*platform, getLocalMac()).WillRepeatedly(Return(platformMac));
 
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   auto vlanV2 = stateV2->getVlans()->getVlan(VlanID(1234));
@@ -135,19 +133,21 @@ TEST(Vlan, applyConfig) {
   auto arpRespTable = vlanV2->getArpResponseTable();
   ArpResponseTable expectedArpResp;
   expectedArpResp.setEntry(
-      IPAddressV4("10.1.1.1"), platformMac, InterfaceID(1));
+      IPAddressV4("10.1.1.1"), MockPlatform::getMockLocalMac(), InterfaceID(1));
   EXPECT_EQ(expectedArpResp.getTable(), arpRespTable->getTable());
   // Check the NdpResponseTable
   auto ndpRespTable = vlanV2->getNdpResponseTable();
   NdpResponseTable expectedNdpResp;
   expectedNdpResp.setEntry(
       IPAddressV6("2a03:2880:10:1f07:face:b00c:0:0"),
-      platformMac,
+      MockPlatform::getMockLocalMac(),
       InterfaceID(1));
   // The link-local IPv6 address should also have been automatically added
   // to the NDP response table.
   expectedNdpResp.setEntry(
-      IPAddressV6("fe80::8002:00ff:feab:cdef"), platformMac, InterfaceID(1));
+      MockPlatform::getMockLinkLocalIp6(),
+      MockPlatform::getMockLocalMac(),
+      InterfaceID(1));
   EXPECT_EQ(expectedNdpResp.getTable(), ndpRespTable->getTable());
 
   // Add another vlan and interface
@@ -211,9 +211,10 @@ TEST(Vlan, applyConfig) {
   EXPECT_EQ(InterfaceID(3), vlan99->getInterfaceID());
 
   ArpResponseTable expectedTable99;
-  expectedTable99.setEntry(IPAddressV4("1.2.3.4"), platformMac, InterfaceID(3));
   expectedTable99.setEntry(
-      IPAddressV4("10.0.0.1"), platformMac, InterfaceID(3));
+      IPAddressV4("1.2.3.4"), MockPlatform::getMockLocalMac(), InterfaceID(3));
+  expectedTable99.setEntry(
+      IPAddressV4("10.0.0.1"), MockPlatform::getMockLocalMac(), InterfaceID(3));
   EXPECT_EQ(
       expectedTable99.getTable(), vlan99->getArpResponseTable()->getTable());
 

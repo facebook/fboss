@@ -31,11 +31,6 @@ class SimPlatform : public Platform {
 
   std::unique_ptr<ThriftHandler> createHandler(SwSwitch* sw) override;
 
-  folly::MacAddress getLocalMac() const override {
-    // TODO(joseph5wu) Will deprecate the override version to use
-    // Platform::localMac_ directly
-    return mac_;
-  }
   std::string getVolatileStateDir() const override;
   std::string getPersistentStateDir() const override;
   TransceiverIdxThrift getPortMapping(
@@ -61,7 +56,6 @@ class SimPlatform : public Platform {
 
   void initImpl(uint32_t /*hwFeaturesDesired*/) override {}
 
-  folly::MacAddress mac_;
   std::unique_ptr<SimSwitch> hw_;
   uint32_t numPorts_;
   std::unordered_map<PortID, std::unique_ptr<SimPlatformPort>> portMapping_;

@@ -60,7 +60,6 @@ using testing::Return;
 namespace {
 const IPAddressV4 kVlanInterfaceIP("10.0.0.1");
 const IPAddressV4 kDhcpV4Relay("20.20.20.20");
-const MacAddress kPlatformMac("00:02:00:ab:cd:ef");
 const MacAddress kClientMac("02:00:00:00:00:02");
 const IPAddressV4 kClientIP("10.0.0.10");
 
@@ -77,7 +76,8 @@ shared_ptr<SwitchState> testState() {
   // Set up an arp response entry for VLAN 1, 10.0.0.1,
   // so that we can detect the packet to 10.0.0.1 is for myself
   auto respTable1 = make_shared<ArpResponseTable>();
-  respTable1->setEntry(kVlanInterfaceIP, kPlatformMac, InterfaceID(1));
+  respTable1->setEntry(
+      kVlanInterfaceIP, MockPlatform::getMockLocalMac(), InterfaceID(1));
   vlans->getVlan(VlanID(1))->setArpResponseTable(respTable1);
   vlans->getVlan(VlanID(1))->setDhcpV4Relay(kDhcpV4Relay);
   DhcpV4OverrideMap overrides;
@@ -327,7 +327,7 @@ TxMatchFn checkDHCPPkt(
 TxMatchFn checkDHCPReq(
     IPAddressV4 dhcpRelay = kDhcpV4Relay,
     IPAddressV4 dhcpRelaySrc = kVlanInterfaceIP) {
-  MacAddress dstMac = kPlatformMac;
+  MacAddress dstMac = MockPlatform::getMockLocalMac();
   VlanID vlan(1);
   IPAddressV4 srcIp = dhcpRelaySrc;
   IPAddressV4 dstIp = dhcpRelay;
@@ -392,7 +392,6 @@ TEST(DHCPv4HandlerTest, DHCPRequest) {
 
   // Sending an DHCP request should not trigger state update
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
 
   EXPECT_SWITCHED_PKT(sw, "DHCP request", checkDHCPReq());
 
@@ -432,7 +431,6 @@ TEST(DHCPv4HandlerOverrideTest, DHCPRequest) {
 
   // Sending an DHCP request should not trigger state update
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
 
   EXPECT_SWITCHED_PKT(sw, "DHCP request", checkDHCPReq(kDhcpOverride));
 
@@ -468,7 +466,6 @@ TEST(DHCPv4RelaySrcTest, DHCPRequest) {
 
   // Sending an DHCP request should not trigger state update
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
 
   EXPECT_SWITCHED_PKT(
       sw, "DHCP request", checkDHCPReq(kDhcpOverride, kDhcpV4RelaySrc));
@@ -491,7 +488,7 @@ TEST(DHCPv4HandlerTest, DHCPReply) {
   auto sw = handle->getSw();
   VlanID vlanID(55);
   // Client mac
-  auto senderMac = kPlatformMac.toString();
+  auto senderMac = MockPlatform::getMockLocalMac().toString();
   std::replace(senderMac.begin(), senderMac.end(), ':', ' ');
   auto targetMac = kClientMac.toString();
   std::replace(targetMac.begin(), targetMac.end(), ':', ' ');
@@ -515,7 +512,6 @@ TEST(DHCPv4HandlerTest, DHCPReply) {
 
   // Sending an DHCP request should not trigger state update
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
 
   EXPECT_SWITCHED_PKT(sw, "DHCP reply", checkDHCPReply());
 
@@ -543,7 +539,7 @@ TEST(DHCPv4ReplySrcTest, DHCPReply) {
   auto sw = handle->getSw();
   VlanID vlanID(55);
   // Client mac
-  auto senderMac = kPlatformMac.toString();
+  auto senderMac = MockPlatform::getMockLocalMac().toString();
   std::replace(senderMac.begin(), senderMac.end(), ':', ' ');
   auto targetMac = kClientMac.toString();
   std::replace(targetMac.begin(), targetMac.end(), ':', ' ');
@@ -567,7 +563,6 @@ TEST(DHCPv4ReplySrcTest, DHCPReply) {
 
   // Sending an DHCP request should not trigger state update
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
 
   // DHCP reply source is override to interface55's address
   EXPECT_SWITCHED_PKT(
@@ -612,7 +607,6 @@ TEST(DHCPv4HandlerTest, DHCPBadRequest) {
   // Sending an DHCP request should not trigger state update
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
   EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
 
   sendDHCPPacket(
       handle.get(),

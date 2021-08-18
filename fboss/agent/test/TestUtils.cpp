@@ -86,10 +86,6 @@ unique_ptr<SwSwitch> createMockSw(
     const std::optional<MacAddress>& mac,
     SwitchFlags flags) {
   auto platform = createMockPlatform();
-  if (mac) {
-    EXPECT_CALL(*platform.get(), getLocalMac())
-        .WillRepeatedly(Return(mac.value()));
-  }
   return setupMockSwitchWithoutHW(std::move(platform), state, flags);
 }
 

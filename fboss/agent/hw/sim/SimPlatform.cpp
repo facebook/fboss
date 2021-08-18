@@ -26,7 +26,6 @@ namespace facebook::fboss {
 
 SimPlatform::SimPlatform(folly::MacAddress mac, uint32_t numPorts)
     : Platform(nullptr, std::make_unique<SimPlatformMapping>(numPorts), mac),
-      mac_(mac),
       hw_(new SimSwitch(this, numPorts)),
       numPorts_(numPorts) {
   initPorts();

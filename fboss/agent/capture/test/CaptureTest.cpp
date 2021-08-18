@@ -36,8 +36,6 @@ using ::testing::AtLeast;
 
 namespace {
 
-const MacAddress kPlatformMac("02:01:02:03:04:05");
-
 unique_ptr<HwTestHandle> setupTestHandle() {
   // Setup the initial state object
   cfg::SwitchConfig thriftCfg;
@@ -77,7 +75,7 @@ unique_ptr<HwTestHandle> setupTestHandle() {
     thriftCfg.vlanPorts_ref()->push_back(thriftVlanPort);
   }
 
-  auto handle = createTestHandle(&thriftCfg, kPlatformMac);
+  auto handle = createTestHandle(&thriftCfg, MockPlatform::getMockLocalMac());
   handle->getSw()->initialConfigApplied(std::chrono::steady_clock::now());
 
   return handle;

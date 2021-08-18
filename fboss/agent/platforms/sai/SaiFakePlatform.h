@@ -34,8 +34,6 @@ class SaiFakePlatform : public SaiPlatform {
         FlexPortMode::FOURX10G};
   }
 
-  folly::MacAddress getLocalMac() const override;
-
   std::optional<sai_port_interface_type_t> getInterfaceType(
       TransmitterTechnology /*transmitterTech*/,
       cfg::PortSpeed /*speed*/) const override {

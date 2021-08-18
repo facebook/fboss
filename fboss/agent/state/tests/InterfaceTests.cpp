@@ -177,15 +177,15 @@ TEST(Interface, applyConfig) {
   EXPECT_EQ(MacAddress("00:02:00:12:34:56"), interface->getMac());
   // Use the platform supplied MAC
   config.interfaces_ref()[0].mac_ref().reset();
-  MacAddress platformMac("00:02:00:ab:cd:ef");
-  EXPECT_CALL(*platform, getLocalMac()).WillRepeatedly(Return(platformMac));
+  EXPECT_CALL(*platform, getLocalMac())
+      .WillRepeatedly(Return(MockPlatform::getMockLocalMac()));
   updateState();
   EXPECT_EQ(nodeID, interface->getNodeID());
   EXPECT_EQ(oldInterface->getGeneration() + 1, interface->getGeneration());
   EXPECT_EQ(oldInterface->getVlanID(), interface->getVlanID());
   EXPECT_EQ(oldInterface->getRouterID(), interface->getRouterID());
   EXPECT_EQ(oldInterface->getName(), interface->getName());
-  EXPECT_EQ(platformMac, interface->getMac());
+  EXPECT_EQ(platform->getLocalMac(), interface->getMac());
   // Interface will be updated based on new MAC Address
   EXPECT_NE(oldInterface->getAddresses(), interface->getAddresses());
 

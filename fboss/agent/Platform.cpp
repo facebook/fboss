@@ -110,18 +110,9 @@ void Platform::init(
     uint32_t hwFeaturesDesired) {
   // take ownership of the config if passed in
   config_ = std::move(config);
-  std::ignore = getLocalMac();
   initImpl(hwFeaturesDesired);
   // We should always initPorts() here instead of leaving the hw/ to call
   initPorts();
-}
-
-folly::MacAddress Platform::getLocalMac() const {
-  static std::optional<folly::MacAddress> kLocalMac;
-  if (!kLocalMac.has_value()) {
-    kLocalMac = getLocalMacAddress();
-  }
-  return kLocalMac.value();
 }
 
 void Platform::getProductInfo(ProductInfo& info) {

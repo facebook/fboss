@@ -58,11 +58,6 @@ HwAsic* SaiFakePlatform::getAsic() const {
 
 SaiFakePlatform::~SaiFakePlatform() {}
 
-folly::MacAddress SaiFakePlatform::getLocalMac() const {
-  static const folly::MacAddress kLocalMac("02:00:00:00:00:01");
-  return kLocalMac;
-}
-
 const std::set<sai_api_t>& SaiFakePlatform::getSupportedApiList() const {
   return SaiApiTable::getInstance()->getFullApiList();
 }

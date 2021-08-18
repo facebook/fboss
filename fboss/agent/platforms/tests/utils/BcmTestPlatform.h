@@ -39,7 +39,6 @@ class BcmTestPlatform : public BcmPlatform {
   void stop() override;
   std::unique_ptr<ThriftHandler> createHandler(SwSwitch* sw) override;
 
-  folly::MacAddress getLocalMac() const override;
   virtual std::vector<FlexPortMode> getSupportedFlexPortModes() const = 0;
 
   void onUnitCreate(int unit) override;

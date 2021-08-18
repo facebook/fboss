@@ -72,10 +72,6 @@ std::unique_ptr<ThriftHandler> BcmTestPlatform::createHandler(
   return nullptr;
 }
 
-MacAddress BcmTestPlatform::getLocalMac() const {
-  return utility::kLocalCpuMac();
-}
-
 void BcmTestPlatform::onUnitAttach(int /*unit*/) {
   // Nothing to do
 }

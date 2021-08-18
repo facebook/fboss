@@ -34,7 +34,6 @@ using ::testing::_;
 
 namespace {
 
-const folly::MacAddress kPlatformMac("02:01:02:03:04:05");
 const folly::MacAddress kMac1("02:01:02:04:06:08");
 const folly::IPAddressV4 kIPv4Addr1("10.0.0.1");
 const folly::IPAddressV4 kIPv4Addr2("10.0.0.2");
@@ -52,7 +51,9 @@ class ColdBootPacketHandlingFixture : public ::testing::Test {
  public:
   void SetUp() override {
     handle_ = createTestHandle(
-        getColdBootState(), kPlatformMac, SwitchFlags::ENABLE_TUN);
+        getColdBootState(),
+        MockPlatform::getMockLocalMac(),
+        SwitchFlags::ENABLE_TUN);
   }
   void TearDown() override {
     handle_.reset();
@@ -119,41 +120,47 @@ class ColdBootPacketHandlingFixture : public ::testing::Test {
 };
 
 TEST_F(ColdBootPacketHandlingFixture, v4PacketUnknownInterface) {
-  packetSendUnknownInterface(
-      createV4Packet(kIPv4Addr1, kIPv4Addr2, kPlatformMac, kPlatformMac));
+  packetSendUnknownInterface(createV4Packet(
+      kIPv4Addr1,
+      kIPv4Addr2,
+      MockPlatform::getMockLocalMac(),
+      MockPlatform::getMockLocalMac()));
 }
 
 TEST_F(ColdBootPacketHandlingFixture, v6PacketUnknownInterface) {
-  packetSendUnknownInterface(
-      createV6Packet(kIPv6Addr1, kIPv6Addr2, kPlatformMac, kPlatformMac));
+  packetSendUnknownInterface(createV6Packet(
+      kIPv6Addr1,
+      kIPv6Addr2,
+      MockPlatform::getMockLocalMac(),
+      MockPlatform::getMockLocalMac()));
 }
 
 TEST_F(ColdBootPacketHandlingFixture, v4PacketNoInterface) {
-  nonLinkLocalPacketSendNoInterface(
-      createV4Packet(kIPv4Addr1, kIPv4Addr2, kMac1, kPlatformMac));
+  nonLinkLocalPacketSendNoInterface(createV4Packet(
+      kIPv4Addr1, kIPv4Addr2, kMac1, MockPlatform::getMockLocalMac()));
 }
 
 TEST_F(ColdBootPacketHandlingFixture, v6PacketNoInterface) {
-  nonLinkLocalPacketSendNoInterface(
-      createV6Packet(kIPv6Addr1, kIPv6Addr2, kMac1, kPlatformMac));
+  nonLinkLocalPacketSendNoInterface(createV6Packet(
+      kIPv6Addr1, kIPv6Addr2, kMac1, MockPlatform::getMockLocalMac()));
 }
 
 TEST_F(ColdBootPacketHandlingFixture, v4McastPacketNoInterface) {
-  nonLinkLocalPacketSendNoInterface(
-      createV4Packet(kIPv4Addr1, kIPv4McastAddr, kMac1, kPlatformMac));
+  nonLinkLocalPacketSendNoInterface(createV4Packet(
+      kIPv4Addr1, kIPv4McastAddr, kMac1, MockPlatform::getMockLocalMac()));
 }
 
 TEST_F(ColdBootPacketHandlingFixture, v6McastPacketNoInterface) {
-  nonLinkLocalPacketSendNoInterface(
-      createV6Packet(kIPv6Addr1, kIPv6McastAddr, kMac1, kPlatformMac));
+  nonLinkLocalPacketSendNoInterface(createV6Packet(
+      kIPv6Addr1, kIPv6McastAddr, kMac1, MockPlatform::getMockLocalMac()));
 }
 
 TEST_F(ColdBootPacketHandlingFixture, v4LinkLocalPacketNoInterface) {
-  linkLocalPacketSendNoInterface(
-      createV4Packet(kIPv4Addr1, kIPv4LinkLocalAddr, kMac1, kPlatformMac));
+  linkLocalPacketSendNoInterface(createV4Packet(
+      kIPv4Addr1, kIPv4LinkLocalAddr, kMac1, MockPlatform::getMockLocalMac()));
 }
 
 TEST_F(ColdBootPacketHandlingFixture, v6LinkLocalPacketNoInterface) {
-  linkLocalPacketSendNoInterface(
-      createV6Packet(kIPv6Addr1, kIPv6LinkLocalAddr, kMac1, kPlatformMac));
+  linkLocalPacketSendNoInterface(createV6Packet(
+      kIPv6Addr1, kIPv6LinkLocalAddr, kMac1, MockPlatform::getMockLocalMac()));
 }
