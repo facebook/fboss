@@ -17,6 +17,7 @@
 
 #include "fboss/agent/types.h"
 
+#include <chrono>
 #include <map>
 
 namespace facebook::fboss {
@@ -81,6 +82,7 @@ class SaiPhyManager : public PhyManager {
       saiPlatforms_;
 };
 
+using namespace std::chrono;
 template <typename platformT, typename xphychipT>
 void SaiPhyManager::initializeSlotPhysImpl(PimID pimID) {
   if (const auto pimPhyMap = xphyMap_.find(pimID);
@@ -89,6 +91,7 @@ void SaiPhyManager::initializeSlotPhysImpl(PimID pimID) {
       auto saiPlatform = static_cast<platformT*>(getSaiPlatform(phy.first));
 
       XLOG(DBG2) << "About to initialize phy of global phyId:" << phy.first;
+      steady_clock::time_point begin = steady_clock::now();
       // Create CredoF104 sai switch
       auto credoF104 = static_cast<xphychipT*>(getExternalPhy(phy.first));
       // Set CredoF104's customized switch attributes before calling init
@@ -102,6 +105,11 @@ void SaiPhyManager::initializeSlotPhysImpl(PimID pimID) {
       saiSwitch->init(credoF104, true /* failHwCallsOnWarmboot */);
       credoF104->setSwitchId(saiSwitch->getSwitchId());
       credoF104->dump();
+      XLOG(DBG2)
+          << "Finished initializing phy of global phyId:" << phy.first
+          << ", switchId:" << saiSwitch->getSwitchId() << " took "
+          << duration_cast<milliseconds>(steady_clock::now() - begin).count()
+          << "ms";
     }
   }
 }
