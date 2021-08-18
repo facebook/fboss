@@ -142,19 +142,9 @@ SwitchFlags Initializer::setupFlags() {
 void Initializer::initImpl() {
   auto startTime = steady_clock::now();
   std::lock_guard<mutex> g(initLock_);
-  // Determining the local MAC address can also take a few seconds the first
-  // time it is called, so perform this operation asynchronously, in parallel
-  // with the switch initialization.
-  auto ret = std::async(std::launch::async, &Platform::getLocalMac, platform_);
-
   // Initialize the switch.  This operation can take close to a minute
   // on some of our current platforms.
   sw_->init(nullptr, setupFlags());
-
-  // Wait for the local MAC address to be available.
-  ret.wait();
-  auto localMac = ret.get();
-  XLOG(INFO) << "local MAC is " << localMac;
 
   sw_->applyConfig("apply initial config");
   // Enable route update logging for all routes so that when we are told
