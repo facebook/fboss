@@ -38,6 +38,33 @@ WRAP_REMOVE_FUNC(macsec_flow, SAI_OBJECT_TYPE_MACSEC_FLOW, macsec);
 WRAP_SET_ATTR_FUNC(macsec_flow, SAI_OBJECT_TYPE_MACSEC_FLOW, macsec);
 WRAP_GET_ATTR_FUNC(macsec_flow, SAI_OBJECT_TYPE_MACSEC_FLOW, macsec);
 
+sai_status_t wrap_get_macsec_port_stats(
+    sai_object_id_t macsec_port_id,
+    uint32_t number_of_counters,
+    const sai_stat_id_t* counter_ids,
+    uint64_t* counters) {
+  return SaiTracer::getInstance()->macsecApi_->get_macsec_port_stats(
+      macsec_port_id, number_of_counters, counter_ids, counters);
+}
+
+sai_status_t wrap_get_macsec_sa_stats(
+    sai_object_id_t macsec_sa_id,
+    uint32_t number_of_counters,
+    const sai_stat_id_t* counter_ids,
+    uint64_t* counters) {
+  return SaiTracer::getInstance()->macsecApi_->get_macsec_sa_stats(
+      macsec_sa_id, number_of_counters, counter_ids, counters);
+}
+
+sai_status_t wrap_get_macsec_flow_stats(
+    sai_object_id_t macsec_flow_id,
+    uint32_t number_of_counters,
+    const sai_stat_id_t* counter_ids,
+    uint64_t* counters) {
+  return SaiTracer::getInstance()->macsecApi_->get_macsec_flow_stats(
+      macsec_flow_id, number_of_counters, counter_ids, counters);
+}
+
 sai_macsec_api_t* wrappedMacsecApi() {
   static sai_macsec_api_t macsecWrappers;
 
@@ -50,11 +77,13 @@ sai_macsec_api_t* wrappedMacsecApi() {
   macsecWrappers.remove_macsec_port = &wrap_remove_macsec_port;
   macsecWrappers.set_macsec_port_attribute = &wrap_set_macsec_port_attribute;
   macsecWrappers.get_macsec_port_attribute = &wrap_get_macsec_port_attribute;
+  macsecWrappers.get_macsec_port_stats = &wrap_get_macsec_port_stats;
 
   macsecWrappers.create_macsec_sa = &wrap_create_macsec_sa;
   macsecWrappers.remove_macsec_sa = &wrap_remove_macsec_sa;
   macsecWrappers.set_macsec_sa_attribute = &wrap_set_macsec_sa_attribute;
   macsecWrappers.get_macsec_sa_attribute = &wrap_get_macsec_sa_attribute;
+  macsecWrappers.get_macsec_sa_stats = &wrap_get_macsec_sa_stats;
 
   macsecWrappers.create_macsec_sc = &wrap_create_macsec_sc;
   macsecWrappers.remove_macsec_sc = &wrap_remove_macsec_sc;
@@ -65,6 +94,7 @@ sai_macsec_api_t* wrappedMacsecApi() {
   macsecWrappers.remove_macsec_flow = &wrap_remove_macsec_flow;
   macsecWrappers.set_macsec_flow_attribute = &wrap_set_macsec_flow_attribute;
   macsecWrappers.get_macsec_flow_attribute = &wrap_get_macsec_flow_attribute;
+  macsecWrappers.get_macsec_flow_stats = &wrap_get_macsec_flow_stats;
 
   return &macsecWrappers;
 }

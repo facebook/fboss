@@ -63,10 +63,19 @@ struct SaiMacsecPortTraits {
       std::tuple<Attributes::PortID, Attributes::MacsecDirection>;
   using CreateAttributes =
       std::tuple<Attributes::PortID, Attributes::MacsecDirection>;
+  static constexpr std::array<sai_stat_id_t, 12> CounterIdsToRead = {
+      SAI_MACSEC_PORT_STAT_PRE_MACSEC_DROP_PKTS,
+      SAI_MACSEC_PORT_STAT_CONTROL_PKTS,
+      SAI_MACSEC_PORT_STAT_DATA_PKTS,
+  };
+  static constexpr std::array<sai_stat_id_t, 0> CounterIdsToReadAndClear = {};
 };
 
 SAI_ATTRIBUTE_NAME(MacsecPort, PortID)
 SAI_ATTRIBUTE_NAME(MacsecPort, MacsecDirection)
+
+template <>
+struct SaiObjectHasStats<SaiMacsecPortTraits> : public std::true_type {};
 
 struct SaiMacsecSATraits {
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_MACSEC_SA;
@@ -133,6 +142,8 @@ struct SaiMacsecSATraits {
       SAI_MACSEC_SA_STAT_IN_PKTS_UNUSED_SA,
       SAI_MACSEC_SA_STAT_IN_PKTS_OK,
   };
+
+  static constexpr std::array<sai_stat_id_t, 0> CounterIdsToReadAndClear = {};
 };
 
 SAI_ATTRIBUTE_NAME(MacsecSA, AssocNum)
@@ -253,6 +264,7 @@ struct SaiMacsecFlowTraits {
       SAI_MACSEC_FLOW_STAT_IN_PKTS_UNKNOWN_SCI,
       SAI_MACSEC_FLOW_STAT_IN_PKTS_OVERRUN,
   };
+  static constexpr std::array<sai_stat_id_t, 0> CounterIdsToReadAndClear = {};
 };
 
 SAI_ATTRIBUTE_NAME(MacsecFlow, MacsecDirection)
@@ -388,6 +400,30 @@ class MacsecApi : public SaiApi<MacsecApi> {
       uint64_t* counters) const {
     return api_->get_macsec_flow_stats(
         key, num_of_counters, counter_ids, counters);
+  }
+
+  sai_status_t _getStats(
+      MacsecPortSaiId key,
+      uint32_t num_of_counters,
+      const sai_stat_id_t* counter_ids,
+      sai_stats_mode_t mode,
+      uint64_t* counters) const {
+    return api_->get_macsec_port_stats(
+        key, num_of_counters, counter_ids, counters);
+  }
+
+  sai_status_t _clearStats(
+      MacsecSASaiId key,
+      uint32_t num_of_counters,
+      const sai_stat_id_t* counter_ids) const {
+    return api_->clear_macsec_sa_stats(key, num_of_counters, counter_ids);
+  }
+
+  sai_status_t _clearStats(
+      MacsecFlowSaiId key,
+      uint32_t num_of_counters,
+      const sai_stat_id_t* counter_ids) const {
+    return api_->clear_macsec_flow_stats(key, num_of_counters, counter_ids);
   }
 
   sai_macsec_api_t* api_;
