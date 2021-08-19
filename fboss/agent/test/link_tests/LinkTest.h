@@ -17,12 +17,6 @@ class LinkTest : public AgentTest {
       uint32_t retries = 60,
       std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
           std::chrono::milliseconds(1000)) const;
-  void waitForLinkStatus(
-      const std::vector<PortID>& portsToCheck,
-      bool up,
-      uint32_t retries = 60,
-      std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
-          std::chrono::milliseconds(1000)) const;
   bool lldpNeighborsOnAllCabledPorts() const;
   /*
    * Get pairs of ports connected to each other
@@ -34,7 +28,6 @@ class LinkTest : public AgentTest {
    * null LLDP neighbors. We pick that up here to extract cabled ports
    */
   const std::vector<PortID>& getCabledPorts() const;
-  std::vector<std::string> getPortNames(const std::vector<PortID>& ports) const;
   boost::container::flat_set<PortDescriptor> getVlanOwningCabledPorts() const;
   /*
    * Assert no in discards occured on any of the switch ports.

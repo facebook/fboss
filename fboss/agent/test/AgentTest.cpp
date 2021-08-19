@@ -1,6 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include "fboss/agent/test/AgentTest.h"
+#include <folly/gen/Base.h>
 #include "fboss/agent/Main.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -79,6 +80,46 @@ void AgentTest::setPortStatus(PortID portId, bool up) {
   sw()->updateStateBlocking("set port state", configFnLinkDown);
 }
 
+// Returns the port names for a given list of portIDs
+std::vector<std::string> AgentTest::getPortNames(
+    const std::vector<PortID>& ports) const {
+  return folly::gen::from(ports) | folly::gen::map([&](PortID port) {
+           return sw()->getState()->getPort(port)->getName();
+         }) |
+      folly::gen::as<std::vector<std::string>>();
+}
+
+// Waits till the link status of the passed in ports reaches
+// the expected state
+void AgentTest::waitForLinkStatus(
+    const std::vector<PortID>& portsToCheck,
+    bool up,
+    uint32_t retries,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
+  XLOG(INFO) << "Checking link status on "
+             << folly::join(",", getPortNames(portsToCheck));
+  auto portStatus = sw()->getPortStatus();
+  std::vector<PortID> badPorts;
+  while (retries--) {
+    badPorts.clear();
+    for (const auto& port : portsToCheck) {
+      if (*portStatus[port].up_ref() != up) {
+        std::this_thread::sleep_for(msBetweenRetry);
+        portStatus = sw()->getPortStatus();
+        badPorts.push_back(port);
+      }
+    }
+    if (badPorts.empty()) {
+      return;
+    }
+  }
+
+  auto msg = folly::format(
+      "Unexpected Link status {:d} for {:s}",
+      !up,
+      folly::join(",", getPortNames(badPorts)));
+  throw FbossError(msg);
+}
 void AgentTest::setupConfigFlag() {
   // Nothing to setup by default
 }

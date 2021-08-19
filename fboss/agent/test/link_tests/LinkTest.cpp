@@ -1,7 +1,6 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include <folly/String.h>
-#include <folly/gen/Base.h>
 #include <gflags/gflags.h>
 
 #include "fboss/agent/AgentConfig.h"
@@ -43,38 +42,6 @@ void LinkTest::waitForAllCabledPorts(
   waitForLinkStatus(getCabledPorts(), up, retries, msBetweenRetry);
 }
 
-// Waits till the link status of the passed in ports reaches
-// the expected state
-void LinkTest::waitForLinkStatus(
-    const std::vector<PortID>& portsToCheck,
-    bool up,
-    uint32_t retries,
-    std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
-  XLOG(INFO) << "Checking link status on "
-             << folly::join(",", getPortNames(getCabledPorts()));
-  auto portStatus = sw()->getPortStatus();
-  std::vector<PortID> badPorts;
-  while (retries--) {
-    badPorts.clear();
-    for (const auto& port : portsToCheck) {
-      if (*portStatus[port].up_ref() != up) {
-        std::this_thread::sleep_for(msBetweenRetry);
-        portStatus = sw()->getPortStatus();
-        badPorts.push_back(port);
-      }
-    }
-    if (badPorts.empty()) {
-      return;
-    }
-  }
-
-  auto msg = folly::format(
-      "Unexpected Link status {:d} for {:s}",
-      !up,
-      folly::join(",", getPortNames(badPorts)));
-  throw FbossError(msg);
-}
-
 // Initializes the vector that holds the ports that are expected to be cabled.
 // If the expectedLLDPValues in the switch config has an entry, we expect
 // that port to take part in the test
@@ -88,15 +55,6 @@ void LinkTest::initializeCabledPorts() {
 
 const std::vector<PortID>& LinkTest::getCabledPorts() const {
   return cabledPorts_;
-}
-
-// Returns the port names for a given list of portIDs
-std::vector<std::string> LinkTest::getPortNames(
-    const std::vector<PortID>& ports) const {
-  return folly::gen::from(ports) | folly::gen::map([&](PortID port) {
-           return sw()->getState()->getPort(port)->getName();
-         }) |
-      folly::gen::as<std::vector<std::string>>();
 }
 
 boost::container::flat_set<PortDescriptor> LinkTest::getVlanOwningCabledPorts()
