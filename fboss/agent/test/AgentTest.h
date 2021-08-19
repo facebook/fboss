@@ -62,6 +62,10 @@ class AgentTest : public ::testing::Test, public AgentInitializer {
     verifyAcrossWarmBoots(
         setup, verify, []() {}, []() {});
   }
+  template <typename VERIFY_FN>
+  void verifyAcrossWarmBoots(VERIFY_FN verify) {
+    verifyAcrossWarmBoots([]() {}, verify, []() {}, []() {});
+  }
 
   template <typename CONDITION_FN>
   void checkWithRetry(

@@ -111,8 +111,6 @@ class MultiNodeLacpTest : public MultiNodeTest {
 };
 
 TEST_F(MultiNodeLacpTest, Bringup) {
-  auto setup = [=]() {};
-
   auto verify = [=]() {
     // Wait for AggPort
     waitForAggPortStatus(true);
@@ -120,8 +118,6 @@ TEST_F(MultiNodeLacpTest, Bringup) {
     // verify lacp state information
     verifyLacpState();
   };
-
-  auto setupPostWarmboot = [=]() {};
 
   auto verifyPostWarmboot = [=]() {
     auto period = PeriodicTransmissionMachine::LONG_PERIOD * 3;
@@ -131,12 +127,10 @@ TEST_F(MultiNodeLacpTest, Bringup) {
     verifyLacpState();
   };
   checkForRemoteSideRun();
-  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+  verifyAcrossWarmBoots([]() {}, verify, []() {}, verifyPostWarmboot);
 }
 
 TEST_F(MultiNodeLacpTest, LinkDown) {
-  auto setup = [=]() {};
-
   auto verify = [=]() {
     // Wait for AggPort
     waitForAggPortStatus(true);
@@ -160,11 +154,10 @@ TEST_F(MultiNodeLacpTest, LinkDown) {
     verifyLacpState();
   };
   checkForRemoteSideRun();
-  verifyAcrossWarmBoots(setup, verify);
+  verifyAcrossWarmBoots(verify);
 }
 
 TEST_F(MultiNodeLacpTest, RemoteLinkDown) {
-  auto setup = [=]() {};
   auto verify = [=]() {
     // Wait for AggPort
     waitForAggPortStatus(true);
@@ -188,7 +181,7 @@ TEST_F(MultiNodeLacpTest, RemoteLinkDown) {
     verifyLacpState();
   };
   checkForRemoteSideRun();
-  verifyAcrossWarmBoots(setup, verify);
+  verifyAcrossWarmBoots(verify);
 }
 
 TEST_F(MultiNodeLacpTest, LacpSlowFastInterop) {
@@ -216,15 +209,14 @@ TEST_F(MultiNodeLacpTest, LacpTimeout) {
     waitForAggPortStatus(true);
     // verify lacp state information
     verifyLacpState();
-  };
-
-  auto verify = [=]() {
     // stop LACP on one of the member ports
     const auto& subPortRange = getSubPorts();
     EXPECT_GE(subPortRange.size(), 2);
     auto lagMgr = sw()->getLagManager();
     lagMgr->stopLacpOnSubPort(subPortRange.back().portID);
+  };
 
+  auto verify = [=] {
     auto remoteLacpTimeout = [this](const std::shared_ptr<SwitchState>& state) {
       const auto& localPort = getSubPorts().front().portID;
       const auto& aggPort =
@@ -247,8 +239,15 @@ TEST_F(MultiNodeLacpTest, NeighborTest) {
   const auto dstIpV4 = "1.1.1.2";
   const auto dstIpV6 = "1::1";
 
-
-  auto setup = [=]() {
+  auto verifyNeighborEntries = [=]() {
+    const auto vlanId =
+        VlanID(*getConfigWithAggPort().vlanPorts_ref()[0].vlanID_ref());
+    checkNeighborResolved(
+        folly::IPAddress(dstIpV4), vlanId, PortDescriptor(kAggId));
+    checkNeighborResolved(
+        folly::IPAddress(dstIpV6), vlanId, PortDescriptor(kAggId));
+  };
+  auto verify = [=]() {
     // Wait for AggPort
     waitForAggPortStatus(true);
 
@@ -262,16 +261,13 @@ TEST_F(MultiNodeLacpTest, NeighborTest) {
         pingCmd + dstIpV4, &resultStr, &errStr));
     EXPECT_TRUE(facebook::process::Process::execShellCmd(
         pingCmd + dstIpV6, &resultStr, &errStr));
-  };
-
-  auto verify = [=]() {
-    const auto vlanId =
-        VlanID(*getConfigWithAggPort().vlanPorts_ref()[0].vlanID_ref());
-    checkNeighborResolved(
-        folly::IPAddress(dstIpV4), vlanId, PortDescriptor(kAggId));
-    checkNeighborResolved(
-        folly::IPAddress(dstIpV6), vlanId, PortDescriptor(kAggId));
+    // Verify neighbor entries
+    verifyNeighborEntries();
   };
   checkForRemoteSideRun();
-  verifyAcrossWarmBoots(setup, verify);
+  verifyAcrossWarmBoots(
+      []() {},
+      verify,
+      []() {},
+      [verifyNeighborEntries]() { verifyNeighborEntries(); });
 }
