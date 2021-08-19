@@ -463,7 +463,6 @@ if (NOT SAI_ONLY)
       fboss/agent/ApplyThriftConfig.cpp
       fboss/agent/ArpCache.cpp
       fboss/agent/ArpHandler.cpp
-      fboss/agent/StandaloneRibConversions.cpp
       fboss/agent/capture/PcapFile.cpp
       fboss/agent/capture/PcapPkt.cpp
       fboss/agent/capture/PcapQueue.cpp

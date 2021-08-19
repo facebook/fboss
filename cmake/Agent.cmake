@@ -134,7 +134,6 @@ add_library(core
   fboss/agent/RouteUpdateLogger.cpp
   fboss/agent/RouteUpdateLoggingPrefixTracker.cpp
   fboss/agent/RouteUpdateWrapper.cpp
-  fboss/agent/StandaloneRibConversions.cpp
   fboss/agent/StaticL2ForNeighborObserver.cpp
   fboss/agent/StaticL2ForNeighborUpdater.cpp
   fboss/agent/StaticL2ForNeighborSwSwitchUpdater.cpp
