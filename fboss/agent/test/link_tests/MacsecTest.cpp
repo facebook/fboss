@@ -3,6 +3,7 @@
 #include <fboss/mka_service/if/gen-cpp2/MKAService.h>
 #include <folly/dynamic.h>
 #include <folly/experimental/coro/BlockingWait.h>
+#include <folly/io/async/ScopedEventBaseThread.h>
 #include <folly/json.h>
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
@@ -13,20 +14,47 @@
 #include "fboss/agent/test/link_tests/LinkTest.h"
 #include "fboss/mka_service/if/gen-cpp2/mka_config_constants.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
+#include "fboss/qsfp_service/lib/QsfpClient.h"
 
 using namespace ::testing;
 using namespace facebook::fboss;
 using namespace facebook::fboss::mka;
 
-class MacsecTest : public LinkTest {};
+class MacsecTest : public LinkTest {
+ public:
+  std::set<PortID> getMacsecCapablePorts() const {
+    folly::ScopedEventBaseThread evbThread;
+    std::set<PortID> macsecPorts;
+    auto portsFut = QsfpClient::createClient(evbThread.getEventBase())
+                        .thenValue([](auto&& client) {
+                          return client->future_getMacsecCapablePorts();
+                        })
+                        .thenValue([&macsecPorts](auto&& portIds) {
+                          for (auto port : portIds) {
+                            macsecPorts.insert(PortID(port));
+                          }
+                        });
+    return macsecPorts;
+  }
+};
 
 TEST_F(MacsecTest, setupMkaSession) {
   auto verify = [this]() {
     checkWithRetry([this] { return lldpNeighborsOnAllCabledPorts(); });
-    auto connectedPairs = getConnectedPairs();
-    CHECK(connectedPairs.size() > 1);
-    auto port = connectedPairs.begin()->first;
-    auto neighborPort = connectedPairs.begin()->second;
+    auto macsecCapablePorts = getMacsecCapablePorts();
+    ASSERT_GT(macsecCapablePorts.size(), 1);
+    std::vector<std::pair<PortID, PortID>> connectedMacsecCapablePairs;
+    for (auto& connectedPair : getConnectedPairs()) {
+      if (macsecCapablePorts.find(connectedPair.first) !=
+              macsecCapablePorts.end() &&
+          macsecCapablePorts.find(connectedPair.second) !=
+              macsecCapablePorts.end()) {
+        connectedMacsecCapablePairs.push_back(connectedPair);
+      }
+    }
+    ASSERT_GT(connectedMacsecCapablePairs.size(), 1);
+    auto port = connectedMacsecCapablePairs.begin()->first;
+    auto neighborPort = connectedMacsecCapablePairs.begin()->second;
     XLOG(INFO) << " Port: " << port << " neighbor: " << neighborPort;
 #if FOLLY_HAS_COROUTINES
     auto evbThread = std::make_unique<folly::ScopedEventBaseThread>();
