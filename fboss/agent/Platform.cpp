@@ -41,6 +41,15 @@ DEFINE_string(
     "/var/facebook/fboss",
     "Directory for storing persistent state");
 
+DEFINE_string(
+    volatile_state_dir_phy,
+    "/dev/shm/fboss/qsfp_service/phy",
+    "Directory for storing phy volatile state");
+DEFINE_string(
+    persistent_state_dir_phy,
+    "/var/facebook/fboss/qsfp_service/phy",
+    "Directory for storing phy persistent state");
+
 namespace facebook::fboss {
 
 Platform::Platform(

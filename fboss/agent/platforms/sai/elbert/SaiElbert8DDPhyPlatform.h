@@ -30,6 +30,13 @@ class SaiElbert8DDPhyPlatform : public SaiHwPlatform {
     return pimId_;
   }
 
+  std::string getPersistentStateDir() const override {
+    return FLAGS_persistent_state_dir_phy + "/" +
+        folly::to<std::string>(phyId_);
+  }
+  std::string getVolatileStateDir() const override {
+    return FLAGS_volatile_state_dir_phy + "/" + folly::to<std::string>(phyId_);
+  }
   std::string getHwConfig() override;
   HwAsic* getAsic() const override;
   std::vector<PortID> getAllPortsInGroup(PortID portID) const override;

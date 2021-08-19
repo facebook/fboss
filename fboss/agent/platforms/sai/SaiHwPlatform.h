@@ -22,6 +22,8 @@ extern "C" {
 
 DECLARE_string(volatile_state_dir);
 DECLARE_string(persistent_state_dir);
+DECLARE_string(volatile_state_dir_phy);
+DECLARE_string(persistent_state_dir_phy);
 
 namespace facebook::fboss {
 

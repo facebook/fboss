@@ -35,6 +35,13 @@ class SaiCloudRipperPhyPlatform : public SaiHwPlatform {
   bool isSerdesApiSupported() const override;
   bool supportInterfaceType() const override;
   void initLEDs() override;
+  std::string getPersistentStateDir() const override {
+    return FLAGS_persistent_state_dir_phy + "/" +
+        folly::to<std::string>(phyId_);
+  }
+  std::string getVolatileStateDir() const override {
+    return FLAGS_volatile_state_dir_phy + "/" + folly::to<std::string>(phyId_);
+  }
 
   sai_service_method_table_t* getServiceMethodTable() const override;
 
