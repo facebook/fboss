@@ -84,20 +84,25 @@ class PhyManager {
 
   // Macsec is only supported on SAI, so only SaiPhyManager will override this.
   virtual void sakInstallTx(const mka::MKASak& /* sak */) {
-    throw FbossError("Attempted to call sakInstallTx from non-SaiPhyManager");
+    throw FbossError("sakInstallTx must be implemented by defired phyManager");
   }
   virtual void sakInstallRx(
       const mka::MKASak& /* sak */,
       const mka::MKASci& /* sci */) {
-    throw FbossError("Attempted to call sakInstallRx from non-SaiPhyManager");
+    throw FbossError("sakInstallRx must be implemented by defired phyManager");
   }
   virtual void sakDeleteRx(
       const mka::MKASak& /* sak */,
       const mka::MKASci& /* sci */) {
-    throw FbossError("Attempted to call sakDeleteRx from non-SaiPhyManager");
+    throw FbossError("sakDeleteRx must be implemented by defired phyManager");
   }
   virtual void sakDelete(const mka::MKASak& /* sak */) {
-    throw FbossError("Attempted to call sakDelete from non-SaiPhyManager");
+    throw FbossError("sakDelete must be implemented by defired phyManager");
+  }
+  virtual mka::MKASakHealthResponse sakHealthCheck(
+      const mka::MKASak /*sak*/) const {
+    throw FbossError(
+        "sakHealthCheck must be implemented by defired phyManager");
   }
 
   folly::EventBase* getPimEventBase(PimID pimID) const;
