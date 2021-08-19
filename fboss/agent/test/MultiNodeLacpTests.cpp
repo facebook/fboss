@@ -126,7 +126,6 @@ TEST_F(MultiNodeLacpTest, Bringup) {
     std::this_thread::sleep_for(period);
     verifyLacpState();
   };
-  checkForRemoteSideRun();
   verifyAcrossWarmBoots([]() {}, verify, []() {}, verifyPostWarmboot);
 }
 
@@ -153,7 +152,6 @@ TEST_F(MultiNodeLacpTest, LinkDown) {
     waitForAggPortStatus(true);
     verifyLacpState();
   };
-  checkForRemoteSideRun();
   verifyAcrossWarmBoots(verify);
 }
 
@@ -180,15 +178,17 @@ TEST_F(MultiNodeLacpTest, RemoteLinkDown) {
     waitForAggPortStatus(true);
     verifyLacpState();
   };
-  checkForRemoteSideRun();
   verifyAcrossWarmBoots(verify);
 }
 
 TEST_F(MultiNodeLacpTest, LacpSlowFastInterop) {
   auto setup = [=]() {
-    // Change Lacp to fast mode
-    sw()->applyConfig(
-        "Add AggPort fast mode", getConfigWithAggPort(cfg::LacpPortRate::FAST));
+    if (!isNodeZ()) {
+      // Change Lacp to fast mode
+      sw()->applyConfig(
+          "Add AggPort fast mode",
+          getConfigWithAggPort(cfg::LacpPortRate::FAST));
+    }
   };
 
   auto verify = [=]() {
@@ -198,7 +198,6 @@ TEST_F(MultiNodeLacpTest, LacpSlowFastInterop) {
     // verify lacp state information
     verifyLacpState();
   };
-  checkForRemoteSideRun();
   verifyAcrossWarmBoots(setup, verify);
 }
 
@@ -206,14 +205,16 @@ TEST_F(MultiNodeLacpTest, LacpSlowFastInterop) {
 // that remote side times out
 TEST_F(MultiNodeLacpTest, LacpTimeout) {
   auto setup = [=]() {
-    waitForAggPortStatus(true);
-    // verify lacp state information
-    verifyLacpState();
-    // stop LACP on one of the member ports
-    const auto& subPortRange = getSubPorts();
-    EXPECT_GE(subPortRange.size(), 2);
-    auto lagMgr = sw()->getLagManager();
-    lagMgr->stopLacpOnSubPort(subPortRange.back().portID);
+    if (!isNodeZ()) {
+      waitForAggPortStatus(true);
+      // verify lacp state information
+      verifyLacpState();
+      // stop LACP on one of the member ports
+      const auto& subPortRange = getSubPorts();
+      EXPECT_GE(subPortRange.size(), 2);
+      auto lagMgr = sw()->getLagManager();
+      lagMgr->stopLacpOnSubPort(subPortRange.back().portID);
+    }
   };
 
   auto verify = [=] {
@@ -231,7 +232,6 @@ TEST_F(MultiNodeLacpTest, LacpTimeout) {
     EXPECT_TRUE(
         waitForSwitchStateCondition(remoteLacpTimeout, 4 * kLacpLongTimeout));
   };
-  checkForRemoteSideRun();
   verifyAcrossWarmBoots(setup, verify);
 }
 
@@ -264,7 +264,6 @@ TEST_F(MultiNodeLacpTest, NeighborTest) {
     // Verify neighbor entries
     verifyNeighborEntries();
   };
-  checkForRemoteSideRun();
   verifyAcrossWarmBoots(
       []() {},
       verify,

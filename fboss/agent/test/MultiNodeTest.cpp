@@ -28,6 +28,7 @@ DEFINE_string(
     "",
     "multinode test remote switch name");
 DECLARE_bool(run_forever);
+DECLARE_bool(nodeZ);
 
 DEFINE_int32(multiNodeTestPort1, 0, "multinode test port 1");
 DEFINE_int32(multiNodeTestPort2, 0, "multinode test port 2");
@@ -61,26 +62,6 @@ void MultiNodeTest::SetUp() {
   XLOG(DBG0) << "Multinode setup ready";
 }
 
-std::unique_ptr<FbossCtrlAsyncClient> MultiNodeTest::getRemoteThriftClient() {
-  folly::EventBase* eb = folly::EventBaseManager::get()->getEventBase();
-  auto remoteSwitchIp = facebook::network::NetworkUtil::getHostByName(
-      FLAGS_multiNodeTestRemoteSwitchName);
-  folly::SocketAddress agent(remoteSwitchIp, 5909);
-  auto socket = folly::AsyncSocket::newSocket(eb, agent);
-  auto chan = HeaderClientChannel::newChannel(std::move(socket));
-  return std::make_unique<FbossCtrlAsyncClient>(std::move(chan));
-}
-
-void MultiNodeTest::checkForRemoteSideRun() {
-  // Do not tear down setup if run_forver flag is true. This is used on
-  // remote side of device under test to keep state running till DUT
-  // completes tests. Test will be terminated by the starting script
-  // by sending a SIGTERM.
-  if (FLAGS_run_forever) {
-    runForever();
-  }
-}
-
 void MultiNodeTest::checkNeighborResolved(
     const folly::IPAddress& ip,
     VlanID vlanId,
@@ -103,6 +84,20 @@ void MultiNodeTest::checkNeighborResolved(
                       ->getNdpTable()
                       ->getEntryIf(ip.asV6()));
   }
+}
+
+std::unique_ptr<FbossCtrlAsyncClient> MultiNodeTest::getRemoteThriftClient() {
+  folly::EventBase* eb = folly::EventBaseManager::get()->getEventBase();
+  auto remoteSwitchIp = facebook::network::NetworkUtil::getHostByName(
+      FLAGS_multiNodeTestRemoteSwitchName);
+  folly::SocketAddress agent(remoteSwitchIp, 5909);
+  auto socket = folly::AsyncSocket::newSocket(eb, agent);
+  auto chan = HeaderClientChannel::newChannel(std::move(socket));
+  return std::make_unique<FbossCtrlAsyncClient>(std::move(chan));
+}
+
+bool MultiNodeTest::isNodeZ() const {
+  return FLAGS_nodeZ;
 }
 
 int mulitNodeTestMain(int argc, char** argv, PlatformInitFn initPlatformFn) {

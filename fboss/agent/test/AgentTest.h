@@ -44,16 +44,20 @@ class AgentTest : public ::testing::Test, public AgentInitializer {
       setup();
     }
 
-    XLOG(INFO) << "verify()";
-    verify();
+    if (runVerification()) {
+      XLOG(INFO) << "verify()";
+      verify();
+    }
 
     if (platform()->getHwSwitch()->getBootType() == BootType::WARM_BOOT) {
       // If we did a warm boot, do post warmboot actions now
       XLOG(INFO) << "setupPostWarmboot()";
       setupPostWarmboot();
 
-      XLOG(INFO) << "verifyPostWarmboot()";
-      verifyPostWarmboot();
+      if (runVerification()) {
+        XLOG(INFO) << "verifyPostWarmboot()";
+        verifyPostWarmboot();
+      }
     }
   }
 
@@ -83,6 +87,13 @@ class AgentTest : public ::testing::Test, public AgentInitializer {
   }
 
  private:
+  /*
+   * Derived classes have the option to not run verify no
+   * certain DUTs. E.g. non controlling nodes in Multinode setups
+   */
+  virtual bool runVerification() const {
+    return true;
+  }
   std::unique_ptr<std::thread> asyncInitThread_{nullptr};
 };
 
