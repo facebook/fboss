@@ -59,6 +59,14 @@ void MultiNodeTest::setupConfigFlag() {
 
 void MultiNodeTest::SetUp() {
   AgentTest::SetUp();
+
+  if (isDUT()) {
+    // Tune this if certain tests want to WB while keeping some ports down
+    waitForLinkStatus(
+        {PortID(FLAGS_multiNodeTestPort1), PortID(FLAGS_multiNodeTestPort2)},
+        true /*up*/);
+  }
+
   XLOG(DBG0) << "Multinode setup ready";
 }
 
