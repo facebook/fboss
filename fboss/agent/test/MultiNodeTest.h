@@ -25,6 +25,10 @@ class MultiNodeTest : public AgentTest {
   std::unique_ptr<FbossCtrlAsyncClient> getRemoteThriftClient();
 
   void checkForRemoteSideRun();
+  void checkNeighborResolved(
+      const folly::IPAddress& ip,
+      VlanID vlan,
+      PortDescriptor port) const;
 
  private:
   virtual cfg::SwitchConfig initialConfig() const = 0;

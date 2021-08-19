@@ -35,11 +35,11 @@ constexpr int kLacpLongTimeout{30};
 } // unnamed namespace
 
 class MultiNodeLacpTest : public MultiNodeTest {
+ private:
   cfg::SwitchConfig initialConfig() const override {
     return getConfigWithAggPort();
   }
 
- private:
   void setupFlags() const override {
     FLAGS_enable_lacp = true;
     MultiNodeTest::setupFlags();
@@ -247,8 +247,6 @@ TEST_F(MultiNodeLacpTest, NeighborTest) {
   const auto dstIpV4 = "1.1.1.2";
   const auto dstIpV6 = "1::1";
 
-  const auto config = getConfigWithAggPort();
-  const auto vlanId = config.vlanPorts_ref()[0].vlanID_ref();
 
   auto setup = [=]() {
     // Wait for AggPort
@@ -267,21 +265,12 @@ TEST_F(MultiNodeLacpTest, NeighborTest) {
   };
 
   auto verify = [=]() {
-    auto checkNeighbor = [&](auto neighborEntry) {
-      EXPECT_NE(neighborEntry, nullptr);
-      EXPECT_EQ(neighborEntry->isPending(), false);
-      EXPECT_EQ(neighborEntry->getPort(), kAggId);
-    };
-    checkNeighbor(sw()->getState()
-                      ->getVlans()
-                      ->getVlanIf(VlanID(*vlanId))
-                      ->getArpTable()
-                      ->getEntryIf(folly::IPAddressV4(dstIpV4)));
-    checkNeighbor(sw()->getState()
-                      ->getVlans()
-                      ->getVlanIf(VlanID(*vlanId))
-                      ->getNdpTable()
-                      ->getEntryIf(folly::IPAddressV6(dstIpV6)));
+    const auto vlanId =
+        VlanID(*getConfigWithAggPort().vlanPorts_ref()[0].vlanID_ref());
+    checkNeighborResolved(
+        folly::IPAddress(dstIpV4), vlanId, PortDescriptor(kAggId));
+    checkNeighborResolved(
+        folly::IPAddress(dstIpV6), vlanId, PortDescriptor(kAggId));
   };
   checkForRemoteSideRun();
   verifyAcrossWarmBoots(setup, verify);

@@ -81,6 +81,30 @@ void MultiNodeTest::checkForRemoteSideRun() {
   }
 }
 
+void MultiNodeTest::checkNeighborResolved(
+    const folly::IPAddress& ip,
+    VlanID vlanId,
+    PortDescriptor port) const {
+  auto checkNeighbor = [&](auto neighborEntry) {
+    EXPECT_NE(neighborEntry, nullptr);
+    EXPECT_EQ(neighborEntry->isPending(), false);
+    EXPECT_EQ(neighborEntry->getPort(), port);
+  };
+  if (ip.isV4()) {
+    checkNeighbor(sw()->getState()
+                      ->getVlans()
+                      ->getVlanIf(vlanId)
+                      ->getArpTable()
+                      ->getEntryIf(ip.asV4()));
+  } else {
+    checkNeighbor(sw()->getState()
+                      ->getVlans()
+                      ->getVlanIf(vlanId)
+                      ->getNdpTable()
+                      ->getEntryIf(ip.asV6()));
+  }
+}
+
 int mulitNodeTestMain(int argc, char** argv, PlatformInitFn initPlatformFn) {
   ::testing::InitGoogleTest(&argc, argv);
   initAgentTest(argc, argv, initPlatformFn);
