@@ -12,6 +12,8 @@
 #include "fboss/agent/test/AgentTest.h"
 
 DECLARE_string(config);
+DECLARE_int32(multiNodeTestPort1);
+DECLARE_int32(multiNodeTestPort2);
 
 namespace facebook::fboss {
 

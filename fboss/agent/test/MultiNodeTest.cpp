@@ -29,6 +29,9 @@ DEFINE_string(
     "multinode test remote switch name");
 DECLARE_bool(run_forever);
 
+DEFINE_int32(multiNodeTestPort1, 0, "multinode test port 1");
+DEFINE_int32(multiNodeTestPort2, 0, "multinode test port 2");
+
 namespace facebook::fboss {
 
 // Construct a config file by combining the hw config passed

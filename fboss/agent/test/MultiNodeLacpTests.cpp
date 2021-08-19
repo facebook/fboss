@@ -25,9 +25,6 @@
 
 using namespace facebook::fboss;
 
-DEFINE_int32(multiNodeTestPort1, 0, "multinode test port 1");
-DEFINE_int32(multiNodeTestPort2, 0, "multinode test port 2");
-
 DECLARE_bool(enable_lacp);
 
 using utility::addAggPort;
