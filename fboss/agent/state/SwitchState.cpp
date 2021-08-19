@@ -36,7 +36,6 @@ namespace {
 constexpr auto kInterfaces = "interfaces";
 constexpr auto kPorts = "ports";
 constexpr auto kVlans = "vlans";
-constexpr auto kRouteTables = "routeTables";
 constexpr auto kDefaultVlan = "defaultVlan";
 constexpr auto kAcls = "acls";
 constexpr auto kSflowCollectors = "sFlowCollectors";
@@ -86,13 +85,6 @@ folly::dynamic SwitchStateFields::toFollyDynamic() const {
   switchState[kInterfaces] = interfaces->toFollyDynamic();
   switchState[kPorts] = ports->toFollyDynamic();
   switchState[kVlans] = vlans->toFollyDynamic();
-  // TODO - kill this when code for pruning route table map makes
-  // it to prod. We need to serialize a node map container, since
-  // prod pkg right now is unconditionally trying to deserialize
-  // route tables. So not having the information here will break
-  // canary off (trunk->prod rollback). Choice of a empty VlanMap
-  // to serialize is arbitrary, any empty NodeMap would do
-  switchState[kRouteTables] = VlanMap().toFollyDynamic();
   switchState[kAcls] = acls->toFollyDynamic();
   switchState[kSflowCollectors] = sFlowCollectors->toFollyDynamic();
   switchState[kDefaultVlan] = static_cast<uint32_t>(defaultVlan);
