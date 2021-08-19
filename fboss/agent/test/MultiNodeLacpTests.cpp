@@ -183,7 +183,7 @@ TEST_F(MultiNodeLacpTest, RemoteLinkDown) {
 
 TEST_F(MultiNodeLacpTest, LacpSlowFastInterop) {
   auto setup = [=]() {
-    if (!isNodeZ()) {
+    if (isDUT()) {
       // Change Lacp to fast mode
       sw()->applyConfig(
           "Add AggPort fast mode",
@@ -205,7 +205,7 @@ TEST_F(MultiNodeLacpTest, LacpSlowFastInterop) {
 // that remote side times out
 TEST_F(MultiNodeLacpTest, LacpTimeout) {
   auto setup = [=]() {
-    if (!isNodeZ()) {
+    if (isDUT()) {
       waitForAggPortStatus(true);
       // verify lacp state information
       verifyLacpState();

@@ -28,11 +28,11 @@ class MultiNodeTest : public AgentTest {
       const folly::IPAddress& ip,
       VlanID vlan,
       PortDescriptor port) const;
-  bool isNodeZ() const;
+  bool isDUT() const;
 
  private:
   bool runVerification() const override {
-    return !isNodeZ();
+    return isDUT();
   }
   virtual cfg::SwitchConfig initialConfig() const = 0;
 };

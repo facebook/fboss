@@ -96,8 +96,8 @@ std::unique_ptr<FbossCtrlAsyncClient> MultiNodeTest::getRemoteThriftClient() {
   return std::make_unique<FbossCtrlAsyncClient>(std::move(chan));
 }
 
-bool MultiNodeTest::isNodeZ() const {
-  return FLAGS_nodeZ;
+bool MultiNodeTest::isDUT() const {
+  return !FLAGS_nodeZ;
 }
 
 int mulitNodeTestMain(int argc, char** argv, PlatformInitFn initPlatformFn) {
