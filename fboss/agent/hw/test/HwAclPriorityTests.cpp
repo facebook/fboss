@@ -34,6 +34,18 @@ void addDenyPortAcl(cfg::SwitchConfig& cfg, const std::string& aclName) {
   cfg.acls_ref()->push_back(acl);
 }
 
+void addPermitIpAcl(
+    cfg::SwitchConfig& cfg,
+    const std::string& aclName,
+    folly::IPAddress ip) {
+  auto acl = cfg::AclEntry();
+  acl.name_ref() = aclName;
+  acl.actionType_ref() = cfg::AclActionType::PERMIT;
+  acl.dstIp_ref() = ip.str();
+  acl.dscp_ref() = 0x24;
+  cfg.acls_ref()->push_back(acl);
+}
+
 void addCpuPolicingDstLocalAcl(
     bool isV6,
     cfg::SwitchConfig& cfg,
@@ -176,6 +188,57 @@ TEST_F(HwAclPriorityTest, AclsChanged) {
     addCpuPolicingDstLocalMatchAction(
         config, "cpuPolicing-high-NetworkControl-dstLocalIp4");
 
+    applyNewConfig(config);
+  };
+
+  verifyAcrossWarmBoots(
+      setup, []() {}, setupPostWb, []() {});
+}
+
+TEST_F(HwAclPriorityTest, Reprioritize) {
+  auto setup = [=]() {
+    auto config = initialConfig();
+    addPermitIpAcl(config, "B", folly::IPAddress("1::2"));
+    addPermitIpAcl(config, "A", folly::IPAddress("1::3"));
+
+    cfg::CPUTrafficPolicyConfig cpuConfig;
+    cfg::TrafficPolicyConfig trafficConfig;
+    trafficConfig.matchToAction_ref()->resize(2);
+    cfg::MatchAction matchAction;
+    cfg::QueueMatchAction queueAction;
+    queueAction.queueId_ref() = 1;
+    matchAction.sendToQueue_ref() = queueAction;
+    matchAction.toCpuAction_ref() = cfg::ToCpuAction::TRAP;
+    for (int i = 0; i < 2; i++) {
+      trafficConfig.matchToAction_ref()[i].matcher_ref() =
+          *config.acls_ref()[i].name_ref();
+      trafficConfig.matchToAction_ref()[i].action_ref() = matchAction;
+    }
+    cpuConfig.trafficPolicy_ref() = trafficConfig;
+    config.cpuTrafficPolicy_ref() = cpuConfig;
+    applyNewConfig(config);
+  };
+
+  auto setupPostWb = [=]() {
+    auto config = initialConfig();
+    addPermitIpAcl(config, "A", folly::IPAddress("1::3"));
+    addPermitIpAcl(config, "B", folly::IPAddress("1::2"));
+
+    cfg::CPUTrafficPolicyConfig cpuConfig;
+    cfg::TrafficPolicyConfig trafficConfig;
+    trafficConfig.matchToAction_ref()->resize(2);
+    cfg::MatchAction matchAction;
+    cfg::QueueMatchAction queueAction;
+    queueAction.queueId_ref() = 1;
+    matchAction.sendToQueue_ref() = queueAction;
+    matchAction.toCpuAction_ref() = cfg::ToCpuAction::TRAP;
+    for (int i = 0; i < 2; i++) {
+      trafficConfig.matchToAction_ref()[i].matcher_ref() =
+          *config.acls_ref()[i].name_ref();
+      trafficConfig.matchToAction_ref()[i].action_ref() = matchAction;
+    }
+    cpuConfig.trafficPolicy_ref() = trafficConfig;
+    config.cpuTrafficPolicy_ref() = cpuConfig;
     applyNewConfig(config);
   };
 

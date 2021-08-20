@@ -845,6 +845,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       addedAclEntry->getPriority(), std::move(entryHandle));
   CHECK(inserted);
 
+  XLOG(INFO) << "added acl entry " << addedAclEntry->getID() << " priority "
+             << addedAclEntry->getPriority();
+
   return it->second->aclEntry->adapterKey();
 }
 
@@ -874,6 +877,8 @@ void SaiAclTableManager::removeAclEntry(
   if (action && action.value().getTrafficCounter()) {
     removeAclCounter(action.value().getTrafficCounter().value());
   }
+  XLOG(INFO) << "removed acl  entry " << removedAclEntry->getID()
+             << " priority " << removedAclEntry->getPriority();
 }
 
 void SaiAclTableManager::removeAclCounter(
@@ -893,6 +898,7 @@ void SaiAclTableManager::changedAclEntry(
    * ASIC/SAI implementation typically does not allow modifying an ACL entry.
    * Thus, remove and re-add.
    */
+  XLOG(INFO) << "changing acl entry " << oldAclEntry->getID();
   removeAclEntry(oldAclEntry, aclTableName);
   addAclEntry(newAclEntry, aclTableName);
 }
