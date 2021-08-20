@@ -7,11 +7,13 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/HwTest.h"
 
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
+#include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -30,6 +32,44 @@ void addDenyPortAcl(cfg::SwitchConfig& cfg, const std::string& aclName) {
   *acl.actionType_ref() = cfg::AclActionType::DENY;
   acl.dscp_ref() = 0x24;
   cfg.acls_ref()->push_back(acl);
+}
+
+void addCpuPolicingDstLocalAcl(
+    bool isV6,
+    cfg::SwitchConfig& cfg,
+    const std::string& aclName) {
+  auto acl = cfg::AclEntry();
+  acl.name_ref() = aclName;
+  acl.actionType_ref() = cfg::AclActionType::PERMIT;
+  acl.lookupClassNeighbor_ref() = isV6
+      ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6
+      : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4;
+  acl.dscp_ref() = 48;
+  cfg.acls_ref()->push_back(acl);
+}
+
+void addCpuPolicingDstLocalMatchAction(
+    cfg::SwitchConfig& cfg,
+    const std::string& aclName) {
+  auto matchAction = cfg::MatchToAction();
+
+  matchAction.matcher_ref() = aclName;
+  cfg::QueueMatchAction queueMatchAction;
+  queueMatchAction.queueId_ref() = 7;
+
+  matchAction.action_ref()->sendToQueue_ref() = queueMatchAction;
+  matchAction.action_ref()->toCpuAction_ref() = cfg::ToCpuAction::TRAP;
+  if (!cfg.cpuTrafficPolicy_ref()) {
+    cfg.cpuTrafficPolicy_ref() = cfg::CPUTrafficPolicyConfig();
+  }
+  if (!cfg.cpuTrafficPolicy_ref()->trafficPolicy_ref()) {
+    cfg.cpuTrafficPolicy_ref()->trafficPolicy_ref() =
+        cfg::TrafficPolicyConfig();
+  }
+  cfg.cpuTrafficPolicy_ref()
+      ->trafficPolicy_ref()
+      ->matchToAction_ref()
+      ->push_back(matchAction);
 }
 
 } // unnamed namespace
@@ -110,4 +150,36 @@ TEST_F(HwAclPriorityTest, AclNameChange) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(HwAclPriorityTest, AclsChanged) {
+  auto setup = [this]() {
+    auto config = initialConfig();
+    addCpuPolicingDstLocalAcl(
+        true, config, "cpuPolicing-high-NetworkControl-dstLocalIp6");
+    addCpuPolicingDstLocalAcl(
+        false, config, "cpuPolicing-high-NetworkControl-dstLocalIp4");
+    setDefaultCpuTrafficPolicyConfig(config, getPlatform()->getAsic());
+    addCpuPolicingDstLocalMatchAction(
+        config, "cpuPolicing-high-NetworkControl-dstLocalIp6");
+    addCpuPolicingDstLocalMatchAction(
+        config, "cpuPolicing-high-NetworkControl-dstLocalIp4");
+    applyNewConfig(config);
+  };
+
+  auto setupPostWb = [=]() {
+    auto config = initialConfig();
+    addCpuPolicingDstLocalAcl(
+        true, config, "cpuPolicing-high-NetworkControl-dstLocalIp6");
+    addCpuPolicingDstLocalAcl(
+        false, config, "cpuPolicing-high-NetworkControl-dstLocalIp4");
+    addCpuPolicingDstLocalMatchAction(
+        config, "cpuPolicing-high-NetworkControl-dstLocalIp6");
+    addCpuPolicingDstLocalMatchAction(
+        config, "cpuPolicing-high-NetworkControl-dstLocalIp4");
+
+    applyNewConfig(config);
+  };
+
+  verifyAcrossWarmBoots(
+      setup, []() {}, setupPostWb, []() {});
+}
 } // namespace facebook::fboss
