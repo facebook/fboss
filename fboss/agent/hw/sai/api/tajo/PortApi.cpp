@@ -28,10 +28,6 @@ std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
 }
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeSystemPortId::operator()() {
-#if !defined(TAJO_SDK_VERSION_1_38_0)
   return SAI_PORT_ATTR_EXT_SYSTEM_PORT_ID;
-#else
-  return std::nullopt;
-#endif
 }
 } // namespace facebook::fboss

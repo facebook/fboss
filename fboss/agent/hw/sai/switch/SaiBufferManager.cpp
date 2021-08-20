@@ -105,11 +105,7 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
     case HwAsic::AsicType::ASIC_TYPE_FAKE:
     case HwAsic::AsicType::ASIC_TYPE_MOCK:
     case HwAsic::AsicType::ASIC_TYPE_TAJO:
-#if !defined(TAJO_SDK_VERSION_1_38_0)
       return asic->getMMUSizeBytes();
-#else
-      return 64 * 1024 * 1024;
-#endif
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK: {
       auto constexpr kPerXpeCellsAvailable = 0x436e;
       auto constexpr kPerXpeCellsAvailableOptimized = 0x454A;
