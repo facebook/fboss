@@ -162,6 +162,7 @@ TEST_F(MultiNodeLacpTest, Bringup) {
 
 TEST_F(MultiNodeLacpTest, LinkDown) {
   auto verify = [=]() {
+    // Local port flap
     XLOG(DBG2) << "Disable an Agg member port";
     const auto& subPorts = getSubPorts();
     EXPECT_NE(subPorts.size(), 0);
@@ -176,15 +177,9 @@ TEST_F(MultiNodeLacpTest, LinkDown) {
 
     waitForAggPortStatus(true);
     verifyLacpState();
-  };
-  verifyAcrossWarmBoots(verify);
-}
 
-TEST_F(MultiNodeLacpTest, RemoteLinkDown) {
-  auto verify = [=]() {
+    // Remote port flap
     XLOG(DBG2) << "Disable an Agg member port on remote switch";
-    const auto& subPorts = getSubPorts();
-    EXPECT_NE(subPorts.size(), 0);
     const auto& remotePortID = getRemotePortID(subPorts.front().portID);
     auto client = getRemoteThriftClient();
     client->sync_setPortState(remotePortID, false);
