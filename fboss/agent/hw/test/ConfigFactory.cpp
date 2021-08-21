@@ -381,7 +381,8 @@ cfg::SwitchConfig onePortPerVlanConfig(
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& ports,
     cfg::PortLoopbackMode lbMode,
-    bool interfaceHasSubnet) {
+    bool interfaceHasSubnet,
+    bool setInterfaceMac) {
   std::map<PortID, VlanID> port2vlan;
   std::vector<VlanID> vlans;
   std::vector<PortID> vlanPorts;
@@ -398,7 +399,9 @@ cfg::SwitchConfig onePortPerVlanConfig(
     *config.interfaces_ref()[i].intfID_ref() = kBaseVlanId + i;
     *config.interfaces_ref()[i].vlanID_ref() = kBaseVlanId + i;
     *config.interfaces_ref()[i].routerID_ref() = 0;
-    config.interfaces_ref()[i].mac_ref() = getLocalCpuMacStr();
+    if (setInterfaceMac) {
+      config.interfaces_ref()[i].mac_ref() = getLocalCpuMacStr();
+    }
     config.interfaces_ref()[i].mtu_ref() = 9000;
     if (interfaceHasSubnet) {
       config.interfaces_ref()[i].ipAddresses_ref()->resize(2);
@@ -641,7 +644,10 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
    * speed update.
    */
   auto config = utility::onePortPerVlanConfig(
-      hwSwitch, uplinkMasterPorts, lbMode, interfaceHasSubnet);
+      hwSwitch,
+      uplinkMasterPorts,
+      lbMode,
+      interfaceHasSubnet);
   for (auto portId : uplinkMasterPorts) {
     utility::updatePortSpeed(*hwSwitch, config, portId, uplinkPortSpeed);
   }
