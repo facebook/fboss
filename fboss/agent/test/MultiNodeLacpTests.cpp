@@ -35,6 +35,18 @@ constexpr int kLacpLongTimeout{30};
 } // unnamed namespace
 
 class MultiNodeLacpTest : public MultiNodeTest {
+ public:
+  void SetUp() override {
+    MultiNodeTest::SetUp();
+    if (isDUT()) {
+      // Wait for AggPort
+      waitForAggPortStatus(true);
+
+      // verify lacp state information
+      verifyLacpState();
+    }
+  }
+
  private:
   cfg::SwitchConfig initialConfig() const override {
     return getConfigWithAggPort();
@@ -112,31 +124,18 @@ class MultiNodeLacpTest : public MultiNodeTest {
 
 TEST_F(MultiNodeLacpTest, Bringup) {
   auto verify = [=]() {
-    // Wait for AggPort
-    waitForAggPortStatus(true);
-
-    // verify lacp state information
-    verifyLacpState();
-  };
-
-  auto verifyPostWarmboot = [=]() {
     auto period = PeriodicTransmissionMachine::LONG_PERIOD * 3;
     // ensure that lacp session can stay up post timeout
     XLOG(DBG2) << "Waiting for LACP timeout period";
     std::this_thread::sleep_for(period);
     verifyLacpState();
   };
-  verifyAcrossWarmBoots([]() {}, verify, []() {}, verifyPostWarmboot);
+
+  verifyAcrossWarmBoots(verify);
 }
 
 TEST_F(MultiNodeLacpTest, LinkDown) {
   auto verify = [=]() {
-    // Wait for AggPort
-    waitForAggPortStatus(true);
-
-    // verify lacp state information
-    verifyLacpState();
-
     XLOG(DBG2) << "Disable an Agg member port";
     const auto& subPorts = getSubPorts();
     EXPECT_NE(subPorts.size(), 0);
@@ -157,12 +156,6 @@ TEST_F(MultiNodeLacpTest, LinkDown) {
 
 TEST_F(MultiNodeLacpTest, RemoteLinkDown) {
   auto verify = [=]() {
-    // Wait for AggPort
-    waitForAggPortStatus(true);
-
-    // verify lacp state information
-    verifyLacpState();
-
     XLOG(DBG2) << "Disable an Agg member port on remote switch";
     const auto& subPorts = getSubPorts();
     EXPECT_NE(subPorts.size(), 0);
@@ -204,20 +197,12 @@ TEST_F(MultiNodeLacpTest, LacpSlowFastInterop) {
 // Stop sending LACP on one port and verify
 // that remote side times out
 TEST_F(MultiNodeLacpTest, LacpTimeout) {
-  auto setup = [=]() {
-    if (isDUT()) {
-      waitForAggPortStatus(true);
-      // verify lacp state information
-      verifyLacpState();
-      // stop LACP on one of the member ports
-      const auto& subPortRange = getSubPorts();
-      EXPECT_GE(subPortRange.size(), 2);
-      auto lagMgr = sw()->getLagManager();
-      lagMgr->stopLacpOnSubPort(subPortRange.back().portID);
-    }
-  };
-
-  auto verify = [=] {
+  if (isDUT()) {
+    // stop LACP on one of the member ports
+    const auto& subPortRange = getSubPorts();
+    EXPECT_GE(subPortRange.size(), 2);
+    auto lagMgr = sw()->getLagManager();
+    lagMgr->stopLacpOnSubPort(subPortRange.back().portID);
     auto remoteLacpTimeout = [this](const std::shared_ptr<SwitchState>& state) {
       const auto& localPort = getSubPorts().front().portID;
       const auto& aggPort =
@@ -231,8 +216,7 @@ TEST_F(MultiNodeLacpTest, LacpTimeout) {
     // bring down both members due to minlink violation after 3 timeouts
     EXPECT_TRUE(
         waitForSwitchStateCondition(remoteLacpTimeout, 4 * kLacpLongTimeout));
-  };
-  verifyAcrossWarmBoots(setup, verify);
+  }
 }
 
 TEST_F(MultiNodeLacpTest, NeighborTest) {
@@ -248,12 +232,6 @@ TEST_F(MultiNodeLacpTest, NeighborTest) {
         folly::IPAddress(dstIpV6), vlanId, PortDescriptor(kAggId));
   };
   auto verify = [=]() {
-    // Wait for AggPort
-    waitForAggPortStatus(true);
-
-    // verify lacp state information
-    verifyLacpState();
-
     std::string pingCmd = "ping -c 5 ";
     std::string resultStr;
     std::string errStr;
