@@ -53,7 +53,7 @@ void AgentTest::runForever() const {
 bool AgentTest::waitForSwitchStateCondition(
     std::function<bool(const std::shared_ptr<SwitchState>&)> conditionFn,
     uint32_t retries,
-    std::chrono::duration<uint32_t, std::milli> msBetweenRetry) {
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
   auto newState = sw()->getState();
   while (retries--) {
     if (conditionFn(newState)) {

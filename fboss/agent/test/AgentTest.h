@@ -26,7 +26,7 @@ class AgentTest : public ::testing::Test, public AgentInitializer {
       std::function<bool(const std::shared_ptr<SwitchState>&)> conditionFn,
       uint32_t retries = 10,
       std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
-          std::chrono::milliseconds(1000));
+          std::chrono::milliseconds(1000)) const;
   void setPortStatus(PortID port, bool up);
   std::vector<std::string> getPortNames(const std::vector<PortID>& ports) const;
   void waitForLinkStatus(

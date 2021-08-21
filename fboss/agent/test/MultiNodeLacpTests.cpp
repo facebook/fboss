@@ -44,6 +44,7 @@ class MultiNodeLacpTest : public MultiNodeTest {
 
       // verify lacp state information
       verifyLacpState();
+      verifyReachability();
     }
   }
 
@@ -77,7 +78,7 @@ class MultiNodeLacpTest : public MultiNodeTest {
   }
 
   // Waits for Aggregate port to be up
-  void waitForAggPortStatus(bool portStatus) {
+  void waitForAggPortStatus(bool portStatus) const {
     auto aggPortUp = [&](const std::shared_ptr<SwitchState>& state) {
       const auto& aggPorts = state->getAggregatePorts();
       if (aggPorts && aggPorts->getAggregatePort(kAggId) &&
@@ -90,7 +91,7 @@ class MultiNodeLacpTest : public MultiNodeTest {
   }
 
   // Verify that LACP converged on all member ports
-  void verifyLacpState() {
+  void verifyLacpState() const {
     const auto& aggPort =
         sw()->getState()->getAggregatePorts()->getAggregatePort(kAggId);
     EXPECT_NE(aggPort, nullptr);
@@ -103,6 +104,31 @@ class MultiNodeLacpTest : public MultiNodeTest {
           aggPort->getPartnerState(memberAndState.first).state &
           LacpState::IN_SYNC);
     }
+  }
+  void verifyReachability() const {
+    const auto dstIpV4 = "1.1.1.2";
+    const auto dstIpV6 = "1::1";
+
+    auto verifyNeighborEntries = [=]() {
+      const auto vlanId =
+          VlanID(*getConfigWithAggPort().vlanPorts_ref()[0].vlanID_ref());
+      checkNeighborResolved(
+          folly::IPAddress(dstIpV4), vlanId, PortDescriptor(kAggId));
+      checkNeighborResolved(
+          folly::IPAddress(dstIpV6), vlanId, PortDescriptor(kAggId));
+    };
+    auto verify = [=]() {
+      std::string pingCmd = "ping -c 5 ";
+      std::string resultStr;
+      std::string errStr;
+      EXPECT_TRUE(facebook::process::Process::execShellCmd(
+          pingCmd + dstIpV4, &resultStr, &errStr));
+      EXPECT_TRUE(facebook::process::Process::execShellCmd(
+          pingCmd + dstIpV6, &resultStr, &errStr));
+      // Verify neighbor entries
+      verifyNeighborEntries();
+    };
+    verify();
   }
 
   AggregatePort::SubportsConstRange getSubPorts() {
@@ -217,34 +243,4 @@ TEST_F(MultiNodeLacpTest, LacpTimeout) {
     EXPECT_TRUE(
         waitForSwitchStateCondition(remoteLacpTimeout, 4 * kLacpLongTimeout));
   }
-}
-
-TEST_F(MultiNodeLacpTest, NeighborTest) {
-  const auto dstIpV4 = "1.1.1.2";
-  const auto dstIpV6 = "1::1";
-
-  auto verifyNeighborEntries = [=]() {
-    const auto vlanId =
-        VlanID(*getConfigWithAggPort().vlanPorts_ref()[0].vlanID_ref());
-    checkNeighborResolved(
-        folly::IPAddress(dstIpV4), vlanId, PortDescriptor(kAggId));
-    checkNeighborResolved(
-        folly::IPAddress(dstIpV6), vlanId, PortDescriptor(kAggId));
-  };
-  auto verify = [=]() {
-    std::string pingCmd = "ping -c 5 ";
-    std::string resultStr;
-    std::string errStr;
-    EXPECT_TRUE(facebook::process::Process::execShellCmd(
-        pingCmd + dstIpV4, &resultStr, &errStr));
-    EXPECT_TRUE(facebook::process::Process::execShellCmd(
-        pingCmd + dstIpV6, &resultStr, &errStr));
-    // Verify neighbor entries
-    verifyNeighborEntries();
-  };
-  verifyAcrossWarmBoots(
-      []() {},
-      verify,
-      []() {},
-      [verifyNeighborEntries]() { verifyNeighborEntries(); });
 }
