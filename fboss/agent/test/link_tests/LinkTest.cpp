@@ -132,6 +132,15 @@ PortID LinkTest::getPortID(const std::string& portName) const {
   throw FbossError("No port named: ", portName);
 }
 
+std::string LinkTest::getPortName(PortID portId) const {
+  for (auto port : *sw()->getState()->getPorts()) {
+    if (port->getID() == portId) {
+      return port->getName();
+    }
+  }
+  throw FbossError("No port with ID: ", portId);
+}
+
 std::set<std::pair<PortID, PortID>> LinkTest::getConnectedPairs() const {
   std::set<std::pair<PortID, PortID>> connectedPairs;
   for (auto cabledPort : cabledPorts_) {

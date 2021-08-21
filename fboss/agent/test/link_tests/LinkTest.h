@@ -40,6 +40,7 @@ class LinkTest : public AgentTest {
    */
   void createL3DataplaneFlood();
   PortID getPortID(const std::string& portName) const;
+  std::string getPortName(PortID port) const;
 
  private:
   void setupFlags() const override;
