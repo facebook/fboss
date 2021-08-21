@@ -248,6 +248,8 @@ void SwSwitch::stop() {
 
   routeUpdateLogger_.reset();
 
+  heartbeatWatchdog_->stop();
+  heartbeatWatchdog_.reset();
   bgThreadHeartbeat_.reset();
   updThreadHeartbeat_.reset();
   packetTxThreadHeartbeat_.reset();
@@ -522,7 +524,7 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
     stats()->bgHeartbeatDelay(delay);
     stats()->bgEventBacklog(backLog);
   };
-  bgThreadHeartbeat_ = std::make_unique<ThreadHeartbeat>(
+  bgThreadHeartbeat_ = std::make_shared<ThreadHeartbeat>(
       &backgroundEventBase_,
       "fbossBgThread",
       FLAGS_thread_heartbeat_ms,
@@ -532,7 +534,7 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
     stats()->updHeartbeatDelay(delay);
     stats()->updEventBacklog(backLog);
   };
-  updThreadHeartbeat_ = std::make_unique<ThreadHeartbeat>(
+  updThreadHeartbeat_ = std::make_shared<ThreadHeartbeat>(
       &updateEventBase_,
       "fbossUpdateThread",
       FLAGS_thread_heartbeat_ms,
@@ -542,7 +544,7 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
     stats()->packetTxHeartbeatDelay(delay);
     stats()->packetTxEventBacklog(backLog);
   };
-  packetTxThreadHeartbeat_ = std::make_unique<ThreadHeartbeat>(
+  packetTxThreadHeartbeat_ = std::make_shared<ThreadHeartbeat>(
       &packetTxEventBase_,
       "fbossPktTxThread",
       FLAGS_thread_heartbeat_ms,
@@ -552,13 +554,13 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
     stats()->lacpHeartbeatDelay(delay);
     stats()->lacpEventBacklog(backLog);
   };
-  lacpThreadHeartbeat_ = std::make_unique<ThreadHeartbeat>(
+  lacpThreadHeartbeat_ = std::make_shared<ThreadHeartbeat>(
       &lacpEventBase_,
       *folly::getThreadName(lacpThread_->get_id()),
       FLAGS_thread_heartbeat_ms,
       updateLacpThreadHeartbeatStats);
 
-  neighborCacheThreadHeartbeat_ = std::make_unique<ThreadHeartbeat>(
+  neighborCacheThreadHeartbeat_ = std::make_shared<ThreadHeartbeat>(
       &neighborCacheEventBase_,
       *folly::getThreadName(neighborCacheThread_->get_id()),
       FLAGS_thread_heartbeat_ms,
@@ -566,6 +568,15 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
         stats()->neighborCacheHeartbeatDelay(delay);
         stats()->neighborCacheEventBacklog(backlog);
       });
+
+  heartbeatWatchdog_ = std::make_unique<ThreadHeartbeatWatchdog>(
+      std::chrono::milliseconds(FLAGS_thread_heartbeat_ms * 10));
+  heartbeatWatchdog_->startMonitoringHeartbeat(bgThreadHeartbeat_);
+  heartbeatWatchdog_->startMonitoringHeartbeat(packetTxThreadHeartbeat_);
+  heartbeatWatchdog_->startMonitoringHeartbeat(updThreadHeartbeat_);
+  heartbeatWatchdog_->startMonitoringHeartbeat(lacpThreadHeartbeat_);
+  heartbeatWatchdog_->startMonitoringHeartbeat(neighborCacheThreadHeartbeat_);
+  heartbeatWatchdog_->start();
 
   setSwitchRunState(SwitchRunState::INITIALIZED);
   SwSwitchRouteUpdateWrapper(this, rib_.get()).programMinAlpmState();
