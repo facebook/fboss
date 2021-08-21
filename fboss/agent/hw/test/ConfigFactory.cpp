@@ -742,6 +742,43 @@ UplinkDownlinkPair getRswUplinkDownlinkPorts(const cfg::SwitchConfig& config) {
 }
 
 /*
+ * Generic function to separate uplinks and downlinks, given a HwSwitch* and a
+ * SwitchConfig.
+ *
+ * Calls already-defined RSW helper functions if HwSwitch* is an RSW platform,
+ * otherwise separates the config's ports.
+ */
+UplinkDownlinkPair getAllUplinkDownlinkPorts(
+    const HwSwitch* hwSwitch,
+    const cfg::SwitchConfig& config,
+    int kEcmpWidth) {
+  auto platMode = hwSwitch->getPlatform()->getMode();
+  if (isRswPlatform(platMode)) {
+    return getRswUplinkDownlinkPorts(config);
+  }
+
+  // If the platform is not an RSW, consider the first kEcmpWidth-many ports to
+  // be uplinks and the rest to be downlinks.
+  // First populate masterPorts with all ports, analogous to
+  // masterLogicalPortIds, then slice uplinks/downlinks according to kEcmpWidth.
+
+  // just for brevity, mostly in return statement
+  using PortList = std::vector<PortID>;
+  PortList masterPorts;
+
+  for (const auto& port : *config.ports_ref()) {
+    if (port.get_state() == cfg::PortState::ENABLED) {
+      masterPorts.push_back(PortID(port.get_logicalID()));
+    }
+  }
+
+  auto begin = masterPorts.begin();
+  auto mid = masterPorts.begin() + kEcmpWidth;
+  auto end = masterPorts.end();
+  return std::pair(PortList(begin, mid), PortList(mid, end));
+}
+
+/*
  * Takes a SwitchConfig and returns a map of queue IDs to DSCPs.
  * Particularly useful in verifyQueueMappings, where we don't have a guarantee
  * of what the QoS policies look like and we can't rely on something like

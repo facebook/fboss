@@ -147,4 +147,9 @@ typedef std::pair<std::vector<PortID>, std::vector<PortID>> UplinkDownlinkPair;
 
 UplinkDownlinkPair getRswUplinkDownlinkPorts(const cfg::SwitchConfig& config);
 
+UplinkDownlinkPair getAllUplinkDownlinkPorts(
+    const HwSwitch* hwSwitch,
+    const cfg::SwitchConfig& config,
+    int kEcmpWidth = 4);
+
 } // namespace facebook::fboss::utility
