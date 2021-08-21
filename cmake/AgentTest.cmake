@@ -83,6 +83,8 @@ target_link_libraries(agent_test_lib
 add_library(multinode_tests
   fboss/agent/test/MultiNodeTest.cpp
   fboss/agent/test/MultiNodeLacpTests.cpp
+  fboss/agent/test/MultiNodeLoadBalancerTests.cpp
+
 )
 
 target_link_libraries(multinode_tests

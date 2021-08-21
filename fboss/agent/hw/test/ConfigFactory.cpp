@@ -382,13 +382,14 @@ cfg::SwitchConfig onePortPerVlanConfig(
     const std::vector<PortID>& ports,
     cfg::PortLoopbackMode lbMode,
     bool interfaceHasSubnet,
-    bool setInterfaceMac) {
+    bool setInterfaceMac,
+    int baseVlanId) {
   std::map<PortID, VlanID> port2vlan;
   std::vector<VlanID> vlans;
   std::vector<PortID> vlanPorts;
   auto idx = 0;
   for (auto port : ports) {
-    auto vlan = kBaseVlanId + idx++;
+    auto vlan = baseVlanId + idx++;
     port2vlan[port] = VlanID(vlan);
     vlans.push_back(VlanID(vlan));
     vlanPorts.push_back(port);
@@ -396,8 +397,8 @@ cfg::SwitchConfig onePortPerVlanConfig(
   auto config = genPortVlanCfg(hwSwitch, vlanPorts, port2vlan, vlans, lbMode);
   config.interfaces_ref()->resize(vlans.size());
   for (auto i = 0; i < vlans.size(); ++i) {
-    *config.interfaces_ref()[i].intfID_ref() = kBaseVlanId + i;
-    *config.interfaces_ref()[i].vlanID_ref() = kBaseVlanId + i;
+    *config.interfaces_ref()[i].intfID_ref() = baseVlanId + i;
+    *config.interfaces_ref()[i].vlanID_ref() = baseVlanId + i;
     *config.interfaces_ref()[i].routerID_ref() = 0;
     if (setInterfaceMac) {
       config.interfaces_ref()[i].mac_ref() = getLocalCpuMacStr();
