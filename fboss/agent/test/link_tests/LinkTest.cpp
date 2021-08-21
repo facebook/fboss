@@ -116,7 +116,7 @@ bool LinkTest::lldpNeighborsOnAllCabledPorts() const {
   auto lldpDb = sw()->getLldpMgr()->getDB();
   for (const auto& port : getCabledPorts()) {
     if (!lldpDb->getNeighbors(port).size()) {
-      XLOG(INFO) << " No lldp neighbors on : " << port;
+      XLOG(INFO) << " No lldp neighbors on : " << getPortName(port);
       return false;
     }
   }

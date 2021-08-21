@@ -93,6 +93,12 @@ SaiMacsecManager* SaiPhyManager::getMacsecManager(PortID portId) {
 }
 
 PortID SaiPhyManager::getPortId(std::string portName) {
+  try {
+    return PortID(folly::to<int>(portName));
+  } catch (const std::exception& e) {
+    XLOG(INFO) << "Unable to convert port: " << portName
+               << " to int. Looking up port id";
+  }
   auto platPorts = getPlatformMapping()->getPlatformPorts();
   for (const auto& pair : platPorts) {
     if (folly::to<std::string>(*pair.second.mapping_ref()->name_ref()) ==
