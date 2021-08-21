@@ -222,8 +222,8 @@ class HwProdInvariantsMmuLosslessTest : public HwProdInvariantsTest {
   }
 
   MacAddress dstMac() const {
-    auto vlanId = (*getProgrammedState()->getVlans()->begin())->getID();
-    return utility::getInterfaceMac(getProgrammedState(), vlanId);
+    return utility::getInterfaceMac(
+        getProgrammedState(), utility::firstVlanID(getProgrammedState()));
   }
 
   void sendTrafficInLoop() {

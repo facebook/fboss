@@ -94,6 +94,7 @@ class HwProdInvariantHelper {
   cfg::SwitchConfig initialConfig() const {
     return initialCfg_;
   }
+  std::shared_ptr<SwitchState> getProgrammedState() const;
   std::vector<std::string> getBcmCommandsToTest() const;
   void verifySafeDiagCmds();
   void verifyDscpToQueueMapping();

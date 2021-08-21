@@ -27,6 +27,7 @@
 #include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/state/Vlan.h"
 
 using namespace facebook::fboss;
 using folly::MacAddress;
@@ -64,6 +65,10 @@ folly::MacAddress getInterfaceMac(
 
 VlanID firstVlanID(const cfg::SwitchConfig& cfg) {
   return VlanID(*cfg.vlanPorts_ref()[0].vlanID_ref());
+}
+
+VlanID firstVlanID(const std::shared_ptr<SwitchState>& state) {
+  return (*state->getVlans()->begin())->getID();
 }
 
 std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(

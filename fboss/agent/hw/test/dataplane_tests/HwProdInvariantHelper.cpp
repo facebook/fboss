@@ -56,11 +56,15 @@ void HwProdInvariantHelper::verifyLoadBalacing() {
       kEcmpWidth, std::vector<NextHopWeight>(kEcmpWidth, 1), 25);
 }
 
+std::shared_ptr<SwitchState> HwProdInvariantHelper::getProgrammedState() const {
+  return ensemble_->getProgrammedState();
+}
+
 void HwProdInvariantHelper::sendAndVerifyPkts(
     uint16_t destPort,
     uint8_t queueId) {
   auto sendPkts = [this, destPort] {
-    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto vlanId = utility::firstVlanID(getProgrammedState());
     auto intfMac =
         utility::getInterfaceMac(ensemble_->getProgrammedState(), vlanId);
     auto dstIp = folly::IPAddress::createNetwork(
@@ -178,7 +182,7 @@ void HwProdInvariantHelper::disableTtl() {
 }
 
 void HwProdInvariantHelper::verifyQueuePerHostMapping() {
-  auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+  auto vlanId = utility::firstVlanID(getProgrammedState());
   auto intfMac =
       utility::getInterfaceMac(ensemble_->getProgrammedState(), vlanId);
   auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO());
