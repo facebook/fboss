@@ -59,7 +59,6 @@ using ::testing::Return;
 
 using namespace facebook::fboss;
 
-FOLLY_INIT_LOGGING_CONFIG("fboss=DBG6; default:async=false");
 namespace {
 
 void initSwSwitchWithFlags(SwSwitch* sw, SwitchFlags flags) {
