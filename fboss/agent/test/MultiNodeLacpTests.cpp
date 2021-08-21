@@ -220,27 +220,37 @@ TEST_F(MultiNodeLacpTest, LacpSlowFastInterop) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+class MultiNodeDisruptiveTest : public MultiNodeLacpTest {
+ public:
+  void SetUp() override {
+    MultiNodeTest::SetUp();
+  }
+};
 // Stop sending LACP on one port and verify
 // that remote side times out
-TEST_F(MultiNodeLacpTest, LacpTimeout) {
-  if (isDUT()) {
-    // stop LACP on one of the member ports
-    const auto& subPortRange = getSubPorts();
-    EXPECT_GE(subPortRange.size(), 2);
-    auto lagMgr = sw()->getLagManager();
-    lagMgr->stopLacpOnSubPort(subPortRange.back().portID);
-    auto remoteLacpTimeout = [this](const std::shared_ptr<SwitchState>& state) {
-      const auto& localPort = getSubPorts().front().portID;
-      const auto& aggPort =
-          state->getAggregatePorts()->getAggregatePort(kAggId);
-      const auto& remoteState = aggPort->getPartnerState(localPort).state;
-      const auto flagsToCheck =
-          LacpState::IN_SYNC | LacpState::COLLECTING | LacpState::DISTRIBUTING;
-      return ((remoteState & flagsToCheck) == 0);
-    };
-    // Remote side LACP should timeout on second member and
-    // bring down both members due to minlink violation after 3 timeouts
-    EXPECT_TRUE(
-        waitForSwitchStateCondition(remoteLacpTimeout, 4 * kLacpLongTimeout));
-  }
+TEST_F(MultiNodeDisruptiveTest, LacpTimeout) {
+  auto verify = [=]() {
+    if (isDUT()) {
+      // stop LACP on one of the member ports
+      const auto& subPortRange = getSubPorts();
+      EXPECT_GE(subPortRange.size(), 2);
+      auto lagMgr = sw()->getLagManager();
+      lagMgr->stopLacpOnSubPort(subPortRange.back().portID);
+      auto remoteLacpTimeout =
+          [this](const std::shared_ptr<SwitchState>& state) {
+            const auto& localPort = getSubPorts().front().portID;
+            const auto& aggPort =
+                state->getAggregatePorts()->getAggregatePort(kAggId);
+            const auto& remoteState = aggPort->getPartnerState(localPort).state;
+            const auto flagsToCheck = LacpState::IN_SYNC |
+                LacpState::COLLECTING | LacpState::DISTRIBUTING;
+            return ((remoteState & flagsToCheck) == 0);
+          };
+      // Remote side LACP should timeout on second member and
+      // bring down both members due to minlink violation after 3 timeouts
+      EXPECT_TRUE(
+          waitForSwitchStateCondition(remoteLacpTimeout, 4 * kLacpLongTimeout));
+    }
+  };
+  verifyAcrossWarmBoots(verify);
 }
