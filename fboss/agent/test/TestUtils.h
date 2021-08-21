@@ -242,6 +242,16 @@ std::string fbossHexDump(folly::StringPiece buf);
 std::string fbossHexDump(const std::string& buf);
 
 RouteNextHopSet makeNextHops(std::vector<std::string> ipStrs);
+
+template<typename AddrT>
+inline RouteNextHopSet makeNextHops(const std::vector<AddrT>& ips) {
+  std::vector<std::string> ipStrs;
+  std::for_each(ips.begin(), ips.end(), [&ipStrs](const auto& ip) {
+    ipStrs.push_back(ip.str());
+  });
+  return makeNextHops(ipStrs);
+}
+
 RouteNextHopSet makeResolvedNextHops(
     std::vector<std::pair<InterfaceID, std::string>> intfAndIP);
 

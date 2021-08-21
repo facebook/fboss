@@ -22,6 +22,8 @@
 #include "fboss/agent/test/TrunkUtils.h"
 
 #include "common/process/Process.h"
+#include "fboss/agent/RouteUpdateWrapper.h"
+
 using namespace facebook::fboss;
 
 DECLARE_bool(enable_lacp);
@@ -39,6 +41,19 @@ class MultiNodeLoadBalancerTest : public MultiNodeTest {
       // fixed to generate the right intf IPs
       // verifyReachability();
     }
+    auto addRoute = [this](auto ip, const auto& nhops) {
+      auto updater = sw()->getRouteUpdater();
+      updater.addRoute(
+          RouterID(0),
+          ip,
+          0,
+          ClientID::BGPD,
+          RouteNextHopEntry(nhops, AdminDistance::EBGP));
+      updater.program();
+    };
+
+    addRoute(folly::IPAddress("0.0.0.0"), makeNextHops(getV4Neighbors()));
+    addRoute(folly::IPAddress("::"), makeNextHops(getV6Neighbors()));
   }
 
  private:
@@ -56,6 +71,22 @@ class MultiNodeLoadBalancerTest : public MultiNodeTest {
       makeIps({"1::0", "2::0", "1.0.0.0", "2.0.0.0"});
     }
     return nbrs;
+  }
+  template <typename AddrT>
+  std::vector<AddrT> getNeighbors() const {
+    std::vector<AddrT> addrs;
+    for (auto& nbr : getNeighbors()) {
+      if (nbr.version() == AddrT().version()) {
+        addrs.push_back(AddrT(nbr.str()));
+      }
+    }
+    return addrs;
+  }
+  std::vector<folly::IPAddressV6> getV6Neighbors() const {
+    return getNeighbors<folly::IPAddressV6>();
+  }
+  std::vector<folly::IPAddressV4> getV4Neighbors() const {
+    return getNeighbors<folly::IPAddressV4>();
   }
   void verifyReachability() const {
     for (auto dstIp : getNeighbors()) {
