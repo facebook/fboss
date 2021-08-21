@@ -42,15 +42,28 @@ class MultiNodeLoadBalancerTest : public MultiNodeTest {
   }
 
  private:
-  void verifyReachability() const {
+  std::vector<folly::IPAddress> getNeighbors() const {
+    std::vector<folly::IPAddress> nbrs;
+    auto makeIps = [&nbrs](const std::vector<std::string>& nbrStrs) {
+      for (auto nbr : nbrStrs) {
+        nbrs.push_back(folly::IPAddress(nbr));
+      }
+    };
     // TODO - figure these out from config
-    auto dstIps = {"1::1", "2::1", "1.1.1.1", "2.1.1.1"};
-    for (auto dstIp : dstIps) {
+    if (isDUT()) {
+      makeIps({"1::1", "2::1", "1.0.0.1", "2.0.0.1"});
+    } else {
+      makeIps({"1::0", "2::0", "1.0.0.0", "2.0.0.0"});
+    }
+    return nbrs;
+  }
+  void verifyReachability() const {
+    for (auto dstIp : getNeighbors()) {
       std::string pingCmd = "ping -c 5 ";
       std::string resultStr;
       std::string errStr;
       EXPECT_TRUE(facebook::process::Process::execShellCmd(
-          pingCmd + dstIp, &resultStr, &errStr));
+          pingCmd + dstIp.str(), &resultStr, &errStr));
     }
   }
   cfg::SwitchConfig initialConfig() const override {
