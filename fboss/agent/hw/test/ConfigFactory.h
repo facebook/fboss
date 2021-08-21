@@ -138,4 +138,13 @@ void setPortToDefaultProfileIDMap(
 std::map<int, std::vector<uint8_t>> getOlympicQosMaps(
     const cfg::SwitchConfig& config);
 
+/*
+ * Functions to get uplinks and downlinks return a pair of vectors, which is a
+ * lot to write out, so we define a simple type that's descriptive and saves a
+ * few keystrokes.
+ */
+typedef std::pair<std::vector<PortID>, std::vector<PortID>> UplinkDownlinkPair;
+
+UplinkDownlinkPair getRswUplinkDownlinkPorts(const cfg::SwitchConfig& config);
+
 } // namespace facebook::fboss::utility

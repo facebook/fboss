@@ -709,22 +709,36 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
 }
 
 /*
- * This function pertains to RSW platforms, where all downlink ports are
- * configured to be on ingressVlan 2000. To be used anywhere it's useful, but
- * created to apply queue-per-host mapping only on downlinks during static
- * config testing.
+ * Returns a pair of vectors of the form (uplinks, downlinks). Pertains
+ * specifically to default RSW platforms, where all downlink ports are
+ * configured to be on ingressVlan 2000.
+ *
+ * Created to verify load balancing based on the switch's config, but can be
+ * used anywhere it's useful. Likely will also be used in verifying
+ * queue-per-host QoS for MHNIC platforms.
  */
-std::vector<PortID> getRswDownlinkPorts(cfg::SwitchConfig& config) {
-  std::vector<PortID> downlinks;
+UplinkDownlinkPair getRswUplinkDownlinkPorts(const cfg::SwitchConfig& config) {
+  std::vector<PortID> uplinks, downlinks;
 
-  for (const auto& vlanPort : *config.vlanPorts_ref()) {
-    auto portID = PortID(*vlanPort.logicalPort_ref());
-    if (portID == kDownlinkBaseVlanId) {
-      downlinks.push_back(portID);
+  auto confPorts = *config.ports_ref();
+  XLOG_IF(WARN, confPorts.empty()) << "no ports found in config.ports_ref()";
+
+  for (const auto& port : confPorts) {
+    auto logId = port.get_logicalID();
+    if (port.get_state() != cfg::PortState::ENABLED) {
+      continue;
+    }
+
+    auto portId = PortID(logId);
+    auto vlanId = port.get_ingressVlan();
+    if (vlanId == kDownlinkBaseVlanId) {
+      downlinks.push_back(portId);
+    } else {
+      uplinks.push_back(portId);
     }
   }
 
-  return downlinks;
+  return std::pair(uplinks, downlinks);
 }
 
 /*
