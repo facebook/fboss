@@ -77,7 +77,6 @@ void MKAServiceManager::handlePacket(std::unique_ptr<RxPacket> packet) {
     return;
   }
   folly::IOBuf* buf = packet->buf();
-  buf->trimEnd(4 /*trim FCS*/);
   TPacket pktToSend;
   pktToSend.buf_ref() = buf->moveToFbString().toStdString();
   pktToSend.timestamp_ref() = time(nullptr);
