@@ -192,6 +192,27 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     waitForStateUpdates(sw_);
   }
 
+  void addBlockedNeighbor(folly::IPAddress ipAddress) {
+    this->updateState(
+        "Update blocked neighbors ",
+        [=](const std::shared_ptr<SwitchState>& state) {
+          std::shared_ptr<SwitchState> newState{state};
+
+          auto newSwitchSettings =
+              state->getSwitchSettings()->modify(&newState);
+
+          VlanID vlan = this->kVlan();
+          auto vlanAndIp = std::make_pair(vlan, ipAddress);
+          newSwitchSettings->setBlockNeighbors({vlanAndIp});
+          return newState;
+        });
+
+    waitForStateUpdates(this->sw_);
+    this->sw_->getNeighborUpdater()->waitForPendingUpdates();
+    waitForBackgroundThread(this->sw_);
+    waitForStateUpdates(this->sw_);
+  }
+
   void verifyClassIDHelper(
       RoutePrefix<AddrT> routePrefix,
       std::optional<cfg ::AclLookupClass> classID) {
@@ -633,4 +654,14 @@ TYPED_TEST(LookupClassRouteUpdaterTest, CompeteClassIdUpdatesWithApplyConfig) {
   classIdUpdates.join();
   routeAddDel.join();
 }
+
+TYPED_TEST(LookupClassRouteUpdaterTest, AddRouteThenResolveNextHopBlock) {
+  this->addBlockedNeighbor(this->kIpAddressA());
+  this->addRoute(this->kroutePrefix1(), {this->kIpAddressA()});
+  this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
+}
+
 } // namespace facebook::fboss
