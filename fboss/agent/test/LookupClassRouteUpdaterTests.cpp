@@ -192,7 +192,7 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     waitForStateUpdates(sw_);
   }
 
-  void addBlockedNeighbor(folly::IPAddress ipAddress) {
+  void updateBlockedNeighbor(const std::vector<folly::IPAddress>& ipAddresses) {
     this->updateState(
         "Update blocked neighbors ",
         [=](const std::shared_ptr<SwitchState>& state) {
@@ -201,9 +201,11 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
           auto newSwitchSettings =
               state->getSwitchSettings()->modify(&newState);
 
-          VlanID vlan = this->kVlan();
-          auto vlanAndIp = std::make_pair(vlan, ipAddress);
-          newSwitchSettings->setBlockNeighbors({vlanAndIp});
+          std::vector<std::pair<VlanID, folly::IPAddress>> blockNeighbors;
+          for (const auto& ipAddress : ipAddresses) {
+            blockNeighbors.push_back(std::make_pair(this->kVlan(), ipAddress));
+          }
+          newSwitchSettings->setBlockNeighbors(blockNeighbors);
           return newState;
         });
 
@@ -655,11 +657,42 @@ TYPED_TEST(LookupClassRouteUpdaterTest, CompeteClassIdUpdatesWithApplyConfig) {
   routeAddDel.join();
 }
 
-TYPED_TEST(LookupClassRouteUpdaterTest, AddRouteThenResolveNextHopBlock) {
-  this->addBlockedNeighbor(this->kIpAddressA());
+TYPED_TEST(LookupClassRouteUpdaterTest, BlockNeighborAddRouteResolveToBlocked) {
+  this->updateBlockedNeighbor({this->kIpAddressA()});
   this->addRoute(this->kroutePrefix1(), {this->kIpAddressA()});
   this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
 
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
+}
+
+TYPED_TEST(LookupClassRouteUpdaterTest, AddRouteResolveNextHopThenBlock) {
+  this->addRoute(this->kroutePrefix1(), {this->kIpAddressA()});
+  this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+
+  this->updateBlockedNeighbor({this->kIpAddressA()});
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
+}
+
+TYPED_TEST(
+    LookupClassRouteUpdaterTest,
+    AddRouteThenResolveNextHopBlockFistNextHop) {
+  this->addRoute(
+      this->kroutePrefix1(), {this->kIpAddressA(), this->kIpAddressB()});
+  this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+  this->resolveNeighbor(this->kIpAddressB(), this->kMacAddressB());
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+
+  /*
+   * In the current implementation, route inherits classID of the first
+   * reachable nexthop. Thus, if that nexthop is blocked, traffic to that route
+   * stops.
+   */
+  this->updateBlockedNeighbor({this->kIpAddressA()});
   this->verifyClassIDHelper(
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
 }
