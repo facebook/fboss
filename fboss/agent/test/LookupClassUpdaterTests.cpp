@@ -123,7 +123,7 @@ class LookupClassUpdaterTest : public ::testing::Test {
           ipAddress.asV6(),
           macAddress,
           PortDescriptor(kPortID()),
-          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
           0);
     }
 
@@ -613,6 +613,26 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, ResolveThenBlockNeighbor) {
         this->kMacAddress(),
         cfg::AclLookupClass::CLASS_DROP);
   });
+}
+
+TYPED_TEST(LookupClassUpdaterNeighborTest, NeighborMacChange) {
+  // resolve neighbor
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+  this->verifyMacClassIDHelper(
+      this->kMacAddress(),
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
+      MacEntryType::STATIC_ENTRY);
+  this->verifyNeighborClassIDHelper(
+      this->getIpAddress(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+
+  // resolve neighbor to different MAC address
+  this->resolve(this->getIpAddress(), this->kMacAddress2());
+  this->verifyMacClassIDHelper(
+      this->kMacAddress2(),
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1,
+      MacEntryType::STATIC_ENTRY);
+  this->verifyNeighborClassIDHelper(
+      this->getIpAddress(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
 }
 
 TYPED_TEST(LookupClassUpdaterNeighborTest, BlockThenUnblockMultipleNeighbors) {
