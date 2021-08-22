@@ -481,7 +481,7 @@ class LookupClassUpdaterNeighborTest : public LookupClassUpdaterTest<AddrT> {
         3);
   }
 
-  void addBlockedNeighbor(IPAddress ipAddress) {
+  void updateBlockedNeighbor(const std::vector<IPAddress>& ipAddresses) {
     this->updateState(
         "Update blocked neighbors ",
         [=](const std::shared_ptr<SwitchState>& state) {
@@ -490,9 +490,11 @@ class LookupClassUpdaterNeighborTest : public LookupClassUpdaterTest<AddrT> {
           auto newSwitchSettings =
               state->getSwitchSettings()->modify(&newState);
 
-          VlanID vlan = this->kVlan();
-          auto vlanAndIp = std::make_pair(vlan, ipAddress);
-          newSwitchSettings->setBlockNeighbors({vlanAndIp});
+          std::vector<std::pair<VlanID, folly::IPAddress>> blockNeighbors;
+          for (const auto& ipAddress : ipAddresses) {
+            blockNeighbors.push_back(std::make_pair(this->kVlan(), ipAddress));
+          }
+          newSwitchSettings->setBlockNeighbors(blockNeighbors);
           return newState;
         });
 
@@ -500,6 +502,21 @@ class LookupClassUpdaterNeighborTest : public LookupClassUpdaterTest<AddrT> {
     this->sw_->getNeighborUpdater()->waitForPendingUpdates();
     waitForBackgroundThread(this->sw_);
     waitForStateUpdates(this->sw_);
+  }
+
+  void verifyMultipleBlockedNeighborHelper(
+      const std::vector<IPAddress>& blockNeighbors,
+      cfg::AclLookupClass classID1,
+      cfg::AclLookupClass classID2) {
+    this->updateBlockedNeighbor(blockNeighbors);
+    this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+      this->verifyClassIDHelper(
+          this->getIpAddress(), this->kMacAddress(), classID1);
+    });
+    this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+      this->verifyClassIDHelper(
+          this->getIpAddress2(), this->kMacAddress2(), classID2);
+    });
   }
 };
 
@@ -577,7 +594,7 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, staticL2EntriesForResolvedNeighbor) {
 }
 
 TYPED_TEST(LookupClassUpdaterNeighborTest, BlockNeighborThenResolve) {
-  this->addBlockedNeighbor(this->getIpAddress());
+  this->updateBlockedNeighbor({this->getIpAddress()});
   this->resolve(this->getIpAddress(), this->kMacAddress());
   this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
     this->verifyClassIDHelper(
@@ -589,13 +606,48 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, BlockNeighborThenResolve) {
 
 TYPED_TEST(LookupClassUpdaterNeighborTest, ResolveThenBlockNeighbor) {
   this->resolve(this->getIpAddress(), this->kMacAddress());
-  this->addBlockedNeighbor(this->getIpAddress());
+  this->updateBlockedNeighbor({this->getIpAddress()});
   this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
     this->verifyClassIDHelper(
         this->getIpAddress(),
         this->kMacAddress(),
         cfg::AclLookupClass::CLASS_DROP);
   });
+}
+
+TYPED_TEST(LookupClassUpdaterNeighborTest, BlockThenUnblockMultipleNeighbors) {
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+  this->resolve(this->getIpAddress2(), this->kMacAddress2());
+
+  // neighbor1 unblocked, neighbor2 unblocked
+  this->verifyMultipleBlockedNeighborHelper(
+      {},
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+
+  // neighbor1 blocked, neighbor2 unblocked
+  this->verifyMultipleBlockedNeighborHelper(
+      {this->getIpAddress()},
+      cfg::AclLookupClass::CLASS_DROP,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+
+  // neighbor1 blocked, neighbor2 blocked
+  this->verifyMultipleBlockedNeighborHelper(
+      {this->getIpAddress(), this->getIpAddress2()},
+      cfg::AclLookupClass::CLASS_DROP,
+      cfg::AclLookupClass::CLASS_DROP);
+
+  // neighbor1 unblocked, neighbor2 blocked
+  this->verifyMultipleBlockedNeighborHelper(
+      {this->getIpAddress2()},
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
+      cfg::AclLookupClass::CLASS_DROP);
+
+  // neighbor1 unblocked, neighbor2 unblocked
+  this->verifyMultipleBlockedNeighborHelper(
+      {},
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
 }
 
 template <typename AddrT>
