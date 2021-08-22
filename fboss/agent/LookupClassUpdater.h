@@ -116,6 +116,19 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
       const std::shared_ptr<Vlan>& vlan,
       PortID portID);
 
+  template <typename NewEntryT>
+  bool isPresentInBlockList(
+      VlanID vlanID,
+      const std::shared_ptr<NewEntryT>& newEntry);
+
+  template <typename AddrT>
+  void processBlockNeighborUpdatesHelper(
+      const std::shared_ptr<SwitchState>& switchState,
+      const std::shared_ptr<Vlan>& vlan,
+      const AddrT& ipAddress);
+
+  void processBlockNeighborUpdates(const StateDelta& stateDelta);
+
   /*
    * Methods to iterate over MacTable, ArpTable or NdpTable or table deltas.
    */

@@ -110,6 +110,23 @@ void LookupClassUpdater::initPort(
 }
 
 template <typename NewEntryT>
+bool LookupClassUpdater::isPresentInBlockList(
+    VlanID vlanID,
+    const std::shared_ptr<NewEntryT>& newEntry) {
+  if constexpr (std::is_same_v<NewEntryT, MacEntry>) {
+    // neighbor block list comprises of IPs, no MACs.
+    // processBlockNeighborUpdatesHelper handles update to MAC addresses by
+    // removing classID for neighbor IP and MAC before adding new classID for
+    // neighbor as well as MAC.
+    return false;
+  } else {
+    auto it = blockedNeighbors_.find(
+        std::make_pair(vlanID, folly::IPAddress(newEntry->getIP())));
+    return it != blockedNeighbors_.end();
+  }
+}
+
+template <typename NewEntryT>
 void LookupClassUpdater::updateNeighborClassID(
     const std::shared_ptr<SwitchState>& switchState,
     VlanID vlanID,
@@ -127,6 +144,7 @@ void LookupClassUpdater::updateNeighborClassID(
     return;
   }
 
+  auto setDropClassID = isPresentInBlockList(vlanID, newEntry);
   auto mac = newEntry->getMac();
   auto& macAndVlan2ClassIDAndRefCnt = port2MacAndVlanEntries_[port->getID()];
   auto& classID2Count = port2ClassIDAndCount_[port->getID()];
@@ -135,11 +153,16 @@ void LookupClassUpdater::updateNeighborClassID(
 
   auto iter = macAndVlan2ClassIDAndRefCnt.find(std::make_pair(mac, vlanID));
   if (iter == macAndVlan2ClassIDAndRefCnt.end()) {
-    classID = getClassIDwithMinimumNeighbors(classID2Count);
+    classID = setDropClassID ? cfg::AclLookupClass::CLASS_DROP
+                             : getClassIDwithMinimumNeighbors(classID2Count);
     macAndVlan2ClassIDAndRefCnt.insert(std::make_pair(
         std::make_pair(mac, vlanID),
         std::make_pair(classID, 1 /* initialize refCnt */)));
-    classID2Count[classID]++;
+    if (!setDropClassID) {
+      // classID2Count is maitanined to compute getClassIDwithMinimumNeighbors
+      // CLASS_DROP is not part of that computation.
+      classID2Count[classID]++;
+    }
   } else {
     auto& [_classID, refCnt] = iter->second;
     classID = _classID;
@@ -528,9 +551,17 @@ void LookupClassUpdater::removeNeighborFromLocalCacheForEntry(
 
   refCnt--;
 
+  bool isDropClassID = removedEntry->getClassID().has_value() &&
+      removedEntry->getClassID().value() == cfg::AclLookupClass::CLASS_DROP;
+
   if (refCnt == 0) {
-    classID2Count[classID]--;
-    CHECK_GE(classID2Count[classID], 0);
+    if (!isDropClassID) {
+      // classID2Count is maitanined to compute getClassIDwithMinimumNeighbors
+      // CLASS_DROP is not part of that computation.
+      classID2Count[classID]--;
+      CHECK_GE(classID2Count[classID], 0);
+    }
+
     macAndVlan2ClassIDAndRefCnt.erase(std::make_pair(mac, vlanID));
   }
 }
@@ -601,6 +632,107 @@ void LookupClassUpdater::updateStateObserverLocalCache(
   }
 }
 
+template <typename AddrT>
+void LookupClassUpdater::processBlockNeighborUpdatesHelper(
+    const std::shared_ptr<SwitchState>& switchState,
+    const std::shared_ptr<Vlan>& vlan,
+    const AddrT& ipAddress) {
+  using NeighborEntryT = std::conditional_t<
+      std::is_same<AddrT, folly::IPAddressV4>::value,
+      ArpEntry,
+      NdpEntry>;
+  std::shared_ptr<NeighborEntryT> neighborEntry;
+
+  neighborEntry = getTable<AddrT>(vlan)->getEntryIf(ipAddress);
+  if (!neighborEntry) {
+    return;
+  }
+
+  // Remove classID for neighbor entry and corresponding MAC
+  removeClassIDForPortAndMac(switchState, vlan->getID(), neighborEntry);
+  std::shared_ptr<MacEntry> macEntry = nullptr;
+  if (neighborEntry->isReachable()) {
+    macEntry = vlan->getMacTable()->getNodeIf(neighborEntry->getMac());
+    if (macEntry) {
+      removeClassIDForPortAndMac(switchState, vlan->getID(), macEntry);
+    }
+  }
+
+  // Re-Add classID for neighbor entry and corresponding MAC
+  // If CLASS_DROP was removed, queue-per-host CLASS would be added here and
+  // vice versa.
+  //
+  // N.B. LookupClassUpdater stores MAC address to classID mapping.
+  // neighbor block list comprises of IPs, no MACs.
+  //
+  // Thus, first re-add neighbor IP: if the neighbor is blocked,
+  // LookupClassUpdater would store neighbor's MAC to CLASS_DROP mapping.
+  // Then, re-add neighbor MAC: this finds the MAC to CLASS_DROP mapping and
+  // increments the refCnt, and thus does not seach for the least used classID.
+  updateNeighborClassID(switchState, vlan->getID(), neighborEntry);
+  if (macEntry) {
+    updateNeighborClassID(switchState, vlan->getID(), macEntry);
+  }
+}
+
+void LookupClassUpdater::processBlockNeighborUpdates(
+    const StateDelta& stateDelta) {
+  auto newState = stateDelta.newState();
+  /*
+   * Set of currently blocked neighbors: set A
+   * New set of neighbors to block: set B
+   *
+   * A - B: set of neighbors to unblock
+   * B - A: set of neighbors to block
+   *
+   * In this case:
+   *  A is blockedNeighbors_
+   *  B is newState->getSwitchSettings()->getBlockNeighbors()
+   *
+   *  Approach:
+   *   - Compute symmetric difference (disjunctive union) i.e. set of elements
+   *     which are in either A or B, but not in their intersection.
+   *   - Update blockedNeighbors_ to newState's blockNeighbors.
+   *   - For every neighbor in the symmetric difference, remove classID
+   *     associated with it and re-add (update) classID.
+   *   - update classID method assigns CLASS_DROP if neighbor is part of
+   *     blockedNeighbors_ and a queue-per-host class otherwise.
+   *
+   *  Thus, the below loop can process A-B as well as B-A.
+   */
+
+  std::set<std::pair<VlanID, folly::IPAddress>> newBlockedNeighbors;
+  for (const auto& [vlanID, ipAddress] :
+       newState->getSwitchSettings()->getBlockNeighbors()) {
+    newBlockedNeighbors.insert(std::make_pair(vlanID, ipAddress));
+  }
+
+  std::vector<std::pair<VlanID, folly::IPAddress>> toBeUpdatedBlockNeighbors;
+  std::set_symmetric_difference(
+      blockedNeighbors_.begin(),
+      blockedNeighbors_.end(),
+      newBlockedNeighbors.begin(),
+      newBlockedNeighbors.end(),
+      std::inserter(
+          toBeUpdatedBlockNeighbors, toBeUpdatedBlockNeighbors.end()));
+
+  blockedNeighbors_ = newBlockedNeighbors;
+  for (const auto& [vlanID, ipAddress] : toBeUpdatedBlockNeighbors) {
+    auto vlan = newState->getVlans()->getVlanIf(vlanID);
+    if (!vlan) {
+      continue;
+    }
+
+    if (ipAddress.isV4()) {
+      processBlockNeighborUpdatesHelper<folly::IPAddressV4>(
+          newState, vlan, ipAddress.asV4());
+    } else {
+      processBlockNeighborUpdatesHelper<folly::IPAddressV6>(
+          newState, vlan, ipAddress.asV6());
+    }
+  }
+}
+
 void LookupClassUpdater::stateUpdated(const StateDelta& stateDelta) {
   if (!inited_) {
     updateStateObserverLocalCache(stateDelta.newState());
@@ -609,6 +741,7 @@ void LookupClassUpdater::stateUpdated(const StateDelta& stateDelta) {
 
   VlanTableDeltaCallbackGenerator::genCallbacks(stateDelta, *this);
   processPortUpdates(stateDelta);
+  processBlockNeighborUpdates(stateDelta);
 }
 
 } // namespace facebook::fboss
