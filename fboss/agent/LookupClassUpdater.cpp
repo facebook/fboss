@@ -649,6 +649,7 @@ void LookupClassUpdater::processBlockNeighborUpdatesHelper(
       ArpEntry,
       NdpEntry>;
   std::shared_ptr<NeighborEntryT> neighborEntry;
+  std::shared_ptr<NeighborEntryT> linkLocalEntry = nullptr;
 
   neighborEntry = getTable<AddrT>(vlan)->getEntryIf(ipAddress);
   if (!neighborEntry) {
@@ -657,6 +658,16 @@ void LookupClassUpdater::processBlockNeighborUpdatesHelper(
 
   // Remove classID for neighbor entry and corresponding MAC
   removeClassIDForPortAndMac(switchState, vlan->getID(), neighborEntry);
+
+  if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
+    auto linkLocalIpAddress = folly::IPAddressV6(
+        folly::IPAddressV6::LINK_LOCAL, neighborEntry->getMac());
+    linkLocalEntry = getTable<AddrT>(vlan)->getEntryIf(linkLocalIpAddress);
+    if (linkLocalEntry) {
+      removeClassIDForPortAndMac(switchState, vlan->getID(), linkLocalEntry);
+    }
+  }
+
   std::shared_ptr<MacEntry> macEntry = nullptr;
   if (neighborEntry->isReachable()) {
     macEntry = vlan->getMacTable()->getNodeIf(neighborEntry->getMac());
@@ -677,6 +688,10 @@ void LookupClassUpdater::processBlockNeighborUpdatesHelper(
   // Then, re-add neighbor MAC: this finds the MAC to CLASS_DROP mapping and
   // increments the refCnt, and thus does not seach for the least used classID.
   updateNeighborClassID(switchState, vlan->getID(), neighborEntry);
+  if (linkLocalEntry) {
+    updateNeighborClassID(switchState, vlan->getID(), linkLocalEntry);
+  }
+
   if (macEntry) {
     updateNeighborClassID(switchState, vlan->getID(), macEntry);
   }
