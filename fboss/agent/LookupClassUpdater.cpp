@@ -576,6 +576,7 @@ void LookupClassUpdater::updateStateObserverLocalCacheForEntry(
   auto& macAndVlan2ClassIDAndRefCnt = port2MacAndVlanEntries_[portID];
   auto& classID2Count = port2ClassIDAndCount_[portID];
   auto classID = newEntry->getClassID().value();
+  auto isDropClassID = (classID == cfg::AclLookupClass::CLASS_DROP);
   auto mac = newEntry->getMac();
 
   auto iter = macAndVlan2ClassIDAndRefCnt.find(std::make_pair(mac, vlanID));
@@ -583,7 +584,13 @@ void LookupClassUpdater::updateStateObserverLocalCacheForEntry(
     macAndVlan2ClassIDAndRefCnt.insert(std::make_pair(
         std::make_pair(mac, vlanID),
         std::make_pair(classID, 1 /* initialize refCnt */)));
-    classID2Count[classID]++;
+
+    if (!isDropClassID) {
+      // classID2Count is maitanined to compute getClassIDwithMinimumNeighbors
+      // CLASS_DROP is not part of that computation.
+      classID2Count[classID]++;
+    }
+
     XLOG(DBG2) << "Create neighbor entry for port: " << portID
                << " , mac: " << mac.toString() << " , vlan: " << vlanID
                << ", classId: " << static_cast<int>(classID);
