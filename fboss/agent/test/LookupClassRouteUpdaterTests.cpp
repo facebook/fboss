@@ -697,4 +697,47 @@ TYPED_TEST(
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
 }
 
+TYPED_TEST(LookupClassRouteUpdaterTest, MultipleRoutesBlockUnblockNexthop) {
+  this->addRoute(this->kroutePrefix1(), {this->kIpAddressA()});
+  this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+
+  this->addRoute(this->kroutePrefix2(), {this->kIpAddressB()});
+  this->resolveNeighbor(this->kIpAddressB(), this->kMacAddressB());
+
+  // route1's nexthop unblocked, route2's nexthop unblocked
+  this->updateBlockedNeighbor({});
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  this->verifyClassIDHelper(
+      this->kroutePrefix2(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+
+  // route1's nexthop blocked, route2's nexthop unblocked
+  this->updateBlockedNeighbor({this->kIpAddressA()});
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
+  this->verifyClassIDHelper(
+      this->kroutePrefix2(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+
+  // route1's nexthop blocked, route2's nexthop blocked
+  this->updateBlockedNeighbor({this->kIpAddressA(), this->kIpAddressB()});
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
+  this->verifyClassIDHelper(
+      this->kroutePrefix2(), cfg::AclLookupClass::CLASS_DROP);
+
+  // route1's nexthop unblocked, route2's nexthop blocked
+  this->updateBlockedNeighbor({this->kIpAddressB()});
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  this->verifyClassIDHelper(
+      this->kroutePrefix2(), cfg::AclLookupClass::CLASS_DROP);
+
+  // route1's nexthop unblocked, route2's nexthop unblocked
+  this->updateBlockedNeighbor({});
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  this->verifyClassIDHelper(
+      this->kroutePrefix2(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+}
+
 } // namespace facebook::fboss
