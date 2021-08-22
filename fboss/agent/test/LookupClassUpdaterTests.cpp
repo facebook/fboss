@@ -635,6 +635,44 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, NeighborMacChange) {
       this->getIpAddress(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
 }
 
+TYPED_TEST(LookupClassUpdaterNeighborTest, NeighborBlockMacChange) {
+  // resolve neighbor
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+  this->verifyMacClassIDHelper(
+      this->kMacAddress(),
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
+      MacEntryType::STATIC_ENTRY);
+  this->verifyNeighborClassIDHelper(
+      this->getIpAddress(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+
+  // block neighbor
+  this->updateBlockedNeighbor({this->getIpAddress()});
+  this->verifyMacClassIDHelper(
+      this->kMacAddress(),
+      cfg::AclLookupClass::CLASS_DROP,
+      MacEntryType::STATIC_ENTRY);
+  this->verifyNeighborClassIDHelper(
+      this->getIpAddress(), cfg::AclLookupClass::CLASS_DROP);
+
+  // resolve blocked neighbor to different MAC address
+  this->resolve(this->getIpAddress(), this->kMacAddress2());
+  this->verifyMacClassIDHelper(
+      this->kMacAddress2(),
+      cfg::AclLookupClass::CLASS_DROP,
+      MacEntryType::STATIC_ENTRY);
+  this->verifyNeighborClassIDHelper(
+      this->getIpAddress(), cfg::AclLookupClass::CLASS_DROP);
+
+  // unblock neighbor
+  this->updateBlockedNeighbor({});
+  this->verifyMacClassIDHelper(
+      this->kMacAddress2(),
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
+      MacEntryType::STATIC_ENTRY);
+  this->verifyNeighborClassIDHelper(
+      this->getIpAddress(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+}
+
 TYPED_TEST(LookupClassUpdaterNeighborTest, BlockThenUnblockMultipleNeighbors) {
   this->resolve(this->getIpAddress(), this->kMacAddress());
   this->resolve(this->getIpAddress2(), this->kMacAddress2());
