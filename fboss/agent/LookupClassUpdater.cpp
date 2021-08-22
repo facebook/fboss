@@ -660,6 +660,7 @@ void LookupClassUpdater::processBlockNeighborUpdatesHelper(
   removeClassIDForPortAndMac(switchState, vlan->getID(), neighborEntry);
 
   if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
+    // Derive link local IP from resolved neighbor's MAC
     auto linkLocalIpAddress = folly::IPAddressV6(
         folly::IPAddressV6::LINK_LOCAL, neighborEntry->getMac());
     linkLocalEntry = getTable<AddrT>(vlan)->getEntryIf(linkLocalIpAddress);
@@ -677,16 +678,6 @@ void LookupClassUpdater::processBlockNeighborUpdatesHelper(
   }
 
   // Re-Add classID for neighbor entry and corresponding MAC
-  // If CLASS_DROP was removed, queue-per-host CLASS would be added here and
-  // vice versa.
-  //
-  // N.B. LookupClassUpdater stores MAC address to classID mapping.
-  // neighbor block list comprises of IPs, no MACs.
-  //
-  // Thus, first re-add neighbor IP: if the neighbor is blocked,
-  // LookupClassUpdater would store neighbor's MAC to CLASS_DROP mapping.
-  // Then, re-add neighbor MAC: this finds the MAC to CLASS_DROP mapping and
-  // increments the refCnt, and thus does not seach for the least used classID.
   updateNeighborClassID(switchState, vlan->getID(), neighborEntry);
   if (linkLocalEntry) {
     updateNeighborClassID(switchState, vlan->getID(), linkLocalEntry);
@@ -717,10 +708,34 @@ void LookupClassUpdater::processBlockNeighborUpdates(
    *   - Update blockedNeighbors_ to newState's blockNeighbors.
    *   - For every neighbor in the symmetric difference, remove classID
    *     associated with it and re-add (update) classID.
-   *   - update classID method assigns CLASS_DROP if neighbor is part of
-   *     blockedNeighbors_ and a queue-per-host class otherwise.
    *
-   *  Thus, the below loop can process A-B as well as B-A.
+   *  Note:
+   *   - macAndVlan2ClassIDAndRefCnt stores (MAC + VLAN) to (classID + refCnt)
+   *     mapping. It does not store the neighbor IP address.
+   *   - macAndVlan2ClassIDAndRefCnt typically has refCnt = 3 for any MAC. One
+   *     for each of the below: Neighbor Entry, L2 Entry, Link local IP.
+   *   - Neighbor blocked list comprises of IPs, no MACs.
+   *
+   *  Thus, to remove and re-add classID:
+   *   - Remove classID associated with the neighbor entry.
+   *   - Derive link local IP from the neighbor entry, and remove its classID.
+   *   - Remove classID associated with corresponding mac entry.
+   *   - Re-add classID for neighbor entry.
+   *   - Re-add classID for link local IP.
+   *   - Re-add classID for corresponding MAC entry.
+   *
+   *  We re-add classID for neighbor entry first (so its gets CLASS_DROP or
+   *  queue-per-host classID as appropriate).
+   *
+   *  Neighbor Entry, Link local IP and MAC Entry all reference the same
+   *  MacAndVlan2ClassIDAndRefCnt entry, and thus they inherit the classID
+   *  chosen for neighbor entry (DROP or queue-per-host).
+   *
+   *  Since blockedNeighbors_ is updated before calling remove/re-add, if a
+   *  neighbor is being blocked, remove will remove queue-per-host classID
+   *  and re-add will associate CLASS_DROP.
+   *  Similarly, if a negihbor is being unblocked, remove will remove
+   *  CLASS_DROP and re-add will associate queue-per-hot classID.
    */
 
   std::set<std::pair<VlanID, folly::IPAddress>> newBlockedNeighbors;
