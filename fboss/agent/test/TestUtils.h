@@ -243,7 +243,7 @@ std::string fbossHexDump(const std::string& buf);
 
 RouteNextHopSet makeNextHops(std::vector<std::string> ipStrs);
 
-template<typename AddrT>
+template <typename AddrT>
 inline RouteNextHopSet makeNextHops(const std::vector<AddrT>& ips) {
   std::vector<std::string> ipStrs;
   std::for_each(ips.begin(), ips.end(), [&ipStrs](const auto& ip) {

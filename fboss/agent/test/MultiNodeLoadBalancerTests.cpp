@@ -15,6 +15,7 @@
 #include "fboss/agent/LacpMachines.h"
 #include "fboss/agent/LinkAggregationManager.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/MultiNodeTest.h"
@@ -98,13 +99,16 @@ class MultiNodeLoadBalancerTest : public MultiNodeTest {
     }
   }
   cfg::SwitchConfig initialConfig() const override {
-    return utility::onePortPerVlanConfig(
+    auto config = utility::onePortPerVlanConfig(
         platform()->getHwSwitch(),
         {PortID(FLAGS_multiNodeTestPort1), PortID(FLAGS_multiNodeTestPort2)},
         cfg::PortLoopbackMode::NONE,
         true /*interfaceHasSubnet*/,
         false /*setInterfaceMac*/,
         2000);
+    config.loadBalancers_ref()->push_back(
+        facebook::fboss::utility::getEcmpFullHashConfig(sw()->getPlatform()));
+    return config;
   }
 };
 
