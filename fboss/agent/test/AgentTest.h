@@ -22,6 +22,8 @@ class AgentTest : public ::testing::Test, public AgentInitializer {
   void runForever() const;
   virtual void setupConfigFlag();
   virtual void setupFlags() const;
+  std::map<std::string, HwPortStats> getPortStats(
+      const std::vector<std::string>& ports) const;
   bool waitForSwitchStateCondition(
       std::function<bool(const std::shared_ptr<SwitchState>&)> conditionFn,
       uint32_t retries = 10,

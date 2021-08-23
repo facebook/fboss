@@ -42,6 +42,16 @@ void AgentTest::TearDown() {
   AgentInitializer::stopAgent(FLAGS_setup_for_warmboot);
 }
 
+std::map<std::string, HwPortStats> AgentTest::getPortStats(
+    const std::vector<std::string>& ports) const {
+  auto allPortStats = sw()->getHw()->getPortStats();
+  std::map<std::string, HwPortStats> portStats;
+  std::for_each(ports.begin(), ports.end(), [&](const auto& portName) {
+    portStats.insert({portName, allPortStats[portName]});
+  });
+  return portStats;
+}
+
 void AgentTest::runForever() const {
   XLOG(DBG2) << "AgentTest run forever...";
   while (true) {
