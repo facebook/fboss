@@ -32,6 +32,8 @@ class PortMap : public NodeMapT<PortMap, PortMapTraits> {
   std::shared_ptr<Port> getPortIf(PortID id) const {
     return getNodeIf(id);
   }
+  std::shared_ptr<Port> getPort(const std::string& name) const;
+  std::shared_ptr<Port> getPortIf(const std::string& name) const;
 
   size_t numPorts() const {
     return size();

@@ -74,6 +74,7 @@ TEST(Port, applyConfig) {
   auto portV1 = stateV1->getPort(PortID(1));
   ASSERT_NE(nullptr, portV1);
   EXPECT_NE(portV0, portV1);
+  EXPECT_EQ(stateV1->getPorts()->getPort("port1"), portV1);
 
   EXPECT_EQ(PortID(1), portV1->getID());
   EXPECT_EQ("port1", portV1->getName());

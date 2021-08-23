@@ -44,6 +44,23 @@ PortMap* PortMap::modify(std::shared_ptr<SwitchState>* state) {
   return ptr;
 }
 
+std::shared_ptr<Port> PortMap::getPort(const std::string& name) const {
+  auto port = getPortIf(name);
+  if (!port) {
+    throw FbossError("Port with name: ", name, " not found");
+  }
+  return port;
+}
+
+std::shared_ptr<Port> PortMap::getPortIf(const std::string& name) const {
+  for (auto port : *this) {
+    if (name == port->getName()) {
+      return port;
+    }
+  }
+  return nullptr;
+}
+
 FBOSS_INSTANTIATE_NODE_MAP(PortMap, PortMapTraits);
 
 } // namespace facebook::fboss
