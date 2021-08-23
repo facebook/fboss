@@ -205,16 +205,17 @@ void pumpMplsTraffic(
   }
 }
 
-bool isLoadBalanced(
-    const std::map<PortID, HwPortStats>& portIdToStats,
+template <typename IdT>
+bool isLoadBalancedImpl(
+    const std::map<IdT, HwPortStats>& portIdToStats,
     const std::vector<NextHopWeight>& weights,
     int maxDeviationPct,
     bool noTrafficOk) {
   auto ecmpPorts = folly::gen::from(portIdToStats) |
       folly::gen::map([](const auto& portIdAndStats) {
-                     return PortID(portIdAndStats.first);
+                     return portIdAndStats.first;
                    }) |
-      folly::gen::as<std::vector<PortID>>();
+      folly::gen::as<std::vector<IdT>>();
 
   auto portBytes = folly::gen::from(portIdToStats) |
       folly::gen::map([](const auto& portIdAndStats) {
@@ -258,6 +259,28 @@ bool isLoadBalanced(
 
 bool isLoadBalanced(
     const std::map<PortID, HwPortStats>& portStats,
+    const std::vector<NextHopWeight>& weights,
+    int maxDeviationPct,
+    bool noTrafficOk) {
+  return isLoadBalancedImpl(portStats, weights, maxDeviationPct, noTrafficOk);
+}
+bool isLoadBalanced(
+    const std::map<PortID, HwPortStats>& portStats,
+    int maxDeviationPct) {
+  return isLoadBalanced(
+      portStats, std::vector<NextHopWeight>(), maxDeviationPct);
+}
+
+bool isLoadBalanced(
+    const std::map<std::string, HwPortStats>& portStats,
+    const std::vector<NextHopWeight>& weights,
+    int maxDeviationPct,
+    bool noTrafficOk) {
+  return isLoadBalancedImpl(portStats, weights, maxDeviationPct, noTrafficOk);
+}
+
+bool isLoadBalanced(
+    const std::map<std::string, HwPortStats>& portStats,
     int maxDeviationPct) {
   return isLoadBalanced(
       portStats, std::vector<NextHopWeight>(), maxDeviationPct);

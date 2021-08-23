@@ -86,4 +86,15 @@ bool isLoadBalanced(
 bool isLoadBalanced(
     const std::map<PortID, HwPortStats>& portStats,
     int maxDeviationPct);
+
+bool isLoadBalanced(
+    const std::map<std::string, HwPortStats>& portStats,
+    const std::vector<NextHopWeight>& weights,
+    int maxDeviationPct,
+    /* Flag to control whether having no traffic on a link is ok */
+    bool noTrafficOk = false);
+
+bool isLoadBalanced(
+    const std::map<std::string, HwPortStats>& portStats,
+    int maxDeviationPct);
 } // namespace facebook::fboss::utility
