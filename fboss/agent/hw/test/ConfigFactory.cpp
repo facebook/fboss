@@ -645,10 +645,7 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
    * speed update.
    */
   auto config = utility::onePortPerVlanConfig(
-      hwSwitch,
-      uplinkMasterPorts,
-      lbMode,
-      interfaceHasSubnet);
+      hwSwitch, uplinkMasterPorts, lbMode, interfaceHasSubnet);
   for (auto portId : uplinkMasterPorts) {
     utility::updatePortSpeed(*hwSwitch, config, portId, uplinkPortSpeed);
   }
