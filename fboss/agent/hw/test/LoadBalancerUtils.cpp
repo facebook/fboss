@@ -206,18 +206,16 @@ void pumpMplsTraffic(
 }
 
 bool isLoadBalanced(
-    HwSwitchEnsemble* hwSwitchEnsemble,
-    const std::vector<PortDescriptor>& ecmpPorts,
+    const std::map<PortID, HwPortStats>& portIdToStats,
     const std::vector<NextHopWeight>& weights,
     int maxDeviationPct,
     bool noTrafficOk) {
-  auto portIDs = folly::gen::from(ecmpPorts) |
-      folly::gen::map([](const auto& portDesc) {
-                   CHECK(portDesc.isPhysicalPort());
-                   return portDesc.phyPortID();
-                 }) |
+  auto ecmpPorts = folly::gen::from(portIdToStats) |
+      folly::gen::map([](const auto& portIdAndStats) {
+                     return PortID(portIdAndStats.first);
+                   }) |
       folly::gen::as<std::vector<PortID>>();
-  auto portIdToStats = hwSwitchEnsemble->getLatestPortStats(portIDs);
+
   auto portBytes = folly::gen::from(portIdToStats) |
       folly::gen::map([](const auto& portIdAndStats) {
                      return *portIdAndStats.second.outBytes__ref();
@@ -232,9 +230,9 @@ bool isLoadBalanced(
   }
   if (!weights.empty()) {
     auto maxWeight = *(std::max_element(weights.begin(), weights.end()));
-    for (auto i = 0; i < ecmpPorts.size(); ++i) {
+    for (auto i = 0; i < portIdToStats.size(); ++i) {
       auto portOutBytes =
-          *portIdToStats[ecmpPorts[i].phyPortID()].outBytes__ref();
+          *portIdToStats.find(ecmpPorts[i])->second.outBytes__ref();
       auto weightPercent = (static_cast<float>(weights[i]) / maxWeight) * 100.0;
       auto portOutBytesPercent =
           (static_cast<float>(portOutBytes) / highest) * 100.0;
@@ -256,6 +254,29 @@ bool isLoadBalanced(
     }
   }
   return true;
+}
+
+bool isLoadBalanced(
+    const std::map<PortID, HwPortStats>& portStats,
+    int maxDeviationPct) {
+  return isLoadBalanced(
+      portStats, std::vector<NextHopWeight>(), maxDeviationPct);
+}
+
+bool isLoadBalanced(
+    HwSwitchEnsemble* hwSwitchEnsemble,
+    const std::vector<PortDescriptor>& ecmpPorts,
+    const std::vector<NextHopWeight>& weights,
+    int maxDeviationPct,
+    bool noTrafficOk) {
+  auto portIDs = folly::gen::from(ecmpPorts) |
+      folly::gen::map([](const auto& portDesc) {
+                   CHECK(portDesc.isPhysicalPort());
+                   return portDesc.phyPortID();
+                 }) |
+      folly::gen::as<std::vector<PortID>>();
+  auto portIdToStats = hwSwitchEnsemble->getLatestPortStats(portIDs);
+  return isLoadBalanced(portIdToStats, weights, maxDeviationPct, noTrafficOk);
 }
 
 bool isLoadBalanced(

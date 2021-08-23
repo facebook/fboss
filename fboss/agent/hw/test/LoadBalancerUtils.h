@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/types.h"
@@ -75,4 +76,14 @@ bool isLoadBalanced(
     const std::vector<PortDescriptor>& ecmpPorts,
     int maxDeviationPct);
 
+bool isLoadBalanced(
+    const std::map<PortID, HwPortStats>& portStats,
+    const std::vector<NextHopWeight>& weights,
+    int maxDeviationPct,
+    /* Flag to control whether having no traffic on a link is ok */
+    bool noTrafficOk = false);
+
+bool isLoadBalanced(
+    const std::map<PortID, HwPortStats>& portStats,
+    int maxDeviationPct);
 } // namespace facebook::fboss::utility
