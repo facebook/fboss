@@ -125,7 +125,7 @@ void pumpTraffic(
     folly::MacAddress intfMac,
     VlanID vlan,
     std::optional<PortID> frontPanelPortToLoopTraffic) {
-  auto srcMac = MacAddressGenerator().get(intfMac.u64NBO() + 1);
+  auto srcMac = MacAddressGenerator().get(intfMac.u64HBO() + 1);
   for (auto i = 0; i < 100; ++i) {
     auto srcIp = folly::IPAddress(
         folly::sformat(isV6 ? "1001::{}" : "100.0.0.{}", i + 1));
