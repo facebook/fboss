@@ -225,6 +225,7 @@ void WedgeManager::getTransceiversInfo(
       }
     } else {
       trans.present_ref() = false;
+      trans.port_ref() = i;
     }
     info[i] = trans;
   }
