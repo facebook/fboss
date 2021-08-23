@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/test/HwTestMplsUtils.h"
 #include "fboss/agent/hw/test/HwTestRouteUtils.h"
 #include "fboss/agent/state/NodeBase-defs.h"
+#include "fboss/agent/state/Port.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include "fboss/agent/AddressUtil.h"
@@ -49,6 +50,13 @@ class HwRouteTest : public HwLinkStateDependentTest {
     return cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2;
   }
 
+  std::vector<PortDescriptor> portDescs() const {
+    std::vector<PortDescriptor> ports;
+    for (auto i = 0; i < 4; ++i) {
+      ports.push_back(PortDescriptor(masterLogicalPortIds()[i]));
+    }
+    return ports;
+  }
   const std::vector<RoutePrefix<AddrT>> kGetRoutePrefixes() const {
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
       static const std::vector<RoutePrefix<AddrT>> routePrefixes = {
@@ -194,26 +202,24 @@ TYPED_TEST(HwRouteTest, VerifyClassIdWithNhopResolutionFlap) {
 
 TYPED_TEST(HwRouteTest, UnresolvedAndResolvedNextHop) {
   using AddrT = typename TestFixture::Type;
+  auto ports = this->portDescs();
   auto setup = [=]() {
     this->applyNewConfig(this->initialConfig());
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
         this->getProgrammedState(), this->kRouterID());
     ecmpHelper.programRoutes(
-        this->getRouteUpdater(),
-        {PortDescriptor(this->masterLogicalPortIds()[0])},
-        {this->kGetRoutePrefix0()});
+        this->getRouteUpdater(), {ports[0]}, {this->kGetRoutePrefix0()});
 
-    this->applyNewState(ecmpHelper.resolveNextHops(
-        this->getProgrammedState(),
-        {PortDescriptor(this->masterLogicalPortIds()[1])}));
+    this->applyNewState(
+        ecmpHelper.resolveNextHops(this->getProgrammedState(), {ports[1]}));
     ecmpHelper.programRoutes(
-        this->getRouteUpdater(),
-        {PortDescriptor(this->masterLogicalPortIds()[1])},
-        {this->kGetRoutePrefix1()});
+        this->getRouteUpdater(), {ports[1]}, {this->kGetRoutePrefix1()});
   };
   auto verify = [=]() {
     auto routePrefix0 = this->kGetRoutePrefix0();
     auto cidr0 = folly::CIDRNetwork(routePrefix0.network, routePrefix0.mask);
+    utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
+        this->getProgrammedState(), this->kRouterID());
     EXPECT_TRUE(
         utility::isHwRouteToCpu(this->getHwSwitch(), this->kRouterID(), cidr0));
     EXPECT_FALSE(utility::isHwRouteMultiPath(
@@ -221,19 +227,11 @@ TYPED_TEST(HwRouteTest, UnresolvedAndResolvedNextHop) {
 
     auto routePrefix1 = this->kGetRoutePrefix1();
     auto cidr1 = folly::CIDRNetwork(routePrefix1.network, routePrefix1.mask);
-    if (std::is_same_v<AddrT, folly::IPAddressV4>) {
-      EXPECT_TRUE(utility::isHwRouteToNextHop(
-          this->getHwSwitch(),
-          this->kRouterID(),
-          cidr1,
-          folly::IPAddress("2.0.0.2")));
-    } else {
-      EXPECT_TRUE(utility::isHwRouteToNextHop(
-          this->getHwSwitch(),
-          this->kRouterID(),
-          cidr1,
-          folly::IPAddress("2::2")));
-    }
+    EXPECT_TRUE(utility::isHwRouteToNextHop(
+        this->getHwSwitch(),
+        this->kRouterID(),
+        cidr1,
+        ecmpHelper.nhop(ports[1]).ip));
     EXPECT_FALSE(utility::isHwRouteMultiPath(
         this->getHwSwitch(), this->kRouterID(), cidr1));
   };
@@ -268,24 +266,21 @@ TYPED_TEST(HwRouteTest, UnresolveResolvedNextHop) {
 
 TYPED_TEST(HwRouteTest, UnresolvedAndResolvedMultiNextHop) {
   using AddrT = typename TestFixture::Type;
+  auto ports = this->portDescs();
   auto setup = [=]() {
-    this->applyNewConfig(this->initialConfig());
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
         this->getProgrammedState(), this->kRouterID());
+    this->applyNewConfig(this->initialConfig());
     ecmpHelper.programRoutes(
         this->getRouteUpdater(),
-        {PortDescriptor(this->masterLogicalPortIds()[0]),
-         PortDescriptor(this->masterLogicalPortIds()[1])},
+        {ports[0], ports[1]},
         {this->kGetRoutePrefix0()});
 
     this->applyNewState(ecmpHelper.resolveNextHops(
-        this->getProgrammedState(),
-        {PortDescriptor(this->masterLogicalPortIds()[2]),
-         PortDescriptor(this->masterLogicalPortIds()[3])}));
+        this->getProgrammedState(), {ports[2], ports[3]}));
     ecmpHelper.programRoutes(
         this->getRouteUpdater(),
-        {PortDescriptor(this->masterLogicalPortIds()[2]),
-         PortDescriptor(this->masterLogicalPortIds()[3])},
+        {ports[2], ports[3]},
         {this->kGetRoutePrefix1()});
   };
   auto verify = [=]() {
@@ -295,29 +290,18 @@ TYPED_TEST(HwRouteTest, UnresolvedAndResolvedMultiNextHop) {
         utility::isHwRouteToCpu(this->getHwSwitch(), this->kRouterID(), cidr0));
     EXPECT_TRUE(utility::isHwRouteMultiPath(
         this->getHwSwitch(), this->kRouterID(), cidr0));
-    if (std::is_same_v<AddrT, folly::IPAddressV4>) {
-      EXPECT_FALSE(utility::isHwRouteToNextHop(
-          this->getHwSwitch(),
-          this->kRouterID(),
-          cidr0,
-          folly::IPAddress("1.0.0.1")));
-      EXPECT_FALSE(utility::isHwRouteToNextHop(
-          this->getHwSwitch(),
-          this->kRouterID(),
-          cidr0,
-          folly::IPAddress("2.0.0.2")));
-    } else {
-      EXPECT_FALSE(utility::isHwRouteToNextHop(
-          this->getHwSwitch(),
-          this->kRouterID(),
-          cidr0,
-          folly::IPAddress("1::1")));
-      EXPECT_FALSE(utility::isHwRouteToNextHop(
-          this->getHwSwitch(),
-          this->kRouterID(),
-          cidr0,
-          folly::IPAddress("2::1")));
-    }
+    utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
+        this->getProgrammedState(), this->kRouterID());
+    EXPECT_FALSE(utility::isHwRouteToNextHop(
+        this->getHwSwitch(),
+        this->kRouterID(),
+        cidr0,
+        ecmpHelper.nhop(ports[0]).ip));
+    EXPECT_FALSE(utility::isHwRouteToNextHop(
+        this->getHwSwitch(),
+        this->kRouterID(),
+        cidr0,
+        ecmpHelper.nhop(ports[1]).ip));
 
     auto routePrefix1 = this->kGetRoutePrefix1();
     auto cidr1 = folly::CIDRNetwork(routePrefix1.network, routePrefix1.mask);
@@ -325,47 +309,32 @@ TYPED_TEST(HwRouteTest, UnresolvedAndResolvedMultiNextHop) {
         utility::isHwRouteToCpu(this->getHwSwitch(), this->kRouterID(), cidr1));
     EXPECT_TRUE(utility::isHwRouteMultiPath(
         this->getHwSwitch(), this->kRouterID(), cidr1));
-    if (std::is_same_v<AddrT, folly::IPAddressV4>) {
-      EXPECT_TRUE(utility::isHwRouteToNextHop(
-          this->getHwSwitch(),
-          this->kRouterID(),
-          cidr1,
-          folly::IPAddress("3.0.0.3")));
-      EXPECT_TRUE(utility::isHwRouteToNextHop(
-          this->getHwSwitch(),
-          this->kRouterID(),
-          cidr1,
-          folly::IPAddress("4.0.0.4")));
-    } else {
-      EXPECT_TRUE(utility::isHwRouteToNextHop(
-          this->getHwSwitch(),
-          this->kRouterID(),
-          cidr1,
-          folly::IPAddress("3::3")));
-      EXPECT_TRUE(utility::isHwRouteToNextHop(
-          this->getHwSwitch(),
-          this->kRouterID(),
-          cidr1,
-          folly::IPAddress("4::4")));
-    }
+    EXPECT_TRUE(utility::isHwRouteToNextHop(
+        this->getHwSwitch(),
+        this->kRouterID(),
+        cidr1,
+        ecmpHelper.nhop(ports[2]).ip));
+    EXPECT_TRUE(utility::isHwRouteToNextHop(
+        this->getHwSwitch(),
+        this->kRouterID(),
+        cidr1,
+        ecmpHelper.nhop(ports[3]).ip));
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
 TYPED_TEST(HwRouteTest, ResolvedMultiNexthopToUnresolvedSingleNexthop) {
+  auto ports = this->portDescs();
   using AddrT = typename TestFixture::Type;
   auto setup = [=]() { this->applyNewConfig(this->initialConfig()); };
   auto verify = [=]() {
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
         this->getProgrammedState(), this->kRouterID());
     this->applyNewState(ecmpHelper.resolveNextHops(
-        this->getProgrammedState(),
-        {PortDescriptor(this->masterLogicalPortIds()[0]),
-         PortDescriptor(this->masterLogicalPortIds()[1])}));
+        this->getProgrammedState(), {ports[0], ports[1]}));
     ecmpHelper.programRoutes(
         this->getRouteUpdater(),
-        {PortDescriptor(this->masterLogicalPortIds()[0]),
-         PortDescriptor(this->masterLogicalPortIds()[1])},
+        {ports[0], ports[1]},
         {this->kGetRoutePrefix0()});
     auto routePrefix0 = this->kGetRoutePrefix0();
     auto cidr0 = folly::CIDRNetwork(routePrefix0.network, routePrefix0.mask);
@@ -373,29 +342,16 @@ TYPED_TEST(HwRouteTest, ResolvedMultiNexthopToUnresolvedSingleNexthop) {
         utility::isHwRouteToCpu(this->getHwSwitch(), this->kRouterID(), cidr0));
     EXPECT_TRUE(utility::isHwRouteMultiPath(
         this->getHwSwitch(), this->kRouterID(), cidr0));
-    if (std::is_same_v<AddrT, folly::IPAddressV4>) {
-      EXPECT_TRUE(utility::isHwRouteToNextHop(
-          this->getHwSwitch(),
-          this->kRouterID(),
-          cidr0,
-          folly::IPAddress("1.0.0.1")));
-      EXPECT_TRUE(utility::isHwRouteToNextHop(
-          this->getHwSwitch(),
-          this->kRouterID(),
-          cidr0,
-          folly::IPAddress("2.0.0.2")));
-    } else {
-      EXPECT_TRUE(utility::isHwRouteToNextHop(
-          this->getHwSwitch(),
-          this->kRouterID(),
-          cidr0,
-          folly::IPAddress("1::1")));
-      EXPECT_TRUE(utility::isHwRouteToNextHop(
-          this->getHwSwitch(),
-          this->kRouterID(),
-          cidr0,
-          folly::IPAddress("2::2")));
-    }
+    EXPECT_TRUE(utility::isHwRouteToNextHop(
+        this->getHwSwitch(),
+        this->kRouterID(),
+        cidr0,
+        ecmpHelper.nhop(ports[0]).ip));
+    EXPECT_TRUE(utility::isHwRouteToNextHop(
+        this->getHwSwitch(),
+        this->kRouterID(),
+        cidr0,
+        ecmpHelper.nhop(ports[1]).ip));
     this->applyNewState(ecmpHelper.unresolveNextHops(
         this->getProgrammedState(),
         {PortDescriptor(this->masterLogicalPortIds()[0]),
