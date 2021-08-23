@@ -397,6 +397,16 @@ void EcmpSetupAnyNPorts<IPAddrT>::programRoutes(
 }
 
 template <typename IPAddrT>
+void EcmpSetupAnyNPorts<IPAddrT>::programRoutes(
+    std::unique_ptr<RouteUpdateWrapper> updater,
+    const flat_set<PortDescriptor>& portDescs,
+    const std::vector<RouteT>& prefixes,
+    const std::vector<NextHopWeight>& weights) const {
+  ecmpSetupTargetedPorts_.programRoutes(
+      std::move(updater), portDescs, prefixes, weights);
+}
+
+template <typename IPAddrT>
 void EcmpSetupAnyNPorts<IPAddrT>::programIp2MplsRoutes(
     std::unique_ptr<RouteUpdateWrapper> updater,
     size_t width,

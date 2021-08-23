@@ -290,6 +290,13 @@ class EcmpSetupAnyNPorts {
       const std::vector<NextHopWeight>& weights =
           std::vector<NextHopWeight>()) const;
 
+  void programRoutes(
+      std::unique_ptr<RouteUpdateWrapper> updater,
+      const boost::container::flat_set<PortDescriptor>& portDescs,
+      const std::vector<RouteT>& prefixes,
+      const std::vector<NextHopWeight>& weights =
+          std::vector<NextHopWeight>()) const;
+
   void programIp2MplsRoutes(
       std::unique_ptr<RouteUpdateWrapper> wrapper,
       size_t width,

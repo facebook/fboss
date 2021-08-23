@@ -73,6 +73,14 @@ bool HwEcmpDataPlaneTestUtil<EcmpSetupHelperT>::isLoadBalanced(
   return utility::isLoadBalanced(ensemble_, ecmpPorts, weights, deviation);
 }
 
+template <typename EcmpSetupHelperT>
+bool HwEcmpDataPlaneTestUtil<EcmpSetupHelperT>::isLoadBalanced(
+    const std::vector<PortDescriptor>& portDescs,
+    const std::vector<NextHopWeight>& weights,
+    uint8_t deviation) {
+  return utility::isLoadBalanced(ensemble_, portDescs, weights, deviation);
+}
+
 template <typename AddrT>
 HwIpEcmpDataPlaneTestUtil<AddrT>::HwIpEcmpDataPlaneTestUtil(
     HwSwitchEnsemble* ensemble,
@@ -120,6 +128,39 @@ void HwIpEcmpDataPlaneTestUtil<AddrT>::programRoutes(
     helper->programIp2MplsRoutes(
         std::move(updater), ecmpWidth, {{AddrT(), 0}}, stacks_, weights);
   }
+}
+
+template <typename AddrT>
+void HwIpEcmpDataPlaneTestUtil<AddrT>::programRoutes(
+    const boost::container::flat_set<PortDescriptor>& portDescs,
+    const std::vector<NextHopWeight>& weights) {
+  auto* helper = BaseT::ecmpSetupHelper();
+  auto* ensemble = BaseT::getEnsemble();
+  ensemble->applyNewState(
+      helper->resolveNextHops(ensemble->getProgrammedState(), portDescs));
+
+  auto updater = std::make_unique<HwSwitchEnsembleRouteUpdateWrapper>(
+      ensemble->getRouteUpdater());
+  // TODO: add a stacks_.empty() check, i.e. lines 128-130
+  helper->programRoutes(std::move(updater), portDescs, {{AddrT(), 0}}, weights);
+}
+
+/*
+ * This is nothing more than a convenience wrapper function around the above
+ * programRoutes that takes in a flat_set of PortDescriptors.
+ *
+ * In this way, we can call programRoutes (e.g. from ProdInvariantHelper) with
+ * just the vector of port descriptors to set up.
+ */
+template <typename AddrT>
+void HwIpEcmpDataPlaneTestUtil<AddrT>::programRoutes(
+    const std::vector<PortDescriptor>& portDescs,
+    const std::vector<NextHopWeight>& weights) {
+  boost::container::flat_set<PortDescriptor> fsDescs;
+  for (auto desc : portDescs) {
+    fsDescs.insert(desc);
+  }
+  programRoutes(fsDescs, weights);
 }
 
 template <typename AddrT>

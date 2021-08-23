@@ -42,6 +42,10 @@ class HwEcmpDataPlaneTestUtil {
       int ecmpWidth,
       const std::vector<NextHopWeight>& weights,
       uint8_t deviation);
+  bool isLoadBalanced(
+      const std::vector<PortDescriptor>& portDescs,
+      const std::vector<NextHopWeight>& weights,
+      uint8_t deviation);
 
  private:
   virtual void pumpTrafficThroughPort(std::optional<PortID> port) = 0;
@@ -70,6 +74,12 @@ class HwIpEcmpDataPlaneTestUtil
 
   void programRoutes(int ecmpWidth, const std::vector<NextHopWeight>& weights)
       override;
+  void programRoutes(
+      const boost::container::flat_set<PortDescriptor>& portDescs,
+      const std::vector<NextHopWeight>& weights);
+  void programRoutes(
+      const std::vector<PortDescriptor>& portDescs,
+      const std::vector<NextHopWeight>& weights);
   /* pump IP traffic */
   void pumpTrafficThroughPort(std::optional<PortID> port) override;
 
