@@ -83,12 +83,11 @@ TEST_F(LagStoreTest, updateObject) {
     EXPECT_TRUE(hasMember(lag->adapterKey(), memberId));
   }
   members.pop_back();
-  auto i = 0;
-  for (auto memberId : memberIds) {
+  for (int i = 0; i < memberIds.size(); i++) {
     if (i < 3) {
-      EXPECT_TRUE(hasMember(lag->adapterKey(), memberIds[i++]));
+      EXPECT_TRUE(hasMember(lag->adapterKey(), memberIds[i]));
     } else {
-      EXPECT_FALSE(hasMember(lag->adapterKey(), memberIds[i++]));
+      EXPECT_FALSE(hasMember(lag->adapterKey(), memberIds[i]));
     }
   }
 }
@@ -102,10 +101,10 @@ TEST_F(LagStoreTest, loadLags) {
   auto& store = s.get<SaiLagTraits>();
 
   auto got =
-      store.get(SaiLagTraits::Attributes::Label{std::array<char, 32>({"a"})});
+      store.get(SaiLagTraits::Attributes::Label{std::array<char, 32>{"a"}});
   EXPECT_EQ(got->adapterKey(), id0);
   EXPECT_EQ(GET_OPT_ATTR(Lag, PortVlanId, got->attributes()), 1000);
-  got = store.get(SaiLagTraits::Attributes::Label{std::array<char, 32>({"b"})});
+  got = store.get(SaiLagTraits::Attributes::Label{std::array<char, 32>{"b"}});
   EXPECT_EQ(got->adapterKey(), id1);
   EXPECT_EQ(GET_OPT_ATTR(Lag, PortVlanId, got->attributes()), 1001);
 }
@@ -136,7 +135,7 @@ TEST_F(LagStoreTest, toAndFromDynamic) {
   auto& lagStore = s.get<SaiLagTraits>();
 
   auto lagAdapterHostKey =
-      SaiLagTraits::Attributes::Label{std::array<char, 32>({"d"})};
+      SaiLagTraits::Attributes::Label{std::array<char, 32>{"d"}};
   auto got = lagStore.get(lagAdapterHostKey);
 
   auto k0 = got->adapterHostKeyToFollyDynamic();

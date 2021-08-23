@@ -1,11 +1,10 @@
-# CMake to build libraries and binaries in fboss/agent/hw/bcm
+# CMake to build libraries and binaries in fboss/agent/hw/sai/store/tests
 
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
 add_executable(store_test
     fboss/agent/test/oss/Main.cpp
-    fboss/agent/hw/sai/store/tests/SaiEmptyStoreTest.cpp
     fboss/agent/hw/sai/store/tests/AclTableGroupStoreTest.cpp
     fboss/agent/hw/sai/store/tests/AclTableStoreTest.cpp
     fboss/agent/hw/sai/store/tests/BridgeStoreTest.cpp
@@ -15,6 +14,7 @@ add_executable(store_test
     fboss/agent/hw/sai/store/tests/HashStoreTest.cpp
     fboss/agent/hw/sai/store/tests/HostifTrapStoreTest.cpp
     fboss/agent/hw/sai/store/tests/InSegStoreTest.cpp
+    fboss/agent/hw/sai/store/tests/LagStoreTest.cpp
     fboss/agent/hw/sai/store/tests/MirrorStoreTest.cpp
     fboss/agent/hw/sai/store/tests/NeighborStoreTest.cpp
     fboss/agent/hw/sai/store/tests/NextHopStoreTest.cpp
@@ -24,8 +24,10 @@ add_executable(store_test
     fboss/agent/hw/sai/store/tests/QueueStoreTest.cpp
     fboss/agent/hw/sai/store/tests/RouteStoreTest.cpp
     fboss/agent/hw/sai/store/tests/RouterInterfaceStoreTest.cpp
+    fboss/agent/hw/sai/store/tests/SaiEmptyStoreTest.cpp
     fboss/agent/hw/sai/store/tests/SamplePacketStoreTest.cpp
     fboss/agent/hw/sai/store/tests/SchedulerStoreTest.cpp
+    fboss/agent/hw/sai/store/tests/TamStoreTest.cpp
     fboss/agent/hw/sai/store/tests/VlanStoreTest.cpp
     fboss/agent/hw/sai/store/tests/WredStoreTest.cpp
 )
