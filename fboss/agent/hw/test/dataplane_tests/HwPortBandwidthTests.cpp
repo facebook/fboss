@@ -182,6 +182,16 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
   }
 
   template <typename GetQueueOutCntT>
+  int64_t getCurCntPerSec(GetQueueOutCntT getQueueOutCntFunc) {
+    const int kRunDuration = 10;
+    auto beforeQueueOutCnt = getQueueOutCntFunc();
+    sleep(kRunDuration);
+    auto afterQueueOutCnt = getQueueOutCntFunc();
+
+    return (afterQueueOutCnt - beforeQueueOutCnt) / kRunDuration;
+  }
+
+  template <typename GetQueueOutCntT>
   void verifyRate(
       const std::string& testType,
       uint8_t dscpVal,
@@ -236,6 +246,9 @@ void HwPortBandwidthTest::verifyRateDynamicChanges(
   auto verify = [=]() {
     sendUdpPkts(dscpVal);
 
+    // Rate before any bandwidth limit was configured
+    auto beforeCntPerSec = getCurCntPerSec(getQueueOutCntFunc);
+
     const auto maxPpsValues = kMaxPpsValues();
     const auto maxKbpsValues = kMaxKbpsValues();
     for (auto maxPpsAndMaxKbps : boost::combine(maxPpsValues, maxKbpsValues)) {
@@ -251,6 +264,13 @@ void HwPortBandwidthTest::verifyRateDynamicChanges(
       verifyRateHelperWithRetries(
           testType, testType == "pps" ? maxPps : maxKbps, getQueueOutCntFunc);
     }
+
+    // Clear bandwidth setting
+    auto newCfg{initialConfig()};
+    applyNewConfig(newCfg);
+
+    // Verify if the rate is restored to pre bandwidth configuration
+    verifyRateHelperWithRetries(testType, beforeCntPerSec, getQueueOutCntFunc);
   };
 
   verifyAcrossWarmBoots(setup, verify);
