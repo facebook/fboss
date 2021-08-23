@@ -8,19 +8,13 @@
  *
  */
 
-#include <folly/init/Init.h>
-#include <gtest/gtest.h>
-#include "fboss/agent/AgentConfig.h"
-#include "fboss/agent/ApplyThriftConfig.h"
-#include "fboss/agent/LacpMachines.h"
-#include "fboss/agent/LinkAggregationManager.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
-#include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/test/MultiNodeTest.h"
 #include "fboss/agent/test/TestUtils.h"
-#include "fboss/agent/test/TrunkUtils.h"
 
 #include "common/process/Process.h"
 #include "fboss/agent/RouteUpdateWrapper.h"
@@ -113,5 +107,15 @@ class MultiNodeLoadBalancerTest : public MultiNodeTest {
 };
 
 TEST_F(MultiNodeLoadBalancerTest, verifyFullHashLoadBalance) {
-  // TODO
+  auto verify = [this]() {
+    auto state = sw()->getState();
+    auto vlan = (*state->getVlans()->begin())->getID();
+    auto localMac = state->getInterfaces()->getInterfaceInVlan(vlan)->getMac();
+    for (auto isV6 : {true, false}) {
+      facebook::fboss::utility::pumpTraffic(
+          isV6, sw()->getHw(), localMac, vlan);
+    }
+    // TODO - verify LB
+  };
+  verifyAcrossWarmBoots(verify);
 }
