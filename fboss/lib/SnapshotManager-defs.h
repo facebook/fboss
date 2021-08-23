@@ -36,4 +36,11 @@ template <size_t length>
 RingBuffer<SnapshotWrapper, length>& SnapshotManager<length>::getSnapshots() {
   return buf_;
 }
+
+template <size_t length>
+void SnapshotManager<length>::publishAllSnapshots() {
+  for (auto& snapshot : buf_) {
+    snapshot.publish();
+  }
+}
 } // namespace facebook::fboss

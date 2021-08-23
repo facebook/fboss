@@ -392,6 +392,10 @@ void QsfpModule::transceiverPortsChanged(
       ports_[it.first] = std::move(it.second);
     }
 
+    if (!changedPortList.empty()) {
+      snapshots_.wlock()->publishAllSnapshots();
+    }
+
     // update the present_ field (and will set dirty_ if presence change
     // detected)
     detectPresenceLocked();
