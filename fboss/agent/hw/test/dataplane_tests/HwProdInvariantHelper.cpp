@@ -18,6 +18,7 @@
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.h"
+#include "fboss/agent/state/Interface.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include "fboss/agent/hw/test/gen-cpp2/validated_shell_commands_constants.h"
@@ -65,11 +66,11 @@ void HwProdInvariantHelper::sendAndVerifyPkts(
     uint8_t queueId) {
   auto sendPkts = [this, destPort] {
     auto vlanId = utility::firstVlanID(getProgrammedState());
-    auto intfMac =
-        utility::getInterfaceMac(ensemble_->getProgrammedState(), vlanId);
-    auto dstIp = folly::IPAddress::createNetwork(
-                     initialConfig().interfaces_ref()[0].ipAddresses_ref()[0])
-                     .first;
+    auto intf =
+        getProgrammedState()->getInterfaces()->getInterfaceInVlan(vlanId);
+    auto intfMac = intf->getMac();
+    utility::getInterfaceMac(ensemble_->getProgrammedState(), vlanId);
+    auto dstIp = intf->getAddresses().begin()->first;
     utility::sendTcpPkts(
         ensemble_->getHwSwitch(),
         1 /*numPktsToSend*/,
