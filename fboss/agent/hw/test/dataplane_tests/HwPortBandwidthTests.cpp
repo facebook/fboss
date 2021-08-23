@@ -17,6 +17,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 
+#include <boost/range/combine.hpp>
 #include <folly/IPAddress.h>
 
 namespace facebook::fboss {
@@ -162,10 +163,35 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
   }
 
   template <typename GetQueueOutCntT>
+  void verifyRateHelperWithRetries(
+      const std::string& testType,
+      uint32_t maxRate,
+      GetQueueOutCntT getQueueOutCntFunc) {
+    bool rateIsCorrect = false;
+    int retries = 5;
+    while (retries--) {
+      rateIsCorrect = verifyRateHelper(testType, maxRate, getQueueOutCntFunc);
+      if (rateIsCorrect) {
+        break;
+      }
+      XLOG(INFO) << " Retrying ...";
+      sleep(5);
+    }
+
+    EXPECT_TRUE(rateIsCorrect);
+  }
+
+  template <typename GetQueueOutCntT>
   void verifyRate(
       const std::string& testType,
       uint8_t dscpVal,
       uint32_t maxRate,
+      GetQueueOutCntT getQueueOutCntFunc);
+
+  template <typename GetQueueOutCntT>
+  void verifyRateDynamicChanges(
+      const std::string& testType,
+      uint8_t dscpVal,
       GetQueueOutCntT getQueueOutCntFunc);
 };
 
@@ -196,6 +222,40 @@ void HwPortBandwidthTest::verifyRate(
   verifyAcrossWarmBoots(setup, verify);
 }
 
+template <typename GetQueueOutCntT>
+void HwPortBandwidthTest::verifyRateDynamicChanges(
+    const std::string& testType,
+    uint8_t dscpVal,
+    GetQueueOutCntT getQueueOutCntFunc) {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
+    return;
+  }
+
+  auto setup = [=]() { setupHelper(); };
+
+  auto verify = [=]() {
+    sendUdpPkts(dscpVal);
+
+    const auto maxPpsValues = kMaxPpsValues();
+    const auto maxKbpsValues = kMaxKbpsValues();
+    for (auto maxPpsAndMaxKbps : boost::combine(maxPpsValues, maxKbpsValues)) {
+      uint32_t maxPps = maxPpsAndMaxKbps.get<0>();
+      uint32_t maxKbps = maxPpsAndMaxKbps.get<1>();
+      XLOG(DBG1) << "Test: " << testType << " setting MaxPps: " << maxPps
+                 << " MaxKbps: " << maxKbps;
+
+      auto newCfg{initialConfig()};
+      _configureBandwidth(&newCfg, maxPps, maxKbps);
+      applyNewConfig(newCfg);
+
+      verifyRateHelperWithRetries(
+          testType, testType == "pps" ? maxPps : maxKbps, getQueueOutCntFunc);
+    }
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 TEST_F(HwPortBandwidthTest, VerifyPps) {
   if (!isSupported(HwAsic::Feature::SCHEDULER_PPS)) {
     return;
@@ -218,6 +278,19 @@ TEST_F(HwPortBandwidthTest, VerifyKbps) {
   };
 
   verifyRate("kbps", kQueueId1Dscp(), kMaxKbpsValues().front(), getKbits);
+}
+
+TEST_F(HwPortBandwidthTest, VerifyPpsDynamicChanges) {
+  if (!isSupported(HwAsic::Feature::SCHEDULER_PPS)) {
+    return;
+  }
+  auto getPackets = [this]() {
+    return getLatestPortStats(masterLogicalPortIds()[0])
+        .get_queueOutPackets_()
+        .at(kQueueId0());
+  };
+
+  verifyRateDynamicChanges("pps", kQueueId0Dscp(), getPackets);
 }
 
 } // namespace facebook::fboss
