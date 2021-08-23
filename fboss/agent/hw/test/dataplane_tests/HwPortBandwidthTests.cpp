@@ -32,7 +32,6 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
       utility::addOlympicQueueConfig(
           &cfg, streamType, getPlatform()->getAsic());
       utility::addOlympicQosMaps(cfg);
-      _configureBandwidth(&cfg);
     }
 
     return cfg;
@@ -88,6 +87,13 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
     }
   }
 
+  void setupHelper() {
+    auto kEcmpWidthForTest = 1;
+    utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
+    resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
+    disableTTLDecrements(ecmpHelper6);
+  }
+
  protected:
   uint8_t kQueueId0() const {
     return 0;
@@ -140,10 +146,11 @@ void HwPortBandwidthTest::verifyRateHelper(
   }
 
   auto setup = [=]() {
-    auto kEcmpWidthForTest = 1;
-    utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
-    resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
-    disableTTLDecrements(ecmpHelper6);
+    auto newCfg{initialConfig()};
+    _configureBandwidth(&newCfg);
+    applyNewConfig(newCfg);
+
+    setupHelper();
   };
 
   auto verify = [=]() {
