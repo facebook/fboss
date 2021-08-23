@@ -293,4 +293,15 @@ TEST_F(HwPortBandwidthTest, VerifyPpsDynamicChanges) {
   verifyRateDynamicChanges("pps", kQueueId0Dscp(), getPackets);
 }
 
+TEST_F(HwPortBandwidthTest, VerifyKbpsDynamicChanges) {
+  auto getKbits = [this]() {
+    auto outBytes = getLatestPortStats(masterLogicalPortIds()[0])
+                        .get_queueOutBytes_()
+                        .at(kQueueId1());
+    return (outBytes * 8) / 1000;
+  };
+
+  verifyRateDynamicChanges("kbps", kQueueId1Dscp(), getKbits);
+}
+
 } // namespace facebook::fboss
