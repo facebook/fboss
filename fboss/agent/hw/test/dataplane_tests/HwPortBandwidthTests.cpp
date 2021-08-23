@@ -128,36 +128,12 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
   }
 
   template <typename GetQueueOutCntT>
-  void verifyRateHelper(
+  bool verifyRateHelper(
       const std::string& testType,
-      uint8_t dscpVal,
       uint32_t maxRate,
-      GetQueueOutCntT getQueueOutCntFunc);
-};
-
-template <typename GetQueueOutCntT>
-void HwPortBandwidthTest::verifyRateHelper(
-    const std::string& testType,
-    uint8_t dscpVal,
-    uint32_t maxRate,
-    GetQueueOutCntT getQueueOutCntFunc) {
-  if (!isSupported(HwAsic::Feature::L3_QOS)) {
-    return;
-  }
-
-  auto setup = [=]() {
-    auto newCfg{initialConfig()};
-    _configureBandwidth(&newCfg);
-    applyNewConfig(newCfg);
-
-    setupHelper();
-  };
-
-  auto verify = [=]() {
+      GetQueueOutCntT getQueueOutCntFunc) {
     const double kVariance = 0.20; // i.e. + or -20%
     const int kRunDuration = 10;
-
-    sendUdpPkts(dscpVal);
 
     auto beforeQueueOutCnt = getQueueOutCntFunc();
     sleep(kRunDuration);
@@ -179,8 +155,38 @@ void HwPortBandwidthTest::verifyRateHelper(
      * In practice, if no pps is configured, with above flood, the
      * packets are received at a rate > 2.5Gbps
      */
-    EXPECT_TRUE(
-        lowCntPerSec <= currCntPerSec && currCntPerSec <= highCntPerSec);
+    return lowCntPerSec <= currCntPerSec && currCntPerSec <= highCntPerSec;
+  }
+
+  template <typename GetQueueOutCntT>
+  void verifyRate(
+      const std::string& testType,
+      uint8_t dscpVal,
+      uint32_t maxRate,
+      GetQueueOutCntT getQueueOutCntFunc);
+};
+
+template <typename GetQueueOutCntT>
+void HwPortBandwidthTest::verifyRate(
+    const std::string& testType,
+    uint8_t dscpVal,
+    uint32_t maxRate,
+    GetQueueOutCntT getQueueOutCntFunc) {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
+    return;
+  }
+
+  auto setup = [=]() {
+    auto newCfg{initialConfig()};
+    _configureBandwidth(&newCfg);
+    applyNewConfig(newCfg);
+
+    setupHelper();
+  };
+
+  auto verify = [=]() {
+    sendUdpPkts(dscpVal);
+    EXPECT_TRUE(verifyRateHelper(testType, maxRate, getQueueOutCntFunc));
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -196,7 +202,7 @@ TEST_F(HwPortBandwidthTest, VerifyPps) {
         .at(kQueueId0());
   };
 
-  verifyRateHelper("pps", kQueueId0Dscp(), kMaxPps(), getPackets);
+  verifyRate("pps", kQueueId0Dscp(), kMaxPps(), getPackets);
 }
 
 TEST_F(HwPortBandwidthTest, VerifyKbps) {
@@ -207,7 +213,7 @@ TEST_F(HwPortBandwidthTest, VerifyKbps) {
     return (outBytes * 8) / 1000;
   };
 
-  verifyRateHelper("kbps", kQueueId1Dscp(), kMaxKbps(), getKbits);
+  verifyRate("kbps", kQueueId1Dscp(), kMaxKbps(), getKbits);
 }
 
 } // namespace facebook::fboss
