@@ -37,18 +37,21 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
     return cfg;
   }
 
-  void _configureBandwidth(cfg::SwitchConfig* config) const {
+  void _configureBandwidth(
+      cfg::SwitchConfig* config,
+      uint32_t maxPps,
+      uint32_t maxKbps) const {
     if (isSupported(HwAsic::Feature::SCHEDULER_PPS)) {
       auto& queue0 =
           config->portQueueConfigs_ref()["queue_config"][kQueueId0()];
       queue0.portQueueRate_ref() = cfg::PortQueueRate();
       queue0.portQueueRate_ref()->pktsPerSec_ref() =
-          utility::getRange(kMinPps(), kMaxPps());
+          utility::getRange(kMinPps(), maxPps);
     }
     auto& queue1 = config->portQueueConfigs_ref()["queue_config"][kQueueId1()];
     queue1.portQueueRate_ref() = cfg::PortQueueRate();
     queue1.portQueueRate_ref()->kbitsPerSec_ref() =
-        utility::getRange(kMinKbps(), kMaxKbps());
+        utility::getRange(kMinKbps(), maxKbps);
   }
 
   template <typename ECMP_HELPER>
@@ -107,8 +110,8 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
     return 0;
   }
 
-  uint32_t kMaxPps() const {
-    return 100;
+  std::vector<uint32_t> kMaxPpsValues() const {
+    return {100, 500, 1000, 100};
   }
 
   uint8_t kQueueId1() const {
@@ -123,8 +126,8 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
     return 0;
   }
 
-  uint32_t kMaxKbps() const {
-    return 100000;
+  std::vector<uint32_t> kMaxKbpsValues() const {
+    return {100000, 500000, 1000000, 100000};
   }
 
   template <typename GetQueueOutCntT>
@@ -178,7 +181,8 @@ void HwPortBandwidthTest::verifyRate(
 
   auto setup = [=]() {
     auto newCfg{initialConfig()};
-    _configureBandwidth(&newCfg);
+    _configureBandwidth(
+        &newCfg, kMaxPpsValues().front(), kMaxKbpsValues().front());
     applyNewConfig(newCfg);
 
     setupHelper();
@@ -202,7 +206,7 @@ TEST_F(HwPortBandwidthTest, VerifyPps) {
         .at(kQueueId0());
   };
 
-  verifyRate("pps", kQueueId0Dscp(), kMaxPps(), getPackets);
+  verifyRate("pps", kQueueId0Dscp(), kMaxPpsValues().front(), getPackets);
 }
 
 TEST_F(HwPortBandwidthTest, VerifyKbps) {
@@ -213,7 +217,7 @@ TEST_F(HwPortBandwidthTest, VerifyKbps) {
     return (outBytes * 8) / 1000;
   };
 
-  verifyRate("kbps", kQueueId1Dscp(), kMaxKbps(), getKbits);
+  verifyRate("kbps", kQueueId1Dscp(), kMaxKbpsValues().front(), getKbits);
 }
 
 } // namespace facebook::fboss
