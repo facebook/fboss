@@ -29,6 +29,8 @@ class MultiNodeTest : public AgentTest {
       VlanID vlan,
       PortDescriptor port) const;
   bool isDUT() const;
+  std::vector<PortID> testPorts() const;
+  std::vector<std::string> testPortNames() const;
 
  private:
   bool runVerification() const override {

@@ -108,6 +108,14 @@ bool MultiNodeTest::isDUT() const {
   return !FLAGS_nodeZ;
 }
 
+std::vector<PortID> MultiNodeTest::testPorts() const {
+  return {PortID(FLAGS_multiNodeTestPort1), PortID(FLAGS_multiNodeTestPort2)};
+}
+
+std::vector<std::string> MultiNodeTest::testPortNames() const {
+  return getPortNames(testPorts());
+}
+
 int mulitNodeTestMain(int argc, char** argv, PlatformInitFn initPlatformFn) {
   ::testing::InitGoogleTest(&argc, argv);
   initAgentTest(argc, argv, initPlatformFn);

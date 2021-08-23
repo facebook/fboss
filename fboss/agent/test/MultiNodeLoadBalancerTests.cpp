@@ -21,12 +21,6 @@
 
 using namespace facebook::fboss;
 
-DECLARE_bool(enable_lacp);
-
-namespace {
-constexpr int kMaxRetries{60};
-} // unnamed namespace
-
 class MultiNodeLoadBalancerTest : public MultiNodeTest {
  public:
   void SetUp() override {
@@ -95,7 +89,7 @@ class MultiNodeLoadBalancerTest : public MultiNodeTest {
   cfg::SwitchConfig initialConfig() const override {
     auto config = utility::onePortPerVlanConfig(
         platform()->getHwSwitch(),
-        {PortID(FLAGS_multiNodeTestPort1), PortID(FLAGS_multiNodeTestPort2)},
+        testPorts(),
         cfg::PortLoopbackMode::NONE,
         true /*interfaceHasSubnet*/,
         false /*setInterfaceMac*/);
