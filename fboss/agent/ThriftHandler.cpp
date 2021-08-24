@@ -513,6 +513,28 @@ void translateToFibError(const FbossHwUpdateError& updError) {
       });
   throw fibError;
 }
+cfg::PortLoopbackMode toLoopbackMode(PortLoopbackMode mode) {
+  switch (mode) {
+    case PortLoopbackMode::NONE:
+      return cfg::PortLoopbackMode::NONE;
+    case PortLoopbackMode::MAC:
+      return cfg::PortLoopbackMode::MAC;
+    case PortLoopbackMode::PHY:
+      return cfg::PortLoopbackMode::PHY;
+  }
+  throw FbossError("Bogus loopback mode: ", mode);
+}
+PortLoopbackMode toThriftLoopbackMode(cfg::PortLoopbackMode mode) {
+  switch (mode) {
+    case cfg::PortLoopbackMode::NONE:
+      return PortLoopbackMode::NONE;
+    case cfg::PortLoopbackMode::MAC:
+      return PortLoopbackMode::MAC;
+    case cfg::PortLoopbackMode::PHY:
+      return PortLoopbackMode::PHY;
+  }
+  throw FbossError("Bogus loopback mode: ", mode);
+}
 } // namespace
 
 namespace facebook::fboss {
@@ -1209,17 +1231,43 @@ void ThriftHandler::setPortState(int32_t portNum, bool enable) {
   sw_->updateStateBlocking("set port state", updateFn);
 }
 
-void ThriftHandler::setPortLoopbackMode(int32_t portId, PortLoopbackMode mode) {
-  auto log = LOG_THRIFT_CALL(DBG1, portId, mode);
+void ThriftHandler::setPortLoopbackMode(
+    int32_t portNum,
+    PortLoopbackMode mode) {
+  auto log = LOG_THRIFT_CALL(DBG1, portNum, mode);
   ensureConfigured(__func__);
-  throw FbossError("TODO");
+  PortID portId = PortID(portNum);
+  const auto port = sw_->getState()->getPorts()->getPortIf(portId);
+  if (!port) {
+    throw FbossError("no such port ", portNum);
+  }
+
+  auto newLoopbackMode = toLoopbackMode(mode);
+
+  if (port->getLoopbackMode() == newLoopbackMode) {
+    XLOG(DBG2) << "setPortState: port already set to lb mode : "
+               << static_cast<int>(newLoopbackMode);
+    return;
+  }
+
+  auto updateFn = [portId,
+                   newLoopbackMode](const shared_ptr<SwitchState>& state) {
+    const auto oldPort = state->getPorts()->getPortIf(portId);
+    shared_ptr<SwitchState> newState{state};
+    auto newPort = oldPort->modify(&newState);
+    newPort->setLoopbackMode(newLoopbackMode);
+    return newState;
+  };
+  sw_->updateStateBlocking("set port loopback mode", updateFn);
 }
 
 void ThriftHandler::getAllPortLoopbackMode(
     std::map<int32_t, PortLoopbackMode>& port2LbMode) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  throw FbossError("TODO");
+  for (auto& port : *sw_->getState()->getPorts()) {
+    port2LbMode[port->getID()] = toThriftLoopbackMode(port->getLoopbackMode());
+  }
 }
 
 void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
