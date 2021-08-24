@@ -20,6 +20,7 @@
 #include <optional>
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/StateObserver.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
@@ -121,6 +122,15 @@ void waitForNeighborCacheThread(SwSwitch* sw);
  * done
  */
 void waitForRibUpdates(SwSwitch* sw);
+
+/*
+ * Update Blocked Neighbors list and wait for updates
+ */
+void updateBlockedNeighbor(
+    SwSwitch* sw,
+    VlanID vlanID,
+    const std::vector<folly::IPAddress>& ipAddresses);
+
 /**
  * check the field value
  */

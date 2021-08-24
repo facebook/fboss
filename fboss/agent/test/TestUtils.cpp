@@ -594,4 +594,30 @@ void programRoutes(
   }
   updater.program();
 }
+
+void updateBlockedNeighbor(
+    SwSwitch* sw,
+    VlanID vlanID,
+    const std::vector<folly::IPAddress>& ipAddresses) {
+  sw->updateStateBlocking(
+      "Update blocked neighbors ",
+      [=](const std::shared_ptr<SwitchState>& state) {
+        std::shared_ptr<SwitchState> newState{state};
+
+        auto newSwitchSettings = state->getSwitchSettings()->modify(&newState);
+
+        std::vector<std::pair<VlanID, folly::IPAddress>> blockNeighbors;
+        for (const auto& ipAddress : ipAddresses) {
+          blockNeighbors.push_back(std::make_pair(vlanID, ipAddress));
+        }
+        newSwitchSettings->setBlockNeighbors(blockNeighbors);
+        return newState;
+      });
+
+  waitForStateUpdates(sw);
+  sw->getNeighborUpdater()->waitForPendingUpdates();
+  waitForBackgroundThread(sw);
+  waitForStateUpdates(sw);
+}
+
 } // namespace facebook::fboss

@@ -104,6 +104,9 @@ class LookupClassUpdaterTest : public ::testing::Test {
   MacAddress kMacAddress2() const {
     return MacAddress("01:02:03:04:05:07");
   }
+  SwSwitch* getSw() const {
+    return sw_;
+  }
 
   void resolveNeighbor(IPAddress ipAddress, MacAddress macAddress) {
     /*
@@ -481,34 +484,11 @@ class LookupClassUpdaterNeighborTest : public LookupClassUpdaterTest<AddrT> {
         3);
   }
 
-  void updateBlockedNeighbor(const std::vector<IPAddress>& ipAddresses) {
-    this->updateState(
-        "Update blocked neighbors ",
-        [=](const std::shared_ptr<SwitchState>& state) {
-          std::shared_ptr<SwitchState> newState{state};
-
-          auto newSwitchSettings =
-              state->getSwitchSettings()->modify(&newState);
-
-          std::vector<std::pair<VlanID, folly::IPAddress>> blockNeighbors;
-          for (const auto& ipAddress : ipAddresses) {
-            blockNeighbors.push_back(std::make_pair(this->kVlan(), ipAddress));
-          }
-          newSwitchSettings->setBlockNeighbors(blockNeighbors);
-          return newState;
-        });
-
-    waitForStateUpdates(this->sw_);
-    this->sw_->getNeighborUpdater()->waitForPendingUpdates();
-    waitForBackgroundThread(this->sw_);
-    waitForStateUpdates(this->sw_);
-  }
-
   void verifyMultipleBlockedNeighborHelper(
       const std::vector<IPAddress>& blockNeighbors,
       cfg::AclLookupClass classID1,
       cfg::AclLookupClass classID2) {
-    this->updateBlockedNeighbor(blockNeighbors);
+    updateBlockedNeighbor(this->getSw(), this->kVlan(), blockNeighbors);
     this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
       this->verifyClassIDHelper(
           this->getIpAddress(), this->kMacAddress(), classID1);
@@ -594,7 +574,7 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, staticL2EntriesForResolvedNeighbor) {
 }
 
 TYPED_TEST(LookupClassUpdaterNeighborTest, BlockNeighborThenResolve) {
-  this->updateBlockedNeighbor({this->getIpAddress()});
+  updateBlockedNeighbor(this->getSw(), this->kVlan(), {this->getIpAddress()});
   this->resolve(this->getIpAddress(), this->kMacAddress());
   this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
     this->verifyClassIDHelper(
@@ -606,7 +586,7 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, BlockNeighborThenResolve) {
 
 TYPED_TEST(LookupClassUpdaterNeighborTest, ResolveThenBlockNeighbor) {
   this->resolve(this->getIpAddress(), this->kMacAddress());
-  this->updateBlockedNeighbor({this->getIpAddress()});
+  updateBlockedNeighbor(this->getSw(), this->kVlan(), {this->getIpAddress()});
   this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
     this->verifyClassIDHelper(
         this->getIpAddress(),
@@ -646,7 +626,7 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, NeighborBlockMacChange) {
       this->getIpAddress(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
 
   // block neighbor
-  this->updateBlockedNeighbor({this->getIpAddress()});
+  updateBlockedNeighbor(this->getSw(), this->kVlan(), {this->getIpAddress()});
   this->verifyMacClassIDHelper(
       this->kMacAddress(),
       cfg::AclLookupClass::CLASS_DROP,
@@ -664,7 +644,7 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, NeighborBlockMacChange) {
       this->getIpAddress(), cfg::AclLookupClass::CLASS_DROP);
 
   // unblock neighbor
-  this->updateBlockedNeighbor({});
+  updateBlockedNeighbor(this->getSw(), this->kVlan(), {});
   this->verifyMacClassIDHelper(
       this->kMacAddress2(),
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
