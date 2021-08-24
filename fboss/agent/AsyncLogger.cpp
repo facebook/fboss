@@ -34,6 +34,8 @@ static BufferToWrite currentBuffer = BUFFER0;
 static std::array<char, facebook::fboss::AsyncLogger::kBufferSize> buffer0;
 static std::array<char, facebook::fboss::AsyncLogger::kBufferSize> buffer1;
 
+static std::mutex bootTypeLatch_;
+
 namespace {
 
 constexpr auto kBuildRevision = "build_revision";
@@ -97,7 +99,12 @@ AsyncLogger::~AsyncLogger() {
 }
 
 void AsyncLogger::setBootType(bool canWarmBoot) {
+  // Temporary workaround to unblock link testing T98189367.
+  // Since qsfp service now creates multiple instances of Sai Switch, we'll need
+  // to create one Sai Replayer and Logger per Sai switch instance.
+  bootTypeLatch_.lock();
   isWarmBoot = canWarmBoot;
+  bootTypeLatch_.unlock();
 }
 
 void AsyncLogger::worker_thread() {
