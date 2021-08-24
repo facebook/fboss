@@ -1356,3 +1356,39 @@ TEST_F(ThriftTest, getRouteTableVerifyCounterID) {
   handler.getIpRoute(route, std::move(addr), RouterID(0));
   EXPECT_EQ(*route.counterID_ref(), *counterID1);
 }
+
+TEST_F(ThriftTest, getLoopbackMode) {
+  ThriftHandler handler(sw_);
+  std::map<int32_t, PortLoopbackMode> port2LoopbackMode;
+  handler.getAllPortLoopbackMode(port2LoopbackMode);
+  EXPECT_EQ(port2LoopbackMode.size(), sw_->getState()->getPorts()->size());
+  std::for_each(
+      port2LoopbackMode.begin(),
+      port2LoopbackMode.end(),
+      [](auto& portAndLbMode) {
+        EXPECT_EQ(portAndLbMode.second, PortLoopbackMode::NONE);
+      });
+}
+
+TEST_F(ThriftTest, setLoopbackMode) {
+  ThriftHandler handler(sw_);
+  std::map<int32_t, PortLoopbackMode> port2LoopbackMode;
+  auto firstPort = (*sw_->getState()->getPorts()->begin())->getID();
+  auto otherPortsUnchanged = [firstPort, this]() {
+    for (auto& port : *sw_->getState()->getPorts()) {
+      if (port->getID() != firstPort) {
+        EXPECT_EQ(port->getLoopbackMode(), cfg::PortLoopbackMode::NONE);
+      }
+    }
+  };
+
+  for (auto lbMode :
+       {PortLoopbackMode::MAC, PortLoopbackMode::PHY, PortLoopbackMode::NONE}) {
+    // MAC
+    handler.setPortLoopbackMode(firstPort, lbMode);
+    handler.getAllPortLoopbackMode(port2LoopbackMode);
+    EXPECT_EQ(port2LoopbackMode.size(), sw_->getState()->getPorts()->size());
+    EXPECT_EQ(port2LoopbackMode.find(firstPort)->second, lbMode);
+    otherPortsUnchanged();
+  }
+}
