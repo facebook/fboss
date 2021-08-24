@@ -90,6 +90,19 @@ void AgentTest::setPortStatus(PortID portId, bool up) {
   sw()->updateStateBlocking("set port state", configFnLinkDown);
 }
 
+void AgentTest::setPortLoopbackMode(PortID portId, cfg::PortLoopbackMode mode) {
+  auto setLbMode = [=](const std::shared_ptr<SwitchState>& state) {
+    auto newState = state->clone();
+    auto ports = newState->getPorts()->clone();
+    auto port = ports->getPort(portId)->clone();
+    port->setLoopbackMode(mode);
+    ports->updateNode(port);
+    newState->resetPorts(ports);
+    return newState;
+  };
+  sw()->updateStateBlocking("set port loopback mode", setLbMode);
+}
+
 // Returns the port names for a given list of portIDs
 std::vector<std::string> AgentTest::getPortNames(
     const std::vector<PortID>& ports) const {

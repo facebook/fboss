@@ -30,6 +30,7 @@ class AgentTest : public ::testing::Test, public AgentInitializer {
       std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
           std::chrono::milliseconds(1000)) const;
   void setPortStatus(PortID port, bool up);
+  void setPortLoopbackMode(PortID port, cfg::PortLoopbackMode mode);
   std::vector<std::string> getPortNames(const std::vector<PortID>& ports) const;
   void waitForLinkStatus(
       const std::vector<PortID>& portsToCheck,
