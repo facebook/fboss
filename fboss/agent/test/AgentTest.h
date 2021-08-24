@@ -85,7 +85,7 @@ class AgentTest : public ::testing::Test, public AgentInitializer {
       CONDITION_FN condition,
       int retries = 10,
       std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
-          std::chrono::milliseconds(1000)) {
+          std::chrono::milliseconds(1000)) const {
     while (retries--) {
       if (condition()) {
         return;

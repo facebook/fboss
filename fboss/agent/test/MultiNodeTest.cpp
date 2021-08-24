@@ -94,7 +94,8 @@ void MultiNodeTest::checkNeighborResolved(
   }
 }
 
-std::unique_ptr<FbossCtrlAsyncClient> MultiNodeTest::getRemoteThriftClient() {
+std::unique_ptr<FbossCtrlAsyncClient> MultiNodeTest::getRemoteThriftClient()
+    const {
   folly::EventBase* eb = folly::EventBaseManager::get()->getEventBase();
   auto remoteSwitchIp = facebook::network::NetworkUtil::getHostByName(
       FLAGS_multiNodeTestRemoteSwitchName);

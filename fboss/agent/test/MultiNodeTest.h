@@ -22,7 +22,7 @@ class MultiNodeTest : public AgentTest {
   void SetUp() override;
   void setupConfigFlag() override;
 
-  std::unique_ptr<FbossCtrlAsyncClient> getRemoteThriftClient();
+  std::unique_ptr<FbossCtrlAsyncClient> getRemoteThriftClient() const;
 
   void checkNeighborResolved(
       const folly::IPAddress& ip,
