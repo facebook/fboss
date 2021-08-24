@@ -44,6 +44,25 @@ class MultiNodeLoadBalancerTest : public MultiNodeTest {
     addRoute(folly::IPAddress("0.0.0.0"), makeNextHops(getV4Neighbors()));
     addRoute(folly::IPAddress("::"), makeNextHops(getV6Neighbors()));
   }
+  std::map<PortID, std::vector<folly::IPAddress>> getPort2DesiredNeighbors()
+      const {
+    std::map<PortID, std::vector<folly::IPAddress>> port2Nbrs;
+    for (auto nbrIp : getNeighbors()) {
+      auto state = sw()->getState();
+      auto intfToReach = state->getInterfaces()
+                             ->getIntfAddrToReach(RouterID(0), nbrIp)
+                             .intf->getID();
+      for (auto portId : testPorts()) {
+        auto vlan = state->getPort(portId)->getVlans().begin()->first;
+        if (intfToReach ==
+            state->getInterfaces()->getInterfaceInVlan(vlan)->getID()) {
+          port2Nbrs[portId].push_back(nbrIp);
+        }
+      }
+    }
+    CHECK_EQ(port2Nbrs.size(), testPorts().size());
+    return port2Nbrs;
+  }
 
  private:
   std::vector<folly::IPAddress> getNeighbors() const {
