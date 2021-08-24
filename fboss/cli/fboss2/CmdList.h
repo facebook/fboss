@@ -25,22 +25,60 @@ using CmdObject = std::string;
 using CmdSubCmd = std::string;
 using CmdHelpMsg = std::string;
 
-const std::vector<std::tuple<
-    std::string,
-    std::string,
-    utils::ObjectArgTypeId,
-    std::string,
-    std::string,
-    CommandHandlerFn>>&
-kListOfCommands();
-const std::vector<std::tuple<
-    std::string,
-    std::string,
-    utils::ObjectArgTypeId,
-    std::string,
-    std::string,
-    CommandHandlerFn>>&
-kListOfAdditionalCommands();
+struct Command {
+  Command(
+      const std::string& name,
+      const utils::ObjectArgTypeId argType,
+      const std::string& help,
+      const CommandHandlerFn& handler,
+      const std::vector<Command>& subcommands = {})
+      : name{name},
+        argType{argType},
+        help{help},
+        handler{handler},
+        subcommands{subcommands} {}
+
+  // Some commands don't have handlers and only have more subcommands
+  Command(
+      const std::string& name,
+      const std::string& help,
+      const std::vector<Command>& subcommands)
+      : name{name},
+        argType{utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE},
+        help{help},
+        subcommands{subcommands} {}
+
+  const std::string name;
+  const utils::ObjectArgTypeId argType;
+  const std::string help;
+  const std::optional<CommandHandlerFn> handler;
+  const std::vector<Command> subcommands;
+};
+
+struct RootCommand : public Command {
+  RootCommand(
+      const std::string& verb,
+      const std::string& object,
+      const utils::ObjectArgTypeId argType,
+      const std::string& help,
+      const CommandHandlerFn& handler,
+      const std::vector<Command>& subcommands = {})
+      : Command(object, argType, help, handler, subcommands), verb{verb} {}
+
+  RootCommand(
+      const std::string& verb,
+      const std::string& name,
+      const std::string& help,
+      const std::vector<Command>& subcommands)
+      : Command(name, help, subcommands), verb{verb} {}
+
+  std::string verb;
+};
+
+using CommandTree = std::vector<RootCommand>;
+
+const CommandTree& kCommandTree();
+const CommandTree& kAdditionalCommandTree();
 
 template <typename T>
 void commandHandler() {

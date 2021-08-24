@@ -12,24 +12,9 @@
 
 namespace facebook::fboss {
 
-const std::vector<std::tuple<
-    CmdVerb,
-    CmdObject,
-    utils::ObjectArgTypeId,
-    CmdSubCmd,
-    CmdHelpMsg,
-    CommandHandlerFn>>&
-kListOfAdditionalCommands() {
-  static const std::vector<std::tuple<
-      CmdVerb,
-      CmdObject,
-      utils::ObjectArgTypeId,
-      CmdSubCmd,
-      CmdHelpMsg,
-      CommandHandlerFn>>
-      listOfAdditionalCommands;
-
-  return listOfAdditionalCommands;
+const CommandTree& kAdditionalCommandTree() {
+  static const CommandTree root = {};
+  return root;
 }
 
 } // namespace facebook::fboss

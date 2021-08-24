@@ -9,9 +9,11 @@
  */
 
 #include "fboss/cli/fboss2/CmdSubcommands.h"
+#include "fboss/cli/fboss2/CmdList.h"
 #include "fboss/cli/fboss2/utils/CLIParserUtils.h"
 
 #include <folly/Singleton.h>
+#include <stdexcept>
 
 namespace {
 struct singleton_tag_type {};
@@ -36,44 +38,41 @@ std::shared_ptr<CmdSubcommands> CmdSubcommands::getInstance() {
 
 namespace facebook::fboss {
 
-void CmdSubcommands::initHelper(
-    CLI::App& app,
-    const std::vector<std::tuple<
-        CmdVerb,
-        CmdObject,
-        utils::ObjectArgTypeId,
-        CmdSubCmd,
-        CmdHelpMsg,
-        CommandHandlerFn>>& listOfCommands) {
-  for (
-      const auto& [verb, object, objectArgType, subCmd, helpMsg, commandHandlerFn] :
-      listOfCommands) {
-    auto* verbCmd = utils::getSubcommandIf(app, verb);
+void CmdSubcommands::addCommandBranch(CLI::App& app, const Command& cmd) {
+  // Command should not already exists since we only traverse the tree once
+  if (utils::getSubcommandIf(app, cmd.name)) {
+    // TODO explore moving this check to a compile time check
+    std::runtime_error("Command already exists, command tree must be invalid");
+  }
+  auto* subCmd = app.add_subcommand(cmd.name, cmd.help);
+  if (auto& handler = cmd.handler) {
+    subCmd->callback(*handler);
 
+    if (cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST) {
+      subCmd->add_option("ipv6Addrs", ipv6Addrs_, "IPv6 addr(s)");
+    } else if (
+        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST) {
+      subCmd->add_option("ports", ports_, "Port(s)");
+    }
+  }
+
+  for (const auto& child : cmd.subcommands) {
+    addCommandBranch(*subCmd, child);
+  }
+}
+
+void CmdSubcommands::initCommandTree(
+    CLI::App& app,
+    const CommandTree& cmdTree) {
+  for (const auto& cmd : cmdTree) {
+    auto& verb = cmd.verb;
+    auto* verbCmd = utils::getSubcommandIf(app, verb);
     // TODO explore moving this check to a compile time check
     if (!verbCmd) {
       throw std::runtime_error("unsupported verb " + verb);
     }
 
-    auto* objectCmd = utils::getSubcommandIf(*verbCmd, object);
-    if (!objectCmd) {
-      objectCmd = verbCmd->add_subcommand(object, helpMsg);
-      objectCmd->callback(commandHandlerFn);
-
-      if (objectArgType ==
-          utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST) {
-        objectCmd->add_option("ipv6Addrs", ipv6Addrs_, "IPv6 addr(s)");
-      } else if (
-          objectArgType ==
-          utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST) {
-        objectCmd->add_option("ports", ports_, "Port(s)");
-      }
-    }
-
-    if (!subCmd.empty()) {
-      auto* objectSubCmd = objectCmd->add_subcommand(subCmd, helpMsg);
-      objectSubCmd->callback(commandHandlerFn);
-    }
+    addCommandBranch(*verbCmd, cmd);
   }
 }
 
@@ -82,8 +81,8 @@ void CmdSubcommands::init(CLI::App& app) {
     app.add_subcommand(verb, helpMsg);
   }
 
-  initHelper(app, kListOfCommands());
-  initHelper(app, kListOfAdditionalCommands());
+  initCommandTree(app, kCommandTree());
+  initCommandTree(app, kAdditionalCommandTree());
 }
 
 } // namespace facebook::fboss

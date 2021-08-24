@@ -37,15 +37,8 @@ class CmdSubcommands {
   }
 
  private:
-  void initHelper(
-      CLI::App& app,
-      const std::vector<std::tuple<
-          CmdVerb,
-          CmdObject,
-          utils::ObjectArgTypeId,
-          CmdSubCmd,
-          CmdHelpMsg,
-          CommandHandlerFn>>& listOfCommands);
+  void addCommandBranch(CLI::App& app, const Command& cmd);
+  void initCommandTree(CLI::App& app, const CommandTree& cmdTree);
 
   std::vector<std::string> ipv6Addrs_;
   std::vector<std::string> ports_;
