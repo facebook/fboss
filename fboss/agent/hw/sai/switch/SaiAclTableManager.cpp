@@ -448,26 +448,22 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 
   std::optional<SaiAclEntryTraits::Attributes::FieldSrcPort> fieldSrcPort{
       std::nullopt};
-  if (addedAclEntry->getSrcPort()) {
-    if (addedAclEntry->getSrcPort().value() ==
-        cfg::switch_config_constants::CPU_PORT_LOGICALID()) {
-      fieldSrcPort = SaiAclEntryTraits::Attributes::FieldSrcPort{
-          AclEntryFieldSaiObjectIdT(std::make_pair(
-              managerTable_->switchManager().getCpuPort(), kMaskDontCare))};
-    } else {
-      auto portHandle = managerTable_->portManager().getPortHandle(
-          PortID(addedAclEntry->getSrcPort().value()));
-      if (!portHandle) {
-        throw FbossError(
-            "attempted to configure srcPort: ",
-            addedAclEntry->getSrcPort().value(),
-            " ACL:",
-            addedAclEntry->getID());
-      }
-      fieldSrcPort =
-          SaiAclEntryTraits::Attributes::FieldSrcPort{AclEntryFieldSaiObjectIdT(
-              std::make_pair(portHandle->port->adapterKey(), kMaskDontCare))};
+  // TODO(skhare) support cpu source port (SaiCpuPortHandle)
+  if (addedAclEntry->getSrcPort() &&
+      addedAclEntry->getSrcPort().value() !=
+          cfg::switch_config_constants::CPU_PORT_LOGICALID()) {
+    auto portHandle = managerTable_->portManager().getPortHandle(
+        PortID(addedAclEntry->getSrcPort().value()));
+    if (!portHandle) {
+      throw FbossError(
+          "attempted to configure srcPort: ",
+          addedAclEntry->getSrcPort().value(),
+          " ACL:",
+          addedAclEntry->getID());
     }
+    fieldSrcPort =
+        SaiAclEntryTraits::Attributes::FieldSrcPort{AclEntryFieldSaiObjectIdT(
+            std::make_pair(portHandle->port->adapterKey(), kMaskDontCare))};
   }
 
   std::optional<SaiAclEntryTraits::Attributes::FieldOutPort> fieldOutPort{
@@ -625,18 +621,13 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             addedAclEntry->getLookupClassL2().value()))};
   }
 
+  // TODO(skhare) Support all other ACL actions
   std::optional<SaiAclEntryTraits::Attributes::ActionPacketAction>
       aclActionPacketAction{std::nullopt};
   const auto& act = addedAclEntry->getActionType();
-  switch (act) {
-    case cfg::AclActionType::DENY:
-      aclActionPacketAction = SaiAclEntryTraits::Attributes::ActionPacketAction{
-          SAI_PACKET_ACTION_DROP};
-      break;
-    case cfg::AclActionType::PERMIT:
-      aclActionPacketAction = SaiAclEntryTraits::Attributes::ActionPacketAction{
-          SAI_PACKET_ACTION_FORWARD};
-      break;
+  if (act == cfg::AclActionType::DENY) {
+    aclActionPacketAction = SaiAclEntryTraits::Attributes::ActionPacketAction{
+        SAI_PACKET_ACTION_DROP};
   }
 
   std::shared_ptr<SaiAclCounter> saiAclCounter{nullptr};
@@ -789,12 +780,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        aclActionMirrorEgress.has_value() || aclActionMacsecFlow.has_value());
 
   if (!(matcherIsValid && actionIsValid)) {
-    // TODO(pshaikh): refactor this better so this validation can be done prior
-    // to state delta apply.
-    throw FbossError(
-        "acl entry ",
-        addedAclEntry->getID(),
-        " has unsupported field or action");
+    XLOG(WARNING) << "Unsupported field/action for aclEntry: "
+                  << addedAclEntry->getID();
+    return AclEntrySaiId{0};
   }
 
   SaiAclEntryTraits::AdapterHostKey adapterHostKey{aclTableId, priority};
