@@ -285,6 +285,12 @@ enum PortOperState {
   UP = 1,
 }
 
+enum PortLoopbackMode {
+  NONE = 0,
+  MAC = 1,
+  PHY = 2,
+}
+
 struct LinearQueueCongestionDetection {
   1: i32 minimumLength;
   2: i32 maximumLength;
@@ -834,6 +840,18 @@ service FbossCtrl extends fb303.FacebookService {
   void setPortState(1: i32 portId, 2: bool enable) throws (
     1: fboss.FbossBaseError error,
   );
+
+  /*
+   * Set loopback mode for a port. Primarily used by tests
+   */
+  void setPortLoopbackMode(1: i32 portId, 2: PortLoopbackMode mode) throws (
+    1: fboss.FbossBaseError error
+  );
+
+  map<i32, PortLoopbackMode> getAllPortLoopbackMode() throws (
+    1: fboss.FbossBaseError error
+  );
+
 
   /*
    * Change the PRBS setting on a port. Useful when debugging a link

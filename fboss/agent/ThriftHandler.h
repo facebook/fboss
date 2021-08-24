@@ -170,6 +170,9 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::map<int32_t, PortStatus>& status,
       std::unique_ptr<std::vector<int32_t>> ports) override;
   void setPortState(int32_t portId, bool enable) override;
+  void setPortLoopbackMode(int32_t portId, PortLoopbackMode mode) override;
+  void getAllPortLoopbackMode(
+      std::map<int32_t, PortLoopbackMode>& port2LbMode) override;
   void clearPortPrbsStats(int32_t portId, PrbsComponent component) override;
   void getPortPrbsStats(
       PrbsStats& prbsStats,

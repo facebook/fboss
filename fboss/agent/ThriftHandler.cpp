@@ -1209,6 +1209,19 @@ void ThriftHandler::setPortState(int32_t portNum, bool enable) {
   sw_->updateStateBlocking("set port state", updateFn);
 }
 
+void ThriftHandler::setPortLoopbackMode(int32_t portId, PortLoopbackMode mode) {
+  auto log = LOG_THRIFT_CALL(DBG1, portId, mode);
+  ensureConfigured(__func__);
+  throw FbossError("TODO");
+}
+
+void ThriftHandler::getAllPortLoopbackMode(
+    std::map<int32_t, PortLoopbackMode>& port2LbMode) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
+  throw FbossError("TODO");
+}
+
 void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
